@@ -2,8 +2,8 @@
  *
  * XPDFILE.C - File-based performance data routines
  *
- * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2002
+ * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-11-2003
  *
  * License:
  *
@@ -212,6 +212,12 @@ int xpdfile_cleanup_performance_data(char *config_file){
 	free(xpdfile_service_perfdata_template);
 	free(xpdfile_host_perfdata_file);
 	free(xpdfile_service_perfdata_file);
+
+	/* close the files */
+	if(xpdfile_service_perfdata_fp!=NULL)
+		fclose(xpdfile_service_perfdata_fp);
+	if(xpdfile_host_perfdata_fp!=NULL)
+		fclose(xpdfile_host_perfdata_fp);
 
 	return OK;
         }

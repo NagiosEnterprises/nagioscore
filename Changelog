@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0b2 - ??/??/????
 ------------------
+* Event broker bug fixes
 * Removed (un)setenv() calls for systems that don't support it
 * Fixed problem with installing sample config files
 * Sample config file fix

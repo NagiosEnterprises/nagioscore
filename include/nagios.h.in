@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-08-2004
+ * Last Modified: 12-19-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -501,6 +501,7 @@ int close_command_file(void);				/* closes and deletes the external command file
 /**** Monitoring/Event Handler Functions ****/
 int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *); /* schedules a new timed event */
 void reschedule_event(timed_event *,timed_event **);   	/* reschedules an event */
+int deschedule_event(int,int,void *,void *);            /* removes an event from the schedule */
 void add_event(timed_event *,timed_event **);     	/* adds an event to the execution queue */
 void remove_event(timed_event *,timed_event **);     	/* remove an event from the execution queue */
 int event_execution_loop(void);                      	/* main monitoring/event handler loop */

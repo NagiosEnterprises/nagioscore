@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-29-2004
+ * Last Modified:   12-19-2004
  *
  * License:
  *
@@ -742,6 +742,44 @@ void reschedule_event(timed_event *event,timed_event **event_list){
 	return;
         }
 
+
+/* remove event from schedule */
+int deschedule_event(int event_type, int high_priority, void *event_data, void *event_args){
+	timed_event **event_list;
+	timed_event *temp_event;
+	int found=FALSE;
+	
+#ifdef DEBUG0
+	printf("deschedule_event() start\n");
+#endif
+
+	if(high_priority==TRUE)
+		event_list=&event_list_high;
+	else
+		event_list=&event_list_low;
+
+	for(temp_event=*event_list;temp_event!=NULL;temp_event=temp_event->next){
+		if(temp_event->event_type==event_type && temp_event->event_data==event_data && temp_event->event_args==event_args){
+			found=TRUE;
+			break;
+			}
+		}
+
+	/* remove the event from the event list */
+	if (found){
+		remove_event(temp_event,event_list);
+		free(temp_event);
+		}
+	else{
+		return ERROR; 
+		}
+
+#ifdef DEBUG0
+		printf("deschedule_event() end\n");
+#endif
+
+	return OK;
+	}
 
 
 /* add an event to list ordered by execution time */

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-02-2003
+ * Last Modified: 06-13-2003
  *
  * Description:
  *
@@ -6702,7 +6702,7 @@ xodtemplate_service *xodtemplate_find_service(char *name){
 	if(name==NULL || xodtemplate_service_list==NULL)
 		return NULL;
 
-	for(iptr=xodtemplate_service_list[hashfunc1(name,SERVICES_HASHSLOTS)];iptr && xodtemplate_service_comes_after(iptr, name);iptr=iptr->next);
+	for(iptr=xodtemplate_service_list[hashfunc1(name,SERVICE_HASHSLOTS)];iptr && xodtemplate_service_comes_after(iptr, name);iptr=iptr->next);
 
 	if(iptr && (compare_xodtemplate_service(iptr,name)==0))
 		return iptr;
@@ -8445,7 +8445,7 @@ int xodtemplate_free_memory(void){
 	/* free memory allocated to service list (chained hash) */
 	if(xodtemplate_service_list){
 
-		for(x=0;x<SERVICES_HASHSLOTS;x++){
+		for(x=0;x<SERVICE_HASHSLOTS;x++){
 			for(this_service=xodtemplate_service_list[x];this_service!=NULL;this_service=next_service){
 
 				next_service=this_service->next;
@@ -9284,16 +9284,16 @@ int xodtemplate_service_comes_after(xodtemplate_service *xod_service, const char
 
 int xodtemplate_add_service_allocated(xodtemplate_service *new_service){
 	xodtemplate_service *tempsvc, *lastpointer;
-	int hashslot=hashfunc1(new_service->name,SERVICES_HASHSLOTS);
+	int hashslot=hashfunc1(new_service->name,SERVICE_HASHSLOTS);
 
 	if(xodtemplate_service_list==NULL){
 		int i;
 
-		xodtemplate_service_list=(xodtemplate_service **)malloc(sizeof(xodtemplate_service *)*SERVICES_HASHSLOTS);
+		xodtemplate_service_list=(xodtemplate_service **)malloc(sizeof(xodtemplate_service *)*SERVICE_HASHSLOTS);
 		if(xodtemplate_service_list==NULL)
 			return 0;
 
-		for(i=0;i<SERVICES_HASHSLOTS;i++)
+		for(i=0;i<SERVICE_HASHSLOTS;i++)
 			xodtemplate_service_list[i]=NULL;
 	        }
 
@@ -9315,7 +9315,7 @@ int xodtemplate_add_service_allocated(xodtemplate_service *new_service){
 
 
 int xodtemplate_remove_pointer(xodtemplate_service *to_remove){
-	int hashslot=hashfunc1(to_remove->name,SERVICES_HASHSLOTS);
+	int hashslot=hashfunc1(to_remove->name,SERVICE_HASHSLOTS);
 	xodtemplate_service *tempsvc, *lastpointer;
 
 	if(xodtemplate_service_list==NULL)
@@ -9377,7 +9377,7 @@ xodtemplate_service *get_next_xodtemplate_service(void *v_cursor){
 	if(!cursor)
 		return NULL;
 
-	cursor->current_xodtemplate_service=get_next_N((void **)xodtemplate_service_list,SERVICES_HASHSLOTS,&(cursor->xodtemplate_service_iterator),cursor->current_xodtemplate_service,(cursor->current_xodtemplate_service?cursor->current_xodtemplate_service->next:NULL));
+	cursor->current_xodtemplate_service=get_next_N((void **)xodtemplate_service_list,SERVICE_HASHSLOTS,&(cursor->xodtemplate_service_iterator),cursor->current_xodtemplate_service,(cursor->current_xodtemplate_service?cursor->current_xodtemplate_service->next:NULL));
 
 	return cursor->current_xodtemplate_service;
         }

@@ -3,7 +3,7 @@
  * AUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2003
+ * Last Modified:   06-13-2003
  *
  * License:
  *
@@ -212,7 +212,7 @@ int is_authorized_for_host(host *hst, authdata *authinfo){
 		return TRUE;
 
 	/* find the contact */
-	temp_contact=find_contact(authinfo->username,NULL);
+	temp_contact=find_contact(authinfo->username);
 
 	/* see if this user is a contact for the host */
 	if(is_contact_for_host(hst,temp_contact)==TRUE)
@@ -295,7 +295,7 @@ int is_authorized_for_service(service *svc, authdata *authinfo){
 		return TRUE;
 
 	/* find the contact */
-	temp_contact=find_contact(authinfo->username,NULL);
+	temp_contact=find_contact(authinfo->username);
 
 	/* see if this user is a contact for the service */
 	if(is_contact_for_service(svc,temp_contact)==TRUE)
@@ -409,7 +409,7 @@ int is_authorized_for_service_commands(service *svc, authdata *authinfo){
 			return FALSE;
 
 		/* find the contact */
-		temp_contact=find_contact(authinfo->username,NULL);
+		temp_contact=find_contact(authinfo->username);
 
 		/* see if this user is a contact for the host */
 		if(is_contact_for_host(temp_host,temp_contact)==TRUE)
@@ -455,7 +455,7 @@ int is_authorized_for_host_commands(host *hst, authdata *authinfo){
 	if(is_authorized_for_host(hst,authinfo)==TRUE){
 
 		/* find the contact */
-		temp_contact=find_contact(authinfo->username,NULL);
+		temp_contact=find_contact(authinfo->username);
 
 		/* this user is a contact for the host, so they have permission... */
 		if(is_contact_for_host(hst,temp_contact)==TRUE)

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-11-2003
+ * Last Modified:   06-13-2003
  *
  * License:
  *
@@ -745,7 +745,7 @@ int create_notification_list_from_service(service *svc){
 			/* find each contact group in this escalation entry */
 			for(temp_group=temp_se->contact_groups;temp_group!=NULL;temp_group=temp_group->next){
 
-				temp_contactgroup=find_contactgroup(temp_group->group_name,NULL);
+				temp_contactgroup=find_contactgroup(temp_group->group_name);
 				if(temp_contactgroup==NULL)
 					continue;
 
@@ -1397,7 +1397,7 @@ int create_notification_list_from_host(host *hst){
 			/* find each contact group in this escalation entry */
 			for(temp_group=temp_he->contact_groups;temp_group!=NULL;temp_group=temp_group->next){
 
-				temp_contactgroup=find_contactgroup(temp_group->group_name,NULL);
+				temp_contactgroup=find_contactgroup(temp_group->group_name);
 				if(temp_contactgroup==NULL)
 					continue;
 

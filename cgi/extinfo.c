@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-09-2003
+ * Last Modified: 06-13-2003
  *
  * License:
  * 
@@ -225,7 +225,7 @@ int main(void){
 
 		/* find the hostgroup */
 		else if(display_type==DISPLAY_HOSTGROUP_INFO)
-			temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+			temp_hostgroup=find_hostgroup(hostgroup_name);
 
 		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL)){
 			printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
@@ -1487,7 +1487,7 @@ void show_hostgroup_info(void){
 
 
 	/* get host info */
-	temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+	temp_hostgroup=find_hostgroup(hostgroup_name);
 
 	/* make sure the user has rights to view hostgroup information */
 	if(is_authorized_for_hostgroup(temp_hostgroup,&current_authdata)==FALSE){

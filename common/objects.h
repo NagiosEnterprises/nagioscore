@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2003
+ * Last Modified:   06-13-2003
  *
  * License:
  *
@@ -40,10 +40,24 @@
 
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
-#define SERVICES_HASHSLOTS                      1024
-#define HOSTS_HASHSLOTS                         1024
-#define COMMANDS_HASHSLOTS                      256
-#define TIMEPERIODS_HASHSLOTS                   64
+
+/***************** CHAINED HASH LIMITS ****************/
+
+#define SERVICE_HASHSLOTS                      1024
+#define HOST_HASHSLOTS                         1024
+#define COMMAND_HASHSLOTS                      256
+#define TIMEPERIOD_HASHSLOTS                   64
+#define CONTACT_HASHSLOTS                      128
+#define CONTACTGROUP_HASHSLOTS                 64
+#define HOSTEXTINFO_HASHSLOTS                  1024
+#define SERVICEEXTINFO_HASHSLOTS               1024
+
+#define HOSTGROUP_HASHSLOTS                    128
+#define SERVICEGROUP_HASHSLOTS                 128
+#define HOSTDEPENDENCY_HASHSLOTS               1024
+#define SERVICEDEPENDENCY_HASHSLOTS            1024
+#define HOSTESCALATION_HASHSLOTS               1024
+#define SERVICEESCALATION_HASHSLOTS            1024
 
 
 
@@ -80,6 +94,7 @@ typedef struct contactgroup_struct{
 	char    *alias;
 	contactgroupmember *members;
 	struct	contactgroup_struct *next;
+	struct	contactgroup_struct *nexthash;
 	}contactgroup;
 
 
@@ -190,6 +205,7 @@ typedef struct hostgroup_struct{
 	char    *alias;
 	hostgroupmember *members;
 	struct	hostgroup_struct *next;
+	struct	hostgroup_struct *nexthash;
 	}hostgroup;
 
 
@@ -207,6 +223,7 @@ typedef struct servicegroup_struct{
 	char    *alias;
 	servicegroupmember *members;
 	struct	servicegroup_struct *next;
+	struct	servicegroup_struct *nexthash;
 	}servicegroup;
 
 
@@ -238,6 +255,7 @@ typedef struct contact_struct{
 	char	*host_notification_period;
 	char	*service_notification_period;
 	struct	contact_struct *next;
+	struct	contact_struct *nexthash;
 	}contact;
 
 
@@ -424,6 +442,7 @@ typedef struct hostextinfo_struct{
 	double z_3d;
 	int should_be_drawn;
 	struct hostextinfo_struct *next;
+	struct hostextinfo_struct *nexthash;
         }hostextinfo;
 
 
@@ -436,6 +455,7 @@ typedef struct serviceextinfo_struct{
 	char *icon_image;
 	char *icon_image_alt;
 	struct serviceextinfo_struct *next;
+	struct serviceextinfo_struct *nexthash;
         }serviceextinfo;
 
 
@@ -509,18 +529,19 @@ serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *);  
 /**** Object Search Functions ****/
 timeperiod * find_timeperiod(char *);						                /* finds a timeperiod object */
 host * find_host(char *);									/* finds a host object */
-hostgroup * find_hostgroup(char *, hostgroup *);						/* finds a hostgroup object */
-hostgroupmember *find_hostgroupmember(char *,hostgroup *,hostgroupmember *);			/* finds a hostgroup member object */
-servicegroup * find_servicegroup(char *, servicegroup *);					/* finds a servicegroup object */
-servicegroupmember *find_servicegroupmember(char *,char *,servicegroup *,servicegroupmember *);	/* finds a servicegroup member object */
-contact * find_contact(char *, contact *);							/* finds a contact object */
-contactgroup * find_contactgroup(char *, contactgroup *);					/* finds a contactgroup object */
-contactgroupmember *find_contactgroupmember(char *,contactgroup *,contactgroupmember *);	/* finds a contactgroup member object */
+hostgroup * find_hostgroup(char *);						                /* finds a hostgroup object */
+servicegroup * find_servicegroup(char *);					                /* finds a servicegroup object */
+contact * find_contact(char *);							                /* finds a contact object */
+contactgroup * find_contactgroup(char *);					                /* finds a contactgroup object */
+contactgroupmember *find_contactgroupmember(char *,contactgroup *);	                        /* finds a contactgroup member object */
 command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
 hostextinfo *find_hostextinfo(char *);				                                /* find an extended host info object */
 serviceextinfo *find_serviceextinfo(char *,char *);                                             /* find an extended service info object */
 
+
+
+/**** Object Traversal Functions ****/
 void move_first_service(void);									/* sets up the static memory area for get_next_service */
 service *get_next_service(void);								/* returns the next service, NULL at the end of the list */
 int find_all_services_by_host(char *);							        /* sets up the static memory area for get_next_service_by_host */
@@ -530,19 +551,24 @@ host *get_next_host(void);									/* returns the next host, NULL at the end of 
 void *get_host_cursor(void);					                                /* allocate memory for the host cursor */
 host *get_next_host_cursor(void *v_cursor);							/* return the next host, NULL at the end of the list */
 void free_host_cursor(void *cursor);								/* free allocated cursor memory */
+void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next);
 
-int compare_host(host *,const char *);
-int host_comes_after(host *,const char *);
+
+
+/**** Hash Functions ****/
+int hashfunc1(const char *name1, int hashslots);
+int hashfunc2(const char *name1, const char *name2, int hashslots);
+int compare_hashdata1(const char *,const char *);
+int compare_hashdata2(const char *,const char *,const char *,const char *);
+
 int add_host_to_hashlist(host *);
-int compare_service(service *,const char *,const char *);
-int service_comes_after(service *,const char *,const char *);
 int add_service_to_hashlist(service *);
-int compare_command(command *,const char *);
-int command_comes_after(command *,const char *);
 int add_command_to_hashlist(command *);
-int compare_timeperiod(timeperiod *,const char *);
-int timeperiod_comes_after(timeperiod *,const char *);
 int add_timeperiod_to_hashlist(timeperiod *);
+int add_contact_to_hashlist(contact *);
+int add_contactgroup_to_hashlist(contactgroup *);
+int add_hostdependency_to_hashlist(hostdependency *);
+int add_servicedependency_to_hashlist(servicedependency *);
 
 
 
@@ -577,12 +603,6 @@ int check_for_circular_hostdependency(hostdependency *,hostdependency *,int);   
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
 int free_extended_data(void);                           /* frees memory allocated to the extended host/service information */
 
-
-
-/**** Hash Functions ****/
-void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next);
-int hashfunc1(const char *name1, int hashslots);
-int hashfunc2(const char *name1, const char *name2, int hashslots);
 
 #endif
 

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2003
+ * Last Modified:   06-13-2003
  *
  * License:
  *
@@ -1524,7 +1524,7 @@ int pre_flight_check(void){
 		/* check for valid contactgroups */
 		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
@@ -1639,9 +1639,10 @@ int pre_flight_check(void){
 
 		found=FALSE;
 
+#ifdef REMOVED_061303
 		/* make sure each host is a member of at least one hostgroup */
 		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-			temp_hostgroupmember=find_hostgroupmember(temp_host->name,temp_hostgroup,NULL);
+			temp_hostgroupmember=find_hostgroupmember(temp_host->name,temp_hostgroup);
 			if(temp_hostgroupmember!=NULL){
 				found=TRUE;
 				break;
@@ -1655,6 +1656,7 @@ int pre_flight_check(void){
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			warnings++;
 		        }
+#endif
 
 		/* check the event handler command */
 		if(temp_host->event_handler!=NULL){
@@ -1708,7 +1710,7 @@ int pre_flight_check(void){
 		/* check all contact groups */
 		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
@@ -1955,7 +1957,7 @@ int pre_flight_check(void){
 
 		/* make sure the contact belongs to at least one contact group */
 		for(temp_contactgroup=contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
-			temp_contactgroupmember=find_contactgroupmember(temp_contact->name,temp_contactgroup,NULL);
+			temp_contactgroupmember=find_contactgroupmember(temp_contact->name,temp_contactgroup);
 			if(temp_contactgroupmember!=NULL){
 				found=TRUE;
 				break;
@@ -2076,7 +2078,7 @@ int pre_flight_check(void){
 		/* check all the group members */
 		for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
 
-			temp_contact=find_contact(temp_contactgroupmember->contact_name,NULL);
+			temp_contact=find_contact(temp_contactgroupmember->contact_name);
 			if(temp_contact==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactgroupmember->contact_name,temp_contactgroup->group_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2136,7 +2138,7 @@ int pre_flight_check(void){
 		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			
 			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 			if(temp_contactgroup==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2231,7 +2233,7 @@ int pre_flight_check(void){
 		for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			
 			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 			if(temp_contactgroup==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';

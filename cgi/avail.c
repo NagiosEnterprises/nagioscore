@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 06-13-2003
  *
  * License:
  * 
@@ -2226,7 +2226,7 @@ void create_subject_list(void){
 		        }
 		/* we're only displaying a specific hostgroup */
 		else{
-			temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+			temp_hostgroup=find_hostgroup(hostgroup_name);
 			if(temp_hostgroup!=NULL){
 				host_cursor = get_host_cursor();
 				while(temp_host = get_next_host_cursor(host_cursor)) {
@@ -3089,7 +3089,7 @@ void display_hostgroup_availability(void){
 
 	/* display data for a specific hostgroup */
 	if(show_all_hostgroups==FALSE){
-		temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+		temp_hostgroup=find_hostgroup(hostgroup_name);
 		display_specific_hostgroup_availability(temp_hostgroup);
 	        }
 

@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-02-2003
+ * Last Modified: 06-13-2003
  *
  * Description:
  *
@@ -2412,7 +2412,7 @@ int is_host_in_layer_list(host *hst){
 	for(temp_layer=layer_list;temp_layer!=NULL;temp_layer=temp_layer->next){
 
 		/* find the hostgroup */
-		temp_hostgroup=find_hostgroup(temp_layer->layer_name,NULL);
+		temp_hostgroup=find_hostgroup(temp_layer->layer_name);
 		if(temp_hostgroup==NULL)
 			continue;
 		

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-29-2003
+ * Last Modified: 06-13-2003
  *
  * License:
  * 
@@ -706,9 +706,9 @@ void show_service_status_totals(void){
 
 		if(display_type==DISPLAY_HOSTS && (show_all_hosts==TRUE || !strcmp(host_name,temp_servicestatus->host_name)))
 			count_service=1;
-		else if(display_type==DISPLAY_SERVICEGROUPS && (show_all_servicegroups==TRUE || (is_service_member_of_servicegroup(find_servicegroup(servicegroup_name,NULL),temp_service)==TRUE)))
+		else if(display_type==DISPLAY_SERVICEGROUPS && (show_all_servicegroups==TRUE || (is_service_member_of_servicegroup(find_servicegroup(servicegroup_name),temp_service)==TRUE)))
 			count_service=1;
-		else if(display_type==DISPLAY_HOSTGROUPS && (show_all_hostgroups==TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name,NULL),temp_host)==TRUE)))
+		else if(display_type==DISPLAY_HOSTGROUPS && (show_all_hostgroups==TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name),temp_host)==TRUE)))
 			count_service=1;
 
 		if(count_service){
@@ -926,7 +926,7 @@ void show_host_status_totals(void){
 				        }
 			        }
 		        }
-		else if(display_type==DISPLAY_HOSTGROUPS && (show_all_hostgroups==TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name,NULL),temp_host)==TRUE)))
+		else if(display_type==DISPLAY_HOSTGROUPS && (show_all_hostgroups==TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name),temp_host)==TRUE)))
 			count_host=1;
 
 		if(count_host){
@@ -1288,8 +1288,8 @@ void show_service_detail(void){
 	printf("</TR>\n");
 
 
-	temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
-	temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+	temp_hostgroup=find_hostgroup(hostgroup_name);
+	temp_servicegroup=find_servicegroup(servicegroup_name);
 
 	/* check all services... */
 	while(1){
@@ -1844,7 +1844,7 @@ void show_host_detail(void){
 
 		/* see if this host is a member of the hostgroup */
 		if(show_all_hostgroups==FALSE){
-			temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+			temp_hostgroup=find_hostgroup(hostgroup_name);
 			if(temp_hostgroup==NULL)
 				continue;
 			if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
@@ -2112,7 +2112,7 @@ void show_servicegroup_overviews(void){
 	/* else display overview for just a specific servicegroup */
 	else{
 
-		temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+		temp_servicegroup=find_servicegroup(servicegroup_name);
 		if(temp_servicegroup!=NULL){
 
 			printf("<P>\n");
@@ -2306,7 +2306,7 @@ void show_servicegroup_summaries(void){
 
 	/* else just show summary for a specific servicegroup */
 	else{
-		temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+		temp_servicegroup=find_servicegroup(servicegroup_name);
 		if(temp_servicegroup==NULL)
 			servicegroup_error=TRUE;
 		else{
@@ -2602,7 +2602,7 @@ void show_servicegroup_grids(void){
 
 	/* else just show grid for a specific servicegroup */
 	else{
-		temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+		temp_servicegroup=find_servicegroup(servicegroup_name);
 		if(temp_servicegroup==NULL)
 			servicegroup_error=TRUE;
 		else{
@@ -2894,7 +2894,7 @@ void show_hostgroup_overviews(void){
 	/* else display overview for just a specific hostgroup */
 	else{
 
-		temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+		temp_hostgroup=find_hostgroup(hostgroup_name);
 		if(temp_hostgroup!=NULL){
 
 			printf("<P>\n");
@@ -3241,7 +3241,7 @@ void show_hostgroup_summaries(void){
 
 	/* else just show summary for a specific hostgroup */
 	else{
-		temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+		temp_hostgroup=find_hostgroup(hostgroup_name);
 		if(temp_hostgroup==NULL)
 			hostgroup_error=TRUE;
 		else{
@@ -3526,7 +3526,7 @@ void show_hostgroup_grids(void){
 
 	/* else just show grid for a specific hostgroup */
 	else{
-		temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+		temp_hostgroup=find_hostgroup(hostgroup_name);
 		if(temp_hostgroup==NULL)
 			hostgroup_error=TRUE;
 		else{

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-22-2003
+ * Last Modified: 06-13-2003
  *
  * License:
  * 
@@ -581,7 +581,7 @@ void request_command_data(int cmd){
 
 
 	/* get default name to use for comment author */
-	temp_contact=find_contact(current_authdata.username,NULL);
+	temp_contact=find_contact(current_authdata.username);
 	if(temp_contact!=NULL && temp_contact->alias!=NULL)
 		comment_author=temp_contact->alias;
 	else
@@ -1511,7 +1511,7 @@ void commit_command_data(int cmd){
 			error=TRUE;
 
 		/* see if the user is authorized to issue a command... */
-		temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+		temp_hostgroup=find_hostgroup(hostgroup_name);
 		if(is_authorized_for_hostgroup(temp_hostgroup,&current_authdata)==TRUE)
 			authorized=TRUE;
 
@@ -1899,7 +1899,7 @@ int commit_hostgroup_command(int cmd){
 	scheduled_time=current_time+(schedule_delay*60);
 
 	/* find the hostgroup */
-	temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
+	temp_hostgroup=find_hostgroup(hostgroup_name);
 	if(temp_hostgroup==NULL)
 		return ERROR;
 

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2003
+ * Last Modified:   06-13-2003
  *
  * License:
  *
@@ -61,6 +61,12 @@ host		**host_hashlist=NULL;
 service		**service_hashlist=NULL;
 command         **command_hashlist=NULL;
 timeperiod      **timeperiod_hashlist=NULL;
+contact         **contact_hashlist=NULL;
+contactgroup    **contactgroup_hashlist=NULL;
+hostgroup       **hostgroup_hashlist=NULL;
+servicegroup    **servicegroup_hashlist=NULL;
+hostextinfo     **hostextinfo_hashlist=NULL;
+serviceextinfo  **serviceextinfo_hashlist=NULL;
 
 static host_cursor *static_host_cursor=NULL;
 static int service_hashchain_iterator;
@@ -139,48 +145,58 @@ int hashfunc2(const char *name1,const char *name2,int hashslots){
         }
 
 
-int compare_host(host *testhost,const char *host_name){
+/* single hash data comparison */
+int compare_hashdata1(const char *val1, const char *val2){
 	
-	return strcmp(testhost->name,host_name);
+	return strcmp(val1,val2);
         }
 
 
-int host_comes_after(host *testhost,const char *host_name){
+/* dual hash data comparison */
+int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
+	int result;
 
-	return compare_host(testhost,host_name)<0;
+	result=strcmp(val1a,val2a);
+	if(result>0)
+		return 1;
+	else if(result<0)
+		return -1;
+	else
+		return strcmp(val1b,val2b);
         }
 
 
+/* adds host to hash list in memory */
 int add_host_to_hashlist(host *new_host){
-	host *temphost, *lastpointer;
+	host *temp_host, *lastpointer;
 	int hashslot;
 
 	/* initialize hash list */
 	if(host_hashlist==NULL){
 		int i;
 
-		host_hashlist=(host **)malloc(sizeof(host *)*HOSTS_HASHSLOTS);
+		host_hashlist=(host **)malloc(sizeof(host *)*HOST_HASHSLOTS);
 		if(host_hashlist==NULL)
 			return 0;
 		
-		for(i=0;i<HOSTS_HASHSLOTS;i++)
+		for(i=0;i<HOST_HASHSLOTS;i++)
 			host_hashlist[i]=NULL;
 	        }
 
 	if(!new_host)
 		return 0;
 
-	hashslot=hashfunc1(new_host->name,HOSTS_HASHSLOTS);
+	hashslot=hashfunc1(new_host->name,HOST_HASHSLOTS);
 	lastpointer=NULL;
-	for(temphost=host_hashlist[hashslot];temphost && host_comes_after(temphost,new_host->name);temphost=temphost->nexthash)
-		lastpointer=temphost;
+	for(temp_host=host_hashlist[hashslot];temp_host && compare_hashdata1(temp_host->name,new_host->name)<0;temp_host=temp_host->nexthash)
+		lastpointer=temp_host;
 
-	if(!temphost || (compare_host(temphost,new_host->name)!=0)){
+	if(!temp_host || (compare_hashdata1(temp_host->name,new_host->name)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_host;
 		else
 			host_hashlist[hashslot]=new_host;
-		new_host->nexthash=temphost;
+		new_host->nexthash=temp_host;
 
 		return 1;
 	        }
@@ -190,56 +206,36 @@ int add_host_to_hashlist(host *new_host){
         }
 
 
-int compare_service(service *testsvc,const char *host_name,const char *service_name){
-	int result;
-
-	result=strcmp(testsvc->host_name,host_name);
-	if(result>0)
-		return 1;
-	else if(result<0)
-		return -1;
-	else
-		return strcmp(testsvc->description,service_name);
-        }
-
-
-/* host_name & service_name come after testsvc */
-int service_comes_after(service *testsvc,const char *host_name,const char *service_name){
-
-	return compare_service(testsvc,host_name,service_name)<0;
-        }
-
-
 int add_service_to_hashlist(service *new_service){
-	service *tempsvc, *lastpointer;
+	service *temp_service, *lastpointer;
 	int hashslot;
 
 	/* initialize hash list */
 	if(service_hashlist==NULL){
 		int i;
 
-		service_hashlist=(service **)malloc(sizeof(service *)*SERVICES_HASHSLOTS);
+		service_hashlist=(service **)malloc(sizeof(service *)*SERVICE_HASHSLOTS);
 		if(service_hashlist==NULL)
 			return 0;
 		
-		for(i=0;i< SERVICES_HASHSLOTS;i++)
+		for(i=0;i< SERVICE_HASHSLOTS;i++)
 			service_hashlist[i]=NULL;
 	        }
 
 	if(!new_service)
 		return 0;
 
-	hashslot=hashfunc2(new_service->host_name,new_service->description,SERVICES_HASHSLOTS);
+	hashslot=hashfunc2(new_service->host_name,new_service->description,SERVICE_HASHSLOTS);
 	lastpointer=NULL;
-	for(tempsvc=service_hashlist[hashslot];tempsvc && service_comes_after(tempsvc,new_service->host_name,new_service->description);tempsvc=tempsvc->nexthash)
-		lastpointer=tempsvc;
+	for(temp_service=service_hashlist[hashslot];temp_service && compare_hashdata2(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)<0;temp_service=temp_service->nexthash)
+		lastpointer=temp_service;
 
-	if(!tempsvc || (compare_service(tempsvc,new_service->host_name,new_service->description)!=0)){
+	if(!temp_service || (compare_hashdata2(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_service;
 		else
 			service_hashlist[hashslot]=new_service;
-		new_service->nexthash=tempsvc;
+		new_service->nexthash=temp_service;
 
 
 		return 1;
@@ -250,49 +246,36 @@ int add_service_to_hashlist(service *new_service){
         }
 
 
-
-int compare_command(command *testcommand,const char *command_name){
-	
-	return strcmp(testcommand->name,command_name);
-        }
-
-
-int command_comes_after(command *testcommand,const char *command_name){
-
-	return compare_command(testcommand,command_name)<0;
-        }
-
-
 int add_command_to_hashlist(command *new_command){
-	command *tempcommand, *lastpointer;
+	command *temp_command, *lastpointer;
 	int hashslot;
 
 	/* initialize hash list */
 	if(command_hashlist==NULL){
 		int i;
 
-		command_hashlist=(command **)malloc(sizeof(command *)*COMMANDS_HASHSLOTS);
+		command_hashlist=(command **)malloc(sizeof(command *)*COMMAND_HASHSLOTS);
 		if(command_hashlist==NULL)
 			return 0;
 		
-		for(i=0;i<COMMANDS_HASHSLOTS;i++)
+		for(i=0;i<COMMAND_HASHSLOTS;i++)
 			command_hashlist[i]=NULL;
 	        }
 
 	if(!new_command)
 		return 0;
 
-	hashslot=hashfunc1(new_command->name,COMMANDS_HASHSLOTS);
+	hashslot=hashfunc1(new_command->name,COMMAND_HASHSLOTS);
 	lastpointer=NULL;
-	for(tempcommand=command_hashlist[hashslot];tempcommand && command_comes_after(tempcommand,new_command->name);tempcommand=tempcommand->nexthash)
-		lastpointer=tempcommand;
+	for(temp_command=command_hashlist[hashslot];temp_command && compare_hashdata1(temp_command->name,new_command->name)<0;temp_command=temp_command->nexthash)
+		lastpointer=temp_command;
 
-	if(!tempcommand || (compare_command(tempcommand,new_command->name)!=0)){
+	if(!temp_command || (compare_hashdata1(temp_command->name,new_command->name)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_command;
 		else
 			command_hashlist[hashslot]=new_command;
-		new_command->nexthash=tempcommand;
+		new_command->nexthash=temp_command;
 
 		return 1;
 	        }
@@ -302,48 +285,36 @@ int add_command_to_hashlist(command *new_command){
         }
 
 
-int compare_timeperiod(timeperiod *testtimeperiod,const char *timeperiod_name){
-	
-	return strcmp(testtimeperiod->name,timeperiod_name);
-        }
-
-
-int timeperiod_comes_after(timeperiod *testtimeperiod,const char *timeperiod_name){
-
-	return compare_timeperiod(testtimeperiod,timeperiod_name)<0;
-        }
-
-
 int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
-	timeperiod *temptimeperiod, *lastpointer;
+	timeperiod *temp_timeperiod, *lastpointer;
 	int hashslot;
 
 	/* initialize hash list */
 	if(timeperiod_hashlist==NULL){
 		int i;
 
-		timeperiod_hashlist=(timeperiod **)malloc(sizeof(timeperiod *)*TIMEPERIODS_HASHSLOTS);
+		timeperiod_hashlist=(timeperiod **)malloc(sizeof(timeperiod *)*TIMEPERIOD_HASHSLOTS);
 		if(timeperiod_hashlist==NULL)
 			return 0;
 		
-		for(i=0;i<TIMEPERIODS_HASHSLOTS;i++)
+		for(i=0;i<TIMEPERIOD_HASHSLOTS;i++)
 			timeperiod_hashlist[i]=NULL;
 	        }
 
 	if(!new_timeperiod)
 		return 0;
 
-	hashslot=hashfunc1(new_timeperiod->name,TIMEPERIODS_HASHSLOTS);
+	hashslot=hashfunc1(new_timeperiod->name,TIMEPERIOD_HASHSLOTS);
 	lastpointer=NULL;
-	for(temptimeperiod=timeperiod_hashlist[hashslot];temptimeperiod && timeperiod_comes_after(temptimeperiod,new_timeperiod->name);temptimeperiod=temptimeperiod->nexthash)
-		lastpointer=temptimeperiod;
+	for(temp_timeperiod=timeperiod_hashlist[hashslot];temp_timeperiod && compare_hashdata1(temp_timeperiod->name,new_timeperiod->name)<0;temp_timeperiod=temp_timeperiod->nexthash)
+		lastpointer=temp_timeperiod;
 
-	if(!temptimeperiod || (compare_timeperiod(temptimeperiod,new_timeperiod->name)!=0)){
+	if(!temp_timeperiod || (compare_hashdata1(temp_timeperiod->name,new_timeperiod->name)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_timeperiod;
 		else
 			timeperiod_hashlist[hashslot]=new_timeperiod;
-		new_timeperiod->nexthash=temptimeperiod;
+		new_timeperiod->nexthash=temp_timeperiod;
 
 		return 1;
 	        }
@@ -353,71 +324,241 @@ int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
         }
 
 
-void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next){
+int add_contact_to_hashlist(contact *new_contact){
+	contact *temp_contact, *lastpointer;
+	int hashslot;
 
-	/* hashchain hasn't been setup yet */
-	if(!hashchain)
-		return NULL;
+	/* initialize hash list */
+	if(contact_hashlist==NULL){
+		int i;
 
-	/* went past end */
-	if((*iterator)>=hashslots)
-		return NULL;
-
-	if(current && next){
+		contact_hashlist=(contact **)malloc(sizeof(contact *)*CONTACT_HASHSLOTS);
+		if(contact_hashlist==NULL)
+			return 0;
 		
-		/* next is valid - return that value */
-		current=next;
+		for(i=0;i<CONTACT_HASHSLOTS;i++)
+			contact_hashlist[i]=NULL;
 	        }
-	else{
 
-		/* next isn't valid, find the first hashchain entry that is defined */
+	if(!new_contact)
+		return 0;
 
-		/* we already went through this hashchain entry */
-		if(current)
-			(*iterator)++;
+	hashslot=hashfunc1(new_contact->name,CONTACT_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_contact=contact_hashlist[hashslot];temp_contact && compare_hashdata1(temp_contact->name,new_contact->name)<0;temp_contact=temp_contact->nexthash)
+		lastpointer=temp_contact;
 
-		for(;!hashchain[(*iterator)] && ((*iterator)<hashslots);(*iterator)++);
-
-		if((*iterator)<hashslots)
-			current=hashchain[(*iterator)];
+	if(!temp_contact || (compare_hashdata1(temp_contact->name,new_contact->name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_contact;
 		else
-			current=NULL;
+			contact_hashlist[hashslot]=new_contact;
+		new_contact->nexthash=temp_contact;
+
+		return 1;
 	        }
 
-	return current;
+	/* else already exists */
+	return 0;
         }
 
 
-void *get_host_cursor(void){
-	host_cursor *retval;
+int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
+	contactgroup *temp_contactgroup, *lastpointer;
+	int hashslot;
 
-	if(!(retval=malloc(sizeof(host_cursor))))
-		return NULL;
+	/* initialize hash list */
+	if(contactgroup_hashlist==NULL){
+		int i;
 
-	retval->current_host_pointer=NULL;
-	retval->host_hashchain_iterator=0;
+		contactgroup_hashlist=(contactgroup **)malloc(sizeof(contactgroup *)*CONTACTGROUP_HASHSLOTS);
+		if(contactgroup_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<CONTACTGROUP_HASHSLOTS;i++)
+			contactgroup_hashlist[i]=NULL;
+	        }
 
-	return retval;
+	if(!new_contactgroup)
+		return 0;
+
+	hashslot=hashfunc1(new_contactgroup->group_name,CONTACTGROUP_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_contactgroup=contactgroup_hashlist[hashslot];temp_contactgroup && compare_hashdata1(temp_contactgroup->group_name,new_contactgroup->group_name)<0;temp_contactgroup=temp_contactgroup->nexthash)
+		lastpointer=temp_contactgroup;
+
+	if(!temp_contactgroup || (compare_hashdata1(temp_contactgroup->group_name,new_contactgroup->group_name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_contactgroup;
+		else
+			contactgroup_hashlist[hashslot]=new_contactgroup;
+		new_contactgroup->nexthash=temp_contactgroup;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
         }
 
 
-host *get_next_host_cursor(void *v_cursor){
-	host_cursor *cursor=v_cursor;
+int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
+	hostgroup *temp_hostgroup, *lastpointer;
+	int hashslot;
 
-	if(!cursor)
-		return NULL;
+	/* initialize hash list */
+	if(hostgroup_hashlist==NULL){
+		int i;
 
-	cursor->current_host_pointer=get_next_N((void **)host_hashlist,HOSTS_HASHSLOTS,&(cursor->host_hashchain_iterator),cursor->current_host_pointer,(cursor->current_host_pointer?cursor->current_host_pointer->nexthash:NULL));
+		hostgroup_hashlist=(hostgroup **)malloc(sizeof(hostgroup *)*HOSTGROUP_HASHSLOTS);
+		if(hostgroup_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<HOSTGROUP_HASHSLOTS;i++)
+			hostgroup_hashlist[i]=NULL;
+	        }
 
-	return cursor->current_host_pointer;
+	if(!new_hostgroup)
+		return 0;
+
+	hashslot=hashfunc1(new_hostgroup->group_name,HOSTGROUP_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_hostgroup=hostgroup_hashlist[hashslot];temp_hostgroup && compare_hashdata1(temp_hostgroup->group_name,new_hostgroup->group_name)<0;temp_hostgroup=temp_hostgroup->nexthash)
+		lastpointer=temp_hostgroup;
+
+	if(!temp_hostgroup || (compare_hashdata1(temp_hostgroup->group_name,new_hostgroup->group_name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_hostgroup;
+		else
+			hostgroup_hashlist[hashslot]=new_hostgroup;
+		new_hostgroup->nexthash=temp_hostgroup;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
         }
 
 
-void free_host_cursor(void *cursor){
+int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
+	servicegroup *temp_servicegroup, *lastpointer;
+	int hashslot;
 
-	if(cursor)
-		free(cursor);
+	/* initialize hash list */
+	if(servicegroup_hashlist==NULL){
+		int i;
+
+		servicegroup_hashlist=(servicegroup **)malloc(sizeof(servicegroup *)*SERVICEGROUP_HASHSLOTS);
+		if(servicegroup_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<SERVICEGROUP_HASHSLOTS;i++)
+			servicegroup_hashlist[i]=NULL;
+	        }
+
+	if(!new_servicegroup)
+		return 0;
+
+	hashslot=hashfunc1(new_servicegroup->group_name,SERVICEGROUP_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_servicegroup=servicegroup_hashlist[hashslot];temp_servicegroup && compare_hashdata1(temp_servicegroup->group_name,new_servicegroup->group_name)<0;temp_servicegroup=temp_servicegroup->nexthash)
+		lastpointer=temp_servicegroup;
+
+	if(!temp_servicegroup || (compare_hashdata1(temp_servicegroup->group_name,new_servicegroup->group_name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_servicegroup;
+		else
+			servicegroup_hashlist[hashslot]=new_servicegroup;
+		new_servicegroup->nexthash=temp_servicegroup;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
         }
+
+
+/* adds hostextinfo to hash list in memory */
+int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
+	hostextinfo *temp_hostextinfo, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(hostextinfo_hashlist==NULL){
+		int i;
+
+		hostextinfo_hashlist=(hostextinfo **)malloc(sizeof(hostextinfo *)*HOSTEXTINFO_HASHSLOTS);
+		if(hostextinfo_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<HOSTEXTINFO_HASHSLOTS;i++)
+			hostextinfo_hashlist[i]=NULL;
+	        }
+
+	if(!new_hostextinfo)
+		return 0;
+
+	hashslot=hashfunc1(new_hostextinfo->host_name,HOSTEXTINFO_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_hostextinfo=hostextinfo_hashlist[hashslot];temp_hostextinfo && compare_hashdata1(temp_hostextinfo->host_name,new_hostextinfo->host_name)<0;temp_hostextinfo=temp_hostextinfo->nexthash)
+		lastpointer=temp_hostextinfo;
+
+	if(!temp_hostextinfo || (compare_hashdata1(temp_hostextinfo->host_name,new_hostextinfo->host_name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_hostextinfo;
+		else
+			hostextinfo_hashlist[hashslot]=new_hostextinfo;
+		new_hostextinfo->nexthash=temp_hostextinfo;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+int add_serviceextinfo_to_hashlist(serviceextinfo *new_serviceextinfo){
+	serviceextinfo *temp_serviceextinfo, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(serviceextinfo_hashlist==NULL){
+		int i;
+
+		serviceextinfo_hashlist=(serviceextinfo **)malloc(sizeof(serviceextinfo *)*SERVICEEXTINFO_HASHSLOTS);
+		if(serviceextinfo_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i< SERVICEEXTINFO_HASHSLOTS;i++)
+			serviceextinfo_hashlist[i]=NULL;
+	        }
+
+	if(!new_serviceextinfo)
+		return 0;
+
+	hashslot=hashfunc2(new_serviceextinfo->host_name,new_serviceextinfo->description,SERVICEEXTINFO_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_serviceextinfo=serviceextinfo_hashlist[hashslot];temp_serviceextinfo && compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash)
+		lastpointer=temp_serviceextinfo;
+
+	if(!temp_serviceextinfo || (compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_serviceextinfo;
+		else
+			serviceextinfo_hashlist[hashslot]=new_serviceextinfo;
+		new_serviceextinfo->nexthash=temp_serviceextinfo;
+
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
 
 
 /******************************************************************/
@@ -1380,7 +1521,7 @@ hostgroup *add_hostgroup(char *name,char *alias){
 	        }
 
 	/* make sure a hostgroup by this name hasn't been added already */
-	temp_hostgroup=find_hostgroup(name,NULL);
+	temp_hostgroup=find_hostgroup(name);
 	if(temp_hostgroup!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup '%s' has already been defined\n",name);
@@ -1423,6 +1564,23 @@ hostgroup *add_hostgroup(char *name,char *alias){
 	        }
 
 	new_hostgroup->members=NULL;
+
+	new_hostgroup->next=NULL;
+	new_hostgroup->nexthash=NULL;
+
+	/* add new hostgroup to hostgroup chained hash list */
+	if(!add_hostgroup_to_hashlist(new_hostgroup)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup list to add hostgroup '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+
+		free(new_hostgroup->group_name);
+		free(new_hostgroup->alias);
+		free(new_hostgroup);
+		return NULL;
+	        }
 
 	/* add new hostgroup to hostgroup list, sorted by hostgroup name */
 	last_hostgroup=hostgroup_list;
@@ -1562,7 +1720,7 @@ servicegroup *add_servicegroup(char *name,char *alias){
 	        }
 
 	/* make sure a servicegroup by this name hasn't been added already */
-	temp_servicegroup=find_servicegroup(name,NULL);
+	temp_servicegroup=find_servicegroup(name);
 	if(temp_servicegroup!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup '%s' has already been defined\n",name);
@@ -1605,6 +1763,23 @@ servicegroup *add_servicegroup(char *name,char *alias){
 	        }
 
 	new_servicegroup->members=NULL;
+
+	new_servicegroup->next=NULL;
+	new_servicegroup->nexthash=NULL;
+
+	/* add new servicegroup to servicegroup chained hash list */
+	if(!add_servicegroup_to_hashlist(new_servicegroup)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup list to add servicegroup '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+
+		free(new_servicegroup->group_name);
+		free(new_servicegroup->alias);
+		free(new_servicegroup);
+		return NULL;
+	        }
 
 	/* add new servicegroup to servicegroup list, sorted by servicegroup name */
 	last_servicegroup=servicegroup_list;
@@ -1770,7 +1945,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	        }
 
 	/* make sure there isn't a contact by this name already added */
-	temp_contact=find_contact(name,NULL);
+	temp_contact=find_contact(name);
 	if(temp_contact!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact '%s' has already been defined\n",name);
@@ -1999,6 +2174,28 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->notify_on_host_unreachable=(notify_host_unreachable>0)?TRUE:FALSE;
 	new_contact->notify_on_host_flapping=(notify_host_flapping>0)?TRUE:FALSE;
 
+	new_contact->next=NULL;
+	new_contact->nexthash=NULL;
+
+	/* add new contact to contact chained hash list */
+	if(!add_contact_to_hashlist(new_contact)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact list to add contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
+			free(new_contact->address[x]);
+		free(new_contact->name);
+		free(new_contact->alias);
+		free(new_contact->email);
+		free(new_contact->pager);
+		free(new_contact->service_notification_period);
+		free(new_contact->host_notification_period);
+		free(new_contact);
+
+		return NULL;
+	        }
 
 	/* add new contact to contact list, sorted by contact name */
 	last_contact=contact_list;
@@ -2211,7 +2408,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	        }
 
 	/* make sure there isn't a contactgroup by this name added already */
-	temp_contactgroup=find_contactgroup(name,NULL);
+	temp_contactgroup=find_contactgroup(name);
 	if(temp_contactgroup!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup '%s' has already been defined\n",name);
@@ -2254,6 +2451,23 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	        }
 
 	new_contactgroup->members=NULL;
+
+	new_contactgroup->next=NULL;
+	new_contactgroup->nexthash=NULL;
+
+	/* add new contactgroup to contactgroup chained hash list */
+	if(!add_contactgroup_to_hashlist(new_contactgroup)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup list to add contactgroup '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_contactgroup->alias);
+		free(new_contactgroup->group_name);
+		free(new_contactgroup);
+
+		return NULL;
+	        }
 
 	/* add new contactgroup to contactgroup list, sorted by contactgroup name */
 	last_contactgroup=contactgroup_list;
@@ -4161,9 +4375,9 @@ timeperiod * find_timeperiod(char *name){
 	if(name==NULL || timeperiod_hashlist==NULL)
 		return NULL;
 
-	for(temp_timeperiod=timeperiod_hashlist[hashfunc1(name,TIMEPERIODS_HASHSLOTS)];temp_timeperiod && timeperiod_comes_after(temp_timeperiod,name);temp_timeperiod=temp_timeperiod->nexthash);
+	for(temp_timeperiod=timeperiod_hashlist[hashfunc1(name,TIMEPERIOD_HASHSLOTS)];temp_timeperiod && compare_hashdata1(temp_timeperiod->name,name)<0;temp_timeperiod=temp_timeperiod->nexthash);
 
-	if(temp_timeperiod && (compare_timeperiod(temp_timeperiod,name)==0))
+	if(temp_timeperiod && (compare_hashdata1(temp_timeperiod->name,name)==0))
 		return temp_timeperiod;
 
 #ifdef DEBUG0
@@ -4186,9 +4400,9 @@ host * find_host(char *name){
 	if(name==NULL || host_hashlist==NULL)
 		return NULL;
 
-	for(temp_host=host_hashlist[hashfunc1(name,HOSTS_HASHSLOTS)];temp_host && host_comes_after(temp_host,name);temp_host=temp_host->nexthash);
+	for(temp_host=host_hashlist[hashfunc1(name,HOST_HASHSLOTS)];temp_host && compare_hashdata1(temp_host->name,name)<0;temp_host=temp_host->nexthash);
 
-	if(temp_host && (compare_host(temp_host,name)==0))
+	if(temp_host && (compare_hashdata1(temp_host->name,name)==0))
 		return temp_host;
 
 #ifdef DEBUG0
@@ -4200,26 +4414,8 @@ host * find_host(char *name){
         }
 
 
-/* move pointer to first host in chained hash */
-void move_first_host(void){
-
-	if(static_host_cursor)
-		free_host_cursor(static_host_cursor);
-	static_host_cursor=get_host_cursor();
-
-	return;
-        }
-
-
-/* gets next host in chained hash */
-host * get_next_host(void){
-
-	return get_next_host_cursor(static_host_cursor);
-        }
-
-
-/* given a name and starting point, find a hostgroup from the list in memory */
-hostgroup * find_hostgroup(char *name,hostgroup *group){
+/* find a hostgroup from the list in memory */
+hostgroup * find_hostgroup(char *name){
 	hostgroup *temp_hostgroup;
 	int result;
 
@@ -4227,28 +4423,13 @@ hostgroup * find_hostgroup(char *name,hostgroup *group){
 	printf("find_hostgroup() start\n");
 #endif
 
-	if(name==NULL)
+	if(name==NULL || hostgroup_hashlist==NULL)
 		return NULL;
 
-	if(group==NULL)
-		temp_hostgroup=hostgroup_list;
-	else
-		temp_hostgroup=group->next;
+	for(temp_hostgroup=hostgroup_hashlist[hashfunc1(name,HOSTGROUP_HASHSLOTS)];temp_hostgroup && compare_hashdata1(temp_hostgroup->group_name,name)<0;temp_hostgroup=temp_hostgroup->nexthash);
 
-	while(temp_hostgroup!=NULL){
-
-		result=strcmp(temp_hostgroup->group_name,name);
-
-		/* we found a matching hostgroup */
-		if(result==0)
-			return temp_hostgroup;
-
-		/* we already passed any potential matches */
-		if(result>0)
-			return NULL;
-
-		temp_hostgroup=temp_hostgroup->next;
-		}
+	if(temp_hostgroup && (compare_hashdata1(temp_hostgroup->group_name,name)==0))
+		return temp_hostgroup;
 
 #ifdef DEBUG0
 	printf("find_hostgroup() end\n");
@@ -4259,8 +4440,9 @@ hostgroup * find_hostgroup(char *name,hostgroup *group){
 	}
 
 
-/* given a host name and a starting point, find a member of a host group */
-hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp,hostgroupmember *member){
+#ifdef REMOVED_061803
+/* find a member of a host group */
+hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp){
 	hostgroupmember *temp_member;
 
 #ifdef DEBUG0
@@ -4270,10 +4452,7 @@ hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp,hostgroupmember
 	if(name==NULL || grp==NULL)
 		return NULL;
 
-	if(member==NULL)
-		temp_member=grp->members;
-	else
-		temp_member=member->next;
+	temp_member=grp->members;
 	while(temp_member!=NULL){
 
 		/* we found a match */
@@ -4291,10 +4470,11 @@ hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp,hostgroupmember
 	/* we couldn't find a matching member */
 	return NULL;
         }
+#endif
 
 
-/* given a name and starting point, find a servicegroup from the list in memory */
-servicegroup * find_servicegroup(char *name,servicegroup *group){
+/* find a servicegroup from the list in memory */
+servicegroup * find_servicegroup(char *name){
 	servicegroup *temp_servicegroup;
 	int result;
 
@@ -4302,28 +4482,14 @@ servicegroup * find_servicegroup(char *name,servicegroup *group){
 	printf("find_servicegroup() start\n");
 #endif
 
-	if(name==NULL)
+	if(name==NULL || servicegroup_hashlist==NULL)
 		return NULL;
 
-	if(group==NULL)
-		temp_servicegroup=servicegroup_list;
-	else
-		temp_servicegroup=group->next;
+	for(temp_servicegroup=servicegroup_hashlist[hashfunc1(name,SERVICEGROUP_HASHSLOTS)];temp_servicegroup && compare_hashdata1(temp_servicegroup->group_name,name)<0;temp_servicegroup=temp_servicegroup->nexthash);
 
-	while(temp_servicegroup!=NULL){
+	if(temp_servicegroup && (compare_hashdata1(temp_servicegroup->group_name,name)==0))
+		return temp_servicegroup;
 
-		result=strcmp(temp_servicegroup->group_name,name);
-
-		/* we found a matching servicegroup */
-		if(result==0)
-			return temp_servicegroup;
-
-		/* we already passed any potential matches */
-		if(result>0)
-			return NULL;
-
-		temp_servicegroup=temp_servicegroup->next;
-		}
 
 #ifdef DEBUG0
 	printf("find_servicegroup() end\n");
@@ -4333,9 +4499,9 @@ servicegroup * find_servicegroup(char *name,servicegroup *group){
 	return NULL;
 	}
 
-
-/* given a host name and a starting point, find a member of a service group */
-servicegroupmember * find_servicegroupmember(char *host_name,char *svc_description,servicegroup *grp,servicegroupmember *member){
+#ifdef REMOVED_0618003
+/* find a member of a service group */
+servicegroupmember * find_servicegroupmember(char *host_name,char *svc_description,servicegroup *grp){
 	servicegroupmember *temp_member;
 
 #ifdef DEBUG0
@@ -4345,10 +4511,7 @@ servicegroupmember * find_servicegroupmember(char *host_name,char *svc_descripti
 	if(host_name==NULL || svc_description==NULL || grp==NULL)
 		return NULL;
 
-	if(member==NULL)
-		temp_member=grp->members;
-	else
-		temp_member=member->next;
+	temp_member=grp->members;
 	while(temp_member!=NULL){
 
 		/* we found a match */
@@ -4366,10 +4529,11 @@ servicegroupmember * find_servicegroupmember(char *host_name,char *svc_descripti
 	/* we couldn't find a matching member */
 	return NULL;
         }
+#endif
 
 
-/* given a name and a starting point, find a contact from the list in memory */
-contact * find_contact(char *name,contact *cntct){
+/* find a contact from the list in memory */
+contact * find_contact(char *name){
 	contact *temp_contact;
 	int result;
 
@@ -4377,28 +4541,13 @@ contact * find_contact(char *name,contact *cntct){
 	printf("find_contact() start\n");
 #endif
 
-	if(name==NULL)
+	if(name==NULL || contact_hashlist==NULL)
 		return NULL;
 
-	if(cntct==NULL)
-		temp_contact=contact_list;
-	else
-		temp_contact=cntct->next;
+	for(temp_contact=contact_hashlist[hashfunc1(name,CONTACT_HASHSLOTS)];temp_contact && compare_hashdata1(temp_contact->name,name)<0;temp_contact=temp_contact->nexthash);
 
-	while(temp_contact!=NULL){
-
-		result=strcmp(temp_contact->name,name);
-
-		/* we found a matching contact */
-		if(result==0)
-			return temp_contact;
-
-		/* we already passed any potential matches */
-		if(result>0)
-			return NULL;
-
-		temp_contact=temp_contact->next;
-		}
+	if(temp_contact && (compare_hashdata1(temp_contact->name,name)==0))
+		return temp_contact;
 
 #ifdef DEBUG0
 	printf("find_contact() end\n");
@@ -4409,8 +4558,8 @@ contact * find_contact(char *name,contact *cntct){
 	}
 
 
-/* given a group name and a starting point, find a contact group from the list in memory */
-contactgroup * find_contactgroup(char *name,contactgroup *grp){
+/* find a contact group from the list in memory */
+contactgroup * find_contactgroup(char *name){
 	contactgroup *temp_contactgroup;
 	int result;
 
@@ -4418,29 +4567,13 @@ contactgroup * find_contactgroup(char *name,contactgroup *grp){
 	printf("find_contactgroup() start\n");
 #endif
 
-	if(name==NULL)
+	if(name==NULL || contactgroup_hashlist==NULL)
 		return NULL;
 
-	if(grp==NULL)
-		temp_contactgroup=contactgroup_list;
-	else
-		temp_contactgroup=grp->next;
+	for(temp_contactgroup=contactgroup_hashlist[hashfunc1(name,CONTACTGROUP_HASHSLOTS)];temp_contactgroup && compare_hashdata1(temp_contactgroup->group_name,name)<0;temp_contactgroup=temp_contactgroup->nexthash);
 
-	while(temp_contactgroup!=NULL){
-
-		result=strcmp(temp_contactgroup->group_name,name);
-
-		/* we found a match */
-		if(result==0)
-			return temp_contactgroup;
-
-		/* we already passed any potential matches */
-		if(result>0)
-			return NULL;
-
-		temp_contactgroup=temp_contactgroup->next;
-		}
-
+	if(temp_contactgroup && (compare_hashdata1(temp_contactgroup->group_name,name)==0))
+		return temp_contactgroup;
 
 #ifdef DEBUG0
 	printf("find_contactgroup() end\n");
@@ -4451,8 +4584,8 @@ contactgroup * find_contactgroup(char *name,contactgroup *grp){
 	}
 
 
-/* given a contact name and a starting point, find the corresponding member of a contact group */
-contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp,contactgroupmember *member){
+/* find the corresponding member of a contact group */
+contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp){
 	contactgroupmember *temp_member;
 
 #ifdef DEBUG0
@@ -4462,10 +4595,7 @@ contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp,contac
 	if(name==NULL || grp==NULL)
 		return NULL;
 
-	if(member==NULL)
-		temp_member=grp->members;
-	else
-		temp_member=member->next;
+	temp_member=grp->members;
 	while(temp_member!=NULL){
 
 		/* we found a match */
@@ -4474,7 +4604,6 @@ contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp,contac
 
 		temp_member=temp_member->next;
 	        }
-	
 
 #ifdef DEBUG0
 	printf("find_contactgroupmember() end\n");
@@ -4497,9 +4626,9 @@ command * find_command(char *name){
 	if(name==NULL || command_hashlist==NULL)
 		return NULL;
 
-	for(temp_command=command_hashlist[hashfunc1(name,COMMANDS_HASHSLOTS)];temp_command && command_comes_after(temp_command,name);temp_command=temp_command->nexthash);
+	for(temp_command=command_hashlist[hashfunc1(name,COMMAND_HASHSLOTS)];temp_command && compare_hashdata1(temp_command->name,name)<0;temp_command=temp_command->nexthash);
 
-	if(temp_command && (compare_command(temp_command,name)==0))
+	if(temp_command && (compare_hashdata1(temp_command->name,name)==0))
 		return temp_command;
 
 #ifdef DEBUG0
@@ -4522,9 +4651,9 @@ service * find_service(char *host_name,char *svc_desc){
 	if(host_name==NULL || svc_desc==NULL || service_hashlist==NULL)
 		return NULL;
 
-	for(temp_service=service_hashlist[hashfunc2(host_name,svc_desc,SERVICES_HASHSLOTS)];temp_service && service_comes_after(temp_service,host_name,svc_desc);temp_service=temp_service->nexthash);
+	for(temp_service=service_hashlist[hashfunc2(host_name,svc_desc,SERVICE_HASHSLOTS)];temp_service && compare_hashdata2(temp_service->host_name,temp_service->description,host_name,svc_desc)<0;temp_service=temp_service->nexthash);
 
-	if(temp_service && (compare_service(temp_service,host_name,svc_desc)==0))
+	if(temp_service && (compare_hashdata2(temp_service->host_name,temp_service->description,host_name,svc_desc)==0))
 		return temp_service;
 
 #ifdef DEBUG0
@@ -4545,14 +4674,14 @@ hostextinfo * find_hostextinfo(char *host_name){
 	printf("find_hostextinfo() start\n");
 #endif
 
-	if(host_name==NULL)
+	if(host_name==NULL || hostextinfo_hashlist==NULL)
 		return NULL;
 
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-		if(!strcmp(host_name,temp_hostextinfo->host_name))
-			return temp_hostextinfo;
-	        }
-	
+	for(temp_hostextinfo=hostextinfo_hashlist[hashfunc1(host_name,HOSTEXTINFO_HASHSLOTS)];temp_hostextinfo && compare_hashdata1(temp_hostextinfo->host_name,host_name)<0;temp_hostextinfo=temp_hostextinfo->nexthash);
+
+	if(temp_hostextinfo && (compare_hashdata1(temp_hostextinfo->host_name,host_name)==0))
+		return temp_hostextinfo;
+
 #ifdef DEBUG0
 	printf("find_hostextinfo() end\n");
 #endif
@@ -4570,20 +4699,44 @@ serviceextinfo * find_serviceextinfo(char *host_name, char *description){
 	printf("find_serviceextinfo() start\n");
 #endif
 
-	if(host_name==NULL || description==NULL)
+	if(host_name==NULL || description==NULL || serviceextinfo_hashlist==NULL)
 		return NULL;
 
-	for(temp_serviceextinfo=serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
-		if(!strcmp(host_name,temp_serviceextinfo->host_name) && !strcmp(description,temp_serviceextinfo->description))
-			return temp_serviceextinfo;
-	        }
-	
+	for(temp_serviceextinfo=serviceextinfo_hashlist[hashfunc2(host_name,description,SERVICEEXTINFO_HASHSLOTS)];temp_serviceextinfo && compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash);
+
+	if(temp_serviceextinfo && (compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)==0))
+		return temp_serviceextinfo;
+
 #ifdef DEBUG0
 	printf("find_serviceextinfo() end\n");
 #endif
 
 	/* we couldn't find a matching extended service info object */
 	return NULL;
+        }
+
+
+
+
+/******************************************************************/
+/******************* OBJECT TRAVERSAL FUNCTIONS *******************/
+/******************************************************************/
+
+/* move pointer to first host in chained hash */
+void move_first_host(void){
+
+	if(static_host_cursor)
+		free_host_cursor(static_host_cursor);
+	static_host_cursor=get_host_cursor();
+
+	return;
+        }
+
+
+/* gets next host in chained hash */
+host * get_next_host(void){
+
+	return get_next_host_cursor(static_host_cursor);
         }
 
 
@@ -4597,12 +4750,44 @@ void move_first_service(void){
         }
 
 
+void *get_host_cursor(void){
+	host_cursor *retval;
+
+	if(!(retval=malloc(sizeof(host_cursor))))
+		return NULL;
+
+	retval->current_host_pointer=NULL;
+	retval->host_hashchain_iterator=0;
+
+	return retval;
+        }
+
+
+host *get_next_host_cursor(void *v_cursor){
+	host_cursor *cursor=v_cursor;
+
+	if(!cursor)
+		return NULL;
+
+	cursor->current_host_pointer=get_next_N((void **)host_hashlist,HOST_HASHSLOTS,&(cursor->host_hashchain_iterator),cursor->current_host_pointer,(cursor->current_host_pointer?cursor->current_host_pointer->nexthash:NULL));
+
+	return cursor->current_host_pointer;
+        }
+
+
+void free_host_cursor(void *cursor){
+
+	if(cursor)
+		free(cursor);
+        }
+
+
 /* returns the next service, NULL upon end of list
  * uses a static memory area, call move_first_service before your first call to this function
  */
 service * get_next_service(void){
 
-	current_service_pointer=get_next_N((void **)service_hashlist,SERVICES_HASHSLOTS,&service_hashchain_iterator,current_service_pointer,(current_service_pointer?current_service_pointer->nexthash:NULL));
+	current_service_pointer=get_next_N((void **)service_hashlist,SERVICE_HASHSLOTS,&service_hashchain_iterator,current_service_pointer,(current_service_pointer?current_service_pointer->nexthash:NULL));
 
 	return current_service_pointer;
         }
@@ -4637,6 +4822,40 @@ service *get_next_service_by_host(void){
 	return NULL;
         }
 
+
+void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next){
+
+	/* hashchain hasn't been setup yet */
+	if(!hashchain)
+		return NULL;
+
+	/* went past end */
+	if((*iterator)>=hashslots)
+		return NULL;
+
+	if(current && next){
+		
+		/* next is valid - return that value */
+		current=next;
+	        }
+	else{
+
+		/* next isn't valid, find the first hashchain entry that is defined */
+
+		/* we already went through this hashchain entry */
+		if(current)
+			(*iterator)++;
+
+		for(;!hashchain[(*iterator)] && ((*iterator)<hashslots);(*iterator)++);
+
+		if((*iterator)<hashslots)
+			current=hashchain[(*iterator)];
+		else
+			current=NULL;
+	        }
+
+	return current;
+        }
 
 
 
@@ -4874,7 +5093,7 @@ int is_contact_for_host(host *hst, contact *cntct){
 	for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 		/* find the contact group */
-		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 		if(temp_contactgroup==NULL)
 			continue;
 
@@ -4904,7 +5123,7 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 			if(temp_contactgroup==NULL)
 				continue;
 
@@ -4930,7 +5149,7 @@ int is_contact_for_service(service *svc, contact *cntct){
 	for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 		/* find the contact group */
-		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 		if(temp_contactgroup==NULL)
 			continue;
 
@@ -4960,7 +5179,7 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 		for(temp_contactgroupsmember=temp_serviceescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 			if(temp_contactgroup==NULL)
 				continue;
 
@@ -5167,53 +5386,44 @@ int free_object_data(void){
 	printf("\ttimeperiod_list freed\n");
 #endif
 
-	/* free memory for the host list (chained hash) */
-	if(host_hashlist){
-		for(i=0;i<HOSTS_HASHSLOTS;i++){
+	/* free memory for the host list */
+	this_host=host_list;
+	while(this_host!=NULL){
 
-			this_host=host_hashlist[i];
-			while(this_host!=NULL){
+		next_host=this_host->next;
 
-				next_host=this_host->nexthash;
+		/* free memory for parent hosts */
+		this_hostsmember=this_host->parent_hosts;
+		while(this_hostsmember!=NULL){
+			next_hostsmember=this_hostsmember->next;
+			free(this_hostsmember->host_name);
+			free(this_hostsmember);
+			this_hostsmember=next_hostsmember;
+			}
 
-				/* free memory for parent hosts */
-				this_hostsmember=this_host->parent_hosts;
-				while(this_hostsmember!=NULL){
-					next_hostsmember=this_hostsmember->next;
-					free(this_hostsmember->host_name);
-					free(this_hostsmember);
-					this_hostsmember=next_hostsmember;
-				        }
+		/* free memory for contact groups */
+		this_contactgroupsmember=this_host->contact_groups;
+		while(this_contactgroupsmember!=NULL){
+			next_contactgroupsmember=this_contactgroupsmember->next;
+			free(this_contactgroupsmember->group_name);
+			free(this_contactgroupsmember);
+			this_contactgroupsmember=next_contactgroupsmember;
+			}
 
-				/* free memory for contact groups */
-				this_contactgroupsmember=this_host->contact_groups;
-				while(this_contactgroupsmember!=NULL){
-					next_contactgroupsmember=this_contactgroupsmember->next;
-					free(this_contactgroupsmember->group_name);
-					free(this_contactgroupsmember);
-					this_contactgroupsmember=next_contactgroupsmember;
-				        }
-
-				free(this_host->name);
-				free(this_host->alias);
-				free(this_host->address);
+		free(this_host->name);
+		free(this_host->alias);
+		free(this_host->address);
 
 #ifdef NSCORE
-				free(this_host->plugin_output);
-				free(this_host->perf_data);
+		free(this_host->plugin_output);
+		free(this_host->perf_data);
 #endif
-				free(this_host->host_check_command);
-				free(this_host->event_handler);
-				free(this_host->failure_prediction_options);
-				free(this_host->notification_period);
-				free(this_host);
-				this_host=next_host;
-			        }
-		        }
-
-		/* reset the host pointer */
-		free(host_hashlist);
-		host_hashlist=NULL;
+		free(this_host->host_check_command);
+		free(this_host->event_handler);
+		free(this_host->failure_prediction_options);
+		free(this_host->notification_period);
+		free(this_host);
+		this_host=next_host;
 	        }
 
 	/* reset host list pointer */
@@ -5345,43 +5555,34 @@ int free_object_data(void){
 	printf("\tcontactgroup_list freed\n");
 #endif
 
-	/* free memory for the service list (chained hash) */
-	if(service_hashlist){
-		for(i=0;i<SERVICES_HASHSLOTS;i++){
+	/* free memory for the service list */
+	this_service=service_list;
+	while(this_service!=NULL){
 
-			this_service=service_hashlist[i];
-			while(this_service!=NULL){
+		next_service=this_service->next;
 
-				next_service=this_service->nexthash;
+		/* free memory for contact groups */
+		this_contactgroupsmember=this_service->contact_groups;
+		while(this_contactgroupsmember!=NULL){
+			next_contactgroupsmember=this_contactgroupsmember->next;
+			free(this_contactgroupsmember->group_name);
+			free(this_contactgroupsmember);
+			this_contactgroupsmember=next_contactgroupsmember;
+	                }
 
-				/* free memory for contact groups */
-				this_contactgroupsmember=this_service->contact_groups;
-				while(this_contactgroupsmember!=NULL){
-					next_contactgroupsmember=this_contactgroupsmember->next;
-					free(this_contactgroupsmember->group_name);
-					free(this_contactgroupsmember);
-					this_contactgroupsmember=next_contactgroupsmember;
-				        }
-
-				free(this_service->host_name);
-				free(this_service->description);
-				free(this_service->service_check_command);
+		free(this_service->host_name);
+		free(this_service->description);
+		free(this_service->service_check_command);
 #ifdef NSCORE
-				free(this_service->plugin_output);
-				free(this_service->perf_data);
+		free(this_service->plugin_output);
+		free(this_service->perf_data);
 #endif
-				free(this_service->notification_period);
-				free(this_service->check_period);
-				free(this_service->event_handler);
-				free(this_service->failure_prediction_options);
-				free(this_service);
-				this_service=next_service;
-			        }
-		        }
-
-		/* reset the service pointer */
-		free(service_hashlist);
-		service_hashlist=NULL;
+		free(this_service->notification_period);
+		free(this_service->check_period);
+		free(this_service->event_handler);
+		free(this_service->failure_prediction_options);
+		free(this_service);
+		this_service=next_service;
 	        }
 
 	/* reset service list pointer */

@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 06-13-2003
  *
  * License:
  * 
@@ -1128,7 +1128,7 @@ int process_cgivars(void){
 				show_all_hostgroups=TRUE;
 			else{
 				show_all_hostgroups=FALSE;
-				target_hostgroup=find_hostgroup(target_hostgroup_name,NULL);
+				target_hostgroup=find_hostgroup(target_hostgroup_name);
 			        }
 		        }
 

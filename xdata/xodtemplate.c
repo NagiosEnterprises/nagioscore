@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-22-2003
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-29-2004
  *
  * Description:
  *
@@ -8649,6 +8649,43 @@ int xodtemplate_free_hostlist(xodtemplate_hostlist *temp_list){
         }
 
 
+/* remove an entry from the host list */
+void xodtemplate_remove_hostlist_item(xodtemplate_hostlist *item,xodtemplate_hostlist **list){
+	xodtemplate_hostlist *temp_item;
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_hostlist_item() start\n");
+#endif
+
+	if(item==NULL || list==NULL)
+		return;
+
+	if(*list==NULL)
+		return;
+
+	if(*list==item)
+		*list=item->next;
+
+	else{
+
+		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
+			if(temp_item->next==item){
+				temp_item->next=item->next;
+				free(item->host_name);
+				free(item);
+				break;
+			        }
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_hostlist_item() end\n");
+#endif
+
+	return;
+        }
+
+
 /* frees memory allocated to a temporary service list */
 int xodtemplate_free_servicelist(xodtemplate_servicelist *temp_list){
 	xodtemplate_servicelist *this_servicelist;
@@ -8676,6 +8713,44 @@ int xodtemplate_free_servicelist(xodtemplate_servicelist *temp_list){
         }
 
 
+/* remove an entry from the service list */
+void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *item,xodtemplate_servicelist **list){
+	xodtemplate_servicelist *temp_item;
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_servicelist_item() start\n");
+#endif
+
+	if(item==NULL || list==NULL)
+		return;
+
+	if(*list==NULL)
+		return;
+
+	if(*list==item)
+		*list=item->next;
+
+	else{
+
+		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
+			if(temp_item->next==item){
+				temp_item->next=item->next;
+				free(item->host_name);
+				free(item->service_description);
+				free(item);
+				break;
+			        }
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_servicelist_item() end\n");
+#endif
+
+	return;
+        }
+
+
 
 /******************************************************************/
 /********************** UTILITY FUNCTIONS *************************/
@@ -8686,6 +8761,9 @@ int xodtemplate_free_servicelist(xodtemplate_servicelist *temp_list){
 /* expands a comma-delimited list of hostgroups and/or hosts to member host names */
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,char *hosts){
 	xodtemplate_hostlist *temp_list=NULL;
+	xodtemplate_hostlist *reject_list=NULL;
+	xodtemplate_hostlist *list_ptr=NULL;
+	xodtemplate_hostlist *reject_ptr=NULL;
 	int result;
 
 #ifdef DEBUG0
@@ -8696,22 +8774,50 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 	if(hostgroups!=NULL){
 
 		/* expand host */
-		result=xodtemplate_expand_hostgroups(&temp_list,hostgroups);
+		result=xodtemplate_expand_hostgroups(&temp_list,&reject_list,hostgroups);
 		if(result!=OK){
 			xodtemplate_free_hostlist(temp_list);
+			xodtemplate_free_hostlist(reject_list);
 			return NULL;
 		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->host_name,list_ptr->host_name)){
+					xodtemplate_remove_hostlist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+		xodtemplate_free_hostlist(reject_list);
+		reject_list=NULL;
 	        }
+
 
 	/* process host names */
 	if(hosts!=NULL){
 
 		/* expand hosts */
-		result=xodtemplate_expand_hosts(&temp_list,hosts);
+		result=xodtemplate_expand_hosts(&temp_list,&reject_list,hosts);
 		if(result!=OK){
 			xodtemplate_free_hostlist(temp_list);
+			xodtemplate_free_hostlist(reject_list);
 			return NULL;
 		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->host_name,list_ptr->host_name)){
+					xodtemplate_remove_hostlist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+		xodtemplate_free_hostlist(reject_list);
+		reject_list=NULL;
 	        }
 
 #ifdef DEBUG0
@@ -8724,7 +8830,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 
 
 /* expands hostgroups */
-int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups){
+int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list, char *hostgroups){
 	char *hostgroup_names;
 	char *host_names;
 	char *host_name;
@@ -8732,7 +8838,8 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups)
 	char *host_name_ptr;
 	xodtemplate_hostgroup *temp_hostgroup;
 	regex_t preg;
-	int found_match=FALSE;
+	int found_match=TRUE;
+	int reject_item=FALSE;
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -8753,6 +8860,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups)
 	for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 		found_match=FALSE;
+		reject_item=FALSE;
 		
 		/* strip trailing spaces */
 		strip(temp_ptr);
@@ -8795,14 +8903,20 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups)
 		/* use standard matching... */
 		else{
 
+			/* this hostgroup should be excluded (rejected) */
+			if(temp_ptr[0]=='!'){
+				reject_item=TRUE;
+				temp_ptr++;
+			        }
+
 			/* find the hostgroup */
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup!=NULL){
 
 				found_match=TRUE;
 
-				/* add hostgroup members to list */
-				xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
+				/* add hostgroup members to proper list */
+				xodtemplate_add_hostgroup_members_to_hostlist((reject_item==TRUE)?reject_list:list,temp_hostgroup);
 			        }
 		        }
 
@@ -8812,8 +8926,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups)
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-			free(hostgroup_names);
-			return ERROR;
+			break;
 	                }
 	        }
 
@@ -8824,18 +8937,22 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups)
 	printf("xodtemplate_expand_hostgroups() end\n");
 #endif
 
+	if(found_match==FALSE)
+		return ERROR;
+
 	return OK;
         }
 
 
 
 /* expands hosts */
-int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
+int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list,char *hosts){
 	char *host_names;
 	char *temp_ptr;
 	xodtemplate_host *temp_host;
 	regex_t preg;
-	int found_match=FALSE;
+	int found_match=TRUE;
+	int reject_item=FALSE;
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -8856,6 +8973,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
 	for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 		found_match=FALSE;
+		reject_item=FALSE;
 
 		/* strip trailing spaces */
 		strip(temp_ptr);
@@ -8914,6 +9032,12 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
 			/* else this is just a single host... */
 			else{
 
+				/* this host should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+			                }
+
 				/* find the host */
 				temp_host=xodtemplate_find_real_host(temp_ptr);
 				if(temp_host!=NULL){
@@ -8921,7 +9045,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
 					found_match=TRUE;
 
 					/* add host to list */
-					xodtemplate_add_host_to_hostlist(list,temp_ptr);
+					xodtemplate_add_host_to_hostlist((reject_item==TRUE)?reject_list:list,temp_ptr);
 				        }
 			        }
 		        }
@@ -8932,8 +9056,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-			free(host_names);
-			return ERROR;
+			break;
 	                }
 	        }
 
@@ -8944,11 +9067,14 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
 	printf("xodtemplate_expand_hosts() end\n");
 #endif
 
+	if(found_match==FALSE)
+		return ERROR;
+
 	return OK;
         }
 
 
-/* adds members of a hostgroups to the list of expanded hosts */
+/* adds members of a hostgroups to the list of expanded (accepted) or rejected hosts */
 int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, xodtemplate_hostgroup *temp_hostgroup){
 	char *group_members;
 	char *member_name;
@@ -8984,7 +9110,7 @@ int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, x
         }
 
 
-/* adds a host entry to the list of expanded hosts */
+/* adds a host entry to the list of expanded (accepted) or rejected hosts */
 int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **list, char *host_name){
 	xodtemplate_hostlist *temp_item;
 	xodtemplate_hostlist *new_item;
@@ -9022,6 +9148,9 @@ int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **list, char *host_nam
 /* expands a comma-delimited list of servicegroups and/or service descriptions */
 xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *servicegroups,char *host,char *services){
 	xodtemplate_servicelist *temp_list=NULL;
+	xodtemplate_servicelist *reject_list=NULL;
+	xodtemplate_servicelist *list_ptr=NULL;
+	xodtemplate_servicelist *reject_ptr=NULL;
 	int result;
 
 #ifdef DEBUG0
@@ -9032,22 +9161,49 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 	if(servicegroups!=NULL){
 
 		/* expand services */
-		result=xodtemplate_expand_servicegroups(&temp_list,servicegroups);
+		result=xodtemplate_expand_servicegroups(&temp_list,&reject_list,servicegroups);
 		if(result!=OK){
 			xodtemplate_free_servicelist(temp_list);
+			xodtemplate_free_servicelist(reject_list);
 			return NULL;
 		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->host_name,list_ptr->host_name) && !strcmp(reject_ptr->service_description,list_ptr->service_description)){
+					xodtemplate_remove_servicelist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+		xodtemplate_free_servicelist(reject_list);
+		reject_list=NULL;
 	        }
 
 	/* process service names */
 	if(host!=NULL && services!=NULL){
 
 		/* expand services */
-		result=xodtemplate_expand_services(&temp_list,host,services);
+		result=xodtemplate_expand_services(&temp_list,&reject_list,host,services);
 		if(result!=OK){
 			xodtemplate_free_servicelist(temp_list);
+			xodtemplate_free_servicelist(reject_list);
 			return NULL;
 		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		/* NOTE: rejects from this list also affect hosts generated from processing hostgroup names (see above) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->host_name,list_ptr->host_name) && !strcmp(reject_ptr->service_description,list_ptr->service_description)){
+					xodtemplate_remove_servicelist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+		xodtemplate_free_servicelist(reject_list);
+		reject_list=NULL;
 	        }
 
 #ifdef DEBUG0
@@ -9059,12 +9215,13 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 
 
 /* expands servicegroups */
-int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servicegroups){
+int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate_servicelist **reject_list, char *servicegroups){
 	xodtemplate_servicegroup  *temp_servicegroup;
 	regex_t preg;
 	char *servicegroup_names;
 	char *temp_ptr;
-	int found_match=FALSE;
+	int found_match=TRUE;
+	int reject_item=FALSE;
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -9086,6 +9243,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 	for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 		found_match=FALSE;
+		reject_item=FALSE;
 		
 		/* strip trailing spaces */
 		strip(temp_ptr);
@@ -9128,6 +9286,12 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 		/* use standard matching... */
 		else{
 
+			/* this servicegroup should be excluded (rejected) */
+			if(temp_ptr[0]=='!'){
+				reject_item=TRUE;
+				temp_ptr++;
+		                }
+
 			/* find the servicegroup */
 			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
 			if(temp_servicegroup!=NULL){
@@ -9135,7 +9299,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 				found_match=TRUE;
 
 				/* add servicegroup members to list */
-				xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
+				xodtemplate_add_servicegroup_members_to_servicelist((reject_item==TRUE)?reject_list:list,temp_servicegroup);
 			        }
 		        }
 
@@ -9146,8 +9310,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-			free(servicegroup_names);
-			return ERROR;
+			break;
 		        }
 	        }
 
@@ -9158,18 +9321,22 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 	printf("xodtemplate_expand_servicegroups() end\n");
 #endif
 
+	if(found_match==FALSE)
+		return ERROR;
+
 	return OK;
         }
 
 
 /* expands services (host name is not expanded) */
-int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name, char *services){
+int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_servicelist **reject_list, char *host_name, char *services){
 	char *service_names;
 	char *temp_ptr;
 	xodtemplate_service *temp_service;
 	regex_t preg;
 	regex_t preg2;
-	int found_match=FALSE;
+	int found_match=TRUE;
+	int reject_item=FALSE;
 	int use_regexp_host=FALSE;
 	int use_regexp_service=FALSE;
 #ifdef NSCORE
@@ -9204,6 +9371,7 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 	for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 		found_match=FALSE;
+		reject_item=FALSE;
 
 		/* strip trailing spaces */
 		strip(temp_ptr);
@@ -9287,6 +9455,12 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 			/* else this is just a single service... */
 			else{
 
+				/* this service should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+		                        }
+
 				/* find the service */
 				temp_service=xodtemplate_find_real_service(host_name,temp_ptr);
 				if(temp_service!=NULL){
@@ -9294,7 +9468,7 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 					found_match=TRUE;
 
 					/* add service to the list */
-					xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
+					xodtemplate_add_service_to_servicelist((reject_item==TRUE)?reject_list:list,host_name,temp_service->service_description);
 				        }
 			        }
 		        }
@@ -9306,10 +9480,7 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-			if(use_regexp_host==TRUE)
-				regfree(&preg2);
-			free(service_names);
-			return ERROR;
+			break;
 	                }
 	        }
 
@@ -9320,6 +9491,9 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 #ifdef DEBUG0
 	printf("xodtemplate_expand_services() end\n");
 #endif
+
+	if(found_match==FALSE)
+		return ERROR;
 
 	return OK;
         }

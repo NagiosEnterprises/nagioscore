@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-25-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-29-2004
  *
  * License:
  *
@@ -2186,7 +2186,7 @@ int pre_flight_check(void){
 		/* find the service */
 		temp_service=find_service(temp_se->host_name,temp_se->description);
 		if(temp_service==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->description,temp_se->host_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service escalation is not defined anywhere!",temp_se->description,temp_se->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;
@@ -2281,7 +2281,7 @@ int pre_flight_check(void){
 		/* find the host */
 		temp_host=find_host(temp_he->host_name);
 		if(temp_host==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host escalation for host '%s' is not defined anywhere!",temp_he->host_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in host escalation is not defined anywhere!",temp_he->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;

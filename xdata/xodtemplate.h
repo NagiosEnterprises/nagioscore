@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-06-2003
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-29-2004
  *
  * License:
  *
@@ -535,17 +535,19 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
-int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,char *);
-int xodtemplate_expand_hosts(xodtemplate_hostlist **,char *);
+int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
+int xodtemplate_expand_hosts(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
 int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **,xodtemplate_hostgroup *);
 int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **,char *);
 int xodtemplate_free_hostlist(xodtemplate_hostlist *);
+void xodtemplate_remove_hostlist_item(xodtemplate_hostlist *,xodtemplate_hostlist **);
 xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *);
-int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,char *);
-int xodtemplate_expand_services(xodtemplate_servicelist **,char *,char *);
+int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,xodtemplate_servicelist **,char *);
+int xodtemplate_expand_services(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,char *);
 int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **,xodtemplate_servicegroup *);
 int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **,char *,char *);
 int xodtemplate_free_servicelist(xodtemplate_servicelist *);
+void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *,xodtemplate_servicelist **);
 #endif
 
 int xodtemplate_begin_object_definition(char *,int,int,int);

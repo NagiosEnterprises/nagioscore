@@ -224,7 +224,7 @@ int main(void){
 		return ERROR;
                 }
 
-	/* if a navbar search was performed, find the host by name or address */
+	/* if a navbar search was performed, find the host by name, address or partial name */
 	if(navbar_search==TRUE){
 		if((temp_host=find_host(host_name))==NULL){
 			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -234,6 +234,15 @@ int main(void){
 					break;
 			                }
 		                }
+			if(temp_host==NULL){
+				for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+					if(strstr(temp_host->name,host_name)==temp_host->name){
+						free(host_name);
+						host_name=strdup(temp_host->name);
+						break;
+			                        }
+		                        }
+			        }
 		        }
 	        }
 
@@ -2825,7 +2834,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 			        }
 		        }
 
-		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a></TD>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);
+		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);
 
 
 		printf("<A HREF='%s?host=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'></A>",STATUSMAP_CGI,url_encode(temp_host->name),url_images_path,STATUSMAP_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Locate Host On Map","Locate Host On Map");

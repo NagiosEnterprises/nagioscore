@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-15-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-10-2005
  *
  * License:
  *
@@ -90,6 +90,7 @@ extern int      sigshutdown;
 extern int      sigrestart;
 
 extern int      daemon_mode;
+extern int      daemon_dumps_core;
 
 extern int	use_syslog;
 extern int      log_notifications;
@@ -238,6 +239,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 	int address_index=0;
 	char *selected_macro=NULL;
 	int clean_macro=FALSE;
+	int found_macro_x=FALSE;
 
 #ifdef DEBUG0
 	printf("process_macros() start\n");
@@ -266,6 +268,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 #endif
 
 		selected_macro=NULL;
+		found_macro_x=FALSE;
 		clean_macro=FALSE;
 
 		if(in_macro==FALSE){
@@ -288,12 +291,13 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 						continue;
 					if(!strcmp(temp_buffer,macro_x_names[x])){
 						selected_macro=macro_x[x];
+						found_macro_x=TRUE;
 						break;
 						}
 				        }
 
 				/* we already have a macro... */
-				if(selected_macro!=NULL)
+				if(found_macro_x==TRUE)
 					x=0;
 
 				/* on-demand host macros */
@@ -3470,9 +3474,11 @@ int daemon_init(void){
 
 	/* prevent daemon from dumping a core file... */
 #ifdef RLIMIT_CORE
-	getrlimit(RLIMIT_CORE,&limit);
-	limit.rlim_cur=0;
-	setrlimit(RLIMIT_CORE,&limit);
+	if(daemon_dumps_core==FALSE){
+		getrlimit(RLIMIT_CORE,&limit);
+		limit.rlim_cur=0;
+		setrlimit(RLIMIT_CORE,&limit);
+	        }
 #endif
 
 	/* write PID to lockfile... */
@@ -4748,6 +4754,10 @@ void * command_file_worker_thread(void *arg){
 		buffer_items=external_command_buffer.items;
 		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
+#ifdef DEBUG_CFWT
+		printf("(CFWT) BUFFER ITEMS: %d/%d\n",buffer_items,COMMAND_BUFFER_SLOTS);
+#endif
+
 		/* process all commands in the file (named pipe) if there's some space in the buffer */
 		if(buffer_items<COMMAND_BUFFER_SLOTS){
 
@@ -4756,6 +4766,10 @@ void * command_file_worker_thread(void *arg){
 
 			/* read and process the next command in the file */
 			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
+
+#ifdef DEBUG_CFWT
+				printf("(CFWT) READ: %s",input_buffer);
+#endif
 
 				/* submit the external command for processing (retry if buffer is full) */
 				while((result=submit_external_command(input_buffer,&buffer_items))==ERROR && buffer_items==COMMAND_BUFFER_SLOTS){
@@ -4768,6 +4782,10 @@ void * command_file_worker_thread(void *arg){
 					/* should we shutdown? */
 					pthread_testcancel();
 				        }
+
+#ifdef DEBUG_CFWT
+				printf("(CFWT) RES: %d, BUFFER_ITEMS: %d/%d\n",result,buffer_items,COMMAND_BUFFER_SLOTS);
+#endif
 
 				/* bail if the circular buffer is full */
 				if(buffer_items==COMMAND_BUFFER_SLOTS)

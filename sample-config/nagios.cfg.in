@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-15-2004
+# Last Modified: 01-04-2005
 #
 ##############################################################################
 
@@ -934,6 +934,18 @@ admin_email=@nagios_user@
 # commands.
 
 admin_pager=page@nagios_user@
+
+
+
+# DAEMON CORE DUMP OPTION
+# This option determines whether or not Nagios is allowed to create
+# a core dump when it runs as a daemon.  Note that it is generally
+# considered bad form to allow this, but it may be useful for
+# debugging purposes.
+# Values: 1 - Allow core dumps
+#         0 - Do not allow core dumps (default)
+
+daemon_dumps_core=0
 
 
 

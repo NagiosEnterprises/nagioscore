@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-31-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-10-2005
  *
  * License:
  *
@@ -360,6 +360,7 @@ int xrddefault_read_state_information(char *main_config_file){
 	command *temp_command=NULL;
 	char *var;
 	char *val;
+	char *ch;
 	time_t creation_time;
 	time_t current_time;
 	int scheduling_info_is_ok=FALSE;
@@ -665,8 +666,12 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_host->current_notification_number=atoi(val);
 						else if(!strcmp(var,"state_history")){
 							temp_ptr=val;
-							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-								temp_host->state_history[x]=atoi(my_strsep(&temp_ptr,","));
+							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){
+								if((ch=my_strsep(&temp_ptr,","))!=NULL)
+									temp_host->state_history[x]=atoi(ch);
+								else
+									break;
+							        }
 							temp_host->state_history_index=0;
 						        }
 					        }
@@ -828,8 +833,12 @@ int xrddefault_read_state_information(char *main_config_file){
 
 						else if(!strcmp(var,"state_history")){
 							temp_ptr=val;
-							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-								temp_service->state_history[x]=atoi(my_strsep(&temp_ptr,","));
+							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){
+								if((ch=my_strsep(&temp_ptr,","))!=NULL)
+									temp_service->state_history[x]=atoi(ch);
+								else
+									break;
+							        }
 							temp_service->state_history_index=0;
 						        }
 					        }

@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-08-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2005
  *
  * License:
  *
@@ -2047,6 +2047,8 @@ int check_host(host *hst, int propagation_options, int check_options){
 			handle_host_state(hst);
 		        }
 
+		/* readjust the current check number - added 01/10/05 EG */
+		hst->current_attempt--;
 	        }
 
 

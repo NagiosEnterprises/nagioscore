@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-19-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-10-2005
  *
  * License:
  *
@@ -1236,7 +1236,7 @@ int handle_timed_event(timed_event *event){
 
 	case EVENT_SFRESHNESS_CHECK:
 #ifdef DEBUG3
-		printf("(servoce result freshness check)\n");
+		printf("(service result freshness check)\n");
 #endif
 		
 		/* check service result freshness */

@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-08-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-04-2005
  *
  * License:
  *
@@ -76,6 +76,8 @@ extern int      ochp_timeout;
 extern int      log_initial_states;
 
 extern int      daemon_mode;
+extern int      daemon_dumps_core;
+
 extern int      verify_config;
 extern int      test_scheduling;
 
@@ -1384,6 +1386,20 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tuse_true_regexp_matching to %s\n",(use_true_regexp_matching==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+		else if(!strcmp(variable,"daemon_dumps_core")){
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for daemon_dumps_core");
+				error=TRUE;
+				break;
+				}
+
+			strip(value);
+			daemon_dumps_core=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tdaemon_dumps_core set to %s\n",(daemon_dumps_core==TRUE)?"TRUE":"FALSE");
+#endif
+			}
 
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){

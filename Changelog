@@ -5,8 +5,9 @@ Nagios Change Log
 
 2.0b2 - ??/??/????
 ------------------
+* Fixed bug with current attempt number during scheduled host checks
+* Fixed macro processing bug
 * Fixed bug where GUI didn't show UNREACHABLE hosts properly
-* Embedded Perl fixes for threading
 * Event broker bug fixes
 * Removed (un)setenv() calls for systems that don't support it
 * Fixed problem with installing sample config files

@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-13-2003
  *
  * Description:
  *
@@ -6405,6 +6405,10 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				free(hostgroup_names);
 				return NULL;
 		                }
+
+			/* skip hostgroups with no defined members */
+			if(temp_hostgroup->members==NULL)
+				continue;
 
 			/* save a copy of the hosts */
 			host_names=strdup(temp_hostgroup->members);

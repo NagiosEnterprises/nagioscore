@@ -4059,6 +4059,11 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	xodtemplate_resolve_serviceescalation(template_serviceescalation);
 
 	/* apply missing properties from template serviceescalation... */
+	if(this_serviceescalation->hostgroup_name==NULL && template_serviceescalation->hostgroup_name!=NULL){
+		this_serviceescalation->hostgroup_name=(char *)malloc(strlen(template_serviceescalation->hostgroup_name)+1);
+		if(this_serviceescalation->hostgroup_name!=NULL)
+			strcpy(this_serviceescalation->hostgroup_name,template_serviceescalation->hostgroup_name);
+	        }
 	if(this_serviceescalation->host_name==NULL && template_serviceescalation->host_name!=NULL){
 		this_serviceescalation->host_name=(char *)malloc(strlen(template_serviceescalation->host_name)+1);
 		if(this_serviceescalation->host_name!=NULL)
@@ -4088,7 +4093,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	        }
 
 #ifdef DEBUG0
-	printf("xodtemplate_resolve_servicedependency() end\n");
+	printf("xodtemplate_resolve_servicedeescalation() end\n");
 #endif
 
 	return OK;

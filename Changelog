@@ -6,6 +6,11 @@ Nagios Change Log
 ------------------
 * Updated RPM spec
 * Context-sensitive help option moved to CGI config file
+* Fixed bug with escaping strings for DB support
+* Configure script now reports warning if unable to located
+  MySQL or PostgreSQL libs
+* Bug fixes in template-based object code
+* Service escalations can now be defined for hostgroups
 
 
 1.0b1 - 05/10/2002

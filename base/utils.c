@@ -2202,7 +2202,6 @@ int contains_illegal_object_chars(char *name){
 	register int x;
 	register int y;
 	register int ch;
-	register int len;
 
 	if(name==NULL)
 		return FALSE;
@@ -2238,6 +2237,7 @@ char *clean_macro_chars(char *macro,int options){
 	register int x;
 	register int y;
 	register int ch;
+	register int len;
 
 	if(macro==NULL)
 		return "";

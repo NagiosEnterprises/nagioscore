@@ -474,7 +474,7 @@ serviceextinfo *find_serviceextinfo(char *,char *);                             
 
 void move_first_service(void);									/* sets up the static memory area for get_next_service */
 service *get_next_service(void);								/* returns the next service, NULL at the end of the list */
-int find_all_services_by_host(char *host);							/* sets up the static memory area for get_next_service_by_host */
+int find_all_services_by_host(char *);							        /* sets up the static memory area for get_next_service_by_host */
 service *get_next_service_by_host(void);							/* returns the next service for the host, NULL at the end of the list */
 void move_first_host(void);									/* sets up the static memory area for get_next_host */
 host *get_next_host(void);									/* returns the next host, NULL at the end of the list */

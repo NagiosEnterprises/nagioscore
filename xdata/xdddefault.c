@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -369,7 +369,6 @@ int xdddefault_delete_downtime(int type, unsigned long downtime_id){
 
 /* writes downtime data to file */
 int xdddefault_save_downtime_data(void){
-	char buffer[MAX_INPUT_BUFFER];
 	char temp_file[MAX_FILENAME_LENGTH];
 	time_t current_time;
 	scheduled_downtime *temp_downtime;
@@ -461,7 +460,7 @@ int xdddefault_read_downtime_data(char *main_config_file){
 	time_t start_time=0L;
 	time_t end_time=0L;
 	int fixed=FALSE;
-	unsigned long duration;
+	unsigned long duration=0L;
 	char *host_name=NULL;
 	char *service_description=NULL;
 	char *comment=NULL;

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-06-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -993,7 +993,7 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 
 	/* reschedule all services on the specified host */
 	if(find_all_services_by_host(host_name)){
-		while(temp_service=get_next_service_by_host()){
+		while((temp_service=get_next_service_by_host())){
 			
 			/* schedule a delayed service check */
 			schedule_service_check(temp_service,delay_time,force);
@@ -1069,16 +1069,16 @@ int cmd_enable_disable_host_service_checks(int cmd,char *args){
 		return ERROR;
 
 	/* disable all services associated with this host... */
-	if(find_all_services_by_host(temp_host->name)) {
-		while(temp_service=get_next_service_by_host()) {
+	if(find_all_services_by_host(temp_host->name)){
+		while((temp_service=get_next_service_by_host())){
 			if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
 				enable_service_check(temp_service);
 			else
 				disable_service_check(temp_service);
 		        }
-	} else {
+	        } 
+	else
 		return ERROR;
-	        }
 
 #ifdef DEBUG0
 	printf("cmd_enable_disable_host_service_checks() end\n");
@@ -1236,16 +1236,16 @@ int cmd_enable_disable_host_service_notifications(int cmd,char *args){
 		return ERROR;
 
 	/* find all services for this host... */
-	if(find_all_services_by_host(host_name)) {
-		while(temp_service=get_next_service_by_host()) {
+	if(find_all_services_by_host(host_name)){
+		while((temp_service=get_next_service_by_host())){
 			if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
 				enable_service_notifications(temp_service);
 			else
 				disable_service_notifications(temp_service);
 		        }
-	} else {
-		return ERROR;
 	        }
+	else
+		return ERROR;
 
 #ifdef DEBUG0
 	printf("cmd_enable_disable_host_service_notifications() end\n");
@@ -1292,7 +1292,6 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	passive_check_result *new_pcr;
 	passive_check_result *temp_pcr;
 	host *temp_host;
-	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("cmd_process_service_check_result() start\n");
@@ -1307,14 +1306,13 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 	/* if this isn't a host name, mabye its a host address */
 	if(find_host(temp_ptr)==NULL){
-		host_cursor=get_host_cursor();
-		while(temp_host=get_next_host_cursor(host_cursor)){
+		move_first_host();
+		while((temp_host=get_next_host())){
 			if(!strcmp(temp_ptr,temp_host->address)){
 				temp_ptr=temp_host->name;
 				break;
 			        }
 		        }
-		free_host_cursor(host_cursor);
 	        }
 
 	if(temp_ptr==NULL){
@@ -1404,7 +1402,6 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	int return_code;
 	time_t current_time;
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
-	void *host_cursor;
 	char temp_buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -1428,14 +1425,13 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 	/* find the host by name or address */
 	if((this_host=find_host(temp_ptr))==NULL){
-		host_cursor=get_host_cursor();
-		while(temp_host=get_next_host_cursor(host_cursor)){
+		move_first_host();
+		while((temp_host=get_next_host())){
 			if(!strcmp(temp_ptr,temp_host->address)){
 				this_host=temp_host;
 				break;
 			        }
 		        }
-		free_host_cursor(host_cursor);
 	        }
 
 	/* bail if we coulnd't find a matching host by name or address */
@@ -2287,13 +2283,12 @@ int cmd_schedule_host_service_downtime(int cmd, time_t entry_time, char *args){
 		duration=(unsigned long)(end_time-start_time);
 
 	/* schedule downtime */
-	if(find_all_services_by_host(host_name)) {
-		while(temp_service=get_next_service_by_host()) {
+	if(find_all_services_by_host(host_name)){
+		while((temp_service=get_next_service_by_host()))
 			schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
 	        }
-	} else {
+	else
 		return ERROR;
-	}
 
 #ifdef DEBUG0
 	printf("cmd_schedule_host_service_downtime() end\n");
@@ -2614,7 +2609,8 @@ void enable_and_propagate_notifications(host *hst){
 
 	/* check all child hosts... */
 	move_first_host();
-	while(temp_host=get_next_host()){
+	while((temp_host=get_next_host())){
+
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
@@ -2625,10 +2621,9 @@ void enable_and_propagate_notifications(host *hst){
 
 			/* enable notifications for all services on this host... */
 			if(find_all_services_by_host(temp_host->name)){
-				while(temp_service=get_next_service_by_host())
+				while((temp_service=get_next_service_by_host()))
 					enable_service_notifications(temp_service);
 		                }
-
 	                }
 	        }
 
@@ -2651,7 +2646,8 @@ void disable_and_propagate_notifications(host *hst){
 
 	/* check all child hosts... */
 	move_first_host();
-	while(temp_host=get_next_host()){
+	while((temp_host=get_next_host())){
+
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
@@ -2662,10 +2658,9 @@ void disable_and_propagate_notifications(host *hst){
 
 			/* disable notifications for all services on this host... */
 			if(find_all_services_by_host(temp_host->name)){
-				while(temp_service=get_next_service_by_host())
+				while((temp_service=get_next_service_by_host()))
 					disable_service_notifications(temp_service);
-		                }
-
+	                        }
 	                }
 	        }
 

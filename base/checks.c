@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-06-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -1425,7 +1425,7 @@ void check_for_orphaned_services(void){
 
 	/* check all services... */
 	move_first_service();
-	while(temp_service=get_next_service()){
+	while((temp_service=get_next_service())){
 
 		/* skip services that are not currently executing */
 		if(temp_service->is_executing==FALSE)
@@ -1485,7 +1485,7 @@ void check_service_result_freshness(void){
 
 	/* check all services... */
 	move_first_service();
-	while(temp_service=get_next_service()){
+	while((temp_service=get_next_service())){
 
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
@@ -1696,7 +1696,6 @@ int check_host(host *hst, int propagation_options, int check_options){
 	int route_blocked=TRUE;
 	int old_state=HOST_UP;
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
-	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("check_host() start\n");
@@ -1773,15 +1772,13 @@ int check_host(host *hst, int propagation_options, int check_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					host_cursor=get_host_cursor();
-					while(child_host=get_next_host_cursor(host_cursor)){
+					move_first_host();
+					while((child_host=get_next_host())){
 
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS,check_options);
 					        }
-
-					free_host_cursor(host_cursor);
 				        }
 				
 				break;
@@ -1881,15 +1878,13 @@ int check_host(host *hst, int propagation_options, int check_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					host_cursor=get_host_cursor();
-					while(child_host=get_next_host_cursor(host_cursor)){
+					move_first_host();
+					while((child_host=get_next_host())){
 
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS,check_options);
 					        }
-
-					free_host_cursor(host_cursor);
 				        }
 			        }
 

@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -120,10 +120,9 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 /* unschedules a host or service downtime */
 int unschedule_downtime(int type,unsigned long downtime_id){
 	scheduled_downtime *temp_downtime;
-	scheduled_downtime *temp2_downtime;
 	scheduled_downtime *event_downtime;
-	host *hst;
-	service *svc;
+	host *hst=NULL;
+	service *svc=NULL;
 	timed_event *temp_event;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	
@@ -225,8 +224,8 @@ int register_downtime(int type, unsigned long downtime_id){
 	char end_time_string[MAX_DATETIME_LENGTH];
 	scheduled_downtime *temp_downtime;
 	timed_event *new_event;
-	host *hst;
-	service *svc;
+	host *hst=NULL;
+	service *svc=NULL;
 	int hours;
 	int minutes;
 
@@ -626,9 +625,9 @@ int add_new_downtime(int type, char *host_name, char *service_description, time_
 	int result;
 
 	if(type==HOST_DOWNTIME)
-		add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+		result=add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
 	else
-		add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+		result=add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
 
 	return result;
         }
@@ -681,9 +680,9 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 /* deletes a scheduled host or service downtime entry from the list in memory */
 int delete_downtime(int type,unsigned long downtime_id){
 	int result;
-	scheduled_downtime *this_downtime;
-	scheduled_downtime *last_downtime;
-	scheduled_downtime *next_downtime;
+	scheduled_downtime *this_downtime=NULL;
+	scheduled_downtime *last_downtime=NULL;
+	scheduled_downtime *next_downtime=NULL;
 
 	/* find the downtime we should remove */
 	for(this_downtime=scheduled_downtime_list,last_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=next_downtime){

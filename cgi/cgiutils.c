@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 04-09-2003
  *
  * License:
  *
@@ -566,6 +566,7 @@ int read_main_config_file(char *filename){
 
 /* read all object definitions */
 int read_all_object_configuration_data(char *config_file,int options){
+	int result=OK;
 
 	/* don't duplicate things we've already read in */
 	if(hosts_have_been_read==TRUE && (options & READ_HOSTS))
@@ -600,7 +601,7 @@ int read_all_object_configuration_data(char *config_file,int options){
 		return OK;
 
 	/* read in all external config data of the desired type(s) */
-	read_object_config_data(config_file,options,FALSE);
+	result=read_object_config_data(config_file,options,FALSE);
 
 	/* mark what items we've read in... */
 	if(options & READ_HOSTS)
@@ -630,7 +631,7 @@ int read_all_object_configuration_data(char *config_file,int options){
 	if(options & READ_SERVICEEXTINFO)
 		serviceextinfo_have_been_read=TRUE;
 
-	return OK;
+	return result;
         }
 
 

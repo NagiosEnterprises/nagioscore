@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 03-24-2003
+# Last Modified: 04-09-2003
 ############################
 
 
@@ -97,13 +97,13 @@ nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
 $(OBJS): $(SRC_COMMON)/locations.h
 
 clean:
-	rm -f nagios core *.o
+	rm -f nagios core *.o gmon.out
 	rm -f *~
-	rm -f Makefile nagios.h
 
 distclean: clean
+	rm -f Makefile nagios.h
 
-devclean: clean
+devclean: distclean
 
 install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)

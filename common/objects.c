@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-07-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -4078,7 +4078,7 @@ int find_all_services_by_host(char *host){
 service *get_next_service_by_host(void){
 	service *tmp;
 
-	while(tmp=get_next_service()){
+	while((tmp=get_next_service())){
 		if(strcmp(tmp->host_name,services_by_host)==0)
 			return tmp;
 	        }
@@ -4157,14 +4157,12 @@ int is_host_immediate_parent_of_host(host *child_host,host *parent_host){
 int number_of_immediate_child_hosts(host *hst){
 	int children=0;
 	host *temp_host;
-	void *host_cursor;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while((temp_host=get_next_host())){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
 			children++;
 		}
-	free_host_cursor(host_cursor);
 
 	return children;
 	}
@@ -4174,14 +4172,12 @@ int number_of_immediate_child_hosts(host *hst){
 int number_of_total_child_hosts(host *hst){
 	int children=0;
 	host *temp_host;
-	void *host_cursor;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while((temp_host=get_next_host())){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
 			children+=number_of_total_child_hosts(temp_host)+1;
 		}
-	free_host_cursor(host_cursor);
 
 	return children;
 	}
@@ -4191,16 +4187,14 @@ int number_of_total_child_hosts(host *hst){
 int number_of_immediate_parent_hosts(host *hst){
 	int parents=0;
 	host *temp_host;
-	void *host_cursor;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while((temp_host=get_next_host())){
 		if(is_host_immediate_parent_of_host(hst,temp_host)==TRUE){
 			parents++;
 			break;
 		        }
 	        }
-	free_host_cursor(host_cursor);
 
 	return parents;
         }
@@ -4210,16 +4204,14 @@ int number_of_immediate_parent_hosts(host *hst){
 int number_of_total_parent_hosts(host *hst){
 	int parents=0;
 	host *temp_host;
-	void *host_cursor;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while((temp_host=get_next_host())){
 		if(is_host_immediate_parent_of_host(hst,temp_host)==TRUE){
 			parents+=number_of_total_parent_hosts(temp_host)+1;
 			break;
 		        }
 	        }
-	free_host_cursor(host_cursor);
 
 	return parents;
         }
@@ -4399,20 +4391,18 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 /* checks to see if there exists a circular parent/child path for a host */
 int check_for_circular_path(host *root_hst, host *hst){
 	host *temp_host;
-	void *host_cursor;
 
 	/* check this hosts' parents to see if a circular path exists */
 	if(is_host_immediate_parent_of_host(root_hst,hst)==TRUE)
 		return TRUE;
 
 	/* check all immediate children for a circular path */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while((temp_host=get_next_host())){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
 			if(check_for_circular_path(root_hst,temp_host)==TRUE)
 				return TRUE;
 	        }
-	free_host_cursor(host_cursor);
 
 	return FALSE;
         }

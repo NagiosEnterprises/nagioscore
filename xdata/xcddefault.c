@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -377,7 +377,6 @@ int xcddefault_delete_all_service_comments(char *host_name, char *svc_descriptio
 
 /* writes comment data to file */
 int xcddefault_save_comment_data(void){
-	char buffer[MAX_INPUT_BUFFER];
 	char temp_file[MAX_FILENAME_LENGTH];
 	time_t current_time;
 	comment *temp_comment;
@@ -457,18 +456,15 @@ int xcddefault_save_comment_data(void){
 /* read the comment file */
 int xcddefault_read_comment_data(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char *temp_ptr;
 	FILE *fp;
 	int data_type=XCDDEFAULT_NO_DATA;
-	int x;
 	char *var;
 	char *val;
 	int result;
-	unsigned long comment_id;
-	int comment_type;
+	unsigned long comment_id=0;
 	int persistent=FALSE;
 	int source=COMMENTSOURCE_INTERNAL;
-	time_t entry_time;
+	time_t entry_time=0L;
 	char *host_name=NULL;
 	char *service_description=NULL;
 	char *author=NULL;

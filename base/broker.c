@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -242,8 +242,8 @@ void broker_system_command(int type, int flags, int attr, int timeout, double ex
 void broker_event_handler(int type, int flags, int attr, void *data, int state, int state_type, double exectime, struct timeb *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeb tb;
-	service *temp_service;
-	host *temp_host;
+	service *temp_service=NULL;
+	host *temp_host=NULL;
 
 	if(!(event_broker_options & BROKER_EVENT_HANDLERS))
 		return;
@@ -279,7 +279,6 @@ void broker_event_handler(int type, int flags, int attr, void *data, int state, 
 void broker_host_check(int type, int flags, int attr, host *hst, int state, double exectime, struct timeb *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeb tb;
-	host *temp_host;
 
 	if(!(event_broker_options & BROKER_HOST_CHECKS))
 		return;
@@ -312,7 +311,6 @@ void broker_host_check(int type, int flags, int attr, host *hst, int state, doub
 void broker_service_check(int type, int flags, int attr, service *svc, struct timeb *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeb tb;
-	service *temp_service;
 
 	if(!(event_broker_options & BROKER_SERVICE_CHECKS))
 		return;
@@ -345,7 +343,6 @@ void broker_service_check(int type, int flags, int attr, service *svc, struct ti
 
 /* initializes event broker worker thread */
 int init_event_broker_worker_thread(void){
-	int result;
 
 	if(event_broker_options==BROKER_NOTHING)
 		return OK;
@@ -420,7 +417,6 @@ int shutdown_event_broker_worker_thread(void){
 void cleanup_event_broker_worker_thread(void *arg){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeb tb;
-	int x;
 	int len;
 
 	/* lock the buffer */
@@ -684,7 +680,7 @@ void * event_broker_worker_thread(void *arg){
 int write_event_broker_data(int sock, char *buf, int *len){
 	int total=0;
 	int bytesleft=*len;
-	int n;
+	int n=0;
 	struct pollfd pfd;
 	int pollval;
 

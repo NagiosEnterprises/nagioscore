@@ -2,8 +2,8 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -150,9 +150,9 @@ int add_new_service_comment(char *host_name, char *svc_description, time_t entry
 /* deletes a host or service comment */
 int delete_comment(int type, unsigned long comment_id){
 	int result;
-	comment *this_comment;
-	comment *last_comment;
-	comment *next_comment;
+	comment *this_comment=NULL;
+	comment *last_comment=NULL;
+	comment *next_comment=NULL;
 
 	/* find the comment we should remove */
 	for(this_comment=comment_list,last_comment=comment_list;this_comment!=NULL;this_comment=next_comment){

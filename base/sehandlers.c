@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -28,6 +28,7 @@
 #include "../common/statusdata.h"
 #include "../common/downtime.h"
 #include "nagios.h"
+#include "perfdata.h"
 #include "broker.h"
 
 
@@ -599,11 +600,11 @@ int handle_host_state(host *hst){
 	if(state_change==TRUE){
 
 		/* reset the acknowledgement flag if necessary */
-		if(hst->acknowledgement_type=ACKNOWLEDGEMENT_NORMAL){
+		if(hst->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
 			hst->problem_has_been_acknowledged=FALSE;
 			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 		        }
-		else if(hst->acknowledgement_type=ACKNOWLEDGEMENT_STICKY && hst->current_state==HOST_UP){
+		else if(hst->acknowledgement_type==ACKNOWLEDGEMENT_STICKY && hst->current_state==HOST_UP){
 			hst->problem_has_been_acknowledged=FALSE;
 			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 		        }

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-05-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -270,7 +270,7 @@ int read_main_config_file(char *main_config_file){
 
 		if(!strcmp(variable,"resource_file")){
 #ifdef DEBUG1
-			printf("\t\tprocessing resource file '%s'\n");
+			printf("\t\tprocessing resource file '%s'\n",value);
 #endif
 			read_resource_file(value);
 		        }
@@ -1015,7 +1015,7 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"status_update_interval")){
 			strip(value);
 			status_update_interval=atoi(value);
-			if(status_update_interval<5){
+			if(status_update_interval<=1){
 				strcpy(error_message,"Illegal value for status_update_interval");
 				error=TRUE;
 				break;
@@ -1427,7 +1427,7 @@ int pre_flight_check(void){
 	        }
 	total_objects=0;
 	move_first_service();
-	while(temp_service=get_next_service()){
+	while((temp_service=get_next_service())){
 
 		total_objects++;
 		found=FALSE;
@@ -1584,7 +1584,7 @@ int pre_flight_check(void){
 	        }
 	total_objects=0;
 	move_first_host();
-	while(temp_host=get_next_host()){
+	while((temp_host=get_next_host())){
 
 		total_objects++;
 		found=FALSE;
@@ -2294,7 +2294,7 @@ int pre_flight_check(void){
 	found=FALSE;
 	result=OK;
 	move_first_host();
-	while(temp_host = get_next_host()) {
+	while((temp_host=get_next_host())){
 		found=check_for_circular_path(temp_host,temp_host);
 		if(found==TRUE){
 			sprintf(temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
@@ -2424,8 +2424,8 @@ int pre_flight_check(void){
 
 	/* count number of services associated with each host (we need this for flap detection)... */
 	move_first_service();
-	while(temp_service=get_next_service()){
-		if(temp_host=find_host(temp_service->host_name)){
+	while((temp_service=get_next_service())){
+		if((temp_host=find_host(temp_service->host_name))){
 			temp_host->total_services++;
 			temp_host->total_service_check_interval+=temp_service->check_interval;
 		        }

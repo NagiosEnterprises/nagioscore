@@ -1,15 +1,15 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 04-20-2002
+# Last Modified: 04-08-2003
 ############################
 
 clean:
 	rm -f *.o
 	rm -f *~
-	rm -f Makefile
 
 distclean: clean
+	rm -f Makefile
 
-devclean: clean
+devclean: distclean
 

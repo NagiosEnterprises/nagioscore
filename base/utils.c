@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-29-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -2247,7 +2247,7 @@ int read_svc_message(service_message *message){
 	if(service_result_buffer.overflow>0){
 
 		/* log the warning */
-		snprintf(buffer,sizeof(buffer)-1,"Warning: Overflow detected in service check result buffer - %d message(s) lost.\n",service_result_buffer.overflow);
+		snprintf(buffer,sizeof(buffer)-1,"Warning: Overflow detected in service check result buffer - %lu message(s) lost.\n",service_result_buffer.overflow);
 		buffer[sizeof(buffer)-1]='\x0';
 		write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 

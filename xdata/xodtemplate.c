@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2003
+ * Last Modified: 04-09-2003
  *
  * Description:
  *
@@ -397,8 +397,8 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 int xodtemplate_process_config_file(char *filename, int options){
 	FILE *fp;
 	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
-	register in_definition=FALSE;
-	register current_line=0;
+	register int in_definition=FALSE;
+	register int current_line=0;
 	int result=OK;
 	register int x;
 	register int y;
@@ -2862,7 +2862,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(value,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 2d_coords value in extended host info definition.\n",temp_ptr);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 2d_coords value '%s' in extended host info definition.\n",temp_ptr);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2872,7 +2872,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(NULL,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 2d_coords value in extended host info definition.\n",temp_ptr);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 2d_coords value '%s' in extended host info definition.\n",temp_ptr);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2885,7 +2885,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(value,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value in extended host info definition.\n",temp_ptr);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2895,7 +2895,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(NULL,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value in extended host info definition.\n",temp_ptr);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2905,7 +2905,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_ptr=strtok(NULL,", ");
 			if(temp_ptr==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value in extended host info definition.\n",temp_ptr);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value '%s' in extended host info definition.\n",temp_ptr);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3074,7 +3074,7 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_hostlist *dependent_hostlist;
 	xodtemplate_hostextinfo *temp_hostextinfo;
 	xodtemplate_serviceextinfo *temp_serviceextinfo;
-	char *host_name;
+	char *host_name="";
 	int first_item;
 	void *xod_svc_cursor;
 #ifdef NSCORE
@@ -3093,7 +3093,7 @@ int xodtemplate_duplicate_objects(void){
 
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
 
 		/* skip service definitions without enough data */
 		if(temp_service->hostgroup_name==NULL && temp_service->host_name==NULL)
@@ -4392,7 +4392,7 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	printf("xodtemplate_duplicate_hostextinfo() end\n");
 #endif
 
-	return;
+	return OK;
         }
 
 
@@ -4448,7 +4448,7 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	printf("xodtemplate_duplicate_serviceextinfo() end\n");
 #endif
 
-	return;
+	return OK;
         }
 
 #endif
@@ -4531,7 +4531,7 @@ int xodtemplate_resolve_objects(void){
 
 	/* resolve all service objects */
 	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
 		if(xodtemplate_resolve_service(temp_service)==ERROR)
 			return ERROR;
 	        }
@@ -5560,7 +5560,6 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 
 /* recombobulates object definitions */
 int xodtemplate_recombobulate_objects(void){
-	int result=OK;
 	xodtemplate_host *temp_host;
 	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_hostlist *temp_hostlist;
@@ -5951,7 +5950,7 @@ xodtemplate_service *xodtemplate_find_real_service(char *host, char *description
 
 	temp_service=NULL;
 	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
 		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 			continue;
 		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))
@@ -6030,7 +6029,7 @@ int xodtemplate_register_objects(void){
 
 	/* register services */
 	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
 		if((result=xodtemplate_register_service(temp_service))==ERROR)
 			return ERROR;
 	        }
@@ -6329,8 +6328,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	hostgroup *new_hostgroup;
 	hostgroupmember *new_hostgroupmember;
-	xodtemplate_hostlist *this_hostlist;
-	xodtemplate_hostlist *temp_hostlist;
 	char *host_name;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -6902,7 +6899,6 @@ int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_service
 int xodtemplate_cache_objects(char *cache_file){
 	FILE *fp;
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-	int result=OK;
 	int x;
 	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
 	xodtemplate_timeperiod *temp_timeperiod;
@@ -7114,7 +7110,7 @@ int xodtemplate_cache_objects(char *cache_file){
 
 	/* cache services */
 	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
 		if(temp_service->register_object==FALSE)
 			continue;
 		fprintf(fp,"define service {\n");
@@ -7146,7 +7142,7 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"low_flap_threshold\t%f\n",temp_service->low_flap_threshold);
 		fprintf(fp,"high_flap_threshold\t%f\n",temp_service->high_flap_threshold);
 		fprintf(fp,"flap_detection_enabled\t%d\n",temp_service->flap_detection_enabled);
-		fprintf(fp,"freshness_threshold\t%f\n",temp_service->freshness_threshold);
+		fprintf(fp,"freshness_threshold\t%d\n",temp_service->freshness_threshold);
 		fprintf(fp,"check_freshness\t%d\n",temp_service->check_freshness);
 		fprintf(fp,"notification_options\t");
 		x=0;
@@ -7958,7 +7954,6 @@ xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
 	xodtemplate_servicelist *new_list;
 	xodtemplate_service *temp_service;
 	char *service_names;
-	char *service_name;
 	char *temp_ptr;
 	void *xod_svc_cursor;
 #ifdef USE_REGEXP_MATCHING
@@ -8061,7 +8056,7 @@ xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
 	if(!strcmp(service_names,"*")){
 
 		xod_svc_cursor=get_xodtemplate_service_cursor();
-		while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+		while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
 
 			if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 				continue;

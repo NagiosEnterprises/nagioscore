@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-20-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -250,14 +250,11 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 
 /* write all status data to file */
 int xsddefault_save_status_data(void){
-	char buffer[MAX_INPUT_BUFFER];
 	host *temp_host;
 	service *temp_service;
-	void *host_cursor;
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
-	int x;
 
 	/* open a safe temp file for output */
 	snprintf(xsddefault_aggregate_temp_file,sizeof(xsddefault_aggregate_temp_file)-1,"%sXXXXXX",xsddefault_temp_file);
@@ -309,8 +306,8 @@ int xsddefault_save_status_data(void){
 
 
 	/* save host status data */
-	host_cursor=get_host_cursor();
-	while((temp_host=get_next_host_cursor(host_cursor))!=NULL){
+	move_first_host();
+	while((temp_host=get_next_host())!=NULL){
 
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
@@ -353,7 +350,6 @@ int xsddefault_save_status_data(void){
 		*/
 		fprintf(fp,"\t}\n\n");
 	        }
-	free_host_cursor(host_cursor);
 
 	/* save service status data */
 	move_first_service();

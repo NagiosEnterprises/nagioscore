@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-20-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -29,6 +29,7 @@
 #include "../common/config.h"
 #include "../common/common.h"
 #include "../common/objects.h"
+#include "../common/statusdata.h"
 #include "../base/nagios.h"
 #include "../base/sretention.h"
 
@@ -127,7 +128,6 @@ int xrddefault_save_state_information(char *main_config_file){
 	FILE *fp;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	static void *host_cursor=NULL;
 	int x;
 
 #ifdef DEBUG0
@@ -187,8 +187,8 @@ int xrddefault_save_state_information(char *main_config_file){
 	fprintf(fp,"\t}\n\n");
 
 	/* save host state information */
-	host_cursor=get_host_cursor();
-	while((temp_host=get_next_host_cursor(host_cursor))!=NULL){
+	move_first_host();
+	while((temp_host=get_next_host())!=NULL){
 
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
@@ -228,7 +228,6 @@ int xrddefault_save_state_information(char *main_config_file){
 
 		fprintf(fp,"\t}\n\n");
 	        }
-	free_host_cursor(host_cursor);
 
 	/* save service state information */
 	move_first_service();

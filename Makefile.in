@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 10-25-2002
+# Last Modified: 04-09-2003
 ###############################
 
 
@@ -136,14 +136,21 @@ clean:
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	rm -f *.cfg *.sub core
 	rm -f *~ */*~
+	rm -f config.log config.status config.cache
+
+distclean: clean
+	cd $(SRC_BASE) && $(MAKE) $@
+	cd $(SRC_CGI) && $(MAKE) $@
+	cd $(SRC_COMMON) && $(MAKE) $@
+	cd $(SRC_XDATA) && $(MAKE) $@
+	cd $(SRC_HTM) && $(MAKE) $@
+	cd $(SRC_CONTRIB) && $(MAKE) $@
 	rm -f $(SRC_COMMON)/config.h $(SRC_COMMON)/locations.h $(SRC_COMMON)/snprintf.h 
 	rm -f sample-config/*.cfg sample-config/template-object/*.cfg sample-config/default-object/*.cfg
 	rm -f daemon-init pkginfo
-	rm -f config.log config.status config.cache Makefile
+	rm -f Makefile
 
-distclean: clean
-
-devclean: clean
+devclean: distclean
 
 install-html:
 	cd $(SRC_HTM) && $(MAKE) install

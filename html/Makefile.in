@@ -26,11 +26,11 @@ clean:
 	rm -f docs/*~
 	rm -f docs/images/*.jbf
 	rm -f stylesheets/*~
-	rm -f Makefile index.html side.html
 
 distclean: clean
+	rm -f Makefile index.html side.html
 
-devclean: clean
+devclean: distclean
 
 install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)

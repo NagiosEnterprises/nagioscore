@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-06-2003
+ * Last Modified:   04-09-2003
  *
  * License:
  *
@@ -29,6 +29,7 @@
 #include "../common/statusdata.h"
 #include "nagios.h"
 #include "broker.h"
+#include "sretention.h"
 
 
 extern char	*config_file;
@@ -86,7 +87,6 @@ sched_info scheduling_info;
 /* initialize the event timing loop before we start monitoring */
 void init_timing_loop(void){
 	host *temp_host;
-	void *host_cursor;
 	service *temp_service;
 	time_t current_time;
 	timed_event *new_event;
@@ -124,7 +124,7 @@ void init_timing_loop(void){
 		
 	/* get info on service checks to be scheduled */
 	move_first_service();
-	while(temp_service=get_next_service()){
+	while((temp_service=get_next_service())){
 
 		schedule_check=TRUE;
 
@@ -163,7 +163,7 @@ void init_timing_loop(void){
 
 	/* get info on host checks to be scheduled */
 	move_first_host();
-	while(temp_host=get_next_host()){
+	while((temp_host=get_next_host())){
 
 		schedule_check=TRUE;
 
@@ -440,7 +440,7 @@ void init_timing_loop(void){
 	/* add host checks as seperate events */
 	mult_factor=0;
 	move_first_host();
-	while(temp_host=get_next_host()){
+	while((temp_host=get_next_host())){
 
 		/* skip hosts that shouldn't be scheduled */
 		if(temp_host->should_be_scheduled==FALSE)
@@ -1256,7 +1256,6 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	timed_event *temp_event;
 	service *temp_service;
 	host *temp_host;
-	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("compensate_for_system_time_change() start\n");
@@ -1313,7 +1312,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 	/* adjust the last notification time for all services */
 	move_first_service();
-	while(temp_service=get_next_service()){
+	while((temp_service=get_next_service())){
 
 		if(temp_service->last_notification==(time_t)0)
 			continue;
@@ -1338,7 +1337,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 	/* adjust the next check time for all services */
 	move_first_service();
-	while(temp_service=get_next_service()){
+	while((temp_service=get_next_service())){
 
 		if(temp_service->next_check==(time_t)0)
 			continue;
@@ -1362,8 +1361,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the last notification time for all hosts */
-	host_cursor=get_host_cursor();
-	while(temp_host=get_next_host_cursor(host_cursor)){
+	move_first_host();
+	while((temp_host=get_next_host())){
 
 		if(temp_host->last_host_notification==(time_t)0)
 			continue;
@@ -1385,11 +1384,10 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 		/* update the status data */
 		update_host_status(temp_host,FALSE);
 	        }
-	free_host_cursor(host_cursor);
 
 	/* adjust the next check time for all hosts */
-	host_cursor=get_host_cursor();
-	while(temp_host=get_next_host_cursor(host_cursor)){
+	move_first_host();
+	while((temp_host=get_next_host())){
 
 		if(temp_host->next_check==(time_t)0)
 			continue;

@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2002
+ * Last Modified: 06-01-2002
  *
  * License:
  * 
@@ -1224,7 +1224,7 @@ void display_ping(void){
 		printf("<p mode='nowrap'>\n");
 
 		if(ping_syntax==NULL)
-			printf("ping_syntax is NULL!\n");
+			printf("ping_syntax in CGI config file is NULL!\n");
 	
 		else{
 

@@ -66,8 +66,8 @@ if test MAIL_PROG=no; then
 fi 
 AC_SUBST(MAIL_PROG)
 
-AC_ARG_WITH(command_user,--with-command-user=<user> sets user name for command access,command_user=$withval,command_user=nagios)
-AC_ARG_WITH(command_grp,--with-command-grp=<grp> sets group name for command access,command_grp=$withval,command_grp=nagios)
+AC_ARG_WITH(command_user,--with-command-user=<user> sets user name for command access,command_user=$withval,command_user=$nagios_user)
+AC_ARG_WITH(command_grp,--with-command-grp=<grp> sets group name for command access,command_grp=$withval,command_grp=$nagios_grp)
 AC_SUBST(command_user)
 AC_SUBST(command_grp)
 COMMAND_OPTS="-o $command_user -g $command_grp"

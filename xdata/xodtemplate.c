@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-28-2002
+ * Last Modified: 06-03-2002
  *
  * Description:
  *
@@ -3846,7 +3846,7 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_timeperiod *temp_timeperiod;
 	xodtemplate_command *temp_command;
 	xodtemplate_contactgroup *temp_contactgroup;
-	/*xodtemplate_hostgroup *temp_hostgroup;*/
+	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_servicedependency *temp_servicedependency;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
@@ -3878,14 +3878,11 @@ int xodtemplate_resolve_objects(void){
 			return ERROR;
 	        }
 
-	/* HOSTGROUPS DON'T NEED TO BE RESOLVED HERE BECAUSE THEY WERE ALREADY RESOLVED IN duplicate_objects() */
 	/* resolve all hostgroup objects */
-	/*
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 		if(xodtemplate_resolve_hostgroup(temp_hostgroup)==ERROR)
 			return ERROR;
 	        }
-	*/
 
 	/* resolve all servicedependency objects */
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){

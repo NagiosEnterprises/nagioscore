@@ -8,6 +8,8 @@ Nagios Change Log
 * Bug fix in tac CGI for counting host and service states properly
 * Default is now to check for external commands as often as possible
 * Ping syntax for WAP interface moved to CGI config file
+* Command file user/group defaults to Nagios user/group unless
+  overridden with configure script options
 
 
 1.0b2 - 05/27/2002

@@ -1859,7 +1859,7 @@ if test "${with_command_user+set}" = set; then
   withval="$with_command_user"
   command_user=$withval
 else
-  command_user=nagios
+  command_user=$nagios_user
 fi
 
 # Check whether --with-command_grp or --without-command_grp was given.
@@ -1867,7 +1867,7 @@ if test "${with_command_grp+set}" = set; then
   withval="$with_command_grp"
   command_grp=$withval
 else
-  command_grp=nagios
+  command_grp=$nagios_grp
 fi
 
 

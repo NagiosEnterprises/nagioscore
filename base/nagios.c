@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-20-2002
+ * Last Modified:   04-29-2002
  *
  * Description:
  *
@@ -642,6 +642,11 @@ int main(int argc, char **argv){
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR ,TRUE);
 
 				cleanup();
+
+				/* close and delete the external command file if we were restarting */
+				if(sigrestart==TRUE)
+					close_command_file();
+
 				exit(ERROR);
 			        }
 

@@ -2,8 +2,8 @@
  *
  * XEDTEMPLATE.H - Template-based extended information data header file
  *
- * Copyright (c) 2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2001
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-04-2003
  *
  * License:
  *
@@ -47,7 +47,7 @@ typedef struct xedtemplate_hostextinfo_struct{
 	char       *template;
 	char       *name;
 	char       *host_name;
-	char       *hostgroup;
+	char       *hostgroup_name;
 	char       *notes_url;
 	char       *icon_image;
 	char       *icon_image_alt;
@@ -74,7 +74,7 @@ typedef struct xedtemplate_serviceextinfo_struct{
 	char       *template;
 	char       *name;
 	char       *host_name;
-	char       *hostgroup;
+	char       *hostgroup_name;
 	char       *service_description;
 	char       *notes_url;
 	char       *icon_image;
@@ -86,6 +86,13 @@ typedef struct xedtemplate_serviceextinfo_struct{
         }xedtemplate_serviceextinfo;
 
 
+/* HOST LIST STRUCTURE */
+typedef struct xedtemplate_hostlist_struct{
+	char      *host_name;
+	struct xedtemplate_hostlist_struct *next;
+        }xedtemplate_hostlist;
+
+
 
 /********* FUNCTION DEFINITIONS **********/
 
@@ -94,6 +101,9 @@ int xedtemplate_process_config_file(char *,int);               /* process data i
 int xedtemplate_process_config_dir(char *,int);                /* process all config files in a specific directory */
 
 void xedtemplate_strip(char *);
+
+xedtemplate_hostlist *xedtemplate_expand_hostgroups_and_hosts(char *,char *);
+int xedtemplate_free_hostlist(xedtemplate_hostlist *);
 
 int xedtemplate_begin_object_definition(char *);
 int xedtemplate_add_object_property(char *);

@@ -2681,7 +2681,6 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_hostlist *dependent_hostlist;
 	char *host_name;
 	int first_item;
-	int keep;
 	void *xod_svc_cursor;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -2701,13 +2700,8 @@ int xodtemplate_duplicate_objects(void){
 	xod_svc_cursor=get_xodtemplate_service_cursor();
 	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
 
-		/* skip services we don't need to duplicate */
-		keep=FALSE;
-		if(temp_service->hostgroup_name!=NULL)
-			keep=TRUE;
-		else if(temp_service->host_name!=NULL && (strstr(temp_service->host_name,"*") || strstr(temp_service->host_name,",")))
-			keep=TRUE;
-		if(keep==FALSE)
+		/* skip service definitions without enough data */
+		if(temp_service->hostgroup_name==NULL && temp_service->host_name==NULL)
 			continue;
 
 		/* get list of hosts */
@@ -2758,13 +2752,8 @@ int xodtemplate_duplicate_objects(void){
 	/****** DUPLICATE HOST ESCALATION DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 
-		/* skip host escalation we don't need to duplicate */
-		keep=FALSE;
-		if(temp_hostescalation->hostgroup_name!=NULL)
-			keep=TRUE;
-		else if(temp_hostescalation->host_name!=NULL && (strstr(temp_hostescalation->host_name,",") || strstr(temp_hostescalation->host_name,"*")))
-			keep=TRUE;
-		if(keep==FALSE)
+		/* skip host escalation definitions without enough data */
+		if(temp_hostescalation->hostgroup_name==NULL && temp_hostescalation->host_name==NULL)
 			continue;
 
 		/* get list of hosts */
@@ -2814,13 +2803,8 @@ int xodtemplate_duplicate_objects(void){
 	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
 
-		/* skip services that don't need to be duplicated */
-		keep=FALSE;
-		if(temp_serviceescalation->hostgroup_name!=NULL)
-			keep=TRUE;
-		else if(temp_serviceescalation->host_name!=NULL && (strstr(temp_serviceescalation->host_name,",") || strstr(temp_serviceescalation->host_name,"*")))
-			keep=TRUE;
-		if(keep==FALSE)
+		/* skip service escalation definitions without enough data */
+		if(temp_serviceescalation->hostgroup_name==NULL && temp_serviceescalation->host_name==NULL)
 			continue;
 
 		/* get list of hosts */
@@ -2875,10 +2859,6 @@ int xodtemplate_duplicate_objects(void){
 		if(temp_serviceescalation->service_description==NULL || temp_serviceescalation->host_name==NULL)
 			continue;
 
-		/* skip service escalations that don't need to be duplicated */
-		if(!strstr(temp_serviceescalation->service_description,",") && !strstr(temp_serviceescalation->service_description,"*"))
-			continue;
-
 		/* get list of services */
 		temp_servicelist=xodtemplate_expand_services(temp_serviceescalation->host_name,temp_serviceescalation->service_description);
 		if(temp_servicelist==NULL){
@@ -2926,15 +2906,8 @@ int xodtemplate_duplicate_objects(void){
 	/****** DUPLICATE HOST DEPENDENCY DEFINITIONS WITH MULTIPLE HOSTGROUP AND/OR HOST NAMES (MASTER AND DEPENDENT) ******/
 	for(temp_hostdependency=xodtemplate_hostdependency_list;temp_hostdependency!=NULL;temp_hostdependency=temp_hostdependency->next){
 		
-		/* skip host dependencies that don't need to be duplicated */
-		keep=FALSE;
-		if(temp_hostdependency->hostgroup_name!=NULL || temp_hostdependency->dependent_hostgroup_name!=NULL)
-			keep=TRUE;
-		else if(temp_hostdependency->host_name!=NULL && (strstr(temp_hostdependency->host_name,",") || strstr(temp_hostdependency->host_name,"*")))
-			keep=TRUE;
-		else if(temp_hostdependency->dependent_host_name!=NULL && (strstr(temp_hostdependency->dependent_host_name,",") || strstr(temp_hostdependency->dependent_host_name,"*")))
-			keep=TRUE;
-		if(keep==FALSE)
+		/* skip host dependencies without enough data */
+		if(temp_hostdependency->hostgroup_name==NULL && temp_hostdependency->dependent_hostgroup_name==NULL && temp_hostdependency->host_name==NULL && temp_hostdependency->dependent_host_name==NULL)
 			continue;
 
 		/* get list of master host names */
@@ -2992,18 +2965,8 @@ int xodtemplate_duplicate_objects(void){
 	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE HOSTGROUP AND/OR HOST NAMES (MASTER AND DEPENDENT) ******/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
-		/* skip service dependencies that don't need to be duplicated */
-		keep=FALSE;
-		if(temp_servicedependency->hostgroup_name!=NULL || temp_servicedependency->dependent_hostgroup_name!=NULL)
-			keep=TRUE;
-		else if(temp_servicedependency->host_name!=NULL && (strstr(temp_servicedependency->host_name,",") || strstr(temp_servicedependency->host_name,"*")))
-			keep=TRUE;
-		else if(temp_servicedependency->dependent_host_name!=NULL && (strstr(temp_servicedependency->dependent_host_name,",") || strstr(temp_servicedependency->dependent_host_name,"*")))
-			keep=TRUE;
-		if(keep==FALSE)
-			continue;
-
-		if(temp_servicedependency->hostgroup_name==NULL && temp_servicedependency->dependent_hostgroup_name==NULL && !(strstr(temp_servicedependency->host_name,",") || strstr(temp_servicedependency->host_name,"*") || strstr(temp_servicedependency->dependent_host_name,",") || strstr(temp_servicedependency->dependent_host_name,"*")))
+		/* skip service dependencies without enough data */
+		if(temp_servicedependency->hostgroup_name==NULL && temp_servicedependency->dependent_hostgroup_name==NULL && temp_servicedependency->host_name==NULL && temp_servicedependency->dependent_host_name==NULL)
 			continue;
 
 		/* get list of master host names */
@@ -3066,10 +3029,6 @@ int xodtemplate_duplicate_objects(void){
 		if(temp_servicedependency->service_description==NULL || temp_servicedependency->host_name==NULL)
 			continue;
 
-		/* skip service escalations that don't need to be duplicated */
-		if(!strstr(temp_servicedependency->service_description,",") && !strstr(temp_servicedependency->service_description,"*"))
-			continue;
-
 		/* get list of services */
 		temp_servicelist=xodtemplate_expand_services(temp_servicedependency->host_name,temp_servicedependency->service_description);
 		if(temp_servicelist==NULL){
@@ -3120,10 +3079,6 @@ int xodtemplate_duplicate_objects(void){
 
 		/* skip servicedependencies without enough data */
 		if(temp_servicedependency->dependent_service_description==NULL || temp_servicedependency->dependent_host_name==NULL)
-			continue;
-
-		/* skip service escalations that don't need to be duplicated */
-		if(!strstr(temp_servicedependency->dependent_service_description,",") && !strstr(temp_servicedependency->dependent_service_description,"*"))
 			continue;
 
 		/* get list of services */
@@ -3950,8 +3905,8 @@ int xodtemplate_resolve_objects(void){
 	        }
 
 	/* resolve all service objects */
-	xod_svc_cursor = get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)) {
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
 		if(xodtemplate_resolve_service(temp_service)==ERROR)
 			return ERROR;
 	        }
@@ -6318,13 +6273,13 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 #ifdef USE_REGEXP_MATCHING
 
 		for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
-			
+
 			/* strip trailing spaces */
 			xodtemplate_strip(temp_ptr);
-			
+
 			/* compile regular expression */
 			if(regcomp(&preg,temp_ptr,0)){
-				free(hostgroup_names);
+				free(host_names);
 				return NULL;
 		                }
 			
@@ -6353,7 +6308,6 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				if(new_list==NULL){
 					regfree(&preg);
 					free(host_names);
-					free(hostgroup_names);
 					return temp_list;
 		                        }
 
@@ -6362,7 +6316,6 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				if(new_list->host_name==NULL){
 					regfree(&preg);
 					free(host_names);
-					free(hostgroup_names);
 					return temp_list;
 			                }
 				
@@ -6371,6 +6324,9 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				temp_list=new_list;
 	                        }
 
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+
 			/* we didn't find a match */
 			if(found_match==FALSE){
 #ifdef NSCORE
@@ -6378,13 +6334,8 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-				regfree(&preg);
-				free(host_names);
 				return NULL;
 			        }
-
-			/* free memory allocated to compiled regexp */
-			regfree(&preg);
 		        }
 
 #else
@@ -6463,9 +6414,9 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				temp_list=new_list;
                                 }
 	                }
+#endif
 
 		free(host_names);
-#endif
 	        }
 
 #ifdef DEBUG0
@@ -6661,9 +6612,10 @@ xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
 			temp_list=new_list;
 		        }
 
-		free(service_names);
 	        }
 #endif
+
+	free(service_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_expand_services() end\n");

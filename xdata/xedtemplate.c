@@ -2,8 +2,8 @@
  *
  * XEDTEMPLATE.C - Template-based extended information data input routines
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-04-2003
  *
  * Description:
  *
@@ -45,6 +45,8 @@
 
 #include "xedtemplate.h"
 
+
+extern hostgroup *hostgroup_list;
 
 
 xedtemplate_hostextinfo *xedtemplate_hostextinfo_list=NULL;
@@ -425,7 +427,7 @@ int xedtemplate_begin_object_definition(char *input){
 		new_hostextinfo->template=NULL;
 		new_hostextinfo->name=NULL;
 		new_hostextinfo->host_name=NULL;
-		new_hostextinfo->hostgroup=NULL;
+		new_hostextinfo->hostgroup_name=NULL;
 		new_hostextinfo->notes_url=NULL;
 		new_hostextinfo->icon_image=NULL;
 		new_hostextinfo->icon_image_alt=NULL;
@@ -458,7 +460,7 @@ int xedtemplate_begin_object_definition(char *input){
 		new_serviceextinfo->template=NULL;
 		new_serviceextinfo->name=NULL;
 		new_serviceextinfo->host_name=NULL;
-		new_serviceextinfo->hostgroup=NULL;
+		new_serviceextinfo->hostgroup_name=NULL;
 		new_serviceextinfo->service_description=NULL;
 		new_serviceextinfo->notes_url=NULL;
 		new_serviceextinfo->icon_image=NULL;
@@ -558,9 +560,9 @@ int xedtemplate_add_object_property(char *input){
 				return ERROR;
 			strcpy(temp_hostextinfo->host_name,value);
 		        }
-		else if(!strcmp(variable,"hostgroup")){
-			temp_hostextinfo->hostgroup=strdup(value);
-			if(temp_hostextinfo->hostgroup==NULL)
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
+			temp_hostextinfo->hostgroup_name=strdup(value);
+			if(temp_hostextinfo->hostgroup_name==NULL)
 				return ERROR;
 		        }
 		else if(!strcmp(variable,"notes_url")){
@@ -638,9 +640,9 @@ int xedtemplate_add_object_property(char *input){
 			if(temp_serviceextinfo->host_name==NULL)
 				return ERROR;
 		        }
-		else if(!strcmp(variable,"hostgroup")){
-			temp_serviceextinfo->hostgroup=strdup(value);
-			if(temp_serviceextinfo->hostgroup==NULL)
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
+			temp_serviceextinfo->hostgroup_name=strdup(value);
+			if(temp_serviceextinfo->hostgroup_name==NULL)
 				return ERROR;
 		        }
 		else if(!strcmp(variable,"service_description")){
@@ -710,233 +712,112 @@ int xedtemplate_end_object_definition(void){
 int xedtemplate_duplicate_objects(void){
 	xedtemplate_hostextinfo *temp_hostextinfo;
 	xedtemplate_serviceextinfo *temp_serviceextinfo;
-	char *host_names;
-	char *hostgroup_names;
-	char *temp_ptr;
+	xedtemplate_hostlist *temp_hostlist;
+	xedtemplate_hostlist *this_hostlist;
 	int first_item;
 	int result=OK;
-	host *temp_host;
-	hostgroup *temp_hostgroup;
-	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("xedtemplate_duplicate_objects() start\n");
 #endif
 
 
-	/* duplicate hostextinfo definitions that contain multiple host names */
+	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_hostextinfo=xedtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
 
-		if(temp_hostextinfo->host_name==NULL)
+		/* skip definitions without enough data */
+		if(temp_hostextinfo->hostgroup_name==NULL && temp_hostextinfo->host_name==NULL)
 			continue;
 
-		if(!strstr(temp_hostextinfo->host_name,","))
-			continue;
+		/* get list of hosts */
+		temp_hostlist=xedtemplate_expand_hostgroups_and_hosts(temp_hostextinfo->hostgroup_name,temp_hostextinfo->host_name);
+		if(temp_hostlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
 
-		/* allocate memory for host name list */
-		host_names=strdup(temp_hostextinfo->host_name);
-		if(host_names==NULL)
-			continue;
-
-		/* duplicate service entries */
+		/* add a copy of the definition for every host in the hostgroup/host name list */
 		first_item=TRUE;
-		for(temp_ptr=strtok(host_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
 
-			/* existing definition gets first host name (memory has already been allocated) */
+			/* if this is the first duplication, use the existing entry */
 			if(first_item==TRUE){
-				strcpy(temp_hostextinfo->host_name,temp_ptr);
+
+				free(temp_hostextinfo->host_name);
+				temp_hostextinfo->host_name=strdup(this_hostlist->host_name);
+				if(temp_hostextinfo->host_name==NULL){
+					xedtemplate_free_hostlist(temp_hostlist);
+					return ERROR;
+				        }
 				first_item=FALSE;
 				continue;
 			        }
 
 			/* duplicate hostextinfo definition */
-			result=xedtemplate_duplicate_hostextinfo(temp_hostextinfo,temp_ptr);
+			result=xedtemplate_duplicate_hostextinfo(temp_hostextinfo,this_hostlist->host_name);
 
 			/* exit on error */
 			if(result==ERROR){
-				free(host_names);
+				xedtemplate_free_hostlist(temp_hostlist);
 				return ERROR;
 			        }
 		        }
 
-		/* free memory we used for host name list */
-		free(host_names);
+		/* free memory we used for host list */
+		xedtemplate_free_hostlist(temp_hostlist);
 	        }
 
 
-	/* duplicate hostextinfo definitions that contain one or more hostgroups - we break some "rules" here, but what the hell... */
-	for(temp_hostextinfo=xedtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-
-		if(temp_hostextinfo->hostgroup==NULL)
-			continue;
-
-		/* allocate memory for host name list */
-		hostgroup_names=strdup(temp_hostextinfo->hostgroup);
-		if(hostgroup_names==NULL)
-			continue;
-
-		/* duplicate host entries */
-		first_item=TRUE;
-		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
-
-			/* find the hostgroup */
-			temp_hostgroup=find_hostgroup(temp_ptr,NULL);
-			if(temp_hostgroup==NULL)
-				continue;
-
-			/* find all hosts in the hostgroup */
-			host_cursor = get_host_cursor();
-			while(temp_host = get_next_host_cursor(host_cursor)) {
-
-				/* is this host in the specified hostgroup? */
-				if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
-					continue;
-
-				/* if this is the first duplication, see if we can use the existing entry */
-				if(first_item==TRUE){
-
-					if(temp_hostextinfo->host_name==NULL){
-						temp_hostextinfo->host_name=strdup(temp_host->name);
-						if(temp_hostextinfo->host_name==NULL){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-					        }
-					else{
-						result=xedtemplate_duplicate_hostextinfo(temp_hostextinfo,temp_host->name);
-						if(result==ERROR){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-					        }
-
-					first_item=FALSE;
-					continue;
-				        }
-
-				/* duplicate hostextinfo definition */
-				result=xedtemplate_duplicate_hostextinfo(temp_hostextinfo,temp_host->name);
-
-				/* exit on error */
-				if(result==ERROR){
-					free(hostgroup_names);
-					return ERROR;
-			                }
-			        }
-			free_host_cursor(host_cursor);
-		        }
-
-		/* free memory we used for hostgroup name list */
-		free(hostgroup_names);
-	        }
-
-
-	/* duplicate serviceextinfo definitions that contain multiple host names */
+	/****** DUPLICATE SERVICEEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_serviceextinfo=xedtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
 
-		if(temp_serviceextinfo->host_name==NULL)
+		/* skip definitions without enough data */
+		if(temp_serviceextinfo->hostgroup_name==NULL && temp_serviceextinfo->host_name==NULL)
 			continue;
 
-		if(!strstr(temp_serviceextinfo->host_name,","))
-			continue;
+		/* get list of hosts */
+		temp_hostlist=xedtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name);
+		if(temp_hostlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
 
-		/* allocate memory for host name list */
-		host_names=strdup(temp_serviceextinfo->host_name);
-		if(host_names==NULL)
-			continue;
-
-		/* duplicate service entries */
+		/* add a copy of the definition for every host in the hostgroup/host name list */
 		first_item=TRUE;
-		for(temp_ptr=strtok(host_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
 
-			/* existing definition gets first host name (memory has already been allocated) */
+			/* existing definition gets first host name */
 			if(first_item==TRUE){
-				strcpy(temp_serviceextinfo->host_name,temp_ptr);
+				free(temp_serviceextinfo->host_name);
+				temp_serviceextinfo->host_name=strdup(this_hostlist->host_name);
+				if(temp_serviceextinfo->host_name==NULL){
+					xedtemplate_free_hostlist(temp_hostlist);
+					return ERROR;
+				        }
 				first_item=FALSE;
 				continue;
 			        }
 
 			/* duplicate serviceextinfo definition */
-			result=xedtemplate_duplicate_serviceextinfo(temp_serviceextinfo,temp_ptr);
+			result=xedtemplate_duplicate_serviceextinfo(temp_serviceextinfo,this_hostlist->host_name);
 
 			/* exit on error */
 			if(result==ERROR){
-				free(host_names);
+				xedtemplate_free_hostlist(temp_hostlist);
 				return ERROR;
 			        }
 		        }
 
-		/* free memory we used for host name list */
-		free(host_names);
-	        }
-
-
-	/* duplicate serviceextinfo definitions that contain one or more hostgroups */
-	for(temp_serviceextinfo=xedtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
-
-		if(temp_serviceextinfo->hostgroup==NULL)
-			continue;
-
-		/* allocate memory for host name list */
-		hostgroup_names=(char *)malloc(strlen(temp_serviceextinfo->hostgroup)+1);
-		if(hostgroup_names==NULL)
-			continue;
-
-		strcpy(hostgroup_names,temp_serviceextinfo->hostgroup);
-
-		/* duplicate service entries */
-		first_item=TRUE;
-		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
-
-			/* find the hostgroup */
-			temp_hostgroup=find_hostgroup(temp_ptr,NULL);
-			if(temp_hostgroup==NULL)
-				continue;
-
-			/* find all hosts in the hostgroup */
-			host_cursor = get_host_cursor();
-			while(temp_host = get_next_host_cursor(host_cursor)) {
-
-				/* is this host in the specified hostgroup? */
-				if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
-					continue;
-
-				/* if this is the first duplication, see if we can use the existing entry */
-				if(first_item==TRUE){
-
-					if(temp_serviceextinfo->host_name==NULL){
-						temp_serviceextinfo->host_name=strdup(temp_host->name);
-						if(temp_serviceextinfo->host_name==NULL){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-					        }
-					else{
-						result=xedtemplate_duplicate_serviceextinfo(temp_serviceextinfo,temp_host->name);
-						if(result==ERROR){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-					        }
-
-					first_item=FALSE;
-					continue;
-				        }
-
-				/* duplicate serviceextinfo definition */
-				result=xedtemplate_duplicate_serviceextinfo(temp_serviceextinfo,temp_host->name);
-
-				/* exit on error */
-				if(result==ERROR){
-					free(hostgroup_names);
-					return ERROR;
-			                }
-			        }
-			free_host_cursor(host_cursor);
-		        }
-
-		/* free memory we used for hostgroup name list */
-		free(hostgroup_names);
+		/* free memory we used for host list */
+		xedtemplate_free_hostlist(temp_hostlist);
 	        }
 
 
@@ -964,7 +845,7 @@ int xedtemplate_duplicate_hostextinfo(xedtemplate_hostextinfo *this_hostextinfo,
 	new_hostextinfo->template=NULL;
 	new_hostextinfo->name=NULL;
 	new_hostextinfo->host_name=NULL;
-	new_hostextinfo->hostgroup=NULL;
+	new_hostextinfo->hostgroup_name=NULL;
 	new_hostextinfo->notes_url=NULL;
 	new_hostextinfo->icon_image=NULL;
 	new_hostextinfo->icon_image_alt=NULL;
@@ -978,8 +859,6 @@ int xedtemplate_duplicate_hostextinfo(xedtemplate_hostextinfo *this_hostextinfo,
 		new_hostextinfo->template=strdup(this_hostextinfo->template);
 	if(this_hostextinfo->name!=NULL)
 		new_hostextinfo->name=strdup(this_hostextinfo->name);
-	if(this_hostextinfo->hostgroup!=NULL)
-		new_hostextinfo->hostgroup=strdup(this_hostextinfo->hostgroup);
 	if(this_hostextinfo->notes_url!=NULL)
 		new_hostextinfo->notes_url=strdup(this_hostextinfo->notes_url);
 	if(this_hostextinfo->icon_image!=NULL)
@@ -1031,7 +910,7 @@ int xedtemplate_duplicate_serviceextinfo(xedtemplate_serviceextinfo *this_servic
 	new_serviceextinfo->template=NULL;
 	new_serviceextinfo->name=NULL;
 	new_serviceextinfo->host_name=NULL;
-	new_serviceextinfo->hostgroup=NULL;
+	new_serviceextinfo->hostgroup_name=NULL;
 	new_serviceextinfo->notes_url=NULL;
 	new_serviceextinfo->icon_image=NULL;
 	new_serviceextinfo->icon_image_alt=NULL;
@@ -1048,8 +927,6 @@ int xedtemplate_duplicate_serviceextinfo(xedtemplate_serviceextinfo *this_servic
 		new_serviceextinfo->name=strdup(this_serviceextinfo->name);
 	if(this_serviceextinfo->service_description!=NULL)
 		new_serviceextinfo->service_description=strdup(this_serviceextinfo->service_description);
-	if(this_serviceextinfo->hostgroup!=NULL)
-		new_serviceextinfo->hostgroup=strdup(this_serviceextinfo->hostgroup);
 	if(this_serviceextinfo->notes_url!=NULL)
 		new_serviceextinfo->notes_url=strdup(this_serviceextinfo->notes_url);
 	if(this_serviceextinfo->icon_image!=NULL)
@@ -1135,6 +1012,8 @@ int xedtemplate_resolve_hostextinfo(xedtemplate_hostextinfo *this_hostextinfo){
 		this_hostextinfo->name=strdup(template_hostextinfo->name);
 	if(this_hostextinfo->host_name==NULL && template_hostextinfo->host_name!=NULL)
 		this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
+	if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
+		this_hostextinfo->hostgroup_name=strdup(template_hostextinfo->hostgroup_name);
 	if(this_hostextinfo->notes_url==NULL && template_hostextinfo->notes_url!=NULL)
 		this_hostextinfo->notes_url=strdup(template_hostextinfo->notes_url);
 	if(this_hostextinfo->icon_image==NULL && template_hostextinfo->icon_image!=NULL)
@@ -1197,6 +1076,8 @@ int xedtemplate_resolve_serviceextinfo(xedtemplate_serviceextinfo *this_servicee
 		this_serviceextinfo->name=strdup(template_serviceextinfo->name);
 	if(this_serviceextinfo->host_name==NULL && template_serviceextinfo->host_name!=NULL)
 		this_serviceextinfo->host_name=strdup(template_serviceextinfo->host_name);
+	if(this_serviceextinfo->hostgroup_name==NULL && template_serviceextinfo->hostgroup_name!=NULL)
+		this_serviceextinfo->hostgroup_name=strdup(template_serviceextinfo->hostgroup_name);
 	if(this_serviceextinfo->service_description==NULL && template_serviceextinfo->service_description!=NULL)
 		this_serviceextinfo->service_description=strdup(template_serviceextinfo->service_description);
 	if(this_serviceextinfo->notes_url==NULL && template_serviceextinfo->notes_url!=NULL)
@@ -1362,7 +1243,7 @@ int xedtemplate_free_memory(void){
 		free(this_hostextinfo->template);
 		free(this_hostextinfo->name);
 		free(this_hostextinfo->host_name);
-		free(this_hostextinfo->hostgroup);
+		free(this_hostextinfo->hostgroup_name);
 		free(this_hostextinfo->notes_url);
 		free(this_hostextinfo->icon_image);
 		free(this_hostextinfo->icon_image_alt);
@@ -1377,7 +1258,7 @@ int xedtemplate_free_memory(void){
 		free(this_serviceextinfo->template);
 		free(this_serviceextinfo->name);
 		free(this_serviceextinfo->host_name);
-		free(this_serviceextinfo->hostgroup);
+		free(this_serviceextinfo->hostgroup_name);
 		free(this_serviceextinfo->service_description);
 		free(this_serviceextinfo->notes_url);
 		free(this_serviceextinfo->icon_image);
@@ -1390,4 +1271,315 @@ int xedtemplate_free_memory(void){
 #endif
 
 	return OK;
+        }
+
+
+/* frees memory allocated to a temporary host list */
+int xedtemplate_free_hostlist(xedtemplate_hostlist *temp_list){
+	xedtemplate_hostlist *this_hostlist;
+	xedtemplate_hostlist *next_hostlist;
+
+#ifdef DEBUG0
+	printf("xedtemplate_free_hostlist() start\n");
+#endif
+
+	/* free memory allocated to host name list */
+	for(this_hostlist=temp_list;this_hostlist!=NULL;this_hostlist=next_hostlist){
+		next_hostlist=this_hostlist->next;
+		free(this_hostlist->host_name);
+		free(this_hostlist);
+	        }
+
+	temp_list=NULL;
+
+#ifdef DEBUG0
+	printf("xedtemplate_free_hostlist() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/******************************************************************/
+/********************** UTILITY FUNCTIONS *************************/
+/******************************************************************/
+
+/* expands a comma-delimited list of hostgroups and/or hosts to member host names */
+xedtemplate_hostlist *xedtemplate_expand_hostgroups_and_hosts(char *hostgroups,char *hosts){
+	xedtemplate_hostlist *temp_list;
+	xedtemplate_hostlist *new_list;
+	hostgroup *temp_hostgroup;
+	host *temp_host;
+	char *hostgroup_names;
+	char *host_names;
+	char *temp_ptr;
+	void *host_cursor;
+#ifdef USE_REGEXP_MATCHING
+	regex_t preg;
+	int found_match;
+#endif
+#ifdef NSCORE
+	char temp_buffer[MAX_XEDTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xedtemplate_expand_hostgroups() start\n");
+#endif
+
+	temp_list=NULL;
+
+	/* process list of hostgroups... */
+	if(hostgroups!=NULL){
+
+		/* allocate memory for hostgroup name list */
+		hostgroup_names=strdup(hostgroups);
+		if(hostgroup_names==NULL)
+			return temp_list;
+
+		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+			/* strip trailing spaces */
+			xedtemplate_strip(temp_ptr);
+
+#ifdef USE_REGEXP_MATCHING
+
+			/* compile regular expression */
+			if(regcomp(&preg,temp_ptr,0)){
+				free(hostgroup_names);
+				return NULL;
+		                }
+			
+			/* test match against all hostgroup names */
+			for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+
+				if(temp_hostgroup->group_name==NULL)
+					continue;
+
+				/* break out if this hostgroup matched the expression */
+				if(!regexec(&preg,temp_hostgroup->group_name,0,NULL,0))
+					break;
+			        }
+
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+	
+#else
+
+			/* find the hostgroup */
+			temp_hostgroup=find_hostgroup(temp_ptr,NULL);
+
+#endif
+
+			if(temp_hostgroup==NULL){
+				continue;
+				free(hostgroup_names);
+				return NULL;
+		                }
+
+			/* process all hosts that belong to the hostgroup */
+			host_cursor=get_host_cursor();
+			while(temp_host=get_next_host_cursor(host_cursor)){
+
+				/* skip hosts that don't belong to the hostgroup */
+				if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
+					continue;
+
+				/* skip this host if its already in the list */
+				for(new_list=temp_list;new_list;new_list=new_list->next)
+					if(!strcmp(temp_host->name,new_list->host_name))
+						break;
+				if(new_list!=NULL)
+					continue;
+
+				/* allocate memory for a new list item */
+				new_list=(xedtemplate_hostlist *)malloc(sizeof(xedtemplate_hostlist));
+				if(new_list==NULL){
+					free_host_cursor(host_cursor);
+					free(hostgroup_names);
+					return temp_list;
+			                }
+
+				/* save the host name */
+				new_list->host_name=strdup(temp_host->name);
+				if(new_list->host_name==NULL){
+					free_host_cursor(host_cursor);
+					free(hostgroup_names);
+					return temp_list;
+			                }
+
+				/* add new item to head of list */
+				new_list->next=temp_list;
+				temp_list=new_list;
+			        }
+
+			free_host_cursor(host_cursor);
+	                }
+
+		free(hostgroup_names);
+	        }
+
+	/* process list of hosts... */
+	if(hosts!=NULL){
+
+		/* allocate memory for host name list */
+		host_names=strdup(hosts);
+		if(host_names==NULL)
+			return temp_list;
+
+#ifdef USE_REGEXP_MATCHING
+
+		for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+			
+			/* strip trailing spaces */
+			xedtemplate_strip(temp_ptr);
+			
+			/* compile regular expression */
+			if(regcomp(&preg,temp_ptr,0)){
+				free(host_names);
+				return NULL;
+		                }
+			
+			/* test match against all host names */
+			found_match=FALSE;
+			host_cursor=get_host_cursor();
+			while(temp_host=get_next_host_cursor(host_cursor)){
+
+				if(temp_host->name==NULL)
+					continue;
+
+				/* skip this host if it doesn't match the expression */
+				if(regexec(&preg,temp_host->name,0,NULL,0))
+					continue;
+				else
+					found_match=TRUE;
+
+				/* skip this host if its already in the list */
+				for(new_list=temp_list;new_list;new_list=new_list->next)
+					if(!strcmp(temp_host->name,new_list->host_name))
+						break;
+				if(new_list!=NULL)
+					continue;
+
+				/* allocate memory for a new list item */
+				new_list=(xedtemplate_hostlist *)malloc(sizeof(xedtemplate_hostlist));
+				if(new_list==NULL){
+					regfree(&preg);
+					free_host_cursor(host_cursor);
+					free(host_names);
+					return temp_list;
+		                        }
+
+				/* save the host name */
+				new_list->host_name=strdup(temp_host->name);
+				if(new_list->host_name==NULL){
+					regfree(&preg);
+					free_host_cursor(host_cursor);
+					free(host_names);
+					return temp_list;
+			                }
+				
+				/* add new item to head of list */
+				new_list->next=temp_list;
+				temp_list=new_list;
+	                        }
+
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+
+			free_host_cursor(host_cursor);
+
+			/* we didn't find a match */
+			if(found_match==FALSE){
+				free(host_names);
+				return NULL;
+			        }
+		        }
+
+#else
+
+		/* return list of all hosts */
+		if(!strcmp(host_names,"*")){
+
+			host_cursor=get_host_cursor();
+			while(temp_host=get_next_host_cursor(host_cursor)){
+
+				if(temp_host->name==NULL)
+					continue;
+
+				/* allocate memory for a new list item */
+				new_list=(xedtemplate_hostlist *)malloc(sizeof(xedtemplate_hostlist));
+				if(new_list==NULL){
+					free_host_cursor(host_cursor);
+					free(host_names);
+					return temp_list;
+			                }
+
+				/* save the host name */
+				new_list->host_name=strdup(temp_host->name);
+				if(new_list->host_name==NULL){
+					free_host_cursor(host_cursor);
+					free(host_names);
+					return temp_list;
+	                                }
+
+				/* add new item to head of list */
+				new_list->next=temp_list;
+				temp_list=new_list;
+		                }
+
+			free_host_cursor(host_cursor);
+	                }
+
+		/* else lookup individual hosts */
+		else{
+
+			for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+			
+				/* strip trailing spaces */
+				xedtemplate_strip(temp_ptr);
+			
+				/* find the host */
+				temp_host=find_host(temp_ptr);
+				if(temp_host==NULL){
+					free(host_names);
+					return NULL;
+		                        }
+
+				/* skip this host if its already in the list */
+				for(new_list=temp_list;new_list;new_list=new_list->next)
+					if(!strcmp(new_list->host_name,temp_ptr))
+						break;
+				if(new_list)
+					continue;
+
+				/* allocate memory for a new list item */
+				new_list=(xedtemplate_hostlist *)malloc(sizeof(xedtemplate_hostlist));
+				if(new_list==NULL){
+					free(host_names);
+					return temp_list;
+			                }
+
+				/* save the host name */
+				new_list->host_name=strdup(temp_host->name);
+				if(new_list->host_name==NULL){
+					free(host_names);
+					return temp_list;
+	                                }
+
+				/* add new item to head of list */
+				new_list->next=temp_list;
+				temp_list=new_list;
+                                }
+	                }
+#endif
+
+		free(host_names);
+	        }
+
+#ifdef DEBUG0
+	printf("xedtemplate_expand_hostgroups_and_hosts() end\n");
+#endif
+
+	return temp_list;
         }

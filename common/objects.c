@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-10-2002
+ * Last Modified:   12-12-2002
  *
  * License:
  *
@@ -830,6 +830,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	
 	new_host->parent_hosts=NULL;
 	new_host->max_attempts=max_attempts;
+	new_host->contact_groups=NULL;
 	new_host->notification_interval=notification_interval;
 	new_host->notify_on_recovery=(notify_up>0)?TRUE:FALSE;
 	new_host->notify_on_down=(notify_down>0)?TRUE:FALSE;
@@ -4084,6 +4085,8 @@ int free_object_data(void){
 			this_host=host_list[i];
 			while(this_host!=NULL){
 
+				next_host=this_host->next;
+
 				/* free memory for parent hosts */
 				this_hostsmember=this_host->parent_hosts;
 				while(this_hostsmember!=NULL){
@@ -4102,7 +4105,6 @@ int free_object_data(void){
 					this_contactgroupsmember=next_contactgroupsmember;
 				        }
 
-				next_host=this_host->next;
 				free(this_host->name);
 				free(this_host->alias);
 				free(this_host->address);
@@ -4228,6 +4230,8 @@ int free_object_data(void){
 			this_service=service_list[i];
 			while(this_service!=NULL){
 
+				next_service=this_service->next;
+
 				/* free memory for contact groups */
 				this_contactgroupsmember=this_service->contact_groups;
 				while(this_contactgroupsmember!=NULL){
@@ -4237,7 +4241,6 @@ int free_object_data(void){
 					this_contactgroupsmember=next_contactgroupsmember;
 				        }
 
-				next_service=this_service->next;
 				free(this_service->host_name);
 				free(this_service->description);
 				free(this_service->service_check_command);

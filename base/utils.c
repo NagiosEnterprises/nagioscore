@@ -2553,7 +2553,9 @@ int reinit_embedded_perl(void){
 /* initializes worker threads */
 int init_worker_threads(void){
 	int result;
+#ifdef DOESNT_WORK
 	sigset_t newmask, oldmask;
+#endif
 
 
 	/**** SERVICE CHECK WORKER THREAD ****/
@@ -2569,15 +2571,23 @@ int init_worker_threads(void){
 	/* initialize mutex */
 	pthread_mutex_init(&service_result_buffer.buffer_lock,NULL);
 
+#ifdef DOESNT_WORK
 	/* worker thread should ignore signals */
 	sigfillset(&newmask);
 	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
+#endif
 	
 	/* create worker thread */
 	result=pthread_create(&worker_threads[SERVICE_WORKER_THREAD],NULL,service_result_worker_thread,NULL);
 
+#ifdef DEBUG1
+	printf("SERVICE CHECK THREAD: %lu\n",(unsigned long)worker_threads[SERVICE_WORKER_THREAD]);
+#endif
+
+#ifdef DOESNT_WORK
 	/* restore signal catching in main thread */
 	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
+#endif
 
 	if(result)
 		return ERROR;
@@ -2617,7 +2627,9 @@ void * cleanup_service_result_worker_thread(void *arg){
 /* initializes command file worker thread */
 int init_command_file_worker_thread(void){
 	int result;
+#ifdef DOESNT_WORK
 	sigset_t newmask, oldmask;
+#endif
 
 	/* initialize circular buffer */
 	external_command_buffer.head=0;
@@ -2630,15 +2642,23 @@ int init_command_file_worker_thread(void){
 	/* initialize mutex */
 	pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
 
+#ifdef DOESNT_WORK
 	/* worker thread should ignore signals */
 	sigfillset(&newmask);
 	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
+#endif
 	
 	/* create worker thread */
 	result=pthread_create(&worker_threads[COMMAND_WORKER_THREAD],NULL,command_file_worker_thread,NULL);
 
+#ifdef DEBUG1
+	printf("COMMAND FILE THREAD: %lu\n",(unsigned long)worker_threads[COMMAND_WORKER_THREAD]);
+#endif
+
+#ifdef DOESNT_WORK
 	/* restore signal catching in main thread */
 	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
+#endif
 
 	if(result)
 		return ERROR;
@@ -2668,10 +2688,15 @@ void * service_result_worker_thread(void *arg){
 	int retval;
 	fd_set readfs;
 #endif
+	sigset_t newmask;
 	int read_result;
 	int bytes_to_read;
 	int write_offset;
 	service_message *message;
+
+	/* this thread should block all signals */
+	sigfillset(&newmask);
+	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_service_result_worker_thread,NULL);
@@ -2796,6 +2821,11 @@ void * command_file_worker_thread(void *arg){
 	int retval;
 	fd_set readfs;
 #endif
+	sigset_t newmask;
+
+	/* this thread should block all signals */
+	sigfillset(&newmask);
+	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);

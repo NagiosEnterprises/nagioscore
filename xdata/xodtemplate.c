@@ -143,7 +143,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 	if(options & CACHE_OBJECT_DATA)
 		xodtemplate_cache_fp=fopen(xodtemplate_cache_file,"w");
 	if(xodtemplate_cache_fp!=NULL)
-		fputs("###########################\n# OBJECT CACHE FILE\n# DO NOT MODIFY THIS FILE!!\n###########################\n\n",xodtemplate_cache_fp);
+		fputs("###########################\n# NAGIOS OBJECT CACHE FILE\n# DO NOT MODIFY THIS FILE!!\n###########################\n\n",xodtemplate_cache_fp);
 
 	/* daemon reads all config files/dirs specified in the main config file */
 	/* read in all lines from the main config file */
@@ -2682,6 +2682,8 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_servicedependency *temp_servicedependency;
 	xodtemplate_hostlist *temp_hostlist;
 	xodtemplate_hostlist *this_hostlist;
+	xodtemplate_servicelist *temp_servicelist;
+	xodtemplate_servicelist *this_servicelist;
 	xodtemplate_hostlist *master_hostlist;
 	xodtemplate_hostlist *dependent_hostlist;
 	char *host_names;
@@ -2876,50 +2878,59 @@ int xodtemplate_duplicate_objects(void){
 	        }
 
 
-	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH WILDCARD DESCRIPTIONS ******/
+	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH MULTIPLE DESCRIPTIONS ******/
 	/* THIS MUST BE DONE AFTER DUPLICATING FOR MULTIPLE HOST NAMES (SEE ABOVE) */
 	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
 
-		/* skip serviceescalations with NULL descriptions */
-		if(temp_serviceescalation->service_description==NULL)
+		/* skip serviceescalations without enough data */
+		if(temp_serviceescalation->service_description==NULL || temp_serviceescalation->host_name==NULL)
 			continue;
 
-		/* skip serviceescalations with NULL host names */
-		if(temp_serviceescalation->host_name==NULL)
+		/* skip service escalations that don't need to be duplicated */
+		if(!strstr(temp_serviceescalation->service_description,",") && !strstr(temp_serviceescalation->service_description,"*"))
 			continue;
 
-		/* this serviceescalation definition has a wildcard description - duplicate it to all services on the host */
-		if(!strcmp(temp_serviceescalation->service_description,"*")){
-			
-			/* duplicate serviceescalation entries */
-			first_item=TRUE;
+		/* get list of services */
+		temp_servicelist=xodtemplate_expand_services(temp_serviceescalation->host_name,temp_serviceescalation->service_description);
+		if(temp_servicelist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
 
-			xod_svc_cursor = get_xodtemplate_service_cursor();
-			while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)) {
+		/* duplicate service escalation entries */
+		first_item=TRUE;
+		for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
 
-				/* skip services not associated with the host in question */
-				if(temp_service->host_name==NULL)
-					continue;
-				if(strcmp(temp_service->host_name,temp_serviceescalation->host_name))
-					continue;
+			/* if this is the first duplication, use the existing entry */
+			if(first_item==TRUE){
 
-				/* existing definition gets first service description */
-				if(first_item==TRUE){
-					free(temp_serviceescalation->service_description);
-					temp_serviceescalation->service_description=strdup(temp_service->service_description);
-					first_item=FALSE;
-					continue;
+				free(temp_serviceescalation->service_description);
+				temp_serviceescalation->service_description=strdup(this_servicelist->service_description);
+				if(temp_serviceescalation->service_description==NULL){
+					xodtemplate_free_servicelist(temp_servicelist);
+					return ERROR;
 				        }
 
-				/* duplicate serviceescalation definition */
-				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,NULL,temp_service->service_description);
-
-				/* exit on error */
-				if(result==ERROR)
-					return ERROR;
+				first_item=FALSE;
+				continue;
 			        }
-			free_xodtemplate_service_cursor(xod_svc_cursor);
+
+			/* duplicate service escalation definition */
+			result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,temp_serviceescalation->host_name,this_servicelist->service_description);
+
+			/* exit on error */
+			if(result==ERROR){
+				xodtemplate_free_servicelist(temp_servicelist);
+				return ERROR;
+		                }
 		        }
+
+		/* free memory we used for service list */
+		xodtemplate_free_servicelist(temp_servicelist);
 	        }
 
 
@@ -3058,97 +3069,115 @@ int xodtemplate_duplicate_objects(void){
 	        }
 
 
-	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH WILDCARD (MASTER) DESCRIPTIONS ******/
+	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE MASTER DESCRIPTIONS ******/
 	/* THIS MUST BE DONE AFTER DUPLICATING FOR MULTIPLE HOST NAMES (SEE ABOVE) */
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
-		/* skip servicedependencies with NULL descriptions */
-		if(temp_servicedependency->service_description==NULL)
+		/* skip servicedependencies without enough data */
+		if(temp_servicedependency->service_description==NULL || temp_servicedependency->host_name==NULL)
 			continue;
 
-		/* skip servicedependencies with NULL host names */
-		if(temp_servicedependency->host_name==NULL)
+		/* skip service escalations that don't need to be duplicated */
+		if(!strstr(temp_servicedependency->service_description,",") && !strstr(temp_servicedependency->service_description,"*"))
 			continue;
 
-		/* this servicedependency definition has a wildcard description - duplicate it to all services on the host */
-		if(!strcmp(temp_servicedependency->service_description,"*")){
+		/* get list of services */
+		temp_servicelist=xodtemplate_expand_services(temp_servicedependency->host_name,temp_servicedependency->service_description);
+		if(temp_servicelist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
 
-			/* duplicate servicedependency entries */
-			first_item=TRUE;
+		/* duplicate service escalation entries */
+		first_item=TRUE;
+		for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
 
-			xod_svc_cursor = get_xodtemplate_service_cursor();
-			while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)) {
+			/* if this is the first duplication, use the existing entry */
+			if(first_item==TRUE){
 
-				/* skip services not associated with the host in question */
-				if(temp_service->host_name==NULL)
-					continue;
-				if(strcmp(temp_service->host_name,temp_servicedependency->host_name))
-					continue;
-
-				/* existing definition gets first service description */
-				if(first_item==TRUE){
-					free(temp_servicedependency->service_description);
-					temp_servicedependency->service_description=strdup(temp_service->service_description);
-					first_item=FALSE;
-					continue;
+				free(temp_servicedependency->service_description);
+				temp_servicedependency->service_description=strdup(this_servicelist->service_description);
+				if(temp_servicedependency->service_description==NULL){
+					xodtemplate_free_servicelist(temp_servicelist);
+					return ERROR;
 				        }
 
-				/* duplicate serviceescalation definition */
-				result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_service->service_description,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description);
-
-				/* exit on error */
-				if(result==ERROR)
-					return ERROR;
+				first_item=FALSE;
+				continue;
 			        }
-			free_xodtemplate_service_cursor(xod_svc_cursor);
+
+			/* duplicate service escalation definition */
+			result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,this_servicelist->service_description,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description);
+
+			/* exit on error */
+			if(result==ERROR){
+				xodtemplate_free_servicelist(temp_servicelist);
+				return ERROR;
+		                }
 		        }
+
+		/* free memory we used for service list */
+		xodtemplate_free_servicelist(temp_servicelist);
 	        }
 
 
-	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH WILDCARD (DEPENDENT) DESCRIPTIONS ******/
+	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE DEPENDENCY DESCRIPTIONS ******/
 	/* THIS MUST BE DONE AFTER DUPLICATING FOR MULTIPLE HOST NAMES (SEE ABOVE) */
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
-		/* skip servicedependencies with NULL descriptions */
-		if(temp_servicedependency->dependent_service_description==NULL)
+		/* skip servicedependencies without enough data */
+		if(temp_servicedependency->dependent_service_description==NULL || temp_servicedependency->dependent_host_name==NULL)
 			continue;
 
-		/* skip servicedependencies with NULL host names */
-		if(temp_servicedependency->dependent_host_name==NULL)
+		/* skip service escalations that don't need to be duplicated */
+		if(!strstr(temp_servicedependency->dependent_service_description,",") && !strstr(temp_servicedependency->dependent_service_description,"*"))
 			continue;
 
-		/* this servicedependency definition has a wildcard description - duplicate it to all services on the host */
-		if(!strcmp(temp_servicedependency->dependent_service_description,"*")){
+		/* get list of services */
+		temp_servicelist=xodtemplate_expand_services(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description);
+		if(temp_servicelist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
 
-			/* duplicate servicedependency entries */
-			first_item=TRUE;
+		/* duplicate service escalation entries */
+		first_item=TRUE;
+		for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
 
-			xod_svc_cursor = get_xodtemplate_service_cursor();
-			while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)) {
+			/* if this is the first duplication, use the existing entry */
+			if(first_item==TRUE){
 
-				/* skip services not associated with the host in question */
-				if(temp_service->host_name==NULL)
-					continue;
-				if(strcmp(temp_service->host_name,temp_servicedependency->dependent_host_name))
-					continue;
-
-				/* existing definition gets first service description */
-				if(first_item==TRUE){
-					free(temp_servicedependency->dependent_service_description);
-					temp_servicedependency->dependent_service_description=strdup(temp_service->service_description);
-					first_item=FALSE;
-					continue;
+				free(temp_servicedependency->dependent_service_description);
+				temp_servicedependency->dependent_service_description=strdup(this_servicelist->service_description);
+				if(temp_servicedependency->dependent_service_description==NULL){
+					xodtemplate_free_servicelist(temp_servicelist);
+					return ERROR;
 				        }
 
-				/* duplicate serviceescalation definition */
-				result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->dependent_host_name,temp_service->service_description);
-
-				/* exit on error */
-				if(result==ERROR)
-					return ERROR;
+				first_item=FALSE;
+				continue;
 			        }
-			free_xodtemplate_service_cursor(xod_svc_cursor);
+
+			/* duplicate service escalation definition */
+			result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->dependent_host_name,this_servicelist->service_description);
+
+			/* exit on error */
+			if(result==ERROR){
+				xodtemplate_free_servicelist(temp_servicelist);
+				return ERROR;
+		                }
 		        }
+
+		/* free memory we used for service list */
+		xodtemplate_free_servicelist(temp_servicelist);
 	        }
 
 
@@ -4991,6 +5020,28 @@ xodtemplate_service *xodtemplate_find_service(char *name){
         }
 
 
+/* finds a specific service object by its REAL name, not its TEMPLATE name */
+xodtemplate_service *xodtemplate_find_real_service(char *host, char *description){
+	xodtemplate_service *temp_service;
+	void *xod_svc_cursor;
+
+	if(host==NULL || description==NULL || xodtemplate_service_list==NULL)
+		return NULL;
+
+	temp_service=NULL;
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
+			continue;
+		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))
+			break;
+	        }
+	free_xodtemplate_service_cursor(xod_svc_cursor);
+
+	return temp_service;
+        }
+
+
 xodtemplate_service *get_next_xodtemplate_service(void *v_cursor){
 	xodtemplate_service_cursor *cursor=v_cursor;
 
@@ -5364,7 +5415,8 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 #endif
 		return ERROR;
 	        }
-	for(contact_name=strtok(this_contactgroup->members,", ");contact_name!=NULL;contact_name=strtok(NULL,", ")){
+	for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
+		xodtemplate_strip(contact_name);
 		new_contactgroupmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
 		if(new_contactgroupmember==NULL){
 #ifdef NSCORE
@@ -5671,7 +5723,8 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	/* add the parent hosts */
 	if(this_host->parents!=NULL){
 
-		for(parent_host=strtok(this_host->parents,", ");parent_host!=NULL;parent_host=strtok(NULL,", ")){
+		for(parent_host=strtok(this_host->parents,",");parent_host!=NULL;parent_host=strtok(NULL,",")){
+			xodtemplate_strip(parent_host);
 			new_hostsmember=add_parent_host_to_host(new_host,parent_host);
 			if(new_hostsmember==NULL){
 #ifdef NSCORE
@@ -5687,7 +5740,9 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	/* add all contact groups to the host group */
 	if(this_host->contact_groups!=NULL){
 
-		for(contact_group=strtok(this_host->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
+		for(contact_group=strtok(this_host->contact_groups,",");contact_group!=NULL;contact_group=strtok(NULL,",")){
+
+			xodtemplate_strip(contact_group);
 			new_contactgroupsmember=add_contactgroup_to_host(new_host,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
@@ -5699,7 +5754,6 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			        }
 	                }
 	        }
-
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_host() end\n");
@@ -5743,9 +5797,10 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 	/* add all the contact groups to the service */
 	if(this_service->contact_groups!=NULL){
 
-		for(contactgroup_name=strtok(this_service->contact_groups,", ");contactgroup_name!=NULL;contactgroup_name=strtok(NULL,", ")){
+		for(contactgroup_name=strtok(this_service->contact_groups,",");contactgroup_name!=NULL;contactgroup_name=strtok(NULL,",")){
 
 			/* add this contactgroup to the service definition */
+			xodtemplate_strip(contactgroup_name);
 			new_contactgroupsmember=add_contactgroup_to_service(new_service,contactgroup_name);
 
 			/* stop adding contact groups if we ran into an error */
@@ -5916,6 +5971,7 @@ int xodtemplate_free_memory(void){
 			free(this_timeperiod->timeranges[x]);
 		free(this_timeperiod);
 	        }
+	xodtemplate_timeperiod_list=NULL;
 
 	/* free memory allocated to command list */
 	for(this_command=xodtemplate_command_list;this_command!=NULL;this_command=next_command){
@@ -5926,6 +5982,7 @@ int xodtemplate_free_memory(void){
 		free(this_command->command_line);
 		free(this_command);
 	        }
+	xodtemplate_command_list=NULL;
 
 	/* free memory allocated to contactgroup list */
 	for(this_contactgroup=xodtemplate_contactgroup_list;this_contactgroup!=NULL;this_contactgroup=next_contactgroup){
@@ -5937,6 +5994,7 @@ int xodtemplate_free_memory(void){
 		free(this_contactgroup->members);
 		free(this_contactgroup);
 	        }
+	xodtemplate_contactgroup_list=NULL;
 
 	/* free memory allocated to hostgroup list */
 	for(this_hostgroup=xodtemplate_hostgroup_list;this_hostgroup!=NULL;this_hostgroup=next_hostgroup){
@@ -5948,6 +6006,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostgroup->members);
 		free(this_hostgroup);
 	        }
+	xodtemplate_hostgroup_list=NULL;
 
 	/* free memory allocated to servicedependency list */
 	for(this_servicedependency=xodtemplate_servicedependency_list;this_servicedependency!=NULL;this_servicedependency=next_servicedependency){
@@ -5962,6 +6021,7 @@ int xodtemplate_free_memory(void){
 		free(this_servicedependency->dependent_service_description);
 		free(this_servicedependency);
 	        }
+	xodtemplate_servicedependency_list=NULL;
 
 	/* free memory allocated to serviceescalation list */
 	for(this_serviceescalation=xodtemplate_serviceescalation_list;this_serviceescalation!=NULL;this_serviceescalation=next_serviceescalation){
@@ -5974,6 +6034,7 @@ int xodtemplate_free_memory(void){
 		free(this_serviceescalation->contact_groups);
 		free(this_serviceescalation);
 	        }
+	xodtemplate_serviceescalation_list=NULL;
 
 	/* free memory allocated to contact list */
 	for(this_contact=xodtemplate_contact_list;this_contact!=NULL;this_contact=next_contact){
@@ -5990,6 +6051,7 @@ int xodtemplate_free_memory(void){
 		free(this_contact->host_notification_commands);
 		free(this_contact);
 	        }
+	xodtemplate_contact_list=NULL;
 
 	/* free memory allocated to host list */
 	for(this_host=xodtemplate_host_list;this_host!=NULL;this_host=next_host){
@@ -6007,9 +6069,10 @@ int xodtemplate_free_memory(void){
 		free(this_host->failure_prediction_options);
 		free(this_host);
 	        }
+	xodtemplate_host_list=NULL;
 
 	/* free memory allocated to service list (chained hash) */
-	if(xodtemplate_service_list) {
+	if(xodtemplate_service_list){
 
 		for(x=0;x<SERVICES_HASHSLOTS;x++){
 			for(this_service=xodtemplate_service_list[x];this_service!=NULL;this_service=next_service){
@@ -6030,8 +6093,8 @@ int xodtemplate_free_memory(void){
 			        }
 		        }
 		free(xodtemplate_service_list);
-		xodtemplate_service_list=NULL;
 	        }
+	xodtemplate_service_list=NULL;
 
 	/* free memory allocated to hostdependency list */
 	for(this_hostdependency=xodtemplate_hostdependency_list;this_hostdependency!=NULL;this_hostdependency=next_hostdependency){
@@ -6044,6 +6107,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostdependency->dependent_host_name);
 		free(this_hostdependency);
 	        }
+	xodtemplate_hostdependency_list=NULL;
 
 	/* free memory allocated to hostescalation list */
 	for(this_hostescalation=xodtemplate_hostescalation_list;this_hostescalation!=NULL;this_hostescalation=next_hostescalation){
@@ -6055,6 +6119,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostescalation->contact_groups);
 		free(this_hostescalation);
 	        }
+	xodtemplate_hostescalation_list=NULL;
 
 	/* free memory for the config file names */
 	for(x=0;x<xodtemplate_current_config_file;x++)
@@ -6097,6 +6162,32 @@ int xodtemplate_free_hostlist(xodtemplate_hostlist *temp_list){
         }
 
 
+/* frees memory allocated to a temporary service list */
+int xodtemplate_free_servicelist(xodtemplate_servicelist *temp_list){
+	xodtemplate_servicelist *this_servicelist;
+	xodtemplate_servicelist *next_servicelist;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_servicelist() start\n");
+#endif
+
+	/* free memory allocated to service name list */
+	for(this_servicelist=temp_list;this_servicelist!=NULL;this_servicelist=next_servicelist){
+		next_servicelist=this_servicelist->next;
+		free(this_servicelist->service_description);
+		free(this_servicelist);
+	        }
+
+	temp_list=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_servicelist() end\n");
+#endif
+
+	return OK;
+        }
+
+
 
 /******************************************************************/
 /********************** UTILITY FUNCTIONS *************************/
@@ -6131,8 +6222,11 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 		if(hostgroup_names==NULL)
 			return temp_list;
 
-		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
+			/* strip trailing spaces */
+			xodtemplate_strip(temp_ptr);
+			
 			/* find the hostgroup */
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
@@ -6232,7 +6326,10 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 		/* else lookup individual hosts */
 		else{
 
-			for(temp_ptr=strtok(host_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+			for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+			
+				/* strip trailing spaces */
+				xodtemplate_strip(temp_ptr);
 			
 				/* find the host */
 				temp_host=xodtemplate_find_real_host(temp_ptr);
@@ -6278,6 +6375,124 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 
 #ifdef DEBUG0
 	printf("xodtemplate_expand_hostgroups_and_hosts() end\n");
+#endif
+
+	return temp_list;
+        }
+
+
+/* expands a comma-delimited list of service descriptions */
+xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
+	xodtemplate_servicelist *temp_list;
+	xodtemplate_servicelist *new_list;
+	xodtemplate_service *temp_service;
+	char *service_names;
+	char *service_name;
+	char *temp_ptr;
+	void *xod_svc_cursor;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_services() start\n");
+#endif
+
+	if(host==NULL || services==NULL)
+		return NULL;
+
+	temp_list=NULL;
+
+	/* allocate memory for service name list */
+	service_names=strdup(services);
+	if(service_names==NULL)
+		return NULL;
+
+	/* return list of all services on the host */
+	if(!strcmp(service_names,"*")){
+
+		xod_svc_cursor=get_xodtemplate_service_cursor();
+		while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+
+			if(temp_service->host_name==NULL || temp_service->service_description==NULL)
+				continue;
+
+			if(strcmp(temp_service->host_name,host))
+				continue;
+
+			/* allocate memory for a new list item */
+			new_list=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
+			if(new_list==NULL){
+				free(service_names);
+				return temp_list;
+		                }
+
+			/* save the service name */
+			new_list->service_description=strdup(temp_service->service_description);
+			if(new_list->service_description==NULL){
+				free(service_names);
+				return temp_list;
+                                }
+
+			/* add new item to head of list */
+			new_list->next=temp_list;
+			temp_list=new_list;
+	                }
+
+		free_xodtemplate_service_cursor(xod_svc_cursor);
+                }
+
+	/* else lookup individual services */
+	else{
+
+		for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+			/* strip trailing spaces */
+			xodtemplate_strip(temp_ptr);
+			
+			/* find the service */
+			temp_service=xodtemplate_find_real_service(host,temp_ptr);
+			if(temp_service==NULL){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find service '%s' on host '%s'\n",temp_ptr,host);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(service_names);
+				return NULL;
+			        }
+
+			/* skip this service if its already in the list */
+			for(new_list=temp_list;new_list;new_list=new_list->next)
+				if(!strcmp(new_list->service_description,temp_ptr))
+					break;
+			if(new_list)
+				continue;
+
+			/* allocate memory for a new list item */
+			new_list=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
+			if(new_list==NULL){
+				free(service_names);
+				return temp_list;
+			        }
+
+			/* save the service description */
+			new_list->service_description=strdup(temp_service->service_description);
+			if(new_list->service_description==NULL){
+				free(service_names);
+				return temp_list;
+                                }
+
+			/* add new item to head of list */
+			new_list->next=temp_list;
+			temp_list=new_list;
+		        }
+
+		free(service_names);
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_services() end\n");
 #endif
 
 	return temp_list;

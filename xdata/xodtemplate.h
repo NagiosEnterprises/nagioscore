@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-10-2002
+ * Last Modified:   12-11-2002
  *
  * License:
  *
@@ -394,6 +394,13 @@ typedef struct xodtemplate_hostlist_struct{
         }xodtemplate_hostlist;
 
 
+/* SERVICE LIST STRUCTURE */
+typedef struct xodtemplate_servicelist_struct{
+	char      *service_description;
+	struct xodtemplate_servicelist_struct *next;
+        }xodtemplate_servicelist;
+
+
 
 /***** CHAINED HASH DATA STRUCTURES ******/
 
@@ -415,7 +422,9 @@ char *xodtemplate_config_file_name(int);                    /* returns the name 
 void xodtemplate_strip(char *);
 
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
+xodtemplate_servicelist *xodtemplate_expand_services(char *,char *);
 int xodtemplate_free_hostlist(xodtemplate_hostlist *);
+int xodtemplate_free_servicelist(xodtemplate_servicelist *);
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);
@@ -455,6 +464,7 @@ xodtemplate_contact *xodtemplate_find_contact(char *);
 xodtemplate_host *xodtemplate_find_host(char *);
 xodtemplate_host *xodtemplate_find_real_host(char *);
 xodtemplate_service *xodtemplate_find_service(char *);
+xodtemplate_service *xodtemplate_find_real_service(char *,char *);
 xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *);
 xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);
 

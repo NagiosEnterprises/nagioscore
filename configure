@@ -87,9 +87,9 @@ ac_help="$ac_help
 ac_help="$ac_help
 --disable-statuswrl=disables compilation of statuswrl (VRML) CGI"
 ac_help="$ac_help
---with-cgiurl=<dir> sets URL for cgi programs (do not use a trailing slash)"
+--with-cgiurl=<local-url> sets URL for cgi programs (do not use a trailing slash)"
 ac_help="$ac_help
---with-htmurl=<dir> sets URL for public html"
+--with-htmurl=<local-url> sets URL for public html"
 ac_help="$ac_help
 --enable-DEBUG0 shows function entry and exit"
 ac_help="$ac_help

@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-22-2003
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-18-2004
  *
  * Description:
  *
@@ -237,7 +237,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-		result=ERROR;
+		return ERROR;
 	        }
 
 	/* process all files in the directory... */

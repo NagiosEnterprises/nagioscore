@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2003
+ * Last Modified: 08-12-2003
  *
  * License:
  * 
@@ -23,7 +23,6 @@
  *************************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 #include "../common/objects.h"
 #include "../common/comments.h"
@@ -31,7 +30,7 @@
 
 #include "cgiutils.h"
 #include "getcgi.h"
-#include "auth.h"
+#include "cgiauth.h"
 
 
 extern char main_config_file[MAX_FILENAME_LENGTH];

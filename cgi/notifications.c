@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 08-12-2003
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -25,13 +25,11 @@
  ***********************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 
 #include "getcgi.h"
 #include "cgiutils.h"
-#include "auth.h"
-#include "lifo.h"
+#include "cgiauth.h"
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];

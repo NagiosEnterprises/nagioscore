@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2003
+ * Last Modified: 08-12-2003
  *
  * License:
  * 
@@ -23,14 +23,13 @@
  *************************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 #include "../common/objects.h"
 #include "../common/statusdata.h"
 
 #include "cgiutils.h"
 #include "getcgi.h"
-#include "auth.h"
+#include "cgiauth.h"
 
 #include <gd.h>			/* Boutell's GD library function */
 #include <gdfonts.h>		/* GD library small font definition */

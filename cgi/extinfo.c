@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-10-2003
+ * Last Modified: 08-12-2003
  *
  * License:
  * 
@@ -23,7 +23,6 @@
  *************************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 #include "../common/objects.h"
 #include "../common/comments.h"
@@ -32,7 +31,7 @@
 
 #include "cgiutils.h"
 #include "getcgi.h"
-#include "auth.h"
+#include "cgiauth.h"
 
 extern char             nagios_check_command[MAX_INPUT_BUFFER];
 extern char             nagios_process_info[MAX_INPUT_BUFFER];
@@ -789,7 +788,7 @@ void show_process_info(void){
 
 	printf("</TD></TR></TABLE>\n");
 
-
+#ifdef REMOVED_081203
 	printf("<P>");
 	printf("<DIV ALIGN=CENTER>\n");
 
@@ -828,8 +827,7 @@ void show_process_info(void){
 
 	printf("</DIV>\n");
 	printf("</P>\n");
-
-
+#endif
 
 	return;
 	}

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-21-2003
+ * Last Modified:   08-12-2003
  *
  * License:
  *
@@ -76,7 +76,8 @@ extern service  *service_list;
 extern FILE     *command_file_fp;
 extern int      command_file_fd;
 
-passive_check_result    *passive_check_result_list;
+passive_check_result    *passive_check_result_list=NULL;
+passive_check_result    *passive_check_result_list_tail=NULL;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
@@ -113,8 +114,9 @@ void check_for_external_commands(void){
 	/* update the status log with new program information */
 	update_program_status(FALSE);
 
-	/* reset passive check result list pointer */
+	/* reset passive check result list pointers */
 	passive_check_result_list=NULL;
+	passive_check_result_list_tail=NULL;
 
 	/* get a lock on the buffer */
 	pthread_mutex_lock(&external_command_buffer.buffer_lock);
@@ -1636,7 +1638,6 @@ int cmd_signal_process(int cmd, char *args){
 int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	char *temp_ptr;
 	passive_check_result *new_pcr;
-	passive_check_result *temp_pcr;
 	host *temp_host;
 
 #ifdef DEBUG0
@@ -1729,8 +1730,8 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	if(passive_check_result_list==NULL)
 		passive_check_result_list=new_pcr;
 	else{
-		for(temp_pcr=passive_check_result_list;temp_pcr->next!=NULL;temp_pcr=temp_pcr->next);
-		temp_pcr->next=new_pcr;
+		passive_check_result_list_tail->next=new_pcr;
+		passive_check_result_list_tail=new_pcr;
 	        }
 
 #ifdef DEBUG0
@@ -3976,6 +3977,7 @@ void process_passive_service_checks(void){
 		this_pcr=next_pcr;
 	        }
 	passive_check_result_list=NULL;
+	passive_check_result_list_tail=NULL;
 
 #ifdef DEBUG0
 	printf("process_passive_service_checks() end\n");

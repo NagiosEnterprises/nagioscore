@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 04-09-2003
+# Last Modified: 08-12-2003
 ###############################
 
 
@@ -46,34 +46,37 @@ XDDH=@XDDH@
 SNPRINTF_O=@SNPRINTF_O@
 
 # Object functions
-ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
-ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
+#ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
+#ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
+ODATALIBS=objects-cgi.o xobjects-cgi.o
+ODATAHDRS=
 ODATADEPS=$(ODATALIBS)
 
 # Host, service, and program status functions
-SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
-SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
+#SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
+#SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
+SDATALIBS=statusdata-cgi.o xstatusdata-cgi.o
+SDATAHDRS=
 SDATADEPS=$(SDATALIBS)
 
 # Host and service comment functions
-CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
-CDATAHDRS=$(SRC_COMMON)/comments.h $(SRC_XDATA)/$(XCDH)
+#CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
+#CDATAHDRS=$(SRC_COMMON)/comments.h $(SRC_XDATA)/$(XCDH)
+CDATALIBS=comments-cgi.o xcomments-cgi.o
+CDATAHDRS=
 CDATADEPS=$(CDATALIBS)
 
 # Host and service downtime functions
-DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
-DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
+#DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
+#DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
+DDATALIBS=downtime-cgi.o xdowntime-cgi.o
+DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
-# LIFO functions (log file reversal)
-LIFOLIBS=lifo.o
-LIFOHDRS=lifo.h
-LIFODEPS=$(LIFOLIBS)
-
 # Common CGI functions (includes object and status functions)
-CGILIBS=getcgi.o cgiutils.o auth.o popen.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
-CGIHDRS=$(SRC_COMMON)/config.h $(SRC_COMMON)/common.h $(SRC_COMMON)/locations.h popen.h $(ODATAHDRS) $(SDATAHDRS)
-CGIDEPS=$(CGILIBS) $(ODATALIBS) $(SDATALIBS)
+CGILIBS=getcgi.o cgiutils.o cgiauth.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
+CGIHDRS=$(SRC_COMMON)/config.h $(SRC_COMMON)/common.h $(SRC_COMMON)/locations.h
+CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS)
 
 
 MATHLIBS=-lm
@@ -84,9 +87,35 @@ all cgis: $(CGIS)
 
 $(CGILIBS): $(CGIHDRS)
 
-$(LIFOLIBS): $(LIFOHDRS)
 
-$(COMMENTLIBS): $(COMMENTHDRS)
+######## REQUIRED LIBRARIES ##########
+
+objects-cgi.o: $(SRC_COMMON)/objects.c $(SRC_COMMON)/objects.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/objects.c
+
+xobjects-cgi.o: $(SRC_XDATA)/$(XODC) $(SRC_XDATA)/$(XODH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XODC)
+
+statusdata-cgi.o: $(SRC_COMMON)/statusdata.c $(SRC_COMMON)/statusdata.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/statusdata.c
+
+xstatusdata-cgi.o: $(SRC_XDATA)/$(XSDC) $(SRC_XDATA)/$(XSDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XSDC)
+
+comments-cgi.o: $(SRC_COMMON)/comments.c $(SRC_COMMON)/comments.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/comments.c
+
+xcomments-cgi.o: $(SRC_XDATA)/$(XCDC) $(SRC_XDATA)/$(XCDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XCDC)
+
+downtime-cgi.o: $(SRC_COMMON)/downtime.c $(SRC_COMMON)/downtime.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
+
+xdowntime-cgi.o: $(SRC_XDATA)/$(XDDC) $(SRC_XDATA)/$(XDDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XDDC)
+
+
+########## CGIS ##########
 
 avail.cgi: avail.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ avail.c $(CGILIBS) $(LIBS)
@@ -94,7 +123,7 @@ avail.cgi: avail.c $(CGIDEPS)
 checksanity.cgi: checksanity.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ checksanity.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
-cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS)
+cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ cmd.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
 config.cgi: config.c $(CGIDEPS)
@@ -103,20 +132,20 @@ config.cgi: config.c $(CGIDEPS)
 extinfo.cgi: extinfo.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ extinfo.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
-history.cgi: history.c $(CGIDEPS) $(LIFODEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ history.c $(CGILIBS) $(LIFOLIBS) $(LIBS)
+history.cgi: history.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ history.c $(CGILIBS) $(LIBS)
 
 ministatus.cgi: ministatus.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ ministatus.c $(CGILIBS) $(LIBS)
 
-notifications.cgi: notifications.c $(CGIDEPS) $(LIFODEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ notifications.c $(CGILIBS) $(LIFOLIBS) $(LIBS)
+notifications.cgi: notifications.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ notifications.c $(CGILIBS) $(LIBS)
 
 outages.cgi: outages.c $(CGIDEPS) $(CDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ outages.c $(CGILIBS) $(CDATALIBS) $(LIBS)
 
-showlog.cgi: showlog.c $(CGIDEPS) $(LIFODEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ showlog.c $(CGILIBS) $(LIFOLIBS) $(LIBS)
+showlog.cgi: showlog.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ showlog.c $(CGILIBS) $(LIBS)
 
 status.cgi: status.c $(CGIDEPS) $(CDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ status.c $(CGILIBS) $(CDATALIBS) $(LIBS)
@@ -143,11 +172,11 @@ histogram.cgi: histogram.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ histogram.c $(CGILIBS) $(GDLIBS) $(LIBS)
 
 clean:
+	rm -f $(CGIS)
 	rm -f *.o core gmon.out
 	rm -f *~
 
 distclean: clean
-	rm -f $(CGIS)
 	rm -f Makefile cgiutils.h
 
 devclean: distclean

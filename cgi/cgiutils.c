@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2003
+ * Last Modified: 08-12-2003
  *
  * License:
  *
@@ -29,7 +29,6 @@
 #include "../common/statusdata.h"
 
 #include "cgiutils.h"
-#include "popen.h"
 
 char            main_config_file[MAX_FILENAME_LENGTH];
 char            log_file[MAX_FILENAME_LENGTH];
@@ -58,9 +57,8 @@ char            *statuswrl_include=NULL;
 
 char            *ping_syntax=NULL;
 
-char            nagios_check_command[MAX_INPUT_BUFFER];
-
-char            nagios_process_info[MAX_INPUT_BUFFER];
+char            nagios_check_command[MAX_INPUT_BUFFER]="";
+char            nagios_process_info[MAX_INPUT_BUFFER]="";
 int             nagios_process_state=STATE_OK;
 
 extern time_t   program_start;
@@ -126,6 +124,8 @@ extern serviceescalation *serviceescalation_list;
 
 extern hoststatus      *hoststatus_list;
 extern servicestatus   *servicestatus_list;
+
+lifo            *lifo_list=NULL;
 
 char            *my_strtok_buffer=NULL;
 char            *original_my_strtok_buffer=NULL;
@@ -734,6 +734,129 @@ int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, c
 
 
 
+
+
+/**********************************************************
+ ******************* LIFO FUNCTIONS ***********************
+ **********************************************************/
+
+/* reads contents of file into the lifo struct */
+int read_file_into_lifo(char *filename){
+	char input_buffer[1024];
+	FILE *fp;
+	int lifo_result;
+
+	fp=fopen(filename,"r");
+	if(fp==NULL)
+		return LIFO_ERROR_FILE;
+
+	while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),fp)){
+
+		if(feof(fp))
+			break;
+
+		lifo_result=push_lifo(input_buffer);
+
+		if(lifo_result!=LIFO_OK){
+			free_lifo_memory();
+			fclose(fp);
+			return lifo_result;
+		        }
+	        }
+
+	fclose(fp);
+
+	return LIFO_OK;
+        }
+
+
+/* frees all memory allocated to lifo */
+void free_lifo_memory(void){
+	lifo *temp_lifo;
+	lifo *next_lifo;
+
+	if(lifo_list==NULL)
+		return;
+
+	temp_lifo=lifo_list;
+	while(temp_lifo!=NULL){
+		next_lifo=temp_lifo->next;
+		if(temp_lifo->data!=NULL)
+			free((void *)temp_lifo->data);
+		free((void *)temp_lifo);
+		temp_lifo=next_lifo;
+	        }
+
+	return;
+        }
+
+
+/* adds an item to lifo */
+int push_lifo(char *buffer){
+	lifo *temp_lifo;
+	int bytes_allocated;
+
+	temp_lifo=(lifo *)malloc(sizeof(lifo));
+	if(temp_lifo==NULL)
+		return LIFO_ERROR_MEMORY;
+
+	bytes_allocated=(int)(strlen(buffer)+1);
+	temp_lifo->data=(char *)malloc(bytes_allocated);
+	if(temp_lifo->data==NULL){
+		free(temp_lifo);
+		return LIFO_ERROR_MEMORY;
+	        }
+
+	if(buffer==NULL)
+		strcpy(temp_lifo->data,"");
+	else{
+		strncpy(temp_lifo->data,buffer,bytes_allocated);
+		temp_lifo->data[bytes_allocated-1]='\x0';
+	        }
+
+	/* add item to front of lifo... */
+	temp_lifo->next=lifo_list;
+	lifo_list=temp_lifo;
+
+	return LIFO_OK;
+        }
+
+
+
+/* returns/clears an item from lifo */
+int pop_lifo(char *buffer,int buffer_length){
+	lifo *temp_lifo;
+
+	if(buffer==NULL)
+		return LIFO_ERROR_DATA;
+
+	if(lifo_list==NULL){
+		strcpy(buffer,"");
+		return LIFO_ERROR_DATA;
+	        }
+
+	if(lifo_list->data==NULL){
+		strcpy(buffer,"");
+	        }
+	else{
+		strncpy(buffer,lifo_list->data,buffer_length);
+		buffer[buffer_length-1]='\x0';
+	        }
+
+	temp_lifo=lifo_list->next;
+
+	if(lifo_list->data!=NULL)
+		free((void *)lifo_list->data);
+	free((void *)lifo_list);
+
+	lifo_list=temp_lifo;
+
+	return LIFO_OK;
+        }
+
+
+
+
 /**********************************************************
  *************** MISC UTILITY FUNCTIONS *******************
  **********************************************************/
@@ -1330,67 +1453,6 @@ void determine_log_rotation_times(int archive){
 
 
 
-/* get the status of the nagios process */
-int get_nagios_process_info(void){
-	char input_buffer[MAX_INPUT_BUFFER];
-	int process_state=STATE_OK;
-	int result=STATE_OK;
-	FILE *fp;
-
-	/* if there is no check command defined, we don't know what's going on - assume its okay */
-	if(!strcmp(nagios_check_command,"")){
-		process_state=STATE_OK;
-		strcpy(nagios_process_info,"No process check command has been defined in your CGI configuration file.<BR>Nagios process is assumed to be running properly.");
-	        }
-
-	/* else run the check... */
-	else{
-
-		/* clear out the old check results */
-		strcpy(nagios_process_info,"");
-		strcpy(input_buffer,"");
-
-		/* run the process check command */
-		fp=spopen(nagios_check_command);
-		if(fp==NULL){
-			process_state=STATE_UNKNOWN;
-			strncpy(nagios_process_info,"Could not open pipe for process check command",sizeof(nagios_process_info));
-			nagios_process_info[sizeof(nagios_process_info)-1]='\x0';
-	                }
-		else{
-			/* grab command output */
-			fgets(input_buffer,MAX_INPUT_BUFFER-1,fp);
-			result=spclose(fp);
-
-			/* get the program return code */
-			process_state=WEXITSTATUS(result);
-
-			/* do some basic bounds checking on the return code */
-			if(process_state<-1 || process_state>3)
-				process_state=STATE_UNKNOWN;
-
-			/* check the output from the command */
-			if(!strcmp(input_buffer,"")){
-				process_state=STATE_UNKNOWN;
-				strncpy(input_buffer,"Nagios check command did not return any output",sizeof(input_buffer));
-				input_buffer[sizeof(input_buffer)-1]='\x0';
-			        }
-
-			/* store output for later use */
-			strncpy(nagios_process_info,input_buffer,sizeof(nagios_process_info));
-			nagios_process_info[sizeof(nagios_process_info)-1]='\x0';
-		        }
-	        }
-
-	nagios_process_state=process_state;
-
-	return process_state;
-        }
-
-
-
-
-
 
 /**********************************************************
  *************** COMMON HTML FUNCTIONS ********************
@@ -1419,8 +1481,6 @@ void display_info_table(char *title,int refresh, authdata *current_authdata){
 
 	if(current_authdata!=NULL)
 		printf("Logged in as <i>%s</i><BR>\n",(!strcmp(current_authdata->username,""))?"?":current_authdata->username);
-
-	get_nagios_process_info();
 
 	if(nagios_process_state!=STATE_OK)
 		printf("<DIV CLASS='infoBoxBadProcStatus'>Warning: Monitoring process may not be running!<BR>Click <A HREF='%s?type=%d'>here</A> for more info.</DIV>",EXTINFO_CGI,DISPLAY_PROCESS_INFO);

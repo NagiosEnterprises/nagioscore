@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-21-2003
+ * Last Modified:   08-12-2003
  *
  * Description:
  *
@@ -29,14 +29,13 @@
  *****************************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 #include "../common/objects.h"
 #include "../common/statusdata.h"
 
 #include "cgiutils.h"
 #include "getcgi.h"
-#include "auth.h"
+#include "cgiauth.h"
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];

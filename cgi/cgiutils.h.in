@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-22-2003
+ * Last Modified: 08-12-2003
  *
  * License:
  * 
@@ -395,6 +395,27 @@
 #define CONTEXTHELP_SUMMARY_SERVICEGROUP_ALERT_TOTALS "N8"
 
 
+/************************** LIFO RETURN CODES  ****************************/
+
+#define LIFO_OK			0
+#define LIFO_ERROR_MEMORY	1
+#define LIFO_ERROR_FILE		2
+#define LIFO_ERROR_DATA		3
+
+
+
+
+
+/*************************** DATA STRUCTURES  *****************************/
+
+/* LIFO data structure */
+typedef struct lifo_struct{
+	char *data;
+	struct lifo_struct *next;
+        }lifo;
+
+
+
 
 /******************************** FUNCTIONS *******************************/
 
@@ -430,8 +451,6 @@ char * my_strsep (char **, const char *);
 char * url_encode(char *);		        		/* encodes a string in proper URL format */
 char * html_encode(char *);					/* encodes a string in HTML format (for what the user sees) */
 
-int get_nagios_process_info(void);				/* gets information about the state of the nagios process */
-
 void get_time_breakdown(unsigned long,int *,int *,int *,int *);	/* given total seconds, get days, hours, minutes, seconds */
 
 void get_log_archive_to_use(int,char *,int);			/* determines the name of the log archive to use */
@@ -453,6 +472,12 @@ void object_data_error(void);
 void status_data_error(void);
 
 void display_context_help(char *);				/* displays context-sensitive help window */
+
+int read_file_into_lifo(char *);				/* LIFO functions */
+void free_lifo_memory(void);
+int push_lifo(char *);
+int pop_lifo(char *,int);
+
 
 #endif
 

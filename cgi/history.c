@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2003
+ * Last Modified: 08-12-2003
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -25,14 +25,12 @@
  ***********************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 #include "../common/objects.h"
 
 #include "getcgi.h"
 #include "cgiutils.h"
-#include "auth.h"
-#include "lifo.h"
+#include "cgiauth.h"
 
 #define DISPLAY_HOSTS			0
 #define DISPLAY_SERVICES		1

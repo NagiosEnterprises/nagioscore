@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 08-10-2003
+# Last Modified: 08-12-2003
 ############################
 
 
@@ -61,41 +61,96 @@ BASEEXTRALIBS=@BASEEXTRALIBS@
 SNPRINTF_O=@SNPRINTF_O@
 
 # Object data
-ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
-ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
+#ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
+#ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
+ODATALIBS=objects-base.o xobjects-base.o
+ODATAHDRS=
 ODATADEPS=$(ODATALIBS)
 
 # Retention data
-RDATALIBS=sretention.o $(SRC_XDATA)/$(XRDC)
-RDATAHDRS=sretention.h $(SRC_XDATA)/$(XRDH)
+#RDATALIBS=sretention.o $(SRC_XDATA)/$(XRDC)
+#RDATAHDRS=sretention.h $(SRC_XDATA)/$(XRDH)
+RDATALIBS=retention-base.o xretention-base.o
+RDATAHDRS=
 RDATADEPS=$(RDATALIBS)
 
 # Comment data
-CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
-CDATAHDRS=$(SRC_COMMON)/comments.h $(SRC_XDATA)/$(XCDH)
+#CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
+#CDATAHDRS=$(SRC_COMMON)/comments.h $(SRC_XDATA)/$(XCDH)
+CDATALIBS=comments-base.o xcomments-base.o
+CDATAHDRS=
 CDATADEPS=$(CDATALIBS)
 
 # Status data
-SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
-SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
+#SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
+#SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
+SDATALIBS=statusdata-base.o xstatusdata-base.o
+SDATAHDRS=
 SDATADEPS=$(SDATALIBS)
 
 # Performance data
-PDATALIBS=perfdata.o $(SRC_XDATA)/$(XPDC)
-PDATAHDRS=perfdata.h $(SRC_XDATA)/$(XPDH)
+#PDATALIBS=perfdata.o $(SRC_XDATA)/$(XPDC)
+#PDATAHDRS=perfdata.h $(SRC_XDATA)/$(XPDH)
+PDATALIBS=perfdata-base.o xperfdata-base.o
+PDATAHDRS=
 PDATADEPS=$(PDATALIBS)
 
 # Downtime data
-DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
-DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
+#DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
+#DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
+DDATALIBS=downtime-base.o xdowntime-base.o
+DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
 OBJS=broker.o checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
+OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS)
 
 all: nagios nagiostats
 
-nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
+
+######## REQUIRED LIBRARIES ##########
+
+objects-base.o: $(SRC_COMMON)/objects.c $(SRC_COMMON)/objects.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/objects.c
+
+xobjects-base.o: $(SRC_XDATA)/$(XODC) $(SRC_XDATA)/$(XODH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XODC)
+
+statusdata-base.o: $(SRC_COMMON)/statusdata.c $(SRC_COMMON)/statusdata.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/statusdata.c
+
+xstatusdata-base.o: $(SRC_XDATA)/$(XSDC) $(SRC_XDATA)/$(XSDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XSDC)
+
+comments-base.o: $(SRC_COMMON)/comments.c $(SRC_COMMON)/comments.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/comments.c
+
+xcomments-base.o: $(SRC_XDATA)/$(XCDC) $(SRC_XDATA)/$(XCDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XCDC)
+
+downtime-base.o: $(SRC_COMMON)/downtime.c $(SRC_COMMON)/downtime.h
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
+
+xdowntime-base.o: $(SRC_XDATA)/$(XDDC) $(SRC_XDATA)/$(XDDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XDDC)
+
+perfdata-base.o: perfdata.c perfdata.h
+	$(CC) $(CFLAGS) -c -o $@ perfdata.c
+
+xperfdata-base.o: $(SRC_XDATA)/$(XPDC) $(SRC_XDATA)/$(XPDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XPDC)
+
+retention-base.o: sretention.c sretention.h
+	$(CC) $(CFLAGS) -c -o $@ sretention.c
+
+xretention-base.o: $(SRC_XDATA)/$(XRDC) $(SRC_XDATA)/$(XRDH)
+	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XRDC)
+
+
+########## CGIS ##########
+
+nagios: nagios.c $(OBJS) $(OBJDEPS) nagios.h $(SRC_COMMON)/locations.h
 	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
 
 nagiostats: nagiostats.c $(SRC_COMMON)/locations.h

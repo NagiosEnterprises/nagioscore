@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2003
+ * Last Modified: 08-12-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -25,14 +25,12 @@
  ***********************************************************************/
 
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/common.h"
 #include "../common/objects.h"
 
 #include "getcgi.h"
 #include "cgiutils.h"
-#include "auth.h"
-#include "lifo.h"
+#include "cgiauth.h"
 
 extern char   main_config_file[MAX_FILENAME_LENGTH];
 extern char   url_images_path[MAX_FILENAME_LENGTH];

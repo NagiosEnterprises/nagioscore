@@ -1,8 +1,8 @@
 /*****************************************************************************
  *
- * AUTH.H - Authorization utilities header file
+ * CGIAUTH.H - Authorization utilities header file
  *
- * Last Modified:   05-13-2003
+ * Last Modified:   08-12-2003
  *
  * License:
  *

@@ -1,9 +1,9 @@
 /*****************************************************************************
  *
- * AUTH.C - Authorization utilities for Nagios CGIs
+ * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-11-2003
+ * Last Modified:   08-12-2003
  *
  * License:
  *
@@ -25,11 +25,10 @@
 
 #include "../common/common.h"
 #include "../common/config.h"
-#include "../common/locations.h"
 #include "../common/objects.h"
 
 #include "cgiutils.h"
-#include "auth.h"
+#include "cgiauth.h"
 
 extern char            main_config_file[MAX_FILENAME_LENGTH];
 

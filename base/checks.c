@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-08-2003
+ * Last Modified:   12-14-2003
  *
  * License:
  *
@@ -1112,7 +1112,8 @@ void reap_service_checks(void){
 					hard_state_change=TRUE;
 
 				/* update last state change times */
-				temp_service->last_state_change=temp_service->last_check;
+				if(state_change==TRUE || hard_state_change==TRUE)
+					temp_service->last_state_change=temp_service->last_check;
 				if(hard_state_change==TRUE)
 					temp_service->last_hard_state_change=temp_service->last_check;
 

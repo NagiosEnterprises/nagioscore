@@ -10,6 +10,8 @@ Nagios Change Log
 * Minor bug fix in trends CGI
 * Bug with in retention of program state
 * Bug fix in PostgreSQL code
+* Fixed auto-increment fields in MySQL table creation script
+* Added service name filter to status CGI
 
 
 1.2 - 02/02/2004

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-09-2003
+ * Last Modified: 10-21-2003
  *
  * License:
  * 
@@ -126,6 +126,7 @@ time_t current_time;
 char alert_message[MAX_MESSAGE_BUFFER];
 char *host_name=NULL;
 char *hostgroup_name=NULL;
+char *service_filter=NULL;
 int host_alert=FALSE;
 int show_all_hosts=TRUE;
 int show_all_hostgroups=TRUE;
@@ -298,7 +299,7 @@ int main(void){
 		/* right hand column of top row */
 		printf("<td align=center valign=top width=33%%>\n");
 		printf("<table border=0 width=100%%>\n");
-		printf("<tr><td>\n");
+		printf("<tr><td align=center>\n");
 		show_service_status_totals();
 		printf("</td></tr>\n");
 
@@ -585,6 +586,16 @@ int process_cgivars(void){
 		/* we found the noheader option */
 		else if(!strcmp(variables[x],"noheader"))
 			display_header=FALSE;
+
+		/* servicefilter cgi var */
+                else if(!strcmp(variables[x],"servicefilter")){
+                        x++;
+                        if(variables[x]==NULL){
+                                error=TRUE;
+                                break;
+                                }
+                        service_filter=strdup(variables[x]);
+                        }
 	        }
 
 	/* free memory allocated to the CGI variables */
@@ -1087,6 +1098,9 @@ void show_service_detail(void){
 		printf("</DIV>\n");
 	        }
 
+	if(service_filter!=NULL)
+		printf("<DIV ALIGN=CENTER CLASS='statusSort'>Filtered By Services Matching \'%s\'</DIV>",service_filter);
+
 	printf("<br>");
 
 	printf("</td>\n");
@@ -1213,6 +1227,11 @@ void show_service_detail(void){
 		/* check service properties filter */
 		if(passes_service_properties_filter(temp_status)==FALSE)
 			continue;
+
+		/* servicefilter cgi var */
+                if(service_filter!=NULL)
+			if((strncmp(temp_status->description,service_filter,strlen(service_filter))))
+				continue;
 
 		if(display_type==DISPLAY_HOSTGROUPS){
 

@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   02-09-2004
+ * Last Modified:   02-12-2004
  *
  * License:
  *
@@ -325,7 +325,7 @@ int display_mrtg_values(void){
 
 		if(!strcmp(temp_ptr,"NUMSERVICES"))
 			printf("%d\n",status_service_entries);
-		if(!strcmp(temp_ptr,"NUMHOSTS"))
+		else if(!strcmp(temp_ptr,"NUMHOSTS"))
 			printf("%d\n",status_host_entries);
 
 		/* active service check latency */

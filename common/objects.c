@@ -1777,7 +1777,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 	last_member=temp_hostgroup->members;
 	for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
 		if(strcmp(new_member->host_name,temp_member->host_name)<0){
-			new_member->next=temp_hostgroup->members;
+			new_member->next=temp_member;
 			if(temp_member==temp_hostgroup->members)
 				temp_hostgroup->members=new_member;
 			else

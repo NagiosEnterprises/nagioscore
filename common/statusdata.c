@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-13-2002
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -261,10 +261,13 @@ int update_service_status(service *svc,int aggregated_dump){
 
 	/* get the service state string */
 	if(svc->current_state==STATE_OK){
+		/*
 		if(svc->last_state==STATE_OK)
 			status_string="OK";
 		else
 			status_string="RECOVERY";
+		*/
+		status_string="OK";
 	        }
 	else if(svc->current_state==STATE_CRITICAL)
 		status_string="CRITICAL";

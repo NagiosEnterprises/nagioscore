@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2002
+ * Last Modified: 04-20-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,9 +46,6 @@
 #undef EMBEDDEDPERL
 #undef THREADEDPERL
 #define DO_CLEAN		"1"     /* 0 = cache, 1 = do not cache */
-
-/* Enable failure prediction routines */
-#undef PREDICT_FAILURES
 
 #undef TRACEROUTE_COMMAND
 #undef PING_COMMAND
@@ -95,9 +92,6 @@
 #undef USE_XDDDB
 #undef USE_XDDMYSQL
 #undef USE_XDDPGSQL
-
-/* Failure prediction data I/O implementations... */
-#undef USE_XFDDEFAULT
 
 
 #undef STDC_HEADERS

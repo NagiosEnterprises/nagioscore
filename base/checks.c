@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-31-2002
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -29,10 +29,6 @@
 #include "../common/downtime.h"
 #include "nagios.h"
 #include "perfdata.h"
-
-#ifdef PREDICT_FAILURES
-#include "predict.h"
-#endif
 
 #ifdef EMBEDDEDPERL
 #include <EXTERN.h>
@@ -1131,11 +1127,6 @@ void reap_service_checks(void){
 		/* update service performance info */
 		update_service_performance_data(temp_service);
 
-#ifdef PREDICT_FAILURES
-		/* submit service check data to failure prediction logic */
-		submit_service_prediction_data(temp_service);
-#endif
-
 		/* check for external commands if we're doing so as often as possible */
 		if(command_check_interval==-1)
 			check_for_external_commands();
@@ -1625,11 +1616,6 @@ int check_host(host *hst,int propagation_options){
 
 	/* check to see if the associated host is flapping */
 	check_for_host_flapping(hst);
-
-#ifdef PREDICT_FAILURES
-	/* submit host check results to failure prediction logic */
-	submit_host_prediction_data(hst);
-#endif
 
 	/* check for external commands if we're doing so as often as possible */
 	if(command_check_interval==-1)

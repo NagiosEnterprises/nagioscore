@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 12-13-2001
+# Last Modified: 04-20-2002
 ############################
 
 
@@ -46,8 +46,6 @@ XPDC=@XPDC@
 XPDH=@XPDH@
 XDDC=@XDDC@
 XDDH=@XDDH@
-XFDC=@XFDC@
-XFDH=@XFDH@
 
 # Extra base code
 BASEEXTRALIBS=@BASEEXTRALIBS@
@@ -81,11 +79,6 @@ PDATADEPS=$(PDATALIBS)
 DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
 DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
 DDATADEPS=$(DDATALIBS)
-
-# Failure prediction data
-FDATALIBS=predict.c $(SRC_XDATA)/$(XFDC)
-FDATAHDRS=predict.h $(SRC_XDATA)/$(XFDH)
-FDATADEPS=$(FDATALIBS)
 
 
 OBJS=checks.o config.o commands.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)

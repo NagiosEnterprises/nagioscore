@@ -106,7 +106,6 @@ XRDTYPE=default
 XODTYPE=template
 XPDTYPE=default
 XDDTYPE=default
-XFDTYPE=default
 
 XSDCOMMENT=
 XCDCOMMENT=
@@ -115,7 +114,6 @@ XRDCOMMENT=
 XODCOMMENT=
 XPDCOMMENT=
 XDDCOMMENT=
-XFDCOMMENT=
 
 USE_MYSQL=no
 USE_PGSQL=no
@@ -360,17 +358,6 @@ else
 fi
 AC_SUBST(XDDC)
 AC_SUBST(XDDH)
-
-
-dnl What failure prediction I/O implementation should we use?
-if test $XFDTYPE = default; then
-	AC_DEFINE_UNQUOTED(USE_XFDDEFAULT)
-	XFDC="xfddefault.c"
-	XFDH="xfddefault.h"
-fi
-AC_SUBST(XFDC)
-AC_SUBST(XFDH)
-
 
 
 dnl Optional MySQL library and include paths

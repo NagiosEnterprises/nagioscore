@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-10-2002
+ * Last Modified:   04-20-2002
  *
  * Description:
  *
@@ -46,9 +46,6 @@
 #include "sretention.h"
 #include "perfdata.h"
 
-#ifdef PREDICT_FAILURES
-#include "predict.h"
-#endif
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -712,11 +709,6 @@ int main(int argc, char **argv){
 			/* initialize performance data */
 			initialize_performance_data(config_file);
 
-#ifdef PREDICT_FAILURES
-			/* initialize failure prediction data */
-			initialize_prediction_data(config_file);
-#endif
-
 			/* create pipe used for IPC */
 			if(pipe(ipc_pipe)){
 
@@ -752,11 +744,6 @@ int main(int argc, char **argv){
 
 			/* clean up performance data */
 			cleanup_performance_data(config_file);
-
-#ifdef PREDICT_FAILURES
-			/* clean up failure prediction data */
-			cleanup_prediction_data(config_file);
-#endif
 
 			/* close the original pipe used for IPC (we'll create a new one if restarting) */
 			close(ipc_pipe[0]);
@@ -1286,14 +1273,6 @@ void display_xdata_modules(void){
 #ifdef USE_XPDFILE
 	printf("FILE");
 #endif
-	printf("\n");
-
-#ifdef PREDICT_FAILURES
-	printf("Prediction Data:  ");
-#ifdef USE_XFDDEFAULT
-	printf("DEFAULT");
-#endif	
-#endif
 	printf("\n\n");
 
 	printf("Options\n");
@@ -1306,10 +1285,6 @@ void display_xdata_modules(void){
 	else
 		printf("With caching");
 	printf(")\n");
-#endif
-
-#ifdef PREDICT_FAILURES
-	printf("* Failure prediction\n");
 #endif
 
 	printf("\n\n");

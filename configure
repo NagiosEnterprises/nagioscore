@@ -2413,8 +2413,9 @@ fi
 
 
 if test $USE_MYSQL = yes; then
+
 	echo $ac_n "checking for main in -lmysqlclient""... $ac_c" 1>&6
-echo "configure:2418: checking for main in -lmysqlclient" >&5
+echo "configure:2419: checking for main in -lmysqlclient" >&5
 ac_lib_var=`echo mysqlclient'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2422,14 +2423,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lmysqlclient  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2426 "configure"
+#line 2427 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2433: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2434: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2444,23 +2445,44 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_lib=HAVE_LIB`echo mysqlclient | sed -e 's/[^a-zA-Z0-9_]/_/g' \
-    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
-  cat >> confdefs.h <<EOF
-#define $ac_tr_lib 1
-EOF
-
-  LIBS="-lmysqlclient $LIBS"
-
+  MYSQLFOUND=yep
 else
   echo "$ac_t""no" 1>&6
 fi
 
+
+		if test x$MYSQLFOUND = x; then
+		echo ""
+		echo ""
+		echo "*** MySQL library could not be located... **************************"
+		echo ""
+		echo "You chose to compile Nagios with MySQL support, but I was unable to"
+		echo "locate the MySQL library on your system.  If the library is"
+		echo "installed,  use the --with-mysqllib and --with-mysql-inc arguments"
+		echo "to specify the locations of the MySQL library and include files."
+		echo ""
+		echo "NOTE: After you install the necessary libraries on your system:"
+		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
+		echo "         which the MySQL libraries are installed."
+		echo "      2. Run 'ldconfig' to update the run-time linker options."
+		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
+		echo "         any old references to your previous compile."
+		echo "      4. Rerun the configure script."
+		echo ""
+		echo "********************************************************************"
+		echo ""
+		echo ""
+
+		else
+		echo "MySQL library was found!"
+
+	fi
 fi	
 
 if test $USE_PGSQL = yes; then
+
 	echo $ac_n "checking for main in -lpq""... $ac_c" 1>&6
-echo "configure:2464: checking for main in -lpq" >&5
+echo "configure:2486: checking for main in -lpq" >&5
 ac_lib_var=`echo pq'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2468,14 +2490,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lpq  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2472 "configure"
+#line 2494 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2479: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2501: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2490,18 +2512,39 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_lib=HAVE_LIB`echo pq | sed -e 's/[^a-zA-Z0-9_]/_/g' \
-    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
-  cat >> confdefs.h <<EOF
-#define $ac_tr_lib 1
-EOF
-
-  LIBS="-lpq $LIBS"
-
+  PGSQLFOUND=yep
 else
   echo "$ac_t""no" 1>&6
 fi
 
+
+		if test x$MYSQLFOUND = x; then
+		echo ""
+		echo ""
+		echo "*** PostgreSQL library could not be located... *********************"
+		echo ""
+		echo "You chose to compile Nagios with PostgreSQL support, but I was"
+		echo "unable to locate the PostgreSQL library on your system.  If the"
+		echo "library is installed,  use the --with-pgsqllib and --with-pgsql-inc"
+		echo "arguments to specify the locations of the PostgreSQL library and"
+		echo "include files."
+		echo ""
+		echo "NOTE: After you install the necessary libraries on your system:"
+		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
+		echo "         which the MySQL libraries are installed."
+		echo "      2. Run 'ldconfig' to update the run-time linker options."
+		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
+		echo "         any old references to your previous compile."
+		echo "      4. Rerun the configure script."
+		echo ""
+		echo "********************************************************************"
+		echo ""
+		echo ""
+
+		else
+		echo "PostgreSQL library was found!"
+
+	fi
 fi	
 
 
@@ -2561,7 +2604,7 @@ if test x$TRYGD = xyep; then
 
 	
 		echo $ac_n "checking for gdImagePng in -lgd (order 1)""... $ac_c" 1>&6
-echo "configure:2565: checking for gdImagePng in -lgd (order 1)" >&5
+echo "configure:2608: checking for gdImagePng in -lgd (order 1)" >&5
 					ac_lib_var=`echo gd'_'gdImagePng'_'1 | sed 'y%./+-%__p_%'`
 	if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2569,7 +2612,7 @@ else
   ac_save_LIBS="$LIBS"
 	LIBS="-lgd -lz -lm -lpng -ljpeg $LIBS"
 	cat > conftest.$ac_ext <<EOF
-#line 2573 "configure"
+#line 2616 "configure"
 #include "confdefs.h"
 	/* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2580,7 +2623,7 @@ int main() {
 gdImagePng()
 ; return 0; }
 EOF
-if { (eval echo configure:2584: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2627: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2607,7 +2650,7 @@ fi
 
 		if test x$GDLIBFOUND = x; then
 		echo $ac_n "checking for gdImagePng in -lgd (order 2)""... $ac_c" 1>&6
-echo "configure:2611: checking for gdImagePng in -lgd (order 2)" >&5
+echo "configure:2654: checking for gdImagePng in -lgd (order 2)" >&5
 					ac_lib_var=`echo gd'_'gdImagePng'_'2 | sed 'y%./+-%__p_%'`
 	if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2615,7 +2658,7 @@ else
   ac_save_LIBS="$LIBS"
 	LIBS="-lgd -lz -lm -lpng $LIBS"
 	cat > conftest.$ac_ext <<EOF
-#line 2619 "configure"
+#line 2662 "configure"
 #include "confdefs.h"
 	/* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2626,7 +2669,7 @@ int main() {
 gdImagePng()
 ; return 0; }
 EOF
-if { (eval echo configure:2630: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2673: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2654,7 +2697,7 @@ fi
 
 		if test x$GDLIBFOUND = x; then
 		echo $ac_n "checking for gdImagePng in -lgd (order 3)""... $ac_c" 1>&6
-echo "configure:2658: checking for gdImagePng in -lgd (order 3)" >&5
+echo "configure:2701: checking for gdImagePng in -lgd (order 3)" >&5
 					ac_lib_var=`echo gd'_'gdImagePng'_'3 | sed 'y%./+-%__p_%'`
 	if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2662,7 +2705,7 @@ else
   ac_save_LIBS="$LIBS"
 	LIBS="-lgd -lpng -lz -lm $LIBS"
 	cat > conftest.$ac_ext <<EOF
-#line 2666 "configure"
+#line 2709 "configure"
 #include "confdefs.h"
 	/* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2673,7 +2716,7 @@ int main() {
 gdImagePng()
 ; return 0; }
 EOF
-if { (eval echo configure:2677: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2720: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2897,7 +2940,7 @@ fi
 # Extract the first word of "traceroute", so it can be a program name with args.
 set dummy traceroute; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2901: checking for $ac_word" >&5
+echo "configure:2944: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PATH_TO_TRACEROUTE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2938,7 +2981,7 @@ EOF
 # Extract the first word of "ping", so it can be a program name with args.
 set dummy ping; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2942: checking for $ac_word" >&5
+echo "configure:2985: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PATH_TO_PING'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3051,12 +3094,12 @@ PACKDIR=`pwd`/pkg
 
  
 echo $ac_n "checking for snprintf""... $ac_c" 1>&6
-echo "configure:3055: checking for snprintf" >&5
+echo "configure:3098: checking for snprintf" >&5
 if eval "test \"`echo '$''{'ac_cv_func_snprintf'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3060 "configure"
+#line 3103 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char snprintf(); below.  */
@@ -3079,7 +3122,7 @@ snprintf();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3083: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3126: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_snprintf=yes"
 else
@@ -3105,9 +3148,9 @@ fi
 
 
 echo $ac_n "checking for type va_list""... $ac_c" 1>&6
-echo "configure:3109: checking for type va_list" >&5
+echo "configure:3152: checking for type va_list" >&5
 cat > conftest.$ac_ext <<EOF
-#line 3111 "configure"
+#line 3154 "configure"
 #include "confdefs.h"
 #ifdef __STDC__
 #include <stdio.h>
@@ -3122,7 +3165,7 @@ int main() {
 va_list args;
 ; return 0; }
 EOF
-if { (eval echo configure:3126: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:3169: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 else
@@ -3147,7 +3190,7 @@ rm -f conftest*
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:3151: checking for $ac_word" >&5
+echo "configure:3194: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PERL'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else

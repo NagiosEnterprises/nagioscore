@@ -2,8 +2,8 @@
  *
  * XRDDB.C - Database routines for state retention data
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-04-2001
+ * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-15-2002
  *
  * License:
  *
@@ -578,6 +578,7 @@ int xrddb_save_host_information(void){
 	host *temp_host=NULL;
 	char *host_name;
 	char *plugin_output;
+	char *escaped_host_name;
 	char *escaped_plugin_output;
 	int state;
 	unsigned long time_up;
@@ -613,15 +614,18 @@ int xrddb_save_host_information(void){
 	temp_host=get_host_state_information(NULL,&host_name,&state,&plugin_output,&last_check,&checks_enabled,&time_up,&time_down,&time_unreachable,&last_notification,&current_notification_number,&notifications_enabled,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&last_state_change);
 	while(temp_host!=NULL){
 
-		/* escape the plugin output, as it may have quotes, etc... */
+		/* escape the strings, as they may have quotes, etc... */
+		escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+		xrddb_escape_string(escaped_host_name,host_name);
 		escaped_plugin_output=(char *)malloc(strlen(plugin_output)*2+1);
 		xrddb_escape_string(escaped_plugin_output,plugin_output);
 
 		/* construct the SQL statement */
-		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,host_state,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,plugin_output) VALUES ('%s','%d','%lu','%d','%lu','%lu','%lu','%lu','%d','%d','%d','%d','%d','%d','%d','%lu','%s')",XRDDB_HOSTRETENTION_TABLE,host_name,state,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,escaped_plugin_output);
+		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,host_state,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,plugin_output) VALUES ('%s','%d','%lu','%d','%lu','%lu','%lu','%lu','%d','%d','%d','%d','%d','%d','%d','%lu','%s')",XRDDB_HOSTRETENTION_TABLE,escaped_host_name,state,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,escaped_plugin_output);
 		sql_statement[sizeof(sql_statement)-1]='\x0';
 
-		/* free memory for the escaped plugin string */
+		/* free memory for the escaped strings */
+		free(escaped_host_name);
 		free(escaped_plugin_output);
 
 		/* insert the new program retention data */
@@ -662,6 +666,8 @@ int xrddb_save_service_information(void){
 	char *host_name;
 	char *service_description;
 	char *plugin_output;
+	char *escaped_host_name;
+	char *escaped_svc_description;
 	char *escaped_plugin_output;
 	int state;
 	unsigned long time_ok;
@@ -702,15 +708,21 @@ int xrddb_save_service_information(void){
 	while(temp_service!=NULL){
 
 
-		/* escape the plugin output, as it may have quotes, etc... */
+		/* escape the strings, as they may have quotes, etc... */
+		escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+		xrddb_escape_string(escaped_host_name,host_name);
+		escaped_svc_description=(char *)malloc(strlen(service_description)*2+1);
+		xrddb_escape_string(escaped_svc_description,service_description);
 		escaped_plugin_output=(char *)malloc(strlen(plugin_output)*2+1);
 		xrddb_escape_string(escaped_plugin_output,plugin_output);
 
 		/* construct the SQL statement */
-		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,service_state,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,plugin_output) VALUES ('%s','%s','%d','%lu','%d','%lu','%lu','%lu','%lu','%lu','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%lu','%s')",XRDDB_SERVICERETENTION_TABLE,host_name,service_description,state,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,escaped_plugin_output);
+		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,service_state,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,plugin_output) VALUES ('%s','%s','%d','%lu','%d','%lu','%lu','%lu','%lu','%lu','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%lu','%s')",XRDDB_SERVICERETENTION_TABLE,escaped_host_name,escaped_svc_description,state,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,escaped_plugin_output);
 		sql_statement[sizeof(sql_statement)-1]='\x0';
 
-		/* free memory for the escaped plugin string */
+		/* free memory for the escaped strings */
+		free(escaped_host_name);
+		free(escaped_svc_description);
 		free(escaped_plugin_output);
 
 		/* insert the new program retention data */

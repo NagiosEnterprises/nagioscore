@@ -2,8 +2,8 @@
  *
  * XCDDB.C - Database routines for comment data
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-04-2001
+ * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-15-2002
  *
  * License:
  *
@@ -686,7 +686,9 @@ int xcddb_save_host_comment(char *host_name, time_t entry_time, char *author_nam
 	char sql_statement[XCDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	int result;
-	char *escaped_comment_data=NULL;
+	char *escaped_host_name;
+	char *escaped_author_name;
+	char *escaped_comment_data;
 
 #ifdef DEBUG0
 	printf("xcddb_save_host_comment() start\n");
@@ -696,20 +698,26 @@ int xcddb_save_host_comment(char *host_name, time_t entry_time, char *author_nam
 	if(xcddb_connect()==ERROR)
 		return ERROR;
 
-	/* escape the comment data, as it may have quotes, etc... */
+	/* escape the strings, as they may have quotes, etc... */
+	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+	xcddb_escape_string(escaped_host_name,host_name);
+	escaped_author_name=(char *)malloc(strlen(author_name)*2+1);
+	xcddb_escape_string(escaped_author_name,author_name);
 	escaped_comment_data=(char *)malloc(strlen(comment_data)*2+1);
 	xcddb_escape_string(escaped_comment_data,comment_data);
 
 	/* construct the SQL statement */
 #ifdef USE_XCDMYSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',FROM_UNIXTIME(%lu),'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,host_name,persistent,entry_time,author_name,escaped_comment_data);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',FROM_UNIXTIME(%lu),'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,escaped_host_name,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 #ifdef USE_XCDPGSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',abstime(%lu),'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,host_name,persistent,entry_time,author_name,escaped_comment_data);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',abstime(%lu),'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,escaped_host_name,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 
-	/* free memory for the escaped string */
+	/* free memory for the escaped strings */
+	free(escaped_host_name);
+	free(escaped_author_name);
 	free(escaped_comment_data);
 
 	/* add the host comment */
@@ -773,7 +781,10 @@ int xcddb_save_service_comment(char *host_name, char *svc_description, time_t en
 	char sql_statement[XCDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	int result;
-	char *escaped_comment_data=NULL;
+	char *escaped_host_name;
+	char *escaped_svc_description;
+	char *escaped_author_name;
+	char *escaped_comment_data;
 
 #ifdef DEBUG0
 	printf("xcddb_save_service_comment() start\n");
@@ -783,20 +794,29 @@ int xcddb_save_service_comment(char *host_name, char *svc_description, time_t en
 	if(xcddb_connect()==ERROR)
 		return ERROR;
 
-	/* escape the comment data, as it may have quotes, etc... */
+	/* escape the strings, as they may have quotes, etc... */
+	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+	xcddb_escape_string(escaped_host_name,host_name);
+	escaped_svc_description=(char *)malloc(strlen(svc_description)*2+1);
+	xcddb_escape_string(escaped_svc_description,svc_description);
+	escaped_author_name=(char *)malloc(strlen(author_name)*2+1);
+	xcddb_escape_string(escaped_author_name,author_name);
 	escaped_comment_data=(char *)malloc(strlen(comment_data)*2+1);
 	xcddb_escape_string(escaped_comment_data,comment_data);
 
 	/* construct the SQL statement */
 #ifdef USE_XCDMYSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',FROM_UNIXTIME(%lu),'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,host_name,svc_description,persistent,entry_time,author_name,escaped_comment_data);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',FROM_UNIXTIME(%lu),'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,escaped_host_name,escaped_svc_description,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 #ifdef USE_XCDPGSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',abstime(%lu),'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,host_name,svc_description,persistent,entry_time,author_name,escaped_comment_data);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',abstime(%lu),'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,escaped_host_name,escaped_svc_description,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 
-	/* free memory for the escaped string */
+	/* free memory for the escaped strings */
+	free(escaped_host_name);
+	free(escaped_svc_description);
+	free(escaped_author_name);
 	free(escaped_comment_data);
 
 	/* add the service comment */

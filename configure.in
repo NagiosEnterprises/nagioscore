@@ -382,12 +382,73 @@ AC_ARG_WITH(pgsql-inc,--with-pgsql-inc=DIR sets location of the PostgreSQL clien
 
 dnl Are we using any MySQL routines?
 if test $USE_MYSQL = yes; then
-	AC_CHECK_LIB(mysqlclient,main)
+
+	AC_CHECK_LIB(mysqlclient,main,MYSQLFOUND=yep)
+
+	dnl Did we find the MySQL libraries?
+	if test x$MYSQLFOUND = x; then
+		echo ""
+		echo ""
+		echo "*** MySQL library could not be located... **************************"
+		echo ""
+		echo "You chose to compile Nagios with MySQL support, but I was unable to"
+		echo "locate the MySQL library on your system.  If the library is"
+		echo "installed,  use the --with-mysqllib and --with-mysql-inc arguments"
+		echo "to specify the locations of the MySQL library and include files."
+		echo ""
+		echo "NOTE: After you install the necessary libraries on your system:"
+		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
+		echo "         which the MySQL libraries are installed."
+		echo "      2. Run 'ldconfig' to update the run-time linker options."
+		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
+		echo "         any old references to your previous compile."
+		echo "      4. Rerun the configure script."
+		echo ""
+		echo "********************************************************************"
+		echo ""
+		echo ""
+
+	dnl We found the MySQL lib!
+	else
+		echo "MySQL library was found!"
+
+	fi
 fi	
 
 dnl Are we using any PostgreSQL routines?
 if test $USE_PGSQL = yes; then
-	AC_CHECK_LIB(pq,main)
+
+	AC_CHECK_LIB(pq,main,PGSQLFOUND=yep)
+
+	dnl Did we find the PostgreSQL libraries?
+	if test x$MYSQLFOUND = x; then
+		echo ""
+		echo ""
+		echo "*** PostgreSQL library could not be located... *********************"
+		echo ""
+		echo "You chose to compile Nagios with PostgreSQL support, but I was"
+		echo "unable to locate the PostgreSQL library on your system.  If the"
+		echo "library is installed,  use the --with-pgsqllib and --with-pgsql-inc"
+		echo "arguments to specify the locations of the PostgreSQL library and"
+		echo "include files."
+		echo ""
+		echo "NOTE: After you install the necessary libraries on your system:"
+		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
+		echo "         which the MySQL libraries are installed."
+		echo "      2. Run 'ldconfig' to update the run-time linker options."
+		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
+		echo "         any old references to your previous compile."
+		echo "      4. Rerun the configure script."
+		echo ""
+		echo "********************************************************************"
+		echo ""
+		echo ""
+
+	dnl We found the PostgreSQL lib!
+	else
+		echo "PostgreSQL library was found!"
+
+	fi
 fi	
 
 

@@ -2,8 +2,8 @@
  *
  * XDDDB.C - Database routines for downtime data
  *
- * Copyright (c) 2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-05-2001
+ * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-15-2002
  *
  * License:
  *
@@ -726,7 +726,9 @@ int xdddb_save_host_downtime(char *host_name, time_t entry_time, char *author_na
 	char sql_statement[XDDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	int result;
-	char *escaped_comment_data=NULL;
+	char *escaped_host_name;
+	char *escaped_author_name;
+	char *escaped_comment_data;
 
 #ifdef DEBUG0
 	printf("xdddb_save_host_downtime() start\n");
@@ -736,20 +738,26 @@ int xdddb_save_host_downtime(char *host_name, time_t entry_time, char *author_na
 	if(xdddb_connect()==ERROR)
 		return ERROR;
 
-	/* escape the comment data, as it may have quotes, etc... */
+	/* escape the strings, as they may have quotes, etc... */
+	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+	xdddb_escape_string(escaped_host_name,host_name);
+	escaped_author_name=(char *)malloc(strlen(author_name)*2+1);
+	xdddb_escape_string(escaped_author_name,author_name);
 	escaped_comment_data=(char *)malloc(strlen(comment_data)*2+1);
 	xdddb_escape_string(escaped_comment_data,comment_data);
 
 	/* construct the SQL statement */
 #ifdef USE_XDDMYSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s',FROM_UNIXTIME(%lu),'%s','%s',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%lu')",XDDDB_HOSTDOWNTIME_TABLE,host_name,entry_time,author_name,escaped_comment_data,start_time,end_time,fixed,duration);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s',FROM_UNIXTIME(%lu),'%s','%s',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%lu')",XDDDB_HOSTDOWNTIME_TABLE,escaped_host_name,entry_time,escaped_author_name,escaped_comment_data,start_time,end_time,fixed,duration);
 #endif
 #ifdef USE_XDDPGSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s',abstime(%lu),'%s','%s',abstime(%lu),abstime(%lu),'%d','%lu')",XDDDB_HOSTDOWNTIME_TABLE,host_name,entry_time,author_name,escaped_comment_data,start_time,end_time,fixed,duration);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s',abstime(%lu),'%s','%s',abstime(%lu),abstime(%lu),'%d','%lu')",XDDDB_HOSTDOWNTIME_TABLE,escaped_host_name,entry_time,escaped_author_name,escaped_comment_data,start_time,end_time,fixed,duration);
 #endif
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 
-	/* free memory for the escaped string */
+	/* free memory for the escaped strings */
+	free(escaped_host_name);
+	free(escaped_author_name);
 	free(escaped_comment_data);
 
 	/* add the host downtime */
@@ -813,7 +821,10 @@ int xdddb_save_service_downtime(char *host_name, char *svc_description, time_t e
 	char sql_statement[XDDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	int result;
-	char *escaped_comment_data=NULL;
+	char *escaped_host_name;
+	char *escaped_svc_description;
+	char *escaped_author_name;
+	char *escaped_comment_data;
 
 #ifdef DEBUG0
 	printf("xdddb_save_service_downtime() start\n");
@@ -823,20 +834,29 @@ int xdddb_save_service_downtime(char *host_name, char *svc_description, time_t e
 	if(xdddb_connect()==ERROR)
 		return ERROR;
 
-	/* escape the comment data, as it may have quotes, etc... */
+	/* escape the strings, as they may have quotes, etc... */
+	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+	xdddb_escape_string(escaped_host_name,host_name);
+	escaped_svc_description=(char *)malloc(strlen(svc_description)*2+1);
+	xdddb_escape_string(escaped_svc_description,svc_description);
+	escaped_author_name=(char *)malloc(strlen(author_name)*2+1);
+	xdddb_escape_string(escaped_author_name,author_name);
 	escaped_comment_data=(char *)malloc(strlen(comment_data)*2+1);
 	xdddb_escape_string(escaped_comment_data,comment_data);
 
 	/* construct the SQL statement */
 #ifdef USE_XDDMYSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s','%s',FROM_UNIXTIME(%lu),'%s','%s',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%lu')",XDDDB_SERVICEDOWNTIME_TABLE,host_name,svc_description,entry_time,author_name,escaped_comment_data,start_time,end_time,fixed,duration);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s','%s',FROM_UNIXTIME(%lu),'%s','%s',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%lu')",XDDDB_SERVICEDOWNTIME_TABLE,escaped_host_name,escaped_svc_description,entry_time,escaped_author_name,escaped_comment_data,start_time,end_time,fixed,duration);
 #endif
 #ifdef USE_XDDPGSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s','%s',abstime(%lu),'%s','%s',abstime(%lu),abstime(%lu),'%d','%lu')",XDDDB_SERVICEDOWNTIME_TABLE,host_name,svc_description,entry_time,author_name,escaped_comment_data,start_time,end_time,fixed,duration);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,entry_time,author_name,comment_data,start_time,end_time,fixed,duration) VALUES ('%s','%s',abstime(%lu),'%s','%s',abstime(%lu),abstime(%lu),'%d','%lu')",XDDDB_SERVICEDOWNTIME_TABLE,escaped_host_name,escaped_svc_description,entry_time,escaped_author_name,escaped_comment_data,start_time,end_time,fixed,duration);
 #endif
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 
-	/* free memory for the escaped string */
+	/* free memory for the escaped strings */
+	free(escaped_host_name);
+	free(escaped_svc_description);
+	free(escaped_author_name);
 	free(escaped_comment_data);
 
 	/* add the service downtime */

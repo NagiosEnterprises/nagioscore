@@ -430,8 +430,8 @@ if test x$TRYGD = xyep; then
 fi
 
 
-AC_ARG_WITH(cgiurl,--with-cgiurl=<dir> sets URL for cgi programs (do not use a trailing slash),cgiurl=$withval,cgiurl=/nagios/cgi-bin)
-AC_ARG_WITH(htmurl,--with-htmurl=<dir> sets URL for public html,htmurl=$withval,htmurl=/nagios)
+AC_ARG_WITH(cgiurl,--with-cgiurl=<local-url> sets URL for cgi programs (do not use a trailing slash),cgiurl=$withval,cgiurl=/nagios/cgi-bin)
+AC_ARG_WITH(htmurl,--with-htmurl=<local-url> sets URL for public html,htmurl=$withval,htmurl=/nagios)
 AC_SUBST(htmurl)
 AC_SUBST(cgiurl)
 

@@ -2,7 +2,7 @@
 
 # SUBMIT_CHECK_RESULT_VIA_NSCA
 # Written by Ethan Galstad (nagios@nagios.org)
-# Last Modified: 07-19-2001
+# Last Modified: 02-19-2004
 #
 # This script will send passive check results to the
 # nsca daemon that runs on the central Nagios server.
@@ -26,18 +26,14 @@
 # IP address of the central server that has the nsca
 # daemon running.
 
-# Under Linux, the -e option to /bin/echo enables the
-# interpretation of tab and newline characters. 
-echocmd="/bin/echo -e"
+printfcmd="/bin/printf"
 
 NscaBin="/usr/local/nagios/libexec/send_nsca" 
 NscaCfg="/usr/local/nagios/etc/send_nsca.cfg"
 NagiosHost="nagioshost"
- 
-# create the command line to add to the command file
-cmdline="$1;$2;$3;$4"
- 
-$echocmd "$1\t$2\t$3\t$4\n" | $NscaBin $NagiosHost -c $NscaCfg
+
+# Fire the data off to the NSCA daemon using the send_nsca script 
+$printfcmd "%s\t%s\t%s\t%s\n" "$1" "$2" "$3" "$4" | $NscaBin $NagiosHost -c $NscaCfg
 
 # EOF
 

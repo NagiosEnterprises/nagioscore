@@ -203,7 +203,7 @@ This directive is used to define a comma-delimited list of short names of the "p
 <tr>
 <td valign="top"><strong>hostgroups</strong>:</td>
 <td>
-This directive is used to identify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the host belongs to.  Multiple hostgroups should are seperated by commas.  This directive may be used as an alternative to using the <i>members</i> directive in <a href="#hostgroup">hostgroup</a> definitions.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the host belongs to.  Multiple hostgroups should are seperated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>members</i> directive in <a href="#hostgroup">hostgroup</a> definitions.
 </td>
 </tr>
 <tr>
@@ -411,7 +411,7 @@ This directive is used to define is a longer name or description used to identif
 <tr>
 <td valign="top"><strong>members</strong>:</td>
 <td>
-This is a list of the <i>short names</i> of <a href="#host">hosts</a> that should be included in this group.   Multiple host names should be separated by commas.  This directive may be used as an alternative to the <i>hostgroups</i> directive in <a href="#host">host definitions</a>.
+This is a list of the <i>short names</i> of <a href="#host">hosts</a> that should be included in this group.   Multiple host names should be separated by commas.  This directive may be used as an alternative to (or in addition to) the <i>hostgroups</i> directive in <a href="#host">host definitions</a>.
 </td>
 </tr>
 </table>
@@ -778,6 +778,7 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td></td><td class="Required">contact_name</td><td class="Required"><i>contact_name</i></td></tr>
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
+<tr><td></td><td class="Optional">contactgroups</td><td class="Optional"><i>contactgroup_names</i></td></tr>
 <tr><td></td><td class="Required">host_notification_period</td><td class="Required"><i>timeperiod_name</i></td></tr>
 <tr><td></td><td class="Required">service_notification_period</td><td class="Required"><i>timeperiod_name</i></td></tr>
 <tr><td></td><td class="Required">host_notification_options</td><td class="Required">[d,u,r,f,n]</td></tr>
@@ -826,6 +827,12 @@ value.
 <td valign="top"><strong>alias</strong>:</td>
 <td>
 This directive is used to define a longer name or description for the contact.  Under the rights circumstances, the $CONTACTALIAS$ <a href="macros.html">macro</a> will contain this value.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>contactgroups</strong>:</td>
+<td>
+This directive is used to identify the <i>short name(s)</i> of the <a href="#contactgroup">contactgroup(s)</a> that the contact belongs to.  Multiple contactgroups should are seperated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>members</i> directive in <a href="#contactgroup">contactgroup</a> definitions.
 </td>
 </tr>
 <tr>
@@ -949,7 +956,7 @@ This directive is used to define a longer name or description used to identify t
 <tr>
 <td valign="top"><strong>members</strong>:</td>
 <td>
-This directive is used to define a list of the <i>short names</i> of <a href="#contact">contacts </a> that should be included in this group.   Multiple contact names should be separated by commas.
+This directive is used to define a list of the <i>short names</i> of <a href="#contact">contacts </a> that should be included in this group.   Multiple contact names should be separated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>contactgroups</i> directive in <a href="#contact">contact</a> definitions.
 </td>
 </tr>
 </table>

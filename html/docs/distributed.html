@@ -171,7 +171,7 @@ The <i>submit_check_result</i> shell scripts looks something like this (replace 
 	# in turn transmits the data to the nsca daemon on the central
 	# monitoring server
 
-	/bin/echo -e "$1\t$2\t$return_code\t$4\n" | /usr/local/nagios/bin/send_nsca <i>central_server</i> -c /usr/local/nagios/etc/send_nsca.cfg
+	/bin/printf "%s\t%s\t%s\t%s\n" "$1" "$2" "$return_code" "$4" | /usr/local/nagios/bin/send_nsca <i>central_server</i> -c /usr/local/nagios/etc/send_nsca.cfg
 </pre>
 </p>
 

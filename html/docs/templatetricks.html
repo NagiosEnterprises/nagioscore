@@ -34,10 +34,10 @@ This documentation attempts to explain how you can exploit the (somewhat) hidden
 
 <p>
 <ul>
-<li><a href="xodtemplate.html#service">Services</a>
-<li><a href="xodtemplate.html#serviceescalation">Service escalations</a>
-<li><a href="xodtemplate.html#hostescalation">Host escalations</a>
-<li><a href="xodtemplate.html#hostgroupescalation">Hostgroup escalations</a>
+<li><a href="#service">Services</a>
+<li><a href="#serviceescalation">Service escalations</a>
+<li><a href="#hostescalation">Host escalations</a>
+<li><a href="#hostgroupescalation">Hostgroup escalations</a>
 </ul>
 </p>
 
@@ -45,39 +45,202 @@ This documentation attempts to explain how you can exploit the (somewhat) hidden
 Object types that are not listed above do not support the features I'm about to describe.  Host and service dependency definitions may support them in the future, but not yet.
 </p>
 
+<a name="service"></a>
 <p>
 <strong><u>Services</u></strong>
 </p>
 
 <p>
-Multiple <i>host_name</i> and/or <i>hostgroup_name</i> members.  Host name can be wildcard (*) - in this case, service gets applied to <b>all</b> hosts that are defined...
+<b>Multiple Hosts:</b> If you want to create identical <a href="xodtemplate.html#service">services</a> that are assigned to multiple hosts, you can specify multiple hosts in the <i>host_name</i> directive as follows:
 </p>
 
+<p>
+<pre>
+	define <i>service</i>{
+		<font color="red">host_name		<i>HOST1,HOST2,HOST3,...,HOSTN</i></font>
+		<font color="red">service_description	<i>SOMESERVICE</i></font>
+		<i>other service directives</i> ...
+		}
+</pre>
+</p>
 
+<p>
+The definition above would create a service called <i>SOMESERVICE</i> on hosts <i>HOST1</i> through <i>HOSTN</i>.  All the instances of the <i>SOMESERVICE</i> service would be identical (i.e. have the same check command, max check attempts, notification period, etc.).
+</p>
+
+<p>
+<b>All Hosts In Multiple Hostgroups:</b> If you want to create identical services that are assigned to all hosts in one or more hostgroups, you can do so by creating a single service definition.  How?  The <i>hostgroup_name</i> directive allows you to specify the name of one or more hostgroups that the service should be created for:
+</p>
+
+<p>
+<pre>
+	define <i>service</i>{
+		<font color="red">hostgroup_name		<i>HOSTGROUP1,HOSTGROUP2,...,HOSTGROUPN</i></font>
+		<font color="red">service_description	<i>SOMESERVICE</i></font>
+		<i>other service directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service called <i>SOMESERVICE</i> on all hosts that are members of hostgroups <i>HOSTGROUP1</i> through <i>HOSTGROUPN</i>.  All the instances of the <i>SOMESERVICE</i> service would be identical (i.e. have the same check command, max check attempts, notification period, etc.).
+</p>
+
+<p>
+<b>All Hosts:</b> If you want to create identical services that are assigned to all hosts that are defined in your configuration files, you can use a wildcard in the <i>host_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>service</i>{
+		<font color="red">host_name		<i>*</i></font>
+		<font color="red">service_description	<i>SOMESERVICE</i></font>
+		<i>other service directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service called <i>SOMESERVICE</i> on <b>all hosts</b> that are defined in your configuration files.  All the instances of the <i>SOMESERVICE</i> service would be identical (i.e. have the same check command, max check attempts, notification period, etc.).
+</p>
+
+<a name="serviceescalation"></a>
 <p>
 <strong><u>Service Escalations</u></strong>
 </p>
 
 <p>
-Multiple <i>host_name</i> and/or <i>hostgroup_name</i> members.  Host name can be wildcard (*) - in this case, escalation get applied to <b>all</b> hosts that are defined.  Description can also be wildcard (*) - in this case, escalation gets applied to all services in specified hosts/hostgroups (or all hosts if that is wildcard also)...
+<b>Multiple Hosts:</b> If you want to create <a href="xodtemplate.html#serviceescalation">service escalations</a> for services of the same name/description that are assigned to multiple hosts, you can specify multiple hosts in the <i>host_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">host_name		<i>HOST1,HOST2,HOST3,...,HOSTN</i></font>
+		<font color="red">service_description	<i>SOMESERVICE</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service escalation for services called <i>SOMESERVICE</i> on hosts <i>HOST1</i> through <i>HOSTN</i>.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+<p>
+<b>All Hosts In Multiple Hostgroups:</b> If you want to create service escalations for services of the same name/description that are assigned to all hosts in in one or more hostgroups, you can do use the <i>hostgroup_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">hostgroup_name		<i>HOSTGROUP1,HOSTGROUP2,...,HOSTGROUPN</i></font>
+		<font color="red">service_description	<i>SOMESERVICE</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service escalation for services called <i>SOMESERVICE</i> on all hosts that are members of hostgroups <i>HOSTGROUP1</i> through <i>HOSTGROUPN</i>.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+<p>
+<b>All Hosts:</b> If you want to create identical service escalations for services of the same name/description that are assigned to all hosts that are defined in your configuration files, you can use a wildcard in the <i>host_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">host_name		<i>*</i></font>
+		<font color="red">service_description	<i>SOMESERVICE</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service escalation for all services called <i>SOMESERVICE</i> on <b>all hosts</b> that are defined in your configuration files.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
 </p>
 
 
+<a name="hostescalation"></a>
 <p>
 <strong><u>Host Escalations</u></strong>
 </p>
 
 <p>
-Multiple <i>host_name</i> and/or <i>hostgroup_name</i> members.  Host name can be wildcard (*) - in this case, escalation get applied to <b>all</b> hosts that are defined...
+<b>Multiple Hosts:</b> If you want to create <a href="xodtemplate.html#hostescalation">host escalations</a> for  multiple hosts, you can specify multiple hosts in the <i>host_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostescalation</i>{
+		<font color="red">host_name		<i>HOST1,HOST2,HOST3,...,HOSTN</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a host escalation for hosts <i>HOST1</i> through <i>HOSTN</i>.  All the instances of the host escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+<p>
+<b>All Hosts In Multiple Hostgroups:</b> If you want to create host escalations for all hosts in in one or more hostgroups, you can do use the <i>hostgroup_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostescalation</i>{
+		<font color="red">hostgroup_name		<i>HOSTGROUP1,HOSTGROUP2,...,HOSTGROUPN</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a host escalation on all hosts that are members of hostgroups <i>HOSTGROUP1</i> through <i>HOSTGROUPN</i>.  All the instances of the host escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+<p>
+<b>All Hosts:</b> If you want to create identical host escalations for all hosts that are defined in your configuration files, you can use a wildcard in the <i>host_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostescalation</i>{
+		<font color="red">host_name		<i>*</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a hosts escalation for <b>all hosts</b> that are defined in your configuration files.  All the instances of the host escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
 </p>
 
 
+<a name="hostgroupescalation"></a>
 <p>
 <strong><u>Hostgroup Escalations</u></strong>
 </p>
 
 <p>
-Multiple <i>hostgroup_name</i> members...
+<b>Multiple Hostgroups:</b> If you want to create identical <a href="xodtemplate.html#hostgroupescalation">hostgroup escalations</a> that are assigned to multiple hostgroups, you can specify multiple hostgroups in the <i>hostgroup_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostgroupescalation</i>{
+		<font color="red">hostgroup_name		<i>HOSTGROUP1,HOSTGROUP2,...,HOSTGROUPN</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a seperate hostgroup escalation for hostgroups <i>HOSTGROUP1</i> through <i>HOSTGROUPN</i>.  All the instances of the hostgroup escalation would be identical (i.e. contact groups, notification interval, etc.).
 </p>
 
 

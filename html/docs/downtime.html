@@ -59,11 +59,11 @@ Once you schedule downtime for a host or service, Nagios will add a comment to t
 </p>
 
 <p>
-<strong><u>Types of Scheduled Downtime</u></strong>
+<strong><u>Fixed vs. Flexible Downtime</u></strong>
 </p>
 
 <p>
-There are two types of scheduled downtime - "fixed" and "flexible".  When you schedule downtime for a host or service through the web interface you'll be asked if the downtime is fixed or not.  Here's an explanation of how "fixed" and "flexible" downtime differs:
+When you schedule downtime for a host or service through the web interface you'll be asked if the downtime is fixed or flexible.  Here's an explanation of how "fixed" and "flexible" downtime differs:
 </p>
 
 <p>
@@ -73,6 +73,15 @@ There are two types of scheduled downtime - "fixed" and "flexible".  When you sc
 <p>
 "Flexible" downtime is intended for times when you know that a host or service is going to be down for X minutes (or hours), but you don't know exactly when that'll start.  When you schedule flexible downtime, Nagios will start the scheduled downtime sometime between the start and end times you specified.  The downtime will last for as long as the duration you specified when you scheduled the downtime.  This assumes that the host or service for which you scheduled flexible downtime either goes down (or becomes unreachable) or goes into a non-OK state sometime between the start and end times you specified.  The time at which a host or service transitions to a problem state determines the time at which Nagios actually starts the downtime.  The downtime will then last for the duration you specified, even if the host or service recovers before the downtime expires.  This is done for a very good reason.  As we all know, you can think you've got a problem fixed (and restart a server) ten times before it actually works right.  Smart, eh?
 </p>
+
+<p>
+<strong><u>Triggered Downtime</u></strong>
+</p>
+
+<p>
+When scheduling host or service downtime you have the option of making it "triggered" downtime.  What is triggered downtime, you ask?  With triggered downtime the start of the downtime is triggered by the start of some other scheduled host or service downtime.  This is extremely useful if you're scheduling downtime for a large number or hosts or services and the start time of the downtime period depends on the start time of another downtime entry.  For instance, if you schedule flexible downtime for a particular host (because its going down for maintenance), you might want to schedule triggered downtime for all of that hosts's "children".
+</p>
+
 
 <p>
 <strong><u>How Scheduled Downtime Affects Notifications</u></strong>

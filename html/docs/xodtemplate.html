@@ -127,6 +127,9 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Optional">check_command</td><td class="Optional"><i>command_name</i></td></tr>
 <tr><td></td><td class="Required">max_check_attempts</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Optional">checks_enabled</td><td class="Optional">[0/1]</td></tr>
+<tr><td></td><td class="Optional">obsess_over_host</td><td class="Optional">[0/1]</td></tr>
+<tr><td></td><td class="Optional">check_freshness</td><td class="Optional">[0/1]</td></tr>
+<tr><td></td><td class="Optional">freshness_threshold</td><td class="Optional">#</td></tr>
 <tr><td></td><td class="Optional">event_handler</td><td class="Optional"><i>command_name</i></td></tr>
 <tr><td></td><td class="Optional">event_handler_enabled</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">low_flap_threshold</td><td class="Optional">#</td></tr>
@@ -216,6 +219,24 @@ This directive is used to define the number of times that Nagios will retry the 
 <td valign="top"><strong>checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not checks of this host are enabled. Values: 0 = disable host checks, 1 = enable host checks.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>obsess_over_host <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
+<td>
+This directive determines whether or not checks for the host will be "obsessed" over using the <a href="configmain.html#ochp_command">ochp_command</a>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>check_freshness <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
+<td>
+This directive is used to determine whether or not <a href="freshness.html">freshness checks</a> are enabled for this host. Values: 0 = disable freshness checks, 1 = enable freshness checks.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>freshness_threshold</strong>:</td>
+<td>
+This directive is used to specify the freshness threshold (in seconds) for this host.  If you set this directive to a value of 0, Nagios will determine a freshness threshold to use automatically.
 </td>
 </tr>
 <tr>
@@ -536,12 +557,13 @@ This directive is used to determine whether or not the service check can be para
 <tr>
 <td valign="top"><strong>obsess_over_service <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
+This directive determines whether or not checks for the service will be "obsessed" over using the <a href="configmain.html#ocsp_command">ocsp_command</a>.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>check_freshness <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
-This directive is used to determine whether or not freshness checks are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks.
+This directive is used to determine whether or not <a href="freshness.html">freshness checks</a> are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks.
 </td>
 </tr>
 <tr>

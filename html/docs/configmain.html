@@ -117,17 +117,22 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#event_handler_timeout">Event handler timeout</a><br>
 <a href="#notification_timeout">Notification timeout</a><br>
 <a href="#ocsp_timeout">Obsessive compulsive service processor timeout</a><br>
+<a href="#ochp_timeout">Obsessive compulsive host processor timeout</a><br>
 <a href="#perfdata_timeout">Performance data processor command timeout</a><br>
 <br>
 <a href="#obsess_over_services">Obsess over services option</a><br>
 <a href="#ocsp_command">Obsessive compulsive service processor command</a><br>
+<a href="#obsess_over_hosts">Obsess over hosts option</a><br>
+<a href="#ochp_command">Obsessive compulsive host processor command</a><br>
 <br>
 <a href="#process_performance_data">Performance data processing option</a><br>
 <br>
 <a href="#check_for_orphaned_services">Orphaned service check option</a><br>
 <br>
 <a href="#check_service_freshness">Service freshness checking option</a><br>
-<a href="#freshness_check_interval">Service freshness checking option</a><br>
+<a href="#service_freshness_check_interval">Service freshness check interval</a><br>
+<a href="#check_host_freshness">Host freshness checking option</a><br>
+<a href="#host_freshness_check_interval">Host freshness check interval</a><br>
 <br>
 <a href="#date_format">Date format</a><br>
 <br>
@@ -1810,6 +1815,31 @@ This is the maximum number of seconds that Nagios will allow an <a href="#ocsp_c
 
 
 <p>
+<a name="ochp_timeout"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Host Processor Timeout</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>ochp_timeout=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>ochp_timeout=5</strong></font></td>
+</tr>
+</table>
+</p>
+This is the maximum number of seconds that Nagios will allow an <a href="#ochp_command">obsessive compulsive host processor command</a> to be run.  If a command exceeds this time limit it will be killed and a warning will be logged.
+</p>
+
+
+<p>
 <a name="perfdata_timeout"></a>
 <table border="0" width="100%" class="Default">
 <tr>
@@ -1888,7 +1918,65 @@ This value determines whether or not Nagios will "obsess" over service checks re
 </p>
 
 <p>
-This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="configobject.html#command">command definition</a> that you define in your host configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.
+This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="configobject.html#command">command definition</a> that you define in your host configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_services">obsess_over_services</a> option is enabled globally and if the <i>obsess_over_service</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+</p>
+
+
+<p>
+<a name="obsess_over_hosts"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Obsess Over Hosts Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>obsess_over_hosts=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>obsess_over_hosts=1</strong></font></td>
+</tr>
+</table>
+</p>
+This value determines whether or not Nagios will "obsess" over host checks results and run the <a href="#ochp_command">obsessive compulsive host processor command</a> you define.  I know - funny name, but it was all I could think of.  This option is useful for performing <a href="distributed.html">distributed monitoring</a>.  If you're not doing distributed monitoring, don't enable this option.
+</p>
+<p>
+<ul>
+<li>0 = Don't obsess over hosts (default)
+<li>1 = Obsess over hosts
+</ul>
+</p>
+
+
+<p>
+<a name="ochp_command"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Host Processor Command</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>ochp_command=&lt;command&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>ochp_command=obsessive_host_handler</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to specify a command to be run after <i>every</i> host check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your host configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ochp_timeout">ochp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_hosts">obsess_over_hosts</a> option is enabled globally and if the <i>obsess_over_host</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
 </p>
 
 
@@ -1990,7 +2078,7 @@ This option determines whether or not Nagios will periodically check the "freshn
 
 
 <p>
-<a name="freshness_check_interval"></a>
+<a name="service_freshness_check_interval"></a>
 <table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Freshness Check Interval</strong></td>
@@ -2002,17 +2090,77 @@ This option determines whether or not Nagios will periodically check the "freshn
 <table border="0" class="Default">
 <tr>
 <td>Format:</td>
-<td><strong>freshness_check_interval=&lt;seconds&gt;</strong></td>
+<td><strong>service_freshness_check_interval=&lt;seconds&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>freshness_check_interval=60</strong></font></td>
+<td><font color="red"><strong>service_freshness_check_interval=60</strong></font></td>
 </tr>
 </table>
 </p>
 
 <p>
 This setting determines how often (in seconds) Nagios will periodically check the "freshness" of service check results.  If you have disabled service freshness checking (with the <a href="#check_service_freshness">check_service_freshness<a> option), this option has no effect.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+</p>
+
+
+<p>
+<a name="check_host_freshness"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Freshness Checking Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>check_host_freshness=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>check_host_freshness=0</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines whether or not Nagios will periodically check the "freshness" of host checks.  Enabling this option is useful for helping to ensure that <a href="passivechecks.html">passive host checks</a> are received in a timely manner.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Don't check host freshness
+<li>1 = Check host freshness (default)
+</ul>
+</p>
+
+
+<p>
+<a name="host_freshness_check_interval"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Freshness Check Interval</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_freshness_check_interval=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_freshness_check_interval=60</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This setting determines how often (in seconds) Nagios will periodically check the "freshness" of host check results.  If you have disabled host freshness checking (with the <a href="#check_h_freshostness">check_host_freshness<a> option), this option has no effect.  More information on freshness checking can be found <a href="freshness.html">here</a>.
 </p>
 
 

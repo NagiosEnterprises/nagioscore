@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>Service Result Freshness Checks</title>
+<title>Service and Host Result Freshness Checks</title>
 
 <STYLE type="text/css">
 <!--
@@ -17,7 +17,7 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Service Result Freshness Checks</h2>
+<h2 class="PageTitle">Service and Host Result Freshness Checks</h2>
 </div>
 </p>
 
@@ -28,11 +28,19 @@
 </p>
 
 <p>
-Nagios supports a feature that does "freshness" checking on the results of service checks.  This feature is useful when you want to ensure that <a href="passivechecks.html">passive checks</a> are being received as frequently as you want.  Although freshness checking can be used in a number of situations, it is primarily useful when attempting to configure a <a href="distributed.html">distributed monitoring environment</a>.
+Nagios supports a feature that does "freshness" checking on the results of host and service checks.  This feature is useful when you want to ensure that <a href="passivechecks.html">passive checks</a> are being received as frequently as you want.  Although freshness checking can be used in a number of situations, it is primarily useful when attempting to configure a <a href="distributed.html">distributed monitoring environment</a>.
 </p>
 
 <p>
-The purpose of "freshness" checking is to ensure that service checks are being provided passively by external applications on a regular basis.  If the results of a particular service check (for which freshness checking has been enabled) is determined to be "stale", Nagios will force an active check of that service.
+The purpose of "freshness" checking is to ensure that host and service checks are being provided passively by external applications on a regular basis.  If the results of a particular host or service check (for which freshness checking has been enabled) is determined to be "stale", Nagios will force an active check of that host or service.
+</p>
+
+<p>
+<strong><u>Host vs. Service Freshness Checking</u></strong>
+</p>
+
+<p>
+The documentation below discusses service freshness checking.  Host freshness checking (which is not documented seperately) works in a similiar way to service freshness checking - except, of course, that its for hosts instead of services.  If you need to configure host freshness checking, adjust the directions given below appropriately.
 </p>
 
 <p>
@@ -44,11 +52,7 @@ Before you configure per-service freshness threshold, you must enable freshness 
 </p>
 
 <p>
-So how do you go about enabling freshness checking for a particular service?  Well, at the moment you can only enable freshness checking of services if you are using <a href="xodtemplate.html">template-based object configuration</a> file(s).  The <a href="xoddefault.html">older object configuration</a> files formats have not been expanded to support freshness checking.
-</p>
-
-<p>
-Assuming you're using the template-based object configuration file(s), you need to configure <a href="xodtemplate.html#service">service definitions</a> as follows.
+So how do you go about enabling freshness checking for a particular service?  You need to configure <a href="xodtemplate.html#service">service definitions</a> as follows.
 </p>
 
 <p>

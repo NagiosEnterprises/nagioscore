@@ -69,11 +69,11 @@ killproc ()
 
 # Source function library
 # Solaris doesn't have an rc.d directory, so do a test first
-#if [ -f /etc/rc.d/init.d/functions ]; then
-#. /etc/rc.d/init.d/functions
-#elif [ -f /etc/init.d/functions ]; then
-#. /etc/init.d/functions
-#fi
+if [ -f /etc/rc.d/init.d/functions ]; then
+	. /etc/rc.d/init.d/functions
+elif [ -f /etc/init.d/functions ]; then
+	. /etc/init.d/functions
+fi
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -102,7 +102,7 @@ case "$1" in
 
 	start)
 		echo "Starting network monitor: nagios"
-		su $Nagios -c "touch $NagiosVar/nagios.log $NagiosSav"
+		su -l $Nagios -c "touch $NagiosVar/nagios.log $NagiosSav"
 		rm -f $NagiosCmd
 		$NagiosBin -d $NagiosCfg
 		if [ -d $NagiosLckDir ]; then touch $NagiosLckDir/$NagiosLckFile; fi

@@ -3020,7 +3020,7 @@ then
 EOF
 
         fi
-elif ping -n -U -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n -U -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n -U -c %d %s"
         cat >> confdefs.h <<EOF
@@ -3028,7 +3028,7 @@ then
 EOF
 
         echo "      ping syntax... $PATH_TO_PING -n -U -c <count> <host>"
-elif ping -n -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n -c %d %s"
         cat >> confdefs.h <<EOF
@@ -3036,23 +3036,23 @@ then
 EOF
 
         echo "      ping syntax... $PATH_TO_PING -n -c <count> <host>"
-elif ping -n 127.0.0.1 -c 1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n 127.0.0.1 -c 1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n %s -c %d"
         echo "      ping syntax... $PATH_TO_PING -n <host> -c <count>"
-elif ping 127.0.0.1 -n 1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping 127.0.0.1 -n 1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING %s -n %d"
         echo "      ping syntax... $PATH_TO_PING <host> -n <count>"
-elif ping -n -s 127.0.0.1 56 1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n -s 127.0.0.1 56 1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n -s %s 56 %d"
         echo "      ping syntax... $PATH_TO_PING -n -s <host> 56 <count>"
-elif ping -n -h 127.0.0.1 -s 56 -c 1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n -h 127.0.0.1 -s 56 -c 1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n -h %s -s 56 -c %d"
         echo "      ping syntax... $PATH_TO_PING -n -h <host> -s 56 -c <count>"
-elif ping -n -s 56 -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n -s 56 -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n -s 56 -c %d %s"
         cat >> confdefs.h <<EOF
@@ -3060,7 +3060,7 @@ then
 EOF
 
         echo "      ping syntax... $PATH_TO_PING -n -s 56 -c <count> <host>"
-elif ping -n -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null
+elif ping -n -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip|^rtt" >/dev/null
 then
         PING_COMMAND="$PATH_TO_PING -n -c %d %s"
         cat >> confdefs.h <<EOF

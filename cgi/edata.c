@@ -3,7 +3,7 @@
  * EDATA.C - External extended object config data for Nagios CGIs
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Last Modified:   12-01-2002
  *
  * License:
  *
@@ -34,9 +34,6 @@
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 
-#ifdef USE_XEDDEFAULT
-#include "../xdata/xeddefault.h"		/* default routines */
-#endif
 #ifdef USE_XEDTEMPLATE
 #include "../xdata/xedtemplate.h"		/* template-based routines */
 #endif
@@ -76,11 +73,6 @@ int read_extended_object_config_data(char *config_file, int options){
 		return OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XEDDEFAULT
-	result=xeddefault_read_extended_object_config_data(config_file,options);
-	if(result!=OK)
-		return ERROR;
-#endif
 #ifdef USE_XEDTEMPLATE
 	result=xedtemplate_read_extended_object_config_data(config_file,options);
 	if(result!=OK)

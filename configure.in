@@ -204,15 +204,8 @@ AC_SUBST(XCDH)
 dnl What extended data I/O implementation should we use?
 AC_ARG_WITH(mysql-extinfo,--with-mysql-extinfo enables use of MySQL database for storage of extended data,XEDTYPE=mysql)
 AC_ARG_WITH(pgsql-extinfo,--with-pgsql-extinfo enables use of PostgreSQL database for storage of extended data,XEDTYPE=pgsql)
-AC_ARG_WITH(default-extinfo,--with-default-extinfo enables use of default extended data routines,XEDTYPE=default)
 AC_ARG_WITH(template-extinfo,--with-template-extinfo enables use of template-based extended info data routines,XEDTYPE=template)
-if test $XEDTYPE = template; then
-	AC_DEFINE_UNQUOTED(USE_XEDTEMPLATE)
-	XEDC="xedtemplate.c"
-	XEDH="xedtemplate.h"
-	XEDCOMMENT="Template-based (text file)"
-	echo "We'll use template-based routines (in xdata/xedtemplate.*) for extended data I/O..."
-elif test $XEDTYPE = mysql; then
+if test $XEDTYPE = mysql; then
 	AC_DEFINE_UNQUOTED(USE_XEDDB)
 	AC_DEFINE_UNQUOTED(USE_XEDMYSQL)
 	USE_MYSQL=yes
@@ -229,11 +222,11 @@ elif test $XEDTYPE = pgsql; then
 	XEDCOMMENT="Database (PostgreSQL)"
 	echo "We'll use PostgreSQL database routines (in xdata/xeddb.*) for extended data I/O..."
 else
-	AC_DEFINE_UNQUOTED(USE_XEDDEFAULT)
-	XEDC="xeddefault.c"
-	XEDH="xeddefault.h"
-	XEDCOMMENT="Default (text file)"
-	echo "We'll use default routines (in xdata/xeddefault.*) for extended data I/O..."
+	AC_DEFINE_UNQUOTED(USE_XEDTEMPLATE)
+	XEDC="xedtemplate.c"
+	XEDH="xedtemplate.h"
+	XEDCOMMENT="Template-based (text file)"
+	echo "We'll use template-based routines (in xdata/xedtemplate.*) for extended data I/O..."
 fi
 AC_SUBST(XEDC)
 AC_SUBST(XEDH)

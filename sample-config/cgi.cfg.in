@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 10-29-2002
+# Last Modified: 12-01-2002
 #
 #################################################################
 
@@ -58,15 +58,9 @@ show_context_help=0
 # it should have timeout protection, it should output something
 # to STDIO, etc.
 #
-# Note: If you are using the check_nagios plugin here, the first
-# argument should be the physical path to the status log, the 
-# second argument is the number of minutes that the status log 
-# contents should be "fresher" than, and the third argument is the
-# string that should be matched from the output of the 'ps' 
-# command in order to locate the running Nagios process.  That
-# process string is going to vary depending on how you start
-# Nagios.  Run the 'ps' command manually to see what the command
-# line entry for the Nagios process looks like.
+# Note: The command line for the check_nagios plugin below may
+# have to be tweaked a bit, as different versions of the plugin
+# use different command line arguments/syntaxes.
 
 #nagios_check_command=@libexecdir@/check_nagios @localstatedir@/status.log 5 '@bindir@/nagios'
 
@@ -176,103 +170,6 @@ use_authentication=1
 
 
 
-# EXTENDED HOST INFORMATION
-# This is all entirely optional.  If you don't enter any extended
-# information, nothing bad will happen - I promise...  Its basically
-# just used to have pretty icons and such associated with your hosts.
-# This is especially nice when you're using the statusmap and
-# statuswrl CGIs.  You can also specify an URL that links to a document
-# containing more information about the host (location details, contact
-# information, etc). 
-#
-# hostextinfo[<host_name>]=<notes_url>;<icon_image>;<vrml_image>;<gd2_image>;\
-#			   <image_alt>;<x_2d>,<y_2d>;<x_3d>,<y_3d>,<z_3d>;
-#
-# <notes_url>        = Optional URL that points to a document of
-#                      some type containing information on the host.
-#                      The information (and the document type) can
-#                      be anything you want.  Examples include details
-#                      on the physical location of the server, info
-#                      on how to contact the admins in case of an
-#                      emergency, etc.  Relative URLs start in the
-#                      same path that is used to access the CGIs.
-#                      The link that is created for the host's notes
-#                      notes is found in the extinfo CGI.
-#                      Note: You may use the $HOSTNAME$ and
-#                      $HOSTADDRESS$ macros in this URL.
-# <icon_image>       = A GIF, PNG, or JPEG image to associate with
-#                      the host.  This is used in the status and
-#                      extinfo CGIs.  
-# <vrml_image>       = An image to use in the statuswrl CGI in the
-#                      VRML generation.  Transparent images don't
-#                      work so great..
-# <gd2_image>        = An image used by the statusmap CGI to
-#                      represent the host.  This can be a GIF, PNG,
-#                      JPEG, or GD2 image.  GD2 format is recommended,	
-#                      as it produces the load CPU load.
-#                      utility supplied with Boutell's gd library.
-# <image_alt>        = ALT tag used with images in various CGIs
-# <x_2d>,<y_2d>      = X and Y coordinates used when drawing the
-#                      host in the statusmap CGI.  (0,0) is located
-#                      in the upper left corner of the screen and is
-#                      considered to be the origin.  The coordinates
-#                      you supply here are used as the coords of the
-#                      upper left hand corner of host icon.  Both
-#                      numbers should be positive integers.
-# <x_3d>,<y_3d>,<z_3d> = X, Y, and Z coordinates used when drawing
-#                      the host in the statuswrl (VRML) CGI.  All
-#                      numbers can be positive or negative (anywhere
-#                      in 3-D space).  The coordinates are used to
-#                      determine the center of the host "cube" that
-#                      is drawn. Host "cubes" are drawn with a
-#                      height, width, and depth of 0.5 (meters).
-#
-# Note: All images must be placed in the /logos subdirectory under
-# the HTML images path (i.e. /usr/local/nagios/share/images/logos/).
-# This path is automatically determined by appending "/images/logos"
-# to the path specified by the 'physical_html_path' directive.
-
-#hostextinfo[es-eds]=/serverinfo/es-eds.html;novell40.gif;novell40.jpg;novell40.gd2;IntranetWare 4.11;100,50;3.5,0.0,-1.5;
-#hostextinfo[rosie]=/serverinfo/rosie.html;win40.gif;win40.jpg;win40.gd2;NT Server 4.0;;;
-
-
-
-# EXTENDED SERVICE INFORMATION
-# This is all entirely optional.  If you don't enter any extended
-# information, nothing bad will happen - I promise...  Its basically
-# just used to have pretty icons and such associated with your services.
-# You can also specify an URL that links to a document containing more
-# information about the service (location details, contact information,
-# etc). 
-#
-# serviceextinfo[<host_name>;<svc_description>]=<notes_url>;<icon_image>;<image_alt>
-#
-# <notes_url>        = Optional URL that points to a document of
-#                      some type containing information on the service.
-#                      The information (and the document type) can
-#                      be anything you want.  Examples include details
-#                      on the physical location of the server, info
-#                      on how to contact the admins in case of an
-#                      emergency, etc.  Relative URLs start in the
-#                      same path that is used to access the CGIs.
-#                      The link that is created for the service's
-#                      notes URL is found in the extinfo CGI.
-#                      Note: You may use the $HOSTNAME$, $HOSTADDRESS$,
-#                      and $SERVICEDESC$ macros in this URL.
-# <icon_image>       = A GIF, PNG, or JPEG image to associate with
-#                      the service.  This is used in the status and
-#                      extinfo CGIs.  
-# <image_alt>        = ALT tag used with image
-#
-# Note: All images must be placed in the /logos subdirectory under
-# the HTML images path (i.e. /usr/local/nagios/share/images/logos/).
-# This path is automatically determined by appending "/images/logos"
-# to the path specified by the 'physical_html_path' directive.
-
-#serviceextinfo[es-eds;PING]=http://www.somewhere.com?tracerouteto=$HOSTADDRESS$;;PING rate
-#serviceextinfo[rosie;Security Alerts]=;security.gif;Security alerts
-
-
 
 # STATUSMAP BACKGROUND IMAGE
 # This option allows you to specify an image to be used as a 
@@ -335,6 +232,10 @@ default_statuswrl_layout=4
 # the ping binary, along with all required options.  The
 # $HOSTADDRESS$ macro is substituted with the address of
 # the host before the command is executed.
+# Please note that the syntax for the ping binary is
+# notorious for being different on virtually ever *NIX
+* OS and distribution, so you may have to tweak this to
+# work on your system.
 
 ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$
 
@@ -374,7 +275,7 @@ refresh_rate=90
 
 
 
-# DG EXTENDED DATA
+# DB EXTENDED DATA
 # Note: These config directives are only used if you compiled
 # in database support for extended data!
 # The user you specify here only needs SELECT privileges on the 

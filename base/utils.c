@@ -2517,6 +2517,7 @@ int init_embedded_perl(void){
 	char buffer[MAX_INPUT_BUFFER];
 
 	embedded_perl_calls=0;
+	use_embedded_perl=TRUE;
 
 	if((perl=perl_alloc())==NULL){
 		use_embedded_perl=FALSE;
@@ -2561,7 +2562,7 @@ int reinit_embedded_perl(void){
 	deinit_embedded_perl();
 	
 	if(init_embedded_perl()==ERROR){
-		snprintf(buffer,sizeof(buffer),"Error: Could not re-initialize embedded Perl interpreter!\n");
+		snprintf(buffer,sizeof(buffer),"Error: Could not re-initialize embedded Perl interpreter!  Perl scripts will be interpreted normally.\n");
 		buffer[sizeof(buffer)-1]='\x0';
 		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		return ERROR;

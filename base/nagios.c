@@ -552,17 +552,8 @@ int main(int argc, char **argv){
 
 			/* initialize embedded Perl interpreter unless we're restarting - in this case its already been initialized */
 #ifdef EMBEDDEDPERL
-			if(sigrestart==FALSE){
-
-				if(init_embedded_perl()==ERROR){
-
-					snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while initializing embedded Perl interpreter... (PID=%d)\n",(int)getpid());
-					buffer[sizeof(buffer)-1]='\x0';
-					write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
-					
-					exit(1);
-		                        }
-			        }
+			if(sigrestart==FALSE)
+				init_embedded_perl();
 #endif
 
 			/* run the pre-flight check to make sure everything looks okay*/

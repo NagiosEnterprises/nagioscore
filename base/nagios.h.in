@@ -92,7 +92,7 @@
 #define DEFAULT_LOW_HOST_FLAP_THRESHOLD		20.0	/* low threshold for detection of host flapping */
 #define DEFAULT_HIGH_HOST_FLAP_THRESHOLD	30.0	/* high threshold for detection of host flapping */
 
-#define DEFAULT_MAX_EMBEDDED_PERL_CALLS		100     /* number of times to use embedded perl interpreter before reloading it */
+#define DEFAULT_MAX_EMBEDDED_PERL_CALLS		1000    /* number of times to use embedded perl interpreter before reloading it */
 
 
 

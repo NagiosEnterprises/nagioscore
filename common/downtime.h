@@ -42,11 +42,11 @@ typedef struct scheduled_downtime_struct{
 	time_t end_time;
 	int fixed;
 	unsigned long duration;
-	int downtime_id;
+	unsigned long downtime_id;
 	char *author;
 	char *comment;
 #ifdef NSCORE
-	int comment_id;
+	unsigned long comment_id;
 	int is_in_effect;
 	int start_flex_downtime;
 	int incremented_pending_downtime;
@@ -60,21 +60,21 @@ typedef struct scheduled_downtime_struct{
 int initialize_downtime_data(char *);                                /* initializes scheduled downtime data */
 int cleanup_downtime_data(char *);                                   /* cleans up scheduled downtime data */
 
-int add_new_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
-int add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
-int add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
+int add_new_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
+int add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
+int add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
 
-int delete_host_downtime(int);
-int delete_service_downtime(int);
-int delete_downtime(int,int);
+int delete_host_downtime(unsigned long);
+int delete_service_downtime(unsigned long);
+int delete_downtime(int,unsigned long);
 
 int schedule_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long);
-int unschedule_downtime(int,int);
+int unschedule_downtime(int,unsigned long);
 
-int register_downtime(int,int);
+int register_downtime(int,unsigned long);
 int handle_scheduled_downtime(scheduled_downtime *);
 
-int check_pending_flex_host_downtime(host *,int);
+int check_pending_flex_host_downtime(host *);
 int check_pending_flex_service_downtime(service *);
 
 int check_for_expired_downtime(void);
@@ -86,12 +86,12 @@ int read_downtime_data(char *);
 #endif
 
 
-int add_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int);
-int add_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int);
-int add_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int);
+int add_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long);
+int add_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long);
+int add_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long);
 
-scheduled_downtime *find_host_downtime(int);
-scheduled_downtime *find_service_downtime(int);
+scheduled_downtime *find_host_downtime(unsigned long);
+scheduled_downtime *find_service_downtime(unsigned long);
 
 void free_downtime_data(void);                                       /* frees memory allocated to scheduled downtime list */
 

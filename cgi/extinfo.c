@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-25-2003
+ * Last Modified: 03-22-2003
  *
  * License:
  * 
@@ -996,6 +996,8 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Passive Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->accept_passive_host_checks==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->accept_passive_host_checks)?"ENABLED":"DISABLED");
 
+		printf("<TR><TD CLASS='dataVar'>Obsessing:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->obsess_over_host==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->obsess_over_host)?"ENABLED":"DISABLED");
+
 		printf("<TR><TD CLASS='dataVar'>Notifications:</td><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->notifications_enabled)?"ENABLED":"DISABLED");
 
 		printf("<TR><TD CLASS='dataVar'>Event Handler:</td><td CLASS='dataVal'><DIV CLASS='eventhandlers%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->event_handler_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->event_handler_enabled)?"ENABLED":"DISABLED");
@@ -1038,6 +1040,11 @@ void show_host_info(void){
 		        }
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start accepting passive checks for this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_PASSIVE_HOST_CHECKS,url_encode(host_name));
+
+		if(temp_hoststatus->obsess_over_host==TRUE)
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Obsessing Over This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Stop obsessing over this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_OBSESSING_OVER_HOST,url_encode(host_name));
+		else
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Obsessing Over This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start obsessing over this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_OBSESSING_OVER_HOST,url_encode(host_name));
 
 		if(temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE){
 			if(temp_hoststatus->problem_has_been_acknowledged==FALSE)
@@ -1313,6 +1320,8 @@ void show_service_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Passive Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->accept_passive_service_checks)?"ENABLED":"DISABLED");
 
+		printf("<TR><TD CLASS='dataVar'>Obsessing:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->obsess_over_service==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->obsess_over_service)?"ENABLED":"DISABLED");
+
 		printf("<TR><td CLASS='dataVar'>Notifications:</TD><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->notifications_enabled)?"ENABLED":"DISABLED");
 
 		printf("<TR><TD CLASS='dataVar'>Event Handler:</TD><td CLASS='dataVal'><DIV CLASS='eventhandlers%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->event_handler_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->event_handler_enabled)?"ENABLED":"DISABLED");
@@ -1369,6 +1378,15 @@ void show_service_info(void){
 			printf("&service=%s'>Start accepting passive checks for this service</a></td></tr>\n",url_encode(service_desc));
 		        }
 
+		if(temp_svcstatus->obsess_over_service==TRUE){
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Obsessing Over This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_OBSESSING_OVER_SVC,url_encode(host_name));
+			printf("&service=%s'>Stop obsessing over this service</a></td></tr>\n",url_encode(service_desc));
+		        }
+		else{
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Obsessing Over This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_OBSESSING_OVER_SVC,url_encode(host_name));
+			printf("&service=%s'>Start obsessing over this service</a></td></tr>\n",url_encode(service_desc));
+		        }
+
 		if((temp_svcstatus->status==SERVICE_WARNING || temp_svcstatus->status==SERVICE_UNKNOWN || temp_svcstatus->status==SERVICE_CRITICAL) && temp_svcstatus->state_type==HARD_STATE){
 			if(temp_svcstatus->problem_has_been_acknowledged==FALSE){
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Service Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ACKNOWLEDGEMENT_ICON,COMMAND_CGI,CMD_ACKNOWLEDGE_SVC_PROBLEM,url_encode(host_name));
@@ -1379,7 +1397,7 @@ void show_service_info(void){
 				printf("&service=%s'>Remove problem acknowledgement</a></td></tr>\n",url_encode(service_desc));
 			        }
 		        }
-		if(temp_svcstatus->notifications_enabled){
+		if(temp_svcstatus->notifications_enabled==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_NOTIFICATIONS,url_encode(host_name));
 			printf("&service=%s'>Disable notifications for this service</a></td></tr>\n",url_encode(service_desc));
 			if(temp_svcstatus->status!=SERVICE_OK){
@@ -1573,7 +1591,7 @@ void show_all_comments(void){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Source</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* display all the host comments */
 	for(temp_comment=comment_list,total_comments=0;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1601,8 +1619,8 @@ void show_all_comments(void){
 		get_time_string(&temp_comment->entry_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<tr CLASS='%s'>",bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),temp_comment->host_name);
-		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No");
-		printf("<td><a href='%s?cmd_typ=%d&com_id=%d'><img src='%s%s' border=0 ALT='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_HOST_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
+		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
+		printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_HOST_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 
@@ -2172,7 +2190,7 @@ void display_comments(int type){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Source</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* read in all comments */
 	read_comment_data(get_cgi_config_location());
@@ -2201,8 +2219,8 @@ void display_comments(int type){
 
 			get_time_string(&temp_comment->entry_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 			printf("<tr CLASS='%s'>",bg_class);
-			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No");
-			printf("<td><a href='%s?cmd_typ=%d&com_id=%d'><img src='%s%s' border=0 ALT='Delete This Comment'></td>",COMMAND_CGI,(type==HOST_COMMENT)?CMD_DEL_HOST_COMMENT:CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
+			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%lu</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
+			printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment'></td>",COMMAND_CGI,(type==HOST_COMMENT)?CMD_DEL_HOST_COMMENT:CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 			printf("</tr>\n");
 			}
 	        }
@@ -2213,7 +2231,7 @@ void display_comments(int type){
 	else
 		total_comments=number_of_service_comments(temp_service->host_name,temp_service->description);
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?6:7,(type==HOST_COMMENT)?"host":"service");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?7:8,(type==HOST_COMMENT)?"host":"service");
 
 	printf("</TABLE>\n");
 
@@ -2293,7 +2311,7 @@ void show_all_downtime(void){
 		printf("<td CLASS='%s'>%s</td>",bg_class,(temp_downtime->fixed==TRUE)?"Yes":"No");
 		get_time_breakdown(temp_downtime->duration,&days,&hours,&minutes,&seconds);
 		printf("<td CLASS='%s'>%dd %dh %dm %ds</td>",bg_class,days,hours,minutes,seconds);
-		printf("<td><a href='%s?cmd_typ=%d&down_id=%d'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry'></td>",COMMAND_CGI,CMD_DEL_HOST_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
+		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry'></td>",COMMAND_CGI,CMD_DEL_HOST_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 
@@ -2356,7 +2374,7 @@ void show_all_downtime(void){
 		printf("<td CLASS='%s'>%s</td>",bg_class,(temp_downtime->fixed==TRUE)?"Yes":"No");
 		get_time_breakdown(temp_downtime->duration,&days,&hours,&minutes,&seconds);
 		printf("<td CLASS='%s'>%dd %dh %dm %ds</td>",bg_class,days,hours,minutes,seconds);
-		printf("<td><a href='%s?cmd_typ=%d&down_id=%d'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry'></td>",COMMAND_CGI,CMD_DEL_SVC_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
+		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry'></td>",COMMAND_CGI,CMD_DEL_SVC_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 

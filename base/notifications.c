@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   03-21-2003
  *
  * License:
  *
@@ -53,7 +53,7 @@ extern char            *generic_summary;
 
 
 /* notify contacts about a service problem or recovery */
-int service_notification(service *svc, char *ack_data){
+int service_notification(service *svc, int type, char *data){
 	host *temp_host;
 	notification *temp_notification;
 	time_t current_time;
@@ -67,6 +67,7 @@ int service_notification(service *svc, char *ack_data){
 
 #ifdef DEBUG4
 	printf("\nSERVICE NOTIFICATION ATTEMPT: Service '%s' on host '%s'\n",svc->description,svc->host_name);
+	printf("\tType: %d\n",type);
 	printf("\tCurrent time: %s",ctime(&current_time));
 #endif
 
@@ -82,15 +83,15 @@ int service_notification(service *svc, char *ack_data){
 	        }
 
 	/* check the viability of sending out a service notification */
-	if(check_service_notification_viability(svc,ack_data)==ERROR){
+	if(check_service_notification_viability(svc,type)==ERROR){
 #ifdef DEBUG4
 		printf("\tSending out a notification for this service is not viable at this time.\n");
 #endif
 		return OK;
 	        }
 
-	/* if this is just a normal notification and NOT a problem acknowledgement... */
-	if(ack_data==NULL){
+	/* if this is just a normal notification... */
+	if(type==NOTIFICATION_NORMAL){
 
 		/* increase the current notification number */
 		svc->current_notification_number++;
@@ -99,86 +100,96 @@ int service_notification(service *svc, char *ack_data){
 		printf("\tCurrent notification number: %d\n",svc->current_notification_number);
 #endif
 
-		/* calculate the next acceptable re-notification time */
-		svc->next_notification=get_next_service_notification_time(svc,current_time);
-
-#ifdef DEBUG4
-		printf("\tCurrent Time: %s",ctime(&current_time));
-		printf("\tNext acceptable notification time: %s",ctime(&svc->next_notification));
-#endif
-	        }
-
-	/* grab the macro variables */
-	clear_volatile_macros();
-	grab_host_macros(temp_host);
-	grab_service_macros(svc);
-
-	/* if this is an aknowledgement, modify the $OUTPUT$ macro to have it contain the comment that was entered by the user */
-	if(ack_data!=NULL){
-		if(macro_x[MACRO_SERVICEOUTPUT]!=NULL)
-			free(macro_x[MACRO_SERVICEOUTPUT]);
-		macro_x[MACRO_SERVICEOUTPUT]=strdup(ack_data);
-	        }
-
-	/* set the notification type macro */
-	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
-		free(macro_x[MACRO_NOTIFICATIONTYPE]);
-	macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
-	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
-		if(ack_data!=NULL)
-			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
-		else if(svc->current_state==STATE_OK)
-			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
-		else
-			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
-	        }
-
-	/* set the notification number macro */
-	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
-		free(macro_x[MACRO_NOTIFICATIONNUMBER]);
-	macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
-		snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
-		macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
 	        }
 
 	/* create the contact notification list for this service */
 	create_notification_list_from_service(svc);
 
-	/* notify each contact (duplicates have been removed) */
-	for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
+	/* we have contacts to notify... */
+	if(notification_list!=NULL){
 
-		/* grab the macro variables for this contact */
-		grab_contact_macros(temp_notification->contact);
+		/* grab the macro variables */
+		clear_volatile_macros();
+		grab_host_macros(temp_host);
+		grab_service_macros(svc);
 
-		/* notify this contact */
-		notify_contact_of_service(temp_notification->contact,svc,ack_data);
-	        }
+		/* if this is an aknowledgement, modify the $OUTPUT$ macro to have it contain the comment that was entered by the user */
+		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
+			if(macro_x[MACRO_SERVICEOUTPUT]!=NULL)
+				free(macro_x[MACRO_SERVICEOUTPUT]);
+			if(data==NULL)
+				macro_x[MACRO_SERVICEOUTPUT]=NULL;
+			else
+				macro_x[MACRO_SERVICEOUTPUT]=strdup(data);
+	                }
 
-	/* there were no contacts, so no notification really occurred... */
-	if(notification_list==NULL){
-		if(ack_data==NULL)
-			svc->current_notification_number--;
+		/* set the notification type macro */
+		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
+			free(macro_x[MACRO_NOTIFICATIONTYPE]);
+		macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
+		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
+			if(type==NOTIFICATION_ACKNOWLEDGEMENT)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
+			else if(type==NOTIFICATION_FLAPPINGSTART)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTART");
+			else if(type==NOTIFICATION_FLAPPINGSTOP)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTOP");
+			else if(svc->current_state==STATE_OK)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
+			else
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
+	                }
+
+		/* set the notification number macro */
+		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
+			free(macro_x[MACRO_NOTIFICATIONNUMBER]);
+		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
+			snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
+			macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	                }
+
+		/* notify each contact (duplicates have been removed) */
+		for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
+
+			/* grab the macro variables for this contact */
+			grab_contact_macros(temp_notification->contact);
+
+			/* notify this contact */
+			notify_contact_of_service(temp_notification->contact,svc,type);
+		        }
+
+		/* free memory allocated to the notification list */
+		free_notification_list();
+
+		if(type==NOTIFICATION_NORMAL){
+
+			/* calculate the next acceptable re-notification time */
+			svc->next_notification=get_next_service_notification_time(svc,current_time);
 
 #ifdef DEBUG4
-		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
+			printf("\tCurrent Time: %s",ctime(&current_time));
+			printf("\tNext acceptable notification time: %s",ctime(&svc->next_notification));
 #endif
-	        }
 
-	/* else there were contacts who got notified... */
-	else{
-
-		/* update the last notification time for this service if this was NOT an acknowledgement (this is needed for rescheduling later notifications) */
-		if(ack_data==NULL)
+			/* update the last notification time for this service (this is needed for rescheduling later notifications) */
 			svc->last_notification=current_time;
-
+		        }
 #ifdef DEBUG4
 		printf("\tAPPROPRIATE CONTACTS HAVE BEEN NOTIFIED\n");
 #endif
 	        }
 
-	/* free memory allocated to the notification list */
-	free_notification_list();
+	/* there were no contacts, so no notification really occurred... */
+	else{
+
+		/* readjust current notification number, since one didn't go out */
+		if(type==NOTIFICATION_NORMAL)
+			svc->current_notification_number--;
+#ifdef DEBUG4
+		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
+#endif
+	        }
 
 	/* update the status log with the service information */
 	update_service_status(svc,FALSE);
@@ -193,7 +204,7 @@ int service_notification(service *svc, char *ack_data){
 
 
 /* checks the viability of sending out a service alert (top level filters) */
-int check_service_notification_viability(service *svc, char *ack_data){
+int check_service_notification_viability(service *svc, int type){
 	host *temp_host;
 	time_t current_time;
 	time_t timeperiod_start;
@@ -220,7 +231,7 @@ int check_service_notification_viability(service *svc, char *ack_data){
 #endif
 
 		/* calculate the next acceptable notification time, once the next valid time range arrives... */
-		if(ack_data==NULL){
+		if(type==NOTIFICATION_NORMAL){
 
 			get_next_valid_time(current_time,&timeperiod_start,svc->notification_period);
 
@@ -250,7 +261,7 @@ int check_service_notification_viability(service *svc, char *ack_data){
 	/****************************************/
 
 	/* acknowledgements only have to pass three general filters, although they have another test of their own... */
-	if(ack_data!=NULL){
+	if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
 		/* don't send an acknowledgement if there isn't a problem... */
 		if(svc->current_state==STATE_OK){
@@ -461,7 +472,7 @@ int check_contact_service_notification_viability(contact *cntct,service *svc){
 
 
 /* notify a specific contact about a service problem or recovery */
-int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
+int notify_contact_of_service(contact *cntct, service *svc, int type){
 	commandsmember *temp_commandsmember;
 	char temp_command_line[MAX_INPUT_BUFFER];
 	char raw_command_line[MAX_INPUT_BUFFER];
@@ -514,10 +525,20 @@ int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
 
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
-				if(ack_data==NULL)
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
-				else
+				switch(type){
+				case NOTIFICATION_ACKNOWLEDGEMENT:
 					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				case NOTIFICATION_FLAPPINGSTART:
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				case NOTIFICATION_FLAPPINGSTOP:
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				default:
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				        }
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION,FALSE);
 			        }
@@ -674,7 +695,7 @@ int create_notification_list_from_service(service *svc){
 
 
 /* notify all contacts for a host that the entire host is down or up */
-int host_notification(host *hst, char *ack_data){
+int host_notification(host *hst, int type, char *data){
 	notification *temp_notification;
 	time_t current_time;
 
@@ -688,19 +709,20 @@ int host_notification(host *hst, char *ack_data){
 
 #ifdef DEBUG4
 	printf("\nHOST NOTIFICATION ATTEMPT: Host '%s'\n",hst->name);
+	printf("\tType: %d\n",type);
 	printf("\tCurrent time: %s",ctime(&current_time));
 #endif
 
 	/* check viability of sending out a host notification */
-	if(check_host_notification_viability(hst,ack_data)==ERROR){
+	if(check_host_notification_viability(hst,type)==ERROR){
 #ifdef DEBUG4
 		printf("\tSending out a notification for this host is not viable at this time.\n");
 #endif
 		return OK;
 	        }
 
-	/* if this is just a normal notification and NOT an acknowledgement... */
-	if(ack_data==NULL){
+	/* if this is just a normal notification... */
+	if(type==NOTIFICATION_NORMAL){
 
 		/* increment the current notification number */
 		hst->current_notification_number++;
@@ -708,86 +730,97 @@ int host_notification(host *hst, char *ack_data){
 #ifdef DEBUG4
 		printf("\tCurrent notification number: %d\n",hst->current_notification_number);
 #endif
-
-		/* calculate the next acceptable re-notification time */
-		hst->next_host_notification=get_next_host_notification_time(hst,current_time);
-
-#ifdef DEBUG4
-		printf("\tCurrent Time: %s",ctime(&current_time));
-		printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
-#endif
-	        }
-
-	/* grab the macro variables */
-	clear_volatile_macros();
-	grab_host_macros(hst);
-
-	/* if this is an aknowledgement, modify the $OUTPUT$ macro to contain the comment that the user entered */
-	if(ack_data!=NULL){
-		if(macro_x[MACRO_HOSTOUTPUT]!=NULL)
-			free(macro_x[MACRO_HOSTOUTPUT]);
-		macro_x[MACRO_HOSTOUTPUT]=strdup(ack_data);
-	        }
-
-	/* set the notification type macro */
-	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
-		free(macro_x[MACRO_NOTIFICATIONTYPE]);
-	macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
-	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
-		if(ack_data!=NULL)
-			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
-		else if(hst->current_state==HOST_UP)
-			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
-		else
-			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
-	        }
-
-	/* set the notification number macro */
-	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
-		free(macro_x[MACRO_NOTIFICATIONNUMBER]);
-	macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
-		snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
-		macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
 	        }
 
 	/* create the contact notification list for this host */
 	create_notification_list_from_host(hst);
 
-	/* notify each contact (duplicates have been removed) */
-	for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
+	/* there are contacts to be notified... */
+	if(notification_list!=NULL){
 
-		/* grab the macro variables for this contact */
-		grab_contact_macros(temp_notification->contact);
+		/* grab the macro variables */
+		clear_volatile_macros();
+		grab_host_macros(hst);
 
-		/* notify this contact */
-		notify_contact_of_host(temp_notification->contact,hst,ack_data);
-	        }
+		/* if this is an aknowledgement, modify the $OUTPUT$ macro to contain the comment that the user entered */
+		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
+			if(macro_x[MACRO_HOSTOUTPUT]!=NULL)
+				free(macro_x[MACRO_HOSTOUTPUT]);
+			if(data==NULL)
+				macro_x[MACRO_HOSTOUTPUT]=NULL;
+			else
+				macro_x[MACRO_HOSTOUTPUT]=strdup(data);
+	                }
 
-	/* there were no contacts, so no notification really occurred... */
-	if(notification_list==NULL){
-		if(ack_data==NULL)
-			hst->current_notification_number--;
+		/* set the notification type macro */
+		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
+			free(macro_x[MACRO_NOTIFICATIONTYPE]);
+		macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
+		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
+			if(type==NOTIFICATION_ACKNOWLEDGEMENT)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
+			else if(type==NOTIFICATION_FLAPPINGSTART)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTART");
+			else if(type==NOTIFICATION_FLAPPINGSTOP)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTOP");
+			else if(hst->current_state==HOST_UP)
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
+			else
+				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
+	                }
+
+		/* set the notification number macro */
+		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
+			free(macro_x[MACRO_NOTIFICATIONNUMBER]);
+		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
+			snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
+			macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	                }
+
+		/* notify each contact (duplicates have been removed) */
+		for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
+
+			/* grab the macro variables for this contact */
+			grab_contact_macros(temp_notification->contact);
+
+			/* notify this contact */
+			notify_contact_of_host(temp_notification->contact,hst,type);
+	                }
+
+		/* free memory allocated to the notification list */
+		free_notification_list();
+
+		if(type==NOTIFICATION_NORMAL){
+
+			/* calculate the next acceptable re-notification time */
+			hst->next_host_notification=get_next_host_notification_time(hst,current_time);
 
 #ifdef DEBUG4
-		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
+			printf("\tCurrent Time: %s",ctime(&current_time));
+			printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
 #endif
-	        }
 
-	/* else there were contacts who got notified... */
-	else{
-
-		/* update the last notification time for this host if this was NOT an acknowledgement (this is needed for scheduling the next problem notification) */
-		if(ack_data==NULL)
+			/* update the last notification time for this host (this is needed for scheduling the next problem notification) */
 			hst->last_host_notification=current_time;
+		        }
 
 #ifdef DEBUG4
 		printf("\tAPPROPRIATE CONTACTS HAVE BEEN NOTIFIED\n");
 #endif
 	        }
 
-	/* free memory allocated to the notification list */
-	free_notification_list();
+	/* there were no contacts, so no notification really occurred... */
+	else{
+
+		/* adjust notification number, since no notification actually went out */
+		if(type==NOTIFICATION_NORMAL)
+			hst->current_notification_number--;
+
+#ifdef DEBUG4
+		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
+#endif
+	        }
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -802,7 +835,7 @@ int host_notification(host *hst, char *ack_data){
 
 
 /* checks viability of sending a host notification */
-int check_host_notification_viability(host *hst, char *ack_data){
+int check_host_notification_viability(host *hst, int type){
 	int state_change=FALSE;
 	time_t current_time;
 	time_t timeperiod_start;
@@ -828,8 +861,8 @@ int check_host_notification_viability(host *hst, char *ack_data){
 		printf("\tThis host shouldn't have notifications sent out at this time!\n");
 #endif
 
-		/* if this is NOT an acknowledgement, calculate the next acceptable notification time, once the next valid time range arrives... */
-		if(ack_data==NULL){
+		/* if this is a normal notification, calculate the next acceptable notification time, once the next valid time range arrives... */
+		if(type==NOTIFICATION_NORMAL){
 
 			get_next_valid_time(current_time,&timeperiod_start,hst->notification_period);
 
@@ -859,7 +892,7 @@ int check_host_notification_viability(host *hst, char *ack_data){
 	/****************************************/
 
 	/* acknowledgements only have to pass three general filters, although they have another test of their own... */
-	if(ack_data!=NULL){
+	if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 
 		/* don't send an acknowledgement if there isn't a problem... */
 		if(hst->current_state==HOST_UP){
@@ -1041,7 +1074,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst){
 
 
 /* notify a specific contact that an entire host is down or up */
-int notify_contact_of_host(contact *cntct,host *hst, char *ack_data){
+int notify_contact_of_host(contact *cntct,host *hst, int type){
 	commandsmember *temp_commandsmember;
 	char temp_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -1096,10 +1129,20 @@ int notify_contact_of_host(contact *cntct,host *hst, char *ack_data){
 
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
-				if(ack_data==NULL)
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
-				else
+				switch(type){
+				case NOTIFICATION_ACKNOWLEDGEMENT:
 					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				case NOTIFICATION_FLAPPINGSTART:
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				case NOTIFICATION_FLAPPINGSTOP:
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				default:
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				        }
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION,FALSE);
 			        }

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-24-2003
+ * Last Modified: 03-22-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -214,6 +214,13 @@
 #define STATE_CRITICAL			2
 #define STATE_UNKNOWN			3       /* changed from -1 on 02/24/2001 */
 
+
+/**************** NOTIFICATION TYPES ******************/
+
+#define NOTIFICATION_NORMAL             0
+#define NOTIFICATION_ACKNOWLEDGEMENT    1
+#define NOTIFICATION_FLAPPINGSTART      2
+#define NOTIFICATION_FLAPPINGSTOP       3
 
 
 /******************* EVENT TYPES **********************/
@@ -470,18 +477,18 @@ int run_global_host_event_handler(host *);			/* runs the global host event handl
 
 
 /**** Notification Functions ****/
-int check_service_notification_viability(service *,char *);		/* checks viability of notifying all contacts about a service */
+int check_service_notification_viability(service *,int);		/* checks viability of notifying all contacts about a service */
 int is_valid_escalation_for_service_notification(service *,serviceescalation *);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);		/* checks if a service notification should be escalated */
-int service_notification(service *,char *);                        	/* notify all contacts about a service (problem or recovery) */
+int service_notification(service *,int,char *);                        	/* notify all contacts about a service (problem or recovery) */
 int check_contact_service_notification_viability(contact *,service *);	/* checks viability of notifying a contact about a service */ 
-int notify_contact_of_service(contact *,service *,char *);        	/* notify a single contact about a service */
-int check_host_notification_viability(host *,char *);			/* checks viability of notifying all contacts about a host */
+int notify_contact_of_service(contact *,service *,int);        	/* notify a single contact about a service */
+int check_host_notification_viability(host *,int);			/* checks viability of notifying all contacts about a host */
 int is_valid_host_escalation_for_host_notification(host *,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *);			/* checks if a host notification should be escalated */
-int host_notification(host *,char *);                           	/* notify all contacts about a host (problem or recovery) */
+int host_notification(host *,int,char *);                           	/* notify all contacts about a host (problem or recovery) */
 int check_contact_host_notification_viability(contact *, host *);	/* checks viability of notifying a contact about a host */ 
-int notify_contact_of_host(contact *,host *,char *);            	/* notify a single contact about a host */
+int notify_contact_of_host(contact *,host *,int);            	/* notify a single contact about a host */
 int create_notification_list_from_host(host *);             	/* given a host, create list of contacts to be notified (remove duplicates) */
 int create_notification_list_from_service(service *);        	/* given a service, create list of contacts to be notified (remove duplicates) */
 int add_notification(contact *);				/* adds a notification instance */
@@ -558,7 +565,7 @@ int cmd_signal_process(int,char *);				/* schedules a program shutdown or restar
 int cmd_enable_disable_notifications(int,char *);		/* enables/disables notifications */
 int cmd_enable_disable_service_notifications(int,char *);	/* enables/disables notifications for a service */
 int cmd_enable_disable_host_notifications(int,char *);		/* enables/disables notifications for a host */
-int cmd_enable_disable_and_propagate_notifications(int, char *);	/* enables/disables notifications for all hosts and services beyond a given host */
+int cmd_enable_disable_and_propagate_notifications(int,char *);	/* enables/disables notifications for all hosts and services beyond a given host */
 int cmd_process_service_check_result(int,time_t,char *);	/* processes a passive service check */
 int cmd_process_host_check_result(int,time_t,char *);		/* processes a passive host check */
 int cmd_enable_disable_host_service_notifications(int,char *);	/* enables/disables notifications for all services on a host */
@@ -573,13 +580,15 @@ int cmd_enable_disable_host_check(int,char *);			/* enables/disables checks of a
 int cmd_start_stop_obsessing_over_service_checks(int);		/* start/stop obsessing about service check results */
 int cmd_schedule_downtime(int,time_t,char *);                   /* schedules host or service downtime */
 int cmd_enable_disable_host_flap_detection(int, char *);	/* enables/disables flap detection for a particular host */
-int cmd_enable_disable_service_flap_detection(int, char *);	/* enables/disables flap detection for a particular service */
-int cmd_delete_downtime(int, char *);				/* cancels active/pending host or service scheduled downtime */
+int cmd_enable_disable_service_flap_detection(int,char *);	/* enables/disables flap detection for a particular service */
+int cmd_delete_downtime(int,char *);				/* cancels active/pending host or service scheduled downtime */
 int cmd_schedule_host_service_downtime(int,time_t,char *);      /* schedules downtimes for all services on a particular host */
 int cmd_start_stop_executing_host_checks(int);			/* enables/disables active host checks */
 int cmd_start_stop_accepting_passive_host_checks(int);		/* enables/disables passive host checks */
-int cmd_enable_disable_passive_host_checks(int ,char *);	/* enables/disables passive checks for a particular host */
+int cmd_enable_disable_passive_host_checks(int,char *);		/* enables/disables passive checks for a particular host */
 int cmd_start_stop_obsessing_over_host_checks(int);		/* start/stop obsessing about host check results */
+int cmd_start_stop_obsessing_over_service(int,char *);		/* start/stop obsessing about specific service check results */
+int cmd_start_stop_obsessing_over_host(int,char *);		/* start/stop obsessing about specific host check results */
 
 /**** Internal Command Implementations ****/
 void disable_service_check(service *);			/* disables a service check */
@@ -594,8 +603,8 @@ void enable_host_notifications(host *);			/* enables host notifications */
 void disable_host_notifications(host *);		/* disables host notifications */
 void enable_and_propagate_notifications(host *);	/* enables notifications for all hosts and services beyond a given host */
 void disable_and_propagate_notifications(host *);	/* disables notifications for all hosts and services beyond a given host */
-void acknowledge_host_problem(host *,char *,int);	/* acknowledges a host problem */
-void acknowledge_service_problem(service *,char *,int);	/* acknowledges a service problem */
+void acknowledge_host_problem(host *,char *,int,int);	/* acknowledges a host problem */
+void acknowledge_service_problem(service *,char *,int,int);	/* acknowledges a service problem */
 void remove_host_acknowledgement(host *);		/* removes a host acknowledgement */
 void remove_service_acknowledgement(service *);		/* removes a service acknowledgement */
 void start_executing_service_checks(void);		/* starts executing service checks */
@@ -627,6 +636,10 @@ void start_accepting_passive_host_checks(void);		/* starts accepting passive hos
 void stop_accepting_passive_host_checks(void);		/* stops accepting passive host check results */
 void enable_passive_host_checks(host *);	        /* enables passive host checks for a particular host */
 void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
+void start_obsessing_over_service(service *);		/* start obsessing about specific service check results */
+void stop_obsessing_over_service(service *);		/* stop obsessing about specific service check results */
+void start_obsessing_over_host(host *);			/* start obsessing about specific host check results */
+void stop_obsessing_over_host(host *);			/* stop obsessing about specific host check results */
 
 int init_service_result_worker_thread(void);
 int shutdown_service_result_worker_thread(void);

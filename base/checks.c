@@ -829,7 +829,15 @@ void reap_service_checks(void){
 
 			temp_service->last_notification=(time_t)0;
 			temp_service->next_notification=(time_t)0;
-			temp_service->problem_has_been_acknowledged=FALSE;
+
+			if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
+				temp_service->problem_has_been_acknowledged=FALSE;
+				temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+			        }
+			else if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_STICKY && temp_service->current_state==STATE_OK){
+				temp_service->problem_has_been_acknowledged=FALSE;
+				temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+			        }
 
 			/* do NOT reset current notification number!!! */
 			/*temp_service->current_notification_number=0;*/
@@ -855,6 +863,7 @@ void reap_service_checks(void){
 
 			/* reset the acknowledgement flag (this should already have been done, but just in case...) */
 			temp_service->problem_has_been_acknowledged=FALSE;
+			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 
 			/* the service check was okay, so the associated host must be up... */
 			if(temp_host->current_state!=HOST_UP){
@@ -877,7 +886,7 @@ void reap_service_checks(void){
 				state_was_logged=TRUE;
 
 				/* notify contacts about the service recovery */
-				service_notification(temp_service,NULL);
+				service_notification(temp_service,NOTIFICATION_NORMAL,NULL);
 
 				/* run the service event handler to handle the hard state change */
 				handle_service_event(temp_service,HARD_STATE);
@@ -914,6 +923,7 @@ void reap_service_checks(void){
 			temp_service->next_notification=(time_t)0;
 			temp_service->current_notification_number=0;
 			temp_service->problem_has_been_acknowledged=FALSE;
+			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 			temp_service->has_been_unknown=FALSE;
 			temp_service->has_been_warning=FALSE;
 			temp_service->has_been_critical=FALSE;
@@ -967,7 +977,7 @@ void reap_service_checks(void){
 						log_host_event(temp_host);
 
 				        /* possibly re-send host notifications... */
-					host_notification(temp_host,NULL);
+					host_notification(temp_host,NOTIFICATION_NORMAL,NULL);
 				        }
 			        }
 
@@ -1096,7 +1106,7 @@ void reap_service_checks(void){
 					check_pending_flex_service_downtime(temp_service);
 
 				/* (re)send notifications out about this service problem if the host is up (and was at last check also) and the dependencies were okay... */
-				service_notification(temp_service,NULL);
+				service_notification(temp_service,NOTIFICATION_NORMAL,NULL);
 
 				/* run the service event handler if we changed state from the last hard state or if this service is flagged as being volatile */
 				if(hard_state_change==TRUE || temp_service->is_volatile==TRUE)

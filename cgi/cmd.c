@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-24-2003
+ * Last Modified: 03-22-2003
  *
  * License:
  * 
@@ -63,11 +63,12 @@ char *service_desc="";
 char *comment_author="";
 char *comment_data="";
 
-int comment_id=0;
-int downtime_id=0;
+unsigned long comment_id=0;
+unsigned long downtime_id=0;
 int notification_delay=0;
 int schedule_delay=0;
 int persistent_comment=FALSE;
+int sticky_ack=FALSE;
 int send_notification=FALSE;
 int force_check=FALSE;
 int plugin_state=STATE_OK;
@@ -317,7 +318,7 @@ int process_cgivars(void){
 				break;
 			        }
 
-			comment_id=atoi(variables[x]);
+			comment_id=strtoul(variables[x],NULL,10);
 		        }
 
 		/* we found the downtime id */
@@ -328,7 +329,7 @@ int process_cgivars(void){
 				break;
 			        }
 
-			downtime_id=atoi(variables[x]);
+			downtime_id=strtoul(variables[x],NULL,10);
 		        }
 
 		/* we found the notification delay */
@@ -435,6 +436,10 @@ int process_cgivars(void){
 		/* we got the notification option for an acknowledgement */
 		else if(!strcmp(variables[x],"send_notification"))
 			send_notification=TRUE;
+
+		/* we got the acknowledgement type */
+		else if(!strcmp(variables[x],"sticky_ack"))
+			sticky_ack=TRUE;
 
 		/* we got the service check force option */
 		else if(!strcmp(variables[x],"force_check"))
@@ -804,6 +809,16 @@ void request_command_data(int cmd){
 		printf("schedule an immediate host check");
 		break;
 
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		printf("%s obsessing over a particular service",(cmd==CMD_START_OBSESSING_OVER_SVC)?"start":"stop");
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		printf("%s obsessing over a particular host",(cmd==CMD_START_OBSESSING_OVER_HOST)?"start":"stop");
+		break;
+
 	default:
 		printf("execute an unknown command.  Shame on you!</DIV>");
 		return;
@@ -834,11 +849,14 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
 		printf("</b></td></tr>\n");
 		if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM){
+			printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
+			printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
+			printf("</b></td></tr>\n");
 			printf("<tr><td CLASS='optBoxItem'>Send Notification:</td><td><b>");
 			printf("<INPUT TYPE='checkbox' NAME='send_notification' CHECKED>");
 			printf("</b></td></tr>\n");
 		        }
-		printf("<tr><td CLASS='optBoxItem'>Persistent:</td><td><b>");
+		printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>",(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)?" Comment":"");
 		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
@@ -857,11 +875,14 @@ void request_command_data(int cmd){
 		printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
 		if(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM){
+			printf("<tr><td CLASS='optBoxItem'>Sticky Acknowledgement:</td><td><b>");
+			printf("<INPUT TYPE='checkbox' NAME='sticky_ack' CHECKED>");
+			printf("</b></td></tr>\n");
 			printf("<tr><td CLASS='optBoxItem'>Send Notification:</td><td><b>");
 			printf("<INPUT TYPE='checkbox' NAME='send_notification' CHECKED>");
 			printf("</b></td></tr>\n");
 		        }
-		printf("<tr><td CLASS='optBoxItem'>Persistent:</td><td><b>");
+		printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>",(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM)?" Comment":"");
 		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
@@ -875,7 +896,7 @@ void request_command_data(int cmd){
 	case CMD_DEL_HOST_COMMENT:
 	case CMD_DEL_SVC_COMMENT:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment ID:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='com_id' VALUE='%d'>",comment_id);
+		printf("<INPUT TYPE='TEXT' NAME='com_id' VALUE='%lu'>",comment_id);
 		printf("</b></td></tr>\n");
 		break;
 		
@@ -945,6 +966,8 @@ void request_command_data(int cmd){
 	case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
 	case CMD_ENABLE_SVC_FLAP_DETECTION:
 	case CMD_DISABLE_SVC_FLAP_DETECTION:
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
 		printf("</b></td></tr>\n");
@@ -971,6 +994,8 @@ void request_command_data(int cmd){
 	case CMD_DISABLE_HOST_FLAP_DETECTION:
 	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
 	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
 		printf("</b></td></tr>\n");
@@ -1100,7 +1125,7 @@ void request_command_data(int cmd){
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Scheduled Downtime ID:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='down_id' VALUE='%d'>",downtime_id);
+		printf("<INPUT TYPE='TEXT' NAME='down_id' VALUE='%lu'>",downtime_id);
 		printf("</b></td></tr>\n");
 		break;
 
@@ -1250,7 +1275,7 @@ void commit_command_data(int cmd){
 	case CMD_DEL_SVC_COMMENT:
 
 		/* check the sanity of the comment id */
-		if(comment_id<=0)
+		if(comment_id==0)
 			error=TRUE;
 
 		/* read comments */
@@ -1283,7 +1308,7 @@ void commit_command_data(int cmd){
 	case CMD_DEL_SVC_DOWNTIME:
 
 		/* check the sanity of the downtime id */
-		if(downtime_id<=0)
+		if(downtime_id==0)
 			error=TRUE;
 
 		/* read scheduled downtime */
@@ -1329,6 +1354,8 @@ void commit_command_data(int cmd){
 	case CMD_DELAY_SVC_NOTIFICATION:
 	case CMD_ENABLE_SVC_FLAP_DETECTION:
 	case CMD_DISABLE_SVC_FLAP_DETECTION:
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
 
 		/* make sure we have some host name and service description... */
 		if(!strcmp(host_name,"") || !strcmp(service_desc,""))
@@ -1422,6 +1449,8 @@ void commit_command_data(int cmd){
 	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
 	case CMD_DELAY_HOST_CHECK:
 	case CMD_IMMEDIATE_HOST_CHECK:
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
 
 		/* make sure we have some host name... */
 		if(!strcmp(host_name,""))
@@ -1607,11 +1636,11 @@ int commit_command(int cmd){
 		break;
 
 	case CMD_DEL_HOST_COMMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_HOST_COMMENT;%d\n",current_time,comment_id);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_HOST_COMMENT;%lu\n",current_time,comment_id);
 		break;
 		
 	case CMD_DEL_SVC_COMMENT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_SVC_COMMENT;%d\n",current_time,comment_id);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_SVC_COMMENT;%lu\n",current_time,comment_id);
 		break;
 		
 	case CMD_DELAY_HOST_NOTIFICATION:
@@ -1690,11 +1719,11 @@ int commit_command(int cmd){
 		break;
 		
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_HOST_COMMENT;%s;%d;%s;ACKNOWLEDGEMENT: %s\n[%lu] ACKNOWLEDGE_HOST_PROBLEM;%s;%d;%s\n",current_time,host_name,(persistent_comment==TRUE)?1:0,comment_author,comment_data,current_time,host_name,(send_notification==TRUE)?1:0,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_HOST_COMMENT;%s;%d;%s;ACKNOWLEDGEMENT: %s\n[%lu] ACKNOWLEDGE_HOST_PROBLEM;%s;%d;%d;%s\n",current_time,host_name,(persistent_comment==TRUE)?1:0,comment_author,comment_data,current_time,host_name,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,comment_data);
 		break;
 		
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_SVC_COMMENT;%s;%s;%d;%s;ACKNOWLEDGEMENT: %s\n[%lu] ACKNOWLEDGE_SVC_PROBLEM;%s;%s;%d;%s\n",current_time,host_name,service_desc,(persistent_comment==TRUE)?1:0,comment_author,comment_data,current_time,host_name,service_desc,(send_notification==TRUE)?1:0,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_SVC_COMMENT;%s;%s;%d;%s;ACKNOWLEDGEMENT: %s\n[%lu] ACKNOWLEDGE_SVC_PROBLEM;%s;%s;%d;%d;%s\n",current_time,host_name,service_desc,(persistent_comment==TRUE)?1:0,comment_author,comment_data,current_time,host_name,service_desc,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,comment_data);
 		break;
 
 	case CMD_START_EXECUTING_SVC_CHECKS:
@@ -1790,7 +1819,7 @@ int commit_command(int cmd){
 
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_%s_DOWNTIME;%d\n",current_time,(cmd==CMD_DEL_HOST_DOWNTIME)?"HOST":"SVC",downtime_id);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_%s_DOWNTIME;%lu\n",current_time,(cmd==CMD_DEL_HOST_DOWNTIME)?"HOST":"SVC",downtime_id);
 		break;
 
 	case CMD_ENABLE_FAILURE_PREDICTION:
@@ -1826,6 +1855,16 @@ int commit_command(int cmd){
 	case CMD_IMMEDIATE_HOST_CHECK:
 	case CMD_DELAY_HOST_CHECK:
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,(cmd==CMD_IMMEDIATE_HOST_CHECK)?current_time:start_time);
+		break;
+
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_SVC;%s;%s\n",current_time,(cmd==CMD_START_OBSESSING_OVER_SVC)?"START":"STOP",host_name,service_desc);
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST;%s\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST)?"START":"STOP",host_name);
 		break;
 
 	default:
@@ -2148,17 +2187,19 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
-		printf("This command is used to acknowledge a host problem.  When a host problem is acknowledged, future notifications about problems are temporarily disabled until the host changes state (i.e. recovers).\n");
+		printf("This command is used to acknowledge a host problem.  When a host problem is acknowledged, future notifications about problems are temporarily disabled until the host changes from its current state.\n");
+		printf("If you want acknowledgement to disable notifications until the host recovers, check the 'Sticky Acknowledgement' checkbox.\n");
 		printf("Contacts for this host will receive a notification about the acknowledgement, so they are aware that someone is working on the problem.  Additionally, a comment will also be added to the host.\n");
 		printf("Make sure to enter your name and fill in a brief description of what you are doing in the comment field.  If you would like the host comment to be retained between restarts of Nagios, check\n");
-		printf("the 'Persistent' checkbox.  If you do not want an acknowledgement notification sent out to the appropriate contacts, uncheck the 'Send Notification' checkbox.\n");
+		printf("the 'Persistent Comment' checkbox.  If you do not want an acknowledgement notification sent out to the appropriate contacts, uncheck the 'Send Notification' checkbox.\n");
 		break;
 
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
-		printf("This command is used to acknowledge a service problem.  When a service problem is acknowledged, future notifications about problems are temporarily disabled until the service changes state (i.e. recovers).\n");
+		printf("This command is used to acknowledge a service problem.  When a service problem is acknowledged, future notifications about problems are temporarily disabled until the service changes from its current state.\n");
+		printf("If you want acknowledgement to disable notifications until the service recovers, check the 'Sticky Acknowledgement' checkbox.\n");
 		printf("Contacts for this service will receive a notification about the acknowledgement, so they are aware that someone is working on the problem.  Additionally, a comment will also be added to the service.\n");
 		printf("Make sure to enter your name and fill in a brief description of what you are doing in the comment field.  If you would like the service comment to be retained between restarts of Nagios, check\n");
-		printf("the 'Persistent' checkbox.  If you do not want an acknowledgement notification sent out to the appropriate contacts, uncheck the 'Send Notification' checkbox.\n");
+		printf("the 'Persistent Comment' checkbox.  If you do not want an acknowledgement notification sent out to the appropriate contacts, uncheck the 'Send Notification' checkbox.\n");
 		break;
 
 	case CMD_START_EXECUTING_SVC_CHECKS:
@@ -2401,6 +2442,22 @@ void show_command_help(cmd){
 		printf("This command will schedule an immediate check of the specified host.  Note that the check is <i>scheduled</i> immediately, not necessary executed immediately.  If Nagios\n");
 		printf("has fallen behind in its scheduling queue, it will check hosts that were queued prior to this one.\n");
 		printf("If you select the <i>force check</i> option, Nagios will force a check of the host regardless of both what time the scheduled check occurs and whether or not checks are enabled for the host.\n");
+		break;
+
+	case CMD_START_OBSESSING_OVER_SVC:
+		printf("This command is used to have Nagios start obsessing over a particular service.\n");
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		printf("This command is used to stop Nagios from obsessing over a particular service.\n");
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST:
+		printf("This command is used to have Nagios start obsessing over a particular host.\n");
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		printf("This command is used to stop Nagios from obsessing over a particular host.\n");
 		break;
 
 	default:

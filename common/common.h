@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-24-2003
+ * Last Modified: 03-22-2003
  *
  * License:
  *
@@ -174,6 +174,12 @@
 #define CMD_IMMEDIATE_HOST_CHECK		        97
 #define CMD_FORCE_DELAY_HOST_CHECK                      98
 
+#define CMD_START_OBSESSING_OVER_SVC		        99
+#define CMD_STOP_OBSESSING_OVER_SVC		        100
+
+#define CMD_START_OBSESSING_OVER_HOST		        101
+#define CMD_STOP_OBSESSING_OVER_HOST		        102
+
 
 /************************ SERVICE CHECK TYPES ****************************/
 
@@ -203,6 +209,13 @@
 
 #define SERVICE_DOWNTIME		0	/* service downtime */
 #define HOST_DOWNTIME			1	/* host downtime */
+
+
+/************************** ACKNOWLEDGEMENT TYPES ************************/
+
+#define ACKNOWLEDGEMENT_NONE            0
+#define ACKNOWLEDGEMENT_NORMAL          1
+#define ACKNOWLEDGEMENT_STICKY          2
 
 
 /**************************** DEPENDENCY TYPES ***************************/

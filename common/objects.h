@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-10-2003
+ * Last Modified:   03-21-2003
  *
  * License:
  *
@@ -128,6 +128,7 @@ typedef struct host_struct{
 	int     obsess_over_host;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
+	int     acknowledgement_type;
 	int     check_type;
 	int     current_state;
 	int     last_state;
@@ -158,7 +159,7 @@ typedef struct host_struct{
 	int     state_history_index;
 	time_t  last_state_history_update;
 	int     is_flapping;
-	int     flapping_comment_id;
+	unsigned long flapping_comment_id;
 	double  percent_state_change;
 	int     total_services;
 	unsigned long total_service_check_interval;
@@ -253,6 +254,7 @@ typedef struct service_struct{
 	char    *failure_prediction_options;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
+	int     acknowledgement_type;
 	int     host_problem_at_last_check;
 	int     dependency_failure_at_last_check;
 	int     no_recovery_notification;
@@ -287,7 +289,7 @@ typedef struct service_struct{
 	int     state_history[MAX_STATE_HISTORY_ENTRIES];    /* flap detection */
 	int     state_history_index;
 	int     is_flapping;
-	int     flapping_comment_id;
+	unsigned long flapping_comment_id;
 	double  percent_state_change;
 #endif
 	struct service_struct *next;

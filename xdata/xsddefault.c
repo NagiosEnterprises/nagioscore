@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   03-20-2003
  *
  * License:
  *
@@ -333,6 +333,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_host->notifications_enabled);
 		fprintf(fp,"\tproblem_has_been_acknowledged=%d\n",temp_host->problem_has_been_acknowledged);
+		fprintf(fp,"\tacknowledgement_type=%d\n",temp_host->acknowledgement_type);
 		fprintf(fp,"\tactive_checks_enabled=%d\n",temp_host->checks_enabled);
 		fprintf(fp,"\tpassive_checks_enabled=%d\n",temp_host->accept_passive_host_checks);
 		fprintf(fp,"\tevent_handler_enabled=%d\n",temp_host->event_handler_enabled);
@@ -383,6 +384,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tpassive_checks_enabled=%d\n",temp_service->accept_passive_service_checks);
 		fprintf(fp,"\tevent_handler_enabled=%d\n",temp_service->event_handler_enabled);
 		fprintf(fp,"\tproblem_has_been_acknowledged=%d\n",temp_service->problem_has_been_acknowledged);
+		fprintf(fp,"\tacknowledgement_type=%d\n",temp_service->acknowledgement_type);
 		fprintf(fp,"\tflap_detection_enabled=%d\n",temp_service->flap_detection_enabled);
 		fprintf(fp,"\tfailure_prediction_enabled=%d\n",temp_service->failure_prediction_enabled);
 		fprintf(fp,"\tprocess_performance_data=%d\n",temp_service->process_performance_data);
@@ -598,6 +600,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"problem_has_been_acknowledged"))
 						temp_hoststatus->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
+					else if(!strcmp(var,"acknowledgement_type"))
+						temp_hoststatus->acknowledgement_type=atoi(val);
 					else if(!strcmp(var,"active_checks_enabled"))
 						temp_hoststatus->checks_enabled=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"passive_checks_enabled"))
@@ -681,6 +685,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->event_handler_enabled=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"problem_has_been_acknowledged"))
 						temp_servicestatus->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
+					else if(!strcmp(var,"acknowledgement_type"))
+						temp_servicestatus->acknowledgement_type=atoi(val);
 					else if(!strcmp(var,"flap_detection_enabled"))
 						temp_servicestatus->flap_detection_enabled=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"failure_prediction_enabled"))

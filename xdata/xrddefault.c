@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   03-20-2003
  *
  * License:
  *
@@ -210,6 +210,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_host->notifications_enabled);
 		fprintf(fp,"\tproblem_has_been_acknowledged=%d\n",temp_host->problem_has_been_acknowledged);
+		fprintf(fp,"\tacknowledgement_type=%d\n",temp_host->acknowledgement_type);
 		fprintf(fp,"\tactive_checks_enabled=%d\n",temp_host->checks_enabled);
 		fprintf(fp,"\tpassive_checks_enabled=%d\n",temp_host->accept_passive_host_checks);
 		fprintf(fp,"\tevent_handler_enabled=%d\n",temp_host->event_handler_enabled);
@@ -217,6 +218,8 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tfailure_prediction_enabled=%d\n",temp_host->failure_prediction_enabled);
 		fprintf(fp,"\tprocess_performance_data=%d\n",temp_host->process_performance_data);
 		fprintf(fp,"\tobsess_over_host=%d\n",temp_host->obsess_over_host);
+		fprintf(fp,"\tis_flapping=%d\n",temp_host->is_flapping);
+		fprintf(fp,"\tpercent_state_change=%.2f\n",temp_host->percent_state_change);
 
 		fprintf(fp,"\tstate_history=");
 		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
@@ -257,10 +260,13 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tpassive_checks_enabled=%d\n",temp_service->accept_passive_service_checks);
 		fprintf(fp,"\tevent_handler_enabled=%d\n",temp_service->event_handler_enabled);
 		fprintf(fp,"\tproblem_has_been_acknowledged=%d\n",temp_service->problem_has_been_acknowledged);
+		fprintf(fp,"\tacknowledgement_type=%d\n",temp_service->acknowledgement_type);
 		fprintf(fp,"\tflap_detection_enabled=%d\n",temp_service->flap_detection_enabled);
 		fprintf(fp,"\tfailure_prediction_enabled=%d\n",temp_service->failure_prediction_enabled);
 		fprintf(fp,"\tprocess_performance_data=%d\n",temp_service->process_performance_data);
 		fprintf(fp,"\tobsess_over_service=%d\n",temp_service->obsess_over_service);
+		fprintf(fp,"\tis_flapping=%d\n",temp_service->is_flapping);
+		fprintf(fp,"\tpercent_state_change=%.2f\n",temp_service->percent_state_change);
 
 		fprintf(fp,"\tstate_history=");
 		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
@@ -435,65 +441,71 @@ int xrddefault_read_state_information(char *main_config_file){
 					temp_host=find_host(host_name);
 				        }
 				else if(temp_host!=NULL){
-					if(!strcmp(var,"has_been_checked"))
-						temp_host->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"check_execution_time"))
-						temp_host->execution_time=strtod(val,NULL);
-					else if(!strcmp(var,"check_latency"))
-						temp_host->latency=strtoul(val,NULL,10);
-					else if(!strcmp(var,"current_state"))
-						temp_host->current_state=atoi(val);
-					else if(!strcmp(var,"last_state"))
-						temp_host->last_state=atoi(val);
-					else if(!strcmp(var,"last_hard_state"))
-						temp_host->last_hard_state=atoi(val);
-					else if(!strcmp(var,"has_been_down"))
-						temp_host->has_been_down=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"has_been_unreachable"))
-						temp_host->has_been_unreachable=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"plugin_output")){
-						strncpy(temp_host->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
-						temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+					if(temp_host->retain_status_information==TRUE){
+						if(!strcmp(var,"has_been_checked"))
+							temp_host->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"check_execution_time"))
+							temp_host->execution_time=strtod(val,NULL);
+						else if(!strcmp(var,"check_latency"))
+							temp_host->latency=strtoul(val,NULL,10);
+						else if(!strcmp(var,"current_state"))
+							temp_host->current_state=atoi(val);
+						else if(!strcmp(var,"last_state"))
+							temp_host->last_state=atoi(val);
+						else if(!strcmp(var,"last_hard_state"))
+							temp_host->last_hard_state=atoi(val);
+						else if(!strcmp(var,"has_been_down"))
+							temp_host->has_been_down=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"has_been_unreachable"))
+							temp_host->has_been_unreachable=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"plugin_output")){
+							strncpy(temp_host->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
+							temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+					                }
+						else if(!strcmp(var,"performance_data")){
+							strncpy(temp_host->perf_data,val,MAX_PLUGINOUTPUT_LENGTH-1);
+							temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+					                }
+						else if(!strcmp(var,"last_check"))
+							temp_host->last_check=strtoul(val,NULL,10);
+						else if(!strcmp(var,"current_attempt"))
+							temp_host->current_attempt=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"state_type"))
+							temp_host->state_type=atoi(val);
+						else if(!strcmp(var,"last_state_change"))
+							temp_host->last_state_change=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_notification"))
+							temp_host->last_host_notification=strtoul(val,NULL,10);
+						else if(!strcmp(var,"current_notification_number"))
+							temp_host->current_notification_number=atoi(val);
+						else if(!strcmp(var,"problem_has_been_acknowledged"))
+							temp_host->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"acknowledgement_type"))
+							temp_host->acknowledgement_type=atoi(val);
+						else if(!strcmp(var,"state_history")){
+							temp_ptr=val;
+							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
+								temp_host->state_history[x]=atoi(strsep(&temp_ptr,","));
+							temp_host->state_history_index=0;
+						        }
 					        }
-					else if(!strcmp(var,"performance_data")){
-						strncpy(temp_host->perf_data,val,MAX_PLUGINOUTPUT_LENGTH-1);
-						temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-					        }
-					else if(!strcmp(var,"last_check"))
-						temp_host->last_check=strtoul(val,NULL,10);
-					else if(!strcmp(var,"current_attempt"))
-						temp_host->current_attempt=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"state_type"))
-						temp_host->state_type=atoi(val);
-					else if(!strcmp(var,"last_state_change"))
-						temp_host->last_state_change=strtoul(val,NULL,10);
-					else if(!strcmp(var,"last_notification"))
-						temp_host->last_host_notification=strtoul(val,NULL,10);
-					else if(!strcmp(var,"current_notification_number"))
-						temp_host->current_notification_number=atoi(val);
-					else if(!strcmp(var,"notifications_enabled"))
-						temp_host->notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"problem_has_been_acknowledged"))
-						temp_host->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"active_checks_enabled"))
-						temp_host->checks_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"passive_checks_enabled"))
-						temp_host->accept_passive_host_checks=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"event_handler_enabled"))
-						temp_host->event_handler_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"flap_detection_enabled"))
-						temp_host->flap_detection_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"failure_prediction_enabled"))
-						temp_host->failure_prediction_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"process_performance_data"))
-						temp_host->process_performance_data=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"obsess_over_host"))
-						temp_host->obsess_over_host=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"state_history")){
-						temp_ptr=val;
-						for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-							temp_host->state_history[x]=atoi(strsep(&temp_ptr,","));
-						temp_host->state_history_index=0;
+					if(temp_host->retain_nonstatus_information==TRUE){
+						if(!strcmp(var,"notifications_enabled"))
+							temp_host->notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"active_checks_enabled"))
+							temp_host->checks_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"passive_checks_enabled"))
+							temp_host->accept_passive_host_checks=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"event_handler_enabled"))
+							temp_host->event_handler_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"flap_detection_enabled"))
+							temp_host->flap_detection_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"failure_prediction_enabled"))
+							temp_host->failure_prediction_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"process_performance_data"))
+							temp_host->process_performance_data=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"obsess_over_host"))
+							temp_host->obsess_over_host=(atoi(val)>0)?TRUE:FALSE;
 					        }
 				        }
 				break;
@@ -508,70 +520,76 @@ int xrddefault_read_state_information(char *main_config_file){
 					temp_service=find_service(host_name,service_description);
 				        }
 				else if(temp_service!=NULL){
-					if(!strcmp(var,"has_been_checked"))
-						temp_service->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"check_execution_time"))
-						temp_service->execution_time=strtod(val,NULL);
-					else if(!strcmp(var,"check_latency"))
-						temp_service->latency=strtoul(val,NULL,10);
-					else if(!strcmp(var,"current_state"))
-						temp_service->current_state=atoi(val);
-					else if(!strcmp(var,"last_state"))
-						temp_service->last_state=atoi(val);
-					else if(!strcmp(var,"last_hard_state"))
-						temp_service->last_hard_state=atoi(val);
-					else if(!strcmp(var,"has_been_unknown"))
-						temp_service->has_been_unknown=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"has_been_warning"))
-						temp_service->has_been_warning=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"has_been_critical"))
-						temp_service->has_been_critical=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"current_attempt"))
-						temp_service->current_attempt=atoi(val);
-					else if(!strcmp(var,"state_type"))
-						temp_service->state_type=atoi(val);
-					else if(!strcmp(var,"last_state_change"))
-						temp_service->last_state_change=strtoul(val,NULL,10);
-					else if(!strcmp(var,"plugin_output")){
-						strncpy(temp_service->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
-						temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-					        }
-					else if(!strcmp(var,"performance_data")){
-						strncpy(temp_service->perf_data,val,MAX_PLUGINOUTPUT_LENGTH-1);
-						temp_service->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-					        }
-					else if(!strcmp(var,"last_check"))
-						temp_service->last_check=strtoul(val,NULL,10);
-					else if(!strcmp(var,"check_type"))
-						temp_service->check_type=atoi(val);
-					else if(!strcmp(var,"current_notification_number"))
-						temp_service->current_notification_number=atoi(val);
-					else if(!strcmp(var,"last_notification"))
-						temp_service->last_notification=strtoul(val,NULL,10);
-					else if(!strcmp(var,"notifications_enabled"))
-						temp_service->notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"active_checks_enabled"))
-						temp_service->checks_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"passive_checks_enabled"))
-						temp_service->accept_passive_service_checks=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"event_handler_enabled"))
-						temp_service->event_handler_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"problem_has_been_acknowledged"))
-						temp_service->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"flap_detection_enabled"))
-						temp_service->flap_detection_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"failure_prediction_enabled"))
-						temp_service->failure_prediction_enabled=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"process_performance_data"))
-						temp_service->process_performance_data=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"obsess_over_service"))
-						temp_service->obsess_over_service=(atoi(val)>0)?TRUE:FALSE;
+					if(temp_service->retain_status_information==TRUE){
+						if(!strcmp(var,"has_been_checked"))
+							temp_service->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"check_execution_time"))
+							temp_service->execution_time=strtod(val,NULL);
+						else if(!strcmp(var,"check_latency"))
+							temp_service->latency=strtoul(val,NULL,10);
+						else if(!strcmp(var,"current_state"))
+							temp_service->current_state=atoi(val);
+						else if(!strcmp(var,"last_state"))
+							temp_service->last_state=atoi(val);
+						else if(!strcmp(var,"last_hard_state"))
+							temp_service->last_hard_state=atoi(val);
+						else if(!strcmp(var,"has_been_unknown"))
+							temp_service->has_been_unknown=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"has_been_warning"))
+							temp_service->has_been_warning=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"has_been_critical"))
+							temp_service->has_been_critical=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"current_attempt"))
+							temp_service->current_attempt=atoi(val);
+						else if(!strcmp(var,"state_type"))
+							temp_service->state_type=atoi(val);
+						else if(!strcmp(var,"last_state_change"))
+							temp_service->last_state_change=strtoul(val,NULL,10);
+						else if(!strcmp(var,"plugin_output")){
+							strncpy(temp_service->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
+							temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+					                }
+						else if(!strcmp(var,"performance_data")){
+							strncpy(temp_service->perf_data,val,MAX_PLUGINOUTPUT_LENGTH-1);
+							temp_service->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+					                }
+						else if(!strcmp(var,"last_check"))
+							temp_service->last_check=strtoul(val,NULL,10);
+						else if(!strcmp(var,"check_type"))
+							temp_service->check_type=atoi(val);
+						else if(!strcmp(var,"current_notification_number"))
+							temp_service->current_notification_number=atoi(val);
+						else if(!strcmp(var,"last_notification"))
+							temp_service->last_notification=strtoul(val,NULL,10);
 
-					else if(!strcmp(var,"state_history")){
-						temp_ptr=val;
-						for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-							temp_service->state_history[x]=atoi(strsep(&temp_ptr,","));
-						temp_service->state_history_index=0;
+						else if(!strcmp(var,"state_history")){
+							temp_ptr=val;
+							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
+								temp_service->state_history[x]=atoi(strsep(&temp_ptr,","));
+							temp_service->state_history_index=0;
+						        }
+					        }
+					if(temp_service->retain_nonstatus_information==TRUE){
+						if(!strcmp(var,"notifications_enabled"))
+							temp_service->notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"active_checks_enabled"))
+							temp_service->checks_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"passive_checks_enabled"))
+							temp_service->accept_passive_service_checks=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"event_handler_enabled"))
+							temp_service->event_handler_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"problem_has_been_acknowledged"))
+							temp_service->problem_has_been_acknowledged=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"acknowledgement_type"))
+							temp_service->acknowledgement_type=atoi(val);
+						else if(!strcmp(var,"flap_detection_enabled"))
+							temp_service->flap_detection_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"failure_prediction_enabled"))
+							temp_service->failure_prediction_enabled=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"process_performance_data"))
+							temp_service->process_performance_data=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"obsess_over_service"))
+							temp_service->obsess_over_service=(atoi(val)>0)?TRUE:FALSE;
 					        }
 				        }
 				break;

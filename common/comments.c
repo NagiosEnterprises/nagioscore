@@ -97,7 +97,7 @@ int cleanup_comment_data(char *config_file){
 
 
 /* adds a new host or service comment */
-int add_new_comment(int type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int *comment_id){
+int add_new_comment(int type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
 	int result;
 
 	if(type==HOST_COMMENT)
@@ -110,7 +110,7 @@ int add_new_comment(int type, char *host_name, char *svc_description, time_t ent
 
 
 /* adds a new host comment */
-int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int *comment_id){
+int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
 	int result;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
@@ -126,7 +126,7 @@ int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, 
 
 
 /* adds a new service comment */
-int add_new_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int *comment_id){
+int add_new_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
 	int result;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
@@ -148,7 +148,7 @@ int add_new_service_comment(char *host_name, char *svc_description, time_t entry
 
 
 /* deletes a host or service comment */
-int delete_comment(int type, int comment_id){
+int delete_comment(int type, unsigned long comment_id){
 	int result;
 	comment *this_comment;
 	comment *last_comment;
@@ -190,7 +190,7 @@ int delete_comment(int type, int comment_id){
 
 
 /* deletes a host comment */
-int delete_host_comment(int comment_id){
+int delete_host_comment(unsigned long comment_id){
 	int result;
 
 	/* delete the comment from memory */
@@ -210,7 +210,7 @@ int delete_host_comment(int comment_id){
 
 
 /* deletes a service comment */
-int delete_service_comment(int comment_id){
+int delete_service_comment(unsigned long comment_id){
 	int result;
 	
 	/* delete the comment from memory */
@@ -337,7 +337,7 @@ int read_comment_data(char *main_config_file){
 
 
 /* adds a host comment to the list in memory */
-int add_host_comment(char *host_name, time_t entry_time, char *author, char *comment_data, int comment_id, int persistent, int source){
+int add_host_comment(char *host_name, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int source){
 	int result;
 
 	result=add_comment(HOST_COMMENT,host_name,NULL,entry_time,author,comment_data,comment_id,persistent,source);
@@ -348,7 +348,7 @@ int add_host_comment(char *host_name, time_t entry_time, char *author, char *com
 
 
 /* adds a service comment to the list in memory */
-int add_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, int comment_id, int persistent, int source){
+int add_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int source){
 	int result;
 
 	result=add_comment(SERVICE_COMMENT,host_name,svc_description,entry_time,author,comment_data,comment_id,persistent,source);
@@ -359,7 +359,7 @@ int add_service_comment(char *host_name, char *svc_description, time_t entry_tim
 
 
 /* adds a comment to the list in memory */
-int add_comment(int comment_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, int comment_id, int persistent, int source){
+int add_comment(int comment_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int source){
 	comment *new_comment=NULL;
 	comment *last_comment=NULL;
 	comment *temp_comment=NULL;
@@ -472,7 +472,6 @@ void free_comment_data(void){
 
 
 
-#ifdef NSCGI
 
 /******************************************************************/
 /********************* UTILITY FUNCTIONS **************************/
@@ -513,21 +512,21 @@ int number_of_service_comments(char *host_name, char *svc_description){
 
 
 /* find a service comment by id */
-comment *find_service_comment(int comment_id){
+comment *find_service_comment(unsigned long comment_id){
 	
 	return find_comment(comment_id,SERVICE_COMMENT);
         }
 
 
 /* find a host comment by id */
-comment *find_host_comment(int comment_id){
+comment *find_host_comment(unsigned long comment_id){
 	
 	return find_comment(comment_id,HOST_COMMENT);
         }
 
 
 /* find a comment by id */
-comment *find_comment(int comment_id, int comment_type){
+comment *find_comment(unsigned long comment_id, int comment_type){
 	comment *temp_comment;
 
 	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -539,7 +538,6 @@ comment *find_comment(int comment_id, int comment_type){
         }
 
 
-#endif
 
 
 

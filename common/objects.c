@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-10-2003
+ * Last Modified:   03-21-2003
  *
  * License:
  *
@@ -899,6 +899,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->last_state_change=(time_t)0;
 	new_host->has_been_checked=FALSE;
 	new_host->problem_has_been_acknowledged=FALSE;
+	new_host->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 	new_host->has_been_down=FALSE;
 	new_host->has_been_unreachable=FALSE;
 	new_host->current_notification_number=0;
@@ -914,7 +915,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->state_history_index=0;
 	new_host->last_state_history_update=(time_t)0;
 	new_host->is_flapping=FALSE;
-	new_host->flapping_comment_id=-1;
+	new_host->flapping_comment_id=0;
 	new_host->percent_state_change=0.0;
 	new_host->total_services=0;
 	new_host->total_service_check_interval=0L;
@@ -2373,6 +2374,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
 #ifdef NSCORE
 	new_service->problem_has_been_acknowledged=FALSE;
+	new_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 	new_service->check_type=SERVICE_CHECK_ACTIVE;
 	new_service->current_attempt=1;
 	new_service->current_state=STATE_OK;
@@ -2406,7 +2408,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		new_service->state_history[x]=STATE_OK;
 	new_service->state_history_index=0;
 	new_service->is_flapping=FALSE;
-	new_service->flapping_comment_id=-1;
+	new_service->flapping_comment_id=0;
 	new_service->percent_state_change=0.0;
 
 	/* allocate new plugin output buffer */

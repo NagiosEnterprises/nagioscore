@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   03-21-2003
  *
  * License:
  *
@@ -598,8 +598,15 @@ int handle_host_state(host *hst){
 	/* if the host state has changed... */
 	if(state_change==TRUE){
 
-		/* reset the acknowledgement flag */
-		hst->problem_has_been_acknowledged=FALSE;
+		/* reset the acknowledgement flag if necessary */
+		if(hst->acknowledgement_type=ACKNOWLEDGEMENT_NORMAL){
+			hst->problem_has_been_acknowledged=FALSE;
+			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+		        }
+		else if(hst->acknowledgement_type=ACKNOWLEDGEMENT_STICKY && hst->current_state==HOST_UP){
+			hst->problem_has_been_acknowledged=FALSE;
+			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+		        }
 
 		/* reset the next and last notification times */
 		hst->last_host_notification=(time_t)0;
@@ -623,11 +630,11 @@ int handle_host_state(host *hst){
 
 		/* check for start of flexible (non-fixed) scheduled downtime */
 		if(hst->state_type==HARD_STATE)
-			check_pending_flex_host_downtime(hst,hst->current_state);
+			check_pending_flex_host_downtime(hst);
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
 		if(hst->state_type==HARD_STATE)
-			host_notification(hst,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL);
 
 		/* handle the host state change */
 		handle_host_event(hst);
@@ -645,7 +652,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts if host is still down or unreachable */
 		if(hst->current_state!=HOST_UP && hst->state_type==HARD_STATE)
-			host_notification(hst,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL);
 
 		/* if we're in a soft state and we should log host retries, do so now... */
 		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)

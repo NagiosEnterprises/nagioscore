@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-16-2003
+ * Last Modified:   03-22-2003
  *
  * License:
  *
@@ -360,6 +360,16 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_CHECK"))
 			command_type=CMD_FORCE_DELAY_HOST_CHECK;
 
+		else if(!strcmp(command_id,"START_OBSESSING_OVER_SVC"))
+			command_type=CMD_START_OBSESSING_OVER_SVC;
+		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_SVC"))
+			command_type=CMD_STOP_OBSESSING_OVER_SVC;
+
+		else if(!strcmp(command_id,"START_OBSESSING_OVER_HOST"))
+			command_type=CMD_START_OBSESSING_OVER_HOST;
+		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST"))
+			command_type=CMD_STOP_OBSESSING_OVER_HOST;
+
 		else{
 			/* log the bad external command */
 			snprintf(buffer,sizeof(buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
@@ -637,6 +647,16 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 		cmd_schedule_host_check(cmd,args,(cmd==CMD_FORCE_DELAY_HOST_CHECK)?TRUE:FALSE);
 		break;
 
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		cmd_start_stop_obsessing_over_service(cmd,args);
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		cmd_start_stop_obsessing_over_host(cmd,args);
+		break;
+
 	default:
 		break;
 	        }
@@ -730,15 +750,15 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 
 /* removes a host or service comment from the status log */
 int cmd_delete_comment(int cmd,char *args){
-	int comment_id;
+	unsigned long comment_id;
 
 #ifdef DEBUG0
 	printf("cmd_del_comment() start\n");
 #endif
 	
 	/* get the comment id we should delete */
-	comment_id=atoi(args);
-	if(comment_id<=0)
+	comment_id=strtoul(args,NULL,10);
+	if(comment_id==0)
 		return ERROR;
 
 	/* delete the specified comment */
@@ -1578,6 +1598,7 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	char *svc_description="";
 	char *ack_data;
 	char *temp_ptr;
+	int type=ACKNOWLEDGEMENT_NORMAL;
 	int notify=TRUE;
 
 #ifdef DEBUG0
@@ -1608,6 +1629,12 @@ int cmd_acknowledge_problem(int cmd,char *args){
 			return ERROR;
 	        }
 
+	/* get the type */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+	type=atoi(temp_ptr);
+
 	/* get the notification option */
 	temp_ptr=my_strtok(NULL,";");
 	if(temp_ptr==NULL)
@@ -1621,11 +1648,11 @@ int cmd_acknowledge_problem(int cmd,char *args){
 
 	/* acknowledge the host problem */
 	if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)
-		acknowledge_host_problem(temp_host,ack_data,notify);
+		acknowledge_host_problem(temp_host,ack_data,type,notify);
 
 	/* acknowledge the service problem */
 	else
-		acknowledge_service_problem(temp_service,ack_data,notify);
+		acknowledge_service_problem(temp_service,ack_data,type,notify);
 
 
 #ifdef DEBUG0
@@ -2167,7 +2194,7 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 
 /* deletes scheduled host or service downtime */
 int cmd_delete_downtime(int cmd, char *args){
-	int downtime_id;
+	unsigned long downtime_id;
 	char *temp_ptr;
 
 #ifdef DEBUG0
@@ -2178,7 +2205,7 @@ int cmd_delete_downtime(int cmd, char *args){
 	temp_ptr=my_strtok(args,"\n");
 	if(temp_ptr==NULL)
 		return ERROR;
-	downtime_id=atoi(temp_ptr);
+	downtime_id=strtoul(temp_ptr,NULL,10);
 
 	if(cmd==CMD_DEL_HOST_DOWNTIME)
 		unschedule_downtime(HOST_DOWNTIME,downtime_id);
@@ -2274,6 +2301,81 @@ int cmd_schedule_host_service_downtime(int cmd, time_t entry_time, char *args){
 	return OK;
         }
 
+
+/* start or stop obsessing over specific service checks */
+int cmd_start_stop_obsessing_over_service(int cmd, char *args){
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	char *host_name="";
+	char *svc_description="";
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_obsessing_over_service() start\n");
+#endif
+
+	/* get the host name */
+	host_name=my_strtok(args,";");
+	if(host_name==NULL)
+		return ERROR;
+
+	/* verify that the host is valid */
+	temp_host=find_host(host_name);
+	if(temp_host==NULL)
+		return ERROR;
+
+	/* get the service description */
+	svc_description=my_strtok(NULL,"\n");
+	if(svc_description==NULL)
+		return ERROR;
+
+	/* verify that the service is valid */
+	temp_service=find_service(host_name,svc_description);
+	if(temp_service==NULL)
+		return ERROR;
+
+	if(cmd==CMD_START_OBSESSING_OVER_SVC)
+		start_obsessing_over_service(temp_service);
+	else
+		stop_obsessing_over_service(temp_service);
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_obsessing_over_service() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* start or stop obsessing over specific host checks */
+int cmd_start_stop_obsessing_over_host(int cmd, char *args){
+	host *temp_host=NULL;
+	char *host_name="";
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_obsessing_over_host() start\n");
+#endif
+
+	/* get the host name */
+	host_name=my_strtok(args,"\n");
+	if(host_name==NULL)
+		return ERROR;
+
+	/* verify that the host is valid */
+	temp_host=find_host(host_name);
+	if(temp_host==NULL)
+		return ERROR;
+
+	if(cmd==CMD_START_OBSESSING_OVER_HOST)
+		start_obsessing_over_host(temp_host);
+	else
+		stop_obsessing_over_host(temp_host);
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_obsessing_over_host() end\n");
+#endif
+
+	return OK;
+        }
 
 
 
@@ -2725,7 +2827,7 @@ void disable_and_propagate_notifications(host *hst){
 
 
 /* acknowledges a host problem */
-void acknowledge_host_problem(host *hst, char *ack_data, int notify){
+void acknowledge_host_problem(host *hst, char *ack_data, int type, int notify){
 
 #ifdef DEBUG0
 	printf("acknowledge_host_problem() start\n");
@@ -2733,10 +2835,13 @@ void acknowledge_host_problem(host *hst, char *ack_data, int notify){
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		host_notification(hst,ack_data);
+		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_data);
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged=TRUE;
+
+	/* set the acknowledgement type */
+	hst->acknowledgement_type=(type==ACKNOWLEDGEMENT_STICKY)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL;
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -2750,7 +2855,7 @@ void acknowledge_host_problem(host *hst, char *ack_data, int notify){
 
 
 /* acknowledges a service problem */
-void acknowledge_service_problem(service *svc, char *ack_data, int notify){
+void acknowledge_service_problem(service *svc, char *ack_data, int type, int notify){
 
 #ifdef DEBUG0
 	printf("acknowledge_service_problem() start\n");
@@ -2758,10 +2863,13 @@ void acknowledge_service_problem(service *svc, char *ack_data, int notify){
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		service_notification(svc,ack_data);
+		service_notification(svc,NOTIFICATION_ACKNOWLEDGEMENT,ack_data);
 
 	/* set the acknowledgement flag */
 	svc->problem_has_been_acknowledged=TRUE;
+
+	/* set the acknowledgement type */
+	svc->acknowledgement_type=(type==ACKNOWLEDGEMENT_STICKY)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL;
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -3466,6 +3574,89 @@ void disable_performance_data(void){
 	return;
         }
 
+
+/* start obsessing over a particular service */
+void start_obsessing_over_service(service *svc){
+
+#ifdef DEBUG0
+	printf("start_obsessing_over_service() start\n");
+#endif
+
+	/* set the obsess over service flag */
+	svc->obsess_over_service=TRUE;
+
+	/* update the status log with the service info */
+	update_service_status(svc,FALSE);
+
+#ifdef DEBUG0
+	printf("start_obsessing_over_service() end\n");
+#endif
+
+	return;
+        }
+
+
+/* stop obsessing over a particular service */
+void stop_obsessing_over_service(service *svc){
+
+#ifdef DEBUG0
+	printf("stop_obsessing_over_service() start\n");
+#endif
+
+	/* set the obsess over service flag */
+	svc->obsess_over_service=FALSE;
+
+	/* update the status log with the service info */
+	update_service_status(svc,FALSE);
+
+#ifdef DEBUG0
+	printf("stop_obsessing_over_service() end\n");
+#endif
+
+	return;
+        }
+
+
+/* start obsessing over a particular host */
+void start_obsessing_over_host(host *hst){
+
+#ifdef DEBUG0
+	printf("start_obsessing_over_host() start\n");
+#endif
+
+	/* set the obsess over host flag */
+	hst->obsess_over_host=TRUE;
+
+	/* update the status log with the host info */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("start_obsessing_over_host() end\n");
+#endif
+
+	return;
+        }
+
+
+/* stop obsessing over a particular host */
+void stop_obsessing_over_host(host *hst){
+
+#ifdef DEBUG0
+	printf("stop_obsessing_over_host() start\n");
+#endif
+
+	/* set the obsess over host flag */
+	hst->obsess_over_host=FALSE;
+
+	/* update the status log with the host info */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("stop_obsessing_over_host() end\n");
+#endif
+
+	return;
+        }
 
 
 /* process all passive service checks found in a given file */

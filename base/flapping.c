@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-16-2003
+ * Last Modified:   03-21-2003
  *
  * License:
  *
@@ -320,16 +320,16 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
 
 	/* delete the comment we added earlier */
-	if(svc->flapping_comment_id!=-1)
+	if(svc->flapping_comment_id!=0)
 		delete_service_comment(svc->flapping_comment_id);
-	svc->flapping_comment_id=-1;
+	svc->flapping_comment_id=0;
 
 	/* clear the flapping indicator */
 	svc->is_flapping=FALSE;
 
 	/* should we send a recovery notification? */
 	if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
-		service_notification(svc,NULL);
+		service_notification(svc,NOTIFICATION_NORMAL,NULL);
 
 	/* clear the recovery notification flag */
 	svc->check_flapping_recovery_notification=FALSE;
@@ -391,16 +391,16 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
 
 	/* delete the comment we added earlier */
-	if(hst->flapping_comment_id!=-1)
+	if(hst->flapping_comment_id!=0)
 		delete_host_comment(hst->flapping_comment_id);
-	hst->flapping_comment_id=-1;
+	hst->flapping_comment_id=0;
 
 	/* clear the flapping indicator */
 	hst->is_flapping=FALSE;
 
 	/* should we send a recovery notification? */
 	if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
-		host_notification(hst,NULL);
+		host_notification(hst,NOTIFICATION_NORMAL,NULL);
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification=FALSE;
@@ -517,9 +517,9 @@ void disable_host_flap_detection(host *hst){
 		hst->is_flapping=FALSE;
 
 		/* delete the original comment we added earlier */
-		if(hst->flapping_comment_id!=-1)
+		if(hst->flapping_comment_id!=0)
 			delete_host_comment(hst->flapping_comment_id);
-		hst->flapping_comment_id=-1;
+		hst->flapping_comment_id=0;
 
 		/* log a notice - this one is parsed by the history CGI */
 		snprintf(buffer,sizeof(buffer)-1,"HOST FLAPPING ALERT: %s;DISABLED; Flap detection has been disabled\n",hst->name);
@@ -596,9 +596,9 @@ void disable_service_flap_detection(service *svc){
 		svc->is_flapping=FALSE;
 
 		/* delete the original comment we added earlier */
-		if(svc->flapping_comment_id!=-1)
+		if(svc->flapping_comment_id!=0)
 			delete_service_comment(svc->flapping_comment_id);
-		svc->flapping_comment_id=-1;
+		svc->flapping_comment_id=0;
 
 		/* log a notice - this one is parsed by the history CGI */
 		snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;DISABLED; Flap detection has been disabled\n",svc->host_name,svc->description);

@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-08-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2004
  *
  * License:
  *
@@ -1821,6 +1821,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	int status;
 	int result;
 	char buffer[MAX_INPUT_BUFFER];
+	char temp_buffer[MAX_INPUT_BUFFER];
 	int fd[2];
 	FILE *fp=NULL;
 	int bytes_read=0;
@@ -1990,6 +1991,10 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			buffer[sizeof(buffer)-1]='\x0';
 			strip(buffer);
 
+			/* ADDED 01/04/2004 */
+			/* ignore any additional lines of output */
+			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
+
 			/* close and delete temp file */
 			fclose(fp);
 			close(tmpfd);
@@ -2040,6 +2045,10 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 			/* read in the first line of output from the command */
 			fgets(buffer,sizeof(buffer)-1,fp);
+
+			/* ADDED 01/04/2004 */
+			/* ignore any additional lines of output */
+			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
 
 			/* close the command and get termination status */
 			status=pclose(fp);

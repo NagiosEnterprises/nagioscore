@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-09-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-05-2004
  *
  * License:
  * 
@@ -58,6 +58,7 @@ extern comment *comment_list;
 
 char *host_name="";
 char *hostgroup_name="";
+char *servicegroup_name="";
 char *service_desc="";
 char *comment_author="";
 char *comment_data="";
@@ -428,6 +429,21 @@ int process_cgivars(void){
 				service_desc="";
 			else
 				strcpy(service_desc,variables[x]);
+			}
+
+		/* we found the servicegroup name */
+		else if(!strcmp(variables[x],"servicegroup")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			servicegroup_name=(char *)malloc(strlen(variables[x])+1);
+			if(servicegroup_name==NULL)
+				servicegroup_name="";
+			else
+				strcpy(servicegroup_name,variables[x]);
 			}
 
 		/* we got the persistence option for a comment */
@@ -843,6 +859,29 @@ void request_command_data(int cmd){
 		printf("%s obsessing over a particular host",(cmd==CMD_START_OBSESSING_OVER_HOST)?"start":"stop");
 		break;
 
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+		printf("%s notifications for all services in a particular servicegroup",(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"enable":"disable");
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+		printf("%s notifications for all hosts in a particular servicegroup",(cmd==CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS)?"enable":"disable");
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+		printf("%s active checks of all services in a particular servicegroup",(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"enable":"disable");
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+		printf("schedule downtime for all hosts in a particular servicegroup");
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+		printf("schedule downtime for all services in a particular servicegroup");
+		break;
+
 	default:
 		printf("execute an unknown command.  Shame on you!</DIV>");
 		return;
@@ -961,7 +1000,7 @@ void request_command_data(int cmd){
 		printf("<INPUT TYPE='TEXT' NAME='start_time' VALUE='%s'>",buffer);
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxItem'>Force Check:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME=x'force_check' CHECKED>");
+		printf("<INPUT TYPE='checkbox' NAME='force_check' CHECKED>");
 		printf("</b></td></tr>\n");
 		break;
 
@@ -1185,6 +1224,22 @@ void request_command_data(int cmd){
 		        }
 		break;
 		
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+		printf("<tr><td CLASS='optBoxRequiredItem'>Servicegroup Name:</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='servicegroup' VALUE='%s'>",servicegroup_name);
+		printf("</b></td></tr>\n");
+		if(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_DISABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS){
+			printf("<tr><td CLASS='optBoxItem'>%s For Hosts Too:</td><td><b>",(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"Enable":"Disable");
+			printf("<INPUT TYPE='checkbox' NAME='ahas'>");
+			printf("</b></td></tr>\n");
+		        }
+		break;
+		
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Scheduled Downtime ID:</td><td><b>");
@@ -1195,10 +1250,19 @@ void request_command_data(int cmd){
 
 	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
 
-		printf("<tr><td CLASS='optBoxRequiredItem'>Hostgroup Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='hostgroup' VALUE='%s'>",hostgroup_name);
-		printf("</b></td></tr>\n");
+		if(cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME){
+			printf("<tr><td CLASS='optBoxRequiredItem'>Hostgroup Name:</td><td><b>");
+			printf("<INPUT TYPE='TEXT' NAME='hostgroup' VALUE='%s'>",hostgroup_name);
+			printf("</b></td></tr>\n");
+		        }
+		else{
+			printf("<tr><td CLASS='optBoxRequiredItem'>Servicegroup Name:</td><td><b>");
+			printf("<INPUT TYPE='TEXT' NAME='servicegroup' VALUE='%s'>",servicegroup_name);
+			printf("</b></td></tr>\n");
+		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
 		printf("</b></td></tr>\n");
@@ -1230,7 +1294,7 @@ void request_command_data(int cmd){
 		printf("<td align=left>Minutes</td>\n");
 		printf("</tr></table>\n");
 		printf("</td></tr>\n");
-		if(cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME){
+		if(cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME){
 			printf("<tr><td CLASS='optBoxItem'>Schedule Downtime For Hosts Too:</td><td><b>");
 			printf("<INPUT TYPE='checkbox' NAME='ahas'>");
 			printf("</b></td></tr>\n");
@@ -1893,7 +1957,7 @@ int commit_command(int cmd){
 		break;
 
 	case CMD_SCHEDULE_HOST_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,start_time);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,start_time);
 		break;
 
 	case CMD_START_OBSESSING_OVER_SVC:
@@ -1939,6 +2003,41 @@ int commit_command(int cmd){
 			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		else
 			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		break;
+
+
+		/***** SERVICEGROUP COMMANDS *****/
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+		if(affect_host_and_services==FALSE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_NOTIFICATIONS;%s\n[%lu] %s_SERVICEGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name,current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name);
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",servicegroup_name);
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+		if(affect_host_and_services==FALSE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",servicegroup_name);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_SERVICEGROUP_SVC_CHECKS;%s\n[%lu] %s_SERVICEGROUP_HOST_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",servicegroup_name,current_time,(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",servicegroup_name);
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SERVICEGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+		if(affect_host_and_services==FALSE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_SERVICEGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,servicegroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
 
 	default:
@@ -2418,6 +2517,53 @@ void show_command_help(cmd){
 
 	case CMD_STOP_OBSESSING_OVER_HOST:
 		printf("This command is used to stop Nagios from obsessing over a particular host.\n");
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+		printf("This command is used to enable notifications for all services in the specified servicegroup.  Notifications will only be sent out for the\n");
+		printf("service state types you defined in your service definitions.  This <i>does not</i> enable notifications for the hosts in this servicegroup unless you check the 'Enable for hosts too' option.\n");
+		break;
+
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+		printf("This command is used to prevent notifications from being sent out for all services in the specified servicegroup.  You will have to re-enable notifications for\n");
+		printf("all services in this servicegroup before any alerts can be sent out in the future.  This <i>does not</i> prevent notifications from being sent out about the hosts in this servicegroup unless you check the 'Disable for hosts too' option.\n");
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+		printf("This command is used to enable notifications for all hosts in the specified servicegroup.  Notifications will only be sent out for the\n");
+		printf("host state types you defined in your host definitions.\n");
+		break;
+
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+		printf("This command is used to prevent notifications from being sent out for all hosts in the specified servicegroup.  You will have to re-enable notifications for\n");
+		printf("all hosts in this servicegroup before any alerts can be sent out in the future.\n");
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+		printf("This command is used to enable active checks of all services in the specified servicegroup.  This <i>does not</i> enable active checks of the hosts in the servicegroup unless you check the 'Enable for hosts too' option.\n");
+		break;
+		
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+		printf("This command is used to disable active checks of all services in the specified servicegroup.  This <i>does not</i> disable checks of the hosts in the servicegroup unless you check the 'Disable for hosts too' option.\n");
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+		printf("This command is used to schedule downtime for all hosts in a particular servicegroup.  During the specified downtime, Nagios will not send notifications out about the hosts.\n");
+		printf("When the scheduled downtime expires, Nagios will send out notifications for the hosts as it normally would.  Scheduled downtimes are preserved\n");
+		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
+		printf("If you select the <i>fixed</i> option, the downtime will be in effect between the start and end times you specify.  If you do not select the <i>fixed</i>\n");
+		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when a host goes down or becomes unreachable (sometime between the\n");
+		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+		printf("This command is used to schedule downtime for all services in a particular servicegroup.  During the specified downtime, Nagios will not send notifications out about the services.\n");
+		printf("When the scheduled downtime expires, Nagios will send out notifications for the services as it normally would.  Scheduled downtimes are preserved\n");
+		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
+		printf("If you select the <i>fixed</i> option, the downtime will be in effect between the start and end times you specify.  If you do not select the <i>fixed</i>\n");
+		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when a service enters a non-OK state (sometime between the\n");
+		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
+		printf("Note that scheduling downtime for services does not automatically schedule downtime for the hosts those services are associated with.  If you want to also schedule downtime for all hosts in the servicegroup, check the 'Schedule downtime for hosts too' option.\n");
 		break;
 
 	default:

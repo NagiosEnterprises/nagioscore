@@ -1549,7 +1549,7 @@ void show_hostgroup_info(void){
 	hostgroup *temp_hostgroup;
 
 
-	/* get host info */
+	/* get hostgroup info */
 	temp_hostgroup=find_hostgroup(hostgroup_name);
 
 	/* make sure the user has rights to view hostgroup information */
@@ -1639,6 +1639,90 @@ void show_hostgroup_info(void){
 
 
 void show_servicegroup_info(){
+	servicegroup *temp_servicegroup;
+
+
+	/* get servicegroup info */
+	temp_servicegroup=find_servicegroup(servicegroup_name);
+
+	/* make sure the user has rights to view servicegroup information */
+	if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==FALSE){
+
+		printf("<P><DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for this servicegroup...</DIV></P>\n");
+		printf("<P><DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
+		printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
+
+		return;
+	        }
+
+	/* make sure servicegroup information exists */
+	if(temp_servicegroup==NULL){
+		printf("<P><DIV CLASS='errorMessage'>Error: Servicegroup Not Found!</DIV></P>>");
+		return;
+		}
+
+
+	printf("<DIV ALIGN=CENTER>\n");
+	printf("<TABLE BORDER=0 WIDTH=100%%>\n");
+	printf("<TR>\n");
+
+
+	/* top left panel */
+	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateInfoPanel'>\n");
+
+	/* right top panel */
+	printf("</TD><TD ALIGN=CENTER VALIGN=TOP CLASS='stateInfoPanel' ROWSPAN=2>\n");
+
+	printf("<DIV CLASS='dataTitle'>Servicegroup Commands</DIV>\n");
+
+	if(nagios_process_state==STATE_OK){
+
+		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
+		printf("<TR><TD>\n");
+
+		printf("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For All Hosts In This Servicegroup' TITLE='Schedule Downtime For All Hosts In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Schedule downtime for all hosts in this servicegroup</a></td></tr>\n",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For All Services In This Servicegroup' TITLE='Schedule Downtime For All Services In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Schedule downtime for all services in this servicegroup</a></td></tr>\n",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For All Hosts In This Servicegroup' TITLE='Enable Notifications For All Hosts In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Enable notifications for all hosts in this servicegroup</a></td></tr>\n",url_images_path,NOTIFICATION_ICON,COMMAND_CGI,CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For All Hosts In This Servicegroup' TITLE='Disable Notifications For All Hosts In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Disable notifications for all hosts in this servicegroup</a></td></tr>\n",url_images_path,NOTIFICATIONS_DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For All Services In This Servicegroup' TITLE='Enable Notifications For All Services In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Enable notifications for all services in this servicegroup</a></td></tr>\n",url_images_path,NOTIFICATION_ICON,COMMAND_CGI,CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For All Services In This Servicegroup' TITLE='Disable Notifications For All Services In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Disable notifications for all services in this servicegroup</a></td></tr>\n",url_images_path,NOTIFICATIONS_DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of All Services In This Servicegroup' TITLE='Enable Active Checks Of All Services In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Enable active checks of all services in this servicegroup</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SERVICEGROUP_SVC_CHECKS,url_encode(servicegroup_name));
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of All Services In This Servicegroup' TITLE='Disable Active Checks Of All Services In This Servicegroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&servicegroup=%s'>Disable active checks of all services in this servicegroup</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SERVICEGROUP_SVC_CHECKS,url_encode(servicegroup_name));
+
+		printf("</table>\n");
+
+		printf("</TD></TR>\n");
+		printf("</TABLE>\n");
+	        }
+	else{
+		printf("<DIV CLASS='infoMessage'>It appears as though Nagios is not running, so commands are temporarily unavailable...<br>\n");
+		printf("Click <a href='%s?type=%d'>here</a> to view Nagios process information</DIV>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO);
+	        }
+
+	printf("</TD></TR>\n");
+	printf("<TR>\n");
+
+	/* left bottom panel */
+	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateInfoPanel'>\n");
+
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
+	printf("</DIV>\n");
+
+
+	printf("</div>\n");
+
+	printf("</TD>\n");
+
 
 	return;
         }

@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-14-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2004
  *
  * License:
  *
@@ -379,6 +379,10 @@ void run_service_check(service *svc){
 				plugin_output[sizeof(plugin_output)-1]='\x0';
 				strip(plugin_output);
 
+				/* ADDED 01/04/2004 */
+				/* ignore any additional lines of output */
+				while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
+
 				/* close and delete temp file */
 				fclose(fp);
 				close(tmpfd);
@@ -438,6 +442,10 @@ void run_service_check(service *svc){
 			/* grab the plugin output and clean it */
 			fgets(plugin_output,sizeof(plugin_output)-1,fp);
 			strip(plugin_output);
+
+			/* ADDED 01/04/2004 */
+			/* ignore any additional lines of output */
+			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
 
 			/* close the process */
 			pclose_result=pclose(fp);

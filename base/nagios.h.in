@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2003
+ * Last Modified: 02-21-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,6 +149,9 @@
 #define DEFAULT_HIGH_HOST_FLAP_THRESHOLD	30.0	/* high threshold for detection of host flapping */
 
 #define DEFAULT_MAX_EMBEDDED_PERL_CALLS		1000    /* number of times to use embedded perl interpreter before reloading it */
+
+#define DEFAULT_HOST_CHECK_SPREAD		15	/* max minutes to schedule all initial host checks */
+#define DEFAULT_SERVICE_CHECK_SPREAD		15	/* max minutes to schedule all initial service checks */
 
 
 
@@ -333,6 +336,8 @@ typedef struct sched_info_struct{
 	double service_inter_check_delay;
 	double host_inter_check_delay;
 	int service_interleave_factor;
+	int max_service_check_spread;
+	int max_host_check_spread;
 	time_t first_service_check;
 	time_t last_service_check;
 	time_t first_host_check;

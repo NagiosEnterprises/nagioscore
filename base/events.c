@@ -88,10 +88,14 @@ sched_info scheduling_info;
 void calculate_inter_check_delay(void){
 	service *temp_service;
 	host *temp_host;
+	double max_inter_check_delay=0.0;
 
 #ifdef DEBUG0
 	printf("calculate_inter_check_delay() start\n");
 #endif
+
+	/* default max service check spread (in minutes) */
+	scheduling_info.max_service_check_spread=DEFAULT_SERVICE_CHECK_SPREAD;
 
 	/* how should we determine the service inter-check delay to use? */
 	switch(service_inter_check_delay_method){
@@ -141,6 +145,11 @@ void calculate_inter_check_delay(void){
 
 			/* set the global inter check delay value */
 			scheduling_info.service_inter_check_delay=scheduling_info.average_service_inter_check_delay;
+
+			/* calculate max inter check delay and see if we should use that instead */
+			max_inter_check_delay=(double)((scheduling_info.max_service_check_spread*60.0)/(double)scheduling_info.total_services);
+			if(scheduling_info.service_inter_check_delay>max_inter_check_delay)
+				scheduling_info.service_inter_check_delay=max_inter_check_delay;
 		        }
 		else{
 			scheduling_info.average_service_check_interval=0.0;
@@ -155,6 +164,9 @@ void calculate_inter_check_delay(void){
 #endif
 	        }
 
+
+	/* default max host check spread (in minutes) */
+	scheduling_info.max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
 
 	/* how should we determine the host inter-check delay to use? */
 	switch(host_inter_check_delay_method){
@@ -206,6 +218,11 @@ void calculate_inter_check_delay(void){
 
 			/* set the global inter check delay value */
 			scheduling_info.host_inter_check_delay=scheduling_info.average_host_inter_check_delay;
+
+			/* calculate max inter check delay and see if we should use that instead */
+			max_inter_check_delay=(double)((scheduling_info.max_host_check_spread*60.0)/(double)scheduling_info.total_scheduled_hosts);
+			if(scheduling_info.host_inter_check_delay>max_inter_check_delay)
+				scheduling_info.host_inter_check_delay=max_inter_check_delay;
 		        }
 		else{
 			scheduling_info.average_host_inter_check_delay=0.0;
@@ -551,89 +568,71 @@ void init_timing_loop(void){
 void display_scheduling_info(void){
 	float minimum_concurrent_checks;
 
-	printf("\n\tHOST SCHEDULING INFORMATION\n");
-	printf("\t-------------------------------\n");
-	printf("\tTotal scheduled hosts:                    %d\n",scheduling_info.total_scheduled_hosts);
-	printf("\n");
+	printf("Projected scheduling information for host and service\n");
+	printf("checks is listed below.\n\n");
 
-	printf("\tHost Inter-check delay method:   ");
+	printf("HOST SCHEDULING INFORMATION\n");
+	printf("---------------------------\n");
+	printf("Total scheduled hosts:           %d\n",scheduling_info.total_scheduled_hosts);
+
+	printf("Host inter-check delay method:   ");
 	if(host_inter_check_delay_method==ICD_NONE)
 		printf("NONE\n");
 	else if(host_inter_check_delay_method==ICD_DUMB)
 		printf("DUMB\n");
 	else if(host_inter_check_delay_method==ICD_SMART){
 		printf("SMART\n");
-		printf("\tAverage host check interval:     %.2f sec\n",scheduling_info.average_host_check_interval);
+		printf("Average host check interval:     %.2f sec\n",scheduling_info.average_host_check_interval);
 	        }
 	else
 		printf("USER-SUPPLIED VALUE\n");
-	printf("\tHost inter-check delay:          %.2f sec\n",scheduling_info.host_inter_check_delay);
-	printf("\n");
+	printf("Host inter-check delay:          %.2f sec\n",scheduling_info.host_inter_check_delay);
+	printf("Max host check spread:           %d min\n",scheduling_info.max_host_check_spread);
+	printf("First scheduled check:           %s",(scheduling_info.total_scheduled_hosts==0)?"N/A\n":ctime(&scheduling_info.first_host_check));
+	printf("Last scheduled check:            %s",(scheduling_info.total_scheduled_hosts==0)?"N/A\n":ctime(&scheduling_info.last_host_check));
+	printf("\n\n");
 
-	printf("\tInitial host check scheduling info:\n");
-	printf("\t--------------------------------------\n");
-	printf("\tFirst scheduled check:      %s",ctime(&scheduling_info.first_host_check));
-	printf("\tLast scheduled check:       %s",ctime(&scheduling_info.last_host_check));
-	printf("\n");
+	printf("SERVICE SCHEDULING INFORMATION\n");
+	printf("-------------------------------\n");
+	printf("Total services:                     %d\n",scheduling_info.total_services);
+	printf("Total hosts:                        %d\n",scheduling_info.total_hosts);
 
-	printf("\n\tSERVICE SCHEDULING INFORMATION\n");
-	printf("\t-------------------------------\n");
-	printf("\tTotal services:                 %d\n",scheduling_info.total_services);
-	printf("\tTotal hosts:                    %d\n",scheduling_info.total_hosts);
-	printf("\n");
-
-	printf("\tCommand check interval:         %d sec\n",command_check_interval);
-	printf("\tService check reaper interval:  %d sec\n",service_check_reaper_interval);
-	printf("\n");
-
-	printf("\tService Inter-check delay method:   ");
+	printf("Service Inter-check delay method:   ");
 	if(service_inter_check_delay_method==ICD_NONE)
 		printf("NONE\n");
 	else if(service_inter_check_delay_method==ICD_DUMB)
 		printf("DUMB\n");
 	else if(service_inter_check_delay_method==ICD_SMART){
 		printf("SMART\n");
-		printf("\tAverage service check interval:     %.2f sec\n",scheduling_info.average_service_check_interval);
+		printf("Average service check interval:     %.2f sec\n",scheduling_info.average_service_check_interval);
 	        }
 	else
 		printf("USER-SUPPLIED VALUE\n");
-	printf("\tInter-check delay:          %.2f sec\n",scheduling_info.service_inter_check_delay);
-	printf("\n");
+	printf("Inter-check delay:                  %.2f sec\n",scheduling_info.service_inter_check_delay);
 
-	printf("\tInterleave factor method:   %s\n",(service_interleave_factor_method==ILF_USER)?"USER-SUPPLIED VALUE":"SMART");
+	printf("Interleave factor method:           %s\n",(service_interleave_factor_method==ILF_USER)?"USER-SUPPLIED VALUE":"SMART");
 	if(service_interleave_factor_method==ILF_SMART)
-		printf("\tAverage services per host:  %.2f\n",scheduling_info.average_services_per_host);
-	printf("\tService interleave factor:  %d\n",scheduling_info.service_interleave_factor);
-	printf("\n");
+		printf("Average services per host:          %.2f\n",scheduling_info.average_services_per_host);
+	printf("Service interleave factor:          %d\n",scheduling_info.service_interleave_factor);
 
-	printf("\tInitial service check scheduling info:\n");
-	printf("\t--------------------------------------\n");
-	printf("\tFirst scheduled check:      %s",ctime(&scheduling_info.first_service_check));
-	printf("\tLast scheduled check:       %s",ctime(&scheduling_info.last_service_check));
-	printf("\n");
-	printf("\tRough guidelines for max_concurrent_checks value:\n");
-	printf("\t-------------------------------------------------\n");
+	printf("Max service check spread:           %d min\n",scheduling_info.max_service_check_spread);
+	printf("First scheduled check:              %s",ctime(&scheduling_info.first_service_check));
+	printf("Last scheduled check:               %s",ctime(&scheduling_info.last_service_check));
+	printf("\n\n");
+
+	printf("CHECK PROCESSING INFORMATION\n");
+	printf("----------------------------\n");
+	printf("Command check interval:             %d sec\n",command_check_interval);
+	printf("Service check reaper interval:      %d sec\n",service_check_reaper_interval);
+	printf("\n\n");
+
+	printf("PERFORMANCE SUGGESTIONS\n");
+	printf("-----------------------\n");
 
 	minimum_concurrent_checks=ceil((float)service_check_reaper_interval/scheduling_info.service_inter_check_delay);
 
-	printf("\tAbsolute minimum value:     %d\n",(int)minimum_concurrent_checks);
-	printf("\tRecommend value:            %d\n",(int)(minimum_concurrent_checks*3.0));
-	printf("\n");
-	printf("\tNotes:\n");
-	printf("\tThe recommendations for the max_concurrent_checks value\n");
-	printf("\tassume that the average execution time for service\n");
-	printf("\tchecks is less than the service check reaper interval.\n");
-	printf("\tThe minimum value also reflects best case scenarios\n");
-	printf("\twhere there are no problems on your network.  You will\n");
-	printf("\thave to tweak this value as necessary after testing.\n");
-	printf("\tHigh latency values for checks are often indicative of\n");
-	printf("\tthe max_concurrent_checks value being set too low and/or\n");
-	printf("\tthe service_reaper_frequency being set too high.\n");
-	printf("\tIt is important to note that the values displayed above\n");
-	printf("\tdo not reflect current performance information for any\n");
-	printf("\tNagios process that may currently be running.  They are\n");
-	printf("\tprovided solely to project expected and recommended\n");
-	printf("\tvalues based on the current data in the config files.\n");
+	/*printf("Absolute minimum value :     %d\n",(int)minimum_concurrent_checks);*/
+	printf("Recommend minimum value for 'max_concurrent_checks': %d\n",(int)(minimum_concurrent_checks*3.0));
 	printf("\n");
 
 	return;

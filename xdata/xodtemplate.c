@@ -1136,7 +1136,11 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostdependency->fail_notify_on_up=FALSE;
 		new_hostdependency->fail_notify_on_down=FALSE;
 		new_hostdependency->fail_notify_on_unreachable=FALSE;
+		new_hostdependency->fail_execute_on_up=FALSE;
+		new_hostdependency->fail_execute_on_down=FALSE;
+		new_hostdependency->fail_execute_on_unreachable=FALSE;
 		new_hostdependency->have_notification_dependency_options=FALSE;
+		new_hostdependency->have_execution_dependency_options=FALSE;
 		new_hostdependency->has_been_resolved=FALSE;
 		new_hostdependency->register_object=TRUE;
 		new_hostdependency->_config_file=config_file;
@@ -2625,6 +2629,25 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_hostdependency->have_notification_dependency_options=TRUE;
 		        }
+		else if(!strcmp(variable,"execution_failure_options") || !strcmp(variable,"execution_failure_criteria")){
+			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+				if(!strcmp(temp_ptr,"o") || !strcmp(temp_ptr,"up"))
+					temp_hostdependency->fail_execute_on_up=TRUE;
+				else if(!strcmp(temp_ptr,"d") || !strcmp(temp_ptr,"down"))
+					temp_hostdependency->fail_execute_on_down=TRUE;
+				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
+					temp_hostdependency->fail_execute_on_unreachable=TRUE;
+				else{
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid execution dependency option '%s' in hostdependency definition.\n",temp_ptr);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_hostdependency->have_execution_dependency_options=TRUE;
+		        }
 		else if(!strcmp(variable,"register"))
 			temp_hostdependency->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
@@ -4083,7 +4106,11 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	new_hostdependency->fail_notify_on_up=temp_hostdependency->fail_notify_on_up;
 	new_hostdependency->fail_notify_on_down=temp_hostdependency->fail_notify_on_down;
 	new_hostdependency->fail_notify_on_unreachable=temp_hostdependency->fail_notify_on_unreachable;
+	new_hostdependency->fail_execute_on_up=temp_hostdependency->fail_execute_on_up;
+	new_hostdependency->fail_execute_on_down=temp_hostdependency->fail_execute_on_down;
+	new_hostdependency->fail_execute_on_unreachable=temp_hostdependency->fail_execute_on_unreachable;
 	new_hostdependency->have_notification_dependency_options=temp_hostdependency->have_notification_dependency_options;
+	new_hostdependency->have_execution_dependency_options=temp_hostdependency->have_execution_dependency_options;
 	
 
 	/* allocate memory for and copy string members of hostdependency definition */
@@ -6622,7 +6649,23 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 	if(this_hostdependency->register_object==FALSE)
 		return OK;
 
-	/* add the hostdependency */
+	/* add the host execution dependency */
+	if(this_hostdependency->have_execution_dependency_options==TRUE){
+
+		new_hostdependency=add_host_dependency(this_hostdependency->dependent_host_name,this_hostdependency->host_name,EXECUTION_DEPENDENCY,this_hostdependency->fail_execute_on_up,this_hostdependency->fail_execute_on_down,this_hostdependency->fail_execute_on_unreachable);
+
+		/* return with an error if we couldn't add the hostdependency */
+		if(new_hostdependency==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host execution dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+                        }
+	        }
+
+	/* add the host notification dependency */
 	if(this_hostdependency->have_notification_dependency_options==TRUE){
 
 		new_hostdependency=add_host_dependency(this_hostdependency->dependent_host_name,this_hostdependency->host_name,NOTIFICATION_DEPENDENCY,this_hostdependency->fail_notify_on_up,this_hostdependency->fail_notify_on_down,this_hostdependency->fail_notify_on_unreachable);
@@ -6924,6 +6967,7 @@ int xodtemplate_free_memory(void){
 		free(this_host->parents);
 		free(this_host->hostgroups);
 		free(this_host->check_command);
+		free(this_host->check_period);
 		free(this_host->event_handler);
 		free(this_host->contact_groups);
 		free(this_host->notification_period);

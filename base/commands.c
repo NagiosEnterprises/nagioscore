@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-03-2003
+ * Last Modified:   09-08-2003
  *
  * License:
  *
@@ -285,6 +285,11 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST"))
 			command_type=CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST;
 
+		else if(!strcmp(command_id,"ENABLE_HOST_AND_CHILD_NOTIFICATIONS"))
+			command_type=CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DISABLE_HOST_AND_CHILD_NOTIFICATIONS"))
+			command_type=CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS;
+
 		else if(!strcmp(command_id,"ENABLE_HOST_SVC_NOTIFICATIONS"))
 			command_type=CMD_ENABLE_HOST_SVC_NOTIFICATIONS;
 		else if(!strcmp(command_id,"DISABLE_HOST_SVC_NOTIFICATIONS"))
@@ -355,6 +360,9 @@ void check_for_external_commands(void){
 
 		else if(!strcmp(command_id,"SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME"))
 			command_type=CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;
+
+		else if(!strcmp(command_id,"SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME"))
+			command_type=CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME;
 
 
 		/************************************/
@@ -690,6 +698,8 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_DISABLE_HOST_NOTIFICATIONS:
 	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
 	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS:
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
@@ -822,6 +832,7 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
 	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
 	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+	case CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME:
 	case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
 		cmd_schedule_downtime(cmd,entry_time,args);
 		break;
@@ -898,11 +909,19 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 		disable_host_notifications(temp_host);
 		break;
 
+	case CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS:
+		enable_and_propagate_notifications(temp_host,0,TRUE,TRUE,FALSE);
+		break;
+
+	case CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS:
+		disable_and_propagate_notifications(temp_host,0,TRUE,TRUE,FALSE);
+		break;
+
 	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-		enable_and_propagate_notifications(temp_host);
+		enable_and_propagate_notifications(temp_host,0,FALSE,TRUE,TRUE);
 
 	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-		disable_and_propagate_notifications(temp_host);
+		disable_and_propagate_notifications(temp_host,0,FALSE,TRUE,TRUE);
 
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
@@ -2245,13 +2264,22 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 			schedule_downtime(SERVICE_DOWNTIME,temp_sgmember->host_name,temp_sgmember->service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 		break;
 
+	case CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME:
+
+		/* schedule downtime for "parent" host */
+		schedule_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
+
+		/* schedule (non-triggered) downtime for all child hosts */
+		schedule_and_propagate_downtime(temp_host,entry_time,author,comment,start_time,end_time,fixed,0,duration);
+		break;
+
 	case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
 
 		/* schedule downtime for "parent" host */
 		schedule_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 
 		/* schedule triggered downtime for all child hosts */
-		schedule_and_propagate_triggered_downtime(temp_host,entry_time,author,comment,start_time,end_time,fixed,downtime_id,duration);
+		schedule_and_propagate_downtime(temp_host,entry_time,author,comment,start_time,end_time,fixed,downtime_id,duration);
 		break;
 
 	default:
@@ -2815,7 +2843,7 @@ void disable_host_notifications(host *hst){
 
 
 /* enables notifications for all hosts and services "beyond" a given host */
-void enable_and_propagate_notifications(host *hst){
+void enable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
 	host *temp_host;
 	service *temp_service;
 
@@ -2823,21 +2851,28 @@ void enable_and_propagate_notifications(host *hst){
 	printf("enable_and_propagate_notifications() start\n");
 #endif
 
+	/* enable notification for top level host */
+	if(affect_top_host==TRUE && level==0)
+		enable_host_notifications(hst);
+
 	/* check all child hosts... */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
-			enable_and_propagate_notifications(temp_host);
+			enable_and_propagate_notifications(temp_host,level+1,affect_top_host,affect_hosts,affect_services);
 
 			/* enable notifications for this host */
-			enable_host_notifications(temp_host);
+			if(affect_hosts==TRUE)
+				enable_host_notifications(temp_host);
 
 			/* enable notifications for all services on this host... */
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_service->host_name,temp_host->name))
-					enable_service_notifications(temp_service);
+			if(affect_services==TRUE){
+				for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+					if(!strcmp(temp_service->host_name,temp_host->name))
+						enable_service_notifications(temp_service);
+				        }
 		                }
 	                }
 	        }
@@ -2851,7 +2886,7 @@ void enable_and_propagate_notifications(host *hst){
 
 
 /* disables notifications for all hosts and services "beyond" a given host */
-void disable_and_propagate_notifications(host *hst){
+void disable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
 	host *temp_host;
 	service *temp_service;
 
@@ -2859,21 +2894,31 @@ void disable_and_propagate_notifications(host *hst){
 	printf("disable_and_propagate_notifications() start\n");
 #endif
 
+	if(hst==NULL)
+		return;
+
+	/* disable notifications for top host */
+	if(affect_top_host==TRUE && level==0)
+		disable_host_notifications(hst);
+
 	/* check all child hosts... */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
-			disable_and_propagate_notifications(temp_host);
+			disable_and_propagate_notifications(temp_host,level+1,affect_top_host,affect_hosts,affect_services);
 
 			/* disable notifications for this host */
-			disable_host_notifications(temp_host);
+			if(affect_hosts==TRUE)
+				disable_host_notifications(temp_host);
 
 			/* disable notifications for all services on this host... */
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_service->host_name,temp_host->name))
-					disable_service_notifications(temp_service);
+			if(affect_services==TRUE){
+				for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+					if(!strcmp(temp_service->host_name,temp_host->name))
+						disable_service_notifications(temp_service);
+				        }
 	                        }
 	                }
 	        }
@@ -2886,12 +2931,12 @@ void disable_and_propagate_notifications(host *hst){
         }
 
 
-/* schedules triggered downtime for all hosts "beyond" a given host */
-void schedule_and_propagate_triggered_downtime(host *temp_host, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration){
+/* schedules downtime for all hosts "beyond" a given host */
+void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration){
 	host *this_host;
 
 #ifdef DEBUG0
-	printf("schedule_and_propagate_triggered_downtime() start\n");
+	printf("schedule_and_propagate_downtime() start\n");
 #endif
 
 	/* check all child hosts... */
@@ -2900,15 +2945,15 @@ void schedule_and_propagate_triggered_downtime(host *temp_host, time_t entry_tim
 		if(is_host_immediate_child_of_host(temp_host,this_host)==TRUE){
 
 			/* recurse... */
-			schedule_and_propagate_triggered_downtime(this_host,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration);
+			schedule_and_propagate_downtime(this_host,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration);
 
-			/* schedule triggered for this host */
+			/* schedule downtime for this host */
 			schedule_downtime(HOST_DOWNTIME,this_host->name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,NULL);
 	                }
 	        }
 
 #ifdef DEBUG0
-	printf("schedule_and_propagate_triggered_downtime() end\n");
+	printf("schedule_and_propagate_downtime() end\n");
 #endif
 
 	return;

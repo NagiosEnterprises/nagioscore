@@ -3,7 +3,7 @@
  * NEBMODULES.H - Include file for event broker modules
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   09-10-2003
  *
  * License:
  *
@@ -59,7 +59,8 @@
 #define NEBMODULE_NEB_SHUTDOWN      1    /* event broker is shutting down */
 #define NEBMODULE_NEB_RESTART       2    /* event broker is restarting */
 #define NEBMODULE_ERROR_NO_INIT     3    /* _module_init() function was not found in module */
-#define NEBMODULE_ERROR_API_VERSION 4    /* module version is incompatible with current api */
+#define NEBMODULE_ERROR_BAD_INIT    4    /* _module_init() function returned a bad code */
+#define NEBMODULE_ERROR_API_VERSION 5    /* module version is incompatible with current api */
 
 
 

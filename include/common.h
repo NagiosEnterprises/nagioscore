@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-26-2003
+ * Last Modified: 09-09-2003
  *
  * License:
  *
@@ -226,6 +226,12 @@
 #define CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS               133
 
 #define CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME 134
+
+#define CMD_ENABLE_HOST_AND_CHILD_NOTIFICATIONS         135
+#define CMD_DISABLE_HOST_AND_CHILD_NOTIFICATIONS        136
+
+#define CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME        137
+
 
 
 /************************ SERVICE CHECK TYPES ****************************/

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-26-2003
+ * Last Modified: 09-09-2003
  *
  * License:
  * 
@@ -79,6 +79,8 @@ int affect_host_and_services=FALSE;
 int propagate_to_children=FALSE;
 int fixed=FALSE;
 unsigned long duration=0L;
+unsigned long triggered_by=0L;
+int child_options=0;
 
 int command_type=CMD_NONE;
 int command_mode=CMDMODE_REQUEST;
@@ -463,6 +465,28 @@ int process_cgivars(void){
 			fixed=(atoi(variables[x])>0)?TRUE:FALSE;
 		        }
 
+		/* we got the triggered by downtime option */
+		else if(!strcmp(variables[x],"trigger")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			triggered_by=strtoul(variables[x],NULL,10);
+		        }
+
+		/* we got the child options */
+		else if(!strcmp(variables[x],"childoptions")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			child_options=atoi(variables[x]);
+		        }
+
 		/* we found the plugin output */
 		else if(!strcmp(variables[x],"plugin_output")){
 			x++;
@@ -586,8 +610,10 @@ int process_cgivars(void){
 
 void request_command_data(int cmd){
 	time_t t;
+	char start_time[MAX_DATETIME_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	contact *temp_contact;
+	scheduled_downtime *temp_downtime;
 
 
 	/* get default name to use for comment author */
@@ -989,6 +1015,11 @@ void request_command_data(int cmd){
 			printf("<INPUT TYPE='checkbox' NAME='ahas'>");
 			printf("</b></td></tr>\n");
 		        }
+		if(cmd==CMD_ENABLE_HOST_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_NOTIFICATIONS){
+			printf("<tr><td CLASS='optBoxItem'>%s Notifications For Child Hosts Too:</td><td><b>",(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)?"Enable":"Disable");
+			printf("<INPUT TYPE='checkbox' NAME='ptc'>");
+			printf("</b></td></tr>\n");
+		        }
 		break;
 
 	case CMD_ENABLE_NOTIFICATIONS:
@@ -1067,6 +1098,35 @@ void request_command_data(int cmd){
 		printf("<tr><td CLASS='optBoxRequiredItem'>Comment:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>",comment_data);
 		printf("</b></td></tr>\n");
+
+		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
+
+		printf("<tr><td CLASS='optBoxItem'>Triggered By:</td><td>\n");
+		printf("<select name='trigger'>\n");
+		printf("<option value='0'>N/A\n");
+
+		/* read scheduled downtime */
+		read_downtime_data(get_cgi_config_location());
+		for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+			if(temp_downtime->type!=HOST_DOWNTIME)
+				continue;
+			printf("<option value='%lu'>",temp_downtime->downtime_id);
+			get_time_string(&temp_downtime->start_time,start_time,sizeof(start_time),SHORT_DATE_TIME);
+			printf("ID: %lu, Host '%s' starting @ %s\n",temp_downtime->downtime_id,temp_downtime->host_name,start_time);
+		        }
+		for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+			if(temp_downtime->type!=SERVICE_DOWNTIME)
+				continue;
+			printf("<option value='%lu'>",temp_downtime->downtime_id);
+			get_time_string(&temp_downtime->start_time,start_time,sizeof(start_time),SHORT_DATE_TIME);
+			printf("ID: %lu, Service '%s' on host '%s' starting @ %s \n",temp_downtime->downtime_id,temp_downtime->service_description,temp_downtime->host_name,start_time);
+		        }
+
+		printf("</select>\n");
+		printf("</td></tr>\n");
+
+		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
+
 		time(&t);
 		time_to_string(&t,buffer,sizeof(buffer)-1);
 		printf("<tr><td CLASS='optBoxRequiredItem'>Start Time:</td><td><b>");
@@ -1092,11 +1152,21 @@ void request_command_data(int cmd){
 		printf("<td align=left>Minutes</td>\n");
 		printf("</tr></table>\n");
 		printf("</td></tr>\n");
+
+		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
+
 		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME){
-			printf("<tr><td CLASS='optBoxItem'>Schedule Triggered Downtime For Child Hosts Too:</td><td><b>");
-			printf("<INPUT TYPE='checkbox' NAME='ptc'>");
+			printf("<tr><td CLASS='optBoxItem'>Child Hosts:</td><td><b>");
+			printf("<SELECT name='childoptions'>");
+			printf("<option value='0'>Do nothing with child hosts\n");
+			printf("<option value='1'>Schedule triggered downtime for all child hosts\n");
+			printf("<option value='2'>Schedule non-triggered downtime for all child hosts\n");
+			printf("</SELECT>\n");
 			printf("</b></td></tr>\n");
 		        }
+
+		printf("<tr><td CLASS='optBoxItem'><br></td></tr>\n");
+
 		break;
 
 	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
@@ -1676,7 +1746,10 @@ int commit_command(int cmd){
 		
 	case CMD_ENABLE_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_NOTIFICATIONS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
+		if(propagate_to_children==TRUE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_AND_CHILD_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",host_name);
 		break;
 		
 	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
@@ -1757,14 +1830,16 @@ int commit_command(int cmd){
 		break;
 		
 	case CMD_SCHEDULE_HOST_DOWNTIME:
-		if(propagate_to_children==TRUE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		if(child_options==1)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
+		else if(child_options==2)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
 		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
 		break;
 		
 	case CMD_SCHEDULE_SVC_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SVC_DOWNTIME;%s;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,host_name,service_desc,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SVC_DOWNTIME;%s;%s;%lu;%lu;%d;%lu;%lu;%s;%s\n",current_time,host_name,service_desc,start_time,end_time,(fixed==TRUE)?1:0,triggered_by,duration,comment_author,comment_data);
 		break;
 		
 	case CMD_ENABLE_HOST_FLAP_DETECTION:

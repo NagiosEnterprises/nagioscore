@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   09-10-2003
  *
  * License:
  *
@@ -232,13 +232,25 @@ int neb_load_module(nebmodule *mod){
 		return ERROR;
 	        }
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"Event broker module '%s' initialized successfully.\n",mod->filename);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
-
 	/* run the module's init function */
 	initfunc=mod->init_func;
 	result=(*initfunc)(NEBMODULE_NORMAL_LOAD,mod->args,mod);
+
+	/* if the init function returned an error, unload the module */
+	if(result!=OK){
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n",mod->filename);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
+
+		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_BAD_INIT);
+
+		return ERROR;
+	        }
+
+	snprintf(temp_buffer,sizeof(temp_buffer),"Event broker module '%s' initialized successfully.\n",mod->filename);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 
 	/* locate the de-initialization function (may or may not be present) */
 #ifdef USE_LTDL
@@ -293,8 +305,8 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 	printf("Attempting to unload module '%s': flags=%d, reason=%d\n",mod->filename,flags,reason);
 #endif
 
-	/* call the de-initialization function if available */
-	if(mod->deinit_func){
+	/* call the de-initialization function if available (and the module was initialized) */
+	if(mod->deinit_func && reason!=NEBMODULE_ERROR_BAD_INIT){
 
 		deinitfunc=mod->deinit_func;
 
@@ -394,6 +406,7 @@ int neb_register_callback(int callback_type, int priority, int (*callback_func)(
 	if(new_callback==NULL)
 		return NEBERROR_NOMEM;
 	
+	new_callback->priority=priority;
 	new_callback->callback_func=(void *)callback_func;
 
 	/* add new function to callback list, sorted by priority (first come, first served for same priority) */

@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-18-2003
+ * Last Modified:   09-05-2003
  *
  * License:
  *
@@ -259,22 +259,18 @@ int main(int argc, char **argv){
 		printf("\n");
 		printf("MRTG DATA VARIABLES (-d option):\n");
 		printf(" NUMSERVICES        total number of services.\n");
-		printf(" MINACTSVCLAT       min active service check latency (ms).\n");
-		printf(" MAXACTSVCLAT       max active service check latency (ms).\n");
+		printf(" NUMHOSTS           total number of services.\n");
 		printf(" AVGACTSVCLAT       average active service check latency (ms).\n");
-		printf(" MINACTSVCEXT       min active service check execution time (ms).\n");
-		printf(" MAXACTSVCEXT       max active service check execution time (ms).\n");
 		printf(" AVGACTSVCEXT       average active service check execution time (ms).\n");
-		printf(" MINACTSVCPSC       min active service check %% state change.\n");
-		printf(" MAXACTSVCPSC       max active service check %% state change.\n");
 		printf(" AVGACTSVCPSC       average active service check %% state change.\n");
-		printf(" MINPSVSVCPSC       min passive service check %% state change.\n");
-		printf(" MAXPSVSVCPSC       max passive service check %% state change.\n");
 		printf(" AVGPSVSVCPSC       average passive service check %% state change.\n");
-		printf(" MINSVCPSC          min service check %% state change.\n");
-		printf(" MAXSVCPSC          max service check %% state change.\n");
 		printf(" AVGSVCPSC          average service check %% state change.\n");
-		printf(" ...                lots of others, see the source code for now.\n");
+		printf(" AVGACTHSTLAT       average active host check latency (ms).\n");
+		printf(" AVGACTHSTEXT       average active host check execution time (ms).\n");
+		printf(" AVGACTHSTPSC       average active host check %% state change.\n");
+		printf(" AVGPSVHSTPSC       average passive host check %% state change.\n");
+		printf(" AVGHSTPSC          average host check %% state change.\n");
+		printf(" ...                lots of others, see the source code for now...\n");
 		printf("\n");
 
 		exit(ERROR);
@@ -313,6 +309,8 @@ int display_mrtg_values(void){
 
 		if(!strcmp(temp_ptr,"NUMSERVICES"))
 			printf("%d\n",status_service_entries);
+		if(!strcmp(temp_ptr,"NUMHOSTS"))
+			printf("%d\n",status_host_entries);
 
 		/* active service check latency */
 		else if(!strcmp(temp_ptr,"MINACTSVCLAT"))

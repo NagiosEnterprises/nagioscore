@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-28-2003
+ * Last Modified: 09-09-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -614,9 +614,9 @@ void enable_service_notifications(service *);		/* enables service notifications 
 void disable_service_notifications(service *);		/* disables service notifications */
 void enable_host_notifications(host *);			/* enables host notifications */
 void disable_host_notifications(host *);		/* disables host notifications */
-void enable_and_propagate_notifications(host *);	/* enables notifications for all hosts and services beyond a given host */
-void disable_and_propagate_notifications(host *);	/* disables notifications for all hosts and services beyond a given host */
-void schedule_and_propagate_triggered_downtime(host *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long); /* schedules triggered downtime for all hosts beyond a given host */
+void enable_and_propagate_notifications(host *,int,int,int,int);	/* enables notifications for all hosts and services beyond a given host */
+void disable_and_propagate_notifications(host *,int,int,int,int);	/* disables notifications for all hosts and services beyond a given host */
+void schedule_and_propagate_downtime(host *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long); /* schedules downtime for all hosts beyond a given host */
 void acknowledge_host_problem(host *,char *,char *,int,int,int);	/* acknowledges a host problem */
 void acknowledge_service_problem(service *,char *,char *,int,int,int);	/* acknowledges a service problem */
 void remove_host_acknowledgement(host *);		/* removes a host acknowledgement */

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 09-09-2003
  *
  * License:
  * 
@@ -1783,7 +1783,7 @@ void show_host_detail(void){
 
 	/* the main list of hosts */
 	printf("<DIV ALIGN='center'>\n");
-	printf("<TABLE BORDER=0 CLASS='status' WIDTH=100%>\n");
+	printf("<TABLE BORDER=0 CLASS='status' WIDTH=100%%>\n");
 	printf("<TR>\n");
 
 	printf("<TH CLASS='status'>Host&nbsp;<A HREF='%s&sorttype=%d&sortoption=%d'><IMG SRC='%s%s' BORDER=0 ALT='Sort by host name (ascending)' TITLE='Sort by host name (ascending)'></A><A HREF='%s&sorttype=%d&sortoption=%d'><IMG SRC='%s%s' BORDER=0 ALT='Sort by host name (descending)' TITLE='Sort by host name (descending)'></A></TH>",temp_url,SORT_ASCENDING,SORT_HOSTNAME,url_images_path,UP_ARROW_ICON,temp_url,SORT_DESCENDING,SORT_HOSTNAME,url_images_path,DOWN_ARROW_ICON);

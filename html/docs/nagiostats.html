@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Using The Nagiostats Utility</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Using The Nagiostats Utility</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+A utility called <i>nagiostats</i> is included in the Nagios distribution.  It is compiled and installed along with the main Nagios daemon.
+</p>
+
+<p>
+The nagiostats utility allows you to obtain various information about a running Nagios process.  You can obtain information either in human-readable or MRTG-compatible format.
+</p>
+
+<p>
+<strong><u>Usage Information</u></strong>
+</p>
+
+<p>
+You can run the <i>nagiostats</i> utility with the <b>--help</b> option to get usage information:
+</p>
+
+<p>
+<dir>
+<pre>
+[nagios@lanman ~]# /usr/local/nagios/bin/nagiostats --help
+
+Nagios Stats 2.0a1
+Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
+Last Modified: 11-18-2003
+License: GPL
+
+Usage: /usr/local/nagios/bin/nagiostats [options]
+
+Startup:
+ -V, --version      display program version information and exit.
+ -L, --license      display license information and exit.
+ -h, --help         display usage information and exit.
+
+Input file:
+ -c, --config=FILE  specifies location of main Nagios config file.
+
+Output:
+ -m, --mrtg         display output in MRTG compatible format.
+ -d, --data=VARS    comma-seperated list of variables to output in MRTG
+                    (or compatible) format.  See possible values below.
+                    Percentages are rounded, times are in milliseconds.
+
+MRTG DATA VARIABLES (-d option):
+ NUMSERVICES        total number of services.
+ NUMHOSTS           total number of services.
+ AVGACTSVCLAT       average active service check latency (ms).
+ AVGACTSVCEXT       average active service check execution time (ms).
+ AVGACTSVCPSC       average active service check % state change.
+ AVGPSVSVCPSC       average passive service check % state change.
+ AVGSVCPSC          average service check % state change.
+ AVGACTHSTLAT       average active host check latency (ms).
+ AVGACTHSTEXT       average active host check execution time (ms).
+ AVGACTHSTPSC       average active host check % state change.
+ AVGPSVHSTPSC       average passive host check % state change.
+ AVGHSTPSC          average host check % state change.
+ ...                lots of others, see the source code for now...
+
+[nagios@lanman ~]# 
+</pre>
+</dir>
+</p>
+
+<p>
+<strong><u>Human-Readable Output</u></strong>
+</p>
+
+<p>
+For normal operation, run the <i>nagiostats</i> utility, specifying only the config file location as an argument, as follows:
+</p>
+
+<p>
+<dir>
+<pre>
+[nagios@lanman ~]# /usr/local/nagios/bin/nagiostats -c /usr/local/nagios/etc/nagios.cfg
+
+Nagios Stats 2.0a1
+Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
+Last Modified: 11-18-2003
+License: GPL
+
+CURRENT STATUS DATA
+----------------------------------------------------
+Status File:                          /usr/local/nagios/var/status.dat
+Status File Age:                      0d 0h 0m 13s
+Status File Version:                  2.0-very-pre-alpha
+
+Program Running Time:                 14d 17h 19m 13s
+
+Total Services:                       32
+Services Checked:                     32
+Services Scheduled:                   29
+Active Service Checks:                29
+Passive Service Checks:               3
+Total Service State Change:           0.000 / 65.530 / 2.930 %
+Active Service Latency:               0.048 / 14.837 / 1.035 %
+Active Service Execution Time:        0.076 / 60.006 / 4.301 sec
+Active Service State Change:          0.000 / 10.530 / 0.762 %
+Active Services Last 1/5/15/60 min:   1 / 13 / 29 / 29
+Passive Service State Change:         0.000 / 65.530 / 23.883 %
+Passive Services Last 1/5/15/60 min:  0 / 0 / 0 / 0
+Services Ok/Warn/Unk/Crit:            23 / 5 / 1 / 3
+Services Flapping:                    1
+Services In Downtime:                 0
+
+Total Hosts:                          9
+Hosts Checked:                        9
+Hosts Scheduled:                      9
+Active Host Checks:                   9
+Passive Host Checks:                  0
+Total Host State Change:              0.000 / 28.420 / 4.034 %
+Active Host Latency:                  0.000 / 15.741 / 5.443 %
+Active Host Execution Time:           1.022 / 10.032 / 3.047 sec
+Active Host State Change:             0.000 / 28.420 / 4.034 %
+Active Hosts Last 1/5/15/60 min:      0 / 8 / 9 / 9
+Passive Host State Change:            0.000 / 0.000 / 0.000 %
+Passive Hosts Last 1/5/15/60 min:     0 / 0 / 0 / 0
+Hosts Up/Down/Unreach:                7 / 1 / 1
+Hosts Flapping:                       0
+Hosts In Downtime:                    0
+
+
+[nagios@lanman ~]# 
+</pre>
+</dir>
+</p>
+
+<p>
+As you can see, the utility displays a number of different metrics pertaining to the Nagios process.  Metrics which have multiple values are (unless otherwise specified) min, max and average values for that partciular metric.
+</p>
+
+<p>
+<strong><u>MRTG Integration</u></strong>
+</p>
+
+<p>
+You can use the <i>nagiostats</i> utility to display various Nagios metrics using MRTG (or other compatible program).  To do so, run the <i>nagiostats</i> utility using the <b>--mrtg</b> and <b>--data</b> arguments.  The <b>--data</b> argument is used to specify what statistics should be graphed.  Possible values for the <b>--data</b> argument can be found by running the <i>nagiostats</i> utility with the <b>--help</b> option.
+</p>
+
+<p>
+Here's an MRTG config file snippet for using the <i>nagiostats</i> utility for graphing average service latency and execution time.
+</p>
+
+<p>
+<dir>
+<pre>
+# Service Latency and Execution Time
+Target[nagios-a]: `/usr/local/nagios/bin/nagiostats --mrtg --data=AVGACTSVCLAT,AVGACTSVCEXT`
+MaxBytes[nagios-a]: 100000
+Title[nagios-a]: Average Service Check Latency and Execution Time
+PageTop[nagios-a]: &lt;H1&gt;Average Service Check Latency and Execution Time&lt;/H1&gt;
+Options[nagios-a]: growright,gauge,nopercent
+YLegend[nagios-a]: Milliseconds
+ShortLegend[nagios-a]: &amp;nbsp;
+LegendI[nagios-a]: &amp;nbsp;Latency:
+LegendO[nagios-a]: &amp;nbsp;Execution Time:
+Legend1[nagios-a]: Latency
+Legend2[nagios-a]: Execution Time
+Legend3[nagios-a]: Maximal 5 Minute Latency
+Legend4[nagios-a]: Maximal 5 Minute Execution Time
+</pre>
+</dir>
+</p>
+
+<p>
+The MRTG graphs generated from the above config snippet look like this:
+</p>
+
+<p>
+<dir>
+<img src='images/mrtgstats.png' border='0' alt='MRTG Stats'>
+</dir>
+</p>
+
+<hr>
+
+</body>
+</html>

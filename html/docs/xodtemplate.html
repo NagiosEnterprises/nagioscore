@@ -15,6 +15,7 @@
         .Required { font-family: arial,serif; font-size: x-small; text-align: left; color: red; }
         .Optional { font-family: arial,serif; font-size: x-small; text-align: left; }
 
+        .RetentionNotes { font-family: arial,serif; font-size: medium; text-align: left; color: red; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -63,6 +64,23 @@ One of the benefits of using the template-based config file format is that you c
 
 <p>
 There are several things you can do with template-based object definitions that allow you to create large numbers of objects using just a small number of definitions in your config file(s).  One example of such a trick is the ability to define a single service object that creates a service for multiple hosts and/or hostgroups.  These tricks are described <a href="templatetricks.html">here</a>.
+</p>
+
+<a name="retention_notes"></a>
+<p>
+<strong><u>Retention Notes</u></strong>
+</p>
+
+<p>
+It is important to point out that several directives in host and service definitions may not be picked up by Nagios when you change them.  Host and service directives that can exhibit this behavior are marked with an asterisk (<a href="#retention_notes" class="RetentionNotes">*</a>).  The reason for this behavior is due to the fact that Nagios chooses to honor values stored in the <a href="#state_retention_file">state retention file</a> over values found in the config files, assuming you have <a href="#retain_state_information">state retention</a> enabled on a program-wide basis.
+</p>
+
+<p>
+One way to get around this problem is to disable the retention of non-status information using the <i>retain_nonstatus_information</i> directive in the host and service definitions.  Disabling this directive will cause Nagios to take the initial values for these directives from your config files, rather than from the state retention file when it (re)starts.  Using this option is not recommended, as it may result in some unexpected (from your point of view) results.
+</p>
+
+<p>
+Alternatively, you can issue the appropriate <a href="extcommands.html">external command</a> or change the value of the host or service directive via the web interface, so that it matches what you've changed it to in the config files.  This is usually done by using the <a href="cgis.html#extinfo_cgi">extended information CGI</a>.  This option takes a bit more work, but is preferable to disabling the retention of non-status information (mentioned above).
 </p>
 
 <p>
@@ -192,7 +210,7 @@ This directive is used to define the number of times that Nagios will retry the 
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>checks_enabled</strong>:</td>
+<td valign="top"><strong>checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not checks of this host are enabled. Values: 0 = disable host checks, 1 = enable host checks.
 </td>
@@ -205,7 +223,7 @@ This directive is used to specify the <i>short name</i> of the <a href="#command
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>event_handler_enabled</strong>:</td>
+<td valign="top"><strong>event_handler_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not the event handler for this host is enabled. Values: 0 = disable host event handler, 1 = enable host event handler.
 </td>
@@ -223,7 +241,7 @@ This directive is used to specify the high state change threshold used in flap d
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>flap_detection_enabled</strong>:</td>
+<td valign="top"><strong>flap_detection_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not flap detection is enabled for this host.  More information on flap detection can be found <a href="flapping.html">here</a>. Values: 0 = disable host flap detection, 1 = enable host flap detection.
 </td>
@@ -237,7 +255,7 @@ This directive is used to determine whether or not failure prediction is enabled
 </tr>
 //-->
 <tr>
-<td valign="top"><strong>process_perf_data</strong>:</td>
+<td valign="top"><strong>process_perf_data <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not the processing of performance data is enabled for this host.  Values: 0 = disable performance data processing, 1 = enable performance data processing.
 </td>
@@ -273,7 +291,7 @@ This directive is used to determine when notifications for the host should be se
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>notifications_enabled</strong>:</td>
+<td valign="top"><strong>notifications_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not notifications for this host are enabled. Values: 0 = disable host notifications, 1 = enable host notifications.
 </td>
@@ -433,13 +451,13 @@ This directive is used to define the number of "time units" to wait before sched
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>active_checks_enabled</strong>:</td>
+<td valign="top"><strong>active_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not active checks of this service are enabled. Values: 0 = disable active service checks, 1 = enable active service checks.
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>passive_checks_enabled</strong>:</td>
+<td valign="top"><strong>passive_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not passive checks of this service are enabled. Values: 0 = disable passive service checks, 1 = enable passive service checks.
 </td>
@@ -457,12 +475,12 @@ This directive is used to determine whether or not the service check can be para
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>obsess_over_service</strong>:</td>
+<td valign="top"><strong>obsess_over_service <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>check_freshness</strong>:</td>
+<td valign="top"><strong>check_freshness <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not freshness checks are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks.
 </td>
@@ -492,7 +510,7 @@ This directive is used to specify the high state change threshold used in flap d
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>flap_detection_enabled</strong>:</td>
+<td valign="top"><strong>flap_detection_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not flap detection is enabled for this service.  More information on flap detection can be found <a href="flapping.html">here</a>. Values: 0 = disable service flap detection, 1 = enable service flap detection.
 </td>
@@ -506,7 +524,7 @@ This directive is used to determine whether or not failure prediction is enabled
 </tr>
 //-->
 <tr>
-<td valign="top"><strong>process_perf_data</strong>:</td>
+<td valign="top"><strong>process_perf_data <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not the processing of performance data is enabled for this service.  Values: 0 = disable performance data processing, 1 = enable performance data processing.
 </td>
@@ -536,13 +554,13 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>notifications_options</strong>:</td>
+<td valign="top"><strong>notification_options</strong>:</td>
 <td>
 This directive is used to determine when notifications for the service should be sent out.  Valid options are a combination of one or more of the following: <b>w</b> = send notifications on a WARNING state, <b>u</b> = send notifications on an UNKNOWN state, <b>c</b> = send notifications on a CRITICAL state, and <b>r</b> = send notifications on recoveries (OK state).  If you specify <b>n</b> (none) as an option, no service notifications will be sent out.  Example: If you specify <b>w,r</b> in this field, notifications will only be sent out when the service goes into a WARNING state and when it recovers from a WARNING state.
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>notifications_enabled</strong>:</td>
+<td valign="top"><strong>notifications_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not notifications for this service are enabled. Values: 0 = disable service notifications, 1 = enable service notifications.
 </td>

@@ -127,6 +127,8 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#check_service_freshness">Service freshness checking option</a><br>
 <a href="#freshness_check_interval">Service freshness checking option</a><br>
 <br>
+<a href="#date_format">Date format</a><br>
+<br>
 <a href="#illegal_object_name_chars">Illegal object name characters</a><br>
 <a href="#illegal_macro_output_chars">Illegal macro output characters</a><br>
 <br>
@@ -1952,6 +1954,41 @@ This setting determines how often (in seconds) Nagios will periodically check th
 
 
 <p>
+<a name="date_format"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Date Format</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td>
+<td><strong>date_format=&lt;option&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>date_format=us</strong></font></td>
+</tr>
+</table>
+</p>
+<p>
+This option allows you to specify what kind of date/time format Nagios should use in the web interface and date/time <a href="macros.html">macros</a>.  Possible options (along with example output) include:
+</p>
+<p>
+<table border='1'>
+<tr><th>Option</th><th>Output Format</th><th>Sample Output</th></tr>
+<tr><td>us</td><td>MM/DD/YYYY HH:MM:SS</td><td>06/30/2002 03:15:00</td></tr>
+<tr><td>euro</td><td>DD/MM/YYYY HH:MM:SS</td><td>30/06/2002 03:15:00</td></tr>
+<tr><td>iso8601</td><td>YYYY-MM-DD HH:MM:SS</td><td>2002-06-30 03:15:00</td></tr>
+<tr><td>strict-iso8601</td><td>YYYY-MM-DDTHH:MM:SS</td><td>2002-06-30T03:15:00</td></tr>
+</table>
+</p>
+
+
+<p>
 <a name="illegal_object_name_chars"></a>
 <table border="0" width="100%">
 <tr>
@@ -1973,7 +2010,7 @@ This setting determines how often (in seconds) Nagios will periodically check th
 </table>
 </p>
 <p>
-This options allows you to specify illegal characters that cannot be used in host names, service descriptions, or names of other object types.  Nagios will allow you to use most characters in object definitions, but I recommend not using the characters shown in the example above.  Doing may give you problems in the web interface, notification commands, etc.
+This option allows you to specify illegal characters that cannot be used in host names, service descriptions, or names of other object types.  Nagios will allow you to use most characters in object definitions, but I recommend not using the characters shown in the example above.  Doing may give you problems in the web interface, notification commands, etc.
 </p>
 
 
@@ -1999,7 +2036,7 @@ This options allows you to specify illegal characters that cannot be used in hos
 </table>
 </p>
 <p>
-This options allows you to specify illegal characters that should be stripped from <a href="macros.html">macros</a> before being used in notifications, event handlers, and other commands.  This DOES NOT affect macros used in service or host check commands.  You can choose to not strip out the characters shown in the example above, but I recommend you do not do this.  Some of these characters are interpreted by the shell (i.e. the backtick) and can lead to security problems.  The following macros are stripped of the characters you specify: 
+This option allows you to specify illegal characters that should be stripped from <a href="macros.html">macros</a> before being used in notifications, event handlers, and other commands.  This DOES NOT affect macros used in service or host check commands.  You can choose to not strip out the characters shown in the example above, but I recommend you do not do this.  Some of these characters are interpreted by the shell (i.e. the backtick) and can lead to security problems.  The following macros are stripped of the characters you specify: 
 </p>
 <p>
 <b>$OUTPUT$</b>, <b>$PERFDATA$</b>

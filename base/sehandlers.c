@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-19-2003
  *
  * License:
  *
@@ -68,7 +68,6 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 	host *temp_host;
 	int early_timeout=FALSE;
 	double exectime;
-	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
 	printf("obsessive_compulsive_service_check_processor() start\n");
@@ -131,11 +130,6 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 	        }
 	
-#ifdef USE_EVENT_BROKER
-	/* send event data to broker */
-	broker_ocp_data(NEBTYPE_OCP_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,ocsp_timeout,early_timeout,NULL);
-#endif
-
 #ifdef DEBUG0
 	printf("obsessive_compulsive_service_check_processor() end\n");
 #endif
@@ -152,7 +146,6 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
-	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
 	printf("obsessive_compulsive_host_check_processor() start\n");
@@ -196,11 +189,6 @@ int obsessive_compulsive_host_check_processor(host *hst){
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 	        }
-	
-#ifdef USE_EVENT_BROKER
-	/* send event data to broker */
-	broker_ocp_data(NEBTYPE_OCP_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,ochp_timeout,early_timeout,NULL);
-#endif
 
 #ifdef DEBUG0
 	printf("obsessive_compulsive_host_check_processor() end\n");
@@ -276,9 +264,11 @@ int handle_service_event(service *svc,int state_type){
 int run_global_service_event_handler(service *svc,int state_type){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
+	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
+	int result;
 	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
@@ -318,7 +308,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
+	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
@@ -330,7 +320,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,event_handler_timeout,early_timeout,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -346,9 +336,11 @@ int run_global_service_event_handler(service *svc,int state_type){
 int run_service_event_handler(service *svc,int state_type){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
+	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
+	int result;
 	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
@@ -384,7 +376,7 @@ int run_service_event_handler(service *svc,int state_type){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
+	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
@@ -396,7 +388,7 @@ int run_service_event_handler(service *svc,int state_type){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,event_handler_timeout,early_timeout,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -453,9 +445,11 @@ int handle_host_event(host *hst){
 int run_global_host_event_handler(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
+	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
+	int result;
 	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
@@ -495,7 +489,7 @@ int run_global_host_event_handler(host *hst){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
+	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE){
@@ -507,7 +501,7 @@ int run_global_host_event_handler(host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,event_handler_timeout,early_timeout,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -522,9 +516,11 @@ int run_global_host_event_handler(host *hst){
 int run_host_event_handler(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
+	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
+	int result;
 	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
@@ -560,7 +556,7 @@ int run_host_event_handler(host *hst){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
+	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
@@ -572,7 +568,7 @@ int run_host_event_handler(host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,event_handler_timeout,early_timeout,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
 #endif
 
 #ifdef DEBUG0

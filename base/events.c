@@ -825,7 +825,7 @@ void schedule_event(timed_event *event,timed_event **event_list){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_timed_event(NEBTYPE_TIMEDEVENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,event,NULL,NULL);
+	broker_timed_event(NEBTYPE_TIMEDEVENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -847,7 +847,7 @@ void remove_event(timed_event *event,timed_event **event_list){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL,NULL);
+	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
 #endif
 
 	if(*event_list==NULL)
@@ -1061,12 +1061,6 @@ int event_execution_loop(void){
 
 			/* wait a second so we don't hog the CPU... */
 			else{
-#ifdef USE_EVENT_BROKER
-#ifdef INSANE_BROKERING
-				/* send event data to broker */
-				broker_timed_event(NEBTYPE_TIMEDEVENT_DELAY,NEBFLAG_NONE,NEBATTR_NONE,temp_event,NULL,NULL);
-#endif
-#endif
 				delay.tv_sec=(time_t)sleep_time;
 				delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
 				nanosleep(&delay,NULL);
@@ -1081,12 +1075,6 @@ int event_execution_loop(void){
 				check_for_external_commands();
 
 			/* wait a second so we don't hog the CPU... */
-#ifdef USE_EVENT_BROKER
-#ifdef INSANE_BROKERING
-			/* send event data to broker */
-			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP,NEBFLAG_NONE,NEBATTR_NONE,NULL,(void *)&sleep_time,NULL);
-#endif
-#endif
 			delay.tv_sec=(time_t)sleep_time;
 			delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
 			nanosleep(&delay,NULL);
@@ -1114,7 +1102,7 @@ int handle_timed_event(timed_event *event){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL,NULL);
+	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
 #endif
 
 #ifdef DEBUG3

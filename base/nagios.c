@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   08-18-2003
+ * Last Modified:   08-23-2003
  *
  * Description:
  *
@@ -372,7 +372,9 @@ int main(int argc, char **argv){
 		printf("Reading configuration data...\n\n");
 
 		/* read in the configuration files (main config file, resource and object config files) */
-		result=read_all_config_data(config_file);
+		result=read_main_config_file(config_file);
+		if(result==OK)
+			result=read_all_object_data(config_file);
 
 		/* there was a problem reading the config files */
 		if(result!=OK){
@@ -433,7 +435,10 @@ int main(int argc, char **argv){
 		reset_variables();
 
 		/* read in the configuration files (main config file and all host config files) */
-		if(read_all_config_data(config_file)!=OK){
+		result=read_main_config_file(config_file);
+		if(result==OK)
+			result=read_all_object_data(config_file);
+		if(result!=OK){
 
 			printf("***> One or more problems was encountered while reading configuration data...\n");
 
@@ -473,17 +478,16 @@ int main(int argc, char **argv){
 			/* get PID */
 			nagios_pid=(int)getpid();
 
-			/* read in the configuration files (main config file and all object config files) */
-			result=read_all_config_data(config_file);
+			/* read in the configuration files (main and resource config files) */
+			result=read_main_config_file(config_file);
+
+			/* drop privileges */
+			drop_privileges(nagios_user,nagios_group);
 
 #ifdef USE_EVENT_BROKER
-			/* load modules */
+			/* initialize modules */
 			neb_init_modules();
 			neb_init_callback_list();
-			neb_load_all_modules();
-
-			/* send program data to broker */
-			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 #endif
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
@@ -493,6 +497,19 @@ int main(int argc, char **argv){
 
 			/* write log version/info */
 			write_log_file_info();
+
+
+#ifdef USE_EVENT_BROKER
+			/* load modules */
+			neb_load_all_modules();
+
+			/* send program data to broker */
+			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
+
+			/* read in all object config data */
+			if(result==OK)
+				result=read_all_object_data(config_file);
 
 			/* there was a problem reading the config files */
 			if(result!=OK){
@@ -560,9 +577,6 @@ int main(int argc, char **argv){
 				nagios_pid=(int)getpid();
 #endif
 			        }
-
-			/* drop privileges */
-			drop_privileges(nagios_user,nagios_group);
 
 			/* open the command file (named pipe) for reading */
 			result=open_command_file();
@@ -682,14 +696,6 @@ int main(int argc, char **argv){
 
 			/* cleanup worker threads */
 			shutdown_service_result_worker_thread();
-
-#ifdef USE_EVENT_BROKER
-			/* unload modules */
-			neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD,(sigshutdown==TRUE)?NEBMODULE_NEB_SHUTDOWN:NEBMODULE_NEB_RESTART);
-			neb_free_module_list();
-			neb_free_callback_list();
-			neb_deinit_modules();
-#endif
 
 			/* shutdown stuff... */
 			if(sigshutdown==TRUE){

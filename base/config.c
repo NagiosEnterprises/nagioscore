@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2003
+ * Last Modified:   08-23-2003
  *
  * License:
  *
@@ -166,7 +166,7 @@ extern service		**service_hashlist;
 /******************************************************************/
 
 /* read all configuration data */
-int read_all_config_data(char *main_config_file){
+int read_all_object_data(char *main_config_file){
 	int result=OK;
 	int options;
 	int cache=FALSE;
@@ -174,11 +174,6 @@ int read_all_config_data(char *main_config_file){
 #ifdef DEBUG0
 	printf("read_all_config_data() start\n");
 #endif
-
-	/* read the main config file */
-	result=read_main_config_file(main_config_file);
-	if(result!=OK)
-		return ERROR;
 
 	options=READ_ALL_OBJECT_DATA;
 

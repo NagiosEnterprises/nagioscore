@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2003
+ * Last Modified:   08-23-2003
  *
  * License:
  *
@@ -28,9 +28,10 @@
 #include "../include/objects.h"
 #include "../include/statusdata.h"
 #include "../include/comments.h"
-
 #include "../include/nagios.h"
 #include "../include/broker.h"
+#include "../include/nebmods.h"
+#include "../include/nebmodules.h"
 
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -148,6 +149,7 @@ extern time_t   last_command_check;
 extern time_t   last_log_rotation;
 
 extern int      verify_config;
+extern int      test_scheduling;
 
 extern service_message svc_msg;
 extern int      ipc_pipe[2];
@@ -2456,6 +2458,7 @@ void service_check_sighandler(int sig){
 	svc_msg.exited_ok=TRUE;
 	svc_msg.check_type=SERVICE_CHECK_ACTIVE;
 	svc_msg.finish_time=end_time;
+	svc_msg.early_timeout=TRUE;
 	write_svc_message(&svc_msg);
 
 	/* close write end of IPC pipe */
@@ -3723,6 +3726,16 @@ void cleanup(void){
 
 #ifdef DEBUG0
 	printf("cleanup() start\n");
+#endif
+
+#ifdef USE_EVENT_BROKER
+	/* unload modules */
+	if(test_scheduling==FALSE && verify_config==FALSE){
+		neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD,(sigshutdown==TRUE)?NEBMODULE_NEB_SHUTDOWN:NEBMODULE_NEB_RESTART);
+		neb_free_module_list();
+		neb_free_callback_list();
+		neb_deinit_modules();
+	        }
 #endif
 
 	/* free all allocated memory */

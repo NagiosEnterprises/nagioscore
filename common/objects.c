@@ -604,18 +604,14 @@ int add_hostescalation_to_hashlist(hostescalation *new_hostescalation){
 	for(temp_hostescalation=hostescalation_hashlist[hashslot];temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,new_hostescalation->host_name)<0;temp_hostescalation=temp_hostescalation->nexthash)
 		lastpointer=temp_hostescalation;
 
-	if(!temp_hostescalation){
-		if(lastpointer)
-			lastpointer->nexthash=new_hostescalation;
-		else
-			hostescalation_hashlist[hashslot]=new_hostescalation;
-		new_hostescalation->nexthash=temp_hostescalation;
+	/* duplicates are allowed */
+	if(lastpointer)
+		lastpointer->nexthash=new_hostescalation;
+	else
+		hostescalation_hashlist[hashslot]=new_hostescalation;
+	new_hostescalation->nexthash=temp_hostescalation;
 
-		return 1;
-	        }
-
-	/* else already exists */
-	return 0;
+	return 1;
         }
 
 
@@ -643,19 +639,14 @@ int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
 	for(temp_serviceescalation=serviceescalation_hashlist[hashslot];temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)<0;temp_serviceescalation=temp_serviceescalation->nexthash)
 		lastpointer=temp_serviceescalation;
 
-	if(!temp_serviceescalation){
-		if(lastpointer)
-			lastpointer->nexthash=new_serviceescalation;
-		else
-			serviceescalation_hashlist[hashslot]=new_serviceescalation;
-		new_serviceescalation->nexthash=temp_serviceescalation;
+	/* duplicates are allowed */
+	if(lastpointer)
+		lastpointer->nexthash=new_serviceescalation;
+	else
+		serviceescalation_hashlist[hashslot]=new_serviceescalation;
+	new_serviceescalation->nexthash=temp_serviceescalation;
 
-
-		return 1;
-	        }
-
-	/* else already exists */
-	return 0;
+	return 1;
         }
 
 

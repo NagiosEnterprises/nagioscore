@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-15-2003
+ * Last Modified:   08-19-2003
  *
  * License:
  *
@@ -46,9 +46,9 @@
 #define NEBTYPE_TIMEDEVENT_ADD                200
 #define NEBTYPE_TIMEDEVENT_REMOVE             201
 #define NEBTYPE_TIMEDEVENT_EXECUTE            202
-#define NEBTYPE_TIMEDEVENT_DELAY              203
-#define NEBTYPE_TIMEDEVENT_SKIP               204
-#define NEBTYPE_TIMEDEVENT_SLEEP              205
+#define NEBTYPE_TIMEDEVENT_DELAY              203   /* NOT IMPLEMENTED */
+#define NEBTYPE_TIMEDEVENT_SKIP               204   /* NOT IMPLEMENTED */
+#define NEBTYPE_TIMEDEVENT_SLEEP              205   /* NOT IMPLEMENTED */
 
 #define NEBTYPE_LOG_DATA                      300
 #define NEBTYPE_LOG_ROTATION                  301
@@ -67,12 +67,10 @@
 #define NEBTYPE_SERVICECHECK_INITIATE         700
 #define NEBTYPE_SERVICECHECK_RAW              701        /* NOT IMPLEMENTED */
 #define NEBTYPE_SERVICECHECK_PROCESSED        702
-#define NEBTYPE_HOSTCHECK_INITIATE            703        /* a check of the route to the host has been initiated */
-#define NEBTYPE_HOSTCHECK_RAW                 704        /* the "raw" result of a host check */
-#define NEBTYPE_HOSTCHECK_PROCESSED           705        /* the processed/final result of a host check */
 
-#define NEBTYPE_OCP_SERVICE                   800
-#define NEBTYPE_OCP_HOST                      801
+#define NEBTYPE_HOSTCHECK_INITIATE            800        /* a check of the route to the host has been initiated */
+#define NEBTYPE_HOSTCHECK_RAW                 801        /* the "raw" result of a host check */
+#define NEBTYPE_HOSTCHECK_PROCESSED           802        /* the processed/final result of a host check */
 
 #define NEBTYPE_COMMENT_ADD                   900
 #define NEBTYPE_COMMENT_DELETE                901
@@ -133,18 +131,19 @@
 #define NEBATTR_EARLY_COMMAND_TIMEOUT         512
 
 
+
 /****** EVENT BROKER FUNCTIONS *************/
 
 #ifdef USE_EVENT_BROKER
 struct timeval get_broker_timestamp(struct timeval *);
 void broker_program_state(int,int,int,struct timeval *);
-void broker_timed_event(int,int,int,timed_event *event,void *,struct timeval *);
+void broker_timed_event(int,int,int,timed_event *event,struct timeval *);
 void broker_log_data(int,int,int,char *,unsigned long,struct timeval *);
-void broker_event_handler(int,int,int,void *,int,int,double,int,int,struct timeval *);
+void broker_event_handler(int,int,int,void *,int,int,double,int,int,int,char *,char *,struct timeval *);
 void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
 void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct timeval *);
-void broker_host_check(int,int,int,host *,int,double,struct timeval *);
-void broker_service_check(int,int,int,service *,struct timeval *);
+void broker_host_check(int,int,int,host *,int,int,double,double,int,int,int,char *,char *,char *,struct timeval *);
+void broker_service_check(int,int,int,service *,double,double,int,int,int,char *,struct timeval *);
 void broker_comment_data(int,int,int,char *,char *,time_t,char *,char *,int,int,unsigned long,struct timeval *);
 void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
 void broker_flapping_data(int,int,int,void *,double,double,struct timeval *);

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-15-2003
+ * Last Modified: 08-23-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -335,6 +335,7 @@ typedef struct service_message_struct{
 	int parallelized;                               /* was this check run in parallel? */
 	struct timeval start_time;			/* time the service check was initiated */
 	struct timeval finish_time;			/* time the service check was completed */
+	int early_timeout;                              /* did the service check timeout? */
 	char output[MAX_PLUGINOUTPUT_LENGTH];		/* plugin output */
 	}service_message;
 
@@ -415,9 +416,9 @@ typedef struct circular_buffer_struct{
 /******************** FUNCTIONS **********************/
 
 /**** Configuration Functions ****/
-int read_all_config_data(char *);			/* top-level function for reading all config data */
 int read_main_config_file(char *);                     	/* reads the main config file (nagios.cfg) */
 int read_resource_file(char *);				/* processes macros in resource file */
+int read_all_object_data(char *);			/* reads all object config data */
 
 
 /**** Setup Functions ****/

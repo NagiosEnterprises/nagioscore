@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-19-2003
  *
  * License:
  *
@@ -1918,7 +1918,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_PASSIVE,this_host,this_host->current_state,0.0,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_PASSIVE,this_host,this_host->current_state,this_host->state_type,0.0,this_host->execution_time,0,FALSE,return_code,NULL,this_host->plugin_output,this_host->perf_data,NULL);
 #endif
 
 	/***** CHECK FOR FLAPPING *****/

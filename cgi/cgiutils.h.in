@@ -387,6 +387,9 @@ void reset_cgi_vars(void);
 void free_cgi_vars(void);
 void free_memory(void);
 
+char * get_cgi_config_location(void);				/* gets location of the CGI config file to read */
+char * get_cmd_file_location(void);				/* gets location of external command file to write to */
+
 int read_cgi_config_file(char *);
 int read_main_config_file(char *);
 int read_all_object_configuration_data(char *,int);

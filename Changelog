@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0 - ??/??/????
 ----------------
+* CGIs can now determine config file and external command file locations
+  from environment variables (Russell Scibetti)
 * Host and services use chained hash for faster lookups (Daniel Drown)
 	###### CH may disappear from xodtemplate before release (not sure though)
 

@@ -256,10 +256,10 @@ int main(int argc, char **argv){
 	reset_cgi_vars();
 	
 	/* read the CGI configuration file */
-	result=read_cgi_config_file(DEFAULT_CGI_CONFIG_FILE);
+	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(FALSE);
-		cgi_config_file_error(DEFAULT_CGI_CONFIG_FILE);
+		cgi_config_file_error(get_cgi_config_location());
 		document_footer();
 		return ERROR;
 	        }
@@ -283,7 +283,7 @@ int main(int argc, char **argv){
                 }
 
 	/* read all status data */
-	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_ALL_STATUS_DATA);
+	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR){
 		document_header(FALSE);
 		status_data_error();

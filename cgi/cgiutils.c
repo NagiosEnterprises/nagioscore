@@ -168,7 +168,7 @@ void reset_cgi_vars(void){
 	strcpy(log_archive_path,DEFAULT_LOG_ARCHIVE_PATH);
 	if(log_archive_path[strlen(log_archive_path)-1]!='/' && strlen(log_archive_path)<sizeof(log_archive_path)-2)
 		strcat(log_archive_path,"/");
-	strcpy(command_file,DEFAULT_COMMAND_FILE);
+	strcpy(command_file,get_cmd_file_location());
 
 	strcpy(nagios_check_command,"");
 	strcpy(nagios_process_info,"");
@@ -235,8 +235,34 @@ void free_memory(void){
  *************** CONFIG FILE FUNCTIONS ********************
  **********************************************************/
 
+/* read the CGI config file location from an environment variable */
+char * get_cgi_config_location(void){
+        static char *cgiloc=NULL;
 
-/* read the CGI configuration file */
+        if(!cgiloc){
+                cgiloc=getenv("NAGIOS_CGI_CONFIG");
+                if(!cgiloc)
+                        cgiloc=DEFAULT_CGI_CONFIG_FILE;
+                }
+
+        return cgiloc;
+        }
+
+
+/* read the command file location from an environment variable */
+char * get_cmd_file_location(void){
+        static char *cmdloc=NULL;
+
+        if(!cmdloc){
+                cmdloc=getenv("NAGIOS_COMMAND_FILE");
+                if(!cmdloc)
+                        cmdloc=DEFAULT_COMMAND_FILE;
+                }
+        return cmdloc;
+        }
+
+
+/*read the CGI configuration file */
 int read_cgi_config_file(char *filename){
 	char input_buffer[MAX_INPUT_BUFFER];
 	char *temp_buffer;

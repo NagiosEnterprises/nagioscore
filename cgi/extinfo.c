@@ -131,7 +131,7 @@ int main(void){
 	reset_cgi_vars();
 
 	/* read the CGI configuration file */
-	result=read_cgi_config_file(DEFAULT_CGI_CONFIG_FILE);
+	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(FALSE);
 		cgi_config_file_error(main_config_file);
@@ -158,7 +158,7 @@ int main(void){
                 }
 
 	/* read all status data */
-	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_ALL_STATUS_DATA);
+	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR){
 		document_header(FALSE);
 		status_data_error();
@@ -170,7 +170,7 @@ int main(void){
 	document_header(TRUE);
 
 	/* read in extended host information */
-	read_extended_object_config_data(DEFAULT_CGI_CONFIG_FILE,READ_ALL_EXTENDED_DATA);
+	read_extended_object_config_data(get_cgi_config_location(),READ_ALL_EXTENDED_DATA);
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
@@ -1488,7 +1488,7 @@ void show_all_comments(void){
 
 
 	/* read in all comments */
-	read_comment_data(DEFAULT_CGI_CONFIG_FILE);
+	read_comment_data(get_cgi_config_location());
 
 	printf("<P>\n");
 	printf("<DIV CLASS='commentNav'>[&nbsp;<A HREF='#HOSTCOMMENTS' CLASS='commentNav'>Host Comments</A>&nbsp;|&nbsp;<A HREF='#SERVICECOMMENTS' CLASS='commentNav'>Service Comments</A>&nbsp;]</DIV>\n");
@@ -1891,7 +1891,7 @@ void display_comments(int type){
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* read in all comments */
-	read_comment_data(DEFAULT_CGI_CONFIG_FILE);
+	read_comment_data(get_cgi_config_location());
 
 	/* check all the comments to see if they apply to this host or service */
 	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1955,7 +1955,7 @@ void show_all_downtime(void){
 
 
 	/* read in all downtime */
-	read_downtime_data(DEFAULT_CGI_CONFIG_FILE);
+	read_downtime_data(get_cgi_config_location());
 
 	printf("<P>\n");
 	printf("<DIV CLASS='downtimeNav'>[&nbsp;<A HREF='#HOSTDOWNTIME' CLASS='downtimeNav'>Host Downtime</A>&nbsp;|&nbsp;<A HREF='#SERVICEDOWNTIME' CLASS='downtimeNav'>Service Downtime</A>&nbsp;]</DIV>\n");

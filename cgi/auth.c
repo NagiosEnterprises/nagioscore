@@ -107,7 +107,7 @@ int get_authentication_information(authdata *authinfo){
 	        }
 
 	/* read in authorization override vars from config file... */
-	fp=fopen(DEFAULT_CGI_CONFIG_FILE,"r");
+	fp=fopen(get_cgi_config_location(),"r");
 	if(fp!=NULL){
 
 		while(read_line(input_buffer,MAX_INPUT_BUFFER,fp)){

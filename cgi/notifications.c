@@ -91,10 +91,10 @@ int main(void){
 	reset_cgi_vars();
 
 	/* read the CGI configuration file */
-	result=read_cgi_config_file(DEFAULT_CGI_CONFIG_FILE);
+	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(FALSE);
-		cgi_config_file_error(DEFAULT_CGI_CONFIG_FILE);
+		cgi_config_file_error(get_cgi_config_location());
 		document_footer();
 		return ERROR;
 	        }

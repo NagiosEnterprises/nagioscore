@@ -114,13 +114,13 @@ int main(void){
 	reset_cgi_vars();
 
 	/* read the CGI configuration file */
-	result=read_cgi_config_file(DEFAULT_CGI_CONFIG_FILE);
+	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(FALSE);
 		if(content_type==WML_CONTENT)
 			printf("<p>Error: Could not open CGI config file!</p>\n");
 		else
-			cgi_config_file_error(DEFAULT_CGI_CONFIG_FILE);
+			cgi_config_file_error(get_cgi_config_location());
 		document_footer();
 		return ERROR;
 	        }
@@ -1169,7 +1169,7 @@ void commit_command_data(int cmd){
 			error=TRUE;
 
 		/* read comments */
-		read_comment_data(DEFAULT_CGI_CONFIG_FILE);
+		read_comment_data(get_cgi_config_location());
 
 		/* find the comment */
 		if(cmd==CMD_DEL_HOST_COMMENT)
@@ -1202,7 +1202,7 @@ void commit_command_data(int cmd){
 			error=TRUE;
 
 		/* read scheduled downtime */
-		read_downtime_data(DEFAULT_CGI_CONFIG_FILE);
+		read_downtime_data(get_cgi_config_location());
 
 		/* find the downtime entry */
 		if(cmd==CMD_DEL_HOST_DOWNTIME)

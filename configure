@@ -3783,6 +3783,7 @@ echo "Creating sample config files in sample-config/ ..."
 perl subst sample-config/nagios.cfg
 perl subst sample-config/cgi.cfg
 perl subst sample-config/resource.cfg
+perl subst sample-config/httpd.conf
 
 perl subst sample-config/template-object/hosts.cfg
 perl subst sample-config/template-object/hostgroups.cfg

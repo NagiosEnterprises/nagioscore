@@ -3,8 +3,8 @@ SAMPLE CONFIG README
 ====================
 
 This directory contains sample object definition config files for
-use with the TEMPLATE-BASED object routines in Nagios.  This is
-the default type of object definition file for Nagios and the CGIs.
+use with the TEMPLATE-BASED object configuration file format.  This is
+now the only type of file format supported by Nagios "out of the box".
 
 Sample config files have a .cfg extension.  Ignore any files with
 a .in extension, as they are templates used to generate the sample
@@ -24,9 +24,9 @@ understand.  It contains all types of definitions you need to get
 started (hosts, hostgroups, services, command, contacts, etc...)
 
 
-Note:
+NOTE:
 
-Sample command definitions have been split into two sepearate files:
+Sample command definitions have been split into two separate files:
 
   misccommands.cfg 	- This file contains sample notification
 			  commands, performance data commands, etc.

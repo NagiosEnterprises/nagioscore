@@ -1,0 +1,32 @@
+# SAMPLE CONFIG SNIPPETS FOR APACHE WEB SERVER
+# Last Modified: 10-29-2004
+#
+# This file contains examples of entries that need
+# to be incorporated into your Apache web server
+# configuration file.  Customize the paths, etc. as
+# needed to fit your system.
+
+ScriptAlias @cgiurl@ "@sbindir@"
+<Directory "@sbindir@">
+#   SSLRequireSSL
+   Options ExecCGI
+   AllowOverride AuthConfig
+   Order allow,deny
+   Allow from all
+#   Order deny,allow
+#   Deny from all
+#   Allow from 127.0.0.1
+</Directory>
+
+Alias @htmurl@ "@datadir@"
+<Directory "@datadir@">
+#   SSLRequireSSL
+   Options None
+   AllowOverride AuthConfig
+   Order allow,deny
+   Allow from all
+#   Order deny,allow
+#   Deny from all
+#   Allow from 127.0.0.1
+</Directory>
+

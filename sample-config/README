@@ -16,30 +16,15 @@ CONTENTS:
 
 cgi.cfg           - This is a sample CGI config file
 
-nagios.cfg.in     - This is a sample main config file
+nagios.cfg        - This is a sample main config file
 
-resource.cfg.in   - This is a sample resource config file, used
+resource.cfg      - This is a sample resource config file, used
                     for definining custom macros, storing
                     sensitive data, etc.
 
-default-object/   - This directory contains sample object config
-                    files that can be used if Nagios and the CGIs
-                    are compiled with support for the default
-                    (old style) object data (using the
-		    --with-default-objects argument to the
-                    configure script).
-
 template-object/  - This directory contains sample object config
-                    files that can be used if Nagios and the CGIs
-                    are compiled with support for the template-based
-                    object data.  A minimalistic config file called
+                    files.   A minimalistic config file called
 		    minimal.cfg is a barebones example of a config
  		    file that might be easy for new users to
 		    understand.
-                   
-
-template-extinfo/ - This directory contains sample extended info
-		    config files that can be used if the CGIs
-                    are compiled with support for the template-based
-                    extended info.
                    

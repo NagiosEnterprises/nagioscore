@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 02-16-2004
+# Last Modified: 10-29-2004
 ###############################
 
 
@@ -155,7 +155,7 @@ distclean: clean
 	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	cd $(SRC_MODULE) && $(MAKE) $@
-	rm -f sample-config/*.cfg sample-config/template-object/*.cfg sample-config/default-object/*.cfg
+	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
 	rm -f daemon-init pkginfo
 	rm -f Makefile subst
 

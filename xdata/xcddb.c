@@ -711,7 +711,7 @@ int xcddb_save_host_comment(char *host_name, time_t entry_time, char *author_nam
 	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',FROM_UNIXTIME(%lu),'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,escaped_host_name,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 #ifdef USE_XCDPGSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',abstime(%lu),'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,escaped_host_name,persistent,entry_time,escaped_author_name,escaped_comment_data);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,persistent,entry_time,author_name,comment_data) VALUES ('%s','%d',%lu::abstime::timestamp,'%s','%s')",XCDDB_HOSTCOMMENTS_TABLE,escaped_host_name,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 
@@ -809,7 +809,7 @@ int xcddb_save_service_comment(char *host_name, char *svc_description, time_t en
 	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',FROM_UNIXTIME(%lu),'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,escaped_host_name,escaped_svc_description,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 #ifdef USE_XCDPGSQL
-	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',abstime(%lu),'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,escaped_host_name,escaped_svc_description,persistent,entry_time,escaped_author_name,escaped_comment_data);
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,persistent,entry_time,author_name,comment_data) VALUES ('%s','%s','%d',%lu::abstime::timestamp,'%s','%s')",XCDDB_SERVICECOMMENTS_TABLE,escaped_host_name,escaped_svc_description,persistent,entry_time,escaped_author_name,escaped_comment_data);
 #endif
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 

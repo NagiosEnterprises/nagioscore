@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-02-2003
+ * Last Modified: 06-09-2003
  *
  * License:
  * 
@@ -1636,7 +1636,7 @@ void show_all_comments(void){
 	        }
 
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=7>There are no host comments</TD></TR>");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=8>There are no host comments</TD></TR>");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
@@ -1690,7 +1690,7 @@ void show_all_comments(void){
 	        }
 
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=8>There are no service comments</TD></TR>");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=9>There are no service comments</TD></TR>");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
@@ -2248,7 +2248,7 @@ void display_comments(int type){
 	else
 		total_comments=number_of_service_comments(temp_service->host_name,temp_service->description);
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?7:8,(type==HOST_COMMENT)?"host":"service");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?8:9,(type==HOST_COMMENT)?"host":"service");
 
 	printf("</TABLE>\n");
 

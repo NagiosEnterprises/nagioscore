@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-05-2003
+ * Last Modified:   06-09-2003
  *
  * License:
  *
@@ -69,6 +69,18 @@
 #define NEBTYPE_OCP_SERVICE                   800
 #define NEBTYPE_OCP_HOST                      801
 
+#define NEBTYPE_COMMENT_ADD                   900
+#define NEBTYPE_COMMENT_DELETE                901
+#define NEBTYPE_COMMENT_LOAD                  902
+
+#define NEBTYPE_FLAPPING_START                1000
+#define NEBTYPE_FLAPPING_STOP                 1001
+
+#define NEBTYPE_DOWNTIME_ADD                  1100
+#define NEBTYPE_DOWNTIME_DELETE               1101
+#define NEBTYPE_DOWNTIME_LOAD                 1102
+#define NEBTYPE_DOWNTIME_START                1103
+#define NEBTYPE_DOWNTIME_STOP                 1104
 
 
 
@@ -99,6 +111,19 @@
 
 #define NEBATTR_SERVICECHECK_ACTIVE           1
 #define NEBATTR_SERVICECHECK_PASSIVE          2
+
+#define NEBATTR_HOST_COMMENT                  1
+#define NEBATTR_SERVICE_COMMENT               2
+
+#define NEBATTR_HOST_FLAPPING                 1
+#define NEBATTR_SERVICE_FLAPPING              2
+#define NEBATTR_FLAPPING_STOP_NORMAL          4
+#define NEBATTR_FLAPPING_STOP_DISABLED        8         /* flapping stopped because flap detection was disabled */
+
+#define NEBATTR_HOST_DOWNTIME                 1
+#define NEBATTR_SERVICE_DOWNTIME              2
+#define NEBATTR_DOWNTIME_STOP_NORMAL          4
+#define NEBATTR_DOWNTIME_STOP_CANCELLED       8
 
 #define NEBATTR_EARLY_COMMAND_TIMEOUT         512
 

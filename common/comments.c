@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   06-09-2003
  *
  * License:
  *
@@ -39,6 +39,7 @@
 
 #ifdef NSCORE
 #include "../base/nagios.h"
+#include "../base/broker.h"
 #endif
 
 #ifdef NSCGI
@@ -112,13 +113,23 @@ int add_new_comment(int type, char *host_name, char *svc_description, time_t ent
 /* adds a new host comment */
 int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
 	int result;
+	unsigned long new_comment_id;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
-	result=xcddefault_add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,comment_id);
+	result=xcddefault_add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
 #endif
 #ifdef USE_XCDDB
-	result=xcddb_add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,comment_id);
+	result=xcddb_add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
+#endif
+
+	/* save comment id */
+	if(comment_id!=NULL)
+		*comment_id=new_comment_id;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_comment_data(NEBTYPE_COMMENT_ADD,NEBFLAG_NONE,NEBATTR_HOST_COMMENT,host_name,NULL,entry_time,author_name,comment_data,persistent,source,new_comment_id,NULL);
 #endif
 
 	return result;
@@ -128,13 +139,23 @@ int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, 
 /* adds a new service comment */
 int add_new_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
 	int result;
+	unsigned long new_comment_id;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
-	result=xcddefault_add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,comment_id);
+	result=xcddefault_add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
 #endif
 #ifdef USE_XCDDB
-	result=xcddb_add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,comment_id);
+	result=xcddb_add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
+#endif
+
+	/* save comment id */
+	if(comment_id!=NULL)
+		*comment_id=new_comment_id;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_comment_data(NEBTYPE_COMMENT_ADD,NEBFLAG_NONE,NEBATTR_SERVICE_COMMENT,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,new_comment_id,NULL);
 #endif
 
 	return result;
@@ -167,6 +188,11 @@ int delete_comment(int type, unsigned long comment_id){
 
 	/* remove the comment from the list in memory */
 	if(this_comment!=NULL){
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_comment_data(NEBTYPE_COMMENT_DELETE,NEBFLAG_NONE,(type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,this_comment->host_name,this_comment->service_description,this_comment->entry_time,this_comment->author,this_comment->comment_data,this_comment->persistent,this_comment->source,comment_id,NULL);
+#endif
 
 		if(comment_list==this_comment)
 			comment_list=this_comment->next;
@@ -438,6 +464,13 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 		new_comment->next=NULL;
 		last_comment->next=new_comment;
 	        }
+
+#ifdef NSCORE
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_comment_data(NEBTYPE_COMMENT_LOAD,NEBFLAG_NONE,(comment_type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,host_name,svc_description,entry_time,author,comment_data,persistent,source,comment_id,NULL);
+#endif
+#endif
 
 	return OK;
         }

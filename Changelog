@@ -10,6 +10,7 @@ Nagios Change Log
 * Minor doc updates
 * Minor bug fixes to init script
 * Spec file updates
+* Bug fix for flex host downtime
 
 
 1.0b6 - 09/15/2002

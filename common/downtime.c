@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-20-2002
+ * Last Modified:   10-16-2002
  *
  * License:
  *
@@ -414,12 +414,16 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		/* delete downtime entry from the log */
 		delete_downtime(temp_downtime->type,temp_downtime->downtime_id);
 
-		/* decrement pending flex downtime if necessary ... */
+		/* decrement pending flex downtime if necessary (there really isn't any reason these counters are necessary, so remove them in 2.0 - 11/16/02 EG) ... */
 		if(temp_downtime->fixed==FALSE && temp_downtime->incremented_pending_downtime==TRUE){
-			if(temp_downtime->type==HOST_DOWNTIME)
-				hst->pending_flex_downtime--;
-			else
-				svc->pending_flex_downtime--;
+			if(temp_downtime->type==HOST_DOWNTIME){
+				if(hst->pending_flex_downtime>0)
+					hst->pending_flex_downtime--;
+			        }
+			else{
+				if(svc->pending_flex_downtime>0)
+					svc->pending_flex_downtime--;
+			        }
 		        }
 
 		/* delete downtime entry from list in memory */
@@ -501,7 +505,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 
 /* checks for flexible (non-fixed) host downtime that should start now */
-int check_pending_flex_host_downtime(host *hst){
+int check_pending_flex_host_downtime(host *hst,int state){
 	scheduled_downtime *temp_downtime;
 	time_t current_time;
 
@@ -515,7 +519,7 @@ int check_pending_flex_host_downtime(host *hst){
 	time(&current_time);
 
 	/* if host is currently up, nothing to do */
-	if(hst->status==HOST_UP)
+	if(state==HOST_UP)
 		return OK;
 
 	/* check all downtime entries */
@@ -534,7 +538,7 @@ int check_pending_flex_host_downtime(host *hst){
 		if(find_host(temp_downtime->host_name,NULL)==hst){
 			
 			/* if the time boundaries are okay, start this scheduled downtime */
-			if(temp_downtime->start_time>=current_time && current_time<=temp_downtime->end_time){
+			if(temp_downtime->start_time<=current_time && current_time<=temp_downtime->end_time){
 				temp_downtime->start_flex_downtime=TRUE;
 				handle_scheduled_downtime(temp_downtime);
 			        }

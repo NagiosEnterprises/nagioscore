@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-27-2003
+ * Last Modified:   11-08-2003
  *
  * License:
  *
@@ -45,6 +45,8 @@ extern int      interval_length;
 extern int      service_inter_check_delay_method;
 extern int      host_inter_check_delay_method;
 extern int      service_interleave_factor_method;
+extern int      max_host_check_spread;
+extern int      max_service_check_spread;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
@@ -210,7 +212,7 @@ void init_timing_loop(void){
 	/******** DETERMINE SERVICE SCHEDULING PARAMS  ********/
 
 	/* default max service check spread (in minutes) */
-	scheduling_info.max_service_check_spread=DEFAULT_SERVICE_CHECK_SPREAD;
+	scheduling_info.max_service_check_spread=max_service_check_spread;
 
 	/* how should we determine the service inter-check delay to use? */
 	switch(service_inter_check_delay_method){
@@ -380,7 +382,7 @@ void init_timing_loop(void){
 	scheduling_info.last_host_check=(time_t)0L;
 
 	/* default max host check spread (in minutes) */
-	scheduling_info.max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
+	scheduling_info.max_host_check_spread=max_host_check_spread;
 
 	/* how should we determine the host inter-check delay to use? */
 	switch(host_inter_check_delay_method){

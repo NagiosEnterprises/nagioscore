@@ -126,7 +126,10 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Optional">hostgroups</td><td class="Optional"><i>hostgroup_names</i></td></tr>
 <tr><td></td><td class="Optional">check_command</td><td class="Optional"><i>command_name</i></td></tr>
 <tr><td></td><td class="Required">max_check_attempts</td><td class="Required">#</td></tr>
-<tr><td></td><td class="Optional">checks_enabled</td><td class="Optional">[0/1]</td></tr>
+<tr><td></td><td class="Optional">check_interval</td><td class="Optional">#</td></tr>
+<tr><td></td><td class="Optional">active_checks_enabled</td><td class="Optional">[0/1]</td></tr>
+<tr><td></td><td class="Optional">passive_checks_enabled</td><td class="Optional">[0/1]</td></tr>
+<tr><td></td><td class="Required">check_period</td><td class="Required"><i>timeperiod_name</i></td></tr>
 <tr><td></td><td class="Optional">obsess_over_host</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">check_freshness</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">freshness_threshold</td><td class="Optional">#</td></tr>
@@ -216,9 +219,22 @@ This directive is used to define the number of times that Nagios will retry the 
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
+<td valign="top"><strong>check_interval</strong>:</td>
 <td>
-This directive is used to determine whether or not checks of this host are enabled. Values: 0 = disable host checks, 1 = enable host checks.
+<i><strong>NOTE:</strong> Do NOT enable regularly scheduled checks of a host unless you absolutely need to!  Host checks are already performed on-demand when necessary, so there are few times when regularly scheduled checks would be needed.  Regularly scheduled host checks can negatively impact performance - see the <a href="tuning.html">performance tuning tips</a> for more information.</i>
+This directive is used to define the number of "time units" between regularly scheduled checks of the host.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>active_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
+<td>
+This directive is used to determine whether or not active checks (either regularly scheduled or on-demand) of this host are enabled. Values: 0 = disable active host checks, 1 = enable active host checks.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>passive_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
+<td>
+This directive is used to determine whether or not passive checks are enabled for this host. Values: 0 = disable passive host checks, 1 = enable passive host checks.
 </td>
 </tr>
 <tr>

@@ -103,6 +103,8 @@ int             interval_length=DEFAULT_INTERVAL_LENGTH;
 int             service_inter_check_delay_method=ICD_SMART;
 int             host_inter_check_delay_method=ICD_SMART;
 int             service_interleave_factor_method=ILF_SMART;
+int             max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
+int             max_service_check_spread=DEFAULT_SERVICE_CHECK_SPREAD;
 
 int             command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 int             service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;

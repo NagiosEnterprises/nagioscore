@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-23-2003
+ * Last Modified:   11-08-2003
  *
  * License:
  *
@@ -123,6 +123,8 @@ extern int      interval_length;
 extern int      service_inter_check_delay_method;
 extern int      host_inter_check_delay_method;
 extern int      service_interleave_factor_method;
+extern int      max_host_check_spread;
+extern int      max_service_check_spread;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
@@ -4301,6 +4303,8 @@ int reset_variables(void){
 	service_inter_check_delay_method=ICD_SMART;
 	host_inter_check_delay_method=ICD_SMART;
 	service_interleave_factor_method=ILF_SMART;
+	max_service_check_spread=DEFAULT_SERVICE_CHECK_SPREAD;
+	max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
 
 	use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
 

@@ -85,6 +85,12 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>OCHP Command</b> - Host checks can now be obsessed over, just as services can be.  The <a href="configmain.html#ochp_command">OCHP command</a> is run for all hosts that have the <i>obsess_over_host</i> directive enabled in their <a href="xodtemplate.html#host">host definition</a>.
 	</ul>
 <br>
+<li><b>Host Check Changes</b>
+	<ul>
+	<li><b>Regularly scheduled checks</b> - You can now schedule regular checks of hosts by using the <i>check_interval</i> directive in <a href="xodtemplate.html#host">host definitions</a>.  <strong>NOTE:</strong>  Listen up! You should use regularly scheduled host checks rather sparingly.   They are not necessary for normal operation (on-demand checks are already performed when necessary) and can <a href="tuning.html">negatively affect performance</a> if used improperly.  You've been warned.
+	<li><b>Passive host checks</b> - Passive host checks are now supported if you've enabled them with the <a href="configmain.html#accept_passive_host_checks">accept_passive_host_checks</a> option in the main config file and the <i>accept_passive_host_checks</i> directive in the <a href="xodtemplate.html#host">host definition</a>.  <a href="passivechecks.html">Passive host checks</a> can make setting up <a href="redundancy.html">redundant</a> or <a href="distributed.html">distributed</a> monitoring environments easier.  <strong>NOTE:</strong> There are some problems with passive host checks that you should be aware of - read more about them <a href="passivechecks.html">here</a>.
+	</ul>
+<br>
 <li><b>Retention Changes</b>
 	<ul>
 	<li><b>Retention of scheduling information</b> - Host and service check scheduling information (next check times) can now be retained across program restarts using the <a href="configmain.html#use_retained_scheduling_info">use_retained_scheduling_info</a> directive.
@@ -127,6 +133,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>Worker threads</b> - A few worker threads have been added in order to artificially buffer data for the <a href="configmain.html#command_file">external command file</a> and the internal pipe used to process service check results.  This should substantially increase performance in larger setups.
 	<li><b>Logging changes</b> - Initial host and service states are now logged a bit differently.  Also, the initial states of all hosts and services are logged immediately after all <a href="configmain.html#log_rotation_method">log rotations</a>.  This should help with all those "undetermined time" problems in the availability and trends CGIs.
 	<li><b>Cached object config file</b> - An <a href="configmain.html#object_cache_file">object cache file</a> is now created by Nagios at startup.  It should help speed up the CGIs a bit and allow you to edit you object config files while Nagios is running without affecting the CGI output.
+	<li><b>Initial check limits</b> - You can now specify timeframes in which the initial checks of all hosts and services should be performed after Nagios start.  These timeframes are controlled by the <a href="configmain.html#max_host_check_spread">max_host_check_spread</a> and <a href="configmain.html#max_service_check_spread">max_service_check_spread</a> variables.
 	</ul>
 <br>
 </ol>

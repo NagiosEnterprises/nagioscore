@@ -64,6 +64,8 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#enable_notifications">Notifications option</a><br>
 <a href="#execute_service_checks">Service check execution option</a><br>
 <a href="#accept_passive_service_checks">Passive service check acceptance option</a><br>
+<a href="#execute_host_checks">Host check execution option</a><br>
+<a href="#accept_passive_host_checks">Passive host check acceptance option</a><br>
 <a href="#enable_event_handlers">Event handler option</a><br>
 <br>
 <a href="#log_rotation_method">Log rotation method</a><br>
@@ -90,16 +92,19 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#log_event_handlers">Event handler logging option</a><br>
 <a href="#log_initial_states">Initial state logging option</a><br>
 <a href="#log_external_commands">External command logging option</a><br>
-<a href="#log_passive_service_checks">Passive service check logging option</a><br>
+<a href="#log_passive_checks">Passive check logging option</a><br>
 <br>
 <a href="#global_host_event_handler">Global host event handler</a><br>
 <a href="#global_service_event_handler">Global service event handler</a><br>
 <br>
 <a href="#sleep_time">Inter-check sleep time</a><br>
-<a href="#inter_check_delay_method">Inter-check delay method</a><br>
+<a href="#service_inter_check_delay_method">Service inter-check delay method</a><br>
+<a href="#max_service_check_spread">Maximum service check spread</a><br>
 <a href="#service_interleave_factor">Service interleave factor</a><br>
 <a href="#max_concurrent_checks">Maximum concurrent service checks</a><br>
 <a href="#service_reaper_frequency">Service reaper frequency</a><br>
+<a href="#host_inter_check_delay_method">Host inter-check delay method</a><br>
+<a href="#max_host_check_spread">Maximum host check spread</a><br>
 <a href="#interval_length">Timing interval length</a><br>
 <br>
 <a href="#use_agressive_host_checking">Agressive host checking option</a><br>
@@ -560,6 +565,72 @@ This option determines whether or not Nagios will accept <a href="passivechecks.
 
 
 <p>
+<a name="execute_host_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Check Execution Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>execute_host_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>execute_host_checks=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines whether or not Nagios will execute on-demand and regularly scheduled host checks when it initially (re)starts.  If this option is disabled, Nagios will not actively execute any host checks, although it can still accept <a href="passivechecks.html">passive host checks</a> unless you've <a href="#accept_passive_host_checks">disabled them</a>).   This option is most often used when configuring backup monitoring servers, as described in the documentation on <a href="redundancy.html">redundancy</a>, or when setting up a <a href="distributed.html">distributed</a> monitoring environment.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+</p>
+<p>
+<ul>
+<li>0 = Don't execute host checks
+<li>1 = Execute host checks (default)
+</ul>
+</p>
+
+
+<p>
+<a name="accept_passive_host_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Passive Host Check Acceptance Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>accept_passive_host_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>accept_passive_host_checks=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines whether or not Nagios will accept <a href="passivechecks.html">passive host checks</a> when it initially (re)starts.  If this option is disabled, Nagios will not accept any passive host checks.  Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.  Values are as follows:
+</p>
+<p>
+<ul>
+<li>0 = Don't accept passive host checks
+<li>1 = Accept passive host checks (default)
+</ul>
+</p>
+
+
+<p>
 <a name="enable_event_handlers"></a>
 <table border="0" width="100%" class="Default">
 <tr>
@@ -970,7 +1041,7 @@ This setting determines whether or not Nagios will set various program-wide stat
 </p>
 
 <p>
-This setting determines whether or not Nagios will retain scheduling info (next check times) for hosts and services when it restarts.  If you are adding a large number (or percentage) of hosts and services, I would recommend disabling this option when you first restart Nagios.  Otherwise you will probably want to  leave it enabled.
+This setting determines whether or not Nagios will retain scheduling info (next check times) for hosts and services when it restarts.  If you are adding a large number (or percentage) of hosts and services, I would recommend disabling this option when you first restart Nagios, as it can adversely skew the spread of initial checks.  Otherwise you will probably want to  leave it enabled.
 </p>
 <p>
 <ul>
@@ -1224,10 +1295,10 @@ This variable determines whether or not Nagios will log <a href="extcommands.htm
 
 
 <p>
-<a name="log_passive_service_checks"></a>
+<a name="log_passive_checks"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Passive Service Check Logging Option</strong></td>
+<td bgcolor="#cbcbcb"><strong>Passive Check Logging Option</strong></td>
 </tr>
 </table>
 </p>
@@ -1236,22 +1307,22 @@ This variable determines whether or not Nagios will log <a href="extcommands.htm
 <table border="0" class="Default">
 <tr>
 <td>Format:</td>
-<td><strong>log_passive_service_checks=&lt;0/1&gt;</strong></td>
+<td><strong>log_passive_checks=&lt;0/1&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>log_passive_service_checks=1</strong></font></td>
+<td><font color="red"><strong>log_passive_checks=1</strong></font></td>
 </tr>
 </table>
 </p>
 
 <p>
-This variable determines whether or not Nagios will log <a href="passivechecks.html">passive service checks</a> that it receives from the <a href="#command_file">external command file</a>.  If you are setting up a <a href="distributed.html">distributed monitoring environment</a> or plan on handling a large number of passive checks on a regular basis, you may wish to disable this option so your log file doesn't get too large.
+This variable determines whether or not Nagios will log <a href="passivechecks.html">passive host and service checks</a> that it receives from the <a href="#command_file">external command file</a>.  If you are setting up a <a href="distributed.html">distributed monitoring environment</a> or plan on handling a large number of passive checks on a regular basis, you may wish to disable this option so your log file doesn't get too large.
 </p>
 <p>
 <ul>
-<li>0 = Don't log passive service checks
-<li>1 = Log passive service checks (default)
+<li>0 = Don't log passive checks
+<li>1 = Log passive checks (default)
 </ul>
 </p>
 
@@ -1332,17 +1403,15 @@ This option allows you to specify a service event handler command that is to be 
 </tr>
 </table>
 </p>
-This is the number of seconds that Nagios will sleep before checking to see if the next service check in the
-scheduling queue should be executed.  Note that Nagios will only sleep after it "catches up" with queued 
-service checks that have fallen behind.
+This is the number of seconds that Nagios will sleep before checking to see if the next service or host check in the scheduling queue should be executed.  Note that Nagios will only sleep after it "catches up" with queued service checks that have fallen behind.
 </p>
 
 
 <p>
-<a name="inter_check_delay_method"></a>
+<a name="service_inter_check_delay_method"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Inter-Check Delay Method</strong></td>
+<td bgcolor="#cbcbcb"><strong>Service Inter-Check Delay Method</strong></td>
 </tr>
 </table>
 </p>
@@ -1351,15 +1420,15 @@ service checks that have fallen behind.
 <table border="0" class="Default">
 <tr>
 <td>Format:</td>
-<td><strong>inter_check_delay_method=&lt;n/d/s/x.xx&gt;</strong></td>
+<td><strong>service_inter_check_delay_method=&lt;n/d/s/x.xx&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>inter_check_delay_method=s</strong></font></td>
+<td><font color="red"><strong>service_inter_check_delay_method=s</strong></font></td>
 </tr>
 </table>
 </p>
-This option allows you to control how service checks are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all services out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended unless you are testing the <a href="parallelization.html">service check parallelization</a> functionality.  Using no delay will cause all service checks to be scheduled for execution at the same time.  This means that you will generally have large CPU spikes when the services are all executed in parallel.   More information on how to estimate how the inter-check delay affects service check scheduling can be found <a href="checkscheduling.html#inter_check_delay">here</a>.Values are as follows:
+This option allows you to control how service checks are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all services out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended unless you are testing the <a href="parallelization.html">service check parallelization</a> functionality.  Using no delay will cause all service checks to be scheduled for execution at the same time.  This means that you will generally have large CPU spikes when the services are all executed in parallel.   More information on how to estimate how the inter-check delay affects service check scheduling can be found <a href="checkscheduling.html#service_inter_check_delay">here</a>.  Values are as follows:
 </p>
 <p>
 <ul>
@@ -1368,6 +1437,31 @@ This option allows you to control how service checks are initially "spread out" 
 <li>s = Use a "smart" delay calculation to spread service checks out evenly (default)
 <li>x.xx = Use a user-supplied inter-check delay of x.xx seconds
 </ul>
+</p>
+
+
+<p>
+<a name="max_service_check_spread"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Maximum Service Check Spread</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>max_service_check_spread=&lt;minutes&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>max_service_check_spread=30</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines the maximum number of minutes from when Nagios starts that all services (that are scheduled to be regularly checked) are checked.  This option will automatically adjust the <a href="#service_inter_check_delay">service inter-check delay</a> (if necessary) to ensure that the initial checks of all services occur within the timeframe you specify.  In general, this option will not have an affect on service check scheduling if scheduling information is being retained using the <a href="#use_retained_scheduling_info">use_retained_scheduling_info</a> option.  Default value is <b>30</b> (minutes).
 </p>
 
 
@@ -1451,6 +1545,64 @@ This option allows you to specify the maximum number of service checks that can 
 </table>
 </p>
 This option allows you to control the frequency <i>in seconds</i> of service "reaper" events.  "Reaper" events process the results from <a href="parallelization.html">parallelized service checks</a> that have finished executing.  These events consitute the core of the monitoring logic in Nagios.
+</p>
+
+
+<p>
+<a name="host_inter_check_delay_method"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Inter-Check Delay Method</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_inter_check_delay_method=&lt;n/d/s/x.xx&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_inter_check_delay_method=s</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to control how host checks <i>that are scheduled to be checked on a regular basis</i> are initially "spread out" in the event queue.  Using a "smart" delay calculation (the default) will cause Nagios to calculate an average check interval and spread initial checks of all hosts out over that interval, thereby helping to eliminate CPU load spikes.  Using no delay is generally <i>not</i> recommended.  Using no delay will cause all host checks to be scheduled for execution at the same time.  More information on how to estimate how the inter-check delay affects host check scheduling can be found <a href="checkscheduling.html#host_inter_check_delay">here</a>.Values are as follows:
+</p>
+<p>
+<ul>
+<li>n = Don't use any delay - schedule all host checks to run immediately (i.e. at the same time!)
+<li>d = Use a "dumb" delay of 1 second between host checks
+<li>s = Use a "smart" delay calculation to spread host checks out evenly (default)
+<li>x.xx = Use a user-supplied inter-check delay of x.xx seconds
+</ul>
+</p>
+
+
+<p>
+<a name="max_host_check_spread"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Maximum Host Check Spread</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>max_host_check_spread=&lt;minutes&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>max_host_check_spread=30</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines the maximum number of minutes from when Nagios starts that all hosts (that are scheduled to be regularly checked) are checked.  This option will automatically adjust the <a href="#host_inter_check_delay">host inter-check delay</a> (if necessary) to ensure that the initial checks of all hosts occur within the timeframe you specify.  In general, this option will not have an affect on host check scheduling if scheduling information is being retained using the <a href="#use_retained_scheduling_info">use_retained_scheduling_info</a> option.  Default value is <b>30</b> (minutes).
 </p>
 
 

@@ -84,6 +84,8 @@ extern int      interval_length;
 extern int      service_inter_check_delay_method;
 extern int      host_inter_check_delay_method;
 extern int      service_interleave_factor_method;
+extern int      max_host_check_spread;
+extern int      max_service_check_spread;
 
 extern sched_info scheduling_info;
 
@@ -558,9 +560,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tlog_external_commands set to %s\n",(log_external_commands==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
-		else if(!strcmp(variable,"log_passive_service_checks")){
+		else if(!strcmp(variable,"log_passive_checks")){
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
-				strcpy(error_message,"Illegal value for log_passive_service_checks");
+				strcpy(error_message,"Illegal value for log_passive_checks");
 				error=TRUE;
 				break;
 			        }
@@ -569,7 +571,7 @@ int read_main_config_file(char *main_config_file){
 			log_passive_checks=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
-			printf("\t\tlog_passive_service_checks set to %s\n",(log_passive_checks==TRUE)?"TRUE":"FALSE");
+			printf("\t\tlog_passive_checks set to %s\n",(log_passive_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 		else if(!strcmp(variable,"log_initial_states")){
@@ -893,6 +895,19 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tservice_inter_check_delay_method set to %d\n",service_inter_check_delay_method);
 #endif
 		        }
+		else if(!strcmp(variable,"max_service_check_spread")){
+			strip(value);
+			max_service_check_spread=atoi(value);
+			if(max_service_check_spread<1){
+				strcpy(error_message,"Illegal value for max_service_check_spread");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tmax_service_check_spread set to %d\n",max_service_check_spread);
+#endif
+		        }
 		else if(!strcmp(variable,"host_inter_check_delay_method")){
 			if(!strcmp(value,"n"))
 				host_inter_check_delay_method=ICD_NONE;
@@ -911,6 +926,19 @@ int read_main_config_file(char *main_config_file){
 			        }
 #ifdef DEBUG1
 			printf("\t\thost_inter_check_delay_method set to %d\n",host_inter_check_delay_method);
+#endif
+		        }
+		else if(!strcmp(variable,"max_host_check_spread")){
+			strip(value);
+			max_host_check_spread=atoi(value);
+			if(max_host_check_spread<1){
+				strcpy(error_message,"Illegal value for max_host_check_spread");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tmax_host_check_spread set to %d\n",max_host_check_spread);
 #endif
 		        }
 		else if(!strcmp(variable,"service_interleave_factor")){

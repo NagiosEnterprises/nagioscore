@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   02-23-2003
  *
  * License:
  *
@@ -919,15 +919,15 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	delay_time=strtoul(temp_ptr,NULL,10);
 
 	/* reschedule all services on the specified host */
-	if(find_all_services_by_host(host_name)) {
-		while(temp_service=get_next_service_by_host()) {
-		/* schedule a delayed service check */
+	if(find_all_services_by_host(host_name)){
+		while(temp_service=get_next_service_by_host()){
+			
+			/* schedule a delayed service check */
 			schedule_service_check(temp_service,delay_time,force);
+	                }
 	        }
-	} else {
+	else
 		return ERROR;
-	}
-
 
 #ifdef DEBUG0
 	printf("cmd_schedule_host_service_checks() end\n");
@@ -2358,6 +2358,99 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 
 #ifdef DEBUG0
 	printf("schedule_service_check() end\n");
+#endif
+
+	return;
+        }
+
+
+/* schedules an immediate or delayed host check */
+void schedule_host_check(host *hst,time_t check_time,int forced){
+	timed_event *temp_event;
+	timed_event *new_event;
+	int found=FALSE;
+	char temp_buffer[MAX_INPUT_BUFFER];
+	int use_original_event=TRUE;
+
+#ifdef DEBUG0
+	printf("schedule_host_check() start\n");
+#endif
+
+	/* allocate memory for a new event item */
+	new_event=(timed_event *)malloc(sizeof(timed_event));
+	if(new_event==NULL){
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Could not reschedule check of host '%s'!\n",hst->name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+		return;
+	        }
+
+	/* see if there are any other scheduled checks of this host in the queue */
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+
+		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
+			found=TRUE;
+			break;
+		        }
+	        }
+
+	/* we found another host check event for this host in the queue - what should we do? */
+	if(found==TRUE && temp_event!=NULL){
+
+		/* use the originally scheduled check unless we decide otherwise */
+		use_original_event=TRUE;
+
+		/* the original event is a forced check... */
+		if(hst->check_options & CHECK_OPTION_FORCE_EXECUTION){
+			
+			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
+			if(forced==TRUE && check_time < hst->next_check)
+				use_original_event=FALSE;
+		        }
+
+		/* the original event is not a forced check... */
+		else{
+
+			/* the new event is a forced check, so use it instead */
+			if(forced==TRUE)
+				use_original_event=FALSE;
+
+			/* the new event is not forced either and its execution time is earlier than the original, so use it instead */
+			else if(check_time < hst->next_check)
+				use_original_event=FALSE;
+		        }
+
+		/* the originally queued event won the battle, so keep it and exit */
+		if(use_original_event==TRUE){
+			free(new_event);
+			return;
+		        }
+
+		remove_event(temp_event,&event_list_low);
+		free(temp_event);
+	        }
+
+	/* set the next host check time */
+	hst->next_check=check_time;
+
+	/* set the force service check option */
+	if(forced==TRUE)
+		hst->check_options|=CHECK_OPTION_FORCE_EXECUTION;
+
+	/* place the new event in the event queue */
+	new_event->event_type=EVENT_HOST_CHECK;
+	new_event->event_data=(void *)hst;
+	new_event->run_time=hst->next_check;
+	new_event->recurring=FALSE;
+	schedule_event(new_event,&event_list_low);
+
+	/* update the status log */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("schedule_host_check() end\n");
 #endif
 
 	return;

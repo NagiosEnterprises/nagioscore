@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-21-2003
+ * Last Modified: 02-23-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -584,6 +584,7 @@ int cmd_start_stop_obsessing_over_host_checks(int);		/* start/stop obsessing abo
 void disable_service_check(service *);			/* disables a service check */
 void enable_service_check(service *);			/* enables a service check */
 void schedule_service_check(service *,time_t,int);	/* schedules an immediate or delayed service check */
+void schedule_host_check(host *,time_t,int);		/* schedules an immediate or delayed host check */
 void enable_all_notifications(void);                    /* enables notifications on a program-wide basis */
 void disable_all_notifications(void);                   /* disables notifications on a program-wide basis */
 void enable_service_notifications(service *);		/* enables service notifications */

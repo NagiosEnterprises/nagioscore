@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   02-23-2003
  *
  * License:
  *
@@ -1448,13 +1448,111 @@ int verify_route_to_host(host *hst, int check_options){
 /*** SCHEDULED HOST CHECKS USE THIS FUNCTION ***/
 /* run a scheduled host check */
 int run_scheduled_host_check(host *hst){
+	time_t current_time;
+	time_t preferred_time;
+	time_t next_valid_time;
+	int perform_check=TRUE;
+	int time_is_valid=TRUE;
 
 #ifdef DEBUG0
 	printf("run_scheduled_host_check() start\n");
 #endif
 
+	/*********************************************************************
+	   NOTE: A lot of the checks that occur before the host is actually
+	   checked (checks enabled, time period, dependencies) are checked
+	   later in the run_host_check() function.  The only reason we
+	   duplicate them here is to nicely reschedule the next host check
+	   as soon as possible, instead of at the next regular interval in 
+	   the event we know that the host check will not be run at the
+	   current time 
+	*********************************************************************/
+
+	time(&current_time);
+
+	/* if  checks of the host are currently disabled... */
+	if(hst->checks_enabled==FALSE){
+
+		/* don't check the host if we're not forcing it through */
+		if(!(hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
+			perform_check=FALSE;
+
+		/* reschedule the service check */
+		preferred_time=current_time+(hst->check_interval*interval_length);
+                }
+
+	/* make sure this is a valid time to check the host */
+	if(check_time_against_period((unsigned long)current_time,hst->check_period)==ERROR){
+
+		/* don't check the host if we're not forcing it through */
+		if(!(hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
+			perform_check=FALSE;
+
+		/* get the next valid time we can run the check */
+		preferred_time=current_time;
+
+		/* set the invalid time flag */
+		time_is_valid=FALSE;
+	        }
+
+	/* check host dependencies for execution */
+	if(check_host_dependencies(hst,EXECUTION_DEPENDENCY)==DEPENDENCIES_FAILED){
+
+		/* don't check the host if we're not forcing it through */
+		if(!(hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
+			perform_check=FALSE;
+
+		/* reschedule the host check */
+		preferred_time=current_time+(hst->check_interval*interval_length);
+	        }
+
+	/* clear the force execution flag */
+	if(hst->check_options & CHECK_OPTION_FORCE_EXECUTION)
+		hst->check_options-=CHECK_OPTION_FORCE_EXECUTION;
+
+	/* if we shouldn't check the host, just reschedule it and leave... */
+	if(perform_check==FALSE){
+
+		/* make sure we rescheduled the next host check at a valid time */
+		get_next_valid_time(preferred_time,&next_valid_time,hst->check_period);
+
+		/* the host could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
+		if(time_is_valid==FALSE && next_valid_time==preferred_time){
+
+			hst->next_check=(time_t)(next_valid_time+(60*60*24*365));
+			hst->should_be_scheduled=FALSE;
+#ifdef DEBUG1
+			printf("Warning: Could not find any valid times to reschedule a check of host '%s'!\n",hst->name);
+#endif
+		        }
+
+		/* this host could be rescheduled... */
+		else{
+			hst->next_check=next_valid_time;
+			hst->should_be_scheduled=TRUE;
+		        }
+
+		/* update the status data */
+		update_host_status(hst,FALSE);
+
+		/* reschedule the next host check - unless we couldn't find a valid next check time */
+		if(hst->should_be_scheduled==TRUE)
+			schedule_host_check(hst,hst->next_check,FALSE);
+
+		return ERROR;
+	        }
+
+	/**** RUN THE SCHEDULED HOST CHECK ****/
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
 	check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS,hst->check_options);
+
+	/* reschedule the next host check */
+	hst->next_check=current_time+(hst->check_interval*interval_length);
+	schedule_host_check(hst,hst->next_check,FALSE);
+
+	/* update the status data */
+	update_host_status(hst,FALSE);
+
 
 #ifdef DEBUG0
 	printf("run_scheduled_host_check() end\n");
@@ -1775,6 +1873,7 @@ int run_host_check(host *hst, int check_options){
 	char raw_check_command[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	command *temp_command;
+	time_t current_time;
 	time_t start_time;
 	char *temp_ptr;
 	int early_timeout=FALSE;
@@ -1786,9 +1885,23 @@ int run_host_check(host *hst, int check_options){
 	printf("run_host_check() start\n");
 #endif
 
-	/* if checks are disabled, just return the last host state */
-	if(execute_host_checks==FALSE || hst->checks_enabled==FALSE)
-		return hst->current_state;
+	/* if we're not forcing the check, see if we should actually go through with it... */
+	if(!(check_options & CHECK_OPTION_FORCE_EXECUTION)){
+
+		time(&current_time);
+
+		/* make sure host checks are enabled */
+		if(execute_host_checks==FALSE || hst->checks_enabled==FALSE)
+			return hst->current_state;
+
+		/* make sure this is a valid time to check the host */
+		if(check_time_against_period((unsigned long)current_time,hst->check_period)==ERROR)
+			return hst->current_state;
+
+		/* check host dependencies for execution */
+		if(check_host_dependencies(hst,EXECUTION_DEPENDENCY)==DEPENDENCIES_FAILED)
+			return hst->current_state;
+	        }
 
 	/* if there is no host check command, just return with no error */
 	if(hst->host_check_command==NULL){

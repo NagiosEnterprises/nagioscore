@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0 - ??/??/????
 ----------------
+* Host check command can now contain arguments (! separator)
+* Removed support for "vanilla" command definitions (I doubt they were used)
 * Added p1_file directive to main config file to specify location
   of p1.pl (Russell Scibetti)
 * Added option to reload embedded Perl interpreter after X calls

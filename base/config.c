@@ -1334,10 +1334,6 @@ int pre_flight_check(void){
 		strncpy(temp_buffer,temp_service->service_check_command,sizeof(temp_buffer));
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
-		/* raw command lines shouldn't be checked */
-		if(temp_buffer[0]=='"')
-			continue;
-
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
@@ -1509,7 +1505,14 @@ int pre_flight_check(void){
 		/* hosts that don't have check commands defined shouldn't ever be checked... */
 		if(temp_host->host_check_command!=NULL){
 
-			temp_command=find_command(temp_host->host_check_command,NULL);
+			/* check the host check_command */
+			strncpy(temp_buffer,temp_host->host_check_command,sizeof(temp_buffer));
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+			/* get the command name, leave any arguments behind */
+			temp_command_name=my_strtok(temp_buffer,"!");
+
+			temp_command=find_command(temp_command_name,NULL);
 			if(temp_command==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_host->host_check_command,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';

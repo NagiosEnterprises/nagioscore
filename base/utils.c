@@ -1314,57 +1314,43 @@ void get_raw_command_line(char *cmd,char *raw_command,int buffer_length){
 		macro_argv[x]=NULL;
 	        }
 
-	/* if the command is enclosed in quotes, this *is* the command we should run, don't do a lookup */
-	if(cmd[0]=='\"'){
-		strncpy(raw_command,cmd+1,buffer_length);
-		raw_command[buffer_length-1]='\x0';
-		strip(raw_command);
+	/* lookup the command... */
 
-		/* strip the trailing quote if its there... */
-		if(raw_command[strlen(raw_command)-1]=='\"')
-			raw_command[strlen(raw_command)-1]='\x0';
+	/* get the command name */
+	strcpy(temp_buffer,cmd);
+	buffer=my_strtok(temp_buffer,"!");
+
+	/* the buffer should never be NULL, but just in case... */
+	if(buffer==NULL){
+		strcpy(raw_command,"");
+		return;
 	        }
-
-	/* else lookup the command */
 	else{
-
-		strcpy(temp_buffer,cmd);
-
-		/* get the command name */
-		buffer=my_strtok(temp_buffer,"!");
-
-		/* the buffer should never be NULL, but just in case... */
-		if(buffer==NULL){
-			strcpy(raw_command,"");
-			return;
-		        }
-		else{
-			strncpy(raw_command,buffer,buffer_length);
-			raw_command[buffer_length-1]='\x0';
-		        }
-
-		/* get the arguments */
-		for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-			buffer=my_strtok(NULL,"!");
-			if(buffer==NULL)
-				break;
-			strip(buffer);
-			macro_argv[x]=(char *)malloc(strlen(buffer)+1);
-			if(macro_argv[x]!=NULL)
-				strcpy(macro_argv[x],buffer);
-		        }
-
-		/* find the command used to check this service */
-		temp_command=find_command(raw_command,NULL);
-
-		/* error if we couldn't find the command */
-		if(temp_command==NULL)
-			return;
-
-		strncpy(raw_command,temp_command->command_line,buffer_length);
+		strncpy(raw_command,buffer,buffer_length);
 		raw_command[buffer_length-1]='\x0';
-		strip(raw_command);
 	        }
+
+	/* get the arguments */
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+		buffer=my_strtok(NULL,"!");
+		if(buffer==NULL)
+			break;
+		strip(buffer);
+		macro_argv[x]=(char *)malloc(strlen(buffer)+1);
+		if(macro_argv[x]!=NULL)
+			strcpy(macro_argv[x],buffer);
+	        }
+
+	/* find the command used to check this service */
+	temp_command=find_command(raw_command,NULL);
+
+	/* error if we couldn't find the command */
+	if(temp_command==NULL)
+		return;
+
+	strncpy(raw_command,temp_command->command_line,buffer_length);
+	raw_command[buffer_length-1]='\x0';
+	strip(raw_command);
 
 #ifdef DEBUG1
 	printf("\tOutput: %s\n",raw_command);

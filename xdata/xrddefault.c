@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-11-2003
+ * Last Modified:   02-15-2003
  *
  * License:
  *
@@ -41,6 +41,8 @@
 extern int            enable_notifications;
 extern int            execute_service_checks;
 extern int            accept_passive_service_checks;
+extern int            execute_host_checks;
+extern int            accept_passive_host_checks;
 extern int            enable_event_handlers;
 extern int            obsess_over_services;
 extern int            obsess_over_hosts;
@@ -174,6 +176,8 @@ int xrddefault_save_state_information(char *main_config_file){
 	fprintf(fp,"\tenable_notifications=%d\n",enable_notifications);
 	fprintf(fp,"\tactive_service_checks_enabled=%d\n",execute_service_checks);
 	fprintf(fp,"\tpassive_service_checks_enabled=%d\n",accept_passive_service_checks);
+	fprintf(fp,"\tactive_host_checks_enabled=%d\n",execute_host_checks);
+	fprintf(fp,"\tpassive_host_checks_enabled=%d\n",accept_passive_host_checks);
 	fprintf(fp,"\tenable_event_handlers=%d\n",enable_event_handlers);
 	fprintf(fp,"\tobsess_over_services=%d\n",obsess_over_services);
 	fprintf(fp,"\tobsess_over_hosts=%d\n",obsess_over_hosts);
@@ -324,14 +328,14 @@ int xrddefault_read_state_information(char *main_config_file){
 
 		else if(!strcmp(temp_buffer,"info {"))
 			data_type=XRDDEFAULT_INFO_DATA;
-		else if(!strcmp(var,"program {"))
+		else if(!strcmp(temp_buffer,"program {"))
 			data_type=XRDDEFAULT_PROGRAM_DATA;
-		else if(!strcmp(var,"host {"))
+		else if(!strcmp(temp_buffer,"host {"))
 			data_type=XRDDEFAULT_HOST_DATA;
-		else if(!strcmp(var,"service {"))
+		else if(!strcmp(temp_buffer,"service {"))
 			data_type=XRDDEFAULT_SERVICE_DATA;
 
-		else if(!strcmp(var,"}")){
+		else if(!strcmp(temp_buffer,"}")){
 
 			switch(data_type){
 
@@ -403,6 +407,10 @@ int xrddefault_read_state_information(char *main_config_file){
 					execute_service_checks=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"passive_service_checks_enabled"))
 					accept_passive_service_checks=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"active_host_checks_enabled"))
+					execute_host_checks=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"passive_host_checks_enabled"))
+					accept_passive_host_checks=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"enable_event_handlers"))
 					enable_event_handlers=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"obsess_over_services"))
@@ -448,7 +456,7 @@ int xrddefault_read_state_information(char *main_config_file){
 					/*else if(!strcmp(var,"state_type"))*/
 					else if(!strcmp(var,"last_state_change"))
 						temp_host->last_state_change=strtoul(val,NULL,10);
-					else if(!strcmp(var,"last_notifications"))
+					else if(!strcmp(var,"last_notification"))
 						temp_host->last_host_notification=strtoul(val,NULL,10);
 					else if(!strcmp(var,"current_notification_number"))
 						temp_host->current_notification_number=atoi(val);

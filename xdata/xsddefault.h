@@ -3,7 +3,7 @@
  * XSDDEFAULT.H - Header file for default status data routines
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2003
+ * Last Modified:   02-15-2003
  *
  * License:
  *
@@ -26,20 +26,19 @@
 #ifdef NSCORE
 int xsddefault_initialize_status_data(char *);
 int xsddefault_cleanup_status_data(char *,int);
-int xsddefault_begin_aggregated_dump(void);
-int xsddefault_end_aggregated_dump(void);
-int xsddefault_update_program_status(time_t,int,int,time_t,time_t,int,int,int,int,int,int,int,int,int);
-int xsddefault_update_host_status(char *,char *,time_t,time_t,time_t,int,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,char *,int);
-int xsddefault_update_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,double,int,int,double,int,int,int,int,char *,int);
+int xsddefault_save_status_data(void);
 #endif
 
 #ifdef NSCGI
-int xsddefault_read_status_data(char *,int);
-int xsddefault_add_program_status(char *);
-int xsddefault_add_host_status(char *);
-int xsddefault_add_service_status(char *);
-#endif
 
+#define XSDDEFAULT_NO_DATA          0
+#define XSDDEFAULT_INFO_DATA        1
+#define XSDDEFAULT_PROGRAM_DATA     2
+#define XSDDEFAULT_HOST_DATA        3
+#define XSDDEFAULT_SERVICE_DATA     4
+
+int xsddefault_read_status_data(char *,int);
+#endif
 
 int xsddefault_grab_config_info(char *);
 void xsddefault_grab_config_directives(char *);

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-15-2003
+ * Last Modified: 02-15-2003
  *
  * License:
  * 
@@ -72,6 +72,7 @@ int send_notification=FALSE;
 int force_check=FALSE;
 int plugin_state=STATE_OK;
 char plugin_output[MAX_INPUT_BUFFER]="";
+char performance_data[MAX_INPUT_BUFFER]="";
 time_t start_time=0L;
 time_t end_time=0L;
 int affect_host_and_services=FALSE;
@@ -462,6 +463,23 @@ int process_cgivars(void){
 			        }
 			else
 				strcpy(plugin_output,variables[x]);
+			}
+
+		/* we found the performance data */
+		else if(!strcmp(variables[x],"performance_data")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			/* protect against buffer overflows */
+			if(strlen(variables[x])>=MAX_INPUT_BUFFER-1){
+				error=TRUE;
+				break;
+			        }
+			else
+				strcpy(performance_data,variables[x]);
 			}
 
 		/* we found the plugin state */
@@ -970,6 +988,9 @@ void request_command_data(int cmd){
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Check Output:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='plugin_output' VALUE=''>");
+		printf("</b></td></tr>\n");
+		printf("<tr><td CLASS='optBoxItem'>Performance Data:</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='performance_data' VALUE=''>");
 		printf("</b></td></tr>\n");
 		break;
 		
@@ -1638,7 +1659,7 @@ int commit_command(int cmd){
 		break;
 		
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] PROCESS_SERVICE_CHECK_RESULT;%s;%s;%d;%s\n",current_time,host_name,service_desc,plugin_state,plugin_output);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] PROCESS_SERVICE_CHECK_RESULT;%s;%s;%d;%s|%s\n",current_time,host_name,service_desc,plugin_state,plugin_output,performance_data);
 		break;
 		
 	case CMD_SCHEDULE_HOST_DOWNTIME:

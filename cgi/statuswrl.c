@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-08-2003
+ * Last Modified:   02-15-2003
  *
  * Description:
  *

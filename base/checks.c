@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-13-2003
+ * Last Modified:   02-15-2003
  *
  * License:
  *
@@ -442,7 +442,7 @@ void run_service_check(service *svc){
 			/* record check result info */
 			strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
 			svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-			svc_msg.return_code=pclose_result;
+			svc_msg.return_code=WEXITSTATUS(pclose_result);
 			svc_msg.exited_ok=TRUE;
 			svc_msg.check_type=SERVICE_CHECK_ACTIVE;
 			svc_msg.finish_time=end_time;
@@ -1763,6 +1763,9 @@ int run_host_check(host *hst){
 
 	/* calculate total execution time */
 	hst->execution_time=exectime;
+
+	/* record check type */
+	hst->check_type=HOST_CHECK_ACTIVE;
 
 	/* check for empty plugin output */
 	if(!strcmp(temp_plugin_output,""))

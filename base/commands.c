@@ -1392,6 +1392,9 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	/* set the checked flag */
 	this_host->has_been_checked=TRUE;
 
+	/* record check type */
+	this_host->check_type=HOST_CHECK_PASSIVE;
+
 	/* set the current attempt */
 	this_host->current_attempt=1;
 

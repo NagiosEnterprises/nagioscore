@@ -124,6 +124,7 @@ typedef struct host_struct{
 	int     obsess_over_host;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
+	int     check_type;
 	int     status;
 	char	*plugin_output;
 	char    *perf_data;

@@ -884,7 +884,7 @@ void display_host(void){
 		printf("?");
 	printf("</td></tr>\n");
 
-	printf("<tr><td>Info:</td><td>%s</td></tr>\n",temp_hoststatus->information);
+	printf("<tr><td>Info:</td><td>%s</td></tr>\n",temp_hoststatus->plugin_output);
 
 	get_time_string(&temp_hoststatus->last_check,last_check,sizeof(last_check)-1,SHORT_DATE_TIME);
 	printf("<tr><td>Last Check:</td><td>%s</td></tr>\n",last_check);
@@ -1099,7 +1099,7 @@ void display_service(void){
 		printf("?");
 	printf("</td></tr>\n");
 
-	printf("<tr><td>Info:</td><td>%s</td></tr>\n",temp_servicestatus->information);
+	printf("<tr><td>Info:</td><td>%s</td></tr>\n",temp_servicestatus->plugin_output);
 
 	get_time_string(&temp_servicestatus->last_check,last_check,sizeof(last_check)-1,SHORT_DATE_TIME);
 	printf("<tr><td>Last Check:</td><td>%s</td></tr>\n",last_check);

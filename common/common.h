@@ -167,12 +167,20 @@
 #define CMD_ENABLE_PASSIVE_HOST_CHECKS			92
 #define CMD_DISABLE_PASSIVE_HOST_CHECKS			93
 
+#define CMD_START_OBSESSING_OVER_HOST_CHECKS		94
+#define CMD_STOP_OBSESSING_OVER_HOST_CHECKS		95
 
 
 /************************ SERVICE CHECK TYPES ****************************/
 
 #define SERVICE_CHECK_ACTIVE		0	/* Nagios performed the service check */
 #define SERVICE_CHECK_PASSIVE		1	/* the service check result was submitted by an external source */
+
+
+/************************** HOST CHECK TYPES *****************************/
+
+#define HOST_CHECK_ACTIVE		0	/* Nagios performed the host check */
+#define HOST_CHECK_PASSIVE		1	/* the host check result was submitted by an external source */
 
 
 /************************ SERVICE STATE TYPES ****************************/

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 02-15-2003
  *
  * License:
  * 
@@ -1465,7 +1465,7 @@ void show_service_detail(void){
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,date_time);
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,state_duration);
 			printf("<TD CLASS='status%s'>%d/%d</TD>\n",status_bg_class,temp_status->current_attempt,temp_status->max_attempts);
-			printf("<TD CLASS='status%s'>%s&nbsp;</TD>\n",status_bg_class,temp_status->information);
+			printf("<TD CLASS='status%s'>%s&nbsp;</TD>\n",status_bg_class,temp_status->plugin_output);
 
 			printf("</TR>\n");
 
@@ -1818,7 +1818,7 @@ void show_host_detail(void){
 			printf("<TD CLASS='status%s'>%s</TD>\n",status_class,status);
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,date_time);
 			printf("<TD CLASS='status%s' nowrap>%s</TD>\n",status_bg_class,state_duration);
-			printf("<TD CLASS='status%s'>%s&nbsp;</TD>\n",status_bg_class,temp_status->information);
+			printf("<TD CLASS='status%s'>%s&nbsp;</TD>\n",status_bg_class,temp_status->plugin_output);
 
 			printf("</TR>\n");
 		        }

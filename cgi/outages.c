@@ -3,7 +3,7 @@
  * OUTAGES.C -  Nagios Network Outages CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-15-2003
  *
  * License:
  * 
@@ -314,8 +314,6 @@ void display_network_outages(void){
 	int odd=0;
 	char *bg_class="";
 	char *status="";
-	unsigned long state_time=0L;
-	char time_string[MAX_INPUT_BUFFER];
 	int days;
 	int hours;
 	int minutes;
@@ -358,7 +356,7 @@ void display_network_outages(void){
 
 	printf("<TABLE BORDER=0 CLASS='data'>\n");
 	printf("<TR>\n");
-	printf("<TH CLASS='data'>Severity</TH><TH CLASS='data'>Host</TH><TH CLASS='data'>State</TH><TH CLASS='data'>Notes</TH><TH CLASS='data'>State Duration</TH><TH CLASS='data'>Total State Time</TH><TH CLASS='data'># Hosts Affected</TH><TH CLASS='data'># Services Affected</TH><TH CLASS='data'>Actions</TH>\n");
+	printf("<TH CLASS='data'>Severity</TH><TH CLASS='data'>Host</TH><TH CLASS='data'>State</TH><TH CLASS='data'>Notes</TH><TH CLASS='data'>State Duration</TH><TH CLASS='data'># Hosts Affected</TH><TH CLASS='data'># Services Affected</TH><TH CLASS='data'>Actions</TH>\n");
 	printf("</TR>\n");
 
 	for(temp_hostoutagesort=hostoutagesort_list;temp_hostoutagesort!=NULL;temp_hostoutagesort=temp_hostoutagesort->next){
@@ -390,17 +388,10 @@ void display_network_outages(void){
 			bg_class="dataEven";
 		        }
 
-		if(temp_hoststatus->status==HOST_UNREACHABLE){
-			state_time=temp_hostoutage->time_unreachable;
+		if(temp_hoststatus->status==HOST_UNREACHABLE)
 			status="UNREACHABLE";
-		        }
-		else if(temp_hoststatus->status==HOST_DOWN){
-			state_time=temp_hostoutage->time_down;
+		else if(temp_hoststatus->status==HOST_DOWN)
 			status="DOWN";
-		        }
-
-		get_time_breakdown(state_time,&days,&hours,&minutes,&seconds);
-		snprintf(time_string,sizeof(time_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 
 		printf("<TR CLASS='%s'>\n",bg_class);
 
@@ -426,7 +417,6 @@ void display_network_outages(void){
 		state_duration[sizeof(state_duration)-1]='\x0';
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,state_duration);
 
-		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
 		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_hostoutage->affected_child_hosts);
 		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_hostoutage->affected_child_services);
 
@@ -569,8 +559,6 @@ void calculate_outage_effects(void){
 		calculate_outage_effect_of_host(temp_hostoutage->hst,&temp_hostoutage->affected_child_hosts,&temp_hostoutage->affected_child_services);
 
 		temp_hostoutage->severity=(temp_hostoutage->affected_child_hosts+(temp_hostoutage->affected_child_services/service_severity_divisor));
-
-		calculate_host_state_times(temp_hostoutage->hst->name,&temp_hostoutage->monitored_time,&temp_hostoutage->time_up,&temp_hostoutage->percent_time_up,&temp_hostoutage->time_down,&temp_hostoutage->percent_time_down,&temp_hostoutage->time_unreachable,&temp_hostoutage->percent_time_unreachable);
 	        }
 
 	return;

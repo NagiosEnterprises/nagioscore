@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 02-15-2003
  *
  * License:
  * 
@@ -47,8 +47,11 @@ extern time_t           last_log_rotation;
 extern int              enable_notifications;
 extern int              execute_service_checks;
 extern int              accept_passive_service_checks;
+extern int              execute_host_checks;
+extern int              accept_passive_host_checks;
 extern int              enable_event_handlers;
 extern int              obsess_over_services;
+extern int              obsess_over_hosts;
 extern int              enable_flap_detection;
 extern int              enable_failure_prediction;
 extern int              process_performance_data;
@@ -632,11 +635,20 @@ void show_process_info(void){
 	/* passive service check acceptance */
 	printf("<TR><TD CLASS='dataVar'>Passive Service Checks Being Accepted?</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(accept_passive_service_checks==TRUE)?"YES":"NO");
 
+	/* host check execution enabled */
+	printf("<TR><TD CLASS='dataVar'>Host Checks Being Executed?</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(execute_host_checks==TRUE)?"ENABLED":"DISABLED",(execute_host_checks==TRUE)?"YES":"NO");
+
+	/* passive host check acceptance */
+	printf("<TR><TD CLASS='dataVar'>Passive Host Checks Being Accepted?</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(accept_passive_host_checks==TRUE)?"ENABLED":"DISABLED",(accept_passive_host_checks==TRUE)?"YES":"NO");
+
 	/* event handlers enabled */
 	printf("<TR><TD CLASS='dataVar'>Event Handlers Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(enable_event_handlers==TRUE)?"Yes":"No");
 
 	/* obsessing over services */
 	printf("<TR><TD CLASS='dataVar'>Obsessing Over Services?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(obsess_over_services==TRUE)?"Yes":"No");
+
+	/* obsessing over hosts */
+	printf("<TR><TD CLASS='dataVar'>Obsessing Over Hosts?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(obsess_over_hosts==TRUE)?"Yes":"No");
 
 	/* flap detection enabled */
 	printf("<TR><TD CLASS='dataVar'>Flap Detection Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(enable_flap_detection==TRUE)?"Yes":"No");
@@ -688,18 +700,37 @@ void show_process_info(void){
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Stop Accepting Passive Service Checks'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Stop accepting passive service checks</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS);
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Start Accepting Passive Service Checks'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Start accepting passive service checks</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS);
+
+		if(execute_host_checks==TRUE)
+			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Stop Executing Host Checks'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Stop executing host checks</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_EXECUTING_HOST_CHECKS);
+		else
+			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Start Executing Host Checks'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Start executing host checks</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_EXECUTING_HOST_CHECKS);
+
+		if(accept_passive_host_checks==TRUE)
+			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Stop Accepting Passive Host Checks'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Stop accepting passive host checks</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS);
+		else
+			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Start Accepting Passive Host Checks'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Start accepting passive host checks</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS);
+
 		if(enable_event_handlers==TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Event Handlers'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable event handlers</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_EVENT_HANDLERS);
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Event Handlers'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable event handlers</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_EVENT_HANDLERS);
+
 		if(obsess_over_services==TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Stop Obsessing Over Services'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Stop obsessing over services</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_OBSESSING_OVER_SVC_CHECKS);
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Start Obsessing Over Services'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Start obsessing over services</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_OBSESSING_OVER_SVC_CHECKS);
+
+		if(obsess_over_hosts==TRUE)
+			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Stop Obsessing Over Hosts'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Stop obsessing over hosts</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_STOP_OBSESSING_OVER_HOST_CHECKS);
+		else
+			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Start Obsessing Over Hosts'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Start obsessing over hosts</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_START_OBSESSING_OVER_HOST_CHECKS);
+
 		if(enable_flap_detection==TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Flap Detection'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable flap detection</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_FLAP_DETECTION);
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Flap Detection'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable flap detection</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_FLAP_DETECTION);
+
 #ifdef PREDICT_FAILURES
 		if(enable_failure_prediction==TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Failure Prediction'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable failure prediction</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_FAILURE_PREDICTION);
@@ -864,7 +895,7 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",temp_hoststatus->information);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",temp_hoststatus->plugin_output);
 
 		get_time_string(&temp_hoststatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last Status Check:</td><td CLASS='dataVal'>%s</td></tr>\n",date_time);
@@ -885,6 +916,8 @@ void show_host_info(void){
 			snprintf(status_age,sizeof(status_age)-1,"%2dd %2dh %2dm %2ds",days,hours,minutes,seconds);
 		status_age[sizeof(status_age)-1]='\x0';
 		printf("<TR><TD CLASS='dataVar'>Status Data Age:</td><td CLASS='dataVal'>%s</td></tr>\n",status_age);
+
+		printf("<TR><TD CLASS='dataVar'>Check Duration:</td><td CLASS='dataVal'>%.3f seconds</td></tr>\n",temp_hoststatus->execution_time);
 
 		get_time_string(&temp_hoststatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last State Change:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->last_state_change==(time_t)0)?"N/A":date_time);
@@ -946,7 +979,9 @@ void show_host_info(void){
 		printf("<TR><TD class='stateInfoTable2'>\n");
 		printf("<TABLE BORDER=0>\n");
 
-		printf("<TR><TD CLASS='dataVar'>Host Checks:</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
+		printf("<TR><TD CLASS='dataVar'>Active Checks:</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
+
+		printf("<TR><TD CLASS='dataVar'>Passive Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->accept_passive_host_checks==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->accept_passive_host_checks)?"ENABLED":"DISABLED");
 
 		printf("<TR><TD CLASS='dataVar'>Host Notifications:</td><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->notifications_enabled)?"ENABLED":"DISABLED");
 
@@ -978,9 +1013,16 @@ void show_host_info(void){
 		printf("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
 
 		if(temp_hoststatus->checks_enabled==TRUE)
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable checks of this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOST_CHECK,url_encode(host_name));
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable active checks of this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOST_CHECK,url_encode(host_name));
 		else
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable checks of this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(host_name));
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable active checks of this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(host_name));
+
+		if(temp_hoststatus->accept_passive_host_checks==TRUE){
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Stop accepting passive checks for this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_PASSIVE_HOST_CHECKS,url_encode(host_name));
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Submit Passive Check Result For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Submit passive check result for this host</a></td></tr>\n",url_images_path,PASSIVE_ICON,COMMAND_CGI,CMD_PROCESS_HOST_CHECK_RESULT,url_encode(host_name));
+		        }
+		else
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start accepting passive checks for this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_PASSIVE_HOST_CHECKS,url_encode(host_name));
 
 		if(temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE){
 			if(temp_hoststatus->problem_has_been_acknowledged==FALSE)
@@ -1148,7 +1190,7 @@ void show_service_info(void){
 			}
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",temp_svcstatus->information);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",temp_svcstatus->plugin_output);
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d</TD></TR>\n",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
 
@@ -1186,7 +1228,7 @@ void show_service_info(void){
 			printf("N/A");
 		printf("</TD></TR>\n");
 
-		printf("<TR><TD CLASS='dataVar'>Check Duration:</TD><TD CLASS='dataVal'>%lf seconds</TD></TR>\n",temp_svcstatus->execution_time);
+		printf("<TR><TD CLASS='dataVar'>Check Duration:</TD><TD CLASS='dataVal'>%.3f seconds</TD></TR>\n",temp_svcstatus->execution_time);
 
 		get_time_string(&temp_svcstatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last State Change:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->last_state_change==(time_t)0)?"N/A":date_time);
@@ -1250,7 +1292,7 @@ void show_service_info(void){
 		printf("<TR><TD class='stateInfoTable2'>\n");
 		printf("<TABLE BORDER=0>\n");
 
-		printf("<TR><TD CLASS='dataVar'>Service Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->checks_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled)?"ENABLED":"DISABLED");
+		printf("<TR><TD CLASS='dataVar'>Active Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->checks_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled)?"ENABLED":"DISABLED");
 
 		printf("<TR><TD CLASS='dataVar'>Passive Checks:</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->accept_passive_service_checks)?"ENABLED":"DISABLED");
 
@@ -1287,15 +1329,15 @@ void show_service_info(void){
 
 		if(temp_svcstatus->checks_enabled){
 
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_CHECK,url_encode(host_name));
-			printf("&service=%s'>Disable checks of this service</a></td></tr>\n",url_encode(service_desc));
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_CHECK,url_encode(host_name));
+			printf("&service=%s'>Disable active checks of this service</a></td></tr>\n",url_encode(service_desc));
 
 			printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Service Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_DELAY_SVC_CHECK,url_encode(host_name));
 			printf("&service=%s'>Re-schedule the next check of this service</a></td></tr>\n",url_encode(service_desc));
 	                }
 		else{
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_CHECK,url_encode(host_name));
-			printf("&service=%s'>Enable checks of this service</a></td></tr>\n",url_encode(service_desc));
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_CHECK,url_encode(host_name));
+			printf("&service=%s'>Enable active checks of this service</a></td></tr>\n",url_encode(service_desc));
 	                }
 
 		if(temp_svcstatus->accept_passive_service_checks==TRUE){
@@ -1751,7 +1793,7 @@ void show_performance_data(void){
 	/***** ACTIVE CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Active Checks:</div></td>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Active Service Checks:</div></td>\n");
 	printf("<td valign=top>\n");
 
 	/* fake this so we don't divide by zero for just showing the table */
@@ -1796,7 +1838,7 @@ void show_performance_data(void){
 	/***** PASSIVE CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Passive Checks:</div></td>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Passive Service Checks:</div></td>\n");
 	printf("<td valign=top>\n");
 	
 

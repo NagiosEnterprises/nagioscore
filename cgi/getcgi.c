@@ -2,7 +2,7 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 09-24-2001
+ * Last Modified: 02-15-2003
  *
  *****************************************/
 
@@ -20,6 +20,9 @@ void sanitize_cgi_input(char **cgivars){
 	char *strptr;
 	int x,y,i;
 	int keep;
+
+	/* don't strip for now... */
+	return;
 
 	for(strptr=cgivars[i=0];strptr!=NULL;strptr=cgivars[++i]){
 

@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-15-2003
  *
  * License:
  * 
@@ -419,9 +419,6 @@ void get_time_breakdown(unsigned long,int *,int *,int *,int *);	/* given total s
 void get_log_archive_to_use(int,char *,int);			/* determines the name of the log archive to use */
 void determine_log_rotation_times(int);
 int determine_archive_to_use_from_time(time_t);
-
-void calculate_host_state_times(char *, unsigned long *, unsigned long *, float *, unsigned long *, float *, unsigned long *, float *);
-void calculate_service_state_times(char *, char *, unsigned long *, unsigned long *, float *, unsigned long *, float *, unsigned long *, float *, unsigned long *, float *);
 
 void print_host_notes_url(hostextinfo *);
 void print_service_notes_url(serviceextinfo *);

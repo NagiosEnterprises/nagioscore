@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 02-15-2003
  *
  * Description:
  *
@@ -1982,7 +1982,7 @@ void write_host_popup_text(host *hst){
 	        }
 
 	/* strip nasty stuff from plugin output */
-	sanitize_plugin_output(temp_status->information);
+	sanitize_plugin_output(temp_status->plugin_output);
 
 	printf("<table border=0 cellpadding=0 cellspacing=5>");
 
@@ -2019,7 +2019,7 @@ void write_host_popup_text(host *hst){
 		printf("Pending");
 
 	printf("</b></td></tr>");
-	printf("<tr><td class=\\\"popupText\\\">Status Information:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",temp_status->information);
+	printf("<tr><td class=\\\"popupText\\\">Status Information:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",temp_status->plugin_output);
 
 	current_time=time(NULL);
 	if(temp_status->last_state_change==(time_t)0)

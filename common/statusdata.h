@@ -46,26 +46,31 @@
 /* HOST STATUS structure */
 typedef struct hoststatus_struct{
 	char    *host_name;
-	char    *information;
+	char    *plugin_output;
+	char    *perf_data;
 	int     status;
 	time_t  last_update;
+	int     has_been_checked;
+	int     current_attempt;
+	int     max_attempts;
 	time_t  last_check;
+	int     check_type;
 	time_t	last_state_change;
-	unsigned long	time_up;
-	unsigned long	time_down;
-	unsigned long	time_unreachable;
 	time_t  last_notification;
 	int     notifications_enabled;
 	int     problem_has_been_acknowledged;
 	int     current_notification_number;
+	int     accept_passive_host_checks;
 	int     event_handler_enabled;
 	int     checks_enabled;
 	int     flap_detection_enabled;
 	int     is_flapping;
 	double  percent_state_change;
+	double  execution_time;
 	int     scheduled_downtime_depth;
 	int     failure_prediction_enabled;
 	int     process_performance_data;
+	int     obsess_over_host;
 	struct  hoststatus_struct *next;
         }hoststatus;
 
@@ -74,11 +79,14 @@ typedef struct hoststatus_struct{
 typedef struct servicestatus_struct{
 	char    *host_name;
 	char    *description;
-	char    *information;
+	char    *plugin_output;
+	char    *perf_data;
 	int     max_attempts;
 	int     current_attempt;
 	int     status;
 	time_t  last_update;
+	int     has_been_checked;
+	int     should_be_scheduled;
 	time_t  last_check;
 	time_t  next_check;
 	int     check_type;
@@ -86,10 +94,6 @@ typedef struct servicestatus_struct{
 	time_t	last_state_change;
 	int	last_hard_state;
 	int     state_type;
-	unsigned long	time_ok;
-	unsigned long	time_unknown;
-	unsigned long	time_warning;
-	unsigned long	time_critical;
 	time_t  last_notification;
 	int     notifications_enabled;
 	int     problem_has_been_acknowledged;
@@ -131,15 +135,13 @@ typedef struct servicestatus_struct{
 /**************************** FUNCTIONS ******************************/
 
 int read_status_data(char *,int);                       /* reads all status data */
-int add_program_status(time_t,int,int,time_t,time_t,int,int,int,int,int,int,int,int);
-int add_host_status(char *,char *,time_t,time_t,time_t,int,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,char *);
-int add_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,double,int,int,double,int,int,int,int,char *);
+int add_host_status(hoststatus *);                      /* adds a host status entry to the list in memory */
+int add_service_status(servicestatus *);                /* adds a service status entry to the list in memory */
 void free_status_data(void);                            /* free all memory allocated to status data */
 servicestatus *find_servicestatus(char *,char *);       /* finds status information for a specific service */
 hoststatus *find_hoststatus(char *);                    /* finds status information for a specific host */
 int get_servicestatus_count(char *,int);		/* gets total number of services of a certain type for a specific host */
 #endif
-
 
 #ifdef NSCORE
 int initialize_status_data(char *);                     /* initializes status data at program start */

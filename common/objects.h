@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-13-2003
+ * Last Modified:   06-14-2003
  *
  * License:
  *
@@ -49,11 +49,11 @@
 #define TIMEPERIOD_HASHSLOTS                   64
 #define CONTACT_HASHSLOTS                      128
 #define CONTACTGROUP_HASHSLOTS                 64
+#define HOSTGROUP_HASHSLOTS                    128
+#define SERVICEGROUP_HASHSLOTS                 128
 #define HOSTEXTINFO_HASHSLOTS                  1024
 #define SERVICEEXTINFO_HASHSLOTS               1024
 
-#define HOSTGROUP_HASHSLOTS                    128
-#define SERVICEGROUP_HASHSLOTS                 128
 #define HOSTDEPENDENCY_HASHSLOTS               1024
 #define SERVICEDEPENDENCY_HASHSLOTS            1024
 #define HOSTESCALATION_HASHSLOTS               1024
@@ -369,6 +369,7 @@ typedef struct serviceescalation_struct{
 	int     escalate_on_critical;
 	contactgroupsmember *contact_groups;
 	struct  serviceescalation_struct *next;
+	struct  serviceescalation_struct *nexthash;
         }serviceescalation;
 
 
@@ -404,6 +405,7 @@ typedef struct hostescalation_struct{
 	int     escalate_on_unreachable;
 	contactgroupsmember *contact_groups;
 	struct  hostescalation_struct *next;
+	struct  hostescalation_struct *nexthash;
         }hostescalation;
 
 
@@ -553,6 +555,15 @@ host *get_next_host_cursor(void *v_cursor);							/* return the next host, NULL 
 void free_host_cursor(void *cursor);								/* free allocated cursor memory */
 void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next);
 
+hostescalation *get_first_hostescalation_by_host(char *);
+hostescalation *get_next_hostescalation_by_host(char *,hostescalation *);
+serviceescalation *get_first_serviceescalation_by_service(char *,char *);
+serviceescalation *get_next_serviceescalation_by_service(char *,char *,serviceescalation *);
+hostdependency *get_first_hostdependency_by_dependent_host(char *);
+hostdependency *get_next_hostdependency_by_dependent_host(char *,hostdependency *);
+servicedependency *get_first_servicedependency_by_dependent_service(char *,char *);
+servicedependency *get_next_servicedependency_by_dependent_service(char *,char *,servicedependency *);
+
 
 
 /**** Hash Functions ****/
@@ -567,8 +578,14 @@ int add_command_to_hashlist(command *);
 int add_timeperiod_to_hashlist(timeperiod *);
 int add_contact_to_hashlist(contact *);
 int add_contactgroup_to_hashlist(contactgroup *);
+int add_hostgroup_to_hashlist(hostgroup *);
+int add_servicegroup_to_hashlist(servicegroup *);
 int add_hostdependency_to_hashlist(hostdependency *);
 int add_servicedependency_to_hashlist(servicedependency *);
+int add_hostescalation_to_hashlist(hostescalation *);
+int add_serviceescalation_to_hashlist(serviceescalation *);
+int add_hostextinfo_to_hashlist(hostextinfo *);
+int add_serviceextinfo_to_hashlist(serviceextinfo *);
 
 
 

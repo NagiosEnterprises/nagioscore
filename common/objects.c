@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-13-2003
+ * Last Modified:   06-14-2003
  *
  * License:
  *
@@ -50,8 +50,8 @@ hostgroup	*hostgroup_list=NULL;
 servicegroup    *servicegroup_list=NULL;
 command         *command_list=NULL;
 timeperiod      *timeperiod_list=NULL;
-serviceescalation       *serviceescalation_list=NULL;
-servicedependency       *servicedependency_list=NULL;
+serviceescalation *serviceescalation_list=NULL;
+servicedependency *servicedependency_list=NULL;
 hostdependency  *hostdependency_list=NULL;
 hostescalation  *hostescalation_list=NULL;
 hostextinfo     *hostextinfo_list=NULL;
@@ -67,6 +67,10 @@ hostgroup       **hostgroup_hashlist=NULL;
 servicegroup    **servicegroup_hashlist=NULL;
 hostextinfo     **hostextinfo_hashlist=NULL;
 serviceextinfo  **serviceextinfo_hashlist=NULL;
+hostdependency  **hostdependency_hashlist=NULL;
+servicedependency **servicedependency_hashlist=NULL;
+hostescalation  **hostescalation_hashlist=NULL;
+serviceescalation **serviceescalation_hashlist=NULL;
 
 static host_cursor *static_host_cursor=NULL;
 static int service_hashchain_iterator;
@@ -550,6 +554,157 @@ int add_serviceextinfo_to_hashlist(serviceextinfo *new_serviceextinfo){
 		else
 			serviceextinfo_hashlist[hashslot]=new_serviceextinfo;
 		new_serviceextinfo->nexthash=temp_serviceextinfo;
+
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+/* adds hostdependency to hash list in memory */
+int add_hostdependency_to_hashlist(hostdependency *new_hostdependency){
+	hostdependency *temp_hostdependency, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(hostdependency_hashlist==NULL){
+		int i;
+
+		hostdependency_hashlist=(hostdependency **)malloc(sizeof(hostdependency *)*HOSTDEPENDENCY_HASHSLOTS);
+		if(hostdependency_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<HOSTDEPENDENCY_HASHSLOTS;i++)
+			hostdependency_hashlist[i]=NULL;
+	        }
+
+	if(!new_hostdependency)
+		return 0;
+
+	hashslot=hashfunc1(new_hostdependency->dependent_host_name,HOSTDEPENDENCY_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_hostdependency=hostdependency_hashlist[hashslot];temp_hostdependency && compare_hashdata1(temp_hostdependency->dependent_host_name,new_hostdependency->dependent_host_name)<0;temp_hostdependency=temp_hostdependency->nexthash)
+		lastpointer=temp_hostdependency;
+
+	/* duplicates are allowed */
+	if(lastpointer)
+		lastpointer->nexthash=new_hostdependency;
+	else
+		hostdependency_hashlist[hashslot]=new_hostdependency;
+	new_hostdependency->nexthash=temp_hostdependency;
+
+	return 1;
+        }
+
+
+int add_servicedependency_to_hashlist(servicedependency *new_servicedependency){
+	servicedependency *temp_servicedependency, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(servicedependency_hashlist==NULL){
+		int i;
+
+		servicedependency_hashlist=(servicedependency **)malloc(sizeof(servicedependency *)*SERVICEDEPENDENCY_HASHSLOTS);
+		if(servicedependency_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i< SERVICEDEPENDENCY_HASHSLOTS;i++)
+			servicedependency_hashlist[i]=NULL;
+	        }
+
+	if(!new_servicedependency)
+		return 0;
+
+	hashslot=hashfunc2(new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description,SERVICEDEPENDENCY_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_servicedependency=servicedependency_hashlist[hashslot];temp_servicedependency && compare_hashdata2(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description)<0;temp_servicedependency=temp_servicedependency->nexthash)
+		lastpointer=temp_servicedependency;
+
+	/* duplicates are allowed */
+	if(lastpointer)
+		lastpointer->nexthash=new_servicedependency;
+	else
+		servicedependency_hashlist[hashslot]=new_servicedependency;
+	new_servicedependency->nexthash=temp_servicedependency;
+
+	return 1;
+        }
+
+
+/* adds hostescalation to hash list in memory */
+int add_hostescalation_to_hashlist(hostescalation *new_hostescalation){
+	hostescalation *temp_hostescalation, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(hostescalation_hashlist==NULL){
+		int i;
+
+		hostescalation_hashlist=(hostescalation **)malloc(sizeof(hostescalation *)*HOSTESCALATION_HASHSLOTS);
+		if(hostescalation_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<HOSTESCALATION_HASHSLOTS;i++)
+			hostescalation_hashlist[i]=NULL;
+	        }
+
+	if(!new_hostescalation)
+		return 0;
+
+	hashslot=hashfunc1(new_hostescalation->host_name,HOSTESCALATION_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_hostescalation=hostescalation_hashlist[hashslot];temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,new_hostescalation->host_name)<0;temp_hostescalation=temp_hostescalation->nexthash)
+		lastpointer=temp_hostescalation;
+
+	if(!temp_hostescalation || (compare_hashdata1(temp_hostescalation->host_name,new_hostescalation->host_name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_hostescalation;
+		else
+			hostescalation_hashlist[hashslot]=new_hostescalation;
+		new_hostescalation->nexthash=temp_hostescalation;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
+	serviceescalation *temp_serviceescalation, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(serviceescalation_hashlist==NULL){
+		int i;
+
+		serviceescalation_hashlist=(serviceescalation **)malloc(sizeof(serviceescalation *)*SERVICEESCALATION_HASHSLOTS);
+		if(serviceescalation_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i< SERVICEESCALATION_HASHSLOTS;i++)
+			serviceescalation_hashlist[i]=NULL;
+	        }
+
+	if(!new_serviceescalation)
+		return 0;
+
+	hashslot=hashfunc2(new_serviceescalation->host_name,new_serviceescalation->description,SERVICEESCALATION_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_serviceescalation=serviceescalation_hashlist[hashslot];temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)<0;temp_serviceescalation=temp_serviceescalation->nexthash)
+		lastpointer=temp_serviceescalation;
+
+	if(!temp_serviceescalation || (compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_serviceescalation;
+		else
+			serviceescalation_hashlist[hashslot]=new_serviceescalation;
+		new_serviceescalation->nexthash=temp_serviceescalation;
 
 
 		return 1;
@@ -3464,6 +3619,23 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 	new_serviceescalation->escalate_on_critical=(escalate_on_critical>0)?TRUE:FALSE;
 	new_serviceescalation->contact_groups=NULL;
 
+	new_serviceescalation->next=NULL;
+	new_serviceescalation->nexthash=NULL;
+
+	/* add new serviceescalation to serviceescalation chained hash list */
+	if(!add_serviceescalation_to_hashlist(new_serviceescalation)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceescalation list to add service '%s' on host '%s' escalation\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_serviceescalation->host_name);
+		free(new_serviceescalation->description);
+		free(new_serviceescalation->escalation_period);
+		free(new_serviceescalation);
+		return NULL;
+	        }
+
 	/* add new service escalation to the head of the service escalation list (unsorted) */
 	new_serviceescalation->next=serviceescalation_list;
 	serviceescalation_list=new_serviceescalation;
@@ -3694,6 +3866,22 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 #endif
 
 	new_servicedependency->next=NULL;
+	new_servicedependency->nexthash=NULL;
+
+	/* add new servicedependency to servicedependency chained hash list */
+	if(!add_servicedependency_to_hashlist(new_servicedependency)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicedependency list to add service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_servicedependency->host_name);
+		free(new_servicedependency->service_description);
+		free(new_servicedependency->dependent_host_name);
+		free(new_servicedependency->dependent_service_description);
+		free(new_servicedependency);
+		return NULL;
+	        }
 
 	/* add new service dependency to service dependency list, sorted by host name */
 	last_servicedependency=servicedependency_list;
@@ -3827,6 +4015,20 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_unreachable=(fail_on_unreachable==1)?TRUE:FALSE;
 
 	new_hostdependency->next=NULL;
+	new_hostdependency->nexthash=NULL;
+
+	/* add new hostdependency to hostdependency chained hash list */
+	if(!add_hostdependency_to_hashlist(new_hostdependency)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostdependency list to add host '%s' dependency\n",dependent_host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_hostdependency->host_name);
+		free(new_hostdependency->dependent_host_name);
+		free(new_hostdependency);
+		return NULL;
+	        }
 
 	/* add new host dependency to host dependency list, sorted by host name */
 	last_hostdependency=hostdependency_list;
@@ -3945,6 +4147,22 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	new_hostescalation->escalate_on_down=(escalate_on_down>0)?TRUE:FALSE;
 	new_hostescalation->escalate_on_unreachable=(escalate_on_unreachable>0)?TRUE:FALSE;
 	new_hostescalation->contact_groups=NULL;
+
+	new_hostescalation->next=NULL;
+	new_hostescalation->nexthash=NULL;
+
+	/* add new hostescalation to hostescalation chained hash list */
+	if(!add_hostescalation_to_hashlist(new_hostescalation)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostescalation list to add host '%s' escalation\n",host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_hostescalation->host_name);
+		free(new_hostescalation->escalation_period);
+		free(new_hostescalation);
+		return NULL;
+	        }
 
 	/* add new host escalation to the head of the host escalation list (unsorted) */
 	new_hostescalation->next=hostescalation_list;
@@ -4204,6 +4422,26 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 	/* default is to not draw this item */
 	new_hostextinfo->should_be_drawn=FALSE;
 
+	new_hostextinfo->nexthash=NULL;
+
+	/* add new hostextinfo to hostextinfo chained hash list */
+	if(!add_hostextinfo_to_hashlist(new_hostextinfo)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostextinfo list to add host '%s' extended info.\n",host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_hostextinfo->statusmap_image);
+		free(new_hostextinfo->vrml_image);
+		free(new_hostextinfo->icon_image);
+		free(new_hostextinfo->icon_image_alt);
+		free(new_hostextinfo->notes_url);
+		free(new_hostextinfo->notes);
+		free(new_hostextinfo->host_name);
+		free(new_hostextinfo);
+		return NULL;
+	        }
+
 	/* add new host extended info entry to head of list */
 	new_hostextinfo->next=hostextinfo_list;
 	hostextinfo_list=new_hostextinfo;
@@ -4343,6 +4581,25 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 #endif
 			return NULL;
 		        }
+	        }
+
+	new_serviceextinfo->nexthash=NULL;
+
+	/* add new serviceextinfo to serviceextinfo chained hash list */
+	if(!add_serviceextinfo_to_hashlist(new_serviceextinfo)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceextinfo list to add service '%s' on host '%s' extended info.\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_serviceextinfo->icon_image);
+		free(new_serviceextinfo->icon_image_alt);
+		free(new_serviceextinfo->notes_url);
+		free(new_serviceextinfo->notes);
+		free(new_serviceextinfo->description);
+		free(new_serviceextinfo->host_name);
+		free(new_serviceextinfo);
+		return NULL;
 	        }
 
 	/* add new service extended info entry to head of list */
@@ -4858,6 +5115,110 @@ void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, 
         }
 
 
+hostescalation *get_first_hostescalation_by_host(char *host_name){
+
+	return get_next_hostescalation_by_host(host_name,NULL);
+        }
+
+
+hostescalation *get_next_hostescalation_by_host(char *host_name, hostescalation *start){
+	hostescalation *temp_hostescalation;
+
+	if(host_name==NULL || hostescalation_hashlist==NULL)
+		return NULL;
+
+	if(start==NULL)
+		temp_hostescalation=hostescalation_hashlist[hashfunc1(host_name,HOSTESCALATION_HASHSLOTS)];
+	else
+		temp_hostescalation=start->nexthash;
+
+	for(;temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,host_name)<0;temp_hostescalation=temp_hostescalation->nexthash);
+
+	if(temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,host_name)==0)
+		return temp_hostescalation;
+
+	return NULL;
+        }
+
+
+serviceescalation *get_first_serviceescalation_by_service(char *host_name, char *svc_description){
+
+	return get_next_serviceescalation_by_service(host_name,svc_description,NULL);
+        }
+
+
+serviceescalation *get_next_serviceescalation_by_service(char *host_name, char *svc_description, serviceescalation *start){
+	serviceescalation *temp_serviceescalation;
+
+	if(host_name==NULL || svc_description==NULL || serviceescalation_hashlist==NULL)
+		return NULL;
+
+	if(start==NULL)
+		temp_serviceescalation=serviceescalation_hashlist[hashfunc2(host_name,svc_description,SERVICEESCALATION_HASHSLOTS)];
+	else
+		temp_serviceescalation=start->nexthash;
+
+	for(;temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)<0;temp_serviceescalation=temp_serviceescalation->nexthash);
+
+	if(temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)==0)
+		return temp_serviceescalation;
+
+	return NULL;
+        }
+
+
+hostdependency *get_first_hostdependency_by_dependent_host(char *host_name){
+
+	return get_next_hostdependency_by_dependent_host(host_name,NULL);
+        }
+
+
+hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, hostdependency *start){
+	hostdependency *temp_hostdependency;
+
+	if(host_name==NULL || hostdependency_hashlist==NULL)
+		return NULL;
+
+	if(start==NULL)
+		temp_hostdependency=hostdependency_hashlist[hashfunc1(host_name,HOSTDEPENDENCY_HASHSLOTS)];
+	else
+		temp_hostdependency=start->nexthash;
+
+	for(;temp_hostdependency && compare_hashdata1(temp_hostdependency->dependent_host_name,host_name)<0;temp_hostdependency=temp_hostdependency->nexthash);
+
+	if(temp_hostdependency && compare_hashdata1(temp_hostdependency->dependent_host_name,host_name)==0)
+		return temp_hostdependency;
+
+	return NULL;
+        }
+
+
+servicedependency *get_first_servicedependency_by_dependent_service(char *host_name, char *svc_description){
+
+	return get_next_servicedependency_by_dependent_service(host_name,svc_description,NULL);
+        }
+
+
+servicedependency *get_next_servicedependency_by_dependent_service(char *host_name, char *svc_description, servicedependency *start){
+	servicedependency *temp_servicedependency;
+
+	if(host_name==NULL || svc_description==NULL || servicedependency_hashlist==NULL)
+		return NULL;
+
+	if(start==NULL)
+		temp_servicedependency=servicedependency_hashlist[hashfunc2(host_name,svc_description,SERVICEDEPENDENCY_HASHSLOTS)];
+	else
+		temp_servicedependency=start->nexthash;
+
+	for(;temp_servicedependency && compare_hashdata2(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)<0;temp_servicedependency=temp_servicedependency->nexthash);
+
+	if(temp_servicedependency && compare_hashdata2(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)==0)
+		return temp_servicedependency;
+
+	return NULL;
+        }
+
+
 
 /******************************************************************/
 /********************* OBJECT QUERY FUNCTIONS *********************/
@@ -5112,12 +5473,9 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 	contactgroup *temp_contactgroup;
 	hostescalation *temp_hostescalation;
 
-	/* search all host escalations */
-	for(temp_hostescalation=hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 
-		/* skip this host escalation if it's not for us */
-		if(strcmp(temp_hostescalation->host_name,hst->name))
-			continue;
+	/* search all host escalations */
+	for(temp_hostescalation=get_first_hostescalation_by_host(hst->name);temp_hostescalation!=NULL;temp_hostescalation=get_next_hostescalation_by_host(hst->name,temp_hostescalation)){
 
 		/* search all the contact groups in this escalation... */
 		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
@@ -5169,11 +5527,7 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 	contactgroup *temp_contactgroup;
 
 	/* search all the service escalations */
-	for(temp_serviceescalation=serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
-
-		/* this escalation entry is not for this service... */
-		if(strcmp(svc->host_name,temp_serviceescalation->host_name) || strcmp(svc->description,temp_serviceescalation->description))
-			continue;
+	for(temp_serviceescalation=get_first_serviceescalation_by_service(svc->host_name,svc->description);temp_serviceescalation!=NULL;temp_serviceescalation=get_next_serviceescalation_by_service(svc->host_name,svc->description,temp_serviceescalation)){
 
 		/* search all the contact groups in this escalation... */
 		for(temp_contactgroupsmember=temp_serviceescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){

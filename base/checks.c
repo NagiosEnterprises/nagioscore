@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-29-2003
+ * Last Modified:   06-14-2003
  *
  * License:
  *
@@ -1419,41 +1419,37 @@ int check_service_dependencies(service *svc,int dependency_type){
 #endif
 
 	/* check all dependencies... */
-	for(temp_dependency=servicedependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
+	for(temp_dependency=get_first_servicedependency_by_dependent_service(svc->host_name,svc->description);temp_dependency!=NULL;temp_dependency=get_next_servicedependency_by_dependent_service(svc->host_name,svc->description,temp_dependency)){
 
 		/* only check dependencies of the desired type (notification or execution) */
 		if(temp_dependency->dependency_type!=dependency_type)
 			continue;
 
-		/* if we have the right service... */
-		if(!strcmp(svc->host_name,temp_dependency->dependent_host_name) && !strcmp(svc->description,temp_dependency->dependent_service_description)){
+		/* find the service we depend on... */
+		temp_service=find_service(temp_dependency->host_name,temp_dependency->service_description);
+		if(temp_service==NULL)
+			continue;
 
-			/* find the service we depend on... */
-			temp_service=find_service(temp_dependency->host_name,temp_dependency->service_description);
-			if(temp_service==NULL)
-				continue;
+		/* get the status to use (use last hard state if its currently in a soft state) */
+		if(temp_service->state_type==SOFT_STATE && soft_state_dependencies==FALSE)
+			state=temp_service->last_hard_state;
+		else
+			state=temp_service->current_state;
 
-			/* get the status to use (use last hard state if its currently in a soft state) */
-			if(temp_service->state_type==SOFT_STATE && soft_state_dependencies==FALSE)
-				state=temp_service->last_hard_state;
-			else
-				state=temp_service->current_state;
+		/* is the service we depend on in state that fails the dependency tests? */
+		if(state==STATE_OK && temp_dependency->fail_on_ok==TRUE)
+			return DEPENDENCIES_FAILED;
+		if(state==STATE_WARNING && temp_dependency->fail_on_warning==TRUE)
+			return DEPENDENCIES_FAILED;
+		if(state==STATE_UNKNOWN && temp_dependency->fail_on_unknown==TRUE)
+			return DEPENDENCIES_FAILED;
+		if(state==STATE_CRITICAL && temp_dependency->fail_on_critical==TRUE)
+			return DEPENDENCIES_FAILED;
 
-			/* is the service we depend on in state that fails the dependency tests? */
-			if(state==STATE_OK && temp_dependency->fail_on_ok==TRUE)
+		/* immediate dependencies ok at this point - check parent dependencies if necessary */
+		if(temp_dependency->inherits_parent==TRUE){
+			if(check_service_dependencies(temp_service,dependency_type)!=DEPENDENCIES_OK)
 				return DEPENDENCIES_FAILED;
-			if(state==STATE_WARNING && temp_dependency->fail_on_warning==TRUE)
-				return DEPENDENCIES_FAILED;
-			if(state==STATE_UNKNOWN && temp_dependency->fail_on_unknown==TRUE)
-				return DEPENDENCIES_FAILED;
-			if(state==STATE_CRITICAL && temp_dependency->fail_on_critical==TRUE)
-				return DEPENDENCIES_FAILED;
-
-			/* immediate dependencies ok at this point - check parent dependencies if necessary */
-			if(temp_dependency->inherits_parent==TRUE){
-				if(check_service_dependencies(temp_service,dependency_type)!=DEPENDENCIES_OK)
-					return DEPENDENCIES_FAILED;
-			        }
 		        }
 	        }
 
@@ -1476,33 +1472,29 @@ int check_host_dependencies(host *hst,int dependency_type){
 #endif
 
 	/* check all dependencies... */
-	for(temp_dependency=hostdependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
+	for(temp_dependency=get_first_hostdependency_by_dependent_host(hst->name);temp_dependency!=NULL;temp_dependency=get_next_hostdependency_by_dependent_host(hst->name,temp_dependency)){
 
 		/* only check dependencies of the desired type (notification or execution) */
 		if(temp_dependency->dependency_type!=dependency_type)
 			continue;
 
-		/* if we have the right host... */
-		if(!strcmp(hst->name,temp_dependency->dependent_host_name)){
+		/* find the host we depend on... */
+		temp_host=find_host(temp_dependency->host_name);
+		if(temp_host==NULL)
+			continue;
 
-			/* find the host we depend on... */
-			temp_host=find_host(temp_dependency->host_name);
-			if(temp_host==NULL)
-				continue;
+		/* is the host we depend on in state that fails the dependency tests? */
+		if(temp_host->current_state==HOST_UP && temp_dependency->fail_on_up==TRUE)
+			return DEPENDENCIES_FAILED;
+		if(temp_host->current_state==HOST_DOWN && temp_dependency->fail_on_down==TRUE)
+			return DEPENDENCIES_FAILED;
+		if(temp_host->current_state==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
+			return DEPENDENCIES_FAILED;
 
-			/* is the host we depend on in state that fails the dependency tests? */
-			if(temp_host->current_state==HOST_UP && temp_dependency->fail_on_up==TRUE)
+		/* immediate dependencies ok at this point - check parent dependencies if necessary */
+		if(temp_dependency->inherits_parent==TRUE){
+			if(check_host_dependencies(temp_host,dependency_type)!=DEPENDENCIES_OK)
 				return DEPENDENCIES_FAILED;
-			if(temp_host->current_state==HOST_DOWN && temp_dependency->fail_on_down==TRUE)
-				return DEPENDENCIES_FAILED;
-			if(temp_host->current_state==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
-				return DEPENDENCIES_FAILED;
-
-			/* immediate dependencies ok at this point - check parent dependencies if necessary */
-			if(temp_dependency->inherits_parent==TRUE){
-				if(check_host_dependencies(temp_host,dependency_type)!=DEPENDENCIES_OK)
-					return DEPENDENCIES_FAILED;
-			        }
 		        }
 	        }
 

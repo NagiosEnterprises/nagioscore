@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   11-18-2003
+ * Last Modified:   11-23-2003
  *
  * License:
  *
@@ -260,17 +260,33 @@ int main(int argc, char **argv){
 		printf("MRTG DATA VARIABLES (-d option):\n");
 		printf(" NUMSERVICES        total number of services.\n");
 		printf(" NUMHOSTS           total number of services.\n");
-		printf(" AVGACTSVCLAT       average active service check latency (ms).\n");
-		printf(" AVGACTSVCEXT       average active service check execution time (ms).\n");
-		printf(" AVGACTSVCPSC       average active service check %% state change.\n");
-		printf(" AVGPSVSVCPSC       average passive service check %% state change.\n");
-		printf(" AVGSVCPSC          average service check %% state change.\n");
-		printf(" AVGACTHSTLAT       average active host check latency (ms).\n");
-		printf(" AVGACTHSTEXT       average active host check execution time (ms).\n");
-		printf(" AVGACTHSTPSC       average active host check %% state change.\n");
-		printf(" AVGPSVHSTPSC       average passive host check %% state change.\n");
-		printf(" AVGHSTPSC          average host check %% state change.\n");
-		printf(" ...                lots of others, see the source code for now...\n");
+		printf(" NUMSVCOK           number of services OK.\n");
+		printf(" NUMSVCWARN         number of services WARNING.\n");
+		printf(" NUMSVCUNKN         number of services UNKNOWN.\n");
+		printf(" NUMSVCCRIT         number of services CRITICAL.\n");
+		printf(" NUMSVCPROB         number of service problems (WARNING, UNKNOWN or CRITIAL).\n");
+		printf(" NUMHSTUP           number of hosts UP.\n");
+		printf(" NUMHSTDOWN         number of hosts DOWN.\n");
+		printf(" NUMHSTUNR          number of hosts UNREACHABLE.\n");
+		printf(" NUMHSTPROB         number of host problems (DOWN or UNREACHABLE).\n");
+		printf(" xxxACTSVCLAT       MIN/MAX/AVG active service check latency (ms).\n");
+		printf(" xxxACTSVCEXT       MIN/MAX/AVG active service check execution time (ms).\n");
+		printf(" xxxACTSVCPSC       MIN/MAX/AVG active service check %% state change.\n");
+		printf(" xxxPSVSVCPSC       MIN/MAX/AVG passive service check %% state change.\n");
+		printf(" xxxSVCPSC          MIN/MAX/AVG service check %% state change.\n");
+		printf(" xxxACTHSTLAT       MIN/MAX/AVG active host check latency (ms).\n");
+		printf(" xxxACTHSTEXT       MIN/MAX/AVG active host check execution time (ms).\n");
+		printf(" xxxACTHSTPSC       MIN/MAX/AVG active host check %% state change.\n");
+		printf(" xxxPSVHSTPSC       MIN/MAX/AVG passive host check %% state change.\n");
+		printf(" xxxHSTPSC          MIN/MAX/AVG host check %% state change.\n");
+		printf(" NUMACTHSTCHKxM    number of active host checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMPSVHSTCHKxM    number of passive host checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMACTSVCCHKxM    number of active service checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMPSVSVCCHKxM    number of passive service checks in last 1/5/15/60 minutes.\n");
+
+		printf("\n");
+		printf(" Note: Replace x's in MRTG variable names with 'MIN', 'MAX', 'AVG', or the\n");
+		printf("       the appropriate number (i.e. '1', '5', '15', or '60').\n");
 		printf("\n");
 
 		exit(ERROR);

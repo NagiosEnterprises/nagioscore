@@ -72,17 +72,32 @@ Output:
 MRTG DATA VARIABLES (-d option):
  NUMSERVICES        total number of services.
  NUMHOSTS           total number of services.
- AVGACTSVCLAT       average active service check latency (ms).
- AVGACTSVCEXT       average active service check execution time (ms).
- AVGACTSVCPSC       average active service check % state change.
- AVGPSVSVCPSC       average passive service check % state change.
- AVGSVCPSC          average service check % state change.
- AVGACTHSTLAT       average active host check latency (ms).
- AVGACTHSTEXT       average active host check execution time (ms).
- AVGACTHSTPSC       average active host check % state change.
- AVGPSVHSTPSC       average passive host check % state change.
- AVGHSTPSC          average host check % state change.
- ...                lots of others, see the source code for now...
+ NUMSVCOK           number of services OK.
+ NUMSVCWARN         number of services WARNING.
+ NUMSVCUNKN         number of services UNKNOWN.
+ NUMSVCCRIT         number of services CRITICAL.
+ NUMSVCPROB         number of service problems (WARNING, UNKNOWN or CRITIAL).
+ NUMHSTUP           number of hosts UP.
+ NUMHSTDOWN         number of hosts DOWN.
+ NUMHSTUNR          number of hosts UNREACHABLE.
+ NUMHSTPROB         number of host problems (DOWN or UNREACHABLE).
+ xxxACTSVCLAT       MIN/MAX/AVG active service check latency (ms).
+ xxxACTSVCEXT       MIN/MAX/AVG active service check execution time (ms).
+ xxxACTSVCPSC       MIN/MAX/AVG active service check % state change.
+ xxxPSVSVCPSC       MIN/MAX/AVG passive service check % state change.
+ xxxSVCPSC          MIN/MAX/AVG service check % state change.
+ xxxACTHSTLAT       MIN/MAX/AVG active host check latency (ms).
+ xxxACTHSTEXT       MIN/MAX/AVG active host check execution time (ms).
+ xxxACTHSTPSC       MIN/MAX/AVG active host check % state change.
+ xxxPSVHSTPSC       MIN/MAX/AVG passive host check % state change.
+ xxxHSTPSC          MIN/MAX/AVG host check % state change.
+ NUMACTHSTCHKxM    number of active host checks in last 1/5/15/60 minutes.
+ NUMPSVHSTCHKxM    number of passive host checks in last 1/5/15/60 minutes.
+ NUMACTSVCCHKxM    number of active service checks in last 1/5/15/60 minutes.
+ NUMPSVSVCCHKxM    number of passive service checks in last 1/5/15/60 minutes.
+
+ Note: Replace x's in MRTG variable names with 'MIN', 'MAX', 'AVG', or the
+       the appropriate number (i.e. '1', '5', '15', or '60').
 
 [nagios@lanman ~]# 
 </pre>

@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-30-2003
  *
  * License:
  * 
@@ -2250,6 +2250,20 @@ int time_to_string(time_t *t, char *buffer, int buffer_length){
 /* converts a time string to a UNIX timestamp */
 int string_to_time(char *buffer, time_t *t){
 	struct tm lt;
+
+	/* Initialize some variables just in case they don't get parsed
+	   by the sscanf() call.  A better solution is to also check the
+	   CGI input for validity, but this should suffice to prevent
+	   strange problems if the input is not valid. 
+	   Jan 15 2003  Steve Bonds */
+	lt.tm_mon=0;
+	lt.tm_mday=1;
+	lt.tm_year=1900;
+	lt.tm_hour=0;
+	lt.tm_min=0;
+	lt.tm_sec=0;
+	lt.tm_wday=0;
+	lt.tm_yday=0;
 
 	sscanf(buffer,"%02d/%02d/%04d %02d:%02d:%02d",&lt.tm_mon,&lt.tm_mday,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
 

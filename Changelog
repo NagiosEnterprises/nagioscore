@@ -4,9 +4,11 @@ Nagios Change Log
 
 
 
-1.1 - ??/??/2003
+1.1 - 05/30/2003
 ----------------
-* Minor bug fixes
+* File descriptor leak in file-based performance routines
+* Minor bug fixes to cmd and history CGIs
+* Minor documentation fixes
 
 
 1.0 - 11/24/2002

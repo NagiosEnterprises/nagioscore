@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-29-2004
+ * Last Modified:   03-26-2004
  *
  * License:
  *
@@ -1656,7 +1656,10 @@ void check_service_result_freshness(void){
 			freshness_threshold=temp_service->freshness_threshold;
 
 		/* calculate expiration time */
+#ifdef REMOVED_032604
 		if(temp_service->has_been_checked==FALSE)
+#endif
+		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check)
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-25-2004
+ * Last Modified:   03-26-2004
  *
  * License:
  *
@@ -1086,11 +1086,18 @@ int grab_host_macros(host *hst){
 /* grab an on-demand host or service macro */
 int grab_on_demand_macro(char *str){
 	char *macro=NULL;
-	char *host_name=NULL;
-	char *service_description=NULL;
+	char *first_arg=NULL;
+	char *second_arg=NULL;
+	char result_buffer[MAX_INPUT_BUFFER];
+	int result_buffer_len, delimiter_len;
 	host *temp_host;
+	hostgroup *temp_hostgroup;
+	hostgroupmember *temp_hostgroupmember;
 	service *temp_service;
+	servicegroup *temp_servicegroup;
+	servicegroupmember *temp_servicegroupmember;
 	char *ptr;
+	int return_val=ERROR;
 
 #ifdef DEBUG0
 	printf("grab_on_demand_macro() start\n");
@@ -1102,55 +1109,173 @@ int grab_on_demand_macro(char *str){
 		macro_ondemand=NULL;
 	        }
 
-	/* get the macro name */
+	/* get the first argument */
 	macro=strdup(str);
 	if(macro==NULL)
 		return ERROR;
 
 	/* get the host name */
 	ptr=strchr(macro,':');
-	if(ptr==NULL)
-		return ERROR;
-	/* terminate the macro name at the host name delimiter */
-	ptr[0]='\x0';
-	host_name=strdup(ptr+1);
-	if(host_name==NULL){
+	if(ptr==NULL){
 		free(macro);
 		return ERROR;
 	        }
+	/* terminate the macro name at the first arg's delimiter */
+	ptr[0]='\x0';
+	first_arg=ptr+1;
 
-	/* get the service description (if applicable) */
-	ptr=strchr(host_name,':');
+	/* get the second argument (if present) */
+	ptr=strchr(first_arg,':');
 	if(ptr!=NULL){
-		/* terminate the host name at the service description delimiter */
+		/* terminate the first arg at the second arg's delimiter */
 		ptr[0]='\x0';
-		service_description=strdup(ptr+1);
-		if(service_description==NULL){
-			free(macro);
-			free(host_name);
-			return ERROR;
-		        }
+		second_arg=ptr+1;
 	        }
 
 	/* process the macro */
 	if(strstr(macro,"HOST")){
-		temp_host=find_host(host_name);
-		grab_on_demand_host_macro(temp_host,macro);
-	        }
-	else if(strstr(macro,"SERVICE")){
-		temp_service=find_service(host_name,service_description);
-		grab_on_demand_service_macro(temp_service,macro);
+
+		/* process a host macro */
+		if(second_arg==NULL){
+			temp_host=find_host(first_arg);
+			return_val=grab_on_demand_host_macro(temp_host,macro);
+	                }
+
+		/* process a host macro containing a hostgroup */
+		else{
+			temp_hostgroup=find_hostgroup(first_arg);
+			if(temp_hostgroup==NULL){
+				free(macro);
+				return ERROR;
+				}
+
+			return_val=OK;  /* start off assuming there's no error */
+			result_buffer[0]='\0';
+			result_buffer[sizeof(result_buffer)-1]='\0';
+			result_buffer_len=0;
+			delimiter_len=strlen(second_arg);
+
+			/* process each host in the hostgroup */
+			temp_hostgroupmember=temp_hostgroup->members;
+			if(temp_hostgroupmember==NULL){
+				macro_ondemand=strdup("");
+				free(macro);
+				return OK;
+				}
+			while(1){
+				temp_host=find_host(temp_hostgroupmember->host_name);
+				if(grab_on_demand_host_macro(temp_host,macro)==OK){
+					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
+					result_buffer_len+=strlen(macro_ondemand);
+					if(result_buffer_len>sizeof(result_buffer)-1){
+						return_val=ERROR;
+						break;
+						}
+					temp_hostgroupmember=temp_hostgroupmember->next;
+					if(temp_hostgroupmember==NULL)
+						break;
+					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
+					result_buffer_len+=delimiter_len;
+					if(result_buffer_len>sizeof(result_buffer)-1){
+						return_val=ERROR;
+						break;
+						}
+					}
+				else{
+					return_val=ERROR;
+					temp_hostgroupmember=temp_hostgroupmember->next;
+					if(temp_hostgroupmember==NULL)
+						break;
+					}
+
+				free(macro_ondemand);
+				macro_ondemand=NULL;
+				}
+
+			free(macro_ondemand);
+			macro_ondemand=strdup(result_buffer);
+			}
 	        }
 
+	else if(strstr(macro,"SERVICE")){
+
+		/* second args will either be service description or delimiter */
+		if(second_arg==NULL){
+			free(macro);
+			return ERROR;
+	                }
+
+		/* process a service macro */
+		temp_service=find_service(first_arg, second_arg);
+		if(temp_service!=NULL)
+			return_val=grab_on_demand_service_macro(temp_service,macro);
+
+		/* process a service macro containing a servicegroup */
+		else{
+			temp_servicegroup=find_servicegroup(first_arg);
+			if(temp_servicegroup==NULL){
+				free(macro);
+				return ERROR;
+				}
+
+			return_val=OK;  /* start off assuming there's no error */
+			result_buffer[0]='\0';
+			result_buffer[sizeof(result_buffer)-1]='\0';
+			result_buffer_len=0;
+			delimiter_len=strlen(second_arg);
+
+			/* process each service in the servicegroup */
+			temp_servicegroupmember=temp_servicegroup->members;
+			if(temp_servicegroupmember==NULL){
+				macro_ondemand=strdup("");
+				free(macro);
+				return OK;
+				}
+			while(1){
+				temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+				if(grab_on_demand_service_macro(temp_service,macro)==OK){
+					strncat(result_buffer,macro_ondemand,sizeof(result_buffer)-result_buffer_len-1);
+					result_buffer_len+=strlen(macro_ondemand);
+					if(result_buffer_len>sizeof(result_buffer)-1){
+						return_val=ERROR;
+						break;
+						}
+					temp_servicegroupmember=temp_servicegroupmember->next;
+					if(temp_servicegroupmember==NULL)
+						break;
+					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
+					result_buffer_len+=delimiter_len;
+					if(result_buffer_len>sizeof(result_buffer)-1){
+						return_val=ERROR;
+						break;
+						}
+					}
+				else{
+					return_val=ERROR;
+					temp_servicegroupmember=temp_servicegroupmember->next;
+					if(temp_servicegroupmember==NULL)
+						break;
+					}
+
+				free(macro_ondemand);
+				macro_ondemand=NULL;
+				}
+
+			free(macro_ondemand);
+			macro_ondemand=strdup(result_buffer);
+			}
+	        }
+
+	else
+		return_val=ERROR;
+
 	free(macro);
-	free(host_name);
-	free(service_description);
 
 #ifdef DEBUG0
 	printf("grab_on_demand_macro() end\n");
 #endif
 
-	return OK;
+	return return_val;
         }
 
 
@@ -1360,6 +1485,8 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		if(temp_hostgroup!=NULL)
 			macro_ondemand=strdup(temp_hostgroup->alias);
 	        }
+	else
+		return ERROR;
 
 #ifdef DEBUG0
 	printf("grab_on_demand_host_macro() end\n");
@@ -1578,6 +1705,8 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 		if(temp_servicegroup!=NULL)
 			macro_ondemand=strdup(temp_servicegroup->alias);
 	        }
+	else
+		return ERROR;
 
 #ifdef DEBUG0
 	printf("grab_on_demand_service_macro() end\n");

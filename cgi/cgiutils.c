@@ -2,8 +2,8 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-10-2004
  *
  * License:
  *
@@ -1771,7 +1771,50 @@ void include_ssi_files(char *cgi_name, int type){
 void include_ssi_file(char *filename){
 	char buffer[MAX_INPUT_BUFFER];
 	FILE *fp;
+        struct stat stat_result;
+        int call_return;
 
+        /* if file is executable, we want to run it rather than print it */
+        call_return=stat(filename,&stat_result);
+
+	/* file is execuable */
+	if(call_return==0 && (stat_result.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))){
+
+		/* must flush output stream first so that output
+		   from script shows up in correct place. Other choice
+		   is to open program under pipe and copy the data from
+		   the program to our output stream.
+		*/
+		fflush(stdout);
+
+		/* ignore return status from system call. */
+		call_return=system(filename);
+
+		return;
+	        }
+
+	/* an erorr occurred trying to stat() the file */
+	else if(call_return!=0){
+
+		/* Handle error conditions. Assume that standard posix error codes and errno are available. If not, comment this section out. */
+		switch(errno){
+		case ENOTDIR: /* - A component of the path is not a directory. */
+		case ELOOP: /* Too many symbolic links encountered while traversing the path. */
+		case EFAULT: /* Bad address. */
+		case ENOMEM: /* Out of memory (i.e. kernel memory). */
+		case ENAMETOOLONG: /* File name too long. */
+			printf("<br /> A stat call returned %d while looking for the file %s.<br />", errno, filename);
+			return;
+		case EACCES: /* Permission denied. -- The file should be accessible by nagios. */
+			printf("<br /> A stat call returned a permissions error(%d) while looking for the file %s.<br />", errno, filename);
+			return;
+		case ENOENT: /* A component of the path file_name does not exist, or the path is an empty string. Just return if the file doesn't exist. */
+			return;
+		default:
+			return;
+		        }
+	        }
+	    
 	fp=fopen(filename,"r");
 	if(fp==NULL)
 		return;

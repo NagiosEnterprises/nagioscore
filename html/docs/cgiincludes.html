@@ -34,8 +34,13 @@ If you're doing custom installs of Nagios for clients, you may want to have a cu
 </p>
 
 <p>
-It is important to note that custom headers and footers are <b>not</b> processed in any way before they are displayed.  The contents of the header and footer include files are simply read and displayed in the CGI output.  That means they can only contain information a web browser can understand (HTML, JavaScript, etc.).
+It is important to note that, unless the custom header and footer files are executable, they are <b>not</b> processed in any way before they are displayed.  The contents of the header and footer include files are simply read and displayed in the CGI output.  That means they can only contain information a web browser can understand (HTML, JavaScript, etc.).
 </p>
+
+<p>
+If the custom header and footer files are executable, then the files are executed and their output returned to the user, so they should output valid HTML. Using this you can run your own custom designed CGI to insert data into the nagios display. This has been used to insert graphs from rrdtool using ddraw and command menus into the nagios display pane. The execuable customer header and footer files are run with the same CGI environment as the main nagios cgi, so your files can parse the query information, authenticated user information etc. to produce appropriate output.
+</p>
+
 
 <p>
 <strong><u>How Does It Work?</u></strong>

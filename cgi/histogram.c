@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-26-2002
+ * Last Modified: 10-26-2002
  *
  * License:
  * 
@@ -1574,14 +1574,18 @@ void graph_all_histogram_data(void){
 #endif
 
 	/* determine y scaling factor */
-	y_scaling_factor=floor((double)DRAWING_HEIGHT/(double)max_value);
+	/*y_scaling_factor=floor((double)DRAWING_HEIGHT/(double)max_value);*/
+	y_scaling_factor=(double)((double)DRAWING_HEIGHT/(double)max_value);
 
 	/* determine x scaling factor */
 	x_scaling_factor=(double)((double)DRAWING_WIDTH/(double)total_buckets);
 
 	/* determine y units resolution - we want a max of about 10 y grid lines */
+	/*
 	y_units=(double)((double)DRAWING_HEIGHT/19.0);
 	y_units=ceil(y_units/y_scaling_factor)*y_scaling_factor;
+	*/
+	y_units=ceil(19.0/y_scaling_factor);
 
 	/* determine x units resolution */
 	if(breakdown_type==BREAKDOWN_HOURLY)
@@ -1597,6 +1601,7 @@ void graph_all_histogram_data(void){
 	printf("y_scaling_factor: %.3f\n",y_scaling_factor);
 	printf("x_units: %.3f\n",x_units);
 	printf("y_units: %.3f\n",y_units);
+	printf("y units to draw: %.3f\n",((double)max_value/y_units));
 #endif
 
 	string_height=gdFontSmall->h;
@@ -1607,8 +1612,12 @@ void graph_all_histogram_data(void){
 
 	/* draw y grid lines */
 	if(max_value>0){
-		for(current_unit=1;(current_unit*y_units)<=DRAWING_HEIGHT;current_unit++)
-			draw_dashed_line(DRAWING_X_OFFSET,DRAWING_Y_OFFSET-(current_unit*y_units),DRAWING_X_OFFSET+DRAWING_WIDTH,DRAWING_Y_OFFSET-(current_unit*y_units),color_lightgray);
+		for(current_unit=1;(current_unit*y_units*y_scaling_factor)<=DRAWING_HEIGHT;current_unit++){
+			draw_dashed_line(DRAWING_X_OFFSET,DRAWING_Y_OFFSET-(current_unit*y_units*y_scaling_factor),DRAWING_X_OFFSET+DRAWING_WIDTH,DRAWING_Y_OFFSET-(current_unit*y_units*y_scaling_factor),color_lightgray);
+#ifdef DEBUG
+			printf("  Drawing Y unit #%d @ %d\n",current_unit,(int)(current_unit*y_units*y_scaling_factor));
+#endif
+		        }
 	        }
 
 #ifdef DEBUG
@@ -1625,11 +1634,11 @@ void graph_all_histogram_data(void){
 
 	/* draw y units */
 	if(max_value>0){
-		for(current_unit=0;(current_unit*y_units)<=DRAWING_HEIGHT;current_unit++){
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%d",(int)((current_unit*y_units)/y_scaling_factor));
+		for(current_unit=0;(current_unit*y_units*y_scaling_factor)<=DRAWING_HEIGHT;current_unit++){
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%d",(int)(current_unit*y_units));
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			string_width=gdFontSmall->w*strlen(temp_buffer);
-			gdImageString(histogram_image,gdFontSmall,DRAWING_X_OFFSET-string_width-5,DRAWING_Y_OFFSET-(current_unit*y_units)-(string_height/2),temp_buffer,color_black);
+			gdImageString(histogram_image,gdFontSmall,DRAWING_X_OFFSET-string_width-5,DRAWING_Y_OFFSET-(current_unit*y_units*y_scaling_factor)-(string_height/2),temp_buffer,color_black);
 	                }
 	        }
 

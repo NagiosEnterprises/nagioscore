@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -1392,17 +1392,25 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	/* set the checked flag */
 	this_host->has_been_checked=TRUE;
 
+	/* save old state */
+	this_host->last_state=this_host->current_state;
+	if(this_host->state_type==HARD_STATE)
+		this_host->last_hard_state=this_host->current_state;
+
+	/* record new state */
+	this_host->current_state=return_code;
+
 	/* record check type */
 	this_host->check_type=HOST_CHECK_PASSIVE;
 
 	/* record state type */
 	this_host->state_type=HARD_STATE;
 
-	/* set the current attempt */
+	/* set the current attempt - should this be set to max_attempts instead? */
 	this_host->current_attempt=1;
 
 	/* save the old plugin output and host state for use with state stalking routines */
-	old_state=this_host->status;
+	old_state=this_host->current_state;
 	strncpy(old_plugin_output,(this_host->plugin_output==NULL)?"":this_host->plugin_output,sizeof(old_plugin_output)-1);
 	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
 
@@ -1464,9 +1472,8 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	update_host_performance_data(this_host,return_code);
 
 
-	/***** HAS A HOST STATE CHANGE OCCURRED? *****/
-	if(return_code!=old_state)
-		handle_host_state(this_host,return_code);
+	/***** HANDLE THE HOST STATE *****/
+	handle_host_state(this_host,return_code);
 
 
 	/***** UPDATE HOST STATUS *****/
@@ -2554,7 +2561,7 @@ void acknowledge_host_problem(host *hst, char *ack_data, int notify){
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		host_notification(hst,hst->status,ack_data);
+		host_notification(hst,hst->current_state,ack_data);
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged=TRUE;

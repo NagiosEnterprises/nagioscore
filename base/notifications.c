@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-18-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -313,7 +313,7 @@ int check_service_notification_viability(service *svc, char *ack_data){
 	        }
 
 	/* if the host is down or unreachable, don't notify contacts about service failures */
-	if(temp_host->status!=HOST_UP){
+	if(temp_host->current_state!=HOST_UP){
 #ifdef DEBUG4
 		printf("\tThe host is either down or unreachable, so we won't notify contacts about this service!\n");
 #endif
@@ -908,7 +908,7 @@ int check_host_notification_viability(host *hst,int state,char *ack_data){
 	        }
 
 	/* has the host state changed? */
-	if(hst->status!=state)
+	if(hst->current_state!=state)
 		state_change=TRUE;
 	else
 		state_change=FALSE;

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -125,7 +125,9 @@ typedef struct host_struct{
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     check_type;
-	int     status;
+	int     current_state;
+	int     last_state;
+	int     last_hard_state;
 	char	*plugin_output;
 	char    *perf_data;
         int     state_type;

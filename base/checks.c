@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -742,7 +742,7 @@ void reap_service_checks(void){
 				temp_host->last_check=temp_service->last_check;
 
 				/* assume the host is up */
-				temp_host->status=HOST_UP;
+				temp_host->current_state=HOST_UP;
 				temp_host->current_attempt=1;
 				temp_host->state_type=HARD_STATE;
 
@@ -834,7 +834,7 @@ void reap_service_checks(void){
 			temp_service->problem_has_been_acknowledged=FALSE;
 
 			/* the service check was okay, so the associated host must be up... */
-			if(temp_host->status!=HOST_UP){
+			if(temp_host->current_state!=HOST_UP){
 
 				/* verify the route to the host and send out host recovery notifications */
 				verify_route_to_host(temp_host);
@@ -912,7 +912,7 @@ void reap_service_checks(void){
 			temp_service->no_recovery_notification=FALSE;
 			
 			/* check the route to the host if its supposed to be up right now... */
-			if(temp_host->status==HOST_UP)
+			if(temp_host->current_state==HOST_UP)
 				route_result=verify_route_to_host(temp_host);
 
 			/* else the host is either down or unreachable, so recheck it if necessary */
@@ -937,14 +937,14 @@ void reap_service_checks(void){
 					temp_host->last_check=temp_service->last_check;
 
 					/* fake the route check result */
-					route_result=temp_host->status;
+					route_result=temp_host->current_state;
 
 					/* log the initial state if the user wants to and this host hasn't been checked yet */
 					if(log_initial_states==TRUE && temp_service->has_been_checked==FALSE)
-						log_host_event(temp_host,temp_host->status);
+						log_host_event(temp_host,temp_host->current_state);
 
 				        /* possibly re-send host notifications... */
-					host_notification(temp_host,temp_host->status,NULL);
+					host_notification(temp_host,temp_host->current_state,NULL);
 				        }
 			        }
 
@@ -1244,11 +1244,11 @@ int check_host_dependencies(host *hst,int dependency_type){
 				continue;
 
 			/* is the host we depend on in state that fails the dependency tests? */
-			if(temp_host->status==HOST_UP && temp_dependency->fail_on_up==TRUE)
+			if(temp_host->current_state==HOST_UP && temp_dependency->fail_on_up==TRUE)
 				return DEPENDENCIES_FAILED;
-			if(temp_host->status==HOST_DOWN && temp_dependency->fail_on_down==TRUE)
+			if(temp_host->current_state==HOST_DOWN && temp_dependency->fail_on_down==TRUE)
 				return DEPENDENCIES_FAILED;
-			if(temp_host->status==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
+			if(temp_host->current_state==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
 				return DEPENDENCIES_FAILED;
 		        }
 	        }
@@ -1413,7 +1413,7 @@ int verify_route_to_host(host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->status,0.0,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->current_state,0.0,NULL);
 #endif
 
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
@@ -1447,18 +1447,22 @@ int check_host(host *hst,int propagation_options){
 #endif
 
 	/* make sure we return the original host state unless it changes... */
-	return_result=hst->status;
+	return_result=hst->current_state;
+
+	/* save old state - a host is always in a hard state when this function is called... */
+	hst->last_state=hst->current_state;
+	hst->last_hard_state=hst->current_state;
 
 	/* set the checked flag */
 	hst->has_been_checked=TRUE;
 
 	/* save the old plugin output and host state for use with state stalking routines */
-	old_state=hst->status;
+	old_state=hst->current_state;
 	strncpy(old_plugin_output,(hst->plugin_output==NULL)?"":hst->plugin_output,sizeof(old_plugin_output)-1);
 	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
 
 	/* if the host is already down or unreachable... */
-	if(hst->status!=HOST_UP){
+	if(hst->current_state!=HOST_UP){
 
 		/* set the state type (should already be set) */
 		hst->state_type=HARD_STATE;
@@ -1496,7 +1500,7 @@ int check_host(host *hst,int propagation_options){
 						parent_host=find_host(temp_hostsmember->host_name);
 
 						/* check the parent host (and propagate upwards) if its not up */
-						if(parent_host!=NULL && parent_host->status!=HOST_UP)
+						if(parent_host!=NULL && parent_host->current_state!=HOST_UP)
 							check_host(parent_host,PROPAGATE_TO_PARENT_HOSTS);
 					        }
 				        }
@@ -1508,7 +1512,7 @@ int check_host(host *hst,int propagation_options){
 					host_cursor=get_host_cursor();
 					while(child_host=get_next_host_cursor(host_cursor)){
 						/* if this is a child of the host, check it if it is not marked as UP */
-						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->status!=HOST_UP)
+						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
 					        }
 					free_host_cursor(host_cursor);
@@ -1524,7 +1528,7 @@ int check_host(host *hst,int propagation_options){
 		/* unreachable, its parent recovers, but it does not return to an UP state.  Even though it is not up, the host */
 		/* has changed from an unreachable to a down state */
 
-		if(hst->status==HOST_UNREACHABLE && result!=HOST_UP){
+		if(hst->current_state==HOST_UNREACHABLE && result!=HOST_UP){
 
 			/* check all parent hosts */
 			for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
@@ -1533,7 +1537,7 @@ int check_host(host *hst,int propagation_options){
 				parent_host=find_host(temp_hostsmember->host_name);
 
 				/* if at least one parent host is up, this host is no longer unreachable - it is now down instead */
-				if(parent_host->status==HOST_UP){
+				if(parent_host->current_state==HOST_UP){
 					
 					/* handle the hard host state change */
 					handle_host_state(hst,HOST_DOWN);
@@ -1585,7 +1589,7 @@ int check_host(host *hst,int propagation_options){
 					else if(propagation_options & PROPAGATE_TO_PARENT_HOSTS)
 						parent_result=check_host(parent_host,PROPAGATE_TO_PARENT_HOSTS);
 					else
-						parent_result=parent_host->status;
+						parent_result=parent_host->current_state;
 
 					/* if this parent host was up, the route is okay */
 					if(parent_result==HOST_UP)
@@ -1613,7 +1617,7 @@ int check_host(host *hst,int propagation_options){
 					host_cursor=get_host_cursor();
 					while(child_host=get_next_host_cursor(host_cursor)){
 						/* if this is a child of the host, check it if it is not marked as UP */
-						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->status!=HOST_UP)
+						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
 					        }
 					free_host_cursor(host_cursor);
@@ -1715,7 +1719,7 @@ int run_host_check(host *hst){
 
 	/* if checks are disabled, just return the last host state */
 	if(execute_host_checks==FALSE || hst->checks_enabled==FALSE)
-		return hst->status;
+		return hst->current_state;
 
 	/* if there is no host check command, just return with no error */
 	if(hst->host_check_command==NULL){

@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-13-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -192,7 +192,7 @@ void check_for_host_flapping(host *hst, int update_history){
 		last_state_history_value=hst->state_history[(hst->state_history_index==0)?MAX_STATE_HISTORY_ENTRIES-1:hst->state_history_index-1];
 
 		/* if we haven't had a state change since our last recorded state, bail out */
-		if(last_state_history_value==hst->status)
+		if(last_state_history_value==hst->current_state)
 			return;
 	        }
 
@@ -206,7 +206,7 @@ void check_for_host_flapping(host *hst, int update_history){
 		hst->last_state_history_update=current_time;
 
 		/* record the current state in the state history */
-		hst->state_history[hst->state_history_index]=hst->status;
+		hst->state_history[hst->state_history_index]=hst->current_state;
 
 		/* increment state history index to next available slot */
 		hst->state_history_index++;
@@ -364,7 +364,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 	hst->is_flapping=TRUE;
 
 	/* see if we should check to send a recovery notification out when flapping stops */
-	if(hst->status!=HOST_UP && hst->current_notification_number>0)
+	if(hst->current_state!=HOST_UP && hst->current_notification_number>0)
 		hst->check_flapping_recovery_notification=TRUE;
 	else
 		hst->check_flapping_recovery_notification=FALSE;
@@ -399,8 +399,8 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 	hst->is_flapping=FALSE;
 
 	/* should we send a recovery notification? */
-	if(hst->check_flapping_recovery_notification==TRUE && hst->status==HOST_UP)
-		host_notification(hst,hst->status,NULL);
+	if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
+		host_notification(hst,hst->current_state,NULL);
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification=FALSE;
@@ -476,7 +476,7 @@ void enable_host_flap_detection(host *hst){
 
 	/* reset the archived state history */
 	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-		hst->state_history[x]=hst->status;
+		hst->state_history[x]=hst->current_state;
 
 	/* reset percent state change indicator */
 	hst->percent_state_change=0.0;

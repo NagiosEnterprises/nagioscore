@@ -3,7 +3,7 @@
  * STATUSDATA.H - Header for external status data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -56,6 +56,7 @@ typedef struct hoststatus_struct{
 	time_t  last_check;
 	int     check_type;
 	time_t	last_state_change;
+	int     last_hard_state;
 	int     state_type;
 	time_t  last_notification;
 	int     notifications_enabled;

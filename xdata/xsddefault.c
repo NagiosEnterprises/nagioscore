@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -316,7 +316,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tcheck_execution_time=%.2f\n",temp_host->execution_time);
-		fprintf(fp,"\tcurrent_state=%d\n",temp_host->status);
+		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
+		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
 		fprintf(fp,"\tcheck_type=%d\n",temp_host->check_type);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
@@ -560,6 +561,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->execution_time=strtod(val,NULL);
 					else if(!strcmp(var,"current_state"))
 						temp_hoststatus->status=(atoi(val)>0)?TRUE:FALSE;
+					else if(!strcmp(var,"last_hard_state"))
+						temp_hoststatus->last_hard_state=atoi(val);
 					else if(!strcmp(var,"plugin_output"))
 						temp_hoststatus->plugin_output=strdup(val);
 					else if(!strcmp(var,"performance_data"))
@@ -636,7 +639,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"current_state"))
 						temp_servicestatus->status=atoi(val);
 					else if(!strcmp(var,"last_hard_state"))
-						temp_servicestatus->last_hard_state=strtoul(val,NULL,10);
+						temp_servicestatus->last_hard_state=atoi(val);
 					else if(!strcmp(var,"current_attempt"))
 						temp_servicestatus->current_attempt=atoi(val);
 					else if(!strcmp(var,"max_attempts"))

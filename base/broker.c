@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -382,7 +382,7 @@ int shutdown_event_broker_worker_thread(void){
 
 
 /* clean up resources used by event broker worker thread */
-void * cleanup_event_broker_worker_thread(void *arg){
+void cleanup_event_broker_worker_thread(void *arg){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeb tb;
 	int x;
@@ -426,7 +426,7 @@ void * cleanup_event_broker_worker_thread(void *arg){
 		close(event_broker_fd);
 	        }
 
-	return NULL;
+	return;
         }
 
 

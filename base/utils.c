@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -626,9 +626,9 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTSTATE]);
 	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
 	if(macro_x[MACRO_HOSTSTATE]!=NULL){
-		if(hst->status==HOST_DOWN)
+		if(hst->current_state==HOST_DOWN)
 			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
-		else if(hst->status==HOST_UNREACHABLE)
+		else if(hst->current_state==HOST_UNREACHABLE)
 			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
 		else
 			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
@@ -2662,7 +2662,7 @@ int shutdown_service_result_worker_thread(void){
 
 
 /* clean up resources used by service result worker thread */
-void * cleanup_service_result_worker_thread(void *arg){
+void cleanup_service_result_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
@@ -2672,7 +2672,7 @@ void * cleanup_service_result_worker_thread(void *arg){
 	        }
 	free(service_result_buffer.buffer);
 
-	return NULL;
+	return;
         }
 
 
@@ -2728,7 +2728,7 @@ int shutdown_command_file_worker_thread(void){
 
 
 /* clean up resources used by command file worker thread */
-void * cleanup_command_file_worker_thread(void *arg){
+void cleanup_command_file_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
@@ -2738,7 +2738,7 @@ void * cleanup_command_file_worker_thread(void *arg){
 	        }
 	free(external_command_buffer.buffer);
 
-	return NULL;
+	return;
         }
 
 

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -33,6 +33,7 @@
 
 extern int             enable_event_handlers;
 extern int             obsess_over_services;
+extern int             obsess_over_hosts;
 
 extern int             log_event_handlers;
 extern int             log_host_retries;
@@ -54,7 +55,7 @@ extern time_t          program_start;
 
 
 /******************************************************************/
-/************ OBSESSIVE COMPULSIVE  HANDLER FUNCTIONS *************/
+/************* OBSESSIVE COMPULSIVE HANDLER FUNCTIONS *************/
 /******************************************************************/
 
 
@@ -134,6 +135,83 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 	
 #ifdef DEBUG0
 	printf("obsessive_compulsive_service_check_processor() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* handles host check results in an obsessive compulsive manner... */
+int obsessive_compulsive_host_check_processor(host *hst,int state){
+	char raw_command_line[MAX_INPUT_BUFFER];
+	char processed_command_line[MAX_INPUT_BUFFER];
+	char temp_buffer[MAX_INPUT_BUFFER];
+	command *temp_command;
+	int early_timeout=FALSE;
+	double exectime;
+
+#ifdef DEBUG0
+	printf("obsessive_compulsive_host_check_processor() start\n");
+#endif
+
+	/* bail out if we shouldn't be obsessing */
+	if(obsess_over_hosts==FALSE)
+		return OK;
+	if(hst->obsess_over_host==FALSE)
+		return OK;
+
+	/* update macros */
+	clear_volatile_macros();
+	grab_host_macros(hst);
+
+	/* make sure the host state macro is correct */
+	if(macro_x[MACRO_HOSTSTATE]!=NULL)
+		free(macro_x[MACRO_HOSTSTATE]);
+	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
+	if(macro_x[MACRO_HOSTSTATE]!=NULL){
+		if(state==HOST_DOWN)
+			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
+		else if(state==HOST_UNREACHABLE)
+			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
+		else
+			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
+	        }
+
+	/* find the host processor command */
+	temp_command=find_command(ochp_command,NULL);
+
+	/* if there is no valid command, exit */
+	if(temp_command==NULL)
+		return ERROR;
+
+	/* get the raw command line to execute */
+	strncpy(raw_command_line,temp_command->command_line,sizeof(raw_command_line));
+	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+
+#ifdef DEBUG3
+	printf("\tRaw obsessive compulsive host processor command line: %s\n",raw_command_line);
+#endif
+
+	/* process any macros in the raw command line */
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+
+#ifdef DEBUG3
+	printf("\tProcessed obsessive compulsive host processor command line: %s\n",processed_command_line);
+#endif
+
+	/* run the command */
+	my_system(processed_command_line,ochp_timeout,&early_timeout,&exectime,NULL,0);
+
+	/* check to see if the command timed out */
+	if(early_timeout==TRUE){
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",ocsp_command,hst->name,ochp_timeout);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+	        }
+	
+#ifdef DEBUG0
+	printf("obsessive_compulsive_host_check_processor() end\n");
 #endif
 
 	return OK;
@@ -525,7 +603,7 @@ int run_host_event_handler(host *hst,int state){
 /******************************************************************/
 
 
-/* top level host state handler */
+/* top level host state handler - occurs after every host check (soft/hard and active/passive) */
 int handle_host_state(host *hst,int state){
 	int state_change=FALSE;
 
@@ -533,9 +611,11 @@ int handle_host_state(host *hst,int state){
 	printf("handle_host_state() start\n");
 #endif
 
+	/* obsess over this host check */
+	obsessive_compulsive_host_check_processor(hst,state);
 
 	/* has the host state changed? */
-	if(hst->status!=state)
+	if(hst->current_state!=state)
 		state_change=TRUE;
 
 	/* if the host state has changed... */
@@ -584,7 +664,7 @@ int handle_host_state(host *hst,int state){
 
 		/* set the host state flag and update the status log if this is a hard state */
 		if(hst->state_type==HARD_STATE){
-			hst->status=state;
+			hst->current_state=state;
 			update_host_status(hst,FALSE);
 		        }
 	        }

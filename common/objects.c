@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -851,7 +851,9 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	new_host->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
 
 #ifdef NSCORE
-	new_host->status=HOST_UP;
+	new_host->current_state=HOST_UP;
+	new_host->last_state=HOST_UP;
+	new_host->last_hard_state=HOST_UP;
 	new_host->check_type=HOST_CHECK_ACTIVE;
 	new_host->last_host_notification=(time_t)0;
 	new_host->next_host_notification=(time_t)0;

@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -194,7 +194,9 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tcheck_execution_time=%.2f\n",temp_host->execution_time);
-		fprintf(fp,"\tcurrent_state=%d\n",temp_host->status);
+		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
+		fprintf(fp,"\tlast_state=%d\n",temp_host->last_state);
+		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
 		fprintf(fp,"\thas_been_down=%d\n",temp_host->has_been_down);
 		fprintf(fp,"\thas_been_unreachable=%d\n",temp_host->has_been_unreachable);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
@@ -235,10 +237,11 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tcheck_execution_time=%.2f\n",temp_service->execution_time);
 		fprintf(fp,"\tcheck_latency=%lu\n",temp_service->latency);
 		fprintf(fp,"\tcurrent_state=%d\n",temp_service->current_state);
+		fprintf(fp,"\tlast_state=%d\n",temp_service->last_state);
+		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
 		fprintf(fp,"\thas_been_unknown=%d\n",temp_service->has_been_unknown);
 		fprintf(fp,"\thas_been_warning=%d\n",temp_service->has_been_warning);
 		fprintf(fp,"\thas_been_critical=%d\n",temp_service->has_been_critical);
-		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
@@ -436,7 +439,11 @@ int xrddefault_read_state_information(char *main_config_file){
 					else if(!strcmp(var,"check_execution_time"))
 						temp_host->execution_time=strtod(val,NULL);
 					else if(!strcmp(var,"current_state"))
-						temp_host->status=(atoi(val)>0)?TRUE:FALSE;
+						temp_host->current_state=atoi(val);
+					else if(!strcmp(var,"last_state"))
+						temp_host->last_state=atoi(val);
+					else if(!strcmp(var,"last_hard_state"))
+						temp_host->last_hard_state=atoi(val);
 					else if(!strcmp(var,"has_been_down"))
 						temp_host->has_been_down=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"has_been_unreachable"))
@@ -506,14 +513,16 @@ int xrddefault_read_state_information(char *main_config_file){
 						temp_service->latency=strtoul(val,NULL,10);
 					else if(!strcmp(var,"current_state"))
 						temp_service->current_state=atoi(val);
+					else if(!strcmp(var,"last_state"))
+						temp_service->last_state=atoi(val);
+					else if(!strcmp(var,"last_hard_state"))
+						temp_service->last_hard_state=atoi(val);
 					else if(!strcmp(var,"has_been_unknown"))
 						temp_service->has_been_unknown=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"has_been_warning"))
 						temp_service->has_been_warning=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"has_been_critical"))
 						temp_service->has_been_critical=(atoi(val)>0)?TRUE:FALSE;
-					else if(!strcmp(var,"last_hard_state"))
-						temp_service->last_hard_state=strtoul(val,NULL,10);
 					else if(!strcmp(var,"current_attempt"))
 						temp_service->current_attempt=atoi(val);
 					else if(!strcmp(var,"state_type"))

@@ -2,8 +2,8 @@
  *
  * BROKER.H - Event broker includes for Nagios
  *
- * Copyright (c) 2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-15-2002
+ * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-16-2003
  *
  * License:
  *

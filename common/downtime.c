@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   02-17-2003
  *
  * License:
  *
@@ -349,7 +349,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		if(temp_downtime->start_flex_downtime==FALSE){
 
 			/* host is up or service is ok, so we don't really do anything right now */
-			if((temp_downtime->type==HOST_DOWNTIME && hst->status==HOST_UP) || (temp_downtime->type==SERVICE_DOWNTIME && svc->current_state==STATE_OK)){
+			if((temp_downtime->type==HOST_DOWNTIME && hst->current_state==HOST_UP) || (temp_downtime->type==SERVICE_DOWNTIME && svc->current_state==STATE_OK)){
 
 				/* increment pending flex downtime counter */
 				if(temp_downtime->type==HOST_DOWNTIME)

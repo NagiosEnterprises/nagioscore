@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-11-2003
+ * Last Modified: 07-01-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -572,6 +572,8 @@ int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile"
 /**** External Command Functions ****/
 void check_for_external_commands(void);			/* checks for any external commands */
 void process_external_command(int,time_t,char *);	/* process an external command */
+int process_host_command(int,time_t,char *);            /* process an external host command */
+int process_service_command(int,time_t,char *);         /* process an external service command */
 
 
 /**** External Command Implementations ****/
@@ -582,36 +584,15 @@ int cmd_delay_notification(int,char *);			/* delay a service or host notificatio
 int cmd_schedule_service_check(int,char *,int);		/* schedule an immediate or delayed service check */
 int cmd_schedule_host_check(int,char *,int);		/* schedule an immediate or delayed host check */
 int cmd_schedule_host_service_checks(int,char *,int);	/* schedule an immediate or delayed check of all services on a host */
-int cmd_enable_disable_service_check(int,char *);		/* enable/disable a service check */
-int cmd_enable_disable_host_service_checks(int,char *);		/* enable/disable all service checks associated with a host */
 int cmd_signal_process(int,char *);				/* schedules a program shutdown or restart */
-int cmd_enable_disable_notifications(int,char *);		/* enables/disables notifications */
-int cmd_enable_disable_service_notifications(int,char *);	/* enables/disables notifications for a service */
-int cmd_enable_disable_host_notifications(int,char *);		/* enables/disables notifications for a host */
-int cmd_enable_disable_and_propagate_notifications(int,char *);	/* enables/disables notifications for all hosts and services beyond a given host */
 int cmd_process_service_check_result(int,time_t,char *);	/* processes a passive service check */
 int cmd_process_host_check_result(int,time_t,char *);		/* processes a passive host check */
-int cmd_enable_disable_host_service_notifications(int,char *);	/* enables/disables notifications for all services on a host */
 int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service problem */
 int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
-int cmd_start_stop_executing_service_checks(int);		/* starts or stops executing service checks */
-int cmd_start_stop_accepting_passive_service_checks(int);	/* starts or stops accepting passive service check results */
-int cmd_enable_disable_passive_service_checks(int,char *);	/* enables/disables passive checks for a particular service */
-int cmd_enable_disable_service_event_handler(int,char *);	/* enables/disables the event handler for a particular service */
-int cmd_enable_disable_host_event_handler(int,char *);		/* enables/disables the event handler for a particular host */
-int cmd_enable_disable_host_check(int,char *);			/* enables/disables checks of a particular host */
-int cmd_start_stop_obsessing_over_service_checks(int);		/* start/stop obsessing about service check results */
 int cmd_schedule_downtime(int,time_t,char *);                   /* schedules host or service downtime */
-int cmd_enable_disable_host_flap_detection(int, char *);	/* enables/disables flap detection for a particular host */
-int cmd_enable_disable_service_flap_detection(int,char *);	/* enables/disables flap detection for a particular service */
 int cmd_delete_downtime(int,char *);				/* cancels active/pending host or service scheduled downtime */
 int cmd_schedule_host_service_downtime(int,time_t,char *);      /* schedules downtimes for all services on a particular host */
-int cmd_start_stop_executing_host_checks(int);			/* enables/disables active host checks */
-int cmd_start_stop_accepting_passive_host_checks(int);		/* enables/disables passive host checks */
-int cmd_enable_disable_passive_host_checks(int,char *);		/* enables/disables passive checks for a particular host */
-int cmd_start_stop_obsessing_over_host_checks(int);		/* start/stop obsessing about host check results */
-int cmd_start_stop_obsessing_over_service(int,char *);		/* start/stop obsessing about specific service check results */
-int cmd_start_stop_obsessing_over_host(int,char *);		/* start/stop obsessing about specific host check results */
+
 
 /**** Internal Command Implementations ****/
 void disable_service_check(service *);			/* disables a service check */

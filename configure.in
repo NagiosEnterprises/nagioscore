@@ -525,28 +525,31 @@ char $2();
 dnl Should we try and detect the GD libs?
 if test x$TRYGD = xyep; then
 
+	dnl libiconv is required on some systems - tack it on if found
+	AC_CHECK_LIB(iconv,main,ICONV=-liconv,)
+
 	dnl See if the GD lib is available and supports PNG images...
 
 	dnl GD > 1.8.1 requires the jpeg library to be present as well, so test for that first...
 	JMD_CHECK_LIB_ORDER(gd,gdImagePng,1,[
 			GDLIBFOUND=yep
-			GDLIBS="-lgd -lz -lm -lpng -ljpeg"
-	        	],:,[-lz -lm -lpng -ljpeg])
+			GDLIBS="-lgd $ICONV -lz -lm -lpng -ljpeg"
+	        	],:,[$ICONV -lz -lm -lpng -ljpeg])
 
 	dnl If we failed the first test, try without jpeg library
 	if test x$GDLIBFOUND = x; then
 		JMD_CHECK_LIB_ORDER(gd,gdImagePng,2,[
 			GDLIBFOUND=yep
-			GDLIBS="-lgd -lz -lm -lpng"
-		        ],:,[-lz -lm -lpng])
+			GDLIBS="-lgd $ICONV -lz -lm -lpng"
+		        ],:,[$ICONV -lz -lm -lpng])
 	fi
 
 	dnl We failed again, so try a different library ordering (without jpeg libs)
 	if test x$GDLIBFOUND = x; then
 		JMD_CHECK_LIB_ORDER(gd,gdImagePng,3,[
 			GDLIBFOUND=yep
-			GDLIBS="-lgd -lpng -lz -lm"
-	        	],:,[-lpng -lz -lm])
+			GDLIBS="-lgd $ICONV -lpng -lz -lm"
+	        	],:,[$ICONV -lpng -lz -lm])
 	fi
 
 	dnl Did we find the necessary GD libraries?

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   07-01-2003
  *
  * License:
  *
@@ -159,35 +159,13 @@ void check_for_external_commands(void){
 			args[sizeof(args)-1]='\x0';
 		        }
 
-		/* decide what type of command this is */
-		if(!strcmp(command_id,"ADD_HOST_COMMENT"))
-			command_type=CMD_ADD_HOST_COMMENT;
-		else if(!strcmp(command_id,"ADD_SVC_COMMENT"))
-			command_type=CMD_ADD_SVC_COMMENT;
+		/* decide what type of command this is... */
 
-		else if(!strcmp(command_id,"DEL_HOST_COMMENT"))
-			command_type=CMD_DEL_HOST_COMMENT;
-		else if(!strcmp(command_id,"DEL_SVC_COMMENT"))
-			command_type=CMD_DEL_SVC_COMMENT;
+		/**************************/
+		/**** PROCESS COMMANDS ****/
+		/**************************/
 
-		else if(!strcmp(command_id,"DELAY_HOST_NOTIFICATION"))
-			command_type=CMD_DELAY_HOST_NOTIFICATION;
-		else if(!strcmp(command_id,"DELAY_SVC_NOTIFICATION"))
-			command_type=CMD_DELAY_SVC_NOTIFICATION;
-
-		/* this is used for immediate and delayed service checks... */
-		else if(!strcmp(command_id,"SCHEDULE_SVC_CHECK"))
-			command_type=CMD_DELAY_SVC_CHECK;
-		else if(!strcmp(command_id,"SCHEDULE_FORCED_SVC_CHECK"))
-			command_type=CMD_FORCE_DELAY_SVC_CHECK;
-
-		else if(!strcmp(command_id,"ENABLE_SVC_CHECK"))
-			command_type=CMD_ENABLE_SVC_CHECK;
-		else if(!strcmp(command_id,"DISABLE_SVC_CHECK"))
-			command_type=CMD_DISABLE_SVC_CHECK;
-
-		/* enable/disable notifications */
-		else if(!strcmp(command_id,"ENTER_STANDBY_MODE") || !strcmp(command_id,"DISABLE_NOTIFICATIONS"))
+		if(!strcmp(command_id,"ENTER_STANDBY_MODE") || !strcmp(command_id,"DISABLE_NOTIFICATIONS"))
 			command_type=CMD_DISABLE_NOTIFICATIONS;
 		else if(!strcmp(command_id,"ENTER_ACTIVE_MODE") || !strcmp(command_id,"ENABLE_NOTIFICATIONS"))
 			command_type=CMD_ENABLE_NOTIFICATIONS;
@@ -197,26 +175,78 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"RESTART_PROGRAM"))
 			command_type=CMD_RESTART_PROCESS;
 
-		else if(!strcmp(command_id,"ENABLE_HOST_SVC_CHECKS"))
-			command_type=CMD_ENABLE_HOST_SVC_CHECKS;
-		else if(!strcmp(command_id,"DISABLE_HOST_SVC_CHECKS"))
-			command_type=CMD_DISABLE_HOST_SVC_CHECKS;
+		else if(!strcmp(command_id,"SAVE_STATE_INFORMATION"))
+			command_type=CMD_SAVE_STATE_INFORMATION;
+		else if(!strcmp(command_id,"READ_STATE_INFORMATION"))
+			command_type=CMD_READ_STATE_INFORMATION;
 
-		/* this is used for immediate and delayed service checks... */
-		else if(!strcmp(command_id,"SCHEDULE_HOST_SVC_CHECKS"))
-			command_type=CMD_DELAY_HOST_SVC_CHECKS;
-		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_SVC_CHECKS"))
-			command_type=CMD_FORCE_DELAY_HOST_SVC_CHECKS;
+		else if(!strcmp(command_id,"ENABLE_EVENT_HANDLERS"))
+			command_type=CMD_ENABLE_EVENT_HANDLERS;
+		else if(!strcmp(command_id,"DISABLE_EVENT_HANDLERS"))
+			command_type=CMD_DISABLE_EVENT_HANDLERS;
 
+		else if(!strcmp(command_id,"FLUSH_PENDING_COMMANDS"))
+			command_type=CMD_FLUSH_PENDING_COMMANDS;
+
+		else if(!strcmp(command_id,"ENABLE_FAILURE_PREDICTION"))
+			command_type=CMD_ENABLE_FAILURE_PREDICTION;
+		else if(!strcmp(command_id,"DISABLE_FAILURE_PREDICTION"))
+			command_type=CMD_DISABLE_FAILURE_PREDICTION;
+
+		else if(!strcmp(command_id,"ENABLE_PERFORMANCE_DATA"))
+			command_type=CMD_ENABLE_PERFORMANCE_DATA;
+		else if(!strcmp(command_id,"DISABLE_PERFORMANCE_DATA"))
+			command_type=CMD_DISABLE_PERFORMANCE_DATA;
+
+		else if(!strcmp(command_id,"START_EXECUTING_HOST_CHECKS"))
+			command_type=CMD_START_EXECUTING_HOST_CHECKS;
+		else if(!strcmp(command_id,"STOP_EXECUTING_HOST_CHECKS"))
+			command_type=CMD_STOP_EXECUTING_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"START_EXECUTING_SVC_CHECKS"))
+			command_type=CMD_START_EXECUTING_SVC_CHECKS;
+		else if(!strcmp(command_id,"STOP_EXECUTING_SVC_CHECKS"))
+			command_type=CMD_STOP_EXECUTING_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"START_ACCEPTING_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS;
+		else if(!strcmp(command_id,"STOP_ACCEPTING_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"START_ACCEPTING_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS;
+		else if(!strcmp(command_id,"STOP_ACCEPTING_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"START_OBSESSING_OVER_HOST_CHECKS"))
+			command_type=CMD_START_OBSESSING_OVER_HOST_CHECKS;
+		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST_CHECKS"))
+			command_type=CMD_STOP_OBSESSING_OVER_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"START_OBSESSING_OVER_SVC_CHECKS"))
+			command_type=CMD_START_OBSESSING_OVER_SVC_CHECKS;
+		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_SVC_CHECKS"))
+			command_type=CMD_STOP_OBSESSING_OVER_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_FLAP_DETECTION"))
+			command_type=CMD_ENABLE_FLAP_DETECTION;
+		else if(!strcmp(command_id,"DISABLE_FLAP_DETECTION"))
+			command_type=CMD_DISABLE_FLAP_DETECTION;
+
+
+		/*******************************/
+		/**** HOST-RELATED COMMANDS ****/
+		/*******************************/
+
+		else if(!strcmp(command_id,"ADD_HOST_COMMENT"))
+			command_type=CMD_ADD_HOST_COMMENT;
+		else if(!strcmp(command_id,"DEL_HOST_COMMENT"))
+			command_type=CMD_DEL_HOST_COMMENT;
 		else if(!strcmp(command_id,"DEL_ALL_HOST_COMMENTS"))
 			command_type=CMD_DEL_ALL_HOST_COMMENTS;
-		else if(!strcmp(command_id,"DEL_ALL_SVC_COMMENTS"))
-			command_type=CMD_DEL_ALL_SVC_COMMENTS;
 
-		else if(!strcmp(command_id,"ENABLE_SVC_NOTIFICATIONS"))
-			command_type=CMD_ENABLE_SVC_NOTIFICATIONS;
-		else if(!strcmp(command_id,"DISABLE_SVC_NOTIFICATIONS"))
-			command_type=CMD_DISABLE_SVC_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DELAY_HOST_NOTIFICATION"))
+			command_type=CMD_DELAY_HOST_NOTIFICATION;
 
 		else if(!strcmp(command_id,"ENABLE_HOST_NOTIFICATIONS"))
 			command_type=CMD_ENABLE_HOST_NOTIFICATIONS;
@@ -233,46 +263,26 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"DISABLE_HOST_SVC_NOTIFICATIONS"))
 			command_type=CMD_DISABLE_HOST_SVC_NOTIFICATIONS;
 
-		else if(!strcmp(command_id,"PROCESS_SERVICE_CHECK_RESULT"))
-			command_type=CMD_PROCESS_SERVICE_CHECK_RESULT;
-		else if(!strcmp(command_id,"PROCESS_HOST_CHECK_RESULT"))
-			command_type=CMD_PROCESS_HOST_CHECK_RESULT;
+		else if(!strcmp(command_id,"ENABLE_HOST_SVC_CHECKS"))
+			command_type=CMD_ENABLE_HOST_SVC_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_HOST_SVC_CHECKS"))
+			command_type=CMD_DISABLE_HOST_SVC_CHECKS;
 
-		else if(!strcmp(command_id,"SAVE_STATE_INFORMATION"))
-			command_type=CMD_SAVE_STATE_INFORMATION;
-		else if(!strcmp(command_id,"READ_STATE_INFORMATION"))
-			command_type=CMD_READ_STATE_INFORMATION;
+		else if(!strcmp(command_id,"ENABLE_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_ENABLE_PASSIVE_HOST_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_DISABLE_PASSIVE_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"SCHEDULE_HOST_SVC_CHECKS"))
+			command_type=CMD_DELAY_HOST_SVC_CHECKS;
+		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_SVC_CHECKS"))
+			command_type=CMD_FORCE_DELAY_HOST_SVC_CHECKS;
 
 		else if(!strcmp(command_id,"ACKNOWLEDGE_HOST_PROBLEM"))
 			command_type=CMD_ACKNOWLEDGE_HOST_PROBLEM;
-		else if(!strcmp(command_id,"ACKNOWLEDGE_SVC_PROBLEM"))
-			command_type=CMD_ACKNOWLEDGE_SVC_PROBLEM;
+		else if(!strcmp(command_id,"REMOVE_HOST_ACKNOWLEDGEMENT"))
+			command_type=CMD_REMOVE_HOST_ACKNOWLEDGEMENT;
 
-		else if(!strcmp(command_id,"START_EXECUTING_SVC_CHECKS"))
-			command_type=CMD_START_EXECUTING_SVC_CHECKS;
-		else if(!strcmp(command_id,"STOP_EXECUTING_SVC_CHECKS"))
-			command_type=CMD_STOP_EXECUTING_SVC_CHECKS;
-
-		else if(!strcmp(command_id,"START_ACCEPTING_PASSIVE_SVC_CHECKS"))
-			command_type=CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS;
-		else if(!strcmp(command_id,"STOP_ACCEPTING_PASSIVE_SVC_CHECKS"))
-			command_type=CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS;
-
-		else if(!strcmp(command_id,"ENABLE_PASSIVE_SVC_CHECKS"))
-			command_type=CMD_ENABLE_PASSIVE_SVC_CHECKS;
-		else if(!strcmp(command_id,"DISABLE_PASSIVE_SVC_CHECKS"))
-			command_type=CMD_DISABLE_PASSIVE_SVC_CHECKS;
-
-		else if(!strcmp(command_id,"ENABLE_EVENT_HANDLERS"))
-			command_type=CMD_ENABLE_EVENT_HANDLERS;
-		else if(!strcmp(command_id,"DISABLE_EVENT_HANDLERS"))
-			command_type=CMD_DISABLE_EVENT_HANDLERS;
-
-		else if(!strcmp(command_id,"ENABLE_SVC_EVENT_HANDLER"))
-			command_type=CMD_ENABLE_SVC_EVENT_HANDLER;
-		else if(!strcmp(command_id,"DISABLE_SVC_EVENT_HANDLER"))
-			command_type=CMD_DISABLE_SVC_EVENT_HANDLER;
-		
 		else if(!strcmp(command_id,"ENABLE_HOST_EVENT_HANDLER"))
 			command_type=CMD_ENABLE_HOST_EVENT_HANDLER;
 		else if(!strcmp(command_id,"DISABLE_HOST_EVENT_HANDLER"))
@@ -283,93 +293,94 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"DISABLE_HOST_CHECK"))
 			command_type=CMD_DISABLE_HOST_CHECK;
 
-		else if(!strcmp(command_id,"START_OBSESSING_OVER_SVC_CHECKS"))
-			command_type=CMD_START_OBSESSING_OVER_SVC_CHECKS;
-		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_SVC_CHECKS"))
-			command_type=CMD_STOP_OBSESSING_OVER_SVC_CHECKS;
-
-		else if(!strcmp(command_id,"REMOVE_HOST_ACKNOWLEDGEMENT"))
-			command_type=CMD_REMOVE_HOST_ACKNOWLEDGEMENT;
-		else if(!strcmp(command_id,"REMOVE_SVC_ACKNOWLEDGEMENT"))
-			command_type=CMD_REMOVE_SVC_ACKNOWLEDGEMENT;
+		else if(!strcmp(command_id,"SCHEDULE_HOST_CHECK"))
+			command_type=CMD_DELAY_HOST_CHECK;
+		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_CHECK"))
+			command_type=CMD_FORCE_DELAY_HOST_CHECK;
 
 		else if(!strcmp(command_id,"SCHEDULE_HOST_DOWNTIME"))
 			command_type=CMD_SCHEDULE_HOST_DOWNTIME;
-		else if(!strcmp(command_id,"SCHEDULE_SVC_DOWNTIME"))
-			command_type=CMD_SCHEDULE_SVC_DOWNTIME;
-
-		else if(!strcmp(command_id,"ENABLE_FLAP_DETECTION"))
-			command_type=CMD_ENABLE_FLAP_DETECTION;
-		else if(!strcmp(command_id,"DISABLE_FLAP_DETECTION"))
-			command_type=CMD_DISABLE_FLAP_DETECTION;
+		else if(!strcmp(command_id,"SCHEDULE_HOST_SVC_DOWNTIME"))
+			command_type=CMD_SCHEDULE_HOST_SVC_DOWNTIME;
+		else if(!strcmp(command_id,"DEL_HOST_DOWNTIME"))
+			command_type=CMD_DEL_HOST_DOWNTIME;
 
 		else if(!strcmp(command_id,"ENABLE_HOST_FLAP_DETECTION"))
 			command_type=CMD_ENABLE_HOST_FLAP_DETECTION;
 		else if(!strcmp(command_id,"DISABLE_HOST_FLAP_DETECTION"))
 			command_type=CMD_DISABLE_HOST_FLAP_DETECTION;
 
+		else if(!strcmp(command_id,"START_OBSESSING_OVER_HOST"))
+			command_type=CMD_START_OBSESSING_OVER_HOST;
+		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST"))
+			command_type=CMD_STOP_OBSESSING_OVER_HOST;
+
+
+		/**********************************/
+		/**** SERVICE-RELATED COMMANDS ****/
+		/**********************************/
+
+		else if(!strcmp(command_id,"ADD_SVC_COMMENT"))
+			command_type=CMD_ADD_SVC_COMMENT;
+		else if(!strcmp(command_id,"DEL_SVC_COMMENT"))
+			command_type=CMD_DEL_SVC_COMMENT;
+		else if(!strcmp(command_id,"DEL_ALL_SVC_COMMENTS"))
+			command_type=CMD_DEL_ALL_SVC_COMMENTS;
+
+		else if(!strcmp(command_id,"SCHEDULE_SVC_CHECK"))
+			command_type=CMD_DELAY_SVC_CHECK;
+		else if(!strcmp(command_id,"SCHEDULE_FORCED_SVC_CHECK"))
+			command_type=CMD_FORCE_DELAY_SVC_CHECK;
+
+		else if(!strcmp(command_id,"ENABLE_SVC_CHECK"))
+			command_type=CMD_ENABLE_SVC_CHECK;
+		else if(!strcmp(command_id,"DISABLE_SVC_CHECK"))
+			command_type=CMD_DISABLE_SVC_CHECK;
+
+		else if(!strcmp(command_id,"ENABLE_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_ENABLE_PASSIVE_SVC_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_DISABLE_PASSIVE_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"DELAY_SVC_NOTIFICATION"))
+			command_type=CMD_DELAY_SVC_NOTIFICATION;
+		else if(!strcmp(command_id,"ENABLE_SVC_NOTIFICATIONS"))
+			command_type=CMD_ENABLE_SVC_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DISABLE_SVC_NOTIFICATIONS"))
+			command_type=CMD_DISABLE_SVC_NOTIFICATIONS;
+
+		else if(!strcmp(command_id,"PROCESS_SERVICE_CHECK_RESULT"))
+			command_type=CMD_PROCESS_SERVICE_CHECK_RESULT;
+		else if(!strcmp(command_id,"PROCESS_HOST_CHECK_RESULT"))
+			command_type=CMD_PROCESS_HOST_CHECK_RESULT;
+
+		else if(!strcmp(command_id,"ENABLE_SVC_EVENT_HANDLER"))
+			command_type=CMD_ENABLE_SVC_EVENT_HANDLER;
+		else if(!strcmp(command_id,"DISABLE_SVC_EVENT_HANDLER"))
+			command_type=CMD_DISABLE_SVC_EVENT_HANDLER;
+
 		else if(!strcmp(command_id,"ENABLE_SVC_FLAP_DETECTION"))
 			command_type=CMD_ENABLE_SVC_FLAP_DETECTION;
 		else if(!strcmp(command_id,"DISABLE_SVC_FLAP_DETECTION"))
 			command_type=CMD_DISABLE_SVC_FLAP_DETECTION;
 
-		else if(!strcmp(command_id,"DEL_HOST_DOWNTIME"))
-			command_type=CMD_DEL_HOST_DOWNTIME;
+		else if(!strcmp(command_id,"SCHEDULE_SVC_DOWNTIME"))
+			command_type=CMD_SCHEDULE_SVC_DOWNTIME;
 		else if(!strcmp(command_id,"DEL_SVC_DOWNTIME"))
 			command_type=CMD_DEL_SVC_DOWNTIME;
 
-		else if(!strcmp(command_id,"FLUSH_PENDING_COMMANDS"))
-			command_type=CMD_FLUSH_PENDING_COMMANDS;
-
-		else if(!strcmp(command_id,"ENABLE_FAILURE_PREDICTION"))
-			command_type=CMD_ENABLE_FAILURE_PREDICTION;
-		else if(!strcmp(command_id,"DISABLE_FAILURE_PREDICTION"))
-			command_type=CMD_DISABLE_FAILURE_PREDICTION;
-
-		else if(!strcmp(command_id,"ENABLE_PERFORMANCE_DATA"))
-			command_type=CMD_ENABLE_PERFORMANCE_DATA;
-		else if(!strcmp(command_id,"DISABLE_PERFORMANCE_DATA"))
-			command_type=CMD_DISABLE_PERFORMANCE_DATA;
-
-		else if(!strcmp(command_id,"SCHEDULE_HOST_SVC_DOWNTIME"))
-			command_type=CMD_SCHEDULE_HOST_SVC_DOWNTIME;
-
-		else if(!strcmp(command_id,"START_EXECUTING_HOST_CHECKS"))
-			command_type=CMD_START_EXECUTING_HOST_CHECKS;
-		else if(!strcmp(command_id,"STOP_EXECUTING_HOST_CHECKS"))
-			command_type=CMD_STOP_EXECUTING_HOST_CHECKS;
-
-		else if(!strcmp(command_id,"START_ACCEPTING_PASSIVE_HOST_CHECKS"))
-			command_type=CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS;
-		else if(!strcmp(command_id,"STOP_ACCEPTING_PASSIVE_HOST_CHECKS"))
-			command_type=CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS;
-
-		else if(!strcmp(command_id,"ENABLE_PASSIVE_HOST_CHECKS"))
-			command_type=CMD_ENABLE_PASSIVE_HOST_CHECKS;
-		else if(!strcmp(command_id,"DISABLE_PASSIVE_HOST_CHECKS"))
-			command_type=CMD_DISABLE_PASSIVE_HOST_CHECKS;
-
-		else if(!strcmp(command_id,"START_OBSESSING_OVER_HOST_CHECKS"))
-			command_type=CMD_START_OBSESSING_OVER_HOST_CHECKS;
-		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST_CHECKS"))
-			command_type=CMD_STOP_OBSESSING_OVER_HOST_CHECKS;
-
-		/* this is used for immediate and delayed host checks... */
-		else if(!strcmp(command_id,"SCHEDULE_HOST_CHECK"))
-			command_type=CMD_DELAY_HOST_CHECK;
-		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_CHECK"))
-			command_type=CMD_FORCE_DELAY_HOST_CHECK;
+		else if(!strcmp(command_id,"ACKNOWLEDGE_SVC_PROBLEM"))
+			command_type=CMD_ACKNOWLEDGE_SVC_PROBLEM;
+		else if(!strcmp(command_id,"REMOVE_SVC_ACKNOWLEDGEMENT"))
+			command_type=CMD_REMOVE_SVC_ACKNOWLEDGEMENT;
 
 		else if(!strcmp(command_id,"START_OBSESSING_OVER_SVC"))
 			command_type=CMD_START_OBSESSING_OVER_SVC;
 		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_SVC"))
 			command_type=CMD_STOP_OBSESSING_OVER_SVC;
 
-		else if(!strcmp(command_id,"START_OBSESSING_OVER_HOST"))
-			command_type=CMD_START_OBSESSING_OVER_HOST;
-		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST"))
-			command_type=CMD_STOP_OBSESSING_OVER_HOST;
 
+		/**** UNKNOWN COMMAND ****/
 		else{
 			/* log the bad external command */
 			snprintf(buffer,sizeof(buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
@@ -398,7 +409,7 @@ void check_for_external_commands(void){
 	/* release the lock on the buffer */
 	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
-	/**** PROCESS ALL PASSIVE CHECK RESULTS AT ONE TIME ****/
+	/**** PROCESS ALL PASSIVE SERVICE CHECK RESULTS AT ONE TIME ****/
 	if(passive_check_result_list!=NULL)
 		process_passive_service_checks();
 
@@ -413,7 +424,7 @@ void check_for_external_commands(void){
 
 
 /* top-level processor for a single external command */
-void process_external_command(int cmd,time_t entry_time,char *args){
+void process_external_command(int cmd, time_t entry_time, char *args){
 
 #ifdef DEBUG0
 	printf("process_external_command() start\n");
@@ -427,6 +438,163 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 
 	/* how shall we execute the command? */
 	switch(cmd){
+
+		/***************************/
+		/***** SYSTEM COMMANDS *****/
+		/***************************/
+
+	case CMD_SHUTDOWN_PROCESS:
+	case CMD_RESTART_PROCESS:
+		cmd_signal_process(cmd,args);
+		break;
+
+	case CMD_SAVE_STATE_INFORMATION:
+		save_state_information(config_file,FALSE);
+		break;
+
+	case CMD_READ_STATE_INFORMATION:
+		read_initial_state_information(config_file);
+		break;
+
+	case CMD_ENABLE_NOTIFICATIONS:
+		enable_all_notifications();
+		break;
+
+	case CMD_DISABLE_NOTIFICATIONS:
+		disable_all_notifications();
+		break;
+
+	case CMD_START_EXECUTING_SVC_CHECKS:
+		start_executing_service_checks();
+		break;
+
+	case CMD_STOP_EXECUTING_SVC_CHECKS:
+		stop_executing_service_checks();
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
+		start_accepting_passive_service_checks();
+		break;
+
+	case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
+		stop_accepting_passive_service_checks();
+		break;
+
+	case CMD_START_OBSESSING_OVER_SVC_CHECKS:
+		start_obsessing_over_service_checks();
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
+		stop_obsessing_over_service_checks();
+		break;
+
+	case CMD_START_EXECUTING_HOST_CHECKS:
+		start_executing_host_checks();
+		break;
+
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+		stop_executing_host_checks();
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+		start_accepting_passive_host_checks();
+		break;
+
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+		stop_accepting_passive_host_checks();
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+		start_obsessing_over_host_checks();
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		stop_obsessing_over_host_checks();
+		break;
+
+	case CMD_ENABLE_EVENT_HANDLERS:
+		start_using_event_handlers();
+		break;
+
+	case CMD_DISABLE_EVENT_HANDLERS:
+		stop_using_event_handlers();
+		break;
+
+	case CMD_ENABLE_FLAP_DETECTION:
+		enable_flap_detection_routines();
+		break;
+
+	case CMD_DISABLE_FLAP_DETECTION:
+		disable_flap_detection_routines();
+		break;
+	
+	case CMD_ENABLE_FAILURE_PREDICTION:
+		enable_all_failure_prediction();
+		break;
+		
+	case CMD_DISABLE_FAILURE_PREDICTION:
+		disable_all_failure_prediction();
+		break;
+
+	case CMD_ENABLE_PERFORMANCE_DATA:
+		enable_performance_data();
+		break;
+
+	case CMD_DISABLE_PERFORMANCE_DATA:
+		disable_performance_data();
+		break;
+
+
+		/***************************/
+		/*****  HOST COMMANDS  *****/
+		/***************************/
+
+	case CMD_ENABLE_HOST_CHECK:
+	case CMD_DISABLE_HOST_CHECK:
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+	case CMD_ENABLE_HOST_SVC_CHECKS:
+	case CMD_DISABLE_HOST_SVC_CHECKS:
+	case CMD_ENABLE_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_HOST_FLAP_DETECTION:
+	case CMD_DISABLE_HOST_FLAP_DETECTION:
+	case CMD_ENABLE_HOST_EVENT_HANDLER:
+	case CMD_DISABLE_HOST_EVENT_HANDLER:
+	case CMD_START_OBSESSING_OVER_HOST:
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		process_host_command(cmd,entry_time,args);
+		break;
+
+
+		/***************************/
+		/***** SERVICE COMMANDS ****/
+		/***************************/
+
+	case CMD_ENABLE_SVC_CHECK:
+	case CMD_DISABLE_SVC_CHECK:
+	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
+	case CMD_ENABLE_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SVC_FLAP_DETECTION:
+	case CMD_DISABLE_SVC_FLAP_DETECTION:
+	case CMD_ENABLE_SVC_EVENT_HANDLER:
+	case CMD_DISABLE_SVC_EVENT_HANDLER:
+	case CMD_START_OBSESSING_OVER_SVC:
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		process_service_command(cmd,entry_time,args);
+		break;
+
+
+		/***************************/
+		/**** UNSORTED COMMANDS ****/
+		/***************************/
+
 
 	case CMD_ADD_HOST_COMMENT:
 	case CMD_ADD_SVC_COMMENT:
@@ -449,26 +617,6 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 		cmd_schedule_service_check(cmd,args,(cmd==CMD_FORCE_DELAY_SVC_CHECK)?TRUE:FALSE);
 		break;
 
-	case CMD_ENABLE_SVC_CHECK:
-	case CMD_DISABLE_SVC_CHECK:
-		cmd_enable_disable_service_check(cmd,args);
-		break;
-
-	case CMD_ENABLE_NOTIFICATIONS:
-	case CMD_DISABLE_NOTIFICATIONS:
-		cmd_enable_disable_notifications(cmd,args);
-		break;
-
-	case CMD_SHUTDOWN_PROCESS:
-	case CMD_RESTART_PROCESS:
-		cmd_signal_process(cmd,args);
-		break;
-
-	case CMD_ENABLE_HOST_SVC_CHECKS:
-	case CMD_DISABLE_HOST_SVC_CHECKS:
-		cmd_enable_disable_host_service_checks(cmd,args);
-		break;
-
 	case CMD_DELAY_HOST_SVC_CHECKS:
 	case CMD_FORCE_DELAY_HOST_SVC_CHECKS:
 	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
@@ -480,26 +628,6 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 		cmd_delete_all_comments(cmd,args);
 		break;
 
-	case CMD_ENABLE_SVC_NOTIFICATIONS:
-	case CMD_DISABLE_SVC_NOTIFICATIONS:
-		cmd_enable_disable_service_notifications(cmd,args);
-		break;
-
-	case CMD_ENABLE_HOST_NOTIFICATIONS:
-	case CMD_DISABLE_HOST_NOTIFICATIONS:
-		cmd_enable_disable_host_notifications(cmd,args);
-		break;
-
-	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
-		cmd_enable_disable_and_propagate_notifications(cmd,args);
-		break;
-
-	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
-	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
-		cmd_enable_disable_host_service_notifications(cmd,args);
-		break;
-
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
 		cmd_process_service_check_result(cmd,entry_time,args);
 		break;
@@ -508,60 +636,9 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 		cmd_process_host_check_result(cmd,entry_time,args);
 		break;
 
-	case CMD_SAVE_STATE_INFORMATION:
-		save_state_information(config_file,FALSE);
-		break;
-
-	case CMD_READ_STATE_INFORMATION:
-		read_initial_state_information(config_file);
-		break;
-
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
 		cmd_acknowledge_problem(cmd,args);
-		break;
-
-	case CMD_START_EXECUTING_SVC_CHECKS:
-	case CMD_STOP_EXECUTING_SVC_CHECKS:
-		cmd_start_stop_executing_service_checks(cmd);
-		break;
-
-	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
-	case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
-		cmd_start_stop_accepting_passive_service_checks(cmd);
-		break;
-
-	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
-	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
-		cmd_enable_disable_passive_service_checks(cmd,args);
-		break;
-
-	case CMD_ENABLE_EVENT_HANDLERS:
-		start_using_event_handlers();
-		break;
-
-	case CMD_DISABLE_EVENT_HANDLERS:
-		stop_using_event_handlers();
-		break;
-
-	case CMD_ENABLE_SVC_EVENT_HANDLER:
-	case CMD_DISABLE_SVC_EVENT_HANDLER:
-		cmd_enable_disable_service_event_handler(cmd,args);
-		break;
-
-	case CMD_ENABLE_HOST_EVENT_HANDLER:
-	case CMD_DISABLE_HOST_EVENT_HANDLER:
-		cmd_enable_disable_host_event_handler(cmd,args);
-		break;
-
-	case CMD_ENABLE_HOST_CHECK:
-	case CMD_DISABLE_HOST_CHECK:
-		cmd_enable_disable_host_check(cmd,args);
-		break;
-
-	case CMD_START_OBSESSING_OVER_SVC_CHECKS:
-	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
-		cmd_start_stop_obsessing_over_service_checks(cmd);
 		break;
 
 	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
@@ -574,24 +651,6 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 		cmd_schedule_downtime(cmd,entry_time,args);
 		break;
 
-	case CMD_ENABLE_FLAP_DETECTION:
-		enable_flap_detection_routines();
-		break;
-
-	case CMD_DISABLE_FLAP_DETECTION:
-		disable_flap_detection_routines();
-		break;
-	
-	case CMD_ENABLE_HOST_FLAP_DETECTION:
-	case CMD_DISABLE_HOST_FLAP_DETECTION:
-		cmd_enable_disable_host_flap_detection(cmd,args);
-		break;
-
-	case CMD_ENABLE_SVC_FLAP_DETECTION:
-	case CMD_DISABLE_SVC_FLAP_DETECTION:
-		cmd_enable_disable_service_flap_detection(cmd,args);
-		break;
-
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
 		cmd_delete_downtime(cmd,args);
@@ -601,60 +660,14 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 	case CMD_CANCEL_PENDING_HOST_SVC_DOWNTIME:
 		break;
 
-	case CMD_ENABLE_FAILURE_PREDICTION:
-		enable_all_failure_prediction();
-		break;
-		
-	case CMD_DISABLE_FAILURE_PREDICTION:
-		disable_all_failure_prediction();
-		break;
-
-	case CMD_ENABLE_PERFORMANCE_DATA:
-		enable_performance_data();
-		break;
-
-	case CMD_DISABLE_PERFORMANCE_DATA:
-		disable_performance_data();
-		break;
-
 	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
 		cmd_schedule_host_service_downtime(cmd,entry_time,args);
-		break;
-
-	case CMD_START_EXECUTING_HOST_CHECKS:
-	case CMD_STOP_EXECUTING_HOST_CHECKS:
-		cmd_start_stop_executing_host_checks(cmd);
-		break;
-
-	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
-	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
-		cmd_start_stop_accepting_passive_host_checks(cmd);
-		break;
-
-	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
-	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
-		cmd_enable_disable_passive_host_checks(cmd,args);
-		break;
-
-	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
-	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
-		cmd_start_stop_obsessing_over_host_checks(cmd);
 		break;
 
 	case CMD_DELAY_HOST_CHECK:
 	case CMD_FORCE_DELAY_HOST_CHECK:
 	case CMD_IMMEDIATE_HOST_CHECK:
 		cmd_schedule_host_check(cmd,args,(cmd==CMD_FORCE_DELAY_HOST_CHECK)?TRUE:FALSE);
-		break;
-
-	case CMD_START_OBSESSING_OVER_SVC:
-	case CMD_STOP_OBSESSING_OVER_SVC:
-		cmd_start_stop_obsessing_over_service(cmd,args);
-		break;
-
-	case CMD_START_OBSESSING_OVER_HOST:
-	case CMD_STOP_OBSESSING_OVER_HOST:
-		cmd_start_stop_obsessing_over_host(cmd,args);
 		break;
 
 	default:
@@ -667,6 +680,191 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 
 	return;
         }
+
+
+/* processes an external host command */
+int process_host_command(int cmd, time_t entry_time, char *args){
+	char *host_name;
+	host *temp_host;
+	service *temp_service;
+
+	/* get the host name */
+	host_name=my_strtok(args,";");
+	if(host_name==NULL)
+		return ERROR;
+
+	/* find the host */
+	temp_host=find_host(host_name);
+	if(temp_host==NULL)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_ENABLE_HOST_NOTIFICATIONS:
+		enable_host_notifications(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_NOTIFICATIONS:
+		disable_host_notifications(temp_host);
+		break;
+
+	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+		enable_and_propagate_notifications(temp_host);
+
+	case CMD_DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
+		disable_and_propagate_notifications(temp_host);
+
+	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
+		if(find_all_services_by_host(host_name)){
+			while((temp_service=get_next_service_by_host())){
+				if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
+					enable_service_notifications(temp_service);
+				else
+					disable_service_notifications(temp_service);
+		                }
+		        }
+		break;
+
+	case CMD_ENABLE_HOST_SVC_CHECKS:
+	case CMD_DISABLE_HOST_SVC_CHECKS:
+		if(find_all_services_by_host(temp_host->name)){
+			while((temp_service=get_next_service_by_host())){
+				if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
+					enable_service_check(temp_service);
+				else
+					disable_service_check(temp_service);
+		                }
+	                } 
+		break;
+
+	case CMD_ENABLE_HOST_CHECK:
+		enable_host_check(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_CHECK:
+		disable_host_check(temp_host);
+		break;
+
+	case CMD_ENABLE_HOST_EVENT_HANDLER:
+		enable_host_event_handler(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_EVENT_HANDLER:
+		disable_host_event_handler(temp_host);
+		break;
+
+	case CMD_ENABLE_HOST_FLAP_DETECTION:
+		enable_host_flap_detection(temp_host);
+		break;
+
+	case CMD_DISABLE_HOST_FLAP_DETECTION:
+		disable_host_flap_detection(temp_host);
+		break;
+
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+		enable_passive_host_checks(temp_host);
+		break;
+
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+		disable_passive_host_checks(temp_host);
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST:
+		start_obsessing_over_host(temp_host);
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_HOST:
+		stop_obsessing_over_host(temp_host);
+		break;
+
+	default:
+		break;
+	        }
+
+	return OK;
+        }
+
+
+
+/* processes an external service command */
+int process_service_command(int cmd, time_t entry_time, char *args){
+	char *host_name;
+	char *svc_description;
+	service *temp_service;
+
+	/* get the host name */
+	host_name=my_strtok(args,";");
+	if(host_name==NULL)
+		return ERROR;
+
+	/* get the service description */
+	svc_description=my_strtok(NULL,";");
+	if(svc_description==NULL)
+		return ERROR;
+
+	/* find the service */
+	temp_service=find_service(host_name,svc_description);
+	if(temp_service==NULL)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_ENABLE_SVC_NOTIFICATIONS:
+		enable_service_notifications(temp_service);
+		break;
+
+	case CMD_DISABLE_SVC_NOTIFICATIONS:
+		disable_service_notifications(temp_service);
+		break;
+
+	case CMD_ENABLE_SVC_CHECK:
+		enable_service_check(temp_service);
+		break;
+
+	case CMD_DISABLE_SVC_CHECK:
+		disable_service_check(temp_service);
+		break;
+
+	case CMD_ENABLE_SVC_EVENT_HANDLER:
+		enable_service_event_handler(temp_service);
+		break;
+
+	case CMD_DISABLE_SVC_EVENT_HANDLER:
+		disable_service_event_handler(temp_service);
+		break;
+
+	case CMD_ENABLE_SVC_FLAP_DETECTION:
+		enable_service_flap_detection(temp_service);
+		break;
+
+	case CMD_DISABLE_SVC_FLAP_DETECTION:
+		disable_service_flap_detection(temp_service);
+		break;
+
+	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
+		enable_passive_service_checks(temp_service);
+		break;
+
+	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
+		disable_passive_service_checks(temp_service);
+		break;
+
+	case CMD_START_OBSESSING_OVER_SVC:
+		start_obsessing_over_service(temp_service);
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_SVC:
+		stop_obsessing_over_service(temp_service);
+		break;
+
+	default:
+		break;
+	        }
+
+	return OK;
+        }
+
 
 
 
@@ -690,7 +888,7 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 	printf("cmd_add_comment() start\n");
 #endif
 
-	/* get the host nmae */
+	/* get the host name */
 	host_name=my_strtok(args,";");
 	if(host_name==NULL)
 		return ERROR;
@@ -755,7 +953,7 @@ int cmd_delete_comment(int cmd,char *args){
 #ifdef DEBUG0
 	printf("cmd_del_comment() start\n");
 #endif
-	
+
 	/* get the comment id we should delete */
 	comment_id=strtoul(args,NULL,10);
 	if(comment_id==0)
@@ -1010,83 +1208,6 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 
 
 
-/* enables or disables a service check */
-int cmd_enable_disable_service_check(int cmd,char *args){
-	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_check() start\n");
-#endif
-
-	/* get the host nmae */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* get the service description */
-	svc_description=my_strtok(NULL,";");
-	if(svc_description==NULL)
-		return ERROR;
-
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
-
-	if(cmd==CMD_ENABLE_SVC_CHECK)
-		enable_service_check(temp_service);
-	else
-		disable_service_check(temp_service);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_check() end\n");
-#endif
-	return OK;
-        }
-
-
-
-/* enables/disables all service checks for a host */
-int cmd_enable_disable_host_service_checks(int cmd,char *args){
-	host *temp_host=NULL;
-	service *temp_service=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_service_checks() start\n");
-#endif
-
-	/* get the host nmae */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* disable all services associated with this host... */
-	if(find_all_services_by_host(temp_host->name)){
-		while((temp_service=get_next_service_by_host())){
-			if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
-				enable_service_check(temp_service);
-			else
-				disable_service_check(temp_service);
-		        }
-	        } 
-	else
-		return ERROR;
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_service_checks() end\n");
-#endif
-	return OK;
-        }
-
-
 
 /* schedules a program shutdown or restart */
 int cmd_signal_process(int cmd, char *args){
@@ -1125,166 +1246,6 @@ int cmd_signal_process(int cmd, char *args){
         }
 
 
-int cmd_enable_disable_notifications(int cmd, char *args){
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_notifications() start\n");
-#endif
-
-	/* scheduled time is now ignored... */
-
-	if(cmd==CMD_ENABLE_NOTIFICATIONS)
-		enable_all_notifications();
-	else
-		disable_all_notifications();
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_notifications() end\n");
-#endif
-
-	return OK;
-        }
-
-
-/* enables/disables notifications for a service */
-int cmd_enable_disable_service_notifications(int cmd,char *args){
-	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_notifications() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* get the service description */
-	svc_description=my_strtok(NULL,";");
-	if(svc_description==NULL)
-		return ERROR;
-
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
-
-	if(cmd==CMD_ENABLE_SVC_NOTIFICATIONS)
-		enable_service_notifications(temp_service);
-	else
-		disable_service_notifications(temp_service);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_notifications() end\n");
-#endif
-	return OK;
-        }
-
-
-/* enables/disables notifications for a host */
-int cmd_enable_disable_host_notifications(int cmd,char *args){
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_notifications() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	if(cmd==CMD_ENABLE_HOST_NOTIFICATIONS)
-		enable_host_notifications(temp_host);
-	else
-		disable_host_notifications(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_notifications() end\n");
-#endif
-	return OK;
-        }
-
-
-
-/* enables/disables notifications for all services on a host  */
-int cmd_enable_disable_host_service_notifications(int cmd,char *args){
-	service *temp_service=NULL;
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_service_notifications() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* find all services for this host... */
-	if(find_all_services_by_host(host_name)){
-		while((temp_service=get_next_service_by_host())){
-			if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
-				enable_service_notifications(temp_service);
-			else
-				disable_service_notifications(temp_service);
-		        }
-	        }
-	else
-		return ERROR;
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_service_notifications() end\n");
-#endif
-	return OK;
-        }
-
-
-/* enables/disables notifications for all hosts and services "beyond" a given host */
-int cmd_enable_disable_and_propagate_notifications(int cmd,char *args){
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_and_propagate_notifications() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	if(cmd==CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST)
-		enable_and_propagate_notifications(temp_host);
-	else
-		disable_and_propagate_notifications(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_and_propagate_notifications() end\n");
-#endif
-	return OK;
-        }
-
-
 
 /* processes results of an external service check */
 int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
@@ -1303,6 +1264,10 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 	/* get the host name */
 	temp_ptr=my_strtok(args,";");
+	if(temp_ptr==NULL){
+		free(new_pcr);
+		return ERROR;
+	        }
 
 	/* if this isn't a host name, mabye its a host address */
 	if(find_host(temp_ptr)==NULL){
@@ -1352,7 +1317,7 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	new_pcr->return_code=atoi(temp_ptr);
 
 	/* make sure the return code is within bounds */
-	if(new_pcr->return_code<-1 || new_pcr->return_code>2)
+	if(new_pcr->return_code<0 || new_pcr->return_code>3)
 		new_pcr->return_code=STATE_UNKNOWN;
 
 	/* get the plugin output */
@@ -1710,390 +1675,6 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 
 
 
-/* starts or stops executing service checks */
-int cmd_start_stop_executing_service_checks(int cmd){
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_executing_service_checks() start\n");
-#endif
-
-	if(cmd==CMD_START_EXECUTING_SVC_CHECKS)
-		start_executing_service_checks();
-	else
-		stop_executing_service_checks();
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_executing_service_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* starts or stops accepting passive service checks */
-int cmd_start_stop_accepting_passive_service_checks(int cmd){
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_accepting_passive_service_checks() start\n");
-#endif
-
-	if(cmd==CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS)
-		start_accepting_passive_service_checks();
-	else
-		stop_accepting_passive_service_checks();
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_accepting_passive_service_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-/* enables/disables passive checks for a particular service */
-int cmd_enable_disable_passive_service_checks(int cmd,char *args){
-	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable__passive_service_checks() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* get the service description */
-	svc_description=my_strtok(NULL,";");
-	if(svc_description==NULL)
-		return ERROR;
-
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
-
-	/* enable or disable passive checks for this service */
-	if(cmd==CMD_ENABLE_PASSIVE_SVC_CHECKS)
-		enable_passive_service_checks(temp_service);
-	else
-		disable_passive_service_checks(temp_service);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable__passive_service_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* starts or stops executing host checks */
-int cmd_start_stop_executing_host_checks(int cmd){
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_executing_host_checks() start\n");
-#endif
-
-	if(cmd==CMD_START_EXECUTING_HOST_CHECKS)
-		start_executing_host_checks();
-	else
-		stop_executing_host_checks();
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_executing_host_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* starts or stops accepting passive host checks */
-int cmd_start_stop_accepting_passive_host_checks(int cmd){
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_accepting_passive_host_checks() start\n");
-#endif
-
-	if(cmd==CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS)
-		start_accepting_passive_host_checks();
-	else
-		stop_accepting_passive_host_checks();
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_accepting_passive_host_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* enables/disables passive checks for a particular host */
-int cmd_enable_disable_passive_host_checks(int cmd,char *args){
-	host *temp_host=NULL;
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_passive_host_checks() start\n");
-#endif
-
-	/* verify that the host is valid */
-	temp_host=find_host(args);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* enable or disable passive checks for this host */
-	if(cmd==CMD_ENABLE_PASSIVE_HOST_CHECKS)
-		enable_passive_host_checks(temp_host);
-	else
-		disable_passive_host_checks(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_passive_host_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* enables/disables the event handler for a particular service */
-int cmd_enable_disable_service_event_handler(int cmd,char *args){
-	host *temp_host=NULL;
-	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_event_handler() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* get the service description */
-	svc_description=my_strtok(NULL,"\n");
-	if(svc_description==NULL)
-		return ERROR;
-
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
-
-	/* enable or disable the host event handler */
-	if(cmd==CMD_ENABLE_SVC_EVENT_HANDLER)
-		enable_service_event_handler(temp_service);
-	else
-		disable_service_event_handler(temp_service);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_event_handler() end\n");
-#endif
-
-	return OK;
-        }
-        
-
-
-/* enables/disables the event handler for a particular host */
-int cmd_enable_disable_host_event_handler(int cmd,char *args){
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_event_handler() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* enable or disable the host event handler */
-	if(cmd==CMD_ENABLE_HOST_EVENT_HANDLER)
-		enable_host_event_handler(temp_host);
-	else
-		disable_host_event_handler(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_event_handler() end\n");
-#endif
-
-	return OK;
-        }
-        
-
-/* enables/disables checks of a particular host */
-int cmd_enable_disable_host_check(int cmd,char *args){
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_check() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* enable or disable the host check */
-	if(cmd==CMD_ENABLE_HOST_CHECK)
-		enable_host_check(temp_host);
-	else
-		disable_host_check(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_check() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* start or stop obsessing over service checks */
-int cmd_start_stop_obsessing_over_service_checks(int cmd){
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_service_checks() start\n");
-#endif
-
-	if(cmd==CMD_START_OBSESSING_OVER_SVC_CHECKS)
-		start_obsessing_over_service_checks();
-	else
-		stop_obsessing_over_service_checks();
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_service_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* start or stop obsessing over host checks */
-int cmd_start_stop_obsessing_over_host_checks(int cmd){
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_host_checks() start\n");
-#endif
-
-	if(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)
-		start_obsessing_over_host_checks();
-	else
-		stop_obsessing_over_host_checks();
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_host_checks() end\n");
-#endif
-
-	return OK;
-        }
-
-
-/* enables/disables flap detection for a particular host */
-int cmd_enable_disable_host_flap_detection(int cmd,char *args){
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_flap_detection() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* enable or disable the host check */
-	if(cmd==CMD_ENABLE_HOST_FLAP_DETECTION)
-		enable_host_flap_detection(temp_host);
-	else
-		disable_host_flap_detection(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_host_flap_detection() end\n");
-#endif
-
-	return OK;
-        }
-
-
-/* enables/disables flap detection for a particular service */
-int cmd_enable_disable_service_flap_detection(int cmd,char *args){
-	host *temp_host=NULL;
-	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_flap_detection() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* get the service description */
-	svc_description=my_strtok(NULL,"\n");
-	if(svc_description==NULL)
-		return ERROR;
-
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
-
-	/* enable or disable the host event handler */
-	if(cmd==CMD_ENABLE_SVC_FLAP_DETECTION)
-		enable_service_flap_detection(temp_service);
-	else
-		disable_service_flap_detection(temp_service);
-
-#ifdef DEBUG0
-	printf("cmd_enable_disable_service_flap_detection() end\n");
-#endif
-
-	return OK;
-        }
-        
-
-
 /* schedules downtime for a specific host or service */
 int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	service *temp_service=NULL;
@@ -2296,81 +1877,6 @@ int cmd_schedule_host_service_downtime(int cmd, time_t entry_time, char *args){
 	return OK;
         }
 
-
-/* start or stop obsessing over specific service checks */
-int cmd_start_stop_obsessing_over_service(int cmd, char *args){
-	host *temp_host=NULL;
-	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_service() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* get the service description */
-	svc_description=my_strtok(NULL,"\n");
-	if(svc_description==NULL)
-		return ERROR;
-
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
-
-	if(cmd==CMD_START_OBSESSING_OVER_SVC)
-		start_obsessing_over_service(temp_service);
-	else
-		stop_obsessing_over_service(temp_service);
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_service() end\n");
-#endif
-
-	return OK;
-        }
-
-
-/* start or stop obsessing over specific host checks */
-int cmd_start_stop_obsessing_over_host(int cmd, char *args){
-	host *temp_host=NULL;
-	char *host_name="";
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_host() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,"\n");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	if(cmd==CMD_START_OBSESSING_OVER_HOST)
-		start_obsessing_over_host(temp_host);
-	else
-		stop_obsessing_over_host(temp_host);
-
-#ifdef DEBUG0
-	printf("cmd_start_stop_obsessing_over_host() end\n");
-#endif
-
-	return OK;
-        }
 
 
 

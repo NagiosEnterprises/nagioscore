@@ -462,7 +462,7 @@ int cmd_enable_disable_host_service_notifications(int,char *);	/* enables/disabl
 int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service problem */
 int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
 int cmd_start_stop_executing_service_checks(int);		/* starts or stops executing service checks */
-int cmd_start_stop_accepting_passive_checks(int);		/* starts or stops accepting passive service check results */
+int cmd_start_stop_accepting_passive_service_checks(int);	/* starts or stops accepting passive service check results */
 int cmd_enable_disable_passive_service_checks(int,char *);	/* enables/disables passive checks for a particular service */
 int cmd_enable_disable_service_event_handler(int,char *);	/* enables/disables the event handler for a particular service */
 int cmd_enable_disable_host_event_handler(int,char *);		/* enables/disables the event handler for a particular host */
@@ -473,7 +473,9 @@ int cmd_enable_disable_host_flap_detection(int, char *);	/* enables/disables fla
 int cmd_enable_disable_service_flap_detection(int, char *);	/* enables/disables flap detection for a particular service */
 int cmd_delete_downtime(int, char *);				/* cancels active/pending host or service scheduled downtime */
 int cmd_schedule_host_service_downtime(int,time_t,char *);      /* schedules downtimes for all services on a particular host */
-
+int cmd_start_stop_executing_host_checks(int);			/* enables/disables active host checks */
+int cmd_start_stop_accepting_passive_host_checks(int);		/* enables/disables passive host checks */
+int cmd_enable_disable_passive_host_checks(int ,char *);	/* enables/disables passive checks for a particular host */
 
 /**** Internal Command Implementations ****/
 void disable_service_check(service *);			/* disables a service check */
@@ -512,6 +514,12 @@ void enable_all_failure_prediction(void);               /* enables failure predi
 void disable_all_failure_prediction(void);              /* disables failure prediction on a program-wide basis */
 void enable_performance_data(void);                     /* enables processing of performance data on a program-wide basis */
 void disable_performance_data(void);                    /* disables processing of performance data on a program-wide basis */
+void start_executing_host_checks(void);			/* starts executing host checks */
+void stop_executing_host_checks(void);			/* stops executing host checks */
+void start_accepting_passive_host_checks(void);		/* starts accepting passive host check results */
+void stop_accepting_passive_host_checks(void);		/* stops accepting passive host check results */
+void enable_passive_host_checks(host *);	        /* enables passive host checks for a particular host */
+void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
 
 #endif
 

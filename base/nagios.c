@@ -163,6 +163,7 @@ int             nagios_pid=0;
 int             enable_notifications=TRUE;
 int             execute_service_checks=TRUE;
 int             accept_passive_service_checks=TRUE;
+int             execute_host_checks=TRUE;
 int             accept_passive_host_checks=TRUE;
 int             enable_event_handlers=TRUE;
 int             obsess_over_services=FALSE;

@@ -470,6 +470,19 @@ accept_passive_service_checks=1
 
 
 
+# HOST CHECK EXECUTION OPTION
+# This determines whether or not Nagios will actively execute
+# host checks when it initially starts.  If this option is 
+# disabled, checks are not actively made, but Nagios can still
+# receive and process passive check results that come in.  Unless
+# you're implementing redundant hosts or have a special need for
+# disabling the execution of host checks, leave this enabled!
+# Values: 1 = enable checks, 0 = disable checks
+
+execute_host_checks=1
+
+
+
 # PASSIVE HOST CHECK ACCEPTANCE OPTION
 # This determines whether or not Nagios will accept passive
 # host checks results when it initially (re)starts.

@@ -103,6 +103,7 @@ extern int      log_rotation_method;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
+extern int      execute_host_checks;
 extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
@@ -758,6 +759,13 @@ int read_main_config_file(char *main_config_file){
 			accept_passive_service_checks=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\taccept_passive_service_checks set to %s\n",(accept_passive_service_checks==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+		else if(!strcmp(variable,"execute_host_checks")){
+			strip(value);
+			execute_host_checks=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\texecute_host_checks set to %s\n",(execute_host_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 		else if(!strcmp(variable,"accept_passive_host_checks")){

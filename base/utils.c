@@ -161,6 +161,7 @@ extern int      currently_running_service_checks;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
+extern int      execute_host_checks;
 extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
@@ -2827,6 +2828,7 @@ int reset_variables(void){
 	enable_notifications=TRUE;
 	execute_service_checks=TRUE;
 	accept_passive_service_checks=TRUE;
+	execute_host_checks=TRUE;
 	accept_passive_service_checks=TRUE;
 	enable_event_handlers=TRUE;
 	obsess_over_services=FALSE;

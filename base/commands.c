@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -47,6 +47,7 @@ extern time_t   last_command_check;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
+extern int      execute_host_checks;
 extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
@@ -317,6 +318,21 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"SCHEDULE_HOST_SVC_DOWNTIME"))
 			command_type=CMD_SCHEDULE_HOST_SVC_DOWNTIME;
 
+		else if(!strcmp(command_id,"START_EXECUTING_HOST_CHECKS"))
+			command_type=CMD_START_EXECUTING_HOST_CHECKS;
+		else if(!strcmp(command_id,"STOP_EXECUTING_HOST_CHECKS"))
+			command_type=CMD_STOP_EXECUTING_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"START_ACCEPTING_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS;
+		else if(!strcmp(command_id,"STOP_ACCEPTING_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_ENABLE_PASSIVE_HOST_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_DISABLE_PASSIVE_HOST_CHECKS;
+
 		else{
 			/* log the bad external command */
 			snprintf(buffer,sizeof(buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
@@ -476,7 +492,7 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 
 	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
 	case CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:
-		cmd_start_stop_accepting_passive_checks(cmd);
+		cmd_start_stop_accepting_passive_service_checks(cmd);
 		break;
 
 	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
@@ -571,6 +587,21 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 
 	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
 		cmd_schedule_host_service_downtime(cmd,entry_time,args);
+		break;
+
+	case CMD_START_EXECUTING_HOST_CHECKS:
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+		cmd_start_stop_executing_host_checks(cmd);
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+		cmd_start_stop_accepting_passive_host_checks(cmd);
+		break;
+
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+		cmd_enable_disable_passive_host_checks(cmd,args);
 		break;
 
 	default:
@@ -1619,10 +1650,10 @@ int cmd_start_stop_executing_service_checks(int cmd){
 
 
 /* starts or stops accepting passive service checks */
-int cmd_start_stop_accepting_passive_checks(int cmd){
+int cmd_start_stop_accepting_passive_service_checks(int cmd){
 
 #ifdef DEBUG0
-	printf("cmd_start_stop_accepting_passive_checks() start\n");
+	printf("cmd_start_stop_accepting_passive_service_checks() start\n");
 #endif
 
 	if(cmd==CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS)
@@ -1631,7 +1662,7 @@ int cmd_start_stop_accepting_passive_checks(int cmd){
 		stop_accepting_passive_service_checks();
 
 #ifdef DEBUG0
-	printf("cmd_start_stop_accepting_passive_checks() end\n");
+	printf("cmd_start_stop_accepting_passive_service_checks() end\n");
 #endif
 
 	return OK;
@@ -1675,6 +1706,77 @@ int cmd_enable_disable_passive_service_checks(int cmd,char *args){
 
 	return OK;
         }
+
+
+
+/* starts or stops executing host checks */
+int cmd_start_stop_executing_host_checks(int cmd){
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_executing_host_checks() start\n");
+#endif
+
+	if(cmd==CMD_START_EXECUTING_HOST_CHECKS)
+		start_executing_host_checks();
+	else
+		stop_executing_host_checks();
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_executing_host_checks() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* starts or stops accepting passive host checks */
+int cmd_start_stop_accepting_passive_host_checks(int cmd){
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_accepting_passive_host_checks() start\n");
+#endif
+
+	if(cmd==CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS)
+		start_accepting_passive_host_checks();
+	else
+		stop_accepting_passive_host_checks();
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_accepting_passive_host_checks() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* enables/disables passive checks for a particular host */
+int cmd_enable_disable_passive_host_checks(int cmd,char *args){
+	host *temp_host=NULL;
+
+#ifdef DEBUG0
+	printf("cmd_enable_disable_passive_host_checks() start\n");
+#endif
+
+	/* verify that the host is valid */
+	temp_host=find_host(args);
+	if(temp_host==NULL)
+		return ERROR;
+
+	/* enable or disable passive checks for this host */
+	if(cmd==CMD_ENABLE_PASSIVE_HOST_CHECKS)
+		enable_passive_host_checks(temp_host);
+	else
+		disable_passive_host_checks(temp_host);
+
+#ifdef DEBUG0
+	printf("cmd_enable_disable_passive_host_checks() end\n");
+#endif
+
+	return OK;
+        }
+
 
 
 /* enables/disables the event handler for a particular service */
@@ -2683,6 +2785,155 @@ void disable_passive_service_checks(service *svc){
 
 #ifdef DEBUG0
 	printf("disable_passive_service_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* starts executing host checks */
+void start_executing_host_checks(void){
+
+#ifdef DEBUG0
+	printf("start_executing_host_checks() start\n");
+#endif
+
+	/* bail out if we're already executing hosts */
+	if(execute_host_checks==TRUE)
+		return;
+
+	/* set the host check execution flag */
+	execute_host_checks=TRUE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("start_executing_host_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+
+/* stops executing host checks */
+void stop_executing_host_checks(void){
+
+#ifdef DEBUG0
+	printf("stop_executing_host_checks() start\n");
+#endif
+
+	/* bail out if we're already not executing hosts */
+	if(execute_host_checks==FALSE)
+		return;
+
+	/* set the host check execution flag */
+	execute_host_checks=FALSE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("stop_executing_host_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* starts accepting passive host checks */
+void start_accepting_passive_host_checks(void){
+
+#ifdef DEBUG0
+	printf("start_accepting_passive_host_checks() start\n");
+#endif
+
+	/* bail out if we're already accepting passive hosts */
+	if(accept_passive_host_checks==TRUE)
+		return;
+
+	/* set the host check flag */
+	accept_passive_host_checks=TRUE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("start_accepting_passive_host_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* stops accepting passive host checks */
+void stop_accepting_passive_host_checks(void){
+
+#ifdef DEBUG0
+	printf("stop_accepting_passive_host_checks() start\n");
+#endif
+
+	/* bail out if we're already not accepting passive hosts */
+	if(accept_passive_host_checks==FALSE)
+		return;
+
+	/* set the host check flag */
+	accept_passive_host_checks=FALSE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("stop_accepting_passive_host_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* enables passive host checks for a particular host */
+void enable_passive_host_checks(host *hst){
+
+#ifdef DEBUG0
+	printf("enable_passive_host_checks() start\n");
+#endif
+
+	/* set the passive check flag */
+	hst->accept_passive_host_checks=TRUE;
+
+	/* update the status log with the host info */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("enable_passive_host_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* disables passive host checks for a particular host */
+void disable_passive_host_checks(host *hst){
+
+#ifdef DEBUG0
+	printf("disable_passive_host_checks() start\n");
+#endif
+
+	/* set the passive check flag */
+	hst->accept_passive_host_checks=FALSE;
+
+	/* update the status log with the host info */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("disable_passive_host_checks() end\n");
 #endif
 
 	return;

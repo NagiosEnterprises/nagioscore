@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -60,6 +60,7 @@ extern int      currently_running_service_checks;
 extern int      non_parallelized_check_running;
 
 extern int      accept_passive_service_checks;
+extern int      execute_host_checks;
 extern int      obsess_over_services;
 
 extern int      check_service_freshness;
@@ -1688,7 +1689,7 @@ int run_host_check(host *hst){
 #endif
 
 	/* if checks are disabled, just return the last host state */
-	if(hst->checks_enabled==FALSE)
+	if(execute_host_checks==FALSE || hst->checks_enabled==FALSE)
 		return hst->status;
 
 	/* if there is no host check command, just return with no error */

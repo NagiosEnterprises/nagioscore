@@ -212,7 +212,7 @@ fi
 if test -f /etc/httpd/conf/httpd.conf; then
 	if ! grep "Include /etc/httpd/conf/nagios-httpd.conf" /etc/httpd/conf/httpd.conf >> /dev/null; then
 		echo "Include /etc/httpd/conf/nagios-httpd.conf" >> /etc/httpd/conf/httpd.conf
-		/etc/rc.d/init.d/httpd reload
+		/etc/rc.d/init.d/httpd restart
 	fi
 fi
 
@@ -224,7 +224,7 @@ if test -f /etc/httpd/conf/httpd.conf; then
 		grep -v "^ *Include /etc/httpd/conf/nagios-httpd.conf" /etc/httpd/conf/httpd.conf > $TEMPFILE
 		mv $TEMPFILE /etc/httpd/conf/httpd.conf
 		chmod 664 /etc/httpd/conf/httpd.conf
-		/etc/rc.d/init.d/httpd reload
+		/etc/rc.d/init.d/httpd restart
   fi
 fi
 
@@ -238,6 +238,7 @@ rm -rf $RPM_BUILD_ROOT
 %init_dir/nagios
 %dir /etc/nagios
 %{_prefix}/sbin/nagios
+%{_prefix}/sbin/p1.pl
 
 %defattr(644,root,root)
 %config(noreplace) /etc/nagios/nagios.cfg
@@ -264,7 +265,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(2775,%{nsusr},%{cmdgrp})
 %dir /var/spool/nagios
 
-%doc Changelog INSTALL LICENSE README UPGRADING htaccess.sample
+%doc Changelog INSTALLING LICENSE README UPGRADING htaccess.sample
 
 
 %files www
@@ -284,6 +285,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Aug 13 2002 Karl DeBisschop <kdebisschop@users.sourceforge.net>
+- INSTALL was renamed INSTALLING
+- p1.pl script included in package
+- web server restarted because Red Hat 7.3 init does not do 'reload'
+
 * Fri Jun 14 2002 Ethan Galstad <nagios@nagios.org) (1.0b4)
 - Modified requirements to work when installed using KickStart (Jeff Frost)
 - Changed method used for checking for user/group existence (Jeff Frost)

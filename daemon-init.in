@@ -27,7 +27,7 @@
 #              used to provide network services status.
 #
   
-status ()
+status_nagios ()
 {
 
 	if test ! -f $NagiosRun; then
@@ -107,7 +107,7 @@ case "$1" in
 		$NagiosBin -d $NagiosCfg
 		if [ -d $NagiosLckDir ]; then touch $NagiosLckDir/$NagiosLckFile; fi
 		sleep 1
-		status nagios
+		status_nagios nagios
 		;;
 
 	stop)
@@ -117,7 +117,7 @@ case "$1" in
 		;;
 
 	status)
-		status nagios
+		status_nagios nagios
 		;;
 
 	restart)

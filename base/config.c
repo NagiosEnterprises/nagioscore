@@ -184,7 +184,7 @@ int read_main_config_file(char *main_config_file){
 	printf("read_main_config_file() start\n");
 #endif
 #ifdef DEBUG1
-	printf("\tConfig file: %s\n",config_file);
+	printf("\tConfig file: %s\n",main_config_file);
 #endif
 
 	/* open the config file for reading */

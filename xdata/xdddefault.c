@@ -2,8 +2,8 @@
  *
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   08-13-2004
  *
  * License:
  *
@@ -52,6 +52,7 @@ char xdddefault_temp_file[MAX_FILENAME_LENGTH]="";
 #ifdef NSCORE
 unsigned long current_downtime_id=0;
 extern scheduled_downtime *scheduled_downtime_list;
+extern char *macro_x[MACRO_X_COUNT];
 #endif
 
 
@@ -136,6 +137,15 @@ int xdddefault_grab_config_info(char *config_file){
 	/* we didn't find the temp file */
 	if(!strcmp(xdddefault_temp_file,""))
 		return ERROR;
+
+#ifdef NSCORE
+	/* save the downtime data file macro */
+	if(macro_x[MACRO_DOWNTIMEDATAFILE]!=NULL)
+		free(macro_x[MACRO_DOWNTIMEDATAFILE]);
+	macro_x[MACRO_DOWNTIMEDATAFILE]=(char *)strdup(xdddefault_downtime_file);
+	if(macro_x[MACRO_DOWNTIMEDATAFILE]!=NULL)
+		strip(macro_x[MACRO_DOWNTIMEDATAFILE]);
+#endif
 
 	return OK;
         }

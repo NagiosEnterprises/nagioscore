@@ -2,8 +2,8 @@
  *
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-26-2003
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   08-13-2004
  *
  * License:
  *
@@ -50,6 +50,7 @@ char xcddefault_temp_file[MAX_FILENAME_LENGTH]="";
 #ifdef NSCORE
 unsigned long current_comment_id=0;
 extern comment *comment_list;
+extern char *macro_x[MACRO_X_COUNT];
 #endif
 
 
@@ -133,6 +134,15 @@ int xcddefault_grab_config_info(char *config_file){
 	/* we didn't find the temp file */
 	if(!strcmp(xcddefault_temp_file,""))
 		return ERROR;
+
+#ifdef NSCORE
+	/* save the comment data file macro */
+	if(macro_x[MACRO_COMMENTDATAFILE]!=NULL)
+		free(macro_x[MACRO_COMMENTDATAFILE]);
+	macro_x[MACRO_COMMENTDATAFILE]=(char *)strdup(xcddefault_comment_file);
+	if(macro_x[MACRO_COMMENTDATAFILE]!=NULL)
+		strip(macro_x[MACRO_COMMENTDATAFILE]);
+#endif
 
 	return OK;
         }

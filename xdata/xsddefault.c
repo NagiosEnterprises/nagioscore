@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2004
+ * Last Modified:   08-13-2004
  *
  * License:
  *
@@ -82,6 +82,8 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
+
+extern char *macro_x[MACRO_X_COUNT];
 
 extern host *host_list;
 extern service *service_list;
@@ -182,6 +184,15 @@ int xsddefault_grab_config_info(char *config_file){
 	/* we didn't find the temp file */
 	if(!strcmp(xsddefault_temp_file,""))
 		return ERROR;
+
+#ifdef NSCORE
+	/* save the status file macro */
+	if(macro_x[MACRO_STATUSDATAFILE]!=NULL)
+		free(macro_x[MACRO_STATUSDATAFILE]);
+	macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log);
+	if(macro_x[MACRO_STATUSDATAFILE]!=NULL)
+		strip(macro_x[MACRO_STATUSDATAFILE]);
+#endif
 
 	return OK;
         }

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-10-2004
+ * Last Modified:   08-13-2004
  *
  * License:
  *
@@ -584,6 +584,42 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 				else if(!strcmp(temp_buffer,"ADMINPAGER"))
 					selected_macro=macro_x[MACRO_ADMINPAGER];
+
+				else if(!strcmp(temp_buffer,"MAINCONFIGFILE"))
+					selected_macro=macro_x[MACRO_MAINCONFIGFILE];
+
+				else if(!strcmp(temp_buffer,"STATUSDATAFILE"))
+					selected_macro=macro_x[MACRO_STATUSDATAFILE];
+
+				else if(!strcmp(temp_buffer,"COMMENTDATAFILE"))
+					selected_macro=macro_x[MACRO_COMMENTDATAFILE];
+
+				else if(!strcmp(temp_buffer,"DOWNTIMEDATAFILE"))
+					selected_macro=macro_x[MACRO_DOWNTIMEDATAFILE];
+
+				else if(!strcmp(temp_buffer,"RETENTIONDATAFILE"))
+					selected_macro=macro_x[MACRO_RETENTIONDATAFILE];
+
+				else if(!strcmp(temp_buffer,"OBJECTCACHEFILE"))
+					selected_macro=macro_x[MACRO_OBJECTCACHEFILE];
+
+				else if(!strcmp(temp_buffer,"TEMPFILE"))
+					selected_macro=macro_x[MACRO_TEMPFILE];
+
+				else if(!strcmp(temp_buffer,"LOGFILE"))
+					selected_macro=macro_x[MACRO_LOGFILE];
+
+				else if(!strcmp(temp_buffer,"RESOURCEFILE"))
+					selected_macro=macro_x[MACRO_RESOURCEFILE];
+
+				else if(!strcmp(temp_buffer,"COMMANDFILE"))
+					selected_macro=macro_x[MACRO_COMMANDFILE];
+
+				else if(!strcmp(temp_buffer,"HOSTPERFDATAFILE"))
+					selected_macro=macro_x[MACRO_HOSTPERFDATAFILE];
+
+				else if(!strcmp(temp_buffer,"SERVICEPERFDATAFILE"))
+					selected_macro=macro_x[MACRO_SERVICEPERFDATAFILE];
 
 				else if(strstr(temp_buffer,"ARG")==temp_buffer){
 					arg_index=atoi(temp_buffer+3);

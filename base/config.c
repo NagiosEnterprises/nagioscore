@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2004
+ * Last Modified:   08-14-2004
  *
  * License:
  *
@@ -234,6 +234,13 @@ int read_main_config_file(char *main_config_file){
 		return ERROR;
 		}
 
+	/* save the main config file macro */
+	if(macro_x[MACRO_MAINCONFIGFILE]!=NULL)
+		free(macro_x[MACRO_MAINCONFIGFILE]);
+	macro_x[MACRO_MAINCONFIGFILE]=(char *)strdup(main_config_file);
+	if(macro_x[MACRO_MAINCONFIGFILE]!=NULL)
+		strip(macro_x[MACRO_MAINCONFIGFILE]);
+
 	/* process all lines in the config file */
 	for(current_line=1,fgets(input,MAX_INPUT_BUFFER-1,fp);!feof(fp);current_line++,fgets(input,MAX_INPUT_BUFFER-1,fp)){
 
@@ -287,12 +294,25 @@ int read_main_config_file(char *main_config_file){
 		/* process the variable/value */
 
 		if(!strcmp(variable,"resource_file")){
+
+			/* save the macro */
+			if(macro_x[MACRO_RESOURCEFILE]!=NULL)
+				free(macro_x[MACRO_RESOURCEFILE]);
+			macro_x[MACRO_RESOURCEFILE]=(char *)strdup(value);
+			if(macro_x[MACRO_RESOURCEFILE]==NULL){
+				strcpy(error_message,"Could not allocate memory for macro");
+				error=TRUE;
+				break;
+			        }
+			strip(macro_x[MACRO_RESOURCEFILE]);
+
 #ifdef DEBUG1
 			printf("\t\tprocessing resource file '%s'\n",value);
 #endif
 			read_resource_file(value);
 		        }
 		else if(!strcmp(variable,"log_file")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"Log file is too long");
 				error=TRUE;
@@ -303,6 +323,17 @@ int read_main_config_file(char *main_config_file){
 				free(log_file);
 			log_file=(char *)strdup(value);
 			strip(log_file);
+
+			/* save the macro */
+			if(macro_x[MACRO_LOGFILE]!=NULL)
+				free(macro_x[MACRO_LOGFILE]);
+			macro_x[MACRO_LOGFILE]=(char *)strdup(log_file);
+			if(macro_x[MACRO_LOGFILE]==NULL){
+				strcpy(error_message,"Could not allocate memory for macro");
+				error=TRUE;
+				break;
+			        }
+			strip(macro_x[MACRO_LOGFILE]);
 
 #ifdef DEBUG1
 			printf("\t\tlog_file set to '%s'\n",log_file);
@@ -320,11 +351,23 @@ int read_main_config_file(char *main_config_file){
 			command_file=(char *)strdup(value);
 			strip(command_file);
 
+			/* save the macro */
+			if(macro_x[MACRO_COMMANDFILE]!=NULL)
+				free(macro_x[MACRO_COMMANDFILE]);
+			macro_x[MACRO_COMMANDFILE]=(char *)strdup(value);
+			if(macro_x[MACRO_COMMANDFILE]==NULL){
+				strcpy(error_message,"Could not allocate memory for macro");
+				error=TRUE;
+				break;
+			        }
+			strip(macro_x[MACRO_COMMANDFILE]);
+
 #ifdef DEBUG1
 			printf("\t\tcommand_file set to '%s'\n",command_file);
 #endif
 			}
 		else if(!strcmp(variable,"temp_file")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"Temp file is too long");
 				error=TRUE;
@@ -335,6 +378,17 @@ int read_main_config_file(char *main_config_file){
 				free(temp_file);
 			temp_file=(char *)strdup(value);
 			strip(temp_file);
+
+			/* save the macro */
+			if(macro_x[MACRO_TEMPFILE]!=NULL)
+				free(macro_x[MACRO_TEMPFILE]);
+			macro_x[MACRO_TEMPFILE]=(char *)strdup(temp_file);
+			if(macro_x[MACRO_TEMPFILE]==NULL){
+				strcpy(error_message,"Could not allocate memory for macro");
+				error=TRUE;
+				break;
+			        }
+			strip(macro_x[MACRO_TEMPFILE]);
 
 #ifdef DEBUG1
 			printf("\t\ttemp_file set to '%s'\n",temp_file);
@@ -452,6 +506,8 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"admin_email")){
+
+			/* save the macro */
 			if(macro_x[MACRO_ADMINEMAIL]!=NULL)
 				free(macro_x[MACRO_ADMINEMAIL]);
 			macro_x[MACRO_ADMINEMAIL]=(char *)strdup(value);
@@ -468,6 +524,8 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"admin_pager")){
+
+			/* save the macro */
 			if(macro_x[MACRO_ADMINPAGER]!=NULL)
 				free(macro_x[MACRO_ADMINPAGER]);
 			macro_x[MACRO_ADMINPAGER]=(char *)strdup(value);
@@ -1358,9 +1416,9 @@ int read_main_config_file(char *main_config_file){
 			continue;
 		else if(!strcmp(variable,"perfdata_timeout"))
 			continue;
-		else if(!strcmp(variable,"host_perfdata_command"))
+		else if(strstr(variable,"host_perfdata")==variable)
 			continue;
-		else if(!strcmp(variable,"service_perfdata_command"))
+		else if(strstr(variable,"service_perfdata")==variable)
 			continue;
 		else if(strstr(input,"cfg_file=")==input || strstr(input,"cfg_dir=")==input)
 			continue;

@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-22-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   08-13-2004
  *
  * License:
  *
@@ -43,6 +43,8 @@ extern service        *service_list;
 
 extern char           *global_host_event_handler;
 extern char           *global_service_event_handler;
+
+extern char           *macro_x[MACRO_X_COUNT];
 
 extern int            enable_notifications;
 extern int            execute_service_checks;
@@ -122,6 +124,13 @@ int xrddefault_grab_config_info(char *main_config_file){
 	        }
 
 	fclose(fp);
+
+	/* save the retention file macro */
+	if(macro_x[MACRO_RETENTIONDATAFILE]!=NULL)
+		free(macro_x[MACRO_RETENTIONDATAFILE]);
+	macro_x[MACRO_RETENTIONDATAFILE]=(char *)strdup(xrddefault_retention_file);
+	if(macro_x[MACRO_RETENTIONDATAFILE]!=NULL)
+		strip(macro_x[MACRO_RETENTIONDATAFILE]);
 
 	return OK;
         }

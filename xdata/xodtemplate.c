@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2004
+ * Last Modified: 08-13-2004
  *
  * Description:
  *
@@ -72,6 +72,7 @@
 #ifdef NSCORE
 extern int use_regexp_matches;
 extern int use_true_regexp_matching;
+extern char *macro_x[MACRO_X_COUNT];
 #endif
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
@@ -117,7 +118,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 	/* get variables from main config file */
 	xodtemplate_grab_config_info(main_config_file);
-	
+
 	/* open the main config file for reading (we need to find all the config files to read) */
 	fp=fopen(main_config_file,"r");
 	if(fp==NULL){
@@ -310,6 +311,14 @@ int xodtemplate_grab_config_info(char *main_config_file){
 
 	fclose(fp);
 
+#ifdef NSCORE
+	/* save the object cache file macro */
+	if(macro_x[MACRO_OBJECTCACHEFILE]!=NULL)
+		free(macro_x[MACRO_OBJECTCACHEFILE]);
+	macro_x[MACRO_OBJECTCACHEFILE]=(char *)strdup(xodtemplate_cache_file);
+	if(macro_x[MACRO_OBJECTCACHEFILE]!=NULL)
+		strip(macro_x[MACRO_OBJECTCACHEFILE]);
+#endif
 
 #ifdef DEBUGO
 	printf("xodtemplate_grab_config_info() end\n");

@@ -2,8 +2,8 @@
  *
  * XPDDEFAULT.H - Include file for default performance data routines
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   09-02-2004
  *
  * License:
  *
@@ -32,3 +32,20 @@ int xpddefault_grab_config_info(char *);
 
 int xpddefault_update_service_performance_data(service *);
 int xpddefault_update_host_performance_data(host *);
+
+int xpddefault_run_service_performance_data_command(service *);
+int xpddefault_run_host_performance_data_command(host *);
+
+int xpddefault_update_service_performance_data_file(service *);
+int xpddefault_update_host_performance_data_file(host *);
+
+int xpddefault_preprocess_file_templates(char *);
+
+int xpddefault_open_host_perfdata_file(void);
+int xpddefault_open_service_perfdata_file(void);
+int xpddefault_close_host_perfdata_file(void);
+int xpddefault_close_service_perfdata_file(void);
+
+int xpddefault_process_host_perfdata_file(void);
+int xpddefault_process_service_perfdata_file(void);
+

@@ -233,22 +233,12 @@ AC_SUBST(XODH)
 
 
 
-dnl What performance data I/O implementation should we use?
-AC_ARG_WITH(default-perfdata,--with-default-perfdata enables use of default performance data routines,XPDTYPE=default)
-AC_ARG_WITH(file-perfdata,--with-file-perfdata enables use of file-based performance data routines,XPDTYPE=file)
-if test $XPDTYPE = file; then
-	AC_DEFINE_UNQUOTED(USE_XPDFILE)
-	XPDC="xpdfile.c"
-	XPDH="xpdfile.h"
-	XPDCOMMENT="File"
-	echo "We'll use file-based routines (in xdata/xpdfile.*) for performance data I/O..."
-else
-	AC_DEFINE_UNQUOTED(USE_XPDDEFAULT)
-	XPDC="xpddefault.c"
-	XPDH="xpddefault.h"
-	XPDCOMMENT="Default (external commands)"
-	echo "We'll use default routines (in xdata/xpddefault.*) for performance data I/O..."
-fi
+dnl Performance data
+AC_DEFINE_UNQUOTED(USE_XPDDEFAULT)
+XPDC="xpddefault.c"
+XPDH="xpddefault.h"
+XPDCOMMENT="Default (external commands)"
+echo "We'll use default routines (in xdata/xpddefault.*) for performance data I/O..."
 AC_SUBST(XPDC)
 AC_SUBST(XPDH)
 
@@ -712,14 +702,14 @@ AC_MSG_RESULT([                 HTML URL:  http://localhost$htmurl/])
 AC_MSG_RESULT([                  CGI URL:  http://localhost$cgiurl/])
 AC_MSG_RESULT([ Traceroute (used by WAP):  $PATH_TO_TRACEROUTE])
 
-echo ""
-echo " External Data Routines:"
-echo " ------------------------"
+dnl echo ""
+dnl echo " External Data Routines:"
+dnl echo " ------------------------"
 
-AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
-AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
-AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
-AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
+dnl AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
+dnl AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
+dnl AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
+dnl AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
 
 
 echo ""

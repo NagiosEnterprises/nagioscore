@@ -484,6 +484,57 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
+<td colspan='9' class='MacroType'>File Macros:</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#mainconfigfile">$MAINCONFIGFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#statusdatafile">$STATUSDATAFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#commentdatafile">$COMMENTDATAFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#downtimedatafile">$DOWNTIMEDATAFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#retentiondatafile">$RETENTIONDATAFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#objectcachefile">$OBJECTCACHEFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#tempfile">$TEMPFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#logfile">$LOGFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#resourcefile">$RESOURCEFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#commandfile">$COMMANDFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostperfdatafile">$HOSTPERFDATAFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceperfdatafile">$SERVICEPERFDATAFILE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td colspan='9' class='MacroType'>Misc Macros:</td>
 </tr>
 <tr>
@@ -898,6 +949,82 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="timet"></a>
 <td class="MacroName">$TIMET$</td>
 <td class="MacroDescription">Current time stamp in time_t format (seconds since the UNIX epoch).</td>
+</tr>
+
+<tr>
+<td colspan='9' class='MacroType'>File Macros:</td>
+</tr>
+
+<tr>
+<a name="mainconfigfile"></a>
+<td class="MacroName">$MAINCONFIGFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html">main config file</a>.</td>
+</tr>
+
+<tr>
+<a name="statusdatafile"></a>
+<td class="MacroName">$STATUSDATAFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#status_file">status data file</a>.</td>
+</tr>
+
+<tr>
+<a name="commentdatafile"></a>
+<td class="MacroName">$COMMENTDATAFILE$</td>
+<td class="MacroDescription">The location of the comment data file.</td>
+</tr>
+
+<tr>
+<a name="downtimedatafile"></a>
+<td class="MacroName">$DOWNTIMEDATAFILE$</td>
+<td class="MacroDescription">The location of the downtime data file.</td>
+</tr>
+
+<tr>
+<a name="retentiondatafile"></a>
+<td class="MacroName">$RETENTIONDATAFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#state_retention_file">retention data file</a>.</td>
+</tr>
+
+<tr>
+<a name="objectcachefile"></a>
+<td class="MacroName">$OBJECTCACHEFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#object_cache_file">object cache file</a>.</td>
+</tr>
+
+<tr>
+<a name="tempfile"></a>
+<td class="MacroName">$TEMPFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#temp_file">temp file</a>.</td>
+</tr>
+
+<tr>
+<a name="logfile"></a>
+<td class="MacroName">$LOGFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#log_file">log file</a>.</td>
+</tr>
+
+<tr>
+<a name="resourcefile"></a>
+<td class="MacroName">$RESOURCEFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#resource_file">resource file</a>.</td>
+</tr>
+
+<tr>
+<a name="commandfile"></a>
+<td class="MacroName">$COMMANDFILE$</td>
+<td class="MacroDescription">The location of the <a href="configmain.html#command_file">command file</a>.</td>
+</tr>
+
+<tr>
+<a name="hostperfdatafile"></a>
+<td class="MacroName">$HOSTPERFDATAFILE$</td>
+<td class="MacroDescription">The location of the host performance data file (if defined).</td>
+</tr>
+
+<tr>
+<a name="serviceperfdatafile"></a>
+<td class="MacroName">$SERVICEPERFDATAFILE$</td>
+<td class="MacroDescription">The location of the service performance data file (if defined).</td>
 </tr>
 
 <tr>

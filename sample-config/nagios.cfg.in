@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 01-29-2004
+# Last Modified: 09-02-2004
 #
 ##############################################################################
 
@@ -650,6 +650,62 @@ process_performance_data=0
 
 #host_perfdata_command=process-host-perfdata
 #service_perfdata_command=process-service-perfdata
+
+
+
+# HOST AND SERVICE PERFORMANCE DATA FILES
+# These files are used to store host and service performance data.
+# Performance data is only written to these files if the
+# enable_performance_data option (above) is set to 1.
+
+#host_perfdata_file=/tmp/host-perfdata
+#service_perfdata_file=/tmp/service-perfdata
+
+
+
+# HOST AND SERVICE PERFORMANCE DATA FILE TEMPLATES
+# These options determine what data is written (and how) to the
+# performance data files.  The templates may contain macros, special
+# characters (\t for tab, \r for carriage return, \n for newline)
+# and plain text.  A newline is automatically added after each write
+# to the performance data file.  Some examples of what you can do are
+# shown below.
+
+#host_perfdata_file_template=[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$
+#service_perfdata_file_template=[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$
+
+
+
+
+# HOST AND SERVICE PERFORMANCE DATA FILE MODES
+# This option determines whether or not the host and service
+# performance data files are opened in write ("w") or append ("a")
+# mode.  Unless you are the files are named pipes, you will probably
+# want to use the default mode of append ("a").
+
+#host_perfdata_file_mode=a
+#service_perfdata_file_mode=a
+
+
+
+# HOST AND SERVICE PERFORMANCE DATA FILE PROCESSING INTERVAL
+# These options determine how often (in seconds) the host and service
+# performance data files are processed using the commands defined
+# below.  A value of 0 indicates the files should not be periodically
+# processed.
+
+#host_perfdata_file_processing_interval=0
+#service_perfdata_file_processing_interval=0
+
+
+
+# HOST AND SERVICE PERFORMANCE DATA FILE PROCESSING COMMANDS
+# These commands are used to periodically process the host and
+# service performance data files.  The interval at which the
+# processing occurs is determined by the options above.
+
+#host_perfdata_file_processing_command=process-host-perfdata-file
+#service_perfdata_file_processing_command=process-service-perfdata-file
 
 
 

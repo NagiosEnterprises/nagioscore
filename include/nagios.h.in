@@ -35,7 +35,7 @@
 
 
 #define MAX_COMMAND_ARGUMENTS			16	/* maximum number of $ARGx$ macros */
-#define MAX_USER_MACROS				32	/* maximum number of $USERx$ macros */
+#define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
 #define MAX_STATE_LENGTH			32	/* length definitions used in macros */
 #define MAX_STATETYPE_LENGTH			24
@@ -49,7 +49,7 @@
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				62	/* size of macro_x[] array */
+#define MACRO_X_COUNT				74	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -113,6 +113,18 @@
 #define MACRO_LASTHOSTUNREACHABLE               59
 #define MACRO_SERVICECHECKCOMMAND		60
 #define MACRO_HOSTCHECKCOMMAND			61
+#define MACRO_MAINCONFIGFILE			62
+#define MACRO_STATUSDATAFILE			63
+#define MACRO_COMMENTDATAFILE			64
+#define MACRO_DOWNTIMEDATAFILE			65
+#define MACRO_RETENTIONDATAFILE			66
+#define MACRO_OBJECTCACHEFILE			67
+#define MACRO_TEMPFILE				68
+#define MACRO_LOGFILE				69
+#define MACRO_RESOURCEFILE			70
+#define MACRO_COMMANDFILE			71
+#define MACRO_HOSTPERFDATAFILE			72
+#define MACRO_SERVICEPERFDATAFILE		73
 
 
 

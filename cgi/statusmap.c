@@ -1963,7 +1963,7 @@ void write_host_popup_text(host *hst){
 
 	temp_hostextinfo=find_hostextinfo(hst->name);
 	if(temp_hostextinfo!=NULL){
-		printf("<tr><td><img src=%s%s border=0 width=80 height=80></td>",url_logo_images_path,(temp_hostextinfo->icon_image==NULL)?UNKNOWN_ICON_IMAGE:temp_hostextinfo->icon_image);
+		printf("<tr><td><img src=%s%s border=0 width=40 height=40></td>",url_logo_images_path,(temp_hostextinfo->icon_image==NULL)?UNKNOWN_ICON_IMAGE:temp_hostextinfo->icon_image);
 		printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(temp_hostextinfo->icon_image_alt==NULL)?"":html_encode(temp_hostextinfo->icon_image_alt));
 	        }
 

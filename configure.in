@@ -706,10 +706,8 @@ AC_SUBST(INITDIR)
 AC_SUBST(INSTALLPERLSTUFF)
 
 AC_PATH_PROG(PERL,perl)
-AC_OUTPUT(Makefile subst pkginfo test-default.cfg test-template.cfg base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
+AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
 
-perl subst test-default.cfg
-perl subst test-template.cfg
 
 perl subst common/locations.h
 perl subst base/nagios.h
@@ -742,6 +740,7 @@ perl subst sample-config/template-object/escalations.cfg
 perl subst sample-config/template-object/dependencies.cfg
 perl subst sample-config/template-object/checkcommands.cfg
 perl subst sample-config/template-object/misccommands.cfg
+perl subst sample-config/template-object/minimal.cfg
 
 
 

@@ -2,6 +2,13 @@
 Nagios Change Log
 ###################
 
+1.0b5 - ??/??/2002
+------------------
+* Fixed another memory leak related to processing of passive checks
+* Init script mods (killproc doesn't colllide with RedHat's killproc)
+* Added minimalistic sample object config file (minimal.cfg)
+
+
 1.0b4 - 07/04/2002
 ------------------
 * Address field in host definitions is now optional in template-based

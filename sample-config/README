@@ -32,7 +32,10 @@ default-object/   - This directory contains sample object config
 template-object/  - This directory contains sample object config
                     files that can be used if Nagios and the CGIs
                     are compiled with support for the template-based
-                    object data.
+                    object data.  A minimalistic config file called
+		    minimal.cfg is a barebones example of a config
+ 		    file that might be easy for new users to
+		    understand.
                    
 
 template-extinfo/ - This directory contains sample extended info

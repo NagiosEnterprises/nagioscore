@@ -54,7 +54,7 @@ status ()
 }
 
 
-killproc ()
+killproc_nagios ()
 {
 
 	if test ! -f $NagiosRun; then
@@ -112,7 +112,7 @@ case "$1" in
 
 	stop)
 		echo "Stopping network monitor: nagios"
-		killproc nagios
+		killproc_nagios nagios
 		rm -f $NagiosLog $NagiosTmp $NagiosRun $NagiosLckDir/$NagiosLckFile $NagiosCmd
 		;;
 
@@ -145,7 +145,7 @@ case "$1" in
 				NagiosPID=`head -n 1 $NagiosRun`
 				if status nagios > /dev/null; then
 					printf "Reloading nagios configuration..."
-					killproc nagios -HUP
+					killproc_nagios nagios -HUP
 					echo "done"
 				else
 					$0 stop

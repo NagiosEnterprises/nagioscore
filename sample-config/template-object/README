@@ -16,6 +16,14 @@ config files, as is done here (for clarity).  Read the HTML docs
 for information on how to include multiple object config files.
 
 
+NOTE:
+
+A minimalistic config file called minimal.cfg provides a barebones
+example of a config file that might be easy for new users to
+understand.  It contains all types of definitions you need to get
+started (hosts, hostgroups, services, command, contacts, etc...)
+
+
 Note:
 
 Sample command definitions have been split into two sepearate files:

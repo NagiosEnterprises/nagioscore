@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-02-2003
+ * Last Modified: 10-21-2003
  *
  * License:
  * 
@@ -135,6 +135,7 @@ char alert_message[MAX_MESSAGE_BUFFER];
 char *host_name=NULL;
 char *hostgroup_name=NULL;
 char *servicegroup_name=NULL;
+char *service_filter=NULL;
 int host_alert=FALSE;
 int show_all_hosts=TRUE;
 int show_all_hostgroups=TRUE;
@@ -715,6 +716,16 @@ int process_cgivars(void){
 		/* we found the noheader option */
 		else if(!strcmp(variables[x],"noheader"))
 			display_header=FALSE;
+
+		/* servicefilter cgi var */
+                else if(!strcmp(variables[x],"servicefilter")){
+                        x++;
+                        if(variables[x]==NULL){
+                                error=TRUE;
+                                break;
+                                }
+                        service_filter=strdup(variables[x]);
+                        }
 	        }
 
 	/* free memory allocated to the CGI variables */
@@ -1168,6 +1179,7 @@ void show_host_status_totals(void){
 
 /* display a detailed listing of the status of all services... */
 void show_service_detail(void){
+	regex_t preg;
 	time_t t;
 	char date_time[MAX_DATETIME_LENGTH];
 	char state_duration[48];
@@ -1268,6 +1280,9 @@ void show_service_detail(void){
 		printf("</DIV>\n");
 	        }
 
+	if(service_filter!=NULL)
+		printf("<DIV ALIGN=CENTER CLASS='statusSort'>Filtered By Services Matching \'%s\'</DIV>",service_filter);
+
 	printf("<br>");
 
 	printf("</td>\n");
@@ -1337,6 +1352,9 @@ void show_service_detail(void){
 	printf("</TR>\n");
 
 
+	if(service_filter!=NULL)
+		regcomp(&preg,service_filter,0);
+
 	temp_hostgroup=find_hostgroup(hostgroup_name);
 	temp_servicegroup=find_servicegroup(servicegroup_name);
 
@@ -1400,6 +1418,10 @@ void show_service_detail(void){
 		if(passes_service_properties_filter(temp_status)==FALSE)
 			continue;
 
+		/* servicefilter cgi var */
+                if(service_filter!=NULL)
+			if(regexec(&preg,temp_status->description,0,NULL,0))
+				continue;
 
 		show_service=FALSE;
 

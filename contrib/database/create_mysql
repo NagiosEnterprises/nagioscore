@@ -9,7 +9,7 @@
 #
 
 CREATE TABLE hostcomments (
-   hostcomment_id int(11) DEFAULT '0' NOT NULL auto_increment,
+   hostcomment_id int(11) NOT NULL auto_increment,
    host_name varchar(75) NOT NULL,
    entry_time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
    persistent tinyint(4) DEFAULT '0' NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE hostcomments (
 #
 
 CREATE TABLE hostdowntime (
-   hostdowntime_id int(11) DEFAULT '0' NOT NULL auto_increment,
+   hostdowntime_id int(11) NOT NULL auto_increment,
    host_name varchar(75) NOT NULL,
    entry_time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
    start_time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
@@ -162,7 +162,7 @@ CREATE TABLE programstatus (
 #
 
 CREATE TABLE servicecomments (
-   servicecomment_id int(11) DEFAULT '0' NOT NULL auto_increment,
+   servicecomment_id int(11) NOT NULL auto_increment,
    host_name varchar(75) NOT NULL,
    service_description varchar(128) NOT NULL,
    persistent tinyint(4) DEFAULT '0' NOT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE servicecomments (
 #
 
 CREATE TABLE servicedowntime (
-   servicedowntime_id int(11) DEFAULT '0' NOT NULL auto_increment,
+   servicedowntime_id int(11) NOT NULL auto_increment,
    host_name varchar(75) NOT NULL,
    service_description varchar(128) NOT NULL,
    entry_time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,

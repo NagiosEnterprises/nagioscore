@@ -1340,7 +1340,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_timeperiod->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid timeperiod object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1394,7 +1394,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_command->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid command object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1456,7 +1456,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_contactgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid contactgroup object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1527,7 +1527,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_hostgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostgroup object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1631,7 +1631,7 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_servicedependency->fail_execute_on_critical=FALSE;
 				        }
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid execution dependency option '%s' in servicedependency definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1658,7 +1658,7 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_servicedependency->fail_notify_on_critical=FALSE;
 				        }
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification dependency option '%s' in servicedependency definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1671,7 +1671,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_servicedependency->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid servicedependency object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1755,7 +1755,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_serviceescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid serviceescalation object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1821,7 +1821,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_hostgroupescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostgroupescalation object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1958,7 +1958,7 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_host_recovery=FALSE;
 				        }
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid host notification option '%s' in contact definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1985,7 +1985,7 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_service_recovery=FALSE;
 				        }
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid service notification option '%s' in contact definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1998,7 +1998,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_contact->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid contact object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2141,7 +2141,7 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_host->notify_on_recovery=FALSE;
 				        }
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification option '%s' in host definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2168,7 +2168,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
 					temp_host->stalk_on_unreachable=TRUE;
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalking option '%s' in host definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2197,7 +2197,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_host->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid host object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2383,7 +2383,7 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_service->notify_on_recovery=FALSE;
 				        }
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification option '%s' in service definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2412,7 +2412,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				else if(!strcmp(temp_ptr,"c") || !strcmp(temp_ptr,"critical"))
 					temp_service->stalk_on_critical=TRUE;
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalking option '%s' in service definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2441,7 +2441,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_service->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid service object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2518,7 +2518,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
 					temp_hostdependency->fail_notify_on_unreachable=TRUE;
 				else{
-#ifdef DEBUG1
+#ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification dependency option '%s' in hostdependency definition.\n",temp_ptr);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2531,7 +2531,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_hostdependency->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostdependency object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -2606,7 +2606,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"register"))
 			temp_hostescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
-#ifdef DEBUG1
+#ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostescalation object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);

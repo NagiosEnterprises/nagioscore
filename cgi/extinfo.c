@@ -591,8 +591,8 @@ void show_process_info(void){
 
 	printf("<DIV CLASS='dataTitle'>Process Information</DIV>\n");
 
-	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
-	printf("<TR><TD class='stateInfoTable2'>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='data'>\n");
+	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
 	/* program start time */
@@ -655,7 +655,6 @@ void show_process_info(void){
 
 	printf("</TD><TD VALIGN=TOP>\n");
 
-	printf("<DIV ALIGN=CENTER>\n");
 	printf("<DIV CLASS='commandTitle'>Process Commands</DIV>\n");
 
 	printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='command'>\n");
@@ -729,7 +728,7 @@ void show_process_info(void){
 
 	printf("<DIV CLASS='dataTitle'>Process Status Information</DIV>\n");
 
-	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='data'>\n");
 	printf("<TR><TD class='stateInfoTable2'>\n");
 	printf("<TABLE BORDER=0>\n");
 
@@ -837,8 +836,7 @@ void show_host_info(void){
 
 	else{
 
-		printf("<TABLE BORDER=0 CLASS='data'>\n");
-
+		printf("<TABLE BORDER=0>\n");
 		printf("<TR><TD>\n");
 
 		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
@@ -1157,7 +1155,7 @@ void show_service_info(void){
 
 	else{
 
-		printf("<TABLE BORDER=0 CLASS='data'>\n");
+		printf("<TABLE BORDER=0>\n");
 
 		printf("<TR><TD>\n");
 
@@ -2023,7 +2021,7 @@ void show_performance_data(void){
 
 	printf("<div align=center>\n");
 
-	printf("<div class='dataTitle'>Active Service Checks (<A HREF='%s?serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,SERVICE_ACTIVE_CHECK,total_active_checks);
+	printf("<div class='dataTitle'>Active Service Checks<BR>(<A HREF='%s?serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,SERVICE_ACTIVE_CHECK,total_active_checks);
 
 	/* fake this so we don't divide by zero for just showing the table */
 	if(total_active_checks==0)
@@ -2032,29 +2030,41 @@ void show_performance_data(void){
 	printf("<table border=0 cellpadding=15>\n");
 	printf("<tr><td valign=top>\n");
 
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable1'>\n");
+	printf("<TABLE BORDER=0>\n");
+
 	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 1 minute</td><td class='dataOdd'>%d (%.1f%%)",active_checks_1min,(double)(((double)active_checks_1min*100.0)/(double)total_active_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 5 minutes</td><td class='dataEven'>%d (%.1f%%)</td>",active_checks_5min,(double)(((double)active_checks_5min*100.0)/(double)total_active_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 15 minutes</td><td class='dataOdd'>%d (%.1f%%)</td>",active_checks_15min,(double)(((double)active_checks_15min*100.0)/(double)total_active_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 1 hour</td><td class='dataEven'>%d (%.1f%%)</td>",active_checks_1hour,(double)(((double)active_checks_1hour*100.0)/(double)total_active_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>Since program start</td><td class='dataOdd'>%d (%.1f%%)</td>",active_checks_start,(double)(((double)active_checks_start*100.0)/(double)total_active_checks));
-	printf("</table>\n");
+	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)",active_checks_1min,(double)(((double)active_checks_1min*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_5min,(double)(((double)active_checks_5min*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_15min,(double)(((double)active_checks_15min*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 1 hour:</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_1hour,(double)(((double)active_checks_1hour*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>Since program start:&nbsp;&nbsp;</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_start,(double)(((double)active_checks_start*100.0)/(double)total_active_checks));
+
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
 
 	printf("</td><td valign=top>\n");
 
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable2'>\n");
+	printf("<TABLE BORDER=0>\n");
+
 	printf("<tr class='data'><th class='data'>Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>Check Execution Time</td><td class='dataOdd'>%s%d sec</td><td class='dataOdd'>%s%d sec</td><td class='dataOdd'>%.3f sec</td></tr>\n",(min_execution_time==0)?"&lt; ":"",(min_execution_time==0)?1:min_execution_time,(max_execution_time==0)?"&lt; ":"",(max_execution_time==0)?1:max_execution_time,(double)((double)total_execution_time/(double)total_active_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>Check Latency</td><td class='dataEven'>%s%d sec</td><td class='dataEven'>%s%d sec</td><td class='dataEven'>%.3f sec</td></tr>\n",(min_latency==0)?"&lt; ":"",(min_latency==0)?1:min_latency,(max_latency==0)?"&lt; ":"",(max_latency==0)?1:max_latency,(double)((double)total_latency/(double)total_active_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>Percent State Change</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td></tr>\n",min_percent_change_a,max_percent_change_a,(double)((double)total_percent_change_a/(double)total_active_checks));
-	printf("</table>\n");
+	printf("<tr><td class='dataVar'>Check Execution Time:&nbsp;&nbsp;</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_execution_time==0)?"&lt; ":"",(min_execution_time==0)?1:min_execution_time,(max_execution_time==0)?"&lt; ":"",(max_execution_time==0)?1:max_execution_time,(double)((double)total_execution_time/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_latency==0)?"&lt; ":"",(min_latency==0)?1:min_latency,(max_latency==0)?"&lt; ":"",(max_latency==0)?1:max_latency,(double)((double)total_latency/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>Percent State Change:</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td></tr>\n",min_percent_change_a,max_percent_change_a,(double)((double)total_percent_change_a/(double)total_active_checks));
+
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
 
 	printf("</td></tr>\n");
 	printf("</table>\n");
 	
 	printf("<br><br>\n");
-	printf("<div class='dataTitle'>Passive Service Checks (<A HREF='%s?serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,SERVICE_PASSIVE_CHECK,total_passive_checks);
+	printf("<div class='dataTitle'>Passive Service Checks<BR>(<A HREF='%s?serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,SERVICE_PASSIVE_CHECK,total_passive_checks);
 
 
 	/* fake this so we don't divide by zero for just showing the table */
@@ -2064,21 +2074,33 @@ void show_performance_data(void){
 	printf("<table border=0 cellpadding=15>\n");
 	printf("<tr><td valign=top>\n");
 
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable1'>\n");
+	printf("<TABLE BORDER=0>\n");
+
 	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 1 minute</td><td class='dataOdd'>%d (%.1f%%)</td>",passive_checks_1min,(double)(((double)passive_checks_1min*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 5 minutes</td><td class='dataEven'>%d (%.1f%%)</td>",passive_checks_5min,(double)(((double)passive_checks_5min*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 15 minutes</td><td class='dataOdd'>%d (%.1f%%)</td>",passive_checks_15min,(double)(((double)passive_checks_15min*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 1 hour</td><td class='dataEven'>%d (%.1f%%)</td>",passive_checks_1hour,(double)(((double)passive_checks_1hour*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>Since program start</td><td class='dataOdd'>%d (%.1f%%)</td>",passive_checks_start,(double)(((double)passive_checks_start*100.0)/(double)total_passive_checks));
-	printf("</table>\n");
+	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_1min,(double)(((double)passive_checks_1min*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_5min,(double)(((double)passive_checks_5min*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_15min,(double)(((double)passive_checks_15min*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 1 hour:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_1hour,(double)(((double)passive_checks_1hour*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>Since program start:&nbsp;&nbsp;</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_start,(double)(((double)passive_checks_start*100.0)/(double)total_passive_checks));
+
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
 
 	printf("</td><td valign=top>\n");
 
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable2'>\n");
+	printf("<TABLE BORDER=0>\n");
+
 	printf("<tr class='data'><th class='data'>Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>Percent State Change</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td></tr>\n",min_percent_change_b,max_percent_change_b,(double)((double)total_percent_change_b/(double)total_passive_checks));
-	printf("</table>\n");
+	printf("<tr><td class='dataVar'>Percent State Change:&nbsp;&nbsp;</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td></tr>\n",min_percent_change_b,max_percent_change_b,(double)((double)total_percent_change_b/(double)total_passive_checks));
+
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
 
 	printf("</td></tr>\n");
 	printf("</table>\n");

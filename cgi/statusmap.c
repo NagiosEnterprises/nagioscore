@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 04-30-2002
  *
  * Description:
  *
@@ -1578,38 +1578,6 @@ void draw_host_links(void){
 				draw_line((temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y,(temp_parent_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_parent_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,status_color);
 		        }
 
-#ifdef ETHAN_IS_STUPID_DUPLICATION_IS_UNNECESSARY
-		/* determine color to use when drawing links to child hosts */
-		this_hoststatus=find_hoststatus(temp_hostextinfo->host_name);
-		if(this_hoststatus!=NULL){
-			if(this_hoststatus->status==HOST_DOWN || this_hoststatus->status==HOST_UNREACHABLE)
-				status_color=color_red;
-			else
-				status_color=color_black;
-		        }
-		else
-			status_color=color_black;
-
-		/* draw links to all child hosts */
-		for(temp_child_host=host_list;temp_child_host!=NULL;temp_child_host=temp_child_host->next){
-
-			if(is_host_immediate_child_of_host(this_host,temp_child_host)==FALSE)
-				continue;
-
-			/* find extended info entry for this child host */
-			temp_child_hostextinfo=find_hostextinfo(temp_child_host->name);
-			if(temp_child_hostextinfo==NULL)
-				continue;
-
-			/* don't draw the link if we don't have the coords */
-			if(temp_child_hostextinfo->have_2d_coords==FALSE)
-				continue;
-
-			/* draw the link */
-			draw_line((temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,(temp_child_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_child_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,status_color);
-		        }
-#endif
-		
 	        }
 
 	return;
@@ -1751,7 +1719,9 @@ void draw_hosts(void){
 					outer_radius=DEFAULT_NODE_WIDTH*0.2;
 
 				/* calculate width of border */
-				if((temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE) && temp_hoststatus->problem_has_been_acknowledged==FALSE)
+				if(temp_hoststatus==NULL)
+					inner_radius=outer_radius;
+				else if((temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE) && temp_hoststatus->problem_has_been_acknowledged==FALSE)
 					inner_radius=outer_radius-3;
 				else
 					inner_radius=outer_radius;
@@ -1761,7 +1731,9 @@ void draw_hosts(void){
 
 				/* determine fill color */
 				time(&current_time);
-				if(current_time-temp_hoststatus->last_state_change<=900)
+				if(temp_hoststatus==NULL)
+					time_color=color_white;
+				else if(current_time-temp_hoststatus->last_state_change<=900)
 					time_color=color_orange;
 				else if(current_time-temp_hoststatus->last_state_change<=3600)
 					time_color=color_yellow;
@@ -2049,7 +2021,7 @@ void write_host_popup_text(host *hst){
 	        }
 	printf("</b></td></tr>");
 
-	printf("<tr><td class=\\\"popupText\\\">Total Child Hosts:</td><td class=\\\"popupText\\\"><b>");
+	printf("<tr><td class=\\\"popupText\\\">Immediate Child Hosts:</td><td class=\\\"popupText\\\"><b>");
 	printf("%d",number_of_immediate_child_hosts(hst));
 	printf("</b></td></tr>");
 

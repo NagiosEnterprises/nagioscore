@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-29-2002
+ * Last Modified: 04-30-2002
  *
  * Description:
  *
@@ -1693,7 +1693,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			strcpy(temp_hostgroupescalation->name,value);
 		        }
-		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name") || !strcmp(variable,"hostgroups")){
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			temp_hostgroupescalation->hostgroup_name=(char *)malloc(strlen(value)+1);
 			if(temp_hostgroupescalation->hostgroup_name==NULL){
 #ifdef NSCORE
@@ -2146,7 +2146,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			strcpy(temp_service->name,value);
 		        }
-		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups")){
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			temp_service->hostgroup_name=(char *)malloc(strlen(value)+1);
 			if(temp_service->hostgroup_name==NULL){
 #ifdef NSCORE
@@ -2468,7 +2468,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			strcpy(temp_hostescalation->name,value);
 		        }
-		else if(strstr(variable,"hostgroup")==variable){
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			temp_hostescalation->hostgroup_name=(char *)malloc(strlen(value)+1);
 			if(temp_hostescalation->hostgroup_name==NULL){
 #ifdef NSCORE

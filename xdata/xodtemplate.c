@@ -3,9 +3,12 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-26-2002
+ * Last Modified: 04-29-2002
  *
  * Description:
+ *
+ * Routines for parsing and resolving template-based object definitions.
+ * Basic steps involved in this are as follows:
  *
  *    1) Read
  *    2) Resolve
@@ -1027,6 +1030,7 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		
 		new_hostescalation->template=NULL;
 		new_hostescalation->name=NULL;
+		new_hostescalation->hostgroup_name=NULL;
 		new_hostescalation->host_name=NULL;
 		new_hostescalation->contact_groups=NULL;
 		new_hostescalation->first_notification=-2;
@@ -1689,7 +1693,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			strcpy(temp_hostgroupescalation->name,value);
 		        }
-		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name") || !strcmp(variable,"hostgroups")){
 			temp_hostgroupescalation->hostgroup_name=(char *)malloc(strlen(value)+1);
 			if(temp_hostgroupescalation->hostgroup_name==NULL){
 #ifdef NSCORE
@@ -2464,6 +2468,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			strcpy(temp_hostescalation->name,value);
 		        }
+		else if(strstr(variable,"hostgroup")==variable){
+			temp_hostescalation->hostgroup_name=(char *)malloc(strlen(value)+1);
+			if(temp_hostescalation->hostgroup_name==NULL){
+#ifdef NSCORE
+				printf("Error: Could not allocate memory for hostescalation hostgroup.\n");
+#endif
+				return ERROR;
+			        }
+			strcpy(temp_hostescalation->hostgroup_name,value);
+		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name")){
 			temp_hostescalation->host_name=(char *)malloc(strlen(value)+1);
 			if(temp_hostescalation->host_name==NULL){
@@ -2553,6 +2567,7 @@ int xodtemplate_duplicate_objects(void){
 	int result=OK;
 	xodtemplate_service *temp_service;
 	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	char *host_names;
@@ -2566,8 +2581,8 @@ int xodtemplate_duplicate_objects(void){
 	printf("xodtemplate_duplicate_objects() start\n");
 #endif
 
+	/****** RESOLVE ALL HOSTGROUP OBJECTS ******/
 	/* HOSTGROUPS NEED TO BE RESOLVED BEFORE OBJECTS CAN BE DUPLICATED (BECAUSE SOME REFERENCE HOSTGROUPS) */
-	/* resolve all hostgroup objects */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 		if(xodtemplate_resolve_hostgroup(temp_hostgroup)==ERROR)
 			return ERROR;
@@ -2575,7 +2590,7 @@ int xodtemplate_duplicate_objects(void){
 
 
 
-	/* duplicate service definitions we need to (based on multiple host names)... */
+	/****** DUPLICATE SERVICE DEFINITIONS WITH MULTIPLE HOST NAMES ******/
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services with NULL host names */
@@ -2621,7 +2636,7 @@ int xodtemplate_duplicate_objects(void){
 		        }
 	        }
 
-	/* duplicate service definitions we need to (based on one or more hostgroup names)... */
+	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP NAMES ******/
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services with NULL hostgroup names */
@@ -2703,7 +2718,7 @@ int xodtemplate_duplicate_objects(void){
 	        }
 
 
-	/* duplicate host escalation definitions we need to (based on multiple host names)... */
+	/****** DUPLICATE HOST ESCALATION DEFINITIONS WITH MULTIPLE HOST NAMES ******/
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 
 		/* skip hostescalations with NULL host names */
@@ -2750,7 +2765,89 @@ int xodtemplate_duplicate_objects(void){
 	        }
 
 
-	/* duplicate service escalation definitions we need to (based on multiple host names)... */
+	/****** DUPLICATE HOST ESCALATION DEFINITIONS WITH ONE OR MORE HOSTGROUP NAMES ******/
+	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+
+		/* skip hostescalations with NULL hostgroup names */
+		if(temp_hostescalation->hostgroup_name==NULL)
+			continue;
+		
+		/* allocate memory for hostgroup name list */
+		hostgroup_names=(char *)malloc(strlen(temp_hostescalation->hostgroup_name)+1);
+		if(hostgroup_names==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for hostgroup name list in hostescalation '%s'\n",temp_hostescalation->name);
+#endif
+			return ERROR;
+		        }
+		strcpy(hostgroup_names,temp_hostescalation->hostgroup_name);
+
+		/* duplicate hostescalation entries */
+		first_item=TRUE;
+		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+
+			/* find the hostgroup */
+			temp_hostgroup=xodtemplate_find_hostgroup(temp_ptr);
+			if(temp_hostgroup==NULL){
+#ifdef NSCORE
+				printf("Error: Could not find hostgroup '%s' specified in hostescalation '%s'\n",temp_ptr,temp_hostescalation->name);
+#endif
+				return ERROR;
+			        }
+
+			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
+			if(host_names==NULL){
+#ifdef NSCORE
+				printf("Error: Could not allocate memory for hostgroup name list in hostescalation '%s'\n",temp_hostescalation->name);
+#endif
+				return ERROR;
+		                }
+			strcpy(host_names,temp_hostgroup->members);
+
+			/* add a copy of the hostescalation for every host in the hostgroup */
+			host_name_ptr=host_names;
+			for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
+
+				/* if this is the first duplication, see if we can use the existing entry */
+				if(first_item==TRUE){
+
+					if(temp_hostescalation->host_name==NULL){
+						temp_hostescalation->host_name=(char *)malloc(strlen(host_name)+1);
+						if(temp_hostescalation->host_name==NULL){
+							free(hostgroup_names);
+							return ERROR;
+						        }
+						strcpy(temp_hostescalation->host_name,host_name);
+					        }
+					else{
+						result=xodtemplate_duplicate_hostescalation(temp_hostescalation,host_name);
+						if(result==ERROR){
+							free(hostgroup_names);
+							return ERROR;
+						        }
+					        }
+
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate hostescalation definition */
+				result=xodtemplate_duplicate_hostescalation(temp_hostescalation,host_name);
+
+				/* exit on error */
+				if(result==ERROR){
+					free(host_name);
+					return ERROR;
+			                }
+			        }
+		        }
+
+		/* free memory we used for hostgroup name list */
+		free(hostgroup_names);
+	        }
+
+
+	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH MULTIPLE HOST NAMES ******/
 	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
 
 		/* skip serviceescalations with NULL host names */
@@ -2793,6 +2890,53 @@ int xodtemplate_duplicate_objects(void){
 
 			/* free memory we used for host name list */
 			free(host_names);
+		        }
+	        }
+
+
+	/****** DUPLICATE HOSTGROUP ESCALATION DEFINITIONS WITH MULTIPLE HOSTGROUP NAMES ******/
+	for(temp_hostgroupescalation=xodtemplate_hostgroupescalation_list;temp_hostgroupescalation!=NULL;temp_hostgroupescalation=temp_hostgroupescalation->next){
+
+		/* skip hostgroup escalations with NULL hostgroup names */
+		if(temp_hostgroupescalation->hostgroup_name==NULL)
+			continue;
+
+		/* this hostgroupescalation definition should be assigned to multiple hostgroups... */
+		if(strstr(temp_hostgroupescalation->hostgroup_name,",")){
+			
+			/* allocate memory for hostgroup name list */
+			hostgroup_names=(char *)malloc(strlen(temp_hostgroupescalation->hostgroup_name)+1);
+			if(hostgroup_names==NULL){
+#ifdef NSCORE
+				printf("Error: Could not allocate memory for hostgroup name list in hostgroupescalation '%s'\n",temp_hostgroupescalation->name);
+#endif
+				return ERROR;
+			        }
+			strcpy(hostgroup_names,temp_hostgroupescalation->hostgroup_name);
+
+			/* duplicate hostgroupescalation entries */
+			first_item=TRUE;
+			for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+
+				/* existing definition gets first hostgroup name (memory has already been allocated) */
+				if(first_item==TRUE){
+					strcpy(temp_hostgroupescalation->hostgroup_name,temp_ptr);
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate hostgroupescalation definition */
+				result=xodtemplate_duplicate_hostgroupescalation(temp_hostgroupescalation,temp_ptr);
+
+				/* exit on error */
+				if(result==ERROR){
+					free(hostgroup_names);
+					return ERROR;
+				        }
+			        }
+
+			/* free memory we used for host name list */
+			free(hostgroup_names);
 		        }
 	        }
 
@@ -3162,6 +3306,104 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
         }
 
 
+
+
+/* duplicates a hostgroup escalation definition (with a new hostgroup name) */
+int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *temp_hostgroupescalation, char *hostgroup_name){
+	xodtemplate_hostgroupescalation *new_hostgroupescalation;
+
+#ifdef DEBUG0
+	printf("xodtemplate_duplicate_hostgroupescalation() start\n");
+#endif
+
+	/* allocate memory for a new host escalation definition */
+	new_hostgroupescalation=(xodtemplate_hostgroupescalation *)malloc(sizeof(xodtemplate_hostgroupescalation));
+	if(new_hostgroupescalation==NULL){
+#ifdef NSCORE
+		printf("Error: Could not allocate memory for new duplicate host escalation definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+#endif
+		return ERROR;
+	        }
+
+	/* defaults */
+	new_hostgroupescalation->template=NULL;
+	new_hostgroupescalation->name=NULL;
+	new_hostgroupescalation->hostgroup_name=NULL;
+	new_hostgroupescalation->contact_groups=NULL;
+
+	new_hostgroupescalation->has_been_resolved=temp_hostgroupescalation->has_been_resolved;
+	new_hostgroupescalation->register_object=temp_hostgroupescalation->register_object;
+
+	new_hostgroupescalation->first_notification=temp_hostgroupescalation->first_notification;
+	new_hostgroupescalation->last_notification=temp_hostgroupescalation->last_notification;
+	new_hostgroupescalation->have_first_notification=temp_hostgroupescalation->have_first_notification;
+	new_hostgroupescalation->have_last_notification=temp_hostgroupescalation->have_last_notification;
+	new_hostgroupescalation->notification_interval=temp_hostgroupescalation->notification_interval;
+	new_hostgroupescalation->have_notification_interval=temp_hostgroupescalation->have_notification_interval;
+	
+
+	/* allocate memory for and copy string members of hostgroupescalation definition */
+	if(temp_hostgroupescalation->hostgroup_name!=NULL){
+		new_hostgroupescalation->hostgroup_name=(char *)malloc(strlen(hostgroup_name)+1);
+		if(new_hostgroupescalation->hostgroup_name==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+#endif
+			free(new_hostgroupescalation);
+			return ERROR;
+		        }
+		strcpy(new_hostgroupescalation->hostgroup_name,hostgroup_name);
+	        } 
+	if(temp_hostgroupescalation->template!=NULL){
+		new_hostgroupescalation->template=(char *)malloc(strlen(temp_hostgroupescalation->template)+1);
+		if(new_hostgroupescalation->template==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+#endif
+			free(new_hostgroupescalation->hostgroup_name);
+			free(new_hostgroupescalation);
+			return ERROR;
+		        }
+		strcpy(new_hostgroupescalation->template,temp_hostgroupescalation->template);
+	        } 
+	if(temp_hostgroupescalation->name!=NULL){
+		new_hostgroupescalation->name=(char *)malloc(strlen(temp_hostgroupescalation->name)+1);
+		if(new_hostgroupescalation->name==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+#endif
+			free(new_hostgroupescalation->hostgroup_name);
+			free(new_hostgroupescalation->template);
+			free(new_hostgroupescalation);
+			return ERROR;
+		        }
+		strcpy(new_hostgroupescalation->name,temp_hostgroupescalation->name);
+	        } 
+	if(temp_hostgroupescalation->contact_groups!=NULL){
+		new_hostgroupescalation->contact_groups=(char *)malloc(strlen(temp_hostgroupescalation->contact_groups)+1);
+		if(new_hostgroupescalation->contact_groups==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+#endif
+			free(new_hostgroupescalation->hostgroup_name);
+			free(new_hostgroupescalation->template);
+			free(new_hostgroupescalation->name);
+			free(new_hostgroupescalation);
+			return ERROR;
+		        }
+		strcpy(new_hostgroupescalation->contact_groups,temp_hostgroupescalation->contact_groups);
+	        } 
+
+	/* add new hostgroupescalation to head of list in memory */
+	new_hostgroupescalation->next=xodtemplate_hostgroupescalation_list;
+	xodtemplate_hostgroupescalation_list=new_hostgroupescalation;
+
+#ifdef DEBUG0
+	printf("xodtemplate_duplicate_hostgroupescalation() end\n");
+#endif
+
+	return OK;
+        }
 
 
 
@@ -5529,6 +5771,7 @@ int xodtemplate_free_memory(void){
 		next_hostescalation=this_hostescalation->next;
 		free(this_hostescalation->template);
 		free(this_hostescalation->name);
+		free(this_hostescalation->hostgroup_name);
 		free(this_hostescalation->host_name);
 		free(this_hostescalation->contact_groups);
 		free(this_hostescalation);

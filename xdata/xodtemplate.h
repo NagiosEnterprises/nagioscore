@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-04-2002
+ * Last Modified:   04-29-2002
  *
  * License:
  *
@@ -362,6 +362,7 @@ typedef struct xodtemplate_hostescalation_struct{
 	char      *template;
 	char      *name;
 
+	char      *hostgroup_name;
 	char      *host_name;
 	int       first_notification;
 	int       last_notification;
@@ -397,6 +398,7 @@ int xodtemplate_register_objects(void);
 int xodtemplate_free_memory(void);
 
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
+int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *,char *);
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *,char *);
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *,char *);
 

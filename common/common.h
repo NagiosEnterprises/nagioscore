@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 01-14-2003
  *
  * License:
  *
@@ -239,8 +239,6 @@
 #define READ_HOSTESCALATIONS            2048
 #define READ_HOSTEXTINFO                4096
 #define READ_SERVICEEXTINFO             8192
-
-#define CACHE_OBJECT_DATA               65535    /* used by daemon only */
 
 #define READ_ALL_OBJECT_DATA            READ_HOSTS | READ_HOSTGROUPS | READ_CONTACTS | READ_CONTACTGROUPS | READ_SERVICES | READ_COMMANDS | READ_TIMEPERIODS | READ_SERVICEESCALATIONS | READ_SERVICEDEPENDENCIES | READ_HOSTDEPENDENCIES | READ_HOSTESCALATIONS | READ_HOSTEXTINFO | READ_SERVICEEXTINFO
 

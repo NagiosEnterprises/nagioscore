@@ -408,7 +408,7 @@ typedef struct host_cursor_struct{
 
 
 /**** Top-level input functions ****/
-int read_object_config_data(char *,int);        /* reads all external configuration data of specific types */
+int read_object_config_data(char *,int,int);        /* reads all external configuration data of specific types */
 
 /**** Object Creation Functions ****/
 contact *add_contact(char *,char *,char *,char *,char *,char *,int,int,int,int,int,int,int);		/* adds a contact definition */

@@ -158,6 +158,7 @@ extern serviceextinfo   *serviceextinfo_list;
 int read_all_config_data(char *main_config_file){
 	int result=OK;
 	int options;
+	int cache=FALSE;
 
 #ifdef DEBUG0
 	printf("read_all_config_data() start\n");
@@ -168,14 +169,14 @@ int read_all_config_data(char *main_config_file){
 	if(result!=OK)
 		return ERROR;
 
-	options=READ_TIMEPERIODS|READ_HOSTS|READ_HOSTGROUPS|READ_CONTACTS|READ_CONTACTGROUPS|READ_SERVICES|READ_COMMANDS|READ_SERVICEESCALATIONS|READ_HOSTGROUPESCALATIONS|READ_SERVICEDEPENDENCIES|READ_HOSTDEPENDENCIES|READ_HOSTESCALATIONS|READ_HOSTEXTINFO|READ_SERVICEEXTINFO;
+	options=READ_ALL_OBJECT_DATA;
 
 	/* cache object definitions if we're up and running */
 	if(verify_config==FALSE && test_scheduling==FALSE)
-		options+=CACHE_OBJECT_DATA;
+		cache=TRUE;
 
 	/* read in all host configuration data from external sources */
-	result=read_object_config_data(main_config_file,options);
+	result=read_object_config_data(main_config_file,options,cache);
 	if(result!=OK)
 		return ERROR;
 

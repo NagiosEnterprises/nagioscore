@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-08-2003
+ * Last Modified:   01-15-2003
  *
  * License:
  *
@@ -36,11 +36,9 @@
 #endif
 
 /**** IMPLEMENTATION-SPECIFIC HEADER FILES ****/
+
 #ifdef USE_XODTEMPLATE                          /* template-based routines */
 #include "../xdata/xodtemplate.h"
-#endif
-#ifdef USE_XODDB
-#include "../xdata/xoddb.h"			/* database routines */
 #endif
   
 
@@ -73,7 +71,7 @@ static char *services_by_host;
 
 
 /* read all host configuration data from external source */
-int read_object_config_data(char *main_config_file,int options){
+int read_object_config_data(char *main_config_file,int options,int cache){
 	int result=OK;
 
 #ifdef DEBUG0
@@ -83,16 +81,10 @@ int read_object_config_data(char *main_config_file,int options){
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
-	result=xodtemplate_read_config_data(main_config_file,options);
+	result=xodtemplate_read_config_data(main_config_file,options,cache);
 	if(result!=OK)
 		return ERROR;
 #endif
-#ifdef USE_XODMYSQL
-	result=xodmysql_read_config_data(main_config_file,options);
-	if(result!=OK)
-		return ERROR;
-#endif
-
 
 #ifdef DEBUG0
 	printf("read_object_config_data() end\n");

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-12-2003
+ * Last Modified:   08-13-2003
  *
  * License:
  *
@@ -1729,10 +1729,9 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	/* add the passive check result to the end of the list in memory */
 	if(passive_check_result_list==NULL)
 		passive_check_result_list=new_pcr;
-	else{
+	else
 		passive_check_result_list_tail->next=new_pcr;
-		passive_check_result_list_tail=new_pcr;
-	        }
+	passive_check_result_list_tail=new_pcr;
 
 #ifdef DEBUG0
 	printf("cmd_process_service_check_result() end\n");

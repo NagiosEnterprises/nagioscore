@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -27,31 +27,55 @@
 </p>
 
 <p>
-<a name="unpacking"></a>
+<strong><u>Become Root</u></strong>
+</p>
+
+<p>
+You'll need to have root access to install Nagios as described in this documentation, as you'll be creating users and group, modifying your web server config files, etc.  Either login as root before you begin or use the <i>su</i> command to change to the root user from another account.
+</p>
+
+<p>
+<strong><u>Getting The Latest Version</u></strong>
+</p>
+
+<p>
+You can download the latest version of Nagios from <a href="http://www.nagios.org/download">http://www.nagios.org/download</a>.
+</p>
+
+<p>
 <strong><u>Unpacking The Distribution</u></strong>
 </p>
 <p>
-To unpack the Nagios distribution, type the following two commands at a shell prompt:
+To unpack the Nagios distribution, use the following command:
 </p>
 <p>
 <strong>
 <font color="red">
-gunzip nagios-1.0.tar.gz<br>
-tar xf nagios-1.0.tar
+tar xzf nagios-<i>version</i>.tar.gz
 </font>
 </strong>
 </p>
 <p>
-If you downloaded the ZIP version of the distribution, type the following:
-</p>
-<p>
-<strong><font color="red">unzip nagios-1.0.zip</font></strong>
-<p>
-When you have finished executing these commands, you should find a <b>nagios-1.0</b> directory
+When you have finished executing these commands, you should find a <b>nagios-<i>version</i></b> directory
 that has been created in your current directory.  Inside that directory you will find all the files
 that compromise the core Nagios distribution.
 </p>
 
+
+<p>
+<strong><u>Create Nagios User/Group</u></strong>
+</p>
+
+<p>
+You're probably going to want to run Nagios under a normal user account, so add a new user (and group) to your system with the following command (this will vary depending on what OS you're running):
+</p>
+<p>
+<strong>
+<font color="red">
+adduser nagios
+</font>
+</strong>
+</p>
 
 <p>
 <strong><u>Create Installation Directory</u></strong>
@@ -70,32 +94,65 @@ mkdir /usr/local/nagios
 </p>
 
 <p>
-<strong><u>Create User/Group</u></strong>
-</p>
-
-<p>
-You're probably going to want to run Nagios under a normal user account, so add a new user (and group) to your system with the following commands (these will vary depending on what OS you're running):
+Change the owner of the base installtion directory to be the Nagios user and group you added earlier as follows:
 </p>
 <p>
 <strong>
 <font color="red">
-adduser nagios
+chown nagios.nagios /usr/local/nagios
 </font>
 </strong>
 </p>
+
+
+<p>
+<strong><u>Identify Web Server User</u></strong>
+</p>
+<p>
+You're probably going to want to issue <a href="extcommands.html">external commands</a> (like acknowledgements and scheduled downtime) from the web interface.  To do so, you need to identify the user your web server runs as (typically <i>apache</i>, although this may differ on your system).  This setting is found in your web server configuration file.  The following command can be used to quickly determine what user Apache is running as (paths may differ on your system):
+</p>
+
+<p>
+<strong>
+<font color="red">
+grep "^User" /etc/httpd/conf/httpd.conf<br>
+</font>
+</strong>
+</p>
+
+<p>
+<strong><u>Add Command File Group</u></strong>
+</p>
+
+<p>
+Next we're going to create a new group whose members include the user your web server is running as and the user Nagios is running as.  Let's say we call this new group '<b>nagcmd</b>' (you can name it differently if you wish).  On RedHat Linux you can use the following command to add a new group (other systems may differ):
+</p>
+
+<p>
+<font color="red">/usr/sbin/groupadd nagcmd</font>
+</p> 
+
+<p>
+Next, add the users that your web server and Nagios run as to the newly created group with the following commands (I'll assume <i>apache</i> and <i>nagios</i> are the respective users):
+</p>
+
+<p>
+<font color="red">/usr/sbin/usermod -G nagcmd apache</font>
+<font color="red">/usr/sbin/usermod -G nagcmd nagios</font><br>
+</p> 
 
 <p>
 <strong><u>Run the Configure Script</u></strong>
 </p>
 
 <p>
-Run the configure script to initialize variables and create a Makefile as follows...
+Run the configure script to initialize variables and create a Makefile as follows...(the last two options: --with-command-<i>xxx</i> are optional, but needed if you want to issue <a href="extcommands.html">external commands</a>)
 </p>
 
 <p>
 <strong>
 <font color="red">
-./configure --prefix=<i>prefix</i> --with-cgiurl=<i>cgiurl</i> --with-htmurl=<i>htmurl</i> --with-nagios-user=<i>someuser</i> --with-nagios-grp=<i>somegroup</i>
+./configure --prefix=<i>prefix</i> --with-cgiurl=<i>cgiurl</i> --with-htmurl=<i>htmurl</i> --with-nagios-user=<i>someuser</i> --with-nagios-grp=<i>somegroup</i> --with-command-grp=<i>cmdgroup</i>
 </font>
 </strong>
 </p>
@@ -107,6 +164,7 @@ Run the configure script to initialize variables and create a Makefile as follow
 <li>Replace <i>htmurl</i> with the actual url you will be using to access the HTML for the main interface and documentation (default is <i>/nagios/</i>)
 <li>Replace <i>someuser</i> with the name of a user on your system that will be used for setting permissions on the installed files (default is <i>nagios</i>)
 <li>Replace <i>somegroup</i> with the name of a group on your system that will be used for setting permissions on the installed files (default is <i>nagios</i>)
+<li>Replace <i>cmdgroup</i> with the name of the group running the web server (default is <i>nagios</i>)
 </ul>
 </i>
 </p>
@@ -188,7 +246,7 @@ You should see five different subdirectories.  A brief description of what each 
 </p>
 
 <p>
-<table border="1">
+<table border="1" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Sub-Directory</strong></td>
 <td bgcolor="#cbcbcb"><strong>Contents</strong></td>
@@ -211,7 +269,15 @@ You should see five different subdirectories.  A brief description of what each 
 </tr>
 <tr>
 <td><strong>var/</strong></td>
-<td>Empty directory for the <a href="configmain.html#log_file">log file</a></td>
+<td>Empty directory for the <a href="configmain.html#log_file">log file</a>, <a href="configmain.html#status_file">status file</a>, <a href="configmain.html#state_retention_file">retention file</a>, etc.</td>
+</tr>
+<tr>
+<td><strong>var/archives</strong></td>
+<td>Empty directory for the <a href="configmain.html#log_archive_path">archived logs</a></td>
+</tr>
+<tr>
+<td><strong>var/rw</strong></td>
+<td>Empty directory for the <a href="configmain.html#command_file">external command file</a></td>
 </tr>
 </table>
 </p>

@@ -6,8 +6,16 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: large; }
+        .Default { font-family: verdana,arial,serif; font-size: small; }
+		
+		TH.Macros { font-family: verdana,arial,serif; font-size: 9pt; font-weight: bold; background-color: #cbcbcb; }
+		.MacroName { font-family: verdana,arial,serif; font-size: 8pt; font-weight: bold; }
+		.MacroDescription { font-family: verdana,arial,serif; font-size: 7pt; }
+		.MacroNo { font-family: verdana,arial,serif; font-size: 8pt; background-color: white; }
+		.MacroYes { font-family: verdana,arial,serif; font-size: 8pt; font-weight: bold; background-color: #00ff00; }
+		.MacroType { font-family: verdana,arial,serif; font-size: 8pt; font-weight: bold; background-color: #cbcbcb; }
+		
 -->      
 </STYLE>
 
@@ -35,7 +43,7 @@ One of the features available in Nagios is the ability to use macros in command 
 </p>
 
 <p>
-Although macros can be used in all commands you define, not all macros may be "valid" in a particular type of command.  For example, some macros may only be valid during service notification commands, whereas other may only be valid during host check commands.  There are nine types of commands that Nagios recognizes and treats differently.  They are as follows:
+Although macros can be used in all commands you define, not all macros may be "valid" in a particular type of command.  For example, some macros may only be valid during service notification commands, whereas other may only be valid during host check commands.  There are ten types of commands that Nagios recognizes and treats differently.  They are as follows:
 </p>
 <p>
 <ol>
@@ -46,6 +54,7 @@ Although macros can be used in all commands you define, not all macros may be "v
 <li>Service <a href="eventhandlers.html">event handlers</a> and/or a global service event handler
 <li>Host <a href="eventhandlers.html">event handlers</a> and/or a global host event handler
 <li><a href="configmain.html#ocsp_command">OCSP</a> command
+<li><a href="configmain.html#ochp_command">OCHP</a> command
 <li>Service <a href="perfdata.html">performance data</a> commands
 <li>Host <a href="perfdata.html">performance data</a> commands
 </ol>
@@ -59,195 +68,507 @@ The table below lists all macros currently available in Nagios, along with a bri
 <strong><u>Macro Availability Chart</u></strong>
 </p>
 
+<p align=right>
+<b>Legend:</b>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><td class="MacroNo">No</td><td>The macro is not available</td></tr>
+<tr><td class="MacroYes">Yes</td><td>The macro is available</td></tr>
+</table>
+</p>
+
 <p>
 <div align="center">
-<table border="1" cellspacing=0 cellpadding=5>
-<tr bgcolor="#cbcbcb">
-<td><font size=-1><strong>Macro Name</strong></font></td>
-<td><font size=-1><strong>Macro Description</strong></font></td>
-<td><font size=-1><strong>Service Checks</strong></font></td>
-<td><font size=-1><strong>Service Notifications</strong></font></td>
-<td><font size=-1><strong>Host Checks</strong></font></td>
-<td><font size=-1><strong>Host Notifications</strong></font></td>
-<td><font size=-1><strong>Service Event Handlers &amp; Global Service Event Handler &amp; <a href="configmain.html#ocsp_command">OCSP</a> Command</strong></font></td>
-<td><font size=-1><strong>Host Event Handlers &amp; Global Host Event Handler</strong></font></td>
-<td><font size=-1><strong>Service Performance Data Commands</strong></font></td>
-<td><font size=-1><strong>Host Performance Data Commands</strong></font></td>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr class="Macros">
+<th class="Macros">Macro Name</td>
+<th class="Macros">Service Checks</td>
+<th class="Macros">Service Notifications</td>
+<th class="Macros">Host Checks</td>
+<th class="Macros">Host Notifications</td>
+<th class="Macros">Service Event Handlers, Global Service Event Handler, <a href="configmain.html#ocsp_command">OCSP</a> Command</td>
+<th class="Macros">Host Event Handlers, Global Host Event Handler, <a href="configmain.html#ochp_command">OCHP</a> Command</td>
+<th class="Macros">Service Performance Data Commands</td>
+<th class="Macros">Host Performance Data Commands</td>
 </tr>
 <tr>
-<td><font size=-1><b>$CONTACTNAME$</b></font></td>
-<td><font size=-1>Short name for the contact (i.e. "jdoe") that is being notified of a host or service problem</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td>
+<td colspan='9' class='MacroType'>Host Macros:</td>
 </tr>
 <tr>
-<td><font size=-1><b>$CONTACTALIAS$</b></font></td>
-<td><font size=-1>Long name/description for the contact (i.e. "John Doe") being notified</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td>
+<td class='MacroName'><a href="#hostname">$HOSTNAME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$CONTACTEMAIL$</b></font></td>
-<td><font size=-1>Email address of the contact being notified</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td>
+<td class='MacroName'><a href="#hostalias">$HOSTALIAS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$CONTACTPAGER$</b></font></td>
-<td><font size=-1>Pager number/address of the contact being notified</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#hostaddress">$HOSTADDRESS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$HOSTNAME$</b></font></td>
-<td><font size=-1>Short name for the host (i.e. "biglinuxbox").  During a service notification, this refers to the host associated with the service.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hoststate">$HOSTSTATE$</a></a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$HOSTALIAS$</b></font></td>
-<td><font size=-1>Long name/description for the host (i.e. "Big Linux Server")</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hoststateid">$HOSTSTATEID$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$HOSTADDRESS$</b></font></td>
-<td><font size=-1>The IP address of the host</font></td>
-<td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hoststatetype">$HOSTSTATETYPE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$HOSTSTATE$</b></font></td>
-<td><font size=-1>The current state of the host ("UP", "DOWN", or "UNREACHABLE")</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostattempt">$HOSTATTEMPT$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#hostlatency">$HOSTLATENCY$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$ARGn$</b></font></td>
-<td><font size=-1>The nth argument passed to the service check command. Nagios supports up to 32 argument macros ($ARG1$ through $ARG32$).</font></td>
-<td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td><td>No</td><td>No</td><td>No</td>
+<td class='MacroName'><a href="#hostexecutiontime">$HOSTEXECUTIONTIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#hostduration">$HOSTDURATION$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$SERVICEDESC$</b></font></td>
-<td><font size=-1>The long name/description of the service being monitored (i.e. "Main Website")</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td>
+<td class='MacroName'><a href="#hostdurationsec">$HOSTDURATIONSEC$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$SERVICESTATE$</b></font></td>
-<td><font size=-1>The current status of the service being monitored ("WARNING", "UNKNOWN", "CRITICAL", or "OK")</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td>
+<td class='MacroName'><a href="#hostdowntime">$HOSTDOWNTIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$OUTPUT$</b></font></td>
-<td><font size=-1>The text output from the service or host check (i.e. "FTP ok - 1 second response time").   For service notifications and event handlers, this will contain the text output from the service check.  For host notifications and event handlers, this will contain the text output from the host check.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostpercentchange">$HOSTPERCENTCHANGE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$PERFDATA$</b></font></td>
-<td><font size=-1>This macro contains any <a href="perfdata.html">performance data</a> that may have been returned by the service or host check.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostgroupname">$HOSTGROUPNAME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$EXECUTIONTIME$</b></font></td>
-<td><font size=-1>This is the number of seconds that the host or service check took to execute  (i.e. the amount of time the check was executing).</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostgroupalias">$HOSTGROUPALIAS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$LATENCY$</b></font></td>
-<td><font size=-1>This is the number of seconds that a service check lagged behind its scheduled check time.  For instance, if a check was scheduled for 03:04:15 and it didn't get executed until 03:14:17, there would be a check latency of 2 seconds.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td>
+<td class='MacroName'><a href="#lasthostcheck">$LASTHOSTCHECK$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$NOTIFICATIONTYPE$</b></font></td>
-<td><font size=-1>Identifies the type of notification that is being sent ("PROBLEM", "RECOVERY", or "ACKNOWLEDGEMENT").  </font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td>
+<td class='MacroName'><a href="#lasthoststatechange">$LASTHOSTSTATECHANGE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$NOTIFICATIONNUMBER$</b></font></td>
-<td><font size=-1>The current notification number for the service or host.  The notification number increases by one (1) each time a new notification is sent out for a host or service (except for acknowledgements).  The notification number is reset to 0 when the host or service recovers (<i>after</i> the recovery notification has gone out).  Acknowledgements do not cause the notification number to increase.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td>No</td><td>No</td><td>No</td>
+<td class='MacroName'><a href="#lasthostup">$LASTHOSTUP$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#lasthostdown">$LASTHOSTDOWN$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$DATETIME$</b></font></td>
-<td><font size=-1>Date/time stamp (i.e. <i>Fri Oct 13 00:30:28 CDT 2000</i>)</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#lasthostunreachable">$LASTHOSTUNREACHABLE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$SHORTDATETIME$</b></font></td>
-<td><font size=-1>Date/time stamp (i.e. <i>10-13-2000 00:30:28</i>)</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostoutput">$HOSTOUTPUT$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$DATE$</b></font></td>
-<td><font size=-1>Date stamp (i.e. <i>10-13-2000</i>)</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostperfdata">$HOSTPERFDATA$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td><font size=-1><b>$TIME$</b></font></td>
-<td><font size=-1>Time stamp (i.e. <i>00:30:28</i>)</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostackauthor">$HOSTACKAUTHOR$</a></td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$TIMET$</b></font></td>
-<td><font size=-1>Time stamp in time_t format (seconds since the UNIX epoch)</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#hostackcomment">$HOSTACKCOMMENT$</a></td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$LASTCHECK$</b></font></td>
-<td><font size=-1>This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a service or host check was last performed.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td colspan='9' class='MacroType'>Service Macros:</td>
 </tr>
 <tr>
-<td><font size=-1><b>$LASTSTATECHANGE$</b></font></td>
-<td><font size=-1>This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a service or host last changed state.</font></td>
-<td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#servicedesc">$SERVICEDESC$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#servicestate">$SERVICESTATE$</a></td>
+<td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$ADMINEMAIL$</b></font></td>
-<td><font size=-1>Email address for the local administrator (of the host doing the monitoring)</font></td>
-<td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#servicestateid">$SERVICESTATEID$</a></td>
+<td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$ADMINPAGER$</b></font></td>
-<td><font size=-1>Pager number/address for the local administrator</font></td>
-<td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#servicestatetype">$SERVICESTATETYPE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#serviceattempt">$SERVICEATTEMPT$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$STATETYPE$</b></font></td>
-<td><font size=-1>The <a href="statetypes.html">state type</a> for the current service or host check ("HARD" or "SOFT").  Soft states occur when service or host checks return a non-OK state and are in the process of being retried.  Hard states result when service or host checks have been checked a specified maximum number of times.  Notifications are sent out only when hard state changes occur.</font></td>
-<td>No</td><td>No</td><td>No</td><td>No</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#servicelatency">$SERVICELATENCY$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$SERVICEATTEMPT$</b></font></td>
-<td><font size=-1>This refers to the number of the current service check retry.  For instance, if this is the second time that the service is being rechecked, this will be the number two.  Current attempt number is only useful when writing service <a href="eventhandlers.html">event handlers</a> for "soft" states that take a specific action based on the service retry number.</font></td>
-<td>No</td><td>No</td><td>No</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td>
+<td class='MacroName'><a href="#serviceexecutiontime">$SERVICEEXECUTIONTIME$</a></td>
+<td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$HOSTATTEMPT$</b></font></td>
-<td><font size=-1>This refers to the number of the current host check retry.  For instance, if this is the second time that the host is being rechecked, this will be the number two.  Current attempt number is only useful when writing host <a href="eventhandlers.html">event handlers</a> for "soft" states that take a specific action based on the host retry number.</font></td>
-<td>No</td><td>No</td><td>No</td><td>No</td><td>No</td><td bgcolor="#00ff00">Yes</td><td>No</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#serviceduration">$SERVICEDURATION$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td class='MacroName'><a href="#servicedurationsec">$SERVICEDURATIONSEC$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
-<td><font size=-1><b>$USERn$</b></font></td>
-<td><font size=-1>The nth user-definable macro.  User macros can be defined in one or more <a href="configmain.html#resource_file">resource files</a> .  Nagios supports up to thrity-two user macros ($USER1$ through $USER32$).</font></td>
-<td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td><td bgcolor="#00ff00">Yes</td>
+<td class='MacroName'><a href="#servicedowntime">$SERVICEDOWNTIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicepercentchange">$SERVICEPERCENTCHANGE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicegroupname">$SERVICEGROUPNAME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicegroupalias">$SERVICEGROUPALIAS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastservicecheck">$LASTSERVICECHECK$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastservicestatechange">$LASTSERVICESTATECHANGE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastserviceok">$LASTSERVICEOK$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastservicewarning">$LASTSERVICEWARNING$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastserviceunknown">$LASTSERVICEUNKNOWN$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#lastservicecritical">$LASTSERVICECRITICAL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceoutput">$SERVICEOUTPUT$</a></td>
+<td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceperfdata">$SERVICEPERFDATA$</a></td>
+<td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceackauthor">$SERVICEACKAUTHOR$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceackcomment">$SERVICEACKCOMMENT$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td colspan='9' class='MacroType'>Notification Macros:</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#notificationtype">$NOTIFICATIONTYPE$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#notificationnumber">$NOTIFICATIONNUMBER$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td colspan='9' class='MacroType'>Contact Macros:</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#contactname">$CONTACTNAME$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#contactalias">$CONTACTALIAS$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#contactemail">$CONTACTEMAIL$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#contactpager">$CONTACTPAGER$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#contactaddress">$CONTACTADDRESSn$</a></td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td colspan='9' class='MacroType'>Date Macros:</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#datetime">$DATETIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#shortdatetime">$SHORTDATETIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#date">$DATE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#time">$TIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#timet">$TIMET$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td colspan='9' class='MacroType'>Misc Macros:</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#adminemail">$ADMINEMAIL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#adminpager">$ADMINPAGER$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#user">$ARGn$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#user">$USERn$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 
 </table>
 </div>
 </p>
+
+
+<p>
+<strong><u>Macro Descriptions</u></strong>
+</p>
+
+<p>
+<table border="1" cellspacing="0" cellpadding="5">
+
+<tr>
+<a name="contactname"></a>
+<td class="MacroName">$CONTACTNAME$</td>
+<td class="MacroDescription">Short name for the contact (i.e. "jdoe") that is being notified of a host or service problem.  This value is taken from the <i>contact_name</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
+</tr>
+
+<tr>
+<a name="contactalias"></a>
+<td class="MacroName">$CONTACTALIAS$</td>
+<td class="MacroDescription">Long name/description for the contact (i.e. "John Doe") being notified.  This value is taken from the <i>alias</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
+</tr>
+
+<tr>
+<a name="contactemail"></a>
+<td class="MacroName">$CONTACTEMAIL$</td>
+<td class="MacroDescription">Email address of the contact being notified.  This value is taken from the <i>email</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
+</tr>
+
+<tr>
+<a name="contactpager"></a>
+<td class="MacroName">$CONTACTPAGER$</td>
+<td class="MacroDescription">Pager number/address of the contact being notified.  This value is taken from the <i>pager</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
+</tr>
+
+</table>
+</p>
+
+
+<p>
+<div align="center">
+<table border="1" cellspacing="0" cellpadding="5">
+<tr class="Macros">
+<th class="Macros">Macro Name</td>
+<th class="Macros">Macro Description</td>
+<th class="Macros">Service Checks</td>
+<th class="Macros">Service Notifications</td>
+<th class="Macros">Host Checks</td>
+<th class="Macros">Host Notifications</td>
+<th class="Macros">Service Event Handlers, Global Service Event Handler, <a href="configmain.html#ocsp_command">OCSP</a> Command</td>
+<th class="Macros">Host Event Handlers, Global Host Event Handler, <a href="configmain.html#ochp_command">OCHP</a> Command</td>
+<th class="Macros">Service Performance Data Commands</td>
+<th class="Macros">Host Performance Data Commands</td>
+</tr>
+<tr>
+<td class='MacroName'>$HOSTNAME$</td>
+<td class="MacroDescription">Short name for the host (i.e. "biglinuxbox").  During a service notification, this refers to the host associated with the service.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$HOSTALIAS$</td>
+<td class="MacroDescription">Long name/description for the host (i.e. "Big Linux Server")</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$HOSTADDRESS$</td>
+<td class="MacroDescription">The IP address of the host</td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$HOSTSTATE$</td>
+<td class="MacroDescription">The current state of the host ("UP", "DOWN", or "UNREACHABLE")</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class='MacroName'>$ARGn$</td>
+<td class="MacroDescription">The nth argument passed to the service check command. Nagios supports up to 32 argument macros ($ARG1$ through $ARG32$).</td>
+<td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class='MacroName'>$SERVICEDESC$</td>
+<td class="MacroDescription">The long name/description of the service being monitored (i.e. "Main Website")</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'>$SERVICESTATE$</td>
+<td class="MacroDescription">The current status of the service being monitored ("WARNING", "UNKNOWN", "CRITICAL", or "OK")</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'>$OUTPUT$</td>
+<td class="MacroDescription">The text output from the service or host check (i.e. "FTP ok - 1 second response time").   For service notifications and event handlers, this will contain the text output from the service check.  For host notifications and event handlers, this will contain the text output from the host check.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$PERFDATA$</td>
+<td class="MacroDescription">This macro contains any <a href="perfdata.html">performance data</a> that may have been returned by the service or host check.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$EXECUTIONTIME$</td>
+<td class="MacroDescription">This is the number of seconds that the host or service check took to execute  (i.e. the amount of time the check was executing).</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$LATENCY$</td>
+<td class="MacroDescription">This is the number of seconds that a service check lagged behind its scheduled check time.  For instance, if a check was scheduled for 03:04:15 and it didn't get executed until 03:14:17, there would be a check latency of 2 seconds.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'>$NOTIFICATIONTYPE$</td>
+<td class="MacroDescription">Identifies the type of notification that is being sent ("PROBLEM", "RECOVERY", or "ACKNOWLEDGEMENT").  </td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'>$NOTIFICATIONNUMBER$</td>
+<td class="MacroDescription">The current notification number for the service or host.  The notification number increases by one (1) each time a new notification is sent out for a host or service (except for acknowledgements).  The notification number is reset to 0 when the host or service recovers (<i>after</i> the recovery notification has gone out).  Acknowledgements do not cause the notification number to increase.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class='MacroName'>$DATETIME$</td>
+<td class="MacroDescription">Date/time stamp (i.e. <i>Fri Oct 13 00:30:28 CDT 2000</i>)</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$SHORTDATETIME$</td>
+<td class="MacroDescription">Date/time stamp (i.e. <i>10-13-2000 00:30:28</i>)</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$DATE$</td>
+<td class="MacroDescription">Date stamp (i.e. <i>10-13-2000</i>)</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$TIME$</td>
+<td class="MacroDescription">Time stamp (i.e. <i>00:30:28</i>)</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$TIMET$</td>
+<td class="MacroDescription">Time stamp in time_t format (seconds since the UNIX epoch)</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$LASTCHECK$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a service or host check was last performed.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$LASTSTATECHANGE$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a service or host last changed state.</td>
+<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class='MacroName'>$ADMINEMAIL$</td>
+<td class="MacroDescription">Email address for the local administrator (of the host doing the monitoring)</td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$ADMINPAGER$</td>
+<td class="MacroDescription">Pager number/address for the local administrator</td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class='MacroName'>$STATETYPE$</td>
+<td class="MacroDescription">The <a href="statetypes.html">state type</a> for the current service or host check ("HARD" or "SOFT").  Soft states occur when service or host checks return a non-OK state and are in the process of being retried.  Hard states result when service or host checks have been checked a specified maximum number of times.  Notifications are sent out only when hard state changes occur.</td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'>$SERVICEATTEMPT$</td>
+<td class="MacroDescription">This refers to the number of the current service check retry.  For instance, if this is the second time that the service is being rechecked, this will be the number two.  Current attempt number is only useful when writing service <a href="eventhandlers.html">event handlers</a> for "soft" states that take a specific action based on the service retry number.</td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'>$HOSTATTEMPT$</td>
+<td class="MacroDescription">This refers to the number of the current host check retry.  For instance, if this is the second time that the host is being rechecked, this will be the number two.  Current attempt number is only useful when writing host <a href="eventhandlers.html">event handlers</a> for "soft" states that take a specific action based on the host retry number.</td>
+<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class='MacroName'>$USERn$</td>
+<td class="MacroDescription">The nth user-definable macro.  User macros can be defined in one or more <a href="configmain.html#resource_file">resource files</a> .  Nagios supports up to thrity-two user macros ($USER1$ through $USER32$).</td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+
+</table>
+</div>
+</p>
+
 
 <hr>
 

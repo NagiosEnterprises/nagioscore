@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -53,13 +53,13 @@ All plugins that comply with minimal development guideline for this project incl
 </p>
 
 <p>
-For example, if you want to know how the check_http plugin works or what options it accepts, you should try executing either:
+For example, if you want to know how the check_http plugin works or what options it accepts, you should try executing one of the following commands:
 </p>
 
 <p>
 <dir>
 <strong>
-./check_httpd --help
+./check_http --help
 </strong>
 </dir>
 </p>
@@ -67,11 +67,11 @@ For example, if you want to know how the check_http plugin works or what options
 <p>
 or
 </p>
-  
+
 <p>
 <dir>
 <strong>
-./check_httpd --h
+./check_http -h
 </strong>
 </dir>
 </p>
@@ -90,7 +90,7 @@ It is important to note that command definitions found in sample config files in
 </p>
 
 <p>
-Creating your own plugins to perform custom host or service checks is easy.  You can find information on how to write plugins at <a href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projects/nagiosplug/</a> .
+Creating your own plugins to perform custom host or service checks is easy.  You can find information on how to write plugins at <a href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projects/nagiosplug/</a>.  The developer guidelines can be found at <a href="http://nagiosplug.sourceforge.net/developer-guidelines.html">http://nagiosplug.sourceforge.net/developer-guidelines.html</a>.
 </p>
 
 <hr>

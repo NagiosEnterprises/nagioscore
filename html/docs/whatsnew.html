@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 10pt; font-weight: bold; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
 -->      
 </STYLE>
 
@@ -48,8 +48,36 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <p>
 <ol>
 
-<li><b>Blah</b>.  Lots o' stuff.<br><br>
-
+<li><b>Blah</b>.  Lots o' stuff, all undocumented of course...<br><br>
+<br>
+<li><b>Macro Changes</b> - <a href="macros.html">Macros</a> have undergone a major overhaul.  Will will have to update most of your command definitions to match the new macros.  Also, "on-demand" host and service macros have been added.  See the <a href="macros.html">documentation on macros</a> for more information.<br>
+<br>
+<li><b>Hostgroup Changes</b>
+	<ul>
+	<li><b>Hostgroup escalations removed</b> - Hostgroup escalations have been removed.  Their functionality can be duplicated by using the <i>hostgroup_name</i> directive in <a href="xodtemplate.html#hostgroup">hostgroup definitions</a>.
+	<li><b>Member directive changes</b> - Hostgroup <a href="xodtemplate.html#hostgroup">definitions</a> can now contain multiple <i>members</i> directives, which should make editing the config files easier when you have a lot of member hosts.  Alternatively, you may use the <i>hostgroups</i> directive in <a href="xodtemplate.html#host">host definitions</a> to specify what hostgroup(s) a particular host is a member of.
+	<li><b>Contact group changes</b> - The <i>contact_groups</i> directive has been moved from hostgroup definitions to <a href="xodtemplate.html#host">host definitions</a>.  This was done in order to maintain consistency with the way service contacts are specified.  Make sure to update your config files!
+	</ul>
+<br>
+<li><b>Retention Changes</b>
+	<ul>
+	<li><b>Retention of scheduling information</b> - Host and service check scheduling information (next check times) can now be retained across program restarts using the <a href="configmain.html#use_retained_scheduling_info">use_retained_scheduling_info</a> directive.
+	<li><b>Smarter retention</b> - Values of various host and service directives that can be retained across program restarts are now only retained if they are changed during runtime by an <a href="extcommands.html">external command</a>.  This should make things less confusing to people when they try and modify host and service directive values and then restart Nagios, expecting to see some changes.
+	<li><b>More stuff retained</b> - More information is now retained across program restarts, including <a href="flapping.html">flap detection</a> history.  Hoorah!
+	</ul>
+<br>
+<li><b>Native DB Support Dropped</b> - Native support for storing various types of data (status, retention, comment, downtime, etc.) in MySQL and PostgreSQL has been dropped.  Stop whining.  I expect someone will develop an alternative using the new event broker sometime in the near future.  Besides, DB support was not well implemented and dropping native DB support will make things easier for newbies to understand (one less thing to figure out).<br>
+<br>
+<li><b>Misc Changes</b>
+	<ul>
+	<li><b>All commands can contain arguments</b> - All command types (host checks, notifications, performance data processors, event handlers, etc.) can contain arguments (seperated from the command name by <b>!</b> characters).  Arguments are substituted in the command line using <b>$ARGx</b> <a href="macros.html">macros</a>.
+	<li><b>Config directory recursion</b> - Nagios now recursively processes all config files found in subdirectories of the directories specified by the <a href="configmain.html#cfg_dir">cfg_dir directive</a>.
+	<li><b>Old config file support dropped</b> - Support for older (non-template) style object and extended info config files has been dropped.
+	<li><b>Faster searches</b> - Objects are now stored in a chained hash in order to speed searches.  This should greatly improve the performance of the CGIs.
+	<li><b>Worker threads</b> - A few worker threads have been added in order to artificially buffer data for the <a href="configmain.html#command_file">external command file</a> and the internal pipe used to process service check results.  This should substantially increase performance in larger setups.
+	<li><b>Logging changes</b> - Initial host and service states are now logged a bit differently.  Also, the initial states of all hosts and services are logged immediately after all <a href="configmain.html#log_rotation_method">log rotations</a>.  This should help with all those "undetermined time" problems in the availability and trends CGIs.
+	</ul>
+<br>
 </ol>
 </p>
 

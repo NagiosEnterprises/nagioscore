@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>Object inheritance Using Template-Based Config Data</title>
+<title>Object Inheritance</title>
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,7 +17,7 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Object inheritance Using Template-Based Config Data</h2>
+<h2 class="PageTitle">Object Inheritance</h2>
 </div>
 </p>
 <hr>
@@ -27,15 +27,15 @@
 </p>
 
 <p>
-One of my primary motivations for adding support for template-based configuration data was its ability to easily allow object definitions to inherit various properties from other object definitions.  Object property inheritance is accomplished through recursion when Nagios processes your configuration files.
+This documentation attempts to explain object inheritance and how it can be used in <a href="xodtemplate.html">template-based object definitions</a>.
 </p>
 
 <p>
-This documentation attempts to explain recursion and inheritance in object definitions that is available when you compile Nagios with support for <a href="xodtemplate.html">template-based object configuration data</a>.  It should be noted that the recursion and inheritance principles described here also apply to <a href="xedtemplate.html">template-based extended information data</a>.
+One of my primary motivations for adding support for template-based object data was its ability to easily allow object definitions to inherit various properties from other object definitions.  Object property inheritance is accomplished through recursion when Nagios processes your configuration files.
 </p>
 
 <p>
-If you are still confused about how recursion and inheritance work after reading this, take a look at the sample template-base config files provided in the distribution.  If that still doesn't help, drop an email message with a <i>detailed</i> description of your problem to the <i>nagios-users</i> mailing list.
+If you are still confused about how recursion and inheritance work after reading this, take a look at the sample object config files provided in the distribution.  If that still doesn't help, drop an email message with a <i>detailed</i> description of your problem to the <i>nagios-users</i> mailing list.
 </p>
 
 <p>
@@ -43,15 +43,13 @@ If you are still confused about how recursion and inheritance work after reading
 </p>
 
 <p>
-There are three variables affecting recursion and inheritance that are present in all object definitions.  They are as follows...
+There are three variables affecting recursion and inheritance that are present in all object definitions.  They are indicated in red as follows...
 </p>
 
 <p>
 <pre>
 	define <i>someobjecttype</i>{
-		
 		<i>object-specific variables</i> ...
-		
 		<font color="red">name		<i>template_name</i></font>
 		<font color="red">use		<i>name_of_template_to_use</i></font>
 		<font color="red">register	[0/1]</font>

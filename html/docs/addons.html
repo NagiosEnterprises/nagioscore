@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -24,115 +24,22 @@
 
 
 <p>
-The following is a description of various "addons" that are available for Nagios.  These and other addons can be obtained from the downloads page on the Nagios website (<a href="http://www.nagios.org">www.nagios.org</a>).
+Several "addons" are available for Nagios on the Nagios downloads page - <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a>.
 </p>
 
 <p>
-<strong><u>Index</u></strong>
+Addons are available for:
 </p>
 
 <p>
-<a href="#nrpe">nrpe</a> - Daemon and plugin for executing plugins on remote hosts<br>
-<a href="#nsca">nsca</a> - Daemon and client program for sending passive check results across the network<br>
-</p>
-
-
-
-<p>
-<a name="nrpe"></a>
-<table border="0" width="100%">
-<tr>
-<td bgcolor="#cbcbcb"><strong><font color="red">nrpe</font> -  Daemon and plugin for executing plugins on remote hosts</strong></td>
-</tr>
-</table>
-
-<table border="0">
-<tr>
-<td><b>Author:</b></td>
-<td><a href="mailto:nagios@nagios.org">Me</a></td>
-</tr>
-<tr>
-<td valign="top"><b>Overview:</b></td>
-<td>
-Allows you to execute plugins on remote hosts in a relatively easy and transparent manner.
-</td>
-</tr>
-<tr>
-<td valign="top"><b>Files:</b></td>
-<td>
-<table border="0">
-<tr><td><font color="red">check_nrpe</font></td><td> - Plugin used to send execution requests to the nrpe agent on the remote host</td></tr>
-<tr><td><font color="red">nrpe</font></td><td> - Agent that runs on the remote host and processes plugin execution requests</td></tr>
-<tr><td><font color="red">nrpe.cfg</font></td><td> - Configuration file for the remote host agent</td></tr>
-</table>
-</td>
-</tr>
-<tr>
-<td valign="top"><b>Description:</b></td>
-<td>
-<p>
-This addon is designed to provide a way for executing <a href="plugins.html">plugins</a> on a remote host.  The check_nrpe plugin runs on the Nagios host and is used to send plugin execution requests to the nrpe agent on the remote host.  The nrpe agent will then run an appropriate plugins on the remote host and return the plugin output and return code to the check_nrpe plugin on the Nagios host.  The check_nrpe plugin then passes the remote plugin's output and return code back to Nagios as if it were its own.  This allows for a rather transparent method of executing plugins on remote hosts.  The nrpe agent can either be run as a standalone daemon or as a service under inetd.
-</p>
-</td>
-</tr>
-<tr>
-<td valign="top"><b>Notes:</b></td>
-<td align="left">
 <ul>
-<li>When running in daemon mode, the nrpe agent authenticates plugin execution requests by doing a rudimentary comparison of the IP address of the calling host against a list of allowed IP addresses in the configuration file.
-<li>When running under inetd, TCP wrappers can be employed to restrict access to the nrpe agent
+<li>Managing the config files through a web interface
+<li>Monitoring remote hosts (*NIX, Windows, etc.)
+<li>Submitting passive checks from remote hosts
+<li>Simplifying/extending the notification logic
+<li>...and much more
 </ul>
-</td>
-</tr>
-</table>
 </p>
-
-
-<p>
-
-<p>
-<a name="nsca"></a>
-<table border="0" width="100%">
-<tr>
-<td bgcolor="#cbcbcb"><strong><font color="red">nsca</font> -  Daemon and client program for sending passive check results across the network</strong></td>
-</tr>
-</table>
-
-<table border="0">
-<tr>
-<td><b>Author:</b></td>
-<td><a href="mailto:nagios@nagios.org">Me</a></td>
-</tr>
-<tr>
-<td valign="top"><b>Overview:</b></td>
-<td>
-Allows you to submit passive service checks results to another server on the network that is running Nagios.
-</td>
-</tr>
-<tr>
-<td valign="top"><b>Files:</b></td>
-<td>
-<table border="0">
-<tr><td><font color="red">nsca</font></td><td> - Daemon that runs on the central Nagios server and processes passive service check results submitted by clients</td></tr>
-<tr><td><font color="red">nsca.cfg</font></td><td> - Configuration file for the nsca daemon</td></tr>
-<tr><td><font color="red">send_nsca</font></td><td> - Client program that is executed from remote hosts and sends passive service check information to the nsca daemon on the central Nagios server</td></tr>
-<tr><td><font color="red">send_nsca.cfg</font></td><td> - Configuration file for the send_nsca client</td></tr>
-</table>
-</td>
-</tr>
-<tr>
-<td valign="top"><b>Description:</b></td>
-<td>
-<p>
-This addon allows you to send <a href="passivechecks.html">passive service check</a> results from remote hosts to a central monitoring host that runs Nagios.  The client can be used as a standalone program or can be integrated with remote Nagios servers that run an <a href="configmain.html#ocsp_command">ocsp command</a> to setup a <a href="distributed.html">distributed monitoring</a> environment.  Communication between the client and daemon can be encrypted via various algorithms (DES, 3DES, CAST, xTEA, Twofish, LOKI97, RJINDAEL, SERPENT, GOST, SAFER/SAFER+, etc.) if you have the <a href="http://mcrypt.hellug.gr/">mcrypt</a> libraries installed on your systems.
-</p>
-</td>
-</tr>
-</table>
-</p>
-
-
-
 
 <hr>
 

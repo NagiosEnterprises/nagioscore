@@ -4,8 +4,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -46,7 +46,7 @@ This section describes a few scenarios for implementing redundant monitoring hos
 
 <p>
 <a name="prerequisites"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Prerequisites</strong></td>
 </tr>
@@ -67,7 +67,7 @@ Before you can even think about implementing redundancy with Nagios, you need to
 
 <p>
 <a name="samples"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Sample Scripts</strong></td>
 </tr>
@@ -80,7 +80,7 @@ All of the sample scripts that I use in this documentation can be found in the <
 
 <p>
 <a name="scenario_1"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Scenario 1 - Redundant Monitoring</strong></td>
 </tr>
@@ -118,7 +118,7 @@ The diagram below shows a very simple network setup.  For this scenario I will b
 </p>
 
 <p>
-<table border=1>
+<table border="1" class="Default">
 <tr>
 <td><img src="images/redundancy.png" border=0></td>
 </tr>
@@ -200,7 +200,6 @@ Host Event Handler (<font color="red">handle-master-host-event</font>):
 </p>
 <p>
 <pre>
-<font size=-1>
 #!/bin/sh
 
 # Only take action on hard host states...
@@ -225,7 +224,6 @@ HARD)
 	;;
 esac
 exit 0
-</font>
 </pre>
 </p>
 
@@ -235,7 +233,6 @@ Service Event Handler (<font color="red">handle-master-proc-event</font>):
 
 <p>
 <pre>
-<font size=-1>
 #!/bin/sh
 
 # Only take action on hard service states...
@@ -267,7 +264,6 @@ HARD)
 	;;
 esac
 exit 0
-</font>
 </pre>
 </p>
 
@@ -363,7 +359,7 @@ The exact amount of time that neither host is monitoring the network is hard to 
 
 <p>
 <a name="scenario_2"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Scenario 2 - Failover Monitoring</strong></td>
 </tr>

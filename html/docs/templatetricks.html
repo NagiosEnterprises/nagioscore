@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>Time-Saving Tricks For Template-Based Object Definitions</title>
+<title>Time-Saving Tricks For Object Definitions</title>
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,7 +17,7 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Time-Saving Tricks For Template-Based Object Definitions</h2>
+<h2 class="PageTitle">Time-Saving Tricks For Object Definitions</h2>
 or...<br>
 <b>"How To Preserve Your Sanity"</b>
 </div>
@@ -29,7 +29,7 @@ or...<br>
 </p>
 
 <p>
-This documentation attempts to explain how you can exploit the (somewhat) hidden features <a href="xodtemplate.html">template-based object definitions</a> to save your sanity.  How so, you ask?  Several types of objects allow you to specify multiple host names and/or hostgroup names in definitions, allowing you to "copy" the object defintion to multiple hosts or services.  I'll cover each type of object that supports these features seperately.  For starters, the object types which support this time-saving feature are as follows:
+This documentation attempts to explain how you can exploit the (somewhat) hidden features of <a href="xodtemplate.html">template-based object definitions</a> to save your sanity.  How so, you ask?  Several types of objects allow you to specify multiple host names and/or hostgroup names in definitions, allowing you to "copy" the object defintion to multiple hosts or services.  I'll cover each type of object that supports these features seperately.  For starters, the object types which support this time-saving feature are as follows:
 </p>
 
 <p>
@@ -40,7 +40,6 @@ This documentation attempts to explain how you can exploit the (somewhat) hidden
 <li><a href="#hostescalation">Host escalations</a>
 <li><a href="#hostdependency">Host dependencies</a>
 <li><a href="#hostgroup">Hostgroups</a>
-<li><a href="#hostgroupescalation">Hostgroup escalations</a>
 </ul>
 </p>
 
@@ -374,29 +373,6 @@ In the example above, all hosts in hostgroups <i>HOSTGROUP3</i> and <i>HOSTGROUP
 <p>
 The definition above would create a hostgroup called <i>HOSTGROUP1</i> that has all <b>all hosts</b> that are defined in your configuration files as members.
 </p>
-
-<a name="hostgroupescalation"></a>
-<p>
-<strong><u>Hostgroup Escalations</u></strong>
-</p>
-
-<p>
-<b>Multiple Hostgroups:</b> If you want to create identical <a href="xodtemplate.html#hostgroupescalation">hostgroup escalations</a> that are assigned to multiple hostgroups, you can specify multiple hostgroups in the <i>hostgroup_name</i> directive as follows:
-</p>
-
-<p>
-<pre>
-	define <i>hostgroupescalation</i>{
-		<font color="red">hostgroup_name		<i>HOSTGROUP1,HOSTGROUP2,...,HOSTGROUPN</i></font>
-		<i>other escalation directives</i> ...
-		}
-</pre>
-</p>
-
-<p>
-The definition above would create a seperate hostgroup escalation for hostgroups <i>HOSTGROUP1</i> through <i>HOSTGROUPN</i>.  All the instances of the hostgroup escalation would be identical (i.e. contact groups, notification interval, etc.).
-</p>
-
 
 
 <hr>

@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -80,6 +80,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#state_retention_file">State retention file</a><br>
 <a href="#retention_update_interval">Automatic state retention update interval</a><br>
 <a href="#use_retained_program_state">Use retained program state option</a><br>
+<a href="#use_retained_scheduling_info">Use retained scheduling info option</a><br>
 <br>
 <a href="#use_syslog">Syslog logging option</a><br>
 <a href="#log_notifications">Notification logging option</a><br>
@@ -139,7 +140,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 
 <p>
 <a name="log_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Log File</strong></td>
 </tr>
@@ -147,7 +148,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_file=&lt;file_name&gt;</strong></td>
@@ -168,7 +169,7 @@ finds in the rest of your configuration data to this file.  If you have <a href=
 
 <p>
 <a name="cfg_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Object Configuration File</strong></td>
 </tr>
@@ -176,7 +177,7 @@ finds in the rest of your configuration data to this file.  If you have <a href=
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>cfg_file=&lt;file_name&gt;</strong></td>
@@ -193,13 +194,13 @@ finds in the rest of your configuration data to this file.  If you have <a href=
 </p>
 
 <p>
-This directive is used to specify an <a href="configobject.html">object configuration file</a> that Nagios should use for monitoring.  This file has traditionally been called the "host" config file, even though it may contain more than just host definitions.   Object configuration files contain definitions for hosts, host groups, contacts, contact groups, services, commands, etc.  You can seperate your configuration information into several files and specify multiple <b>cfg_file=</b> statements to have each of them processed.
+This directive is used to specify an <a href="configobject.html">object configuration file</a> containing object definitions that Nagios should use for monitoring.  Object configuration files contain definitions for hosts, host groups, contacts, contact groups, services, commands, etc.  You can seperate your configuration information into several files and specify multiple <b>cfg_file=</b> statements to have each of them processed.
 </p>
 
 
 <p>
 <a name="cfg_dir"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Object Configuration Directory</strong></td>
 </tr>
@@ -207,7 +208,7 @@ This directive is used to specify an <a href="configobject.html">object configur
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>cfg_dir=&lt;directory_name&gt;</strong></td>
@@ -224,13 +225,13 @@ This directive is used to specify an <a href="configobject.html">object configur
 </p>
 
 <p>
-This directive is used to specify a directory which contains <a href="configobject.html">object configuration files</a> that Nagios should use for monitoring.  All files in the directory with a <b>.cfg</b> extension are processed as object config files.  You can seperate your configuration files into different directories and specify multiple <b>cfg_dir=</b> statements to have all config files in each directory processed.
+This directive is used to specify a directory which contains <a href="configobject.html">object configuration files</a> that Nagios should use for monitoring.  All files in the directory with a <b>.cfg</b> extension are processed as object config files.  Additionally, Nagios will recursively process all config files in subdirectories of the directory you specify here.  You can seperate your configuration files into different directories and specify multiple <b>cfg_dir=</b> statements to have all config files in each directory processed.
 </p>
 
 
 <p>
 <a name="resource_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Resource File</strong></td>
 </tr>
@@ -238,7 +239,7 @@ This directive is used to specify a directory which contains <a href="configobje
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>resource_file=&lt;file_name&gt;</strong></td>
@@ -257,7 +258,7 @@ This is used to specify an optional resource file that can contain $USERn$ <a hr
 
 <p>
 <a name="temp_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Temp File</strong></td>
 </tr>
@@ -265,7 +266,7 @@ This is used to specify an optional resource file that can contain $USERn$ <a hr
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>temp_file=&lt;file_name&gt;</strong></td>
@@ -284,7 +285,7 @@ This is a temporary file that Nagios periodically creates to use when updating c
 <p>
 <a name="status_file"></a>
 <a name="status_log"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Status File</strong></td>
 </tr>
@@ -292,14 +293,14 @@ This is a temporary file that Nagios periodically creates to use when updating c
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>status_file=&lt;file_name&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>status_file=/usr/local/nagios/var/status.log</strong></font></td>
+<td><font color="red"><strong>status_file=/usr/local/nagios/var/status.dat</strong></font></td>
 </tr>
 </table>
 </p>
@@ -311,7 +312,7 @@ This is the file that Nagios uses to store the current status of all monitored s
 
 <p>
 <a name="aggregate_status_updates"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Aggregated Status Updates Option</strong></td>
 </tr>
@@ -319,7 +320,7 @@ This is the file that Nagios uses to store the current status of all monitored s
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>aggregate_status_updates=&lt;0/1&gt;</strong></td>
@@ -345,7 +346,7 @@ This option determines whether or not Nagios will aggregate updates of host, ser
 
 <p>
 <a name="status_update_interval"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Aggregated Status Update Interval</strong></td>
 </tr>
@@ -353,7 +354,7 @@ This option determines whether or not Nagios will aggregate updates of host, ser
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>status_update_interval=&lt;seconds&gt;</strong></td>
@@ -372,7 +373,7 @@ This setting determines how often (in seconds) that Nagios will update status da
 
 <p>
 <a name="nagios_user"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Nagios User</strong></td>
 </tr>
@@ -380,7 +381,7 @@ This setting determines how often (in seconds) that Nagios will update status da
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>nagios_user=&lt;username/UID&gt;</strong></td>
@@ -399,7 +400,7 @@ This is used to set the effective user that the Nagios process should run as.  A
 
 <p>
 <a name="nagios_group"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Nagios Group</strong></td>
 </tr>
@@ -407,7 +408,7 @@ This is used to set the effective user that the Nagios process should run as.  A
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>nagios_group=&lt;groupname/GID&gt;</strong></td>
@@ -426,7 +427,7 @@ This is used to set the effective group that the Nagios process should run as.  
 
 <p>
 <a name="enable_notifications"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Notifications Option</strong></td>
 </tr>
@@ -434,7 +435,7 @@ This is used to set the effective group that the Nagios process should run as.  
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>enable_notifications=&lt;0/1&gt;</strong></td>
@@ -459,7 +460,7 @@ This option determines whether or not Nagios will send out <a href="notification
 
 <p>
 <a name="execute_service_checks"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Check Execution Option</strong></td>
 </tr>
@@ -467,7 +468,7 @@ This option determines whether or not Nagios will send out <a href="notification
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>execute_service_checks=&lt;0/1&gt;</strong></td>
@@ -492,7 +493,7 @@ This option determines whether or not Nagios will execute service checks when it
 
 <p>
 <a name="accept_passive_service_checks"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Passive Service Check Acceptance Option</strong></td>
 </tr>
@@ -500,7 +501,7 @@ This option determines whether or not Nagios will execute service checks when it
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>accept_passive_service_checks=&lt;0/1&gt;</strong></td>
@@ -525,7 +526,7 @@ This option determines whether or not Nagios will accept <a href="passivechecks.
 
 <p>
 <a name="enable_event_handlers"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Event Handler Option</strong></td>
 </tr>
@@ -533,7 +534,7 @@ This option determines whether or not Nagios will accept <a href="passivechecks.
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>enable_event_handlers=&lt;0/1&gt;</strong></td>
@@ -558,7 +559,7 @@ This option determines whether or not Nagios will run <a href="eventhandlers.htm
 
 <p>
 <a name="log_rotation_method"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Log Rotation Method</strong></td>
 </tr>
@@ -566,7 +567,7 @@ This option determines whether or not Nagios will run <a href="eventhandlers.htm
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_rotation_method=&lt;n/h/d/w/m&gt;</strong></td>
@@ -594,7 +595,7 @@ This is the rotation method that you would like Nagios to use for your log file.
 
 <p>
 <a name="log_archive_path"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Log Archive Path</strong></td>
 </tr>
@@ -602,7 +603,7 @@ This is the rotation method that you would like Nagios to use for your log file.
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_archive_path=&lt;path&gt;</strong></td>
@@ -621,7 +622,7 @@ This is the directory where Nagios should place log files that have been rotated
 
 <p>
 <a name="check_external_commands"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>External Command Check Option</strong></td>
 </tr>
@@ -629,7 +630,7 @@ This is the directory where Nagios should place log files that have been rotated
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>check_external_commands=&lt;0/1&gt;</strong></td>
@@ -654,7 +655,7 @@ This option determines whether or not Nagios will check the <a href="#command_fi
 
 <p>
 <a name="command_check_interval"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>External Command Check Interval</strong></td>
 </tr>
@@ -662,7 +663,7 @@ This option determines whether or not Nagios will check the <a href="#command_fi
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>command_check_interval=&lt;xxx&gt;[s]</strong></td>
@@ -685,7 +686,7 @@ Note: By setting this value to <b>-1</b>, Nagios will check for external command
 
 <p>
 <a name="command_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>External Command File</strong></td>
 </tr>
@@ -693,7 +694,7 @@ Note: By setting this value to <b>-1</b>, Nagios will check for external command
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>command_file=&lt;file_name&gt;</strong></td>
@@ -712,7 +713,7 @@ This is the file that Nagios will check for external commands to process.  The <
 
 <p>
 <a name="downtime_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Downtime File</strong></td>
 </tr>
@@ -720,14 +721,14 @@ This is the file that Nagios will check for external commands to process.  The <
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>downtime_file=&lt;file_name&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>downtime_file=/usr/local/nagios/var/downtime.log</strong></font></td>
+<td><font color="red"><strong>downtime_file=/usr/local/nagios/var/downtime.dat</strong></font></td>
 </tr>
 </table>
 </p>
@@ -739,7 +740,7 @@ This is the file that Nagios will use for storing scheduled host and service <a 
 
 <p>
 <a name="comment_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Comment File</strong></td>
 </tr>
@@ -747,14 +748,14 @@ This is the file that Nagios will use for storing scheduled host and service <a 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>comment_file=&lt;file_name&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>comment_file=/usr/local/nagios/var/comment.log</strong></font></td>
+<td><font color="red"><strong>comment_file=/usr/local/nagios/var/comment.dat</strong></font></td>
 </tr>
 </table>
 </p>
@@ -766,7 +767,7 @@ This is the file that Nagios will use for storing service and host comments.  Co
 
 <p>
 <a name="lock_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Lock File</strong></td>
 </tr>
@@ -774,7 +775,7 @@ This is the file that Nagios will use for storing service and host comments.  Co
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>lock_file=&lt;file_name&gt;</strong></td>
@@ -793,7 +794,7 @@ This option specifies the location of the lock file that Nagios should create wh
 
 <p>
 <a name="retain_state_information"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>State Retention Option</strong></td>
 </tr>
@@ -801,7 +802,7 @@ This option specifies the location of the lock file that Nagios should create wh
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>retain_state_information=&lt;0/1&gt;</strong></td>
@@ -826,7 +827,7 @@ This option determines whether or not Nagios will retain state information for h
 
 <p>
 <a name="state_retention_file"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>State Retention File</strong></td>
 </tr>
@@ -834,14 +835,14 @@ This option determines whether or not Nagios will retain state information for h
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>state_retention_file=&lt;file_name&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>state_retention_file=/usr/local/nagios/var/status.sav</strong></font></td>
+<td><font color="red"><strong>state_retention_file=/usr/local/nagios/var/retention.dat</strong></font></td>
 </tr>
 </table>
 </p>
@@ -853,7 +854,7 @@ This is the file that Nagios will use for storing service and host state informa
 
 <p>
 <a name="retention_update_interval"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Automatic State Retention Update Interval</strong></td>
 </tr>
@@ -861,7 +862,7 @@ This is the file that Nagios will use for storing service and host state informa
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>retention_update_interval=&lt;minutes&gt;</strong></td>
@@ -880,7 +881,7 @@ This setting determines how often (in minutes) that Nagios will automatically sa
 
 <p>
 <a name="use_retained_program_state"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Use Retained Program State Option</strong></td>
 </tr>
@@ -888,7 +889,7 @@ This setting determines how often (in minutes) that Nagios will automatically sa
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>use_retained_program_state=&lt;0/1&gt;</strong></td>
@@ -911,10 +912,42 @@ This setting determines whether or not Nagios will set various program-wide stat
 </p>
 
 
+<p>
+<a name="use_retained_scheduling_info"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Use Retained Scheduling Info Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>use_retained_scheduling_info=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>use_retained_scheduling_info=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This setting determines whether or not Nagios will retain scheduling info (next check times) for hosts and services when it restarts.  If you are adding a large number (or percentage) of hosts and services, I would recommend disabling this option when you first restart Nagios.  Otherwise you will probably want to  leave it enabled.
+</p>
+<p>
+<ul>
+<li>0 = Don't use retained scheduling info
+<li>1 = Use retained scheduling info (default)
+</ul>
+</p>
+
 
 <p>
 <a name="use_syslog"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Syslog Logging Option</strong></td>
 </tr>
@@ -922,7 +955,7 @@ This setting determines whether or not Nagios will set various program-wide stat
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>use_syslog=&lt;0/1&gt;</strong></td>
@@ -948,7 +981,7 @@ are as follows:
 
 <p>
 <a name="log_notifications"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Notification Logging Option</strong></td>
 </tr>
@@ -956,7 +989,7 @@ are as follows:
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_notifications=&lt;0/1&gt;</strong></td>
@@ -983,7 +1016,7 @@ notifications from being logged.
 
 <p>
 <a name="log_service_retries"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Check Retry Logging Option</strong></td>
 </tr>
@@ -991,7 +1024,7 @@ notifications from being logged.
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_service_retries=&lt;0/1&gt;</strong></td>
@@ -1019,7 +1052,7 @@ is mostly useful when attempting to debug Nagios or test out service <a href="ev
 
 <p>
 <a name="log_host_retries"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Host Check Retry Logging Option</strong></td>
 </tr>
@@ -1027,7 +1060,7 @@ is mostly useful when attempting to debug Nagios or test out service <a href="ev
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_host_retries=&lt;0/1&gt;</strong></td>
@@ -1053,7 +1086,7 @@ is mostly useful when attempting to debug Nagios or test out host <a href="event
 
 <p>
 <a name="log_event_handlers"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Event Handler Logging Option</strong></td>
 </tr>
@@ -1061,7 +1094,7 @@ is mostly useful when attempting to debug Nagios or test out host <a href="event
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_event_handlers=&lt;0/1&gt;</strong></td>
@@ -1088,7 +1121,7 @@ is most useful when debugging Nagios or first trying out your event handler scri
 
 <p>
 <a name="log_initial_states"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Initial States Logging Option</strong></td>
 </tr>
@@ -1096,7 +1129,7 @@ is most useful when debugging Nagios or first trying out your event handler scri
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_initial_states=&lt;0/1&gt;</strong></td>
@@ -1122,7 +1155,7 @@ This variable determines whether or not Nagios will force all initial host and s
 
 <p>
 <a name="log_external_commands"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>External Command Logging Option</strong></td>
 </tr>
@@ -1130,7 +1163,7 @@ This variable determines whether or not Nagios will force all initial host and s
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_external_commands=&lt;0/1&gt;</strong></td>
@@ -1157,7 +1190,7 @@ This variable determines whether or not Nagios will log <a href="extcommands.htm
 
 <p>
 <a name="log_passive_service_checks"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Passive Service Check Logging Option</strong></td>
 </tr>
@@ -1165,7 +1198,7 @@ This variable determines whether or not Nagios will log <a href="extcommands.htm
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>log_passive_service_checks=&lt;0/1&gt;</strong></td>
@@ -1191,7 +1224,7 @@ This variable determines whether or not Nagios will log <a href="passivechecks.h
 
 <p>
 <a name="global_host_event_handler"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Global Host Event Handler Option</strong></td>
 </tr>
@@ -1199,7 +1232,7 @@ This variable determines whether or not Nagios will log <a href="passivechecks.h
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>global_host_event_handler=&lt;command&gt;</strong></td>
@@ -1218,7 +1251,7 @@ This option allows you to specify a host event handler command that is to be run
 
 <p>
 <a name="global_service_event_handler"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Global Service Event Handler Option</strong></td>
 </tr>
@@ -1226,7 +1259,7 @@ This option allows you to specify a host event handler command that is to be run
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>global_service_event_handler=&lt;command&gt;</strong></td>
@@ -1245,7 +1278,7 @@ This option allows you to specify a service event handler command that is to be 
 
 <p>
 <a name="sleep_time"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Inter-Check Sleep Time</strong></td>
 </tr>
@@ -1253,7 +1286,7 @@ This option allows you to specify a service event handler command that is to be 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>sleep_time=&lt;seconds&gt;</strong></td>
@@ -1272,7 +1305,7 @@ service checks that have fallen behind.
 
 <p>
 <a name="inter_check_delay_method"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Inter-Check Delay Method</strong></td>
 </tr>
@@ -1280,7 +1313,7 @@ service checks that have fallen behind.
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>inter_check_delay_method=&lt;n/d/s/x.xx&gt;</strong></td>
@@ -1305,7 +1338,7 @@ This option allows you to control how service checks are initially "spread out" 
 
 <p>
 <a name="service_interleave_factor"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Interleave Factor</strong></td>
 </tr>
@@ -1313,7 +1346,7 @@ This option allows you to control how service checks are initially "spread out" 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>service_interleave_factor=&lt;s|<i>x</i>&gt;</strong></td>
@@ -1336,7 +1369,7 @@ This variable determines how service checks are interleaved. Interleaving allows
 
 <p>
 <a name="max_concurrent_checks"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Maximum Concurrent Service Checks</strong></td>
 </tr>
@@ -1344,7 +1377,7 @@ This variable determines how service checks are interleaved. Interleaving allows
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>max_concurrent_checks=&lt;max_checks&gt;</strong></td>
@@ -1363,7 +1396,7 @@ This option allows you to specify the maximum number of service checks that can 
 
 <p>
 <a name="service_reaper_frequency"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Reaper Frequency</strong></td>
 </tr>
@@ -1371,7 +1404,7 @@ This option allows you to specify the maximum number of service checks that can 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>service_reaper_frequency=&lt;frequency_in_seconds&gt;</strong></td>
@@ -1388,7 +1421,7 @@ This option allows you to control the frequency <i>in seconds</i> of service "re
 
 <p>
 <a name="interval_length"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Timing Interval Length</strong></td>
 </tr>
@@ -1396,7 +1429,7 @@ This option allows you to control the frequency <i>in seconds</i> of service "re
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>interval_length=&lt;seconds&gt;</strong></td>
@@ -1416,7 +1449,7 @@ This is the number of seconds per "unit interval" used for timing in the schedul
 
 <p>
 <a name="use_agressive_host_checking"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Agressive Host Checking Option</strong></td>
 </tr>
@@ -1424,7 +1457,7 @@ This is the number of seconds per "unit interval" used for timing in the schedul
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>use_agressive_host_checking=&lt;0/1&gt;</strong></td>
@@ -1449,7 +1482,7 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 
 <p>
 <a name="enable_flap_detection"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Flap Detection Option</strong></td>
 </tr>
@@ -1457,7 +1490,7 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>enable_flap_detection=&lt;0/1&gt;</strong></td>
@@ -1480,7 +1513,7 @@ This option determines whether or not Nagios will try and detect hosts and servi
 
 <p>
 <a name="low_service_flap_threshold"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Low Service Flap Threshold</strong></td>
 </tr>
@@ -1488,7 +1521,7 @@ This option determines whether or not Nagios will try and detect hosts and servi
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>low_service_flap_threshold=&lt;percent&gt;</strong></td>
@@ -1505,7 +1538,7 @@ This option is used to set the low threshold for detection of service flapping. 
 
 <p>
 <a name="high_service_flap_threshold"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>High Service Flap Threshold</strong></td>
 </tr>
@@ -1513,7 +1546,7 @@ This option is used to set the low threshold for detection of service flapping. 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>high_service_flap_threshold=&lt;percent&gt;</strong></td>
@@ -1530,7 +1563,7 @@ This option is used to set the low threshold for detection of service flapping. 
 
 <p>
 <a name="low_host_flap_threshold"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Low Host Flap Threshold</strong></td>
 </tr>
@@ -1538,7 +1571,7 @@ This option is used to set the low threshold for detection of service flapping. 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>low_host_flap_threshold=&lt;percent&gt;</strong></td>
@@ -1555,7 +1588,7 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 
 <p>
 <a name="high_host_flap_threshold"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>High Host Flap Threshold</strong></td>
 </tr>
@@ -1563,7 +1596,7 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>high_host_flap_threshold=&lt;percent&gt;</strong></td>
@@ -1580,7 +1613,7 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 
 <p>
 <a name="soft_service_dependencies"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Soft Service Dependencies Option</strong></td>
 </tr>
@@ -1588,7 +1621,7 @@ This option is used to set the low threshold for detection of host flapping.  Fo
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>soft_state_dependencies=&lt;0/1&gt;</strong></td>
@@ -1611,7 +1644,7 @@ This option determines whether or not Nagios will use soft service state informa
 
 <p>
 <a name="service_check_timeout"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Check Timeout</strong></td>
 </tr>
@@ -1619,7 +1652,7 @@ This option determines whether or not Nagios will use soft service state informa
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>service_check_timeout=&lt;seconds&gt;</strong></td>
@@ -1639,7 +1672,7 @@ There is often widespread confusion as to what this option really does.  It is m
 
 <p>
 <a name="host_check_timeout"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Host Check Timeout</strong></td>
 </tr>
@@ -1647,7 +1680,7 @@ There is often widespread confusion as to what this option really does.  It is m
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>host_check_timeout=&lt;seconds&gt;</strong></td>
@@ -1667,7 +1700,7 @@ There is often widespread confusion as to what this option really does.  It is m
 
 <p>
 <a name="event_handler_timeout"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Event Handler Timeout</strong></td>
 </tr>
@@ -1675,7 +1708,7 @@ There is often widespread confusion as to what this option really does.  It is m
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>event_handler_timeout=&lt;seconds&gt;</strong></td>
@@ -1695,7 +1728,7 @@ There is often widespread confusion as to what this option really does.  It is m
 
 <p>
 <a name="notification_timeout"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Notification Timeout</strong></td>
 </tr>
@@ -1703,7 +1736,7 @@ There is often widespread confusion as to what this option really does.  It is m
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>notification_timeout=&lt;seconds&gt;</strong></td>
@@ -1723,7 +1756,7 @@ There is often widespread confusion as to what this option really does.  It is m
 
 <p>
 <a name="ocsp_timeout"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Service Processor Timeout</strong></td>
 </tr>
@@ -1731,7 +1764,7 @@ There is often widespread confusion as to what this option really does.  It is m
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>ocsp_timeout=&lt;seconds&gt;</strong></td>
@@ -1748,7 +1781,7 @@ This is the maximum number of seconds that Nagios will allow an <a href="#ocsp_c
 
 <p>
 <a name="perfdata_timeout"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Performance Data Processor Command Timeout</strong></td>
 </tr>
@@ -1756,7 +1789,7 @@ This is the maximum number of seconds that Nagios will allow an <a href="#ocsp_c
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>perfdata_timeout=&lt;seconds&gt;</strong></td>
@@ -1773,7 +1806,7 @@ This is the maximum number of seconds that Nagios will allow a <a href="#host_pe
 
 <p>
 <a name="obsess_over_services"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Obsess Over Services Option</strong></td>
 </tr>
@@ -1781,7 +1814,7 @@ This is the maximum number of seconds that Nagios will allow a <a href="#host_pe
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>obsess_over_services=&lt;0/1&gt;</strong></td>
@@ -1804,7 +1837,7 @@ This value determines whether or not Nagios will "obsess" over service checks re
 
 <p>
 <a name="ocsp_command"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Obsessive Compulsive Service Processor Command</strong></td>
 </tr>
@@ -1812,7 +1845,7 @@ This value determines whether or not Nagios will "obsess" over service checks re
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>ocsp_command=&lt;command&gt;</strong></td>
@@ -1831,7 +1864,7 @@ This option allows you to specify a command to be run after <i>every</i> service
 
 <p>
 <a name="process_performance_data"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Performance Data Processing Option</strong></td>
 </tr>
@@ -1839,7 +1872,7 @@ This option allows you to specify a command to be run after <i>every</i> service
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>process_performance_data=&lt;0/1&gt;</strong></td>
@@ -1862,7 +1895,7 @@ This value determines whether or not Nagios will process host and service check 
 
 <p>
 <a name="check_for_orphaned_services"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Orphaned Service Check Option</strong></td>
 </tr>
@@ -1870,7 +1903,7 @@ This value determines whether or not Nagios will process host and service check 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>check_for_orphaned_services=&lt;0/1&gt;</strong></td>
@@ -1895,7 +1928,7 @@ This option allows you to enable or disable checks for orphaned service checks. 
 
 <p>
 <a name="check_service_freshness"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Freshness Checking Option</strong></td>
 </tr>
@@ -1903,7 +1936,7 @@ This option allows you to enable or disable checks for orphaned service checks. 
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>check_service_freshness=&lt;0/1&gt;</strong></td>
@@ -1928,7 +1961,7 @@ This option determines whether or not Nagios will periodically check the "freshn
 
 <p>
 <a name="freshness_check_interval"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Service Freshness Check Interval</strong></td>
 </tr>
@@ -1936,7 +1969,7 @@ This option determines whether or not Nagios will periodically check the "freshn
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>freshness_check_interval=&lt;seconds&gt;</strong></td>
@@ -1955,7 +1988,7 @@ This setting determines how often (in seconds) Nagios will periodically check th
 
 <p>
 <a name="date_format"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Date Format</strong></td>
 </tr>
@@ -1963,7 +1996,7 @@ This setting determines how often (in seconds) Nagios will periodically check th
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>date_format=&lt;option&gt;</strong></td>
@@ -1978,7 +2011,7 @@ This setting determines how often (in seconds) Nagios will periodically check th
 This option allows you to specify what kind of date/time format Nagios should use in the web interface and date/time <a href="macros.html">macros</a>.  Possible options (along with example output) include:
 </p>
 <p>
-<table border='1'>
+<table border="1" class="Default">
 <tr><th>Option</th><th>Output Format</th><th>Sample Output</th></tr>
 <tr><td>us</td><td>MM/DD/YYYY HH:MM:SS</td><td>06/30/2002 03:15:00</td></tr>
 <tr><td>euro</td><td>DD/MM/YYYY HH:MM:SS</td><td>30/06/2002 03:15:00</td></tr>
@@ -1990,7 +2023,7 @@ This option allows you to specify what kind of date/time format Nagios should us
 
 <p>
 <a name="illegal_object_name_chars"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Illegal Object Name Characters</strong></td>
 </tr>
@@ -1998,7 +2031,7 @@ This option allows you to specify what kind of date/time format Nagios should us
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>illegal_object_name_chars=&lt;chars...&gt;</strong></td>
@@ -2016,7 +2049,7 @@ This option allows you to specify illegal characters that cannot be used in host
 
 <p>
 <a name="illegal_macro_output_chars"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Illegal Macro Output Characters</strong></td>
 </tr>
@@ -2024,7 +2057,7 @@ This option allows you to specify illegal characters that cannot be used in host
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>illegal_macro_output_chars=&lt;chars...&gt;</strong></td>
@@ -2045,7 +2078,7 @@ This option allows you to specify illegal characters that should be stripped fro
 
 <p>
 <a name="admin_email"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Administrator Email Address</strong></td>
 </tr>
@@ -2053,7 +2086,7 @@ This option allows you to specify illegal characters that should be stripped fro
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>admin_email=&lt;email_address&gt;</strong></td>
@@ -2071,7 +2104,7 @@ This value can be used in notification commands by using the <b>$ADMINEMAIL$</b>
 
 <p>
 <a name="admin_pager"></a>
-<table border="0" width="100%">
+<table border="0" width="100%" class="Default">
 <tr>
 <td bgcolor="#cbcbcb"><strong>Administrator Pager</strong></td>
 </tr>
@@ -2079,7 +2112,7 @@ This value can be used in notification commands by using the <b>$ADMINEMAIL$</b>
 </p>
 
 <p>
-<table border="0">
+<table border="0" class="Default">
 <tr>
 <td>Format:</td>
 <td><strong>admin_pager=&lt;pager_number_or_pager_email_gateway&gt;</strong></td>

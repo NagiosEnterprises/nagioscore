@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -43,14 +43,7 @@ Extended information consists of <i>optional</i> definitions for hosts and servi
 </p>
 
 <p>
-That all depends on how you compiled the CGIs.  Or more correctly, it depends on what options you supplied to the configure script before you compiled everything.  There are several different methods for storing extended information definitions.  They are as follows...
-</p>
-
-<p>
-<ul>
-<li><b><a href="xeddefault.html">Old "default" method</a></b> - Definitions are stored in the CGI config file.  This method is provided only for backward compatabilty.  I recommend that you use one of the methods described below for storing extended information definitions instead.  <font color='red'>Note that although this is call the "default" method for historical reasons, the CGIs default to using the template-based method (described below) unless you specifically compile them with this method.</font>
-<li><b><a href="xedtemplate.html">Template-based method</a></b> - Definitions are stored in seperate configuration files.  You can use templates to define entries for multiple hosts and services quickly and easily.  Note that by default, the CGIs will use this method unless you compile them with support for a different method instead.
-<li><b><a href="xdata-db.html">Database method</a></b> - Definitions are stored in a database.
+Extended information definitions are stored in <a href="configobject.html">object configuration files</a> along with definitions for hosts, services, contacts, etc.  You can use templates to define entries for multiple hosts and services quickly and easily.
 </ul>
 </p>
 

@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -58,15 +58,15 @@ You can specify one or more optional resource files by using the <a href="config
 </p>
 
 <p>
-<strong><u>Object Configuration Files</u></strong>
+<strong><u>Object Definition Files</u></strong>
 </p>
 
 <p>
-Object configuration files (historically called "host" configuration files) are used to define hosts, services, hostgroups, contacts, contactgroups, commands, etc.  This is where you define what things you want monitor and how you want to monitor them.
+Object definition files are used to define hosts, services, hostgroups, contacts, contactgroups, commands, etc.  This is where you define what things you want monitor and how you want to monitor them.
 </p>
 
 <p>
-Documentation for the object configuration files can be found <a href="configobject.html">here</a>.
+Documentation for the object definition files can be found <a href="configobject.html">here</a>.
 </p>
 
 <p>
@@ -83,18 +83,6 @@ Documentation for the CGI configuration file can be found <a href="configcgi.htm
 
 <p>
 A sample CGI configuration file is generated automatically when you run the <b>configure</b> script before compiling the binaries. When you <a href="installing.html">install</a> the sample config files using the <b>make install-config</b> command, the CGI configuration file will be placed in the same directory as the main and host config files (usually /usr/local/nagios/etc).  The default name of the CGI configuration file is <b>cgi.cfg</b>.
-</p>
-
-<p>
-<strong><u>Extended Information Configuration Files</u></strong>
-</p>
-
-<p>
-Extended information configuration files are used to define additional information for hosts and services that should be used by the CGI.  This is where you define things like drawing coordinates, pretty icons, etc.
-</p>
-
-<p>
-Documentation for the extended information configuration files can be found <a href="configextinfo.html">here</a>.
 </p>
 
 <hr>

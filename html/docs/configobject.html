@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>Object Configuration Data</title>
+<title>Object Definitions</title>
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,7 +17,7 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Object Configuration Data</h2>
+<h2 class="PageTitle">Object Definitions</h2>
 </div>
 </p>
 <hr>
@@ -33,6 +33,7 @@ Object data is simply a generic term I use to describe various data definitions 
 <p>
 <ul>
 <li>Services
+<li>Service Groups
 <li>Hosts
 <li>Host Groups
 <li>Contacts
@@ -43,23 +44,25 @@ Object data is simply a generic term I use to describe various data definitions 
 <li>Service Dependencies
 <li>Host Escalations
 <li>Host Dependencies
-<li>Hostgroup Escalations
+<li>Extended Host Information
+<li>Extended Service Information
 </ul>
 </p>
 
 <p>
-<strong><u>How Do You Define Object Data?</u></strong>
+<strong><u>Where Is Object Data Defined?</u></strong>
 </p>
 
 <p>
-That all depends on how you compiled the core program and CGIs.  Or more correctly, it depends on what options you supplied to the configure script before you compiled everything.  There are two different methods for storing object definitions.  They are...
+Object data is defined in one or more configuration files that you specify using the <a href="configmain.html#cfg_file">cfg_file</a> and/or <a href="configmain.html#cfg_dir">cfg_dir</a> directives in the <a href="configmain.html">main configuration file</a>.  You can include multiple object configuration files and/or directories by using multiple <i>cfg_file</i> and/or <i>cfg_dir</i> directives.
 </p>
 
 <p>
-<ul>
-<li><b><a href="xoddefault.html">Old "default" method</a></b> - This is the old style of configuring objects and is provided for backward compatabilty only.  I <i>do not</i> recommend using this method for storing object definitions.  <font color='red'>Note that although this is call the "default" method for historical reasons, Nagios defaults to using the template-based method (described below) unless you specifically compile it with this method.</font>
-<li><b><a href="xodtemplate.html">Template-based method</a></b> - This is the new style of configuring object definitions that is flexible and easy to understand.  You can use templates to define entries for multiple hosts, services, etc quickly and easily.
-</ul>
+<strong><u>How Is Object Data Defined?</u></strong>
+</p>
+
+</p>
+Object definitions are defined in a template format.  <a href="xodtemplate.html">Click here</a> for more information on defining object data using this method.
 </p>
 
 

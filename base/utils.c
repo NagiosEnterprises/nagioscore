@@ -2767,6 +2767,9 @@ void * service_result_worker_thread(void *arg){
 		/* process all data in the buffer if there's some space in the buffer */
 		if(service_result_buffer.items<SERVICE_BUFFER_SLOTS){
 
+			/* clear the message buffer */
+			bzero((void *)&message,sizeof(service_message));
+
 			/* initialize the number of bytes to read */
 			bytes_to_read=sizeof(service_message);
 
@@ -2776,7 +2779,7 @@ void * service_result_worker_thread(void *arg){
 				write_offset=sizeof(service_message)-bytes_to_read;
 
 				/* try and read a (full or partial) message */
-				read_result=read(ipc_pipe[0],&message+write_offset,bytes_to_read);
+				read_result=read(ipc_pipe[0],((void *)&message)+write_offset,bytes_to_read);
 
 				/* we had a failure in reading from the pipe... */
 				if(read_result==-1){
@@ -2813,11 +2816,8 @@ void * service_result_worker_thread(void *arg){
 				if(new_message==NULL)
 					break;
 
-				/* clear the message buffer */
-				bzero((void *)new_message,sizeof(service_message));
-
 				/* copy the data we read to the message buffer */
-				memcpy(new_message,&message,sizeof(service_message)-bytes_to_read);
+				memcpy(new_message,&message,sizeof(service_message));
 
 				/* save the data to the buffer */
 				((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]=new_message;

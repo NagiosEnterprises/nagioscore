@@ -127,7 +127,7 @@ define command{
 # 'check_local_disk' command definition
 define command{
 	command_name	check_local_disk
-	command_line	$USER1$/check_disk -w 20% -c 10% -p $ARG1$
+	command_line	$USER1$/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
 	}
 
 

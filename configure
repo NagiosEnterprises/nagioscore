@@ -2741,7 +2741,7 @@ USE_EVENTBROKER=yes
 # Check whether --enable-event-broker or --disable-event-broker was given.
 if test "${enable_event_broker+set}" = set; then
   enableval="$enable_event_broker"
-  USE_EVENTBROKER=$withval
+  USE_EVENTBROKER=$enableval
 else
   USE_EVENTBROKER=yes
 fi

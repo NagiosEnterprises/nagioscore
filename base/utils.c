@@ -314,7 +314,13 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 	printf("process_macros() start\n");
 #endif
 
+	if(output_buffer==NULL || buffer_length<=0)
+		return ERROR;
+
 	strcpy(output_buffer,"");
+
+	if(input_buffer==NULL)
+		return ERROR;
 
 	in_macro=FALSE;
 
@@ -2141,11 +2147,12 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
 void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int macro_options){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	char macro_buffer[MAX_INPUT_BUFFER];
-	char *buffer;
+	char temp_arg[MAX_INPUT_BUFFER];
+	char arg_buffer[MAX_INPUT_BUFFER];
+	char *temp_ptr;
 	command *temp_command;
-	int x;
+	int x,y;
+	int arg_index;
 
 #ifdef DEBUG0
 	printf("get_raw_command_line() start\n");
@@ -2175,29 +2182,13 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 	/* lookup the command... */
 
 	/* get the command name */
-	strcpy(temp_buffer,cmd);
-	buffer=my_strtok(temp_buffer,"!");
-
-	/* the buffer should never be NULL, but just in case... */
-	if(buffer==NULL){
-		strcpy(raw_command,"");
-		return;
+	for(x=0,y=0;y<buffer_length-1;x++){
+		if(cmd[x]=='!' || cmd[x]=='\x0')
+			break;
+		raw_command[y]=cmd[x];
+		y++;
 	        }
-	else{
-		strncpy(raw_command,buffer,buffer_length);
-		raw_command[buffer_length-1]='\x0';
-	        }
-
-	/* get the arguments */
-	for(x=0,buffer=my_strtok(NULL,"!");x<MAX_COMMAND_ARGUMENTS && buffer!=NULL;x++,buffer=my_strtok(NULL,"!")){
-
-		/* ADDED 01/29/04 EG */
-		/* process any macros we find in the argument */
-		process_macros(buffer,macro_buffer,sizeof(macro_buffer),macro_options);
-
-		strip(macro_buffer);
-		macro_argv[x]=strdup(macro_buffer);
-	        }
+	raw_command[y]='\x0';
 
 	/* find the command used to check this service */
 	temp_command=find_command(raw_command);
@@ -2209,6 +2200,37 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 	strncpy(raw_command,temp_command->command_line,buffer_length);
 	raw_command[buffer_length-1]='\x0';
 	strip(raw_command);
+
+	/* skip the command name (we're about to get the arguments)... */
+	for(arg_index=0;;arg_index++){
+		if(cmd[arg_index]=='!' || cmd[arg_index]=='\x0')
+			break;
+	        }
+
+	/* get the command arguments */
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+
+		/* we reached the end of the arguments... */
+		if(cmd[arg_index]=='\x0')
+			break;
+
+		/* get the next argument */
+		/* can't use strtok(), as that's used in process_macros... */
+		for(arg_index++,y=0;y<sizeof(temp_arg)-1;arg_index++){
+			if(cmd[arg_index]=='!' || cmd[arg_index]=='\x0')
+				break;
+			temp_arg[y]=cmd[arg_index];
+			y++;
+		        }
+		temp_arg[y]='\x0';
+
+		/* ADDED 01/29/04 EG */
+		/* process any macros we find in the argument */
+		process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
+
+		strip(arg_buffer);
+		macro_argv[x]=strdup(arg_buffer);
+	        }
 
 #ifdef DEBUG1
 	printf("\tOutput: %s\n",raw_command);

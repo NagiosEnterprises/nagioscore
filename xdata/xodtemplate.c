@@ -4148,6 +4148,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation->hostgroup_name=NULL;
 	new_hostescalation->host_name=NULL;
 	new_hostescalation->contact_groups=NULL;
+	new_hostescalation->escalation_period=NULL;
 
 	new_hostescalation->has_been_resolved=temp_hostescalation->has_been_resolved;
 	new_hostescalation->register_object=temp_hostescalation->register_object;
@@ -4266,6 +4267,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	new_serviceescalation->host_name=NULL;
 	new_serviceescalation->service_description=NULL;
 	new_serviceescalation->contact_groups=NULL;
+	new_serviceescalation->escalation_period=NULL;
 
 	new_serviceescalation->has_been_resolved=temp_serviceescalation->has_been_resolved;
 	new_serviceescalation->register_object=temp_serviceescalation->register_object;

@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-20-2003
+ * Last Modified:   06-24-2003
  *
  * License:
  *
@@ -175,6 +175,9 @@ int delete_comment(int type, unsigned long comment_id){
 	comment *this_comment=NULL;
 	comment *last_comment=NULL;
 	comment *next_comment=NULL;
+	int hashslot;
+	comment *this_hash=NULL;
+	comment *last_hash=NULL;
 
 	/* find the comment we should remove */
 	for(this_comment=comment_list,last_comment=comment_list;this_comment!=NULL;this_comment=next_comment){
@@ -195,6 +198,20 @@ int delete_comment(int type, unsigned long comment_id){
 		broker_comment_data(NEBTYPE_COMMENT_DELETE,NEBFLAG_NONE,(type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,this_comment->host_name,this_comment->service_description,this_comment->entry_time,this_comment->author,this_comment->comment_data,this_comment->persistent,this_comment->source,comment_id,NULL);
 #endif
 
+		/* first remove from chained hash list */
+		hashslot=hashfunc1(this_comment->host_name,COMMENT_HASHSLOTS);
+		last_hash=NULL;
+		for(this_hash=comment_hashlist[hashslot];this_hash;this_hash=this_hash->nexthash){
+			if(this_hash==this_comment)
+				break;
+			last_hash=this_hash;
+		        }
+		if(last_hash)
+			last_hash->nexthash=this_hash->nexthash;
+		else
+			comment_hashlist[hashslot]=NULL;
+
+		/* then removed from linked list */
 		if(comment_list==this_comment)
 			comment_list=this_comment->next;
 		else
@@ -276,6 +293,7 @@ int delete_all_host_comments(char *host_name){
 	if(host_name==NULL)
 		return ERROR;
 	
+	/* delete host comments from memory */
 	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
 		if(temp_comment->comment_type==HOST_COMMENT)
 			delete_comment(HOST_COMMENT,temp_comment->comment_id);
@@ -301,6 +319,7 @@ int delete_all_service_comments(char *host_name, char *svc_description){
 	if(host_name==NULL || svc_description==NULL)
 		return ERROR;
 	
+	/* delete service comments from memory */
 	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
 		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->service_description,svc_description))
 			delete_comment(SERVICE_COMMENT,temp_comment->comment_id);
@@ -372,8 +391,11 @@ int add_comment_to_hashlist(comment *new_comment){
 
 	hashslot=hashfunc1(new_comment->host_name,COMMENT_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_comment=comment_hashlist[hashslot];temp_comment && compare_hashdata1(temp_comment->host_name,new_comment->host_name)<0;temp_comment=temp_comment->nexthash)
+	for(temp_comment=comment_hashlist[hashslot];temp_comment && compare_hashdata1(temp_comment->host_name,new_comment->host_name)<0;temp_comment=temp_comment->nexthash){
+		if(compare_hashdata1(temp_comment->host_name,new_comment->host_name)>=0)
+			break;
 		lastpointer=temp_comment;
+	        }
 
 	/* multiples are allowed */
 	if(lastpointer)

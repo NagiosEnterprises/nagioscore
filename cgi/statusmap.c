@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-17-2003
+ * Last Modified: 06-24-2003
  *
  * Description:
  *
@@ -650,6 +650,8 @@ void display_page_header(void){
 			printf("<p><div align=center>\n");
 
 			zoom_width_granularity=((total_image_width-MINIMUM_PROXIMITY_WIDTH)/11);
+			if(zoom_width_granularity==0)
+				zoom_width_granularity=1;
 			zoom_height_granularity=((total_image_height-MINIMUM_PROXIMITY_HEIGHT)/11);
 
 			if(proximity_width<=0)

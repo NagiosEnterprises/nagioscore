@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   06-24-2003
  *
  * License:
  *

@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-01-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -26,6 +26,7 @@
 #include "../common/config.h"
 #include "../common/common.h"
 #include "../common/comments.h"
+#include "../common/downtime.h"
 #include "../common/statusdata.h"
 #include "sretention.h"
 #include "nagios.h"

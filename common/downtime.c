@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-16-2002
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -36,6 +36,7 @@
 #endif
 
 #ifdef NSCORE
+#include "statusdata.h"
 #include "../base/nagios.h"
 #endif
 
@@ -124,8 +125,8 @@ int unschedule_downtime(int type,int downtime_id){
 	scheduled_downtime *temp_downtime;
 	scheduled_downtime *temp2_downtime;
 	scheduled_downtime *event_downtime;
-	host *hst;
-	service *svc;
+	host *hst=NULL;
+	service *svc=NULL;
 	timed_event *temp_event;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	
@@ -241,8 +242,8 @@ int register_downtime(int type, int downtime_id){
 	char end_time_string[MAX_DATETIME_LENGTH];
 	scheduled_downtime *temp_downtime;
 	timed_event *new_event;
-	host *hst;
-	service *svc;
+	host *hst=NULL;
+	service *svc=NULL;
 	int hours;
 	int minutes;
 
@@ -666,9 +667,9 @@ int save_downtime(int type, char *host_name, char *service_description, time_t e
 	int result;
 
 	if(type==HOST_DOWNTIME)
-		save_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+		result=save_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
 	else
-		save_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+		result=save_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
 
 	return result;
         }

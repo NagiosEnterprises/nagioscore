@@ -2,8 +2,8 @@
  *
  * SRETENTION.H - Header for state retention routines
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-29-2001
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -24,6 +24,9 @@
  *****************************************************************************/
 
 
+#ifndef _SRETENTION_H
+#define _SRETENTION_H
+
 int save_state_information(char *,int);            /* saves all host and state information */
 int read_initial_state_information(char *);        /* reads in initial host and state information */
 
@@ -35,3 +38,6 @@ int set_program_state_information(int,int,int,int,int,int,int,int);
 service * get_service_state_information(service *,char **,char **,int *,char **,unsigned long *,int *,unsigned long *,unsigned long *,unsigned long *,unsigned long *,unsigned long *,int *,int *,int *,int *,int *,int *,int *,int *,int *,int *,unsigned long *);
 host * get_host_state_information(host *,char **,int *,char **,unsigned long *,int *,unsigned long *,unsigned long *,unsigned long *,unsigned long *,int *,int *,int *,int *,int *,int *,int *,unsigned long *);
 int get_program_state_information(int *,int *,int *,int *,int *,int *,int *,int *);
+
+
+#endif

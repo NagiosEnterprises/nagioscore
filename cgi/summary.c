@@ -2,8 +2,8 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-07-2003
+ * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -204,10 +204,6 @@ int main(int argc, char **argv){
 	char start_timestring[MAX_DATETIME_LENGTH];
 	char end_timestring[MAX_DATETIME_LENGTH];
 	host *temp_host;
-	service *temp_service;
-	int is_authorized=TRUE;
-	time_t report_start_time;
-	time_t report_end_time;
 	int days, hours, minutes, seconds;
 	hostgroup *temp_hostgroup;
 	time_t t3;

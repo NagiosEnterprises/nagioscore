@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-19-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -106,7 +106,6 @@ int xrddefault_grab_config_info(char *main_config_file){
 
 int xrddefault_save_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char *temp_ptr;
 	time_t current_time;
 	int result=OK;
 	FILE *fp;

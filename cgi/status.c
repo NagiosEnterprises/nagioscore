@@ -2,8 +2,8 @@
  *
  * STATUS.C -  Nagios Status CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-21-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -2665,7 +2665,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
 	hostextinfo *temp_hostextinfo;
-	int odd;
+	int odd=0;
 	int current_item;
 
 

@@ -2,8 +2,8 @@
  *
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-22-2002
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * Description:
  *
@@ -506,10 +506,8 @@ void calculate_host_coords(void){
 	hostextinfo *temp_hostextinfo;
 	host *this_host;
 	host *temp_host;
-	int child_hosts=0;
 	int parent_hosts=0;
 	int max_layer_width=1;
-	int current_child_host=0;
 	int current_parent_host=0;
 	int center_x=0;
 	int offset_x=DEFAULT_NODE_WIDTH/2;
@@ -518,7 +516,6 @@ void calculate_host_coords(void){
 	int layer_members=0;
 	int current_layer_member=0;
 	int max_drawing_width=0;
-	int x=0;
   
 
 	/******************************/

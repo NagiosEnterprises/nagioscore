@@ -12,6 +12,8 @@ Nagios Change Log
 * Bug fix in PostgreSQL code
 * Fixed auto-increment fields in MySQL table creation script
 * Added service name filter to status CGI
+* URL encoding bug fix
+* Bug fix in time change compensation code
 
 
 1.2 - 02/02/2004

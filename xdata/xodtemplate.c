@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-18-2004
+ * Last Modified: 10-24-2004
  *
  * Description:
  *
@@ -276,9 +276,8 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 int xodtemplate_process_config_file(char *filename, int options){
 	FILE *fp;
 	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
-	register in_definition=FALSE;
-	char *temp_ptr;
-	register current_line=0;
+	register int in_definition=FALSE;
+	register int current_line=0;
 	int result=OK;
 	register int x;
 	register int y;
@@ -469,7 +468,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
 void xodtemplate_strip(char *buffer){
 	register int x;
-	register int y;
 	char ch;
 	register int a;
 	register int b;
@@ -2661,8 +2659,6 @@ int xodtemplate_end_object_definition(int options){
 int xodtemplate_duplicate_objects(void){
 	int result=OK;
 	xodtemplate_service *temp_service;
-	xodtemplate_host *temp_host;
-	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_serviceescalation *temp_serviceescalation;
@@ -2672,11 +2668,9 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_hostlist *this_hostlist;
 	xodtemplate_hostlist *master_hostlist;
 	xodtemplate_hostlist *dependent_hostlist;
-	char *host_names;
-	char *hostgroup_names;
+	char *hostgroup_names="";
 	char *temp_ptr;
-	char *host_name_ptr;
-	char *host_name;
+	char *host_name="";
 	int first_item;
 	int keep;
 #ifdef NSCORE
@@ -5833,7 +5827,7 @@ int xodtemplate_register_hostgroupescalation(xodtemplate_hostgroupescalation *th
 		new_contactgroupsmember=add_contactgroup_to_hostgroupescalation(new_hostgroupescalation,contact_group);
 		if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to hostgroup escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to hostgroup escalation (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif

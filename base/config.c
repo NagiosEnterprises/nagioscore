@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-06-2002
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -250,7 +250,7 @@ int read_main_config_file(char *main_config_file){
 
 		if(!strcmp(variable,"resource_file")){
 #ifdef DEBUG1
-			printf("\t\tprocessing resource file '%s'\n");
+			printf("\t\tprocessing resource file '%s'\n",value);
 #endif
 			read_resource_file(value);
 		        }

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-20-2004
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -772,17 +772,6 @@ void show_host_info(void){
 	char status_age[48];
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
-	unsigned long total_monitored_time;
-	unsigned long time_up;
-	unsigned long time_down;
-	unsigned long time_unreachable;
-	float percent_time_up;
-	float percent_time_down;
-	float percent_time_unreachable;
-	char time_up_string[48];
-	char time_down_string[48];
-	char time_unreachable_string[48];
-	char total_time_string[48];
 	int days;
 	int hours;
 	int minutes;
@@ -1049,20 +1038,6 @@ void show_service_info(void){
 	servicestatus *temp_svcstatus;
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
-	float percent_time_ok;
-	float percent_time_warning;
-	float percent_time_unknown;
-	float percent_time_critical;
-	char time_ok_string[48];
-	char time_warning_string[48];
-	char time_unknown_string[48];
-	char time_critical_string[48];
-	char total_time_string[48];
-	unsigned long time_ok;
-	unsigned long time_warning;
-	unsigned long time_unknown;
-	unsigned long time_critical;
-	unsigned long total_monitored_time;
 	int days;
 	int hours;
 	int minutes;

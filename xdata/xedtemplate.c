@@ -2,8 +2,8 @@
  *
  * XEDTEMPLATE.C - Template-based extended information data input routines
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2002
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * Description:
  *
@@ -147,7 +147,6 @@ int xedtemplate_process_config_file(char *filename, int options){
 	FILE *fp;
 	char input[MAX_XEDTEMPLATE_INPUT_BUFFER];
 	int in_definition=FALSE;
-	char *temp_ptr;
 	int current_line=0;
 	int result=OK;
 	register int x;
@@ -250,7 +249,6 @@ int xedtemplate_process_config_file(char *filename, int options){
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
 void xedtemplate_strip(char *buffer){
 	register int x;
-	register int y;
 	char ch;
 	register int a;
 	register int b;
@@ -919,7 +917,7 @@ int xedtemplate_duplicate_hostextinfo(xedtemplate_hostextinfo *this_hostextinfo,
 	printf("xedtemplate_duplicate_hostextinfo() end\n");
 #endif
 
-	return;
+	return OK;
         }
 
 
@@ -973,7 +971,7 @@ int xedtemplate_duplicate_serviceextinfo(xedtemplate_serviceextinfo *this_servic
 	printf("xedtemplate_duplicate_serviceextinfo() end\n");
 #endif
 
-	return;
+	return OK;
         }
 
 

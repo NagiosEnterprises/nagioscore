@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 1.2
+ * Version: 1.3
  * License: GPL
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-02-2004
+ * Last Modified:   10-24-2004
  *
  * Description:
  *
@@ -1313,8 +1313,6 @@ void display_xdata_modules(void){
 
 /* schedule an event in order of execution time */
 void schedule_event(timed_event *event,timed_event **event_list){
-	timed_event *temp_event;
-	timed_event *first_event;
 	service *temp_service;
 	time_t run_time;
 
@@ -1366,7 +1364,25 @@ void schedule_event(timed_event *event,timed_event **event_list){
 	else if(event->event_type==EVENT_STATUS_SAVE)
 		event->run_time=event->run_time+(status_update_interval);
 
-	/* if this is a scheduled program shutdown or restart, we already know the time... */
+	/* add the event to the event list */
+	add_event(event,event_list);
+
+#ifdef DEBUG0
+	printf("schedule_event() end\n");
+#endif
+
+	return;
+        }
+
+
+/* add an event to list ordered by execution time */
+void add_event(timed_event *event,timed_event **event_list){
+	timed_event *temp_event;
+	timed_event *first_event;
+
+#ifdef DEBUG0
+	printf("add_event() start\n");
+#endif
 
 	event->next=NULL;
 
@@ -1404,7 +1420,7 @@ void schedule_event(timed_event *event,timed_event **event_list){
 	        }
 
 #ifdef DEBUG0
-	printf("schedule_event() end\n");
+	printf("add_event() end\n");
 #endif
 
 	return;
@@ -1806,6 +1822,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	timed_event *temp_event;
 	service *temp_service;
 	host *temp_host;
+	time_t run_time;
+	time_t (*timingfunc)(void);
 
 #ifdef DEBUG0
 	printf("compensate_for_system_time_change() start\n");
@@ -1827,127 +1845,64 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	/* adjust the next run time for all high priority timed events */
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){
 
-		/* we moved back in time... */
-		if(last_time>current_time){
+		/* skip log rotations */
+		if(temp_event->event_type==EVENT_LOG_ROTATION)
+			continue;
 
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_event->run_time)
-				temp_event->run_time=(time_t)0;
-			else
-				temp_event->run_time=(time_t)(temp_event->run_time-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_event->run_time=(time_t)(temp_event->run_time+(time_t)time_difference);
+		/* use standard adjustment */
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_event->run_time);
 	        }
+
+	/* resort event list (some events may be out of order at this point) */
+	resort_event_list(&event_list_high);
 
 	/* adjust the next run time for all low priority timed events */
 	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_event->run_time)
-				temp_event->run_time=(time_t)0;
-			else
-				temp_event->run_time=(time_t)(temp_event->run_time-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_event->run_time=(time_t)(temp_event->run_time+(time_t)time_difference);
+		/* use standard adjustment */
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_event->run_time);
 	        }
 
-	/* adjust the last notification time for all services */
+	/* resort event list (some events may be out of order at this point) */
+	resort_event_list(&event_list_low);
+
+	/* adjust service timestamps */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
-		if(temp_service->last_notification==(time_t)0)
-			continue;
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_notification);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->next_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_state_change);
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_service->last_notification)
-				temp_service->last_notification=(time_t)0;
-			else
-				temp_service->last_notification=(time_t)(temp_service->last_notification-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_service->last_notification=(time_t)(temp_service->last_notification+(time_t)time_difference);
+		/* recalculate next re-notification time */
+		temp_service->next_notification=get_next_service_notification_time(temp_service,temp_service->last_notification);
 
 		/* update the status data */
 		update_service_status(temp_service,FALSE);
 	        }
 
-
-	/* adjust the next check time for all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_service->next_check)
-				temp_service->next_check=(time_t)0;
-			else
-				temp_service->next_check=(time_t)(temp_service->next_check-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_service->next_check=(time_t)(temp_service->next_check+(time_t)time_difference);
-
-		/* update the status data */
-		update_service_status(temp_service,FALSE);
-	        }
-
-	/* adjust the last notification time for all hosts */
+	/* adjust host timestamps */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		if(temp_host->last_host_notification==(time_t)0)
-			continue;
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_host_notification);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_state_change);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_state_history_update);
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_host->last_host_notification)
-				temp_host->last_host_notification=(time_t)0;
-			else
-				temp_host->last_host_notification=(time_t)(temp_host->last_host_notification-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_host->last_host_notification=(time_t)(temp_host->last_host_notification+(time_t)time_difference);
+		/* recalculate next re-notification time */
+		temp_host->next_host_notification=get_next_host_notification_time(temp_host,temp_host->status,temp_host->last_host_notification);
 
 		/* update the status data */
 		update_host_status(temp_host,FALSE);
 	        }
 
+	/* adjust program timestamps */
+	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&program_start);
+	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&last_command_check);
 
-	/* adjust program start time (necessary for state stats calculations) */
-	/* we moved back in time... */
-	if(last_time>current_time){
-
-		/* we can't precede the UNIX epoch */
-		if(time_difference>(unsigned long)program_start)
-			program_start=(time_t)0;
-		else
-			program_start=(time_t)(program_start-(time_t)time_difference);
-	        }
-
-	/* we moved into the future... */
-	else
-		program_start=(time_t)(program_start+(time_t)time_difference);
-
-	/* update status data */
+	/* update the status data */
 	update_program_status(FALSE);
+
 
 #ifdef DEBUG0
 	printf("compensate_for_system_time_change() end\n");
@@ -1957,3 +1912,51 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
         }
 
 
+
+/* resorts an event list by event execution time - needed when compensating for system time changes */
+void resort_event_list(timed_event **event_list){
+	timed_event *temp_event_list;
+	timed_event *temp_event;
+	timed_event *next_event;
+
+	/* move current event list to temp list */
+	temp_event_list=*event_list;
+	*event_list=NULL;
+
+	/* move all events to the new event list */
+	for(temp_event=temp_event_list;temp_event!=NULL;temp_event=next_event){
+		next_event=temp_event->next;
+
+		/* add the event to the newly created event list so it will be resorted */
+		temp_event->next=NULL;
+		add_event(temp_event,event_list);
+	        }
+
+	return;
+        }
+
+
+
+/* adjusts a timestamp variable in accordance with a system time change */
+void adjust_timestamp_for_time_change(time_t last_time, time_t current_time, unsigned long time_difference, time_t *ts){
+
+	/* we shouldn't do anything with epoch values */
+	if(*ts==(time_t)0)
+		return;
+
+	/* we moved back in time... */
+	if(last_time>current_time){
+
+		/* we can't precede the UNIX epoch */
+		if(time_difference>(unsigned long)*ts)
+			*ts=(time_t)0;
+		else
+			*ts=(time_t)(*ts-time_difference);
+	        }
+
+	/* we moved into the future... */
+	else
+		*ts=(time_t)(*ts+time_difference);
+
+	return;
+        }

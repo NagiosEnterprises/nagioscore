@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2004
+ * Last Modified: 02-16-2004
  *
  * Description:
  *
@@ -6221,6 +6221,8 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 int xodtemplate_recombobulate_contactgroups(void){
 	xodtemplate_contact *temp_contact;
 	xodtemplate_contactgroup *temp_contactgroup;
+	xodtemplate_contactlist *temp_contactlist;
+	xodtemplate_contactlist *this_contactlist;
 	char *contactgroup_names;
 	char *temp_ptr;
 	char *new_members;
@@ -6231,6 +6233,44 @@ int xodtemplate_recombobulate_contactgroups(void){
 #ifdef DEBUG0
 	printf("xodtemplate_recombobulate_contactgroups() start\n");
 #endif
+
+	/* expand members of all contactgroups - this could be done in xodtemplate_register_contactgroup(), but we can save the CGIs some work if we do it here */
+	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup;temp_contactgroup=temp_contactgroup->next){
+
+		if(temp_contactgroup->members==NULL)
+			continue;
+
+		/* get list of contacts in the contactgroup */
+		temp_contactlist=xodtemplate_expand_contacts(temp_contactgroup->members);
+
+		/* add all members to the contact group */
+		if(temp_contactlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member contacts specified in contactgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+		free(temp_contactgroup->members);
+		temp_contactgroup->members=NULL;
+		for(this_contactlist=temp_contactlist;this_contactlist;this_contactlist=this_contactlist->next){
+
+			/* add this contact to the contactgroup members directive */
+			if(temp_contactgroup->members==NULL)
+				temp_contactgroup->members=strdup(this_contactlist->contact_name);
+			else{
+				new_members=(char *)realloc(temp_contactgroup->members,strlen(temp_contactgroup->members)+strlen(this_contactlist->contact_name)+2);
+				if(new_members!=NULL){
+					temp_contactgroup->members=new_members;
+					strcat(temp_contactgroup->members,",");
+					strcat(temp_contactgroup->members,this_contactlist->contact_name);
+				        }
+			        }
+	                }
+		xodtemplate_free_contactlist(temp_contactlist);
+	        }
+
 
 	/* process all contacts that have contactgroup directives */
 	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
@@ -6755,6 +6795,23 @@ xodtemplate_contact *xodtemplate_find_contact(char *name){
 		if(temp_contact->name==NULL)
 			continue;
 		if(!strcmp(temp_contact->name,name))
+			break;
+	        }
+
+	return temp_contact;
+        }
+
+/* finds a specific contact object by its REAL name, not its TEMPLATE name */
+xodtemplate_contact *xodtemplate_find_real_contact(char *name){
+	xodtemplate_contact *temp_contact;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+		if(temp_contact->contact_name==NULL)
+			continue;
+		if(!strcmp(temp_contact->contact_name,name))
 			break;
 	        }
 
@@ -8722,6 +8779,70 @@ int xodtemplate_free_memory(void){
         }
 
 
+/* frees memory allocated to a temporary contact list */
+int xodtemplate_free_contactlist(xodtemplate_contactlist *temp_list){
+	xodtemplate_contactlist *this_contactlist;
+	xodtemplate_contactlist *next_contactlist;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_contactlist() start\n");
+#endif
+
+	/* free memory allocated to contact name list */
+	for(this_contactlist=temp_list;this_contactlist!=NULL;this_contactlist=next_contactlist){
+		next_contactlist=this_contactlist->next;
+		free(this_contactlist->contact_name);
+		free(this_contactlist);
+	        }
+
+	temp_list=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_contactlist() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* remove an entry from the contact list */
+void xodtemplate_remove_contactlist_item(xodtemplate_contactlist *item,xodtemplate_contactlist **list){
+	xodtemplate_contactlist *temp_item;
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_contactlist_item() start\n");
+#endif
+
+	if(item==NULL || list==NULL)
+		return;
+
+	if(*list==NULL)
+		return;
+
+	if(*list==item)
+		*list=item->next;
+
+	else{
+
+		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
+			if(temp_item->next==item){
+				temp_item->next=item->next;
+				free(item->contact_name);
+				free(item);
+				break;
+			        }
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_contactlist_item() end\n");
+#endif
+
+	return;
+        }
+
+
+
 /* frees memory allocated to a temporary host list */
 int xodtemplate_free_hostlist(xodtemplate_hostlist *temp_list){
 	xodtemplate_hostlist *this_hostlist;
@@ -8856,6 +8977,217 @@ void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *item,xodtempla
 /******************************************************************/
 
 #ifdef NSCORE
+
+/* expands a comma-delimited list of contact names */
+xodtemplate_contactlist *xodtemplate_expand_contacts(char *contacts){
+	xodtemplate_contactlist *temp_list=NULL;
+	xodtemplate_contactlist *reject_list=NULL;
+	xodtemplate_contactlist *list_ptr=NULL;
+	xodtemplate_contactlist *reject_ptr=NULL;
+	int result;
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_contacts() start\n");
+#endif
+
+	/* process contact names */
+	if(contacts!=NULL){
+
+		/* expand contacts */
+		result=xodtemplate_expand_contacts2(&temp_list,&reject_list,contacts);
+		if(result!=OK){
+			xodtemplate_free_contactlist(temp_list);
+			xodtemplate_free_contactlist(reject_list);
+			return NULL;
+		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->contact_name,list_ptr->contact_name)){
+					xodtemplate_remove_contactlist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+		xodtemplate_free_contactlist(reject_list);
+		reject_list=NULL;
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_contacts() end\n");
+#endif
+
+	return temp_list;
+        }
+
+
+
+/* expands contacts */
+int xodtemplate_expand_contacts2(xodtemplate_contactlist **list, xodtemplate_contactlist **reject_list,char *contacts){
+	char *contact_names;
+	char *temp_ptr;
+	xodtemplate_contact *temp_contact;
+	regex_t preg;
+	int found_match=TRUE;
+	int reject_item=FALSE;
+	int use_regexp=FALSE;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_contacts2() start\n");
+#endif
+
+	if(list==NULL || contacts==NULL)
+		return ERROR;
+
+	contact_names=strdup(contacts);
+	if(contact_names==NULL)
+		return ERROR;
+
+	/* expand each contact name */
+	for(temp_ptr=strtok(contact_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		found_match=FALSE;
+		reject_item=FALSE;
+
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
+
+			/* compile regular expression */
+			if(regcomp(&preg,temp_ptr,0)){
+				free(contact_names);
+				return ERROR;
+		                }
+			
+			/* test match against all contacts */
+			for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+
+				if(temp_contact->contact_name==NULL)
+					continue;
+
+				/* skip this contact if it did not match the expression */
+				if(regexec(&preg,temp_contact->contact_name,0,NULL,0))
+					continue;
+
+				found_match=TRUE;
+
+				/* add contact to list */
+				xodtemplate_add_contact_to_contactlist(list,temp_contact->contact_name);
+		                } 
+
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+		        }
+		
+		/* use standard matching... */
+		else{
+
+			/* return a list of all contacts */
+			if(!strcmp(temp_ptr,"*")){
+
+				found_match=TRUE;
+
+				for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+
+					if(temp_contact->contact_name==NULL)
+						continue;
+
+					/* add contact to list */
+					xodtemplate_add_contact_to_contactlist(list,temp_contact->contact_name);
+				        }
+			        }
+
+			/* else this is just a single contact... */
+			else{
+
+				/* this contact should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+			                }
+
+				/* find the contact */
+				temp_contact=xodtemplate_find_real_contact(temp_ptr);
+				if(temp_contact!=NULL){
+
+					found_match=TRUE;
+
+					/* add contact to list */
+					xodtemplate_add_contact_to_contactlist((reject_item==TRUE)?reject_list:list,temp_ptr);
+				        }
+			        }
+		        }
+
+		if(found_match==FALSE){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any contact matching '%s'\n",temp_ptr);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			break;
+	                }
+	        }
+
+	/* free memory */
+	free(contact_names);
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_contacts2() end\n");
+#endif
+
+	if(found_match==FALSE)
+		return ERROR;
+
+	return OK;
+        }
+
+
+
+/* adds a contact entry to the list of expanded (accepted) or rejected contacts */
+int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **list, char *contact_name){
+	xodtemplate_contactlist *temp_item;
+	xodtemplate_contactlist *new_item;
+
+	if(list==NULL || contact_name==NULL)
+		return ERROR;
+
+	/* skip this contact if its already in the list */
+	for(temp_item=*list;temp_item;temp_item=temp_item->next)
+		if(!strcmp(temp_item->contact_name,contact_name))
+			break;
+	if(temp_item)
+		return OK;
+
+	/* allocate memory for a new list item */
+	new_item=(xodtemplate_contactlist *)malloc(sizeof(xodtemplate_contactlist));
+	if(new_item==NULL)
+		return ERROR;
+
+	/* save the contact name */
+	new_item->contact_name=strdup(contact_name);
+	if(new_item->contact_name==NULL){
+		free(new_item);
+		return ERROR;
+	        }
+
+	/* add new item to head of list */
+	new_item->next=*list;
+	*list=new_item;
+
+	return OK;
+        }
+
+
 
 /* expands a comma-delimited list of hostgroups and/or hosts to member host names */
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,char *hosts){

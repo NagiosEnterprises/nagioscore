@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2004
+ * Last Modified:   02-16-2004
  *
  * License:
  *
@@ -500,6 +500,13 @@ typedef struct xodtemplate_serviceextinfo_struct{
         }xodtemplate_serviceextinfo;
 
 
+/* CONTACT LIST STRUCTURE */
+typedef struct xodtemplate_contactlist_struct{
+	char      *contact_name;
+	struct xodtemplate_contactlist_struct *next;
+        }xodtemplate_contactlist;
+
+
 /* HOST LIST STRUCTURE */
 typedef struct xodtemplate_hostlist_struct{
 	char      *host_name;
@@ -535,6 +542,11 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 #ifdef NSCORE
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
+xodtemplate_contactlist *xodtemplate_expand_contacts(char *);
+int xodtemplate_expand_contacts2(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
+int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **,char *);
+int xodtemplate_free_contactlist(xodtemplate_contactlist *);
+void xodtemplate_remove_contactlist_item(xodtemplate_contactlist *,xodtemplate_contactlist **);
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
 int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
 int xodtemplate_expand_hosts(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
@@ -604,6 +616,7 @@ xodtemplate_servicegroup *xodtemplate_find_real_servicegroup(char *);
 xodtemplate_servicedependency *xodtemplate_find_servicedependency(char *);
 xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *);
 xodtemplate_contact *xodtemplate_find_contact(char *);
+xodtemplate_contact *xodtemplate_find_real_contact(char *);
 xodtemplate_host *xodtemplate_find_host(char *);
 xodtemplate_host *xodtemplate_find_real_host(char *);
 xodtemplate_service *xodtemplate_find_service(char *);

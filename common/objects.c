@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-02-2003
+ * Last Modified:   06-12-2003
  *
  * License:
  *
@@ -59,6 +59,8 @@ serviceextinfo  *serviceextinfo_list=NULL;
 
 host		**host_hashlist=NULL;
 service		**service_hashlist=NULL;
+command         **command_hashlist=NULL;
+timeperiod      **timeperiod_hashlist=NULL;
 
 static host_cursor *static_host_cursor=NULL;
 static int service_hashchain_iterator;
@@ -102,7 +104,7 @@ int read_object_config_data(char *main_config_file,int options,int cache){
 /****************** CHAINED HASH FUNCTIONS ************************/
 /******************************************************************/
 
-/* host hash function */
+/* single hash function */
 int hashfunc1(const char *name1,int hashslots){
 	unsigned int i,result;
 
@@ -118,7 +120,7 @@ int hashfunc1(const char *name1,int hashslots){
         }
 
 
-/* service hash function */
+/* dual hash function */
 int hashfunc2(const char *name1,const char *name2,int hashslots){
 	unsigned int i,result;
 
@@ -131,7 +133,7 @@ int hashfunc2(const char *name1,const char *name2,int hashslots){
 		for(i=0;i<strlen(name2);i++)
 			result+=name2[i];
 
-	result=result%SERVICES_HASHSLOTS;
+	result=result%hashslots;
 
 	return result;
         }
@@ -149,7 +151,7 @@ int host_comes_after(host *testhost,const char *host_name){
         }
 
 
-int add_host_allocated(host *new_host){
+int add_host_to_hashlist(host *new_host){
 	host *temphost, *lastpointer;
 	int hashslot;
 
@@ -208,7 +210,7 @@ int service_comes_after(service *testsvc,const char *host_name,const char *servi
         }
 
 
-int add_service_allocated(service *new_service){
+int add_service_to_hashlist(service *new_service){
 	service *tempsvc, *lastpointer;
 	int hashslot;
 
@@ -239,6 +241,109 @@ int add_service_allocated(service *new_service){
 			service_hashlist[hashslot]=new_service;
 		new_service->nexthash=tempsvc;
 
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+
+int compare_command(command *testcommand,const char *command_name){
+	
+	return strcmp(testcommand->name,command_name);
+        }
+
+
+int command_comes_after(command *testcommand,const char *command_name){
+
+	return compare_command(testcommand,command_name)<0;
+        }
+
+
+int add_command_to_hashlist(command *new_command){
+	command *tempcommand, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(command_hashlist==NULL){
+		int i;
+
+		command_hashlist=(command **)malloc(sizeof(command *)*COMMANDS_HASHSLOTS);
+		if(command_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<COMMANDS_HASHSLOTS;i++)
+			command_hashlist[i]=NULL;
+	        }
+
+	if(!new_command)
+		return 0;
+
+	hashslot=hashfunc1(new_command->name,COMMANDS_HASHSLOTS);
+	lastpointer=NULL;
+	for(tempcommand=command_hashlist[hashslot];tempcommand && command_comes_after(tempcommand,new_command->name);tempcommand=tempcommand->nexthash)
+		lastpointer=tempcommand;
+
+	if(!tempcommand || (compare_command(tempcommand,new_command->name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_command;
+		else
+			command_hashlist[hashslot]=new_command;
+		new_command->nexthash=tempcommand;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+int compare_timeperiod(timeperiod *testtimeperiod,const char *timeperiod_name){
+	
+	return strcmp(testtimeperiod->name,timeperiod_name);
+        }
+
+
+int timeperiod_comes_after(timeperiod *testtimeperiod,const char *timeperiod_name){
+
+	return compare_timeperiod(testtimeperiod,timeperiod_name)<0;
+        }
+
+
+int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
+	timeperiod *temptimeperiod, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(timeperiod_hashlist==NULL){
+		int i;
+
+		timeperiod_hashlist=(timeperiod **)malloc(sizeof(timeperiod *)*TIMEPERIODS_HASHSLOTS);
+		if(timeperiod_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<TIMEPERIODS_HASHSLOTS;i++)
+			timeperiod_hashlist[i]=NULL;
+	        }
+
+	if(!new_timeperiod)
+		return 0;
+
+	hashslot=hashfunc1(new_timeperiod->name,TIMEPERIODS_HASHSLOTS);
+	lastpointer=NULL;
+	for(temptimeperiod=timeperiod_hashlist[hashslot];temptimeperiod && timeperiod_comes_after(temptimeperiod,new_timeperiod->name);temptimeperiod=temptimeperiod->nexthash)
+		lastpointer=temptimeperiod;
+
+	if(!temptimeperiod || (compare_timeperiod(temptimeperiod,new_timeperiod->name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_timeperiod;
+		else
+			timeperiod_hashlist[hashslot]=new_timeperiod;
+		new_timeperiod->nexthash=temptimeperiod;
 
 		return 1;
 	        }
@@ -352,7 +457,7 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	        }
 
 	/* make sure there isn't a timeperiod by this name added already */
-	temp_timeperiod=find_timeperiod(name,NULL);
+	temp_timeperiod=find_timeperiod(name);
 	if(temp_timeperiod!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Timeperiod '%s' has already been defined\n",name);
@@ -400,6 +505,22 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	/* initialize the time ranges for each day in the time period to NULL */
 	for(day=0;day<7;day++)
 		new_timeperiod->days[day]=NULL;
+
+	new_timeperiod->next=NULL;
+	new_timeperiod->nexthash=NULL;
+
+	/* add new timeperiod to timeperiod chained hash list */
+	if(!add_timeperiod_to_hashlist(new_timeperiod)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for timeperiod list to add timeperiod '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_timeperiod->alias);
+		free(new_timeperiod->name);
+		free(new_timeperiod);
+		return NULL;
+	        }
 
 	/* add new timeperiod to command list, sorted by name */
 	last_timeperiod=timeperiod_list;
@@ -1010,8 +1131,8 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->next=NULL;
 	new_host->nexthash=NULL;
 
-	/* add new host to host chained has list */
-	if(!add_host_allocated(new_host)){
+	/* add new host to host chained hash list */
+	if(!add_host_to_hashlist(new_host)){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host list to add host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2747,7 +2868,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->nexthash=NULL;
 
 	/* add new service to service chained hash list */
-	if(!add_service_allocated(new_service)){
+	if(!add_service_to_hashlist(new_service)){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add new service '%s' on host '%s' (out of memory?)\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2935,7 +3056,7 @@ command *add_command(char *name,char *value){
 	        }
 
 	/* make sure there isn't a command by this name added already */
-	temp_command=find_command(name,NULL);
+	temp_command=find_command(name);
 	if(temp_command!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Command '%s' has already been defined\n",name);
@@ -2977,6 +3098,20 @@ command *add_command(char *name,char *value){
 		return NULL;
 	        }
 
+	new_command->next=NULL;
+	new_command->nexthash=NULL;
+
+	/* add new command to command chained hash list */
+	if(!add_command_to_hashlist(new_command)){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command list to add command '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_command->name);
+		free(new_command);
+		return NULL;
+	        }
 
 	/* add new command to command list, sorted by command name */
 	last_command=command_list;
@@ -4015,7 +4150,7 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 /******************************************************************/
 
 /* given a timeperiod name and a starting point, find a timeperiod from the list in memory */
-timeperiod * find_timeperiod(char *name,timeperiod *period){
+timeperiod * find_timeperiod(char *name){
 	timeperiod *temp_timeperiod;
 	int result;
 
@@ -4023,27 +4158,13 @@ timeperiod * find_timeperiod(char *name,timeperiod *period){
 	printf("find_timeperiod() start\n");
 #endif
 
-	if(name==NULL)
+	if(name==NULL || timeperiod_hashlist==NULL)
 		return NULL;
 
-	if(period==NULL)
-		temp_timeperiod=timeperiod_list;
-	else
-		temp_timeperiod=period->next;
-	while(temp_timeperiod!=NULL){
+	for(temp_timeperiod=timeperiod_hashlist[hashfunc1(name,TIMEPERIODS_HASHSLOTS)];temp_timeperiod && timeperiod_comes_after(temp_timeperiod,name);temp_timeperiod=temp_timeperiod->nexthash);
 
-		result=strcmp(temp_timeperiod->name,name);
-
-		/* we found a matching host */
-       	        if(result==0)
-		       return temp_timeperiod;
-
-		/* we already passed any potential matches */
-		if(result>0)
-			return NULL;
-
-		temp_timeperiod=temp_timeperiod->next;
-		}
+	if(temp_timeperiod && (compare_timeperiod(temp_timeperiod,name)==0))
+		return temp_timeperiod;
 
 #ifdef DEBUG0
 	printf("find_timeperiod() end\n");
@@ -4056,15 +4177,23 @@ timeperiod * find_timeperiod(char *name,timeperiod *period){
 
 /* given a host name, find it in the list in memory */
 host * find_host(char *name){
-	host *iptr;
+	host *temp_host;
+
+#ifdef DEBUG0
+	printf("find_host() start\n");
+#endif
 
 	if(name==NULL || host_hashlist==NULL)
 		return NULL;
 
-	for(iptr=host_hashlist[hashfunc1(name,HOSTS_HASHSLOTS)];iptr && host_comes_after(iptr,name);iptr=iptr->nexthash);
+	for(temp_host=host_hashlist[hashfunc1(name,HOSTS_HASHSLOTS)];temp_host && host_comes_after(temp_host,name);temp_host=temp_host->nexthash);
 
-	if(iptr && (compare_host(iptr,name)==0))
-		return iptr;
+	if(temp_host && (compare_host(temp_host,name)==0))
+		return temp_host;
+
+#ifdef DEBUG0
+	printf("find_host() end\n");
+#endif
 
 	/* Couldn't find matching host */
 	return NULL;
@@ -4357,7 +4486,7 @@ contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp,contac
 
 
 /* given a command name, find a command from the list in memory */
-command * find_command(char *name,command *cmd){
+command * find_command(char *name){
 	command *temp_command;
 	int result;
 
@@ -4365,28 +4494,13 @@ command * find_command(char *name,command *cmd){
 	printf("find_command() start\n");
 #endif
 
-	if(name==NULL)
+	if(name==NULL || command_hashlist==NULL)
 		return NULL;
 
-	if(cmd==NULL)
-		temp_command=command_list;
-	else
-		temp_command=cmd->next;
+	for(temp_command=command_hashlist[hashfunc1(name,COMMANDS_HASHSLOTS)];temp_command && command_comes_after(temp_command,name);temp_command=temp_command->nexthash);
 
-	while(temp_command!=NULL){
-
-		result=strcmp(temp_command->name,name);
-
-		/* we found a match */
-		if(result==0)
-			return temp_command;
-
-		/* we already passed any potential matches */
-		if(result>0)
-			return NULL;
-
-		temp_command=temp_command->next;
-	        }
+	if(temp_command && (compare_command(temp_command,name)==0))
+		return temp_command;
 
 #ifdef DEBUG0
 	printf("find_command() end\n");
@@ -4399,15 +4513,23 @@ command * find_command(char *name,command *cmd){
 
 /* given a host/service name, find the service in the list in memory */
 service * find_service(char *host_name,char *svc_desc){
-	service *iptr;
+	service *temp_service;
+
+#ifdef DEBUG0
+	printf("find_service() start\n");
+#endif
 
 	if(host_name==NULL || svc_desc==NULL || service_hashlist==NULL)
 		return NULL;
 
-	for(iptr=service_hashlist[hashfunc2(host_name,svc_desc,SERVICES_HASHSLOTS)];iptr && service_comes_after(iptr,host_name,svc_desc);iptr=iptr->nexthash);
+	for(temp_service=service_hashlist[hashfunc2(host_name,svc_desc,SERVICES_HASHSLOTS)];temp_service && service_comes_after(temp_service,host_name,svc_desc);temp_service=temp_service->nexthash);
 
-	if(iptr && (compare_service(iptr,host_name,svc_desc)==0))
-		return iptr;
+	if(temp_service && (compare_service(temp_service,host_name,svc_desc)==0))
+		return temp_service;
+
+#ifdef DEBUG0
+	printf("find_service() end\n");
+#endif
 
 	/* we couldn't find a matching service */
 	return NULL;

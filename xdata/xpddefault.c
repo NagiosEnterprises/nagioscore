@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-15-2003
+ * Last Modified:   06-12-2003
  *
  * License:
  *
@@ -77,7 +77,7 @@ int xpddefault_initialize_performance_data(char *config_file){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		if(find_command(temp_command_name,NULL)==NULL){
+		if(find_command(temp_command_name)==NULL){
 			snprintf(buffer,sizeof(buffer),"Warning: Host performance command '%s' was not found - host performance data will not be processed!\n",temp_command_name);
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
@@ -93,7 +93,7 @@ int xpddefault_initialize_performance_data(char *config_file){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		if(find_command(temp_command_name,NULL)==NULL){
+		if(find_command(temp_command_name)==NULL){
 			snprintf(buffer,sizeof(buffer),"Warning: Service performance command '%s' was not found - service performance data will not be processed!\n",temp_command_name);
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);

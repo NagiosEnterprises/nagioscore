@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-02-2003
+ * Last Modified:   06-12-2003
  *
  * License:
  *
@@ -40,12 +40,10 @@
 
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
-#define SERVICES_HASHSLOTS                      5
-#define HOSTS_HASHSLOTS                         5
-/*
 #define SERVICES_HASHSLOTS                      1024
 #define HOSTS_HASHSLOTS                         1024
-*/
+#define COMMANDS_HASHSLOTS                      256
+#define TIMEPERIODS_HASHSLOTS                   64
 
 
 
@@ -65,6 +63,7 @@ typedef struct timeperiod_struct{
 	char    *alias;
 	timerange *days[7];
 	struct 	timeperiod_struct *next;
+	struct 	timeperiod_struct *nexthash;
 	}timeperiod;
 
 
@@ -334,6 +333,7 @@ typedef struct command_struct{
 	char    *name;
 	char    *command_line;
 	struct command_struct *next;
+	struct command_struct *nexthash;
         }command;
 
 
@@ -370,6 +370,7 @@ typedef struct servicedependency_struct{
 	int     has_been_checked;
 #endif
 	struct servicedependency_struct *next;
+	struct servicedependency_struct *nexthash;
         }servicedependency;
 
 
@@ -401,6 +402,7 @@ typedef struct hostdependency_struct{
 	int     has_been_checked;
 #endif
 	struct hostdependency_struct *next;
+	struct hostdependency_struct *nexthash;
         }hostdependency;
 
 
@@ -505,7 +507,7 @@ serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *);  
 
 
 /**** Object Search Functions ****/
-timeperiod * find_timeperiod(char *,timeperiod *);						/* finds a timeperiod object */
+timeperiod * find_timeperiod(char *);						                /* finds a timeperiod object */
 host * find_host(char *);									/* finds a host object */
 hostgroup * find_hostgroup(char *, hostgroup *);						/* finds a hostgroup object */
 hostgroupmember *find_hostgroupmember(char *,hostgroup *,hostgroupmember *);			/* finds a hostgroup member object */
@@ -514,7 +516,7 @@ servicegroupmember *find_servicegroupmember(char *,char *,servicegroup *,service
 contact * find_contact(char *, contact *);							/* finds a contact object */
 contactgroup * find_contactgroup(char *, contactgroup *);					/* finds a contactgroup object */
 contactgroupmember *find_contactgroupmember(char *,contactgroup *,contactgroupmember *);	/* finds a contactgroup member object */
-command * find_command(char *,command *);							/* finds a command object */
+command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
 hostextinfo *find_hostextinfo(char *);				                                /* find an extended host info object */
 serviceextinfo *find_serviceextinfo(char *,char *);                                             /* find an extended service info object */
@@ -528,12 +530,19 @@ host *get_next_host(void);									/* returns the next host, NULL at the end of 
 void *get_host_cursor(void);					                                /* allocate memory for the host cursor */
 host *get_next_host_cursor(void *v_cursor);							/* return the next host, NULL at the end of the list */
 void free_host_cursor(void *cursor);								/* free allocated cursor memory */
+
 int compare_host(host *,const char *);
 int host_comes_after(host *,const char *);
-int add_host_allocated(host *);
+int add_host_to_hashlist(host *);
 int compare_service(service *,const char *,const char *);
 int service_comes_after(service *,const char *,const char *);
-int add_service_allocated(service *);
+int add_service_to_hashlist(service *);
+int compare_command(command *,const char *);
+int command_comes_after(command *,const char *);
+int add_command_to_hashlist(command *);
+int compare_timeperiod(timeperiod *,const char *);
+int timeperiod_comes_after(timeperiod *,const char *);
+int add_timeperiod_to_hashlist(timeperiod *);
 
 
 

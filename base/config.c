@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-29-2003
+ * Last Modified:   06-12-2003
  *
  * License:
  *
@@ -1486,7 +1486,7 @@ int pre_flight_check(void){
 			/* get the command name, leave any arguments behind */
 			temp_command_name=my_strtok(temp_buffer,"!");
 
-			temp_command=find_command(temp_command_name,NULL);
+			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_command_name,temp_service->description,temp_service->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1502,7 +1502,7 @@ int pre_flight_check(void){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		temp_command=find_command(temp_command_name,NULL);
+		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!",temp_command_name,temp_service->description,temp_service->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1550,7 +1550,7 @@ int pre_flight_check(void){
 			warnings++;
 		        }
 		else{
-		        temp_timeperiod=find_timeperiod(temp_service->check_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_service->check_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Check period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->check_period,temp_service->description,temp_service->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1568,7 +1568,7 @@ int pre_flight_check(void){
 		        }
 
 		else{
-		        temp_timeperiod=find_timeperiod(temp_service->notification_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_service->notification_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Notification period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->notification_period,temp_service->description,temp_service->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1666,7 +1666,7 @@ int pre_flight_check(void){
 			/* get the command name, leave any arguments behind */
 			temp_command_name=my_strtok(temp_buffer,"!");
 
-			temp_command=find_command(temp_command_name,NULL);
+			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_command_name,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1685,7 +1685,7 @@ int pre_flight_check(void){
 			/* get the command name, leave any arguments behind */
 			temp_command_name=my_strtok(temp_buffer,"!");
 
-			temp_command=find_command(temp_command_name,NULL);
+			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_command_name,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1696,7 +1696,7 @@ int pre_flight_check(void){
 
 		/* check host check timeperiod */
 		if(temp_host->check_period!=NULL){
-		        temp_timeperiod=find_timeperiod(temp_host->check_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_host->check_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Check period '%s' specified for host '%s' is not defined anywhere!",temp_host->check_period,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1727,7 +1727,7 @@ int pre_flight_check(void){
 
 		/* check notification timeperiod */
 		if(temp_host->notification_period!=NULL){
-		        temp_timeperiod=find_timeperiod(temp_host->notification_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_host->notification_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Notification period '%s' specified for host '%s' is not defined anywhere!",temp_host->notification_period,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1882,7 +1882,7 @@ int pre_flight_check(void){
 			/* get the command name, leave any arguments behind */
 			temp_command_name=my_strtok(temp_buffer,"!");
 
-			temp_command=find_command(temp_command_name,NULL);
+			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1907,7 +1907,7 @@ int pre_flight_check(void){
 			/* get the command name, leave any arguments behind */
 			temp_command_name=my_strtok(temp_buffer,"!");
 
-			temp_command=find_command(temp_command_name,NULL);
+			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
 				sprintf(temp_buffer,"Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -1924,7 +1924,7 @@ int pre_flight_check(void){
 		        }
 
 		else{
-		        temp_timeperiod=find_timeperiod(temp_contact->service_notification_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_contact->service_notification_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->service_notification_period,temp_contact->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1942,7 +1942,7 @@ int pre_flight_check(void){
 		        }
 
 		else{
-		        temp_timeperiod=find_timeperiod(temp_contact->host_notification_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_contact->host_notification_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->host_notification_period,temp_contact->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2123,7 +2123,7 @@ int pre_flight_check(void){
 
 		/* find the timeperiod */
 		if(temp_se->escalation_period!=NULL){
-		        temp_timeperiod=find_timeperiod(temp_se->escalation_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_se->escalation_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->escalation_period,temp_se->description,temp_se->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2218,7 +2218,7 @@ int pre_flight_check(void){
 
 		/* find the timeperiod */
 		if(temp_he->escalation_period!=NULL){
-		        temp_timeperiod=find_timeperiod(temp_he->escalation_period,NULL);
+		        temp_timeperiod=find_timeperiod(temp_he->escalation_period);
 			if(temp_timeperiod==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_he->escalation_period,temp_he->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2488,7 +2488,7 @@ int pre_flight_check(void){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		temp_command=find_command(temp_command_name,NULL);
+		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2505,7 +2505,7 @@ int pre_flight_check(void){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		temp_command=find_command(temp_command_name,NULL);
+		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2531,7 +2531,7 @@ int pre_flight_check(void){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-	        temp_command=find_command(temp_command_name,NULL);
+	        temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2547,7 +2547,7 @@ int pre_flight_check(void){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-	        temp_command=find_command(temp_command_name,NULL);
+	        temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';

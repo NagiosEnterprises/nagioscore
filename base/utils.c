@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-11-2003
+ * Last Modified:   06-12-2003
  *
  * License:
  *
@@ -2016,7 +2016,7 @@ void get_raw_command_line(char *cmd,char *raw_command,int buffer_length){
 	        }
 
 	/* find the command used to check this service */
-	temp_command=find_command(raw_command,NULL);
+	temp_command=find_command(raw_command);
 
 	/* error if we couldn't find the command */
 	if(temp_command==NULL)
@@ -2065,7 +2065,7 @@ int check_time_against_period(time_t check_time,char *period_name){
 		return OK;
 
 	/* if period could not be found, assume the time is good */
-	temp_period=find_timeperiod(period_name,NULL);
+	temp_period=find_timeperiod(period_name);
 	if(temp_period==NULL)
 		return OK;
 
@@ -2122,7 +2122,7 @@ void get_next_valid_time(time_t preferred_time,time_t *valid_time, char *period_
 	else{
 
 		/* find the time period - if we can't find it, go with the preferred time */
-		temp_period=find_timeperiod(period_name,NULL);
+		temp_period=find_timeperiod(period_name);
 		if(temp_period==NULL){
 			*valid_time=preferred_time;
 			return;

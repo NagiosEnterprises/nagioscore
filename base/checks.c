@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-21-2003
+ * Last Modified:   04-29-2003
  *
  * License:
  *
@@ -771,17 +771,21 @@ void reap_service_checks(void){
 					/* update the status log with the host status */
 					update_host_status(temp_host,FALSE);
 
+#ifdef REMOVED_042903
 					/* log the initial state if the user wants */
 					if(log_initial_states==TRUE)
 						log_host_event(temp_host);
+#endif
 				        }
 		                }
 
+#ifdef REMOVED_042903
 			/* log the initial state if the user wants */
 			if(temp_service->has_been_checked==FALSE && log_initial_states==TRUE){
 				log_service_event(temp_service,HARD_STATE);
 				state_was_logged=TRUE;
 			        }
+#endif
 		        }
 
 
@@ -1023,9 +1027,11 @@ void reap_service_checks(void){
 					printf("\tSECTION B2d\n");
 #endif
 
+#ifdef REMOVED_042903
 					/* log the initial state if the user wants to and this host hasn't been checked yet */
 					if(log_initial_states==TRUE && temp_host->has_been_checked==FALSE)
 						log_host_event(temp_host);
+#endif
 
 					/* if the host has never been checked before, set the checked flag */
 					if(temp_host->has_been_checked==FALSE)

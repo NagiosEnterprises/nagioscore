@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Changed way in which initial states are logged
+* Added timeperiods and state options to escalation definitions
 * Added hostgroups directive to host definitions
 * Extended host/service info definitions are now stored in standard object
   config files

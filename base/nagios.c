@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-01-2003
+ * Last Modified:   04-29-2003
  *
  * Description:
  *
@@ -605,6 +605,10 @@ int main(int argc, char **argv){
 
 			/* update all status data (with retained information) */
 			update_all_status_data();
+
+			/* log initial host and service state */
+			log_initial_host_states();
+			log_initial_service_states();
 
 			/* create pipe used for service check IPC */
 			if(pipe(ipc_pipe)){

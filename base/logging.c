@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   04-29-2003
  *
  * License:
  *
@@ -36,8 +36,12 @@ extern char	*log_archive_path;
 
 extern char     *macro_x[MACRO_X_COUNT];
 
+extern host     *host_list;
+extern service  *service_list;
+
 extern int	use_syslog;
 extern int      log_service_retries;
+extern int      log_initial_states;
 
 extern unsigned long      logging_options;
 extern unsigned long      syslog_options;
@@ -234,6 +238,59 @@ int log_host_event(host *hst){
 	return OK;
         }
 
+
+/* logs initial host states */
+int log_initial_host_states(void){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	host *temp_host;
+
+	/* bail if we shouldn't be logging initial states */
+	if(log_initial_states==FALSE)
+		return OK;
+
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* grab the host macros */
+		clear_volatile_macros();
+		grab_host_macros(temp_host);
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"INITIAL HOST STATE: %s;%s;%s;%s;%s\n",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],temp_host->plugin_output);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+	        }
+
+	return OK;
+        }
+
+
+/* logs initial service states */
+int log_initial_service_states(void){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	service *temp_service;
+	host *temp_host;
+
+	/* bail if we shouldn't be logging initial states */
+	if(log_initial_states==FALSE)
+		return OK;
+
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		/* find the associated host */
+		temp_host=find_host(temp_service->host_name);
+
+		/* grab service macros */
+		clear_volatile_macros();
+		grab_host_macros(temp_host);
+		grab_service_macros(temp_service);
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"INITIAL SERVICE STATE: %s;%s;%s;%s;%s;%s\n",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
+
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+	        }
+
+	return OK;
+        }
 
 
 /* rotates the main log file */

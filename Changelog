@@ -5,7 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
-* Removed DB support for extended data
+* Removed DB support for extended data and retention data
 * Multiple service descriptions can be used in both service dependency
   and service escalation definitions
 * Moved contact groups directive from hostgroup definitions to host

@@ -2,6 +2,8 @@
 #
 # RESOURCE.CFG - Sample Resource File for Nagios @VERSION@
 #
+# Last Modified: 12-16-2002
+#
 # You can define $USERx$ macros in this file, which can in turn be used
 # in command definitions in your host config file(s).  $USERx$ macros are
 # useful for storing sensitive information such as usernames, passwords, 
@@ -47,6 +49,7 @@ $USER1$=@libexecdir@
 #xsddb_optimize_interval=3600
 
 
+
 # DB COMMENT DATA
 # Note: These config directives are only used if you compiled
 # in database support for comment data!
@@ -76,19 +79,4 @@ $USER1$=@libexecdir@
 #xdddb_username=someuser
 #xdddb_password=somepassword
 #xdddb_optimize_data=1
-
-
-# DB RETENTION DATA
-# Note: These config directives are only used if you compiled
-# in database support for retention data!
-# The user you specify here needs SELECT, INSERT, UPDATE, and
-# DELETE privileges on the 'programretention', 'hostretention',
-# and 'serviceretention' tables in the database.
-
-#xrddb_host=somehost
-#xrddb_port=someport
-#xrddb_database=somedatabase
-#xrddb_username=someuser
-#xrddb_password=somepassword
-#xrddb_optimize_data=1
 

@@ -120,20 +120,18 @@ USE_MYSQL=no
 USE_PGSQL=no
 
 dnl Should we use all MySQL xdata routines?
-AC_ARG_WITH(mysql-xdata,--with-mysql-xdata enables use of MySQL database for all external data types except objects,[
+AC_ARG_WITH(mysql-xdata,--with-mysql-xdata enables use of MySQL database for comment/downtime/status data,[
 	XDATATYPE=mysql
 	XSDTYPE=mysql
 	XCDTYPE=mysql
-	XRDTYPE=mysql
 	XDDTYPE=mysql
 	])
 
 dnl Should we use all PostgreSQL xdata routines?
-AC_ARG_WITH(pgsql-xdata,--with-pgsql-xdata enables use of PostgreSQL database for all external data types except objects,[
+AC_ARG_WITH(pgsql-xdata,--with-pgsql-xdata enables use of PostgreSQL database for comment/downtime/status data,[
 	XDATATYPE=pgsql
 	XSDTYPE=pgsql
 	XCDTYPE=pgsql
-	XRDTYPE=pgsql
 	XDDTYPE=pgsql
 	])
 
@@ -215,26 +213,10 @@ AC_SUBST(XEDH)
 
 
 dnl What retention data I/O implementation should we use?
-AC_ARG_WITH(mysql-retention,--with-mysql-retention enables use of MySQL database for storage of retention data,XRDTYPE=mysql)
-AC_ARG_WITH(pgsql-retention,--with-pgsql-retention enables use of PostgresSQL database for storage of retention data,XRDTYPE=pgsql)
-AC_ARG_WITH(default-retention,--with-default-retention enables use of default retention data routines,XRDTYPE=default)
-if test $XRDTYPE = mysql; then
-	AC_DEFINE_UNQUOTED(USE_XRDDB)
-	AC_DEFINE_UNQUOTED(USE_XRDMYSQL)
-	USE_MYSQL=yes
-	XRDC="xrddb.c"
-	XRDH="xrddb.h"
-	XRDCOMMENT="Database (MySQL)"
-	echo "We'll use MySQL database routines (in xdata/xrddb.*) for retention data I/O..."
-elif test $XRDTYPE = pgsql; then
-	AC_DEFINE_UNQUOTED(USE_XRDDB)
-	AC_DEFINE_UNQUOTED(USE_XRDPGSQL)
-	USE_PGSQL=yes
-	XRDC="xrddb.c"
-	XRDH="xrddb.h"
-	XRDCOMMENT="Database (PostgreSQL)"
-	echo "We'll use PostgreSQL database routines (in xdata/xrddb.*) for retention data I/O..."
-else
+dnl AC_ARG_WITH(mysql-retention,--with-mysql-retention enables use of MySQL database for storage of retention data,XRDTYPE=mysql)
+dnl AC_ARG_WITH(pgsql-retention,--with-pgsql-retention enables use of PostgresSQL database for storage of retention data,XRDTYPE=pgsql)
+dnl AC_ARG_WITH(default-retention,--with-default-retention enables use of default retention data routines,XRDTYPE=default)
+if test $XRDTYPE = default; then
 	AC_DEFINE_UNQUOTED(USE_XRDDEFAULT)
 	XRDC="xrddefault.c"
 	XRDH="xrddefault.h"
@@ -746,7 +728,7 @@ AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
 dnl AC_MSG_RESULT([              Object data:  $XODCOMMENT])
 AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
 AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
-AC_MSG_RESULT([           Retention data:  $XRDCOMMENT])
+dnl AC_MSG_RESULT([           Retention data:  $XRDCOMMENT])
 AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
 dnl AC_MSG_RESULT([       Extended info data:  $XEDCOMMENT])
 

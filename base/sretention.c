@@ -3,7 +3,7 @@
  * SRETENTION.C - State retention routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-16-2002
+ * Last Modified:   12-16-2002
  *
  * License:
  *
@@ -53,9 +53,6 @@ extern time_t         program_start;
 #ifdef USE_XRDDEFAULT
 #include "../xdata/xrddefault.h"		/* default routines */
 #endif
-#ifdef USE_XRDDB
-#include "../xdata/xrddb.h"			/* database routines */
-#endif
 
 
 
@@ -81,10 +78,6 @@ int save_state_information(char *main_config_file, int autosave){
 	/********* IMPLEMENTATION-SPECIFIC OUTPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
 	if(xrddefault_save_state_information(main_config_file)==ERROR)
-		return ERROR;
-#endif
-#ifdef USE_XRDDB
-	if(xrddb_save_state_information(main_config_file)==ERROR)
 		return ERROR;
 #endif
 
@@ -117,10 +110,6 @@ int read_initial_state_information(char *main_config_file){
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
 	if(xrddefault_read_state_information(main_config_file)==ERROR)
-		return ERROR;
-#endif
-#ifdef USE_XRDDB
-	if(xrddb_read_state_information(main_config_file)==ERROR)
 		return ERROR;
 #endif
 

@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2002
+ * Last Modified: 02-28-2002
  *
  * License:
  * 
@@ -1502,7 +1502,7 @@ void graph_all_histogram_data(void){
 	double x_scaling_factor;
 	double y_scaling_factor;
 	double x_units;
-	int y_units;
+	double y_units;
 	int current_unit;
 	int actual_unit;
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -1561,31 +1561,25 @@ void graph_all_histogram_data(void){
 #ifdef DEBUG
 	printf("Done determining max bucket values\n");
 	printf("MAX_VALUE=%lu\n",max_value);
+	printf("DRAWING_HEIGHT=%lu\n",DRAWING_HEIGHT);
+#endif
+
+	/* min number of values to graph */
+	if(max_value<10)
+		max_value=10;
+#ifdef DEBUG
+	printf("ADJUSTED MAX_VALUE=%lu\n",max_value);
 #endif
 
 	/* determine y scaling factor */
-	if(max_value==0)
-		y_scaling_factor=1.0;
-	else
-		y_scaling_factor=floor((double)DRAWING_HEIGHT/(double)max_value);
-	if(y_scaling_factor<1.0)
-		y_scaling_factor=1.0;
-
-#ifdef DEBUG
-	printf("Y_SCALING_FACTOR=%.2f\n",y_scaling_factor);
-#endif
+	y_scaling_factor=floor((double)DRAWING_HEIGHT/(double)max_value);
 
 	/* determine x scaling factor */
 	x_scaling_factor=(double)((double)DRAWING_WIDTH/(double)total_buckets);
 
-#ifdef DEBUG
-	printf("X_SCALING_FACTOR=%.2f\n",x_scaling_factor);
-#endif
-
-	/* determine y units resolution */
-	y_units=0.0;
-	while((double)(DRAWING_HEIGHT/10.0)>y_units)
-		y_units+=y_scaling_factor;
+	/* determine y units resolution - we want a max of about 10 y grid lines */
+	y_units=(double)((double)DRAWING_HEIGHT/19.0);
+	y_units=ceil(y_units/y_scaling_factor)*y_scaling_factor;
 
 	/* determine x units resolution */
 	if(breakdown_type==BREAKDOWN_HOURLY)
@@ -2015,13 +2009,13 @@ void add_archived_state(int state_type, time_t time_stamp){
 	int bucket;
 	int skip_state=FALSE;
 
-#ifdef DEBUG
+#ifdef DEBUG2
 	printf("NEW ENTRY: last=%d this=%d\n",last_state,state_type);
 #endif
 
 	/* don't record program starts/stops, just make a note that one occurred */
 	if(state_type==AS_PROGRAM_START || state_type==AS_PROGRAM_END){
-#ifdef DEBUG
+#ifdef DEBUG2
 		printf("Recording a program start: %d\n",state_type);
 #endif
 		program_restart_has_occurred=TRUE;
@@ -2031,7 +2025,7 @@ void add_archived_state(int state_type, time_t time_stamp){
 	/* see if we should even take into account this event */
 	if(program_restart_has_occurred==TRUE){
 
-#ifdef DEBUG
+#ifdef DEBUG2
 		printf("program_restart_has_occurred: last=%d this=%d\n",last_state,state_type);
 #endif
 		
@@ -2057,7 +2051,7 @@ void add_archived_state(int state_type, time_t time_stamp){
 
 		if(skip_state==TRUE){
 			program_restart_has_occurred=FALSE;
-#ifdef DEBUG
+#ifdef DEBUG2
 			printf("Skipping state...\n");
 #endif
 			return;
@@ -2069,13 +2063,13 @@ void add_archived_state(int state_type, time_t time_stamp){
 
 	/* are we only processing new states */
 	if(new_states_only==TRUE && state_type==last_state){
-#ifdef DEBUG
+#ifdef DEBUG2
 		printf("Skipping state (not a new state)...\n");
 #endif
 		return;
 	        }
 
-#ifdef DEBUG
+#ifdef DEBUG2
 	printf("GOODSTATE: %d @ %lu\n",state_type,(unsigned long)time_stamp);
 #endif
 		
@@ -2096,7 +2090,7 @@ void add_archived_state(int state_type, time_t time_stamp){
 	else
 		bucket=(our_time->tm_hour*4)+(our_time->tm_min/15);
 
-#ifdef DEBUG
+#ifdef DEBUG2
 	printf("\tBucket=%d\n",bucket);
 #endif	
 
@@ -2131,7 +2125,7 @@ void read_archived_state_data(void){
 	int oldest_archive=0;
 	int current_archive;
 
-#ifdef DEBUG
+#ifdef DEBUG2
 	printf("Determining archives to use...\n");
 #endif
 
@@ -2146,7 +2140,7 @@ void read_archived_state_data(void){
 	if(oldest_archive<newest_archive)
 		oldest_archive=newest_archive;
 
-#ifdef DEBUG
+#ifdef DEBUG2
 	printf("Oldest archive: %d\n",oldest_archive);
 	printf("Newest archive: %d\n",newest_archive);
 #endif
@@ -2157,7 +2151,7 @@ void read_archived_state_data(void){
 		/* get the name of the log file that contains this archive */
 		get_log_archive_to_use(current_archive,filename,sizeof(filename)-1);
 
-#ifdef DEBUG	
+#ifdef DEBUG2
 		printf("\tCurrent archive: %d (%s)\n",current_archive,filename);
 #endif
 
@@ -2188,13 +2182,13 @@ void scan_log_file_for_archived_state_data(char *filename){
 
 	fp=fopen(filename,"r");
 	if(fp==NULL){
-#ifdef DEBUG
+#ifdef DEBUG2
 		printf("Could not open file '%s' for reading.\n",filename);
 #endif
 		return;
 	        }
 
-#ifdef DEBUG
+#ifdef DEBUG2
 	printf("Scanning log file '%s' for archived state data...\n",filename);
 #endif
 

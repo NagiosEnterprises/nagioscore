@@ -342,15 +342,23 @@ if test x$TRYGD = xyep; then
 
 	dnl See if the GD lib is available and supports PNG images...
 
-	dnl GD > 1.8.1 requires the jpeg library to be present as well, so test for that first...
+	dnl GD > 1.8.3 requires the TrueType library to be present as well, so test for that first...
 	JMD_CHECK_LIB_ORDER(gd,gdImagePng,1,[
 			GDLIBFOUND=yep
+			GDLIBS="-lgd -lttf -lz -lm -lpng -ljpeg"
+			],:,[-lz -lttf -lm -lpng -ljpeg])
+ 
+	dnl GD > 1.8.1 requires the jpeg library to be present as well, so test for that...
+	if test x$GDLIBFOUND = x; then
+		JMD_CHECK_LIB_ORDER(gd,gdImagePng,2,[
+			GDLIBFOUND=yep
 			GDLIBS="-lgd $ICONV -lz -lm -lpng -ljpeg"
-	        	],:,[$ICONV -lz -lm -lpng -ljpeg])
+        		],:,[$ICONV -lz -lm -lpng -ljpeg])
+	fi
 
 	dnl If we failed the first test, try without jpeg library
 	if test x$GDLIBFOUND = x; then
-		JMD_CHECK_LIB_ORDER(gd,gdImagePng,2,[
+		JMD_CHECK_LIB_ORDER(gd,gdImagePng,3,[
 			GDLIBFOUND=yep
 			GDLIBS="-lgd $ICONV -lz -lm -lpng"
 		        ],:,[$ICONV -lz -lm -lpng])
@@ -358,7 +366,7 @@ if test x$TRYGD = xyep; then
 
 	dnl We failed again, so try a different library ordering (without jpeg libs)
 	if test x$GDLIBFOUND = x; then
-		JMD_CHECK_LIB_ORDER(gd,gdImagePng,3,[
+		JMD_CHECK_LIB_ORDER(gd,gdImagePng,4,[
 			GDLIBFOUND=yep
 			GDLIBS="-lgd $ICONV -lpng -lz -lm"
 	        	],:,[$ICONV -lpng -lz -lm])

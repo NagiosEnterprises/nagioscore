@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2004
+ * Last Modified:   04-20-2004
  *
  * License:
  *
@@ -3875,6 +3875,15 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		return NULL;
 	        }
 
+	if(inherits_parent<0 || inherits_parent>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid inherits_parent value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+                }
+
 	/* allocate memory for a new service dependency entry */
 	new_servicedependency=(servicedependency *)malloc(sizeof(servicedependency));
 	if(new_servicedependency==NULL){
@@ -5592,7 +5601,7 @@ int check_for_circular_servicedependency(servicedependency *root_dep, servicedep
 			return TRUE;
 	        }
 
-	/* notification depdencies are ok at this point as long as they don't inherit */
+	/* notification dependencies are ok at this point as long as they don't inherit */
 	if(dependency_type==NOTIFICATION_DEPENDENCY && dep->inherits_parent==FALSE)
 		return FALSE;
 

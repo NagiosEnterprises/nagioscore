@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-13-2004
+ * Last Modified: 04-20-2004
  *
  * Description:
  *
@@ -4758,12 +4758,13 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	new_hostdependency->fail_notify_on_up=temp_hostdependency->fail_notify_on_up;
 	new_hostdependency->fail_notify_on_down=temp_hostdependency->fail_notify_on_down;
 	new_hostdependency->fail_notify_on_unreachable=temp_hostdependency->fail_notify_on_unreachable;
+	new_hostdependency->have_notification_dependency_options=temp_hostdependency->have_notification_dependency_options;
 	new_hostdependency->fail_execute_on_up=temp_hostdependency->fail_execute_on_up;
 	new_hostdependency->fail_execute_on_down=temp_hostdependency->fail_execute_on_down;
 	new_hostdependency->fail_execute_on_unreachable=temp_hostdependency->fail_execute_on_unreachable;
-	new_hostdependency->have_notification_dependency_options=temp_hostdependency->have_notification_dependency_options;
 	new_hostdependency->have_execution_dependency_options=temp_hostdependency->have_execution_dependency_options;
-	
+	new_hostdependency->inherits_parent=temp_hostdependency->inherits_parent;
+	new_hostdependency->have_inherits_parent=temp_hostdependency->have_inherits_parent;
 
 	/* allocate memory for and copy string members of hostdependency definition */
 	if(temp_hostdependency->host_name!=NULL){
@@ -4865,6 +4866,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->fail_execute_on_warning=temp_servicedependency->fail_execute_on_warning;
 	new_servicedependency->fail_execute_on_critical=temp_servicedependency->fail_execute_on_critical;
 	new_servicedependency->have_execution_dependency_options=temp_servicedependency->have_execution_dependency_options;
+	new_servicedependency->inherits_parent=temp_servicedependency->inherits_parent;
+	new_servicedependency->have_inherits_parent=temp_servicedependency->have_inherits_parent;
 	
 
 	/* allocate memory for and copy string members of hostdependency definition */

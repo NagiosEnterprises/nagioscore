@@ -8379,6 +8379,10 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				return NULL;
 		                }
 
+			/* skip hostgroups with no defined members */
+			if(temp_hostgroup->members==NULL)
+				continue;
+
 			/* save a copy of the hosts */
 			host_names=strdup(temp_hostgroup->members);
 			if(host_names==NULL){

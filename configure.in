@@ -4,9 +4,9 @@ AC_CONFIG_HEADER(common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
-PKG_VERSION="1.0b2"
+PKG_VERSION="1.0b3"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="05-27-2002"
+PKG_REL_DATE="06-09-2002"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL

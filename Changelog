@@ -2,7 +2,7 @@
 Nagios Change Log
 ###################
 
-1.0b3 - 06/??/2002
+1.0b3 - 06/09/2002
 ------------------
 * Bug fixes in template-based object code
 * Bug fix in tac CGI for counting host and service states properly
@@ -10,6 +10,7 @@ Nagios Change Log
 * Ping syntax for WAP interface moved to CGI config file
 * Command file user/group defaults to Nagios user/group unless
   overridden with configure script options
+* Sample template-based object config file fixes
 
 
 1.0b2 - 05/27/2002

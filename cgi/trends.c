@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-26-2002
+ * Last Modified: 11-22-2002
  *
  * License:
  * 
@@ -792,7 +792,7 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 
 			printf("<tr><td class='reportSelectSubTitle' valign=center>Host</td>\n");
-			printf("<td class='reportSelectItem' valing=center>\n");
+			printf("<td class='reportSelectItem' valign=center>\n");
 			printf("<select name='host'>\n");
 
 			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){

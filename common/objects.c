@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2003
+ * Last Modified:   11-22-2003
  *
  * License:
  *
@@ -745,7 +745,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	printf("\tNotify On Unreachable:    %s\n",(new_host->notify_on_unreachable==1)?"yes":"no");
 	printf("\tNotify On Recovery:       %s\n",(new_host->notify_on_recovery==1)?"yes":"no");
 	printf("\tNotification Interval:    %d\n",new_host->notification_interval);
-	printf("\tNotification Time Period: %s\n",new_host->notification_period);
+	printf("\tNotification Time Period: %s\n",(new_host->notification_period==NULL)?"N/A":new_host->notification_period);
 #endif
 #ifdef DEBUG0
 	printf("add_host() end\n");

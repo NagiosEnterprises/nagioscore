@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-13-2003
+ * Last Modified: 11-22-2003
  *
  * Description:
  *
@@ -5681,6 +5681,16 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	/* bail out if we shouldn't register this object */
 	if(this_servicedependency->register_object==FALSE)
 		return OK;
+
+	/* throw a warning on servicedeps that have no options */
+	if(this_servicedependency->have_notification_dependency_options==FALSE && this_servicedependency->have_execution_dependency_options==FALSE){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Ignoring lame service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+#endif
+		return OK;
+	        }
 
 	/* add the servicedependency */
 	if(this_servicedependency->have_execution_dependency_options==TRUE){

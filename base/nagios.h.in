@@ -328,8 +328,11 @@ typedef struct circular_buffer_struct{
         }circular_buffer;
 
 
+/* slots in circular buffers */
 #define COMMAND_BUFFER_SLOTS              512
+#define SERVICE_BUFFER_SLOTS		  512
 
+/* worker threads */
 #define TOTAL_WORKER_THREADS              3
 
 #define COMMAND_WORKER_THREAD		  0
@@ -566,6 +569,11 @@ void start_accepting_passive_host_checks(void);		/* starts accepting passive hos
 void stop_accepting_passive_host_checks(void);		/* stops accepting passive host check results */
 void enable_passive_host_checks(host *);	        /* enables passive host checks for a particular host */
 void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
+
+int init_worker_threads(void);
+int cleanup_worker_threads(void);
+void * service_result_worker_thread(void *);
+void * cleanup_service_result_worker_thread(void *);
 
 int init_command_file_worker_thread(void);
 void * command_file_worker_thread(void *);

@@ -622,8 +622,6 @@ int main(int argc, char **argv){
 
 			/* open the command file (named pipe) for reading */
 			result=open_command_file();
-			
-			/* there was a problem opening the command file */
 			if(result!=OK){
 
 				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
@@ -675,6 +673,18 @@ int main(int argc, char **argv){
 			/* read end of the pipe should be non-blocking */
 			fcntl(ipc_pipe[0],F_SETFL,O_NONBLOCK);
 
+			/* initialize worker threads */
+			result=init_worker_threads();
+			if(result!=OK){
+
+				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while trying to initialize worker threads... (PID=%d)\n",(int)getpid());
+				buffer[sizeof(buffer)-1]='\x0';
+				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
+
+				cleanup();
+				exit(ERROR);
+		                }
+
 			/* reset the restart flag */
 			sigrestart=FALSE;
 
@@ -696,6 +706,9 @@ int main(int argc, char **argv){
 
 			/* clean up performance data */
 			cleanup_performance_data(config_file);
+
+			/* cleanup worker threads */
+			cleanup_worker_threads();
 
 			/* close the original pipe used for IPC (we'll create a new one if restarting) */
 			close(ipc_pipe[0]);

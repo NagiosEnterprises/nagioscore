@@ -2023,11 +2023,9 @@ int drop_privileges(char *user, char *group){
 
 
 
-/* reads a service message from the message pipe */
+/* reads a service message from the circular buffer */
 int read_svc_message(service_message *message){
-	int read_result;
-	int bytes_to_read;
-	int write_offset;
+	int result;
 
 #ifdef DEBUG0
 	printf("read_svc_message() start\n");
@@ -2036,49 +2034,37 @@ int read_svc_message(service_message *message){
 	/* clear the message buffer */
 	bzero((void *)message,sizeof(service_message));
 
-	/* initialize the number of bytes to read */
-	bytes_to_read=sizeof(service_message);
+	/* get a lock on the buffer */
+	pthread_mutex_lock(&service_result_buffer.buffer_lock);
 
-        /* read a single message from the pipe, taking into consideration that we may have had an interrupt */
-	while(1){
+	/* there are no items in the buffer */
+	if(service_result_buffer.items==0)
+		result=-1;
 
-		write_offset=sizeof(service_message)-bytes_to_read;
+	/* return the message from the head of the buffer */
+	else{
+		
+		/* copy message to user-supplied structure */
+		memcpy(message,((service_message **)service_result_buffer.buffer)[service_result_buffer.head],sizeof(service_message));
 
-		/* try and read a (full or partial) message */
-		read_result=read(ipc_pipe[0],message+write_offset,bytes_to_read);
+		/* free memory allocated for buffer slot */
+		free(((service_message **)service_result_buffer.buffer)[service_result_buffer.head]);
 
-		/* we had a failure in reading from the pipe... */
-		if(read_result==-1){
+		/* adjust head counter and number of items */
+		service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
+		service_result_buffer.items--;
 
-			/* if the problem wasn't due to an interrupt, return with an error */
-			if(errno!=EINTR)
-				break;
-
-			/* otherwise we'll try reading from the pipe again... */
-		        }
-
-		/* are we at the end of pipe? this should not happen... */
-		else if(read_result==0){
-
-			read_result=-1;
-			break;
-		        }
-
-		/* did we read fewer bytes than we were supposed to?  if so, try this read and try again (so we get the rest of the message)... */
-		else if(read_result<bytes_to_read){
-			bytes_to_read-=read_result;
-			continue;
-		        }
-
-		else
-			break;
+		result=0;
 	        }
+
+	/* release the lock on the buffer */
+	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 
 #ifdef DEBUG0
 	printf("read_svc_message() end\n");
 #endif
 
-	return read_result;
+	return result;
 	}
 
 
@@ -2556,6 +2542,333 @@ int reinit_embedded_perl(void){
 #endif
 	return OK;
         }
+
+
+
+
+/******************************************************************/
+/************************ THREAD FUNCTIONS ************************/
+/******************************************************************/
+
+/* initializes worker threads */
+int init_worker_threads(void){
+	int result;
+	sigset_t newmask, oldmask;
+
+
+	/**** SERVICE CHECK WORKER THREAD ****/
+
+	/* initialize circular buffer */
+	service_result_buffer.head=0;
+	service_result_buffer.tail=0;
+	service_result_buffer.items=0;
+	service_result_buffer.buffer=(void **)malloc(SERVICE_BUFFER_SLOTS*sizeof(service_message **));
+	if(service_result_buffer.buffer==NULL)
+		return ERROR;
+
+	/* initialize mutex */
+	pthread_mutex_init(&service_result_buffer.buffer_lock,NULL);
+
+	/* worker thread should ignore signals */
+	sigfillset(&newmask);
+	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
+	
+	/* create worker thread */
+	result=pthread_create(&worker_threads[SERVICE_WORKER_THREAD],NULL,service_result_worker_thread,NULL);
+
+	/* restore signal catching in main thread */
+	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
+
+	if(result)
+		return ERROR;
+
+	/**** EVENT BROKER WORKER THREAD */
+
+	return OK;
+        }
+
+
+/* cleans up worker threads */
+int cleanup_worker_threads(void){
+
+	/* tell the worker threads to exit */
+	pthread_cancel(worker_threads[SERVICE_WORKER_THREAD]);
+
+	/* wait for the worker threads to exit */
+	pthread_join(worker_threads[SERVICE_WORKER_THREAD],NULL);
+
+	return OK;
+        }
+
+
+/* clean up resources used by service result worker thread */
+void * cleanup_service_result_worker_thread(void *arg){
+	int x;
+
+	/* release memory allocated to circular buffer */
+	for(x=service_result_buffer.head;x!=service_result_buffer.tail;x=(x+1) % SERVICE_BUFFER_SLOTS)
+		free(((service_message **)service_result_buffer.buffer)[x]);
+	free(service_result_buffer.buffer);
+
+	return NULL;
+        }
+
+
+/* initializes command file worker thread */
+int init_command_file_worker_thread(void){
+	int result;
+	sigset_t newmask, oldmask;
+
+	/* initialize circular buffer */
+	external_command_buffer.head=0;
+	external_command_buffer.tail=0;
+	external_command_buffer.items=0;
+	external_command_buffer.buffer=(void **)malloc(COMMAND_BUFFER_SLOTS*sizeof(char **));
+	if(external_command_buffer.buffer==NULL)
+		return ERROR;
+
+	/* initialize mutex */
+	pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
+
+	/* worker thread should ignore signals */
+	sigfillset(&newmask);
+	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
+	
+	/* create worker thread */
+	result=pthread_create(&worker_threads[COMMAND_WORKER_THREAD],NULL,command_file_worker_thread,NULL);
+
+	/* restore signal catching in main thread */
+	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
+
+	if(result)
+		return ERROR;
+
+	return OK;
+        }
+
+
+/* clean up resources used by command file worker thread */
+void * cleanup_command_file_worker_thread(void *arg){
+	int x;
+
+	/* release memory allocated to circular buffer */
+	for(x=external_command_buffer.head;x!=external_command_buffer.tail;x=(x+1) % COMMAND_BUFFER_SLOTS)
+		free(((char **)external_command_buffer.buffer)[x]);
+	free(external_command_buffer.buffer);
+
+	return NULL;
+        }
+
+
+/* service worker thread - artificially increases buffer of IPC pipe */
+void * service_result_worker_thread(void *arg){
+	char input_buffer[MAX_INPUT_BUFFER];
+	struct timeval tv;
+#ifdef DOESNT_WORK
+	int retval;
+	fd_set readfs;
+#endif
+	int read_result;
+	int bytes_to_read;
+	int write_offset;
+	service_message *message;
+
+	/* specify cleanup routine */
+	pthread_cleanup_push(cleanup_service_result_worker_thread,NULL);
+
+	/* set cancellation info */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
+
+#ifdef DOESNT_WORK
+	FD_ZERO(&readfs);
+	FD_SET(ipc_pipe[0],&readfs);
+#endif
+
+	while(1){
+
+		/* should we shutdown? */
+		pthread_testcancel();
+
+		/* wait a bit */
+		tv.tv_sec=0;
+		tv.tv_usec=500000;
+		select(0,NULL,NULL,NULL,&tv);
+
+#ifdef DOESNT_WORK
+		/* I can't seem to get this working (using blocked or non-blocked pipe) - why? */
+		retval=select(ipc_pipe[0]+1,&readfs,NULL,NULL,&tv);
+		if(retval<=0)
+			continue;
+#endif
+
+		/* should we shutdown? */
+		pthread_testcancel();
+
+		/* obtain a lock for writing to the buffer */
+		pthread_mutex_lock(&service_result_buffer.buffer_lock);
+
+		/* process all data in the buffer if there's some space in the buffer */
+		if(service_result_buffer.items<SERVICE_BUFFER_SLOTS){
+
+			/* allocate memory for the message */
+			message=(service_message *)malloc(sizeof(service_message));
+			if(message==NULL)
+				return;
+
+			/* clear the message buffer */
+			bzero((void *)message,sizeof(service_message));
+
+			/* initialize the number of bytes to read */
+			bytes_to_read=sizeof(service_message);
+
+			/* read a single message from the pipe, taking into consideration that we may have had an interrupt */
+			while(1){
+
+				write_offset=sizeof(service_message)-bytes_to_read;
+
+				/* try and read a (full or partial) message */
+				read_result=read(ipc_pipe[0],message+write_offset,bytes_to_read);
+
+				/* we had a failure in reading from the pipe... */
+				if(read_result==-1){
+
+					/* if the problem wasn't due to an interrupt, return with an error */
+					if(errno!=EINTR)
+						break;
+
+					/* otherwise we'll try reading from the pipe again... */
+				        }
+
+				/* are we at the end of pipe? this should not happen... */
+				else if(read_result==0){
+					
+					read_result=-1;
+					break;
+				        }
+
+				/* did we read fewer bytes than we were supposed to?  if so, try and get the rest of the message... */
+				else if(read_result<bytes_to_read){
+					bytes_to_read-=read_result;
+					continue;
+				        }
+
+				else
+					break;
+			        }
+
+			/* the read was good, so save it */
+			if(read_result>=0){
+				
+				/* save the data to the buffer */
+				((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]=message;
+
+				/* increment the tail counter and items */
+				service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
+				service_result_buffer.items++;
+			        }
+
+			/* bail out if the buffer is now full */
+			if(service_result_buffer.items==SERVICE_BUFFER_SLOTS)
+				break;
+
+			/* should we shutdown? */
+			pthread_testcancel();
+                        }
+
+		/* release lock on buffer */
+		pthread_mutex_unlock(&service_result_buffer.buffer_lock);
+	        }
+
+	/* removes cleanup handler */
+	pthread_cleanup_pop(0);
+
+	return NULL;
+        }
+
+
+
+/* worker thread - artificially increases buffer of named pipe */
+void * command_file_worker_thread(void *arg){
+	char input_buffer[MAX_INPUT_BUFFER];
+	struct timeval tv;
+#ifdef DOESNT_WORK
+	int retval;
+	fd_set readfs;
+#endif
+
+	/* specify cleanup routine */
+	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
+
+	/* set cancellation info */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
+
+#ifdef DOESNT_WORK
+	FD_ZERO(&readfs);
+	FD_SET(command_file_fd,&readfs);
+#endif
+
+	while(1){
+
+		/* should we shutdown? */
+		pthread_testcancel();
+
+		/* wait a bit */
+		tv.tv_sec=0;
+		tv.tv_usec=500000;
+		select(0,NULL,NULL,NULL,&tv);
+
+#ifdef DOESNT_WORK
+		/* I can't seem to get this working (blocked or non-blocked) */
+		retval=select(command_file_fd+1,&readfs,NULL,NULL,&tv);
+		if(retval<=0)
+			continue;
+#endif
+
+		/* should we shutdown? */
+		pthread_testcancel();
+
+		/* obtain a lock for writing to the buffer */
+		pthread_mutex_lock(&external_command_buffer.buffer_lock);
+
+		/* process all commands in the file (named pipe) if there's some space in the buffer */
+		if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
+
+			/* clear EOF condition from prior run (FreeBSD fix) */
+			clearerr(command_file_fp);
+
+			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
+
+				/* save the line in the buffer */
+				((char **)external_command_buffer.buffer)[external_command_buffer.tail]=strdup(input_buffer);
+
+				/* increment the tail counter and items */
+				external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
+				external_command_buffer.items++;
+
+				/* bail out if the buffer is now full */
+				if(external_command_buffer.items==COMMAND_BUFFER_SLOTS)
+					break;
+
+				/* should we shutdown? */
+				pthread_testcancel();
+	                        }
+
+			/* rewind file pointer (fix for FreeBSD, may already be taken care of due to clearerr() call before reading begins) */
+			rewind(command_file_fp);
+		        }
+
+		/* release lock on buffer */
+		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+	        }
+
+	/* removes cleanup handler */
+	pthread_cleanup_pop(0);
+
+	return NULL;
+        }
+
 
 
 

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2002
+ * Last Modified:   12-09-2002
  *
  * License:
  *
@@ -75,6 +75,9 @@ extern servicedependency *servicedependency_list;
 extern hostdependency    *hostdependency_list;
 
 extern service_message svc_msg;
+
+extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
+extern circular_buffer service_result_buffer;
 
 #ifdef EMBEDDEDPERL
 extern int      use_embedded_perl;

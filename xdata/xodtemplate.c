@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2004
+ * Last Modified: 06-11-2004
  *
  * Description:
  *
@@ -437,8 +437,16 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 				link_buffer[readlink_count]='\x0';
 			
 				/* create new symlink buffer name */
-				snprintf(linked_to_buffer,sizeof(linked_to_buffer)-1,"%s/%s",dirname,link_buffer);
-				linked_to_buffer[sizeof(linked_to_buffer)-1]='\x0';
+				if(link_buffer[0]=='/'){
+					/* full path */
+					snprintf(linked_to_buffer,sizeof(linked_to_buffer)-1,"%s",link_buffer);
+					linked_to_buffer[sizeof(linked_to_buffer)-1]='\x0';
+				        }
+				else{
+					/* relative path */
+					snprintf(linked_to_buffer,sizeof(linked_to_buffer)-1,"%s/%s",dirname,link_buffer);
+					linked_to_buffer[sizeof(linked_to_buffer)-1]='\x0';
+				        }
 
 				/* 
 				 * At this point, we know it's a symlink -

@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 03-10-2002
+# Last Modified: 06-11-2004
 #
 ################################################################################
 
@@ -42,6 +42,7 @@ define host{
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		novell-admins
 	}
 
 
@@ -57,6 +58,7 @@ define host{
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		novell-admins
 	}
 
 
@@ -72,6 +74,7 @@ define host{
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		nt-admins
 	}
 
 
@@ -87,6 +90,7 @@ define host{
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		nt-admins
 	}
 
 
@@ -102,6 +106,7 @@ define host{
 	notification_interval	480
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		linux-admins
 	}
 
 
@@ -118,6 +123,7 @@ define host{
 	notification_interval	480
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		linux-admins
 	}
 
 
@@ -133,6 +139,7 @@ define host{
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		switch-admins
 	}
 
 
@@ -148,6 +155,7 @@ define host{
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		switch-admins
 	}
 
 
@@ -163,6 +171,7 @@ define host{
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		switch-admins
 	}
 
 
@@ -178,6 +187,7 @@ define host{
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		switch-admins
 	}
 
 
@@ -193,6 +203,7 @@ define host{
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		switch-admins
 	}
 
 
@@ -208,6 +219,7 @@ define host{
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
+	contact_groups		router-admins
 	}
 
 
@@ -222,6 +234,7 @@ define host{
 	max_check_attempts	10
 	notification_interval	480
 	notification_period	workhours
+	contact_groups		printer-admins
 	}
 
 
@@ -236,6 +249,7 @@ define host{
 	max_check_attempts	10
 	notification_interval	480
 	notification_period	workhours
+	contact_groups		printer-admins
 	}
 
 
@@ -250,6 +264,7 @@ define host{
 	max_check_attempts	10
 	notification_interval	480
 	notification_period	workhours
+	contact_groups		printer-admins
 	}
 
 

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Last Modified:   10-09-2003
  *
  * License:
  *
@@ -751,6 +751,26 @@ void reap_service_checks(void){
 			/* grab the return code */
 			temp_service->current_state=queued_svc_msg.return_code;
 		        }
+
+
+		/* record the last state time */
+		switch(temp_service->current_state){
+		case STATE_OK:
+			temp_service->last_time_ok=temp_service->last_check;
+			break;
+		case STATE_WARNING:
+			temp_service->last_time_warning=temp_service->last_check;
+			break;
+		case STATE_UNKNOWN:
+			temp_service->last_time_unknown=temp_service->last_check;
+			break;
+		case STATE_CRITICAL:
+			temp_service->last_time_critical=temp_service->last_check;
+			break;
+		default:
+			break;
+		        }
+
 
 		/* get the host that this service runs on */
 		temp_host=find_host(temp_service->host_name);

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Last Modified:   10-09-2003
  *
  * License:
  *
@@ -595,6 +595,21 @@ int handle_host_state(host *hst){
 
 	/* update performance data */
 	update_host_performance_data(hst);
+
+	/* record latest time for current state */
+	switch(hst->current_state){
+	case HOST_UP:
+		hst->last_time_up=current_time;
+		break;
+	case HOST_DOWN:
+		hst->last_time_down=current_time;
+		break;
+	case HOST_UNREACHABLE:
+		hst->last_time_unreachable=current_time;
+		break;
+	default:
+		break;
+	        }
 
 	/* has the host state changed? */
 	if(hst->last_state!=hst->current_state)

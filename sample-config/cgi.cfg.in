@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 09-10-2003
+# Last Modified: 10-08-2003
 #
 #################################################################
 
@@ -234,7 +234,7 @@ default_statuswrl_layout=4
 # the host before the command is executed.
 # Please note that the syntax for the ping binary is
 # notorious for being different on virtually ever *NIX
-* OS and distribution, so you may have to tweak this to
+# OS and distribution, so you may have to tweak this to
 # work on your system.
 
 ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$

@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   10-09-2003
  *
  * License:
  *
@@ -329,6 +329,9 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
+		fprintf(fp,"\tlast_time_up=%lu\n",temp_host->last_time_up);
+		fprintf(fp,"\tlast_time_down=%lu\n",temp_host->last_time_down);
+		fprintf(fp,"\tlast_time_unreachable=%lu\n",temp_host->last_time_unreachable);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
 		fprintf(fp,"\tnext_notification=%lu\n",temp_host->next_host_notification);
 		fprintf(fp,"\tno_more_notifications=%d\n",temp_host->no_more_notifications);
@@ -373,6 +376,10 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_service->last_hard_state_change);
+		fprintf(fp,"\tlast_time_ok=%lu\n",temp_service->last_time_ok);
+		fprintf(fp,"\tlast_time_warning=%lu\n",temp_service->last_time_warning);
+		fprintf(fp,"\tlast_time_unknown=%lu\n",temp_service->last_time_unknown);
+		fprintf(fp,"\tlast_time_critical=%lu\n",temp_service->last_time_critical);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_service->plugin_output==NULL)?"":temp_service->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
@@ -597,6 +604,12 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->last_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_hard_state_change"))
 						temp_hoststatus->last_hard_state_change=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_up"))
+						temp_hoststatus->last_time_up=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_down"))
+						temp_hoststatus->last_time_down=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_unreachable"))
+						temp_hoststatus->last_time_unreachable=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_notification"))
 						temp_hoststatus->last_notification=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_notification"))
@@ -672,6 +685,14 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->last_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_hard_state_change"))
 						temp_servicestatus->last_hard_state_change=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_ok"))
+						temp_servicestatus->last_time_ok=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_warning"))
+						temp_servicestatus->last_time_warning=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_unknown"))
+						temp_servicestatus->last_time_unknown=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_time_critical"))
+						temp_servicestatus->last_time_critical=strtoul(val,NULL,10);
 					else if(!strcmp(var,"plugin_output"))
 						temp_servicestatus->plugin_output=strdup(val);
 					else if(!strcmp(var,"performance_data"))

@@ -277,7 +277,7 @@ int add_service_status(servicestatus *new_svcstatus){
 			free(new_svcstatus->plugin_output);
 			if(new_svcstatus->should_be_scheduled==TRUE){
 				get_time_string(&new_svcstatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service is scheduled to be checked on %s",date_string);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service check scheduled for %s",date_string);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				new_svcstatus->plugin_output=strdup(temp_buffer);
 			        }

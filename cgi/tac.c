@@ -1398,17 +1398,17 @@ void display_tac_overview(void){
 	printf("<tr><td colspan=5 height=20 class='featureTitle'>&nbsp;Monitoring Features</td></tr>\n");
 
 	printf("<tr>\n");
-	printf("<td class='featureHeader' width=125>Flap Detection</td>\n");
-	printf("<td class='featureHeader' width=125>Notifications</td>\n");
-	printf("<td class='featureHeader' width=125>Event Handlers</td>\n");
-	printf("<td class='featureHeader' width=125>Active Checks</td>\n");
-	printf("<td class='featureHeader' width=125>Passive Checks</td>\n");
+	printf("<td class='featureHeader' width=135>Flap Detection</td>\n");
+	printf("<td class='featureHeader' width=135>Notifications</td>\n");
+	printf("<td class='featureHeader' width=135>Event Handlers</td>\n");
+	printf("<td class='featureHeader' width=135>Active Checks</td>\n");
+	printf("<td class='featureHeader' width=135>Passive Checks</td>\n");
 	printf("</tr>\n");
 
 	printf("<tr>\n");
 
 	printf("<td valign=top>\n");
-	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
+	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Flap Detection %s'></a></td>\n",COMMAND_CGI,(enable_flap_detection==TRUE)?CMD_DISABLE_FLAP_DETECTION:CMD_ENABLE_FLAP_DETECTION,url_images_path,(enable_flap_detection==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_flap_detection==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
@@ -1449,7 +1449,7 @@ void display_tac_overview(void){
 
 
 	printf("<td valign=top>\n");
-	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
+	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Notifications %s'></a></td>\n",COMMAND_CGI,(enable_notifications==TRUE)?CMD_DISABLE_NOTIFICATIONS:CMD_ENABLE_NOTIFICATIONS,url_images_path,(enable_notifications==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_notifications==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
@@ -1481,7 +1481,7 @@ void display_tac_overview(void){
 
 
 	printf("<td valign=top>\n");
-	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
+	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Event Handlers %s'></a></td>\n",COMMAND_CGI,(enable_event_handlers==TRUE)?CMD_DISABLE_EVENT_HANDLERS:CMD_ENABLE_EVENT_HANDLERS,url_images_path,(enable_event_handlers==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_event_handlers==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
@@ -1513,7 +1513,7 @@ void display_tac_overview(void){
 
 
 	printf("<td valign=top>\n");
-	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
+	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Active Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(execute_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(execute_service_checks==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
@@ -1545,7 +1545,7 @@ void display_tac_overview(void){
 
 
 	printf("<td valign=top>\n");
-	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
+	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
 	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Passive Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(accept_passive_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(accept_passive_service_checks==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");

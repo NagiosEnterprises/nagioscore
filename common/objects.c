@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-10-2003
+ * Last Modified:   07-11-2003
  *
  * License:
  *
@@ -1718,8 +1718,10 @@ hostgroup *add_hostgroup(char *name,char *alias){
 
 
 /* add a new host to a host group */
-hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
-	hostgroupmember *new_hostgroupmember;
+hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
+	hostgroupmember *new_member;
+	hostgroupmember *last_member;
+	hostgroupmember *temp_member;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -1729,7 +1731,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 #endif
 
 	/* make sure we have the data we need */
-	if(grp==NULL || host_name==NULL){
+	if(temp_hostgroup==NULL || host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup or group member is NULL\n");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1750,36 +1752,55 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 	        }
 
 	/* allocate memory for a new member */
-	new_hostgroupmember=malloc(sizeof(hostgroupmember));
-	if(new_hostgroupmember==NULL){
+	new_member=malloc(sizeof(hostgroupmember));
+	if(new_member==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s'\n",grp->group_name,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s'\n",temp_hostgroup->group_name,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	new_hostgroupmember->host_name=strdup(host_name);
-	if(new_hostgroupmember->host_name==NULL){
+	new_member->host_name=strdup(host_name);
+	if(new_member->host_name==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s' name\n",grp->group_name,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s' name\n",temp_hostgroup->group_name,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-		free(new_hostgroupmember);
+		free(new_member);
 		return NULL;
 	        }
 
 	
-	/* add the new member to the head of the member list */
-	new_hostgroupmember->next=grp->members;
-	grp->members=new_hostgroupmember;
+	/* add the new member to the member list, sorted by host name */
+	last_member=temp_hostgroup->members;
+	for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
+		if(strcmp(new_member->host_name,temp_member->host_name)<0){
+			new_member->next=temp_hostgroup->members;
+			if(temp_member==temp_hostgroup->members)
+				temp_hostgroup->members=new_member;
+			else
+				last_member->next=new_member;
+			break;
+		        }
+		else
+			last_member=temp_member;
+	        }
+	if(temp_hostgroup->members==NULL){
+		new_member->next=NULL;
+		temp_hostgroup->members=new_member;
+	        }
+	else if(temp_member==NULL){
+		new_member->next=NULL;
+		last_member->next=new_member;
+	        }
 
 #ifdef DEBUG0
 	printf("add_host_to_hostgroup() end\n");
 #endif
 
-	return new_hostgroupmember;
+	return new_member;
         }
 
 
@@ -1917,8 +1938,10 @@ servicegroup *add_servicegroup(char *name,char *alias){
 
 
 /* add a new service to a service group */
-servicegroupmember *add_service_to_servicegroup(servicegroup *grp, char *host_name, char *svc_description){
-	servicegroupmember *new_servicegroupmember;
+servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, char *host_name, char *svc_description){
+	servicegroupmember *new_member;
+	servicegroupmember *last_member;
+	servicegroupmember *temp_member;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -1928,7 +1951,7 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *grp, char *host_na
 #endif
 
 	/* make sure we have the data we need */
-	if(grp==NULL || host_name==NULL || svc_description==NULL){
+	if(temp_servicegroup==NULL || host_name==NULL || svc_description==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup or group member is NULL\n");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1950,47 +1973,77 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *grp, char *host_na
 	        }
 
 	/* allocate memory for a new member */
-	new_servicegroupmember=malloc(sizeof(servicegroupmember));
-	if(new_servicegroupmember==NULL){
+	new_member=malloc(sizeof(servicegroupmember));
+	if(new_member==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s')\n",grp->group_name,host_name,svc_description);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s')\n",temp_servicegroup->group_name,host_name,svc_description);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	new_servicegroupmember->host_name=strdup(host_name);
-	if(new_servicegroupmember->host_name==NULL){
+	new_member->host_name=strdup(host_name);
+	if(new_member->host_name==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",grp->group_name,host_name,svc_description);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",temp_servicegroup->group_name,host_name,svc_description);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-		free(new_servicegroupmember);
+		free(new_member);
 		return NULL;
 	        }
-	new_servicegroupmember->service_description=strdup(svc_description);
-	if(new_servicegroupmember->service_description==NULL){
+	new_member->service_description=strdup(svc_description);
+	if(new_member->service_description==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",grp->group_name,host_name,svc_description);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",temp_servicegroup->group_name,host_name,svc_description);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-		free(new_servicegroupmember->host_name);
-		free(new_servicegroupmember);
+		free(new_member->host_name);
+		free(new_member);
 		return NULL;
 	        }
 
 	
-	/* add the new member to the head of the member list */
-	new_servicegroupmember->next=grp->members;
-	grp->members=new_servicegroupmember;
+	/* add new member to member list, sorted by host name then service description */
+	last_member=temp_servicegroup->members;
+	for(temp_member=temp_servicegroup->members;temp_member!=NULL;temp_member=temp_member->next){
+
+		if(strcmp(new_member->host_name,temp_member->host_name)<0){
+			new_member->next=temp_member;
+			if(temp_member==temp_servicegroup->members)
+				temp_servicegroup->members=new_member;
+			else
+				last_member->next=new_member;
+			break;
+		        }
+
+		else if(strcmp(new_member->host_name,temp_member->host_name)==0 && strcmp(new_member->service_description,temp_member->service_description)<0){
+			new_member->next=temp_member;
+			if(temp_member==temp_servicegroup->members)
+				temp_servicegroup->members=new_member;
+			else
+				last_member->next=new_member;
+			break;
+		        }
+
+		else
+			last_member=temp_member;
+	        }
+	if(temp_servicegroup->members==NULL){
+		new_member->next=NULL;
+		temp_servicegroup->members=new_member;
+	        }
+	else if(temp_member==NULL){
+		new_member->next=NULL;
+		last_member->next=new_member;
+	        }
 
 #ifdef DEBUG0
 	printf("add_service_to_servicegroup() end\n");
 #endif
 
-	return new_servicegroupmember;
+	return new_member;
         }
 
 

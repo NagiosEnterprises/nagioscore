@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Change in hostgroup authorization (need to be authorized for all member hosts)
 * Host dependencies are now checked before service notifications are sent out
 * Added on-demand host/service macros (i.e. $VARIABLE:host:service$)
 * Added notes and action_url directives to extended host/service definitions

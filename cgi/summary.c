@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-13-2003
+ * Last Modified: 07-11-2003
  *
  * License:
  * 
@@ -1958,7 +1958,7 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp){
 	if(grp==NULL)
 		return;
 
-	/* make sure the user is authorized to view at least one host in this hostgroup */
+	/* make sure the user is authorized to view this hostgroup */
 	if(is_authorized_for_hostgroup(grp,&current_authdata)==FALSE)
 		return;
 

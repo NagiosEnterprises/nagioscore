@@ -3,7 +3,7 @@
  * AUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-13-2003
+ * Last Modified:   07-11-2003
  *
  * License:
  *
@@ -234,14 +234,15 @@ int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo){
 	if(hg==NULL)
 		return FALSE;
 
-	/* see if user is authorized for any host in the hostgroup */
+	/* CHANGED in 2.0 - user must be authorized for ALL hosts in a hostgroup, not just one */
+	/* see if user is authorized for all hosts in the hostgroup */
 	for(temp_hostgroupmember=hg->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
 		temp_host=find_host(temp_hostgroupmember->host_name);
-		if(is_authorized_for_host(temp_host,authinfo)==TRUE)
-			return TRUE;
+		if(is_authorized_for_host(temp_host,authinfo)==FALSE)
+			return FALSE;
 	        }
 
-	return FALSE;
+	return TRUE;
         }
 
 
@@ -254,14 +255,14 @@ int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo){
 	if(sg==NULL)
 		return FALSE;
 
-	/* see if user is authorized for any service in the servicegroup */
+	/* see if user is authorized for all services in the servicegroup */
 	for(temp_servicegroupmember=sg->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
 		temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
-		if(is_authorized_for_service(temp_service,authinfo)==TRUE)
-			return TRUE;
+		if(is_authorized_for_service(temp_service,authinfo)==FALSE)
+			return FALSE;
 	        }
 
-	return FALSE;
+	return TRUE;
         }
 
 

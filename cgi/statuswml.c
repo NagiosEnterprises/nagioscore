@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 07-11-2003
  *
  * License:
  * 
@@ -609,9 +609,9 @@ void display_quick_stats(void){
 /* displays hostgroup status overview */
 void display_hostgroup_overview(void){
 	hostgroup *temp_hostgroup;
+	hostgroupmember *temp_member;
 	host *temp_host;
 	hoststatus *temp_hoststatus;
-	void *host_cursor;
 
 	
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -634,9 +634,10 @@ void display_hostgroup_overview(void){
 		printf("<table columns='2' align='LL'>\n");
 
 		/* check all hosts in this hostgroup */
-		host_cursor = get_host_cursor();
-		while(temp_host = get_next_host_cursor(host_cursor)) {
-			if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
+		for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
+
+			temp_host=find_host(temp_member->host_name);
+			if(temp_host==NULL)
 				continue;
 
 			if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
@@ -660,7 +661,6 @@ void display_hostgroup_overview(void){
 			printf("<go href='%s' method='post'><postfield name='host' value='%s'/></go></anchor></td>",STATUSWML_CGI,temp_host->name);
 			printf("<td>%s</td></tr>\n",temp_host->name);
 		        }
-		free_host_cursor(host_cursor);
 
 		printf("</table>\n");
 
@@ -680,6 +680,7 @@ void display_hostgroup_overview(void){
 /* displays hostgroup status summary */
 void display_hostgroup_summary(void){
 	hostgroup *temp_hostgroup;
+	hostgroupmember *temp_member;
 	host *temp_host;
 	hoststatus *temp_hoststatus;
 	service *temp_service;
@@ -694,7 +695,6 @@ void display_hostgroup_summary(void){
 	int services_ok=0;
 	int services_pending=0;
 	int found=0;
-	void *host_cursor;
 
 
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -728,10 +728,10 @@ void display_hostgroup_summary(void){
 		services_critical=0;
 
 		/* check all hosts in this hostgroup */
-		host_cursor = get_host_cursor();
-		while(temp_host = get_next_host_cursor(host_cursor)) {
+		for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
-			if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
+			temp_host=find_host(temp_member->host_name);
+			if(temp_host==NULL)
 				continue;
 
 			if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
@@ -773,7 +773,6 @@ void display_hostgroup_summary(void){
 			        }
 		        }
 		}
-		free_host_cursor(host_cursor);
 
 		printf("<tr><td>Hosts:</td><td>");
 		found=0;

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 05-22-2002
  *
  * License:
  * 
@@ -1231,9 +1231,6 @@ void show_service_detail(void){
 		                }
 		        }
 
-		total_entries++;
-
-
 		if((display_type==DISPLAY_HOSTS && (show_all_hosts==TRUE || !strcmp(host_name,temp_status->host_name))) || display_type==DISPLAY_HOSTGROUPS ){
 
 			if(strcmp(last_host,temp_status->host_name))
@@ -1253,7 +1250,9 @@ void show_service_detail(void){
 			else
 				odd=1;
 
-			
+			/* keep track of total number of services we're displaying */
+			total_entries++;
+
 		        /* get the last service check time */
 			t=temp_status->last_check;
 			get_time_string(&t,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);

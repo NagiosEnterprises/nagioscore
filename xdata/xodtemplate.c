@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-21-2002
+ * Last Modified: 05-22-2002
  *
  * Description:
  *
@@ -2577,6 +2577,7 @@ int xodtemplate_end_object_definition(int options){
 int xodtemplate_duplicate_objects(void){
 	int result=OK;
 	xodtemplate_service *temp_service;
+	xodtemplate_host *temp_host;
 	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_hostescalation *temp_hostescalation;
@@ -2592,6 +2593,9 @@ int xodtemplate_duplicate_objects(void){
 	printf("xodtemplate_duplicate_objects() start\n");
 #endif
 
+
+	/* Objects are already resolved before being duplicated, so it should be safe to remove these... */
+#ifdef USE_OLDCRUD
 	/****** RESOLVE ALL HOSTGROUP OBJECTS ******/
 	/* HOSTGROUPS NEED TO BE RESOLVED BEFORE OBJECTS CAN BE DUPLICATED (BECAUSE SOME REFERENCE HOSTGROUPS) */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
@@ -2599,6 +2603,13 @@ int xodtemplate_duplicate_objects(void){
 			return ERROR;
 	        }
 
+	/****** RESOLVE ALL HOST OBJECTS ******/
+	/* HOSTS NEED TO BE RESOLVED BEFORE OBJECTS CAN BE DUPLICATED (BECAUSE SOME REFERENCE HOSTS) */
+	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+		if(xodtemplate_resolve_host(temp_host)==ERROR)
+			return ERROR;
+	        }
+#endif
 
 
 	/****** DUPLICATE SERVICE DEFINITIONS WITH MULTIPLE HOST NAMES ******/
@@ -2646,6 +2657,7 @@ int xodtemplate_duplicate_objects(void){
 			free(host_names);
 		        }
 	        }
+
 
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP NAMES ******/
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -2726,6 +2738,46 @@ int xodtemplate_duplicate_objects(void){
 
 		/* free memory we used for hostgroup name list */
 		free(hostgroup_names);
+	        }
+
+
+	/****** DUPLICATE SERVICE DEFINITIONS WITH WILDCARD HOST NAMES ******/
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		/* skip services with NULL host names */
+		if(temp_service->host_name==NULL)
+			continue;
+
+		/* this service definition has a wildcard host name - duplicate it to all hosts */
+		if(!strcmp(temp_service->host_name,"*")){
+
+			/* duplicate service entries */
+			first_item=TRUE;
+
+			for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+				/* skip hosts with NULL names */
+				if(temp_host->host_name==NULL)
+					continue;
+
+				/* existing definition gets first host name */
+				if(first_item==TRUE){
+					free(temp_service->host_name);
+					temp_service->host_name=(char *)malloc(strlen(temp_host->host_name)+1);
+					if(temp_service->host_name!=NULL)
+						strcpy(temp_service->host_name,temp_host->host_name);
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate service definition */
+				result=xodtemplate_duplicate_service(temp_service,temp_host->host_name);
+
+				/* exit on error */
+				if(result==ERROR)
+					return ERROR;
+			        }
+		        }
 	        }
 
 
@@ -2858,6 +2910,46 @@ int xodtemplate_duplicate_objects(void){
 	        }
 
 
+	/****** DUPLICATE HOST ESCALATION DEFINITIONS WITH WILDCARD HOST NAMES ******/
+	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+
+		/* skip hostescalations with NULL host names */
+		if(temp_hostescalation->host_name==NULL)
+			continue;
+
+		/* this hostescalation definition should be assigned to all hosts... */
+		if(!strcmp(temp_hostescalation->host_name,"*")){
+			
+			/* duplicate hostescalation entries */
+			first_item=TRUE;
+
+			for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+				/* skip hosts with NULL names */
+				if(temp_host->host_name==NULL)
+					continue;
+
+				/* existing definition gets first host name */
+				if(first_item==TRUE){
+					free(temp_hostescalation->host_name);
+					temp_hostescalation->host_name=(char *)malloc(strlen(temp_host->host_name)+1);
+					if(temp_hostescalation->host_name!=NULL)
+						strcpy(temp_hostescalation->host_name,temp_host->host_name);
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate hostescalation definition */
+				result=xodtemplate_duplicate_hostescalation(temp_hostescalation,temp_host->host_name);
+
+				/* exit on error */
+				if(result==ERROR)
+					return ERROR;
+			        }
+		        }
+	        }
+
+
 	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH MULTIPLE HOST NAMES ******/
 	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
 
@@ -2984,6 +3076,47 @@ int xodtemplate_duplicate_objects(void){
 
 		/* free memory we used for hostgroup name list */
 		free(hostgroup_names);
+	        }
+
+
+	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH WILDCARD HOST NAMES ******/
+	/* THIS SHOULD BE DONE BEFORE DUPLICATING FOR WILDCARD DESCRIPTIONS - SEE CODE BELOW FOR THAT */
+	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+
+		/* skip serviceescalations with NULL host names */
+		if(temp_serviceescalation->host_name==NULL)
+			continue;
+
+		/* this serviceescalation definition has a wildcard host name - duplicate it to all hosts */
+		if(!strcmp(temp_serviceescalation->host_name,"*")){
+			
+			/* duplicate serviceescalation entries */
+			first_item=TRUE;
+
+			for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+				/* skip hosts with NULL names */
+				if(temp_host->host_name==NULL)
+					continue;
+
+				/* existing definition gets first host name */
+				if(first_item==TRUE){
+					free(temp_serviceescalation->host_name);
+					temp_serviceescalation->host_name=(char *)malloc(strlen(temp_host->host_name)+1);
+					if(temp_serviceescalation->host_name!=NULL)
+						strcpy(temp_serviceescalation->host_name,temp_host->host_name);
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate serviceescalation definition */
+				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,temp_host->host_name,NULL);
+
+				/* exit on error */
+				if(result==ERROR)
+					return ERROR;
+			        }
+		        }
 	        }
 
 

@@ -7,6 +7,8 @@ Nagios Change Log
 ----------------
 * Notification bug fix for volatile services
 * Embedded Perl bug fix in mini_epn
+* Minor bug fix in trends CGI
+* Bug with in retention of program state
 
 
 1.2 - 02/02/2004

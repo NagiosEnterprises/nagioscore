@@ -2,8 +2,8 @@
  *
  * TRENDS.C -  Nagios State Trends CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-22-2002
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-19-2004
  *
  * License:
  * 
@@ -2074,7 +2074,7 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 	                }
 
 		/* get the center of this time range */
-		center_time=start_time+((start_time-end_time)/2);
+		center_time=start_time+((end_time-start_time)/2);
 
 		/* determine next start and end time range with zoom factor */
 		if(zoom_factor>0){

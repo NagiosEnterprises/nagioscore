@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-21-2003
+ * Last Modified:   03-01-2003
  *
  * License:
  *
@@ -477,22 +477,28 @@ int xodtemplate_read_config_data(char *,int,int);           /* top-level routine
 int xodtemplate_grab_config_info(char *);                   /* grabs variables from main config file */
 int xodtemplate_process_config_file(char *,int);            /* process data in a specific config file */
 int xodtemplate_process_config_dir(char *,int);             /* process all files in a specific config directory */
+
+#ifdef NSCORE
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
 xodtemplate_servicelist *xodtemplate_expand_services(char *,char *);
 int xodtemplate_free_hostlist(xodtemplate_hostlist *);
 int xodtemplate_free_servicelist(xodtemplate_servicelist *);
+#endif
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);
 int xodtemplate_end_object_definition(int);
 
+int xodtemplate_register_objects(void);
+int xodtemplate_free_memory(void);
+
+#ifdef NSCORE
 int xodtemplate_duplicate_objects(void);
 int xodtemplate_resolve_objects(void);
 int xodtemplate_recombobulate_objects(void);
-int xodtemplate_register_objects(void);
-int xodtemplate_free_memory(void);
+int xodtemplate_cache_objects(char *);
 
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *,char *);
@@ -532,6 +538,7 @@ xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *);
 xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);
 xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *);
 xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *);
+#endif
 
 void *get_xodtemplate_service_cursor(void);
 xodtemplate_service *get_next_xodtemplate_service(void *v_cursor);

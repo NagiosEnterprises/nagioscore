@@ -3,19 +3,28 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2003
+ * Last Modified: 03-01-2003
  *
  * Description:
  *
  * Routines for parsing and resolving template-based object definitions.
- * Basic steps involved in this are as follows:
+ * Basic steps involved in this in the daemon are as follows:
  *
  *    1) Read
  *    2) Resolve
  *    3) Recombobulate
- *    4) Replicate
- *    5) Register
- *    6) Release
+ *    4) Duplicate
+ *    5) Cache
+ *    7) Register
+ *    8) Cleanup
+ *
+ * The steps involved for the CGIs differ a bit, since they read the cached
+ * definitions which are already resolved, recombobulated and duplicated.  In
+ * otherwords, they've already been "flattened"...
+ *
+ *    1) Read
+ *    2) Register
+ *    3) Cleanup
  *
  *
  * License:
@@ -83,10 +92,6 @@ char **xodtemplate_config_files;
 
 char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
 
-#ifdef NSCORE
-FILE *xodtemplate_cache_fp=NULL;
-#endif
-
 
 
 
@@ -148,14 +153,6 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 #ifdef NSCORE
 
-	/**** NOTE TO SELF: THIS IS A HORRIBLE HACKISH WAY TO CACHE THE DATA - FIX IT IN 3.0 WHEN WEB INTERFACE IS REWRITTEN! ****/
-
-	/* open the cache file for writing */
-	if(cache==TRUE)
-		xodtemplate_cache_fp=fopen(xodtemplate_cache_file,"w");
-	if(xodtemplate_cache_fp!=NULL)
-		fputs("###########################\n# NAGIOS OBJECT CACHE FILE\n# DO NOT MODIFY THIS FILE!!\n###########################\n\n",xodtemplate_cache_fp);
-
 	/* daemon reads all config files/dirs specified in the main config file */
 	/* read in all lines from the main config file */
 	for(fgets(input,sizeof(input)-1,fp);!feof(fp);fgets(input,sizeof(input)-1,fp)){
@@ -215,10 +212,6 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	        }
 
 	fclose(fp);
-
-	/* close the cache file */
-	if(xodtemplate_cache_fp!=NULL)
-		fclose(xodtemplate_cache_fp);
 #endif
 
 #ifdef NSCGI
@@ -226,6 +219,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	result=xodtemplate_process_config_file(xodtemplate_cache_file,options);
 #endif
 
+#ifdef NSCORE
 	/* resolve objects definitions */
 	if(result==OK)
 		result=xodtemplate_resolve_objects();
@@ -237,6 +231,11 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	/* duplicate object definitions */
 	if(result==OK)
 		result=xodtemplate_duplicate_objects();
+
+	/* cache object definitions */
+	if(result==OK && cache==TRUE)
+		xodtemplate_cache_objects(xodtemplate_cache_file);
+#endif
 
 	/* register objects */
 	if(result==OK)
@@ -458,12 +457,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 		/* skip blank lines */
 		if(input[0]=='\x0')
 			continue;
-
-#ifdef NSCORE
-		/* write this line to the cache file */
-		if(xodtemplate_cache_fp!=NULL)
-			fprintf(xodtemplate_cache_fp,"%s\n",input);
-#endif
 
 		/* this is the start of an object definition */
 		if(strstr(input,"define")==input){
@@ -2269,6 +2262,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_host->stalk_on_down=TRUE;
 				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
 					temp_host->stalk_on_unreachable=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_host->stalk_on_up=FALSE;
+					temp_host->stalk_on_down=FALSE;
+					temp_host->stalk_on_unreachable=FALSE;
+				        }
 				else{
 #ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalking option '%s' in host definition.\n",temp_ptr);
@@ -2287,6 +2285,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"failure_prediction_enabled")){
 			temp_host->failure_prediction_enabled=(atoi(value)>0)?TRUE:FALSE;
 			temp_host->have_failure_prediction_enabled=TRUE;
+		        }
+		else if(!strcmp(variable,"obsess_over_host")){
+			temp_host->obsess_over_host=(atoi(value)>0)?TRUE:FALSE;
+			temp_host->have_obsess_over_host=TRUE;
 		        }
 		else if(!strcmp(variable,"retain_status_information")){
 			temp_host->retain_status_information=(atoi(value)>0)?TRUE:FALSE;
@@ -2512,6 +2514,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_service->stalk_on_unknown=TRUE;
 				else if(!strcmp(temp_ptr,"c") || !strcmp(temp_ptr,"critical"))
 					temp_service->stalk_on_critical=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_service->stalk_on_ok=FALSE;
+					temp_service->stalk_on_warning=FALSE;
+					temp_service->stalk_on_unknown=FALSE;
+					temp_service->stalk_on_critical=FALSE;
+				        }
 				else{
 #ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalking option '%s' in service definition.\n",temp_ptr);
@@ -2618,6 +2626,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_hostdependency->fail_notify_on_down=TRUE;
 				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
 					temp_hostdependency->fail_notify_on_unreachable=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_hostdependency->fail_notify_on_up=FALSE;
+					temp_hostdependency->fail_notify_on_down=FALSE;
+					temp_hostdependency->fail_notify_on_unreachable=FALSE;
+				        }
 				else{
 #ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification dependency option '%s' in hostdependency definition.\n",temp_ptr);
@@ -2637,6 +2650,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_hostdependency->fail_execute_on_down=TRUE;
 				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
 					temp_hostdependency->fail_execute_on_unreachable=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_hostdependency->fail_execute_on_up=FALSE;
+					temp_hostdependency->fail_execute_on_down=FALSE;
+					temp_hostdependency->fail_execute_on_unreachable=FALSE;
+				        }
 				else{
 #ifdef NSCORE
 					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid execution dependency option '%s' in hostdependency definition.\n",temp_ptr);
@@ -3020,6 +3038,7 @@ int xodtemplate_end_object_definition(int options){
 /***************** OBJECT DUPLICATION FUNCTIONS *******************/
 /******************************************************************/
 
+#ifdef NSCORE
 
 /* duplicates object definitions */
 int xodtemplate_duplicate_objects(void){
@@ -4414,12 +4433,14 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	return;
         }
 
-
+#endif
 
 
 /******************************************************************/
 /***************** OBJECT RESOLUTION FUNCTIONS ********************/
 /******************************************************************/
+
+#ifdef NSCORE
 
 /* resolves object definitions */
 int xodtemplate_resolve_objects(void){
@@ -5504,7 +5525,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	return OK;
         }
 
-
+#endif
 
 
 
@@ -5512,12 +5533,15 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 /*************** OBJECT RECOMBOBULATION FUNCTIONS *****************/
 /******************************************************************/
 
+#ifdef NSCORE
 
 /* recombobulates object definitions */
 int xodtemplate_recombobulate_objects(void){
 	int result=OK;
 	xodtemplate_host *temp_host;
 	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_hostlist *temp_hostlist;
+	xodtemplate_hostlist *this_hostlist;
 	char *hostgroup_names;
 	char *temp_ptr;
 	char *new_members;
@@ -5528,6 +5552,44 @@ int xodtemplate_recombobulate_objects(void){
 #ifdef DEBUG0
 	printf("xodtemplate_recombobulate_objects() start\n");
 #endif
+
+	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
+
+		if(temp_hostgroup->members==NULL)
+			continue;
+
+		/* get list of hosts in the hostgroup */
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,temp_hostgroup->members);
+
+		/* add all members to the host group */
+		if(temp_hostlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member hosts specified in hostgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+		free(temp_hostgroup->members);
+		temp_hostgroup->members=NULL;
+		for(this_hostlist=temp_hostlist;this_hostlist;this_hostlist=this_hostlist->next){
+
+			/* add this host to the hostgroup members directive */
+			if(temp_hostgroup->members==NULL)
+				temp_hostgroup->members=strdup(this_hostlist->host_name);
+			else{
+				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(this_hostlist->host_name)+2);
+				if(new_members!=NULL){
+					temp_hostgroup->members=new_members;
+					strcat(temp_hostgroup->members,",");
+					strcat(temp_hostgroup->members,this_hostlist->host_name);
+				        }
+			        }
+	                }
+		xodtemplate_free_hostlist(temp_hostlist);
+	        }
+
 
 	/* process all hosts that have hostgroup directives */
 	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -5578,11 +5640,15 @@ int xodtemplate_recombobulate_objects(void){
 	return OK;
         }
 
+#endif
+
 
 
 /******************************************************************/
 /******************* OBJECT SEARCH FUNCTIONS **********************/
 /******************************************************************/
+
+#ifdef NSCORE
 
 /* finds a specific timeperiod object */
 xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *name){
@@ -5764,56 +5830,6 @@ xodtemplate_host *xodtemplate_find_real_host(char *name){
         }
 
 
-/* finds a specific service object */
-xodtemplate_service *xodtemplate_find_service(char *name){
-	xodtemplate_service *iptr;
-
-	if(name==NULL || xodtemplate_service_list==NULL)
-		return NULL;
-
-	for(iptr=xodtemplate_service_list[hashfunc1(name,SERVICES_HASHSLOTS)];iptr && xodtemplate_service_comes_after(iptr, name);iptr=iptr->next);
-
-	if(iptr && (compare_xodtemplate_service(iptr,name)==0))
-		return iptr;
-
-	return NULL;
-        }
-
-
-/* finds a specific service object by its REAL name, not its TEMPLATE name */
-xodtemplate_service *xodtemplate_find_real_service(char *host, char *description){
-	xodtemplate_service *temp_service;
-	void *xod_svc_cursor;
-
-	if(host==NULL || description==NULL || xodtemplate_service_list==NULL)
-		return NULL;
-
-	temp_service=NULL;
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
-		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
-			continue;
-		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))
-			break;
-	        }
-	free_xodtemplate_service_cursor(xod_svc_cursor);
-
-	return temp_service;
-        }
-
-
-xodtemplate_service *get_next_xodtemplate_service(void *v_cursor){
-	xodtemplate_service_cursor *cursor=v_cursor;
-
-	if(!cursor)
-		return NULL;
-
-	cursor->current_xodtemplate_service=get_next_N((void **)xodtemplate_service_list,SERVICES_HASHSLOTS,&(cursor->xodtemplate_service_iterator),cursor->current_xodtemplate_service,(cursor->current_xodtemplate_service?cursor->current_xodtemplate_service->next:NULL));
-
-	return cursor->current_xodtemplate_service;
-        }
-
-
 /* finds a specific hostdependency object */
 xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *name){
 	xodtemplate_hostdependency *temp_hostdependency;
@@ -5886,6 +5902,46 @@ xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *name){
         }
 
 
+/* finds a specific service object */
+xodtemplate_service *xodtemplate_find_service(char *name){
+	xodtemplate_service *iptr;
+
+	if(name==NULL || xodtemplate_service_list==NULL)
+		return NULL;
+
+	for(iptr=xodtemplate_service_list[hashfunc1(name,SERVICES_HASHSLOTS)];iptr && xodtemplate_service_comes_after(iptr, name);iptr=iptr->next);
+
+	if(iptr && (compare_xodtemplate_service(iptr,name)==0))
+		return iptr;
+
+	return NULL;
+        }
+
+
+/* finds a specific service object by its REAL name, not its TEMPLATE name */
+xodtemplate_service *xodtemplate_find_real_service(char *host, char *description){
+	xodtemplate_service *temp_service;
+	void *xod_svc_cursor;
+
+	if(host==NULL || description==NULL || xodtemplate_service_list==NULL)
+		return NULL;
+
+	temp_service=NULL;
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
+			continue;
+		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))
+			break;
+	        }
+	free_xodtemplate_service_cursor(xod_svc_cursor);
+
+	return temp_service;
+        }
+
+#endif
+
+
 
 /******************************************************************/
 /**************** OBJECT REGISTRATION FUNCTIONS *******************/
@@ -5950,8 +6006,8 @@ int xodtemplate_register_objects(void){
 	        }
 
 	/* register services */
-	xod_svc_cursor = get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)) {
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
 		if((result=xodtemplate_register_service(temp_service))==ERROR)
 			return ERROR;
 	        }
@@ -6252,6 +6308,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	hostgroupmember *new_hostgroupmember;
 	xodtemplate_hostlist *this_hostlist;
 	xodtemplate_hostlist *temp_hostlist;
+	char *host_name;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6277,31 +6334,19 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		return ERROR;
 	        }
 
-	/* get list of hosts in the hostgroup */
-	temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,this_hostgroup->members);
-
-	/* add all members to the host group */
-	if(temp_hostlist==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member hosts specified in hostgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return ERROR;
-	        }
-	for(this_hostlist=temp_hostlist;this_hostlist;this_hostlist=this_hostlist->next){
-		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,this_hostlist->host_name);
+	/* add all members to hostgroup */
+	for(host_name=strtok(this_hostgroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
+		strip(host_name);
+		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,host_name);
 		if(new_hostgroupmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host '%s' to hostgroup (config file '%s', line %d)\n",this_hostlist->host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host '%s' to hostgroup (config file '%s', line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 			return ERROR;
 		        }
 	        }
-	xodtemplate_free_hostlist(temp_hostlist);
-	
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_hostgroup() end\n");
@@ -6824,6 +6869,467 @@ int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_service
 
 
 
+/******************************************************************/
+/*********************** CACHE FUNCTIONS **************************/
+/******************************************************************/
+
+#ifdef NSCORE
+
+/* writes cached object definitions for use by web interface */
+int xodtemplate_cache_objects(char *cache_file){
+	FILE *fp;
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+	int result=OK;
+	int x;
+	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
+	xodtemplate_timeperiod *temp_timeperiod;
+	xodtemplate_command *temp_command;
+	xodtemplate_contactgroup *temp_contactgroup;
+	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_contact *temp_contact;
+	xodtemplate_host *temp_host;
+	xodtemplate_service *temp_service;
+	xodtemplate_servicedependency *temp_servicedependency;
+	xodtemplate_serviceescalation *temp_serviceescalation;
+	xodtemplate_hostdependency *temp_hostdependency;
+	xodtemplate_hostescalation *temp_hostescalation;
+	xodtemplate_hostextinfo *temp_hostextinfo;
+	xodtemplate_serviceextinfo *temp_serviceextinfo;
+	void *xod_svc_cursor;
+
+#ifdef DEBUG0
+	printf("xodtemplate_cache_objects() start\n");
+#endif
+
+	/* open the cache file for writing */
+	fp=fopen(cache_file,"w");
+	if(fp==NULL){
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not open object cache file '%s' for writing!\n",cache_file);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+		return ERROR;
+	        }
+
+	/* write header to cache file */
+	fprintf(fp,"########################################\n");
+	fprintf(fp,"#       NAGIOS OBJECT CACHE FILE\n");
+	fprintf(fp,"#\n");
+	fprintf(fp,"# THIS FILE IS AUTOMATICALLY GENERATED\n");
+	fprintf(fp,"# BY NAGIOS.  DO NOT MODIFY THIS FILE!\n");
+	fprintf(fp,"########################################\n\n");
+
+
+	/* cache timeperiods */
+	for(temp_timeperiod=xodtemplate_timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
+		if(temp_timeperiod->register_object==FALSE)
+			continue;
+		fprintf(fp,"define timeperiod {\n");
+		if(temp_timeperiod->timeperiod_name)
+			fprintf(fp,"timeperiod_name\t%s\n",temp_timeperiod->timeperiod_name);
+		if(temp_timeperiod->alias)
+			fprintf(fp,"alias\t%s\n",temp_timeperiod->alias);
+		for(x=0;x<7;x++){
+			if(temp_timeperiod->timeranges[x]!=NULL)
+				fprintf(fp,"%s\t%s\n",days[x],temp_timeperiod->timeranges[x]);
+		        }
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache commands */
+	for(temp_command=xodtemplate_command_list;temp_command!=NULL;temp_command=temp_command->next){
+		if(temp_command->register_object==FALSE)
+			continue;
+		fprintf(fp,"define command {\n");
+		if(temp_command->command_name)
+			fprintf(fp,"command_name\t%s\n",temp_command->command_name);
+		if(temp_command->command_line)
+			fprintf(fp,"command_line\t%s\n",temp_command->command_line);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache contactgroups */
+	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
+		if(temp_contactgroup->register_object==FALSE)
+			continue;
+		fprintf(fp,"define contactgroup {\n");
+		if(temp_contactgroup->contactgroup_name)
+			fprintf(fp,"contactgroup_name\t%s\n",temp_contactgroup->contactgroup_name);
+		if(temp_contactgroup->alias)
+			fprintf(fp,"alias\t%s\n",temp_contactgroup->alias);
+		if(temp_contactgroup->members)
+			fprintf(fp,"members\t%s\n",temp_contactgroup->members);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache hostgroups */
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+		if(temp_hostgroup->register_object==FALSE)
+			continue;
+		fprintf(fp,"define hostgroup {\n");
+		if(temp_hostgroup->hostgroup_name)
+			fprintf(fp,"hostgroup_name\t%s\n",temp_hostgroup->hostgroup_name);
+		if(temp_hostgroup->alias)
+			fprintf(fp,"alias\t%s\n",temp_hostgroup->alias);
+		if(temp_hostgroup->members)
+			fprintf(fp,"members\t%s\n",temp_hostgroup->members);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache contacts */
+	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+		if(temp_contact->register_object==FALSE)
+			continue;
+		fprintf(fp,"define contact {\n");
+		if(temp_contact->contact_name)
+			fprintf(fp,"contact_name\t%s\n",temp_contact->contact_name);
+		if(temp_contact->alias)
+			fprintf(fp,"alias\t%s\n",temp_contact->alias);
+		if(temp_contact->service_notification_period)
+			fprintf(fp,"service_notification_period\t%s\n",temp_contact->service_notification_period);
+		if(temp_contact->host_notification_period)
+			fprintf(fp,"host_notification_period\t%s\n",temp_contact->host_notification_period);
+		fprintf(fp,"service_notification_options\t");
+		x=0;
+		if(temp_contact->notify_on_service_warning==TRUE)
+			fprintf(fp,"%sw",(x++>0)?",":"");
+		if(temp_contact->notify_on_service_unknown==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(temp_contact->notify_on_service_critical==TRUE)
+			fprintf(fp,"%sc",(x++>0)?",":"");
+		if(temp_contact->notify_on_service_recovery==TRUE)
+			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
+		fprintf(fp,"host_notification_options\t");
+		x=0;
+		if(temp_contact->notify_on_host_down==TRUE)
+			fprintf(fp,"%sd",(x++>0)?",":"");
+		if(temp_contact->notify_on_host_unreachable==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(temp_contact->notify_on_host_recovery==TRUE)
+			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
+		if(temp_contact->service_notification_commands)
+			fprintf(fp,"service_notification_commands\t%s\n",temp_contact->service_notification_commands);
+		if(temp_contact->host_notification_commands)
+			fprintf(fp,"host_notification_commands\t%s\n",temp_contact->host_notification_commands);
+		if(temp_contact->email)
+			fprintf(fp,"email\t%s\n",temp_contact->email);
+		if(temp_contact->pager)
+			fprintf(fp,"pager\t%s\n",temp_contact->pager);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache hosts */
+	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+		if(temp_host->register_object==FALSE)
+			continue;
+		fprintf(fp,"define host {\n");
+		if(temp_host->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_host->host_name);
+		if(temp_host->alias)
+			fprintf(fp,"alias\t%s\n",temp_host->alias);
+		if(temp_host->address)
+			fprintf(fp,"address\t%s\n",temp_host->address);
+		if(temp_host->parents)
+			fprintf(fp,"parents\t%s\n",temp_host->parents);
+		if(temp_host->check_period)
+			fprintf(fp,"check_period\t%s\n",temp_host->check_period);
+		if(temp_host->check_command)
+			fprintf(fp,"check_command\t%s\n",temp_host->check_command);
+		if(temp_host->event_handler)
+			fprintf(fp,"event_handler\t%s\n",temp_host->event_handler);
+		if(temp_host->contact_groups)
+			fprintf(fp,"contact_groups\t%s\n",temp_host->contact_groups);
+		if(temp_host->notification_period)
+			fprintf(fp,"notification_period\t%s\n",temp_host->notification_period);
+		if(temp_host->failure_prediction_options)
+			fprintf(fp,"failure_prediction_options\t%s\n",temp_host->failure_prediction_options);
+		fprintf(fp,"check_interval\t%d\n",temp_host->check_interval);
+		fprintf(fp,"max_check_attempts\t%d\n",temp_host->max_check_attempts);
+		fprintf(fp,"active_checks_enabled\t%d\n",temp_host->active_checks_enabled);
+		fprintf(fp,"passive_checks_enabled\t%d\n",temp_host->passive_checks_enabled);
+		fprintf(fp,"obsess_over_host\t%d\n",temp_host->obsess_over_host);
+		fprintf(fp,"event_handler_enabled\t%d\n",temp_host->event_handler_enabled);
+		fprintf(fp,"low_flap_threshold\t%f\n",temp_host->low_flap_threshold);
+		fprintf(fp,"high_flap_threshold\t%f\n",temp_host->high_flap_threshold);
+		fprintf(fp,"flap_detection_enabled\t%d\n",temp_host->flap_detection_enabled);
+		fprintf(fp,"notification_options\t");
+		x=0;
+		if(temp_host->notify_on_down==TRUE)
+			fprintf(fp,"%sd",(x++>0)?",":"");
+		if(temp_host->notify_on_unreachable==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(temp_host->notify_on_recovery==TRUE)
+			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
+		fprintf(fp,"notifications_enabled\t%d\n",temp_host->notifications_enabled);
+		fprintf(fp,"notification_interval\t%d\n",temp_host->notification_interval);
+		fprintf(fp,"stalking_options\t");
+		x=0;
+		if(temp_host->stalk_on_up==TRUE)
+			fprintf(fp,"%so",(x++>0)?",":"");
+		if(temp_host->stalk_on_down==TRUE)
+			fprintf(fp,"%sd",(x++>0)?",":"");
+		if(temp_host->stalk_on_unreachable==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
+		fprintf(fp,"process_perf_data\t%d\n",temp_host->process_perf_data);
+		fprintf(fp,"failure_prediction_enabled\t%d\n",temp_host->failure_prediction_enabled);
+		fprintf(fp,"retain_status_information\t%d\n",temp_host->retain_status_information);
+		fprintf(fp,"retain_nonstatus_information\t%d\n",temp_host->retain_nonstatus_information);
+
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache services */
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+		if(temp_service->register_object==FALSE)
+			continue;
+		fprintf(fp,"define service {\n");
+		if(temp_service->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_service->host_name);
+		if(temp_service->service_description)
+			fprintf(fp,"service_description\t%s\n",temp_service->service_description);
+		if(temp_service->check_period)
+			fprintf(fp,"check_period\t%s\n",temp_service->check_period);
+		if(temp_service->check_command)
+			fprintf(fp,"check_command\t%s\n",temp_service->check_command);
+		if(temp_service->event_handler)
+			fprintf(fp,"event_handler\t%s\n",temp_service->event_handler);
+		if(temp_service->contact_groups)
+			fprintf(fp,"contact_groups\t%s\n",temp_service->contact_groups);
+		if(temp_service->notification_period)
+			fprintf(fp,"notification_period\t%s\n",temp_service->notification_period);
+		if(temp_service->failure_prediction_options)
+			fprintf(fp,"failure_prediction_options\t%s\n",temp_service->failure_prediction_options);
+		fprintf(fp,"normal_check_interval\t%d\n",temp_service->normal_check_interval);
+		fprintf(fp,"retry_check_interval\t%d\n",temp_service->retry_check_interval);
+		fprintf(fp,"max_check_attempts\t%d\n",temp_service->max_check_attempts);
+		fprintf(fp,"is_volatile\t%d\n",temp_service->is_volatile);
+		fprintf(fp,"parallelize_check\t%d\n",temp_service->parallelize_check);
+		fprintf(fp,"active_checks_enabled\t%d\n",temp_service->active_checks_enabled);
+		fprintf(fp,"passive_checks_enabled\t%d\n",temp_service->passive_checks_enabled);
+		fprintf(fp,"obsess_over_service\t%d\n",temp_service->obsess_over_service);
+		fprintf(fp,"event_handler_enabled\t%d\n",temp_service->event_handler_enabled);
+		fprintf(fp,"low_flap_threshold\t%f\n",temp_service->low_flap_threshold);
+		fprintf(fp,"high_flap_threshold\t%f\n",temp_service->high_flap_threshold);
+		fprintf(fp,"flap_detection_enabled\t%d\n",temp_service->flap_detection_enabled);
+		fprintf(fp,"freshness_threshold\t%f\n",temp_service->freshness_threshold);
+		fprintf(fp,"check_freshness\t%d\n",temp_service->check_freshness);
+		fprintf(fp,"notification_options\t");
+		x=0;
+		if(temp_service->notify_on_unknown==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(temp_service->notify_on_warning==TRUE)
+			fprintf(fp,"%sw",(x++>0)?",":"");
+		if(temp_service->notify_on_critical==TRUE)
+			fprintf(fp,"%sc",(x++>0)?",":"");
+		if(temp_service->notify_on_recovery==TRUE)
+			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
+		fprintf(fp,"notifications_enabled\t%d\n",temp_service->notifications_enabled);
+		fprintf(fp,"notification_interval\t%d\n",temp_service->notification_interval);
+		fprintf(fp,"stalking_options\t");
+		x=0;
+		if(temp_service->stalk_on_ok==TRUE)
+			fprintf(fp,"%so",(x++>0)?",":"");
+		if(temp_service->stalk_on_unknown==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(temp_service->stalk_on_warning==TRUE)
+			fprintf(fp,"%sw",(x++>0)?",":"");
+		if(temp_service->stalk_on_critical==TRUE)
+			fprintf(fp,"%sc",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
+		fprintf(fp,"process_perf_data\t%d\n",temp_service->process_perf_data);
+		fprintf(fp,"failure_prediction_enabled\t%d\n",temp_service->failure_prediction_enabled);
+		fprintf(fp,"retain_status_information\t%d\n",temp_service->retain_status_information);
+		fprintf(fp,"retain_nonstatus_information\t%d\n",temp_service->retain_nonstatus_information);
+
+		fprintf(fp,"}\n");
+	        }
+	free_xodtemplate_service_cursor(xod_svc_cursor);
+
+	/* cache service dependencies */
+	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
+		if(temp_servicedependency->register_object==FALSE)
+			continue;
+		fprintf(fp,"define servicedependency {\n");
+		if(temp_servicedependency->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_servicedependency->host_name);
+		if(temp_servicedependency->service_description)
+			fprintf(fp,"service_description\t%s\n",temp_servicedependency->service_description);
+		if(temp_servicedependency->dependent_host_name)
+			fprintf(fp,"dependent_host_name\t%s\n",temp_servicedependency->dependent_host_name);
+		if(temp_servicedependency->dependent_service_description)
+			fprintf(fp,"dependent_service_description\t%s\n",temp_servicedependency->dependent_service_description);
+		if(temp_servicedependency->have_notification_dependency_options==TRUE){
+			fprintf(fp,"notification_failure_options\t");
+			x=0;
+			if(temp_servicedependency->fail_notify_on_ok==TRUE)
+				fprintf(fp,"%so",(x++>0)?",":"");
+			if(temp_servicedependency->fail_notify_on_unknown==TRUE)
+				fprintf(fp,"%su",(x++>0)?",":"");
+			if(temp_servicedependency->fail_notify_on_warning==TRUE)
+				fprintf(fp,"%sw",(x++>0)?",":"");
+			if(temp_servicedependency->fail_notify_on_critical==TRUE)
+				fprintf(fp,"%sc",(x++>0)?",":"");
+			if(x==0)
+				fprintf(fp,"n");
+			fprintf(fp,"\n");
+		        }
+		if(temp_servicedependency->have_execution_dependency_options==TRUE){
+			fprintf(fp,"execution_failure_options\t");
+			x=0;
+			if(temp_servicedependency->fail_execute_on_ok==TRUE)
+				fprintf(fp,"%so",(x++>0)?",":"");
+			if(temp_servicedependency->fail_execute_on_unknown==TRUE)
+				fprintf(fp,"%su",(x++>0)?",":"");
+			if(temp_servicedependency->fail_execute_on_warning==TRUE)
+				fprintf(fp,"%sw",(x++>0)?",":"");
+			if(temp_servicedependency->fail_execute_on_critical==TRUE)
+				fprintf(fp,"%sc",(x++>0)?",":"");
+			if(x==0)
+				fprintf(fp,"n");
+			fprintf(fp,"\n");
+		        }
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache service escalations */
+	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+		if(temp_serviceescalation->register_object==FALSE)
+			continue;
+		fprintf(fp,"define serviceescalation {\n");
+		if(temp_serviceescalation->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_serviceescalation->host_name);
+		if(temp_serviceescalation->service_description)
+			fprintf(fp,"service_description\t%s\n",temp_serviceescalation->service_description);
+		fprintf(fp,"first_notification\t%d\n",temp_serviceescalation->first_notification);
+		fprintf(fp,"last_notification\t%d\n",temp_serviceescalation->last_notification);
+		fprintf(fp,"notification_interval\t%d\n",temp_serviceescalation->notification_interval);
+		if(temp_serviceescalation->contact_groups)
+			fprintf(fp,"contact_groups\t%s\n",temp_serviceescalation->contact_groups);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache host dependencies */
+	for(temp_hostdependency=xodtemplate_hostdependency_list;temp_hostdependency!=NULL;temp_hostdependency=temp_hostdependency->next){
+		if(temp_hostdependency->register_object==FALSE)
+			continue;
+		fprintf(fp,"define hostdependency {\n");
+		if(temp_hostdependency->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_hostdependency->host_name);
+		if(temp_hostdependency->dependent_host_name)
+			fprintf(fp,"dependent_host_name\t%s\n",temp_hostdependency->dependent_host_name);
+		if(temp_hostdependency->have_notification_dependency_options==TRUE){
+			fprintf(fp,"notification_failure_options\t");
+			x=0;
+			if(temp_hostdependency->fail_notify_on_up==TRUE)
+				fprintf(fp,"%so",(x++>0)?",":"");
+			if(temp_hostdependency->fail_notify_on_down==TRUE)
+				fprintf(fp,"%sd",(x++>0)?",":"");
+			if(temp_hostdependency->fail_notify_on_unreachable==TRUE)
+				fprintf(fp,"%su",(x++>0)?",":"");
+			if(x==0)
+				fprintf(fp,"n");
+			fprintf(fp,"\n");
+		        }
+		if(temp_hostdependency->have_execution_dependency_options==TRUE){
+			fprintf(fp,"execution_failure_options\t");
+			x=0;
+			if(temp_hostdependency->fail_execute_on_up==TRUE)
+				fprintf(fp,"%so",(x++>0)?",":"");
+			if(temp_hostdependency->fail_execute_on_down==TRUE)
+				fprintf(fp,"%sd",(x++>0)?",":"");
+			if(temp_hostdependency->fail_execute_on_unreachable==TRUE)
+				fprintf(fp,"%su",(x++>0)?",":"");
+			if(x==0)
+				fprintf(fp,"n");
+			fprintf(fp,"\n");
+		        }
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache host escalations */
+	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+		if(temp_hostescalation->register_object==FALSE)
+			continue;
+		fprintf(fp,"define hostescalation {\n");
+		if(temp_hostescalation->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_hostescalation->host_name);
+		fprintf(fp,"first_notification\t%d\n",temp_hostescalation->first_notification);
+		fprintf(fp,"last_notification\t%d\n",temp_hostescalation->last_notification);
+		fprintf(fp,"notification_interval\t%d\n",temp_hostescalation->notification_interval);
+		if(temp_hostescalation->contact_groups)
+			fprintf(fp,"contact_groups\t%s\n",temp_hostescalation->contact_groups);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache host extended info */
+	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		if(temp_hostextinfo->register_object==FALSE)
+			continue;
+		fprintf(fp,"define hostextinfo {\n");
+		if(temp_hostextinfo->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_hostextinfo->host_name);
+		if(temp_hostextinfo->icon_image)
+			fprintf(fp,"icon_image\t%s\n",temp_hostextinfo->icon_image);
+		if(temp_hostextinfo->icon_image_alt)
+			fprintf(fp,"icon_image_alt\t%s\n",temp_hostextinfo->icon_image_alt);
+		if(temp_hostextinfo->vrml_image)
+			fprintf(fp,"vrml_image\t%s\n",temp_hostextinfo->vrml_image);
+		if(temp_hostextinfo->statusmap_image)
+			fprintf(fp,"statusmap_image\t%s\n",temp_hostextinfo->statusmap_image);
+		if(temp_hostextinfo->have_2d_coords==TRUE)
+			fprintf(fp,"2d_coords\t%d,%d\n",temp_hostextinfo->x_2d,temp_hostextinfo->y_2d);
+		if(temp_hostextinfo->have_3d_coords==TRUE)
+			fprintf(fp,"3d_coords\t%f,%f,%f\n",temp_hostextinfo->x_3d,temp_hostextinfo->y_3d,temp_hostextinfo->z_3d);
+		if(temp_hostextinfo->notes_url)
+			fprintf(fp,"notes_url\t%s\n",temp_hostextinfo->notes_url);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache service extended info */
+	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+		if(temp_serviceextinfo->register_object==FALSE)
+			continue;
+		fprintf(fp,"define serviceextinfo {\n");
+		if(temp_serviceextinfo->host_name)
+			fprintf(fp,"host_name\t%s\n",temp_serviceextinfo->host_name);
+		if(temp_serviceextinfo->service_description)
+			fprintf(fp,"service_description\t%s\n",temp_serviceextinfo->service_description);
+		if(temp_serviceextinfo->icon_image)
+			fprintf(fp,"icon_image\t%s\n",temp_serviceextinfo->icon_image);
+		if(temp_serviceextinfo->icon_image_alt)
+			fprintf(fp,"icon_image_alt\t%s\n",temp_serviceextinfo->icon_image_alt);
+		if(temp_serviceextinfo->notes_url)
+			fprintf(fp,"notes_url\t%s\n",temp_serviceextinfo->notes_url);
+		fprintf(fp,"}\n");
+	        }
+
+	fclose(fp);
+
+#ifdef DEBUG0
+	printf("xodtemplate_cache_objects() end\n");
+#endif
+
+	return OK;
+        }
+
+#endif
 
 /******************************************************************/
 /********************** CLEANUP FUNCTIONS *************************/
@@ -7128,6 +7634,8 @@ int xodtemplate_free_servicelist(xodtemplate_servicelist *temp_list){
 /******************************************************************/
 /********************** UTILITY FUNCTIONS *************************/
 /******************************************************************/
+
+#ifdef NSCORE
 
 /* expands a comma-delimited list of hostgroups and/or hosts to member host names */
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,char *hosts){
@@ -7617,7 +8125,6 @@ xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
         }
 
 
-
 /* returns the name of a numbered config file */
 char *xodtemplate_config_file_name(int config_file){
 
@@ -7627,11 +8134,15 @@ char *xodtemplate_config_file_name(int config_file){
 	return "?";
         }
 
+#endif
+
+
 
 
 /******************************************************************/
 /************************ HASH FUNCTIONS **************************/
 /******************************************************************/
+
 
 int compare_xodtemplate_service(xodtemplate_service *xod_service,const char *service_name){
 
@@ -7741,9 +8252,23 @@ void *get_xodtemplate_service_cursor(void){
         }
 
 
+xodtemplate_service *get_next_xodtemplate_service(void *v_cursor){
+	xodtemplate_service_cursor *cursor=v_cursor;
+
+	if(!cursor)
+		return NULL;
+
+	cursor->current_xodtemplate_service=get_next_N((void **)xodtemplate_service_list,SERVICES_HASHSLOTS,&(cursor->xodtemplate_service_iterator),cursor->current_xodtemplate_service,(cursor->current_xodtemplate_service?cursor->current_xodtemplate_service->next:NULL));
+
+	return cursor->current_xodtemplate_service;
+        }
+
+
 void free_xodtemplate_service_cursor(void *cursor){
 
 	if(cursor)
 		free(cursor);
+
+	return;
         }
 

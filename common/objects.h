@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-05-2003
+ * Last Modified:   04-14-2003
  *
  * License:
  *
@@ -113,6 +113,7 @@ typedef struct host_struct{
 	int	notify_on_down;
 	int	notify_on_unreachable;
 	int     notify_on_recovery;
+	int     notify_on_flapping;
 	char	*notification_period;
 	char    *check_period;
 	int     flap_detection_enabled;
@@ -152,8 +153,8 @@ typedef struct host_struct{
 	time_t  last_check;
 	time_t	last_state_change;
 	int     has_been_checked;
-	int     has_been_down;
-	int     has_been_unreachable;
+	int     notified_on_down;
+	int     notified_on_unreachable;
 	int     current_notification_number;
 	int     no_more_notifications;
 	int     check_flapping_recovery_notification;
@@ -209,9 +210,11 @@ typedef struct contact_struct{
 	int     notify_on_service_warning;
 	int     notify_on_service_critical;
 	int     notify_on_service_recovery;
+	int     notify_on_service_flapping;
 	int 	notify_on_host_down;
 	int	notify_on_host_unreachable;
 	int	notify_on_host_recovery;
+	int     notify_on_host_flapping;
 	char	*host_notification_period;
 	char	*service_notification_period;
 	struct	contact_struct *next;
@@ -235,6 +238,7 @@ typedef struct service_struct{
 	int	notify_on_warning;
 	int	notify_on_critical;
 	int	notify_on_recovery;
+	int     notify_on_flapping;
 	int     stalk_on_ok;
 	int     stalk_on_warning;
 	int     stalk_on_unknown;
@@ -261,8 +265,9 @@ typedef struct service_struct{
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     host_problem_at_last_check;
-	int     dependency_failure_at_last_check;
+#ifdef REMOVED_041403
 	int     no_recovery_notification;
+#endif
 	int     check_type;
 	int	current_state;
 	int	last_state;
@@ -281,9 +286,9 @@ typedef struct service_struct{
 	time_t	last_state_change;
 	int     has_been_checked;
 	int     is_being_freshened;
-	int     has_been_unknown;
-	int     has_been_warning;
-	int     has_been_critical;
+	int     notified_on_unknown;
+	int     notified_on_warning;
+	int     notified_on_critical;
 	int     current_notification_number;
 	unsigned long latency;
 	double  execution_time;
@@ -433,10 +438,10 @@ typedef struct host_cursor_struct{
 int read_object_config_data(char *,int,int);        /* reads all external configuration data of specific types */
 
 /**** Object Creation Functions ****/
-contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int);	/* adds a contact definition */
+contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
@@ -446,7 +451,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group defintion */
 command *add_command(char *,char *);									/* adds a command definition */
-service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
+service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,int);                                    /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */

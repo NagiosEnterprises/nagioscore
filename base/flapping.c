@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-13-2003
  *
  * License:
  *
@@ -298,6 +298,9 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 	else
 		svc->check_flapping_recovery_notification=FALSE;
 
+	/* send a notification */
+	service_notification(svc,NOTIFICATION_FLAPPINGSTART,NULL);
+
 #ifdef DEBUG0
 	printf("set_service_flap() end\n");
 #endif
@@ -334,6 +337,9 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 	/* clear the recovery notification flag */
 	svc->check_flapping_recovery_notification=FALSE;
 
+	/* send a notification */
+	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL);
+
 #ifdef DEBUG0
 	printf("clear_service_flap() end\n");
 #endif
@@ -368,6 +374,9 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 		hst->check_flapping_recovery_notification=TRUE;
 	else
 		hst->check_flapping_recovery_notification=FALSE;
+
+	/* send a notification */
+	host_notification(hst,NOTIFICATION_FLAPPINGSTART,NULL);
 
 #ifdef DEBUG0
 	printf("set_host_flap() end\n");
@@ -404,6 +413,9 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification=FALSE;
+
+	/* send a notification */
+	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL);
 
 #ifdef DEBUG0
 	printf("clear_host_flap() end\n");

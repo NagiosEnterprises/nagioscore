@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-01-2003
+ * Last Modified: 04-13-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -481,13 +481,13 @@ int check_service_notification_viability(service *,int);		/* checks viability of
 int is_valid_escalation_for_service_notification(service *,serviceescalation *);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);		/* checks if a service notification should be escalated */
 int service_notification(service *,int,char *);                        	/* notify all contacts about a service (problem or recovery) */
-int check_contact_service_notification_viability(contact *,service *);	/* checks viability of notifying a contact about a service */ 
-int notify_contact_of_service(contact *,service *,int);        	/* notify a single contact about a service */
+int check_contact_service_notification_viability(contact *,service *,int);	/* checks viability of notifying a contact about a service */ 
+int notify_contact_of_service(contact *,service *,int);        		/* notify a single contact about a service */
 int check_host_notification_viability(host *,int);			/* checks viability of notifying all contacts about a host */
 int is_valid_host_escalation_for_host_notification(host *,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *);			/* checks if a host notification should be escalated */
 int host_notification(host *,int,char *);                           	/* notify all contacts about a host (problem or recovery) */
-int check_contact_host_notification_viability(contact *, host *);	/* checks viability of notifying a contact about a host */ 
+int check_contact_host_notification_viability(contact *,host *,int);	/* checks viability of notifying a contact about a host */ 
 int notify_contact_of_host(contact *,host *,int);            	/* notify a single contact about a host */
 int create_notification_list_from_host(host *);             	/* given a host, create list of contacts to be notified (remove duplicates) */
 int create_notification_list_from_service(service *);        	/* given a service, create list of contacts to be notified (remove duplicates) */

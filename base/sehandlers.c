@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-13-2003
  *
  * License:
  *
@@ -613,15 +613,7 @@ int handle_host_state(host *hst){
 		hst->last_host_notification=(time_t)0;
 		hst->next_host_notification=(time_t)0;
 
-		/* set the state flags in case we "float" between down and unreachable states before a recovery */
-		if(hst->state_type==HARD_STATE){
-			if(hst->current_state==HOST_DOWN)
-				hst->has_been_down=TRUE;
-			else if(hst->current_state==HOST_UNREACHABLE)
-				hst->has_been_unreachable=TRUE;
-		        }
-
-		/* the host just recovered, so reset the current host attempt number */
+		/* the host just recovered, so reset the current host attempt */
 		if(hst->current_state==HOST_UP)
 			hst->current_attempt=1;
 
@@ -643,8 +635,8 @@ int handle_host_state(host *hst){
 		/* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
 		if(hst->current_state==HOST_UP){
 			hst->current_notification_number=0;
-			hst->has_been_down=FALSE;
-			hst->has_been_unreachable=FALSE;
+			hst->notified_on_down=FALSE;
+			hst->notified_on_unreachable=FALSE;
 		        }
 	        }
 

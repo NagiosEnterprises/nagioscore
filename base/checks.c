@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-13-2003
  *
  * License:
  *
@@ -791,38 +791,28 @@ void reap_service_checks(void){
 
 		/* check for a state change (either soft or hard) */
 		if(temp_service->current_state!=temp_service->last_state){
-		
 #ifdef DEBUG3
 			printf("\t\tService '%s' on host '%s' has changed state since last check!\n",temp_service->description,temp_service->host_name);
 #endif
-
-			/* set the state change flag */
 			state_change=TRUE;
 		        }
 
-
-		/* checks for a hard state change where host was down or dependency failed at last service check */
-		if((temp_service->host_problem_at_last_check==TRUE || temp_service->dependency_failure_at_last_check==TRUE) && temp_service->current_state==STATE_OK){
-
+#ifdef REMOVED_041403
+		/* checks for a hard state change where host was down at last service check */
+		if(temp_service->host_problem_at_last_check==TRUE && temp_service->current_state==STATE_OK){
 #ifdef DEBUG3
 			printf("\t\tService '%s' on host '%s' has had a HARD STATE CHANGE!!\n",temp_service->description,temp_service->host_name);
 #endif
-
 			hard_state_change=TRUE;
 	                }
-
-
-		/* check for a "normal" hard state change where max check attempts is reached */
-		else if(temp_service->current_attempt>=temp_service->max_attempts){
-
-			if(temp_service->current_state!=temp_service->last_hard_state){
-
-#ifdef DEBUG3
-				printf("\t\tService '%s' on host '%s' has had a HARD STATE CHANGE!!\n",temp_service->description,temp_service->host_name);
 #endif
 
-				hard_state_change=TRUE;
-			        }
+		/* check for a "normal" hard state change where max check attempts is reached */
+		if(temp_service->current_attempt>=temp_service->max_attempts && temp_service->current_state!=temp_service->last_hard_state){
+#ifdef DEBUG3
+			printf("\t\tService '%s' on host '%s' has had a HARD STATE CHANGE!!\n",temp_service->description,temp_service->host_name);
+#endif
+			hard_state_change=TRUE;
 		        }
 
 		/* reset last and next notification times and acknowledgement flag if necessary */
@@ -859,9 +849,6 @@ void reap_service_checks(void){
 		/* if the service is up and running OK... */
 		if(temp_service->current_state==STATE_OK){
 
-			/* clear the next notification time (this is not used, since we are now in an OK state) */
-			temp_service->next_notification=(time_t)0;
-
 			/* reset the acknowledgement flag (this should already have been done, but just in case...) */
 			temp_service->problem_has_been_acknowledged=FALSE;
 			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
@@ -872,8 +859,10 @@ void reap_service_checks(void){
 				/* verify the route to the host and send out host recovery notifications */
 				verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
+#ifdef REMOVED_041403
 				/* set the host problem flag (i.e. don't notify about recoveries for this service) */
 				temp_service->host_problem_at_last_check=TRUE;
+#endif
 			        }
 
 			/* if a hard service recovery has occurred... */
@@ -915,8 +904,9 @@ void reap_service_checks(void){
 
 			/* reset all service variables because its okay now... */
 			temp_service->host_problem_at_last_check=FALSE;
-			temp_service->dependency_failure_at_last_check=FALSE;
+#ifdef REMOVED_041403
 			temp_service->no_recovery_notification=FALSE;
+#endif
 			temp_service->current_attempt=1;
 			temp_service->state_type=HARD_STATE;
 			temp_service->last_hard_state=STATE_OK;
@@ -925,9 +915,9 @@ void reap_service_checks(void){
 			temp_service->current_notification_number=0;
 			temp_service->problem_has_been_acknowledged=FALSE;
 			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
-			temp_service->has_been_unknown=FALSE;
-			temp_service->has_been_warning=FALSE;
-			temp_service->has_been_critical=FALSE;
+			temp_service->notified_on_unknown=FALSE;
+			temp_service->notified_on_warning=FALSE;
+			temp_service->notified_on_critical=FALSE;
 			temp_service->no_more_notifications=FALSE;
 
 			if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
@@ -942,8 +932,10 @@ void reap_service_checks(void){
 		/* hey, something's not working quite like it should... */
 		else{
 
+#ifdef REMOVED_041403
 			/* reset the recovery notification flag (it may get set again though) */
 			temp_service->no_recovery_notification=FALSE;
+#endif
 			
 			/* check the route to the host if its supposed to be up right now... */
 			if(temp_host->current_state==HOST_UP)
@@ -963,6 +955,10 @@ void reap_service_checks(void){
 				/* else fake the host check, but (possibly) resend host notifications to contacts... */
 				else{
 
+					/* log the initial state if the user wants to and this host hasn't been checked yet */
+					if(log_initial_states==TRUE && temp_host->has_been_checked==FALSE)
+						log_host_event(temp_host);
+
 					/* if the host has never been checked before, set the checked flag */
 					if(temp_host->has_been_checked==FALSE)
 						temp_host->has_been_checked=TRUE;
@@ -972,10 +968,6 @@ void reap_service_checks(void){
 
 					/* fake the route check result */
 					route_result=temp_host->current_state;
-
-					/* log the initial state if the user wants to and this host hasn't been checked yet */
-					if(log_initial_states==TRUE && temp_service->has_been_checked==FALSE)
-						log_host_event(temp_host);
 
 				        /* possibly re-send host notifications... */
 					host_notification(temp_host,NOTIFICATION_NORMAL,NULL);
@@ -996,39 +988,21 @@ void reap_service_checks(void){
 				temp_service->current_attempt=1;
 			        }
 
-			/* else the host is up.. */
-			else{
+			/* the host is up - it recovered since the last time the service was checked... */
+			else if(temp_service->host_problem_at_last_check==TRUE){
 
-				/* check service notification dependencies */
-				dependency_result=check_service_dependencies(temp_service,NOTIFICATION_DEPENDENCY);
+				/* next time the service is checked we shouldn't get into this same case... */
+				temp_service->host_problem_at_last_check=FALSE;
 
-				/* the service notification dependencies failed... */
-				if(dependency_result==DEPENDENCIES_FAILED){
+				/* reset the current check counter, so we give the service a chance */
+				/* this helps prevent the case where service has N max check attempts, N-1 of which have already occurred. */
+				/* if we didn't do this, the next check might fail and result in a hard problem - we should really give it more time */
+				temp_service->current_attempt=1;
 
-					/* set the dependency problem */
-					temp_service->dependency_failure_at_last_check=TRUE;
-
-					/* don't send a recovery notification if the service recovers at the next check */
-					temp_service->no_recovery_notification=TRUE;
-				        }
-
-				/* the service notification dependencies are okay */
-				else
-					temp_service->dependency_failure_at_last_check=FALSE;
-
-
-				/*  the host recovered since the last time the service was checked... */
-				if(temp_service->host_problem_at_last_check==TRUE){
-
-					/* next time the service is checked we shouldn't get into this same case... */
-					temp_service->host_problem_at_last_check=FALSE;
-
-					/* reset the current check counter, so we can mabye avoid a false recovery alarm - added 07/28/99 */
-					temp_service->current_attempt=1;
-
-					/* don't send a recovery notification if the service recovers at the next check */
-					temp_service->no_recovery_notification=TRUE;
-				        }
+#ifdef REMOVED_041403
+				/* don't send a recovery notification if the service recovers at the next check */
+				temp_service->no_recovery_notification=TRUE;
+#endif
 			        }
 
 			/* if we should retry the service check, do so (except it the host is down or unreachable!) */
@@ -1061,9 +1035,9 @@ void reap_service_checks(void){
 					/* run the service event handler to handle the soft state */
 					handle_service_event(temp_service,SOFT_STATE);
 
-#ifdef OLDSTUFF
+#ifdef REMOVED_021803
 					/*** NOTE TO SELF - THIS SHOULD BE MOVED SOMEWHERE ELSE - 02/18/03 ***/
-					/*** MOVED UP TO LINE 780 ***/
+					/*** MOVED UP TO ~ LINE 780 ***/
 					/* increment the current attempt number */
 					temp_service->current_attempt=temp_service->current_attempt+1;
 #endif
@@ -1079,14 +1053,6 @@ void reap_service_checks(void){
 
 				/* this is a hard state */
 				temp_service->state_type=HARD_STATE;
-
-				/* keep track of this state, in case we "float" amongst other non-OK states before recovering */
-				if(temp_service->current_state==STATE_UNKNOWN)
-					temp_service->has_been_unknown=TRUE;
-				else if(temp_service->current_state==STATE_WARNING)
-					temp_service->has_been_warning=TRUE;
-				else if(temp_service->current_state==STATE_CRITICAL)
-					temp_service->has_been_critical=TRUE;
 
 				/* if we've hard a hard state change... */
 				if(hard_state_change==TRUE){

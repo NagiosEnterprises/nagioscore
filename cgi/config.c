@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-05-2003
+ * Last Modified: 04-12-2003
  *
  * This CGI program will display various configuration information.
  *
@@ -514,6 +514,10 @@ void display_hosts(void){
 			printf("%sRecovery",(options)?", ":"");
 			options=1;
 		        }
+		if(temp_host->notify_on_flapping==TRUE){
+			printf("%sFlapping",(options)?", ":"");
+			options=1;
+		        }
 		if(options==0)
 			printf("None");
 		printf("</TD>\n");
@@ -760,6 +764,10 @@ void display_contacts(void){
 			printf("%sRecovery",(options)?", ":"");
 			options=1;
 		        }
+		if(temp_contact->notify_on_service_flapping==TRUE){
+			printf("%sFlapping",(options)?", ":"");
+			options=1;
+		        }
 		if(!options)
 			printf("None");
 		printf("</TD>\n");
@@ -776,6 +784,10 @@ void display_contacts(void){
 		        }
 		if(temp_contact->notify_on_host_recovery==TRUE){
 			printf("%sRecovery",(options)?", ":"");
+			options=1;
+		        }
+		if(temp_contact->notify_on_host_flapping==TRUE){
+			printf("%sFlapping",(options)?", ":"");
 			options=1;
 		        }
 		if(!options)
@@ -1058,6 +1070,10 @@ void display_services(void){
 	                }
 		if(temp_service->notify_on_recovery==TRUE){
 			printf("%sRecovery",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->notify_on_flapping==TRUE){
+			printf("%sFlapping",(options)?", ":"");
 			options=1;
 	                }
 		if(!options)

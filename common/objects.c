@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-14-2003
  *
  * License:
  *
@@ -503,7 +503,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host;
 	host *last_host;
 	host *new_host;
@@ -609,6 +609,14 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	if(notify_unreachable<0 || notify_unreachable>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_unreachable value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(notify_flapping<0 || notify_flapping>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_flappingvalue for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -874,6 +882,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->notify_on_recovery=(notify_up>0)?TRUE:FALSE;
 	new_host->notify_on_down=(notify_down>0)?TRUE:FALSE;
 	new_host->notify_on_unreachable=(notify_unreachable>0)?TRUE:FALSE;
+	new_host->notify_on_flapping=(notify_flapping>0)?TRUE:FALSE;
 	new_host->flap_detection_enabled=(flap_detection_enabled>0)?TRUE:FALSE;
 	new_host->low_flap_threshold=low_flap_threshold;
 	new_host->high_flap_threshold=high_flap_threshold;
@@ -906,8 +915,8 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->has_been_checked=FALSE;
 	new_host->problem_has_been_acknowledged=FALSE;
 	new_host->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
-	new_host->has_been_down=FALSE;
-	new_host->has_been_unreachable=FALSE;
+	new_host->notified_on_down=FALSE;
+	new_host->notified_on_unreachable=FALSE;
 	new_host->current_notification_number=0;
 	new_host->no_more_notifications=FALSE;
 	new_host->check_flapping_recovery_notification=FALSE;
@@ -1376,7 +1385,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 
 
 /* add a new contact to the list in memory */
-contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_host_up, int notify_host_down, int notify_host_unreachable){
+contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping){
 	contact *temp_contact;
 	contact *new_contact;
 	contact *last_contact;
@@ -1467,6 +1476,14 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 #endif
 		return NULL;
 	        }
+	if(notify_service_flapping<0 || notify_service_flapping>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_service_flapping value for contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
 
 	if(notify_host_up<0 || notify_host_up>1){
 #ifdef NSCORE
@@ -1487,6 +1504,14 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	if(notify_host_unreachable<0 || notify_host_unreachable>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_unreachable value for contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(notify_host_flapping<0 || notify_host_flapping>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_flapping value for contact '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -1632,9 +1657,11 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->notify_on_service_critical=(notify_service_critical>0)?TRUE:FALSE;
 	new_contact->notify_on_service_warning=(notify_service_warning>0)?TRUE:FALSE;
 	new_contact->notify_on_service_unknown=(notify_service_unknown>0)?TRUE:FALSE;
+	new_contact->notify_on_service_flapping=(notify_service_flapping>0)?TRUE:FALSE;
 	new_contact->notify_on_host_recovery=(notify_host_up>0)?TRUE:FALSE;
 	new_contact->notify_on_host_down=(notify_host_down>0)?TRUE:FALSE;
 	new_contact->notify_on_host_unreachable=(notify_host_unreachable>0)?TRUE:FALSE;
+	new_contact->notify_on_host_flapping=(notify_host_flapping>0)?TRUE:FALSE;
 
 
 	/* add new contact to contact list, sorted by contact name */
@@ -1997,7 +2024,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_ok, int stalk_warning, int stalk_unknown, int stalk_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
+service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_ok, int stalk_warning, int stalk_unknown, int stalk_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *temp_service;
 	service *last_service;
 	service *new_service;
@@ -2136,9 +2163,17 @@ service *add_service(char *host_name, char *description, char *check_period, int
 #endif
 		return NULL;
 	        }
-	if(notify_warning<0 || notify_warning>1){
+	if(notify_flapping<0 || notify_flapping>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_warning value for service '%s' on host '%s'\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_flapping value for service '%s' on host '%s'\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(notify_recovery<0 || notify_recovery>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_recovery value for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2385,6 +2420,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->notify_on_warning=(notify_warning>0)?TRUE:FALSE;
 	new_service->notify_on_critical=(notify_critical>0)?TRUE:FALSE;
 	new_service->notify_on_recovery=(notify_recovery>0)?TRUE:FALSE;
+	new_service->notify_on_flapping=(notify_flapping>0)?TRUE:FALSE;
 	new_service->is_volatile=(is_volatile>0)?TRUE:FALSE;
 	new_service->flap_detection_enabled=(flap_detection_enabled>0)?TRUE:FALSE;
 	new_service->low_flap_threshold=low_flap_threshold;
@@ -2414,8 +2450,9 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->last_hard_state=STATE_OK;
 	new_service->state_type=SOFT_STATE;
 	new_service->host_problem_at_last_check=FALSE;
-	new_service->dependency_failure_at_last_check=FALSE;
+#ifdef REMOVED_041403
 	new_service->no_recovery_notification=FALSE;
+#endif
 	new_service->check_flapping_recovery_notification=FALSE;
 	new_service->next_check=(time_t)0;
 	new_service->should_be_scheduled=TRUE;
@@ -2426,9 +2463,9 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->last_state_change=(time_t)0;
 	new_service->has_been_checked=FALSE;
 	new_service->is_being_freshened=FALSE;
-	new_service->has_been_unknown=FALSE;
-	new_service->has_been_warning=FALSE;
-	new_service->has_been_critical=FALSE;
+	new_service->notified_on_unknown=FALSE;
+	new_service->notified_on_warning=FALSE;
+	new_service->notified_on_critical=FALSE;
 	new_service->current_notification_number=0;
 	new_service->latency=0L;
 	new_service->execution_time=0.0;

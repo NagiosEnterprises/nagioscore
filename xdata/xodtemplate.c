@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-09-2003
+ * Last Modified: 04-12-2003
  *
  * Description:
  *
@@ -931,10 +931,12 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contact->notify_on_host_down=FALSE;
 		new_contact->notify_on_host_unreachable=FALSE;
 		new_contact->notify_on_host_recovery=FALSE;
+		new_contact->notify_on_host_flapping=FALSE;
 		new_contact->notify_on_service_unknown=FALSE;
 		new_contact->notify_on_service_warning=FALSE;
 		new_contact->notify_on_service_critical=FALSE;
 		new_contact->notify_on_service_recovery=FALSE;
+		new_contact->notify_on_service_flapping=FALSE;
 		new_contact->have_host_notification_options=FALSE;
 		new_contact->have_service_notification_options=FALSE;
 		new_contact->has_been_resolved=FALSE;
@@ -995,6 +997,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->notify_on_down=FALSE;
 		new_host->notify_on_unreachable=FALSE;
 		new_host->notify_on_recovery=FALSE;
+		new_host->notify_on_flapping=FALSE;
 		new_host->have_notification_options=FALSE;
 		new_host->notifications_enabled=TRUE;
 		new_host->have_notifications_enabled=FALSE;
@@ -1080,6 +1083,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->notify_on_warning=FALSE;
 		new_service->notify_on_critical=FALSE;
 		new_service->notify_on_recovery=FALSE;
+		new_service->notify_on_flapping=FALSE;
 		new_service->have_notification_options=FALSE;
 		new_service->notifications_enabled=TRUE;
 		new_service->have_notifications_enabled=FALSE;
@@ -2030,10 +2034,13 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_host_unreachable=TRUE;
 				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
 					temp_contact->notify_on_host_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"f") || !strcmp(temp_ptr,"flapping"))
+					temp_contact->notify_on_host_flapping=TRUE;
 				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
 					temp_contact->notify_on_host_down=FALSE;
 					temp_contact->notify_on_host_unreachable=FALSE;
 					temp_contact->notify_on_host_recovery=FALSE;
+					temp_contact->notify_on_host_flapping=FALSE;
 				        }
 				else{
 #ifdef NSCORE
@@ -2056,11 +2063,14 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_service_critical=TRUE;
 				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
 					temp_contact->notify_on_service_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"f") || !strcmp(temp_ptr,"flapping"))
+					temp_contact->notify_on_service_flapping=TRUE;
 				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
 					temp_contact->notify_on_service_unknown=FALSE;
 					temp_contact->notify_on_service_warning=FALSE;
 					temp_contact->notify_on_service_critical=FALSE;
 					temp_contact->notify_on_service_recovery=FALSE;
+					temp_contact->notify_on_service_flapping=FALSE;
 				        }
 				else{
 #ifdef NSCORE
@@ -2248,10 +2258,13 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_host->notify_on_unreachable=TRUE;
 				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
 					temp_host->notify_on_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"f") || !strcmp(temp_ptr,"flapping"))
+					temp_host->notify_on_flapping=TRUE;
 				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
 					temp_host->notify_on_down=FALSE;
 					temp_host->notify_on_unreachable=FALSE;
 					temp_host->notify_on_recovery=FALSE;
+					temp_host->notify_on_flapping=FALSE;
 				        }
 				else{
 #ifdef NSCORE
@@ -2497,11 +2510,14 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_service->notify_on_critical=TRUE;
 				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
 					temp_service->notify_on_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"f") || !strcmp(temp_ptr,"flapping"))
+					temp_service->notify_on_flapping=TRUE;
 				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
 					temp_service->notify_on_unknown=FALSE;
 					temp_service->notify_on_warning=FALSE;
 					temp_service->notify_on_critical=FALSE;
 					temp_service->notify_on_recovery=FALSE;
+					temp_service->notify_on_flapping=FALSE;
 				        }
 				else{
 #ifdef NSCORE
@@ -4980,6 +4996,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 		this_contact->notify_on_host_down=template_contact->notify_on_host_down;
 		this_contact->notify_on_host_unreachable=template_contact->notify_on_host_unreachable;
 		this_contact->notify_on_host_recovery=template_contact->notify_on_host_recovery;
+		this_contact->notify_on_host_flapping=template_contact->notify_on_host_flapping;
 		this_contact->have_host_notification_options=TRUE;
 	        }
 	if(this_contact->have_service_notification_options==FALSE && template_contact->have_service_notification_options==TRUE){
@@ -4987,6 +5004,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 		this_contact->notify_on_service_warning=template_contact->notify_on_service_warning;
 		this_contact->notify_on_service_critical=template_contact->notify_on_service_critical;
 		this_contact->notify_on_service_recovery=template_contact->notify_on_service_recovery;
+		this_contact->notify_on_service_flapping=template_contact->notify_on_service_flapping;
 		this_contact->have_service_notification_options=TRUE;
 	        }
 
@@ -5097,6 +5115,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		this_host->notify_on_down=template_host->notify_on_down;
 		this_host->notify_on_unreachable=template_host->notify_on_unreachable;
 		this_host->notify_on_recovery=template_host->notify_on_recovery;
+		this_host->notify_on_flapping=template_host->notify_on_flapping;
 		this_host->have_notification_options=TRUE;
 	        }
 	if(this_host->have_notifications_enabled==FALSE && template_host->have_notifications_enabled==TRUE){
@@ -5254,6 +5273,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 		this_service->notify_on_warning=template_service->notify_on_warning;
 		this_service->notify_on_critical=template_service->notify_on_critical;
 		this_service->notify_on_recovery=template_service->notify_on_recovery;
+		this_service->notify_on_flapping=template_service->notify_on_flapping;
 		this_service->have_notification_options=TRUE;
 	        }
 	if(this_service->have_notifications_enabled==FALSE && template_service->have_notifications_enabled==TRUE){
@@ -6509,7 +6529,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 		return OK;
 
 	/* add the contact */
-	new_contact=add_contact(this_contact->contact_name,this_contact->alias,this_contact->email,this_contact->pager,this_contact->address,this_contact->service_notification_period,this_contact->host_notification_period,this_contact->notify_on_service_recovery,this_contact->notify_on_service_critical,this_contact->notify_on_service_warning,this_contact->notify_on_service_unknown,this_contact->notify_on_host_recovery,this_contact->notify_on_host_down,this_contact->notify_on_host_unreachable);
+	new_contact=add_contact(this_contact->contact_name,this_contact->alias,this_contact->email,this_contact->pager,this_contact->address,this_contact->service_notification_period,this_contact->host_notification_period,this_contact->notify_on_service_recovery,this_contact->notify_on_service_critical,this_contact->notify_on_service_warning,this_contact->notify_on_service_unknown,this_contact->notify_on_service_flapping,this_contact->notify_on_host_recovery,this_contact->notify_on_host_down,this_contact->notify_on_host_unreachable,this_contact->notify_on_host_flapping);
 
 	/* return with an error if we couldn't add the contact */
 	if(new_contact==NULL){
@@ -6582,7 +6602,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		return OK;
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){
@@ -6656,7 +6676,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		return OK;
 
 	/* add the service */
-	new_service=add_service(this_service->host_name,this_service->service_description,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
+	new_service=add_service(this_service->host_name,this_service->service_description,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
@@ -7084,6 +7104,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"%su",(x++>0)?",":"");
 		if(temp_host->notify_on_recovery==TRUE)
 			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(temp_host->notify_on_flapping==TRUE)
+			fprintf(fp,"%sf",(x++>0)?",":"");
 		if(x==0)
 			fprintf(fp,"n");
 		fprintf(fp,"\n");
@@ -7154,6 +7176,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"%sc",(x++>0)?",":"");
 		if(temp_service->notify_on_recovery==TRUE)
 			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(temp_service->notify_on_flapping==TRUE)
+			fprintf(fp,"%sf",(x++>0)?",":"");
 		if(x==0)
 			fprintf(fp,"n");
 		fprintf(fp,"\n");

@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-13-2003
  *
  * License:
  *
@@ -198,14 +198,14 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_state=%d\n",temp_host->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
-		fprintf(fp,"\thas_been_down=%d\n",temp_host->has_been_down);
-		fprintf(fp,"\thas_been_unreachable=%d\n",temp_host->has_been_unreachable);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
+		fprintf(fp,"\tnotified_on_down=%d\n",temp_host->notified_on_down);
+		fprintf(fp,"\tnotified_on_unreachable=%d\n",temp_host->notified_on_unreachable);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_host->notifications_enabled);
@@ -242,9 +242,6 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_service->current_state);
 		fprintf(fp,"\tlast_state=%d\n",temp_service->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
-		fprintf(fp,"\thas_been_unknown=%d\n",temp_service->has_been_unknown);
-		fprintf(fp,"\thas_been_warning=%d\n",temp_service->has_been_warning);
-		fprintf(fp,"\thas_been_critical=%d\n",temp_service->has_been_critical);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
@@ -252,6 +249,9 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
 		fprintf(fp,"\tcheck_type=%d\n",temp_service->check_type);
+		fprintf(fp,"\tnotified_on_unknown=%d\n",temp_service->notified_on_unknown);
+		fprintf(fp,"\tnotified_on_warning=%d\n",temp_service->notified_on_warning);
+		fprintf(fp,"\tnotified_on_critical=%d\n",temp_service->notified_on_critical);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_service->current_notification_number);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_service->last_notification);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_service->notifications_enabled);
@@ -453,10 +453,6 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_host->last_state=atoi(val);
 						else if(!strcmp(var,"last_hard_state"))
 							temp_host->last_hard_state=atoi(val);
-						else if(!strcmp(var,"has_been_down"))
-							temp_host->has_been_down=(atoi(val)>0)?TRUE:FALSE;
-						else if(!strcmp(var,"has_been_unreachable"))
-							temp_host->has_been_unreachable=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"plugin_output")){
 							strncpy(temp_host->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
 							temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
@@ -473,6 +469,10 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_host->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))
 							temp_host->last_state_change=strtoul(val,NULL,10);
+						else if(!strcmp(var,"notified_on_down"))
+							temp_host->notified_on_down=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"notified_on_unreachable"))
+							temp_host->notified_on_unreachable=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"last_notification"))
 							temp_host->last_host_notification=strtoul(val,NULL,10);
 						else if(!strcmp(var,"current_notification_number"))
@@ -532,12 +532,6 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_service->last_state=atoi(val);
 						else if(!strcmp(var,"last_hard_state"))
 							temp_service->last_hard_state=atoi(val);
-						else if(!strcmp(var,"has_been_unknown"))
-							temp_service->has_been_unknown=(atoi(val)>0)?TRUE:FALSE;
-						else if(!strcmp(var,"has_been_warning"))
-							temp_service->has_been_warning=(atoi(val)>0)?TRUE:FALSE;
-						else if(!strcmp(var,"has_been_critical"))
-							temp_service->has_been_critical=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"current_attempt"))
 							temp_service->current_attempt=atoi(val);
 						else if(!strcmp(var,"state_type"))
@@ -556,6 +550,12 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_service->last_check=strtoul(val,NULL,10);
 						else if(!strcmp(var,"check_type"))
 							temp_service->check_type=atoi(val);
+						else if(!strcmp(var,"notified_on_unknown"))
+							temp_service->notified_on_unknown=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"notified_on_warning"))
+							temp_service->notified_on_warning=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"notified_on_critical"))
+							temp_service->notified_on_critical=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"current_notification_number"))
 							temp_service->current_notification_number=atoi(val);
 						else if(!strcmp(var,"last_notification"))

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-14-2003
  *
  * License:
  *
@@ -57,6 +57,8 @@ int service_notification(service *svc, int type, char *data){
 	host *temp_host;
 	notification *temp_notification;
 	time_t current_time;
+	int result=OK;
+	int contacts_notified=0;
 
 #ifdef DEBUG0
 	printf("service_notification() start\n");
@@ -156,13 +158,18 @@ int service_notification(service *svc, int type, char *data){
 			grab_contact_macros(temp_notification->contact);
 
 			/* notify this contact */
-			notify_contact_of_service(temp_notification->contact,svc,type);
+			result=notify_contact_of_service(temp_notification->contact,svc,type);
+
+			/* keep track of how many contacts were notified */
+			if(result==OK)
+				contacts_notified++;
 		        }
 
 		/* free memory allocated to the notification list */
 		free_notification_list();
 
-		if(type==NOTIFICATION_NORMAL){
+		/* adjust last/next notification time and notificiation flags if we notified someone */
+		if(type==NOTIFICATION_NORMAL && contacts_notified>0){
 
 			/* calculate the next acceptable re-notification time */
 			svc->next_notification=get_next_service_notification_time(svc,current_time);
@@ -174,6 +181,14 @@ int service_notification(service *svc, int type, char *data){
 
 			/* update the last notification time for this service (this is needed for rescheduling later notifications) */
 			svc->last_notification=current_time;
+
+			/* update notifications flags */
+			if(svc->current_state==STATE_UNKNOWN)
+				svc->notified_on_unknown=TRUE;
+			else if(svc->current_state==STATE_WARNING)
+				svc->notified_on_warning=TRUE;
+			else if(svc->current_state==STATE_CRITICAL)
+				svc->notified_on_critical=TRUE;
 		        }
 #ifdef DEBUG4
 		printf("\tAPPROPRIATE CONTACTS HAVE BEEN NOTIFIED\n");
@@ -277,6 +292,26 @@ int check_service_notification_viability(service *svc, int type){
 
 
 	/****************************************/
+	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
+	/****************************************/
+
+	/* flapping notifications only have to pass three general filters */
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+
+		/* don't send a notification if we're not supposed to... */
+		if(svc->notify_on_flapping==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about FLAPPING events for this service!\n");
+#endif
+			return ERROR;
+	                }
+
+		/* flapping viability test passed, so the notification can be sent out */
+		return OK;
+	        }
+
+
+	/****************************************/
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
 
@@ -288,6 +323,7 @@ int check_service_notification_viability(service *svc, int type){
 		return ERROR;
 	        }
 
+#ifdef REMOVED_041403
 	/* do not send a recovery notification if we shouldn't (this flag was set by the check logic) */
 	if(svc->current_state==STATE_OK && svc->no_recovery_notification==TRUE){
 #ifdef DEBUG4
@@ -295,6 +331,7 @@ int check_service_notification_viability(service *svc, int type){
 #endif
 		return ERROR;
 	        }
+#endif
 
 	/* don't send notifications if the host was down or unreachable at last service check */
 	if(svc->host_problem_at_last_check==TRUE){
@@ -304,33 +341,14 @@ int check_service_notification_viability(service *svc, int type){
 		return ERROR;
 	        }
 
-	/* don't send notifications if the there were failed notification dependencies at the last check */
-	if(svc->dependency_failure_at_last_check==TRUE){
+	/* check notification dependencies */
+	if(check_service_dependencies(svc,NOTIFICATION_DEPENDENCY)==DEPENDENCIES_FAILED){
 #ifdef DEBUG4
-		printf("\tNotification dependencies failed for this service, so notifications won't be sent out!\n");
+		printf("\tNotification dependencies for this service have failed, so we won't sent a notification out!\n");
 #endif
 		return ERROR;
 	        }
 
-	/* find the host this service is associated with */
-	temp_host=find_host(svc->host_name);
-
-	/* if we couldn't find the host, return an error */
-	if(temp_host==NULL){
-#ifdef DEBUG4
-		printf("\tCouldn't find the host associated with this service, so we won't send a notification!\n");
-#endif
-		return ERROR;
-	        }
-
-	/* if the host is down or unreachable, don't notify contacts about service failures */
-	if(temp_host->current_state!=HOST_UP){
-#ifdef DEBUG4
-		printf("\tThe host is either down or unreachable, so we won't notify contacts about this service!\n");
-#endif
-		return ERROR;
-	        }
-	
 	/* see if we should notify about problems with this service */
 	if(svc->current_state==STATE_UNKNOWN && svc->notify_on_unknown==FALSE){
 #ifdef DEBUG4
@@ -357,7 +375,7 @@ int check_service_notification_viability(service *svc, int type){
 #endif
 			return ERROR;
 		        }
-		if(!((svc->has_been_unknown==TRUE && svc->notify_on_unknown==TRUE) || (svc->has_been_warning==TRUE && svc->notify_on_warning==TRUE) || (svc->has_been_critical==TRUE && svc->notify_on_critical==TRUE))){
+		if(!(svc->notified_on_unknown==TRUE || svc->notified_on_warning==TRUE || svc->notified_on_critical==TRUE)){
 #ifdef DEBUG4
 			printf("\tWe shouldn't notify about this recovery\n");
 #endif
@@ -365,15 +383,45 @@ int check_service_notification_viability(service *svc, int type){
 		        }
 	        }
 
+	/* if this service is currently flapping, don't send the notification */
+	if(svc->is_flapping==TRUE){
+#ifdef DEBUG4
+		printf("\tThis service is currently flapping, so we won't send notifications!\n");
+#endif
+		return ERROR;
+	        }
+
+	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
+	if(svc->current_state==STATE_OK)
+		return OK;
 
 	/* dont notify contacts about this service problem again if the notification interval is set to 0 */
-	if(svc->current_state!=STATE_OK && svc->no_more_notifications==TRUE){
+	if(svc->no_more_notifications==TRUE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't re-notify contacts about this service problem!\n");
 #endif
 		return ERROR;
 	        }
 
+	/* find the host this service is associated with */
+	temp_host=find_host(svc->host_name);
+
+	/* if we couldn't find the host, return an error */
+	if(temp_host==NULL){
+#ifdef DEBUG4
+		printf("\tCouldn't find the host associated with this service, so we won't send a notification!\n");
+#endif
+		return ERROR;
+	        }
+
+	/* if the host is down or unreachable, don't notify contacts about service failures */
+	if(temp_host->current_state!=HOST_UP){
+#ifdef DEBUG4
+		printf("\tThe host is either down or unreachable, so we won't notify contacts about this service!\n");
+#endif
+		return ERROR;
+	        }
+	
 	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */
 	if((current_time < svc->next_notification) && svc->is_volatile==FALSE){
 #ifdef DEBUG4
@@ -399,14 +447,6 @@ int check_service_notification_viability(service *svc, int type){
 		return ERROR;
 	        }
 
-	/* if this service is currently flapping, don't send the notification */
-	if(svc->is_flapping==TRUE){
-#ifdef DEBUG4
-		printf("\tThis service is currently flapping, so we won't send notifications!\n");
-#endif
-		return ERROR;
-	        }
-
 #ifdef DEBUG0
 	printf("check_service_notification_viability() end\n");
 #endif
@@ -417,11 +457,39 @@ int check_service_notification_viability(service *svc, int type){
 
 
 /* check viability of sending out a service notification to a specific contact (contact-specific filters) */
-int check_contact_service_notification_viability(contact *cntct,service *svc){
+int check_contact_service_notification_viability(contact *cntct, service *svc, int type){
 
 #ifdef DEBUG0
 	printf("check_contact_service_notification_viability() start\n");
 #endif
+
+	/* see if the contact can be notified at this time */
+	if(check_time_against_period(time(NULL),cntct->service_notification_period)==ERROR){
+#ifdef DEBUG4
+		printf("\tThis contact shouldn't be notified at this time!\n");
+#endif
+		return ERROR;
+	        }
+
+	/****************************************/
+	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
+	/****************************************/
+
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+
+		if(cntct->notify_on_service_flapping==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify this contact about FLAPPING service events!\n");
+#endif
+			return ERROR;
+		        }
+
+		return OK;
+	        }
+
+	/*************************************/
+	/*** ACKS AND NORMAL NOTIFICATIONS ***/
+	/*************************************/
 
 	/* see if we should notify about problems with this service */
 	if(svc->current_state==STATE_UNKNOWN && cntct->notify_on_service_unknown==FALSE){
@@ -454,7 +522,7 @@ int check_contact_service_notification_viability(contact *cntct,service *svc){
 			return ERROR;
 		        }
 
-		if(!((svc->has_been_unknown==TRUE && cntct->notify_on_service_unknown==TRUE) || (svc->has_been_warning==TRUE && cntct->notify_on_service_warning==TRUE) || (svc->has_been_critical==TRUE && cntct->notify_on_service_critical==TRUE))){
+		if(!((svc->notified_on_unknown==TRUE && cntct->notify_on_service_unknown==TRUE) || (svc->notified_on_warning==TRUE && cntct->notify_on_service_warning==TRUE) || (svc->notified_on_critical==TRUE && cntct->notify_on_service_critical==TRUE))){
 #ifdef DEBUG4
 			printf("\tWe shouldn't notify about this recovery\n");
 #endif
@@ -488,18 +556,10 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 	printf("\tNotify user %s\n",cntct->name);
 #endif
 
-	/* see if the contact can be notified at this time */
-	if(check_time_against_period(time(NULL),cntct->service_notification_period)==ERROR){
-#ifdef DEBUG4
-		printf("\tThis contact shouldn't be notified at this time!\n");
-#endif
-		return OK;
-	        }
-
 	/* check viability of notifying this user */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
-	if(check_contact_service_notification_viability(cntct,svc)==ERROR)
-		return OK;
+	if(check_contact_service_notification_viability(cntct,svc,type)==ERROR)
+		return ERROR;
 
 	/* process all the notification commands this user has */
 	for(temp_commandsmember=cntct->service_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
@@ -698,7 +758,8 @@ int create_notification_list_from_service(service *svc){
 int host_notification(host *hst, int type, char *data){
 	notification *temp_notification;
 	time_t current_time;
-
+	int result=OK;
+	int contacts_notified=0;
 
 #ifdef DEBUG0
 	printf("host_notification() start\n");
@@ -785,13 +846,18 @@ int host_notification(host *hst, int type, char *data){
 			grab_contact_macros(temp_notification->contact);
 
 			/* notify this contact */
-			notify_contact_of_host(temp_notification->contact,hst,type);
+			result=notify_contact_of_host(temp_notification->contact,hst,type);
+
+			/* keep track of how many contacts were notified */
+			if(result==OK)
+				contacts_notified++;
 	                }
 
 		/* free memory allocated to the notification list */
 		free_notification_list();
 
-		if(type==NOTIFICATION_NORMAL){
+		/* adjust last/next notification time and notification flags if we notified someone */
+		if(type==NOTIFICATION_NORMAL && contacts_notified>0){
 
 			/* calculate the next acceptable re-notification time */
 			hst->next_host_notification=get_next_host_notification_time(hst,current_time);
@@ -803,6 +869,12 @@ int host_notification(host *hst, int type, char *data){
 
 			/* update the last notification time for this host (this is needed for scheduling the next problem notification) */
 			hst->last_host_notification=current_time;
+
+			/* update notifications flags */
+			if(hst->current_state==HOST_DOWN)
+				hst->notified_on_down=TRUE;
+			else if(hst->current_state==HOST_UNREACHABLE)
+				hst->notified_on_unreachable=TRUE;
 		        }
 
 #ifdef DEBUG4
@@ -836,7 +908,6 @@ int host_notification(host *hst, int type, char *data){
 
 /* checks viability of sending a host notification */
 int check_host_notification_viability(host *hst, int type){
-	int state_change=FALSE;
 	time_t current_time;
 	time_t timeperiod_start;
 
@@ -907,6 +978,26 @@ int check_host_notification_viability(host *hst, int type){
 	        }
 
 
+	/*****************************************/
+	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
+	/*****************************************/
+
+	/* flapping notifications only have to pass three general filters */
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+
+		/* don't send a notification if we're not supposed to... */
+		if(hst->notify_on_flapping==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about FLAPPING events for this host!\n");
+#endif
+			return ERROR;
+	                }
+
+		/* flapping viability test passed, so the notification can be sent out */
+		return OK;
+	        }
+
+
 	/****************************************/
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
@@ -926,12 +1017,6 @@ int check_host_notification_viability(host *hst, int type){
 #endif
 		return ERROR;
 	        }
-
-	/* has the host state changed? */
-	if(hst->last_state!=hst->current_state)
-		state_change=TRUE;
-	else
-		state_change=FALSE;
 
 	/* see if we should notify about problems with this host */
 	if(hst->current_state==HOST_UNREACHABLE && hst->notify_on_unreachable==FALSE){
@@ -954,21 +1039,13 @@ int check_host_notification_viability(host *hst, int type){
 #endif
 			return ERROR;
 		       }
-		if(!((hst->has_been_down==TRUE && hst->notify_on_down==TRUE) || (hst->has_been_unreachable==TRUE && hst->notify_on_unreachable==TRUE))){
+		if(!(hst->notified_on_down==TRUE || hst->notified_on_unreachable==TRUE)){
 #ifdef DEBUG4
 			printf("\tWe shouldn't notify about this recovery\n");
 #endif
 			return ERROR;
 		        }
 
-	        }
-
-	/* if this host is currently in a scheduled downtime period, don't send the notification */
-	if(hst->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-		printf("\tThis host is currently in a scheduled downtime, so we won't send notifications!\n");
-#endif
-		return ERROR;
 	        }
 
 	/* if this host is currently flapping, don't send the notification */
@@ -979,15 +1056,20 @@ int check_host_notification_viability(host *hst, int type){
 		return ERROR;
 	        }
 
-	/* if we haven't notified the contacts about the host state change, do so */
-	if(state_change==TRUE){
+	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
+	if(hst->current_state==HOST_UP)
+		return OK;
+
+	/* if this host is currently in a scheduled downtime period, don't send the notification */
+	if(hst->scheduled_downtime_depth>0){
 #ifdef DEBUG4
-		printf("\tHOST STATE CHANGE!\n");
+		printf("\tThis host is currently in a scheduled downtime, so we won't send notifications!\n");
 #endif
+		return ERROR;
 	        }
 
 	/* check if we shouldn't renotify contacts about the host problem */
-	else if(hst->current_state!=HOST_UP && hst->no_more_notifications==TRUE){
+	if(hst->no_more_notifications==TRUE){
 
 #ifdef DEBUG4
 		printf("\tWe shouldn't re-notify contacts about this host problem!!\n");
@@ -995,25 +1077,15 @@ int check_host_notification_viability(host *hst, int type){
 		return ERROR;
 	        }
 
-	/* else if its time to re-notify the contacts about the host... */
-	else if(hst->current_state!=HOST_UP && current_time >= hst->next_host_notification){
-
-#ifdef DEBUG4
-		printf("\tTime to re-notify the contacts about the host problem!\n");
-#endif
-                }
-
-	/* else we shouldn't do the notification, so exit */
-	else{
+	/* check if its time to re-notify the contacts about the host... */
+	if(current_time < hst->next_host_notification){
 
 #ifdef DEBUG4
 		printf("\tIts not yet time to re-notify the contacts about this host problem...\n");
 		printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
 #endif
-
 		return ERROR;
 	        }
-
 
 #ifdef DEBUG0
 	printf("check_host_notification_viability() end\n");
@@ -1025,11 +1097,41 @@ int check_host_notification_viability(host *hst, int type){
 
 
 /* checks the viability of notifying a specific contact about a host */
-int check_contact_host_notification_viability(contact *cntct, host *hst){
+int check_contact_host_notification_viability(contact *cntct, host *hst, int type){
 
 #ifdef DEBUG0
 	printf("check_contact_host_notification_viability() start\n");
 #endif
+
+	/* see if the contact can be notified at this time */
+	if(check_time_against_period(time(NULL),cntct->host_notification_period)==ERROR){
+#ifdef DEBUG4
+		printf("\tThis contact shouldn't be notified at this time!\n");
+#endif
+		return ERROR;
+	        }
+
+
+	/****************************************/
+	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
+	/****************************************/
+
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+
+		if(cntct->notify_on_host_flapping==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify this contact about FLAPPING host events!\n");
+#endif
+			return ERROR;
+		        }
+
+		return OK;
+	        }
+
+
+	/*************************************/
+	/*** ACKS AND NORMAL NOTIFICATIONS ***/
+	/*************************************/
 
 	/* see if we should notify about problems with this host */
 	if(hst->current_state==HOST_DOWN && cntct->notify_on_host_down==FALSE){
@@ -1055,7 +1157,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst){
 			return ERROR;
 		        }
 
-		if(!((hst->has_been_down==TRUE && cntct->notify_on_host_down==TRUE) || (hst->has_been_unreachable==TRUE && cntct->notify_on_host_unreachable==TRUE))){
+		if(!((hst->notified_on_down==TRUE && cntct->notify_on_host_down==TRUE) || (hst->notified_on_unreachable==TRUE && cntct->notify_on_host_unreachable==TRUE))){
 #ifdef DEBUG4
 			printf("\tWe shouldn't notify about this recovery\n");
 #endif
@@ -1091,18 +1193,10 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 	printf("\tNotify user %s\n",cntct->name);
 #endif
 
-	/* see if the contact can be notified at this time */
-	if(check_time_against_period(time(NULL),cntct->host_notification_period)==ERROR){
-#ifdef DEBUG4
-		printf("\tThis contact shouldn't be notified at this time!\n");
-#endif
-		return OK;
-	        }
-
 	/* check viability of notifying this user about the host */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
-	if(check_contact_host_notification_viability(cntct,hst)==ERROR)
-		return OK;
+	if(check_contact_host_notification_viability(cntct,hst,type)==ERROR)
+		return ERROR;
 
 	/* process all the notification commands this user has */
 	for(temp_commandsmember=cntct->host_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){

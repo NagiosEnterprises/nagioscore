@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-25-2003
+ * Last Modified: 04-14-2003
  *
  * License:
  * 
@@ -1359,7 +1359,7 @@ void show_service_detail(void){
 						printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 						if(temp_hostextinfo->notes_url!=NULL)
 							printf("</A>");
-						printf("<TD>\n");
+						printf("</TD>\n");
 					        }
 				        }
 				printf("</TR>\n");
@@ -1795,7 +1795,7 @@ void show_host_detail(void){
 					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 					if(temp_hostextinfo->notes_url!=NULL)
 						printf("</A>");
-					printf("<TD>\n");
+					printf("</TD>\n");
 				        }
 			        }
 			printf("<TD><a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host'></a></TD>\n",STATUS_CGI,url_encode(temp_status->host_name),url_images_path,STATUS_DETAIL_ICON);

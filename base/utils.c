@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-13-2004
+ * Last Modified:   09-02-2004
  *
  * License:
  *
@@ -1936,6 +1936,18 @@ int clear_volatile_macros(void){
 		switch(x){
 		case MACRO_ADMINEMAIL:
 		case MACRO_ADMINPAGER:
+		case MACRO_MAINCONFIGFILE:
+		case MACRO_STATUSDATAFILE:
+		case MACRO_COMMENTDATAFILE:
+		case MACRO_DOWNTIMEDATAFILE:
+		case MACRO_RETENTIONDATAFILE:
+		case MACRO_OBJECTCACHEFILE:
+		case MACRO_TEMPFILE:
+		case MACRO_LOGFILE:
+		case MACRO_RESOURCEFILE:
+		case MACRO_COMMANDFILE:
+		case MACRO_HOSTPERFDATAFILE:
+		case MACRO_SERVICEPERFDATAFILE:
 			break;
 		default:
 			if(macro_x[x]!=NULL){

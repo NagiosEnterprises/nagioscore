@@ -178,6 +178,20 @@ int xpddefault_initialize_performance_data(char *config_file){
 	if(xpddefault_service_perfdata_file_processing_interval>0 && xpddefault_service_perfdata_file_processing_command!=NULL)
 		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,xpddefault_process_service_perfdata_file,NULL);
 
+	/* save the host perf data file macro */
+	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL)
+		free(macro_x[MACRO_HOSTPERFDATAFILE]);
+	macro_x[MACRO_HOSTPERFDATAFILE]=(char *)strdup(xpddefault_host_perfdata_file);
+	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL)
+		strip(macro_x[MACRO_HOSTPERFDATAFILE]);
+
+	/* save the service perf data file macro */
+	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL)
+		free(macro_x[MACRO_SERVICEPERFDATAFILE]);
+	macro_x[MACRO_SERVICEPERFDATAFILE]=(char *)strdup(xpddefault_service_perfdata_file);
+	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL)
+		strip(macro_x[MACRO_SERVICEPERFDATAFILE]);
+
 	return OK;
         }
 
@@ -288,20 +302,6 @@ int xpddefault_grab_config_info(char *config_file){
 	        }
 
 	fclose(fp);
-
-	/* save the host perf data file macro */
-	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL)
-		free(macro_x[MACRO_HOSTPERFDATAFILE]);
-	macro_x[MACRO_HOSTPERFDATAFILE]=(char *)strdup(xpddefault_host_perfdata_file);
-	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL)
-		strip(macro_x[MACRO_HOSTPERFDATAFILE]);
-
-	/* save the service perf data file macro */
-	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL)
-		free(macro_x[MACRO_SERVICEPERFDATAFILE]);
-	macro_x[MACRO_SERVICEPERFDATAFILE]=(char *)strdup(xpddefault_service_perfdata_file);
-	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL)
-		strip(macro_x[MACRO_SERVICEPERFDATAFILE]);
 
 	return OK;
         }
@@ -678,6 +678,7 @@ int xpddefault_process_host_perfdata_file(void){
 
 	/* update macros */
 	clear_volatile_macros();
+	grab_datetime_macros();
 
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_host_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
@@ -733,6 +734,7 @@ int xpddefault_process_service_perfdata_file(void){
 
 	/* update macros */
 	clear_volatile_macros();
+	grab_datetime_macros();
 
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_service_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);

@@ -2501,7 +2501,7 @@ int cmd_change_command(int cmd,char *args){
 				return ERROR;
 
 			/* verify that the service is valid */
-			temp_service=find_service(temp_host->name,svc_description);
+			temp_service=find_service(host_name,svc_description);
 			if(temp_service==NULL)
 				return ERROR;
 	                }

@@ -22,6 +22,7 @@ Nagios Change Log
 * Fixed bug in macro processing where commands longer than 1K in length were sometimes being truncated
 * Fixed bug in initialization of servicedependency definitions
 * Nagios now aborts at startup if it can't drop privileges
+* Fixed segfault with adaptive monitoring when changing service check command
 
 
 

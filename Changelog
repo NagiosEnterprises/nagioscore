@@ -3,13 +3,15 @@ Nagios Change Log
 ###################
 
 
-1.2 - 01/25/2004
+1.2 - 02/??/2004
 ----------------
 * Host stalking bug fix
 * Embedded Perl bug fix
 * Configure script patch for Solaris (iconv library)
 * Bug fix for segfault in passive check routines
 * Bug fix in service retention logic
+* Bug fix in retention logic affecting passive service checks and
+  event handlers (program-wide basis)
 * Segfault fix in debug mode
 * Fix for popup window in statusmap CGI
 * CGI bug fixes (tac, statusmap, histogram, trends)

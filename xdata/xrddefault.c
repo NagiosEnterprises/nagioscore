@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-03-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-02-2004
  *
  * License:
  *
@@ -181,7 +181,7 @@ int xrddefault_save_state_information(char *main_config_file){
 
 	/* save program state information */
 	get_program_state_information(&enable_notifications,&execute_service_checks,&accept_passive_service_checks,&enable_event_handlers,&obsess_over_services,&enable_flap_detection,&enable_failure_prediction,&process_performance_data);
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"PROGRAM: %d;%d;%d;%d;%d;%d;%d;%d\n",enable_notifications,execute_service_checks,accept_passive_service_checks,enable_event_handlers,obsess_over_services,enable_flap_detection,enable_failure_prediction,process_performance_data);
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"PROGRAM: %d;%d;%d;%d;%d;%d;%d;%d\n",enable_notifications,accept_passive_service_checks,execute_service_checks,enable_event_handlers,obsess_over_services,enable_flap_detection,enable_failure_prediction,process_performance_data);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	fputs(temp_buffer,fp);
 

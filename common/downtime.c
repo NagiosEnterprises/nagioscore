@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-10-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -23,12 +23,12 @@
  *
  *****************************************************************************/
 
-#include "config.h"
-#include "common.h"
-#include "comments.h"
-#include "downtime.h"
-#include "objects.h"
-#include "statusdata.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/comments.h"
+#include "../include/downtime.h"
+#include "../include/objects.h"
+#include "../include/statusdata.h"
 
 /***** IMPLEMENTATION-SPECIFIC INCLUDES *****/
 
@@ -37,12 +37,12 @@
 #endif
 
 #ifdef NSCORE
-#include "../base/nagios.h"
-#include "../base/broker.h"
+#include "../include/nagios.h"
+#include "../include/broker.h"
 #endif
 
 #ifdef NSCGI
-#include "../cgi/cgiutils.h"
+#include "../include/cgiutils.h"
 #endif
 
 

@@ -3,7 +3,7 @@
  * PERFDATA.C - Performance data routines for Nagios
  *
  * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2001
+ * Last Modified:   08-14-2001
  *
  * License:
  *
@@ -26,10 +26,10 @@
 
 /*********** COMMON HEADER FILES ***********/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "perfdata.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/perfdata.h"
 
 
 /***** IMPLEMENTATION-SPECIFIC HEADER FILES *****/

@@ -25,16 +25,16 @@
 
 /*********** COMMON HEADER FILES ***********/
 
-#include "config.h"
-#include "common.h"
-#include "objects.h"
-#include "statusdata.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/statusdata.h"
 
 #ifdef NSCORE
-#include "../base/nagios.h"
+#include "../include/nagios.h"
 #endif
 #ifdef NSCGI
-#include "../cgi/cgiutils.h"
+#include "../include/cgiutils.h"
 #endif
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/

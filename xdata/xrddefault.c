@@ -26,12 +26,12 @@
 
 /*********** COMMON HEADER FILES ***********/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../common/statusdata.h"
-#include "../base/nagios.h"
-#include "../base/sretention.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/statusdata.h"
+#include "../include/nagios.h"
+#include "../include/sretention.h"
 
 
 /**** STATE INFORMATION SPECIFIC HEADER FILES ****/

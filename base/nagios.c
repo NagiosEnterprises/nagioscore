@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   07-18-2003
+ * Last Modified:   08-14-2003
  *
  * Description:
  *
@@ -36,16 +36,16 @@
  *
  *****************************************************************************/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../common/comments.h"
-#include "../common/downtime.h"
-#include "../common/statusdata.h"
-#include "nagios.h"
-#include "sretention.h"
-#include "perfdata.h"
-#include "broker.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/comments.h"
+#include "../include/downtime.h"
+#include "../include/statusdata.h"
+#include "../include/nagios.h"
+#include "../include/sretention.h"
+#include "../include/perfdata.h"
+#include "../include/broker.h"
 
 
 char		*config_file=NULL;

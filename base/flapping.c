@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-05-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -25,13 +25,13 @@
 
 /*********** COMMON HEADER FILES ***********/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../common/comments.h"
-#include "../common/statusdata.h"
-#include "nagios.h"
-#include "broker.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/comments.h"
+#include "../include/statusdata.h"
+#include "../include/nagios.h"
+#include "../include/broker.h"
 
 extern int      interval_length;
 

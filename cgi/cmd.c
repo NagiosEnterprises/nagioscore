@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2003
+ * Last Modified: 08-14-2003
  *
  * License:
  * 
@@ -22,15 +22,15 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *************************************************************************/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../common/comments.h"
-#include "../common/downtime.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/comments.h"
+#include "../include/downtime.h"
 
-#include "cgiutils.h"
-#include "getcgi.h"
-#include "cgiauth.h"
+#include "../include/cgiutils.h"
+#include "../include/cgiauth.h"
+#include "../include/getcgi.h"
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char command_file[MAX_FILENAME_LENGTH];

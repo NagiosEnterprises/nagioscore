@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-17-2003
+ * Last Modified: 08-14-2003
  *
  * Description:
  *
@@ -48,19 +48,19 @@
 
 /*********** COMMON HEADER FILES ***********/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../common/locations.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/locations.h"
 
 /**** CORE OR CGI SPECIFIC HEADER FILES ****/
 
 #ifdef NSCORE
-#include "../base/nagios.h"
+#include "../include/nagios.h"
 #endif
 
 #ifdef NSCGI
-#include "../cgi/cgiutils.h"
+#include "../include/cgiutils.h"
 #endif
 
 

@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2003
+ * Last Modified: 08-14-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -24,14 +24,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ***********************************************************************/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../common/statusdata.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/statusdata.h"
 
-#include "getcgi.h"
-#include "cgiutils.h"
-#include "cgiauth.h"
+#include "../include/getcgi.h"
+#include "../include/cgiutils.h"
+#include "../include/cgiauth.h"
 
 
 #define HEALTH_WARNING_PERCENTAGE       90

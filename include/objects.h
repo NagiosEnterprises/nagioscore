@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-22-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -27,8 +27,8 @@
 #ifndef _OBJECTS_H
 #define _OBJECTS_H
 
-#include "../common/config.h"
-#include "../common/common.h"
+#include "config.h"
+#include "common.h"
 
 
 

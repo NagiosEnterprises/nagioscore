@@ -3,7 +3,7 @@
  * XPDFILE.C - File-based performance data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -26,10 +26,10 @@
 
 /*********** COMMON HEADER FILES ***********/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/objects.h"
-#include "../base/nagios.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/objects.h"
+#include "../include/nagios.h"
 
 
 /**** DATA INPUT-SPECIFIC HEADER FILES ****/

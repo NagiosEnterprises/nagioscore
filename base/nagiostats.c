@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-05-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -27,10 +27,10 @@
  *
  *****************************************************************************/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "nagios.h"
-#include "../common/locations.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/nagios.h"
+#include "../include/locations.h"
 
 #define STATUS_NO_DATA             0
 #define STATUS_INFO_DATA           1

@@ -3,7 +3,7 @@
  * XPDFILE.H - Include file for file-based performance data routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *
  *****************************************************************************/
 
-#include "../common/objects.h"
+#include "../include/objects.h"
 
 
 int xpdfile_initialize_performance_data(char *);

@@ -3734,7 +3734,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile xdata/Makefile daemon-init html/index.html html/side.html common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile include/Makefile xdata/Makefile daemon-init html/index.html html/side.html include/config.h include/snprintf.h include/nagios.h include/cgiutils.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -3863,7 +3863,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile xdata/Makefile daemon-init html/index.html html/side.html"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile include/Makefile xdata/Makefile daemon-init html/index.html html/side.html"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
@@ -3944,7 +3944,7 @@ ac_eD='%g'
 if test "${CONFIG_HEADERS+set}" != set; then
 EOF
 cat >> $CONFIG_STATUS <<EOF
-  CONFIG_HEADERS="common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h"
+  CONFIG_HEADERS="include/config.h include/snprintf.h include/nagios.h include/cgiutils.h"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 fi
@@ -4043,8 +4043,8 @@ test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
 
 
 
-perl subst common/locations.h
-perl subst base/nagios.h
+perl subst include/locations.h
+perl subst include/nagios.h
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."

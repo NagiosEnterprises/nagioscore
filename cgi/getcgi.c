@@ -2,14 +2,14 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 02-15-2003
+ * Last Modified: 08-14-2003
  *
  *****************************************/
 
-#include "../common/config.h"
+#include "../include/config.h"
+#include "../include/getcgi.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "getcgi.h"
 
 
 #undef PARANOID_CGI_INPUT

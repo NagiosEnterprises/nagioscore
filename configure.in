@@ -5,7 +5,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 AC_INIT(base/nagios.c)
-AC_CONFIG_HEADER(common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h)
+AC_CONFIG_HEADER(include/config.h include/snprintf.h include/nagios.h include/cgiutils.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
@@ -783,7 +783,7 @@ AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE")
 
 
 dnl Package directory for Solaris pkgmk (and other OSs, eventually)
-VERSION=`grep 1.0 common/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
+VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
 PACKDIR=`pwd`/pkg
 AC_SUBST(PACKDIR)
 AC_SUBST(VERSION)
@@ -814,11 +814,11 @@ AC_SUBST(INITDIR)
 AC_SUBST(INSTALLPERLSTUFF)
 
 AC_PATH_PROG(PERL,perl)
-AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
+AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile include/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
 
 
-perl subst common/locations.h
-perl subst base/nagios.h
+perl subst include/locations.h
+perl subst include/nagios.h
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."

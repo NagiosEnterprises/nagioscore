@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2003
+ * Last Modified: 08-14-2003
  *
  * License:
  *
@@ -22,13 +22,13 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ***********************************************************************/
 
-#include "../common/config.h"
-#include "../common/common.h"
-#include "../common/locations.h"
-#include "../common/objects.h"
-#include "../common/statusdata.h"
+#include "../include/config.h"
+#include "../include/common.h"
+#include "../include/locations.h"
+#include "../include/objects.h"
+#include "../include/statusdata.h"
 
-#include "cgiutils.h"
+#include "../include/cgiutils.h"
 
 char            main_config_file[MAX_FILENAME_LENGTH];
 char            log_file[MAX_FILENAME_LENGTH];

@@ -9,6 +9,7 @@
 SRC_BASE=@srcdir@/base
 SRC_CGI=@srcdir@/cgi
 SRC_HTM=@srcdir@/html
+SRC_INCLUDE=@srcdir@/include
 SRC_COMMON=@srcdir@/common
 SRC_XDATA=@srcdir@/xdata
 SRC_CONTRIB=@srcdir@/contrib
@@ -133,6 +134,7 @@ clean:
 	cd $(SRC_COMMON) && $(MAKE) $@
 	cd $(SRC_XDATA) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
+	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ */*~
@@ -144,6 +146,7 @@ distclean: clean
 	cd $(SRC_COMMON) && $(MAKE) $@
 	cd $(SRC_XDATA) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
+	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
 	rm -f $(SRC_COMMON)/config.h $(SRC_COMMON)/locations.h $(SRC_COMMON)/snprintf.h 
 	rm -f sample-config/*.cfg sample-config/template-object/*.cfg sample-config/default-object/*.cfg

@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-20-2003
+ * Last Modified:   08-14-2003
  *
  * License:
  *
@@ -23,11 +23,11 @@
  *
  *****************************************************************************/
 
-#include "../common/config.h"
-#include "../common/common.h"
+#include "../include/config.h"
+#include "../include/common.h"
 
-#include "nagios.h"
-#include "broker.h"
+#include "../include/nagios.h"
+#include "../include/broker.h"
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 

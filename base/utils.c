@@ -2202,6 +2202,7 @@ int contains_illegal_object_chars(char *name){
 	register int x;
 	register int y;
 	register int ch;
+	register int len;
 
 	if(name==NULL)
 		return FALSE;

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2002
+ * Last Modified:   03-06-2002
  *
  * Description:
  *
@@ -1900,6 +1900,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_host_unreachable=TRUE;
 				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
 					temp_contact->notify_on_host_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_contact->notify_on_host_down=FALSE;
+					temp_contact->notify_on_host_unreachable=FALSE;
+					temp_contact->notify_on_host_recovery=FALSE;
+				        }
 				else{
 #ifdef NSCORE
 					printf("Error: Invalid host notification option '%s' in contact definition.\n",temp_ptr);
@@ -1919,6 +1924,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_service_critical=TRUE;
 				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
 					temp_contact->notify_on_service_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_contact->notify_on_service_unknown=FALSE;
+					temp_contact->notify_on_service_warning=FALSE;
+					temp_contact->notify_on_service_critical=FALSE;
+					temp_contact->notify_on_service_recovery=FALSE;
+				        }
 				else{
 #ifdef NSCORE
 					printf("Error: Invalid service notification option '%s' in contact definition.\n",temp_ptr);

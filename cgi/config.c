@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-27-2002
+ * Last Modified: 03-06-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -768,14 +768,14 @@ void display_contacts(void){
 		if(temp_contact->service_notification_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",bg_class,CONFIG_CGI,url_encode(temp_contact->service_notification_period),temp_contact->service_notification_period);
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_contact->service_notification_period),temp_contact->service_notification_period);
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>\n",bg_class);
 		if(temp_contact->host_notification_period==NULL)
 			printf("&nbsp;");
 		else
-			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",bg_class,CONFIG_CGI,url_encode(temp_contact->host_notification_period),temp_contact->host_notification_period);
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_contact->host_notification_period),temp_contact->host_notification_period);
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);

@@ -2,8 +2,8 @@
  *
  * AUTH.C - Authorization utilities for Nagios CGIs
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-06-2001
+ * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-06-2002
  *
  * License:
  *
@@ -41,6 +41,7 @@ extern int             hosts_have_been_read;
 extern int             hostgroups_have_been_read;
 extern int             contactgroups_have_been_read;
 extern int             contacts_have_been_read;
+extern int             services_have_been_read;
 extern int             serviceescalations_have_been_read;
 extern int             hostgroupescalations_have_been_read;
 extern int             hostescalations_have_been_read;
@@ -67,6 +68,8 @@ int get_authentication_information(authdata *authinfo){
 		needed_options|=READ_CONTACTGROUPS;
 	if(contacts_have_been_read==FALSE)
 		needed_options|=READ_CONTACTS;
+	if(services_have_been_read==FALSE)
+		needed_options|=READ_SERVICES;
 	if(serviceescalations_have_been_read==FALSE)
 		needed_options|=READ_SERVICEESCALATIONS;
 	if(hostgroupescalations_have_been_read==FALSE)

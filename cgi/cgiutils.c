@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 05-30-2002
  *
  * License:
  *
@@ -56,6 +56,8 @@ char            *host_unreachable_sound=NULL;
 char            *normal_sound=NULL;
 char            *statusmap_background_image=NULL;
 char            *statuswrl_include=NULL;
+
+char            *ping_syntax=NULL;
 
 char            nagios_check_command[MAX_INPUT_BUFFER];
 
@@ -180,7 +182,19 @@ void reset_cgi_vars(void){
 
 	default_statusmap_layout_method=0;
 	default_statusmap_layout_method=0;
-	
+
+	service_critical_sound=NULL;
+	service_warning_sound=NULL;
+	service_unknown_sound=NULL;
+	host_down_sound=NULL;
+	host_unreachable_sound=NULL;
+	normal_sound=NULL;
+
+	statusmap_background_image=NULL;
+	statuswrl_include=NULL;
+
+	ping_syntax=NULL;
+
 	return;
         }
 
@@ -194,6 +208,17 @@ void free_memory(void){
 
 	/* free memory for status data */
 	free_status_data();
+
+	/* free misc data */
+	free(service_critical_sound);
+	free(service_warning_sound);
+	free(service_unknown_sound);
+	free(host_down_sound);
+	free(host_unreachable_sound);
+	free(normal_sound);
+	free(statusmap_background_image);
+	free(statuswrl_include);
+	free(ping_syntax);
 
 	return;
         }
@@ -409,6 +434,17 @@ int read_cgi_config_file(char *filename){
 			if(statuswrl_include!=NULL)
 				strcpy(statuswrl_include,temp_buffer);
 		        }
+
+		else if(strstr(input_buffer,"ping_syntax=")==input_buffer){
+			temp_buffer=strtok(input_buffer,"=");
+			temp_buffer=strtok(NULL,"\n");
+			if(temp_buffer==NULL)
+				continue;
+			ping_syntax=(char *)malloc(strlen(temp_buffer)+1);
+			if(ping_syntax!=NULL)
+				strcpy(ping_syntax,temp_buffer);
+		        }
+
  	        }
 
 	fclose(fp);

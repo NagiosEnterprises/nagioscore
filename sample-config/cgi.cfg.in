@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 05-14-2002
+# Last Modified: 05-30-2002
 #
 #################################################################
 
@@ -322,6 +322,18 @@ default_statuswrl_layout=4
 # resides in the HTML path (i.e. /usr/local/nagios/share).
 
 #statuswrl_include=myworld.wrl
+
+
+
+# PING SYNTAX
+# This option determines what syntax should be used when
+# attempting to ping a host from the WAP interface (using
+# the statuswml CGI.  You must include the full path to
+# the ping binary, along with all required options.  The
+# $HOSTADDRESS$ macro is substituted with the address of
+# the host before the command is executed.
+
+ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$
 
 
 

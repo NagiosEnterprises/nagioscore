@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-30-2002
  *
  * License:
  * 
@@ -45,6 +45,8 @@ extern service *service_list;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      nagios_process_state;
+
+extern char     *ping_syntax;
 
 #define DISPLAY_HOST		        0
 #define DISPLAY_SERVICE                 1
@@ -1188,9 +1190,12 @@ void display_service(void){
 
 /* displays ping results */
 void display_ping(void){
+	char input_buffer[MAX_INPUT_BUFFER];
 	char buffer[MAX_INPUT_BUFFER];
+	char *temp_ptr;
 	FILE *fp;
 	int odd=0;
+	int in_macro=FALSE;
 
 	/**** MAIN SCREEN (CARD 1) ****/
 	printf("<card id='card1' title='Ping'>\n");
@@ -1217,39 +1222,62 @@ void display_ping(void){
 		printf("</p>\n");
 
 		printf("<p mode='nowrap'>\n");
+
+		if(ping_syntax==NULL)
+			printf("ping_syntax is NULL!\n");
 	
+		else{
 
-		/* send 5 ICMP echo packets */
-#ifdef PING_PACKETS_FIRST
-		snprintf(buffer,sizeof(buffer)-1,PING_COMMAND,5,ping_address);
-#else
-		snprintf(buffer,sizeof(buffer)-1,PING_COMMAND,ping_address,5);
-#endif
-		buffer[sizeof(buffer)-1]='\x0';
+			/* process macros in the ping syntax */
+			strcpy(buffer,"");
+			strncpy(input_buffer,ping_syntax,sizeof(input_buffer)-1);
+			input_buffer[strlen(ping_syntax)-1]='\x0';
+			for(temp_ptr=my_strtok(input_buffer,"$");temp_ptr!=NULL;temp_ptr=my_strtok(NULL,"$")){
 
-		fp=popen(buffer,"r");
-		if(fp){
-			while(1){
-				fgets(buffer,sizeof(buffer)-1,fp);
-				if(feof(fp))
-					break;
-
-				strip(buffer);
-
-				if(odd){
-					odd=0;
-					printf("%s<br/>\n",buffer);
-			                }
+				if(in_macro==FALSE){
+					if(strlen(buffer)+strlen(temp_ptr)<sizeof(buffer)-1){
+						strncat(buffer,temp_ptr,sizeof(buffer)-strlen(buffer)-1);
+						buffer[sizeof(buffer)-1]='\x0';
+					        }
+					in_macro=TRUE;
+				        }
 				else{
-					odd=1;
-					printf("<b>%s</b><br/>\n",buffer);
-			                }
-		                }
-	                }
-		else
-			printf("Error executing ping!\n");
 
-		pclose(fp);
+					if(strlen(buffer)+strlen(temp_ptr) < sizeof(buffer)-1){
+
+						if(!strcmp(temp_ptr,"HOSTADDRESS"))
+							strncat(buffer,ping_address,sizeof(buffer)-strlen(buffer)-1);
+					        }
+
+					in_macro=FALSE;
+				        }
+			        }
+
+			/* run the ping command */
+			fp=popen(buffer,"r");
+			if(fp){
+				while(1){
+					fgets(buffer,sizeof(buffer)-1,fp);
+					if(feof(fp))
+						break;
+
+					strip(buffer);
+
+					if(odd){
+						odd=0;
+						printf("%s<br/>\n",buffer);
+			                        }
+					else{
+						odd=1;
+						printf("<b>%s</b><br/>\n",buffer);
+			                        }
+		                        }
+	                        }
+			else
+				printf("Error executing ping!\n");
+
+			pclose(fp);
+		        }
 
 		printf("</p>\n");
 	        }

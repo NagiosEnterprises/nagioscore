@@ -70,6 +70,8 @@ A sample CGI configuration file can be created by running the '<b>make config</b
 <br>
 <a href="#refresh_rate">CGI refresh rate</a><br>
 <a href="#audio_alerts">Audio alerts</a><br>
+<br>
+<a href="#ping_syntax">Ping syntax</a><br>
 </p>
 
 <p>
@@ -626,6 +628,33 @@ This option allows you to specify the number of seconds between page refreshes f
 
 <p>
 These options allow you to specify an audio file that should be played in your browser if there are problems when you are viewing the <a href="cgis.html#status_cgi">status CGI</a>.  If there are problems, the audio file for the most critical type of problem will be played.  The most critical type of problem is on or more unreachable hosts, while the least critical is one or more services in an unknown state (see the order in the example above).  Audio files are assumed to be in the <b>media/</b> subdirectory in your HTML directory (i.e. <i>/usr/local/nagios/share/media</i>).
+</p>
+
+<p>
+<a name="ping_syntax"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Ping Syntax</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>ping_syntax=&lt;command&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines what syntax should be used when attempting to ping a host from the WAP interface (using
+the <a href="cgis.html#statuswml_cgi">statuswml CGI</a>.  You must include the full path to the ping binary, along with all required options.  The $HOSTADDRESS$ macro is substituted with the address of the host before the command is executed.
 </p>
 
 

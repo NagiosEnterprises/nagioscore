@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2003
+ * Last Modified:   05-29-2003
  *
  * License:
  *
@@ -1448,6 +1448,12 @@ int check_service_dependencies(service *svc,int dependency_type){
 				return DEPENDENCIES_FAILED;
 			if(state==STATE_CRITICAL && temp_dependency->fail_on_critical==TRUE)
 				return DEPENDENCIES_FAILED;
+
+			/* immediate dependencies ok at this point - check parent dependencies if necessary */
+			if(temp_dependency->inherits_parent==TRUE){
+				if(check_service_dependencies(temp_service,dependency_type)!=DEPENDENCIES_OK)
+					return DEPENDENCIES_FAILED;
+			        }
 		        }
 	        }
 
@@ -1491,6 +1497,12 @@ int check_host_dependencies(host *hst,int dependency_type){
 				return DEPENDENCIES_FAILED;
 			if(temp_host->current_state==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
 				return DEPENDENCIES_FAILED;
+
+			/* immediate dependencies ok at this point - check parent dependencies if necessary */
+			if(temp_dependency->inherits_parent==TRUE){
+				if(check_host_dependencies(temp_host,dependency_type)!=DEPENDENCIES_OK)
+					return DEPENDENCIES_FAILED;
+			        }
 		        }
 	        }
 

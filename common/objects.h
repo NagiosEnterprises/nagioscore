@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2003
+ * Last Modified:   05-29-2003
  *
  * License:
  *
@@ -361,6 +361,7 @@ typedef struct servicedependency_struct{
 	char    *dependent_service_description;
 	char    *host_name;
 	char    *service_description;
+	int     inherits_parent;
 	int     fail_on_ok;
 	int     fail_on_warning;
 	int     fail_on_unknown;
@@ -392,9 +393,13 @@ typedef struct hostdependency_struct{
 	int     dependency_type;
 	char    *dependent_host_name;
 	char    *host_name;
+	int     inherits_parent;
 	int     fail_on_up;
 	int     fail_on_down;
 	int     fail_on_unreachable;
+#ifdef NSCORE
+	int     has_been_checked;
+#endif
 	struct hostdependency_struct *next;
         }hostdependency;
 
@@ -488,8 +493,8 @@ service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
-servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int);             /* adds a service dependency definition */
-hostdependency *add_host_dependency(char *,char *,int,int,int,int);                                     /* adds a host dependency definition */
+servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int);         /* adds a service dependency definition */
+hostdependency *add_host_dependency(char *,char *,int,int,int,int,int);                                 /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
 hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
@@ -552,7 +557,8 @@ int number_of_total_parent_hosts(host *);				/* counts the number of total paren
 
 #ifdef NSCORE
 int check_for_circular_path(host *,host *);                             /* checks if a circular path exists for a given host */
-int check_for_circular_dependency(servicedependency *,servicedependency *);   /* checks if a circular execution dependency exists for a given service */
+int check_for_circular_servicedependency(servicedependency *,servicedependency *,int);   /* checks if a circular dependency exists for a given service */
+int check_for_circular_hostdependency(hostdependency *,hostdependency *,int);   /* checks if a circular dependency exists for a given host */
 #endif
 
 

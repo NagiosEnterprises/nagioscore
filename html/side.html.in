@@ -91,15 +91,27 @@ function switchdot(name,on){
   </tr>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="hgstatus-dot"></td>
-    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all" target="main" onMouseOver="switchdot('hgstatus-dot',1)" onMouseOut="switchdot('hgstatus-dot',0)" class="NavBarItem">Status Overview</a></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=overview" target="main" onMouseOver="switchdot('hgstatus-dot',1)" onMouseOut="switchdot('hgstatus-dot',0)" class="NavBarItem">Hostgroup Overview</a></td>
   </tr>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="hgstatus2-dot"></td>
-    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=summary" target="main" onMouseOver="switchdot('hgstatus2-dot',1)" onMouseOut="switchdot('hgstatus2-dot',0)" class="NavBarItem">Status Summary</a></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=summary" target="main" onMouseOver="switchdot('hgstatus2-dot',1)" onMouseOut="switchdot('hgstatus2-dot',0)" class="NavBarItem">Hostgroup Summary</a></td>
   </tr>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="hgstatus3-dot"></td>
-    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=grid" target="main" onMouseOver="switchdot('hgstatus3-dot',1)" onMouseOut="switchdot('hgstatus3-dot',0)" class="NavBarItem">Status Grid</a></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=grid" target="main" onMouseOver="switchdot('hgstatus3-dot',1)" onMouseOut="switchdot('hgstatus3-dot',0)" class="NavBarItem">Hostgroup Grid</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="sgstatus3-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?servicegroup=all&style=overview" target="main" onMouseOver="switchdot('sgstatus3-dot',1)" onMouseOut="switchdot('sgstatus3-dot',0)" class="NavBarItem">Servicegroup Overview</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="sgstatus3-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?servicegroup=all&style=summary" target="main" onMouseOver="switchdot('sgstatus3-dot',1)" onMouseOut="switchdot('sgstatus3-dot',0)" class="NavBarItem">Servicegroup Summary</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="sgstatus3-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?servicegroup=all&style=grid" target="main" onMouseOver="switchdot('sgstatus3-dot',1)" onMouseOut="switchdot('sgstatus3-dot',0)" class="NavBarItem">Servicegroup Grid</a></td>
   </tr>
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="statusmap-dot"></td>

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2003
+ * Last Modified:   05-29-2003
  *
  * License:
  *
@@ -328,12 +328,15 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        _config_file;
 	int        _start_line;
 
+	char       *servicegroup_name;
 	char       *hostgroup_name;
 	char       *host_name;
 	char       *service_description;
+	char       *dependent_servicegroup_name;
 	char       *dependent_hostgroup_name;
 	char       *dependent_host_name;
 	char       *dependent_service_description;
+	int        inherits_parent;
 	int        fail_notify_on_ok;
 	int        fail_notify_on_unknown;
 	int        fail_notify_on_warning;
@@ -343,6 +346,7 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        fail_execute_on_warning;
 	int        fail_execute_on_critical;
 
+	int        have_inherits_parent;
 	int        have_notification_dependency_options;
 	int        have_execution_dependency_options;
 
@@ -359,6 +363,7 @@ typedef struct xodtemplate_serviceescalation_struct{
 	int        _config_file;
 	int        _start_line;
 
+	char      *servicegroup_name;
 	char      *hostgroup_name;
 	char      *host_name;
 	char      *service_description;
@@ -394,6 +399,7 @@ typedef struct xodtemplate_hostdependency_struct{
 	char      *dependent_hostgroup_name;
 	char      *host_name;
 	char      *dependent_host_name;
+	int       inherits_parent;
 	int       fail_notify_on_up;
 	int       fail_notify_on_down;
 	int       fail_notify_on_unreachable;
@@ -401,6 +407,7 @@ typedef struct xodtemplate_hostdependency_struct{
 	int       fail_execute_on_down;
 	int       fail_execute_on_unreachable;
 
+	int       have_inherits_parent;
 	int       have_notification_dependency_options;
 	int       have_execution_dependency_options;
 
@@ -497,6 +504,7 @@ typedef struct xodtemplate_hostlist_struct{
 
 /* SERVICE LIST STRUCTURE */
 typedef struct xodtemplate_servicelist_struct{
+	char      *host_name;
 	char      *service_description;
 	struct xodtemplate_servicelist_struct *next;
         }xodtemplate_servicelist;
@@ -523,7 +531,7 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
-xodtemplate_servicelist *xodtemplate_expand_services(char *,char *);
+xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *);
 int xodtemplate_free_hostlist(xodtemplate_hostlist *);
 int xodtemplate_free_servicelist(xodtemplate_servicelist *);
 #endif
@@ -537,9 +545,9 @@ int xodtemplate_free_memory(void);
 
 #ifdef NSCORE
 int xodtemplate_duplicate_objects(void);
+int xodtemplate_duplicate_services(void);
+
 int xodtemplate_resolve_objects(void);
-int xodtemplate_recombobulate_objects(void);
-int xodtemplate_recombobulate_services(void);
 int xodtemplate_cache_objects(char *);
 
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
@@ -549,6 +557,9 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *,char *,cha
 int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *,char *,char *,char *,char *);
 int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *,char *);
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *,char *);
+
+int xodtemplate_recombobulate_hostgroups(void);
+int xodtemplate_recombobulate_servicegroups(void);
 
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);

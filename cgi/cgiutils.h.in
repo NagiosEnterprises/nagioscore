@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-18-2003
+ * Last Modified: 05-28-2003
  *
  * License:
  * 
@@ -195,6 +195,7 @@
 #define DISPLAY_HOSTGROUP_INFO		5
 #define DISPLAY_DOWNTIME		6
 #define DISPLAY_SCHEDULING_QUEUE	7
+#define DISPLAY_SERVICEGROUP_INFO       8
 
 
 /************************ COMMAND CGI COMMAND MODES *************************/
@@ -307,12 +308,15 @@
 /************************ CONTEXT-SENSITIVE HELP  *************************/
 
 #define CONTEXTHELP_STATUS_DETAIL	"A1"
-#define CONTEXTHELP_STATUS_OVERVIEW	"A2"
-#define CONTEXTHELP_STATUS_SUMMARY	"A3"
-#define CONTEXTHELP_STATUS_GRID		"A4"
+#define CONTEXTHELP_STATUS_HGOVERVIEW	"A2"
+#define CONTEXTHELP_STATUS_HGSUMMARY	"A3"
+#define CONTEXTHELP_STATUS_HGGRID	"A4"
 #define CONTEXTHELP_STATUS_SVCPROBLEMS	"A5"
 #define CONTEXTHELP_STATUS_HOST_DETAIL  "A6"
 #define CONTEXTHELP_STATUS_HOSTPROBLEMS "A7"
+#define CONTEXTHELP_STATUS_SGOVERVIEW   "A8"
+#define CONTEXTHELP_STATUS_SGSUMMARY    "A9"
+#define CONTEXTHELP_STATUS_SGGRID       "A10"
 
 #define CONTEXTHELP_TAC			"B1"
 

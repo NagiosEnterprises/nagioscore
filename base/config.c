@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2003
+ * Last Modified:   05-29-2003
  *
  * License:
  *
@@ -1430,6 +1430,7 @@ int pre_flight_check(void){
 	servicedependency *temp_sd;
 	servicedependency *temp_sd2;
 	hostdependency *temp_hd;
+	hostdependency *temp_hd2;
 	hostextinfo *temp_hostextinfo;
 	serviceextinfo *temp_serviceextinfo;
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -2406,25 +2407,70 @@ int pre_flight_check(void){
 	/* check for circular dependencies         */
 	/********************************************/
 	if(verify_config==TRUE)
-		printf("Checking for circular service execution dependencies...\n");
+		printf("Checking for circular host and service dependencies...\n");
 
-	/* check dependencies between all services */
+	/* check execution dependencies between all services */
 	for(temp_sd=servicedependency_list;temp_sd!=NULL;temp_sd=temp_sd->next){
 
 		/* clear checked flag for all dependencies */
 		for(temp_sd2=servicedependency_list;temp_sd2!=NULL;temp_sd2=temp_sd2->next)
 			temp_sd2->has_been_checked=FALSE;
 
-		found=check_for_circular_dependency(temp_sd,temp_sd);
+		found=check_for_circular_servicedependency(temp_sd,temp_sd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
-			sprintf(temp_buffer,"Warning: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			warnings++;
+			sprintf(temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+	/* check notification dependencies between all services */
+	for(temp_sd=servicedependency_list;temp_sd!=NULL;temp_sd=temp_sd->next){
+
+		/* clear checked flag for all dependencies */
+		for(temp_sd2=servicedependency_list;temp_sd2!=NULL;temp_sd2=temp_sd2->next)
+			temp_sd2->has_been_checked=FALSE;
+
+		found=check_for_circular_servicedependency(temp_sd,temp_sd,NOTIFICATION_DEPENDENCY);
+		if(found==TRUE){
+			sprintf(temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+	/* check execution dependencies between all hosts */
+	for(temp_hd=hostdependency_list;temp_hd!=NULL;temp_hd=temp_hd->next){
+
+		/* clear checked flag for all dependencies */
+		for(temp_hd2=hostdependency_list;temp_hd2!=NULL;temp_hd2=temp_hd2->next)
+			temp_hd2->has_been_checked=FALSE;
+
+		found=check_for_circular_hostdependency(temp_hd,temp_hd,EXECUTION_DEPENDENCY);
+		if(found==TRUE){
+			sprintf(temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+	/* check notification dependencies between all hosts */
+	for(temp_hd=hostdependency_list;temp_hd!=NULL;temp_hd=temp_hd->next){
+
+		/* clear checked flag for all dependencies */
+		for(temp_hd2=hostdependency_list;temp_hd2!=NULL;temp_hd2=temp_hd2->next)
+			temp_hd2->has_been_checked=FALSE;
+
+		found=check_for_circular_hostdependency(temp_hd,temp_hd,NOTIFICATION_DEPENDENCY);
+		if(found==TRUE){
+			sprintf(temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
 		        }
 	        }
 
 #ifdef DEBUG1
-	printf("\tCompleted circular service dependency checks\n");
+	printf("\tCompleted circular host and service dependency checks\n");
 #endif
 
  

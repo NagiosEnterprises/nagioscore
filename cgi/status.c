@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-15-2003
+ * Last Modified: 05-29-2003
  *
  * License:
  * 
@@ -54,7 +54,10 @@ extern char *normal_sound;
 
 extern int suppress_alert_window;
 
+extern host *host_list;
+extern service *service_list;
 extern hostgroup *hostgroup_list;
+extern servicegroup *servicegroup_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
@@ -97,10 +100,18 @@ void show_host_status_totals(void);
 void show_service_status_totals(void);
 void show_service_detail(void);
 void show_host_detail(void);
+void show_servicegroup_overviews(void);
+void show_servicegroup_overview(servicegroup *);
+void show_servicegroup_summaries(void);
+void show_servicegroup_summary(servicegroup *,int);
+void show_servicegroup_host_totals_summary(servicegroup *);
+void show_servicegroup_service_totals_summary(servicegroup *);
+void show_servicegroup_grids(void);
+void show_servicegroup_grid(servicegroup *);
 void show_hostgroup_overviews(void);
 void show_hostgroup_overview(hostgroup *);
-void show_hostgroup_member_overview(hoststatus *,int);
-void show_hostgroup_member_service_status_totals(char *);
+void show_servicegroup_hostgroup_member_overview(hoststatus *,int,void *);
+void show_servicegroup_hostgroup_member_service_status_totals(char *,void *);
 void show_hostgroup_summaries(void);
 void show_hostgroup_summary(hostgroup *,int);
 void show_hostgroup_host_totals_summary(hostgroup *);
@@ -245,10 +256,35 @@ int main(void){
 	                }
 		else if(display_type==DISPLAY_SERVICEGROUPS){
 			if(show_all_servicegroups==FALSE){
-				printf("<br><a href='%s?servicegroup=all'>View Service Status Detail For All Service Groups</a>\n",STATUS_CGI);
+
+				if(group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_GRID || group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup=%s&style=detail'>View Service Status Detail For This Service Group</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_GRID || group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup=%s&style=overview'>View Status Overview For This Service Group</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_GRID)
+					printf("<a href='%s?servicegroup=%s&style=summary'>View Status Summary For This Service Group</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup=%s&style=grid'>View Service Status Grid For This Service Group</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+
+				if(group_style_type==STYLE_DETAIL)
+					printf("<a href='%s?servicegroup=all&style=detail'>View Service Status Detail For All Service Groups</a><br>\n",STATUS_CGI);
+				if(group_style_type==STYLE_OVERVIEW)
+					printf("<a href='%s?servicegroup&style=overview'>View Status Overview For All Service Groups</a><br>\n",STATUS_CGI);
+				if(group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup&style=summary'>View Status Summary For All Service Groups</a><br>\n",STATUS_CGI);
+				if(group_style_type==STYLE_GRID)
+					printf("<a href='%s?servicegroup=all&style=grid'>View Service Status Grid For All Service Groups</a><br>\n",STATUS_CGI);
+
 			        }
 			else{
-				printf("<br><a href='%s?host=all'>View Service Status Detail For All Services</a>\n",STATUS_CGI);
+				if(group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_GRID || group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup=all&style=detail'>View Service Status Detail For All Service Groups</a><br>\n",STATUS_CGI);
+				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_GRID || group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup=all&style=overview'>View Status Overview For All Service Groups</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_GRID)
+					printf("<a href='%s?servicegroup=all&style=summary'>View Status Summary For All Service Groups</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_SUMMARY)
+					printf("<a href='%s?servicegroup=all&style=grid'>View Service Status Grid For All Service Groups</a><br>\n",STATUS_CGI);
 			        }
 		
 		        }
@@ -312,14 +348,26 @@ int main(void){
 		printf("<tr><td align=right valign=top>\n");
 		if(display_type==DISPLAY_HOSTS)
 			display_context_help(CONTEXTHELP_STATUS_DETAIL);
-		else if(group_style_type==STYLE_HOST_DETAIL)
-			display_context_help(CONTEXTHELP_STATUS_HOST_DETAIL);
-		else if(group_style_type==STYLE_OVERVIEW)
-			display_context_help(CONTEXTHELP_STATUS_OVERVIEW);
-		else if(group_style_type==STYLE_SUMMARY)
-			display_context_help(CONTEXTHELP_STATUS_SUMMARY);
-		else if(group_style_type==STYLE_GRID)
-			display_context_help(CONTEXTHELP_STATUS_GRID);
+		else if(display_type==DISPLAY_SERVICEGROUPS){
+			if(group_style_type==STYLE_HOST_DETAIL)
+				display_context_help(CONTEXTHELP_STATUS_DETAIL);
+			else if(group_style_type==STYLE_OVERVIEW)
+				display_context_help(CONTEXTHELP_STATUS_SGOVERVIEW);
+			else if(group_style_type==STYLE_SUMMARY)
+				display_context_help(CONTEXTHELP_STATUS_SGSUMMARY);
+			else if(group_style_type==STYLE_GRID)
+				display_context_help(CONTEXTHELP_STATUS_SGGRID);
+		        }
+		else{
+			if(group_style_type==STYLE_HOST_DETAIL)
+				display_context_help(CONTEXTHELP_STATUS_HOST_DETAIL);
+			else if(group_style_type==STYLE_OVERVIEW)
+				display_context_help(CONTEXTHELP_STATUS_HGOVERVIEW);
+			else if(group_style_type==STYLE_SUMMARY)
+				display_context_help(CONTEXTHELP_STATUS_HGSUMMARY);
+			else if(group_style_type==STYLE_GRID)
+				display_context_help(CONTEXTHELP_STATUS_HGGRID);
+		        }
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
@@ -352,7 +400,14 @@ int main(void){
 	if(display_type==DISPLAY_HOSTS)
 		show_service_detail();
 	else if(display_type==DISPLAY_SERVICEGROUPS){
-		show_service_detail();
+		if(group_style_type==STYLE_OVERVIEW)
+			show_servicegroup_overviews();
+		else if(group_style_type==STYLE_SUMMARY)
+			show_servicegroup_summaries();
+		else if(group_style_type==STYLE_GRID)
+			show_servicegroup_grids();
+		else
+			show_service_detail();
 	        }
 	else{
 		if(group_style_type==STYLE_OVERVIEW)
@@ -1968,6 +2023,789 @@ void show_host_detail(void){
 
 
 
+
+/* show an overview of servicegroup(s)... */
+void show_servicegroup_overviews(void){
+	servicegroup *temp_servicegroup=NULL;
+	int current_column;
+	int user_has_seen_something=FALSE;
+	int servicegroup_error=FALSE;
+
+
+	printf("<P>\n");
+
+	printf("<table border=0 width=100%%>\n");
+	printf("<tr>\n");
+
+	printf("<td valign=top align=left width=33%%>\n");
+
+	show_filters();
+
+	printf("</td>");
+
+	printf("<td valign=top align=center width=33%%>\n");
+
+	printf("<DIV ALIGN=CENTER CLASS='statusTitle'>Service Overview For ");
+	if(show_all_servicegroups==TRUE)
+		printf("All Service Groups");
+	else
+		printf("Service Group '%s'",servicegroup_name);
+	printf("</DIV>\n");
+
+	printf("<br>");
+
+	printf("</td>\n");
+
+	printf("<td valign=top align=right width=33%%></td>\n");
+	
+	printf("</tr>\n");
+	printf("</table>\n");
+
+	printf("</P>\n");
+
+
+	/* display status overviews for all servicegroups */
+	if(show_all_servicegroups==TRUE){
+
+
+		printf("<DIV ALIGN=center>\n");
+		printf("<TABLE BORDER=0 CELLPADDING=10>\n");
+
+		current_column=1;
+
+		/* loop through all servicegroups... */
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+
+			/* make sure the user is authorized to view at least one host in this servicegroup */
+			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==FALSE)
+				continue;
+
+			if(current_column==1)
+				printf("<TR>\n");
+			printf("<TD VALIGN=top ALIGN=center>\n");
+				
+			show_servicegroup_overview(temp_servicegroup);
+
+			user_has_seen_something=TRUE;
+
+			printf("</TD>\n");
+			if(current_column==overview_columns)
+				printf("</TR>\n");
+
+			if(current_column<overview_columns)
+				current_column++;
+			else
+				current_column=1;
+		        }
+
+		if(current_column!=1){
+
+			for(;current_column<=overview_columns;current_column++)
+				printf("<TD></TD>\n");
+			printf("</TR>\n");
+		        }
+
+		printf("</TABLE>\n");
+		printf("</DIV>\n");
+	        }
+
+	/* else display overview for just a specific servicegroup */
+	else{
+
+		temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+		if(temp_servicegroup!=NULL){
+
+			printf("<P>\n");
+			printf("<DIV ALIGN=CENTER>\n");
+			printf("<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD ALIGN=CENTER>\n");
+			
+			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE){
+
+				show_servicegroup_overview(temp_servicegroup);
+				
+				user_has_seen_something=TRUE;
+			        }
+
+			printf("</TD></TR></TABLE>\n");
+			printf("</DIV>\n");
+			printf("</P>\n");
+		        }
+		else{
+			printf("<DIV CLASS='errorMessage'>Sorry, but service group '%s' doesn't seem to exist...</DIV>",servicegroup_name);
+			servicegroup_error=TRUE;
+		        }
+	        }
+
+	/* if user couldn't see anything, print out some helpful info... */
+	if(user_has_seen_something==FALSE && servicegroup_error==FALSE){
+
+		printf("<p>\n");
+		printf("<div align='center'>\n");
+
+		if(hoststatus_list!=NULL){
+			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
+			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
+			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
+		        }
+		else{
+			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
+			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n");
+		        }
+
+		printf("</div>\n");
+		printf("</p>\n");
+	        }
+
+	return;
+        }
+
+
+
+/* shows an overview of a specific servicegroup... */
+void show_servicegroup_overview(servicegroup *temp_servicegroup){
+	host *temp_host;
+	hoststatus *temp_hoststatus=NULL;
+	service *temp_service;
+	int odd=0;
+
+	/* make sure the user is authorized to view at least one service in this servicegroup */
+	if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==FALSE)
+		return;
+
+	printf("<DIV CLASS='status'>\n");
+	printf("<A HREF='%s?servicegroup=%s&style=detail'>%s</A>",STATUS_CGI,url_encode(temp_servicegroup->group_name),temp_servicegroup->alias);
+	printf(" (<A HREF='%s?type=%d&servicegroup=%s'>%s</A>)",EXTINFO_CGI,DISPLAY_SERVICEGROUP_INFO,url_encode(temp_servicegroup->group_name),temp_servicegroup->group_name);
+	printf("</DIV>\n");
+
+	printf("<DIV CLASS='status'>\n");
+	printf("<table border=1 CLASS='status'>\n");
+
+	printf("<TR>\n");
+	printf("<TH CLASS='status'>Host</TH><TH CLASS='status'>Status</TH><TH CLASS='status'>Services</TH><TH CLASS='status'>Actions</TH>\n");
+	printf("</TR>\n");
+
+	/* find all the hosts associated with services that belong to the servicegroup */
+	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
+
+		/* find the host... */
+		temp_host=find_host(temp_hoststatus->host_name);
+
+		/* see if this host has a service that belongs to the servicegroup */
+		for(temp_service=service_list;temp_service;temp_service=temp_service->next){
+
+			/* skip this service if it's not associate with the host */
+			if(strcmp(temp_service->host_name,temp_host->name))
+				continue;
+
+			/* is this service a member of the servicegroup? */
+			if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==FALSE)
+				continue;
+
+			/* is user authorized for this service? */
+			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+				continue;
+
+			break;
+		        }
+		if(temp_service==NULL)
+			continue;
+
+		/* make sure we only display hosts of the specified status levels */
+		if(!(host_status_types & temp_hoststatus->status))
+			continue;
+
+		/* make sure we only display hosts that have the desired properties */
+		if(passes_host_properties_filter(temp_hoststatus)==FALSE)
+			continue;
+
+		if(odd)
+			odd=0;
+		else
+			odd=1;
+
+		show_servicegroup_hostgroup_member_overview(temp_hoststatus,odd,temp_servicegroup);
+	        }
+
+	printf("</table>\n");
+	printf("</DIV>\n");
+
+	return;
+        }
+
+
+
+/* show a summary of servicegroup(s)... */
+void show_servicegroup_summaries(void){
+	servicegroup *temp_servicegroup=NULL;
+	int user_has_seen_something=FALSE;
+	int servicegroup_error=FALSE;
+	int odd=0;
+
+
+	printf("<P>\n");
+
+	printf("<table border=0 width=100%%>\n");
+	printf("<tr>\n");
+
+	printf("<td valign=top align=left width=33%%>\n");
+
+	show_filters();
+
+	printf("</td>");
+
+	printf("<td valign=top align=center width=33%%>\n");
+
+	printf("<DIV ALIGN=CENTER CLASS='statusTitle'>Status Summary For ");
+	if(show_all_servicegroups==TRUE)
+		printf("All Service Groups");
+	else
+		printf("Service Group '%s'",servicegroup_name);
+	printf("</DIV>\n");
+
+	printf("<br>");
+
+	printf("</td>\n");
+
+	printf("<td valign=top align=right width=33%%></td>\n");
+	
+	printf("</tr>\n");
+	printf("</table>\n");
+
+	printf("</P>\n");
+
+
+	printf("<DIV ALIGN=center>\n");
+	printf("<table border=1 CLASS='status'>\n");
+
+	printf("<TR>\n");
+	printf("<TH CLASS='status'>Host Group</TH><TH CLASS='status'>Host Status Totals</TH><TH CLASS='status'>Service Status Totals</TH>\n");
+	printf("</TR>\n");
+
+	/* display status summary for all servicegroups */
+	if(show_all_servicegroups==TRUE){
+
+		/* loop through all servicegroups... */
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+
+			/* make sure the user is authorized to view at least one host in this servicegroup */
+			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==FALSE)
+				continue;
+
+			if(odd==0)
+				odd=1;
+			else
+				odd=0;
+
+			/* show summary for this servicegroup */
+			show_servicegroup_summary(temp_servicegroup,odd);
+
+			user_has_seen_something=TRUE;
+		        }
+
+	        }
+
+	/* else just show summary for a specific servicegroup */
+	else{
+		temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+		if(temp_servicegroup==NULL)
+			servicegroup_error=TRUE;
+		else{
+			show_servicegroup_summary(temp_servicegroup,1);
+			user_has_seen_something=TRUE;
+		        }
+	        }
+
+	printf("</TABLE>\n");
+	printf("</DIV>\n");
+
+	/* if user couldn't see anything, print out some helpful info... */
+	if(user_has_seen_something==FALSE && servicegroup_error==FALSE){
+
+		printf("<P><DIV ALIGN=CENTER>\n");
+
+		if(hoststatus_list!=NULL){
+			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
+			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
+			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
+		        }
+		else{
+			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
+			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n");
+		        }
+
+		printf("</DIV></P>\n");
+	        }
+
+	/* we dcouldn't find the servicegroup */
+	else if(servicegroup_error==TRUE){
+		printf("<P><DIV ALIGN=CENTER>\n");
+		printf("<DIV CLASS='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</DIV>\n",servicegroup_name);
+		printf("</DIV></P>\n");
+	        }
+
+	return;
+        }
+
+
+
+/* displays status summary information for a specific servicegroup */
+void show_servicegroup_summary(servicegroup *temp_servicegroup,int odd){
+	char *status_bg_class="";
+
+	if(odd==1)
+		status_bg_class="Even";
+	else
+		status_bg_class="Odd";
+
+	printf("<TR CLASS='status%s'><TD CLASS='status%s'>\n",status_bg_class,status_bg_class);
+	printf("<A HREF='%s?servicegroup=%s&style=overview'>%s</A> ",STATUS_CGI,url_encode(temp_servicegroup->group_name),temp_servicegroup->alias);
+	printf("(<A HREF='%s?type=%d&servicegroup=%s'>%s</a>)",EXTINFO_CGI,DISPLAY_SERVICEGROUP_INFO,url_encode(temp_servicegroup->group_name),temp_servicegroup->group_name);
+	printf("</TD>");
+				
+	printf("<TD CLASS='status%s' ALIGN=CENTER VALIGN=CENTER>",status_bg_class);
+	show_servicegroup_host_totals_summary(temp_servicegroup);
+	printf("</TD>");
+
+	printf("<TD CLASS='status%s' ALIGN=CENTER VALIGN=CENTER>",status_bg_class);
+	show_servicegroup_service_totals_summary(temp_servicegroup);
+	printf("</TD>");
+
+	printf("</TR>\n");
+
+	return;
+        }
+
+
+
+/* shows host total summary information for a specific servicegroup */
+void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup){
+	int total_up=0;
+	int total_down=0;
+	int total_unreachable=0;
+	int total_pending=0;
+	hoststatus *temp_hoststatus;
+	host *temp_host;
+	service *temp_service;
+
+	/* check all hosts... */
+	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
+
+		/* make sure the user is authorized to see this host... */
+		temp_host=find_host(temp_hoststatus->host_name);
+		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
+			continue;
+
+		/* see if this host has a service that belongs to the servicegroup */
+		for(temp_service=service_list;temp_service;temp_service=temp_service->next){
+
+			/* skip this service if it's not associate with the host */
+			if(strcmp(temp_service->host_name,temp_host->name))
+				continue;
+
+			/* is this service a member of the servicegroup? */
+			if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==FALSE)
+				continue;
+
+			/* is user authorized for this service? */
+			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+				continue;
+
+			break;
+		        }
+		if(temp_service==NULL)
+			continue;
+
+		/* make sure we only display hosts of the specified status levels */
+		if(!(host_status_types & temp_hoststatus->status))
+			continue;
+
+		/* make sure we only display hosts that have the desired properties */
+		if(passes_host_properties_filter(temp_hoststatus)==FALSE)
+			continue;
+
+		if(temp_hoststatus->status==HOST_UP)
+			total_up++;
+		else if(temp_hoststatus->status==HOST_DOWN)
+			total_down++;
+		else if(temp_hoststatus->status==HOST_UNREACHABLE)
+			total_unreachable++;
+		else
+			total_pending++;
+	        }
+
+	printf("<TABLE BORDER=0>\n");
+
+	if(total_up>0)
+		printf("<TR><TD CLASS='miniStatusUP'><A HREF='%s?servicegroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UP,host_properties,total_up);
+	if(total_down>0)
+		printf("<TR><TD CLASS='miniStatusDOWN'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,host_properties,total_down);
+	if(total_unreachable>0)
+		printf("<TR><TD CLASS='miniStatusUNREACHABLE'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,host_properties,total_unreachable);
+	if(total_pending>0)
+		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_PENDING,host_properties,total_pending);
+
+	printf("</TABLE>\n");
+
+	if((total_up + total_down + total_unreachable + total_pending)==0)
+		printf("No matching hosts");
+
+	return;
+        }
+
+
+
+/* shows service total summary information for a specific servicegroup */
+void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup){
+	int total_ok=0;
+	int total_warning=0;
+	int total_unknown=0;
+	int total_critical=0;
+	int total_pending=0;
+	servicestatus *temp_servicestatus;
+	service *temp_service;
+	hoststatus *temp_hoststatus;
+
+
+	/* check all services... */
+	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
+
+		/* make sure the user is authorized to see this service... */
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
+		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+			continue;
+
+		/* see if this service is associated with the specified servicegroup */
+		if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==FALSE)
+			continue;
+
+		/* find the status of the associated host */
+		temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+		if(temp_hoststatus==NULL)
+			continue;
+
+		/* make sure we only display hosts of the specified status levels */
+		if(!(host_status_types & temp_hoststatus->status))
+			continue;
+
+		/* make sure we only display hosts that have the desired properties */
+		if(passes_host_properties_filter(temp_hoststatus)==FALSE)
+			continue;
+
+		/* make sure we only display services of the specified status levels */
+		if(!(service_status_types & temp_servicestatus->status))
+			continue;
+
+		/* make sure we only display services that have the desired properties */
+		if(passes_service_properties_filter(temp_servicestatus)==FALSE)
+			continue;
+
+		if(temp_servicestatus->status==SERVICE_CRITICAL)
+			total_critical++;
+		else if(temp_servicestatus->status==SERVICE_WARNING)
+			total_warning++;
+		else if(temp_servicestatus->status==SERVICE_UNKNOWN)
+			total_unknown++;
+		else if(temp_servicestatus->status==SERVICE_OK)
+			total_ok++;
+		else if(temp_servicestatus->status==SERVICE_PENDING)
+			total_pending++;
+		else
+			total_ok++;
+	        }
+
+
+	printf("<TABLE BORDER=0>\n");
+
+	if(total_ok>0)
+		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?servicegroup=%s&style=detail&&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_OK,host_status_types,service_properties,host_properties,total_ok);
+	if(total_warning>0)
+		printf("<TR><TD CLASS='miniStatusWARNING'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,total_warning);
+	if(total_unknown>0)
+		printf("<TR><TD CLASS='miniStatusUNKNOWN'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,total_unknown);
+	if(total_critical>0)
+		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,total_critical);
+	if(total_pending>0)
+		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_PENDING,host_status_types,service_properties,host_properties,total_pending);
+
+	printf("</TABLE>\n");
+
+	if((total_ok + total_warning + total_unknown + total_critical + total_pending)==0)
+		printf("No matching services");
+
+	return;
+        }
+
+
+
+/* show a grid layout of servicegroup(s)... */
+void show_servicegroup_grids(void){
+	servicegroup *temp_servicegroup=NULL;
+	int user_has_seen_something=FALSE;
+	int servicegroup_error=FALSE;
+	int odd=0;
+
+
+	printf("<P>\n");
+
+	printf("<table border=0 width=100%%>\n");
+	printf("<tr>\n");
+
+	printf("<td valign=top align=left width=33%%>\n");
+
+	show_filters();
+
+	printf("</td>");
+
+	printf("<td valign=top align=center width=33%%>\n");
+
+	printf("<DIV ALIGN=CENTER CLASS='statusTitle'>Status Grid For ");
+	if(show_all_servicegroups==TRUE)
+		printf("All Service Groups");
+	else
+		printf("Service Group '%s'",servicegroup_name);
+	printf("</DIV>\n");
+
+	printf("<br>");
+
+	printf("</td>\n");
+
+	printf("<td valign=top align=right width=33%%></td>\n");
+	
+	printf("</tr>\n");
+	printf("</table>\n");
+
+	printf("</P>\n");
+
+
+	/* display status grids for all servicegroups */
+	if(show_all_servicegroups==TRUE){
+
+		/* loop through all servicegroups... */
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+
+			/* make sure the user is authorized to view at least one host in this servicegroup */
+			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==FALSE)
+				continue;
+
+			if(odd==0)
+				odd=1;
+			else
+				odd=0;
+
+			/* show grid for this servicegroup */
+			show_servicegroup_grid(temp_servicegroup);
+
+			user_has_seen_something=TRUE;
+		        }
+
+	        }
+
+	/* else just show grid for a specific servicegroup */
+	else{
+		temp_servicegroup=find_servicegroup(servicegroup_name,NULL);
+		if(temp_servicegroup==NULL)
+			servicegroup_error=TRUE;
+		else{
+			show_servicegroup_grid(temp_servicegroup);
+			user_has_seen_something=TRUE;
+		        }
+	        }
+
+	/* if user couldn't see anything, print out some helpful info... */
+	if(user_has_seen_something==FALSE && servicegroup_error==FALSE){
+
+		printf("<P><DIV ALIGN=CENTER>\n");
+
+		if(hoststatus_list!=NULL){
+			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
+			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
+			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
+		        }
+		else{
+			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
+			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n");
+		        }
+
+		printf("</DIV></P>\n");
+	        }
+
+	/* we dcouldn't find the servicegroup */
+	else if(servicegroup_error==TRUE){
+		printf("<P><DIV ALIGN=CENTER>\n");
+		printf("<DIV CLASS='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</DIV>\n",servicegroup_name);
+		printf("</DIV></P>\n");
+	        }
+
+	return;
+        }
+
+
+/* displays status grid for a specific servicegroup */
+void show_servicegroup_grid(servicegroup *temp_servicegroup){
+	char *status_bg_class="";
+	char *host_status_class="";
+	char *service_status_class="";
+	host *temp_host;
+	service *temp_service;
+	hoststatus *temp_hoststatus;
+	servicestatus *temp_servicestatus;
+	hostextinfo *temp_hostextinfo;
+	int odd;
+	int current_item;
+
+
+	printf("<P>\n");
+	printf("<DIV ALIGN=CENTER>\n");
+
+	printf("<DIV CLASS='status'><A HREF='%s?servicegroup=%s&style=detail'>%s</A>",STATUS_CGI,url_encode(temp_servicegroup->group_name),temp_servicegroup->alias);
+	printf(" (<A HREF='%s?type=%d&servicegroup=%s'>%s</A>)</DIV>",EXTINFO_CGI,DISPLAY_SERVICEGROUP_INFO,url_encode(temp_servicegroup->group_name),temp_servicegroup->group_name);
+
+	printf("<TABLE BORDER=1 CLASS='status' ALIGN=CENTER>\n");
+	printf("<TR><TH CLASS='status'>Host</TH><TH CLASS='status'>Services</a></TR>\n");
+
+	/* display info for all services in the servicegroup */
+	for(temp_host=host_list;temp_host;temp_host=temp_host->next){
+
+		/* see if this host has a service that belongs to the servicegroup */
+		for(temp_service=service_list;temp_service;temp_service=temp_service->next){
+
+			/* skip this service if it's not associate with the host */
+			if(strcmp(temp_service->host_name,temp_host->name))
+				continue;
+
+			/* is this service a member of the servicegroup? */
+			if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==FALSE)
+				continue;
+
+			/* is user authorized for this service? */
+			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+				continue;
+
+			break;
+		        }
+		if(temp_service==NULL)
+			continue;
+
+		if(odd==1){
+			status_bg_class="Even";
+			odd=0;
+		        }
+		else{
+			status_bg_class="Odd";
+			odd=1;
+		        }
+
+		printf("<TR CLASS='status%s'>\n",status_bg_class);
+
+		/* get the status of the host */
+		temp_hoststatus=find_hoststatus(temp_host->name);
+		if(temp_hoststatus==NULL)
+			host_status_class="NULL";
+		else if(temp_hoststatus->status==HOST_DOWN)
+			host_status_class="HOSTDOWN";
+		else if(temp_hoststatus->status==HOST_UNREACHABLE)
+			host_status_class="HOSTUNREACHABLE";
+		else
+			host_status_class=status_bg_class;
+
+		printf("<TD CLASS='status%s'>",host_status_class);
+
+		printf("<TABLE BORDER=0 WIDTH='100%%' cellpadding=0 cellspacing=0>\n");
+		printf("<TR>\n");
+		printf("<TD ALIGN=LEFT>\n");
+		printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
+		printf("<TR>\n");
+		printf("<TD align=left valign=center CLASS='status%s'>",host_status_class);
+		printf("<A HREF='%s?type=%d&host=%s'>%s</A>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name),temp_host->name);
+		printf("</TD>\n");
+		printf("</TR>\n");
+		printf("</TABLE>\n");
+		printf("</TD>\n");
+		printf("<TD align=right valign=center nowrap>\n");
+		printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
+		printf("<TR>\n");
+
+		temp_hostextinfo=find_hostextinfo(temp_host->name);
+		if(temp_hostextinfo!=NULL){
+			if(temp_hostextinfo->icon_image!=NULL){
+				printf("<TD align=center valign=center>");
+				if(temp_hostextinfo->notes_url!=NULL){
+					printf("<A HREF='");
+					print_host_notes_url(temp_hostextinfo);
+					printf("' TARGET='_blank'>");
+				        }
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
+				if(temp_hostextinfo->notes_url!=NULL)
+					printf("</A>");
+				printf("<TD>\n");
+			        }
+		        }
+		printf("<TD><a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host'></a></TD>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);
+		printf("</TR>\n");
+		printf("</TABLE>\n");
+		printf("</TD>\n");
+		printf("</TR>\n");
+		printf("</TABLE>\n");
+
+		printf("</TD>\n");
+
+		printf("<TD>\n");
+
+		/* display all services on the host */
+		current_item=1;
+		for(temp_service=service_list;temp_service;temp_service=temp_service->next){
+
+			/* skip this service if it's not associate with the host */
+			if(strcmp(temp_service->host_name,temp_host->name))
+				continue;
+
+			/* is this service a member of the servicegroup? */
+			if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==FALSE)
+				continue;
+
+			/* is user authorized for this service? */
+			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+				continue;
+				
+			if(current_item>max_grid_width && max_grid_width>0){
+				printf("<BR>\n");
+				current_item=1;
+		                }
+
+			/* get the status of the service */
+			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
+			if(temp_servicestatus==NULL)
+				service_status_class="NULL";
+			else if(temp_servicestatus->status==SERVICE_OK)
+				service_status_class="OK";
+			else if(temp_servicestatus->status==SERVICE_WARNING)
+				service_status_class="WARNING";
+			else if(temp_servicestatus->status==SERVICE_UNKNOWN)
+				service_status_class="UNKNOWN";
+			else if(temp_servicestatus->status==SERVICE_CRITICAL)
+				service_status_class="CRITICAL";
+			else
+				service_status_class="PENDING";
+
+			printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_servicestatus->host_name));
+			printf("&service=%s' CLASS='status%s'>%s</A>&nbsp;",url_encode(temp_servicestatus->description),service_status_class,temp_servicestatus->description);
+
+			current_item++;
+	                }
+
+		printf("</TD>\n");
+		printf("</TR>\n");
+		}
+
+	printf("</TABLE>\n");
+	printf("</DIV>\n");
+	printf("</P>\n");
+
+	return;
+        }
+
+
+
 /* show an overview of hostgroup(s)... */
 void show_hostgroup_overviews(void){
 	hostgroup *temp_hostgroup=NULL;
@@ -2154,7 +2992,7 @@ void show_hostgroup_overview(hostgroup *hstgrp){
 		else
 			odd=1;
 
-		show_hostgroup_member_overview(temp_hoststatus,odd);
+		show_servicegroup_hostgroup_member_overview(temp_hoststatus,odd,NULL);
 	        }
 
 	printf("</table>\n");
@@ -2166,7 +3004,7 @@ void show_hostgroup_overview(hostgroup *hstgrp){
  
 
 /* shows a host status overview... */
-void show_hostgroup_member_overview(hoststatus *hststatus,int odd){
+void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,void *data){
 	char status[MAX_INPUT_BUFFER];
 	char *status_bg_class="";
 	char *status_class="";
@@ -2226,7 +3064,7 @@ void show_hostgroup_member_overview(hoststatus *hststatus,int odd){
 	printf("<td CLASS='status%s'>%s</td>\n",status_class,status);
 
 	printf("<td CLASS='status%s'>\n",status_bg_class);
-	show_hostgroup_member_service_status_totals(hststatus->host_name);
+	show_servicegroup_hostgroup_member_service_status_totals(hststatus->host_name,data);
 	printf("</td>\n");
 
 	printf("<td valign=center CLASS='status%s'>",status_bg_class);
@@ -2246,7 +3084,7 @@ void show_hostgroup_member_overview(hoststatus *hststatus,int odd){
 
 
 
-void show_hostgroup_member_service_status_totals(char *host_name){
+void show_servicegroup_hostgroup_member_service_status_totals(char *host_name,void *data){
 	int total_ok=0;
 	int total_warning=0;
 	int total_unknown=0;
@@ -2254,7 +3092,12 @@ void show_hostgroup_member_service_status_totals(char *host_name){
 	int total_pending=0;
 	servicestatus *temp_servicestatus;
 	service *temp_service;
+	servicegroup *temp_servicegroup;
+	char temp_buffer[MAX_INPUT_BUFFER];
 
+
+	if(display_type==DISPLAY_SERVICEGROUPS)
+		temp_servicegroup=(servicegroup *)data;
 
 	/* check all services... */
 	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
@@ -2265,6 +3108,13 @@ void show_hostgroup_member_service_status_totals(char *host_name){
 			temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 				continue;
+
+			if(display_type==DISPLAY_SERVICEGROUPS){
+
+				/* is this service a member of the servicegroup? */
+				if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==FALSE)
+					continue;
+			        }
 
 			/* make sure we only display services of the specified status levels */
 			if(!(service_status_types & temp_servicestatus->status))
@@ -2292,16 +3142,22 @@ void show_hostgroup_member_service_status_totals(char *host_name){
 
 	printf("<TABLE BORDER=0 WIDTH=100%%>\n");
 
+	if(display_type==DISPLAY_SERVICEGROUPS)
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"servicegroup=%s&style=detail",url_encode(temp_servicegroup->group_name));
+	else
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"host=%s",url_encode(host_name));
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
 	if(total_ok>0)
-		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_OK,host_status_types,service_properties,host_properties,total_ok);
+		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,temp_buffer,SERVICE_OK,host_status_types,service_properties,host_properties,total_ok);
 	if(total_warning>0)
-		printf("<TR><TD CLASS='miniStatusWARNING'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,total_warning);
+		printf("<TR><TD CLASS='miniStatusWARNING'><A HREF='%s?%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD></TR>\n",STATUS_CGI,temp_buffer,SERVICE_WARNING,host_status_types,service_properties,host_properties,total_warning);
 	if(total_unknown>0)
-		printf("<TR><TD CLASS='miniStatusUNKNOWN'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,total_unknown);
+		printf("<TR><TD CLASS='miniStatusUNKNOWN'><A HREF='%s?%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD></TR>\n",STATUS_CGI,temp_buffer,SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,total_unknown);
 	if(total_critical>0)
-		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,total_critical);
+		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,temp_buffer,SERVICE_CRITICAL,host_status_types,service_properties,host_properties,total_critical);
 	if(total_pending>0)
-		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_PENDING,host_status_types,service_properties,host_properties,total_pending);
+		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,temp_buffer,SERVICE_PENDING,host_status_types,service_properties,host_properties,total_pending);
 
 	printf("</TABLE>\n");
 
@@ -2732,8 +3588,8 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	printf("<TR><TH CLASS='status'>Host</TH><TH CLASS='status'>Services</a></TR>\n");
 
 	/* display info for all hosts in the hostgroup */
-	move_first_host();
-	while(temp_host = get_next_host()) {
+	for(temp_host=host_list;temp_host;temp_host=temp_host->next){
+
 		/* is this host a member of the hostgroup? */
 		if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
 			continue;
@@ -2809,11 +3665,15 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 
 		/* display all services on the host */
 		current_item=1;
-		if(find_all_services_by_host(temp_host->name)) {
-			while(temp_service = get_next_service_by_host()) {
-				/* is user authorized for this service? */
-				if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
-					continue;
+		for(temp_service=service_list;temp_service;temp_service=temp_service->next){
+
+			/* skip this service if it's not associate with the host */
+			if(strcmp(temp_service->host_name,temp_host->name))
+				continue;
+
+			/* is user authorized for this service? */
+			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+				continue;
 
 			if(current_item>max_grid_width && max_grid_width>0){
 				printf("<BR>\n");
@@ -2843,7 +3703,6 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 
 		printf("</TD>\n");
 		printf("</TR>\n");
-	        }
 		}
 
 	printf("</TABLE>\n");

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2003
+ * Last Modified:   05-29-2003
  *
  * License:
  *
@@ -3204,7 +3204,7 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 
 /* adds a service dependency definition */
-servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical){
+servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical){
 	servicedependency *new_servicedependency;
 	servicedependency *temp_servicedependency;
 	servicedependency *last_servicedependency;
@@ -3334,6 +3334,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	        }
 
 	new_servicedependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
+	new_servicedependency->inherits_parent=(inherits_parent>0)?TRUE:FALSE;
 	new_servicedependency->fail_on_ok=(fail_on_ok==1)?TRUE:FALSE;
 	new_servicedependency->fail_on_warning=(fail_on_warning==1)?TRUE:FALSE;
 	new_servicedependency->fail_on_unknown=(fail_on_unknown==1)?TRUE:FALSE;
@@ -3377,7 +3378,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 
 /* adds a host dependency definition */
-hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int fail_on_up, int fail_on_down, int fail_on_unreachable){
+hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable){
 	hostdependency *new_hostdependency;
 	hostdependency *temp_hostdependency;
 	hostdependency *last_hostdependency;
@@ -3471,6 +3472,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	        }
 
 	new_hostdependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
+	new_hostdependency->inherits_parent=(inherits_parent>0)?TRUE:FALSE;
 	new_hostdependency->fail_on_up=(fail_on_up==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_down=(fail_on_down==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_unreachable=(fail_on_unreachable==1)?TRUE:FALSE;
@@ -4831,45 +4833,87 @@ int check_for_circular_path(host *root_hst, host *hst){
         }
 
 
-/* checks to see if there exists a circular execution dependency for a service */
-int check_for_circular_dependency(servicedependency *root_dep, servicedependency *dep){
+/* checks to see if there exists a circular dependency for a service */
+int check_for_circular_servicedependency(servicedependency *root_dep, servicedependency *dep, int dependency_type){
 	servicedependency *temp_sd;
 
 	if(root_dep==NULL || dep==NULL)
 		return FALSE;
 
-	/* dependency has already been checked */
-	if(dep->has_been_checked==TRUE)
+	/* this is not the proper dependency type */
+	if(root_dep->dependency_type!=dependency_type || dep->dependency_type!=dependency_type)
 		return FALSE;
+
+	/* dependency has already been checked */
+	/* changed to return TRUE - this should speed up detection for some loops (although they are not necessary loops for the root dep) - EG 05/29/03 */
+	if(dep->has_been_checked==TRUE)
+		return TRUE;
 
 	/* set the check flag so we don't get into an infinite loop */
 	dep->has_been_checked=TRUE;
 
-	/* this is not an execution dependency */
-	if(root_dep->dependency_type!=EXECUTION_DEPENDENCY || dep->dependency_type!=EXECUTION_DEPENDENCY)
-		return FALSE;
-
-	/* is the execution of this service dependent on the root service? */
+	/* is this service dependent on the root service? */
 	if(dep!=root_dep){
-		if(!strcmp(root_dep->host_name,dep->host_name) && !strcmp(root_dep->service_description,dep->service_description))
-			return TRUE;
-		if(!strcmp(root_dep->host_name,dep->dependent_host_name) && !strcmp(root_dep->service_description,dep->dependent_service_description))
+		if(!strcmp(root_dep->dependent_host_name,dep->host_name) && !strcmp(root_dep->dependent_service_description,dep->service_description))
 			return TRUE;
 	        }
 
-	/* check all the dependencies of this service */
+	/* notification depdencies are ok at this point as long as they don't inherit */
+	if(dependency_type==NOTIFICATION_DEPENDENCY && dep->inherits_parent==FALSE)
+		return FALSE;
+
+	/* check all parent dependencies */
 	for(temp_sd=servicedependency_list;temp_sd!=NULL;temp_sd=temp_sd->next){
 
-		if(temp_sd==root_dep || temp_sd==dep)
+		/* only check parent dependencies */
+		if(strcmp(dep->host_name,temp_sd->dependent_host_name) || strcmp(dep->service_description,temp_sd->dependent_service_description))
 			continue;
 
-		if(strcmp(dep->dependent_host_name,temp_sd->host_name))
+		if(check_for_circular_servicedependency(root_dep,temp_sd,dependency_type)==TRUE)
+			return TRUE;
+	        }
+
+	return FALSE;
+        }
+
+
+/* checks to see if there exists a circular dependency for a host */
+int check_for_circular_hostdependency(hostdependency *root_dep, hostdependency *dep, int dependency_type){
+	hostdependency *temp_hd;
+
+	if(root_dep==NULL || dep==NULL)
+		return FALSE;
+
+	/* this is not the proper dependency type */
+	if(root_dep->dependency_type!=dependency_type || dep->dependency_type!=dependency_type)
+		return FALSE;
+
+	/* dependency has already been checked */
+	/* changed to return TRUE - this should speed up detection for some loops (although they are not necessary loops for the root dep) - EG 05/29/03 */
+	if(dep->has_been_checked==TRUE)
+		return TRUE;
+
+	/* set the check flag so we don't get into an infinite loop */
+	dep->has_been_checked=TRUE;
+
+	/* is this host dependent on the root host? */
+	if(dep!=root_dep){
+		if(!strcmp(root_dep->dependent_host_name,dep->host_name))
+			return TRUE;
+	        }
+
+	/* notification depdencies are ok at this point as long as they don't inherit */
+	if(dependency_type==NOTIFICATION_DEPENDENCY && dep->inherits_parent==FALSE)
+		return FALSE;
+
+	/* check all parent dependencies */
+	for(temp_hd=hostdependency_list;temp_hd!=NULL;temp_hd=temp_hd->next){
+
+		/* only check parent dependencies */
+		if(strcmp(dep->host_name,temp_hd->dependent_host_name))
 			continue;
 
-		if(strcmp(dep->dependent_service_description,temp_sd->service_description))
-			continue;
-
-		if(check_for_circular_dependency(root_dep,temp_sd)==TRUE)
+		if(check_for_circular_hostdependency(root_dep,temp_hd,dependency_type)==TRUE)
 			return TRUE;
 	        }
 

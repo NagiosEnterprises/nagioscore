@@ -50,6 +50,8 @@ Nagios Change Log
   from environment variables (Russell Scibetti)
 * Other objects now used chained hash for faster lookups as well
 * Host and services use chained hash for faster lookups (Daniel Drown)
+* Added support for config file line continuations using \ character
+* Added check auto-rescheduling option
 
 
 1.0 - 11/24/2002

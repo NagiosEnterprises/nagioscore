@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-29-2004
+ * Last Modified:   02-07-2004
  *
  * License:
  *
@@ -97,11 +97,14 @@ extern int      command_check_interval;
 extern int      service_check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
+extern int      auto_rescheduling_interval;
+extern int      auto_rescheduling_window;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
+extern int      auto_reschedule_checks;
 
 extern int      use_aggressive_host_checking;
 
@@ -1096,6 +1099,46 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\thost_freshness_check_interval set to %d\n",host_freshness_check_interval);
+#endif
+		        }
+		else if(!strcmp(variable,"auto_reschedule_checks")){
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for auto_reschedule_checks");
+				error=TRUE;
+				break;
+			        }
+
+			strip(value);
+			auto_reschedule_checks=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tauto_reschedule_checks set to %s\n",(auto_reschedule_checks==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+		else if(!strcmp(variable,"auto_rescheduling_interval")){
+			strip(value);
+			auto_rescheduling_interval=atoi(value);
+			if(auto_rescheduling_interval<=0){
+				strcpy(error_message,"Illegal value for auto_rescheduling_interval");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tauto_rescheduling_interval set to %d\n",auto_rescheduling_interval);
+#endif
+		        }
+		else if(!strcmp(variable,"auto_rescheduling_window")){
+			strip(value);
+			auto_rescheduling_window=atoi(value);
+			if(auto_rescheduling_window<=0){
+				strcpy(error_message,"Illegal value for auto_rescheduling_window");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tauto_rescheduling_window set to %d\n",auto_rescheduling_window);
 #endif
 		        }
 		else if(!strcmp(variable,"aggregate_status_updates")){

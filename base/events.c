@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-25-2004
+ * Last Modified:   02-08-2004
  *
  * License:
  *
@@ -52,11 +52,14 @@ extern int      command_check_interval;
 extern int      service_check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
+extern int      auto_rescheduling_interval;
+extern int      auto_rescheduling_window;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
+extern int      auto_reschedule_checks;
 
 extern int      retain_state_information;
 extern int      retention_update_interval;
@@ -496,6 +499,10 @@ void init_timing_loop(void){
 
 
 	/******** SCHEDULE MISC EVENTS ********/
+
+	/* add a host and service check rescheduling event */
+	if(auto_reschedule_checks==TRUE)
+		schedule_new_event(EVENT_RESCHEDULE_CHECKS,TRUE,current_time+auto_rescheduling_interval,TRUE,auto_rescheduling_interval,NULL,TRUE,NULL,NULL);
 
 	/* add a service check reaper event */
 	schedule_new_event(EVENT_SERVICE_REAPER,TRUE,current_time+service_check_reaper_interval,TRUE,service_check_reaper_interval,NULL,TRUE,NULL,NULL);
@@ -1216,6 +1223,15 @@ int handle_timed_event(timed_event *event){
 		check_for_expired_downtime();
 		break;
 
+	case EVENT_RESCHEDULE_CHECKS:
+#ifdef DEBUG3
+		printf("(reschedule checks)\n");
+#endif
+
+		/* adjust scheduling of host and service checks */
+		adjust_check_scheduling();
+		break;
+
 	case EVENT_USER_FUNCTION:
 #ifdef DEBUG3
 		printf("(user function)\n");
@@ -1238,6 +1254,212 @@ int handle_timed_event(timed_event *event){
 #endif
 
 	return OK;
+        }
+
+
+
+/* adjusts scheduling of host and service checks */
+void adjust_check_scheduling(void){
+	timed_event *temp_event;
+	service *temp_service;
+	host *temp_host;
+	double projected_host_check_overhead=0.9;
+	double projected_service_check_overhead=0.1;
+	time_t current_time;
+	time_t first_window_time=0L;
+	time_t last_window_time=0L;
+	time_t last_check_time=0L;
+	time_t new_run_time=0L;
+	int total_checks=0;
+	int current_check=0;
+	double inter_check_delay=0.0;
+	double current_icd_offset=0.0;
+	double total_check_exec_time=0.0;
+	double last_check_exec_time=0.0;
+	int use_host_execution_times=TRUE;
+	int adjust_scheduling=FALSE;
+	double exec_time_factor=0.0;
+	double current_exec_time=0.0;
+	double current_exec_time_offset=0.0;
+	double new_run_time_offset=0.0;
+
+	time_t last_event_time=0L;
+
+#ifdef DEBUG0
+	printf("adjust_check_scheduling() start\n");
+#endif
+
+	/* TODO:
+	   - Track host check overhead on a per-host bases
+	   - Figure out how to calculate service check overhead 
+	*/
+
+	/* determine our adjustment window */
+	time(&current_time);
+	first_window_time=current_time;
+	last_window_time=first_window_time+auto_rescheduling_window;
+
+	/* get current scheduling data */
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+
+		/* skip events outside of our current window */
+		if(temp_event->run_time<=first_window_time)
+			continue;
+		if(temp_event->run_time>last_window_time)
+			break;
+
+		if(temp_event->event_type==EVENT_HOST_CHECK){
+
+			temp_host=(host *)temp_event->event_data;
+			if(temp_host==NULL)
+				continue;
+
+			/* ignore forced checks */
+			if(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
+				continue;
+
+			/* does the last check "bump" into this one? */
+			if((unsigned long)(last_check_time+last_check_exec_time)>temp_event->run_time)
+				adjust_scheduling=TRUE;
+	
+			last_check_time=temp_event->run_time;
+
+			/* calculate time needed to perform check */
+			last_check_exec_time=temp_host->execution_time+projected_host_check_overhead;
+			total_check_exec_time+=last_check_exec_time;
+		        }
+
+		else if(temp_event->event_type==EVENT_SERVICE_CHECK){
+
+			temp_service=(service *)temp_event->event_data;
+			if(temp_service==NULL)
+				continue;
+
+			/* ignore forced checks */
+			if(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
+				continue;
+
+			/* does the last check "bump" into this one? */
+			if((unsigned long)(last_check_time+last_check_exec_time)>temp_event->run_time)
+				adjust_scheduling=TRUE;
+	
+			last_check_time=temp_event->run_time;
+
+			/* calculate time needed to perform check */
+			/* NOTE: service check execution time is not taken into account, as service checks are run in parallel */
+			last_check_exec_time=projected_service_check_overhead;
+			total_check_exec_time+=last_check_exec_time;
+		        }
+
+		else
+			continue;
+
+		total_checks++;
+	        }
+
+
+	/* nothing to do... */
+	if(total_checks==0 || adjust_scheduling==FALSE){
+		printf("\n\n");
+		printf("NOTHING TO DO!\n");
+		printf("# CHECKS:    %d\n",total_checks);
+		printf("WINDOW TIME: %d\n",auto_rescheduling_window);
+		printf("EXEC TIME:   %.3f\n",total_check_exec_time);
+		return;
+	        }
+
+	printf("\n\n");
+	printf("TOTAL CHECKS: %d\n",total_checks);
+	printf("WINDOW TIME:  %d\n",auto_rescheduling_window);
+	printf("EXEC TIME:    %.3f\n",total_check_exec_time);
+
+	if((unsigned long)total_check_exec_time>auto_rescheduling_window){
+		inter_check_delay=0.0;
+		exec_time_factor=(double)((double)auto_rescheduling_window/total_check_exec_time);
+	        }
+	else{
+		inter_check_delay=(double)((((double)auto_rescheduling_window)-total_check_exec_time)/(double)(total_checks*1.0));
+		exec_time_factor=1.0;
+	        }
+
+	printf("ICD:          %.3f\n",inter_check_delay);
+	printf("EXEC FACTOR:  %.3f\n",exec_time_factor);
+
+	/* adjust check scheduling */
+	current_icd_offset=(inter_check_delay/2.0);
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+
+		/* skip events outside of our current window */
+		if(temp_event->run_time<=first_window_time)
+			continue;
+		if(temp_event->run_time>last_window_time)
+			break;
+
+		if(temp_event->event_type==EVENT_HOST_CHECK){
+
+			temp_host=(host *)temp_event->event_data;
+			if(temp_host==NULL)
+				continue;
+
+			/* ignore forced checks */
+			if(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
+				continue;
+
+			current_exec_time=((temp_host->execution_time+projected_host_check_overhead)*exec_time_factor);
+		        }
+
+		else if(temp_event->event_type==EVENT_SERVICE_CHECK){
+
+			temp_service=(service *)temp_event->event_data;
+			if(temp_service==NULL)
+				continue;
+
+			/* ignore forced checks */
+			if(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
+				continue;
+
+			/* NOTE: service check execution time is not taken into account, as service checks are run in parallel */
+			current_exec_time=(projected_service_check_overhead*exec_time_factor);
+		        }
+
+		else
+			continue;
+
+		current_check++;
+		new_run_time_offset=current_exec_time_offset+current_icd_offset;
+		new_run_time=(time_t)(first_window_time+(unsigned long)new_run_time_offset);
+
+		/*
+		printf("  CURRENT CHECK #:      %d\n",current_check);
+		printf("  CURRENT ICD OFFSET:   %.3f\n",current_icd_offset);
+		printf("  CURRENT EXEC TIME:    %.3f\n",current_exec_time);
+		printf("  CURRENT EXEC OFFSET:  %.3f\n",current_exec_time_offset);
+		printf("  NEW RUN TIME:         %lu\n",new_run_time);
+		*/
+
+		if(temp_event->event_type==EVENT_HOST_CHECK){
+			temp_event->run_time=new_run_time;
+			temp_host->next_check=new_run_time;
+			update_host_status(temp_host,FALSE);
+		        }
+		else{
+			temp_event->run_time=new_run_time;
+			temp_service->next_check=new_run_time;
+			update_service_status(temp_service,FALSE);
+		        }
+
+		current_icd_offset+=inter_check_delay;
+		current_exec_time_offset+=current_exec_time;
+	        }
+
+	/* resort event list (some events may be out of order at this point) */
+	resort_event_list(&event_list_low);
+
+#ifdef DEBUG0
+	printf("adjust_check_scheduling() end\n");
+#endif
+
+	return;
         }
 
 

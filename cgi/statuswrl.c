@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D Network Status View
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-15-2002
+ * Last Modified:   04-19-2002
  *
  * Description:
  *
@@ -745,6 +745,9 @@ void calculate_world_bounds(void){
 			temp_hostextinfo->should_be_drawn=FALSE;
 			continue;
 		        }
+
+		if(temp_hostextinfo->should_be_drawn==FALSE)
+			continue;
 
 		if(temp_hostextinfo->x_3d < min_x_coord)
 			min_x_coord=temp_hostextinfo->x_3d;

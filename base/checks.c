@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-07-2002
+ * Last Modified:   07-18-2002
  *
  * License:
  *
@@ -523,6 +523,7 @@ void reap_service_checks(void){
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char *temp_ptr;
+	time_t reaper_start_time;
 
 #ifdef DEBUG0
         printf("reap_service_checks() start\n");
@@ -531,6 +532,8 @@ void reap_service_checks(void){
 #ifdef DEBUG3
 	printf("Starting to reap service check results...\n");
 #endif
+
+	time(&reaper_start_time);
 
 	/* read all service checks results that have come in... */
 	while(read_svc_message(&queued_svc_msg)!=-1){
@@ -1127,9 +1130,16 @@ void reap_service_checks(void){
 		/* update service performance info */
 		update_service_performance_data(temp_service);
 
+		/* break out if we've been here too long (15 seconds) */
+		time(&current_time);
+		if((int)(current_time-reaper_start_time)>15)
+			break;
+
+#if OLD_CRUD
 		/* check for external commands if we're doing so as often as possible */
 		if(command_check_interval==-1)
 			check_for_external_commands();
+#endif
 	        }
 
 #ifdef DEBUG3

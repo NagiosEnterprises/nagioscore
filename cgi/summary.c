@@ -2,8 +2,8 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-07-2003
  *
  * License:
  * 
@@ -1957,11 +1957,19 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp){
 	if(grp==NULL)
 		return;
 
+	/* make sure the user is authorized to view at least one host in this hostgroup */
+	if(is_authorized_for_hostgroup(grp,&current_authdata)==FALSE)
+		return;
+
 	/* process all events */
 	for(temp_event=event_list;temp_event!=NULL;temp_event=temp_event->next){
 
 		temp_host=find_host(temp_event->host_name,NULL);
 		if(is_host_member_of_hostgroup(grp,temp_host)==FALSE)
+			continue;
+
+		/* make sure the user is authorized to view this host */
+		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			continue;
 
 		/* host alerts */
@@ -2118,6 +2126,10 @@ void display_specific_host_alert_totals(host *hst){
 	if(hst==NULL)
 		return;
 
+	/* make sure the user is authorized to view this host */
+	if(is_authorized_for_host(hst,&current_authdata)==FALSE)
+		return;
+
 	if(show_all_hostgroups==FALSE && target_hostgroup!=NULL){
 		if(is_host_member_of_hostgroup(target_hostgroup,hst)==FALSE)
 			return;
@@ -2272,6 +2284,10 @@ void display_specific_service_alert_totals(service *svc){
 	host *temp_host;
 
 	if(svc==NULL)
+		return;
+
+	/* make sure the user is authorized to view this service */
+	if(is_authorized_for_service(svc,&current_authdata)==FALSE)
 		return;
 
 	if(show_all_hostgroups==FALSE && target_hostgroup!=NULL){

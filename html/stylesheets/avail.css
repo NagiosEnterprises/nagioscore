@@ -21,7 +21,7 @@
 
 	TABLE.data { font-family: arial,serif; font-size: small; background-color: white; padding: 2; }
 	TH.data { font-family: arial,serif; font-size: small; background-color: white; text-align: left; background-color:  #999797; color: #DCE5C1; }
-	.dataOdd, { font-family: arial,serif;  font-size: small; background-color: #DBDBDB; }
+	.dataOdd { font-family: arial,serif;  font-size: small; background-color: #DBDBDB; }
 	.dataEven { font-family: arial,serif;  font-size: small; background-color: #C4C2C2; }
 
 	.optionBoxTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: small; }

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2002
+ * Last Modified:   11-17-2002
  *
  * License:
  *
@@ -1839,7 +1839,10 @@ int daemon_init(void){
 	lock.l_whence=SEEK_SET;
 	lock.l_len=0;
 	if(fcntl(lockfile,F_SETLK,&lock)<0){
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Lockfile '%s' is held by PID %d.  Bailing out...",lock_file,(int)pid);
+		if(errno==EACCES || errno==EAGAIN)
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Lockfile '%s' is held by PID %d.  Bailing out...",lock_file,(int)lock.l_pid);
+		else
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		cleanup();
 		exit(ERROR);

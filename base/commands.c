@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-01-2003
+ * Last Modified:   07-12-2003
  *
  * License:
  *
@@ -316,6 +316,46 @@ void check_for_external_commands(void){
 			command_type=CMD_STOP_OBSESSING_OVER_HOST;
 
 
+		/************************************/
+		/**** HOSTGROUP-RELATED COMMANDS ****/
+		/************************************/
+
+		else if(!strcmp(command_id,"ENABLE_HOSTGROUP_HOST_NOTIFICATIONS"))
+			command_type=CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DISABLE_HOSTGROUP_HOST_NOTIFICATIONS"))
+			command_type=CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS;
+
+		else if(!strcmp(command_id,"ENABLE_HOSTGROUP_SVC_NOTIFICATIONS"))
+			command_type=CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DISABLE_HOSTGROUP_SVC_NOTIFICATIONS"))
+			command_type=CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS;
+
+		else if(!strcmp(command_id,"ENABLE_HOSTGROUP_HOST_CHECKS"))
+			command_type=CMD_ENABLE_HOSTGROUP_HOST_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_HOSTGROUP_HOST_CHECKS"))
+			command_type=CMD_DISABLE_HOSTGROUP_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_HOSTGROUP_SVC_CHECKS"))
+			command_type=CMD_ENABLE_HOSTGROUP_SVC_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_HOSTGROUP_SVC_CHECKS"))
+			command_type=CMD_DISABLE_HOSTGROUP_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"SCHEDULE_HOSTGROUP_HOST_DOWNTIME"))
+			command_type=CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME;
+		else if(!strcmp(command_id,"SCHEDULE_HOSTGROUP_SVC_DOWNTIME"))
+			command_type=CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME;
+
+
 		/**********************************/
 		/**** SERVICE-RELATED COMMANDS ****/
 		/**********************************/
@@ -378,6 +418,46 @@ void check_for_external_commands(void){
 			command_type=CMD_START_OBSESSING_OVER_SVC;
 		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_SVC"))
 			command_type=CMD_STOP_OBSESSING_OVER_SVC;
+
+
+		/***************************************/
+		/**** SERVICEGROUP-RELATED COMMANDS ****/
+		/***************************************/
+
+		else if(!strcmp(command_id,"ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS"))
+			command_type=CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS"))
+			command_type=CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS;
+
+		else if(!strcmp(command_id,"ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS"))
+			command_type=CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS;
+		else if(!strcmp(command_id,"DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS"))
+			command_type=CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS;
+
+		else if(!strcmp(command_id,"ENABLE_SERVICEGROUP_HOST_CHECKS"))
+			command_type=CMD_ENABLE_SERVICEGROUP_HOST_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_SERVICEGROUP_HOST_CHECKS"))
+			command_type=CMD_DISABLE_SERVICEGROUP_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS"))
+			command_type=CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_SERVICEGROUP_SVC_CHECKS"))
+			command_type=CMD_ENABLE_SERVICEGROUP_SVC_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_SERVICEGROUP_SVC_CHECKS"))
+			command_type=CMD_DISABLE_SERVICEGROUP_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS"))
+			command_type=CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS;
+
+		else if(!strcmp(command_id,"SCHEDULE_SERVICEGROUP_HOST_DOWNTIME"))
+			command_type=CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME;
+		else if(!strcmp(command_id,"SCHEDULE_SERVICEGROUP_SVC_DOWNTIME"))
+			command_type=CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;
 
 
 		/**** UNKNOWN COMMAND ****/
@@ -571,6 +651,26 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 		break;
 
 
+		/*****************************/
+		/***** HOSTGROUP COMMANDS ****/
+		/*****************************/
+
+	case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
+	case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
+	case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+		process_hostgroup_command(cmd,entry_time,args);
+		break;
+
+
 		/***************************/
 		/***** SERVICE COMMANDS ****/
 		/***************************/
@@ -588,6 +688,26 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_START_OBSESSING_OVER_SVC:
 	case CMD_STOP_OBSESSING_OVER_SVC:
 		process_service_command(cmd,entry_time,args);
+		break;
+
+
+		/********************************/
+		/***** SERVICEGROUP COMMANDS ****/
+		/********************************/
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+		process_servicegroup_command(cmd,entry_time,args);
 		break;
 
 
@@ -648,6 +768,11 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 
 	case CMD_SCHEDULE_HOST_DOWNTIME:
 	case CMD_SCHEDULE_SVC_DOWNTIME:
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
+	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
 		cmd_schedule_downtime(cmd,entry_time,args);
 		break;
 
@@ -658,10 +783,6 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 
 	case CMD_CANCEL_ACTIVE_HOST_SVC_DOWNTIME:
 	case CMD_CANCEL_PENDING_HOST_SVC_DOWNTIME:
-		break;
-
-	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
-		cmd_schedule_host_service_downtime(cmd,entry_time,args);
 		break;
 
 	case CMD_DELAY_HOST_CHECK:
@@ -731,19 +852,19 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 		if(find_all_services_by_host(temp_host->name)){
 			while((temp_service=get_next_service_by_host())){
 				if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
-					enable_service_check(temp_service);
+					enable_service_checks(temp_service);
 				else
-					disable_service_check(temp_service);
+					disable_service_checks(temp_service);
 		                }
 	                } 
 		break;
 
 	case CMD_ENABLE_HOST_CHECK:
-		enable_host_check(temp_host);
+		enable_host_checks(temp_host);
 		break;
 
 	case CMD_DISABLE_HOST_CHECK:
-		disable_host_check(temp_host);
+		disable_host_checks(temp_host);
 		break;
 
 	case CMD_ENABLE_HOST_EVENT_HANDLER:
@@ -786,6 +907,104 @@ int process_host_command(int cmd, time_t entry_time, char *args){
         }
 
 
+/* processes an external hostgroup command */
+int process_hostgroup_command(int cmd, time_t entry_time, char *args){
+	char *hostgroup_name;
+	hostgroup *temp_hostgroup;
+	hostgroupmember *temp_member;
+	host *temp_host;
+	service *temp_service;
+
+	/* get the hostgroup name */
+	hostgroup_name=my_strtok(args,";");
+	if(hostgroup_name==NULL)
+		return ERROR;
+
+	/* find the hostgroup */
+	temp_hostgroup=find_hostgroup(hostgroup_name);
+	if(temp_hostgroup==NULL)
+		return ERROR;
+
+	/* loop through all hosts in the hostgroup */
+	for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
+
+		temp_host=find_host(temp_member->host_name);
+		if(temp_host==NULL)
+			continue;
+
+		switch(cmd){
+
+		case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+			enable_host_notifications(temp_host);
+			break;
+
+		case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+			disable_host_notifications(temp_host);
+			break;
+
+		case CMD_ENABLE_HOSTGROUP_HOST_CHECKS:
+			enable_host_checks(temp_host);
+			break;
+
+		case CMD_DISABLE_HOSTGROUP_HOST_CHECKS:
+			disable_host_checks(temp_host);
+			break;
+
+		case CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+			enable_passive_host_checks(temp_host);
+			break;
+
+		case CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS:
+			disable_passive_host_checks(temp_host);
+			break;
+
+		default:
+
+			/* loop through all services on the host */
+			if(find_all_services_by_host(temp_host->name)){
+				while((temp_service=get_next_service_by_host())){
+					
+					switch(cmd){
+
+					case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+						enable_service_notifications(temp_service);
+						break;
+
+					case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+						disable_service_notifications(temp_service);
+						break;
+
+					case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
+						enable_service_checks(temp_service);
+						break;
+
+					case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
+						disable_service_checks(temp_service);
+						break;
+
+					case CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+						enable_passive_service_checks(temp_service);
+						break;
+
+					case CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS:
+						disable_passive_service_checks(temp_service);
+						break;
+
+					default:
+						break;
+					        }
+				        }
+			        }
+			
+			break;
+		        }
+
+	        }
+
+	return OK;
+        }
+
+
 
 /* processes an external service command */
 int process_service_command(int cmd, time_t entry_time, char *args){
@@ -819,11 +1038,11 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 		break;
 
 	case CMD_ENABLE_SVC_CHECK:
-		enable_service_check(temp_service);
+		enable_service_checks(temp_service);
 		break;
 
 	case CMD_DISABLE_SVC_CHECK:
-		disable_service_check(temp_service);
+		disable_service_checks(temp_service);
 		break;
 
 	case CMD_ENABLE_SVC_EVENT_HANDLER:
@@ -861,6 +1080,29 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 	default:
 		break;
 	        }
+
+	return OK;
+        }
+
+
+/* processes an external servicegroup command */
+int process_servicegroup_command(int cmd, time_t entry_time, char *args){
+	char *servicegroup_name;
+	servicegroup *temp_servicegroup;
+	servicegroupmember *temp_member;
+	host *temp_host;
+	service *temp_service;
+
+	/* get the servicegroup name */
+	servicegroup_name=my_strtok(args,";");
+	if(servicegroup_name==NULL)
+		return ERROR;
+
+	/* find the servicegroup */
+	temp_servicegroup=find_servicegroup(servicegroup_name);
+	if(temp_servicegroup==NULL)
+		return ERROR;
+
 
 	return OK;
         }
@@ -1358,7 +1600,7 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 
 /* process passive host check result */
-/* this function is a bit more involved than for passive service checks, as we need to replicate most function performed by check_route_to_host() */
+/* this function is a bit more involved than for passive service checks, as we need to replicate most functions performed by check_route_to_host() */
 int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	char *temp_ptr;
 	host *temp_host;
@@ -1679,7 +1921,14 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
+	host *last_host=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	hostgroupmember *temp_hgmember=NULL;
+	servicegroup *temp_servicegroup=NULL;
+	servicegroupmember *temp_sgmember=NULL;
 	char *host_name="";
+	char *hostgroup_name="";
+	char *servicegroup_name="";
 	char *svc_description="";
 	char *temp_ptr;
 	time_t start_time;
@@ -1693,28 +1942,57 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	printf("cmd_schedule_downtime() start\n");
 #endif
 
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* this is a service downtime */
-	if(cmd==CMD_SCHEDULE_SVC_DOWNTIME){
-
-		/* get the service name */
-		svc_description=my_strtok(NULL,";");
-		if(svc_description==NULL)
+	if(cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME){
+		
+		/* get the hostgroup name */
+		hostgroup_name=my_strtok(args,";");
+		if(hostgroup_name==NULL)
 			return ERROR;
 
-		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description);
-		if(temp_service==NULL)
+		/* verify that the hostgroup is valid */
+		temp_hostgroup=find_hostgroup(hostgroup_name);
+		if(temp_hostgroup==NULL)
 			return ERROR;
+	        }
+
+	else if(cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME){
+
+		/* get the servicegroup name */
+		servicegroup_name=my_strtok(args,";");
+		if(servicegroup_name==NULL)
+			return ERROR;
+
+		/* verify that the servicegroup is valid */
+		temp_servicegroup=find_servicegroup(servicegroup_name);
+		if(temp_servicegroup==NULL)
+			return ERROR;
+	        }
+
+	else{
+
+		/* get the host name */
+		host_name=my_strtok(args,";");
+		if(host_name==NULL)
+			return ERROR;
+
+		/* verify that the host is valid */
+		temp_host=find_host(host_name);
+		if(temp_host==NULL)
+			return ERROR;
+
+		/* this is a service downtime */
+		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME){
+
+			/* get the service name */
+			svc_description=my_strtok(NULL,";");
+			if(svc_description==NULL)
+				return ERROR;
+
+			/* verify that the service is valid */
+			temp_service=find_service(temp_host->name,svc_description);
+			if(temp_service==NULL)
+				return ERROR;
+		        }
 	        }
 
 	/* get the start time */
@@ -1756,10 +2034,58 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 		duration=(unsigned long)(end_time-start_time);
 
 	/* schedule downtime */
-	if(cmd==CMD_SCHEDULE_HOST_DOWNTIME)
+	switch(cmd){
+
+	case CMD_SCHEDULE_HOST_DOWNTIME:
 		schedule_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration);
-	else
+		break;
+
+	case CMD_SCHEDULE_SVC_DOWNTIME:
 		schedule_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,duration);
+		break;
+
+	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
+		if(find_all_services_by_host(host_name)){
+			while((temp_service=get_next_service_by_host()))
+				schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
+	                }
+		break;
+
+	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
+		for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next)
+			schedule_downtime(HOST_DOWNTIME,temp_hgmember->host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration);
+		break;
+
+	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
+		for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next){
+			if(find_all_services_by_host(temp_hgmember->host_name)){
+				while((temp_service=get_next_service_by_host()))
+					schedule_downtime(SERVICE_DOWNTIME,temp_service->host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
+		                }
+		        }
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+		last_host=NULL;
+		for(temp_sgmember=temp_servicegroup->members;temp_sgmember!=NULL;temp_sgmember=temp_sgmember->next){
+			temp_host=find_host(temp_sgmember->host_name);
+			if(temp_host==NULL)
+				continue;
+			if(last_host==temp_host)
+				continue;
+			schedule_downtime(HOST_DOWNTIME,temp_sgmember->host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration);
+			last_host=temp_host;
+		        }
+		break;
+
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+		for(temp_sgmember=temp_servicegroup->members;temp_sgmember!=NULL;temp_sgmember=temp_sgmember->next)
+			schedule_downtime(SERVICE_DOWNTIME,temp_sgmember->host_name,temp_sgmember->service_description,entry_time,author,comment,start_time,end_time,fixed,duration);
+		break;
+
+	default:
+		break;
+	        }
 
 #ifdef DEBUG0
 	printf("cmd_schedule_downtime() end\n");
@@ -1798,98 +2124,17 @@ int cmd_delete_downtime(int cmd, char *args){
 
         
 
-/* schedules downtime for all services on a specific host */
-int cmd_schedule_host_service_downtime(int cmd, time_t entry_time, char *args){
-	service *temp_service=NULL;
-	host *temp_host=NULL;
-	char *host_name="";
-	char *temp_ptr;
-	time_t start_time;
-	time_t end_time;
-	int fixed;
-	unsigned long duration;
-	char *author="";
-	char *comment="";
-
-#ifdef DEBUG0
-	printf("cmd_schedule_host_service_downtime() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
-
-	/* get the start time */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
-		return ERROR;
-	start_time=(time_t)strtoul(temp_ptr,NULL,10);
-
-	/* get the end time */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
-		return ERROR;
-	end_time=(time_t)strtoul(temp_ptr,NULL,10);
-
-	/* get the fixed flag */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
-		return ERROR;
-	fixed=atoi(temp_ptr);
-
-	/* get the duration */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
-		return ERROR;
-	duration=strtoul(temp_ptr,NULL,10);
-
-	/* get the author */
-	author=my_strtok(NULL,";");
-	if(author==NULL)
-		return ERROR;
-
-	/* get the comment */
-	comment=my_strtok(NULL,";");
-	if(comment==NULL)
-		return ERROR;
-
-	/* duration should be auto-calculated, not user-specified */
-	if(fixed>0)
-		duration=(unsigned long)(end_time-start_time);
-
-	/* schedule downtime */
-	if(find_all_services_by_host(host_name)){
-		while((temp_service=get_next_service_by_host()))
-			schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
-	        }
-	else
-		return ERROR;
-
-#ifdef DEBUG0
-	printf("cmd_schedule_host_service_downtime() end\n");
-#endif
-	return OK;
-        }
-
-
-
 
 /******************************************************************/
 /*************** INTERNAL COMMAND IMPLEMENTATIONS  ****************/
 /******************************************************************/
 
 /* temporarily disables a service check */
-void disable_service_check(service *svc){
+void disable_service_checks(service *svc){
 	timed_event *temp_event;
 
 #ifdef DEBUG0
-	printf("disable_service_check() start\n");
+	printf("disable_service_checks() start\n");
 #endif
 
 	/* checks are already disabled */
@@ -1916,7 +2161,7 @@ void disable_service_check(service *svc){
 	update_service_status(svc,FALSE);
 
 #ifdef DEBUG0
-	printf("disable_service_check() end\n");
+	printf("disable_service_checks() end\n");
 #endif
 
 	return;
@@ -1925,12 +2170,12 @@ void disable_service_check(service *svc){
 
 
 /* enables a service check */
-void enable_service_check(service *svc){
+void enable_service_checks(service *svc){
 	time_t preferred_time;
 	time_t next_valid_time;
 
 #ifdef DEBUG0
-	printf("enable_service_check() start\n");
+	printf("enable_service_checks() start\n");
 #endif
 
 	/* checks are already enabled */
@@ -1962,7 +2207,7 @@ void enable_service_check(service *svc){
 	update_service_status(svc,FALSE);
 
 #ifdef DEBUG0
-	printf("enable_service_check() end\n");
+	printf("enable_service_checks() end\n");
 #endif
 
 	return;
@@ -2701,11 +2946,11 @@ void disable_host_event_handler(host *hst){
 
 
 /* disables checks of a particular host */
-void disable_host_check(host *hst){
+void disable_host_checks(host *hst){
 	timed_event *temp_event;
 
 #ifdef DEBUG0
-	printf("disable_host_check() start\n");
+	printf("disable_host_checks() start\n");
 #endif
 
 	/* checks are already disabled */
@@ -2732,7 +2977,7 @@ void disable_host_check(host *hst){
 	update_host_status(hst,FALSE);
 
 #ifdef DEBUG0
-	printf("disable_host_check() end\n");
+	printf("disable_host_checks() end\n");
 #endif
 
 	return;
@@ -2740,12 +2985,12 @@ void disable_host_check(host *hst){
 
 
 /* enables checks of a particular host */
-void enable_host_check(host *hst){
+void enable_host_checks(host *hst){
 	time_t preferred_time;
 	time_t next_valid_time;
 
 #ifdef DEBUG0
-	printf("enable_host_check() start\n");
+	printf("enable_host_checks() start\n");
 #endif
 
 	/* checks are already enabled */
@@ -2777,7 +3022,7 @@ void enable_host_check(host *hst){
 	update_host_status(hst,FALSE);
 
 #ifdef DEBUG0
-	printf("enable_host_check() end\n");
+	printf("enable_host_checks() end\n");
 #endif
 
 	return;

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-20-2003
+ * Last Modified: 07-12-2003
  *
  * License:
  * 
@@ -1562,9 +1562,9 @@ void show_hostgroup_info(void){
 
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For All Services In This Hostgroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&hostgroup=%s'>Disable notifications for all services in this hostgroup</a></td></tr>\n",url_images_path,NOTIFICATIONS_DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS,url_encode(hostgroup_name));
 
-		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Checks Of All Services In This Hostgroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&hostgroup=%s'>Enable checks of all services in this hostgroup</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOSTGROUP_SVC_CHECKS,url_encode(hostgroup_name));
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of All Services In This Hostgroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&hostgroup=%s'>Enable active checks of all services in this hostgroup</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOSTGROUP_SVC_CHECKS,url_encode(hostgroup_name));
 
-		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Checks Of All Services In This Hostgroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&hostgroup=%s'>Disable checks of all services in this hostgroup</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOSTGROUP_SVC_CHECKS,url_encode(hostgroup_name));
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of All Services In This Hostgroup'></td><td CLASS='command'><a href='%s?cmd_typ=%d&hostgroup=%s'>Disable active checks of all services in this hostgroup</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOSTGROUP_SVC_CHECKS,url_encode(hostgroup_name));
 
 		printf("</table>\n");
 

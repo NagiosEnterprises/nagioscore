@@ -56,6 +56,7 @@
 
 #define CMD_DELAY_HOST_SVC_CHECKS               17
 #define CMD_IMMEDIATE_HOST_SVC_CHECKS           18
+
 #define CMD_DELAY_HOST_SVC_NOTIFICATIONS        19  /* currently unimplemented */
 
 #define CMD_DEL_ALL_HOST_COMMENTS               20
@@ -120,14 +121,14 @@
 #define CMD_ENABLE_FLAP_DETECTION                       61
 #define CMD_DISABLE_FLAP_DETECTION                      62
 
-#define CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS          63 /* not internally implemented */
-#define CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS         64 /* not internally implemented */
+#define CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS          63
+#define CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS         64
 
-#define CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS         65 /* not internally implemented */
-#define CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS        66 /* not internally implemented */
+#define CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS         65
+#define CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS        66
 
-#define CMD_ENABLE_HOSTGROUP_SVC_CHECKS                 67 /* not internally implemented */
-#define CMD_DISABLE_HOSTGROUP_SVC_CHECKS                68 /* not internally implemented */
+#define CMD_ENABLE_HOSTGROUP_SVC_CHECKS                 67
+#define CMD_DISABLE_HOSTGROUP_SVC_CHECKS                68
 
 #define CMD_CANCEL_HOST_DOWNTIME                        69 /* not internally implemented */
 #define CMD_CANCEL_SVC_DOWNTIME                         70 /* not internally implemented */
@@ -152,8 +153,8 @@
 #define CMD_ENABLE_PERFORMANCE_DATA                     82
 #define CMD_DISABLE_PERFORMANCE_DATA                    83
 
-#define CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME            84 /* not internally implemented */
-#define CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME             85 /* not internally implemented */
+#define CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME            84
+#define CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME             85
 #define CMD_SCHEDULE_HOST_SVC_DOWNTIME                  86
 
 #define CMD_PROCESS_HOST_CHECK_RESULT		        87
@@ -179,6 +180,36 @@
 
 #define CMD_START_OBSESSING_OVER_HOST		        101
 #define CMD_STOP_OBSESSING_OVER_HOST		        102
+
+#define CMD_ENABLE_HOSTGROUP_HOST_CHECKS                103
+#define CMD_DISABLE_HOSTGROUP_HOST_CHECKS               104
+
+#define CMD_ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS         105
+#define CMD_DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS        106
+
+#define CMD_ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS        107
+#define CMD_DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS       108
+
+#define CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS       109
+#define CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS      110
+
+#define CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS      111
+#define CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS     112
+
+#define CMD_ENABLE_SERVICEGROUP_SVC_CHECKS              113
+#define CMD_DISABLE_SERVICEGROUP_SVC_CHECKS             114
+
+#define CMD_ENABLE_SERVICEGROUP_HOST_CHECKS             115
+#define CMD_DISABLE_SERVICEGROUP_HOST_CHECKS            116
+
+#define CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS      117
+#define CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS     118
+
+#define CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS     119
+#define CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS    120
+
+#define CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME         121
+#define CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME          122
 
 
 /************************ SERVICE CHECK TYPES ****************************/

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-13-2003
+ * Last Modified: 07-12-2003
  *
  * License:
  * 
@@ -93,7 +93,6 @@ void show_command_help(int);
 void request_command_data(int);
 void commit_command_data(int);
 int commit_command(int);
-int commit_hostgroup_command(int);
 int write_command_to_file(char *);
 void clean_comment_data(char *);
 
@@ -617,7 +616,7 @@ void request_command_data(int cmd){
 
 	case CMD_ENABLE_SVC_CHECK:
 	case CMD_DISABLE_SVC_CHECK:
-		printf("%s checks of a particular service",(cmd==CMD_ENABLE_SVC_CHECK)?"enable":"disable");
+		printf("%s actice checks of a particular service",(cmd==CMD_ENABLE_SVC_CHECK)?"enable":"disable");
 		break;
 		
 	case CMD_ENABLE_NOTIFICATIONS:
@@ -632,11 +631,11 @@ void request_command_data(int cmd){
 
 	case CMD_ENABLE_HOST_SVC_CHECKS:
 	case CMD_DISABLE_HOST_SVC_CHECKS:
-		printf("%s checks of all services on a host",(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"enable":"disable");
+		printf("%s active checks of all services on a host",(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"enable":"disable");
 		break;
 
 	case CMD_DELAY_HOST_SVC_CHECKS:
-		printf("delay all service checks for a host");
+		printf("delay all active service checks for a host");
 		break;
 
 	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
@@ -675,7 +674,7 @@ void request_command_data(int cmd){
 
 	case CMD_START_EXECUTING_SVC_CHECKS:
 	case CMD_STOP_EXECUTING_SVC_CHECKS:
-		printf("%s executing service checks",(cmd==CMD_START_EXECUTING_SVC_CHECKS)?"start":"stop");
+		printf("%s executing active service checks",(cmd==CMD_START_EXECUTING_SVC_CHECKS)?"start":"stop");
 		break;
 
 	case CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS:
@@ -705,7 +704,7 @@ void request_command_data(int cmd){
 
 	case CMD_ENABLE_HOST_CHECK:
 	case CMD_DISABLE_HOST_CHECK:
-		printf("%s checks of a particular host",(cmd==CMD_ENABLE_HOST_CHECK)?"enable":"disable");
+		printf("%s active checks of a particular host",(cmd==CMD_ENABLE_HOST_CHECK)?"enable":"disable");
 		break;
 
 	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
@@ -755,7 +754,7 @@ void request_command_data(int cmd){
 
 	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
 	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-		printf("%s checks of all services in a particular hostgroup",(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"enable":"disable");
+		printf("%s active checks of all services in a particular hostgroup",(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"enable":"disable");
 		break;
 
 	case CMD_DEL_HOST_DOWNTIME:
@@ -1805,18 +1804,6 @@ int commit_command(int cmd){
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_FLAP_DETECTION\n",current_time,(cmd==CMD_ENABLE_FLAP_DETECTION)?"ENABLE":"DISABLE");
 		break;
 		
-	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-	case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-	case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-	case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
-	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
-	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
-		result=commit_hostgroup_command(cmd);
-		return result;
-		break;
-
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DEL_%s_DOWNTIME;%lu\n",current_time,(cmd==CMD_DEL_HOST_DOWNTIME)?"HOST":"SVC",downtime_id);
@@ -1867,6 +1854,41 @@ int commit_command(int cmd){
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST;%s\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST)?"START":"STOP",host_name);
 		break;
 
+
+		/***** HOSTGROUP COMMANDS *****/
+
+	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
+		if(affect_host_and_services==FALSE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_NOTIFICATIONS;%s\n[%lu] %s_HOSTGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name,current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name);
+		break;
+
+	case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",hostgroup_name);
+		break;
+
+	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
+	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
+		if(affect_host_and_services==FALSE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",hostgroup_name);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOSTGROUP_SVC_CHECKS;%s\n[%lu] %s_HOSTGROUP_HOST_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",hostgroup_name,current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",hostgroup_name);
+		break;
+
+	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		break;
+
+	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
+		if(affect_host_and_services==FALSE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		break;
+
 	default:
 		return ERROR;
 		break;
@@ -1879,97 +1901,6 @@ int commit_command(int cmd){
 	result=write_command_to_file(command_buffer);
 
 	return result;
-        }
-
-
-
-/* commits one or more hostgroup commands for processing */
-int commit_hostgroup_command(int cmd){
-	hostgroup *temp_hostgroup=NULL;
-	host *temp_host=NULL;
-	char command_buffer[MAX_INPUT_BUFFER];
-	time_t current_time;
-	time_t scheduled_time;
-	int result;
-
-	/* get the current time */
-	time(&current_time);
-
-	/* get the scheduled time */
-	scheduled_time=current_time+(schedule_delay*60);
-
-	/* find the hostgroup */
-	temp_hostgroup=find_hostgroup(hostgroup_name);
-	if(temp_hostgroup==NULL)
-		return ERROR;
-
-	/* find all hosts that belong to this hostgroup... */
-	move_first_host();
-	while(temp_host = get_next_host()) {
-		/* skip this host if it's not part of the hostgroup */
-		if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
-			continue;
-
-		/* is the user authorized to issue command for this host? */
-		if(is_authorized_for_host_commands(temp_host,&current_authdata)==FALSE)
-			continue;
-
-		/* blank the command line */
-		strcpy(command_buffer,"");
-
-		/* decide how to form the command line... */
-		switch(cmd){
-		
-		case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-		case CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS:
-			if(affect_host_and_services==FALSE)
-				snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",temp_host->name);
-			else
-				snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_NOTIFICATIONS;%s\n[%lu] %s_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",temp_host->name,current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"ENABLE":"DISABLE",temp_host->name);
-			break;
-
-		case CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-		case CMD_DISABLE_HOSTGROUP_HOST_NOTIFICATIONS:
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_NOTIFICATIONS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_HOST_NOTIFICATIONS)?"ENABLE":"DISABLE",temp_host->name);
-			break;
-
-		case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
-		case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-			if(affect_host_and_services==FALSE)
-				snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",temp_host->name);
-			else
-				snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_CHECKS;%s\n[%lu] %s_HOST_CHECK;%s\n",current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",temp_host->name,current_time,(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS)?"ENABLE":"DISABLE",temp_host->name);
-			break;
-
-		case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,temp_host->name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
-			break;
-
-		case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
-			if(affect_host_and_services==FALSE)
-				snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_SVC_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,temp_host->name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
-			else{
-				snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n[%lu] SCHEDULE_HOST_SVC_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,temp_host->name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,temp_host->name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
-			        }
-			break;
-
-		default:
-			return ERROR;
-			break;
-	                }
-
-		/* make sure command buffer is terminated */
-		command_buffer[sizeof(command_buffer)-1]='\x0';
-
-		/* write the command to the command file */
-		result=write_command_to_file(command_buffer);
-
-		/* bail out if we encountered an error */
-		if(result!=OK)
-			return result;
-	        }
-
-	return OK;
         }
 
 
@@ -2349,13 +2280,11 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_ENABLE_HOSTGROUP_SVC_CHECKS:
-		printf("This command is used to enable all service checks in the specified hostgroup.  This <i>does not</i> enable checks of the hosts in the hostgroup unless you check the 'Enable for hosts too' option.\n");
+		printf("This command is used to enable active checks of all services in the specified hostgroup.  This <i>does not</i> enable active checks of the hosts in the hostgroup unless you check the 'Enable for hosts too' option.\n");
 		break;
 		
 	case CMD_DISABLE_HOSTGROUP_SVC_CHECKS:
-		printf("This command is used to disable all service checks in the specified hostgroup.  When a service is disabled Nagios will not monitor the service.  Doing this will prevent any notifications being sent out for\n");
-		printf("the specified service while it is disabled.  In order to have Nagios check the services in the future you will have to re-enable the services.\n");
-		printf("Note that disabling service checks may not necessarily prevent notifications from being sent out about the host which those services are associated with.  This <i>does not</i> disable checks of the hosts in the hostgroup unless you check the 'Disable for hosts too' option.\n");
+		printf("This command is used to disable active checks of all services in the specified hostgroup.  This <i>does not</i> disable checks of the hosts in the hostgroup unless you check the 'Disable for hosts too' option.\n");
 		break;
 
 	case CMD_DEL_HOST_DOWNTIME:

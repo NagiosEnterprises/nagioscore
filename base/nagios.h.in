@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-01-2003
+ * Last Modified: 07-12-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -573,7 +573,9 @@ int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile"
 void check_for_external_commands(void);			/* checks for any external commands */
 void process_external_command(int,time_t,char *);	/* process an external command */
 int process_host_command(int,time_t,char *);            /* process an external host command */
+int process_hostgroup_command(int,time_t,char *);       /* process an external hostgroup command */
 int process_service_command(int,time_t,char *);         /* process an external service command */
+int process_servicegroup_command(int,time_t,char *);    /* process an external servicegroup command */
 
 
 /**** External Command Implementations ****/
@@ -591,12 +593,11 @@ int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service pro
 int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
 int cmd_schedule_downtime(int,time_t,char *);                   /* schedules host or service downtime */
 int cmd_delete_downtime(int,char *);				/* cancels active/pending host or service scheduled downtime */
-int cmd_schedule_host_service_downtime(int,time_t,char *);      /* schedules downtimes for all services on a particular host */
 
 
 /**** Internal Command Implementations ****/
-void disable_service_check(service *);			/* disables a service check */
-void enable_service_check(service *);			/* enables a service check */
+void disable_service_checks(service *);			/* disables a service check */
+void enable_service_checks(service *);			/* enables a service check */
 void schedule_service_check(service *,time_t,int);	/* schedules an immediate or delayed service check */
 void schedule_host_check(host *,time_t,int);		/* schedules an immediate or delayed host check */
 void enable_all_notifications(void);                    /* enables notifications on a program-wide basis */
@@ -623,8 +624,8 @@ void enable_service_event_handler(service *);		/* enables the event handler for 
 void disable_service_event_handler(service *);		/* disables the event handler for a particular service */
 void enable_host_event_handler(host *);			/* enables the event handler for a particular host */
 void disable_host_event_handler(host *);		/* disables the event handler for a particular host */
-void enable_host_check(host *);				/* enables checks of a particular host */
-void disable_host_check(host *);			/* disables checks of a particular host */
+void enable_host_checks(host *);			/* enables checks of a particular host */
+void disable_host_checks(host *);			/* disables checks of a particular host */
 void start_obsessing_over_service_checks(void);		/* start obsessing about service check results */
 void stop_obsessing_over_service_checks(void);		/* stop obsessing about service check results */
 void start_obsessing_over_host_checks(void);		/* start obsessing about host check results */

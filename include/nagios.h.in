@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-15-2003
+ * Last Modified: 11-08-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -522,14 +522,15 @@ time_t get_next_service_notification_time(service *,time_t);	/* calculates nex a
 int write_to_logs_and_console(char *,unsigned long,int); /* writes a string to screen and logs */
 int write_to_console(char *);                           /* writes a string to screen */
 int write_to_all_logs(char *,unsigned long);            /* writes a string to main log file and syslog facility */
-int write_to_log(char *,unsigned long);                	/* write a string to the main log file */
+int write_to_all_logs_with_timestamp(char *,unsigned long,time_t *);   /* writes a string to main log file and syslog facility */
+int write_to_log(char *,unsigned long,time_t *);       	/* write a string to the main log file */
 int write_to_syslog(char *,unsigned long);             	/* write a string to the syslog facility */
 int log_service_event(service *);			/* logs a service event */
 int log_host_event(host *);				/* logs a host event */
-int log_host_states(int);	                        /* logs initial/current host states */
-int log_service_states(int);                            /* logs initial/current service states */
+int log_host_states(int,time_t *);	                /* logs initial/current host states */
+int log_service_states(int,time_t *);                   /* logs initial/current service states */
 int rotate_log_file(time_t);			     	/* rotates the main log file */
-int write_log_file_info(void);	 			/* records log file/version info */
+int write_log_file_info(time_t *); 			/* records log file/version info */
 
 
 /**** Cleanup Functions ****/
@@ -608,6 +609,9 @@ int cmd_delete_downtime(int,char *);				/* cancels active/pending host or servic
 int cmd_change_command(int,char *);				/* changes host/svc command */
 int cmd_change_check_interval(int,char *);			/* changes host/svc check interval */
 int cmd_change_max_attempts(int,char *);			/* changes host/svc max attempts */
+
+int process_passive_service_check(time_t,char *,char *,int,char *);
+int process_passive_host_check(time_t,char *,int,char *);
 
 
 /**** Internal Command Implementations ****/

@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-15-2003
+ * Last Modified:   11-08-2003
  *
  * License:
  *
@@ -113,7 +113,7 @@ int write_to_all_logs(char *buffer, unsigned long data_type){
 	write_to_syslog(buffer,data_type);
 
 	/* write to main log */
-	write_to_log(buffer,data_type);
+	write_to_log(buffer,data_type,NULL);
 
 #ifdef DEBUG0
 	printf("write_to_all_logs() end\n");
@@ -123,10 +123,31 @@ int write_to_all_logs(char *buffer, unsigned long data_type){
         }
 
 
+/* write something to the log file and syslog facility */
+int write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time_t *timestamp){
+
+#ifdef DEBUG0
+	printf("write_to_all_logs_with_timestamp() start\n");
+#endif
+
+	/* write to syslog */
+	write_to_syslog(buffer,data_type);
+
+	/* write to main log */
+	write_to_log(buffer,data_type,timestamp);
+
+#ifdef DEBUG0
+	printf("write_to_all_logs_with_timestamp() end\n");
+#endif
+
+	return OK;
+        }
+
+
 /* write something to the nagios log file */
-int write_to_log(char *buffer, unsigned long data_type){
+int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
 	FILE *fp;
-	time_t t;
+	time_t log_time;
 
 
 #ifdef DEBUG0
@@ -147,14 +168,17 @@ int write_to_log(char *buffer, unsigned long data_type){
 		return ERROR;
 		}
 
-	/* get the current time */
-	time(&t);
+	/* what timestamp should we use? */
+	if(timestamp==NULL)
+		time(&log_time);
+	else
+		log_time=*timestamp;
 
 	/* strip any newlines from the end of the buffer */
 	strip(buffer);
 
 	/* write the buffer to the log file */
-	fprintf(fp,"[%lu] %s\n",t,buffer);
+	fprintf(fp,"[%lu] %s\n",log_time,buffer);
 
 	fclose(fp);
 
@@ -280,7 +304,7 @@ int log_host_event(host *hst){
 
 
 /* logs host states */
-int log_host_states(int type){
+int log_host_states(int type, time_t *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	host *temp_host;
 
@@ -296,7 +320,7 @@ int log_host_states(int type){
 
 		snprintf(temp_buffer,sizeof(temp_buffer),"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],temp_host->plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
 	        }
 
 	return OK;
@@ -304,7 +328,7 @@ int log_host_states(int type){
 
 
 /* logs service states */
-int log_service_states(int type){
+int log_service_states(int type, time_t *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	service *temp_service;
 	host *temp_host;
@@ -326,7 +350,7 @@ int log_service_states(int type){
 		snprintf(temp_buffer,sizeof(temp_buffer),"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
 
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
 	        }
 
 	return OK;
@@ -393,15 +417,14 @@ int rotate_log_file(time_t rotation_time){
 	/* record the log rotation after it has been done... */
 	snprintf(temp_buffer,sizeof(temp_buffer),"LOG ROTATION: %s\n",method_string);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
+	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,&rotation_time);
 
 	/* record log file version format */
-	write_log_file_info();
+	write_log_file_info(&rotation_time);
 
 	/* log current host and service state */
-	log_host_states(CURRENT_STATES);
-	log_service_states(CURRENT_STATES);
-
+	log_host_states(CURRENT_STATES,&rotation_time);
+	log_service_states(CURRENT_STATES,&rotation_time);
 
 #ifdef DEBUG3
 	printf("\tRotated main log file to '%s'\n",log_archive);
@@ -416,7 +439,7 @@ int rotate_log_file(time_t rotation_time){
 
 
 /* record log file version/info */
-int write_log_file_info(void){
+int write_log_file_info(time_t *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -426,7 +449,7 @@ int write_log_file_info(void){
 	/* write log version */
 	snprintf(temp_buffer,sizeof(temp_buffer),"LOG VERSION: %s\n",LOG_VERSION_2);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
+	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,timestamp);
 
 #ifdef DEBUG0
 	printf("write_log_file_info() end\n");

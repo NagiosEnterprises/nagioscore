@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2003
+ * Last Modified:   11-08-2003
  *
  * License:
  *
@@ -1655,90 +1655,144 @@ int cmd_signal_process(int cmd, char *args){
 /* processes results of an external service check */
 int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	char *temp_ptr;
-	passive_check_result *new_pcr;
-	host *temp_host;
+	char *host_name;
+	char *svc_description;
+	int return_code;
+	char *output;
+	int result;
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("cmd_process_service_check_result() start\n");
 #endif
 
-	new_pcr=(passive_check_result *)malloc(sizeof(passive_check_result));
-	if(new_pcr==NULL)
-		return ERROR;
-
 	/* get the host name */
 	temp_ptr=my_strtok(args,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+	host_name=strdup(temp_ptr);
+
+	/* get the service description */
+	temp_ptr=my_strtok(NULL,";");
 	if(temp_ptr==NULL){
-		free(new_pcr);
+		free(host_name);
 		return ERROR;
 	        }
+	svc_description=strdup(temp_ptr);
 
-	/* if this isn't a host name, mabye its a host address */
-	if(find_host(temp_ptr)==NULL){
+	/* get the service check return code */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL){
+		free(host_name);
+		free(svc_description);
+		return ERROR;
+	        }
+	return_code=atoi(temp_ptr);
+
+	/* get the plugin output */
+	temp_ptr=my_strtok(NULL,"\n");
+	if(temp_ptr==NULL){
+		free(host_name);
+		free(svc_description);
+		return ERROR;
+	        }
+	output=strdup(temp_ptr);
+
+	/* submit the passive check result */
+	result=process_passive_service_check(check_time,host_name,svc_description,return_code,output);
+
+	/* free memory */
+	free(host_name);
+	free(svc_description);
+	free(output);
+
+#ifdef DEBUG0
+	printf("cmd_process_service_check_result() end\n");
+#endif
+
+	return result;
+        }
+
+
+
+/* submits a passive service check result for later processing */
+int process_passive_service_check(time_t check_time, char *host_name, char *svc_description, int return_code, char *output){
+	passive_check_result *new_pcr=NULL;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	char *real_host_name=NULL;
+
+#ifdef DEBUG0
+	printf("process_passive_service_check() start\n");
+#endif
+
+	/* skip this service check result if we aren't accepting passive service checks */
+	if(accept_passive_service_checks==FALSE)
+		return ERROR;
+
+	/* make sure we have all required data */
+	if(host_name==NULL || svc_description==NULL || output==NULL)
+		return ERROR;
+
+	/* find the host by its name or address */
+	if(find_host(host_name)!=NULL)
+		real_host_name=host_name;
+	else{
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-			if(!strcmp(temp_ptr,temp_host->address)){
-				temp_ptr=temp_host->name;
+			if(!strcmp(host_name,temp_host->address)){
+				real_host_name=temp_host->name;
 				break;
 			        }
 		        }
 	        }
 
-	if(temp_ptr==NULL){
-		free(new_pcr);
+	/* we couldn't find the host */
+	if(real_host_name==NULL)
 		return ERROR;
-	        }
-	new_pcr->host_name=(char *)malloc(strlen(temp_ptr)+1);
+
+	/* make sure the service exists */
+	if((temp_service=find_service(real_host_name,svc_description))==NULL)
+		return ERROR;
+
+	/* skip this is we aren't accepting passive checks for this service */
+	if(temp_service->accept_passive_service_checks==FALSE)
+		return ERROR;
+
+	/* allocate memory for the passive check result */
+	new_pcr=(passive_check_result *)malloc(sizeof(passive_check_result));
+	if(new_pcr==NULL)
+		return ERROR;
+
+	/* save the host name */
+	new_pcr->host_name=strdup(real_host_name);
 	if(new_pcr->host_name==NULL){
 		free(new_pcr);
 		return ERROR;
 	        }
-	strcpy(new_pcr->host_name,temp_ptr);
 
-	/* get the service description */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL){
-		free(new_pcr->host_name);
-		free(new_pcr);
-		return ERROR;
-	        }
-	new_pcr->svc_description=(char *)malloc(strlen(temp_ptr)+1);
+	/* save the service description */
+	new_pcr->svc_description=strdup(svc_description);
 	if(new_pcr->svc_description==NULL){
 		free(new_pcr->host_name);
 		free(new_pcr);
 		return ERROR;
 	        }
-	strcpy(new_pcr->svc_description,temp_ptr);
 
-	/* get the service check return code */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL){
-		free(new_pcr->svc_description);
-		free(new_pcr->host_name);
-		free(new_pcr);
-		return ERROR;
-	        }
-	new_pcr->return_code=atoi(temp_ptr);
+	/* save the return code */
+	new_pcr->return_code=return_code;
 
 	/* make sure the return code is within bounds */
 	if(new_pcr->return_code<0 || new_pcr->return_code>3)
 		new_pcr->return_code=STATE_UNKNOWN;
 
-	/* get the plugin output */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL){
-		free(new_pcr->svc_description);
-		free(new_pcr->host_name);
-		free(new_pcr);
-		return ERROR;
-	        }
-	new_pcr->output=(char *)malloc(strlen(temp_ptr)+1);
+	/* save the output */
+	new_pcr->output=strdup(output);
 	if(new_pcr->output==NULL){
 		free(new_pcr->svc_description);
 		free(new_pcr->host_name);
 		free(new_pcr);
 		return ERROR;
 	        }
-	strcpy(new_pcr->output,temp_ptr);
 
 	new_pcr->check_time=check_time;
 
@@ -1752,124 +1806,166 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	passive_check_result_list_tail=new_pcr;
 
 #ifdef DEBUG0
-	printf("cmd_process_service_check_result() end\n");
+	printf("process_passive_service_check() end\n");
 #endif
+
 	return OK;
         }
 
 
 
 /* process passive host check result */
-/* this function is a bit more involved than for passive service checks, as we need to replicate most functions performed by check_route_to_host() */
 int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	char *temp_ptr;
-	host *temp_host;
-	host *this_host;
-	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	char *host_name;
 	int return_code;
-	time_t current_time;
-	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *output;
+	int result;
 
 #ifdef DEBUG0
-	printf("cmd_process_passive_host_check_result() start\n");
+	printf("cmd_process_host_check_result() start\n");
 #endif
-
-
-	/* skip this host check result if we aren't accepting passive check results */
-	if(accept_passive_host_checks==FALSE)
-		return ERROR;
-
-
-	/**************** GET THE INFO ***************/
-
-	time(&current_time);
 
 	/* get the host name */
 	temp_ptr=my_strtok(args,";");
 	if(temp_ptr==NULL)
 		return ERROR;
+	host_name=strdup(temp_ptr);
 
-	/* find the host by name or address */
-	if((this_host=find_host(temp_ptr))==NULL){
+	/* get the host check return code */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL){
+		free(host_name);
+		return ERROR;
+	        }
+	return_code=atoi(temp_ptr);
+
+	/* get the plugin output */
+	temp_ptr=my_strtok(NULL,"\n");
+	if(temp_ptr==NULL){
+		free(host_name);
+		return ERROR;
+	        }
+	output=strdup(temp_ptr);
+
+	/* submit the check result */
+	result=process_passive_host_check(check_time,host_name,return_code,output);
+
+	/* free memory */
+	free(host_name);
+	free(output);
+
+#ifdef DEBUG0
+	printf("cmd_process_host_check_result() end\n");
+#endif
+
+	return result;
+        }
+
+
+/* process passive host check result */
+/* this function is a bit more involved than for passive service checks, as we need to replicate most functions performed by check_route_to_host() */
+int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output){
+	char *real_host_name;
+	host *temp_host;
+	struct timeval tv;
+	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	char *temp_ptr;
+	char temp_buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("process_passive_host_check() start\n");
+#endif
+
+	/* skip this host check result if we aren't accepting passive host check results */
+	if(accept_passive_host_checks==FALSE)
+		return ERROR;
+
+	/* make sure we have all required data */
+	if(host_name==NULL || output==NULL)
+		return ERROR;
+
+	/* find the host by its name or address */
+	if((temp_host=find_host(host_name))!=NULL)
+		real_host_name=host_name;
+	else{
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-			if(!strcmp(temp_ptr,temp_host->address)){
-				this_host=temp_host;
+			if(!strcmp(host_name,temp_host->address)){
+				real_host_name=temp_host->name;
 				break;
 			        }
 		        }
+
+		temp_host=find_host(real_host_name);
 	        }
 
-	/* bail if we coulnd't find a matching host by name or address */
-	if(this_host==NULL){
+	/* we couldn't find the host */
+	if(temp_host==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",temp_ptr);
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
 		return ERROR;
 	        }
 
-	/* get the host check return code */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	/* skip this is we aren't accepting passive checks for this host */
+	if(temp_host->accept_passive_host_checks==FALSE)
 		return ERROR;
-	return_code=atoi(temp_ptr);
 
 	/* make sure the return code is within bounds */
 	if(return_code<0 || return_code>2)
 		return ERROR;
 
-	/* get the plugin output */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
-		return ERROR;
-	snprintf(temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"%s",temp_ptr);
+	/* save the plugin output */
+	strncpy(temp_plugin_output,output,MAX_PLUGINOUTPUT_LENGTH-1);
 	temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 
 	
 
 	/********* LET'S DO IT (SUBSET OF NORMAL HOST CHECK OPERATIONS) ********/
 
-	/* ignore passive host check results if we're not accepting them for this host */
-	if(this_host->accept_passive_host_checks==FALSE)
-		return ERROR;
-
 	/* set the checked flag */
-	this_host->has_been_checked=TRUE;
+	temp_host->has_been_checked=TRUE;
 
 	/* save old state */
-	this_host->last_state=this_host->current_state;
-	if(this_host->state_type==HARD_STATE)
-		this_host->last_hard_state=this_host->current_state;
+	temp_host->last_state=temp_host->current_state;
+	if(temp_host->state_type==HARD_STATE)
+		temp_host->last_hard_state=temp_host->current_state;
 
+	/* NOTE TO SELF: Host state should be adjusted to reflect current host topology... */
 	/* record new state */
-	this_host->current_state=return_code;
+	temp_host->current_state=return_code;
 
 	/* record check type */
-	this_host->check_type=HOST_CHECK_PASSIVE;
+	temp_host->check_type=HOST_CHECK_PASSIVE;
 
 	/* record state type */
-	this_host->state_type=HARD_STATE;
+	temp_host->state_type=HARD_STATE;
 
 	/* set the current attempt - should this be set to max_attempts instead? */
-	this_host->current_attempt=1;
+	temp_host->current_attempt=1;
 
 	/* save the old plugin output and host state for use with state stalking routines */
-	strncpy(old_plugin_output,(this_host->plugin_output==NULL)?"":this_host->plugin_output,sizeof(old_plugin_output)-1);
+	strncpy(old_plugin_output,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output,sizeof(old_plugin_output)-1);
 	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
 
 	/* set the last host check time */
-	this_host->last_check=check_time;
+	temp_host->last_check=check_time;
 
 	/* clear plugin output and performance data buffers */
-	strcpy(this_host->plugin_output,"");
-	strcpy(this_host->perf_data,"");
+	strcpy(temp_host->plugin_output,"");
+	strcpy(temp_host->perf_data,"");
 
-	/* calculate total execution time */
-	this_host->execution_time=(double)(current_time-check_time);
-	if(this_host->execution_time<0.0)
-		this_host->execution_time=0.0;
+	/* passive checks have ZERO execution time! */
+	temp_host->execution_time=0.0;
+
+	/* calculate latency */
+	gettimeofday(&tv,NULL);
+	temp_host->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000)/1000.0);
+	if(temp_host->latency<0.0)
+		temp_host->latency=0.0;
 
 	/* check for empty plugin output */
 	if(!strcmp(temp_plugin_output,""))
@@ -1880,20 +1976,20 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 	/* make sure the plugin output isn't NULL */
 	if(temp_ptr==NULL){
-		strncpy(this_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
-		this_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+		strncpy(temp_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
+		temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 	        }
 
 	else{
 
 		strip(temp_ptr);
 		if(!strcmp(temp_ptr,"")){
-			strncpy(this_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
-			this_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+			strncpy(temp_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
+			temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
                         }
 		else{
-			strncpy(this_host->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-			this_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+			strncpy(temp_host->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+			temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
                         }
 	        }
 
@@ -1903,49 +1999,49 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	/* grab performance data if we found it available */
 	if(temp_ptr!=NULL){
 		strip(temp_ptr);
-		strncpy(this_host->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-		this_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+		strncpy(temp_host->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+		temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 	        }
 
 	/* replace semicolons in plugin output (but not performance data) with colons */
-	temp_ptr=this_host->plugin_output;
+	temp_ptr=temp_host->plugin_output;
 	while((temp_ptr=strchr(temp_ptr,';')))
 	      *temp_ptr=':';
 
 
 	/***** HANDLE THE HOST STATE *****/
-	handle_host_state(this_host);
+	handle_host_state(temp_host);
 
 
 	/***** UPDATE HOST STATUS *****/
-	update_host_status(this_host,FALSE);
+	update_host_status(temp_host,FALSE);
 
 
 	/****** STALKING STUFF *****/
 	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
-	if(this_host->last_state==this_host->current_state && strcmp(old_plugin_output,this_host->plugin_output)){
+	if(temp_host->last_state==temp_host->current_state && strcmp(old_plugin_output,temp_host->plugin_output)){
 
-		if(this_host->current_state==HOST_UP && this_host->stalk_on_up==TRUE)
-			log_host_event(this_host);
+		if(temp_host->current_state==HOST_UP && temp_host->stalk_on_up==TRUE)
+			log_host_event(temp_host);
 
-		else if(this_host->current_state==HOST_DOWN && this_host->stalk_on_down==TRUE)
-			log_host_event(this_host);
+		else if(temp_host->current_state==HOST_DOWN && temp_host->stalk_on_down==TRUE)
+			log_host_event(temp_host);
 
-		else if(this_host->current_state==HOST_UNREACHABLE && this_host->stalk_on_unreachable==TRUE)
-			log_host_event(this_host);
+		else if(temp_host->current_state==HOST_UNREACHABLE && temp_host->stalk_on_unreachable==TRUE)
+			log_host_event(temp_host);
 	        }
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,this_host,HOST_CHECK_PASSIVE,this_host->current_state,this_host->state_type,0.0,this_host->execution_time,0,FALSE,return_code,NULL,this_host->plugin_output,this_host->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_PASSIVE,temp_host->current_state,temp_host->state_type,0.0,temp_host->execution_time,0,FALSE,return_code,NULL,temp_host->plugin_output,temp_host->perf_data,NULL);
 #endif
 
 	/***** CHECK FOR FLAPPING *****/
-	check_for_host_flapping(this_host,TRUE);
+	check_for_host_flapping(temp_host,TRUE);
 
 
 #ifdef DEBUG0
-	printf("cmd_process_passive_host_check_result() end\n");
+	printf("process_passive_host_check() end\n");
 #endif
 
 	return OK;
@@ -3955,15 +4051,11 @@ void process_passive_service_checks(void){
 	passive_check_result *temp_pcr;
 	passive_check_result *this_pcr;
 	passive_check_result *next_pcr;
-	struct timeval end_time;
 
 
 #ifdef DEBUG0
 	printf("process_passive_service_checks() start\n");
 #endif
-
-	/* get the "end" time of the check */
-	gettimeofday(&end_time,NULL);
 
 	/* fork... */
 	pid=fork();
@@ -4008,7 +4100,7 @@ void process_passive_service_checks(void){
 				svc_msg.check_type=SERVICE_CHECK_PASSIVE;
 				svc_msg.start_time.tv_sec=temp_pcr->check_time;
 				svc_msg.start_time.tv_usec=0;
-				svc_msg.finish_time=end_time;
+				svc_msg.finish_time=svc_msg.start_time;
 
 				/* write the service check results... */
 				write_svc_message(&svc_msg);

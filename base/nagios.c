@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   08-23-2003
+ * Last Modified:   11-08-2003
  *
  * Description:
  *
@@ -496,7 +496,7 @@ int main(int argc, char **argv){
 			write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
 
 			/* write log version/info */
-			write_log_file_info();
+			write_log_file_info(NULL);
 
 #ifdef USE_EVENT_BROKER
 			/* load modules */
@@ -615,8 +615,8 @@ int main(int argc, char **argv){
 			update_all_status_data();
 
 			/* log initial host and service state */
-			log_host_states(INITIAL_STATES);
-			log_service_states(INITIAL_STATES);
+			log_host_states(INITIAL_STATES,NULL);
+			log_service_states(INITIAL_STATES,NULL);
 
 			/* create pipe used for service check IPC */
 			if(pipe(ipc_pipe)){

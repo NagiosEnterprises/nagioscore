@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-15-2003
+ * Last Modified:   11-08-2003
  *
  * License:
  *
@@ -562,6 +562,7 @@ void reap_service_checks(void){
 	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char *temp_ptr;
 	time_t reaper_start_time;
+	struct timeval tv;
 
 #ifdef DEBUG0
         printf("reap_service_checks() start\n");
@@ -606,9 +607,13 @@ void reap_service_checks(void){
 			continue;
 		        }
 
-		/* passive checks have zero latency */
-		if(queued_svc_msg.check_type==SERVICE_CHECK_PASSIVE)
-			temp_service->latency=0.0;
+		/* calculate passive check latency */
+		if(queued_svc_msg.check_type==SERVICE_CHECK_PASSIVE){
+			gettimeofday(&tv,NULL);
+			temp_service->latency=(double)((double)(tv.tv_sec-queued_svc_msg.finish_time.tv_sec)+(double)((tv.tv_usec-queued_svc_msg.finish_time.tv_usec)/1000.0));
+			if(temp_service->latency<0.0)
+				temp_service->latency=0.0;
+		        }
 
 		/* update the execution time for this check (millisecond resolution) */
 		temp_service->execution_time=(double)((double)(queued_svc_msg.finish_time.tv_sec-queued_svc_msg.start_time.tv_sec)+(double)((queued_svc_msg.finish_time.tv_usec-queued_svc_msg.start_time.tv_usec)/1000)/1000.0);

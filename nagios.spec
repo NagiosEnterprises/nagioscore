@@ -3,6 +3,9 @@
 %define release 1
 %define nsusr nagios
 %define nsgrp nagios
+%define cmdgrp nagiocmd
+%define wwwusr apache
+%define wwwgrp apache
 
 # Performance data handling method to use. By default we will use
 # the file-based one (as existed in NetSaint).
@@ -98,13 +101,17 @@ may compile against.
 
 %pre
 # Create `nagios' user on the system if necessary
-if id %{nsusr} ; then
+if /usr/bin/id %{nsusr} > /dev/null 2>&1 ; then
 	: # user already exists
 else
 	/usr/sbin/useradd -r -d /var/log/nagios -s /bin/sh -c "%{nsusr}" %{nsusr} || \
 		%nnmmsg Unexpected error adding user "%{nsusr}". Aborting install process.
 fi
 
+# id cannot tell us if the group already exists
+# so just try to create it and assume it works
+/usr/sbin/groupadd %{cmdgrp} > /dev/null 2>&1
+ 
 # if LSB standard /etc/init.d does not exist,
 # create it as a symlink to the first match we find
 if [ -d /etc/init.d -o -L /etc/init.d ]; then
@@ -129,29 +136,35 @@ if [ "$1" -ge "1" ]; then
 	/sbin/service nagios condrestart >/dev/null 2>&1 || :
 fi
 # Delete nagios user and group
+# (if grep doesn't find a match, then it is NIS or LDAP served and cannot be deleted)
 if [ $1 = 0 ]; then
-	/usr/sbin/userdel %{nsusr} || %nnmmsg "User %{nsusr} could not be deleted."
-	/usr/sbin/groupdel %{nsgrp} || %nnmmsg "Group %{nsgrp} could not be deleted."
+	/bin/grep '^%{nsusr}:' /etc/passwd > /dev/null 2>&1 && /usr/sbin/userdel %{nsusr} || %nnmmsg "User %{nsusr} could not be deleted."
+	/bin/grep '^%{nsgrp}:' /etc/group > /dev/null 2>&1 && /usr/sbin/groupdel %{nsgrp} || %nnmmsg "Group %{nsgrp} could not be deleted."
+	/bin/grep '^%{cmdgrp}:' /etc/group > /dev/null 2>&1 && /usr/sbin/groupdel %{cmdgrp} || %nnmmsg "Group %{cmdgrp} could not be deleted."
 fi
-
-
+ 
 %post www
-if ! /usr/bin/id -Gn %{cmdusr} |/bin/grep -q %{nsgrp} ; then 
-	/usr/sbin/usermod -G %{nsgrp} %{cmdusr} >/dev/null 2>&1 
-	%nnmmsg "User %{cmdusr} added to group %{nsgrp} so sending commands to Nagios from the command CGI is possible."
-fi
-cmdgrp=`awk '/^[ \t]*Group[ \t]+[a-zA-Z0-9]+/ {print $2}' /etc/httpd/conf/*.conf`
-if test -z "$cmdgrp"; then
-	cmdgrp=%{cmdgrp}
-fi
 
-if test -f /etc/httpd/conf/httpd.conf; then
-	if ! grep "Include /etc/httpd/(conf.d|*)/nagios.conf" /etc/httpd/conf/httpd.conf > /dev/null; then
-		echo "Include /etc/httpd/conf.d/nagios.conf" >> /etc/httpd/conf/httpd.conf
-		/sbin/service httpd restart
+# If apache is installed, and we can find the apache user, set a shell var
+wwwusr=`awk '/^[ \t]*User[ \t]+[a-zA-Z0-9]+/ {print $2}' /etc/httpd/conf/*.conf`
+if [ "z" == "z$wwwusr" ]; then # otherwise, use the default
+	wwwusr=%{wwwusr}
+fi
+ 
+# if
+if /usr/bin/id -Gn $wwwusr 2>/dev/null | /bin/grep -q %{cmdgrp} > /dev/null 2>&1 ; then
+	: # $wwwusr (default: apache) is already in nagiocmd group
+else
+	pgrp=`/usr/bin/id -gn $wwwusr 2>/dev/null`
+	sgrps=`/usr/bin/id -Gn $wwwusr 2>/dev/null | /bin/sed "s/^$pgrp //;s/ $pgrp //;s/^$pgrp$//;s/ /,/g;"`
+	if [ "z" == "z$sgrps" ] ; then
+		sgrps=%{nsgrp}
+	else
+		sgrps=$sgrps,%{cmdgrp}
 	fi
+	/usr/sbin/usermod -G $sgrps $wwwusr >/dev/null 2>&1
+	%nnmmsg "User $wwwusr added to group %{cmdgrp} so sending commands to Nagios from the command CGI is possible."
 fi
-
 
 %preun www
 if [ $1 = 0 ]; then
@@ -282,10 +295,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/sbin/nagios
 %if %{EMBPERL}
 %{_prefix}/sbin/p1.pl
-%{_prefix}/sbin/mini_epn
 %endif
+%{_prefix}/sbin/mini_epn
 %dir %{_prefix}/lib/nagios/eventhandlers
 %{_prefix}/lib/nagios/eventhandlers/*
+%{_prefix}/lib/nagios/convertcfg
 %dir /etc/nagios
 %defattr(644,root,root)
 %config(noreplace) /etc/nagios/*.cfg
@@ -318,6 +332,20 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sat May 31 2003 Karl DeBisschop <kdebisschop@users.sourceforge.net> (1.1-1)
+- Merge with CVS for 1.1 release
+
+* Fri May 30 2003 Karl DeBisschop <kdebisschop@users.sourceforge.net> (1.0-4)
+- cmdgrp was not always getting created
+- patches for cmd.cgi and history.cgi
+
+* Sat May 24 2003 Karl DeBisschop <kdebisschop@users.sourceforge.net> (1.0-3)
+- patches for doco and PostgreSQL timestamp
+- make sure all files are packaged (otherwise, will not build on RH9)
+
+* Sat May 17 2003 Karl DeBisschop <kdebisschop@users.sourceforge.net> (1.0-2)
+- patch for file descriptor leak
+
 * Fri Oct 04 2002 Karl DeBisschop <kdebisschop@users.sourceforge.net>
 - merge many improvements from Ramiro Morales <rm-rpms@gmx.net>
   (macros for PERF_EXTERNAL and EMBPERL, cleanup pre/post scripts,

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-06-2002
+ * Last Modified:   04-26-2002
  *
  * Description:
  *
@@ -285,21 +285,11 @@ int xodtemplate_process_config_file(char *filename, int options){
 		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n')
 			continue;
 
-#ifndef SLOW_AS_HELL
-		/* faster than a strtok() and strncpy()... */
+		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
 		for(x=0;input[x]!='\x0';x++)
 			if(input[x]==';')
 				break;
 		input[x]='\x0';
-#else
-		/* grab data before comment or newline */
-		temp_ptr=strtok(input,";\r\n");
-		if(temp_ptr==NULL)
-			continue;
-
-		strncpy(input,temp_ptr,sizeof(input)-1);
-		input[sizeof(input)-1]='\x0';
-#endif
 
 		/* strip input */
 		xodtemplate_strip(input);
@@ -312,7 +302,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 		else if(strstr(input,"define ")==input){
 
 			/* get the type of object we're defining... */
-#ifndef SLOW_AS_HELL
 			for(x=7;input[x]!='\x0';x++)
 				if(input[x]!=' ' && input[x]!='\t')
 					break;
@@ -323,23 +312,15 @@ int xodtemplate_process_config_file(char *filename, int options){
 					input[y++]=input[x];
 			        }
 			input[y]='\x0';
-			temp_ptr=input;
-#else
-			temp_ptr=strtok(input," \t");
-			temp_ptr=strtok(NULL," \t{");
 
 			/* make sure an object type is specified... */
-			if(temp_ptr==NULL){
+			if(input[0]=='\x0'){
 #ifdef NSCORE
 				printf("Error: No object type specified in file '%s' on line %d.\n",filename,current_line);
 #endif
 				result=ERROR;
 				break;
 			        }
-
-			strncpy(input,temp_ptr,sizeof(input)-1);
-			input[sizeof(input)-1]='\x0';
-#endif
 
 			/* check validity of object type */
 			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation")){
@@ -1162,8 +1143,11 @@ int xodtemplate_add_object_property(char *input, int options){
 
 
 
+	/* truncate if necessary */
+	if(strlen(input)>MAX_XODTEMPLATE_INPUT_BUFFER)
+		input[MAX_XODTEMPLATE_INPUT_BUFFER-1]='\x0';
+
 	/* get variable name */
-#ifndef SLOW_AS_HELL
 	for(x=0,y=0;input[x]!='\x0';x++){
 		if(input[x]==' ' || input[x]=='\t')
 			break;
@@ -1172,15 +1156,7 @@ int xodtemplate_add_object_property(char *input, int options){
 	        }
 	variable[y]='\x0';
 			
-#else
-	temp_ptr=strtok(input," \t");
-	strncpy(variable,temp_ptr,sizeof(variable)-1);
-	variable[sizeof(variable)-1]='\x0';
-#endif
-
-
 	/* get variable value */
-#ifndef SLOW_AS_HELL
 	if(x>=strlen(input)){
 #ifdef NSCORE
 		printf("Error: NULL variable value in object definition.\n");
@@ -1190,24 +1166,13 @@ int xodtemplate_add_object_property(char *input, int options){
 	for(y=0;input[x]!='\x0';x++)
 		value[y++]=input[x];
 	value[y]='\x0';
-#else
-	temp_ptr=strtok(NULL,"\n");
-	if(temp_ptr==NULL){
-#ifdef NSCORE
-		printf("Error: NULL variable value in object definition.\n");
-#endif
-		return ERROR;
-	        }
-	strncpy(value,temp_ptr,sizeof(value)-1);
-	value[sizeof(value)-1]='\x0';
-#endif
 
 	/*
 	printf("RAW VARIABLE: '%s'\n",variable);
 	printf("RAW VALUE: '%s'\n",value);
 	*/
 
-#ifdef SLOW_AS_HELL
+#ifdef RUN_SLOW_AS_HELL
 	xodtemplate_strip(variable);
 #endif
 	xodtemplate_strip(value);

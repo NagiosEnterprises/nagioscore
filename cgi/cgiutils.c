@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-16-2002
+ * Last Modified: 04-26-2002
  *
  * License:
  *
@@ -1420,7 +1420,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata){
 	printf("Nagios<sup>TM</sup> - <A HREF='http://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n");
 
 	if(current_authdata!=NULL)
-		printf("Logged in as <i>%s</i><BR>\n",(current_authdata->username==NULL)?"?":current_authdata->username);
+		printf("Logged in as <i>%s</i><BR>\n",(!strcmp(current_authdata->username,""))?"?":current_authdata->username);
 
 	get_nagios_process_info();
 

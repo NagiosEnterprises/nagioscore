@@ -150,6 +150,8 @@ int xedtemplate_process_config_file(char *filename, int options){
 	char *temp_ptr;
 	int current_line=0;
 	int result=OK;
+	register int x;
+	register int y;
 
 #ifdef DEBUG0
 	printf("xedtemplate_process_config_file() start\n");
@@ -169,14 +171,11 @@ int xedtemplate_process_config_file(char *filename, int options){
 		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n')
 			continue;
 
-		/* grab data before comment or newline */
-		temp_ptr=strtok(input,";\r\n");
-		if(temp_ptr==NULL)
-			continue;
-		else{
-			strncpy(input,temp_ptr,sizeof(input)-1);
-			input[sizeof(input)-1]='\x0';
-		        }
+		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
+		for(x=0;input[x]!='\x0';x++)
+			if(input[x]==';')
+				break;
+		input[x]='\x0';
 
 		/* strip input */
 		xedtemplate_strip(input);
@@ -189,17 +188,18 @@ int xedtemplate_process_config_file(char *filename, int options){
 		else if(strstr(input,"define ")==input){
 
 			/* get the type of object we're defining... */
-			temp_ptr=strtok(input," \t{");
-			temp_ptr=strtok(NULL," \t{");
+			for(x=7;input[x]!='\x0';x++)
+				if(input[x]!=' ' && input[x]!='\t')
+					break;
+			for(y=0;input[x]!='\x0';x++){
+				if(input[x]==' ' || input[x]=='\t' ||  input[x]=='{')
+					break;
+				else
+					input[y++]=input[x];
+			        }
+			input[y]='\x0';
 
 			/* make sure an object type is specified... */
-			if(temp_ptr==NULL)
-				continue;
-
-			strncpy(input,temp_ptr,sizeof(input)-1);
-			input[sizeof(input)-1]='\x0';
-
-			/* check validity of object type */
 			if(strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo"))
 				continue;
 
@@ -249,18 +249,20 @@ int xedtemplate_process_config_file(char *filename, int options){
 
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
 void xedtemplate_strip(char *buffer){
-	int x;
+	register int x;
+	register int y;
 	char ch;
-	int a,b;
+	register int a;
+	register int b;
 
-	if(buffer==NULL)
+	if(buffer==NULL || buffer[0]=='\x0')
 		return;
 
 	/* strip end of string */
-	x=(int)strlen(buffer);
-	for(;x>=1;x--){
-		if(buffer[x-1]==' ' || buffer[x-1]=='\n' || buffer[x-1]=='\r' || buffer[x-1]=='\t' || buffer[x-1]==13)
-			buffer[x-1]='\x0';
+	x=(int)strlen(buffer)-1;
+	for(;x>=0;x--){
+		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
+			buffer[x]='\x0';
 		else
 			break;
 	        }
@@ -276,9 +278,10 @@ void xedtemplate_strip(char *buffer){
 	        }
 
 	/* strip beginning of string (now end of string) */
-	for(;x>=1;x--){
-		if(buffer[x-1]==' ' || buffer[x-1]=='\n' || buffer[x-1]=='\r' || buffer[x-1]=='\t' || buffer[x-1]==13)
-			buffer[x-1]='\x0';
+	x--;
+	for(;x>=0;x--){
+		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
+			buffer[x]='\x0';
 		else
 			break;
 	        }
@@ -404,24 +407,47 @@ int xedtemplate_add_object_property(char *input){
 	char *temp_ptr;
 	xedtemplate_hostextinfo *temp_hostextinfo;
 	xedtemplate_serviceextinfo *temp_serviceextinfo;
+	register int x;
+	register int y;
 
 #ifdef DEBUG0
 	printf("xedtemplate_add_object_property() start\n");
 #endif
 
-	/* get variable name */
-	temp_ptr=strtok(input," \t");
-	strncpy(variable,temp_ptr,sizeof(variable)-1);
-	variable[sizeof(variable)-1]='\x0';
-	xedtemplate_strip(variable);
+	/* truncate if necessary */
+	if(strlen(input)>MAX_XEDTEMPLATE_INPUT_BUFFER)
+		input[MAX_XEDTEMPLATE_INPUT_BUFFER-1]='\x0';
 
+	/* get variable name */
+	for(x=0,y=0;input[x]!='\x0';x++){
+		if(input[x]==' ' || input[x]=='\t')
+			break;
+		else
+			variable[y++]=input[x];
+	        }
+	variable[y]='\x0';
+			
 	/* get variable value */
-	temp_ptr=strtok(NULL,"\n");
-	if(temp_ptr==NULL)
+	if(x>=strlen(input))
 		return ERROR;
-	strncpy(value,temp_ptr,sizeof(value)-1);
-	value[sizeof(value)-1]='\x0';
+	for(y=0;input[x]!='\x0';x++)
+		value[y++]=input[x];
+	value[y]='\x0';
+
+	/*
+	printf("RAW VARIABLE: '%s'\n",variable);
+	printf("RAW VALUE: '%s'\n",value);
+	*/
+
+#ifdef RUN_SLOW_AS_HELL
+	xedtemplate_strip(variable);
+#endif
 	xedtemplate_strip(value);
+
+	/*
+	printf("STRIPPED VARIABLE: '%s'\n",variable);
+	printf("STRIPPED VALUE: '%s'\n\n",value);
+	*/
 
 	switch(xedtemplate_current_object_type){
 

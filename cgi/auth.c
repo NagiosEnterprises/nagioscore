@@ -3,7 +3,7 @@
  * AUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2002
+ * Last Modified:   04-26-2002
  *
  * License:
  *
@@ -91,7 +91,7 @@ int get_authentication_information(authdata *authinfo){
 	/* grab username from the environment... */
 	temp_ptr=getenv("REMOTE_USER");
 	if(temp_ptr==NULL){
-		authinfo->username="?";
+		authinfo->username="";
 		authinfo->authenticated=FALSE;
 	        }
 	else{
@@ -100,10 +100,8 @@ int get_authentication_information(authdata *authinfo){
 			authinfo->username="";
 		else
 			strcpy(authinfo->username,temp_ptr);
-		if(!strcmp(authinfo->username,"")){
-			authinfo->username="?";
+		if(!strcmp(authinfo->username,""))
 			authinfo->authenticated=FALSE;
-		        }
 		else
 			authinfo->authenticated=TRUE;
 	        }

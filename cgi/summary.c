@@ -41,6 +41,7 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern host *host_list;
 extern hostgroup *hostgroup_list;
 extern service *service_list;
+extern servicegroup *servicegroup_list;
 
 extern int       log_rotation_method;
 
@@ -57,6 +58,7 @@ extern int       log_rotation_method;
 #define REPORT_HOSTGROUP_ALERT_TOTALS  4 
 #define REPORT_HOST_ALERT_TOTALS       5
 #define REPORT_SERVICE_ALERT_TOTALS    6
+#define REPORT_SERVICEGROUP_ALERT_TOTALS 7
 
 /* standard report types */
 #define SREPORT_NONE                   0
@@ -135,6 +137,8 @@ void display_recent_alerts(void);
 void display_alert_totals(void);
 void display_hostgroup_alert_totals(void);
 void display_specific_hostgroup_alert_totals(hostgroup *);
+void display_servicegroup_alert_totals(void);
+void display_specific_servicegroup_alert_totals(servicegroup *);
 void display_host_alert_totals(void);
 void display_specific_host_alert_totals(host *);
 void display_service_alert_totals(void);
@@ -176,11 +180,14 @@ int host_states=AE_HOST_UP+AE_HOST_DOWN+AE_HOST_UNREACHABLE;
 int service_states=AE_SERVICE_OK+AE_SERVICE_WARNING+AE_SERVICE_UNKNOWN+AE_SERVICE_CRITICAL;
 
 int show_all_hostgroups=TRUE;
+int show_all_servicegroups=TRUE;
 int show_all_hosts=TRUE;
 
 char *target_hostgroup_name="";
+char *target_servicegroup_name="";
 char *target_host_name="";
 hostgroup *target_hostgroup=NULL;
+servicegroup *target_servicegroup=NULL;
 host *target_host=NULL;
 
 int earliest_archive=0;
@@ -209,6 +216,7 @@ int main(int argc, char **argv){
 	time_t report_end_time;
 	int days, hours, minutes, seconds;
 	hostgroup *temp_hostgroup;
+	servicegroup *temp_servicegroup;
 	time_t t3;
 	time_t current_time;
 	struct tm *t;
@@ -292,13 +300,17 @@ int main(int argc, char **argv){
 			printf("<DIV ALIGN=CENTER CLASS='dataTitle'>\n");
 			if(display_type==REPORT_TOP_ALERTS)
 				printf("Top Alert Producers");
-			else if(display_type==REPORT_ALERT_TOTALS || display_type==REPORT_HOSTGROUP_ALERT_TOTALS || display_type==REPORT_HOST_ALERT_TOTALS || display_type==REPORT_SERVICE_ALERT_TOTALS)
+			else if(display_type==REPORT_ALERT_TOTALS || display_type==REPORT_HOSTGROUP_ALERT_TOTALS || display_type==REPORT_SERVICEGROUP_ALERT_TOTALS || display_type==REPORT_HOST_ALERT_TOTALS || display_type==REPORT_SERVICE_ALERT_TOTALS)
 				printf("Alert Totals");
 			else
 				printf("Most Recent Alerts");
 
 			if(show_all_hostgroups==FALSE)
 				printf(" For Hostgroup '%s'",target_hostgroup_name);
+			else if(show_all_servicegroups==FALSE)
+				printf(" For Servicegroup '%s'",target_servicegroup_name);
+			else if(show_all_hosts==FALSE)
+				printf(" For Host '%s'",target_host_name);
 
 			printf("</DIV>\n");
 
@@ -388,16 +400,6 @@ int main(int argc, char **argv){
 			printf("</tr>\n");
 
 			printf("<tr>\n");
-			printf("<td valign=top align=left class='optBoxItem'>Hostgroup:</td>\n");
-			printf("<td valign=top align=left class='optBoxValue'>\n");
-			if(show_all_hostgroups==TRUE)
-				printf("All Hostgroups");
-			else
-				printf("%s",target_hostgroup_name);
-			printf("</td>\n");
-			printf("</tr>\n");
-
-			printf("<tr>\n");
 			printf("<td valign=top align=left colspan=2 class='optBoxItem'>\n");
 			printf("<form action='%s' method='GET'>\n",SUMMARY_CGI);
 			printf("<input type='submit' name='btnSubmit' value='Generate New Report'>\n");
@@ -417,6 +419,8 @@ int main(int argc, char **argv){
 				display_context_help(CONTEXTHELP_SUMMARY_HOST_ALERT_TOTALS);
 			else if(display_type==REPORT_SERVICE_ALERT_TOTALS)
 				display_context_help(CONTEXTHELP_SUMMARY_SERVICE_ALERT_TOTALS);
+			else if(display_type==REPORT_SERVICEGROUP_ALERT_TOTALS)
+				display_context_help(CONTEXTHELP_SUMMARY_SERVICEGROUP_ALERT_TOTALS);
 			else
 				display_context_help(CONTEXTHELP_SUMMARY_RECENT_ALERTS);
 			printf("</td></tr>\n");
@@ -505,6 +509,7 @@ int main(int argc, char **argv){
 		printf("<option value=%d>Alert Totals\n",REPORT_ALERT_TOTALS);
 		printf("<option value=%d>Alert Totals By Hostgroup\n",REPORT_HOSTGROUP_ALERT_TOTALS);
 		printf("<option value=%d>Alert Totals By Host\n",REPORT_HOST_ALERT_TOTALS);
+		printf("<option value=%d>Alert Totals By Servicegroup\n",REPORT_SERVICEGROUP_ALERT_TOTALS);
 		printf("<option value=%d>Alert Totals By Service\n",REPORT_SERVICE_ALERT_TOTALS);
 		printf("<option value=%d>Top Alert Producers\n",REPORT_TOP_ALERTS);
 		printf("</select>\n");
@@ -529,7 +534,7 @@ int main(int argc, char **argv){
 		printf("</td>\n");
 		printf("</tr>\n");
 
-		printf("<tr><td colspan=2 valign=top calss='reportSelectSubTitle'><i>If Custom Report Period...</i></td></tr>\n");
+		printf("<tr><td valign=top class='reportSelectSubTitle'>If Custom Report Period...</td></tr>\n");
 
 		printf("<tr>");
 		printf("<td valign=top class='reportSelectSubTitle'>Start Date (Inclusive):</td>\n");
@@ -589,6 +594,16 @@ int main(int argc, char **argv){
 		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 			if(is_authorized_for_hostgroup(temp_hostgroup,&current_authdata)==TRUE)
 				printf("<option value='%s'>%s\n",temp_hostgroup->group_name,temp_hostgroup->group_name);
+		        }
+		printf("</select>\n");
+		printf("</td></tr>\n");
+
+		printf("<tr><td class='reportSelectSubTitle' valign=center>Limit To Servicegroup:</td><td align=left valign=center class='reportSelectItem'>\n");
+		printf("<select name='servicegroup'>\n");
+		printf("<option value='all'>** ALL SERVICEGROUPS **\n");
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE)
+				printf("<option value='%s'>%s\n",temp_servicegroup->group_name,temp_servicegroup->group_name);
 		        }
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -1131,6 +1146,28 @@ int process_cgivars(void){
 			        }
 		        }
 
+		/* we found the servicegroup argument */
+		else if(!strcmp(variables[x],"servicegroup")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			target_servicegroup_name=(char *)malloc(strlen(variables[x])+1);
+			if(target_servicegroup_name==NULL)
+				target_servicegroup_name="";
+			else
+				strcpy(target_servicegroup_name,variables[x]);
+
+			if(!strcmp(target_servicegroup_name,"all"))
+				show_all_servicegroups=TRUE;
+			else{
+				show_all_servicegroups=FALSE;
+				target_servicegroup=find_servicegroup(target_servicegroup_name);
+			        }
+		        }
+
 		/* we found the host argument */
 		else if(!strcmp(variables[x],"host")){
 			x++;
@@ -1496,9 +1533,19 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 			return;
 	        }
 
-	/* check authorization */
+	/* check servicegroup math (valid filter for all reports) */
 	if(event_type==AE_SERVICE_ALERT){
 		temp_service=find_service(host_name,svc_description);
+		if(show_all_servicegroups==FALSE && is_service_member_of_servicegroup(target_servicegroup,temp_service)==FALSE)
+			return;
+	         }
+	else{
+		if(show_all_servicegroups==FALSE && is_host_member_of_servicegroup(target_servicegroup,temp_host)==FALSE)
+			return;
+	         }
+
+	/* check authorization */
+	if(event_type==AE_SERVICE_ALERT){
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			return;
 	        }
@@ -1651,6 +1698,10 @@ void display_report(void){
 
 	case REPORT_HOST_ALERT_TOTALS:
 		display_host_alert_totals();
+		break;
+
+	case REPORT_SERVICEGROUP_ALERT_TOTALS:
+		display_servicegroup_alert_totals();
 		break;
 
 	case REPORT_SERVICE_ALERT_TOTALS:
@@ -1968,10 +2019,6 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp){
 		if(is_host_member_of_hostgroup(grp,temp_host)==FALSE)
 			continue;
 
-		/* make sure the user is authorized to view this host */
-		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
-			continue;
-
 		/* host alerts */
 		if(temp_event->event_type==AE_HOST_ALERT){
 			if(temp_event->state_type==AE_SOFT_STATE){
@@ -2192,6 +2239,181 @@ void display_specific_host_alert_totals(host *hst){
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<TR><TD COLSPAN=2 ALIGN=CENTER CLASS='dataSubTitle'>Host '%s' (%s)</TD></TR>\n",hst->name,hst->alias);
+
+	printf("<TR>\n");
+
+	if(alert_types & AE_HOST_ALERT){
+
+		printf("<TD ALIGN=CENTER VALIGN=TOP>\n");
+
+		printf("<DIV ALIGN=CENTER CLASS='dataSubTitle'>Host Alerts</DIV>\n");
+
+		printf("<DIV ALIGN=CENTER>\n");
+		printf("<TABLE BORDER=0 CLASS='data'>\n");
+		printf("<TR><TH CLASS='data'>State</TH><TH CLASS='data'>Soft Alerts</TH><TH CLASS='data'>Hard Alerts</TH><TH CLASS='data'>Total Alerts</TH></TR>\n");
+
+		printf("<TR CLASS='dataOdd'><TD CLASS='hostUP'>UP</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD></TR>\n",soft_host_up_alerts,hard_host_up_alerts,soft_host_up_alerts+hard_host_up_alerts);
+		printf("<TR CLASS='dataEven'><TD CLASS='hostDOWN'>DOWN</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD></TR>\n",soft_host_down_alerts,hard_host_down_alerts,soft_host_down_alerts+hard_host_down_alerts);
+		printf("<TR CLASS='dataOdd'><TD CLASS='hostUNREACHABLE'>UNREACHABLE</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD></TR>\n",soft_host_unreachable_alerts,hard_host_unreachable_alerts,soft_host_unreachable_alerts+hard_host_unreachable_alerts);
+		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>All States</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'><B>%d</B></TD></TR>\n",soft_host_up_alerts+soft_host_down_alerts+soft_host_unreachable_alerts,hard_host_up_alerts+hard_host_down_alerts+hard_host_unreachable_alerts,soft_host_up_alerts+hard_host_up_alerts+soft_host_down_alerts+hard_host_down_alerts+soft_host_unreachable_alerts+hard_host_unreachable_alerts);
+
+		printf("</TABLE>\n");
+		printf("</DIV>\n");
+
+		printf("</TD>\n");
+	        }
+
+	if(alert_types & AE_SERVICE_ALERT){
+
+		printf("<TD ALIGN=CENTER VALIGN=TOP>\n");
+
+		printf("<DIV ALIGN=CENTER CLASS='dataSubTitle'>Service Alerts</DIV>\n");
+
+		printf("<DIV ALIGN=CENTER>\n");
+		printf("<TABLE BORDER=0 CLASS='data'>\n");
+		printf("<TR><TH CLASS='data'>State</TH><TH CLASS='data'>Soft Alerts</TH><TH CLASS='data'>Hard Alerts</TH><TH CLASS='data'>Total Alerts</TH></TR>\n");
+
+		printf("<TR CLASS='dataOdd'><TD CLASS='serviceOK'>OK</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD></TR>\n",soft_service_ok_alerts,hard_service_ok_alerts,soft_service_ok_alerts+hard_service_ok_alerts);
+		printf("<TR CLASS='dataEven'><TD CLASS='serviceWARNING'>WARNING</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD></TR>\n",soft_service_warning_alerts,hard_service_warning_alerts,soft_service_warning_alerts+hard_service_warning_alerts);
+		printf("<TR CLASS='dataOdd'><TD CLASS='serviceUNKNOWN'>UNKNOWN</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD></TR>\n",soft_service_unknown_alerts,hard_service_unknown_alerts,soft_service_unknown_alerts+hard_service_unknown_alerts);
+		printf("<TR CLASS='dataEven'><TD CLASS='serviceCRITICAL'>CRITICAL</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD><TD CLASS='dataEven'>%d</TD></TR>\n",soft_service_critical_alerts,hard_service_critical_alerts,soft_service_critical_alerts+hard_service_critical_alerts);
+		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>All States</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'>%d</TD><TD CLASS='dataOdd'><B>%d</B></TD></TR>\n",soft_service_ok_alerts+soft_service_warning_alerts+soft_service_unknown_alerts+soft_service_critical_alerts,hard_service_ok_alerts+hard_service_warning_alerts+hard_service_unknown_alerts+hard_service_critical_alerts,soft_service_ok_alerts+soft_service_warning_alerts+soft_service_unknown_alerts+soft_service_critical_alerts+hard_service_ok_alerts+hard_service_warning_alerts+hard_service_unknown_alerts+hard_service_critical_alerts);
+
+		printf("</TABLE>\n");
+		printf("</DIV>\n");
+
+		printf("</TD>\n");
+	        }
+
+	printf("</TR>\n");
+
+	printf("</TABLE>\n");
+	printf("</TD></TR></TABLE>\n");
+
+	return;
+        }
+
+
+/* displays servicegroup alert totals  */
+void display_servicegroup_alert_totals(void){
+	servicegroup *temp_servicegroup;
+
+	/**************************/
+	/**** SERVICEGROUP TOTALS ****/
+	/**************************/
+
+	printf("<BR>\n");
+
+	printf("<DIV ALIGN=CENTER>\n");
+	printf("<DIV ALIGN=CENTER CLASS='dataSubTitle'>Totals By Servicegroup</DIV>\n");
+
+	if(show_all_servicegroups==FALSE)
+		display_specific_servicegroup_alert_totals(target_servicegroup);
+	else{
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next)
+			display_specific_servicegroup_alert_totals(temp_servicegroup);
+	        }
+
+	printf("</DIV>\n");
+	
+	return;
+        }
+
+
+/* displays alert totals for a specific servicegroup */
+void display_specific_servicegroup_alert_totals(servicegroup *grp){
+	int hard_host_up_alerts=0;
+	int soft_host_up_alerts=0;
+	int hard_host_down_alerts=0;
+	int soft_host_down_alerts=0;
+	int hard_host_unreachable_alerts=0;
+	int soft_host_unreachable_alerts=0;
+	int hard_service_ok_alerts=0;
+	int soft_service_ok_alerts=0;
+	int hard_service_warning_alerts=0;
+	int soft_service_warning_alerts=0;
+	int hard_service_unknown_alerts=0;
+	int soft_service_unknown_alerts=0;
+	int hard_service_critical_alerts=0;
+	int soft_service_critical_alerts=0;
+	archived_event *temp_event;
+	host *temp_host;
+	service *temp_service;
+
+	if(grp==NULL)
+		return;
+
+	/* make sure the user is authorized to view this servicegroup */
+	if(is_authorized_for_servicegroup(grp,&current_authdata)==FALSE)
+		return;
+
+	/* process all events */
+	for(temp_event=event_list;temp_event!=NULL;temp_event=temp_event->next){
+
+		if(temp_event->event_type==AE_HOST_ALERT){
+
+			temp_host=find_host(temp_event->host_name);
+			if(is_host_member_of_servicegroup(grp,temp_host)==FALSE)
+				continue;
+		        }
+		else{
+
+			temp_service=find_service(temp_event->host_name,temp_event->service_description);
+			if(is_service_member_of_servicegroup(grp,temp_service)==FALSE)
+				continue;
+		        }
+
+		/* host alerts */
+		if(temp_event->event_type==AE_HOST_ALERT){
+			if(temp_event->state_type==AE_SOFT_STATE){
+				if(temp_event->entry_type==AE_HOST_UP)
+					soft_host_up_alerts++;
+				else if(temp_event->entry_type==AE_HOST_DOWN)
+					soft_host_down_alerts++;
+				else if(temp_event->entry_type==AE_HOST_UNREACHABLE)
+					soft_host_unreachable_alerts++;
+			        }
+			else{
+				if(temp_event->entry_type==AE_HOST_UP)
+					hard_host_up_alerts++;
+				else if(temp_event->entry_type==AE_HOST_DOWN)
+					hard_host_down_alerts++;
+				else if(temp_event->entry_type==AE_HOST_UNREACHABLE)
+					hard_host_unreachable_alerts++;
+			        }
+		        }
+
+		/* service alerts */
+		else{
+			if(temp_event->state_type==AE_SOFT_STATE){
+				if(temp_event->entry_type==AE_SERVICE_OK)
+					soft_service_ok_alerts++;
+				else if(temp_event->entry_type==AE_SERVICE_WARNING)
+					soft_service_warning_alerts++;
+				else if(temp_event->entry_type==AE_SERVICE_UNKNOWN)
+					soft_service_unknown_alerts++;
+				else if(temp_event->entry_type==AE_SERVICE_CRITICAL)
+					soft_service_critical_alerts++;
+			        }
+			else{
+				if(temp_event->entry_type==AE_SERVICE_OK)
+					hard_service_ok_alerts++;
+				else if(temp_event->entry_type==AE_SERVICE_WARNING)
+					hard_service_warning_alerts++;
+				else if(temp_event->entry_type==AE_SERVICE_UNKNOWN)
+					hard_service_unknown_alerts++;
+				else if(temp_event->entry_type==AE_SERVICE_CRITICAL)
+					hard_service_critical_alerts++;
+			        }
+		        }
+	        }
+
+
+	printf("<BR>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0 CLASS='reportDataEven'><TR><TD>\n");
+	printf("<TABLE BORDER=0>\n");
+
+	printf("<TR><TD COLSPAN=2 ALIGN=CENTER CLASS='dataSubTitle'>Servicegroup '%s' (%s)</TD></TR>\n",grp->group_name,grp->alias);
 
 	printf("<TR>\n");
 

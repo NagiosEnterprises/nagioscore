@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2003
+ * Last Modified: 07-22-2003
  *
  * License:
  * 
@@ -131,6 +131,9 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
 
 extern int     log_rotation_method;
+
+extern host *host_list;
+extern service *service_list;
 
 
 
@@ -683,7 +686,7 @@ int main(int argc, char **argv){
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 
-			printf("<tr><td class='reportSelectSubTitle' valign=center>Host</td>\n");
+			printf("<tr><td class='reportSelectSubTitle' valign=center>Host:</td>\n");
 			printf("<td class='reportSelectItem' valing=center>\n");
 			printf("<select name='host'>\n");
 
@@ -802,7 +805,7 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td colspan=2 valign=top calss='reportSelectSubTitle'><i>If Custom Report Period...</i></td></tr>\n");
+			printf("<tr><td valign=top calss='reportSelectSubTitle'>If Custom Report Period...</td></tr>\n");
 
 			printf("<tr>");
 			printf("<td valign=top class='reportSelectSubTitle'>Start Date (Inclusive):</td>\n");
@@ -939,8 +942,13 @@ int main(int argc, char **argv){
 			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 
-			printf("<tr><td class='reportSelectSubTitle'><input type='radio' name='input' value='gethost'></td><td class='reportSelectItem'>Host</td></tr>\n");
-			printf("<tr><td class='reportSelectSubTitle'><input type='radio' name='input' value='getservice'></td><td class='reportSelectItem'>Service</td></tr>\n");
+			printf("<tr><td class='reportSelectSubTitle' align=right>Type:</td>\n");
+			printf("<td class='reportSelectItem'>\n");
+			printf("<select name='input'>\n");
+			printf("<option value=gethost>Host\n");
+			printf("<option value=getservice>Service\n");
+			printf("</select>\n");
+			printf("</td></tr>\n");
 
 			printf("<tr><td></td><td class='reportSelectItem'>\n");
 			printf("<input type='submit' value='Continue to Step 2'>\n");

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-11-2003
+ * Last Modified:   07-22-2003
  *
  * License:
  *
@@ -5401,6 +5401,22 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst){
 
 	for(temp_hostgroupmember=group->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
 		if(!strcmp(temp_hostgroupmember->host_name,hst->name))
+			return TRUE;
+	        }
+
+	return FALSE;
+        }
+
+
+/*  tests wether a host is a member of a particular servicegroup */
+int is_host_member_of_servicegroup(servicegroup *group, host *hst){
+	servicegroupmember *temp_servicegroupmember;
+
+	if(group==NULL || hst==NULL)
+		return FALSE;
+
+	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+		if(!strcmp(temp_servicegroupmember->host_name,hst->name))
 			return TRUE;
 	        }
 

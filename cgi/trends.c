@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2003
+ * Last Modified: 07-22-2003
  *
  * License:
  * 
@@ -223,7 +223,8 @@ time_t latest_time;
 int earliest_state=AS_NO_DATA;
 int latest_state=AS_NO_DATA;
 
-int initial_assumed_state=AS_NO_DATA;
+int initial_assumed_host_state=AS_NO_DATA;
+int initial_assumed_service_state=AS_NO_DATA;
 
 unsigned long time_up=0L;
 unsigned long time_down=0L;
@@ -377,16 +378,16 @@ int main(int argc, char **argv){
 			printf("<TR><TD CLASS='linkBox'>\n");
 
 			if(display_type==DISPLAY_HOST_TRENDS){
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 		                }
 			else{
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",AVAIL_CGI,url_encode(host_name));
-				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",backtrack_archives);
+				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
@@ -460,21 +461,24 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n");
+			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed %s state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>");
-			printf("<select name='initialassumedstate'>\n");
-			printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_state==AS_NO_DATA)?"SELECTED":"");
-			printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_state==AS_CURRENT_STATE)?"SELECTED":"");
+			printf("<input type='hidden' name='initialassumed%sstate' value='%d'>",(display_type==DISPLAY_HOST_TRENDS)?"service":"host",(display_type==DISPLAY_HOST_TRENDS)?initial_assumed_service_state:initial_assumed_host_state);
+			printf("<select name='initialassumed%sstate'>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
 			if(display_type==DISPLAY_HOST_TRENDS){
-				printf("<option value=%d %s>Host Up\n",AS_HOST_UP,(initial_assumed_state==AS_HOST_UP)?"SELECTED":"");
-				printf("<option value=%d %s>Host Down\n",AS_HOST_DOWN,(initial_assumed_state==AS_HOST_DOWN)?"SELECTED":"");
-				printf("<option value=%d %s>Host Unreachable\n",AS_HOST_UNREACHABLE,(initial_assumed_state==AS_HOST_UNREACHABLE)?"SELECTED":"");
+				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_host_state==AS_NO_DATA)?"SELECTED":"");
+				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_host_state==AS_CURRENT_STATE)?"SELECTED":"");
+				printf("<option value=%d %s>Host Up\n",AS_HOST_UP,(initial_assumed_host_state==AS_HOST_UP)?"SELECTED":"");
+				printf("<option value=%d %s>Host Down\n",AS_HOST_DOWN,(initial_assumed_host_state==AS_HOST_DOWN)?"SELECTED":"");
+				printf("<option value=%d %s>Host Unreachable\n",AS_HOST_UNREACHABLE,(initial_assumed_host_state==AS_HOST_UNREACHABLE)?"SELECTED":"");
 			        }
 			else{
-				printf("<option value=%d %s>Service Ok\n",AS_SVC_OK,(initial_assumed_state==AS_SVC_OK)?"SELECTED":"");
-				printf("<option value=%d %s>Service Warning\n",AS_SVC_WARNING,(initial_assumed_state==AS_SVC_WARNING)?"SELECTED":"");
-				printf("<option value=%d %s>Service Unknown\n",AS_SVC_UNKNOWN,(initial_assumed_state==AS_SVC_UNKNOWN)?"SELECTED":"");
-				printf("<option value=%d %s>Service Critical\n",AS_SVC_CRITICAL,(initial_assumed_state==AS_SVC_CRITICAL)?"SELECTED":"");
+				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_service_state==AS_NO_DATA)?"SELECTED":"");
+				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_service_state==AS_CURRENT_STATE)?"SELECTED":"");
+				printf("<option value=%d %s>Service Ok\n",AS_SVC_OK,(initial_assumed_service_state==AS_SVC_OK)?"SELECTED":"");
+				printf("<option value=%d %s>Service Warning\n",AS_SVC_WARNING,(initial_assumed_service_state==AS_SVC_WARNING)?"SELECTED":"");
+				printf("<option value=%d %s>Service Unknown\n",AS_SVC_UNKNOWN,(initial_assumed_service_state==AS_SVC_UNKNOWN)?"SELECTED":"");
+				printf("<option value=%d %s>Service Critical\n",AS_SVC_CRITICAL,(initial_assumed_service_state==AS_SVC_CRITICAL)?"SELECTED":"");
 			        }
 			printf("</select>\n");
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
@@ -725,7 +729,8 @@ int main(int argc, char **argv){
 			printf("<DIV ALIGN=CENTER>\n");
 			printf("<IMG SRC='%s?createimage&t1=%lu&t2=%lu",TRENDS_CGI,(unsigned long)t1,(unsigned long)t2);
 			printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
-			printf("&initialassumedstate=%d",initial_assumed_state);
+			printf("&initialassumedhoststate=%d",initial_assumed_host_state);
+			printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 			printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
 			printf("&host=%s",url_encode(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
@@ -790,7 +795,7 @@ int main(int argc, char **argv){
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 
-			printf("<tr><td class='reportSelectSubTitle' valign=center>Host</td>\n");
+			printf("<tr><td class='reportSelectSubTitle' valign=center>Host:</td>\n");
 			printf("<td class='reportSelectItem' valing=center>\n");
 			printf("<select name='host'>\n");
 
@@ -909,7 +914,7 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td colspan=2 valign=top calss='reportSelectSubTitle'><i>If Custom Report Period...</i></td></tr>\n");
+			printf("<tr><td valign=top class='reportSelectSubTitle'>If Custom Report Period...</td></tr>\n");
 
 			printf("<tr>");
 			printf("<td valign=top class='reportSelectSubTitle'>Start Date (Inclusive):</td>\n");
@@ -981,15 +986,18 @@ int main(int argc, char **argv){
 
 			printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed State:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
-			printf("<select name='initialassumedstate'>\n");
-			printf("<option value=%d>Unspecified\n",AS_NO_DATA);
-			printf("<option value=%d>Current State\n",AS_CURRENT_STATE);
 			if(display_type==DISPLAY_HOST_TRENDS){
+				printf("<select name='initialassumedhoststate'>\n");
+				printf("<option value=%d>Unspecified\n",AS_NO_DATA);
+				printf("<option value=%d>Current State\n",AS_CURRENT_STATE);
 				printf("<option value=%d>Host Up\n",AS_HOST_UP);
 				printf("<option value=%d>Host Down\n",AS_HOST_DOWN);
 				printf("<option value=%d>Host Unreachable\n",AS_HOST_UNREACHABLE);
 			        }
 			else{
+				printf("<select name='initialassumedservicestate'>\n");
+				printf("<option value=%d>Unspecified\n",AS_NO_DATA);
+				printf("<option value=%d>Current State\n",AS_CURRENT_STATE);
 				printf("<option value=%d>Service Ok\n",AS_SVC_OK);
 				printf("<option value=%d>Service Warning\n",AS_SVC_WARNING);
 				printf("<option value=%d>Service Unknown\n",AS_SVC_UNKNOWN);
@@ -1031,8 +1039,13 @@ int main(int argc, char **argv){
 			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
 
-			printf("<tr><td class='reportSelectSubTitle'><input type='radio' name='input' value='gethost'></td><td class='reportSelectItem'>Host</td></tr>\n");
-			printf("<tr><td class='reportSelectSubTitle'><input type='radio' name='input' value='getservice'></td><td class='reportSelectItem'>Service</td></tr>\n");
+			printf("<tr><td class='reportSelectSubTitle' align=right>Type:</td>\n");
+			printf("<td class='reportSelectItem'>\n");
+			printf("<select name='input'>\n");
+			printf("<option value=gethost>Host\n");
+			printf("<option value=getservice>Service\n");
+			printf("</select>\n");
+			printf("</td></tr>\n");
 
 			printf("<tr><td></td><td class='reportSelectItem'>\n");
 			printf("<input type='submit' value='Continue to Step 2'>\n");
@@ -1235,15 +1248,26 @@ int process_cgivars(void){
 				assume_initial_states=FALSE;
 		        }
 
-		/* we found the assume initial state ok option */
-		else if(!strcmp(variables[x],"initialassumedstate")){
+		/* we found the initial assumed host state option */
+		else if(!strcmp(variables[x],"initialassumedhoststate")){
 			x++;
 			if(variables[x]==NULL){
 				error=TRUE;
 				break;
 			        }
 
-			initial_assumed_state=atoi(variables[x]);
+			initial_assumed_host_state=atoi(variables[x]);
+		        }
+
+		/* we found the initial assumed service state option */
+		else if(!strcmp(variables[x],"initialassumedservicestate")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			initial_assumed_service_state=atoi(variables[x]);
 		        }
 
 		/* we found the assume state retention option */
@@ -1657,35 +1681,35 @@ void graph_all_trend_data(void){
 	/* INSERT FIRST ASSUMED STATE (IF WE CAN) */
 	/******************************************/
 
-	if(initial_assumed_state!=AS_NO_DATA){
+	if((display_type==DISPLAY_HOST_TRENDS && initial_assumed_host_state!=AS_NO_DATA) || (display_type==DISPLAY_SERVICE_TRENDS && initial_assumed_service_state!=AS_NO_DATA)){
 
 		/* see if its okay to assume initial state for this subject */
 		error=FALSE;
 		if(display_type==DISPLAY_SERVICE_TRENDS){
-			if(initial_assumed_state!=AS_SVC_OK && initial_assumed_state!=AS_SVC_WARNING && initial_assumed_state!=AS_SVC_UNKNOWN && initial_assumed_state!=AS_SVC_CRITICAL && initial_assumed_state!=AS_CURRENT_STATE)
+			if(initial_assumed_service_state!=AS_SVC_OK && initial_assumed_service_state!=AS_SVC_WARNING && initial_assumed_service_state!=AS_SVC_UNKNOWN && initial_assumed_service_state!=AS_SVC_CRITICAL && initial_assumed_service_state!=AS_CURRENT_STATE)
 				error=TRUE;
-			if(initial_assumed_state==AS_CURRENT_STATE && svcstatus==NULL)
+			if(initial_assumed_service_state==AS_CURRENT_STATE && svcstatus==NULL)
 				error=TRUE;
 		        }
 		else{
-			if(initial_assumed_state!=AS_HOST_UP && initial_assumed_state!=AS_HOST_DOWN && initial_assumed_state!=AS_HOST_UNREACHABLE && initial_assumed_state!=AS_CURRENT_STATE)
+			if(initial_assumed_host_state!=AS_HOST_UP && initial_assumed_host_state!=AS_HOST_DOWN && initial_assumed_host_state!=AS_HOST_UNREACHABLE && initial_assumed_host_state!=AS_CURRENT_STATE)
 				error=TRUE;
-			if(initial_assumed_state==AS_CURRENT_STATE && hststatus==NULL)
+			if(initial_assumed_host_state==AS_CURRENT_STATE && hststatus==NULL)
 				error=TRUE;
 		        }
 
 		/* get the current state if applicable */
-		if(initial_assumed_state==AS_CURRENT_STATE && error==FALSE){
+		if(((display_type==DISPLAY_HOST_TRENDS && initial_assumed_host_state==AS_CURRENT_STATE) || (display_type==DISPLAY_SERVICE_TRENDS && initial_assumed_service_state==AS_CURRENT_STATE)) && error==FALSE){
 			if(display_type==DISPLAY_HOST_TRENDS){
 				switch(hststatus->status){
 				case HOST_DOWN:
-					initial_assumed_state=AS_HOST_DOWN;
+					initial_assumed_host_state=AS_HOST_DOWN;
 					break;
 				case HOST_UNREACHABLE:
-					initial_assumed_state=AS_HOST_UNREACHABLE;
+					initial_assumed_host_state=AS_HOST_UNREACHABLE;
 					break;
 				case HOST_UP:
-					initial_assumed_state=AS_HOST_UP;
+					initial_assumed_host_state=AS_HOST_UP;
 					break;
 				default:
 					error=TRUE;
@@ -1695,16 +1719,16 @@ void graph_all_trend_data(void){
 			else{
 				switch(svcstatus->status){
 				case SERVICE_OK:
-					initial_assumed_state=AS_SVC_OK;
+					initial_assumed_service_state=AS_SVC_OK;
 					break;
 				case SERVICE_WARNING:
-					initial_assumed_state=AS_SVC_WARNING;
+					initial_assumed_service_state=AS_SVC_WARNING;
 					break;
 				case SERVICE_UNKNOWN:
-					initial_assumed_state=AS_SVC_UNKNOWN;
+					initial_assumed_service_state=AS_SVC_UNKNOWN;
 					break;
 				case SERVICE_CRITICAL:
-					initial_assumed_state=AS_SVC_CRITICAL;
+					initial_assumed_service_state=AS_SVC_CRITICAL;
 					break;
 				default:
 					error=TRUE;
@@ -1724,9 +1748,9 @@ void graph_all_trend_data(void){
 				initial_assumed_time=as_list->time_stamp-1;
 			
 			if(display_type==DISPLAY_HOST_TRENDS)
-				add_archived_state(initial_assumed_state,initial_assumed_time,"First Host State Assumed (Faked Log Entry)");
+				add_archived_state(initial_assumed_host_state,initial_assumed_time,"First Host State Assumed (Faked Log Entry)");
 			else
-				add_archived_state(initial_assumed_state,initial_assumed_time,"First Service State Assumed (Faked Log Entry)");
+				add_archived_state(initial_assumed_service_state,initial_assumed_time,"First Service State Assumed (Faked Log Entry)");
 		        }
 	        }
 
@@ -2093,7 +2117,8 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 		if(display_type==DISPLAY_SERVICE_TRENDS)
 			printf("&service=%s",url_encode(svc_description));
 		printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"on":"off");
-		printf("&initialassumedstate=%d",initial_assumed_state);
+		printf("&initialassumedhoststate=%d",initial_assumed_host_state);
+		printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 		printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"on":"off");
 		if(backtrack_archives>0)
 			printf("&backtrack=%d",backtrack_archives);

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-16-2003
+ * Last Modified:   07-22-2003
  *
  * License:
  *
@@ -590,6 +590,7 @@ int is_host_immediate_child_of_host(host *,host *);	                /* checks if
 int is_host_primary_immediate_child_of_host(host *,host *);             /* checsk if a host is an immediate child (and primary child) of another host */
 int is_host_immediate_parent_of_host(host *,host *);	                /* checks if a host is an immediate child of another host */	
 int is_host_member_of_hostgroup(hostgroup *,host *);		        /* tests whether or not a host is a member of a specific hostgroup */
+int is_host_member_of_servicegroup(servicegroup *,host *);	        /* tests whether or not a service is a member of a specific servicegroup */
 int is_service_member_of_servicegroup(servicegroup *,service *);	/* tests whether or not a service is a member of a specific servicegroup */
 int is_contact_member_of_contactgroup(contactgroup *, contact *);	/* tests whether or not a contact is a member of a specific contact group */
 int is_contact_for_hostgroup(hostgroup *,contact *);	                /* tests whether or not a contact is a member of a specific hostgroup */

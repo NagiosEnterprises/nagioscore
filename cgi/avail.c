@@ -573,8 +573,10 @@ int main(int argc, char **argv){
 		end_day=t->tm_mday;
 		end_year=t->tm_year+1900;
 
-		printf("<DIV ALIGN=CENTER CLASS='dateSelectTitle'>Step 3: Select Report Options</DIV>\n");
-		printf("<DIV ALIGN=CENTER>\n");
+		printf("<P><DIV ALIGN=CENTER CLASS='dateSelectTitle'>Step 3: Select Report Options</DIV></p>\n");
+
+		printf("<P><DIV ALIGN=CENTER>\n");
+
 	        printf("<form method=\"get\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<input type='hidden' name='show_log_entries' value=''>\n");
 		if(display_type==DISPLAY_HOSTGROUP_AVAIL)
@@ -605,7 +607,7 @@ int main(int argc, char **argv){
 		printf("</td>\n");
 		printf("</tr>\n");
 
-		printf("<tr><td colspan=2 valign=top calss='reportSelectSubTitle'><i>If Custom Report Period...</i></td></tr>\n");
+		printf("<tr><td valign=top class='reportSelectSubTitle'>If Custom Report Period...</td></tr>\n");
 
 		printf("<tr>");
 		printf("<td valign=top class='reportSelectSubTitle'>Start Date (Inclusive):</td>\n");
@@ -713,15 +715,15 @@ int main(int argc, char **argv){
 		printf("</table>\n");
 
 		printf("</form>\n");
-		printf("</DIV>\n");
+		printf("</DIV></P>\n");
 	        }
 
 
 	/* step 2 - the user wants to select a hostgroup */
 	else if(select_hostgroups==TRUE){
-		printf("<div align=center class='reportSelectTitle'>Step 2: Select Hostgroup</div>\n");
+		printf("<p><div align=center class='reportSelectTitle'>Step 2: Select Hostgroup</div></p>\n");
 
-		printf("<div align=center>\n");
+		printf("<p><div align=center>\n");
 
 	        printf("<form method=\"get\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<input type='hidden' name='get_date_parts'>\n");
@@ -744,14 +746,14 @@ int main(int argc, char **argv){
 
 		printf("</form>\n");
 
-		printf("</div>\n");
+		printf("</div></p>\n");
 	        }
 
 	/* step 2 - the user wants to select a host */
 	else if(select_hosts==TRUE){
-		printf("<div align=center class='reportSelectTitle'>Step 2: Select Host</div>\n");
+		printf("<p><div align=center class='reportSelectTitle'>Step 2: Select Host</div></p>\n");
 
-		printf("<div align=center>\n");
+		printf("<p><div align=center>\n");
 
 	        printf("<form method=\"get\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<input type='hidden' name='get_date_parts'>\n");
@@ -774,7 +776,7 @@ int main(int argc, char **argv){
 
 		printf("</form>\n");
 
-		printf("</div>\n");
+		printf("</div></p>\n");
 
 		printf("<div align=center class='helpfulHint'>Tip: If you want to have the option of getting the availability data in CSV format, select '<b>** ALL HOSTS **</b>' from the pull-down menu.\n");
 	        }
@@ -800,9 +802,9 @@ int main(int argc, char **argv){
 		printf("}\n");
 		printf("</SCRIPT>\n");
 
-		printf("<div align=center class='reportSelectTitle'>Step 2: Select Service</div>\n");
+		printf("<p><div align=center class='reportSelectTitle'>Step 2: Select Service</div></p>\n");
 
-		printf("<div align=center>\n");
+		printf("<p><div align=center>\n");
 
 	        printf("<form method=\"get\" action=\"%s\" name='serviceform'>\n",AVAIL_CGI);
 		printf("<input type='hidden' name='get_date_parts'>\n");
@@ -827,7 +829,7 @@ int main(int argc, char **argv){
 
 		printf("</form>\n");
 
-		printf("</div>\n");
+		printf("</div></p>\n");
 
 		printf("<div align=center class='helpfulHint'>Tip: If you want to have the option of getting the availability data in CSV format, select '<b>** ALL SERVICES **</b>' from the pull-down menu.\n");
 	        }
@@ -887,19 +889,22 @@ int main(int argc, char **argv){
 	/* step 1 - ask the user what kind of report they want */
 	else{
 
-		printf("<div align=center class='reportSelectTitle'>Step 1: Select Type Of Availability Report</div>\n");
+		printf("<p><div align=center class='reportSelectTitle'>Step 1: Select Report Type</div></p>\n");
 
-		printf("<div align=center>\n");
+		printf("<p><div align=center>\n");
 
 	        printf("<form method=\"get\" action=\"%s\">\n",AVAIL_CGI);
 
 		printf("<table border=0 cellpadding=5>\n");
 
-		printf("<tr><td align=left class='reportSelectSubTitle'><input type='radio' name='report_type' value='hostgroups'></td><td align=left valign=top class='reportSelectItem'>Hostgroup(s)</td></tr>\n");
-
-		printf("<tr><td align=left class='reportSelectSubTitle'><input type='radio' name='report_type' value='hosts'></td><td align=left valign=top class='reportSelectItem'>Host(s)</td></tr>\n");
-
-		printf("<tr><td align=left class='reportSelectSubTitle'><input type='radio' name='report_type' value='services'></td><td align=left valign=top class='reportSelectItem'>Service(s)</td></tr>\n");
+		printf("<tr><td class='reportSelectSubTitle' align=right>Type:</td>\n");
+		printf("<td class='reportSelectItem'>\n");
+		printf("<select name='report_type'>\n");
+		printf("<option value=hostgroups>Hostgroup(s)\n");
+		printf("<option value=hosts>Host(s)\n");
+		printf("<option value=services>Service(s)\n");
+		printf("</select>\n");
+		printf("</td></tr>\n");
 
 		printf("<tr><td></td><td align=left class='dateSelectItem'><input type='submit' value='Continue to Step 2'></td></tr>\n");
 
@@ -907,7 +912,7 @@ int main(int argc, char **argv){
 
 		printf("</form>\n");
 
-		printf("</div>\n");
+		printf("</div></p>\n");
 	        }
 
 

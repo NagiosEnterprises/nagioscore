@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-17-2003
+ * Last Modified: 07-22-2003
  *
  * License:
  * 
@@ -391,6 +391,7 @@
 #define CONTEXTHELP_SUMMARY_HOST_ALERT_TOTALS      "N5"
 #define CONTEXTHELP_SUMMARY_SERVICE_ALERT_TOTALS   "N6"
 #define CONTEXTHELP_SUMMARY_ALERT_PRODUCERS        "N7"
+#define CONTEXTHELP_SUMMARY_SERVICEGROUP_ALERT_TOTALS "N8"
 
 
 

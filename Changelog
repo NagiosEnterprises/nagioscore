@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Added triggered downtime
 * Basic adaptive monitoring features
 * Added ability to retain scheduling information
 * Change in hostgroup authorization (need to be authorized for all member hosts)

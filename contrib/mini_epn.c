@@ -2,7 +2,7 @@
 
    MINI_EPN.C - Mini Embedded Perl Nagios
    Contributed by Stanley Hopcroft
-   Last Modified: 10/15/2001
+   Last Modified: 05/09/2002
 
    This is a sample mini embedded Perl interpreter (hacked out checks.c and perlembed) for use in testing Perl plugins. 
 
@@ -12,6 +12,9 @@
 
    NOTES:  The compiled binary needs to be in the same directory as the p1.pl file supplied with Nagios (or vice versa)
 
+   HISTORY:
+   05/09/02 - Command line length increase (Douglas Warner)
+
 */
 
 
@@ -19,6 +22,8 @@
 #include <perl.h>
 #include <fcntl.h>
 #include <string.h>
+
+#define MAX_COMMANDLINE_LENGTH 160
 
 /* include PERL xs_init code for module and C library support */
 
@@ -66,11 +71,11 @@ int main(int argc, char **argv, char **env){
         char plugin_output[1024];
         char buffer[512];
         char tmpfname[32];
-        char fname[32];
+        char fname[MAX_COMMANDLINE_LENGTH];
         char *args[] = {"","0", "", "", NULL };
         FILE *fp;
 
-        char command_line[80];
+        char command_line[MAX_COMMANDLINE_LENGTH];
         char *ap ;
         int exitstatus;
         int pclose_result;
@@ -84,14 +89,14 @@ int main(int argc, char **argv, char **env){
                 buffer[sizeof(buffer)-1]='\x0';
                 printf("%s\n", buffer);
                 exit(1);
-        }
+                }
         perl_construct(perl);
         exitstatus=perl_parse(perl,xs_init,2,embedding,NULL);
-        if(!exitstatus) {
+        if(!exitstatus){
 
                 exitstatus=perl_run(perl);
 
-                while(printf("Enter file name: ") && fgets(command_line, 80, stdin)) {
+                while(printf("Enter file name: ") && fgets(command_line,sizeof(command_line),stdin)){
 
                         /* call the subroutine, passing it the filename as an argument */
 
@@ -115,7 +120,7 @@ int main(int argc, char **argv, char **env){
                         if(SvTRUE(ERRSV)){
                                 pclose_result=-2;
                                 printf("embedded perl ran %s with error %s\n",fname,SvPV(ERRSV,PL_na));
-                        }
+                                }
                         
                         /* read back stdout from script */
                         fp=fopen(tmpfname, "r");
@@ -128,14 +133,11 @@ int main(int argc, char **argv, char **env){
                         fclose(fp);
                         unlink(tmpfname);    
                         printf("embedded perl plugin output was %d,%s\n",pclose_result, plugin_output);
-
+                        }
                 }
-
-        }
-
         
         PL_perl_destruct_level = 0;
         perl_destruct(perl);
         perl_free(perl);
         exit(exitstatus);
-}
+        }

@@ -1,0 +1,15 @@
+# I'm including this file in the rpm package although it's fully 
+# commented out because I think it's much better to let Nagios 
+# handle the rotation of it's log files (so one can search for 
+# past events in the service/host history using the history and 
+# showlog CGIs (nagios.cfg was modified accordingly) and because 
+# it seemed bad to disturb the monitoring process by sending Nagios
+# an HUP signal just for our log rotation needs.
+#	-- Ramiro
+
+#/var/log/nagios/nagios.log {
+#    missingok
+#    postrotate
+#        /bin/kill -HUP `cat /var/run/nagios.pid 2> /dev/null` 2> /dev/null || true
+#    endscript
+#}

@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-19-2001
+ * Last Modified:   04-20-2001
  *
  * License:
  *
@@ -284,6 +284,12 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 	/* set the flapping indicator */
 	svc->is_flapping=TRUE;
 
+	/* see if we should check to send a recovery notification out when flapping stops */
+	if(svc->current_state!=STATE_OK && svc->current_notification_number>0)
+		svc->check_flapping_recovery_notification=TRUE;
+	else
+		svc->check_flapping_recovery_notification=FALSE;
+
 #ifdef DEBUG0
 	printf("set_service_flap() end\n");
 #endif
@@ -313,12 +319,20 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 	/* clear the flapping indicator */
 	svc->is_flapping=FALSE;
 
+	/* should we send a recovery notification? */
+	if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
+		service_notification(svc,NULL);
+
+	/* clear the recovery notification flag */
+	svc->check_flapping_recovery_notification=FALSE;
+
 #ifdef DEBUG0
 	printf("clear_service_flap() end\n");
 #endif
 
 	return;
         }
+
 
 /* handles a host that is flapping */
 void set_host_flap(host *hst, double percent_change, double high_threshold){
@@ -340,6 +354,12 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 
 	/* set the flapping indicator */
 	hst->is_flapping=TRUE;
+
+	/* see if we should check to send a recovery notification out when flapping stops */
+	if(hst->status!=HOST_UP && hst->current_notification_number>0)
+		hst->check_flapping_recovery_notification=TRUE;
+	else
+		hst->check_flapping_recovery_notification=FALSE;
 
 #ifdef DEBUG0
 	printf("set_host_flap() end\n");
@@ -369,6 +389,13 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 
 	/* clear the flapping indicator */
 	hst->is_flapping=FALSE;
+
+	/* should we send a recovery notification? */
+	if(hst->check_flapping_recovery_notification==TRUE && hst->status==HOST_UP)
+		host_notification(hst,hst->status,NULL);
+
+	/* clear the recovery notification flag */
+	hst->check_flapping_recovery_notification=FALSE;
 
 #ifdef DEBUG0
 	printf("clear_host_flap() end\n");

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-12-2002
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -657,6 +657,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	new_host->has_been_unreachable=FALSE;
 	new_host->current_notification_number=0;
 	new_host->no_more_notifications=FALSE;
+	new_host->check_flapping_recovery_notification=FALSE;
 	new_host->checks_enabled=(checks_enabled>0)?TRUE:FALSE;
 	new_host->notifications_enabled=(notifications_enabled>0)?TRUE:FALSE;
 	new_host->scheduled_downtime_depth=0;
@@ -2145,6 +2146,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->host_problem_at_last_check=FALSE;
 	new_service->dependency_failure_at_last_check=FALSE;
 	new_service->no_recovery_notification=FALSE;
+	new_service->check_flapping_recovery_notification=FALSE;
 	new_service->next_check=(time_t)0;
 	new_service->should_be_scheduled=TRUE;
 	new_service->last_check=(time_t)0;

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-07-2002
+ * Last Modified:   12-09-2002
  *
  * License:
  *
@@ -188,10 +188,11 @@ extern char     *tzname[2];
 #endif
 #endif
 
-
 extern service_message svc_msg;
-extern pthread_t       command_worker_tid;
-extern pthread_mutex_t command_buffer_lock;
+
+extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
+extern circular_buffer external_command_buffer;
+extern circular_buffer service_result_buffer;
 
 extern int errno;
 
@@ -2200,11 +2201,18 @@ int close_command_file(void){
 	if(check_external_commands==FALSE)
 		return OK;
 
+	/* the command file wasn't created or was already cleaned up */
+	if(command_file_created==FALSE)
+		return OK;
+
+	/* reset our flag */
+	command_file_created=FALSE;
+
 	/* tell the worker thread to exit */
-	pthread_cancel(command_worker_tid);
+	pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
 
 	/* wait for the worker thread to exit */
-	pthread_join(command_worker_tid,NULL);
+	pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
 
 	/* close the command file */
 	fclose(command_file_fp);

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-07-2002
+ * Last Modified:   12-09-2002
  *
  * Description:
  *
@@ -215,6 +215,10 @@ timed_event *event_list_high=NULL;
 notification    *notification_list;
 
 service_message svc_msg;
+
+circular_buffer  external_command_buffer;
+circular_buffer  service_result_buffer;
+pthread_t worker_threads[TOTAL_WORKER_THREADS];
 
 
 

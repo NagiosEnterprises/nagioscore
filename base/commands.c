@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-07-2002
+ * Last Modified:   12-09-2002
  *
  * License:
  *
@@ -65,21 +65,9 @@ extern int      command_file_fd;
 
 passive_check_result    *passive_check_result_list;
 
-
-#define COMMAND_BUFFER_SLOTS              512
-#define COMMAND_BUFFER_FLUSH_FREQUENCY    60
-
-/* circular buffer */
-static struct command_buf_struct{
-	char            *buffer[COMMAND_BUFFER_SLOTS];
-	int             tail;
-	int             head;
-	int             items;
-        }external_command_buffer;
-
-pthread_t command_worker_tid;
-pthread_mutex_t command_buffer_lock=PTHREAD_MUTEX_INITIALIZER;
-
+extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
+extern circular_buffer external_command_buffer;
+extern circular_buffer service_result_buffer;
 
 
 /******************************************************************/
@@ -96,15 +84,18 @@ int init_command_file_worker_thread(void){
 	external_command_buffer.head=0;
 	external_command_buffer.tail=0;
 	external_command_buffer.items=0;
+	external_command_buffer.buffer=(void **)malloc(COMMAND_BUFFER_SLOTS*sizeof(char **));
+	if(external_command_buffer.buffer==NULL)
+		return ERROR;
 
 	/* initialize mutex */
-	pthread_mutex_init(&command_buffer_lock,NULL);
+	pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
 
 	/* worker thread should ignore signals */
 	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
 	
 	/* create worker thread */
-	result=pthread_create(&command_worker_tid,NULL,command_file_worker_thread,NULL);
+	result=pthread_create(&worker_threads[COMMAND_WORKER_THREAD],NULL,command_file_worker_thread,NULL);
 	if(result)
 		return ERROR;
 
@@ -116,34 +107,63 @@ int init_command_file_worker_thread(void){
 
 
 
+/* clean up resources used by command file worker thread */
+void * cleanup_command_file_worker_thread(void *arg){
+	int x;
+
+	/* release memory allocated to circular buffer */
+	for(x=external_command_buffer.head;x!=external_command_buffer.tail;x=(x+1) % COMMAND_BUFFER_SLOTS)
+		free(((char **)external_command_buffer.buffer)[x]);
+	free(external_command_buffer.buffer);
+
+	return NULL;
+        }
+
+
+
 /* worker thread - artificially increases buffer of named pipe */
 void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_INPUT_BUFFER];
+#ifdef DOESNT_WORK
 	struct timeval tv;
+	int retval;
+	fd_set readfs;
+#endif
+
+	/* specify cleanup routine */
+	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
 
 	/* set cancellation info */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
 
-	tv.tv_sec=1;
-	tv.tv_usec=250000;
+#ifdef DOESNT_WORK
+	FD_ZERO(&readfs);
+	FD_SET(command_file_fd,&readfs);
+#endif
 
 	while(1){
 
 		/* should we shutdown? */
 		pthread_testcancel();
 
-		/* wait a while... */
-		/* this should be replaced with a call to select(), but I can't seem to get it working (blocked or non-blocked) */
-		/* even a call with NULL vars seems to fail, when it should wait.... */
-		/*select(0,NULL,NULL,NULL,&tv);*/
+		/* wait a bit - ideally should be replace with select() - see below */
 		sleep(1);
+
+#ifdef DOESNT_WORK
+		/* this should be replaced with a call to select(), but I can't seem to get it working (blocked or non-blocked) */
+		tv.tv_sec=0;
+		tv.tv_usec=500000;
+		retval=select(command_file_fd+1,&readfs,NULL,NULL,&tv);
+		if(retval<=0)
+			continue;
+#endif
 
 		/* should we shutdown? */
 		pthread_testcancel();
 
 		/* obtain a lock for writing to the buffer */
-		pthread_mutex_lock(&command_buffer_lock);
+		pthread_mutex_lock(&external_command_buffer.buffer_lock);
 
 		/* process all commands in the file (named pipe) if there's some space in the buffer */
 		if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
@@ -154,7 +174,7 @@ void * command_file_worker_thread(void *arg){
 			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
 
 				/* save the line in the buffer */
-				external_command_buffer.buffer[external_command_buffer.tail]=strdup(input_buffer);
+				((char **)external_command_buffer.buffer)[external_command_buffer.tail]=strdup(input_buffer);
 
 				/* increment the tail counter and items */
 				external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
@@ -173,10 +193,13 @@ void * command_file_worker_thread(void *arg){
 		        }
 
 		/* release lock on buffer */
-		pthread_mutex_unlock(&command_buffer_lock);
+		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 	        }
 
-	return;
+	/* removes cleanup handler */
+	pthread_cleanup_pop(0);
+
+	return NULL;
         }
 
 
@@ -210,13 +233,13 @@ void check_for_external_commands(void){
 	passive_check_result_list=NULL;
 
 	/* get a lock on the buffer */
-	pthread_mutex_lock(&command_buffer_lock);
+	pthread_mutex_lock(&external_command_buffer.buffer_lock);
 
 	/* process all commands found in the buffer */
 	while(external_command_buffer.items>0){
 
 		if(external_command_buffer.buffer[external_command_buffer.head]){
-			strncpy(buffer,external_command_buffer.buffer[external_command_buffer.head],sizeof(buffer)-1);
+			strncpy(buffer,((char **)external_command_buffer.buffer)[external_command_buffer.head],sizeof(buffer)-1);
 			buffer[sizeof(buffer)-1]='\x0';
 		        }
 		else
@@ -477,7 +500,7 @@ void check_for_external_commands(void){
 	        }
 
 	/* release the lock on the buffer */
-	pthread_mutex_unlock(&command_buffer_lock);
+	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 	/**** PROCESS ALL PASSIVE CHECK RESULTS AT ONE TIME ****/
 	if(passive_check_result_list!=NULL)

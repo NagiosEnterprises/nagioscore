@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-07-2002
+ * Last Modified: 12-09-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 #include "../common/config.h"
 #include "../common/objects.h"
 
-#undef HAVE_SYSLOG_H
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
@@ -319,6 +318,25 @@ typedef struct scheduled_downtime_entry_struct{
 	}scheduled_downtime_entry;
 
 
+/* CIRCULAR_BUFFER structure - used by worker threads */
+typedef struct circular_buffer_struct{
+	void            **buffer;
+	int             tail;
+	int             head;
+	int             items;
+	pthread_mutex_t buffer_lock;
+        }circular_buffer;
+
+
+#define COMMAND_BUFFER_SLOTS              512
+
+#define TOTAL_WORKER_THREADS              3
+
+#define COMMAND_WORKER_THREAD		  0
+#define SERVICE_WORKER_THREAD  		  1
+#define BROKER_WORKER_THREAD		  2
+
+
 /******************** FUNCTIONS **********************/
 
 /**** Configuration Functions ****/
@@ -550,7 +568,8 @@ void enable_passive_host_checks(host *);	        /* enables passive host checks 
 void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
 
 int init_command_file_worker_thread(void);
-void * command_file_worker_thread(void *arg);
+void * command_file_worker_thread(void *);
+void * cleanup_command_file_worker_thread(void *);
 
 #endif
 

@@ -118,7 +118,11 @@ fi
 
 AC_SUBST(THREADLIBS)
 
-
+dnl Solaris needs rt or posix4 libraries for nanosleep()
+AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
+	echo "Error: nanosleep() needed for timing operations."
+	exit 1
+	])
 
 
 AC_ARG_WITH(nagios_user,--with-nagios-user=<user> sets user name to run nagios,nagios_user=$withval,nagios_user=nagios)

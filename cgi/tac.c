@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 12-02-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -338,7 +338,7 @@ void document_header(int use_stylesheet){
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,TAC_CSS);
 
 	printf("</HEAD>\n");
-	printf("<BODY CLASS='tac' bgcolor='black' text='white' marginwidth=2 marginheight=2 topmargin=0 leftmargin=0 rightmargin=0>\n");
+	printf("<BODY CLASS='tac' marginwidth=2 marginheight=2 topmargin=0 leftmargin=0 rightmargin=0>\n");
 
 	/* include user SSI header */
 	include_ssi_files(TAC_CGI,SSI_HEADER);
@@ -975,7 +975,7 @@ void display_tac_overview(void){
 
 	printf("<p>\n");
 
-	printf("<table bgcolor=black width=125 cellspacing=4 cellpadding=0 border=0>\n");
+	printf("<table class='tac' width=125 cellspacing=4 cellpadding=0 border=0>\n");
 
 	printf("<tr><td colspan=1 height=20 class='outageTitle'>&nbsp;Network Outages</td></tr>\n");
 
@@ -1092,7 +1092,7 @@ void display_tac_overview(void){
 
 	printf("<p>\n");
 
-	printf("<table bgcolor=black width=516 cellspacing=4 cellpadding=0 border=0>\n");
+	printf("<table class='tac' width=516 cellspacing=4 cellpadding=0 border=0>\n");
 
 	printf("<tr><td colspan=4 height=20 class='hostTitle'>&nbsp;Hosts</td></tr>\n");
 
@@ -1234,7 +1234,7 @@ void display_tac_overview(void){
 
 	printf("<p>\n");
 
-	printf("<table bgcolor=black width=641 cellspacing=4 cellpadding=0 border=0>\n");
+	printf("<table class='tac' width=641 cellspacing=4 cellpadding=0 border=0>\n");
 
 	printf("<tr><td colspan=5 height=20 class='hostTitle'>&nbsp;Services</td></tr>\n");
 
@@ -1413,7 +1413,7 @@ void display_tac_overview(void){
 
 	printf("<p>\n");
 
-	printf("<table bgcolor=black cellspacing=4 cellpadding=0 border=0>\n");
+	printf("<table class='tac' cellspacing=4 cellpadding=0 border=0>\n");
 
 	printf("<tr><td colspan=5 height=20 class='featureTitle'>&nbsp;Monitoring Features</td></tr>\n");
 

@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2003
+ * Last Modified: 02-24-2003
  *
  * License:
  *
@@ -169,6 +169,10 @@
 
 #define CMD_START_OBSESSING_OVER_HOST_CHECKS		94
 #define CMD_STOP_OBSESSING_OVER_HOST_CHECKS		95
+
+#define CMD_DELAY_HOST_CHECK		                96
+#define CMD_IMMEDIATE_HOST_CHECK		        97
+#define CMD_FORCE_DELAY_HOST_CHECK                      98
 
 
 /************************ SERVICE CHECK TYPES ****************************/

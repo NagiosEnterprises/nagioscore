@@ -474,7 +474,7 @@ int main(int argc, char **argv){
 			exit(ERROR);
 		        }
 
-	        /* calculate the inter-check delay to use when initially scheduling services */
+	        /* calculate the inter-check delay to use when initially scheduling host and service checks */
 		calculate_inter_check_delay();
 
 		/* calculate interleave factor to use for spreading out service checks */
@@ -611,7 +611,7 @@ int main(int argc, char **argv){
 				exit(ERROR);
 		                }
 
-		        /* calculate the inter-check delay to use when initially scheduling services */
+		        /* calculate the inter-check delay to use when initially scheduling host and service checks */
 			calculate_inter_check_delay();
 
 			/* calculate interleave factor to use for spreading out service checks */

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2003
+ * Last Modified: 02-24-2003
  *
  * License:
  * 
@@ -796,6 +796,14 @@ void request_command_data(int cmd){
 		printf("%s obsessing over host checks",(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"start":"stop");
 		break;
 
+	case CMD_DELAY_HOST_CHECK:
+		printf("re-schedule the next check of a host");
+		break;
+
+	case CMD_IMMEDIATE_HOST_CHECK:
+		printf("schedule an immediate host check");
+		break;
+
 	default:
 		printf("execute an unknown command.  Shame on you!</DIV>");
 		return;
@@ -1138,6 +1146,23 @@ void request_command_data(int cmd){
 		        }
 		break;
 
+	case CMD_IMMEDIATE_HOST_CHECK:
+	case CMD_DELAY_HOST_CHECK:
+		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
+		printf("</b></td></tr>\n");
+		if(cmd!=CMD_IMMEDIATE_HOST_CHECK){
+			time(&t);
+			time_to_string(&t,buffer,sizeof(buffer)-1);
+			printf("<tr><td CLASS='optBoxRequiredItem'>Check Time:</td><td><b>");
+			printf("<INPUT TYPE='TEXT' NAME='start_time' VALUE='%s'>",buffer);
+			printf("</b></td></tr>\n");
+		        }
+		printf("<tr><td CLASS='optBoxItem'>Force Check:</td><td><b>");
+		printf("<INPUT TYPE='checkbox' NAME=x'force_check' CHECKED>");
+		printf("</b></td></tr>\n");
+		break;
+
 	default:
 		printf("<tr><td CLASS='optBoxItem'>This should not be happening... :-(</td><td></td></tr>\n");
 	        }
@@ -1332,6 +1357,10 @@ void commit_command_data(int cmd){
 			clean_comment_data(comment_data);
 		        }
 
+		/* make sure we have check time (if necessary) */
+		if((cmd==CMD_DELAY_SVC_CHECK || cmd==CMD_IMMEDIATE_SVC_CHECK) && start_time==(time_t)0)
+			error=TRUE;
+
 		/* make sure we have start/end times for downtime (if necessary) */
 		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || end_time<start_time))
 			error=TRUE;
@@ -1391,6 +1420,8 @@ void commit_command_data(int cmd){
 	case CMD_PROCESS_HOST_CHECK_RESULT:
 	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
 	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DELAY_HOST_CHECK:
+	case CMD_IMMEDIATE_HOST_CHECK:
 
 		/* make sure we have some host name... */
 		if(!strcmp(host_name,""))
@@ -1417,6 +1448,10 @@ void commit_command_data(int cmd){
 
 		/* make sure we have start/end times for downtime (if necessary) */
 		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time))
+			error=TRUE;
+
+		/* make sure we have check time (if necessary) */
+		if((cmd==CMD_DELAY_HOST_CHECK || cmd==CMD_IMMEDIATE_HOST_CHECK) && start_time==(time_t)0)
 			error=TRUE;
 
 		/* make sure we have passive check info (if necessary) */
@@ -1786,6 +1821,11 @@ int commit_command(int cmd){
 	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
 	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST_CHECKS;\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"START":"STOP");
+		break;
+
+	case CMD_IMMEDIATE_HOST_CHECK:
+	case CMD_DELAY_HOST_CHECK:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,(cmd==CMD_IMMEDIATE_HOST_CHECK)?current_time:start_time);
 		break;
 
 	default:
@@ -2350,6 +2390,17 @@ void show_command_help(cmd){
 
 	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
 		printf("This command is used to stop Nagios from obsessing over host checks.\n");
+		break;
+
+	case CMD_DELAY_HOST_CHECK:
+		printf("This command is used to re-schedule the next check of a particular host.  Nagios will re-queue the host to be checked at the time you specify.\n");
+		printf("If you select the <i>force check</i> option, Nagios will force a check of the host regardless of both what time the scheduled check occurs and whether or not checks are enabled for the host.\n");
+		break;
+
+	case CMD_IMMEDIATE_HOST_CHECK:
+		printf("This command will schedule an immediate check of the specified host.  Note that the check is <i>scheduled</i> immediately, not necessary executed immediately.  If Nagios\n");
+		printf("has fallen behind in its scheduling queue, it will check hosts that were queued prior to this one.\n");
+		printf("If you select the <i>force check</i> option, Nagios will force a check of the host regardless of both what time the scheduled check occurs and whether or not checks are enabled for the host.\n");
 		break;
 
 	default:

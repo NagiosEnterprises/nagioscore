@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2003
+ * Last Modified: 02-24-2003
  *
  * License:
  * 
@@ -75,11 +75,13 @@ extern servicestatus *servicestatus_list;
 #define HEALTH_WARNING_PERCENTAGE       85
 #define HEALTH_CRITICAL_PERCENTAGE      75
 
-/* SERVICESORT structure */
-typedef struct servicesort_struct{
+/* SORTDATA structure */
+typedef struct sortdata_struct{
+	int is_service;
 	servicestatus *svcstatus;
-	struct servicesort_struct *next;
-        }servicesort;
+	hoststatus *hststatus;
+	struct sortdata_struct *next;
+        }sortdata;
 
 void document_header(int);
 void document_footer(void);
@@ -95,13 +97,13 @@ void show_all_downtime(void);
 void show_scheduling_queue(void);
 void display_comments(int);
 
-int sort_services(int,int);
-int compare_servicesort_entries(int,int,servicesort *,servicesort *);
-void free_servicesort_list();
+int sort_data(int,int);
+int compare_sortdata_entries(int,int,sortdata *,sortdata *);
+void free_sortdata_list();
 
 authdata current_authdata;
 
-servicesort *servicesort_list=NULL;
+sortdata *sortdata_list=NULL;
 
 char *host_name="";
 char *hostgroup_name="";
@@ -197,7 +199,7 @@ int main(void){
 		else if(display_type==DISPLAY_DOWNTIME)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"All Host and Service Scheduled Downtime");
 		else if(display_type==DISPLAY_SCHEDULING_QUEUE)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service Check Scheduling Queue");
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Check Scheduling Queue");
 		else
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Nagios Process Information");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2353,8 +2355,9 @@ void show_all_downtime(void){
 
 /* shows check scheduling queue */
 void show_scheduling_queue(void){
-	servicesort *temp_servicesort;
+	sortdata *temp_sortdata;
 	servicestatus *temp_svcstatus;
+	hoststatus *temp_hststatus;
 	char date_time[MAX_DATETIME_LENGTH];
 	char temp_url[MAX_INPUT_BUFFER];
 	int odd=0;
@@ -2371,8 +2374,8 @@ void show_scheduling_queue(void){
 		return;
 	        }
 
-	/* sort services */
-	sort_services(sort_type,sort_option);
+	/* sort hosts and services */
+	sort_data(sort_type,sort_option);
 
 	printf("<DIV ALIGN=CENTER CLASS='statusSort'>Entries sorted by <b>");
 	if(sort_option==SORT_HOSTNAME)
@@ -2408,12 +2411,21 @@ void show_scheduling_queue(void){
 	printf("<TH CLASS='queue'>Active Checks</TH><TH CLASS='queue'>Actions</TH></TR>\n");
 
 
-	/* display all services */
-	for(temp_servicesort=servicesort_list;temp_servicesort!=NULL;temp_servicesort=temp_servicesort->next){
-		
-		/* get the service status */
-		temp_svcstatus=temp_servicesort->svcstatus;
+	/* display all services and hosts */
+	for(temp_sortdata=sortdata_list;temp_sortdata!=NULL;temp_sortdata=temp_sortdata->next){
 
+		/* skip hosts and services that shouldn't be scheduled */
+		if(temp_sortdata->is_service==TRUE){
+			temp_svcstatus=temp_sortdata->svcstatus;
+			if(temp_svcstatus->should_be_scheduled==FALSE)
+				continue;
+		        }
+		else{
+			temp_hststatus=temp_sortdata->hststatus;
+			if(temp_hststatus->should_be_scheduled==FALSE)
+				continue;
+		        }
+		
 		if(odd){
 			odd=0;
 			bgclass="Even";
@@ -2425,39 +2437,64 @@ void show_scheduling_queue(void){
 
 		printf("<TR CLASS='queue%s'>",bgclass);
 
-		printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>",bgclass,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_svcstatus->host_name),temp_svcstatus->host_name);
+		/* get the service status */
+		if(temp_sortdata->is_service==TRUE){
+			
+			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>",bgclass,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_svcstatus->host_name),temp_svcstatus->host_name);
+			
+			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s",bgclass,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_svcstatus->host_name));
+			printf("&service=%s'>%s</A></TD>",url_encode(temp_svcstatus->description),temp_svcstatus->description);
 
-		printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s",bgclass,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_svcstatus->host_name));
-		printf("&service=%s'>%s</A></TD>",url_encode(temp_svcstatus->description),temp_svcstatus->description);
+			get_time_string(&temp_svcstatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+			printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_svcstatus->last_check==(time_t)0)?"N/A":date_time);
 
-		get_time_string(&temp_svcstatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_svcstatus->last_check==(time_t)0)?"N/A":date_time);
+			get_time_string(&temp_svcstatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+			printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_svcstatus->next_check==(time_t)0)?"N/A":date_time);
 
-		get_time_string(&temp_svcstatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_svcstatus->next_check==(time_t)0)?"N/A":date_time);
+			printf("<TD CLASS='queue%s'>%s</TD>",(temp_svcstatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
 
-		printf("<TD CLASS='queue%s'>%s</TD>",(temp_svcstatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
-
-		printf("<TD CLASS='queue%s'>",bgclass);
-		/*
-		printf("<TABLE BORDER=0 CELLSPACING=0 CLASS='commands'>\n");
-		printf("<TR CLASS='queue%s'>\n",bgclass);
-		*/
-		if(temp_svcstatus->checks_enabled==TRUE){
-			printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_DISABLE_SVC_CHECK,url_encode(temp_svcstatus->host_name));
-			printf("&service=%s'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service'></a>\n",url_encode(temp_svcstatus->description),url_images_path,DISABLED_ICON);
+			printf("<TD CLASS='queue%s'>",bgclass);
+			if(temp_svcstatus->checks_enabled==TRUE){
+				printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_DISABLE_SVC_CHECK,url_encode(temp_svcstatus->host_name));
+				printf("&service=%s'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service'></a>\n",url_encode(temp_svcstatus->description),url_images_path,DISABLED_ICON);
+		                }
+			else{
+				printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_ENABLE_SVC_CHECK,url_encode(temp_svcstatus->host_name));
+				printf("&service=%s'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service'></a>\n",url_encode(temp_svcstatus->description),url_images_path,ENABLED_ICON);
+		                }
+			printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_DELAY_SVC_CHECK,url_encode(temp_svcstatus->host_name));
+			printf("&service=%s'><img src='%s%s' border=0 ALT='Re-schedule This Service Check'></a>\n",url_encode(temp_svcstatus->description),url_images_path,DELAY_ICON);
+			printf("</TD>\n");
 		        }
+
+		/* get the host status */
 		else{
-			printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_ENABLE_SVC_CHECK,url_encode(temp_svcstatus->host_name));
-			printf("&service=%s'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Service'></a>\n",url_encode(temp_svcstatus->description),url_images_path,ENABLED_ICON);
+			
+			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>",bgclass,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_hststatus->host_name),temp_hststatus->host_name);
+			
+			printf("<TD CLASS='queue%s'>&nbsp;</TD>",bgclass);
+
+			get_time_string(&temp_hststatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+			printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_hststatus->last_check==(time_t)0)?"N/A":date_time);
+
+			get_time_string(&temp_hststatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+			printf("<TD CLASS='queue%s'>%s</TD>",bgclass,(temp_hststatus->next_check==(time_t)0)?"N/A":date_time);
+
+			printf("<TD CLASS='queue%s'>%s</TD>",(temp_hststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED");
+
+			printf("<TD CLASS='queue%s'>",bgclass);
+			if(temp_hststatus->checks_enabled==TRUE){
+				printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_DISABLE_HOST_CHECK,url_encode(temp_hststatus->host_name));
+				printf("'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host'></a>\n",url_images_path,DISABLED_ICON);
+		                }
+			else{
+				printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(temp_hststatus->host_name));
+				printf("'><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host'></a>\n",url_images_path,ENABLED_ICON);
+		                }
+			printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_DELAY_HOST_CHECK,url_encode(temp_hststatus->host_name));
+			printf("'><img src='%s%s' border=0 ALT='Re-schedule This Host Check'></a>\n",url_images_path,DELAY_ICON);
+			printf("</TD>\n");
 		        }
-		printf("<a href='%s?cmd_typ=%d&host=%s",COMMAND_CGI,CMD_DELAY_SVC_CHECK,url_encode(temp_svcstatus->host_name));
-		printf("&service=%s'><img src='%s%s' border=0 ALT='Re-schedule This Service Check'></a>\n",url_encode(temp_svcstatus->description),url_images_path,DELAY_ICON);
-		/*
-		printf("</TR>\n");
-		printf("</TABLE>\n");
-		*/
-		printf("</TD>\n");
 
 		printf("</TR>\n");
 
@@ -2468,59 +2505,96 @@ void show_scheduling_queue(void){
 	printf("</P>\n");
 
 
-	/* free memory allocated to sorted service list */
-	free_servicesort_list();
+	/* free memory allocated to sorted data list */
+	free_sortdata_list();
 
 	return;
         }
 
 
 
-/* sorts the service list */
-int sort_services(int s_type, int s_option){
-	servicesort *new_servicesort;
-	servicesort *last_servicesort;
-	servicesort *temp_servicesort;
+/* sorts host and service data */
+int sort_data(int s_type, int s_option){
+	sortdata *new_sortdata;
+	sortdata *last_sortdata;
+	sortdata *temp_sortdata;
 	servicestatus *temp_svcstatus;
+	hoststatus *temp_hststatus;
 
 	if(s_type==SORT_NONE)
 		return ERROR;
 
-	if(servicestatus_list==NULL)
-		return ERROR;
-
-	/* sort all services status entries */
+	/* sort all service status entries */
 	for(temp_svcstatus=servicestatus_list;temp_svcstatus!=NULL;temp_svcstatus=temp_svcstatus->next){
 
 		/* allocate memory for a new sort structure */
-		new_servicesort=(servicesort *)malloc(sizeof(servicesort));
-		if(new_servicesort==NULL)
+		new_sortdata=(sortdata *)malloc(sizeof(sortdata));
+		if(new_sortdata==NULL)
 			return ERROR;
 
-		new_servicesort->svcstatus=temp_svcstatus;
+		new_sortdata->is_service=TRUE;
+		new_sortdata->svcstatus=temp_svcstatus;
+		new_sortdata->hststatus=NULL;
 
-		last_servicesort=servicesort_list;
-		for(temp_servicesort=servicesort_list;temp_servicesort!=NULL;temp_servicesort=temp_servicesort->next){
+		last_sortdata=sortdata_list;
+		for(temp_sortdata=sortdata_list;temp_sortdata!=NULL;temp_sortdata=temp_sortdata->next){
 
-			if(compare_servicesort_entries(s_type,s_option,new_servicesort,temp_servicesort)==TRUE){
-				new_servicesort->next=temp_servicesort;
-				if(temp_servicesort==servicesort_list)
-					servicesort_list=new_servicesort;
+			if(compare_sortdata_entries(s_type,s_option,new_sortdata,temp_sortdata)==TRUE){
+				new_sortdata->next=temp_sortdata;
+				if(temp_sortdata==sortdata_list)
+					sortdata_list=new_sortdata;
 				else
-					last_servicesort->next=new_servicesort;
+					last_sortdata->next=new_sortdata;
 				break;
 		                }
 			else
-				last_servicesort=temp_servicesort;
+				last_sortdata=temp_sortdata;
 	                }
 
-		if(servicesort_list==NULL){
-			new_servicesort->next=NULL;
-			servicesort_list=new_servicesort;
+		if(sortdata_list==NULL){
+			new_sortdata->next=NULL;
+			sortdata_list=new_sortdata;
 	                }
-		else if(temp_servicesort==NULL){
-			new_servicesort->next=NULL;
-			last_servicesort->next=new_servicesort;
+		else if(temp_sortdata==NULL){
+			new_sortdata->next=NULL;
+			last_sortdata->next=new_sortdata;
+	                }
+	        }
+
+	/* sort all host status entries */
+	for(temp_hststatus=hoststatus_list;temp_hststatus!=NULL;temp_hststatus=temp_hststatus->next){
+
+		/* allocate memory for a new sort structure */
+		new_sortdata=(sortdata *)malloc(sizeof(sortdata));
+		if(new_sortdata==NULL)
+			return ERROR;
+
+		new_sortdata->is_service=FALSE;
+		new_sortdata->svcstatus=NULL;
+		new_sortdata->hststatus=temp_hststatus;
+
+		last_sortdata=sortdata_list;
+		for(temp_sortdata=sortdata_list;temp_sortdata!=NULL;temp_sortdata=temp_sortdata->next){
+
+			if(compare_sortdata_entries(s_type,s_option,new_sortdata,temp_sortdata)==TRUE){
+				new_sortdata->next=temp_sortdata;
+				if(temp_sortdata==sortdata_list)
+					sortdata_list=new_sortdata;
+				else
+					last_sortdata->next=new_sortdata;
+				break;
+		                }
+			else
+				last_sortdata=temp_sortdata;
+	                }
+
+		if(sortdata_list==NULL){
+			new_sortdata->next=NULL;
+			sortdata_list=new_sortdata;
+	                }
+		else if(temp_sortdata==NULL){
+			new_sortdata->next=NULL;
+			last_sortdata->next=new_sortdata;
 	                }
 	        }
 
@@ -2528,47 +2602,83 @@ int sort_services(int s_type, int s_option){
         }
 
 
-int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servicesort, servicesort *temp_servicesort){
-	servicestatus *new_svcstatus;
+int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, sortdata *temp_sortdata){
+	hoststatus *temp_hststatus;
 	servicestatus *temp_svcstatus;
+	time_t last_check[2];
+	time_t next_check[2];
+	int current_attempt[2];
+	int status[2];
+	char *host_name[2];
+	char *service_description[2];
 
-	new_svcstatus=new_servicesort->svcstatus;
-	temp_svcstatus=temp_servicesort->svcstatus;
+	if(new_sortdata->is_service==TRUE){
+		temp_svcstatus=new_sortdata->svcstatus;
+		last_check[0]=temp_svcstatus->last_check;
+		next_check[0]=temp_svcstatus->next_check;
+		status[0]=temp_svcstatus->status;
+		host_name[0]=temp_svcstatus->host_name;
+		service_description[0]=temp_svcstatus->description;
+	        }
+	else{
+		temp_hststatus=new_sortdata->hststatus;
+		last_check[0]=temp_hststatus->last_check;
+		next_check[0]=temp_hststatus->next_check;
+		status[0]=temp_hststatus->status;
+		host_name[0]=temp_hststatus->host_name;
+		service_description[0]="";
+	        }
+	if(temp_sortdata->is_service==TRUE){
+		temp_svcstatus=temp_sortdata->svcstatus;
+		last_check[1]=temp_svcstatus->last_check;
+		next_check[1]=temp_svcstatus->next_check;
+		status[1]=temp_svcstatus->status;
+		host_name[1]=temp_svcstatus->host_name;
+		service_description[1]=temp_svcstatus->description;
+	        }
+	else{
+		temp_hststatus=temp_sortdata->hststatus;
+		last_check[1]=temp_hststatus->last_check;
+		next_check[1]=temp_hststatus->next_check;
+		status[1]=temp_hststatus->status;
+		host_name[1]=temp_hststatus->host_name;
+		service_description[1]="";
+	        }
 
 	if(s_type==SORT_ASCENDING){
 
 		if(s_option==SORT_LASTCHECKTIME){
-			if(new_svcstatus->last_check < temp_svcstatus->last_check)
+			if(last_check[0] <= last_check[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		if(s_option==SORT_NEXTCHECKTIME){
-			if(new_svcstatus->next_check < temp_svcstatus->next_check)
+			if(next_check[0] <= next_check[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_CURRENTATTEMPT){
-			if(new_svcstatus->current_attempt < temp_svcstatus->current_attempt)
+			if(current_attempt[0] <= current_attempt[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_SERVICESTATUS){
-			if(new_svcstatus->status <= temp_svcstatus->status)
+			if(status[0] <= status[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_HOSTNAME){
-			if(strcasecmp(new_svcstatus->host_name,temp_svcstatus->host_name)<0)
+			if(strcasecmp(host_name[0],host_name[1])<0)
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_SERVICENAME){
-			if(strcasecmp(new_svcstatus->description,temp_svcstatus->description)<0)
+			if(strcasecmp(service_description[0],service_description[1])<0)
 				return TRUE;
 			else
 				return FALSE;
@@ -2576,37 +2686,37 @@ int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servi
 	        }
 	else{
 		if(s_option==SORT_LASTCHECKTIME){
-			if(new_svcstatus->last_check > temp_svcstatus->last_check)
+			if(last_check[0] > last_check[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		if(s_option==SORT_NEXTCHECKTIME){
-			if(new_svcstatus->next_check > temp_svcstatus->next_check)
+			if(next_check[0] > next_check[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_CURRENTATTEMPT){
-			if(new_svcstatus->current_attempt > temp_svcstatus->current_attempt)
+			if(current_attempt[0] > current_attempt[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_SERVICESTATUS){
-			if(new_svcstatus->status > temp_svcstatus->status)
+			if(status[0] > status[1])
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_HOSTNAME){
-			if(strcasecmp(new_svcstatus->host_name,temp_svcstatus->host_name)>0)
+			if(strcasecmp(host_name[0],host_name[1])>0)
 				return TRUE;
 			else
 				return FALSE;
 		        }
 		else if(s_option==SORT_SERVICENAME){
-			if(strcasecmp(new_svcstatus->description,temp_svcstatus->description)>0)
+			if(strcasecmp(service_description[0],service_description[1])>0)
 				return TRUE;
 			else
 				return FALSE;
@@ -2618,15 +2728,15 @@ int compare_servicesort_entries(int s_type, int s_option, servicesort *new_servi
 
 
 
-/* free all memory allocated to the servicesort structures */
-void free_servicesort_list(void){
-	servicesort *this_servicesort;
-	servicesort *next_servicesort;
+/* free all memory allocated to the sortdata structures */
+void free_sortdata_list(void){
+	sortdata *this_sortdata;
+	sortdata *next_sortdata;
 
-	/* free memory for the servicesort list */
-	for(this_servicesort=servicesort_list;this_servicesort!=NULL;this_servicesort=next_servicesort){
-		next_servicesort=this_servicesort->next;
-		free(this_servicesort);
+	/* free memory for the sortdata list */
+	for(this_sortdata=sortdata_list;this_sortdata!=NULL;this_sortdata=next_sortdata){
+		next_sortdata=this_sortdata->next;
+		free(this_sortdata);
 	        }
 
 	return;

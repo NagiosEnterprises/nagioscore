@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2003
+ * Last Modified: 02-24-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,8 +150,8 @@
 
 #define DEFAULT_MAX_EMBEDDED_PERL_CALLS		1000    /* number of times to use embedded perl interpreter before reloading it */
 
-#define DEFAULT_HOST_CHECK_SPREAD		15	/* max minutes to schedule all initial host checks */
-#define DEFAULT_SERVICE_CHECK_SPREAD		15	/* max minutes to schedule all initial service checks */
+#define DEFAULT_HOST_CHECK_SPREAD		30	/* max minutes to schedule all initial host checks */
+#define DEFAULT_SERVICE_CHECK_SPREAD		30	/* max minutes to schedule all initial service checks */
 
 
 
@@ -550,6 +550,7 @@ int cmd_delete_comment(int,char *);			/* delete a service or host comment */
 int cmd_delete_all_comments(int,char *);		/* delete all comments associated with a host or service */
 int cmd_delay_notification(int,char *);			/* delay a service or host notification */
 int cmd_schedule_service_check(int,char *,int);		/* schedule an immediate or delayed service check */
+int cmd_schedule_host_check(int,char *,int);		/* schedule an immediate or delayed host check */
 int cmd_schedule_host_service_checks(int,char *,int);	/* schedule an immediate or delayed check of all services on a host */
 int cmd_enable_disable_service_check(int,char *);		/* enable/disable a service check */
 int cmd_enable_disable_host_service_checks(int,char *);		/* enable/disable all service checks associated with a host */

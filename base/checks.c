@@ -1542,17 +1542,19 @@ int run_scheduled_host_check(host *hst){
 		return ERROR;
 	        }
 
+
 	/**** RUN THE SCHEDULED HOST CHECK ****/
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
 	check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS,hst->check_options);
 
-	/* reschedule the next host check */
-	hst->next_check=current_time+(hst->check_interval*interval_length);
-	schedule_host_check(hst,hst->next_check,FALSE);
 
-	/* update the status data */
-	update_host_status(hst,FALSE);
+	/* should another host check be scheduled? */
+	if(hst->check_interval>0 && hst->should_be_scheduled==TRUE){
 
+		/* reschedule the next host check */
+		hst->next_check=current_time+(hst->check_interval*interval_length);
+		schedule_host_check(hst,hst->next_check,FALSE);
+	        }
 
 #ifdef DEBUG0
 	printf("run_scheduled_host_check() end\n");

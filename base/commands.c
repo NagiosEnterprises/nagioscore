@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2003
+ * Last Modified:   02-24-2003
  *
  * License:
  *
@@ -354,6 +354,12 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST_CHECKS"))
 			command_type=CMD_STOP_OBSESSING_OVER_HOST_CHECKS;
 
+		/* this is used for immediate and delayed host checks... */
+		else if(!strcmp(command_id,"SCHEDULE_HOST_CHECK"))
+			command_type=CMD_DELAY_HOST_CHECK;
+		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_CHECK"))
+			command_type=CMD_FORCE_DELAY_HOST_CHECK;
+
 		else{
 			/* log the bad external command */
 			snprintf(buffer,sizeof(buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
@@ -625,6 +631,12 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 		cmd_start_stop_obsessing_over_host_checks(cmd);
 		break;
 
+	case CMD_DELAY_HOST_CHECK:
+	case CMD_FORCE_DELAY_HOST_CHECK:
+	case CMD_IMMEDIATE_HOST_CHECK:
+		cmd_schedule_host_check(cmd,args,(cmd==CMD_FORCE_DELAY_HOST_CHECK)?TRUE:FALSE);
+		break;
+
 	default:
 		break;
 	        }
@@ -884,6 +896,44 @@ int cmd_schedule_service_check(int cmd,char *args, int force){
 
 #ifdef DEBUG0
 	printf("cmd_schedule_service_check() end\n");
+#endif
+	return OK;
+        }
+
+
+
+/* schedules a host check at a particular time */
+int cmd_schedule_host_check(int cmd,char *args, int force){
+	char *temp_ptr;
+	host *temp_host=NULL;
+	char *host_name="";
+	time_t delay_time=0L;
+
+#ifdef DEBUG0
+	printf("cmd_schedule_host_check() start\n");
+#endif
+
+	/* get the host name */
+	host_name=my_strtok(args,";");
+	if(host_name==NULL)
+		return ERROR;
+
+	/* verify that the host is valid */
+	temp_host=find_host(host_name);
+	if(temp_host==NULL)
+		return ERROR;
+
+	/* get the next check time */
+	temp_ptr=my_strtok(NULL,"\n");
+	if(temp_ptr==NULL)
+		return ERROR;
+	delay_time=strtoul(temp_ptr,NULL,10);
+
+	/* schedule a delayed host check */
+	schedule_host_check(temp_host,delay_time,force);
+
+#ifdef DEBUG0
+	printf("cmd_schedule_host_check() end\n");
 #endif
 	return OK;
         }

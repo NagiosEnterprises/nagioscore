@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   02-24-2003
  *
  * License:
  *
@@ -179,6 +179,8 @@ int read_status_data(char *config_file,int options){
 
 /* adds a host status entry to the list in memory */
 int add_host_status(hoststatus *new_hoststatus){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	char date_string[MAX_DATETIME_LENGTH];
 	hoststatus *last_hoststatus=NULL;
 	hoststatus *temp_hoststatus=NULL;
 

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2003
+ * Last Modified:   02-24-2003
  *
  * License:
  *
@@ -199,6 +199,7 @@ void calculate_inter_check_delay(void){
 		scheduling_info.total_hosts=0;
 		move_first_host();
 		while(temp_host=get_next_host()){
+			scheduling_info.total_hosts++;
 			if(temp_host->check_interval==0)
 				continue;
 			scheduling_info.total_scheduled_hosts++;
@@ -361,12 +362,17 @@ void init_timing_loop(void){
 			mult_factor=current_interleave_block+(interleave_block_index*total_interleave_blocks);
 
 #ifdef DEBUG1
-			printf("\t\tInterleave Block Index: %d\n",interleave_block_index);
-			printf("\t\tMult factor: %d\n",mult_factor);
+			printf("\t\tService '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
+			printf("\t\t\tInterleave Block Index: %d\n",interleave_block_index);
+			printf("\t\t\tMult factor: %d\n",mult_factor);
 #endif
 
 			/* set the next check time for the service */
 			temp_service->next_check=(time_t)(current_time+(mult_factor*scheduling_info.service_inter_check_delay));
+
+#ifdef DEBUG1
+			printf("\t\t\tPreferred Check Time: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
+#endif
 
 			/* make sure the service can actually be scheduled */
 			is_valid_time=check_time_against_period(temp_service->next_check,temp_service->check_period);
@@ -381,11 +387,10 @@ void init_timing_loop(void){
 			        }
 
 #ifdef DEBUG1
-			printf("\t\tService '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
 			if(temp_service->should_be_scheduled==TRUE)
-				printf("\t\tNext Check: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
+				printf("\t\t\tNext Check: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
 			else
-				printf("\t\tService check should *not* be scheduled!\n");
+				printf("\t\t\tService check should *not* be scheduled!\n");
 #endif
 
 			if(scheduling_info.first_service_check==(time_t)0 || (temp_service->next_check<scheduling_info.first_service_check))
@@ -425,7 +430,7 @@ void init_timing_loop(void){
 		mult_factor++;
 
 		/* calculate first host check */
-		temp_host->next_check=(time_t)(current_time+(mult_factor*scheduling_info.service_inter_check_delay));
+		temp_host->next_check=(time_t)(current_time+(mult_factor*scheduling_info.host_inter_check_delay));
 
 		/* make sure the host can actually be scheduled at this time */
 		is_valid_time=check_time_against_period(temp_host->next_check,temp_host->check_period);
@@ -456,7 +461,7 @@ void init_timing_loop(void){
 
 			new_event=malloc(sizeof(timed_event));
 			if(new_event!=NULL){
-				new_event->event_type=EVENT_SERVICE_REAPER;
+				new_event->event_type=EVENT_HOST_CHECK;
 				new_event->event_data=(void *)temp_host;
 				new_event->run_time=temp_host->next_check;
 
@@ -1022,8 +1027,8 @@ int event_execution_loop(void){
 
 /* handles a timed event */
 int handle_timed_event(timed_event *event){
-	host *temp_host;
-	service *temp_service;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -1094,15 +1099,15 @@ int handle_timed_event(timed_event *event){
 	case EVENT_SERVICE_CHECK:
 
 		/* run  a service check */
+		temp_service=(service *)event->event_data;
 		run_service_check(temp_service);
-
 		break;
 
 	case EVENT_HOST_CHECK:
 
 		/* run a host check */
+		temp_host=(host *)event->event_data;
 		run_scheduled_host_check(temp_host);
-	
 		break;
 
 	case EVENT_COMMAND_CHECK:

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-17-2002
+ * Last Modified: 11-10-2002
  *
  * License:
  *
@@ -136,7 +136,11 @@ char encoded_url_string[MAX_INPUT_BUFFER];
 char encoded_html_string[MAX_INPUT_BUFFER];
 
 #ifdef HAVE_TZNAME
+#ifdef CYGWIN
+extern char     *_tzname[2] __declspec(dllimport);
+#else
 extern char     *tzname[2];
+#endif
 #endif
 
 

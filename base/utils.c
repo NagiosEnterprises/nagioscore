@@ -198,7 +198,11 @@ extern int      command_file_created;
 char my_system_output[MAX_INPUT_BUFFER];
 
 #ifdef HAVE_TZNAME
+#ifdef CYGWIN
+extern char     *_tzname[2] __declspec(dllimport);
+#else
 extern char     *tzname[2];
+#endif
 #endif
 
 extern service_message svc_msg;
@@ -2004,7 +2008,7 @@ int read_svc_message(service_message *message){
 #endif
 
 	/* clear the message buffer */
-	bzero(message,sizeof(service_message));
+	bzero((void *)message,sizeof(service_message));
 
 	/* initialize the number of bytes to read */
 	bytes_to_read=sizeof(service_message);

@@ -661,6 +661,16 @@ if test x$USEPERL = xyes; then
 	fi
 fi
 
+
+dnl Option for compiling under CYGWIN
+nagios_name=nagios
+AC_ARG_ENABLE(cygwin,--enable-cygwin enables building under the CYGWIN environment,[
+	CFLAGS="${CFLAGS} -DCYGWIN" 
+	nagios_name=nagios.exe;
+	])
+AC_SUBST(nagios_name)
+
+
 dnl Should predictive failure routines be compiled in?
 dnl AC_ARG_ENABLE(failure-prediction,--enable-failure-prediction will enable integration with failure prediction module (NOT HERE YET!),[
 dnl	AC_DEFINE_UNQUOTED(PREDICT_FAILURES)
@@ -753,6 +763,7 @@ echo ""
 echo " General Options:"
 echo " -------------------------"
 
+AC_MSG_RESULT([        Nagios executable:  $nagios_name])
 AC_MSG_RESULT([        Nagios user/group:  $nagios_user,$nagios_grp])
 AC_MSG_RESULT([       Command user/group:  $command_user,$command_grp])
 if test x$USEPERL = xyes; then

@@ -339,13 +339,11 @@ int main(void){
 
 		/* right hand column of top row */
 		printf("<td align=center valign=top width=33%%>\n");
-		printf("<table border=0 width=100%>\n");
-		printf("<tr><td>\n");
 		show_service_status_totals();
-		printf("</td></tr>\n");
+		printf("</td>\n");
 
 		/* display context-sensitive help */
-		printf("<tr><td align=right valign=top>\n");
+		printf("<td align=right valign=bottom>\n");
 		if(display_type==DISPLAY_HOSTS)
 			display_context_help(CONTEXTHELP_STATUS_DETAIL);
 		else if(display_type==DISPLAY_SERVICEGROUPS){
@@ -368,9 +366,6 @@ int main(void){
 			else if(group_style_type==STYLE_GRID)
 				display_context_help(CONTEXTHELP_STATUS_HGGRID);
 		        }
-		printf("</td></tr>\n");
-
-		printf("</table>\n");
 		printf("</td>\n");
 
 		/* end of top table */

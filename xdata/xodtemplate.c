@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-07-2003
+ * Last Modified: 01-08-2003
  *
  * Description:
  *
@@ -71,6 +71,8 @@ xodtemplate_host *xodtemplate_host_list=NULL;
 xodtemplate_service **xodtemplate_service_list=NULL;
 xodtemplate_hostdependency *xodtemplate_hostdependency_list=NULL;
 xodtemplate_hostescalation *xodtemplate_hostescalation_list=NULL;
+xodtemplate_hostextinfo *xodtemplate_hostextinfo_list=NULL;
+xodtemplate_serviceextinfo *xodtemplate_serviceextinfo_list=NULL;
 
 void *xodtemplate_current_object=NULL;
 int xodtemplate_current_object_type=XODTEMPLATE_NONE;
@@ -479,7 +481,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			        }
 
 			/* check validity of object type */
-			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation")){
+			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation") && strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo")){
 #ifdef NSCORE
 				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -653,6 +655,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	xodtemplate_service *new_service;
 	xodtemplate_hostdependency *new_hostdependency;
 	xodtemplate_hostescalation *new_hostescalation;
+	xodtemplate_hostextinfo *new_hostextinfo;
+	xodtemplate_serviceextinfo *new_serviceextinfo;
 	int x;
 
 #ifdef DEBUG0
@@ -681,6 +685,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		xodtemplate_current_object_type=XODTEMPLATE_HOSTDEPENDENCY;
 	else if(!strcmp(input,"hostescalation"))
 		xodtemplate_current_object_type=XODTEMPLATE_HOSTESCALATION;
+	else if(!strcmp(input,"hostextinfo"))
+		xodtemplate_current_object_type=XODTEMPLATE_HOSTEXTINFO;
+	else if(!strcmp(input,"serviceextinfo"))
+		xodtemplate_current_object_type=XODTEMPLATE_SERVICEEXTINFO;
 	else
 		return ERROR;
 
@@ -729,6 +737,14 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		break;
 	case XODTEMPLATE_HOSTESCALATION:
 		if(!(options & READ_HOSTESCALATIONS))
+			return OK;
+		break;
+	case XODTEMPLATE_HOSTEXTINFO:
+		if(!(options & READ_HOSTEXTINFO))
+			return OK;
+		break;
+	case XODTEMPLATE_SERVICEEXTINFO:
+		if(!(options & READ_SERVICEEXTINFO))
 			return OK;
 		break;
 	default:
@@ -1205,6 +1221,76 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		xodtemplate_current_object=xodtemplate_hostescalation_list;
 		break;
 
+	case XODTEMPLATE_HOSTEXTINFO:
+
+		/* allocate memory */
+		new_hostextinfo=(xodtemplate_hostextinfo *)malloc(sizeof(xodtemplate_hostextinfo));
+		if(new_hostextinfo==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for extended host info\n");
+#endif
+			return ERROR;
+		        }
+
+		new_hostextinfo->template=NULL;
+		new_hostextinfo->name=NULL;
+		new_hostextinfo->host_name=NULL;
+		new_hostextinfo->hostgroup_name=NULL;
+		new_hostextinfo->notes_url=NULL;
+		new_hostextinfo->icon_image=NULL;
+		new_hostextinfo->icon_image_alt=NULL;
+		new_hostextinfo->vrml_image=NULL;
+		new_hostextinfo->statusmap_image=NULL;
+		new_hostextinfo->x_2d=-1;
+		new_hostextinfo->y_2d=-1;
+		new_hostextinfo->x_3d=0.0;
+		new_hostextinfo->y_3d=0.0;
+		new_hostextinfo->z_3d=0.0;
+		new_hostextinfo->have_2d_coords=FALSE;
+		new_hostextinfo->have_3d_coords=FALSE;
+
+		new_hostextinfo->has_been_resolved=FALSE;
+		new_hostextinfo->register_object=TRUE;
+
+		/* add new timeperiod to head of list in memory */
+		new_hostextinfo->next=xodtemplate_hostextinfo_list;
+		xodtemplate_hostextinfo_list=new_hostextinfo;
+
+		/* update current object pointer */
+		xodtemplate_current_object=xodtemplate_hostextinfo_list;
+		break;
+
+	case XODTEMPLATE_SERVICEEXTINFO:
+
+		/* allocate memory */
+		new_serviceextinfo=(xodtemplate_serviceextinfo *)malloc(sizeof(xodtemplate_serviceextinfo));
+		if(new_serviceextinfo==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for extended service info\n");
+#endif
+			return ERROR;
+		        }
+
+		new_serviceextinfo->template=NULL;
+		new_serviceextinfo->name=NULL;
+		new_serviceextinfo->host_name=NULL;
+		new_serviceextinfo->hostgroup_name=NULL;
+		new_serviceextinfo->service_description=NULL;
+		new_serviceextinfo->notes_url=NULL;
+		new_serviceextinfo->icon_image=NULL;
+		new_serviceextinfo->icon_image_alt=NULL;
+
+		new_serviceextinfo->has_been_resolved=FALSE;
+		new_serviceextinfo->register_object=TRUE;
+
+		/* add new timeperiod to head of list in memory */
+		new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
+		xodtemplate_serviceextinfo_list=new_serviceextinfo;
+
+		/* update current object pointer */
+		xodtemplate_current_object=xodtemplate_serviceextinfo_list;
+		break;
+
 	default:
 		return ERROR;
 		break;
@@ -1236,6 +1322,8 @@ int xodtemplate_add_object_property(char *input, int options){
 	xodtemplate_service *temp_service;
 	xodtemplate_hostdependency *temp_hostdependency;
 	xodtemplate_hostescalation *temp_hostescalation;
+	xodtemplate_hostextinfo *temp_hostextinfo;
+	xodtemplate_serviceextinfo *temp_serviceextinfo;
 	register int x;
 	register int y;
 
@@ -1288,6 +1376,14 @@ int xodtemplate_add_object_property(char *input, int options){
 		break;
 	case XODTEMPLATE_HOSTESCALATION:
 		if(!(options & READ_HOSTESCALATIONS))
+			return OK;
+		break;
+	case XODTEMPLATE_HOSTEXTINFO:
+		if(!(options & READ_HOSTEXTINFO))
+			return OK;
+		break;
+	case XODTEMPLATE_SERVICEEXTINFO:
+		if(!(options & READ_SERVICEEXTINFO))
 			return OK;
 		break;
 	default:
@@ -2626,6 +2722,152 @@ int xodtemplate_add_object_property(char *input, int options){
 
 		break;
 	
+	case XODTEMPLATE_HOSTEXTINFO:
+		
+		temp_hostextinfo=xodtemplate_hostextinfo_list;
+
+		if(!strcmp(variable,"use")){
+			temp_hostextinfo->template=strdup(value);
+			if(temp_hostextinfo->template==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"name")){
+			temp_hostextinfo->name=strdup(value);
+			if(temp_hostextinfo->name==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"host_name")){
+			temp_hostextinfo->host_name=(char *)malloc(strlen(value)+1);
+			if(temp_hostextinfo->host_name==NULL)
+				return ERROR;
+			strcpy(temp_hostextinfo->host_name,value);
+		        }
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
+			temp_hostextinfo->hostgroup_name=strdup(value);
+			if(temp_hostextinfo->hostgroup_name==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"notes_url")){
+			temp_hostextinfo->notes_url=strdup(value);
+			if(temp_hostextinfo->notes_url==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"icon_image")){
+			temp_hostextinfo->icon_image=strdup(value);
+			if(temp_hostextinfo->icon_image==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"icon_image_alt")){
+			temp_hostextinfo->icon_image_alt=strdup(value);
+			if(temp_hostextinfo->icon_image_alt==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"vrml_image")){
+			temp_hostextinfo->vrml_image=strdup(value);
+			if(temp_hostextinfo->vrml_image==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"gd2_image")|| !strcmp(variable,"statusmap_image")){
+			temp_hostextinfo->statusmap_image=strdup(value);
+			if(temp_hostextinfo->statusmap_image==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"2d_coords")){
+			temp_ptr=strtok(value,", ");
+			if(temp_ptr==NULL)
+				return ERROR;
+			temp_hostextinfo->x_2d=atoi(temp_ptr);
+			temp_ptr=strtok(NULL,", ");
+			if(temp_ptr==NULL)
+				return ERROR;
+			temp_hostextinfo->y_2d=atoi(temp_ptr);
+			temp_hostextinfo->have_2d_coords=TRUE;
+		        }
+		else if(!strcmp(variable,"3d_coords")){
+			temp_ptr=strtok(value,", ");
+			if(temp_ptr==NULL)
+				return ERROR;
+			temp_hostextinfo->x_3d=strtod(temp_ptr,NULL);
+			temp_ptr=strtok(NULL,", ");
+			if(temp_ptr==NULL)
+				return ERROR;
+			temp_hostextinfo->y_3d=strtod(temp_ptr,NULL);
+			temp_ptr=strtok(NULL,", ");
+			if(temp_ptr==NULL)
+				return ERROR;
+			temp_hostextinfo->z_3d=strtod(temp_ptr,NULL);
+			temp_hostextinfo->have_3d_coords=TRUE;
+		        }
+		else if(!strcmp(variable,"register"))
+			temp_hostextinfo->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else{
+#ifdef DEBUG1
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostextinfo object directive '%s'.\n",variable);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+
+		break;
+	
+	case XODTEMPLATE_SERVICEEXTINFO:
+		
+		temp_serviceextinfo=xodtemplate_serviceextinfo_list;
+
+		if(!strcmp(variable,"use")){
+			temp_serviceextinfo->template=strdup(value);
+			if(temp_serviceextinfo->template==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"name")){
+			temp_serviceextinfo->name=strdup(value);
+			if(temp_serviceextinfo->name==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"host_name")){
+			temp_serviceextinfo->host_name=strdup(value);
+			if(temp_serviceextinfo->host_name==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
+			temp_serviceextinfo->hostgroup_name=strdup(value);
+			if(temp_serviceextinfo->hostgroup_name==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"service_description")){
+			temp_serviceextinfo->service_description=strdup(value);
+			if(temp_serviceextinfo->service_description==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"notes_url")){
+			temp_serviceextinfo->notes_url=strdup(value);
+			if(temp_serviceextinfo->notes_url==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"icon_image")){
+			temp_serviceextinfo->icon_image=strdup(value);
+			if(temp_serviceextinfo->icon_image==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"icon_image_alt")){
+			temp_serviceextinfo->icon_image_alt=strdup(value);
+			if(temp_serviceextinfo->icon_image_alt==NULL)
+				return ERROR;
+		        }
+		else if(!strcmp(variable,"register"))
+			temp_serviceextinfo->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else{
+#ifdef DEBUG1
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid serviceextinfo object directive '%s'.\n",variable);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+
+		break;
+
 	default:
 		return ERROR;
 		break;
@@ -2681,6 +2923,8 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_servicelist *this_servicelist;
 	xodtemplate_hostlist *master_hostlist;
 	xodtemplate_hostlist *dependent_hostlist;
+	xodtemplate_hostextinfo *temp_hostextinfo;
+	xodtemplate_serviceextinfo *temp_serviceextinfo;
 	char *host_name;
 	int first_item;
 	void *xod_svc_cursor;
@@ -3126,6 +3370,104 @@ int xodtemplate_duplicate_objects(void){
 		xodtemplate_free_servicelist(temp_servicelist);
 	        }
 
+
+	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
+	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+
+		/* skip definitions without enough data */
+		if(temp_hostextinfo->hostgroup_name==NULL && temp_hostextinfo->host_name==NULL)
+			continue;
+
+		/* get list of hosts */
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostextinfo->hostgroup_name,temp_hostextinfo->host_name);
+		if(temp_hostlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+
+		/* add a copy of the definition for every host in the hostgroup/host name list */
+		first_item=TRUE;
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
+
+			/* if this is the first duplication, use the existing entry */
+			if(first_item==TRUE){
+
+				free(temp_hostextinfo->host_name);
+				temp_hostextinfo->host_name=strdup(this_hostlist->host_name);
+				if(temp_hostextinfo->host_name==NULL){
+					xodtemplate_free_hostlist(temp_hostlist);
+					return ERROR;
+				        }
+				first_item=FALSE;
+				continue;
+			        }
+
+			/* duplicate hostextinfo definition */
+			result=xodtemplate_duplicate_hostextinfo(temp_hostextinfo,this_hostlist->host_name);
+
+			/* exit on error */
+			if(result==ERROR){
+				xodtemplate_free_hostlist(temp_hostlist);
+				return ERROR;
+			        }
+		        }
+
+		/* free memory we used for host list */
+		xodtemplate_free_hostlist(temp_hostlist);
+	        }
+
+
+	/****** DUPLICATE SERVICEEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
+	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+
+		/* skip definitions without enough data */
+		if(temp_serviceextinfo->hostgroup_name==NULL && temp_serviceextinfo->host_name==NULL)
+			continue;
+
+		/* get list of hosts */
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name);
+		if(temp_hostlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+
+		/* add a copy of the definition for every host in the hostgroup/host name list */
+		first_item=TRUE;
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
+
+			/* existing definition gets first host name */
+			if(first_item==TRUE){
+				free(temp_serviceextinfo->host_name);
+				temp_serviceextinfo->host_name=strdup(this_hostlist->host_name);
+				if(temp_serviceextinfo->host_name==NULL){
+					xodtemplate_free_hostlist(temp_hostlist);
+					return ERROR;
+				        }
+				first_item=FALSE;
+				continue;
+			        }
+
+			/* duplicate serviceextinfo definition */
+			result=xodtemplate_duplicate_serviceextinfo(temp_serviceextinfo,this_hostlist->host_name);
+
+			/* exit on error */
+			if(result==ERROR){
+				xodtemplate_free_hostlist(temp_hostlist);
+				return ERROR;
+			        }
+		        }
+
+		/* free memory we used for host list */
+		xodtemplate_free_hostlist(temp_hostlist);
+	        }
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_objects() end\n");
@@ -3833,6 +4175,130 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 
 
 
+/* duplicates a hostextinfo object definition */
+int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo, char *host_name){
+	xodtemplate_hostextinfo *new_hostextinfo;
+
+#ifdef DEBUG0
+	printf("xodtemplate_duplicate_hostextinfo() start\n");
+#endif
+
+	new_hostextinfo=(xodtemplate_hostextinfo *)malloc(sizeof(xodtemplate_hostextinfo));
+	if(new_hostextinfo==NULL){
+#ifdef DEBUG1
+		printf("Error: Could not allocate memory for duplicate definition of extended host info.\n");
+#endif
+		return ERROR;
+	        }
+
+	new_hostextinfo->template=NULL;
+	new_hostextinfo->name=NULL;
+	new_hostextinfo->host_name=NULL;
+	new_hostextinfo->hostgroup_name=NULL;
+	new_hostextinfo->notes_url=NULL;
+	new_hostextinfo->icon_image=NULL;
+	new_hostextinfo->icon_image_alt=NULL;
+	new_hostextinfo->vrml_image=NULL;
+	new_hostextinfo->statusmap_image=NULL;
+
+	/* duplicate strings (host_name member is passed in) */
+	if(host_name!=NULL)
+		new_hostextinfo->host_name=strdup(host_name);
+	if(this_hostextinfo->template!=NULL)
+		new_hostextinfo->template=strdup(this_hostextinfo->template);
+	if(this_hostextinfo->name!=NULL)
+		new_hostextinfo->name=strdup(this_hostextinfo->name);
+	if(this_hostextinfo->notes_url!=NULL)
+		new_hostextinfo->notes_url=strdup(this_hostextinfo->notes_url);
+	if(this_hostextinfo->icon_image!=NULL)
+		new_hostextinfo->icon_image=strdup(this_hostextinfo->icon_image);
+	if(this_hostextinfo->icon_image_alt!=NULL)
+		new_hostextinfo->icon_image_alt=strdup(this_hostextinfo->icon_image_alt);
+	if(this_hostextinfo->vrml_image!=NULL)
+		new_hostextinfo->vrml_image=strdup(this_hostextinfo->vrml_image);
+	if(this_hostextinfo->statusmap_image!=NULL)
+		new_hostextinfo->statusmap_image=strdup(this_hostextinfo->statusmap_image);
+
+	/* duplicate non-string members */
+	new_hostextinfo->x_2d=this_hostextinfo->x_2d;
+	new_hostextinfo->y_2d=this_hostextinfo->y_2d;
+	new_hostextinfo->have_2d_coords=this_hostextinfo->have_2d_coords;
+	new_hostextinfo->x_3d=this_hostextinfo->x_3d;
+	new_hostextinfo->y_3d=this_hostextinfo->y_3d;
+	new_hostextinfo->z_3d=this_hostextinfo->z_3d;
+	new_hostextinfo->have_3d_coords=this_hostextinfo->have_3d_coords;
+
+	new_hostextinfo->has_been_resolved=this_hostextinfo->has_been_resolved;
+	new_hostextinfo->register_object=this_hostextinfo->register_object;
+
+	/* add new object to head of list */
+	new_hostextinfo->next=xodtemplate_hostextinfo_list;
+	xodtemplate_hostextinfo_list=new_hostextinfo;
+
+#ifdef DEBUG0
+	printf("xodtemplate_duplicate_hostextinfo() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* duplicates a serviceextinfo object definition */
+int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo, char *host_name){
+	xodtemplate_serviceextinfo *new_serviceextinfo;
+
+#ifdef DEBUG0
+	printf("xodtemplate_duplicate_serviceextinfo() start\n");
+#endif
+
+	new_serviceextinfo=(xodtemplate_serviceextinfo *)malloc(sizeof(xodtemplate_serviceextinfo));
+	if(new_serviceextinfo==NULL){
+#ifdef DEBUG1
+		printf("Error: Could not allocate memory for duplicate definition of extended service info.\n");
+#endif
+		return ERROR;
+	        }
+
+	new_serviceextinfo->template=NULL;
+	new_serviceextinfo->name=NULL;
+	new_serviceextinfo->host_name=NULL;
+	new_serviceextinfo->hostgroup_name=NULL;
+	new_serviceextinfo->notes_url=NULL;
+	new_serviceextinfo->icon_image=NULL;
+	new_serviceextinfo->icon_image_alt=NULL;
+
+	new_serviceextinfo->has_been_resolved=this_serviceextinfo->has_been_resolved;
+	new_serviceextinfo->register_object=this_serviceextinfo->register_object;
+
+	/* duplicate strings (host_name member is passed in) */
+	if(host_name!=NULL)
+		new_serviceextinfo->host_name=strdup(host_name);
+	if(this_serviceextinfo->template!=NULL)
+		new_serviceextinfo->template=strdup(this_serviceextinfo->template);
+	if(this_serviceextinfo->name!=NULL)
+		new_serviceextinfo->name=strdup(this_serviceextinfo->name);
+	if(this_serviceextinfo->service_description!=NULL)
+		new_serviceextinfo->service_description=strdup(this_serviceextinfo->service_description);
+	if(this_serviceextinfo->notes_url!=NULL)
+		new_serviceextinfo->notes_url=strdup(this_serviceextinfo->notes_url);
+	if(this_serviceextinfo->icon_image!=NULL)
+		new_serviceextinfo->icon_image=strdup(this_serviceextinfo->icon_image);
+	if(this_serviceextinfo->icon_image_alt!=NULL)
+		new_serviceextinfo->icon_image_alt=strdup(this_serviceextinfo->icon_image_alt);
+
+	/* add new object to head of list */
+	new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
+	xodtemplate_serviceextinfo_list=new_serviceextinfo;
+
+#ifdef DEBUG0
+	printf("xodtemplate_duplicate_serviceextinfo() end\n");
+#endif
+
+	return;
+        }
+
+
 
 
 /******************************************************************/
@@ -3852,6 +4318,8 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_service *temp_service;
 	xodtemplate_hostdependency *temp_hostdependency;
 	xodtemplate_hostescalation *temp_hostescalation;
+	xodtemplate_hostextinfo *temp_hostextinfo;
+	xodtemplate_serviceextinfo *temp_serviceextinfo;
 	void *xod_svc_cursor;
 
 #ifdef DEBUG0
@@ -3923,6 +4391,18 @@ int xodtemplate_resolve_objects(void){
 	/* resolve all hostescalation objects */
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 		if(xodtemplate_resolve_hostescalation(temp_hostescalation)==ERROR)
+			return ERROR;
+	        }
+
+	/* resolve all hostextinfo objects */
+	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		if(xodtemplate_resolve_hostextinfo(temp_hostextinfo)==ERROR)
+			return ERROR;
+	        }
+
+	/* resolve all serviceextinfo objects */
+	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+		if(xodtemplate_resolve_serviceextinfo(temp_serviceextinfo)==ERROR)
 			return ERROR;
 	        }
 
@@ -4765,6 +5245,139 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 
 
 
+/* resolves a hostextinfo object */
+int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
+	xodtemplate_hostextinfo *template_hostextinfo;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_resolve_hostextinfo() start\n");
+#endif
+
+	/* return if this object has already been resolved */
+	if(this_hostextinfo->has_been_resolved==TRUE)
+		return OK;
+
+	/* set the resolved flag */
+	this_hostextinfo->has_been_resolved=TRUE;
+
+	/* return if we have no template */
+	if(this_hostextinfo->template==NULL)
+		return OK;
+
+	template_hostextinfo=xodtemplate_find_hostextinfo(this_hostextinfo->template);
+	if(template_hostextinfo==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', line %d)\n",this_hostextinfo->template,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
+
+	/* resolve the template hostextinfo... */
+	xodtemplate_resolve_hostextinfo(template_hostextinfo);
+
+	/* apply missing properties from template hostextinfo... */
+	if(this_hostextinfo->name==NULL && template_hostextinfo->name!=NULL)
+		this_hostextinfo->name=strdup(template_hostextinfo->name);
+	if(this_hostextinfo->host_name==NULL && template_hostextinfo->host_name!=NULL)
+		this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
+	if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
+		this_hostextinfo->hostgroup_name=strdup(template_hostextinfo->hostgroup_name);
+	if(this_hostextinfo->notes_url==NULL && template_hostextinfo->notes_url!=NULL)
+		this_hostextinfo->notes_url=strdup(template_hostextinfo->notes_url);
+	if(this_hostextinfo->icon_image==NULL && template_hostextinfo->icon_image!=NULL)
+		this_hostextinfo->icon_image=strdup(template_hostextinfo->icon_image);
+	if(this_hostextinfo->icon_image_alt==NULL && template_hostextinfo->icon_image_alt!=NULL)
+		this_hostextinfo->icon_image_alt=strdup(template_hostextinfo->icon_image_alt);
+	if(this_hostextinfo->vrml_image==NULL && template_hostextinfo->vrml_image!=NULL)
+		this_hostextinfo->vrml_image=strdup(template_hostextinfo->vrml_image);
+	if(this_hostextinfo->statusmap_image==NULL && template_hostextinfo->statusmap_image!=NULL)
+		this_hostextinfo->statusmap_image=strdup(template_hostextinfo->statusmap_image);
+	if(this_hostextinfo->have_2d_coords==FALSE && template_hostextinfo->have_2d_coords==TRUE){
+		this_hostextinfo->x_2d=template_hostextinfo->x_2d;
+		this_hostextinfo->y_2d=template_hostextinfo->y_2d;
+		this_hostextinfo->have_2d_coords=TRUE;
+	        }
+	if(this_hostextinfo->have_3d_coords==FALSE && template_hostextinfo->have_3d_coords==TRUE){
+		this_hostextinfo->x_3d=template_hostextinfo->x_3d;
+		this_hostextinfo->y_3d=template_hostextinfo->y_3d;
+		this_hostextinfo->z_3d=template_hostextinfo->z_3d;
+		this_hostextinfo->have_3d_coords=TRUE;
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_resolve_hostextinfo() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* resolves a serviceextinfo object */
+int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo){
+	xodtemplate_serviceextinfo *template_serviceextinfo;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_resolve_serviceextinfo() start\n");
+#endif
+
+	/* return if this object has already been resolved */
+	if(this_serviceextinfo->has_been_resolved==TRUE)
+		return OK;
+
+	/* set the resolved flag */
+	this_serviceextinfo->has_been_resolved=TRUE;
+
+	/* return if we have no template */
+	if(this_serviceextinfo->template==NULL)
+		return OK;
+
+	template_serviceextinfo=xodtemplate_find_serviceextinfo(this_serviceextinfo->template);
+	if(template_serviceextinfo==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', line %d)\n",this_serviceextinfo->template,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
+
+	/* resolve the template serviceextinfo... */
+	xodtemplate_resolve_serviceextinfo(template_serviceextinfo);
+
+	/* apply missing properties from template serviceextinfo... */
+	if(this_serviceextinfo->name==NULL && template_serviceextinfo->name!=NULL)
+		this_serviceextinfo->name=strdup(template_serviceextinfo->name);
+	if(this_serviceextinfo->host_name==NULL && template_serviceextinfo->host_name!=NULL)
+		this_serviceextinfo->host_name=strdup(template_serviceextinfo->host_name);
+	if(this_serviceextinfo->hostgroup_name==NULL && template_serviceextinfo->hostgroup_name!=NULL)
+		this_serviceextinfo->hostgroup_name=strdup(template_serviceextinfo->hostgroup_name);
+	if(this_serviceextinfo->service_description==NULL && template_serviceextinfo->service_description!=NULL)
+		this_serviceextinfo->service_description=strdup(template_serviceextinfo->service_description);
+	if(this_serviceextinfo->notes_url==NULL && template_serviceextinfo->notes_url!=NULL)
+		this_serviceextinfo->notes_url=strdup(template_serviceextinfo->notes_url);
+	if(this_serviceextinfo->icon_image==NULL && template_serviceextinfo->icon_image!=NULL)
+		this_serviceextinfo->icon_image=strdup(template_serviceextinfo->icon_image);
+	if(this_serviceextinfo->icon_image_alt==NULL && template_serviceextinfo->icon_image_alt!=NULL)
+		this_serviceextinfo->icon_image_alt=strdup(template_serviceextinfo->icon_image_alt);
+
+#ifdef DEBUG0
+	printf("xodtemplate_resolve_serviceextinfo() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
 
 /******************************************************************/
 /******************* OBJECT SEARCH FUNCTIONS **********************/
@@ -5036,6 +5649,41 @@ xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *name){
         }
 
 
+/* finds a specific hostextinfo object */
+xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *name){
+	xodtemplate_hostextinfo *temp_hostextinfo;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		if(temp_hostextinfo->name==NULL)
+			continue;
+		if(!strcmp(temp_hostextinfo->name,name))
+			break;
+	        }
+
+	return temp_hostextinfo;
+        }
+
+
+/* finds a specific serviceextinfo object */
+xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *name){
+	xodtemplate_serviceextinfo *temp_serviceextinfo;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+		if(temp_serviceextinfo->name==NULL)
+			continue;
+		if(!strcmp(temp_serviceextinfo->name,name))
+			break;
+	        }
+
+	return temp_serviceextinfo;
+        }
+
 
 
 /******************************************************************/
@@ -5056,6 +5704,8 @@ int xodtemplate_register_objects(void){
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_hostdependency *temp_hostdependency;
 	xodtemplate_hostescalation *temp_hostescalation;
+	xodtemplate_hostextinfo *temp_hostextinfo;
+	xodtemplate_serviceextinfo *temp_serviceextinfo;
 	void *xod_svc_cursor;
 
 #ifdef DEBUG0
@@ -5127,6 +5777,18 @@ int xodtemplate_register_objects(void){
 	/* register host escalations */
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 		if((result=xodtemplate_register_hostescalation(temp_hostescalation))==ERROR)
+			return ERROR;
+	        }
+
+	/* register host extended info */
+	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		if((result=xodtemplate_register_hostextinfo(temp_hostextinfo))==ERROR)
+			return ERROR;
+	        }
+
+	/* register service extended info */
+	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+		if((result=xodtemplate_register_serviceextinfo(temp_serviceextinfo))==ERROR)
 			return ERROR;
 	        }
 
@@ -5871,6 +6533,80 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 
 
 
+/* registers a hostextinfo definition */
+int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
+	hostextinfo *new_hostextinfo;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_register_hostextinfo() start\n");
+#endif
+
+	/* bail out if we shouldn't register this object */
+	if(this_hostextinfo->register_object==FALSE)
+		return OK;
+
+	/* register the extended host object */
+	new_hostextinfo=add_hostextinfo(this_hostextinfo->host_name,this_hostextinfo->notes_url,this_hostextinfo->icon_image,this_hostextinfo->vrml_image,this_hostextinfo->statusmap_image,this_hostextinfo->icon_image_alt,this_hostextinfo->x_2d,this_hostextinfo->y_2d,this_hostextinfo->x_3d,this_hostextinfo->y_3d,this_hostextinfo->z_3d,this_hostextinfo->have_2d_coords,this_hostextinfo->have_3d_coords);
+
+	/* return with an error if we couldn't add the definition */
+	if(new_hostextinfo==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host extended information (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_register_hostextinfo() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* registers a serviceextinfo definition */
+int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo){
+	serviceextinfo *new_serviceextinfo;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_register_serviceextinfo() start\n");
+#endif
+
+	/* bail out if we shouldn't register this object */
+	if(this_serviceextinfo->register_object==FALSE)
+		return OK;
+
+	/* register the extended service object */
+	new_serviceextinfo=add_serviceextinfo(this_serviceextinfo->host_name,this_serviceextinfo->service_description,this_serviceextinfo->notes_url,this_serviceextinfo->icon_image,this_serviceextinfo->icon_image_alt);
+
+	/* return with an error if we couldn't add the definition */
+	if(new_serviceextinfo==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service extended information (config file '%s', line %d)\n",xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_register_serviceextinfo() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
 
 /******************************************************************/
 /********************** CLEANUP FUNCTIONS *************************/
@@ -5900,6 +6636,10 @@ int xodtemplate_free_memory(void){
 	xodtemplate_hostdependency *next_hostdependency;
 	xodtemplate_hostescalation *this_hostescalation;
 	xodtemplate_hostescalation *next_hostescalation;
+	xodtemplate_hostextinfo *this_hostextinfo;
+	xodtemplate_hostextinfo *next_hostextinfo;
+	xodtemplate_serviceextinfo *this_serviceextinfo;
+	xodtemplate_serviceextinfo *next_serviceextinfo;
 	int x;
 
 #ifdef DEBUG0
@@ -6066,6 +6806,35 @@ int xodtemplate_free_memory(void){
 		free(this_hostescalation);
 	        }
 	xodtemplate_hostescalation_list=NULL;
+
+	/* free memory allocated to hostextinfo list */
+	for(this_hostextinfo=xodtemplate_hostextinfo_list;this_hostextinfo!=NULL;this_hostextinfo=next_hostextinfo){
+		next_hostextinfo=this_hostextinfo->next;
+		free(this_hostextinfo->template);
+		free(this_hostextinfo->name);
+		free(this_hostextinfo->host_name);
+		free(this_hostextinfo->hostgroup_name);
+		free(this_hostextinfo->notes_url);
+		free(this_hostextinfo->icon_image);
+		free(this_hostextinfo->icon_image_alt);
+		free(this_hostextinfo->vrml_image);
+		free(this_hostextinfo->statusmap_image);
+		free(this_hostextinfo);
+	        }
+
+	/* free memory allocated to serviceextinfo list */
+	for(this_serviceextinfo=xodtemplate_serviceextinfo_list;this_serviceextinfo!=NULL;this_serviceextinfo=next_serviceextinfo){
+		next_serviceextinfo=this_serviceextinfo->next;
+		free(this_serviceextinfo->template);
+		free(this_serviceextinfo->name);
+		free(this_serviceextinfo->host_name);
+		free(this_serviceextinfo->hostgroup_name);
+		free(this_serviceextinfo->service_description);
+		free(this_serviceextinfo->notes_url);
+		free(this_serviceextinfo->icon_image);
+		free(this_serviceextinfo->icon_image_alt);
+		free(this_serviceextinfo);
+	        }
 
 	/* free memory for the config file names */
 	for(x=0;x<xodtemplate_current_config_file;x++)

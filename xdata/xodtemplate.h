@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-08-2003
  *
  * License:
  *
@@ -46,7 +46,8 @@
 #define XODTEMPLATE_SERVICEESCALATION   10
 #define XODTEMPLATE_HOSTESCALATION      11
 #define XODTEMPLATE_HOSTDEPENDENCY      12
-
+#define XODTEMPLATE_HOSTEXTINFO         13
+#define XODTEMPLATE_SERVICEEXTINFO      14
 
 
 
@@ -391,13 +392,16 @@ typedef struct xodtemplate_hostescalation_struct{
 typedef struct xodtemplate_hostextinfo_struct{
 	char       *template;
 	char       *name;
+	int        _config_file;
+	int        _start_line;
+
 	char       *host_name;
 	char       *hostgroup_name;
 	char       *notes_url;
 	char       *icon_image;
 	char       *icon_image_alt;
 	char       *vrml_image;
-	char       *gd2_image;
+	char       *statusmap_image;
 	int        x_2d;
 	int        y_2d;
 	double     x_3d;
@@ -417,6 +421,9 @@ typedef struct xodtemplate_hostextinfo_struct{
 typedef struct xodtemplate_serviceextinfo_struct{
 	char       *template;
 	char       *name;
+	int        _config_file;
+	int        _start_line;
+
 	char       *host_name;
 	char       *hostgroup_name;
 	char       *service_description;
@@ -483,6 +490,8 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *,char *);
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *,char *,char *);
 int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *,char *,char *);
 int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *,char *,char *,char *,char *);
+int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *,char *);
+int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *,char *);
 
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);
@@ -495,6 +504,8 @@ int xodtemplate_resolve_host(xodtemplate_host *);
 int xodtemplate_resolve_service(xodtemplate_service *);
 int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *);
+int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *);
+int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *);
 
 xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *);
 xodtemplate_command *xodtemplate_find_command(char *);
@@ -510,6 +521,8 @@ xodtemplate_service *xodtemplate_find_service(char *);
 xodtemplate_service *xodtemplate_find_real_service(char *,char *);
 xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *);
 xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);
+xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *);
+xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *);
 
 void *get_xodtemplate_service_cursor(void);
 xodtemplate_service *get_next_xodtemplate_service(void *v_cursor);
@@ -531,6 +544,10 @@ int xodtemplate_register_host(xodtemplate_host *);
 int xodtemplate_register_service(xodtemplate_service *);
 int xodtemplate_register_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *);
+int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *);
+int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *);
 
 
 #endif
+
+

@@ -6,6 +6,7 @@ Nagios Change Log
 ------------------
 * Bug fixes in template-based object code
 * Bug fix in tac CGI for counting host and service states properly
+* Default is now to check for external commands as often as possible
 
 
 1.0b2 - 05/27/2002

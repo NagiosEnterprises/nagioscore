@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-01-2004
+ * Last Modified:   11-06-2004
  *
  * License:
  *
@@ -310,6 +310,7 @@ int use_embedded_perl=TRUE;
 int process_macros(char *input_buffer, char *output_buffer, int buffer_length, int options){
 	char *temp_buffer;
 	int in_macro;
+	int x;
 	int arg_index=0;
 	int user_index=0;
 	int address_index=0;
@@ -359,101 +360,19 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 			if(strlen(output_buffer)+strlen(temp_buffer)<buffer_length-1){
 
-				/*******************/
-				/*** HOST MACROS ***/
-				/*******************/
-
-				if(!strcmp(temp_buffer,"HOSTNAME"))
-					selected_macro=macro_x[MACRO_HOSTNAME];
-
-				else if(!strcmp(temp_buffer,"HOSTALIAS"))
-					selected_macro=macro_x[MACRO_HOSTALIAS];
-
-				else if(!strcmp(temp_buffer,"HOSTADDRESS"))
-					selected_macro=macro_x[MACRO_HOSTADDRESS];
-
-				else if(!strcmp(temp_buffer,"LASTHOSTCHECK"))
-					selected_macro=macro_x[MACRO_LASTHOSTCHECK];
-
-				else if(!strcmp(temp_buffer,"LASTHOSTSTATECHANGE"))
-					selected_macro=macro_x[MACRO_LASTHOSTSTATECHANGE];
-
-				else if(!strcmp(temp_buffer,"LASTHOSTUP"))
-					selected_macro=macro_x[MACRO_LASTHOSTUP];
-
-				else if(!strcmp(temp_buffer,"LASTHOSTDOWN"))
-					selected_macro=macro_x[MACRO_LASTHOSTDOWN];
-
-				else if(!strcmp(temp_buffer,"LASTHOSTUNREACHABLE"))
-					selected_macro=macro_x[MACRO_LASTHOSTUNREACHABLE];
-
-				else if(!strcmp(temp_buffer,"HOSTOUTPUT")){
-					selected_macro=macro_x[MACRO_HOSTOUTPUT];
-					clean_macro=TRUE;
+				/* general macros */
+				for(x=0;x<MACRO_X_COUNT;x++){
+					if(macro_x_names[x]==NULL)
+						continue;
+					if(!strcmp(temp_buffer,macro_x_names[x])){
+						selected_macro=macro_x[x];
+						break;
+						}
 				        }
 
-				else if(!strcmp(temp_buffer,"HOSTPERFDATA")){
-					selected_macro=macro_x[MACRO_HOSTPERFDATA];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"HOSTACKAUTHOR")){
-					selected_macro=macro_x[MACRO_HOSTACKAUTHOR];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"HOSTACKCOMMENT")){
-					selected_macro=macro_x[MACRO_HOSTACKCOMMENT];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"HOSTSTATE"))
-					selected_macro=macro_x[MACRO_HOSTSTATE];
-
-				else if(!strcmp(temp_buffer,"HOSTSTATEID"))
-					selected_macro=macro_x[MACRO_HOSTSTATEID];
-
-				else if(!strcmp(temp_buffer,"HOSTATTEMPT"))
-					selected_macro=macro_x[MACRO_HOSTATTEMPT];
-
-				else if(!strcmp(temp_buffer,"HOSTSTATETYPE"))
-					selected_macro=macro_x[MACRO_HOSTSTATETYPE];
-
-				else if(!strcmp(temp_buffer,"HOSTLATENCY"))
-					selected_macro=macro_x[MACRO_HOSTLATENCY];
-
-				else if(!strcmp(temp_buffer,"HOSTDURATION"))
-					selected_macro=macro_x[MACRO_HOSTDURATION];
-
-				else if(!strcmp(temp_buffer,"HOSTEXECUTIONTIME"))
-					selected_macro=macro_x[MACRO_HOSTEXECUTIONTIME];
-
-				else if(!strcmp(temp_buffer,"HOSTDURATIONSEC"))
-					selected_macro=macro_x[MACRO_HOSTDURATIONSEC];
-
-				else if(!strcmp(temp_buffer,"HOSTDOWNTIME"))
-					selected_macro=macro_x[MACRO_HOSTDOWNTIME];
-
-				else if(!strcmp(temp_buffer,"HOSTPERCENTCHANGE"))
-					selected_macro=macro_x[MACRO_HOSTPERCENTCHANGE];
-
-				else if(!strcmp(temp_buffer,"HOSTCHECKCOMMAND"))
-					selected_macro=macro_x[MACRO_HOSTCHECKCOMMAND];
-
-				else if(!strcmp(temp_buffer,"HOSTGROUPNAME"))
-					selected_macro=macro_x[MACRO_HOSTGROUPNAME];
-
-				else if(!strcmp(temp_buffer,"HOSTGROUPALIAS"))
-					selected_macro=macro_x[MACRO_HOSTGROUPALIAS];
-
-				else if(!strcmp(temp_buffer,"HOSTACTIONURL"))
-					selected_macro=macro_x[MACRO_HOSTACTIONURL];
-
-				else if(!strcmp(temp_buffer,"HOSTNOTESURL"))
-					selected_macro=macro_x[MACRO_HOSTNOTESURL];
-
-				else if(!strcmp(temp_buffer,"HOSTNOTES"))
-					selected_macro=macro_x[MACRO_HOSTNOTES];
+				/* we already have a macro... */
+				if(selected_macro!=NULL)
+					x=0;
 
 				/* on-demand host macros */
 				else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
@@ -461,254 +380,13 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					selected_macro=macro_ondemand;
 				        }
 
-				/**********************/
-				/*** SERVICE MACROS ***/
-				/**********************/
-
-				else if(!strcmp(temp_buffer,"SERVICEDESC"))
-					selected_macro=macro_x[MACRO_SERVICEDESC];
-
-				else if(!strcmp(temp_buffer,"SERVICESTATE"))
-					selected_macro=macro_x[MACRO_SERVICESTATE];
-
-				else if(!strcmp(temp_buffer,"SERVICESTATEID"))
-					selected_macro=macro_x[MACRO_SERVICESTATEID];
-
-				else if(!strcmp(temp_buffer,"SERVICEATTEMPT"))
-					selected_macro=macro_x[MACRO_SERVICEATTEMPT];
-
-				else if(!strcmp(temp_buffer,"LASTSERVICECHECK"))
-					selected_macro=macro_x[MACRO_LASTSERVICECHECK];
-
-				else if(!strcmp(temp_buffer,"LASTSERVICESTATECHANGE"))
-					selected_macro=macro_x[MACRO_LASTSERVICESTATECHANGE];
-
-				else if(!strcmp(temp_buffer,"LASTSERVICEOK"))
-					selected_macro=macro_x[MACRO_LASTSERVICEOK];
-
-				else if(!strcmp(temp_buffer,"LASTSERVICEWARNING"))
-					selected_macro=macro_x[MACRO_LASTSERVICEWARNING];
-
-				else if(!strcmp(temp_buffer,"LASTSERVICEUNKNOWN"))
-					selected_macro=macro_x[MACRO_LASTSERVICEUNKNOWN];
-
-				else if(!strcmp(temp_buffer,"LASTSERVICECRITICAL"))
-					selected_macro=macro_x[MACRO_LASTSERVICECRITICAL];
-
-				else if(!strcmp(temp_buffer,"SERVICEOUTPUT")){
-					selected_macro=macro_x[MACRO_SERVICEOUTPUT];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"SERVICEPERFDATA")){
-					selected_macro=macro_x[MACRO_SERVICEPERFDATA];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"SERVICEACKAUTHOR")){
-					selected_macro=macro_x[MACRO_SERVICEACKAUTHOR];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"SERVICEACKCOMMENT")){
-					selected_macro=macro_x[MACRO_SERVICEACKCOMMENT];
-					clean_macro=TRUE;
-				        }
-
-				else if(!strcmp(temp_buffer,"SERVICESTATETYPE"))
-					selected_macro=macro_x[MACRO_SERVICESTATETYPE];
-
-				else if(!strcmp(temp_buffer,"SERVICEEXECUTIONTIME"))
-					selected_macro=macro_x[MACRO_SERVICEEXECUTIONTIME];
-
-				else if(!strcmp(temp_buffer,"SERVICELATENCY"))
-					selected_macro=macro_x[MACRO_SERVICELATENCY];
-
-				else if(!strcmp(temp_buffer,"SERVICEDURATION"))
-					selected_macro=macro_x[MACRO_SERVICEDURATION];
-
-				else if(!strcmp(temp_buffer,"SERVICEDURATIONSEC"))
-					selected_macro=macro_x[MACRO_SERVICEDURATIONSEC];
-
-				else if(!strcmp(temp_buffer,"SERVICEPERCENTCHANGE"))
-					selected_macro=macro_x[MACRO_SERVICEPERCENTCHANGE];
-
-				else if(!strcmp(temp_buffer,"SERVICECHECKCOMMAND"))
-					selected_macro=macro_x[MACRO_SERVICECHECKCOMMAND];
-
-				else if(!strcmp(temp_buffer,"SERVICEGROUPNAME"))
-					selected_macro=macro_x[MACRO_SERVICEGROUPNAME];
-
-				else if(!strcmp(temp_buffer,"SERVICEGROUPALIAS"))
-					selected_macro=macro_x[MACRO_SERVICEGROUPALIAS];
-
-				else if(!strcmp(temp_buffer,"SERVICEDOWNTIME"))
-					selected_macro=macro_x[MACRO_SERVICEDOWNTIME];
-
-				else if(!strcmp(temp_buffer,"SERVICEACTIONURL"))
-					selected_macro=macro_x[MACRO_SERVICEACTIONURL];
-
-				else if(!strcmp(temp_buffer,"SERVICENOTESURL"))
-					selected_macro=macro_x[MACRO_SERVICENOTESURL];
-
-				else if(!strcmp(temp_buffer,"SERVICENOTES"))
-					selected_macro=macro_x[MACRO_SERVICENOTES];
-
 				/* on-demand service macros */
 				else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
 					grab_on_demand_macro(temp_buffer);
 					selected_macro=macro_ondemand;
 				        }
 
-				/**********************/
-				/*** CONTACT MACROS ***/
-				/**********************/
-
-				else if(!strcmp(temp_buffer,"CONTACTNAME"))
-					selected_macro=macro_x[MACRO_CONTACTNAME];
-
-				else if(!strcmp(temp_buffer,"CONTACTALIAS"))
-					selected_macro=macro_x[MACRO_CONTACTALIAS];
-
-				else if(!strcmp(temp_buffer,"CONTACTEMAIL"))
-					selected_macro=macro_x[MACRO_CONTACTEMAIL];
-
-				else if(!strcmp(temp_buffer,"CONTACTPAGER"))
-					selected_macro=macro_x[MACRO_CONTACTPAGER];
-
-				else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
-					address_index=atoi(temp_buffer+14);
-					if(address_index>=1 && address_index<=MAX_CONTACT_ADDRESSES)
-						selected_macro=macro_contactaddress[address_index-1];
-					else
-						selected_macro=NULL;
-				        }
-			
-				/***************************/
-				/*** NOTIFICATION MACROS ***/
-				/***************************/
-
-				else if(!strcmp(temp_buffer,"NOTIFICATIONTYPE"))
-					selected_macro=macro_x[MACRO_NOTIFICATIONTYPE];
-
-				else if(!strcmp(temp_buffer,"NOTIFICATIONNUMBER"))
-					selected_macro=macro_x[MACRO_NOTIFICATIONNUMBER];
-
-
-				/**********************/
-				/*** SUMMARY MACROS ***/
-				/**********************/
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTSUP"))
-					selected_macro=macro_x[MACRO_TOTALHOSTSUP];
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTSDOWN"))
-					selected_macro=macro_x[MACRO_TOTALHOSTSDOWN];
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTSUNREACHABLE"))
-					selected_macro=macro_x[MACRO_TOTALHOSTSUNREACHABLE];
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTSDOWNUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED];
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTSUNREACHABLEUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED];
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTPROBLEMS"))
-					selected_macro=macro_x[MACRO_TOTALHOSTPROBLEMS];
-
-				else if(!strcmp(temp_buffer,"TOTALHOSTPROBLEMSUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESOK"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESOK];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESWARNING"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESWARNING];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESCRITICAL"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESCRITICAL];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESUNKNOWN"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESUNKNOWN];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESWARNINGUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESCRITICALUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICESUNKNOWNUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICEPROBLEMS"))
-					selected_macro=macro_x[MACRO_TOTALSERVICEPROBLEMS];
-
-				else if(!strcmp(temp_buffer,"TOTALSERVICEPROBLEMSUNHANDLED"))
-					selected_macro=macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED];
-
-
-				/**********************/
-				/*** GENERIC MACROS ***/
-				/**********************/
-
-				else if(!strcmp(temp_buffer,"DATETIME") || !strcmp(temp_buffer,"LONGDATETIME"))
-					selected_macro=macro_x[MACRO_LONGDATETIME];
-
-				else if(!strcmp(temp_buffer,"SHORTDATETIME"))
-					selected_macro=macro_x[MACRO_SHORTDATETIME];
-
-				else if(!strcmp(temp_buffer,"DATE"))
-					selected_macro=macro_x[MACRO_DATE];
-
-				else if(!strcmp(temp_buffer,"TIME"))
-					selected_macro=macro_x[MACRO_TIME];
-
-				else if(!strcmp(temp_buffer,"TIMET"))
-					selected_macro=macro_x[MACRO_TIMET];
-
-				else if(!strcmp(temp_buffer,"ADMINEMAIL"))
-					selected_macro=macro_x[MACRO_ADMINEMAIL];
-
-				else if(!strcmp(temp_buffer,"ADMINPAGER"))
-					selected_macro=macro_x[MACRO_ADMINPAGER];
-
-				else if(!strcmp(temp_buffer,"MAINCONFIGFILE"))
-					selected_macro=macro_x[MACRO_MAINCONFIGFILE];
-
-				else if(!strcmp(temp_buffer,"STATUSDATAFILE"))
-					selected_macro=macro_x[MACRO_STATUSDATAFILE];
-
-				else if(!strcmp(temp_buffer,"COMMENTDATAFILE"))
-					selected_macro=macro_x[MACRO_COMMENTDATAFILE];
-
-				else if(!strcmp(temp_buffer,"DOWNTIMEDATAFILE"))
-					selected_macro=macro_x[MACRO_DOWNTIMEDATAFILE];
-
-				else if(!strcmp(temp_buffer,"RETENTIONDATAFILE"))
-					selected_macro=macro_x[MACRO_RETENTIONDATAFILE];
-
-				else if(!strcmp(temp_buffer,"OBJECTCACHEFILE"))
-					selected_macro=macro_x[MACRO_OBJECTCACHEFILE];
-
-				else if(!strcmp(temp_buffer,"TEMPFILE"))
-					selected_macro=macro_x[MACRO_TEMPFILE];
-
-				else if(!strcmp(temp_buffer,"LOGFILE"))
-					selected_macro=macro_x[MACRO_LOGFILE];
-
-				else if(!strcmp(temp_buffer,"RESOURCEFILE"))
-					selected_macro=macro_x[MACRO_RESOURCEFILE];
-
-				else if(!strcmp(temp_buffer,"COMMANDFILE"))
-					selected_macro=macro_x[MACRO_COMMANDFILE];
-
-				else if(!strcmp(temp_buffer,"HOSTPERFDATAFILE"))
-					selected_macro=macro_x[MACRO_HOSTPERFDATAFILE];
-
-				else if(!strcmp(temp_buffer,"SERVICEPERFDATAFILE"))
-					selected_macro=macro_x[MACRO_SERVICEPERFDATAFILE];
-
+				/* argv macros */
 				else if(strstr(temp_buffer,"ARG")==temp_buffer){
 					arg_index=atoi(temp_buffer+3);
 					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
@@ -717,10 +395,20 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 						selected_macro=NULL;
 				        }
 
+				/* user macros */
 				else if(strstr(temp_buffer,"USER")==temp_buffer){
 					user_index=atoi(temp_buffer+4);
 					if(user_index>=1 && user_index<=MAX_USER_MACROS)
 						selected_macro=macro_user[user_index-1];
+					else
+						selected_macro=NULL;
+				        }
+
+				/* contact address macros */
+				else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
+					address_index=atoi(temp_buffer+14);
+					if(address_index>=1 && address_index<=MAX_CONTACT_ADDRESSES)
+						selected_macro=macro_contactaddress[address_index-1];
 					else
 						selected_macro=NULL;
 				        }
@@ -2637,7 +2325,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_LASTSERVICESTATECHANGE,"LASTSERVICESTATECHANGE");
 	add_macrox_name(MACRO_HOSTOUTPUT,"HOSTOUTPUT");
 	add_macrox_name(MACRO_SERVICEOUTPUT,"SERVICEOUTPUT");
-	add_macrox_name(MACRO_HOSTPERFDATA,"SERVICEPERFDATA");
+	add_macrox_name(MACRO_HOSTPERFDATA,"HOSTPERFDATA");
+	add_macrox_name(MACRO_SERVICEPERFDATA,"SERVICEPERFDATA");
 	add_macrox_name(MACRO_CONTACTNAME,"CONTACTNAME");
 	add_macrox_name(MACRO_CONTACTALIAS,"CONTACTALIAS");
 	add_macrox_name(MACRO_CONTACTEMAIL,"CONTACTEMAIL");

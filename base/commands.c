@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-05-2004
+ * Last Modified:   11-06-2004
  *
  * License:
  *
@@ -100,7 +100,6 @@ void check_for_external_commands(void){
 	time_t entry_time;
 	int command_type=CMD_NONE;
 	char *temp_ptr;
-	int buffer_items;
 
 #ifdef DEBUG0
 	printf("check_for_external_commands() start\n");

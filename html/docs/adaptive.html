@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Adaptive Monitoring</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+		TH.Command { font-family: verdana,arial,serif; font-size: 9pt; font-weight: bold; background-color: #cbcbcb; }
+		.CommandType { font-family: verdana,arial,serif; font-size: 8pt; font-weight: bold; }
+		.Command { font-family: verdana,arial,serif; font-size: 7pt; }
+		.CommandNotes { font-family: verdana,arial,serif; font-size: 7pt; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Adaptive Monitoring</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+Nagios allows you to change certain commands and host and service check attributes during runtime.  I'll refer to this feature as "adaptive monitoring".  Please note that the adaptive monitoring features found in Nagios will probably not be of much use to 99% of users, but they do allow you to do some neat things.
+</p>
+
+<p>
+<strong><u>What Can Be Changed?</u></strong>
+</p>
+
+<p>
+The following service check attributes can be changed during runtime:
+</p>
+
+<p>
+<ul class="Default">
+<li>Check command (and command arguments)</li>
+<li>Event handler command (and command arguments)</li>
+<li>Check interval</li>
+<li>Max check attempts</li>
+</ul>
+</p>
+
+<p>
+The following host check attributes can be changed during runtime:
+</p>
+
+<p>
+<ul class="Default">
+<li>Check command (and command arguments)</li>
+<li>Event handler command (and command arguments)</li>
+<li>Check interval</li>
+<li>Max check attempts</li>
+</ul>
+</p>
+
+<p>
+The following global attributes can be changed during runtime:
+</p>
+
+<p>
+<ul class="Default">
+<li>Global host event handler command (and command arguments)</li>
+<li>Global service event handler command (and command arguments)</li>
+</ul>
+</p>
+
+<p>
+<strong><u>External Commands For Adaptive Monitoring</u></strong>
+</p>
+
+<p>
+In order to change global or host- or service-specific attributes during runtime, you must submit the appropriate <a href="extcommands.html">external command</a> to Nagios via the <a href="commandfile.html">external command file</a>.  The table below lists the different attributes that may be changed during runtime, along with the external command to accomplish the job.
+</p>
+
+<p>
+<strong>NOTE:</strong> When changing check commands or event handler commands, it is important to note that these commands must have been configured using <a href="xodtemplate.html#command">command definitions</a> before Nagios was started.  Any request to change an check or event event handler command to use a command which has not been defined is ignore.  Also of note, you specify command arguments along with the actual command name - just seperate individual arguments from the command name (and from each other) using bang (!) characters.  More information on how arguments in command definitions are processed during runtime can be found in the documentation on <a href="macros.html">macros</a>.
+</p>
+
+<table class="Default" border="1" cellspacing="0" cellpadding="5">
+<tr><th class="Command">Attribute</th><th class="Command">External Command</th><th class="Command">Notes</th></tr>
+
+<tr>
+<td class="CommandType" nowrap>Service check command</td>
+<td class="Command" nowrap>CHANGE_SVC_CHECK_COMMAND:<i>command_name</i></td>
+<td class="CommandNotes">Changes the service's current check command to whatever you specify in the <i>command_name</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Service event handler</td>
+<td class="Command" nowrap>CHANGE_SVC_EVENT_HANDLER:<i>command_name</i></td>
+<td class="CommandNotes">Changes the service's current event handler command to whatever you specify in the <i>command_name</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Service check interval</td>
+<td class="Command" nowrap>CHANGE_NORMAL_SVC_CHECK_INTERVAL:<i>interval</i></td>
+<td class="CommandNotes">Changes the service's normal check interval to be whatever you specify in the <i>interval</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Service check retry interval</td>
+<td class="Command" nowrap>CHANGE_RETRY_SVC_CHECK_INTERVAL:<i>interval</i></td>
+<td class="CommandNotes">Changes the services' retry check interval to be whatever you specify in the <i>interval</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Max service check attempts</td>
+<td class="Command" nowrap>CHANGE_MAX_SVC_CHECK_ATTEMPTS:<i>attempts</i></td>
+<td class="CommandNotes">Changes the maximum number of check attempts for the service to whatever you specify in the <i>attempts</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Host check command</td>
+<td class="Command" nowrap>CHANGE_HOST_CHECK_COMMAND:<i>command_name</i></td>
+<td class="CommandNotes">Changes the host's current check command to whatever you specify in the <i>command_name</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Host event handler</td>
+<td class="Command" nowrap>CHANGE_HOST_EVENT_HANDLER:<i>command_name</i></td>
+<td class="CommandNotes">Changes the host's current event handler command to whatever you specify in the <i>command_name</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Host check interval</td>
+<td class="Command" nowrap>CHANGE_NORMAL_HOST_CHECK_INTERVAL:<i>interval</i></td>
+<td class="CommandNotes">Changes the host's check interval to be whatever you specify in the <i>interval</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Max host check attempts</td>
+<td class="Command" nowrap>CHANGE_MAX_HOST_CHECK_ATTEMPTS:<i>attempts</i></td>
+<td class="CommandNotes">Changes the maximum number of check attempts for the host to whatever you specify in the <i>attempts</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Global host event handler</td>
+<td class="Command" nowrap>CHANGE_GLOBAL_HOST_EVENT_HANDLER;<i>command_name</i></td>
+<td class="CommandNotes">Changes the current <a href="configmain.html#global_host_event_handler">global host event handler command</a> to whatever you specify in the <i>command_name</i> argument.</td>
+</tr>
+
+<tr>
+<td class="CommandType" nowrap>Global service event handler</td>
+<td class="Command" nowrap>CHANGE_GLOBAL_SVC_EVENT_HANDLER;<i>command_name</i></td>
+<td class="CommandNotes">Changes the current <a href="configmain.html#global_service_event_handler">global service event handler command</a> to whatever you specify in the <i>command_name</i> argument.</td>
+</tr>
+
+</table>
+
+<hr>
+
+</body>
+</html>

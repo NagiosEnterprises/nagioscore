@@ -52,7 +52,6 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 ** CHECK SCHEDULING: scheduled host checks, initial check spreads
 ** HOST CHECK OPTIMIZATION: check_cluster, add $HOSTSERVICESTATEIDS$ macro...
 ** DISTRIBUTED MONITORING: passive host checks, OCHP, host freshness checking
-- Adaptive monitoring features
 - Dependency inheritance
 - Event broker
 - Passive host checks
@@ -117,6 +116,8 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <li><b>Triggered Downtime Added</b> - Support for what's called "triggered" downtime has been added for host and service downtime.  Triggered downtime allows you to define downtime that should start at the same time another downtime starts (very useful for scheduling downtime for child hosts when the parent host is scheduled for flexible downtime).  More information on triggered downtime can be found <a href="downtime.html">here</a>.<br>
 <br>
 <li><b>New Stats Utility</b> - A new utility called 'nagiostats' is now included in the Nagios distribution.  Its a command-line utility that allows you to view current statistics for a running Nagios process.  It can also produce data compatible with MRTG, so you can graph statistical information.  More information on how to use the utility can be found <a href="nagiostats.html">here</a>.<br>
+<br>
+<li><b>Adaptive Monitoring</b> - You can now change certain attributes relating to host and service checks (check command, check interval, max check attempts etc.) during runtime by submitting the appropriate external commands.  This kind of adaptive monitoring will probably not be of much use to the majority of users out there, but it does provide a way for doing some neat stuff.  More information on adaptive monitoring can be found <a href="adaptive.html">here</a>.<br>
 <br>
 <li><b>Native DB Support Dropped</b> - Native support for storing various types of data (status, retention, comment, downtime, etc.) in MySQL and PostgreSQL has been dropped.  Stop whining.  I expect someone will develop an alternative using the new event broker sometime in the near future.  Besides, DB support was not well implemented and dropping native DB support will make things easier for newbies to understand (one less thing to figure out).<br>
 <br>

@@ -1082,13 +1082,18 @@ define command{
 <tr>
 <td valign="top"><strong>command_name</strong>:</td>
 <td>
-This directive is the short name used to identify the command.  It is referenced in <a href="#contact">contact</a>, <a href="#host">host</a>, and <a href="#service">service</a> definitions, among other places.
+This directive is the short name used to identify the command.  It is referenced in <a href="#contact">contact</a>, <a href="#host">host</a>, and <a href="#service">service</a> definitions (in notification, check, and event handler directives), among other places.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>command_line</strong>:</td>
 <td>
+<p>
 This directive is used to define what is actually executed by Nagios when the command is used for service or host checks, notifications, or <a href="eventhandlers.html">event handlers</a>. Before the command line is executed, all valid <a href="macros.html">macros</a> are replaced with their respective values.  See the documentation on macros for determining when you can use different macros.  Note that the command line is <i>not</i> surrounded in quotes.  Also, if you want to pass a dollar sign ($) on the command line, you have to escape it with another dollar sign.
+</p>
+<p>
+If you want to pass arguments to commands during runtime, you can use <a href="macros.html#arg"><b>$ARGn$</b> macros</a> in the <i>command_line</i> directive of the command definition and then seperate individual arguments from the command name (and from each other) using bang (!) characters in the object definition directive (host check command, service event handler command, etc) that references the command.  More information on how arguments in command definitions are processed during runtime can be found in the documentation on <a href="macros.html">macros</a>.
+</p>
 </td>
 </tr>
 </table>

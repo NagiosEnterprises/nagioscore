@@ -2538,6 +2538,9 @@ int cmd_change_check_interval(int cmd,char *args){
 	char *svc_description="";
 	char *temp_ptr;
 	int interval;
+	int old_interval;
+	time_t preferred_time;
+	time_t next_valid_time;
 
 #ifdef DEBUG0
 	printf("cmd_change_check_interval() start\n");
@@ -2579,13 +2582,71 @@ int cmd_change_check_interval(int cmd,char *args){
 	switch(cmd){
 
 	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+
+		/* save the old check interval */
+		old_interval=temp_host->check_interval;
+
+		/* modify the check interval */
 		temp_host->check_interval=interval;
 		temp_host->modified_attributes|=MODATTR_NORMAL_CHECK_INTERVAL;
+
+		/* schedule a host check if previous interval was 0 (checks were not regularly scheduled) */
+		if(old_interval==0 && temp_host->checks_enabled==TRUE){
+
+			/* set the host check flag */
+			temp_host->should_be_scheduled=TRUE;
+
+			/* schedule a check for right now (or as soon as possible) */
+			time(&preferred_time);
+			if(check_time_against_period(preferred_time,temp_host->check_period)==ERROR){
+				get_next_valid_time(preferred_time,&next_valid_time,temp_host->check_period);
+				temp_host->next_check=next_valid_time;
+			        }
+			else
+				temp_host->next_check=preferred_time;
+
+			/* schedule a check if we should */
+			if(temp_host->should_be_scheduled==TRUE)
+				schedule_host_check(temp_host,temp_host->next_check,FALSE);
+
+			/* update the status log with the host info */
+			update_host_status(temp_host,FALSE);
+		        }
+
 		break;
 
 	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+
+		/* save the old check interval */
+		old_interval=temp_service->check_interval;
+
+		/* modify the check interval */
 		temp_service->check_interval=interval;
 		temp_service->modified_attributes|=MODATTR_NORMAL_CHECK_INTERVAL;
+
+		/* schedule a service check if previous interval was 0 (checks were not regularly scheduled) */
+		if(old_interval==0 && temp_service->checks_enabled==TRUE){
+
+			/* set the service check flag */
+			temp_service->should_be_scheduled=TRUE;
+
+			/* schedule a check for right now (or as soon as possible) */
+			time(&preferred_time);
+			if(check_time_against_period(preferred_time,temp_service->check_period)==ERROR){
+				get_next_valid_time(preferred_time,&next_valid_time,temp_service->check_period);
+				temp_service->next_check=next_valid_time;
+			        }
+			else
+				temp_service->next_check=preferred_time;
+
+			/* schedule a check if we should */
+			if(temp_service->should_be_scheduled==TRUE)
+				schedule_service_check(temp_service,temp_service->next_check,FALSE);
+
+			/* update the status log with the service info */
+			update_service_status(temp_service,FALSE);
+		        }
+
 		break;
 
 	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:

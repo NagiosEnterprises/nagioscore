@@ -171,6 +171,14 @@ Some macros are stripped of potentially dangerous shell metacharacters before be
 </ol>
 </p>
 
+<p>
+<strong><u>Macros as Environment Variables</u></strong>
+</p>
+
+<p>
+Starting with Nagios 2.0, most macros have been made available as environment variables.  This means that scripts that are run from Nagios (i.e. service and host check commands, notification commands, etc.) can reference these macros directly as standard environment variables.  For purposes of security and sanity, <a href="#user">$USERn$</a> and "on-demand" host and service macros are not made available as environment variables.  Environment variables that contain macros are named the same as their corresponding macro names (listed below), with "NAGIOS_" prepended to their names.  For example, the <a href="#hostoutput">$HOSTNAME$</a> macro would be available as an environment variable named "NAGIOS_HOSTNAME".
+</p>
+
 
 <p>
 <strong><u>Macro Validity</u></strong>
@@ -555,7 +563,7 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td colspan='9' class='MacroType'>Date Macros:</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#datetime">$DATETIME$</a></td>
+<td class='MacroName'><a href="#longdatetime">$LONGDATETIME$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
@@ -1149,8 +1157,8 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
-<a name="datetime"></a>
-<td class="MacroName">$DATETIME$</td>
+<a name="longdatetime"></a>
+<td class="MacroName">$LONGDATETIME$</td>
 <td class="MacroDescription">Current date/time stamp (i.e. <i>Fri Oct 13 00:30:28 CDT 2000</i>).  Format of date is determined by <a href="configmain.html#date_format">date_format</a> directive.</td>
 </tr>
 

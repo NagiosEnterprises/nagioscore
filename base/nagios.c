@@ -509,7 +509,7 @@ int main(int argc, char **argv){
 			neb_load_all_modules();
 
 			/* send program data to broker */
-			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+			broker_program_state(NEBTYPE_PROCESS_PRELAUNCH,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 #endif
 
 			/* read in all object config data */
@@ -562,6 +562,12 @@ int main(int argc, char **argv){
 
 		        /* handle signals (interrupts) */
 			setup_sighandler();
+
+
+#ifdef USE_EVENT_BROKER
+			/* send program data to broker */
+			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
 
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode==TRUE && sigrestart==FALSE){

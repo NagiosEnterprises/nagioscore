@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Last Modified: 12-02-2004
  *
  * License:
  * 
@@ -4189,16 +4189,17 @@ void display_host_availability(void){
 		                        }
 	                        }
 
-			if(odd){
-				odd=0;
-				bgclass="Odd";
-		                }
-			else{
-				odd=1;
-				bgclass="Even";
-		                }
-
 			if(output_format==HTML_OUTPUT){
+
+				if(odd){
+					odd=0;
+					bgclass="Odd";
+			                }
+				else{
+					odd=1;
+					bgclass="Even";
+			                }
+
 				printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 				host_report_url(temp_subject->host_name,temp_subject->host_name);
 				printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
@@ -4230,22 +4231,23 @@ void display_host_availability(void){
 			get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
 	                }
 
-		/* average statistics */
-		if(odd){
-			odd=0;
-			bgclass="Odd";
-		        }
-		else{
-			odd=1;
-			bgclass="Even";
-	      	        }
-		printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
-
 		if(output_format==HTML_OUTPUT){
-			printf("</table>\n");
-			printf("</DIV>\n");
+
+			/* average statistics */
+			if(odd){
+				odd=0;
+				bgclass="Odd";
+			        }
+			else{
+				odd=1;
+				bgclass="Even";
+		      	        }
+			printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
+
+				printf("</table>\n");
+				printf("</DIV>\n");
+			        }
 		        }
-	        }
 
 	return;
         }
@@ -4605,16 +4607,17 @@ void display_service_availability(void){
 		                        }
 	                        }
 
-			if(odd){
-				odd=0;
-				bgclass="Odd";
-		                }
-			else{
-				odd=1;
-				bgclass="Even";
-		                }
-
 			if(output_format==HTML_OUTPUT){
+
+				if(odd){
+					odd=0;
+					bgclass="Odd";
+			                }
+				else{
+					odd=1;
+					bgclass="Even";
+			                }
+
 				printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 				if(strcmp(temp_subject->host_name,last_host))
 					host_report_url(temp_subject->host_name,temp_subject->host_name);

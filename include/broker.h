@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2004
+ * Last Modified:   12-02-2004
  *
  * License:
  *
@@ -64,6 +64,7 @@
 #define NEBTYPE_PROCESS_DAEMONIZE             101
 #define NEBTYPE_PROCESS_RESTART               102
 #define NEBTYPE_PROCESS_SHUTDOWN              103
+#define NEBTYPE_PROCESS_PRELAUNCH             104   /* before objects are read or verified */
 
 #define NEBTYPE_TIMEDEVENT_ADD                200
 #define NEBTYPE_TIMEDEVENT_REMOVE             201

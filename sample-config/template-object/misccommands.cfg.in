@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 02-18-2003
+# Last Modified: 12-02-2004
 #
 ################################################################################
 
@@ -49,28 +49,28 @@
 # 'notify-by-email' command definition
 define command{
 	command_name	notify-by-email
-	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$SERVICEOUTPUT$" | @MAIL_PROG@ -s "** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$
+	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $LONGDATETIME$\n\nAdditional Info:\n\n$SERVICEOUTPUT$" | @MAIL_PROG@ -s "** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$
 	}
 
 
 # 'notify-by-epager' command definition
 define command{
 	command_name	notify-by-epager
-	command_line	/usr/bin/printf "%b" "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $SERVICEOUTPUT$\nDate: $DATETIME$" | @MAIL_PROG@ -s "$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$" $CONTACTPAGER$
+	command_line	/usr/bin/printf "%b" "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $SERVICEOUTPUT$\nDate: $LONGDATETIME$" | @MAIL_PROG@ -s "$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$" $CONTACTPAGER$
 	}
 
 
 # 'host-notify-by-email' command definition
 define command{
 	command_name	host-notify-by-email
-	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s "Host $HOSTSTATE$ alert for $HOSTNAME$!" $CONTACTEMAIL$
+	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\n\nDate/Time: $LONGDATETIME$\n" | @MAIL_PROG@ -s "Host $HOSTSTATE$ alert for $HOSTNAME$!" $CONTACTEMAIL$
 	}
 
 
 # 'host-notify-by-epager' command definition
 define command{
 	command_name	host-notify-by-epager
-	command_line	/usr/bin/printf "%b" "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $HOSTOUTPUT$\nTime: $DATETIME$" | @MAIL_PROG@ -s "$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$" $CONTACTPAGER$
+	command_line	/usr/bin/printf "%b" "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $HOSTOUTPUT$\nTime: $LONGDATETIME$" | @MAIL_PROG@ -s "$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$" $CONTACTPAGER$
 	}
 
 

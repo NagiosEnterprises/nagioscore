@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 12-02-2004
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -533,7 +533,7 @@ void get_history(void){
 		        }
 	        }
 
-	printf("<P><DIV CLASS='logEntries'\n");
+	printf("<P><DIV CLASS='logEntries'>\n");
 
 	while(1){
 
@@ -839,7 +839,7 @@ void get_history(void){
 				else if(history_type==SERVICE_DOWNTIME_HISTORY)
 					sprintf(match1," SERVICE DOWNTIME ALERT: %s;%s;",host_name,svc_description);
 
-				if(strstr(temp_buffer,match1))
+				if(strstr(temp_buffer,match1) && (history_type==SERVICE_HISTORY || history_type==SERVICE_FLAPPING_HISTORY || history_type==SERVICE_DOWNTIME_HISTORY))
 					display_line=TRUE;
 
 				if(display_line==TRUE){

@@ -3,7 +3,7 @@
 #
 # MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
 #
-# Last Modified: 10-03-2002
+# Last Modified: 12-02-2004
 #
 #
 # NOTE: This config file is intended to be used to test a Nagios installation
@@ -58,7 +58,7 @@ define timeperiod{
 
 define command{
 	command_name	notify-by-email
-	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$" | @MAIL_PROG@ -s "** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$
+	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $LONGDATETIME$\n\nAdditional Info:\n\n$OUTPUT$" | @MAIL_PROG@ -s "** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$
 	}
 
 
@@ -67,7 +67,7 @@ define command{
 
 define command{
 	command_name	host-notify-by-email
-	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s "Host $HOSTSTATE$ alert for $HOSTNAME$!" $CONTACTEMAIL$
+	command_line	/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $LONGDATETIME$\n" | @MAIL_PROG@ -s "Host $HOSTSTATE$ alert for $HOSTNAME$!" $CONTACTEMAIL$
 	}
 
 

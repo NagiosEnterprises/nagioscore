@@ -3,7 +3,7 @@
  * XSDDB.C - Database routines for status data
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-15-2002
+ * Last Modified:   05-27-2002
  *
  * License:
  *
@@ -1109,11 +1109,13 @@ int xsddb_update_service_status(char *host_name, char *description, char *status
 	if(should_be_scheduled==FALSE)
 		next_check=(time_t)0L;
 
-	/* escape the host name and service description, as they may have quotes, etc... */
+	/* escape the host name, service description, and plugin output, as they may have quotes, etc... */
 	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
 	xsddb_escape_string(escaped_host_name,host_name);
 	escaped_description=(char *)malloc(strlen(description)*2+1);
 	xsddb_escape_string(escaped_description,description);
+	escaped_plugin_output=(char *)malloc(strlen(plugin_output)*2+1);
+	xsddb_escape_string(escaped_plugin_output,plugin_output);
 
 	/* construct the SQL statement */
 	

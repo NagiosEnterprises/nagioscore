@@ -56,7 +56,7 @@ Next we're going to create a new group whose members include the user the web se
 </p> 
 
 <p>
-Next, add the web server user (<i>nobody</i>) and the Nagios user (<i>nagios</i>) to the newly created group with the following commands:
+Next, add the web server user (<i>nobody</i> or <i>apache</i>, etc) and the Nagios user (<i>nagios</i>) to the newly created group with the following commands:
 </p>
 
 <p>
@@ -134,7 +134,15 @@ Note that the user <i>nagios</i> is the owner of the directory and the group <i>
 </p>
 
 <p>
-<strong><u>Notes...</u></strong>
+<strong><u>Restart your web server</u></strong>
+</p>
+
+<p>
+Once you set the proper permission on the directory containing the external command file, make sure to restart your web server.  If you fail to do this, Apache will not be able to write to the external command file, even though the user it runs as is a member of the nagiocmd group.
+</p>
+
+<p>
+<strong><u>Additional notes...</u></strong>
 </p>
 
 <p>

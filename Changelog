@@ -2,14 +2,14 @@
 Nagios Change Log
 ###################
 
-1.0b2 - 05/??/2002
+1.0b2 - 05/27/2002
 ------------------
 * Updated RPM spec file
 * Context-sensitive help option moved to CGI config file
 * Fixed bug with escaping strings for DB support (MySQL & PostgreSQL)
 * Configure script now reports warning if unable to located
   MySQL or PostgreSQL libs
-* Bug fixes in template-based object code
+* Several bug fixes in template-based object code
 * Multiple hostgroups supported in host and service escalations
 * Wildcard support in service, service escalation, and host
   escalation definitions

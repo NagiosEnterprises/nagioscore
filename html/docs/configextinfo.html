@@ -48,8 +48,8 @@ That all depends on how you compiled the CGIs.  Or more correctly, it depends on
 
 <p>
 <ul>
-<li><b><a href="xeddefault.html">Default (old) method</a></b> - Definitions are stored in the CGI config file.  This method is provided for backward compatabilty.  I recommend that you use one of the methods described below.
-<li><b><a href="xedtemplate.html">Template-based method</a></b> - Definitions are stored in seperate configuration files.  You can use templates to define entries for multiple hosts and services quickly and easily.
+<li><b><a href="xeddefault.html">Old "default" method</a></b> - Definitions are stored in the CGI config file.  This method is provided only for backward compatabilty.  I recommend that you use one of the methods described below for storing extended information definitions instead.  <font color='red'>Note that although this is call the "default" method for historical reasons, the CGIs default to using the template-based method (described below) unless you specifically compile them with this method.</font>
+<li><b><a href="xedtemplate.html">Template-based method</a></b> - Definitions are stored in seperate configuration files.  You can use templates to define entries for multiple hosts and services quickly and easily.  Note that by default, the CGIs will use this method unless you compile them with support for a different method instead.
 <li><b><a href="xdata-db.html">Database method</a></b> - Definitions are stored in a database.
 </ul>
 </p>

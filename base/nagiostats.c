@@ -5,9 +5,9 @@
  * Program: Nagiostats
  * Version: 2.0a1
  * License: GPL
- * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   11-23-2003
+ * Last Modified:   02-09-2004
  *
  * License:
  *
@@ -215,7 +215,7 @@ int main(int argc, char **argv){
 
 	if(mrtg_mode==FALSE){
 		printf("\nNagios Stats %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)\n");
+		printf("Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -259,7 +259,7 @@ int main(int argc, char **argv){
 		printf("\n");
 		printf("MRTG DATA VARIABLES (-d option):\n");
 		printf(" NUMSERVICES        total number of services.\n");
-		printf(" NUMHOSTS           total number of services.\n");
+		printf(" NUMHOSTS           total number of hosts.\n");
 		printf(" NUMSVCOK           number of services OK.\n");
 		printf(" NUMSVCWARN         number of services WARNING.\n");
 		printf(" NUMSVCUNKN         number of services UNKNOWN.\n");

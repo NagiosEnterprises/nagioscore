@@ -18,23 +18,8 @@ Conversion Programs:
   to compile the utility.
 
 
-Database Creation Scripts:
---------------------------
-
-- You'll find scripts to create tables for MySQL and PostgreSQL for
-  in the database/ subdirectory.  Use these scripts if you want to
-  store status, comment, downtime, and other data in a database
-  instead of a flat text file.  No, the tables are not normalized.
-  They're not *meant* to be.
-
-
 Additional CGIs:
 ----------------
-
-- ministatus.c is a very stripped down version of the status CGI.  It
-  does not use the authorization function of the CGIs.  If you want to
-  compile this CGI, move it to the CGI source code folder (../cgi) and
-  type 'make ministatus.cgi' from within that folder.
 
 - traceroute.cgi is (surprise) a CGI that allows you to do a traceroute
   to a specific IP address.  Simply do a 'chmod +x' to make it executeable

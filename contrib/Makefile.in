@@ -18,7 +18,7 @@ INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
 CGIDIR=@sbindir@
 
-ALL=daemonchk.cgi traceroute.cgi mini_epn convertcfg
+ALL=traceroute.cgi mini_epn convertcfg
 
 CGI_C=$(SRC_CGI)/getcgi.c
 CGI_O=$(SRC_CGI)/getcgi.o $(SNPRINTF_O)
@@ -49,17 +49,15 @@ install:
 ##############################################################################
 # rules and dependencies for actual target programs
 
-daemonchk.cgi: daemonchk.c $(CGI_O) $(CGI_H) $(COMMON_H)
+daemonchk.cgi: 
+	@echo "This doesn't work with Nagios 2.x yet..."
+#	daemonchk.c $(CGI_O) $(CGI_H) $(COMMON_H)
 
 mini_epn: mini_epn.c
 	perl -MExtUtils::Embed -e xsinit
 	$(CC) $(CFLAGS) -c perlxsi.c  `perl -MExtUtils::Embed -e ccopts`
 	$(CC) $(CFLAGS) -c mini_epn.c `perl -MExtUtils::Embed -e ccopts`
 	$(CC) $(CFLAGS) $(LDFLAGS) perlxsi.o mini_epn.o `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
-
-ministatus: ministatus.cgi
-ministatus.cgi: ministatus.c
-	echo "You must copy this file to the CGI source code directory ($(CGIDIR)) and compile it from there"
 
 ##############################################################################
 # dependencies

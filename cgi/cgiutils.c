@@ -1167,14 +1167,17 @@ char *my_strsep (char **stringp, const char *delim){
 	}
 
 
+
 /* reads a line from a file, dynamically allocating memory */
-char *my_fgets(char **buf, int max_bytes, FILE *fp){
+char *my_fgets(char **buf, int max_bytes, FILE *fp, int accept_multiline, int *lines_read){
 	int bytes_read=0;
 	int bytes_to_read=0;
 	int total_bytes_read=0;
 	char temp_buf[1024];
 	int bytes_allocated=0;
 	char *res;
+	int buflen=0;
+	int current_line=0;
 
 	if(fp==NULL || buf==NULL)
 		return NULL;
@@ -1209,13 +1212,34 @@ char *my_fgets(char **buf, int max_bytes, FILE *fp){
 		(*buf)[bytes_allocated-1]='\x0';
 
 		/* we've already read max bytes */
-		if(bytes_read>=max_bytes)
+		if(total_bytes_read>=max_bytes)
 			break;
 
+		buflen=strlen(*buf);
+
 		/* we've read an entire line */
-		if((*buf)[strlen(*buf)-1]=='\n')
-			break;
+		if((*buf)[buflen-1]=='\n'){
+
+			current_line++;
+
+			/* we should continue to the next line... */
+			if(accept_multiline==TRUE && buflen>1 && (*buf)[buflen-2]=='\\'){
+				
+				/* stip out the trailing slash and newline */
+				(*buf)[buflen-2]='\x0';
+				total_bytes_read-=2;
+
+				/* keep reading from the next line in the file... */
+			        }
+
+			/* else we should just read this single line and bail out... */
+			else
+				break;
+		        }
 	        }
+
+	if(lines_read)
+		*lines_read=current_line;
 
 	return *buf;
         }

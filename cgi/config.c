@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-03-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -149,33 +149,33 @@ int main(void){
 	/* right hand column of top row */
 	printf("<td align=right valign=bottom width=50%%>\n");
 
-        printf("<form method=\"get\" action=\"%s\">\n",CONFIG_CGI);
-	printf("<table border=0>\n");
+	if(display_type!=DISPLAY_NONE){
 
-	printf("<tr><td align=left class='reportSelectSubTitle'>Object Type:</td></tr>\n");
-	printf("<tr><td align=left class='reportSelectItem'>");
-	printf("<select name='type'>\n");
-	printf("<option value='hosts' %s>Hosts\n",(display_type==DISPLAY_HOSTS)?"SELECTED":"");
-	printf("<option value='hostdependencies' %s>Host Dependencies\n",(display_type==DISPLAY_HOSTDEPENDENCIES)?"SELECTED":"");
-	printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
-	printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
-	printf("<option value='hostgroupescalations' %s>Host Group Escalations\n",(display_type==DISPLAY_HOSTGROUPESCALATIONS)?"SELECTED":"");
-	printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
-	printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
-	printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");
-	printf("<option value='contacts' %s>Contacts\n",(display_type==DISPLAY_CONTACTS)?"SELECTED":"");
-	printf("<option value='contactgroups' %s>Contact Groups\n",(display_type==DISPLAY_CONTACTGROUPS)?"SELECTED":"");
-	printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
-	printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
-	printf("</select>\n");
-	printf("</td></tr>\n");
+		printf("<form method=\"get\" action=\"%s\">\n",CONFIG_CGI);
+		printf("<table border=0>\n");
 
-	printf("<tr><td class='reportSelectItem'><input type='submit' value='Update'></td></tr>\n");
-	printf("</table>\n");
-	printf("</form>\n");
+		printf("<tr><td align=left class='reportSelectSubTitle'>Object Type:</td></tr>\n");
+		printf("<tr><td align=left class='reportSelectItem'>");
+		printf("<select name='type'>\n");
+		printf("<option value='hosts' %s>Hosts\n",(display_type==DISPLAY_HOSTS)?"SELECTED":"");
+		printf("<option value='hostdependencies' %s>Host Dependencies\n",(display_type==DISPLAY_HOSTDEPENDENCIES)?"SELECTED":"");
+		printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
+		printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
+		printf("<option value='hostgroupescalations' %s>Host Group Escalations\n",(display_type==DISPLAY_HOSTGROUPESCALATIONS)?"SELECTED":"");
+		printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
+		printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
+		printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");
+		printf("<option value='contacts' %s>Contacts\n",(display_type==DISPLAY_CONTACTS)?"SELECTED":"");
+		printf("<option value='contactgroups' %s>Contact Groups\n",(display_type==DISPLAY_CONTACTGROUPS)?"SELECTED":"");
+		printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
+		printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
+		printf("</select>\n");
+		printf("</td></tr>\n");
 
-	if(display_type==DISPLAY_NONE)
-		display_type=DISPLAY_HOSTS;
+		printf("<tr><td class='reportSelectItem'><input type='submit' value='Update'></td></tr>\n");
+		printf("</table>\n");
+		printf("</form>\n");
+	        }
 
 #ifdef CONTEXT_HELP
 	switch(display_type){
@@ -1725,6 +1725,33 @@ void display_options(void){
 	printf("<br><br>\n");
 
 	printf("<div align=center class='reportSelectTitle'>Select Type of Config Data You Wish To View</div>\n");
+
+        printf("<form method=\"get\" action=\"%s\">\n",CONFIG_CGI);
+	printf("<table border=0>\n");
+
+	printf("<div align=center>\n");
+	printf("<tr><td align=left class='reportSelectSubTitle'>Object Type:</td></tr>\n");
+	printf("<tr><td align=left class='reportSelectItem'>");
+	printf("<select name='type'>\n");
+	printf("<option value='hosts' %s>Hosts\n",(display_type==DISPLAY_HOSTS)?"SELECTED":"");
+	printf("<option value='hostdependencies' %s>Host Dependencies\n",(display_type==DISPLAY_HOSTDEPENDENCIES)?"SELECTED":"");
+	printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
+	printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
+	printf("<option value='hostgroupescalations' %s>Host Group Escalations\n",(display_type==DISPLAY_HOSTGROUPESCALATIONS)?"SELECTED":"");
+	printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
+	printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
+	printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");
+	printf("<option value='contacts' %s>Contacts\n",(display_type==DISPLAY_CONTACTS)?"SELECTED":"");
+	printf("<option value='contactgroups' %s>Contact Groups\n",(display_type==DISPLAY_CONTACTGROUPS)?"SELECTED":"");
+	printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
+	printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
+	printf("</select>\n");
+	printf("</td></tr>\n");
+
+	printf("<tr><td class='reportSelectItem'><input type='submit' value='Continue'></td></tr>\n");
+	printf("</table>\n");
+	printf("</form>\n");
+	printf("</div>\n");
 
 	return;
         }

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-26-2002
+ * Last Modified: 05-02-2002
  *
  * License:
  *
@@ -1646,12 +1646,14 @@ void include_ssi_files(char *cgi_name, int type){
 		cgi_ssi_file[x]=tolower(cgi_ssi_file[x]);
 
 	if(type==SSI_HEADER){
+		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2002 Ethan Galstad. -->\n");
 		include_ssi_file(common_ssi_file);
 		include_ssi_file(cgi_ssi_file);
 	        }
 	else{
 		include_ssi_file(cgi_ssi_file);
 		include_ssi_file(common_ssi_file);
+		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2002 Ethan Galstad. -->\n");
 	        }
 
 	return;
@@ -1799,10 +1801,9 @@ void status_data_error(void){
 
 
 
-#ifdef CONTEXT_HELP
-
 /* displays context-sensitive help window */
 void display_context_help(char *chid){
+#ifdef CONTEXT_HELP
 	char *icon=CONTEXT_HELP_ICON1;
 
 	/* change icon if necessary */
@@ -1811,7 +1812,6 @@ void display_context_help(char *chid){
 
 	printf("<a href='%s%s.html' target='cshw' onClick='javascript:window.open(\"%s%s.html\",\"cshw\",\"width=550,height=600,toolbar=0,location=0,status=0,resizable=1,scrollbars=1\");return true'><img src='%s%s' border=0 alt='Display context-sensitive help for this screen'></a>\n",url_context_help_path,chid,url_context_help_path,chid,url_images_path,icon);
 
+#endif
 	return;
         }
-
-#endif

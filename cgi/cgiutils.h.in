@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2002  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-08-2002
+ * Last Modified: 05-02-2002
  *
  * License:
  * 
@@ -438,9 +438,7 @@ void main_config_file_error(char *);
 void object_data_error(void);
 void status_data_error(void);
 
-#ifdef CONTEXT_HELP
 void display_context_help(char *);				/* displays context-sensitive help window */
-#endif
 
 #endif
 

@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-19-2001
+ * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-08-2002
  *
  * License:
  *
@@ -86,6 +86,9 @@ int cleanup_downtime_data(char *config_file){
 #ifdef USE_XDDDB
 	result=xdddb_cleanup_downtime_data(config_file);
 #endif
+
+	/* free memory allocated to downtime data */
+	free_downtime_data();
 
 	return result;
         }
@@ -275,15 +278,15 @@ int register_downtime(int type, int downtime_id){
 	minutes=((temp_downtime->duration-(hours*3600))/60);
 	if(temp_downtime->fixed==TRUE){
 		if(temp_downtime->type==HOST_DOWNTIME)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This host has been scheduled for downtime from %s to %s.  Notifications for the host will not be sent out during that time period.\n",start_time_string,end_time_string);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This host has been scheduled for downtime from %s to %s.  Notifications for the host will not be sent out during that time period.",start_time_string,end_time_string);
 		else
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This service has been scheduled for downtime from %s to %s.  Notifications for the service will not be sent out during that time period.\n",start_time_string,end_time_string);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This service has been scheduled for downtime from %s to %s.  Notifications for the service will not be sent out during that time period.",start_time_string,end_time_string);
 	        }
 	else{
 		if(temp_downtime->type==HOST_DOWNTIME)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This host has been scheduled for downtime starting between %s and %s for a period of %d hours and %d minutes.  Notifications for the host will not be sent out during that time period.\n",start_time_string,end_time_string,hours,minutes);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This host has been scheduled for downtime starting between %s and %s for a period of %d hours and %d minutes.  Notifications for the host will not be sent out during that time period.",start_time_string,end_time_string,hours,minutes);
 		else
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This service has been scheduled for downtime starting between %s and %s for a period of %d hours and %d minutes.  Notifications for the service will not be sent out during that time period.\n",start_time_string,end_time_string,hours,minutes);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This service has been scheduled for downtime starting between %s and %s for a period of %d hours and %d minutes.  Notifications for the service will not be sent out during that time period.",start_time_string,end_time_string,hours,minutes);
 	        }
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 

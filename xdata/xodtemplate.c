@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-28-2002
+ * Last Modified: 08-31-2002
  *
  * Description:
  *
@@ -5588,7 +5588,8 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	hostgroup *new_hostgroup;
 	hostgroupmember *new_hostgroupmember;
 	contactgroupsmember *new_contactgroupsmember;
-	char *host_name;
+	xodtemplate_hostlist *this_hostlist;
+	xodtemplate_hostlist *temp_hostlist;
 	char *contact_group;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -5615,8 +5616,11 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		return ERROR;
 	        }
 
+	/* get list of hosts in the hostgroup */
+	temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,this_hostgroup->members);
+
 	/* add all members to the host group */
-	if(this_hostgroup->members==NULL){
+	if(temp_hostlist==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup has no members (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -5624,17 +5628,19 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 #endif
 		return ERROR;
 	        }
-	for(host_name=strtok(this_hostgroup->members,", ");host_name!=NULL;host_name=strtok(NULL,", ")){
-		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,host_name);
+	for(this_hostlist=temp_hostlist;this_hostlist;this_hostlist=this_hostlist->next){
+		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,this_hostlist->host_name);
 		if(new_hostgroupmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host '%s' to hostgroup (config file '%s', line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host '%s' to hostgroup (config file '%s', line %d)\n",this_hostlist->host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 			return ERROR;
 		        }
 	        }
+	xodtemplate_free_hostlist(temp_hostlist);
+	
 
 	/* add all contact groups to the host group */
 	if(this_hostgroup->contact_groups!=NULL){
@@ -6326,6 +6332,37 @@ int xodtemplate_free_memory(void){
         }
 
 
+/* frees memory allocated to a temporary host list */
+int xodtemplate_free_hostlist(xodtemplate_hostlist *temp_list){
+	xodtemplate_hostlist *this_hostlist;
+	xodtemplate_hostlist *next_hostlist;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_hostlist() start\n");
+#endif
+
+	/* free memory allocated to host name list */
+	for(this_hostlist=temp_list;this_hostlist!=NULL;this_hostlist=next_hostlist){
+		next_hostlist=this_hostlist->next;
+		free(this_hostlist->host_name);
+		free(this_hostlist);
+	        }
+
+	temp_list=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_hostlist() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/******************************************************************/
+/********************** UTILITY FUNCTIONS *************************/
+/******************************************************************/
+
 /* expands a comma-delimited list of hostgroups and/or hosts to member host names */
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,char *hosts){
 	xodtemplate_hostlist *temp_list;
@@ -6378,10 +6415,9 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				xodtemplate_strip(host_name);
 
 				/* skip this host if its already in the list */
-				for(new_list=temp_list;new_list!=NULL;new_list=new_list->next){
+				for(new_list=temp_list;new_list;new_list=new_list->next)
 					if(!strcmp(host_name,new_list->host_name))
 						break;
-			                }
 				if(new_list!=NULL)
 					continue;
 
@@ -6462,6 +6498,13 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 					return temp_list;
 		                        }
 
+				/* skip this host if its already in the list */
+				for(new_list=temp_list;new_list;new_list=new_list->next)
+					if(!strcmp(new_list->host_name,temp_ptr))
+						break;
+				if(new_list)
+					continue;
+
 				/* allocate memory for a new list item */
 				new_list=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
 				if(new_list==NULL){
@@ -6492,31 +6535,6 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 	return temp_list;
         }
 
-
-/* frees memory allocated to a temporary host list */
-int xodtemplate_free_hostlist(xodtemplate_hostlist *temp_list){
-	xodtemplate_hostlist *this_hostlist;
-	xodtemplate_hostlist *next_hostlist;
-
-#ifdef DEBUG0
-	printf("xodtemplate_free_hostlist() start\n");
-#endif
-
-	/* free memory allocated to host name list */
-	for(this_hostlist=temp_list;this_hostlist!=NULL;this_hostlist=next_hostlist){
-		next_hostlist=this_hostlist->next;
-		free(this_hostlist->host_name);
-		free(this_hostlist);
-	        }
-
-	temp_list=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_free_hostlist() end\n");
-#endif
-
-	return OK;
-        }
 
 
 /* returns the name of a numbered config file */

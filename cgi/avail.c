@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 05-22-2002
  *
  * License:
  * 
@@ -1448,7 +1448,6 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 	servicestatus *svcstatus=NULL;
 	int first_real_state=AS_NO_DATA;
 	time_t initial_assumed_time;
-	int wobble=600;  /* 10 minute wobble time */
 	int error;
 
 
@@ -1463,10 +1462,9 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 	/************************************/
 
 	/* if current time DOES NOT fall within graph bounds, so we can't do anything as far as assuming current state */
-	/* the "wobble" value is necessary because when the CGI is called to do the PNG generation, t2 will actually be less that current_time by a bit */
 
 	/* if we don't have any data, assume current state (if possible) */
-	if(subject->as_list==NULL && current_time>t1 && current_time<(t2+wobble)){
+	if(subject->as_list==NULL && current_time>t1 && current_time<=t2){
 
 		/* we don't have any historical information, but the current time falls within the reporting period, so use */
 		/* the current status of the host/service as the starting data */

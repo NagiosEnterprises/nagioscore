@@ -54,7 +54,11 @@ ScriptAlias /nagios/cgi-bin/ /usr/local/nagios/sbin/
 </pre>
 
 <p>
-<strong>Important!</strong>  If you are installing Nagios on a multi-user system, you may want use <a href="http://cgiwrap.unixtools.org/">CGIWrap</a> to provide additional security between the CGIs and the <a href="commandfile.html">external command file</a>.  If you decide to use CGIWrap, the ScriptAlias to you'll end up using will most likely be different from that mentioned above.  More information on doing this can be found <a href="security.html">here</a>.
+<strong>Important!</strong>  The Script-Alias line above must come before the Alias line below. Otherwise Apache will parse the lines differently. 
+</p>
+
+<p>
+<strong>Important!</strong>  If you are installing Nagios on a multi-user system, you may want use <a href="http://cgiwrap.unixtools.org/">CGIWrap</a> to provide additional security between the CGIs and the <a href="commandfile.html">external command file</a>.  If you decide to use CGIWrap, the ScriptAlias you'll end up using will most likely be different from that mentioned above.  More information on doing this can be found <a href="security.html">here</a>.
 </p>
 
 <p>

@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Last Modified: 08-19-2002
  *
  * License:
  * 
@@ -2333,7 +2333,7 @@ void add_archived_state(int state_type, time_t time_stamp, char *state_info, ava
 	/* add the new entry to the list in memory, sorted by time (more recent entries should appear towards end of list) */
 	last_as=subject->as_list;
 	for(temp_as=subject->as_list;temp_as!=NULL;temp_as=temp_as->next){
-		if(new_as->time_stamp<=temp_as->time_stamp){
+		if(new_as->time_stamp<temp_as->time_stamp){
 			new_as->next=temp_as;
 			if(temp_as==subject->as_list)
 				subject->as_list=new_as;

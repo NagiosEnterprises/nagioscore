@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Last Modified: 08-19-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -788,7 +788,7 @@ void display_contacts(void){
 			if(temp_commandsmember!=temp_contact->service_notification_commands)
 				printf(", ");
 
-			printf("<A HREF='%s?type=commmands#%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),temp_commandsmember->command);
+			printf("<A HREF='%s?type=commands#%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),temp_commandsmember->command);
 
 			found=TRUE;
 		        }
@@ -803,7 +803,7 @@ void display_contacts(void){
 			if(temp_commandsmember!=temp_contact->host_notification_commands)
 				printf(", ");
 
-			printf("<A HREF='%s?type=commmands#%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),temp_commandsmember->command);
+			printf("<A HREF='%s?type=commands#%s'>%s</A>",CONFIG_CGI,url_encode(temp_commandsmember->command),temp_commandsmember->command);
 
 			found=TRUE;
 		        }

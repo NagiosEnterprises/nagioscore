@@ -2,6 +2,15 @@
 Nagios Change Log
 ###################
 
+
+1.0b6 - ??/??/2002
+------------------
+* Added wildcards and multiple hosts/hostgroups to host dependency
+  and service dependency definitions
+* Minor bug fixes and cleanups in CGIs
+* Minor cleanups in the core
+
+
 1.0b5 - 08/12/2002
 ------------------
 * Fixed another memory leak related to processing of passive checks

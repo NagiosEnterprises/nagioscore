@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Last Modified:   08-20-2002
  *
  * License:
  *
@@ -223,12 +223,9 @@ int unschedule_downtime(int type,int downtime_id){
 			        }
 		        }
 		free(temp_downtime->host_name);
-		if(temp_downtime->service_description!=NULL)
-			free(temp_downtime->service_description);
-		if(temp_downtime->comment!=NULL)
-			free(temp_downtime->comment);
-		if(temp_downtime->author!=NULL)
-			free(temp_downtime->author);
+		free(temp_downtime->service_description);
+		free(temp_downtime->comment);
+		free(temp_downtime->author);
 		free(temp_downtime);
 	        }
 
@@ -436,12 +433,9 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			                }
 		                }
 			free(temp_downtime->host_name);
-			if(temp_downtime->service_description!=NULL)
-				free(temp_downtime->service_description);
-			if(temp_downtime->comment!=NULL)
-				free(temp_downtime->comment);
-			if(temp_downtime->author!=NULL)
-				free(temp_downtime->author);
+			free(temp_downtime->service_description);
+			free(temp_downtime->comment);
+			free(temp_downtime->author);
 			free(temp_downtime);
 	                }
 
@@ -639,12 +633,9 @@ int check_for_expired_downtime(void){
 
 			/* free memory allocated to the entry */
 			free(temp_downtime->host_name);
-			if(temp_downtime->service_description!=NULL)
-				free(temp_downtime->service_description);
-			if(temp_downtime->comment!=NULL)
-				free(temp_downtime->comment);
-			if(temp_downtime->author!=NULL)
-				free(temp_downtime->author);
+			free(temp_downtime->service_description);
+			free(temp_downtime->comment);
+			free(temp_downtime->author);
 			free(temp_downtime);
 		        }
 

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Last Modified:   08-20-2002
  *
  * License:
  *
@@ -494,7 +494,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 #endif
 		return NULL;
 	        }
-	new_host->name=(char *)malloc(strlen(name)+1);
+	new_host->name=strdup(name);
 	if(new_host->name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' name\n",name);
@@ -504,7 +504,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 		free(new_host);
 		return NULL;
 	        }
-	new_host->alias=(char *)malloc(strlen(alias)+1);
+	new_host->alias=strdup(alias);
 	if(new_host->alias==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' alias\n",name);
@@ -515,7 +515,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 		free(new_host);
 		return NULL;
 	        }
-	new_host->address=(char *)malloc(strlen(address)+1);
+	new_host->address=strdup(address);
 	if(new_host->address==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' address\n",name);
@@ -528,7 +528,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 		return NULL;
 	        }
 	if(notification_period!=NULL && strcmp(notification_period,"")){
-		new_host->notification_period=(char *)malloc(strlen(notification_period)+1);
+		new_host->notification_period=strdup(notification_period);
 		if(new_host->notification_period==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' notification period\n",name);
@@ -545,7 +545,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	else
 		new_host->notification_period=NULL;
 	if(check_command!=NULL && strcmp(check_command,"")){
-		new_host->host_check_command=(char *)malloc(strlen(check_command)+1);
+		new_host->host_check_command=strdup(check_command);
 		if(new_host->host_check_command==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' check command\n",name);
@@ -564,7 +564,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	else
 		new_host->host_check_command=NULL;
 	if(event_handler!=NULL && strcmp(event_handler,"")){
-		new_host->event_handler=(char *)malloc(strlen(event_handler)+1);
+		new_host->event_handler=strdup(event_handler);
 		if(new_host->event_handler==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' event handler\n",name);
@@ -585,7 +585,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	else
 		new_host->event_handler=NULL;
 	if(failure_prediction_options!=NULL && strcmp(failure_prediction_options,"")){
-		new_host->failure_prediction_options=(char *)malloc(strlen(failure_prediction_options)+1);
+		new_host->failure_prediction_options=strdup(failure_prediction_options);
 		if(new_host->failure_prediction_options==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' failure prediction options\n",name);
@@ -608,19 +608,6 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	else
 		new_host->failure_prediction_options=NULL;
 
-
-	strcpy(new_host->name,name);
-	strcpy(new_host->alias,alias);
-	strcpy(new_host->address,address);
-
-	if(new_host->notification_period!=NULL)
-		strcpy(new_host->notification_period,notification_period);
-	if(new_host->host_check_command!=NULL)
-		strcpy(new_host->host_check_command,check_command);
-	if(new_host->event_handler!=NULL)
-		strcpy(new_host->event_handler,event_handler);
-	if(new_host->failure_prediction_options!=NULL)
-		strcpy(new_host->failure_prediction_options,failure_prediction_options);
 	
 	new_host->parent_hosts=NULL;
 	new_host->max_attempts=max_attempts;
@@ -821,7 +808,7 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 		return NULL;
 	        }
 
-	new_hostsmember->host_name=(char *)malloc(strlen(host_name)+1);
+	new_hostsmember->host_name=strdup(host_name);
 	if(new_hostsmember->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' parent host (%s) name\n",hst->name,host_name);
@@ -831,7 +818,6 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 		free(new_hostsmember);
 		return NULL;
 	        }
-	strcpy(new_hostsmember->host_name,host_name);
 
 	/* add the parent host entry to the host definition */
 	new_hostsmember->next=hst->parent_hosts;
@@ -901,7 +887,7 @@ hostgroup *add_hostgroup(char *name,char *alias){
 #endif
 		return NULL;
 	        }
-	new_hostgroup->group_name=(char *)malloc(strlen(name)+1);
+	new_hostgroup->group_name=strdup(name);
 	if(new_hostgroup->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' name\n",name);
@@ -911,7 +897,7 @@ hostgroup *add_hostgroup(char *name,char *alias){
 		free(new_hostgroup);
 		return NULL;
 	        }
-	new_hostgroup->alias=(char *)malloc(strlen(alias)+1);
+	new_hostgroup->alias=strdup(alias);
 	if(new_hostgroup->alias==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' alias\n",name);
@@ -922,9 +908,6 @@ hostgroup *add_hostgroup(char *name,char *alias){
 		free(new_hostgroup);
 		return NULL;
 	        }
-
-	strcpy(new_hostgroup->group_name,name);
-	strcpy(new_hostgroup->alias,alias);
 
 	new_hostgroup->contact_groups=NULL;
 	new_hostgroup->members=NULL;
@@ -1007,7 +990,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 #endif
 		return NULL;
 	        }
-	new_hostgroupmember->host_name=(char *)malloc(strlen(host_name)+1);
+	new_hostgroupmember->host_name=strdup(host_name);
 	if(new_hostgroupmember->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s' name\n",grp->group_name,host_name);
@@ -1018,7 +1001,6 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 		return NULL;
 	        }
 
-	strcpy(new_hostgroupmember->host_name,host_name);
 	
 	/* add the new member to the head of the member list */
 	new_hostgroupmember->next=grp->members;
@@ -1074,7 +1056,7 @@ contactgroupsmember *add_contactgroup_to_hostgroup(hostgroup *grp, char *group_n
 #endif
 		return NULL;
 	        }
-	new_contactgroupsmember->group_name=(char *)malloc(strlen(group_name)+1);
+	new_contactgroupsmember->group_name=strdup(group_name);
 	if(new_contactgroupsmember->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' contactgroup member '%s' name\n",grp->group_name,group_name);
@@ -1085,7 +1067,6 @@ contactgroupsmember *add_contactgroup_to_hostgroup(hostgroup *grp, char *group_n
 		return NULL;
 	        }
 
-	strcpy(new_contactgroupsmember->group_name,group_name);
 	
 	/* add the new member to the head of the member list */
 	new_contactgroupsmember->next=grp->contact_groups;
@@ -1226,7 +1207,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 #endif
 		return NULL;
 	        }
-	new_contact->name=(char *)malloc(strlen(name)+1);
+	new_contact->name=strdup(name);
 	if(new_contact->name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' name\n",name);
@@ -1236,7 +1217,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 		free(new_contact);
 		return NULL;
 	        }
-	new_contact->alias=(char *)malloc(strlen(alias)+1);
+	new_contact->alias=strdup(alias);
 	if(new_contact->alias==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' alias\n",name);
@@ -1248,7 +1229,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 		return NULL;
 	        }
 	if(email!=NULL && strcmp(email,"")){
-		new_contact->email=(char *)malloc(strlen(email)+1);
+		new_contact->email=strdup(email);
 		if(new_contact->email==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' email address\n",name);
@@ -1264,7 +1245,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 	else
 		new_contact->email=NULL;
 	if(pager!=NULL && strcmp(pager,"")){
-		new_contact->pager=(char *)malloc(strlen(pager)+1);
+		new_contact->pager=strdup(pager);
 		if(new_contact->pager==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' pager number\n",name);
@@ -1282,7 +1263,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 	else
 		new_contact->pager=NULL;
 	if(svc_notification_period!=NULL && strcmp(svc_notification_period,"")){
-		new_contact->service_notification_period=(char *)malloc(strlen(svc_notification_period)+1);
+		new_contact->service_notification_period=strdup(svc_notification_period);
 		if(new_contact->service_notification_period==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' service notification period\n",name);
@@ -1302,7 +1283,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 	else 
 		new_contact->service_notification_period=NULL;
 	if(host_notification_period!=NULL && strcmp(host_notification_period,"")){
-		new_contact->host_notification_period=(char *)malloc(strlen(host_notification_period)+1);
+		new_contact->host_notification_period=strdup(host_notification_period);
 		if(new_contact->host_notification_period==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' host notification period\n",name);
@@ -1324,17 +1305,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 	else
 		new_contact->host_notification_period=NULL;
 
-
-	strcpy(new_contact->name,name);
-	strcpy(new_contact->alias,alias);
-	if(new_contact->email!=NULL)
-		strcpy(new_contact->email,email);
-	if(new_contact->pager!=NULL)
-		strcpy(new_contact->pager,pager);
-	if(new_contact->service_notification_period!=NULL)
-		strcpy(new_contact->service_notification_period,svc_notification_period);
-	if(new_contact->host_notification_period!=NULL)
-		strcpy(new_contact->host_notification_period,host_notification_period);
 
 	new_contact->host_notification_commands=NULL;
 	new_contact->service_notification_commands=NULL;
@@ -1432,7 +1402,7 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 		return NULL;
 	        }
 
-	new_commandsmember->command=(char *)malloc(strlen(command_name)+1);
+	new_commandsmember->command=strdup(command_name);
 	if(new_commandsmember->command==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' host notification command '%s' name\n",cntct->name,command_name);
@@ -1442,8 +1412,6 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 		free(new_commandsmember);
 		return NULL;
 	        }
-
-	strcpy(new_commandsmember->command,command_name);
 
 	/* add the notification command */
 	new_commandsmember->next=cntct->host_notification_commands;
@@ -1501,7 +1469,7 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 		return NULL;
 	        }
 
-	new_commandsmember->command=(char *)malloc(strlen(command_name)+1);
+	new_commandsmember->command=strdup(command_name);
 	if(new_commandsmember->command==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' service notification command '%s' name\n",cntct->name,command_name);
@@ -1511,8 +1479,6 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 		free(new_commandsmember);
 		return NULL;
 	        }
-
-	strcpy(new_commandsmember->command,command_name);
 
 	/* add the notification command */
 	new_commandsmember->next=cntct->service_notification_commands;
@@ -1583,7 +1549,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 #endif
 		return NULL;
 	        }
-	new_contactgroup->group_name=(char *)malloc(strlen(name)+1);
+	new_contactgroup->group_name=strdup(name);
 	if(new_contactgroup->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' name\n",name);
@@ -1593,7 +1559,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		free(new_contactgroup);
 		return NULL;
 	        }
-	new_contactgroup->alias=(char *)malloc(strlen(alias)+1);
+	new_contactgroup->alias=strdup(alias);
 	if(new_contactgroup->alias==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' alias\n",name);
@@ -1604,9 +1570,6 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		free(new_contactgroup);
 		return NULL;
 	        }
-
-	strcpy(new_contactgroup->group_name,name);
-	strcpy(new_contactgroup->alias,alias);
 
 	new_contactgroup->members=NULL;
 
@@ -1690,7 +1653,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 #endif
 		return NULL;
 	        }
-	new_contactgroupmember->contact_name=(char *)malloc(strlen(contact_name)+1);
+	new_contactgroupmember->contact_name=strdup(contact_name);
 	if(new_contactgroupmember->contact_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' contact '%s' name\n",grp->group_name,contact_name);
@@ -1700,8 +1663,6 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 		free(new_contactgroupmember);
 		return NULL;
 	        }
-
-	strcpy(new_contactgroupmember->contact_name,contact_name);
 	
 	/* add the new member to the head of the member list */
 	new_contactgroupmember->next=grp->members;
@@ -1980,7 +1941,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 #endif
 		return NULL;
 	        }
-	new_service->host_name=(char *)malloc(strlen(host_name)+1);
+	new_service->host_name=strdup(host_name);
 	if(new_service->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' name\n",description,host_name);
@@ -1990,7 +1951,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		free(new_service);
 		return NULL;
 	        }
-	new_service->description=(char *)malloc(strlen(description)+1);
+	new_service->description=strdup(description);
 	if(new_service->description==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' description\n",description,host_name);
@@ -2001,7 +1962,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		free(new_service);
 		return NULL;
 	        }
-	new_service->service_check_command=(char *)malloc(strlen(check_command)+1);
+	new_service->service_check_command=strdup(check_command);
 	if(new_service->service_check_command==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' check command\n",description,host_name);
@@ -2014,7 +1975,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		return NULL;
 	        }
 	if(event_handler!=NULL && strcmp(event_handler,"")){
-		new_service->event_handler=(char *)malloc(strlen(event_handler)+1);
+		new_service->event_handler=strdup(event_handler);
 		if(new_service->event_handler==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' event handler\n",description,host_name);
@@ -2031,7 +1992,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	else
 		new_service->event_handler=NULL;
 	if(notification_period!=NULL && strcmp(notification_period,"")){
-		new_service->notification_period=(char *)malloc(strlen(notification_period)+1);
+		new_service->notification_period=strdup(notification_period);
 		if(new_service->notification_period==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' notification period\n",description,host_name);
@@ -2050,7 +2011,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	else
 		new_service->notification_period=NULL;
 	if(check_period!=NULL && strcmp(check_period,"")){
-		new_service->check_period=(char *)malloc(strlen(check_period)+1);
+		new_service->check_period=strdup(check_period);
 		if(new_service->check_period==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' check period\n",description,host_name);
@@ -2071,7 +2032,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	else
 		new_service->check_period=NULL;
 	if(failure_prediction_options!=NULL && strcmp(failure_prediction_options,"")){
-		new_service->failure_prediction_options=(char *)malloc(strlen(failure_prediction_options)+1);
+		new_service->failure_prediction_options=strdup(failure_prediction_options);
 		if(new_service->failure_prediction_options==NULL){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' failure prediction options\n",description,host_name);
@@ -2094,17 +2055,6 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	else
 		new_service->failure_prediction_options=NULL;
 
-	strcpy(new_service->host_name,host_name);
-	strcpy(new_service->description,description);
-	strcpy(new_service->service_check_command,check_command);
-	if(new_service->event_handler!=NULL)
-		strcpy(new_service->event_handler,event_handler);
-	if(new_service->notification_period!=NULL)
-		strcpy(new_service->notification_period,notification_period);
-	if(new_service->check_period!=NULL)
-		strcpy(new_service->check_period,check_period);
-	if(new_service->failure_prediction_options!=NULL)
-		strcpy(new_service->failure_prediction_options,failure_prediction_options);
 
 	new_service->contact_groups=NULL;
 	new_service->check_interval=check_interval;
@@ -2323,7 +2273,7 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 #endif
 		return NULL;
 	        }
-	new_contactgroupsmember->group_name=(char *)malloc(strlen(group_name)+1);
+	new_contactgroupsmember->group_name=strdup(group_name);
 	if(new_contactgroupsmember->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for service '%s' on host '%s'\n",group_name,svc->description,svc->host_name);
@@ -2333,8 +2283,6 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 		free(new_contactgroupsmember);
 		return NULL;
 	        }
-
-	strcpy(new_contactgroupsmember->group_name,group_name);
 
 	/* add this contactgroup to the service */
 	new_contactgroupsmember->next=svc->contact_groups;
@@ -2406,7 +2354,7 @@ command *add_command(char *name,char *value){
 #endif
 		return NULL;
 	        }
-	new_command->name=(char *)malloc(strlen(name)+1);
+	new_command->name=strdup(name);
 	if(new_command->name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command '%s' name\n",name);
@@ -2416,7 +2364,7 @@ command *add_command(char *name,char *value){
 		free(new_command);
 		return NULL;
 	        }
-	new_command->command_line=(char *)malloc(strlen(value)+1);
+	new_command->command_line=strdup(value);
 	if(new_command->command_line==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command '%s' alias\n",name);
@@ -2428,8 +2376,6 @@ command *add_command(char *name,char *value){
 		return NULL;
 	        }
 
-	strcpy(new_command->name,name);
-	strcpy(new_command->command_line,value);
 
 	/* add new command to command list, sorted by command name */
 	last_command=command_list;
@@ -2510,7 +2456,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 #endif
 		return NULL;
 	        }
-	new_serviceescalation->host_name=(char *)malloc(strlen(host_name)+1);
+	new_serviceescalation->host_name=strdup(host_name);
 	if(new_serviceescalation->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation host name\n",description,host_name);
@@ -2520,7 +2466,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 		free(new_serviceescalation);
 		return NULL;
 	        }
-	new_serviceescalation->description=(char *)malloc(strlen(description)+1);
+	new_serviceescalation->description=strdup(description);
 	if(new_serviceescalation->description==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation description\n",description,host_name);
@@ -2532,8 +2478,6 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 		return NULL;
 	        }
 
-	strcpy(new_serviceescalation->host_name,host_name);
-	strcpy(new_serviceescalation->description,description);
 
 	new_serviceescalation->first_notification=first_notification;
 	new_serviceescalation->last_notification=last_notification;
@@ -2604,7 +2548,7 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 #endif
 		return NULL;
 	        }
-	new_contactgroupsmember->group_name=(char *)malloc(strlen(group_name)+1);
+	new_contactgroupsmember->group_name=strdup(group_name);
 	if(new_contactgroupsmember->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for service '%s' on host '%s' escalation\n",group_name,se->description,se->host_name);
@@ -2614,8 +2558,6 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 		free(new_contactgroupsmember);
 		return NULL;
 	        }
-
-	strcpy(new_contactgroupsmember->group_name,group_name);
 
 	/* add this contactgroup to the service escalation */
 	new_contactgroupsmember->next=se->contact_groups;
@@ -2672,7 +2614,7 @@ hostgroupescalation *add_hostgroupescalation(char *group_name,int first_notifica
 #endif
 		return NULL;
 	        }
-	new_hostgroupescalation->group_name=(char *)malloc(strlen(group_name)+1);
+	new_hostgroupescalation->group_name=strdup(group_name);
 	if(new_hostgroupescalation->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' escalation group name\n",group_name);
@@ -2683,7 +2625,6 @@ hostgroupescalation *add_hostgroupescalation(char *group_name,int first_notifica
 		return NULL;
 	        }
 
-	strcpy(new_hostgroupescalation->group_name,group_name);
 
 	new_hostgroupescalation->first_notification=first_notification;
 	new_hostgroupescalation->last_notification=last_notification;
@@ -2754,7 +2695,7 @@ contactgroupsmember *add_contactgroup_to_hostgroupescalation(hostgroupescalation
 #endif
 		return NULL;
 	        }
-	new_contactgroupsmember->group_name=(char *)malloc(strlen(group_name)+1);
+	new_contactgroupsmember->group_name=strdup(group_name);
 	if(new_contactgroupsmember->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for hostgroup '%s' escalation\n",group_name,hge->group_name);
@@ -2764,8 +2705,6 @@ contactgroupsmember *add_contactgroup_to_hostgroupescalation(hostgroupescalation
 		free(new_contactgroupsmember);
 		return NULL;
 	        }
-
-	strcpy(new_contactgroupsmember->group_name,group_name);
 
 	/* add this contactgroup to the hostgroup escalation */
 	new_contactgroupsmember->next=hge->contact_groups;
@@ -2862,7 +2801,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 #endif
 		return NULL;
 	        }
-	new_servicedependency->dependent_host_name=(char *)malloc(strlen(dependent_host_name)+1);
+	new_servicedependency->dependent_host_name=strdup(dependent_host_name);
 	if(new_servicedependency->dependent_host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
@@ -2872,7 +2811,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		free(new_servicedependency);
 		return NULL;
 	        }
-	new_servicedependency->dependent_service_description=(char *)malloc(strlen(dependent_service_description)+1);
+	new_servicedependency->dependent_service_description=strdup(dependent_service_description);
 	if(new_servicedependency->dependent_service_description==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
@@ -2883,7 +2822,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		free(new_servicedependency->dependent_host_name);
 		return NULL;
 	        }
-	new_servicedependency->host_name=(char *)malloc(strlen(host_name)+1);
+	new_servicedependency->host_name=strdup(host_name);
 	if(new_servicedependency->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
@@ -2895,7 +2834,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		free(new_servicedependency->dependent_service_description);
 		return NULL;
 	        }
-	new_servicedependency->service_description=(char *)malloc(strlen(service_description)+1);
+	new_servicedependency->service_description=strdup(service_description);
 	if(new_servicedependency->service_description==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
@@ -2908,11 +2847,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		free(new_servicedependency->host_name);
 		return NULL;
 	        }
-
-	strcpy(new_servicedependency->dependent_host_name,dependent_host_name);
-	strcpy(new_servicedependency->dependent_service_description,dependent_service_description);
-	strcpy(new_servicedependency->host_name,host_name);
-	strcpy(new_servicedependency->service_description,service_description);
 
 	new_servicedependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
 	new_servicedependency->fail_on_ok=(fail_on_ok==1)?TRUE:FALSE;
@@ -3029,7 +2963,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 #endif
 		return NULL;
 	        }
-	new_hostdependency->dependent_host_name=(char *)malloc(strlen(dependent_host_name)+1);
+	new_hostdependency->dependent_host_name=strdup(dependent_host_name);
 	if(new_hostdependency->dependent_host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' dependency\n",dependent_host_name);
@@ -3039,7 +2973,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		free(new_hostdependency);
 		return NULL;
 	        }
-	new_hostdependency->host_name=(char *)malloc(strlen(host_name)+1);
+	new_hostdependency->host_name=strdup(host_name);
 	if(new_hostdependency->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' dependency\n",dependent_host_name);
@@ -3050,9 +2984,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		free(new_hostdependency->dependent_host_name);
 		return NULL;
 	        }
-
-	strcpy(new_hostdependency->dependent_host_name,dependent_host_name);
-	strcpy(new_hostdependency->host_name,host_name);
 
 	new_hostdependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
 	new_hostdependency->fail_on_up=(fail_on_up==1)?TRUE:FALSE;
@@ -3135,7 +3066,7 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 #endif
 		return NULL;
 	        }
-	new_hostescalation->host_name=(char *)malloc(strlen(host_name)+1);
+	new_hostescalation->host_name=strdup(host_name);
 	if(new_hostescalation->host_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' escalation host name\n",host_name);
@@ -3145,8 +3076,6 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		free(new_hostescalation);
 		return NULL;
 	        }
-
-	strcpy(new_hostescalation->host_name,host_name);
 
 	new_hostescalation->first_notification=first_notification;
 	new_hostescalation->last_notification=last_notification;
@@ -3216,7 +3145,7 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 #endif
 		return NULL;
 	        }
-	new_contactgroupsmember->group_name=(char *)malloc(strlen(group_name)+1);
+	new_contactgroupsmember->group_name=strdup(group_name);
 	if(new_contactgroupsmember->group_name==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for host '%s' escalation\n",group_name,he->host_name);
@@ -3226,8 +3155,6 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 		free(new_contactgroupsmember);
 		return NULL;
 	        }
-
-	strcpy(new_contactgroupsmember->group_name,group_name);
 
 	/* add this contactgroup to the host escalation */
 	new_contactgroupsmember->next=he->contact_groups;
@@ -4089,19 +4016,13 @@ int free_object_data(void){
 		free(this_host->address);
 
 #ifdef NSCORE
-		if(this_host->plugin_output!=NULL)
-			free(this_host->plugin_output);
-		if(this_host->perf_data!=NULL)
-			free(this_host->perf_data);
+		free(this_host->plugin_output);
+		free(this_host->perf_data);
 #endif
-		if(this_host->host_check_command!=NULL)
-			free(this_host->host_check_command);
-		if(this_host->event_handler!=NULL)
-			free(this_host->event_handler);
-		if(this_host->failure_prediction_options!=NULL)
-			free(this_host->failure_prediction_options);
-		if(this_host->notification_period!=NULL)
-			free(this_host->notification_period);
+		free(this_host->host_check_command);
+		free(this_host->event_handler);
+		free(this_host->failure_prediction_options);
+		free(this_host->notification_period);
 		free(this_host);
 		this_host=next_host;
 		}
@@ -4172,14 +4093,10 @@ int free_object_data(void){
 		next_contact=this_contact->next;
 		free(this_contact->name);
 		free(this_contact->alias);
-		if(this_contact->email!=NULL)
-			free(this_contact->email);
-		if(this_contact->pager!=NULL)
-			free(this_contact->pager);
-		if(this_contact->host_notification_period!=NULL)
-			free(this_contact->host_notification_period);
-		if(this_contact->service_notification_period)
-			free(this_contact->service_notification_period);
+		free(this_contact->email);
+		free(this_contact->pager);
+		free(this_contact->host_notification_period);
+		free(this_contact->service_notification_period);
 		free(this_contact);
 		this_contact=next_contact;
 		}
@@ -4236,19 +4153,13 @@ int free_object_data(void){
 		free(this_service->description);
 		free(this_service->service_check_command);
 #ifdef NSCORE
-		if(this_service->plugin_output!=NULL)
-			free(this_service->plugin_output);
-		if(this_service->perf_data!=NULL)
-			free(this_service->perf_data);
+		free(this_service->plugin_output);
+		free(this_service->perf_data);
 #endif
-		if(this_service->notification_period!=NULL)
-			free(this_service->notification_period);
-		if(this_service->check_period!=NULL)
-			free(this_service->check_period);
-		if(this_service->event_handler!=NULL)
-			free(this_service->event_handler);
-		if(this_service->failure_prediction_options!=NULL)
-			free(this_service->failure_prediction_options);
+		free(this_service->notification_period);
+		free(this_service->check_period);
+		free(this_service->event_handler);
+		free(this_service->failure_prediction_options);
 		free(this_service);
 		this_service=next_service;
 		}

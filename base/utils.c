@@ -2461,7 +2461,7 @@ int set_macro_environment_var(char *name, char *value, int set){
 	/* create the name */
 	strcpy(env_macro_name,"");
 	strcpy(env_macro_name,MACRO_ENV_VAR_PREFIX);
-	strcat(env_macro_name,(name==NULL)?"":name);
+	strcat(env_macro_name,name);
 
 	/* set or unset the environment variable */
 	if(set==TRUE){

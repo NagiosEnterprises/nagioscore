@@ -509,13 +509,15 @@ if test x$USE_EVENTBROKER = xyes; then
 
 
 	dnl - Modified version from www.erlang.org
+	dnl - Some 12/15/05 mods made after reading http://xaxxon.slackworks.com/phuku/dl.html
 	AC_MSG_CHECKING(for linker flags for loadable modules)
 	case $host_os in
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
 		;;
 		aix4*)
-			MOD_LDFLAGS="-G -bnoentry -bexpall"
+			#MOD_LDFLAGS="-G -bnoentry -bexpall"
+			MOD_LDFLAGS="-G -bM:SRE -bnoentry -bexpall"
 		;;
 		freebsd2*)
 			# Non-ELF GNU linker
@@ -526,6 +528,11 @@ if test x$USE_EVENTBROKER = xyes; then
 			# object file is not the same thing.
 			MOD_LDFLAGS="-bundle -flat_namespace -undefined suppress"
 			MOD_CFLAGS="$MOD_CFLAGS -fno-common"
+		;;
+		linux*)
+			# assume GNU linker and ELF
+			MOD_LDFLAGS="-shared"
+			MOD_CFLAGS="-fPIC"
 		;;
 		*)
 			# assume GNU linker and ELF

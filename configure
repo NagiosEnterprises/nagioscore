@@ -3113,14 +3113,15 @@ rm -f conftest*
 	test "x$BROKER_LDFLAGS" != x && echo "$ac_t""$BROKER_LDFLAGS" 1>&6
 
 
-		echo $ac_n "checking for linker flags for loadable modules""... $ac_c" 1>&6
+			echo $ac_n "checking for linker flags for loadable modules""... $ac_c" 1>&6
 echo "configure:3118: checking for linker flags for loadable modules" >&5
 	case $host_os in
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
 		;;
 		aix4*)
-			MOD_LDFLAGS="-G -bnoentry -bexpall"
+			#MOD_LDFLAGS="-G -bnoentry -bexpall"
+			MOD_LDFLAGS="-bM:SRE -bnoentry -bexpall"
 		;;
 		freebsd2*)
 			# Non-ELF GNU linker
@@ -3131,6 +3132,11 @@ echo "configure:3118: checking for linker flags for loadable modules" >&5
 			# object file is not the same thing.
 			MOD_LDFLAGS="-bundle -flat_namespace -undefined suppress"
 			MOD_CFLAGS="$MOD_CFLAGS -fno-common"
+		;;
+		linux*)
+			# assume GNU linker and ELF
+			MOD_LDFLAGS="-shared"
+			MOD_CFLAGS="-fPIC"
 		;;
 		*)
 			# assume GNU linker and ELF
@@ -3240,7 +3246,7 @@ fi
 # Extract the first word of "traceroute", so it can be a program name with args.
 set dummy traceroute; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:3244: checking for $ac_word" >&5
+echo "configure:3250: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PATH_TO_TRACEROUTE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3285,12 +3291,12 @@ PACKDIR=`pwd`/pkg
 
  
 echo $ac_n "checking for snprintf""... $ac_c" 1>&6
-echo "configure:3289: checking for snprintf" >&5
+echo "configure:3295: checking for snprintf" >&5
 if eval "test \"`echo '$''{'ac_cv_func_snprintf'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3294 "configure"
+#line 3300 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char snprintf(); below.  */
@@ -3313,7 +3319,7 @@ snprintf();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3317: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3323: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_snprintf=yes"
 else
@@ -3339,9 +3345,9 @@ fi
 
 
 echo $ac_n "checking for type va_list""... $ac_c" 1>&6
-echo "configure:3343: checking for type va_list" >&5
+echo "configure:3349: checking for type va_list" >&5
 cat > conftest.$ac_ext <<EOF
-#line 3345 "configure"
+#line 3351 "configure"
 #include "confdefs.h"
 #ifdef __STDC__
 #include <stdio.h>
@@ -3356,7 +3362,7 @@ int main() {
 va_list args;
 ; return 0; }
 EOF
-if { (eval echo configure:3360: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:3366: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 else
@@ -3382,7 +3388,7 @@ rm -f conftest*
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:3386: checking for $ac_word" >&5
+echo "configure:3392: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PERL'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else

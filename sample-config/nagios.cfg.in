@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 10-30-2004
+# Last Modified: 12-15-2004
 #
 ##############################################################################
 
@@ -851,21 +851,6 @@ high_host_flap_threshold=20.0
 #
 
 date_format=us
-
-
-
-# MAXIMUM EMBEDDED PERL INTERPRETER CALLS
-# This value determines how often (if at all) the embedded Perl
-# interpreter is reinitialized during runtime.  This is useful
-# if you notice that the Perl interpreter is causing slow 
-# memory leaks over time.  Setting this value to 0 means the 
-# embedded Perl interpreter will never be reinitialized.  Any
-# value > 0 is the number of times the embedded Perl interpreter
-# is used (i.e. a Perl plugin is executed) before it is
-# reinitialized during runtime.  If you didn't compile Nagios with
-# embedded Perl support, this option has no effect.
-
-max_embedded_perl_calls=0
 
 
 

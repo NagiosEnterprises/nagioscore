@@ -7,6 +7,7 @@ Nagios Change Log
 ------------------
 * Removed (un)setenv() calls for systems that don't support it
 * Fixed problem with installing sample config files
+* Sample config file fix
 
 
 

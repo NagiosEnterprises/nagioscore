@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Last Modified: 08-12-2002
  *
  * License:
  * 
@@ -487,11 +487,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
+			host_name=strdup(variables[x]);
 			if(host_name==NULL)
 				host_name="";
-			else
-				strcpy(host_name,variables[x]);
 			}
 
 		/* we found the hostgroup name */
@@ -502,11 +500,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			hostgroup_name=(char *)malloc(strlen(variables[x])+1);
+			hostgroup_name=strdup(variables[x]);
 			if(hostgroup_name==NULL)
 				hostgroup_name="";
-			else
-				strcpy(hostgroup_name,variables[x]);
 			}
 
 		/* we found the service name */
@@ -517,11 +513,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			service_desc=(char *)malloc(strlen(variables[x])+1);
+			service_desc=strdup(variables[x]);
 			if(service_desc==NULL)
 				service_desc="";
-			else
-				strcpy(service_desc,variables[x]);
 			}
 
 		/* we found the sort type argument */

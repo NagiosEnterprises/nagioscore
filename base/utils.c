@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-26-2003
  *
  * License:
  *
@@ -2057,6 +2057,9 @@ int read_svc_message(service_message *message){
 	printf("read_svc_message() start\n");
 #endif
 
+	if(message==NULL)
+		return -1;
+
 	/* clear the message buffer */
 	bzero((void *)message,sizeof(service_message));
 
@@ -2075,6 +2078,7 @@ int read_svc_message(service_message *message){
 
 		/* free memory allocated for buffer slot */
 		free(((service_message **)service_result_buffer.buffer)[service_result_buffer.head]);
+		service_result_buffer.buffer[service_result_buffer.head]=NULL;
 
 		/* adjust head counter and number of items */
 		service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
@@ -2102,6 +2106,9 @@ int write_svc_message(service_message *message){
 #ifdef DEBUG0
 	printf("write_svc_message() start\n");
 #endif
+
+	if(message==NULL)
+		return 0;
 
 	while(1){
 
@@ -2562,6 +2569,10 @@ int reinit_embedded_perl(void){
 		return ERROR;
                 }
 
+	snprintf(buffer,sizeof(buffer),"Embedded Perl interpreter re-initialized ok.\n");
+	buffer[sizeof(buffer)-1]='\x0';
+	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+
 #endif
 	return OK;
         }
@@ -2629,8 +2640,10 @@ void * cleanup_service_result_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
-	for(x=service_result_buffer.head;x!=service_result_buffer.tail;x=(x+1) % SERVICE_BUFFER_SLOTS)
+	for(x=service_result_buffer.head;x!=service_result_buffer.tail;x=(x+1) % SERVICE_BUFFER_SLOTS){
 		free(((service_message **)service_result_buffer.buffer)[x]);
+		((service_message **)service_result_buffer.buffer)[x]=NULL;
+	        }
 	free(service_result_buffer.buffer);
 
 	return NULL;
@@ -2693,8 +2706,10 @@ void * cleanup_command_file_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
-	for(x=external_command_buffer.head;x!=external_command_buffer.tail;x=(x+1) % COMMAND_BUFFER_SLOTS)
+	for(x=external_command_buffer.head;x!=external_command_buffer.tail;x=(x+1) % COMMAND_BUFFER_SLOTS){
 		free(((char **)external_command_buffer.buffer)[x]);
+		((char **)external_command_buffer.buffer)[x]=NULL;
+	        }
 	free(external_command_buffer.buffer);
 
 	return NULL;
@@ -2711,7 +2726,8 @@ void * service_result_worker_thread(void *arg){
 	int read_result;
 	int bytes_to_read;
 	int write_offset;
-	service_message *message;
+	service_message message;
+	service_message *new_message;
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_service_result_worker_thread,NULL);
@@ -2751,14 +2767,6 @@ void * service_result_worker_thread(void *arg){
 		/* process all data in the buffer if there's some space in the buffer */
 		if(service_result_buffer.items<SERVICE_BUFFER_SLOTS){
 
-			/* allocate memory for the message */
-			message=(service_message *)malloc(sizeof(service_message));
-			if(message==NULL)
-				return NULL;
-
-			/* clear the message buffer */
-			bzero((void *)message,sizeof(service_message));
-
 			/* initialize the number of bytes to read */
 			bytes_to_read=sizeof(service_message);
 
@@ -2768,7 +2776,7 @@ void * service_result_worker_thread(void *arg){
 				write_offset=sizeof(service_message)-bytes_to_read;
 
 				/* try and read a (full or partial) message */
-				read_result=read(ipc_pipe[0],message+write_offset,bytes_to_read);
+				read_result=read(ipc_pipe[0],&message+write_offset,bytes_to_read);
 
 				/* we had a failure in reading from the pipe... */
 				if(read_result==-1){
@@ -2800,8 +2808,19 @@ void * service_result_worker_thread(void *arg){
 			/* the read was good, so save it */
 			if(read_result>=0){
 				
+				/* allocate memory for the message */
+				new_message=(service_message *)malloc(sizeof(service_message));
+				if(new_message==NULL)
+					break;
+
+				/* clear the message buffer */
+				bzero((void *)new_message,sizeof(service_message));
+
+				/* copy the data we read to the message buffer */
+				memcpy(new_message,&message,sizeof(service_message)-bytes_to_read);
+
 				/* save the data to the buffer */
-				((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]=message;
+				((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]=new_message;
 
 				/* increment the tail counter and items */
 				service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;

@@ -125,13 +125,20 @@ AC_SUBST(THREADLIBS)
 
 
 AC_ARG_WITH(nagios_user,--with-nagios-user=<user> sets user name to run nagios,nagios_user=$withval,nagios_user=nagios)
-AC_ARG_WITH(nagios_grp,--with-nagios-grp=<grp> sets group name to run nagios,nagios_grp=$withval,nagios_grp=nagios)
+AC_ARG_WITH(nagios_grp,--with-nagios-group=<grp> sets group name to run nagios,nagios_grp=$withval,nagios_grp=nagios)
 AC_SUBST(nagios_user)
 AC_SUBST(nagios_grp)
 AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_USER,"$nagios_user")
 AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_GROUP,"$nagios_grp")
 INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
 AC_SUBST(INSTALL_OPTS)
+
+AC_ARG_WITH(command_user,--with-command-user=<user> sets user name for command access,command_user=$withval,command_user=$nagios_user)
+AC_ARG_WITH(command_grp,--with-command-group=<grp> sets group name for command access,command_grp=$withval,command_grp=$nagios_grp)
+AC_SUBST(command_user)
+AC_SUBST(command_grp)
+COMMAND_OPTS="-o $command_user -g $command_grp"
+AC_SUBST(COMMAND_OPTS)
 
 dnl Check for location of mail program
 MAIL_PROG=no
@@ -140,13 +147,6 @@ if test MAIL_PROG=no; then
 	AC_PATH_PROG(MAIL_PROG,mail) 
 fi 
 AC_SUBST(MAIL_PROG)
-
-AC_ARG_WITH(command_user,--with-command-user=<user> sets user name for command access,command_user=$withval,command_user=$nagios_user)
-AC_ARG_WITH(command_grp,--with-command-grp=<grp> sets group name for command access,command_grp=$withval,command_grp=$nagios_grp)
-AC_SUBST(command_user)
-AC_SUBST(command_grp)
-COMMAND_OPTS="-o $command_user -g $command_grp"
-AC_SUBST(COMMAND_OPTS)
 
 dnl Check for location of init scripts
 init_dir=/etc/rc.d/init.d

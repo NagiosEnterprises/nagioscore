@@ -15,13 +15,13 @@ ac_default_prefix=/usr/local/nagios
 ac_help="$ac_help
 --with-nagios-user=<user> sets user name to run nagios"
 ac_help="$ac_help
---with-nagios-grp=<grp> sets group name to run nagios"
-ac_help="$ac_help
---with-mail=<path_to_mail> sets path to equivalent program to mail"
+--with-nagios-group=<grp> sets group name to run nagios"
 ac_help="$ac_help
 --with-command-user=<user> sets user name for command access"
 ac_help="$ac_help
---with-command-grp=<grp> sets group name for command access"
+--with-command-group=<grp> sets group name for command access"
+ac_help="$ac_help
+--with-mail=<path_to_mail> sets path to equivalent program to mail"
 ac_help="$ac_help
 --with-init-dir=<path> sets directory to place init script into"
 ac_help="$ac_help
@@ -2058,6 +2058,27 @@ EOF
 INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
 
 
+# Check whether --with-command_user or --without-command_user was given.
+if test "${with_command_user+set}" = set; then
+  withval="$with_command_user"
+  command_user=$withval
+else
+  command_user=$nagios_user
+fi
+
+# Check whether --with-command_grp or --without-command_grp was given.
+if test "${with_command_grp+set}" = set; then
+  withval="$with_command_grp"
+  command_grp=$withval
+else
+  command_grp=$nagios_grp
+fi
+
+
+
+COMMAND_OPTS="-o $command_user -g $command_grp"
+
+
 MAIL_PROG=no
 # Check whether --with-mail or --without-mail was given.
 if test "${with_mail+set}" = set; then
@@ -2071,7 +2092,7 @@ if test MAIL_PROG=no; then
 	# Extract the first word of "mail", so it can be a program name with args.
 set dummy mail; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2075: checking for $ac_word" >&5
+echo "configure:2096: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_MAIL_PROG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2104,27 +2125,6 @@ else
 fi
  
 fi 
-
-
-# Check whether --with-command_user or --without-command_user was given.
-if test "${with_command_user+set}" = set; then
-  withval="$with_command_user"
-  command_user=$withval
-else
-  command_user=$nagios_user
-fi
-
-# Check whether --with-command_grp or --without-command_grp was given.
-if test "${with_command_grp+set}" = set; then
-  withval="$with_command_grp"
-  command_grp=$withval
-else
-  command_grp=$nagios_grp
-fi
-
-
-
-COMMAND_OPTS="-o $command_user -g $command_grp"
 
 
 init_dir=/etc/rc.d/init.d
@@ -3335,10 +3335,10 @@ s%@THREADLIBS@%$THREADLIBS%g
 s%@nagios_user@%$nagios_user%g
 s%@nagios_grp@%$nagios_grp%g
 s%@INSTALL_OPTS@%$INSTALL_OPTS%g
-s%@MAIL_PROG@%$MAIL_PROG%g
 s%@command_user@%$command_user%g
 s%@command_grp@%$command_grp%g
 s%@COMMAND_OPTS@%$COMMAND_OPTS%g
+s%@MAIL_PROG@%$MAIL_PROG%g
 s%@init_dir@%$init_dir%g
 s%@lockfile@%$lockfile%g
 s%@XSDC@%$XSDC%g

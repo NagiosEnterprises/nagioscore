@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   11-01-2004
+ * Last Modified:   12-08-2004
  *
  * Description:
  *
@@ -184,8 +184,6 @@ double          low_host_flap_threshold=DEFAULT_LOW_HOST_FLAP_THRESHOLD;
 double          high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 int             date_format=DATE_FORMAT_US;
-
-int             max_embedded_perl_calls=DEFAULT_MAX_EMBEDDED_PERL_CALLS;
 
 int             command_file_fd;
 FILE            *command_file_fp;

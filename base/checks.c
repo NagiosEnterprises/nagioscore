@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2004
+ * Last Modified:   12-08-2004
  *
  * License:
  *
@@ -34,9 +34,7 @@
 /*#define DEBUG_CHECKS*/
 
 #ifdef EMBEDDEDPERL
-#include <EXTERN.h>
-#include <perl.h>
-#include <fcntl.h>
+#include "../include/epn_nagios.h"
 #endif
 
 extern char     *temp_file;
@@ -73,8 +71,6 @@ extern int      check_host_freshness;
 
 extern time_t   program_start;
 
-extern int      max_embedded_perl_calls;
-
 extern timed_event       *event_list_low;
 
 extern host              *host_list;
@@ -89,7 +85,6 @@ extern circular_buffer service_result_buffer;
 
 #ifdef EMBEDDEDPERL
 extern int      use_embedded_perl;
-extern int      embedded_perl_calls;
 #endif
 
 
@@ -119,7 +114,7 @@ void run_service_check(service *svc){
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
 	int isperl;
-#ifdef THREADEDPERL
+#ifdef aTHX
 	dTHX;
 #endif
 	dSP;
@@ -283,12 +278,6 @@ void run_service_check(service *svc){
 			args[3]="";
 		else
 			args[3]=processed_command+strlen(fname)+1;
-
-		/* reintialize embedded perl if necessary */
-		if(use_embedded_perl==TRUE && max_embedded_perl_calls>0 && embedded_perl_calls>max_embedded_perl_calls)
-			reinit_embedded_perl();
-
-		embedded_perl_calls++;
 
 		/* call our perl interpreter to compile and optionally cache the command */
 		if(use_embedded_perl==TRUE)

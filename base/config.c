@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-30-2004
+ * Last Modified:   12-08-2004
  *
  * License:
  *
@@ -145,8 +145,6 @@ extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
 
 extern int      date_format;
-
-extern int      max_embedded_perl_calls;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
@@ -1326,20 +1324,6 @@ int read_main_config_file(char *main_config_file){
 				date_format=DATE_FORMAT_US;
 #ifdef DEBUG1
 			printf("\t\tdate_format set to %d\n",date_format);
-#endif
-		        }
-		else if(!strcmp(variable,"max_embedded_perl_calls")){
-			strip(value);
-			max_embedded_perl_calls=atoi(value);
-
-			if(max_embedded_perl_calls<0){
-				strcpy(error_message,"Illegal value for max_embedded_perl_calls");
-				error=TRUE;
-				break;
-			        }
-
-#ifdef DEBUG1
-			printf("\t\tmax_embedded_perl_calls set to %d\n",max_embedded_perl_calls);
 #endif
 		        }
 		else if(!strcmp(variable,"p1_file")){

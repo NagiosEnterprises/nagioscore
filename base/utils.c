@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2004
+ * Last Modified:   12-08-2004
  *
  * License:
  *
@@ -46,17 +46,9 @@
 #endif
 
 #ifdef EMBEDDEDPERL
-#include <EXTERN.h>
-#include <perl.h>
-static PerlInterpreter *my_perl;
-#include <fcntl.h>
-/* In perl.h (or friends) there is a macro that defines sighandler as Perl_sighandler, so we must #undef it so we can use our sighandler() function */
-#undef sighandler
-/* and we don't need perl's reentrant versions */
-#undef localtime
-#undef getpwnam
-#undef getgrnam
-#undef strerror
+#include "../include/epn_nagios.h"
+static PerlInterpreter *my_perl = NULL;
+int use_embedded_perl=TRUE;
 #endif
 
 char            *my_strtok_buffer=NULL;
@@ -195,8 +187,6 @@ extern double   high_host_flap_threshold;
 
 extern int      date_format;
 
-extern int      max_embedded_perl_calls;
-
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
 extern host             *host_list;
@@ -231,74 +221,6 @@ extern circular_buffer service_result_buffer;
 extern circular_buffer event_broker_buffer;
 
 extern int errno;
-
-
-
-/******** BEGIN EMBEDDED PERL INTERPRETER DECLARATIONS ********/
-
-#ifdef EMBEDDEDPERL 
-#include <EXTERN.h>
-#include <perl.h>
-static PerlInterpreter *my_perl;
-#include <fcntl.h>
-#undef ctime   /* don't need perl's threaded version */
-#undef printf   /* can't use perl's printf until initialized */
-
-/* include PERL xs_init code for module and C library support */
-
-#if defined(__cplusplus) && !defined(PERL_OBJECT)
-#define is_cplusplus
-#endif
-
-#ifdef is_cplusplus
-extern "C" {
-#endif
-
-#ifdef PERL_OBJECT
-#define NO_XSLOCKS
-#include <XSUB.h>
-#include "win32iop.h"
-#include <perlhost.h>
-#endif
-#ifdef is_cplusplus
-}
-#  ifndef EXTERN_C
-#    define EXTERN_C extern "C"
-#  endif
-#else
-#  ifndef EXTERN_C
-#    define EXTERN_C extern
-#  endif
-#endif
-
-#ifdef THREADEDPERL
-EXTERN_C void xs_init _((pTHX));
-EXTERN_C void boot_DynaLoader _((pTHX_ CV* cv));
-#else
-EXTERN_C void xs_init _((void));
-EXTERN_C void boot_DynaLoader _((CV* cv));
-#endif
-
-#ifdef THREADEDPERL
-EXTERN_C void xs_init(pTHX)
-#else
-EXTERN_C void xs_init(void)
-#endif
-{
-	char *file = __FILE__;
-	dXSUB_SYS;
-	/* DynaLoader is a special case */
-	newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
-        }
-
-static PerlInterpreter *perl=NULL;
-
-int embedded_perl_calls=0;
-int use_embedded_perl=TRUE;
-#endif
-
-/******** END EMBEDDED PERL INTERPRETER DECLARATIONS ********/
-
 
 
 
@@ -2580,7 +2502,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	char fname[1024];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
 	int isperl;
-#ifdef THREADEDPERL
+#ifdef aTHX
 	dTHX;
 #endif
 	dSP;
@@ -2626,12 +2548,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			args[3]="";
 		else
 			args[3]=cmd+strlen(fname)+1;
-
-		/* reinitialize embedded perl if necessary */
-		if(use_embedded_perl==TRUE && max_embedded_perl_calls>0 && embedded_perl_calls>max_embedded_perl_calls)
-			reinit_embedded_perl();
-
-		embedded_perl_calls++;
 
 		/* call our perl interpreter to compile and optionally cache the compiled script. */
 		if(use_embedded_perl==TRUE)
@@ -4476,10 +4392,9 @@ int init_embedded_perl(void){
 
 	embedding[1]=p1_file;
 
-	embedded_perl_calls=0;
 	use_embedded_perl=TRUE;
 
-	if((perl=perl_alloc())==NULL){
+	if((my_perl=perl_alloc())==NULL){
 		use_embedded_perl=FALSE;
 		snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
 		buffer[sizeof(buffer)-1]='\x0';
@@ -4487,10 +4402,10 @@ int init_embedded_perl(void){
 		return ERROR;
                 }
 
-	perl_construct(perl);
-	exitstatus=perl_parse(perl,xs_init,2,embedding,NULL);
+	perl_construct(my_perl);
+	exitstatus=perl_parse(my_perl,xs_init,2,embedding,NULL);
 	if(!exitstatus)
-		exitstatus=perl_run(perl);
+		exitstatus=perl_run(my_perl);
 
 #endif
 	return OK;
@@ -4502,35 +4417,8 @@ int deinit_embedded_perl(void){
 #ifdef EMBEDDEDPERL
 
 	PL_perl_destruct_level=0;
-	perl_destruct(perl);
-	perl_free(perl);
-
-#endif
-	return OK;
-        }
-
-
-/* reinitialized embedded perl interpreter */
-int reinit_embedded_perl(void){
-#ifdef EMBEDDEDPERL
-	char buffer[MAX_INPUT_BUFFER];
-
-	snprintf(buffer,sizeof(buffer),"Re-initializing embedded Perl interpreter after %d uses...\n",embedded_perl_calls);
-	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
-
-	deinit_embedded_perl();
-	
-	if(init_embedded_perl()==ERROR){
-		snprintf(buffer,sizeof(buffer),"Error: Could not re-initialize embedded Perl interpreter!  Perl scripts will be interpreted normally.\n");
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		return ERROR;
-                }
-
-	snprintf(buffer,sizeof(buffer),"Embedded Perl interpreter re-initialized ok.\n");
-	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+	perl_destruct(my_perl);
+	perl_free(my_perl);
 
 #endif
 	return OK;
@@ -5312,8 +5200,6 @@ int reset_variables(void){
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
 
 	date_format=DATE_FORMAT_US;
-
-	max_embedded_perl_calls=DEFAULT_MAX_EMBEDDED_PERL_CALLS;
 
 	for(x=0;x<=MACRO_X_COUNT;x++)
 		macro_x[x]=NULL;

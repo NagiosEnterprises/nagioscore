@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 10-24-2004
+# Last Modified: 12-08-2004
 ############################
 
 
@@ -41,6 +41,7 @@ HTMURL=@htmurl@
 
 MATHLIBS=-lm
 PERLLIBS=@PERLLIBS@
+PERLXSI_O=@PERLXSI_O@
 SOCKETLIBS=@SOCKETLIBS@
 THREADLIBS=@THREADLIBS@
 BROKERLIBS=@BROKERLIBS@
@@ -114,7 +115,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=$(BROKER_O) checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
+OBJS=$(BROKER_O) checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O) $(PERLXSI_O)
 OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS) $(BROKER_H)
 
 all: nagios nagiostats
@@ -174,6 +175,7 @@ clean:
 	rm -f *~
 
 distclean: clean
+	rm -f perlxsi.c
 	rm -f Makefile
 
 devclean: distclean

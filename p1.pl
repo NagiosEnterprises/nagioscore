@@ -1,7 +1,7 @@
- package Embed::Persistent;
+package Embed::Persistent;
 
 #
-# Hacked version of p1.pl distributed with Nagios 1.0
+# p1.pl distributed with Nagios 2.x
 #
 # Only major changes are that STDOUT is redirected to a scalar
 # by means of a tied filehandle so that it can be returned to Nagios
@@ -16,7 +16,7 @@ use constant RETICENT	=> 1 ;
 use constant GARRULOUS	=> 0 ;
 use constant DEBUG	=> 0 ;
 
-use constant EPN_STDERR_LOG => '/usr/home/anwsmh/perl/embedded_perl/epn_in_mem_hack_p1_debug.log' ;
+use constant EPN_STDERR_LOG => 'Some_Path_to_a_Log' ;
 
 use constant TEXT_RETICENT	=> <<'RETICENT' ;
 
@@ -122,7 +122,7 @@ sub eval_file {
 		# $@ is set for any warning and error. This guarantees that the plugin will not be run.
 		if ($@) {
 			# Log eval'd text of plugin.
-			# Correct the line number of the error by removing the lines added (the subroutine prologue) by Embed::eval_file.
+			# Correct the line number of the error by removing the lines added (the subroutine prologue).
 			my $i = 1 ;
 			$eval =~ s/^/sprintf('%10d  ', $i++)/meg ;
 			$Cache{$package}{plugin_error} = $@ ;
@@ -163,7 +163,7 @@ sub run_package {
 	if ($@) {
 		if ($@ =~ /^ExitTrap:  /) {
 			# For normal plugin exit the  ExitTrap string is set by the 
-			# redefined CORE::GLOBAL::exit sub calling die to return a string =~ /^ExitTrap: -?\d+ $package/
+			# redefined CORE::GLOBAL::exit sub calling die to return a string =~ /^ExitTrap: -?\d+ $package/.
 			# However, there is only _one_ exit sub so the last plugin to be compiled sets _its_
 			# package name.
 			$res = 0;
@@ -344,7 +344,7 @@ sub eval_file {
 		# $@ is set for any warning and error. This guarantees that the plugin will not be run.
 		if ($@) {
 			# Log eval'd text of plugin.
-			# Correct the line number of the error by removing the lines added (the subroutine prologue) by Embed::eval_file.
+			# Correct the line number of the error by removing the lines added (the subroutine prologue).
 			my $i = 1 ;
 			$eval =~ s/^/sprintf('%10d  ', $i++)/meg ;
 			print STDERR '[', time(), ']', qq( **ePN '$pn' error '$@' in text "\n$eval"\n) ;
@@ -570,7 +570,7 @@ sub eval_file {
 		# $@ is set for any warning and error. This guarantees that the plugin will not be run.
 		if ($@) {
 			# Log eval'd text of plugin.
-			# Correct the line number of the error by removing the lines added (the subroutine prologue) by Embed::eval_file.
+			# Correct the line number of the error by removing the lines added (the subroutine prologue).
 			# $@ =~ s/line (\d+)\.\n/'line ' . ($1 - 8) . ".\n"/ge ;
 			my $i = 1 ;
 			$eval =~ s/^/sprintf('%10d  ', $i++)/meg ;
@@ -667,6 +667,21 @@ SWITCH: {
 
 p1.pl - Perl program to provide Perl code persistence for the Nagios project (http://www.Nagios.Org).
 
+This program attempts to provide a mod_perl like facility for Nagios.
+
+=head1 SYNOPSIS
+
+Edit the text to set the values of (the 'use constant' statements) the log path, B<EPN_STDERR_LOG>, and any one
+(only) of the boolean log level flags B<GARRULOUS>, B<DEBUG>, and B<RETICENT>. The default is to set RETICENT, and
+to use S<<path_to_Nagios>/var/epn_stderr.log> as the log path.
+
+The log level flags determine the amount and type of messages logged in the log path.
+
+The RETICENT log level results in similar behaviour to former versions of p1.pl.
+In particular, the log file EPN_STDERR_LOG will B<not> be opened.
+
+=head1 DESCRIPTION
+
 Nagios is a program to monitor service availability; it does this by scheduling 'plugins' - discrete programs
 that check a service and output a line of text describing the service state intended for
 those responsible for the service and exit with a coded value to relay the same information to Nagios.
@@ -686,19 +701,6 @@ Plugins, like CGIs, can be coded in Perl. The persistence framework embeds a Per
 =back
 
 and all the good things mentioned in the B<perlembed> man page under 'Maintaining a persistent interpreter'.
-
-=head1 SYNOPSIS
-
-Edit the text to set the values of (the 'use constant' statements) the log path, B<EPN_STDERR_LOG>, and any one
-(only) of the boolean log level flags B<GARRULOUS>, B<DEBUG>, and B<RETICENT>. The default is to set RETICENT, and
-to use S<<path_to_Nagios>/var/epn_stderr.log> as the log path.
-
-The log level flags determine the amount and type of messages logged in the log path.
-
-The RETICENT log level results in similar behaviour to former versions of p1.pl.
-In particular, the log file EPN_STDERR_LOG will B<not> be opened.
-
-=head1 DESCRIPTION
 
 Plugin syntax errors (possibly introduced when the plugin is transformed by the persistence framework) and run-time
 errors are logged depending on the log level flags.
@@ -854,15 +856,23 @@ run_package()
 
 =head1 BUGS
 
-This framework does nothing to prevent the memory leaks mentioned in B<perlembed>, relying on Nagios to do so. Nagios versions prior
-to 2.0 did not periodically deallocate and allocate the Perl data structures resulting in a Nagios process that could double it's memory
-use in less than 5 days.
+This framework does nothing to prevent the memory leaks mentioned in B<perlembed>, relying on operator intervention.
 
-Nagios 1.x installations using the persistence framework must monitor the memory use of the Nagios process and stop/start it when
+Probably the best way of doing so is by periodically scheduling 
+
+=over 4
+
+=item 1 A check of the memory used by the Nagios process  (by running for example the standard Nagios plugin check_vsz)
+
+=item 2 Restarting Nagios with the (supplied with Nagios) startup script (restart command).
+
+=back
+
+Nagios installations using the persistence framework must monitor the memory use of the Nagios process and stop/start it when
 the usage is exorbidant (for example, for a site with 400 services on 200 hosts and custom Perl plugins used for about 10% of the
-service checks, the Nagios process uses ~ 80 MB after 20-30 days running. It is usually stopped and started at this point.)
+service checks, the Nagios process uses ~ 80 MB after 20-30 days running. It is usually stopped and started at this point.
 
-Note that a HUP signal is not sufficient to deallocate the Perl memory; the Nagios process must be stopped and started.
+Note that a HUP signal is B<not> sufficient to deallocate the Perl memory; the Nagios process must be stopped and started.
 
 
 =head1 AUTHOR
@@ -878,5 +888,4 @@ This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-
 

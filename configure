@@ -3168,6 +3168,11 @@ EOF
 	CFLAGS="${CFLAGS} `perl -MExtUtils::Embed -e ccopts`" 
 	USEPERL=yes
 	INSTALLPERLSTUFF=yes;
+	PERLXSI_O=perlxsi.o
+	OBJS="${OBJS} ${PERLXSI_O}"
+	echo "creating base/perlxsi.c"
+	perl -MExtUtils::Embed -e xsinit -- -o base/perlxsi.c
+
 	
 fi
 
@@ -3235,7 +3240,7 @@ fi
 # Extract the first word of "traceroute", so it can be a program name with args.
 set dummy traceroute; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:3239: checking for $ac_word" >&5
+echo "configure:3244: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PATH_TO_TRACEROUTE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3280,12 +3285,12 @@ PACKDIR=`pwd`/pkg
 
  
 echo $ac_n "checking for snprintf""... $ac_c" 1>&6
-echo "configure:3284: checking for snprintf" >&5
+echo "configure:3289: checking for snprintf" >&5
 if eval "test \"`echo '$''{'ac_cv_func_snprintf'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3289 "configure"
+#line 3294 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char snprintf(); below.  */
@@ -3308,7 +3313,7 @@ snprintf();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3312: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3317: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_snprintf=yes"
 else
@@ -3334,9 +3339,9 @@ fi
 
 
 echo $ac_n "checking for type va_list""... $ac_c" 1>&6
-echo "configure:3338: checking for type va_list" >&5
+echo "configure:3343: checking for type va_list" >&5
 cat > conftest.$ac_ext <<EOF
-#line 3340 "configure"
+#line 3345 "configure"
 #include "confdefs.h"
 #ifdef __STDC__
 #include <stdio.h>
@@ -3351,7 +3356,7 @@ int main() {
 va_list args;
 ; return 0; }
 EOF
-if { (eval echo configure:3355: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:3360: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 else
@@ -3373,10 +3378,11 @@ rm -f conftest*
 
 
 
+
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:3380: checking for $ac_word" >&5
+echo "configure:3386: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PERL'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3549,6 +3555,7 @@ s%@CGIEXTRAS@%$CGIEXTRAS%g
 s%@GDLIBS@%$GDLIBS%g
 s%@PERLLIBS@%$PERLLIBS%g
 s%@PERLDIR@%$PERLDIR%g
+s%@PERLXSI_O@%$PERLXSI_O%g
 s%@BASEEXTRALIBS@%$BASEEXTRALIBS%g
 s%@INITDIR@%$INITDIR%g
 s%@INSTALLPERLSTUFF@%$INSTALLPERLSTUFF%g

@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified:   12-08-2004
  *
  * License:
  *
@@ -28,6 +28,9 @@
 #include "../include/nebmods.h"
 #include "../include/neberrors.h"
 #include "../include/nagios.h"
+
+
+#ifdef USE_EVENT_BROKER
 
 
 nebmodule *neb_module_list=NULL;
@@ -545,3 +548,4 @@ int neb_free_callback_list(void){
 	return OK;
         }
 
+#endif

@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 03-07-2002
+# Last Modified: 06-09-2002
 #
 ################################################################################
 
@@ -106,7 +106,7 @@ define command{
 # 'check_ping' command definition
 define command{
 	command_name	check_ping
-	command_line	$USER1$/check_ping -H $HOSTADDRESS$ -w 10.0,20% -c 100.0,60% -p 5
+	command_line	$USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
 	}
 
 

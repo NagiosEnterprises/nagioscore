@@ -157,7 +157,7 @@ function switchdot(name,on){
   </tr>
   <tr> 
     <td width=13></td>
-    <td nowrap class="NavBarSearchItem">Find Host:</td>
+    <td nowrap class="NavBarSearchItem">Show Host:</td>
   </tr>
   <tr> 
     <td width=13></td>

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-25-2003
+ * Last Modified: 10-02-2003
  *
  * License:
  * 
@@ -224,10 +224,20 @@ int main(void){
 		return ERROR;
                 }
 
+	document_header(TRUE);
+
+	/* read in all host and service comments */
+	read_comment_data(get_cgi_config_location());
+
+	/* get authentication information */
+	get_authentication_information(&current_authdata);
+
 	/* if a navbar search was performed, find the host by name, address or partial name */
 	if(navbar_search==TRUE){
 		if((temp_host=find_host(host_name))==NULL){
 			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+				if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
+					continue;
 				if(!strcmp(host_name,temp_host->address)){
 					free(host_name);
 					host_name=strdup(temp_host->name);
@@ -236,6 +246,8 @@ int main(void){
 		                }
 			if(temp_host==NULL){
 				for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+					if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
+						continue;
 					if(strstr(temp_host->name,host_name)==temp_host->name){
 						free(host_name);
 						host_name=strdup(temp_host->name);
@@ -245,14 +257,6 @@ int main(void){
 			        }
 		        }
 	        }
-
-	document_header(TRUE);
-
-	/* read in all host and service comments */
-	read_comment_data(get_cgi_config_location());
-
-	/* get authentication information */
-	get_authentication_information(&current_authdata);
 
 	if(display_header==TRUE){
 

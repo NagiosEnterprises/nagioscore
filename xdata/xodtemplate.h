@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-12-2003
+ * Last Modified:   02-14-2003
  *
  * License:
  *
@@ -471,8 +471,6 @@ int xodtemplate_grab_config_info(char *);                   /* grabs variables f
 int xodtemplate_process_config_file(char *,int);            /* process data in a specific config file */
 int xodtemplate_process_config_dir(char *,int);             /* process all files in a specific config directory */
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
-
-void xodtemplate_strip(char *);
 
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
 xodtemplate_servicelist *xodtemplate_expand_services(char *,char *);

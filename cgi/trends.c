@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-14-2003
  *
  * License:
  * 
@@ -1636,11 +1636,11 @@ void graph_all_trend_data(void){
 		else{
 			if(svcstatus!=NULL){
 
-				if(svcstatus->status==SERVICE_OK || svcstatus->status==SERVICE_RECOVERY)
+				if(svcstatus->status==SERVICE_OK)
 					last_known_state=AS_SVC_OK;
 				else if(svcstatus->status==SERVICE_WARNING)
 					last_known_state=AS_SVC_WARNING;
-				else if(svcstatus->status==SERVICE_CRITICAL || svcstatus->status==SERVICE_HOST_DOWN || svcstatus->status==SERVICE_UNREACHABLE)
+				else if(svcstatus->status==SERVICE_CRITICAL)
 					last_known_state=AS_SVC_CRITICAL;
 				else if(svcstatus->status==SERVICE_UNKNOWN)
 					last_known_state=AS_SVC_UNKNOWN;

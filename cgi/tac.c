@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-05-2003
+ * Last Modified: 02-14-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -432,7 +432,7 @@ void analyze_status_data(void){
 
 		problem=TRUE;
 
-		if(temp_servicestatus->status==SERVICE_OK || temp_servicestatus->status==SERVICE_RECOVERY){
+		if(temp_servicestatus->status==SERVICE_OK){
 			if(temp_servicestatus->checks_enabled==FALSE)
 				services_ok_disabled++;
 			else
@@ -1307,7 +1307,7 @@ void display_tac_overview(void){
 	printf("<table border=0 width=100%%>\n");
 
 	if(services_ok_disabled>0)
-		printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?host=all&type=detail&servicestatustypes=%d&serviceprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,SERVICE_OK|SERVICE_RECOVERY,SERVICE_CHECKS_DISABLED,services_ok_disabled);
+		printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?host=all&type=detail&servicestatustypes=%d&serviceprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,SERVICE_OK,SERVICE_CHECKS_DISABLED,services_ok_disabled);
 
 	printf("</table>\n");
 	printf("</td>\n");

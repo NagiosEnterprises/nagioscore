@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-14-2003
  *
  * License:
  * 
@@ -1130,7 +1130,7 @@ void show_service_info(void){
 		printf("<TABLE BORDER=0>\n");
 
 
-		if(temp_svcstatus->status==SERVICE_OK || temp_svcstatus->status==SERVICE_RECOVERY){
+		if(temp_svcstatus->status==SERVICE_OK){
 			strcpy(state_string,"OK");
 			bg_class="serviceOK";
 			}
@@ -1138,7 +1138,7 @@ void show_service_info(void){
 			strcpy(state_string,"WARNING");
 			bg_class="serviceWARNING";
 			}
-		else if(temp_svcstatus->status==SERVICE_CRITICAL || temp_svcstatus->status==SERVICE_UNREACHABLE || temp_svcstatus->status==SERVICE_HOST_DOWN){
+		else if(temp_svcstatus->status==SERVICE_CRITICAL){
 			strcpy(state_string,"CRITICAL");
 			bg_class="serviceCRITICAL";
 			}

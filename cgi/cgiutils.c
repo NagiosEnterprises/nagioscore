@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-15-2003
+ * Last Modified: 02-14-2003
  *
  * License:
  *
@@ -671,24 +671,40 @@ int read_all_status_data(char *config_file,int options){
  **********************************************************/
 
 
-/* strips newline characters, spaces, tabs, and carriage returns from the end of a string */
+/* strip newline, carriage return, and tab characters from beginning and end of a string */
 void strip(char *buffer){
-	int x;
+	register int x;
+	register int y;
+	register int z;
 
-	if(buffer==NULL)
+	if(buffer==NULL || buffer[0]=='\x0')
 		return;
 
-	x=(int)strlen(buffer);
-
-	for(;x>=1;x--){
-		if(buffer[x-1]==' ' || buffer[x-1]=='\n' || buffer[x-1]=='\r' || buffer[x-1]=='\t' || buffer[x-1]==13)
-			buffer[x-1]='\x0';
+	/* strip end of string */
+	y=(int)strlen(buffer);
+	for(x=y-1;x>=0;x--){
+		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
+			buffer[x]='\x0';
 		else
 			break;
 	        }
 
+	/* strip beginning of string (by shifting) */
+	y=(int)strlen(buffer);
+	for(x=0;x<y;x++){
+		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
+			continue;
+		else
+			break;
+	        }
+	if(x>0){
+		for(z=x;z<y;z++)
+			buffer[z-x]=buffer[z];
+		buffer[y-x]='\x0';
+	        }
+
 	return;
-        }
+	}
 
 
 /* strips HTML and bad stuff from plugin output */
@@ -1406,23 +1422,23 @@ void calculate_service_state_times(char *host_name,char *service_desc,unsigned l
 
 	if(temp_svcstatus->state_type==HARD_STATE){
 
-		if(temp_svcstatus->status==SERVICE_OK || temp_svcstatus->status==SERVICE_RECOVERY)
+		if(temp_svcstatus->status==SERVICE_OK)
 			time_ok+=time_difference;
 		if(temp_svcstatus->status==SERVICE_WARNING)
 			time_warning+=time_difference;
 		if(temp_svcstatus->status==SERVICE_UNKNOWN)
 			time_unknown+=time_difference;
-		if(temp_svcstatus->status==SERVICE_CRITICAL || temp_svcstatus->status==SERVICE_UNREACHABLE || temp_svcstatus->status==SERVICE_HOST_DOWN)
+		if(temp_svcstatus->status==SERVICE_CRITICAL)
 			time_critical+=time_difference;
 	        }
 	else{
-		if(temp_svcstatus->last_hard_state==SERVICE_OK || temp_svcstatus->last_hard_state==SERVICE_RECOVERY)
+		if(temp_svcstatus->last_hard_state==SERVICE_OK)
 			time_ok+=time_difference;
 		if(temp_svcstatus->last_hard_state==SERVICE_WARNING)
 			time_warning+=time_difference;
 		if(temp_svcstatus->last_hard_state==SERVICE_UNKNOWN)
 			time_unknown+=time_difference;
-		if(temp_svcstatus->last_hard_state==SERVICE_CRITICAL || temp_svcstatus->last_hard_state==SERVICE_UNREACHABLE || temp_svcstatus->last_hard_state==SERVICE_HOST_DOWN)
+		if(temp_svcstatus->last_hard_state==SERVICE_CRITICAL)
 			time_critical+=time_difference;
 	        }
 

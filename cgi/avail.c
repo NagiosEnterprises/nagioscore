@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-14-2003
  *
  * License:
  * 
@@ -1517,11 +1517,11 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 		else{
 			if(svcstatus!=NULL){
 
-				if(svcstatus->status==SERVICE_OK || svcstatus->status==SERVICE_RECOVERY)
+				if(svcstatus->status==SERVICE_OK)
 					subject->last_known_state=AS_SVC_OK;
 				else if(svcstatus->status==SERVICE_WARNING)
 					subject->last_known_state=AS_SVC_WARNING;
-				else if(svcstatus->status==SERVICE_CRITICAL || svcstatus->status==SERVICE_HOST_DOWN || svcstatus->status==SERVICE_UNREACHABLE)
+				else if(svcstatus->status==SERVICE_CRITICAL)
 					subject->last_known_state=AS_SVC_CRITICAL;
 				else if(svcstatus->status==SERVICE_UNKNOWN)
 					subject->last_known_state=AS_SVC_UNKNOWN;

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-14-2003
  *
  * License:
  * 
@@ -131,13 +131,13 @@ int overview_columns=3;
 int max_grid_width=8;
 int hostgroup_style_type=STYLE_OVERVIEW;
 
-int service_status_types=SERVICE_PENDING|SERVICE_RECOVERY|SERVICE_OK|SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE;
-int all_service_status_types=SERVICE_PENDING|SERVICE_RECOVERY|SERVICE_OK|SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE;
+int service_status_types=SERVICE_PENDING|SERVICE_OK|SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL;
+int all_service_status_types=SERVICE_PENDING|SERVICE_OK|SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL;
 
 int host_status_types=HOST_PENDING|HOST_UP|HOST_DOWN|HOST_UNREACHABLE;
 int all_host_status_types=HOST_PENDING|HOST_UP|HOST_DOWN|HOST_UNREACHABLE;
 
-int all_service_problems=SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE;
+int all_service_problems=SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL;
 int all_host_problems=HOST_DOWN|HOST_UNREACHABLE;
 
 unsigned long host_properties=0L;
@@ -624,7 +624,7 @@ void show_service_status_totals(void){
 
 		if(count_service){
 
-			if(temp_servicestatus->status==SERVICE_CRITICAL || temp_servicestatus->status==SERVICE_HOST_DOWN || temp_servicestatus->status==SERVICE_UNREACHABLE){
+			if(temp_servicestatus->status==SERVICE_CRITICAL){
 				total_critical++;
 				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && temp_servicestatus->checks_enabled==TRUE && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
 					problem_services_critical++;
@@ -639,8 +639,6 @@ void show_service_status_totals(void){
 				if(temp_servicestatus->problem_has_been_acknowledged==FALSE && temp_servicestatus->checks_enabled==TRUE && temp_servicestatus->notifications_enabled==TRUE && temp_servicestatus->scheduled_downtime_depth==0)
 					problem_services_unknown++;
 			        }
-			else if(temp_servicestatus->status==SERVICE_RECOVERY)
-				total_ok++;
 			else if(temp_servicestatus->status==SERVICE_OK)
 				total_ok++;
 			else if(temp_servicestatus->status==SERVICE_PENDING)
@@ -668,7 +666,7 @@ void show_service_status_totals(void){
 		printf("host=%s",host_name);
 	else
 		printf("hostgroup=%s&style=detail",hostgroup_name);
-	printf("&servicestatustypes=%d",SERVICE_OK|SERVICE_RECOVERY);
+	printf("&servicestatustypes=%d",SERVICE_OK);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Ok</A></TH>\n");
 
@@ -698,7 +696,7 @@ void show_service_status_totals(void){
 		printf("host=%s",host_name);
 	else
 		printf("hostgroup=%s&style=detail",hostgroup_name);
-	printf("&servicestatustypes=%d",SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE);
+	printf("&servicestatustypes=%d",SERVICE_CRITICAL);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("Critical</A></TH>\n");
 
@@ -747,7 +745,7 @@ void show_service_status_totals(void){
 		printf("host=%s",host_name);
 	else
 		printf("hostgroup=%s&style=detail",hostgroup_name);
-	printf("&servicestatustypes=%d",SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE);
+	printf("&servicestatustypes=%d",SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL);
 	printf("&hoststatustypes=%d'>",host_status_types);
 	printf("<I>All Problems</I></A></TH>\n");
 
@@ -1258,11 +1256,6 @@ void show_service_detail(void){
 				status_class="OK";
 				status_bg_class=(odd)?"Even":"Odd";
 		                }
-			else if(temp_status->status==SERVICE_RECOVERY){
-				strncpy(status,"RECOVERED",sizeof(status));
-				status_class="RECOVERY";
-				status_bg_class=(odd)?"Even":"Odd";
-		                }
 			else if(temp_status->status==SERVICE_WARNING){
 				strncpy(status,"WARNING",sizeof(status));
 				status_class="WARNING";
@@ -1285,26 +1278,6 @@ void show_service_detail(void){
 		                }
 			else if(temp_status->status==SERVICE_CRITICAL){
 				strncpy(status,"CRITICAL",sizeof(status));
-				status_class="CRITICAL";
-				if(temp_status->problem_has_been_acknowledged==TRUE)
-					status_bg_class="BGCRITICALACK";
-				else if(temp_status->scheduled_downtime_depth>0)
-					status_bg_class="BGCRITICALSCHED";
-				else
-					status_bg_class="BGCRITICAL";
-		                }
-			else if(temp_status->status==SERVICE_HOST_DOWN){
-				strncpy(status,"HOST DOWN",sizeof(status));
-				status_class="CRITICAL";
-				if(temp_status->problem_has_been_acknowledged==TRUE)
-					status_bg_class="BGCRITICALACK";
-				else if(temp_status->scheduled_downtime_depth>0)
-					status_bg_class="BGCRITICALSCHED";
-				else
-					status_bg_class="BGCRITICAL";
-		                }
-			else if(temp_status->status==SERVICE_UNREACHABLE){
-				strncpy(status,"UNREACHABLE",sizeof(status));
 				status_class="CRITICAL";
 				if(temp_status->problem_has_been_acknowledged==TRUE)
 					status_bg_class="BGCRITICALACK";
@@ -2185,16 +2158,10 @@ void show_hostgroup_member_service_status_totals(char *host_name){
 
 			if(temp_servicestatus->status==SERVICE_CRITICAL)
 				total_critical++;
-			else if(temp_servicestatus->status==SERVICE_HOST_DOWN)
-				total_critical++;
-			else if(temp_servicestatus->status==SERVICE_UNREACHABLE)
-				total_critical++;
 			else if(temp_servicestatus->status==SERVICE_WARNING)
 				total_warning++;
 			else if(temp_servicestatus->status==SERVICE_UNKNOWN)
 				total_unknown++;
-			else if(temp_servicestatus->status==SERVICE_RECOVERY)
-				total_ok++;
 			else if(temp_servicestatus->status==SERVICE_OK)
 				total_ok++;
 			else if(temp_servicestatus->status==SERVICE_PENDING)
@@ -2208,13 +2175,13 @@ void show_hostgroup_member_service_status_totals(char *host_name){
 	printf("<TABLE BORDER=0 WIDTH=100%%>\n");
 
 	if(total_ok>0)
-		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_OK|SERVICE_RECOVERY,host_status_types,service_properties,host_properties,total_ok);
+		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_OK,host_status_types,service_properties,host_properties,total_ok);
 	if(total_warning>0)
 		printf("<TR><TD CLASS='miniStatusWARNING'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,total_warning);
 	if(total_unknown>0)
 		printf("<TR><TD CLASS='miniStatusUNKNOWN'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,total_unknown);
 	if(total_critical>0)
-		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE,host_status_types,service_properties,host_properties,total_critical);
+		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,total_critical);
 	if(total_pending>0)
 		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?host=%s&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(host_name),SERVICE_PENDING,host_status_types,service_properties,host_properties,total_pending);
 
@@ -2484,16 +2451,10 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 
 		if(temp_servicestatus->status==SERVICE_CRITICAL)
 			total_critical++;
-		else if(temp_servicestatus->status==SERVICE_HOST_DOWN)
-			total_critical++;
-		else if(temp_servicestatus->status==SERVICE_UNREACHABLE)
-			total_critical++;
 		else if(temp_servicestatus->status==SERVICE_WARNING)
 			total_warning++;
 		else if(temp_servicestatus->status==SERVICE_UNKNOWN)
 			total_unknown++;
-		else if(temp_servicestatus->status==SERVICE_RECOVERY)
-			total_ok++;
 		else if(temp_servicestatus->status==SERVICE_OK)
 			total_ok++;
 		else if(temp_servicestatus->status==SERVICE_PENDING)
@@ -2506,13 +2467,13 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 	printf("<TABLE BORDER=0>\n");
 
 	if(total_ok>0)
-		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?hostgroup=%s&style=detail&&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_OK|SERVICE_RECOVERY,host_status_types,service_properties,host_properties,total_ok);
+		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?hostgroup=%s&style=detail&&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_OK,host_status_types,service_properties,host_properties,total_ok);
 	if(total_warning>0)
 		printf("<TR><TD CLASS='miniStatusWARNING'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,total_warning);
 	if(total_unknown>0)
 		printf("<TR><TD CLASS='miniStatusUNKNOWN'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,total_unknown);
 	if(total_critical>0)
-		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_CRITICAL|SERVICE_HOST_DOWN|SERVICE_UNREACHABLE,host_status_types,service_properties,host_properties,total_critical);
+		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,total_critical);
 	if(total_pending>0)
 		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_PENDING,host_status_types,service_properties,host_properties,total_pending);
 
@@ -2745,7 +2706,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
 			if(temp_servicestatus==NULL)
 				service_status_class="NULL";
-			else if(temp_servicestatus->status==SERVICE_OK || temp_servicestatus->status==SERVICE_RECOVERY)
+			else if(temp_servicestatus->status==SERVICE_OK)
 				service_status_class="OK";
 			else if(temp_servicestatus->status==SERVICE_WARNING)
 				service_status_class="WARNING";
@@ -3333,10 +3294,6 @@ void show_filters(void){
 			found=0;
 			if(service_status_types & SERVICE_PENDING){
 				printf(" Pending");
-				found=1;
-		                }
-			if(service_status_types & SERVICE_RECOVERY){
-				printf("%s Recovery",(found==1)?" |":"");
 				found=1;
 		                }
 			if(service_status_types & SERVICE_OK){

@@ -2,8 +2,8 @@
  *
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-14-2003
  *
  * License:
  * 
@@ -1013,7 +1013,7 @@ void display_host_services(void){
 			continue;
 
 		printf("<tr><td><anchor title='%s'>",temp_service->description);
-		if(temp_servicestatus->status==SERVICE_OK || temp_servicestatus->status==SERVICE_RECOVERY)
+		if(temp_servicestatus->status==SERVICE_OK)
 			printf("OK");
 		else if(temp_servicestatus->status==SERVICE_PENDING)
 			printf("PND");
@@ -1085,7 +1085,7 @@ void display_service(void){
 	printf("<table columns='2' align='LL'>\n");
 
 	printf("<tr><td>Status:</td><td>");
-	if(temp_servicestatus->status==SERVICE_OK || temp_servicestatus->status==SERVICE_RECOVERY)
+	if(temp_servicestatus->status==SERVICE_OK)
 		printf("OK");
 	else if(temp_servicestatus->status==SERVICE_PENDING)
 		printf("PENDING");
@@ -1149,7 +1149,7 @@ void display_service(void){
 	printf("<p align='center' mode='nowrap'>\n");
 	printf("<b>Service Commands</b><br/>\n");
 
-	if(temp_servicestatus->status!=SERVICE_OK && temp_servicestatus->status!=SERVICE_RECOVERY && temp_servicestatus->status!=SERVICE_PENDING)
+	if(temp_servicestatus->status!=SERVICE_OK && temp_servicestatus->status!=SERVICE_PENDING)
 		printf("<b><anchor title='Acknowledge Problem'>Acknowledge Problem<go href='#card3'/></anchor></b>\n");
 
 	if(temp_servicestatus->checks_enabled==FALSE)
@@ -1439,7 +1439,7 @@ void display_problems(void){
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			continue;
 
-		if(temp_servicestatus->status==SERVICE_OK || temp_servicestatus->status==SERVICE_RECOVERY || temp_servicestatus->status==SERVICE_PENDING)
+		if(temp_servicestatus->status==SERVICE_OK || temp_servicestatus->status==SERVICE_PENDING)
 			continue;
 
 		if(display_type==DISPLAY_UNHANDLED_PROBLEMS){

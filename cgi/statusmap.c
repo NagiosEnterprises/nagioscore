@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-14-2003
  *
  * Description:
  *
@@ -2053,10 +2053,10 @@ void write_host_popup_text(host *hst){
 
 	printf("<br><b><u>Services:</u></b><br>");
 
-	service_totals=get_servicestatus_count(hst->name,SERVICE_OK)+get_servicestatus_count(hst->name,SERVICE_RECOVERY);
+	service_totals=get_servicestatus_count(hst->name,SERVICE_OK);
 	if(service_totals>0)
 		printf("- <font color=green>%d ok</font><br>",service_totals);
-	service_totals=get_servicestatus_count(hst->name,SERVICE_CRITICAL)+get_servicestatus_count(hst->name,SERVICE_UNREACHABLE)+get_servicestatus_count(hst->name,SERVICE_HOST_DOWN);
+	service_totals=get_servicestatus_count(hst->name,SERVICE_CRITICAL);
 	if(service_totals>0)
 		printf("- <font color=red>%d critical</font><br>",service_totals);
 	service_totals=get_servicestatus_count(hst->name,SERVICE_WARNING);

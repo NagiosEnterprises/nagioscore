@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-10-2003
+ * Last Modified: 02-14-2003
  *
  * Description:
  *
@@ -165,7 +165,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 			continue;
 
 		/* strip input */
-		xodtemplate_strip(input);
+		strip(input);
 
 		temp_ptr=strtok(input,"=");
 		if(temp_ptr==NULL)
@@ -281,7 +281,7 @@ int xodtemplate_grab_config_info(char *main_config_file){
 			continue;
 
 		/* strip input */
-		xodtemplate_strip(input);
+		strip(input);
 
 		temp_ptr=strtok(input,"=");
 		if(temp_ptr==NULL)
@@ -453,7 +453,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 		input[x]='\x0';
 
 		/* strip input */
-		xodtemplate_strip(input);
+		strip(input);
 
 		/* skip blank lines */
 		if(input[0]=='\x0')
@@ -590,43 +590,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 
 	return result;
         }
-
-
-
-/* strip whitespace from beginning and end of a string */
-void xodtemplate_strip(char *buffer){
-	register int x;
-	register int y;
-	register int z;
-
-	if(buffer==NULL || buffer[0]=='\x0')
-		return;
-
-	/* strip end of string */
-	y=(int)strlen(buffer);
-	for(x=y-1;x>=0;x--){
-		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
-			buffer[x]='\x0';
-		else
-			break;
-	        }
-
-	/* strip beginning of string (by shifting) */
-	y=(int)strlen(buffer);
-	for(x=0;x<y;x++){
-		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
-			continue;
-		else
-			break;
-	        }
-	if(x>0){
-		for(z=x;z<y;z++)
-			buffer[z-x]=buffer[z];
-		buffer[y-x]='\x0';
-	        }
-
-	return;
-	}
 
 
 
@@ -1426,9 +1389,9 @@ int xodtemplate_add_object_property(char *input, int options){
 	*/
 
 #ifdef RUN_SLOW_AS_HELL
-	xodtemplate_strip(variable);
+	strip(variable);
 #endif
-	xodtemplate_strip(value);
+	strip(value);
 
 	/*
 	printf("STRIPPED VARIABLE: '%s'\n",variable);
@@ -5531,7 +5494,7 @@ int xodtemplate_recombobulate_objects(void){
 		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
-			xodtemplate_strip(temp_ptr);
+			strip(temp_ptr);
 			
 			/* find the hostgroup */
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
@@ -6213,7 +6176,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		return ERROR;
 	        }
 	for(contact_name=strtok(this_contactgroup->members,",");contact_name!=NULL;contact_name=strtok(NULL,",")){
-		xodtemplate_strip(contact_name);
+		strip(contact_name);
 		new_contactgroupmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
 		if(new_contactgroupmember==NULL){
 #ifdef NSCORE
@@ -6521,7 +6484,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	if(this_host->parents!=NULL){
 
 		for(parent_host=strtok(this_host->parents,",");parent_host!=NULL;parent_host=strtok(NULL,",")){
-			xodtemplate_strip(parent_host);
+			strip(parent_host);
 			new_hostsmember=add_parent_host_to_host(new_host,parent_host);
 			if(new_hostsmember==NULL){
 #ifdef NSCORE
@@ -6539,7 +6502,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 
 		for(contact_group=strtok(this_host->contact_groups,",");contact_group!=NULL;contact_group=strtok(NULL,",")){
 
-			xodtemplate_strip(contact_group);
+			strip(contact_group);
 			new_contactgroupsmember=add_contactgroup_to_host(new_host,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
@@ -6597,7 +6560,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		for(contactgroup_name=strtok(this_service->contact_groups,",");contactgroup_name!=NULL;contactgroup_name=strtok(NULL,",")){
 
 			/* add this contactgroup to the service definition */
-			xodtemplate_strip(contactgroup_name);
+			strip(contactgroup_name);
 			new_contactgroupsmember=add_contactgroup_to_service(new_service,contactgroup_name);
 
 			/* stop adding contact groups if we ran into an error */
@@ -7136,7 +7099,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
-			xodtemplate_strip(temp_ptr);
+			strip(temp_ptr);
 
 #ifdef USE_REGEXP_MATCHING
 
@@ -7189,7 +7152,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 			for(host_name=my_strsep(&host_name_ptr,",");host_name!=NULL;host_name=my_strsep(&host_name_ptr,",")){
 
 				/* strip trailing spaces from host name */
-				xodtemplate_strip(host_name);
+				strip(host_name);
 
 				/* skip this host if its already in the list */
 				for(new_list=temp_list;new_list;new_list=new_list->next)
@@ -7238,7 +7201,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 		for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
-			xodtemplate_strip(temp_ptr);
+			strip(temp_ptr);
 
 			/* compile regular expression */
 			if(regcomp(&preg,temp_ptr,0)){
@@ -7337,7 +7300,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 			for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 			
 				/* strip trailing spaces */
-				xodtemplate_strip(temp_ptr);
+				strip(temp_ptr);
 			
 				/* find the host */
 				temp_host=xodtemplate_find_real_host(temp_ptr);
@@ -7426,7 +7389,7 @@ xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
 	for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 		/* strip trailing spaces */
-		xodtemplate_strip(temp_ptr);
+		strip(temp_ptr);
 
 		/* compile regular expression */
 		if(regcomp(&preg,temp_ptr,0)){
@@ -7535,7 +7498,7 @@ xodtemplate_servicelist *xodtemplate_expand_services(char *host,char *services){
 		for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
-			xodtemplate_strip(temp_ptr);
+			strip(temp_ptr);
 			
 			/* find the service */
 			temp_service=xodtemplate_find_real_service(host,temp_ptr);

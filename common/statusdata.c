@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2003
+ * Last Modified:   02-14-2003
  *
  * License:
  *
@@ -132,8 +132,8 @@ int update_all_status_data(void){
 		return ERROR;
 
 	/* update all host data */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	host_cursor=get_host_cursor();
+	while(temp_host=get_next_host_cursor(host_cursor)){
 		if(update_host_status(temp_host,TRUE)==ERROR)
 			return ERROR;
 	                }
@@ -141,7 +141,7 @@ int update_all_status_data(void){
 
 	/* update all service data */
 	move_first_service();
-	while(temp_service=get_next_service()) {
+	while(temp_service=get_next_service()){
 		if(update_service_status(temp_service,TRUE)==ERROR)
 			return ERROR;
 	        }
@@ -590,12 +590,6 @@ int add_service_status(char *host_name,char *svc_description,char *status_string
 		status=SERVICE_UNKNOWN;
 	else if(!strcmp(status_string,"CRITICAL"))
 		status=SERVICE_CRITICAL;
-	else if(!strcmp(status_string,"RECOVERY"))
-		status=SERVICE_RECOVERY;
-	else if(!strcmp(status_string,"HOST DOWN"))
-		status=SERVICE_HOST_DOWN;
-	else if(!strcmp(status_string,"UNREACHABLE"))
-		status=SERVICE_UNREACHABLE;
 	else if(!strcmp(status_string,"PENDING"))
 		status=SERVICE_PENDING;
 	else if(!strcmp(status_string,"OK"))

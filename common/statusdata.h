@@ -2,8 +2,8 @@
  *
  * STATUSDATA.H - Header for external status data routines
  *
- * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2002
+ * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-14-2003
  *
  * License:
  *
@@ -113,12 +113,10 @@ typedef struct servicestatus_struct{
 
 #define SERVICE_PENDING			1
 #define SERVICE_OK			2
-#define SERVICE_RECOVERY		4
-#define SERVICE_WARNING			8
-#define SERVICE_UNKNOWN			16
-#define SERVICE_CRITICAL		32
-#define SERVICE_HOST_DOWN		64
-#define SERVICE_UNREACHABLE		128
+#define SERVICE_WARNING			4
+#define SERVICE_UNKNOWN			8
+#define SERVICE_CRITICAL		16
+
 
 
 /**************************** HOST STATES ****************************/

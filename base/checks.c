@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -1408,9 +1408,13 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 	/* place the new event in the event queue */
 	new_event->event_type=EVENT_SERVICE_CHECK;
 	new_event->event_data=(void *)svc;
+	new_event->event_args=(void *)NULL;
 	new_event->run_time=svc->next_check;
 	new_event->recurring=FALSE;
-	schedule_event(new_event,&event_list_low);
+	new_event->event_interval=0L;
+	new_event->timing_func=NULL;
+	new_event->compensate_for_time_change=TRUE;
+	reschedule_event(new_event,&event_list_low);
 
 	/* update the status log */
 	update_service_status(svc,FALSE);
@@ -2435,9 +2439,13 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 	/* place the new event in the event queue */
 	new_event->event_type=EVENT_HOST_CHECK;
 	new_event->event_data=(void *)hst;
+	new_event->event_args=(void *)NULL;
 	new_event->run_time=hst->next_check;
 	new_event->recurring=FALSE;
-	schedule_event(new_event,&event_list_low);
+	new_event->event_interval=0L;
+	new_event->timing_func=NULL;
+	new_event->compensate_for_time_change=TRUE;
+	reschedule_event(new_event,&event_list_low);
 
 	/* update the status log */
 	update_host_status(hst,FALSE);

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -35,6 +35,7 @@
 extern char	*config_file;
 
 extern time_t   program_start;
+extern time_t   last_command_check;
 
 extern int      sigshutdown;
 extern int      sigrestart;
@@ -94,8 +95,7 @@ void init_timing_loop(void){
 	host *temp_host;
 	service *temp_service;
 	time_t current_time;
-	timed_event *new_event;
-	time_t run_time;
+	unsigned long interval_to_use;
 	int total_interleave_blocks=0;
 	int current_interleave_block=1;
 	int interleave_block_index=0;
@@ -359,18 +359,7 @@ void init_timing_loop(void){
 				scheduling_info.last_service_check=temp_service->next_check;
 
 			/* create a new service check event */
-			new_event=malloc(sizeof(timed_event));
-			if(new_event!=NULL){
-				new_event->event_type=EVENT_SERVICE_CHECK;
-				new_event->event_data=(void *)temp_service;
-				new_event->run_time=temp_service->next_check;
-
-			        /* service checks really are recurring, but are rescheduled manually - not automatically */
-				new_event->recurring=FALSE;
-
-				schedule_event(new_event,&event_list_low);
-			        }
-
+			schedule_new_event(EVENT_SERVICE_CHECK,FALSE,temp_service->next_check,FALSE,0,NULL,TRUE,(void *)temp_service,NULL);
 		        }
 
 		current_interleave_block++;
@@ -481,18 +470,8 @@ void init_timing_loop(void){
 		if(temp_host->next_check > scheduling_info.last_host_check)
 			scheduling_info.last_host_check=temp_host->next_check;
 
-		/* create a new host check event */
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_HOST_CHECK;
-			new_event->event_data=(void *)temp_host;
-			new_event->run_time=temp_host->next_check;
-
-			/* host checks really are recurring, but are rescheduled manually */
-			new_event->recurring=FALSE;
-
-			schedule_event(new_event,&event_list_low);
-		        }
+		/* schedule a new host check event */
+		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL);
 
 		mult_factor++;
 	        }
@@ -501,102 +480,40 @@ void init_timing_loop(void){
 	/******** SCHEDULE MISC EVENTS ********/
 
 	/* add a service check reaper event */
-	new_event=malloc(sizeof(timed_event));
-	if(new_event!=NULL){
-		new_event->event_type=EVENT_SERVICE_REAPER;
-		new_event->event_data=(void *)NULL;
-		new_event->run_time=current_time;
-		new_event->recurring=TRUE;
-		schedule_event(new_event,&event_list_high);
-	        }
+	schedule_new_event(EVENT_SERVICE_REAPER,TRUE,current_time+service_check_reaper_interval,TRUE,service_check_reaper_interval,NULL,TRUE,NULL,NULL);
 
 	/* add an orphaned service check event */
-	if(check_orphaned_services==TRUE){
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_ORPHAN_CHECK;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=current_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-	                }
-	        }
+	if(check_orphaned_services==TRUE)
+		schedule_new_event(EVENT_ORPHAN_CHECK,TRUE,current_time+(service_check_timeout*2),TRUE,(service_check_timeout*2),NULL,TRUE,NULL,NULL);
 
 	/* add a service result "freshness" check event */
-	if(check_service_freshness==TRUE){
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_SFRESHNESS_CHECK;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=current_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-	                }
-	        }
+	if(check_service_freshness==TRUE)
+		schedule_new_event(EVENT_SFRESHNESS_CHECK,TRUE,current_time+service_freshness_check_interval,TRUE,service_freshness_check_interval,NULL,TRUE,NULL,NULL);
 
 	/* add a host result "freshness" check event */
-	if(check_host_freshness==TRUE){
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_HFRESHNESS_CHECK;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=current_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-	                }
-	        }
+	if(check_host_freshness==TRUE)
+		schedule_new_event(EVENT_HFRESHNESS_CHECK,TRUE,current_time+host_freshness_check_interval,TRUE,host_freshness_check_interval,NULL,TRUE,NULL,NULL);
 
 	/* add a status save event */
-	if(aggregate_status_updates==TRUE){
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_STATUS_SAVE;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=current_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-	                }
-	        }
+	if(aggregate_status_updates==TRUE)
+		schedule_new_event(EVENT_STATUS_SAVE,TRUE,current_time+status_update_interval,TRUE,status_update_interval,NULL,TRUE,NULL,NULL);
 
 	/* add an external command check event if needed */
 	if(check_external_commands==TRUE){
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_COMMAND_CHECK;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=current_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-		        }
+		if(command_check_interval==-1)
+			interval_to_use=(unsigned long)60;
+		else
+			interval_to_use=(unsigned long)command_check_interval;
+		schedule_new_event(EVENT_COMMAND_CHECK,TRUE,current_time+interval_to_use,TRUE,interval_to_use,NULL,TRUE,NULL,NULL);
 	        }
 
 	/* add a log rotation event if necessary */
-	if(log_rotation_method!=LOG_ROTATION_NONE){
-
-		/* get the next time to run the log rotation */
-		get_next_log_rotation_time(&run_time);
-
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_LOG_ROTATION;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=run_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-		        }
-	        }
+	if(log_rotation_method!=LOG_ROTATION_NONE)
+		schedule_new_event(EVENT_LOG_ROTATION,TRUE,get_next_log_rotation_time(),TRUE,0,get_next_log_rotation_time,TRUE,NULL,NULL);
 
 	/* add a retention data save event if needed */
-	if(retain_state_information==TRUE && retention_update_interval>0){
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=EVENT_RETENTION_SAVE;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=current_time;
-			new_event->recurring=TRUE;
-			schedule_event(new_event,&event_list_high);
-		        }
-	        }
+	if(retain_state_information==TRUE && retention_update_interval>0)
+		schedule_new_event(EVENT_RETENTION_SAVE,TRUE,current_time+(retention_update_interval*60),TRUE,(retention_update_interval*60),NULL,TRUE,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("init_timing_loop() end\n");
@@ -720,73 +637,96 @@ void display_scheduling_info(void){
         }
 
 
-/* schedule an event in order of execution time */
-void schedule_event(timed_event *event,timed_event **event_list){
-	timed_event *temp_event;
-	timed_event *first_event;
-	host *temp_host;
-	service *temp_service;
-	time_t run_time;
+/* schedule a new timed event */
+int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args){
+	timed_event **event_list;
+	timed_event *new_event;
 
 #ifdef DEBUG0
-	printf("schedule_event() start\n");
+	printf("schedule_new_event() start\n");
 #endif
 
-	/* if this event is a service check... */
-	if(event->event_type==EVENT_SERVICE_CHECK){
-		temp_service=(service *)event->event_data;
-		event->run_time=temp_service->next_check;
+	if(high_priority==TRUE)
+		event_list=&event_list_high;
+	else
+		event_list=&event_list_low;
+
+	new_event=malloc(sizeof(timed_event));
+	if(new_event!=NULL){
+		new_event->event_type=event_type;
+		new_event->event_data=event_data;
+		new_event->event_args=event_args;
+		new_event->run_time=run_time;
+		new_event->recurring=recurring;
+		new_event->event_interval=event_interval;
+		new_event->timing_func=timing_func;
+		new_event->compensate_for_time_change=compensate_for_time_change;
+	        }
+	else
+		return ERROR;
+
+	/* add the event to the event list */
+	add_event(new_event,event_list);
+
+#ifdef DEBUG0
+	printf("schedule_new_event() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* reschedule an event in order of execution time */
+void reschedule_event(timed_event *event,timed_event **event_list){
+	time_t current_time;
+	time_t (*timingfunc)(void);
+
+#ifdef DEBUG0
+	printf("reschedule_event() start\n");
+#endif
+
+	/*printf("INITIAL TIME: %s",ctime(&event->run_time));*/
+
+	/* reschedule recurring events... */
+	if(event->recurring==TRUE){
+
+		/* use custom timing function */
+		if(event->timing_func!=NULL){
+			timingfunc=event->timing_func;
+			event->run_time=(*timingfunc)();
+		        }
+
+		/* normal recurring events */
+		else{
+			event->run_time=event->run_time+event->event_interval;
+			time(&current_time);
+			if(event->run_time<current_time)
+				event->run_time=current_time;
+		        }
 	        }
 
-	/* if this event is a host check... */
-	else if(event->event_type==EVENT_HOST_CHECK){
-		temp_host=(host *)event->event_data;
-		event->run_time=temp_host->next_check;
-	        }
+	/*printf("RESCHEDULED TIME: %s",ctime(&event->run_time));*/
 
-	/* if this is an external command check event ... */
-	else if(event->event_type==EVENT_COMMAND_CHECK){
+	/* add the event to the event list */
+	add_event(event,event_list);
 
-		/* we're supposed to check as often as possible, so we schedule regular checks at 60 second intervals */
-		if(command_check_interval==-1)
-			event->run_time=event->run_time+60;
+#ifdef DEBUG0
+	printf("reschedule_event() end\n");
+#endif
 
-		/* else schedule external command checks at user-specified intervals */
-		else
-			event->run_time=event->run_time+(command_check_interval);
-	        }
+	return;
+        }
 
-	/* if this is a log rotation event... */
-	else if(event->event_type==EVENT_LOG_ROTATION){
-		get_next_log_rotation_time(&run_time);
-		event->run_time=run_time;
-	        }
 
-	/* if this is a service check reaper event... */
-	else if(event->event_type==EVENT_SERVICE_REAPER)
-		event->run_time=event->run_time+service_check_reaper_interval;
 
-	/* if this is a orphaned service check event... */
-	else if(event->event_type==EVENT_ORPHAN_CHECK)
-		event->run_time=event->run_time+(service_check_timeout*2);
+/* add an event to list ordered by execution time */
+void add_event(timed_event *event,timed_event **event_list){
+	timed_event *temp_event;
+	timed_event *first_event;
 
-	/* if this is a service result freshness check */
-	else if(event->event_type==EVENT_SFRESHNESS_CHECK)
-		event->run_time=event->run_time+service_freshness_check_interval;
-
-	/* if this is a host result freshness check */
-	else if(event->event_type==EVENT_HFRESHNESS_CHECK)
-		event->run_time=event->run_time+host_freshness_check_interval;
-
-	/* if this is a state retention save event... */
-	else if(event->event_type==EVENT_RETENTION_SAVE)
-		event->run_time=event->run_time+(retention_update_interval*60);
-
-	/* if this is a status save event... */
-	else if(event->event_type==EVENT_STATUS_SAVE)
-		event->run_time=event->run_time+(status_update_interval);
-
-	/* if this is a scheduled program shutdown or restart, we already know the time... */
+#ifdef DEBUG0
+	printf("add_event() start\n");
+#endif
 
 	event->next=NULL;
 
@@ -829,7 +769,7 @@ void schedule_event(timed_event *event,timed_event **event_list){
 #endif
 
 #ifdef DEBUG0
-	printf("schedule_event() end\n");
+	printf("add_event() end\n");
 #endif
 
 	return;
@@ -948,7 +888,7 @@ int event_execution_loop(void){
 
 			/* reschedule the event if necessary */
 			if(temp_event->recurring==TRUE)
-				schedule_event(temp_event,&event_list_high);
+				reschedule_event(temp_event,&event_list_high);
 
 			/* else free memory associated with the event */
 			else
@@ -983,7 +923,7 @@ int event_execution_loop(void){
 						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->retry_interval*interval_length));
 					else
 						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->check_interval*interval_length));
-					schedule_event(temp_event,&event_list_low);
+					reschedule_event(temp_event,&event_list_low);
 					update_service_status(temp_service,FALSE);
 
 					run_event=FALSE;
@@ -1033,7 +973,7 @@ int event_execution_loop(void){
 					temp_event=event_list_low;
 					event_list_low=event_list_low->next;
 					temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
-					schedule_event(temp_event,&event_list_low);
+					reschedule_event(temp_event,&event_list_low);
 					update_host_status(temp_host,FALSE);
 
 					run_event=FALSE;
@@ -1052,14 +992,14 @@ int event_execution_loop(void){
 
 				/* reschedule the event if necessary */
 				if(temp_event->recurring==TRUE)
-					schedule_event(temp_event,&event_list_low);
+					reschedule_event(temp_event,&event_list_low);
 
 				/* else free memory associated with the event */
 				else
 					free(temp_event);
 			        }
 
-			/* wait a second so we don't hog the CPU... */
+			/* wait a while so we don't hog the CPU... */
 			else{
 				delay.tv_sec=(time_t)sleep_time;
 				delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
@@ -1067,14 +1007,14 @@ int event_execution_loop(void){
 			        }
 		        }
 
-		/* we don't have anything to do at this moment in time */
+		/* we don't have anything to do at this moment in time... */
 		else{
 
 			/* check for external commands if we're supposed to check as often as possible */
 			if(command_check_interval==-1)
 				check_for_external_commands();
 
-			/* wait a second so we don't hog the CPU... */
+			/* wait a while so we don't hog the CPU... */
 			delay.tv_sec=(time_t)sleep_time;
 			delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
 			nanosleep(&delay,NULL);
@@ -1095,6 +1035,7 @@ int handle_timed_event(timed_event *event){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER];
+	void (*userfunc)(void *);
 
 #ifdef DEBUG0
 	printf("handle_timed_event() start\n");
@@ -1107,64 +1048,20 @@ int handle_timed_event(timed_event *event){
 
 #ifdef DEBUG3
 	printf("*** Event Details ***\n");
-	printf("\tEvent type: %d ",event->event_type);
-
-	if(event->event_type==EVENT_SERVICE_CHECK){
-		printf("(service check)\n");
-		temp_service=(service *)event->event_data;
-		printf("\t\tService Description: %s\n",temp_service->description);
-		printf("\t\tAssociated Host:     %s\n",temp_service->host_name);
-	        }
-
-	else if(event->event_type==EVENT_HOST_CHECK){
-		printf("(host check)\n");
-		temp_host=(host *)event->event_data;
-		printf("\t\tHost:     %s\n",temp_host->name);
-	        }
-
-	else if(event->event_type==EVENT_COMMAND_CHECK)
-		printf("(external command check)\n");
-
-	else if(event->event_type==EVENT_LOG_ROTATION)
-		printf("(log file rotation)\n");
-
-	else if(event->event_type==EVENT_PROGRAM_SHUTDOWN)
-		printf("(program shutdown)\n");
-
-	else if(event->event_type==EVENT_PROGRAM_RESTART)
-		printf("(program restart)\n");
-
-	else if(event->event_type==EVENT_SERVICE_REAPER)
-		printf("(service check reaper)\n");
-
-	else if(event->event_type==EVENT_ORPHAN_CHECK)
-		printf("(orphaned service check)\n");
-
-	else if(event->event_type==EVENT_RETENTION_SAVE)
-		printf("(retention save)\n");
-
-	else if(event->event_type==EVENT_STATUS_SAVE)
-		printf("(status save)\n");
-
-	else if(event->event_type==EVENT_SCHEDULED_DOWNTIME)
-		printf("(scheduled downtime)\n");
-
-	else if(event->event_type==EVENT_SFRESHNESS_CHECK)
-		printf("(service result freshness check)\n");
-
-	else if(event->event_type==EVENT_HFRESHNESS_CHECK)
-		printf("(host result freshness check)\n");
-
-	else if(event->event_type==EVENT_EXPIRE_DOWNTIME)
-		printf("(expire downtime)\n");
-
 	printf("\tEvent time: %s",ctime(&event->run_time));
+	printf("\tEvent type: %d ",event->event_type);
 #endif
 		
 	/* how should we handle the event? */
 	switch(event->event_type){
 
 	case EVENT_SERVICE_CHECK:
+#ifdef DEBUG3
+		printf("(service check)\n");
+		temp_service=(service *)event->event_data;
+		printf("\t\tService Description: %s\n",temp_service->description);
+		printf("\t\tAssociated Host:     %s\n",temp_service->host_name);
+#endif
 
 		/* run  a service check */
 		temp_service=(service *)event->event_data;
@@ -1172,6 +1069,11 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_HOST_CHECK:
+#ifdef DEBUG3
+		printf("(host check)\n");
+		temp_host=(host *)event->event_data;
+		printf("\t\tHost:     %s\n",temp_host->name);
+#endif
 
 		/* run a host check */
 		temp_host=(host *)event->event_data;
@@ -1179,18 +1081,27 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_COMMAND_CHECK:
+#ifdef DEBUG3
+		printf("(external command check)\n");
+#endif
 
 		/* check for external commands */
 		check_for_external_commands();
 		break;
 
 	case EVENT_LOG_ROTATION:
+#ifdef DEBUG3
+		printf("(log file rotation)\n");
+#endif
 
 		/* rotate the log file */
 		rotate_log_file(event->run_time);
 		break;
 
 	case EVENT_PROGRAM_SHUTDOWN:
+#ifdef DEBUG3
+		printf("(program shutdown)\n");
+#endif
 		
 		/* set the shutdown flag */
 		sigshutdown=TRUE;
@@ -1202,6 +1113,9 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_PROGRAM_RESTART:
+#ifdef DEBUG3
+		printf("(program restart)\n");
+#endif
 
 		/* set the restart flag */
 		sigrestart=TRUE;
@@ -1213,36 +1127,54 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_SERVICE_REAPER:
+#ifdef DEBUG3
+		printf("(service check reaper)\n");
+#endif
 
 		/* reap service check results */
 		reap_service_checks();
 		break;
 
 	case EVENT_ORPHAN_CHECK:
+#ifdef DEBUG3
+		printf("(orphaned service check)\n");
+#endif
 
 		/* check for orphaned services */
 		check_for_orphaned_services();
 		break;
 
 	case EVENT_RETENTION_SAVE:
+#ifdef DEBUG3
+		printf("(retention save)\n");
+#endif
 
 		/* save state retention data */
 		save_state_information(config_file,TRUE);
 		break;
 
 	case EVENT_STATUS_SAVE:
+#ifdef DEBUG3
+		printf("(status save)\n");
+#endif
 
 		/* save all status data (program, host, and service) */
 		update_all_status_data();
 		break;
 
 	case EVENT_SCHEDULED_DOWNTIME:
+#ifdef DEBUG3
+		printf("(scheduled downtime)\n");
+#endif
 
 		/* process scheduled downtime info */
 		handle_scheduled_downtime((scheduled_downtime *)event->event_data);
 		break;
 
 	case EVENT_SFRESHNESS_CHECK:
+#ifdef DEBUG3
+		printf("(servoce result freshness check)\n");
+#endif
 		
 		/* check service result freshness */
 		check_service_result_freshness();
@@ -1250,14 +1182,33 @@ int handle_timed_event(timed_event *event){
 
 	case EVENT_HFRESHNESS_CHECK:
 		
+#ifdef DEBUG3
+		printf("(host result freshness check)\n");
+#endif
 		/* check host result freshness */
 		check_host_result_freshness();
 		break;
 
 	case EVENT_EXPIRE_DOWNTIME:
+#ifdef DEBUG3
+		printf("(expire downtime)\n");
+#endif
 
 		/* check for expired scheduled downtime entries */
 		check_for_expired_downtime();
+		break;
+
+	case EVENT_USER_FUNCTION:
+#ifdef DEBUG3
+		printf("(user function)\n");
+#endif
+
+		/* run a user-defined function */
+		if(event->event_data!=NULL){
+			userfunc=event->event_data;
+			(*userfunc)(event->event_args);
+		        }
+		break;
 
 	default:
 
@@ -1280,6 +1231,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	timed_event *temp_event;
 	service *temp_service;
 	host *temp_host;
+	time_t run_time;
+	time_t (*timingfunc)(void);
 
 #ifdef DEBUG0
 	printf("compensate_for_system_time_change() start\n");
@@ -1302,163 +1255,138 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){
 
 		/* skip special events that occur at specific times... */
-		if(temp_event->event_type==EVENT_LOG_ROTATION || temp_event->event_type==EVENT_SCHEDULED_DOWNTIME || temp_event->event_type==EVENT_EXPIRE_DOWNTIME)
+		if(temp_event->compensate_for_time_change==FALSE)
 			continue;
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_event->run_time)
-				temp_event->run_time=(time_t)0;
-			else
-				temp_event->run_time=(time_t)(temp_event->run_time-(time_t)time_difference);
+		/* use custom timing function */
+		if(temp_event->timing_func!=NULL){
+			timingfunc=temp_event->timing_func;
+			temp_event->run_time=(*timingfunc)();
 		        }
 
-		/* we moved into the future... */
+		/* else use standard adjustment */
 		else
-			temp_event->run_time=(time_t)(temp_event->run_time+(time_t)time_difference);
+			adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_event->run_time);
 	        }
+
+	/* resort event list (some events may be out of order at this point) */
+	resort_event_list(&event_list_high);
 
 	/* adjust the next run time for all low priority timed events */
 	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
 
 		/* skip special events that occur at specific times... */
-		if(temp_event->event_type==EVENT_LOG_ROTATION || temp_event->event_type==EVENT_SCHEDULED_DOWNTIME || temp_event->event_type==EVENT_EXPIRE_DOWNTIME)
+		if(temp_event->compensate_for_time_change==FALSE)
 			continue;
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_event->run_time)
-				temp_event->run_time=(time_t)0;
-			else
-				temp_event->run_time=(time_t)(temp_event->run_time-(time_t)time_difference);
+		/* use custom timing function */
+		if(temp_event->timing_func!=NULL){
+			timingfunc=temp_event->timing_func;
+			temp_event->run_time=(*timingfunc)();
 		        }
 
-		/* we moved into the future... */
+		/* else use standard adjustment */
 		else
-			temp_event->run_time=(time_t)(temp_event->run_time+(time_t)time_difference);
+			adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_event->run_time);
 	        }
 
-	/* adjust the last notification time for all services */
+	/* resort event list (some events may be out of order at this point) */
+	resort_event_list(&event_list_low);
+
+	/* adjust service timestamps */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
-		if(temp_service->last_notification==(time_t)0)
-			continue;
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_notification);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->next_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_state_change);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_service->last_hard_state_change);
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_service->last_notification)
-				temp_service->last_notification=(time_t)0;
-			else
-				temp_service->last_notification=(time_t)(temp_service->last_notification-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_service->last_notification=(time_t)(temp_service->last_notification+(time_t)time_difference);
+		/* recalculate next re-notification time */
+		temp_service->next_notification=get_next_service_notification_time(temp_service,temp_service->last_notification);
 
 		/* update the status data */
 		update_service_status(temp_service,FALSE);
 	        }
 
-	/* adjust the next check time for all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		if(temp_service->next_check==(time_t)0)
-			continue;
-
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_service->next_check)
-				temp_service->next_check=(time_t)0;
-			else
-				temp_service->next_check=(time_t)(temp_service->next_check-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_service->next_check=(time_t)(temp_service->next_check+(time_t)time_difference);
-
-		/* update the status data */
-		update_service_status(temp_service,FALSE);
-	        }
-
-	/* adjust the last notification time for all hosts */
+	/* adjust host timestamps */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		if(temp_host->last_host_notification==(time_t)0)
-			continue;
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_host_notification);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->next_check);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_state_change);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_hard_state_change);
+		adjust_timestamp_for_time_change(last_time,current_time,time_difference,&temp_host->last_state_history_update);
 
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_host->last_host_notification)
-				temp_host->last_host_notification=(time_t)0;
-			else
-				temp_host->last_host_notification=(time_t)(temp_host->last_host_notification-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_host->last_host_notification=(time_t)(temp_host->last_host_notification+(time_t)time_difference);
+		/* recalculate next re-notification time */
+		temp_host->next_host_notification=get_next_host_notification_time(temp_host,temp_host->last_host_notification);
 
 		/* update the status data */
 		update_host_status(temp_host,FALSE);
 	        }
 
-	/* adjust the next check time for all hosts */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	/* adjust program timestamps */
+	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&program_start);
+	adjust_timestamp_for_time_change(last_time,current_time,time_difference,&last_command_check);
 
-		if(temp_host->next_check==(time_t)0)
-			continue;
-
-		/* we moved back in time... */
-		if(last_time>current_time){
-
-			/* we can't precede the UNIX epoch */
-			if(time_difference>(unsigned long)temp_host->next_check)
-				temp_host->next_check=(time_t)0;
-			else
-				temp_host->next_check=(time_t)(temp_host->next_check-(time_t)time_difference);
-		        }
-
-		/* we moved into the future... */
-		else
-			temp_host->next_check=(time_t)(temp_host->next_check+(time_t)time_difference);
-
-		/* update the status data */
-		update_host_status(temp_host,FALSE);
-	        }
-
-	/* adjust program start time (necessary for state stats calculations) */
-	/* we moved back in time... */
-	if(last_time>current_time){
-
-		/* we can't precede the UNIX epoch */
-		if(time_difference>(unsigned long)program_start)
-			program_start=(time_t)0;
-		else
-			program_start=(time_t)(program_start-(time_t)time_difference);
-	        }
-
-	/* we moved into the future... */
-	else
-		program_start=(time_t)(program_start+(time_t)time_difference);
-
-	/* update status data */
+	/* update the status data */
 	update_program_status(FALSE);
+
 
 #ifdef DEBUG0
 	printf("compensate_for_system_time_change() end\n");
 #endif
+
+	return;
+        }
+
+
+
+/* resorts an event list by event execution time - needed when compensating for system time changes */
+void resort_event_list(timed_event **event_list){
+	timed_event *temp_event_list;
+	timed_event *temp_event;
+	timed_event *next_event;
+
+	/* move current event list to temp list */
+	temp_event_list=*event_list;
+	*event_list=NULL;
+
+	/* move all events to the new event list */
+	for(temp_event=temp_event_list;temp_event!=NULL;temp_event=next_event){
+		next_event=temp_event->next;
+
+		/* add the event to the newly created event list so it will be resorted */
+		temp_event->next=NULL;
+		add_event(temp_event,event_list);
+	        }
+
+	return;
+        }
+
+
+
+/* adjusts a timestamp variable in accordance with a system time change */
+void adjust_timestamp_for_time_change(time_t last_time, time_t current_time, unsigned long time_difference, time_t *ts){
+
+	/* we shouldn't do anything with epoch values */
+	if(*ts==(time_t)0)
+		return;
+
+	/* we moved back in time... */
+	if(last_time>current_time){
+
+		/* we can't precede the UNIX epoch */
+		if(time_difference>(unsigned long)*ts)
+			*ts=(time_t)0;
+		else
+			*ts=(time_t)(*ts-time_difference);
+	        }
+
+	/* we moved into the future... */
+	else
+		*ts=(time_t)(*ts+time_difference);
 
 	return;
         }

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -614,7 +614,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 					break;
 				        }
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION,FALSE);
+				write_to_all_logs(temp_buffer,NSLOG_SERVICE_NOTIFICATION);
 			        }
 
 			/* run the command */
@@ -1272,7 +1272,7 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 					break;
 				        }
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION,FALSE);
+				write_to_all_logs(temp_buffer,NSLOG_HOST_NOTIFICATION);
 			        }
 
 			/* run the command */

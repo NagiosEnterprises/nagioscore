@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-15-2003
+ * Last Modified:   08-26-2003
  *
  * Description:
  *
@@ -32,18 +32,27 @@
 /* specify event broker API version (required) */
 NEB_API_VERSION(CURRENT_NEB_API_VERSION);
 
+void reminder_message(char *);
 
-/* this function gets called when the module is loaded by the event broker*/
+
+/* this function gets called when the module is loaded by the event broker */
 int nebmodule_init(int flags, char *args, nebmodule *handle){
 	char temp_buffer[1024];
+	time_t current_time;
+	unsigned long interval;
 
 	/* log module info to the Nagios log file */
-	write_to_logs_and_console("helloworld: Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)",NSLOG_INFO_MESSAGE,FALSE);
+	write_to_all_logs("helloworld: Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)",NSLOG_INFO_MESSAGE);
 	
 	/* log a message to the Nagios log file */
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"helloworld: Hello world! (flags=%d, args=%s)\n",flags,(args==NULL)?"NULL":args);
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"helloworld: Hello world!\n");
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+
+	/* log a reminder message every 15 minutes (how's that for annoying? :-)) */
+	time(&current_time);
+	interval=900;
+	schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+interval,TRUE,interval,NULL,TRUE,reminder_message,"How about you?");
 
 	return 0;
         }
@@ -54,9 +63,23 @@ int nebmodule_deinit(int flags, int reason){
 	char temp_buffer[1024];
 	
 	/* log a message to the Nagios log file */
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"helloworld: Goodbye world! (flags=%d, reason=%d)\n",flags,reason);
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"helloworld: Goodbye world!\n");
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 
 	return 0;
         }
+
+
+/* gets called every X minutes by an event in the scheduling queue */
+void reminder_message(char *message){
+	char temp_buffer[1024];
+	
+	/* log a message to the Nagios log file */
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"helloworld: I'm still here! %s",message);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+
+	return;
+        }
+

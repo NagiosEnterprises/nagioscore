@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -304,7 +304,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 	if(log_event_handlers==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
 	/* run the command */
@@ -372,7 +372,7 @@ int run_service_event_handler(service *svc,int state_type){
 	if(log_event_handlers==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
 	/* run the command */
@@ -485,7 +485,7 @@ int run_global_host_event_handler(host *hst){
 	if(log_event_handlers==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
 	/* run the command */
@@ -552,7 +552,7 @@ int run_host_event_handler(host *hst){
 	if(log_event_handlers==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
 	/* run the command */

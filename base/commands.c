@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -508,7 +508,7 @@ void check_for_external_commands(void){
 			/* log the bad external command */
 			snprintf(buffer,sizeof(buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
 			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING,FALSE);
+			write_to_all_logs(buffer,NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING);
 
 			continue;
 		        }
@@ -518,11 +518,11 @@ void check_for_external_commands(void){
 		buffer[sizeof(buffer)-1]='\x0';
 		if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT){
 			if(log_passive_checks==TRUE)
-				write_to_logs_and_console(buffer,NSLOG_PASSIVE_CHECK,FALSE);
+				write_to_all_logs(buffer,NSLOG_PASSIVE_CHECK);
 		        }
 		else{
 			if(log_external_commands==TRUE)
-				write_to_logs_and_console(buffer,NSLOG_EXTERNAL_COMMAND,FALSE);
+				write_to_all_logs(buffer,NSLOG_EXTERNAL_COMMAND);
 		        }
 
 		/* process the command if its not a passive check */
@@ -1598,9 +1598,9 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 
 /* schedules a program shutdown or restart */
 int cmd_signal_process(int cmd, char *args){
-	timed_event *new_event=NULL;
 	time_t scheduled_time;
 	char *temp_ptr;
+	int result;
 
 #ifdef DEBUG0
 	printf("cmd_signal_process() start\n");
@@ -1614,22 +1614,13 @@ int cmd_signal_process(int cmd, char *args){
 		scheduled_time=strtoul(temp_ptr,NULL,10);
 
 	/* add a scheduled program shutdown or restart to the event list */
-	new_event=malloc(sizeof(timed_event));
-	if(new_event!=NULL){
-		new_event->event_type=(cmd==CMD_SHUTDOWN_PROCESS)?EVENT_PROGRAM_SHUTDOWN:EVENT_PROGRAM_RESTART;
-		new_event->event_data=(void *)NULL;
-		new_event->run_time=scheduled_time;
-		new_event->recurring=FALSE;
-		schedule_event(new_event,&event_list_high);
-	        }
-	else
-		return ERROR;
+	result=schedule_new_event((cmd==CMD_SHUTDOWN_PROCESS)?EVENT_PROGRAM_SHUTDOWN:EVENT_PROGRAM_RESTART,TRUE,scheduled_time,FALSE,0,NULL,FALSE,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("cmd_signal_process() end\n");
 #endif
 
-	return OK;
+	return result;
         }
 
 

@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -179,7 +179,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 			if(hst->scheduled_downtime_depth==0){
 				snprintf(temp_buffer,sizeof(temp_buffer),"HOST DOWNTIME ALERT: %s;CANCELLED; Scheduled downtime for host has been cancelled.\n",hst->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+				write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 			        }
 		        }
 
@@ -192,7 +192,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 			if(svc->scheduled_downtime_depth==0){
 				snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE DOWNTIME ALERT: %s;%s;CANCELLED; Scheduled downtime for service has been cancelled.\n",svc->host_name,svc->description);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+				write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 			        }
 		        }
 	        }
@@ -233,7 +233,6 @@ int register_downtime(int type, unsigned long downtime_id){
 	char start_time_string[MAX_DATETIME_LENGTH];
 	char end_time_string[MAX_DATETIME_LENGTH];
 	scheduled_downtime *temp_downtime;
-	timed_event *new_event;
 	host *hst=NULL;
 	service *svc=NULL;
 	char *type_string="";
@@ -285,20 +284,8 @@ int register_downtime(int type, unsigned long downtime_id){
 	/*** SCHEDULE DOWNTIME - FLEXIBLE (NON-FIXED) DOWNTIME IS HANDLED AT A LATER POINT ***/
 
 	/* only non-triggered downtime is scheduled... */
-	if(temp_downtime->triggered_by==0){
-
-		/* allocate memory for a new event queue item */
-		new_event=(timed_event *)malloc(sizeof(timed_event));
-		if(new_event==NULL)
-			return ERROR;
-
-		/* place the new event in the event queue */
-		new_event->event_type=EVENT_SCHEDULED_DOWNTIME;
-		new_event->event_data=(void *)temp_downtime;
-		new_event->run_time=temp_downtime->start_time;
-		new_event->recurring=FALSE;
-		schedule_event(new_event,&event_list_high);
-	        }
+	if(temp_downtime->triggered_by==0)
+		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,TRUE,0,NULL,FALSE,(void *)temp_downtime,NULL);
 
 	return OK;
         }
@@ -308,9 +295,9 @@ int register_downtime(int type, unsigned long downtime_id){
 int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
  	char buffer[MAX_INPUT_BUFFER];
 	scheduled_downtime *this_downtime;
-	timed_event *new_event;
 	host *hst=NULL;
 	service *svc=NULL;
+	time_t event_time;
 #ifdef USE_EVENT_BROKER
 	int attr;
 #endif
@@ -353,17 +340,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 				/*** SINCE THE FLEX DOWNTIME MAY NEVER START, WE HAVE TO PROVIDE A WAY OF EXPIRING UNUSED DOWNTIME... ***/
 
-				/* allocate memory for a new event queue item */
-				new_event=(timed_event *)malloc(sizeof(timed_event));
-				if(new_event==NULL)
-					return ERROR;
-
-				/* place the new event in the event queue */
-				new_event->event_type=EVENT_EXPIRE_DOWNTIME;
-				new_event->event_data=NULL;
-				new_event->run_time=(time_t)(temp_downtime->end_time+1);
-				new_event->recurring=FALSE;
-				schedule_event(new_event,&event_list_high);
+				schedule_new_event(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),TRUE,0,NULL,FALSE,NULL,NULL);
 
 				return OK;
 			        }
@@ -391,7 +368,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			/* log a notice - this one is parsed by the history CGI */
 			snprintf(buffer,sizeof(buffer),"HOST DOWNTIME ALERT: %s;STOPPED; Host has exited from a period of scheduled downtime",hst->name);
 			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
+			write_to_all_logs(buffer,NSLOG_INFO_MESSAGE);
 		        }
 
 		else if(temp_downtime->type==SERVICE_DOWNTIME && svc->scheduled_downtime_depth==0){
@@ -399,7 +376,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			/* log a notice - this one is parsed by the history CGI */
 			snprintf(buffer,sizeof(buffer),"SERVICE DOWNTIME ALERT: %s;%s;STOPPED; Service has exited from a period of scheduled downtime",svc->host_name,svc->description);
 			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
+			write_to_all_logs(buffer,NSLOG_INFO_MESSAGE);
 		        }
 
 
@@ -447,7 +424,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			/* log a notice - this one is parsed by the history CGI */
 			snprintf(buffer,sizeof(buffer),"HOST DOWNTIME ALERT: %s;STARTED; Host has entered a period of scheduled downtime",hst->name);
 			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
+			write_to_all_logs(buffer,NSLOG_INFO_MESSAGE);
 		        }
 
 		else if(temp_downtime->type==SERVICE_DOWNTIME && svc->scheduled_downtime_depth==0){
@@ -455,7 +432,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			/* log a notice - this one is parsed by the history CGI */
 			snprintf(buffer,sizeof(buffer),"SERVICE DOWNTIME ALERT: %s;%s;STARTED; Service has entered a period of scheduled downtime",svc->host_name,svc->description);
 			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
+			write_to_all_logs(buffer,NSLOG_INFO_MESSAGE);
 		        }
 
 		/* increment the downtime depth variable */
@@ -473,20 +450,12 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		else
 			update_service_status(svc,FALSE);
 
-		/* allocate memory for a new event queue item */
-		new_event=(timed_event *)malloc(sizeof(timed_event));
-		if(new_event==NULL)
-			return ERROR;
-
-		/* place the new event in the event queue */
-		new_event->event_type=EVENT_SCHEDULED_DOWNTIME;
-		new_event->event_data=(void *)temp_downtime;
+		/* schedule an event */
 		if(temp_downtime->fixed==FALSE)
-			new_event->run_time=(time_t)((unsigned long)time(NULL)+temp_downtime->duration);
+			event_time=(time_t)((unsigned long)time(NULL)+temp_downtime->duration);
 		else
-			new_event->run_time=temp_downtime->end_time;
-		new_event->recurring=FALSE;
-		schedule_event(new_event,&event_list_high);
+			event_time=temp_downtime->end_time;
+		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,TRUE,0,NULL,FALSE,(void *)temp_downtime,NULL);
 
 		/* handle (start) downtime that is triggered by this one */
 		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){

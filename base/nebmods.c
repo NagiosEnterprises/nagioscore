@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -186,7 +186,7 @@ int neb_load_module(nebmodule *mod){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Could not load module '%s' -> %s\n",mod->filename,dlerror());
 #endif
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
 
 		return ERROR;
 	        }
@@ -206,7 +206,7 @@ int neb_load_module(nebmodule *mod){
 
 		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n",mod->filename);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_API_VERSION);
 
@@ -225,7 +225,7 @@ int neb_load_module(nebmodule *mod){
 
 		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n",mod->filename);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_NO_INIT);
 
@@ -234,7 +234,7 @@ int neb_load_module(nebmodule *mod){
 
 	snprintf(temp_buffer,sizeof(temp_buffer),"Event broker module '%s' initialized successfully.\n",mod->filename);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 
 	/* run the module's init function */
 	initfunc=mod->init_func;
@@ -322,7 +322,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 
 	snprintf(temp_buffer,sizeof(temp_buffer),"Event broker module '%s' deinitialized successfully.\n",mod->filename);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 
 	return OK;
         }

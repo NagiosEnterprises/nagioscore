@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -68,19 +68,12 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 	printf("write_to_logs_and_console() start\n");
 #endif
 
-	/* write messages to the log unless we are just verifying the data or testing scheduling... */
-	if(verify_config==FALSE && test_scheduling==FALSE){
+	/* write messages to the logs */
+	write_to_all_logs(buffer,data_type);
 
-		/* write to syslog */
-		write_to_syslog(buffer,data_type);
-
-		/* write to main log */
-		write_to_log(buffer,data_type);
-	        }
-
-	/* should we print to the console? */
-	if(display==TRUE && daemon_mode==FALSE)
-		printf("%s\n",buffer);
+	/* write message to the console */
+	if(display==TRUE)
+		write_to_console(buffer);
 
 #ifdef DEBUG0
 	printf("write_to_logs_and_console() end\n");
@@ -89,6 +82,45 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 	return OK;
         }
 
+
+/* write something to the console */
+int write_to_console(char *buffer){
+
+#ifdef DEBUG0
+	printf("write_to_console() start\n");
+#endif
+
+	/* should we print to the console? */
+	if(daemon_mode==FALSE)
+		printf("%s\n",buffer);
+
+#ifdef DEBUG0
+	printf("write_to_console() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* write something to the log file and syslog facility */
+int write_to_all_logs(char *buffer, unsigned long data_type){
+
+#ifdef DEBUG0
+	printf("write_to_all_logs() start\n");
+#endif
+
+	/* write to syslog */
+	write_to_syslog(buffer,data_type);
+
+	/* write to main log */
+	write_to_log(buffer,data_type);
+
+#ifdef DEBUG0
+	printf("write_to_all_logs() end\n");
+#endif
+
+	return OK;
+        }
 
 
 /* write something to the nagios log file */
@@ -100,6 +132,10 @@ int write_to_log(char *buffer, unsigned long data_type){
 #ifdef DEBUG0
 	printf("write_to_log() start\n");
 #endif
+
+	/* don't log anything if we're not actually running... */
+	if(verify_config==TRUE || test_scheduling==TRUE)
+		return OK;
 
 	/* make sure we can log this type of entry */
 	if(!(data_type & logging_options))
@@ -141,6 +177,10 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 #ifdef DEBUG0
 	printf("write_to_syslog() start\n");
 #endif
+
+	/* don't log anything if we're not actually running... */
+	if(verify_config==TRUE || test_scheduling==TRUE)
+		return OK;
 
 	/* bail out if we shouldn't write to syslog */
 	if(use_syslog==FALSE)
@@ -195,7 +235,7 @@ int log_service_event(service *svc,int state_type){
 
 	snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],(state_type==SOFT_STATE)?"SOFT":"HARD",macro_x[MACRO_SERVICEATTEMPT],svc->plugin_output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,log_options,FALSE);
+	write_to_all_logs(temp_buffer,log_options);
 
 
 #ifdef DEBUG0
@@ -230,7 +270,7 @@ int log_host_event(host *hst){
 
 	snprintf(temp_buffer,sizeof(temp_buffer),"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->plugin_output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,log_options,FALSE);
+	write_to_all_logs(temp_buffer,log_options);
 
 #ifdef DEBUG0
 	printf("log_host_event() start\n");
@@ -256,7 +296,7 @@ int log_host_states(int type){
 
 		snprintf(temp_buffer,sizeof(temp_buffer),"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],temp_host->plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 	        }
 
 	return OK;
@@ -286,7 +326,7 @@ int log_service_states(int type){
 		snprintf(temp_buffer,sizeof(temp_buffer),"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
 
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 	        }
 
 	return OK;
@@ -353,7 +393,7 @@ int rotate_log_file(time_t rotation_time){
 	/* record the log rotation after it has been done... */
 	snprintf(temp_buffer,sizeof(temp_buffer),"LOG ROTATION: %s\n",method_string);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
+	write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
 
 	/* record log file version format */
 	write_log_file_info();
@@ -386,7 +426,7 @@ int write_log_file_info(void){
 	/* write log version */
 	snprintf(temp_buffer,sizeof(temp_buffer),"LOG VERSION: %s\n",LOG_VERSION_2);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
+	write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
 
 #ifdef DEBUG0
 	printf("write_log_file_info() end\n");

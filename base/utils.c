@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-23-2003
+ * Last Modified:   08-24-2003
  *
  * License:
  *
@@ -2276,10 +2276,11 @@ void get_datetime_string(time_t *raw_time,char *buffer,int buffer_length, int ty
 
 
 /* get the next time to schedule a log rotation */
-void get_next_log_rotation_time(time_t *run_time){
+time_t get_next_log_rotation_time(void){
 	time_t current_time;
 	struct tm *t;
 	int is_dst_now=FALSE;
+	time_t run_time;
 
 #ifdef DEBUG0
 	printf("get_next_log_rotation_time() start\n");
@@ -2294,33 +2295,32 @@ void get_next_log_rotation_time(time_t *run_time){
 	switch(log_rotation_method){
 	case LOG_ROTATION_HOURLY:
 		t->tm_hour++;
-		*run_time=mktime(t);
+		run_time=mktime(t);
 		break;
 	case LOG_ROTATION_DAILY:
 		t->tm_mday++;
 		t->tm_hour=0;
-		*run_time=mktime(t);
+		run_time=mktime(t);
 		break;
 	case LOG_ROTATION_WEEKLY:
 		t->tm_mday+=(7-t->tm_wday);
 		t->tm_hour=0;
-		*run_time=mktime(t);
+		run_time=mktime(t);
 		break;
 	case LOG_ROTATION_MONTHLY:
 		t->tm_mon++;
 		t->tm_mday=1;
 		t->tm_hour=0;
-		*run_time=mktime(t);
+		run_time=mktime(t);
 		break;
 	default:
 		break;
 	        }
 
 	if(is_dst_now==TRUE && t->tm_isdst==0)
-		*run_time+=3600;
+		run_time+=3600;
 	else if(is_dst_now==FALSE && t->tm_isdst>0)
-		*run_time-=3600;
-
+		run_time-=3600;
 
 #ifdef DEBUG1
 	printf("\tNext Log Rotation Time: %s",ctime(run_time));
@@ -2330,7 +2330,7 @@ void get_next_log_rotation_time(time_t *run_time){
 	printf("get_next_log_rotation_time() end\n");
 #endif
 
-	return;
+	return run_time;
         }
 
 
@@ -2414,7 +2414,7 @@ void sighandler(int sig){
 		sigrestart=TRUE;
 
 		sprintf(temp_buffer,"Caught SIGHUP, restarting...\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
 #ifdef DEBUG2
 		printf("%s\n",temp_buffer);
 #endif
@@ -2426,7 +2426,7 @@ void sighandler(int sig){
 		sigshutdown=TRUE;
 
 		sprintf(temp_buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
-		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
+		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
 
 #ifdef DEBUG2
 		printf("%s\n",temp_buffer);

@@ -372,8 +372,7 @@ int main(int argc, char **argv){
 		printf("Reading configuration data...\n\n");
 
 		/* read in the configuration files (main config file, resource and object config files) */
-		result=read_main_config_file(config_file);
-		if(result==OK)
+		if((result=read_main_config_file(config_file))==OK)
 			result=read_all_object_data(config_file);
 
 		/* there was a problem reading the config files */
@@ -435,31 +434,29 @@ int main(int argc, char **argv){
 		reset_variables();
 
 		/* read in the configuration files (main config file and all host config files) */
-		result=read_main_config_file(config_file);
-		if(result==OK)
+		if((result=read_main_config_file(config_file))==OK)
 			result=read_all_object_data(config_file);
-		if(result!=OK){
-
+		if(result!=OK)
 			printf("***> One or more problems was encountered while reading configuration data...\n");
 
-			cleanup();
-			exit(ERROR);
-	                }
-
-		/* run the pre-flight check to make sure everything looks okay*/
-		if(pre_flight_check()!=OK){
-
+		/* run the pre-flight check to make sure everything looks okay */
+		else if((result=pre_flight_check())!=OK)
 			printf("***> One or more problems was encountered while running the pre-flight check...\n");
 
-			cleanup();
-			exit(ERROR);
+		if(result==OK){
+
+			/* initialize the event timing loop */
+			init_timing_loop();
+
+			/* display scheduling information */
+			display_scheduling_info();
 		        }
 
-	        /* initialize the event timing loop */
-		init_timing_loop();
+		/* clean up after ourselves */
+		cleanup();
 
-		/* display scheduling information */
-		display_scheduling_info();
+		/* exit */
+		exit(result);
 	        }
 
 
@@ -498,7 +495,6 @@ int main(int argc, char **argv){
 			/* write log version/info */
 			write_log_file_info();
 
-
 #ifdef USE_EVENT_BROKER
 			/* load modules */
 			neb_load_all_modules();
@@ -530,12 +526,6 @@ int main(int argc, char **argv){
 				exit(ERROR);
 		                }
 
-			/* free extended info data - we don't need this for monitoring */
-			free_extended_data();
-
-			/* initialize embedded Perl interpreter */
-			init_embedded_perl();
-
 			/* run the pre-flight check to make sure everything looks okay*/
 			result=pre_flight_check();
 
@@ -558,12 +548,18 @@ int main(int argc, char **argv){
 				exit(ERROR);
 			        }
 
+			/* free extended info data - we don't need this for monitoring */
+			free_extended_data();
+
+			/* initialize embedded Perl interpreter */
+			init_embedded_perl();
+
 		        /* handle signals (interrupts) */
 			setup_sighandler();
 
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode==TRUE && sigrestart==FALSE){
-#ifdef DEBUG2
+#if (defined DEBUG0 || defined DEBUG1 || defined DEBUG2 || defined DEBUG3 || defined DEBUG4 || defined DEBUG5)
 				printf("$0: Cannot enter daemon mode with DEBUG option(s) enabled.  We'll run as a foreground process instead...\n");
 				daemon_mode=FALSE;
 #else
@@ -571,7 +567,7 @@ int main(int argc, char **argv){
 
 				snprintf(buffer,sizeof(buffer),"Finished daemonizing... (New PID=%d)\n",(int)getpid());
 				buffer[sizeof(buffer)-1]='\x0';
-				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,FALSE);
+				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 
 				/* get new PID */
 				nagios_pid=(int)getpid();
@@ -715,10 +711,9 @@ int main(int argc, char **argv){
 
 	                }while(sigrestart==TRUE && sigshutdown==FALSE);
 
+		/* free misc memory */
+		free(config_file);
 	        }
-
-	/* free misc memory */
-	free(config_file);
 
 	return OK;
 	}

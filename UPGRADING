@@ -1,5 +1,13 @@
-Upgrading to Nagios 1.0
------------------------
+Upgrading from Nagios 1.x to 1.2
+--------------------------------
+
+No config file changes should be necessary.  Nagios 1.1 and
+1.2 were bug fix releases only.
+
+
+
+Upgrading to Nagios 1.x from NetSaint 0.0.7
+-------------------------------------------
 
 Yes, upgrading is going to be a bit of a pain, but it was ten
 times more difficult for me to change the code, documentation, 

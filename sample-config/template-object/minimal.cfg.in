@@ -3,7 +3,7 @@
 #
 # MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
 #
-# Last Modified: 07-11-2002
+# Last Modified: 10-03-2002
 #
 #
 # NOTE: This config file is intended to be used to test a Nagios installation
@@ -265,7 +265,7 @@ define service{
         max_check_attempts              4
         normal_check_interval           5
         retry_check_interval            1
-        contact_groups                  localhost
+        contact_groups                  admins
         notification_interval           960
         notification_period             24x7
 	check_command			check_ping!100.0,20%!500.0,60%
@@ -285,7 +285,7 @@ define service{
         max_check_attempts              4
         normal_check_interval           5
         retry_check_interval            1
-        contact_groups                  localhost
+        contact_groups                  admins
         notification_interval           960
         notification_period             24x7
 	check_command			check_local_disk!20%!10%!/
@@ -306,7 +306,7 @@ define service{
         max_check_attempts              4
         normal_check_interval           5
         retry_check_interval            1
-        contact_groups                  localhost
+        contact_groups                  admins
         notification_interval           960
         notification_period             24x7
 	check_command			check_local_users!20!50
@@ -326,7 +326,7 @@ define service{
         max_check_attempts              4
         normal_check_interval           5
         retry_check_interval            1
-        contact_groups                  localhost
+        contact_groups                  admins
         notification_interval           960
         notification_period             24x7
 	check_command			check_local_procs!250!400
@@ -345,7 +345,7 @@ define service{
         max_check_attempts              4
         normal_check_interval           5
         retry_check_interval            1
-        contact_groups                  localhost
+        contact_groups                  admins
         notification_interval           960
         notification_period             24x7
 	check_command			check_local_load!5.0,4.0,3.0!10.0,6.0,4.0

@@ -51,7 +51,7 @@ A sample CGI configuration file can be created by running the '<b>make config</b
 <a href="#physical_html_path">Physical HTML path</a><br>
 <a href="#url_html_path">URL HTML path</a><br>
 <br>
-<a href="#process_check_command">Process check command</a><br>
+<a href="#nagios_check_command">Nagios process check command</a><br>
 <br>
 <a href="#use_authentication">Authentication usage</a><br>
 <a href="#default_user_name">Default user name</a><br>
@@ -155,10 +155,10 @@ should be <i>/nagios</i>.  Basically, its the path portion of the URL that is us
 
 
 <p>
-<a name="process_check_command"></a>
+<a name="nagios_check_command"></a>
 <table border="0" width="100%">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Process Check Command</strong></td>
+<td bgcolor="#cbcbcb"><strong>Nagios Process Check Command</strong></td>
 </tr>
 </table>
 </p>
@@ -167,11 +167,11 @@ should be <i>/nagios</i>.  Basically, its the path portion of the URL that is us
 <table border="0">
 <tr>
 <td valign=top>Format:</td>
-<td><strong>process_check_command=&lt;command_line&gt;</strong></td>
+<td><strong>nagios_check_command=&lt;command_line&gt;</strong></td>
 </tr>
 <tr>
 <td valign=top>Example:</td>
-<td><font color="red"><strong>process_check_command=/usr/local/nagios/libexec/check_nagios /usr/local/nagios/var/status.log 5 '/usr/local/nagios/bin/nagios -d /usr/local/nagios/etc/nagios.cfg'</strong></font></td>
+<td><font color="red"><strong>nagios_check_command=/usr/local/nagios/libexec/check_nagios /usr/local/nagios/var/status.log 5 '/usr/local/nagios/bin/nagios -d /usr/local/nagios/etc/nagios.cfg'</strong></font></td>
 </tr>
 </table>
 </p>

@@ -706,7 +706,7 @@ void document_header(int use_stylesheet){
 
 	if(use_stylesheet==TRUE)
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,SUMMARY_CSS);
-	
+
 	printf("</head>\n");
 
 	printf("<BODY CLASS='summary'>\n");

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-25-2003
+ * Last Modified: 04-29-2003
  *
  * Description:
  *
@@ -4008,6 +4008,10 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation->have_last_notification=temp_hostescalation->have_last_notification;
 	new_hostescalation->notification_interval=temp_hostescalation->notification_interval;
 	new_hostescalation->have_notification_interval=temp_hostescalation->have_notification_interval;
+	new_hostescalation->escalate_on_down=temp_hostescalation->escalate_on_down;
+	new_hostescalation->escalate_on_unreachable=temp_hostescalation->escalate_on_unreachable;
+	new_hostescalation->escalate_on_recovery=temp_hostescalation->escalate_on_recovery;
+	new_hostescalation->have_escalation_options=temp_hostescalation->have_escalation_options;
 	
 
 	/* allocate memory for and copy string members of hostescalation definition */
@@ -4050,6 +4054,21 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 #ifdef DEBUG1
 			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
+			free(new_hostescalation->host_name);
+			free(new_hostescalation->template);
+			free(new_hostescalation->name);
+			free(new_hostescalation);
+			return ERROR;
+		        }
+	        } 
+
+	if(temp_hostescalation->escalation_period!=NULL){
+		new_hostescalation->escalation_period=strdup(temp_hostescalation->escalation_period);
+		if(new_hostescalation->escalation_period==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
+#endif
+			free(new_hostescalation->contact_groups);
 			free(new_hostescalation->host_name);
 			free(new_hostescalation->template);
 			free(new_hostescalation->name);
@@ -4107,6 +4126,11 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	new_serviceescalation->have_last_notification=temp_serviceescalation->have_last_notification;
 	new_serviceescalation->notification_interval=temp_serviceescalation->notification_interval;
 	new_serviceescalation->have_notification_interval=temp_serviceescalation->have_notification_interval;
+	new_serviceescalation->escalate_on_warning=temp_serviceescalation->escalate_on_warning;
+	new_serviceescalation->escalate_on_unknown=temp_serviceescalation->escalate_on_unknown;
+	new_serviceescalation->escalate_on_critical=temp_serviceescalation->escalate_on_critical;
+	new_serviceescalation->escalate_on_recovery=temp_serviceescalation->escalate_on_recovery;
+	new_serviceescalation->have_escalation_options=temp_serviceescalation->have_escalation_options;
 	
 
 	/* allocate memory for and copy string members of serviceescalation definition */
@@ -4185,6 +4209,22 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 #ifdef DEBUG1
 			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
+			free(new_serviceescalation->service_description);
+			free(new_serviceescalation->host_name);
+			free(new_serviceescalation->template);
+			free(new_serviceescalation->name);
+			free(new_serviceescalation);
+			return ERROR;
+		        }
+	        } 
+
+	if(temp_serviceescalation->escalation_period!=NULL){
+		new_serviceescalation->escalation_period=strdup(temp_serviceescalation->escalation_period);
+		if(new_serviceescalation->escalation_period==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
+#endif
+			free(new_serviceescalation->contact_groups);
 			free(new_serviceescalation->service_description);
 			free(new_serviceescalation->host_name);
 			free(new_serviceescalation->template);

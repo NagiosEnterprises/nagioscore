@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2005
+ * Last Modified:   03-14-2005
  *
  * License:
  *
@@ -1740,14 +1740,12 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	        }
 	return_code=atoi(temp_ptr);
 
-	/* get the plugin output */
+	/* get the plugin output (may be empty) */
 	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL){
-		free(host_name);
-		free(svc_description);
-		return ERROR;
-	        }
-	output=strdup(temp_ptr);
+	if(temp_ptr==NULL)
+		output=strdup("");
+	else
+		output=strdup(temp_ptr);
 
 	/* submit the passive check result */
 	result=process_passive_service_check(check_time,host_name,svc_description,return_code,output);
@@ -1891,13 +1889,12 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	        }
 	return_code=atoi(temp_ptr);
 
-	/* get the plugin output */
+	/* get the plugin output (may be empty) */
 	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL){
-		free(host_name);
-		return ERROR;
-	        }
-	output=strdup(temp_ptr);
+	if(temp_ptr==NULL)
+		output=strdup("");
+	else
+		output=strdup(temp_ptr);
 
 	/* submit the check result */
 	result=process_passive_host_check(check_time,host_name,return_code,output);

@@ -14,6 +14,7 @@ Nagios Change Log
 * Extended ASCII characters no longer auto-stripped from object names and macros
 * Added external commands to adjust host and service notification numbers
 * Init script changes
+* Fixed bug where passive checks with empty plugin output were being dropped
 
 
 

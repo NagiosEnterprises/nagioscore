@@ -3,7 +3,7 @@
  * EDATA.C - External extended object config data for Nagios CGIs
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2002
+ * Last Modified:   08-19-2002
  *
  * License:
  *
@@ -125,42 +125,39 @@ int add_extended_host_info(char *host_name,char *notes_url, char *icon_image, ch
 	if(new_hostextinfo==NULL)
 		return ERROR;
 				
-	new_hostextinfo->host_name=(char *)malloc(strlen(host_name)+1);
+	new_hostextinfo->host_name=strdup(host_name);
 	if(new_hostextinfo->host_name==NULL){
 		free(new_hostextinfo);
 		return ERROR;
 	        }
-	strcpy(new_hostextinfo->host_name,host_name);
 
 	if(notes_url==NULL || !strcmp(notes_url,""))
 		new_hostextinfo->notes_url=NULL;
 	else{
-		new_hostextinfo->notes_url=(char *)malloc(strlen(notes_url)+1);
+		new_hostextinfo->notes_url=strdup(notes_url);
 		if(new_hostextinfo->notes_url==NULL){
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 			return ERROR;
 		        }
-		strcpy(new_hostextinfo->notes_url,notes_url);
 	        }
 
 	if(icon_image==NULL || !strcmp(icon_image,""))
 		new_hostextinfo->icon_image=NULL;
 	else{
-		new_hostextinfo->icon_image=(char *)malloc(strlen(icon_image)+1);
+		new_hostextinfo->icon_image=strdup(icon_image);
 		if(new_hostextinfo->icon_image==NULL){
 			free(new_hostextinfo->notes_url);
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 			return ERROR;
 	                }
-		strcpy(new_hostextinfo->icon_image,icon_image);
 	        }
 
 	if(vrml_image==NULL || !strcmp(vrml_image,""))
 		new_hostextinfo->vrml_image=NULL;
 	else{
-		new_hostextinfo->vrml_image=(char *)malloc(strlen(vrml_image)+1);
+		new_hostextinfo->vrml_image=strdup(vrml_image);
 		if(new_hostextinfo->vrml_image==NULL){
 			free(new_hostextinfo->icon_image);
 			free(new_hostextinfo->notes_url);
@@ -168,14 +165,13 @@ int add_extended_host_info(char *host_name,char *notes_url, char *icon_image, ch
 			free(new_hostextinfo);
 			return ERROR;
 	                }
-		strcpy(new_hostextinfo->vrml_image,vrml_image);
 	        }
 
 
 	if(gd2_icon_image==NULL || !strcmp(gd2_icon_image,""))
 		new_hostextinfo->gd2_icon_image=NULL;
 	else{
-		new_hostextinfo->gd2_icon_image=(char *)malloc(strlen(gd2_icon_image)+1);
+		new_hostextinfo->gd2_icon_image=strdup(gd2_icon_image);
 		if(new_hostextinfo->gd2_icon_image==NULL){
 			free(new_hostextinfo->vrml_image);
 			free(new_hostextinfo->icon_image);
@@ -184,14 +180,13 @@ int add_extended_host_info(char *host_name,char *notes_url, char *icon_image, ch
 			free(new_hostextinfo);
 			return ERROR;
 		        }
-		strcpy(new_hostextinfo->gd2_icon_image,gd2_icon_image);
 	        }
 
 
 	if(icon_image_alt==NULL || !strcmp(icon_image_alt,""))
 		new_hostextinfo->icon_image_alt=NULL;
 	else{
-		new_hostextinfo->icon_image_alt=(char *)malloc(strlen(icon_image_alt)+1);
+		new_hostextinfo->icon_image_alt=strdup(icon_image_alt);
 		if(new_hostextinfo->icon_image_alt==NULL){
 			free(new_hostextinfo->gd2_icon_image);
 			free(new_hostextinfo->vrml_image);
@@ -201,7 +196,6 @@ int add_extended_host_info(char *host_name,char *notes_url, char *icon_image, ch
 			free(new_hostextinfo);
 			return ERROR;
 		        }
-		strcpy(new_hostextinfo->icon_image_alt,icon_image_alt);
 	        }
 
 	/* 2-D coordinates */
@@ -246,38 +240,35 @@ int add_extended_service_info(char *host_name,char *description, char *notes_url
 	if(new_serviceextinfo==NULL)
 		return ERROR;
 				
-	new_serviceextinfo->host_name=(char *)malloc(strlen(host_name)+1);
+	new_serviceextinfo->host_name=strdup(host_name);
 	if(new_serviceextinfo->host_name==NULL){
 		free(new_serviceextinfo);
 		return ERROR;
 	        }
-	strcpy(new_serviceextinfo->host_name,host_name);
 				
-	new_serviceextinfo->description=(char *)malloc(strlen(description)+1);
+	new_serviceextinfo->description=strdup(description);
 	if(new_serviceextinfo->description==NULL){
 		free(new_serviceextinfo->host_name);
 		free(new_serviceextinfo);
 		return ERROR;
 	        }
-	strcpy(new_serviceextinfo->description,description);
 
 	if(notes_url==NULL || !strcmp(notes_url,""))
 		new_serviceextinfo->notes_url=NULL;
 	else{
-		new_serviceextinfo->notes_url=(char *)malloc(strlen(notes_url)+1);
+		new_serviceextinfo->notes_url=strdup(notes_url);
 		if(new_serviceextinfo->notes_url==NULL){
 			free(new_serviceextinfo->description);
 			free(new_serviceextinfo->host_name);
 			free(new_serviceextinfo);
 			return ERROR;
 		        }
-		strcpy(new_serviceextinfo->notes_url,notes_url);
 	        }
 
 	if(icon_image==NULL || !strcmp(icon_image,""))
 		new_serviceextinfo->icon_image=NULL;
 	else{
-		new_serviceextinfo->icon_image=(char *)malloc(strlen(icon_image)+1);
+		new_serviceextinfo->icon_image=strdup(icon_image);
 		if(new_serviceextinfo->icon_image==NULL){
 			free(new_serviceextinfo->notes_url);
 			free(new_serviceextinfo->description);
@@ -285,13 +276,12 @@ int add_extended_service_info(char *host_name,char *description, char *notes_url
 			free(new_serviceextinfo);
 			return ERROR;
 	                }
-		strcpy(new_serviceextinfo->icon_image,icon_image);
 	        }
 
 	if(icon_image_alt==NULL || !strcmp(icon_image_alt,""))
 		new_serviceextinfo->icon_image_alt=NULL;
 	else{
-		new_serviceextinfo->icon_image_alt=(char *)malloc(strlen(icon_image_alt)+1);
+		new_serviceextinfo->icon_image_alt=strdup(icon_image_alt);
 		if(new_serviceextinfo->icon_image_alt==NULL){
 			free(new_serviceextinfo->icon_image);
 			free(new_serviceextinfo->notes_url);
@@ -300,7 +290,6 @@ int add_extended_service_info(char *host_name,char *description, char *notes_url
 			free(new_serviceextinfo);
 			return ERROR;
 		        }
-		strcpy(new_serviceextinfo->icon_image_alt,icon_image_alt);
 	        }
 
 	/* add new service extended info entry to head of list */
@@ -326,16 +315,11 @@ void free_extended_data(void){
 	for(this_hostextinfo=hostextinfo_list;this_hostextinfo!=NULL;this_hostextinfo=next_hostextinfo){
 		next_hostextinfo=this_hostextinfo->next;
 		free(this_hostextinfo->host_name);
-		if(this_hostextinfo->notes_url!=NULL)
-			free(this_hostextinfo->notes_url);
-		if(this_hostextinfo->icon_image!=NULL)
-			free(this_hostextinfo->icon_image);
-		if(this_hostextinfo->vrml_image!=NULL)
-			free(this_hostextinfo->vrml_image);
-		if(this_hostextinfo->gd2_icon_image!=NULL)
-			free(this_hostextinfo->gd2_icon_image);
-		if(this_hostextinfo->icon_image_alt!=NULL)
-			free(this_hostextinfo->icon_image_alt);
+		free(this_hostextinfo->notes_url);
+		free(this_hostextinfo->icon_image);
+		free(this_hostextinfo->vrml_image);
+		free(this_hostextinfo->gd2_icon_image);
+		free(this_hostextinfo->icon_image_alt);
 		free(this_hostextinfo);
 	        }
 
@@ -346,10 +330,8 @@ void free_extended_data(void){
 		next_serviceextinfo=this_serviceextinfo->next;
 		free(this_serviceextinfo->host_name);
 		free(this_serviceextinfo->description);
-		if(this_serviceextinfo->notes_url!=NULL)
-			free(this_serviceextinfo->notes_url);
-		if(this_serviceextinfo->icon_image!=NULL)
-			free(this_serviceextinfo->icon_image);
+		free(this_serviceextinfo->notes_url);
+		free(this_serviceextinfo->icon_image);
 		free(this_serviceextinfo);
 	        }
 

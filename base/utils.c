@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2004
+ * Last Modified:   01-25-2004
  *
  * License:
  *
@@ -1828,10 +1828,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	struct timeval start_time,end_time;
 #ifdef EMBEDDEDPERL
 	char fname[1024];
-	char tmpfname[32];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
 	int isperl;
-	int tmpfd;
 #ifdef THREADEDPERL
 	dTHX;
 #endif
@@ -1872,7 +1870,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 		isperl = TRUE;
 		args[0] = fname;
-		args[2] = tmpfname;
+		args[2] = "";
 
 		if(strchr(cmd,' ')==NULL)
 			args[3]="";
@@ -1949,14 +1947,13 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 		/******** BEGIN EMBEDDED PERL CODE EXECUTION ********/
 
 #ifdef EMBEDDEDPERL
-		if(isperl==TRUE && use_embedded_perl==TRUE){
+		if(isperl){
 
-			/* generate a temporary filename to which stdout can be redirected. */
-			snprintf(tmpfname,sizeof(tmpfname)-1,"/tmp/embeddedXXXXXX");
-			if((tmpfd=mkstemp(tmpfname))==-1)
-				_exit(STATE_UNKNOWN);
+			SV *perl_out_sv ;
+			char *perl_output ;
+			int count ;
 
-			/* execute our previously compiled script  */
+			/* execute our previously compiled script - from perl_call_argv("Embed::Persistent::eval_file",..) */
 			ENTER;
 			SAVETMPS;
 			PUSHMARK(SP);
@@ -1965,9 +1962,19 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			XPUSHs(sv_2mortal(newSVpv(args[2],0)));
 			XPUSHs(sv_2mortal(newSVpv(args[3],0)));
 			PUTBACK;
-			perl_call_pv("Embed::Persistent::run_package", G_EVAL);
+			count = perl_call_pv("Embed::Persistent::run_package", G_EVAL | G_ARRAY);
+			/* count is a debug hook. It should always be two (2), because the persistence framework tries to return two (2) args */
 			SPAGAIN;
-			status = POPi;
+			perl_out_sv = POPs;
+			perl_output = SvPOK(perl_out_sv) && (SvCUR(perl_out_sv) > 0) ? savepv(SvPVX(perl_out_sv))
+										     : savepv("(No output!)\n") ;
+			strncpy(buffer, perl_output, sizeof(buffer));
+			buffer[sizeof(buffer)-1]='\x0';
+			/* The Perl scalar corresp to pclose_result could contain string or integer.
+			   It is better to let POPi do the dirty work (SvPVOK or SvIOK could be true).
+			*/
+			status = POPi ;
+
 			PUTBACK;
 			FREETMPS;
 			LEAVE;                                    
@@ -1979,26 +1986,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 #endif
 				status=-2;
 			        }
-
-			/* read back stdout from script */
-			fp=fopen(tmpfname,"r");
-
-			/* default return string in case nothing was returned */
-			strcpy(buffer,"(No output!)");
-
-			/* grab output from plugin (which was redirected to the temp file) */
-			fgets(buffer,sizeof(buffer)-1,fp);
-			buffer[sizeof(buffer)-1]='\x0';
 			strip(buffer);
-
-			/* ADDED 01/04/2004 */
-			/* ignore any additional lines of output */
-			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
-
-			/* close and delete temp file */
-			fclose(fp);
-			close(tmpfd);
-			unlink(tmpfname);
 
 			/* report the command status */
 			if(status==-2)

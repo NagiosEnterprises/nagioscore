@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2004
+ * Last Modified:   01-25-2004
  *
  * License:
  *
@@ -117,10 +117,8 @@ void run_service_check(service *svc){
 	int time_is_valid=TRUE;
 #ifdef EMBEDDEDPERL
 	char fname[512];
-	char tmpfname[32];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
 	int isperl;
-	int tmpfd;
 #ifdef THREADEDPERL
 	dTHX;
 #endif
@@ -277,7 +275,8 @@ void run_service_check(service *svc){
 
 		isperl = TRUE;
 		args[0] = fname;
-		args[2] = tmpfname;
+		/* args[2] no longer required because Perl plugin output is returned from perl_call_pv("Embed::Persistent::run_package" ..) */
+		args[2] = "";
 
 		if(strchr(processed_command,' ')==NULL)
 			args[3]="";
@@ -337,14 +336,13 @@ void run_service_check(service *svc){
 
 			/******** BEGIN EMBEDDED PERL INTERPRETER EXECUTION ********/
 #ifdef EMBEDDEDPERL
-			if(isperl==TRUE && use_embedded_perl==TRUE){
+			if(isperl){
 
-				/* generate a temporary filename to which stdout can be redirected. */
-				snprintf(tmpfname,sizeof(tmpfname)-1,"/tmp/embeddedXXXXXX");
-				if((tmpfd=mkstemp(tmpfname))==-1)
-					_exit(STATE_UNKNOWN);
+				SV *plugin_out_sv ;
+				char *perl_plugin_output ;
+				int count ;
 
-				/* execute our previously compiled script  */
+				/* execute our previously compiled script - from perl_call_argv("Embed::Persistent::eval_file",..) */
 				ENTER; 
 				SAVETMPS;
 				PUSHMARK(SP);
@@ -353,9 +351,16 @@ void run_service_check(service *svc){
 				XPUSHs(sv_2mortal(newSVpv(args[2],0)));
 				XPUSHs(sv_2mortal(newSVpv(args[3],0)));
 				PUTBACK;
-				perl_call_pv("Embed::Persistent::run_package", G_EVAL);
+				count = perl_call_pv("Embed::Persistent::run_package", G_EVAL | G_ARRAY);
 				SPAGAIN;
-				pclose_result=POPi;
+				plugin_out_sv = POPs;
+				perl_plugin_output = SvPOK(plugin_out_sv) && (SvCUR(plugin_out_sv) > 0) ? savepv(SvPVX(plugin_out_sv))
+													: savepv("(No output!)\n") ;
+				strncpy(plugin_output, perl_plugin_output, sizeof(plugin_output));
+				/* The Perl scalar corresp to pclose_result could contain string or integer.
+				   It is better to let POPi do the dirty work (SvPVOK or SvIOK could be true).
+				 */
+				pclose_result = POPi ;
 				PUTBACK;
 				FREETMPS;
 				LEAVE;
@@ -368,25 +373,8 @@ void run_service_check(service *svc){
 #endif
 			                }
 
-				/* read back stdout from script */
-				fp=fopen(tmpfname, "r");
-
-				/* default return string in case nothing was returned */
-				strcpy(plugin_output,"(No output!)");
-
-				/* read output from plugin (which was redirected to temp file) */
-				fgets(plugin_output,sizeof(plugin_output)-1,fp);
-				plugin_output[sizeof(plugin_output)-1]='\x0';
 				strip(plugin_output);
 
-				/* ADDED 01/04/2004 */
-				/* ignore any additional lines of output */
-				while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
-
-				/* close and delete temp file */
-				fclose(fp);
-				close(tmpfd);
-				unlink(tmpfname);    
 #ifdef DEBUG1
 				printf("embedded perl plugin output was %d,%s\n",pclose_result, plugin_output);
 #endif

@@ -887,8 +887,12 @@ void reap_service_checks(void){
 		/* reset last and next notification times and acknowledgement flag if necessary */
 		if(state_change==TRUE || hard_state_change==TRUE){
 
+			/* reset notification times */
 			temp_service->last_notification=(time_t)0;
 			temp_service->next_notification=(time_t)0;
+
+			/* reset notification supression option */
+			temp_service->no_more_notifications=FALSE;
 
 			if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
 				temp_service->problem_has_been_acknowledged=FALSE;

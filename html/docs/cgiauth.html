@@ -60,7 +60,7 @@ Throughout these instructions I will be using the following terms, so you should
 </p>
 
 <p>
-The first step to configuring your web server for authentication is to make sure the web server configuration file (i.e. <b>httpd.conf</b>) file contains an '<b>AuthOverride AuthConfig</b>' statement in it for the Nagios CGI-BIN directory.  If it doesn't, you'll have to add something similiar to the following to your web server configuration file.  Note that you will have to restart the web server in order for this change to take effect.
+The first step to configuring your web server for authentication is to make sure the web server configuration file (i.e. <b>httpd.conf</b>) file contains an '<b>AllowOverride AuthConfig</b>' statement in it for the Nagios CGI-BIN directory.  If it doesn't, you'll have to add something similiar to the following to your web server configuration file.  Note that you will have to restart the web server in order for this change to take effect.
 </p>
 
 <p>
@@ -114,7 +114,7 @@ require valid-user
 </p>
 
 <p>
-Now that you've configured the web server to require authentication for access to the CGIs, you'll need to configure users who can acess the CGIs. This is done by using the <b>htpasswd</b> command supplied with Apache.
+Now that you've configured the web server to require authentication for access to the CGIs, you'll need to configure users who can access the CGIs. This is done by using the <b>htpasswd</b> command supplied with Apache.
 </p>
 <p>
 Running the following command will create a new file called <i>htpasswd.users</i> in the <i>/usr/local/nagios/etc</i> directory. It will also create an username/password entry for <i>nagiosadmin</i>.  You will be asked to provide a password that will be used when <i>nagiosadmin</i> authenticates to the web server.

@@ -25,7 +25,7 @@
 #define _CGIUTILS_H
 
 #include "../common/objects.h"
-#include "auth.h"
+#include "cgiauth.h"
 
 
 #undef USE_STATUSMAP		/* should we compile and use the statusmap CGI? */

@@ -4,7 +4,7 @@ Nagios Change Log
 
 
 
-1.1 - 06/01/2003
+1.1 - 06/02/2003
 ----------------
 * File descriptor leak in file-based performance routines
 * Timestamp fix for PostgreSQL 7.3

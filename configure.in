@@ -17,6 +17,8 @@ dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
 AC_SUBST(INSTALL)
 
+dnl What OS are we running?
+AC_CANONICAL_HOST
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -863,6 +865,7 @@ fi
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
 AC_MSG_RESULT([                Lock file:  $lockfile])
 AC_MSG_RESULT([           Init directory:  $init_dir])
+AC_MSG_RESULT([                  Host OS:  $host_os])
 
 echo ""
 echo " Web Interface Options:"

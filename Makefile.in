@@ -134,7 +134,7 @@ clean:
 	cd $(SRC_XDATA) && $(MAKE) $@
 	cd $(SRC_HTM) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
-	rm -f *.cfg *.sub core
+	rm -f *.cfg core
 	rm -f *~ */*~
 	rm -f config.log config.status config.cache
 

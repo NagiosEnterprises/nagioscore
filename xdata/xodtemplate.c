@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-24-2004
+ * Last Modified: 04-13-2004
  *
  * Description:
  *
@@ -327,6 +327,11 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	struct dirent *dirfile;
 	int result=OK;
 	int x;
+	char link_buffer[MAX_FILENAME_LENGTH];
+	char file_name_buffer[MAX_FILENAME_LENGTH];
+	char linked_to_buffer[MAX_FILENAME_LENGTH];
+	struct stat stat_buf;
+	ssize_t readlink_count;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -354,8 +359,8 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		if(x>4 && !strcmp(dirfile->d_name+(x-4),".cfg")){
 
 #ifdef _DIRENT_HAVE_D_TYPE
-			/* only process normal files */
-			if(dirfile->d_type!=DT_REG)
+			/* only process normal files and symlinks */
+			if(dirfile->d_type!=DT_REG && dirfile->d_type!=DT_LNK)
 				continue;
 #endif
 
@@ -373,11 +378,83 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 #ifdef _DIRENT_HAVE_D_TYPE
 		/* recurse into subdirectories... */
-		if(dirfile->d_type==DT_DIR){
+		if(dirfile->d_type==DT_DIR || dirfile->d_type==DT_LNK){
 
 			/* ignore current, parent and hidden directory entries */
 			if(dirfile->d_name[0]=='.')
 				continue;
+
+			/* check that a symlink points to a dir */
+
+			if(dirfile->d_type==DT_LNK){
+
+				/* copy full path info to link buffer */
+				snprintf(file_name_buffer,sizeof(file_name_buffer)-1,"%s/%s",dirname,dirfile->d_name);
+				file_name_buffer[sizeof(file_name_buffer)-1]='\x0';
+
+				readlink_count=readlink(file_name_buffer,link_buffer,MAX_FILENAME_LENGTH);
+
+				/* Handle special case with maxxed out buffer */
+				if(readlink_count==MAX_FILENAME_LENGTH){
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot follow symlink '%s' - Too big!\n",file_name_buffer);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+
+				/* Check if reading symlink failed */
+				if(readlink_count==-1){
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot read symlink '%s': %s!\n",file_name_buffer, strerror(errno));
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+
+				/* terminate string */
+				link_buffer[readlink_count]='\x0';
+			
+				/* create new symlink buffer name */
+				snprintf(linked_to_buffer,sizeof(linked_to_buffer)-1,"%s/%s",dirname,link_buffer);
+				linked_to_buffer[sizeof(linked_to_buffer)-1]='\x0';
+
+				/* 
+				 * At this point, we know it's a symlink -
+				 * now check for whether it points to a 
+				 * directory or not
+				 */
+
+				x=stat(linked_to_buffer,&stat_buf);
+				if(x!=0){
+
+					/* non-existent symlink - bomb out */
+					if(errno==ENOENT){
+#ifdef NSCORE
+						snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: symlink '%s' points to non-existent '%s'!\n",file_name_buffer,link_buffer);
+						temp_buffer[sizeof(temp_buffer)-1]='\x0';
+						write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+						return ERROR;
+					        }
+
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot stat symlinked from '%s' to %s!\n",file_name_buffer,link_buffer);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+
+				if(!S_ISDIR(stat_buf.st_mode)){
+					/* Not a symlink to a dir - skip */
+					continue;
+				        }
+
+				/* Otherwise, we may proceed! */
+			        }
 
 			/* create the full path to the config directory */
 			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
@@ -441,7 +518,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 	fp=fopen(filename,"r");
 	if(fp==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open config file '%s' for reading!\n",filename);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open config file '%s' for reading: %s\n",filename,strerror(errno));
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif

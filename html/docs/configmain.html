@@ -127,6 +127,9 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#check_service_freshness">Service freshness checking option</a><br>
 <a href="#freshness_check_interval">Service freshness checking option</a><br>
 <br>
+<a href="#illegal_object_name_chars">Illegal object name characters</a><br>
+<a href="#illegal_macro_output_chars">Illegal macro output characters</a><br>
+<br>
 <a href="#admin_email">Administrator email address</a><br>
 <a href="#admin_pager">Administrator pager</a><br>
 </p>
@@ -660,7 +663,7 @@ This option determines whether or not Nagios will check the <a href="command_fil
 <table border="0">
 <tr>
 <td>Format:</td>
-<td><strong>command_check_interval=&lt;xxx&gt;</strong></td>
+<td><strong>command_check_interval=&lt;xxx&gt;[s]</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
@@ -670,7 +673,11 @@ This option determines whether or not Nagios will check the <a href="command_fil
 </p>
 
 <p>
-This is the number of "time units" to wait between external command checks. Unless you've changed the <a href="#interval_length">interval_length</a> value (as defined below) from the default value of 60, this number will mean minutes.  Note: By setting this value to <b>-1</b>, Nagios will check for external commands as often as possible.  Each time Nagios checks for external commands it will read and process all commands present in the <a href="#command_file">command file</a> before continuing on with its other duties.  More information on external commands can be found <a href="extcommands.html">here</a>.
+If you specify a number with an "s" appended to it (i.e. 30s), this is the number of <i>seconds</i> to wait between external command checks.  If you leave off the "s", this is the number of "time units" to wait between external command checks. Unless you've changed the <a href="#interval_length">interval_length</a> value (as defined below) from the default value of 60, this number will mean minutes.  
+</p>
+
+<p>
+Note: By setting this value to <b>-1</b>, Nagios will check for external commands as often as possible.  Each time Nagios checks for external commands it will read and process all commands present in the <a href="#command_file">command file</a> before continuing on with its other duties.  More information on external commands can be found <a href="extcommands.html">here</a>.
 </p>
 
 
@@ -1941,6 +1948,61 @@ This option determines whether or not Nagios will periodically check the "freshn
 
 <p>
 This setting determines how often (in seconds) Nagios will periodically check the "freshness" of service check results.  If you have disabled service freshness checking (with the <a href="#check_service_freshness">check_service_freshness<a> option), this option has no effect.  More information on freshness checking can be found <a href="freshness.html">here</a>.
+</p>
+
+
+<p>
+<a name="illegal_object_name_chars"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Illegal Object Name Characters</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td>
+<td><strong>illegal_object_name_chars=&lt;chars...&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>illegal_object_name_chars=`~!$%^&amp;*"|'&lt;&gt;?,()=</strong></font></td>
+</tr>
+</table>
+</p>
+<p>
+This options allows you to specify illegal characters that cannot be used in host names, service descriptions, or names of other object types.  Nagios will allow you to use most characters in object definitions, but I recommend not using the characters shown in the example above.  Doing may give you problems in the web interface, notification commands, etc.
+</p>
+
+
+<p>
+<a name="illegal_macro_output_chars"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Illegal Macro Output Characters</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td>
+<td><strong>illegal_macro_output_chars=&lt;chars...&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>illegal_macro_output_chars=`~$^&amp;"|'&lt;&gt;</strong></font></td>
+</tr>
+</table>
+</p>
+<p>
+This options allows you to specify illegal characters that should be stripped from <a href="macros.html">macros</a> before being used in notifications, event handlers, and other commands.  This DOES NOT affect macros used in service or host check commands.  You can choose to not strip out the characters shown in the example above, but I recommend you do not do this.  Some of these characters are interpreted by the shell (i.e. the backtick) and can lead to security problems.  The following macros are stripped of the characters you specify: 
+</p>
+<p>
+<b>$OUTPUT$</b>, <b>$PERFDATA$</b>
 </p>
 
 

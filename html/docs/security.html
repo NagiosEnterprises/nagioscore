@@ -91,6 +91,14 @@ When you define commands, make sure you specify the <i>full path</i> to any scri
 The CGIs read the <a href="configmain.html">main config file</a> and <a href="configobject.html">object config file(s)</a>, so you don't want to keep any sensitive information (usernames, passwords, etc) in there.  If you need to specify a username and/or password in a command definition use a $USERn$ <a href="macros.html">macro</a> to hide it.  $USERn$ macros are defined in one or more <a href="configmain.html#resource_file">resource files</a>.  The CGIs will not attempt to read the contents of resource files, so you can set more restrictive permissions (600 or 660) on them.  See the sample <i>resource.cfg</i> file in the base of the Nagios distribution for an example of how to define $USERn$ macros.
 </p>
 
+<p>
+<font color="red"><strong><u>Strip Dangerous Characters From Macros</u></strong></font>
+</p>
+
+<p>
+Use the <a href="configmain.html#illegal_macro_output_chars">illegal_macro_output_chars</a> directive to strip dangerous characters from the $OUTPUT$ and $PERFDATA$ macros before they're used in notifications, etc.  Dangerous characters can be anything that might be interpreted by the shell, thereby opening a security hole.  An example of this is the presence of backtick (`) characters in the $OUTPUT$ and/or $PERFDATA$ macros, which could allow an attacker to execute an arbitrary command as the nagios user (one good reason not to run Nagios as the root user).
+</p>
+
 <hr>
 
 </body>

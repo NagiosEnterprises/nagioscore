@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2002
+ * Last Modified:   07-03-2002
  *
  * License:
  *
@@ -227,6 +227,7 @@ int xcddefault_validate_comment_data(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	int comment_type=HOST_COMMENT;
+	int comment_id;
 	char temp_file[MAX_INPUT_BUFFER];
 	int tempfd;
 
@@ -253,7 +254,7 @@ int xcddefault_validate_comment_data(void){
 	        }
 
 	/* reset the current comment counter */
-	current_comment_id=1;
+	current_comment_id=0;
 
 	/* process each line in the old comment file */
 	while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),fpin)){
@@ -282,8 +283,11 @@ int xcddefault_validate_comment_data(void){
 		/* skip the comment type identifier */
 		temp_buffer=my_strtok(NULL,";");
 
-		/* skip the comment ID number */
+		/* grab the comment ID number - make sure global comment counter is as big as the max value found */
 		temp_buffer=my_strtok(NULL,";");
+		comment_id=atoi(temp_buffer);
+		if(comment_id>=current_comment_id)
+			current_comment_id=comment_id;
 
 		/* see if the host still exists */
 		temp_buffer=my_strtok(NULL,";");
@@ -316,10 +320,10 @@ int xcddefault_validate_comment_data(void){
 		/* get the comment data */
 		comment_data=my_strtok(NULL,"\n");
 
-		/* write the old comment to the new file, re-numbering them as we go */
+		/* write the old comment to the new file - COMMENTS ARE NO LONGER RE-NUMBERED */
 		if(save==TRUE){
 
-			snprintf(output_buffer,sizeof(output_buffer)-1,"[%s] %s_COMMENT;%d;%s;",entry_time,(comment_type==HOST_COMMENT)?"HOST":"SERVICE",current_comment_id,temp_host->name);
+			snprintf(output_buffer,sizeof(output_buffer)-1,"[%s] %s_COMMENT;%d;%s;",entry_time,(comment_type==HOST_COMMENT)?"HOST":"SERVICE",comment_id,temp_host->name);
 			output_buffer[sizeof(output_buffer)-1]='\x0';
 			fputs(output_buffer,fpout);
 
@@ -332,9 +336,6 @@ int xcddefault_validate_comment_data(void){
 			snprintf(output_buffer,sizeof(output_buffer)-1,"1;%s;%s\n",comment_author,comment_data);
 			output_buffer[sizeof(output_buffer)-1]='\x0';
 			fputs(output_buffer,fpout);
-
-			/* increment the current comment counter */
-			current_comment_id++;
 		        }
 	        }
 

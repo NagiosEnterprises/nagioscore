@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-22-2002
+ * Last Modified: 07-03-2002
  *
  * License:
  * 
@@ -1277,27 +1277,52 @@ void show_service_detail(void){
 			else if(temp_status->status==SERVICE_WARNING){
 				strncpy(status,"WARNING",sizeof(status));
 				status_class="WARNING";
-				status_bg_class="BGWARNING";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGWARNINGACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGWARNINGSCHED";
+				else
+					status_bg_class="BGWARNING";
 		                }
 			else if(temp_status->status==SERVICE_UNKNOWN){
 				strncpy(status,"UNKNOWN",sizeof(status));
 				status_class="UNKNOWN";
-				status_bg_class="BGUNKNOWN";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGUNKNOWNACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGUNKNOWNSCHED";
+				else
+					status_bg_class="BGUNKNOWN";
 		                }
 			else if(temp_status->status==SERVICE_CRITICAL){
 				strncpy(status,"CRITICAL",sizeof(status));
 				status_class="CRITICAL";
-				status_bg_class="BGCRITICAL";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGCRITICALACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGCRITICALSCHED";
+				else
+					status_bg_class="BGCRITICAL";
 		                }
 			else if(temp_status->status==SERVICE_HOST_DOWN){
 				strncpy(status,"HOST DOWN",sizeof(status));
 				status_class="CRITICAL";
-				status_bg_class="BGCRITICAL";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGCRITICALACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGCRITICALSCHED";
+				else
+					status_bg_class="BGCRITICAL";
 		                }
 			else if(temp_status->status==SERVICE_UNREACHABLE){
 				strncpy(status,"UNREACHABLE",sizeof(status));
 				status_class="CRITICAL";
-				status_bg_class="BGCRITICAL";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGCRITICALACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGCRITICALSCHED";
+				else
+					status_bg_class="BGCRITICAL";
 		                }
 			status[sizeof(status)-1]='\x0';
 
@@ -1310,10 +1335,22 @@ void show_service_detail(void){
 				/* find extended information for this host */
 				temp_hostextinfo=find_hostextinfo(temp_status->host_name);
 
-				if(temp_hoststatus->status==HOST_DOWN)
-					host_status_bg_class="HOSTDOWN";
-				else if(temp_hoststatus->status==HOST_UNREACHABLE)
-					host_status_bg_class="HOSTUNREACHABLE";
+				if(temp_hoststatus->status==HOST_DOWN){
+					if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
+						host_status_bg_class="HOSTDOWNACK";
+					else if(temp_hoststatus->scheduled_downtime_depth>0)
+						host_status_bg_class="HOSTDOWNSCHED";
+					else
+						host_status_bg_class="HOSTDOWN";
+				        }
+				else if(temp_hoststatus->status==HOST_UNREACHABLE){
+					if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
+						host_status_bg_class="HOSTUNREACHABLEACK";
+					else if(temp_hoststatus->scheduled_downtime_depth>0)
+						host_status_bg_class="HOSTUNREACHABLESCHED";
+					else
+						host_status_bg_class="HOSTUNREACHABLE";
+				        }
 				else
 					host_status_bg_class=(odd)?"Even":"Odd";
 
@@ -1705,12 +1742,22 @@ void show_host_detail(void){
 			else if(temp_status->status==HOST_DOWN){
 				strncpy(status,"DOWN",sizeof(status));
 				status_class="HOSTDOWN";
-				status_bg_class="BGDOWN";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGDOWNACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGDOWNSCHED";
+				else
+					status_bg_class="BGDOWN";
 		                }
 			else if(temp_status->status==HOST_UNREACHABLE){
 				strncpy(status,"UNREACHABLE",sizeof(status));
 				status_class="HOSTUNREACHABLE";
-				status_bg_class="BGUNREACHABLE";
+				if(temp_status->problem_has_been_acknowledged==TRUE)
+					status_bg_class="BGUNREACHABLEACK";
+				else if(temp_status->scheduled_downtime_depth>0)
+					status_bg_class="BGUNREACHABLESCHED";
+				else
+					status_bg_class="BGUNREACHABLE";
 		                }
 			status[sizeof(status)-1]='\x0';
 

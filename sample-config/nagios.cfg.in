@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 07-02-2002
+# Last Modified: 07-04-2002
 #
 ##############################################################################
 
@@ -109,13 +109,17 @@ check_external_commands=0
 # This is the interval at which Nagios should check for external commands.
 # This value works of the interval_length you specify later.  If you leave
 # that at its default value of 60 (seconds), a value of 1 here will cause
-# Nagios to check for external commands every minute.  Note: In addition
-# to reading the external command file at regularly scheduled intervals, 
-# Nagios will also check for external commands after event handlers are
-# executed.
+# Nagios to check for external commands every minute.  If you specify a
+# number followed by an "s" (i.e. 15s), this will be interpreted to mean
+# actual seconds rather than a multiple of the interval_length variable.
+# Note: In addition to reading the external command file at regularly 
+# scheduled intervals, Nagios will also check for external commands after
+# event handlers are executed.
 # NOTE: Setting this value to -1 causes Nagios to check the external
 # command file as often as possible.
 
+#command_check_interval=1
+#command_check_interval=15s
 command_check_interval=-1
 
 
@@ -622,7 +626,7 @@ date_format=us
 # be used in host names, service descriptions, or names of other
 # object types.
 
-illegal_object_name_chars=`~!@$%^&*|'"<>?,()=
+illegal_object_name_chars=`~!$%^&*|'"<>?,()=
 
 
 
@@ -631,10 +635,10 @@ illegal_object_name_chars=`~!@$%^&*|'"<>?,()=
 # stripped from macros before being used in notifications, event
 # handlers, etc.  This DOES NOT affect macros used in service or
 # host check commands.
-# The following macros are stripped: 
-# 	$OUTPUT, $PERFDATA
+# The following macros are stripped of the characters you specify:
+# 	$OUTPUT$, $PERFDATA$
 
-illegal_macro_output_chars=`~$^&|'"<>
+illegal_macro_output_chars=`~$&|'"<>
 
 
 

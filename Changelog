@@ -2,13 +2,18 @@
 Nagios Change Log
 ###################
 
-1.0b4 - 06/??/2002
+1.0b4 - 07/04/2002
 ------------------
 * Address field in host definitions is now optional in template-based
   config format.  Defaults to host name if not specified.
 * Changed method of checking for user/group in RPM spec file
 * Bug fixes in template-based object code
 * Fixed memory leak when processing passive checks
+* Added illegal_macro_output_chars variable to main config file to
+  allow for stripping dangerous shell characters from plugin ouput
+* Comment IDs are no longer re-numbered when Nagios (re)starts.  This
+  applies only to the default comment data method (DB method never
+  renumbered comments)
 
 
 1.0b3 - 06/09/2002

@@ -103,6 +103,8 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 
 <li><b>Custom CGI Headers/Footers</b>.  You can now include optional headers and footers in the CGIs.  This is most useful if you do custom Nagios installations for customers and want to include tag line, contact info, etc in each page.  More information on doing this can be found <a href="cgiincludes.html">here</a>.<br><br>
 
+<li><b>Cleaning Of Dangerous Macro Output Characters</b>.  Potentially dangerous characters can now be stripped from the $OUTPUT$ and $PERFDATA$ macros before they're used in notification commands, etc. by using the <a href="configmain.html#illegal_macro_output_chars">illegal_macro_output_chars</a> directive.  At a bare minimum, I highly recommend you strip out the characters shown in the example, or an attacker might be able to execute arbitrary commands as the nagios user!<br><br>
+
 </ol>
 </p>
 

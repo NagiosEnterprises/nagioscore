@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2002
+ * Last Modified:   07-03-2002
  *
  * License:
  *
@@ -182,6 +182,7 @@ int read_main_config_file(char *main_config_file){
 	FILE *fp;
 	int current_line=0;
 	int error=FALSE;
+	int command_check_interval_is_seconds=FALSE;
 
 #ifdef DEBUG0
 	printf("read_main_config_file() start\n");
@@ -849,6 +850,7 @@ int read_main_config_file(char *main_config_file){
 		        }
 		else if(!strcmp(variable,"command_check_interval")){
 			strip(value);
+			command_check_interval_is_seconds=(strstr(value,"s"))?TRUE:FALSE;
 			command_check_interval=atoi(value);
 			if(command_check_interval<-1 || command_check_interval==0){
 				strcpy(error_message,"Illegal value for command_check_interval");
@@ -1070,6 +1072,10 @@ int read_main_config_file(char *main_config_file){
 			}
 
 		}
+
+	/* adjust values */
+	if(command_check_interval_is_seconds==FALSE && command_check_interval!=-1)
+		command_check_interval*=interval_length;
 
 	if(error==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,error_message);

@@ -616,7 +616,7 @@ The good news is that NT has a lot of performance data that you can monitor.  Th
 In order to expose NT performance counters for monitoring, you'll have to run the SNMP service on all servers you want to monitor.  You'll also have to install any necessary performance MIBs for the services you want to monitor.  I believe these can be found in the NT Resource Kit or in various server admin packages.  If you've feeling extra lucky you can try to search the Microsoft site for the terms <b>SNMP</b> and <b>MIB</b> and maybe you'll find something...
 </p>
 <p>
-You can search the <a href="http://www.ee.ethz.ch/~slist/mrtg">MRTG mailing list archives</a> for more information on configuring NT servers to expose various performance counters via SNMP.  I know this has been discussed in the past, as many people are graphing various NT performance statistics using MRTG.  In fact, somebody from Microsoft is actually doing it - you can find their web page at <a href="http://snmpboy.rte.microsoft.com/">http://snmpboy.rte.microsoft.com/</a>.
+You can search the <a href="http://www.ee.ethz.ch/~slist/mrtg">MRTG mailing list archives</a> for more information on configuring NT servers to expose various performance counters via SNMP.  I know this has been discussed in the past, as many people are graphing various NT performance statistics using MRTG.  In fact, somebody from Microsoft is actually doing it - you can find their web page at <a href="http://snmpboy.msft.net/">http://snmpboy.msft.net/</a>.
 </p>
 <p>
 Once you've actually got the SNMP stuff working, you can use the <a href="plugins.html#check_snmp">check_snmp</a> plugin to query your NT servers and generate alarms.

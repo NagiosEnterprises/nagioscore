@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   06-30-2002
+ * Last Modified:   07-04-2002
  *
  * Description:
  *
@@ -1129,6 +1129,7 @@ void display_scheduling_info(void){
 	printf("\tTotal hosts:                %d\n",scheduling_info.total_hosts);
 	printf("\n");
 
+	printf("\tCommand check interval:     %d sec\n",command_check_interval);
 	printf("\tCheck reaper interval:      %d sec\n",service_check_reaper_interval);
 	printf("\n");
 
@@ -1328,7 +1329,7 @@ void schedule_event(timed_event *event,timed_event **event_list){
 
 		/* else schedule external command checks at user-specified intervals */
 		else
-			event->run_time=event->run_time+(command_check_interval*interval_length);
+			event->run_time=event->run_time+(command_check_interval);
 	        }
 
 	/* if this is a log rotation event... */

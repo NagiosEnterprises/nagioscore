@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2003
+ * Last Modified: 09-25-2003
  *
  * Description:
  *
@@ -69,6 +69,11 @@
 #include "xodtemplate.h"
 
 
+#ifdef NSCORE
+extern int use_regexp_matches;
+extern int use_true_regexp_matching;
+#endif
+
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
 xodtemplate_command *xodtemplate_command_list=NULL;
@@ -92,10 +97,6 @@ int xodtemplate_current_config_file=0;
 char **xodtemplate_config_files;
 
 char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
-
-/* THESE NEED TO BE MOVED AND MADE TO CONFIG FILE VARS... */
-int use_regexp_matches=FALSE;
-int use_true_regexp_matching=FALSE;
 
 
 
@@ -6093,8 +6094,6 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	xodtemplate_resolve_hostextinfo(template_hostextinfo);
 
 	/* apply missing properties from template hostextinfo... */
-	if(this_hostextinfo->name==NULL && template_hostextinfo->name!=NULL)
-		this_hostextinfo->name=strdup(template_hostextinfo->name);
 	if(this_hostextinfo->host_name==NULL && template_hostextinfo->host_name!=NULL)
 		this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
 	if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
@@ -6170,8 +6169,6 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	xodtemplate_resolve_serviceextinfo(template_serviceextinfo);
 
 	/* apply missing properties from template serviceextinfo... */
-	if(this_serviceextinfo->name==NULL && template_serviceextinfo->name!=NULL)
-		this_serviceextinfo->name=strdup(template_serviceextinfo->name);
 	if(this_serviceextinfo->host_name==NULL && template_serviceextinfo->host_name!=NULL)
 		this_serviceextinfo->host_name=strdup(template_serviceextinfo->host_name);
 	if(this_serviceextinfo->hostgroup_name==NULL && template_serviceextinfo->hostgroup_name!=NULL)

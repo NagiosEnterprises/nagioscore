@@ -76,6 +76,9 @@ char            *ochp_command=NULL;
 char            *illegal_object_chars=NULL;
 char            *illegal_output_chars=NULL;
 
+int             use_regexp_matches=FALSE;
+int             use_true_regexp_matching=FALSE;
+
 int		use_syslog=DEFAULT_USE_SYSLOG;
 int             log_notifications=DEFAULT_NOTIFICATION_LOGGING;
 int             log_service_retries=DEFAULT_LOG_SERVICE_RETRIES;

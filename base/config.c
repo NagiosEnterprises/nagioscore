@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Last Modified:   09-25-2003
  *
  * License:
  *
@@ -54,6 +54,9 @@ extern char     *ochp_command;
 
 extern char     *illegal_object_chars;
 extern char     *illegal_output_chars;
+
+extern int      use_regexp_matches;
+extern int      use_true_regexp_matching;
 
 extern int	use_syslog;
 extern int      log_notifications;
@@ -1237,6 +1240,20 @@ int read_main_config_file(char *main_config_file){
 			argptr=strtok(NULL,"\n");
 #ifdef USE_EVENT_BROKER
                         neb_add_module(modptr,argptr,TRUE);
+#endif
+		        }
+		else if(!strcmp(variable,"use_regexp_matching")){
+			strip(value);
+			use_regexp_matches=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\tuse_regexp_matches to %s\n",(use_regexp_matches==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+		else if(!strcmp(variable,"use_true_regexp_matching")){
+			strip(value);
+			use_true_regexp_matching=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\tuse_true_regexp_matching to %s\n",(use_true_regexp_matching==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 

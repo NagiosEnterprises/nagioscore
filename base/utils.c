@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-14-2003
+ * Last Modified:   09-25-2003
  *
  * License:
  *
@@ -89,6 +89,9 @@ extern char     *ochp_command;
 
 extern char     *illegal_object_chars;
 extern char     *illegal_output_chars;
+
+extern int      use_regexp_matches;
+extern int      use_true_regexp_matching;
 
 extern int      sigshutdown;
 extern int      sigrestart;
@@ -4113,6 +4116,9 @@ int reset_variables(void){
 
 	nagios_user=(char *)strdup(DEFAULT_NAGIOS_USER);
 	nagios_group=(char *)strdup(DEFAULT_NAGIOS_GROUP);
+
+	use_regexp_matches=FALSE;
+	use_true_regexp_matching=FALSE;
 
 	use_syslog=DEFAULT_USE_SYSLOG;
 	log_service_retries=DEFAULT_LOG_SERVICE_RETRIES;

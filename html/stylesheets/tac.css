@@ -66,6 +66,8 @@
 	.featureDisabledPassiveChecks { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
 	.featureItemEnabledPassiveServiceChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
 	.featureItemDisabledPassiveServiceChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemEnabledPassiveHostChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledPassiveHostChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
 
 	.outageTitle { text-align: left; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #999797; color: black; }
 	.outageHeader { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #C4C2C2; color: black; text-decoration: none; }

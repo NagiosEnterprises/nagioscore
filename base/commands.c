@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-13-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -1395,6 +1395,9 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	/* record check type */
 	this_host->check_type=HOST_CHECK_PASSIVE;
 
+	/* record state type */
+	this_host->state_type=HARD_STATE;
+
 	/* set the current attempt */
 	this_host->current_attempt=1;
 
@@ -1458,12 +1461,12 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 
 	/***** PROCESS PERFORMANCE DATA *****/
-	update_host_performance_data(this_host,return_code,HARD_STATE);
+	update_host_performance_data(this_host,return_code);
 
 
 	/***** HAS A HOST STATE CHANGE OCCURRED? *****/
 	if(return_code!=old_state)
-		handle_host_state(this_host,return_code,HARD_STATE);
+		handle_host_state(this_host,return_code);
 
 
 	/***** UPDATE HOST STATUS *****/
@@ -1475,13 +1478,13 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	if(old_state==return_code && strcmp(old_plugin_output,this_host->plugin_output)){
 
 		if(return_code==HOST_UP && this_host->stalk_on_up==TRUE)
-			log_host_event(this_host,HOST_UP,HARD_STATE);
+			log_host_event(this_host,HOST_UP);
 
 		if(return_code==HOST_DOWN && this_host->stalk_on_down==TRUE)
-			log_host_event(this_host,HOST_DOWN,HARD_STATE);
+			log_host_event(this_host,HOST_DOWN);
 
 		if(return_code==HOST_UNREACHABLE && this_host->stalk_on_unreachable==TRUE)
-			log_host_event(this_host,HOST_UNREACHABLE,HARD_STATE);
+			log_host_event(this_host,HOST_UNREACHABLE);
 	        }
 
 #ifdef USE_EVENT_BROKER

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-10-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -341,7 +341,7 @@ int run_service_event_handler(service *svc,int state_type){
 
 
 /* handles a change in the status of a host */
-int handle_host_event(host *hst,int state,int state_type){
+int handle_host_event(host *hst,int state){
 
 #ifdef DEBUG0
 	printf("handle_host_event() start\n");
@@ -357,13 +357,6 @@ int handle_host_event(host *hst,int state,int state_type){
 	clear_volatile_macros();
 	grab_host_macros(hst);
 
-	/* grab the host state type macro */
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		free(macro_x[MACRO_STATETYPE]);
-	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
-
 	/* make sure the host state macro is correct */
 	if(macro_x[MACRO_HOSTSTATE]!=NULL)
 		free(macro_x[MACRO_HOSTSTATE]);
@@ -378,11 +371,11 @@ int handle_host_event(host *hst,int state,int state_type){
 	        }
 
 	/* run the global host event handler */
-	run_global_host_event_handler(hst,state,state_type);
+	run_global_host_event_handler(hst,state);
 
 	/* run the event handler command if there is one */
 	if(hst->event_handler!=NULL)
-		run_host_event_handler(hst,state,state_type);
+		run_host_event_handler(hst,state);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -396,7 +389,7 @@ int handle_host_event(host *hst,int state,int state_type){
 
 
 /* runs the global host event handler */
-int run_global_host_event_handler(host *hst,int state,int state_type){
+int run_global_host_event_handler(host *hst,int state){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -453,7 +446,7 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,state,state_type,exectime,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,state,hst->state_type,exectime,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -465,7 +458,7 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 
 
 /* runs a host event handler command */
-int run_host_event_handler(host *hst,int state,int state_type){
+int run_host_event_handler(host *hst,int state){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -514,7 +507,7 @@ int run_host_event_handler(host *hst,int state,int state_type){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,state,state_type,exectime,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,state,hst->state_type,exectime,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -533,7 +526,7 @@ int run_host_event_handler(host *hst,int state,int state_type){
 
 
 /* top level host state handler */
-int handle_host_state(host *hst,int state,int state_type){
+int handle_host_state(host *hst,int state){
 	int state_change=FALSE;
 
 #ifdef DEBUG0
@@ -556,7 +549,7 @@ int handle_host_state(host *hst,int state,int state_type){
 		hst->next_host_notification=(time_t)0;
 
 		/* set the state flags in case we "float" between down and unreachable states before a recovery */
-		if(state_type==HARD_STATE){
+		if(hst->state_type==HARD_STATE){
 			if(state==HOST_DOWN)
 				hst->has_been_down=TRUE;
 			else if(state==HOST_UNREACHABLE)
@@ -568,20 +561,19 @@ int handle_host_state(host *hst,int state,int state_type){
 			hst->current_attempt=1;
 
 		/* write the host state change to the main log file */
-		if(state_type==HARD_STATE || (state_type==SOFT_STATE && log_host_retries==TRUE))
-			log_host_event(hst,state,state_type);
+		if(hst->state_type==HARD_STATE || (hst->state_type==SOFT_STATE && log_host_retries==TRUE))
+			log_host_event(hst,state);
 
 		/* check for start of flexible (non-fixed) scheduled downtime */
-		/*if(state_type==HARD_STATE && hst->pending_flex_downtime>0)*/
-		if(state_type==HARD_STATE)
+		if(hst->state_type==HARD_STATE)
 			check_pending_flex_host_downtime(hst,state);
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
-		if(state_type==HARD_STATE)
+		if(hst->state_type==HARD_STATE)
 			host_notification(hst,state,NULL);
 
 		/* handle the host state change */
-		handle_host_event(hst,state,state_type);
+		handle_host_event(hst,state);
 
 		/* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
 		if(state==HOST_UP){
@@ -591,7 +583,7 @@ int handle_host_state(host *hst,int state,int state_type){
 		        }
 
 		/* set the host state flag and update the status log if this is a hard state */
-		if(state_type==HARD_STATE){
+		if(hst->state_type==HARD_STATE){
 			hst->status=state;
 			update_host_status(hst,FALSE);
 		        }
@@ -601,15 +593,15 @@ int handle_host_state(host *hst,int state,int state_type){
 	else{
 
 		/* notify contacts if host is still down */
-		if(state!=HOST_UP && state_type==HARD_STATE)
+		if(state!=HOST_UP && hst->state_type==HARD_STATE)
 			host_notification(hst,state,NULL);
 
 		/* if we're in a soft state and we should log host retries, do so now... */
-		if(state_type==SOFT_STATE && log_host_retries==TRUE)
-			log_host_event(hst,state,state_type);
+		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)
+			log_host_event(hst,state);
 
 		/* update the status log if this is a hard state */
-		if(state_type==HARD_STATE)
+		if(hst->state_type==HARD_STATE)
 			update_host_status(hst,FALSE);
 
 	        }

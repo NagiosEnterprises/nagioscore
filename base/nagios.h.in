@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-10-2003
+ * Last Modified: 02-16-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -424,7 +424,7 @@ void disable_service_flap_detection(service *);		/* disables flap detection for 
 int verify_route_to_host(host *);                    	/* checks if a host is up, down, or unreachable */
 int check_host(host *,int);                            	/* checks if a host is up or down */
 int run_host_check(host *);                             /* runs a host check */
-int handle_host_state(host *,int,int);               	/* top level host state handler */
+int handle_host_state(host *,int);               	/* top level host state handler */
 
 
 /**** Event Handler Functions ****/
@@ -433,9 +433,9 @@ int obsessive_compulsive_host_check_processor(host *,int);	/* distributed monito
 int handle_service_event(service *,int);			/* top level service event logic */
 int run_service_event_handler(service *,int);			/* runs the event handler for a specific service */
 int run_global_service_event_handler(service *,int);		/* runs the global service event handler */
-int handle_host_event(host *,int,int);				/* top level host event logic */
-int run_host_event_handler(host *,int,int);			/* runs the event handler for a specific host */
-int run_global_host_event_handler(host *,int,int);		/* runs the global host event handler */
+int handle_host_event(host *,int);				/* top level host event logic */
+int run_host_event_handler(host *,int);				/* runs the event handler for a specific host */
+int run_global_host_event_handler(host *,int);			/* runs the global host event handler */
 
 
 /**** Notification Functions ****/
@@ -464,7 +464,7 @@ int write_to_logs_and_console(char *,unsigned long,int);
 int write_to_log(char *,unsigned long);                	/* write a string to the main log file */
 int write_to_syslog(char *,unsigned long);             	/* write a string to the syslog facility */
 int log_service_event(service *,int);			/* logs a service event */
-int log_host_event(host *,int,int);			/* logs a host event */
+int log_host_event(host *,int);				/* logs a host event */
 int rotate_log_file(time_t);			     	/* rotates the main log file */
 
 

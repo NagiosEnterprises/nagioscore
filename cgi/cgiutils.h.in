@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2003
+ * Last Modified: 02-16-2003
  *
  * License:
  * 
@@ -271,6 +271,11 @@
 #define HOST_IS_NOT_FLAPPING		2048
 #define HOST_NOTIFICATIONS_DISABLED	4096
 #define HOST_NOTIFICATIONS_ENABLED	8192
+#define HOST_PASSIVE_CHECKS_DISABLED	16384
+#define HOST_PASSIVE_CHECKS_ENABLED	32768
+#define HOST_PASSIVE_CHECK           	65536
+#define HOST_ACTIVE_CHECK            	131072
+
 
 #define SERVICE_SCHEDULED_DOWNTIME	1
 #define SERVICE_NO_SCHEDULED_DOWNTIME	2

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -743,6 +743,8 @@ void reap_service_checks(void){
 
 				/* assume the host is up */
 				temp_host->status=HOST_UP;
+				temp_host->current_attempt=1;
+				temp_host->state_type=HARD_STATE;
 
 				/* plugin output should reflect our guess at the current host state */
 				strncpy(temp_host->plugin_output,"(Host assumed to be up)",MAX_PLUGINOUTPUT_LENGTH);
@@ -753,7 +755,7 @@ void reap_service_checks(void){
 
 				/* log the initial state if the user wants */
 				if(log_initial_states==TRUE)
-					log_host_event(temp_host,HOST_UP,HARD_STATE);
+					log_host_event(temp_host,HOST_UP);
 		                }
 
 			/* log the initial state if the user wants */
@@ -927,7 +929,7 @@ void reap_service_checks(void){
 				/* else fake the host check, but (possibly) resend host notifications to contacts... */
 				else{
 
-					/* if the host has never been checked beforem, set the checked flag */
+					/* if the host has never been checked before, set the checked flag */
 					if(temp_host->has_been_checked==FALSE)
 						temp_host->has_been_checked=TRUE;
 
@@ -939,7 +941,7 @@ void reap_service_checks(void){
 
 					/* log the initial state if the user wants to and this host hasn't been checked yet */
 					if(log_initial_states==TRUE && temp_service->has_been_checked==FALSE)
-						log_host_event(temp_host,temp_host->status,HARD_STATE);
+						log_host_event(temp_host,temp_host->status);
 
 				        /* possibly re-send host notifications... */
 					host_notification(temp_host,temp_host->status,NULL);
@@ -1458,6 +1460,9 @@ int check_host(host *hst,int propagation_options){
 	/* if the host is already down or unreachable... */
 	if(hst->status!=HOST_UP){
 
+		/* set the state type (should already be set) */
+		hst->state_type=HARD_STATE;
+
 		/* how many times should we retry checks for this host? */
 		if(use_aggressive_host_checking==FALSE)
 			max_check_attempts=1;
@@ -1471,7 +1476,7 @@ int check_host(host *hst,int propagation_options){
 			result=run_host_check(hst);
 
 			/* update performance data */
-			update_host_performance_data(hst,result,HARD_STATE);
+			update_host_performance_data(hst,result);
 
 			/* the host recovered from a hard problem... */
 			if(result==HOST_UP){
@@ -1479,7 +1484,7 @@ int check_host(host *hst,int propagation_options){
 				return_result=HOST_UP;
 
 				/* handle the hard host recovery */
-				handle_host_state(hst,HOST_UP,HARD_STATE);
+				handle_host_state(hst,HOST_UP);
 
 				/* propagate the host recovery upwards (at least one parent should be up now) */
 				if(propagation_options & PROPAGATE_TO_PARENT_HOSTS){
@@ -1500,8 +1505,8 @@ int check_host(host *hst,int propagation_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					host_cursor = get_host_cursor();
-					while(child_host = get_next_host_cursor(host_cursor)) {
+					host_cursor=get_host_cursor();
+					while(child_host=get_next_host_cursor(host_cursor)){
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->status!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
@@ -1531,7 +1536,7 @@ int check_host(host *hst,int propagation_options){
 				if(parent_host->status==HOST_UP){
 					
 					/* handle the hard host state change */
-					handle_host_state(hst,HOST_DOWN,HARD_STATE);
+					handle_host_state(hst,HOST_DOWN);
 
 					break;
 				        }
@@ -1548,11 +1553,22 @@ int check_host(host *hst,int propagation_options){
 			/* run the host check */
 			result=run_host_check(hst);
 
+			/* update state type */
+			if(result==HOST_UP){
+				if(hst->current_attempt==1)
+					hst->state_type=HARD_STATE;
+				else
+					hst->state_type=SOFT_STATE;
+			        }
+			else if(result!=HOST_UP){
+				if(hst->current_attempt<hst->max_attempts)
+					hst->state_type=SOFT_STATE;
+				else
+					hst->state_type=HARD_STATE;
+			        }
+
 			/* update performance data */
-			if((result==HOST_UP && hst->current_attempt==1) || (result!=HOST_UP && hst->current_attempt>=hst->max_attempts))
-				update_host_performance_data(hst,result,HARD_STATE);
-			else
-				update_host_performance_data(hst,result,SOFT_STATE);
+			update_host_performance_data(hst,result);
 
 			/* if this is the last check and we still haven't had a recovery, check the parents and children and then handle the hard host state */
 			if(result!=HOST_UP && (hst->current_attempt==hst->max_attempts)){
@@ -1588,14 +1604,14 @@ int check_host(host *hst,int propagation_options){
 					return_result=HOST_DOWN;
 
 				/* handle the hard host state (whether it is DOWN or UNREACHABLE) */
-				handle_host_state(hst,return_result,HARD_STATE);
+				handle_host_state(hst,return_result);
 
 				/* propagate the host problem to all child hosts (they should be unreachable now unless they have multiple parents) */
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
 					host_cursor=get_host_cursor();
-					while(child_host=get_next_host_cursor(host_cursor)) {
+					while(child_host=get_next_host_cursor(host_cursor)){
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->status!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
@@ -1606,7 +1622,7 @@ int check_host(host *hst,int propagation_options){
 
 			/* handle any soft states (during host check retries that return a non-ok state) */
 			else if(result!=HOST_UP || (result==HOST_UP && hst->current_attempt!=1))
-				handle_host_state(hst,result,SOFT_STATE);
+				handle_host_state(hst,result);
 
 			/* the host recovered (or it was never down), so break out of the check loop */
 			if(result==HOST_UP){
@@ -1630,17 +1646,20 @@ int check_host(host *hst,int propagation_options){
 	if(hst->current_attempt>hst->max_attempts)
 		hst->current_attempt=hst->max_attempts;
 
+	/* make sure state type is hard */
+	hst->state_type=HARD_STATE;
+
 	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
 	if(old_state==return_result && strcmp(old_plugin_output,hst->plugin_output)){
 
 		if(return_result==HOST_UP && hst->stalk_on_up==TRUE)
-			log_host_event(hst,HOST_UP,HARD_STATE);
+			log_host_event(hst,HOST_UP);
 
 		if(return_result==HOST_DOWN && hst->stalk_on_down==TRUE)
-			log_host_event(hst,HOST_DOWN,HARD_STATE);
+			log_host_event(hst,HOST_DOWN);
 
 		if(return_result==HOST_UNREACHABLE && hst->stalk_on_unreachable==TRUE)
-			log_host_event(hst,HOST_UNREACHABLE,HARD_STATE);
+			log_host_event(hst,HOST_UNREACHABLE);
 	        }
 
 #ifdef USE_EVENT_BROKER

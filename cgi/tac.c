@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 02-16-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -110,13 +110,19 @@ double percent_host_health=0.0;
 int total_hosts=0;
 int total_services=0;
 
-int total_active_checks=0;
-int total_passive_checks=0;
+int total_active_service_checks=0;
+int total_active_host_checks=0;
+int total_passive_service_checks=0;
+int total_passive_host_checks=0;
 
-double min_execution_time=-1.0;
-double max_execution_time=-1.0;
-double total_execution_time=0.0;
-double average_execution_time=-1.0;
+double min_service_execution_time=-1.0;
+double max_service_execution_time=-1.0;
+double total_service_execution_time=0.0;
+double average_service_execution_time=-1.0;
+double min_host_execution_time=-1.0;
+double max_host_execution_time=-1.0;
+double total_host_execution_time=0.0;
+double average_host_execution_time=-1.0;
 int min_latency=-1;
 int max_latency=-1;
 unsigned long total_latency=0L;
@@ -133,6 +139,7 @@ int event_handler_disabled_hosts=0;
 int active_checks_disabled_services=0;
 int active_checks_disabled_hosts=0;
 int passive_checks_disabled_services=0;
+int passive_checks_disabled_hosts=0;
 
 int hosts_pending=0;
 int hosts_pending_disabled=0;
@@ -530,23 +537,23 @@ void analyze_status_data(void){
 		/* calculate execution time and latency stats */
 		if(temp_servicestatus->check_type==SERVICE_CHECK_ACTIVE){
 
-			total_active_checks++;
+			total_active_service_checks++;
 
 			if(min_latency==-1 || temp_servicestatus->latency<min_latency)
 				min_latency=temp_servicestatus->latency;
 			if(max_latency==-1 || temp_servicestatus->latency>max_latency)
 				max_latency=temp_servicestatus->latency;
 
-			if(min_execution_time==-1.0 || temp_servicestatus->execution_time<min_execution_time)
-				min_execution_time=temp_servicestatus->execution_time;
-			if(max_execution_time==-1.0 || temp_servicestatus->execution_time>max_execution_time)
-				max_execution_time=temp_servicestatus->execution_time;
+			if(min_service_execution_time==-1.0 || temp_servicestatus->execution_time<min_service_execution_time)
+				min_service_execution_time=temp_servicestatus->execution_time;
+			if(max_service_execution_time==-1.0 || temp_servicestatus->execution_time>max_service_execution_time)
+				max_service_execution_time=temp_servicestatus->execution_time;
 
 			total_latency+=temp_servicestatus->latency;
-			total_execution_time+=temp_servicestatus->execution_time;
+			total_service_execution_time+=temp_servicestatus->execution_time;
 		        }
 		else
-			total_passive_checks++;
+			total_passive_service_checks++;
 
 
 		total_services++;
@@ -581,6 +588,10 @@ void analyze_status_data(void){
 		/* active check execution */
 		if(temp_hoststatus->checks_enabled==FALSE)
 			active_checks_disabled_hosts++;
+
+		/* passive check acceptance */
+		if(temp_hoststatus->accept_passive_host_checks==FALSE)
+			passive_checks_disabled_hosts++;
 
 
 		/********* CHECK STATUS ********/
@@ -644,6 +655,21 @@ void analyze_status_data(void){
 		if(temp_hoststatus->status!=HOST_PENDING)
 			potential_host_health++;
 
+		/* check type stats */
+		if(temp_hoststatus->check_type==HOST_CHECK_ACTIVE){
+
+			total_active_host_checks++;
+
+			if(min_host_execution_time==-1.0 || temp_hoststatus->execution_time<min_host_execution_time)
+				min_host_execution_time=temp_hoststatus->execution_time;
+			if(max_host_execution_time==-1.0 || temp_hoststatus->execution_time>max_host_execution_time)
+				max_host_execution_time=temp_hoststatus->execution_time;
+
+			total_host_execution_time+=temp_hoststatus->execution_time;
+		        }
+		else
+			total_passive_host_checks++;
+
 		total_hosts++;
 	        }
 
@@ -664,13 +690,19 @@ void analyze_status_data(void){
 	if(total_latency==0L)
 		average_latency=0.0;
 	else
-		average_latency=((double)total_latency/(double)total_active_checks);
+		average_latency=((double)total_latency/(double)total_active_service_checks);
 
-	/* calculate execution time */
-	if(total_execution_time==0.0)
-		average_execution_time=0.0;
+	/* calculate service execution time */
+	if(total_service_execution_time==0.0)
+		average_service_execution_time=0.0;
 	else
-		average_execution_time=((double)total_execution_time/(double)total_active_checks);
+		average_service_execution_time=((double)total_service_execution_time/(double)total_active_service_checks);
+
+	/* calculate host execution time */
+	if(total_host_execution_time==0.0)
+		average_host_execution_time=0.0;
+	else
+		average_host_execution_time=((double)total_host_execution_time/(double)total_active_host_checks);
 
 	return;
         }
@@ -872,20 +904,24 @@ void display_tac_overview(void){
 	printf("<td class='perfBox'>\n");
 	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
 	printf("<tr>\n");
-	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Check Execution Time:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
-	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%.2f / %.2f / %.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_execution_time,max_execution_time,average_execution_time);
+	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Service Check Execution Time:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%.2f / %.2f / %.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_service_execution_time,max_service_execution_time,average_service_execution_time);
 	printf("</tr>\n");
 	printf("<tr>\n");
-	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Check Latency:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
+	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Service Check Latency:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
 	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_latency,max_latency,average_latency);
 	printf("</tr>\n");
 	printf("<tr>\n");
-	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Active Checks:</a></td>",STATUS_CGI,SERVICE_ACTIVE_CHECK);
-	printf("<td valign=top class='perfValue' nowrap><a href='%s?host=all&serviceprops=%d' class='perfValue'>%d</a></td>\n",STATUS_CGI,SERVICE_ACTIVE_CHECK,total_active_checks);
+	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Host Check Execution Time:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%.2f / %.2f / %.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_host_execution_time,max_host_execution_time,average_host_execution_time);
 	printf("</tr>\n");
 	printf("<tr>\n");
-	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Passive Checks:</a></td>",STATUS_CGI,SERVICE_PASSIVE_CHECK);
-	printf("<td valign=top class='perfValue' nowrap><a href='%s?host=all&serviceprops=%d' class='perfValue'>%d</a></td>\n",STATUS_CGI,SERVICE_PASSIVE_CHECK,total_passive_checks);
+	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Active Host / Service Checks:</a></td>",STATUS_CGI,SERVICE_ACTIVE_CHECK);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?hostgroup=all&hostprops=%d&style=hostdetail' class='perfValue'>%d</a> / <a href='%s?host=all&serviceprops=%d' class='perfValue'>%d</a></td>\n",STATUS_CGI,HOST_ACTIVE_CHECK,total_active_host_checks,STATUS_CGI,SERVICE_ACTIVE_CHECK,total_active_service_checks);
+	printf("</tr>\n");
+	printf("<tr>\n");
+	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Passive Host / Service Checks:</a></td>",STATUS_CGI,SERVICE_PASSIVE_CHECK);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?hostgroup=all&hostprops=%d&style=hostdetail' class='perfValue'>%d</a> / <a href='%s?host=all&serviceprops=%d' class='perfValue'>%d</a></td>\n",STATUS_CGI,HOST_PASSIVE_CHECK,total_passive_host_checks,STATUS_CGI,SERVICE_PASSIVE_CHECK,total_passive_service_checks);
 	printf("</tr>\n");
 	printf("</table>\n");
 	printf("</td>\n");
@@ -1479,7 +1515,7 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border='0' alt='Active Checks %s'></a></td>\n",COMMAND_CGI,(execute_service_checks==TRUE)?CMD_STOP_EXECUTING_SVC_CHECKS:CMD_START_EXECUTING_SVC_CHECKS,url_images_path,(execute_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(execute_service_checks==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Active Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(execute_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(execute_service_checks==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(execute_service_checks==TRUE){
 		printf("<Td valign=top width=100%% class='featureEnabledActiveChecks'>\n");
@@ -1511,17 +1547,22 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=125 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border='0' alt='Passive Checks %s'></a></td>\n",COMMAND_CGI,(accept_passive_service_checks==TRUE)?CMD_STOP_ACCEPTING_PASSIVE_SVC_CHECKS:CMD_START_ACCEPTING_PASSIVE_SVC_CHECKS,url_images_path,(accept_passive_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(accept_passive_service_checks==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Passive Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(accept_passive_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(accept_passive_service_checks==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(accept_passive_service_checks==TRUE){
 
 		printf("<Td valign=top width=100%% class='featureEnabledPassiveChecks'>\n");
-		printf("<table border=0 width=100%% cellspacing=0 cellpadding=0>\n");
+		printf("<table border=0 width=100%%>\n");
 
 		if(passive_checks_disabled_services>0)
 			printf("<tr><td width=100%% class='featureItemDisabledPassiveServiceChecks'><a href='%s?host=all&type=detail&serviceprops=%d'>%d Service%s Disabled</a></td></tr>\n",STATUS_CGI,SERVICE_PASSIVE_CHECKS_DISABLED,passive_checks_disabled_services,(passive_checks_disabled_services==1)?"":"s");
 		else
 			printf("<tr><td width=100%% class='featureItemEnabledPassiveServiceChecks'>All Services Enabled</td></tr>\n");
+
+		if(passive_checks_disabled_hosts>0)
+			printf("<tr><td width=100%% class='featureItemDisabledPassiveHostChecks'><a href='%s?host=all&type=detail&hostprops=%d'>%d Host%s Disabled</a></td></tr>\n",STATUS_CGI,HOST_PASSIVE_CHECKS_DISABLED,passive_checks_disabled_hosts,(passive_checks_disabled_hosts==1)?"":"s");
+		else
+			printf("<tr><td width=100%% class='featureItemEnabledPassiveHostChecks'>All Hosts Enabled</td></tr>\n");
 
 		printf("</table>\n");
 		printf("</td>\n");

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2003
+ * Last Modified: 02-16-2003
  *
  * License:
  * 
@@ -3115,6 +3115,18 @@ int passes_host_properties_filter(hoststatus *temp_hoststatus){
 	if((host_properties & HOST_NOTIFICATIONS_ENABLED) && temp_hoststatus->notifications_enabled==FALSE)
 		return FALSE;
 
+	if((host_properties & HOST_PASSIVE_CHECKS_DISABLED) && temp_hoststatus->accept_passive_host_checks==TRUE)
+		return FALSE;
+
+	if((host_properties & HOST_PASSIVE_CHECKS_ENABLED) && temp_hoststatus->accept_passive_host_checks==FALSE)
+		return FALSE;
+
+	if((host_properties & HOST_PASSIVE_CHECK) && temp_hoststatus->check_type==HOST_CHECK_ACTIVE)
+		return FALSE;
+
+	if((host_properties & HOST_ACTIVE_CHECK) && temp_hoststatus->check_type==HOST_CHECK_PASSIVE)
+		return FALSE;
+
 	return TRUE;
         }
 
@@ -3277,6 +3289,22 @@ void show_filters(void){
 		                }
 			if(host_properties & HOST_NOTIFICATIONS_ENABLED){
 				printf("%s Notifications Enabled",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(host_properties & HOST_PASSIVE_CHECKS_DISABLED){
+				printf("%s Passive Checks Disabled",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(host_properties & HOST_PASSIVE_CHECKS_ENABLED){
+				printf("%s Passive Checks Enabled",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(host_properties & HOST_PASSIVE_CHECK){
+				printf("%s Passive Checks",(found==1)?" &amp;":"");
+				found=1;
+		                }
+			if(host_properties & HOST_ACTIVE_CHECK){
+				printf("%s Active Checks",(found==1)?" &amp;":"");
 				found=1;
 		                }
 	                }

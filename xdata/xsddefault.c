@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -323,7 +323,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
-		/*fprintf(fp,"\tstate_type=%d\n",HARD_STATE);*/
+		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
@@ -340,12 +340,12 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tis_flapping=%d\n",temp_host->is_flapping);
 		fprintf(fp,"\tpercent_state_change=%.2f\n",temp_host->percent_state_change);
 		fprintf(fp,"\tscheduled_downtime_depth=%d\n",temp_host->scheduled_downtime_depth);
-
+		/*
 		fprintf(fp,"\tstate_history=");
 		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
 			fprintf(fp,"%s%d",(x>0)?",":"",temp_host->state_history[(x+temp_host->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp,"\n");
-
+		*/
 		fprintf(fp,"\t}\n\n");
 	        }
 	free_host_cursor(host_cursor);
@@ -387,12 +387,12 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tis_flapping=%d\n",temp_service->is_flapping);
 		fprintf(fp,"\tpercent_state_change=%.2f\n",temp_service->percent_state_change);
 		fprintf(fp,"\tscheduled_downtime_depth=%d\n",temp_service->scheduled_downtime_depth);
-
+		/*
 		fprintf(fp,"\tstate_history=");
 		for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
 			fprintf(fp,"%s%d",(x>0)?",":"",temp_service->state_history[(x+temp_service->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp,"\n");
-
+		*/
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -574,7 +574,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->check_type=atoi(val);
 					else if(!strcmp(var,"current_attempt"))
 						temp_hoststatus->current_attempt=(atoi(val)>0)?TRUE:FALSE;
-					/*else if(!strcmp(var,"state_type"))*/
+					else if(!strcmp(var,"state_type"))
+						temp_hoststatus->state_type=atoi(val);
 					else if(!strcmp(var,"last_state_change"))
 						temp_hoststatus->last_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_notification"))

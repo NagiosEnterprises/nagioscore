@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -203,7 +203,7 @@ int log_service_event(service *svc,int state_type){
 
 
 /* write a host problem/recovery to the log file */
-int log_host_event(host *hst, int state, int state_type){
+int log_host_event(host *hst, int state){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	unsigned long log_options=0L;
 
@@ -214,13 +214,6 @@ int log_host_event(host *hst, int state, int state_type){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-
-	/* get the host state type macro */
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		free(macro_x[MACRO_STATETYPE]);
-	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* make sure the host state macro is correct */
 	if(macro_x[MACRO_HOSTSTATE]!=NULL)

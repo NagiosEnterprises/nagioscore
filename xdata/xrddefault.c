@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -201,7 +201,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
-		/*fprintf(fp,"\tstate_type=%d\n",HARD_STATE);*/
+		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
@@ -453,7 +453,8 @@ int xrddefault_read_state_information(char *main_config_file){
 						temp_host->last_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"current_attempt"))
 						temp_host->current_attempt=(atoi(val)>0)?TRUE:FALSE;
-					/*else if(!strcmp(var,"state_type"))*/
+					else if(!strcmp(var,"state_type"))
+						temp_host->state_type=atoi(val);
 					else if(!strcmp(var,"last_state_change"))
 						temp_host->last_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_notification"))

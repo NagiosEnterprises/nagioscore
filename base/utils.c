@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-10-2003
+ * Last Modified:   02-16-2003
  *
  * License:
  *
@@ -633,6 +633,13 @@ int grab_host_macros(host *hst){
 		else
 			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
 	        }
+
+	/* get the host state type macro */
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		free(macro_x[MACRO_STATETYPE]);
+	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_STATETYPE],(hst->state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* get the plugin output */
 	if(macro_x[MACRO_OUTPUT]!=NULL)

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2003
+ * Last Modified: 02-16-2003
  *
  * License:
  * 
@@ -776,6 +776,26 @@ void request_command_data(int cmd){
 		printf("schedule downtime for all services in a particular hostgroup");
 		break;
 
+	case CMD_START_EXECUTING_HOST_CHECKS:
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+		printf("%s executing host checks",(cmd==CMD_START_EXECUTING_HOST_CHECKS)?"start":"stop");
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+		printf("%s accepting passive host checks",(cmd==CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS)?"start":"stop");
+		break;
+
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+		printf("%s accepting passive checks for a particular host",(cmd==CMD_ENABLE_PASSIVE_HOST_CHECKS)?"start":"stop");
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		printf("%s obsessing over host checks",(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"start":"stop");
+		break;
+
 	default:
 		printf("execute an unknown command.  Shame on you!</DIV>");
 		return;
@@ -941,6 +961,8 @@ void request_command_data(int cmd){
 	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
 	case CMD_DISABLE_HOST_FLAP_DETECTION:
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
 		printf("</b></td></tr>\n");
@@ -969,6 +991,12 @@ void request_command_data(int cmd){
 	case CMD_DISABLE_FAILURE_PREDICTION:
 	case CMD_ENABLE_PERFORMANCE_DATA:
 	case CMD_DISABLE_PERFORMANCE_DATA:
+	case CMD_START_EXECUTING_HOST_CHECKS:
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
 		printf("<tr><td CLASS='optBoxItem' colspan=2>There are no options for this command.<br>Click the 'Commit' button to submit the command.</td></tr>");
 		break;
 		
@@ -1328,6 +1356,12 @@ void commit_command_data(int cmd){
 	case CMD_DISABLE_FAILURE_PREDICTION:
 	case CMD_ENABLE_PERFORMANCE_DATA:
 	case CMD_DISABLE_PERFORMANCE_DATA:
+	case CMD_START_EXECUTING_HOST_CHECKS:
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
 
 		/* see if the user is authorized to issue a command... */
 		if(is_authorized_for_system_commands(&current_authdata)==TRUE)
@@ -1355,6 +1389,8 @@ void commit_command_data(int cmd){
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
 	case CMD_DISABLE_HOST_FLAP_DETECTION:
 	case CMD_PROCESS_HOST_CHECK_RESULT:
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
 
 		/* make sure we have some host name... */
 		if(!strcmp(host_name,""))
@@ -1732,6 +1768,26 @@ int commit_command(int cmd){
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_PERFORMANCE_DATA\n",current_time,(cmd==CMD_ENABLE_PERFORMANCE_DATA)?"ENABLE":"DISABLE");
 		break;
 		
+	case CMD_START_EXECUTING_HOST_CHECKS:
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_EXECUTING_SVC_CHECKS;\n",current_time,(cmd==CMD_START_EXECUTING_HOST_CHECKS)?"START":"STOP");
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_ACCEPTING_PASSIVE_HOST_CHECKS;\n",current_time,(cmd==CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS)?"START":"STOP");
+		break;
+
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_PASSIVE_HOST_CHECKS;%s\n",current_time,(cmd==CMD_ENABLE_PASSIVE_HOST_CHECKS)?"ENABLE":"DISABLE",host_name);
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST_CHECKS;\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"START":"STOP");
+		break;
+
 	default:
 		return ERROR;
 		break;
@@ -2087,7 +2143,7 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_DISABLE_PASSIVE_SVC_CHECKS:
-		printf("This command is used to make Nagios stop accepting passive service check results that it finds in the external command file for this particular service.  All passive check results that are found for this service will be ignored.\n");
+		printf("This command is used to stop Nagios accepting passive service check results that it finds in the external command file for this particular service.  All passive check results that are found for this service will be ignored.\n");
 		break;
 
 	case CMD_ENABLE_EVENT_HANDLERS:
@@ -2127,7 +2183,7 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_STOP_OBSESSING_OVER_SVC_CHECKS:
-		printf("This command is used to have Nagios stop obsessing over service checks.  Read the documentation on distributed monitoring for more information on this.\n");
+		printf("This command is used stop Nagios from obsessing over service checks.\n");
 		break;
 
 	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
@@ -2262,6 +2318,38 @@ void show_command_help(cmd){
 		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when a service enters a non-OK state (sometime between the\n");
 		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
 		printf("Note that scheduling downtime for services does not automatically schedule downtime for the hosts those services are associated with.  If you want to also schedule downtime for all hosts in the hostgroup, check the 'Schedule downtime for hosts too' option.\n");
+		break;
+
+	case CMD_START_EXECUTING_HOST_CHECKS:
+		printf("This command is used to enable active host checks on a program-wide basis.\n");
+		break;
+
+	case CMD_STOP_EXECUTING_HOST_CHECKS:
+		printf("This command is used to disable active host checks on a program-wide basis.\n");
+		break;
+
+	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:
+		printf("This command is used to have Nagios start obsessing over host checks.  Read the documentation on distributed monitoring for more information on this.\n");
+		break;
+
+	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
+		printf("This command is used to stop Nagios from obsessing over host checks.\n");
+		break;
+
+	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
+		printf("This command is used to allow Nagios to accept passive host check results that it finds in the external command file for a particular host.\n");
+		break;
+
+	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
+		printf("This command is used to stop Nagios from accepting passive host check results that it finds in the external command file for a particular host.  All passive check results that are found for this host will be ignored.\n");
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+		printf("This command is used to have Nagios start obsessing over host checks.  Read the documentation on distributed monitoring for more information on this.\n");
+		break;
+
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		printf("This command is used to stop Nagios from obsessing over host checks.\n");
 		break;
 
 	default:

@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-20-2001
+ * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-14-2002
  *
  * License:
  *
@@ -37,12 +37,67 @@
 
 #include "xrddefault.h"
 
-#define XRDDEFAULT_VERSION_UNKNOWN   0
-#define XRDDEFAULT_VERSION_1         1
-#define XRDDEFAULT_VERSION_2         2
+char xrddefault_retention_file[MAX_FILENAME_LENGTH]="";
 
-int xrddefault_file_version=XRDDEFAULT_VERSION_UNKNOWN;
 
+
+
+/******************************************************************/
+/********************* CONFIG INITIALIZATION  *********************/
+/******************************************************************/
+
+int xrddefault_grab_config_info(char *main_config_file){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_ptr;
+	FILE *fp;
+							      
+
+	/* initialize the location of the retention file */
+	strncpy(xrddefault_retention_file,DEFAULT_RETENTION_FILE,sizeof(xrddefault_retention_file)-1);
+	xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
+
+	/* open the main config file for reading */
+	fp=fopen(main_config_file,"r");
+	if(fp==NULL){
+#ifdef DEBUG1
+		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
+#endif
+		return ERROR;
+	        }
+
+	/* read in all lines from the main config file */
+	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
+
+		if(feof(fp))
+			break;
+
+		/* skip blank lines and comments */
+		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0' || temp_buffer[0]=='\n' || temp_buffer[0]=='\r')
+			continue;
+
+		strip(temp_buffer);
+
+		temp_ptr=my_strtok(temp_buffer,"=");
+		if(temp_ptr==NULL)
+			continue;
+
+		/* skip lines that don't specify the host config file location */
+		if(strcmp(temp_ptr,"xrddefault_retention_file") && strcmp(temp_ptr,"state_retention_file"))
+			continue;
+
+		/* get the retention file name */
+		temp_ptr=my_strtok(NULL,"\n");
+		if(temp_ptr==NULL)
+			continue;
+
+		strncpy(xrddefault_retention_file,temp_ptr,sizeof(xrddefault_retention_file)-1);
+		xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
+	        }
+
+	fclose(fp);
+
+	return OK;
+        }
 
 
 /******************************************************************/
@@ -51,7 +106,6 @@ int xrddefault_file_version=XRDDEFAULT_VERSION_UNKNOWN;
 
 int xrddefault_save_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char retention_file[MAX_FILENAME_LENGTH]="";
 	char *temp_ptr;
 	time_t current_time;
 	int result=OK;
@@ -96,52 +150,21 @@ int xrddefault_save_state_information(char *main_config_file){
 	printf("xrddefault_save_state_information() start\n");
 #endif
 
+	/* grab config info */
+	if(xrddefault_grab_config_info(main_config_file)==ERROR){
 
-	/* open the main config file for reading */
-	fp=fopen(main_config_file,"r");
-	if(fp==NULL){
-#ifdef DEBUG1
-		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
-#endif
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Failed to grab configuration information for retention data\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+
 		return ERROR;
 	        }
 
-	/* read in all lines from the main config file */
-	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
-
-		if(feof(fp))
-			break;
-
-		/* skip blank lines and comments */
-		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0' || temp_buffer[0]=='\n' || temp_buffer[0]=='\r')
-			continue;
-
-		strip(temp_buffer);
-
-		temp_ptr=my_strtok(temp_buffer,"=");
-		if(temp_ptr==NULL)
-			continue;
-
-		/* skip lines that don't specify the host config file location */
-		if(strcmp(temp_ptr,"xrddefault_retention_file") && strcmp(temp_ptr,"state_retention_file"))
-			continue;
-
-		/* get the retention file name */
-		temp_ptr=my_strtok(NULL,"\n");
-		if(temp_ptr==NULL)
-			continue;
-
-		strncpy(retention_file,temp_ptr,sizeof(retention_file)-1);
-		retention_file[sizeof(retention_file)-1]='\x0';
-	        }
-
-	fclose(fp);
-
 	/* open the retention file for writing */
-	fp=fopen(retention_file,"w");
+	fp=fopen(xrddefault_retention_file,"w");
 	if(fp==NULL){
 #ifdef DEBUG1
-		printf("Error: Cannot open state retention file '%s' for writing!\n",retention_file);
+		printf("Error: Cannot open state retention file '%s' for writing!\n",xrddefault_retention_file);
 #endif
 		return ERROR;
 	        }
@@ -163,27 +186,23 @@ int xrddefault_save_state_information(char *main_config_file){
 	fputs(temp_buffer,fp);
 
 	/* save host state information */
-	temp_host=get_host_state_information(NULL,&host_name,&state,&plugin_output,&last_check,&checks_enabled,&time_up,&time_down,&time_unreachable,&last_notification,&current_notification_number,&notifications_enabled,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&last_state_change);
-	while(temp_host!=NULL){
+	temp_host=NULL;
+	while((temp_host=get_host_state_information(temp_host,&host_name,&state,&plugin_output,&last_check,&checks_enabled,&time_up,&time_down,&time_unreachable,&last_notification,&current_notification_number,&notifications_enabled,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&last_state_change))!=NULL){
 
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"HOST: %s;%d;%lu;%d;%lu;%lu;%lu;%lu;%d;%d;%d;%d;%d;%d;%d;%lu;%s\n",host_name,state,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
 		fputs(temp_buffer,fp);
-
-		temp_host=get_host_state_information(temp_host,&host_name,&state,&plugin_output,&last_check,&checks_enabled,&time_up,&time_down,&time_unreachable,&last_notification,&current_notification_number,&notifications_enabled,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&last_state_change);
 	        }
 
 	/* save service state information */
-	temp_service=get_service_state_information(NULL,&host_name,&service_description,&state,&plugin_output,&last_check,&check_type,&time_ok,&time_warning,&time_unknown,&time_critical,&last_notification,&current_notification_number,&notifications_enabled,&checks_enabled,&accept_passive_checks,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&obsess_over_service,&last_state_change);
-	while(temp_service!=NULL){
+	temp_service=NULL;
+	while((temp_service=get_service_state_information(temp_service,&host_name,&service_description,&state,&plugin_output,&last_check,&check_type,&time_ok,&time_warning,&time_unknown,&time_critical,&last_notification,&current_notification_number,&notifications_enabled,&checks_enabled,&accept_passive_checks,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&obsess_over_service,&last_state_change))!=NULL){
 
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"SERVICE: %s;%s;%d;%lu;%d;%lu;%lu;%lu;%lu;%lu;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lu;%s\n",host_name,service_description,state,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
 		fputs(temp_buffer,fp);
-
-		temp_service=get_service_state_information(temp_service,&host_name,&service_description,&state,&plugin_output,&last_check,&check_type,&time_ok,&time_warning,&time_unknown,&time_critical,&last_notification,&current_notification_number,&notifications_enabled,&checks_enabled,&accept_passive_checks,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&obsess_over_service,&last_state_change);
 	        }
 
 	fclose(fp);
@@ -206,7 +225,6 @@ int xrddefault_save_state_information(char *main_config_file){
 
 int xrddefault_read_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char retention_file[MAX_FILENAME_LENGTH]="";
 	char *temp_ptr;
 	time_t current_time;
 	time_t time_created;
@@ -249,51 +267,21 @@ int xrddefault_read_state_information(char *main_config_file){
 	printf("xrddefault_read_state_information() start\n");
 #endif
 
-	/* open the main config file for reading */
-	fp=fopen(main_config_file,"r");
-	if(fp==NULL){
-#ifdef DEBUG1
-		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
-#endif
+	/* grab config info */
+	if(xrddefault_grab_config_info(main_config_file)==ERROR){
+
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Failed to grab configuration information for retention data\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+
 		return ERROR;
 	        }
 
-	/* read in all lines from the main config file */
-	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
-
-		if(feof(fp))
-			break;
-
-		/* skip blank lines and comments */
-		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0' || temp_buffer[0]=='\n' || temp_buffer[0]=='\r')
-			continue;
-
-		strip(temp_buffer);
-
-		temp_ptr=my_strtok(temp_buffer,"=");
-		if(temp_ptr==NULL)
-			continue;
-
-		/* skip lines that don't specify the host config file location */
-		if(strcmp(temp_ptr,"xrddefault_retention_file")  && strcmp(temp_ptr,"state_retention_file"))
-			continue;
-
-		/* get the retention file name */
-		temp_ptr=my_strtok(NULL,"\n");
-		if(temp_ptr==NULL)
-			continue;
-
-		strncpy(retention_file,temp_ptr,sizeof(retention_file)-1);
-		retention_file[sizeof(retention_file)-1]='\x0';
-	        }
-
-	fclose(fp);
-
 	/* open the retention file for reading */
-	fp=fopen(retention_file,"r");
+	fp=fopen(xrddefault_retention_file,"r");
 	if(fp==NULL){
 #ifdef DEBUG1
-		printf("Error: Cannot open state retention file '%s' for reading!\n",retention_file);
+		printf("Error: Cannot open state retention file '%s' for reading!\n",xrddefault_retention_file);
 #endif
 		return ERROR;
 	        }
@@ -311,20 +299,6 @@ int xrddefault_read_state_information(char *main_config_file){
 		/* skip blank lines */
 		if(temp_buffer[0]=='\x0' || temp_buffer[0]=='\n' || temp_buffer[0]=='\r')
 			continue;
-
-		/* check comments for file version info */
-		if(temp_buffer[0]=='#'){
-
-			/* pre-0.0.7a5 file version */
-			if(strstr(temp_buffer,"Nagios Host/Service"))
-				xrddefault_file_version=XRDDEFAULT_VERSION_UNKNOWN;
-
-			/* else get version info */
-			else if(strstr(temp_buffer,"Retention File"))
-				xrddefault_file_version=XRDDEFAULT_VERSION_2;
-
-			continue;
-		        }
 
 		strip(temp_buffer);
 

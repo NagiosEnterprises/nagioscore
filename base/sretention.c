@@ -3,7 +3,7 @@
  * SRETENTION.C - State retention routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-11-2002
+ * Last Modified:   03-14-2002
  *
  * License:
  *
@@ -279,8 +279,8 @@ int set_service_state_information(char *host_name, char *description, int state,
 			temp_service->current_notification_number=0;
 	                }
 		else{
-			temp_service->next_notification=(time_t)last_notification+(temp_service->notification_interval*interval_length);
 			temp_service->current_notification_number=current_notification_number;
+			temp_service->next_notification=get_next_service_notification_time(temp_service,temp_service->last_notification);
 	                }
 
 		if(temp_service->current_state==STATE_OK)
@@ -394,8 +394,8 @@ int set_host_state_information(char *host_name, int state, char *output, unsigne
 			temp_host->current_notification_number=0;
 	                }
 		else{
-			temp_host->next_host_notification=(time_t)last_notification+(temp_host->notification_interval*interval_length);
 			temp_host->current_notification_number=current_notification_number;
+			temp_host->next_host_notification=get_next_host_notification_time(temp_host,temp_host->status,temp_host->last_host_notification);
 	                }
 
 		if(temp_host->status==HOST_UP)

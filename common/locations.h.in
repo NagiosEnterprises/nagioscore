@@ -2,7 +2,7 @@
  *
  * Nagios Locations Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-15-2001
+ * Last Modified: 03-14-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #define DEFAULT_LOG_ARCHIVE_PATH		"@localstatedir@/archives/"
 #define DEFAULT_COMMENT_FILE			"@localstatedir@/comment.log"
 #define DEFAULT_DOWNTIME_FILE			"@localstatedir@/downtime.log"
+#define DEFAULT_RETENTION_FILE			"@localstatedir@/status.sav"
 #define DEFAULT_COMMAND_FILE			"@localstatedir@/rw/nagios.cmd"
 #define DEFAULT_PHYSICAL_HTML_PATH		"@datadir@"
 #define DEFAULT_URL_HTML_PATH			"@htmurl@"

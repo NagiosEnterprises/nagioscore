@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-02-2004
+ * Last Modified:   08-12-2004
  *
  * License:
  *
@@ -342,10 +342,12 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        fail_notify_on_unknown;
 	int        fail_notify_on_warning;
 	int        fail_notify_on_critical;
+	int        fail_notify_on_pending;
 	int        fail_execute_on_ok;
 	int        fail_execute_on_unknown;
 	int        fail_execute_on_warning;
 	int        fail_execute_on_critical;
+	int        fail_execute_on_pending;
 
 	int        have_inherits_parent;
 	int        have_notification_dependency_options;
@@ -404,9 +406,11 @@ typedef struct xodtemplate_hostdependency_struct{
 	int       fail_notify_on_up;
 	int       fail_notify_on_down;
 	int       fail_notify_on_unreachable;
+	int       fail_notify_on_pending;
 	int       fail_execute_on_up;
 	int       fail_execute_on_down;
 	int       fail_execute_on_unreachable;
+	int       fail_execute_on_pending;
 
 	int       have_inherits_parent;
 	int       have_notification_dependency_options;

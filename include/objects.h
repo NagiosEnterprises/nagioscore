@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-25-2004
+ * Last Modified:   08-12-2004
  *
  * License:
  *
@@ -394,6 +394,7 @@ typedef struct servicedependency_struct{
 	int     fail_on_warning;
 	int     fail_on_unknown;
 	int     fail_on_critical;
+	int     fail_on_pending;
 #ifdef NSCORE
 	int     has_been_checked;
 #endif
@@ -427,6 +428,7 @@ typedef struct hostdependency_struct{
 	int     fail_on_up;
 	int     fail_on_down;
 	int     fail_on_unreachable;
+	int     fail_on_pending;
 #ifdef NSCORE
 	int     has_been_checked;
 #endif
@@ -530,8 +532,8 @@ service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
-servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int);         /* adds a service dependency definition */
-hostdependency *add_host_dependency(char *,char *,int,int,int,int,int);                                 /* adds a host dependency definition */
+servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int,int);     /* adds a service dependency definition */
+hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int);                             /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
 hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */

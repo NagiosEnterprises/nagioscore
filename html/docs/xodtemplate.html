@@ -1135,8 +1135,8 @@ Note:  Directives in red are required, while those in black are optional.  Howev
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
 <tr><td></td><td class="Required">service_description</td><td class="Required"><i>service_description</i></td></tr>
 <tr><td></td><td class="Optional">inherits_parent</td><td class="Optional">[0/1]</td></tr>
-<tr><td></td><td class="Optional">execution_failure_criteria</td><td class="Optional">[o,w,u,c,n]</td></tr>
-<tr><td></td><td class="Optional">notification_failure_criteria</td><td class="Optional">[o,w,u,c,n]</td></tr>
+<tr><td></td><td class="Optional">execution_failure_criteria</td><td class="Optional">[o,w,u,c,p,n]</td></tr>
+<tr><td></td><td class="Optional">notification_failure_criteria</td><td class="Optional">[o,w,u,c,p,n]</td></tr>
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
@@ -1192,13 +1192,13 @@ This directive indicates whether or not the dependency inherits dependencies of 
 <tr>
 <td valign="top"><strong>execution_failure_criteria</strong>:</td>
 <td>
-This directive is used to specify the criteria that determine when the dependent service should <i>not</i> be actively checked.  If the <i>master</i> service is in one of the failure states we specify, the <i>dependent</i> service will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and checks of the dependent service will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>o,c,u</b> in this field, the <i>dependent</i> service will not be actively checked if the <i>master</i> service is in either an OK, a CRITICAL, or an UNKNOWN state.
+This directive is used to specify the criteria that determine when the dependent service should <i>not</i> be actively checked.  If the <i>master</i> service is in one of the failure states we specify, the <i>dependent</i> service will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, <b>c</b> = fail on a CRITICAL state, and <b>p</b> = fail on a pending state (e.g. the service has not yet been checked).  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and checks of the dependent service will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>o,c,u</b> in this field, the <i>dependent</i> service will not be actively checked if the <i>master</i> service is in either an OK, a CRITICAL, or an UNKNOWN state.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_failure_criteria</strong>:</td>
 <td>
-This directive is used to define the criteria that determine when notifications for the dependent service should <i>not</i> be sent out.  If the <i>master</i> service is in one of the failure states we specify, notifications for the <i>dependent</i> service will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent service will always be sent out.  Example: If you specify <b>w</b> in this field, the notifications for the <i>dependent</i> service will not be sent out if the <i>master</i> service is in a WARNING state.
+This directive is used to define the criteria that determine when notifications for the dependent service should <i>not</i> be sent out.  If the <i>master</i> service is in one of the failure states we specify, notifications for the <i>dependent</i> service will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, <b>c</b> = fail on a CRITICAL state, and <b>p</b> = fail on a pending state (e.g. the service has not yet been checked).  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent service will always be sent out.  Example: If you specify <b>w</b> in this field, the notifications for the <i>dependent</i> service will not be sent out if the <i>master</i> service is in a WARNING state.
 </td>
 </tr>
 </table>
@@ -1335,8 +1335,8 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">dependent_host_name</td><td class="Required"><i>host_name</i></td></tr>
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
 <tr><td></td><td class="Optional">inherits_parent</td><td class="Optional">[0/1]</td></tr>
-<tr><td></td><td class="Optional">execution_failure_criteria</td><td class="Optional">[o,d,u,n]</td></tr>
-<tr><td></td><td class="Optional">notification_failure_criteria</td><td class="Optional">[o,d,u,n]</td></tr>
+<tr><td></td><td class="Optional">execution_failure_criteria</td><td class="Optional">[o,d,u,p,n]</td></tr>
+<tr><td></td><td class="Optional">notification_failure_criteria</td><td class="Optional">[o,d,u,p,n]</td></tr>
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
@@ -1377,13 +1377,13 @@ This directive indicates whether or not the dependency inherits dependencies of 
 <tr>
 <td valign="top"><strong>execution_failure_criteria</strong>:</td>
 <td>
-This directive is used to specify the criteria that determine when the dependent host should <i>not</i> be actively checked.  If the <i>master</i> host is in one of the failure states we specify, the <i>dependent</i> host will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, and <b>u</b> = fail on an UNREACHABLE state.  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and the dependent host will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>u,d</b> in this field, the <i>dependent</i> host will not be actively checked if the <i>master</i> host is in either an UNREACHABLE or DOWN state.
+This directive is used to specify the criteria that determine when the dependent host should <i>not</i> be actively checked.  If the <i>master</i> host is in one of the failure states we specify, the <i>dependent</i> host will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, <b>u</b> = fail on an UNREACHABLE state, and <b>p</b> = fail on a pending state (e.g. the host has not yet been checked).  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and the dependent host will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>u,d</b> in this field, the <i>dependent</i> host will not be actively checked if the <i>master</i> host is in either an UNREACHABLE or DOWN state.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_failure_criteria</strong>:</td>
 <td>
-This directive is used to define the criteria that determine when notifications for the dependent host should <i>not</i> be sent out.  If the <i>master</i> host is in one of the failure states we specify, notifications for the <i>dependent</i> host will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, and <b>u</b> = fail on an UNREACHABLE state.  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent host will always be sent out.  Example: If you specify <b>d</b> in this field, the notifications for the <i>dependent</i> host will not be sent out if the <i>master</i> host is in a DOWN state.
+This directive is used to define the criteria that determine when notifications for the dependent host should <i>not</i> be sent out.  If the <i>master</i> host is in one of the failure states we specify, notifications for the <i>dependent</i> host will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, <b>u</b> = fail on an UNREACHABLE state, and <b>p</b> = fail on a pending state (e.g. the host has not yet been checked).  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent host will always be sent out.  Example: If you specify <b>d</b> in this field, the notifications for the <i>dependent</i> host will not be sent out if the <i>master</i> host is in a DOWN state.
 </td>
 </tr>
 </table>

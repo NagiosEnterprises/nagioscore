@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 08-12-2003
  *
  * This CGI program will display various configuration information.
  *
@@ -1491,6 +1491,10 @@ void display_servicedependencies(void){
 			printf("%sCritical",(options==TRUE)?", ":"");
 			options=TRUE;
 		        }
+		if(temp_sd->fail_on_pending==TRUE){
+			printf("%sPending",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
 		printf("</TD>\n");
 
 		printf("</TR>\n");
@@ -1687,6 +1691,10 @@ void display_hostdependencies(void){
 		        }
 		if(temp_hd->fail_on_unreachable==TRUE){
 			printf("%sUnreachable",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(temp_hd->fail_on_pending==TRUE){
+			printf("%sPending",(options==TRUE)?", ":"");
 			options=TRUE;
 		        }
 		printf("</TD>\n");

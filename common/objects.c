@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2004
+ * Last Modified:   08-12-2004
  *
  * License:
  *
@@ -3803,7 +3803,7 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 
 /* adds a service dependency definition */
-servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical){
+servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending){
 	servicedependency *new_servicedependency;
 	servicedependency *temp_servicedependency;
 	servicedependency *last_servicedependency;
@@ -3869,6 +3869,15 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	if(fail_on_critical<0 || fail_on_critical>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_critical value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	if(fail_on_pending<0 || fail_on_pending>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_pending value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3947,6 +3956,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_warning=(fail_on_warning==1)?TRUE:FALSE;
 	new_servicedependency->fail_on_unknown=(fail_on_unknown==1)?TRUE:FALSE;
 	new_servicedependency->fail_on_critical=(fail_on_critical==1)?TRUE:FALSE;
+	new_servicedependency->fail_on_pending=(fail_on_pending==1)?TRUE:FALSE;
 
 #ifdef NSCORE
 	new_servicedependency->has_been_checked=FALSE;
@@ -4002,7 +4012,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 
 /* adds a host dependency definition */
-hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable){
+hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending){
 	hostdependency *new_hostdependency;
 	hostdependency *temp_hostdependency;
 	hostdependency *last_hostdependency;
@@ -4063,6 +4073,15 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		return NULL;
 	        }
 
+	if(fail_on_pending<0 || fail_on_pending>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_pending value for host '%s' dependency definition\n",dependent_host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
 	/* allocate memory for a new host dependency entry */
 	new_hostdependency=(hostdependency *)malloc(sizeof(hostdependency));
 	if(new_hostdependency==NULL){
@@ -4100,6 +4119,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_up=(fail_on_up==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_down=(fail_on_down==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_unreachable=(fail_on_unreachable==1)?TRUE:FALSE;
+	new_hostdependency->fail_on_pending=(fail_on_pending==1)?TRUE:FALSE;
 
 	new_hostdependency->next=NULL;
 	new_hostdependency->nexthash=NULL;

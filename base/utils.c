@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-17-2002
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-25-2004
  *
  * License:
  *
@@ -2158,6 +2158,7 @@ int open_command_file(void){
 
 /* closes the external command file FIFO and deletes it */
 int close_command_file(void){
+	int result;
 
 #ifdef DEBUG0
 	printf("close_command_file() start\n");
@@ -2167,12 +2168,18 @@ int close_command_file(void){
 	if(check_external_commands==FALSE)
 		return OK;
 
+	/* delete the named pipe prior to closing */
+	/* since there is a race condition of processes */
+	/* opening the pipe after we close and before it is */
+	/* removed */
+	result=unlink(command_file);
+
 	/* close the command file */
 	fclose(command_file_fp);
 	close(command_file_fd);
-	
-	/* delete the named pipe */
-	if(unlink(command_file)!=0)
+
+	/* an error occurred while trying to delete the command file */
+	if(result!=0)
 		return ERROR;
 
 #ifdef DEBUG0

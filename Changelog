@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-1.2 - ??/??/2003
+1.2 - 01/25/2004
 ----------------
 * Host stalking bug fix
 * Embedded Perl bug fix
@@ -15,6 +15,7 @@ Nagios Change Log
 * CGI bug fixes (tac, statusmap, histogram, trends)
 * HTML fixes
 * Notification logic fix
+* Fix for race condition when closing command file
 
 
 1.1 - 06/02/2003

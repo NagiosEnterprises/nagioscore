@@ -1,7 +1,7 @@
 ################################################################################
 # Sample COMMANDS.CFG file for Nagios
 #
-# Last Modified: 01-15-2002
+# Last Modified: 09-17-2002
 #
 # A primary objective of this file is reverse compatibility across
 # many generations of plugin releases. In addition to this file, there
@@ -64,7 +64,7 @@ command[check_ping]=$USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
 
 command[check_local_disk]=$USER1$/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
 command[check_local_users]=$USER1$/check_users -w $ARG1$ -c $ARG2$
-command[check_local_procs]=$USER1$/check_procs -w $ARG1$ -c $ARG2$
+command[check_local_procs]=$USER1$/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$
 command[check_local_load]=$USER1$/check_load -w $ARG1$ -c $ARG2$
 
 

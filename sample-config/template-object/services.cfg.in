@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 03-10-2002
+# Last Modified: 09-17-2002
 #
 ################################################################################
 
@@ -373,7 +373,7 @@ define service{
 	notification_interval		240
 	notification_period		24x7
 	notification_options		w,u,c,r
-	check_command			check_local_procs!150!200
+	check_command			check_local_procs!150!200!RSZDT
 	}
 
 
@@ -487,7 +487,7 @@ define service{
 	notification_interval		240
 	notification_period		24x7
 	notification_options		w,u,c,r
-	check_command			check_local_procs!150!200
+	check_command			check_local_procs!150!200!RSZDT
 	}
 
 

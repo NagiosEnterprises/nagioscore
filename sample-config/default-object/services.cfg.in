@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 03-07-2002
+# Last Modified: 09-17-2002
 #
 ################################################################################
 
@@ -110,7 +110,7 @@ service[nt2]=HTTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_http
 # Linux Server #1
 service[linux1]=PING;0;24x7;3;5;1;linux-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
 service[linux1]=HTTP;0;24x7;3;2;1;linux-admins;240;24x7;1;1;1;;check_http
-service[linux1]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150
+service[linux1]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150!RSZDT
 service[linux1]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200
 service[linux1]=/dev/hda1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hda1
 service[linux1]=/dev/hdb2 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hdb2
@@ -119,7 +119,7 @@ service[linux1]=/dev/hdb2 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;c
 service[linux2]=PING;0;24x7;3;5;1;linux-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
 service[linux2]=HTTP;0;24x7;3;2;1;linux-admins;240;24x7;1;1;1;;check_http
 service[linux2]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150
-service[linux2]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200
+service[linux2]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200!RSZDT
 service[linux2]=/dev/hda1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hda1
 service[linux2]=/dev/hdb1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hdb1
 

@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 05-27-2002
+# Last Modified: 06-29-2002
 ###############################
 
 
@@ -149,6 +149,7 @@ install-config:
 install-init: install-daemoninit
 
 install-daemoninit:
+	$(INSTALL) -m 755 -d $(INIT_OPTS) $(DESTDIR)$(INIT_DIR)
 	$(INSTALL) -m 774 $(INIT_OPTS) daemon-init $(DESTDIR)$(INIT_DIR)/nagios
 
 install-commandmode:

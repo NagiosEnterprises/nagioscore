@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-24-2002
+ * Last Modified:   06-29-2002
  *
  * License:
  *
@@ -1783,13 +1783,6 @@ int run_host_check(host *hst){
 		return_result=HOST_UP;
 	else
 		return_result=HOST_DOWN;
-
-	/* check for external commands if we're supposed to check as often as possible */
-	/* I don't  know that this is such a good idea, but processing of external commands
-	   really gets held up when long host checks are being performed.  At the moment
-	   I hate everything about Nagios, so what the heck... 05-15-02 */
-	if(command_check_interval==-1)
-		check_for_external_commands();
 
 #ifdef DEBUG3
 	printf("\tHost Check Result: Host '%s' is ",hst->name);

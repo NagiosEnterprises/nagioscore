@@ -16,6 +16,7 @@ AC_SUBST(INSTALL)
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
+AC_PATH_PROG([STRIP],[strip],[true])
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -493,10 +494,10 @@ dnl              [, OTHER-LIBRARIES]]])
 	[ac_save_LIBS="$LIBS"
 	LIBS="-l$1 $6 $LIBS"
 	AC_TRY_LINK(dnl
-	ifelse(AC_LANG, [FORTRAN77], ,
+	ifelse([AC_LANG], [FORTRAN77], ,
 	ifelse([$2], [main], , dnl Avoid conflicting decl of main.
 [/* Override any gcc2 internal prototype to avoid an error.  */
-]ifelse(AC_LANG, CPLUSPLUS, [#ifdef __cplusplus
+]ifelse([AC_LANG], CPLUSPLUS, [#ifdef __cplusplus
 extern "C"
 #endif
 ])dnl

@@ -8,6 +8,7 @@ Nagios Change Log
   config format.  Defaults to host name if not specified.
 * Changed method of checking for user/group in RPM spec file
 * Bug fixes in template-based object code
+* Fixed memory leak when processing passive checks
 
 
 1.0b3 - 06/09/2002

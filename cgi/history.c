@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-14-2002
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -268,13 +268,12 @@ int main(void){
 		printf("<td align=left CLASS='optBoxItem'><input type='submit' value='Update'></td>\n");
 		printf("</tr>\n");
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		printf("<tr>\n");
 		printf("<td align=right>\n");
 		display_context_help(CONTEXTHELP_HISTORY);
 		printf("</td>\n");
 		printf("</tr>\n");
-#endif
 
 		printf("</form>\n");
 		printf("</table>\n");

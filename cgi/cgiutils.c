@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-02-2002
+ * Last Modified: 05-14-2002
  *
  * License:
  *
@@ -89,6 +89,8 @@ time_t          next_scheduled_log_rotation=0L;
 int             use_authentication=TRUE;
 
 int             interval_length=60;
+
+int             show_context_help=FALSE;
 
 int             hosts_have_been_read=FALSE;
 int             hostgroups_have_been_read=FALSE;
@@ -230,6 +232,17 @@ int read_cgi_config_file(char *filename){
 				main_config_file[sizeof(main_config_file)-1]='\x0';
 				strip(main_config_file);
 			        }
+		        }
+
+		else if((strstr(input_buffer,"show_context_help=")==input_buffer)){
+			temp_buffer=strtok(input_buffer,"=");
+			temp_buffer=strtok(NULL,"\n");
+			if(temp_buffer==NULL)
+				show_context_help=TRUE;
+			else if(atoi(temp_buffer)==0)
+				show_context_help=FALSE;
+			else
+				show_context_help=TRUE;
 		        }
 
 		else if((strstr(input_buffer,"use_authentication=")==input_buffer)){
@@ -1803,8 +1816,10 @@ void status_data_error(void){
 
 /* displays context-sensitive help window */
 void display_context_help(char *chid){
-#ifdef CONTEXT_HELP
 	char *icon=CONTEXT_HELP_ICON1;
+
+	if(show_context_help==FALSE)
+		return;
 
 	/* change icon if necessary */
 	if(!strcmp(chid,CONTEXTHELP_TAC))
@@ -1812,6 +1827,5 @@ void display_context_help(char *chid){
 
 	printf("<a href='%s%s.html' target='cshw' onClick='javascript:window.open(\"%s%s.html\",\"cshw\",\"width=550,height=600,toolbar=0,location=0,status=0,resizable=1,scrollbars=1\");return true'><img src='%s%s' border=0 alt='Display context-sensitive help for this screen'></a>\n",url_context_help_path,chid,url_context_help_path,chid,url_images_path,icon);
 
-#endif
 	return;
         }

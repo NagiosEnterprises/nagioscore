@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-14-2002
  *
  * License:
  * 
@@ -302,7 +302,7 @@ int main(void){
 		show_service_status_totals();
 		printf("</td></tr>\n");
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		printf("<tr><td align=right valign=top>\n");
 		if(display_type==DISPLAY_HOSTS)
 			display_context_help(CONTEXTHELP_STATUS_DETAIL);
@@ -315,7 +315,6 @@ int main(void){
 		else if(hostgroup_style_type==STYLE_GRID)
 			display_context_help(CONTEXTHELP_STATUS_GRID);
 		printf("</td></tr>\n");
-#endif
 
 		printf("</table>\n");
 		printf("</td>\n");

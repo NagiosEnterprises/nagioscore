@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 03-07-2002
+# Last Modified: 05-14-2002
 #
 #################################################################
 
@@ -34,6 +34,16 @@ physical_html_path=@datadir@
 # (without the quotes).
 
 url_html_path=@htmurl@
+
+
+
+# CONTEXT-SENSITIVE HELP
+# This option determines whether or not a context-sensitive
+# help icon will be displayed for most of the CGIs.
+# Values: 0 = disables context-sensitive help
+#         1 = enables context-sensitive help
+
+show_context_help=0
 
 
 

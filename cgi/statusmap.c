@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-30-2002
+ * Last Modified: 05-14-2002
  *
  * Description:
  *
@@ -771,11 +771,10 @@ void display_page_header(void){
 		printf("<input type='submit' value='Update'>\n");
 		printf("</td></tr>\n");
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		printf("<tr><td></td><td align=right valign=bottom>\n");
 		display_context_help(CONTEXTHELP_MAP);
 		printf("</td></tr>\n");
-#endif
 
 		printf("</table>\n");
 

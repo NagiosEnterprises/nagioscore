@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-14-2002
  *
  * License:
  * 
@@ -506,7 +506,7 @@ int main(int argc, char **argv){
 			printf("</form>\n");
 		        }
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		printf("<tr><td></td><td align=right valign=bottom>\n");
 		if(display_type!=DISPLAY_NO_TRENDS && input_type==GET_INPUT_NONE){
 			if(display_type==DISPLAY_HOST_TRENDS)
@@ -527,7 +527,6 @@ int main(int argc, char **argv){
 				display_context_help(CONTEXTHELP_TRENDS_MENU4);
 		        }
 		printf("</td></tr>\n");
-#endif
 
 		printf("</table>\n");
 

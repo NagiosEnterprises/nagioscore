@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-14-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -137,13 +137,12 @@ int main(void){
 		printf("<td align=left valign=bottom CLASS='optBoxItem'><input type='submit' value='Update'></td>\n");
 		printf("</tr>\n");
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		printf("<tr>\n");
 		printf("<td align=right>\n");
 		display_context_help(CONTEXTHELP_LOG);
 		printf("</td>\n");
 		printf("</tr>\n");
-#endif
 
 		printf("</form>\n");
 		printf("</table>\n");

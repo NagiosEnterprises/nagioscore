@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-14-2002
  *
  * License:
  * 
@@ -322,7 +322,7 @@ int main(void){
 		                }
 	                }
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		if(display_type==DISPLAY_HOST_INFO)
 			display_context_help(CONTEXTHELP_EXT_HOST);
 		else if(display_type==DISPLAY_SERVICE_INFO)
@@ -339,7 +339,6 @@ int main(void){
 			display_context_help(CONTEXTHELP_EXT_DOWNTIME);
 		else if(display_type==DISPLAY_SCHEDULING_QUEUE)
 			display_context_help(CONTEXTHELP_EXT_QUEUE);
-#endif
 
 		printf("</td>\n");
 

@@ -2,8 +2,14 @@
 Nagios Change Log
 ###################
 
-1.0b1 - Sometime 2001
----------------------
+1.0b2 - ??/??/2002
+------------------
+* Updated RPM spec
+* Context-sensitive help option moved to CGI config file
+
+
+1.0b1 - 05/10/2002
+------------------
 
 * More verbose listing of object information in configuration CGI
 * Added histogram CGI for graphing host/service events

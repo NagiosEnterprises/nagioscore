@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-03-2002
+ * Last Modified: 05-14-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -177,7 +177,7 @@ int main(void){
 		printf("</form>\n");
 	        }
 
-#ifdef CONTEXT_HELP
+	/* display context-sensitive help */
 	switch(display_type){
 	case DISPLAY_HOSTS:
 		display_context_help(CONTEXTHELP_CONFIG_HOSTS);
@@ -219,7 +219,7 @@ int main(void){
 		display_context_help(CONTEXTHELP_CONFIG_MENU);
 		break;
 	        }
-#endif
+
 	printf("</td>\n");
 
 	/* end of top table */

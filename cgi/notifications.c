@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-14-2002
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -255,11 +255,10 @@ int main(void){
 		printf("<td align=right CLASS='optBoxItem'><input type='submit' value='Update'></td>\n");
 		printf("</tr>\n");
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		printf("<tr><td></td><td align=right valign=bottom>\n");
 		display_context_help(CONTEXTHELP_NOTIFICATIONS);
 		printf("</td></tr>\n");
-#endif
 
 		printf("</form>\n");
 		printf("</table>\n");

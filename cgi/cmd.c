@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-09-2002
+ * Last Modified: 05-14-2002
  *
  * License:
  * 
@@ -173,12 +173,11 @@ int main(void){
 		/* right column of the first row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
-#ifdef CONTEXT_HELP
+		/* display context-sensitive help */
 		if(command_mode==CMDMODE_COMMIT)
 			display_context_help(CONTEXTHELP_CMD_COMMIT);
 		else
 			display_context_help(CONTEXTHELP_CMD_INPUT);
-#endif
 
 		printf("</td>\n");
 

@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-08-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-25-2004
  *
  * License:
  *
@@ -313,7 +313,7 @@ void init_timing_loop(void){
 
 	/* determine check times for service checks (with interleaving to minimize remote load) */
 	current_interleave_block=0;
-	for(temp_service=service_list;temp_service!=NULL;){
+	for(temp_service=service_list;temp_service!=NULL && scheduling_info.service_interleave_factor>0;){
 
 #ifdef DEBUG1
 		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);

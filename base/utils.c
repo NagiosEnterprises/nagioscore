@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   11-01-2004
  *
  * License:
  *
@@ -76,6 +76,7 @@ extern char     *nagios_user;
 extern char     *nagios_group;
 
 extern char     *macro_x[MACRO_X_COUNT];
+extern char     *macro_x_names[MACRO_X_COUNT];
 extern char     *macro_argv[MAX_COMMAND_ARGUMENTS];
 extern char     *macro_user[MAX_USER_MACROS];
 extern char     *macro_contactaddress[MAX_CONTACT_ADDRESSES];
@@ -793,6 +794,7 @@ int grab_service_macros(service *svc){
 	serviceextinfo *temp_serviceextinfo;
 	time_t current_time;
 	unsigned long duration;
+	int days;
 	int hours;
 	int minutes;
 	int seconds;
@@ -978,12 +980,14 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEDURATION]);
 	macro_x[MACRO_SERVICEDURATION]=(char *)malloc(MAX_DURATION_LENGTH);
 	if(macro_x[MACRO_SERVICEDURATION]!=NULL){
+		days=duration/86400;
+		duration-=(days*86400);
 		hours=duration/3600;
 		duration-=(hours*3600);
 		minutes=duration/60;
 		duration-=(minutes*60);
 		seconds=duration;
-		snprintf(macro_x[MACRO_SERVICEDURATION],MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
+		snprintf(macro_x[MACRO_SERVICEDURATION],MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 		macro_x[MACRO_SERVICEDURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
@@ -1068,6 +1072,7 @@ int grab_host_macros(host *hst){
 	hostextinfo *temp_hostextinfo;
 	time_t current_time;
 	unsigned long duration;
+	int days;
 	int hours;
 	int minutes;
 	int seconds;
@@ -1189,12 +1194,14 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTDURATION]);
 	macro_x[MACRO_HOSTDURATION]=(char *)malloc(MAX_DURATION_LENGTH);
 	if(macro_x[MACRO_HOSTDURATION]!=NULL){
+		days=duration/86400;
+		duration-=(days*86400);
 		hours=duration/3600;
 		duration-=(hours*3600);
 		minutes=duration/60;
 		duration-=(minutes*60);
 		seconds=duration;
-		snprintf(macro_x[MACRO_HOSTDURATION],MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
+		snprintf(macro_x[MACRO_HOSTDURATION],MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 		macro_x[MACRO_HOSTDURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
@@ -1539,6 +1546,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	unsigned long duration;
+	int days;
 	int hours;
 	int minutes;
 	int seconds;
@@ -1659,12 +1667,14 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTDURATION")){
 		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
 		if(macro_ondemand!=NULL){
+			days=duration/86400;
+			duration-=(days*86400);
 			hours=duration/3600;
 			duration-=(hours*3600);
 			minutes=duration/60;
 			duration-=(minutes*60);
 			seconds=duration;
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
+			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1804,6 +1814,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	unsigned long duration;
+	int days;
 	int hours;
 	int minutes;
 	int seconds;
@@ -1990,12 +2001,14 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEDURATION")){
 		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
 		if(macro_ondemand!=NULL){
+			days=duration/86400;
+			duration-=(days*86400);
 			hours=duration/3600;
 			duration-=(hours*3600);
 			minutes=duration/60;
 			duration-=(minutes*60);
 			seconds=duration;
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
+			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
 		        }
 	        }
@@ -2593,6 +2606,257 @@ int clear_nonvolatile_macros(void){
         }
 
 
+/* initializes the names of macros */
+int init_macrox_names(void){
+	int x;
+
+#ifdef DEBUG0
+	printf("init_macrox_names() start\n");
+#endif
+
+	/* initialize macro names */
+	for(x=0;x<MACRO_X_COUNT;x++)
+		macro_x_names[x]=NULL;
+
+	/* initialize each macro name */
+	add_macrox_name(MACRO_HOSTNAME,"HOSTNAME");
+	add_macrox_name(MACRO_HOSTALIAS,"HOSTALIAS");
+	add_macrox_name(MACRO_HOSTADDRESS,"HOSTADDRESS");
+	add_macrox_name(MACRO_SERVICEDESC,"SERVICEDESC");
+	add_macrox_name(MACRO_SERVICESTATE,"SERVICESTATE");
+	add_macrox_name(MACRO_SERVICESTATEID,"SERVICESTATEID");
+	add_macrox_name(MACRO_SERVICEATTEMPT,"SERVICEATTEMPT");
+	add_macrox_name(MACRO_LONGDATETIME,"LONGDATETIME");
+	add_macrox_name(MACRO_SHORTDATETIME,"SHORTDATETIME");
+	add_macrox_name(MACRO_DATE,"DATE");
+	add_macrox_name(MACRO_TIME,"TIME");
+	add_macrox_name(MACRO_TIMET,"TIMET");
+	add_macrox_name(MACRO_LASTHOSTCHECK,"LASTHOSTCHECK");
+	add_macrox_name(MACRO_LASTSERVICECHECK,"LASTSERVICECHECK");
+	add_macrox_name(MACRO_LASTHOSTSTATECHANGE,"LASTHOSTSTATECHANGE");
+	add_macrox_name(MACRO_LASTSERVICESTATECHANGE,"LASTSERVICESTATECHANGE");
+	add_macrox_name(MACRO_HOSTOUTPUT,"HOSTOUTPUT");
+	add_macrox_name(MACRO_SERVICEOUTPUT,"SERVICEOUTPUT");
+	add_macrox_name(MACRO_HOSTPERFDATA,"SERVICEPERFDATA");
+	add_macrox_name(MACRO_CONTACTNAME,"CONTACTNAME");
+	add_macrox_name(MACRO_CONTACTALIAS,"CONTACTALIAS");
+	add_macrox_name(MACRO_CONTACTEMAIL,"CONTACTEMAIL");
+	add_macrox_name(MACRO_CONTACTPAGER,"CONTACTPAGER");
+	add_macrox_name(MACRO_ADMINEMAIL,"ADMINEMAIL");
+	add_macrox_name(MACRO_ADMINPAGER,"ADMINPAGER");
+	add_macrox_name(MACRO_HOSTSTATE,"HOSTSTATE");
+	add_macrox_name(MACRO_HOSTSTATEID,"HOSTSTATEID");
+	add_macrox_name(MACRO_HOSTATTEMPT,"HOSTATTEMPT");
+	add_macrox_name(MACRO_NOTIFICATIONTYPE,"NOTIFICATIONTYPE");
+	add_macrox_name(MACRO_NOTIFICATIONNUMBER,"NOTIFICATIONNUMBER");
+	add_macrox_name(MACRO_HOSTEXECUTIONTIME,"HOSTEXECUTIONTIME");
+	add_macrox_name(MACRO_SERVICEEXECUTIONTIME,"SERVICEEXECUTIONTIME");
+	add_macrox_name(MACRO_HOSTLATENCY,"HOSTLATENCY");
+	add_macrox_name(MACRO_SERVICELATENCY,"SERVICELATENCY");
+	add_macrox_name(MACRO_HOSTDURATION,"HOSTDURATION");
+	add_macrox_name(MACRO_SERVICEDURATION,"SERVICEDURATION");
+	add_macrox_name(MACRO_HOSTDURATIONSEC,"HOSTDURATIONSEC");
+	add_macrox_name(MACRO_SERVICEDURATIONSEC,"SERVICEDURATIONSEC");
+	add_macrox_name(MACRO_HOSTDOWNTIME,"HOSTDOWNTIME");
+	add_macrox_name(MACRO_SERVICEDOWNTIME,"SERVICEDOWNTIME");
+	add_macrox_name(MACRO_HOSTSTATETYPE,"HOSTSTATETYPE");
+	add_macrox_name(MACRO_SERVICESTATETYPE,"SERVICESTATETYPE");
+	add_macrox_name(MACRO_HOSTPERCENTCHANGE,"HOSTPERCENTCHANGE");
+	add_macrox_name(MACRO_SERVICEPERCENTCHANGE,"SERVICEPERCENTCHANGE");
+	add_macrox_name(MACRO_HOSTGROUPNAME,"HOSTGROUPNAME");
+	add_macrox_name(MACRO_HOSTGROUPALIAS,"HOSTGROUPALIAS");
+	add_macrox_name(MACRO_SERVICEGROUPNAME,"SERVICEGROUPNAME");
+	add_macrox_name(MACRO_SERVICEGROUPALIAS,"SERVICEGROUPALIAS");
+	add_macrox_name(MACRO_HOSTACKAUTHOR,"HOSTACKAUTHOR");
+	add_macrox_name(MACRO_HOSTACKCOMMENT,"HOSTACKCOMMENT");
+	add_macrox_name(MACRO_SERVICEACKAUTHOR,"SERVICEACKAUTHOR");
+	add_macrox_name(MACRO_SERVICEACKCOMMENT,"SERVICEACKCOMMENT");
+	add_macrox_name(MACRO_LASTSERVICEOK,"LASTSERVICEOK");
+	add_macrox_name(MACRO_LASTSERVICEWARNING,"LASTSERVICEWARNING");
+	add_macrox_name(MACRO_LASTSERVICEUNKNOWN,"LASTSERVICEUNKNOWN");
+	add_macrox_name(MACRO_LASTSERVICECRITICAL,"LASTSERVICECRITICAL");
+	add_macrox_name(MACRO_LASTHOSTUP,"LASTHOSTUP");
+	add_macrox_name(MACRO_LASTHOSTDOWN,"LASTHOSTDOWN");
+	add_macrox_name(MACRO_LASTHOSTUNREACHABLE,"LASTHOSTUNREACHABLE");
+	add_macrox_name(MACRO_SERVICECHECKCOMMAND,"SERVICECHECKCOMMAND");
+	add_macrox_name(MACRO_HOSTCHECKCOMMAND,"HOSTCHECKCOMMAND");
+	add_macrox_name(MACRO_MAINCONFIGFILE,"MAINCONFIGFILE");
+	add_macrox_name(MACRO_STATUSDATAFILE,"STATUSDATAFILE");
+	add_macrox_name(MACRO_COMMENTDATAFILE,"COMMENTDATAFILE");
+	add_macrox_name(MACRO_DOWNTIMEDATAFILE,"DOWNTIMEDATAFILE");
+	add_macrox_name(MACRO_RETENTIONDATAFILE,"RETENTIONDATAFILE");
+	add_macrox_name(MACRO_OBJECTCACHEFILE,"OBJECTCACHEFILE");
+	add_macrox_name(MACRO_TEMPFILE,"TEMPFILE");
+	add_macrox_name(MACRO_LOGFILE,"LOGFILE");
+	add_macrox_name(MACRO_RESOURCEFILE,"RESOURCEFILE");
+	add_macrox_name(MACRO_COMMANDFILE,"COMMANDFILE");
+	add_macrox_name(MACRO_HOSTPERFDATAFILE,"HOSTPERFDATAFILE");
+	add_macrox_name(MACRO_SERVICEPERFDATAFILE,"SERVICEPERFDATAFILE");
+	add_macrox_name(MACRO_HOSTACTIONURL,"HOSTACTIONURL");
+	add_macrox_name(MACRO_HOSTNOTESURL,"HOSTNOTESURL");
+	add_macrox_name(MACRO_HOSTNOTES,"HOSTNOTES");
+	add_macrox_name(MACRO_SERVICEACTIONURL,"SERVICEACTIONURL");
+	add_macrox_name(MACRO_SERVICENOTESURL,"SERVICENOTESURL");
+	add_macrox_name(MACRO_SERVICENOTES,"SERVICENOTES");
+	add_macrox_name(MACRO_TOTALHOSTSUP,"TOTALHOSTSUP");
+	add_macrox_name(MACRO_TOTALHOSTSDOWN,"TOTALHOSTSDOWN");
+	add_macrox_name(MACRO_TOTALHOSTSUNREACHABLE,"TOTALHOSTSUNREACHABLE");
+	add_macrox_name(MACRO_TOTALHOSTSDOWNUNHANDLED,"TOTALHOSTSUNHANDLED");
+	add_macrox_name(MACRO_TOTALHOSTSUNREACHABLEUNHANDLED,"TOTALHOSTSUNREACHABLEUNHANDLED");
+	add_macrox_name(MACRO_TOTALHOSTPROBLEMS,"TOTALHOSTPROBLEMS");
+	add_macrox_name(MACRO_TOTALHOSTPROBLEMSUNHANDLED,"TOTALHOSTPROBLEMSUNHANDLED");
+	add_macrox_name(MACRO_TOTALSERVICESOK,"TOTALSERVICESOK");
+	add_macrox_name(MACRO_TOTALSERVICESWARNING,"TOTALSERVICESWARNING");
+	add_macrox_name(MACRO_TOTALSERVICESCRITICAL,"TOTALSERVICESCRITICAL");
+	add_macrox_name(MACRO_TOTALSERVICESUNKNOWN,"TOTALSERVICESUNKNOWN");
+	add_macrox_name(MACRO_TOTALSERVICESWARNINGUNHANDLED,"TOTALSERVICESWARNINGUNHANDLED");
+	add_macrox_name(MACRO_TOTALSERVICESCRITICALUNHANDLED,"TOTALSERVICESCRITICALUNHANDLED");
+	add_macrox_name(MACRO_TOTALSERVICESUNKNOWNUNHANDLED,"TOTALSERVICESUNKNOWNUNHANDLED");
+	add_macrox_name(MACRO_TOTALSERVICEPROBLEMS,"TOTALSERVICEPROBLEMS");
+	add_macrox_name(MACRO_TOTALSERVICEPROBLEMSUNHANDLED,"TOTALSERVICEPROBLEMSUNHANDLED");
+
+#ifdef DEBUG0
+	printf("init_macrox_names() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* saves the name of a macro */
+int add_macrox_name(int index, char *name){
+
+	/* dup the macro name */
+	macro_x_names[index]=strdup(name);
+
+	return OK;
+        }
+
+
+/* free memory associated with the macrox names */
+int free_macrox_names(void){
+	int x;
+
+#ifdef DEBUG0
+	printf("free_macrox_names() start\n");
+#endif
+
+	/* free each macro name */
+	for(x=0;x<MACRO_X_COUNT;x++){
+		free(macro_x_names[x]);
+		macro_x_names[x]=NULL;
+	        }
+
+#ifdef DEBUG0
+	printf("free_macrox_names() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* sets or unsets all macro environment variables */
+int set_all_macro_environment_vars(int set){
+
+#ifdef DEBUG0
+	printf("set_all_macro_environment_vars() start\n");
+#endif
+
+	set_macrox_environment_vars(set);
+	set_argv_macro_environment_vars(set);
+
+#ifdef DEBUG0
+	printf("set_all_macro_environment_vars() start\n");
+#endif
+
+	return OK;
+        }
+
+
+/* sets or unsets macrox environment variables */
+int set_macrox_environment_vars(int set){
+	int x;
+
+#ifdef DEBUG0
+	printf("set_macrox_environment_vars() start\n");
+#endif
+
+	/* set each of the macrox environment variables */
+	for(x=0;x<MACRO_X_COUNT;x++)
+		set_macro_environment_var(macro_x_names[x],macro_x[x],set);
+
+#ifdef DEBUG0
+	printf("set_macrox_environment_vars() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* sets or unsets argv macro environment variables */
+int set_argv_macro_environment_vars(int set){
+	char macro_name[MAX_INPUT_BUFFER];
+	int x;
+
+#ifdef DEBUG0
+	printf("set_argv_macro_environment_vars() start\n");
+#endif
+
+	/* set each of the argv macro environment variables */
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+
+		snprintf(macro_name,sizeof(macro_name),"ARG%d",x+1);
+		macro_name[sizeof(macro_name)-1]='\x0';
+
+		set_macro_environment_var(macro_name,macro_argv[x],set);
+	        }
+
+#ifdef DEBUG0
+	printf("set_argv_macro_environment_vars() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* sets or unsets a macro environment variable */
+int set_macro_environment_var(char *name, char *value, int set){
+	char *env_macro_name=NULL;
+
+#ifdef DEBUG0
+	printf("set_macro_environment_var() start\n");
+#endif
+
+	/* we won't mess with null variable names */
+	if(name==NULL)
+		return ERROR;
+
+	/* allocate memory */
+	if((env_macro_name=(char *)malloc(strlen(MACRO_ENV_VAR_PREFIX)+strlen(name)+1))==NULL)
+		return ERROR;
+
+	/* create the name */
+	strcpy(env_macro_name,"");
+	strcpy(env_macro_name,MACRO_ENV_VAR_PREFIX);
+	strcat(env_macro_name,(name==NULL)?"":name);
+
+	/* set or unset the environment variable */
+	if(set==TRUE)
+		setenv(env_macro_name,(value==NULL)?"":value,1);
+	else
+		unsetenv(env_macro_name);
+
+	/* free allocated memory */
+	free(env_macro_name);
+
+#ifdef DEBUG0
+	printf("set_macro_environment_var() end\n");
+#endif
+
+	return OK;
+        }
+
+
 
 
 /******************************************************************/
@@ -2938,6 +3202,9 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 #ifdef DEBUG1
 	printf("\tInput: %s\n",cmd);
 #endif
+
+	/* clear the argv macros */
+	clear_argv_macros();
 
 	/* make sure we've got all the requirements */
 	if(cmd==NULL || raw_command==NULL || buffer_length<=0){
@@ -5128,6 +5395,8 @@ void free_memory(void){
 	for(x=0;x<MAX_USER_MACROS;x++)
 		macro_user[x]=NULL;
 	
+	free_macrox_names();
+
 
 	/* free illegal char strings */
 	if(illegal_object_chars!=NULL){
@@ -5341,6 +5610,8 @@ int reset_variables(void){
 
 	macro_ondemand=NULL;
 
+	init_macrox_names();
+
 	global_host_event_handler=NULL;
 	global_service_event_handler=NULL;
 
@@ -5356,4 +5627,3 @@ int reset_variables(void){
 
 	return OK;
         }
-

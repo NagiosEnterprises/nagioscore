@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-28-2004
+ * Last Modified:   11-01-2004
  *
  * License:
  *
@@ -108,8 +108,14 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	printf("\tProcessed obsessive compulsive service processor command line: %s\n",processed_command_line);
 #endif
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* run the command */
 	my_system(processed_command_line,ocsp_timeout,&early_timeout,&exectime,NULL,0);
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -170,8 +176,14 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	printf("\tProcessed obsessive compulsive host processor command line: %s\n",processed_command_line);
 #endif
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* run the command */
 	my_system(processed_command_line,ochp_timeout,&early_timeout,&exectime,NULL,0);
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -260,9 +272,6 @@ int run_global_service_event_handler(service *svc){
 	if(global_service_event_handler==NULL)
 		return ERROR;
 
-	/* clear command macros */
-	clear_argv_macros();
-
 	/* get the raw command line */
 	get_raw_command_line(global_service_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
@@ -284,8 +293,14 @@ int run_global_service_event_handler(service *svc){
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* run the command */
 	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
@@ -327,9 +342,6 @@ int run_service_event_handler(service *svc){
 	if(svc->event_handler==NULL)
 		return ERROR;
 
-	/* clear command macros */
-	clear_argv_macros();
-
 	/* get the raw command line */
 	get_raw_command_line(svc->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
@@ -351,8 +363,14 @@ int run_service_event_handler(service *svc){
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* run the command */
 	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
@@ -440,9 +458,6 @@ int run_global_host_event_handler(host *hst){
 	if(global_host_event_handler==NULL)
 		return ERROR;
 
-	/* clear command macros */
-	clear_argv_macros();
-
 	/* get the raw command line */
 	get_raw_command_line(global_host_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
@@ -464,8 +479,14 @@ int run_global_host_event_handler(host *hst){
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* run the command */
 	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE){
@@ -506,9 +527,6 @@ int run_host_event_handler(host *hst){
 	if(hst->event_handler==NULL)
 		return ERROR;
 
-	/* clear command macros */
-	clear_argv_macros();
-
 	/* get the raw command line */
 	get_raw_command_line(hst->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
@@ -530,8 +548,14 @@ int run_host_event_handler(host *hst){
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
 	        }
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* run the command */
 	result=my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,command_output,sizeof(command_output)-1);
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){

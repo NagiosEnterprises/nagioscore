@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-01-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,10 +45,12 @@
 #define MAX_TOTALS_LENGTH			8
 #define MAX_EXECUTIONTIME_LENGTH		10
 #define MAX_LATENCY_LENGTH			10
-#define MAX_DURATION_LENGTH			9
+#define MAX_DURATION_LENGTH			17
 #define MAX_DOWNTIME_LENGTH			3
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
+
+#define MACRO_ENV_VAR_PREFIX			"NAGIOS_"
 
 #define MACRO_X_COUNT				96	/* size of macro_x[] array */
 
@@ -745,5 +747,14 @@ mmapfile *mmap_fopen(char *);				/* open a file read-only via mmap() */
 int mmap_fclose(mmapfile *);
 char *mmap_fgets(mmapfile *);
 char *mmap_fgets_multiline(mmapfile *);
+
+
+int init_macrox_names(void);
+int add_macrox_name(int,char *);
+int free_macrox_names(void);
+int set_all_macro_environment_vars(int);
+int set_macrox_environment_vars(int);
+int set_argv_macro_environment_vars(int);
+int set_macro_environment_var(char *,char *,int);
 #endif
 

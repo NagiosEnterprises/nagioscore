@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-20-2004
+ * Last Modified:   11-01-2004
  *
  * License:
  *
@@ -239,6 +239,9 @@ void run_service_check(service *svc){
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
 	strip(processed_command);
 
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
 
@@ -298,6 +301,9 @@ void run_service_check(service *svc){
 
 	/* fork a child process */
 	pid=fork();
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* an error occurred while trying to fork */
 	if(pid==-1)
@@ -2306,8 +2312,10 @@ int run_host_check(host *hst, int check_options){
 	/* process any macros contained in the argument */
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
 	strip(processed_command);
-
 			
+	/* set environment variables */
+	set_all_macro_environment_vars(TRUE);
+
 #ifdef DEBUG3
 	printf("\t\tRaw Command: %s\n",raw_command);
 	printf("\t\tProcessed Command: %s\n",processed_command);
@@ -2331,6 +2339,9 @@ int run_host_check(host *hst, int check_options){
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 	        }
+
+	/* unset environment variables */
+	set_all_macro_environment_vars(FALSE);
 
 	/* calculate total execution time */
 	hst->execution_time=exectime;

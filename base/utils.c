@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-24-2004
+ * Last Modified:   12-05-2004
  *
  * License:
  *
@@ -2528,9 +2528,6 @@ int set_macro_environment_var(char *name, char *value, int set){
 	printf("set_macro_environment_var() start\n");
 #endif
 
-	/* SETENV() APPEARS TO CAUSE MEMORY LEAKS! */
-	return OK;
-
 	/* we won't mess with null variable names */
 	if(name==NULL)
 		return ERROR;
@@ -2681,6 +2678,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 		/* become process group leader */
 		setpgid(0,0);
 
+		/* set environment variables */
+		set_all_macro_environment_vars(TRUE);
+
 #ifndef USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		free_memory();
@@ -2810,6 +2810,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 		/* reset the alarm */
 		alarm(0);
 		
+		/* clear environment variables */
+		set_all_macro_environment_vars(FALSE);
+
 		_exit(result);
 	        }
 

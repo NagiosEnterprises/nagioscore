@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-29-2004
+ * Last Modified:   12-05-2004
  *
  * License:
  *
@@ -466,14 +466,8 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	printf("\tProcessed service performance data command line: %s\n",processed_command_line);
 #endif
 
-	/* set environment variables */
-	set_all_macro_environment_vars(TRUE);
-
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
-
-	/* unset environment variables */
-	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -520,14 +514,8 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	printf("\tProcessed host performance data command line: %s\n",processed_command_line);
 #endif
 
-	/* set environment variables */
-	set_all_macro_environment_vars(TRUE);
-
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
-
-	/* unset environment variables */
-	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -770,14 +758,8 @@ int xpddefault_process_host_perfdata_file(void){
 	printf("\tProcessed host performance data file processing command line: %s\n",processed_command_line);
 #endif
 
-	/* set environment variables */
-	set_all_macro_environment_vars(TRUE);
-
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
-
-	/* unset environment variables */
-	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -832,14 +814,8 @@ int xpddefault_process_service_perfdata_file(void){
 	printf("\tProcessed service performance data file processing command line: %s\n",processed_command_line);
 #endif
 
-	/* set environment variables */
-	set_all_macro_environment_vars(TRUE);
-
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
-
-	/* unset environment variables */
-	set_all_macro_environment_vars(FALSE);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){

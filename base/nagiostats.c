@@ -5,9 +5,9 @@
  * Program: Nagiostats
  * Version: 2.0b2
  * License: GPL
- * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   02-09-2005
+ * Last Modified:   03-23-2005
  *
  * License:
  *
@@ -214,7 +214,7 @@ int main(int argc, char **argv){
 
 	if(mrtg_mode==FALSE){
 		printf("\nNagios Stats %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)\n");
+		printf("Copyright (c) 2003-2005 Ethan Galstad (www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -264,10 +264,18 @@ int main(int argc, char **argv){
 		printf(" NUMSVCUNKN         number of services UNKNOWN.\n");
 		printf(" NUMSVCCRIT         number of services CRITICAL.\n");
 		printf(" NUMSVCPROB         number of service problems (WARNING, UNKNOWN or CRITIAL).\n");
+		printf(" NUMSVCCHECKED      number of services that have been checked since start.\n");
+		printf(" NUMSVCSCHEDULED    number of services that are currently scheduled to be checked.\n");
+		printf(" NUMSVCFLAPPING     number of services that are currently flapping.\n");
+		printf(" NUMSVCDOWNTIME     number of services that are currently in downtime.\n");
 		printf(" NUMHSTUP           number of hosts UP.\n");
 		printf(" NUMHSTDOWN         number of hosts DOWN.\n");
 		printf(" NUMHSTUNR          number of hosts UNREACHABLE.\n");
 		printf(" NUMHSTPROB         number of host problems (DOWN or UNREACHABLE).\n");
+		printf(" NUMHSTCHECKED      number of hosts that have been checked since start.\n");
+		printf(" NUMHSTSCHEDULED    number of hosts that are currently scheduled to be checked.\n");
+		printf(" NUMHSTFLAPPING     number of hosts that are currently flapping.\n");
+		printf(" NUMHSTDOWNTIME     number of hosts that are currently in downtime.\n");
 		printf(" xxxACTSVCLAT       MIN/MAX/AVG active service check latency (ms).\n");
 		printf(" xxxACTSVCEXT       MIN/MAX/AVG active service check execution time (ms).\n");
 		printf(" xxxACTSVCPSC       MIN/MAX/AVG active service check %% state change.\n");
@@ -459,6 +467,16 @@ int display_mrtg_values(void){
 		else if(!strcmp(temp_ptr,"NUMSVCPROB"))
 			printf("%d\n",services_warning+services_unknown+services_critical);
 
+		/* misc service info */
+		else if(!strcmp(temp_ptr,"NUMSVCCHECKED"))
+			printf("%d\n",services_checked);
+		else if(!strcmp(temp_ptr,"NUMSVCSCHEDULED"))
+			printf("%d\n",services_scheduled);
+		else if(!strcmp(temp_ptr,"NUMSVCFLAPPING"))
+			printf("%d\n",services_flapping);
+		else if(!strcmp(temp_ptr,"NUMSVCDOWNTIME"))
+			printf("%d\n",services_in_downtime);
+
 		/* host states */
 		else if(!strcmp(temp_ptr,"NUMHSTUP"))
 			printf("%d\n",hosts_up);
@@ -468,6 +486,16 @@ int display_mrtg_values(void){
 			printf("%d\n",hosts_unreachable);
 		else if(!strcmp(temp_ptr,"NUMHSTPROB"))
 			printf("%d\n",hosts_down+hosts_unreachable);
+
+		/* misc host info */
+		else if(!strcmp(temp_ptr,"NUMHSTCHECKED"))
+			printf("%d\n",hosts_checked);
+		else if(!strcmp(temp_ptr,"NUMHSTSCHEDULED"))
+			printf("%d\n",hosts_scheduled);
+		else if(!strcmp(temp_ptr,"NUMHSTFLAPPING"))
+			printf("%d\n",hosts_flapping);
+		else if(!strcmp(temp_ptr,"NUMHSTDOWNTIME"))
+			printf("%d\n",hosts_in_downtime);
 
 		else
 			printf("%s\n",temp_ptr);

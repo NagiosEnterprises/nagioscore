@@ -171,12 +171,12 @@ We need to stop for a minute and describe what the command definitions for the e
 <pre>
 define command{
 	command_name	handle-master-host-event
-	command_line	/usr/local/nagios/libexec/eventhandlers/handle-master-host-event $HOSTSTATE$ $STATETYPE$
+	command_line	/usr/local/nagios/libexec/eventhandlers/handle-master-host-event $HOSTSTATE$ $HOSTSTATETYPE$
 	}
 	
 define command{
 	command_name	handle-master-proc-event
-	command_line	/usr/local/nagios/libexec/eventhandlers/handle-master-proc-event $SERVICESTATE$ $STATETYPE$
+	command_line	/usr/local/nagios/libexec/eventhandlers/handle-master-proc-event $SERVICESTATE$ $SERVICESTATETYPE$
 	}
 </pre>
 </font>

@@ -134,6 +134,18 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#ochp_command">Obsessive compulsive host processor command</a><br>
 <br>
 <a href="#process_performance_data">Performance data processing option</a><br>
+<a href="#host_perfdata_command">Host performance data processing command</a><br>
+<a href="#service_perfdata_command">Service performance data processing command</a><br>
+<a href="#host_perfdata_file">Host performance data file</a><br>
+<a href="#service_perfdata_file">Service performance data file</a><br>
+<a href="#host_perfdata_file_template">Host performance data file template</a><br>
+<a href="#service_perfdata_file_template">Service performance data file template</a><br>
+<a href="#host_perfdata_file_mode">Host performance data file mode</a><br>
+<a href="#service_perfdata_file_mode">Service performance data file mode</a><br>
+<a href="#host_perfdata_file_processing_interval">Host performance data file processing interval</a><br>
+<a href="#service_perfdata_file_processing_interval">Service performance data file processing interval</a><br>
+<a href="#host_perfdata_file_processing_command">Host performance data file processing command</a><br>
+<a href="#service_perfdata_file_processing_command">Service performance data file processing command</a><br>
 <br>
 <a href="#check_for_orphaned_services">Orphaned service check option</a><br>
 <br>
@@ -1633,10 +1645,10 @@ This option determines the maximum number of minutes from when Nagios starts tha
 </tr>
 </table>
 </p>
-This is the number of seconds per "unit interval" used for timing in the scheduling queue, re-notifications, etc. "Units intervals" are used in the host configuration file to determine how often to run a service check, how often of re-notify a contact, etc.
+This is the number of seconds per "unit interval" used for timing in the scheduling queue, re-notifications, etc. "Units intervals" are used in the object configuration file to determine how often to run a service check, how often of re-notify a contact, etc.
 </p>
 <p>
-<strong>Important:</strong>  The default value for this is set to 60, which means that a "unit value" of 1 in the host configuration file will mean 60 seconds (1 minute).  I have not really tested other values for this variable, so proceed at your own risk if you decide to do so!
+<strong>Important:</strong>  The default value for this is set to 60, which means that a "unit value" of 1 in the object configuration file will mean 60 seconds (1 minute).  I have not really tested other values for this variable, so proceed at your own risk if you decide to do so!
 </p>
 
 
@@ -2161,7 +2173,7 @@ This value determines whether or not Nagios will "obsess" over service checks re
 </p>
 
 <p>
-This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="configobject.html#command">command definition</a> that you define in your host configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_services">obsess_over_services</a> option is enabled globally and if the <i>obsess_over_service</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="configobject.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_services">obsess_over_services</a> option is enabled globally and if the <i>obsess_over_service</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
 </p>
 
 
@@ -2219,7 +2231,7 @@ This value determines whether or not Nagios will "obsess" over host checks resul
 </p>
 
 <p>
-This option allows you to specify a command to be run after <i>every</i> host check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your host configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ochp_timeout">ochp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_hosts">obsess_over_hosts</a> option is enabled globally and if the <i>obsess_over_host</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> host check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ochp_timeout">ochp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_hosts">obsess_over_hosts</a> option is enabled globally and if the <i>obsess_over_host</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
 </p>
 
 
@@ -2251,6 +2263,318 @@ This value determines whether or not Nagios will process host and service check 
 <li>0 = Don't process performance data (default)
 <li>1 = Process performance data
 </ul>
+</p>
+
+
+<p>
+<a name="host_perfdata_command"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Performance Data Processing Command</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_perfdata_command=&lt;command&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_perfdata_command=process-host-perfdata</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify a command to be run after <i>every</i> host check to process host <a href="perdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+</p>
+
+
+<p>
+<a name="service_perfdata_command"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Performance Data Processing Command</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>service_perfdata_command=&lt;command&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>service_perfdata_command=process-service-perfdata</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify a command to be run after <i>every</i> service check to process service <a href="perdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+</p>
+
+
+<p>
+<a name="host_perfdata_file"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Performance Data File</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_perfdata_file=&lt;file_name&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_perfdata_file=/usr/local/nagios/var/host-perfdata.dat</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify a file to which host <a href="perdata.html">performance data</a> will be written after every host check.  Data will be written to the performance file as specified by the <a href="#host_perfdata_file_template">host_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+</p>
+
+
+<p>
+<a name="service_perfdata_file"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Performance Data File</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>service_perfdata_file=&lt;file_name&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>service_perfdata_file=/usr/local/nagios/var/service-perfdata.dat</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify a file to which service <a href="perdata.html">performance data</a> will be written after every service check.  Data will be written to the performance file as specified by the <a href="#service_perfdata_file_template">service_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+</p>
+
+
+<p>
+<a name="host_perfdata_file_template"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Performance Data File Template</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_perfdata_file_template=&lt;template&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_perfdata_file_template=[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines what (and how) data is written to the <a href="#host_perfdata_file">host performance data file</a>.  The template may contain <a href="macros.html">macros</a>, special characters (\t for tab, \r for carriage return, \n for newline) and plain text.  A newline is automatically added after each write to the performance data file.
+</p>
+
+
+<p>
+<a name="service_perfdata_file_template"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Performance Data File Template</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>service_perfdata_file_template=&lt;template&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>service_perfdata_file_template=[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines what (and how) data is written to the <a href="#service_perfdata_file">service performance data file</a>.  The template may contain <a href="macros.html">macros</a>, special characters (\t for tab, \r for carriage return, \n for newline) and plain text.  A newline is automatically added after each write to the performance data file.
+</p>
+
+
+<p>
+<a name="host_perfdata_file_mode"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Performance Data File Mode</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_perfdata_file_mode=&lt;mode&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_perfdata_file_mode=a</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether the <a href="#host_perfdata_file">host performance data file</a> is opened in write or append mode.  Unless the file is a named pipe, you will probably want to use the default mode of append.
+</p>
+<p>
+<ul>
+<li>a = Open file in append mode (default)
+<li>w = Open file in write mode
+</ul>
+</p>
+
+
+<p>
+<a name="service_perfdata_file_mode"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Performance Data File Mode</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>service_perfdata_file_mode=&lt;mode&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>service_perfdata_file_mode=a</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether the <a href="#service_perfdata_file">service performance data file</a> is opened in write or append mode.  Unless the file is a named pipe, you will probably want to use the default mode of append.
+</p>
+<p>
+<ul>
+<li>a = Open file in append mode (default)
+<li>w = Open file in write mode
+</ul>
+</p>
+
+
+<p>
+<a name="host_perfdata_file_processing_interval"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Performance Data File Processing Interval</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_perfdata_file_processing_interval=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_perfdata_file_processing_interval=0</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify the interval (in seconds) at which the <a href="#host_perfdata_file">host performance data file</a> is processed using the <a href="#host_perfdata_file_processing_command">host performance data file processing command</a>.  A value of 0 indicates that the performance data file should not be processed at regular intervals.
+</p>
+
+
+<p>
+<a name="service_perfdata_file_processing_interval"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Performance Data File Processing Interval</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>service_perfdata_file_processing_interval=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>service_perfdata_file_processing_interval=0</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify the interval (in seconds) at which the <a href="#service_perfdata_file">service performance data file</a> is processed using the <a href="#service_perfdata_file_processing_command">service performance data file processing command</a>.  A value of 0 indicates that the performance data file should not be processed at regular intervals.
+</p>
+
+
+<p>
+<a name="host_perfdata_file_processing_command"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Performance Data File Processing Command</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>host_perfdata_file_processing_command=&lt;command&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host_perfdata_file_processing_command=process-host-perfdata-file</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify the command that should be executed to process the <a href="#host_perfdata_file">host performance data file</a>.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#host_perfdata_file_processing_interval">host_perfdata_file_processing_interval</a> directive.
+</p>
+
+
+<p>
+<a name="service_perfdata_file_processing_command"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Performance Data File Processing Command</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>service_perfdata_file_processing_command=&lt;command&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>service_perfdata_file_processing_command=process-service-perfdata-file</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to specify the command that should be executed to process the <a href="#service_perfdata_file">service performance data file</a>.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#service_perfdata_file_processing_interval">service_perfdata_file_processing_interval</a> directive.
 </p>
 
 

@@ -47,11 +47,11 @@ There are two basic categories of performance data that can be obtained from Nag
 </p>
 
 <p>
-<i>Check performance data</i> is internal data that relates to the actual execution of a host or service check.  This might include things like service check latency (i.e. how "late" was the service check from its scheduled execution time) and the number of seconds a host or service check took to execute.  This type of performance data is available for all checks that are performed.  The $EXECUTIONTIME$ <a href="macros.html">macro</a> can be used to determine the number of seconds a host or service check was running and the $LATENCY$ macro can be used to determine how "late" a service check was (host checks have zero latency, as they are executed on an as-needed basis, rather than at regularly scheduled intervals).
+<i>Check performance data</i> is internal data that relates to the actual execution of a host or service check.  This might include things like service check latency (i.e. how "late" was the service check from its scheduled execution time) and the number of seconds a host or service check took to execute.  This type of performance data is available for all checks that are performed.  The $HOSTEXECUTIONTIME$ and $SERVICEEXECUTIONTIME$ <a href="macros.html">macros</a> can be used to determine the number of seconds a host or service check was running and the $HOSTLATENCY$ and $SERVICELATENCY$ macros can be used to determine how "late" a regularly-scheduled host or service check was.
 </p>
 
 <p>
-<i>Plugin performance data</i> is external data specific to the plugin used to perform the host or service check.  Plugin-specific data can include things like percent packet loss, free disk space, processor load, number of current users, etc. - basically any type of metric that the plugin is measuring when it executes.   Plugin-specific performance data is optional and may not be supported by all plugins.  As of this writing, no plugins return performance data, although they mostly likely will in the near future.  Plugin-specific performance data (if available) can be obtained by using the $PERFDATA$ <a href="macros.html">macro</a>.  See below for more information on how plugins can return performance data to Nagios for inclusion in the $PERFDATA$ macro.
+<i>Plugin performance data</i> is external data specific to the plugin used to perform the host or service check.  Plugin-specific data can include things like percent packet loss, free disk space, processor load, number of current users, etc. - basically any type of metric that the plugin is measuring when it executes.   Plugin-specific performance data is optional and may not be supported by all plugins.  As of this writing, no plugins return performance data, although they mostly likely will in the near future.  Plugin-specific performance data (if available) can be obtained by using the $HOSTPERFDATA$ and $SERVICEPERFDATA$ <a href="macros.html">macros</a>.  See below for more information on how plugins can return performance data to Nagios for inclusion in the $HOSTPERFDATA$ and $SERVICEPERFDATA$ macros.
 </p>
 
 <p>
@@ -69,7 +69,7 @@ PING ok - Packet loss = 0%, RTA = 0.80 ms
 </p>
 
 <p>
-With this type of output, the entire line of text is available in the $OUTPUT$ <a href="macros.html">macro</a>.
+With this type of output, the entire line of text is available in the $HOSTOUTPUT$ or $SERVICEOUTPUT$ <a href="macros.html">macros</a> (depending on whether this plugin was used as a host check or service check).
 </p>
 
 <p>
@@ -83,7 +83,7 @@ PING ok - Packet loss = 0%, RTA = 0.80 ms | percent_packet_loss=0, rta=0.80
 </p>
 
 <p>
-When Nagios seems this format of plugin output it will split the output into two parts: everything before the pipe character is considered to be the "normal" plugin output and everything after the pipe character is considered to be the plugin-specific performance data.  The "normal" output gets stored in the $OUTPUT$ macro, while the optional performance data gets stored in the $PERFDATA$ macro.  In the example above, the $OUTPUT$ macro would contain "<i>PING ok - Packet loss = 0%, RTA = 0.80 ms</i>" (without quotes) and the $PERFDATA$ macro would contain "<i>percent_packet_loss=0, rta=0.80</i>" (without quotes).
+When Nagios seems this format of plugin output it will split the output into two parts: everything before the pipe character is considered to be the "normal" plugin output and everything after the pipe character is considered to be the plugin-specific performance data.  The "normal" output gets stored in the $HOSTOUTPUT$ or $SERVICEOUTPUT$ macro, while the optional performance data gets stored in the $HOSTPERFDATA$ or $SERVICEPERFDATA$ macro.  In the example above, the $HOSTOUTPUT$ or $SERVICEOUTPUT$ macro would contain "<i>PING ok - Packet loss = 0%, RTA = 0.80 ms</i>" (without quotes) and the $HOSTPERFDATA$ or $SERVICEPERFDATA$ macro would contain "<i>percent_packet_loss=0, rta=0.80</i>" (without quotes).
 </p>
 
 <p>
@@ -99,40 +99,44 @@ The Nagios daemon doesn't directly process performance data, so it doesn't reall
 </p>
 
 <p>
-If you want to process the performance data that is available from Nagios and the plugins, you'll need to do three things.
+If you want to process the performance data that is available from Nagios and the plugins, you'll need to do the following:
 </p>
 
 <p>
-First, you'll have to enable the <a href="configmain.html#process_performance_data">process_performance_data</a> option in the main config file.
+<ol>
+<li>Enable the <a href="configmain.html#process_performance_data">process_performance_data</a> option.<br><br>
+<li>Configure Nagios so that performance data is written to files and/or processed by executing commands.
+</ol>
 </p>
 
 <p>
-Second, you'll have to compile Nagios with the proper type of performance data processing.  There are currently two options for this:
+<strong><u>Writing Performance Data To Files</u></strong>
 </p>
 
 <p>
-<ul>
-<li><b><a href="xpddefault.html">Default method</a></b> - Nagios will launch a command you define in order to process the data.  This method is the most flexible, but consumes more system resources as it requires Nagios to fork a new system process in order to handle the performance data.
-<li><b><a href="xpdfile.html">File-based method</a></b> - Performance data is dumped directly into one or more files in a manner of your choosing.  You simply define a template to be used in writing the data and Nagios will dump performance data to the files in that format.  This is less flexible that the default method, but requires far less system resources and is much faster.
-</ul>
+You can have Nagios write all host and service performance data to files using the <a href="configmain.html#host_perfdata_file">host_perfdata_file</a> and <a href="configmain.html#service_perfdata_file">service_perfdata_file</a> options.  You can control how the data is written to those files using the <a href="configmain.html#host_perfdata_file_template">host_perfdata_file_template</a> and <a href="configmain.html#service_perfdata_file_template">service_perfdata_file_template</a> options.  Additionally, you can have Nagios periodically execute commands to process the performance data files using the <a href="configmain.html#host_perfdata_file_processing_command">host_perfdata_file_processing_command</a> and <a href="configmain.html#service_perfdata_file_processing_command">service_perfdata_file_processing_command</a> options.
 </p>
 
 <p>
-Lastly, you'll need to add any necessary directives and command definitions to your config files to start using performance data.  The exact items you'll need to add depend on what type of performance data processing you've compiled Nagios with.  Follow the link to appropriate option mentioned above to find out what you need to do.
-</p>
-
-
-<p>
-<strong><u>Post-Processing Options</u></strong>
+<strong><u>Processing Performance Data Using Commands</u></strong>
 </p>
 
 <p>
-I'm assuming that you're going to want to do some post-processing of the performance data that you get out of Nagios.  If not, why are you enabling performance data processing in the first place?
+You can have Nagios process host and service performance data by executing commands by using the <a href="configmain.html#host_perfdata_command">host_perfdata_command</a> or <a href="configmain.html#service_perfdata_command">service_perfdata_command</a> options.  An example command definition that simply writes service performance data to a file is shown below:
 </p>
 
 <p>
-What you do with the performance data once its out of Nagios is completely up to you.  If you are simply writing performance data to text files, you could setup an occassional cron job to process the entries in those files, squash them using <a href="http://people.ee.ethz.ch/~oetiker/webtools/rrdtool/">rrdtool</a>, dump them into a database, produce graphs, whatever...
+<font color='red'>
+<pre>
+define command{
+	command_name	process-service-perfdata
+	command_line	/bin/echo -e "$LASTSERVICECHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$SERVICESTATETYPE$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$" &gt;&gt; /usr/local/nagios/var/service-perfdata.dat
+	}
+</pre>
+</font>
 </p>
+
+
 
 
 <hr>

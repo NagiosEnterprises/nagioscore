@@ -3,7 +3,7 @@
 #
 # MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
 #
-# Last Modified: 03-05-2005
+# Last Modified: 03-23-2005
 #
 #
 # NOTE: This config file is intended to be used to test a Nagios installation
@@ -75,7 +75,7 @@ define command{
 
 define command{
         command_name    check-host-alive
-        command_line    /bin/check_ping -H $HOSTADDRESS$ -w 99,99% -c 100,100% -p 1 
+        command_line    $USER1$/check_ping -H $HOSTADDRESS$ -w 99,99% -c 100,100% -p 1 
         }
 
 

@@ -72,8 +72,8 @@ In most cases, event handler commands will be shell or perl scripts.  At a minim
 the following <a href="macros.html">macros</a> as arguments:
 </p>
 <p>
-Service event handler macros: <b>$SERVICESTATE$</b>, <b>$STATETYPE$</b>, <b>$SERVICEATTEMPT$</b><br>
-Host event handler macros: <b>$HOSTSTATE$</b>, <b>$STATETYPE$</b>, <b>$HOSTATTEMPT$</b>
+Service event handler macros: <b>$SERVICESTATE$</b>, <b>$SERVICESTATETYPE$</b>, <b>$SERVICEATTEMPT$</b><br>
+Host event handler macros: <b>$HOSTSTATE$</b>, <b>$HOSTSTATETYPE$</b>, <b>$HOSTATTEMPT$</b>
 </p>
 <p>
 The scripts should examine the values of the arguments passed in and take any necessary action based upon those values.  The best way to understand how event handlers should work is to see and example.  Lucky for you, one is provided <a href="#example">below</a>.  There are also some sample event handler scripts included in the <b>eventhandlers/</b> subdirectory of the Nagios distribution.  Some of these sample scripts demonstrate the use of <a href="extcommands.html">external commands</a> to implement <a href="redundancy.html">redundant monitoring hosts</a>.
@@ -136,7 +136,7 @@ Once the service has been defined with an event handler, we must define that eve
 <pre>
 define command{
 	command_name	restart-httpd
-	command_line	/usr/local/nagios/libexec/eventhandlers/restart-httpd  $SERVICESTATE$ $STATETYPE$ $SERVICEATTEMPT$
+	command_line	/usr/local/nagios/libexec/eventhandlers/restart-httpd  $SERVICESTATE$ $SERVICESTATETYPE$ $SERVICEATTEMPT$
 	}
 </pre>
 </strong></font>

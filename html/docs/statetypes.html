@@ -59,7 +59,7 @@ What happens when a service or host is in a soft error state or experiences a so
 <p>
 <ul>
 <li>The soft error or recovery is logged if you enabled the <a href="configmain.html#log_service_retries">log_service_retries</a> or <a href="configmain.html#log_host_retries">log_host_retries</a> options in the main configuration file.
-<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the soft error or recovery for the service or host.  (Before any event handler is executed, the <b>$STATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>SOFT</b>").
+<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the soft error or recovery for the service or host.  (Before any event handler is executed, the <b>$HOSTSTATETYPE$</b> or <b>$SERVICESTATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>SOFT</b>").
 <li>Nagios does <i>not</i> send out notifications to any contacts because there is (or was) no "real" problem with the service or host.  
 </ul>
 </p>
@@ -120,7 +120,7 @@ If a hard state change has occurred <i>and</i> the service or host is in a non-O
 <p>
 <ul>
 <li>The hard service or host problem is logged.
-<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the hard problem for the service or host.  (Before any event handler is executed, the <b>$STATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>HARD</b>").
+<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the hard problem for the service or host.  (Before any event handler is executed, the <b>$HOSTSTATETYPE$</b> or <b>$SERVICESTATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>HARD</b>").
 <li>Contacts will be notified of the service or host problem (if the <a href="notifications.html">notification logic</a> allows it).
 </ul>
 </p>
@@ -131,7 +131,7 @@ If a hard state change has occurred <i>and</i> the service or host is in an OK s
 <p>
 <ul>
 <li>The hard service or host recovery is logged.
-<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the hard recovery for the service or host.  (Before any event handler is executed, the <b>$STATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>HARD</b>").
+<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the hard recovery for the service or host.  (Before any event handler is executed, the <b>$HOSTSTATETYPE$</b> or <b>$SERVICESTATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>HARD</b>").
 <li>Contacts will be notified of the service or host recovery (if the <a href="notifications.html">notification logic</a> allows it).
 </ul>
 </p>

@@ -17,7 +17,9 @@ Nagios Change Log
 * Fixed bug where passive checks with empty plugin output were being dropped
 * Fixed bug in state retention routines
 * Configure script changes to (hopefully) support event broker under AIX 5
-* Documentation fixes
+* Documentation fixes and updates
+* Additional MRTG output options in nagiostats utility
+* Fixed bug in macro processing where commands longer than 1K in length were sometimes being truncated
 
 
 

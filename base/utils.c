@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-19-2005
+ * Last Modified:   03-23-2005
  *
  * License:
  *
@@ -259,6 +259,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 #ifdef TEST_MACROS
 	printf("**** BEGIN MACRO PROCESSING ***********\n");
 	printf("Processing: '%s'\n",input_buffer);
+	printf("Buffer length: %d\n",buffer_length);
 #endif
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
@@ -277,7 +278,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				output_buffer[buffer_length-1]='\x0';
 			        }
 #ifdef TEST_MACROS
-			printf("    Not currently in macro.  Running output: '%s'\n",output_buffer);
+			printf("    Not currently in macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
 #endif
 			in_macro=TRUE;
 			}
@@ -364,7 +365,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				/* an escaped $ is done by specifying two $$ next to each other */
 				else if(!strcmp(temp_buffer,"")){
 #ifdef TEST_MACROS
-					printf("    Escaped $.  Running output: '%s'\n",output_buffer);
+					printf("    Escaped $.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
 #endif
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 				        }
@@ -372,7 +373,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				/* a non-macro, just some user-defined string between two $s */
 				else{
 #ifdef TEST_MACROS
-					printf("    Non-macro.  Running output: '%s'\n",output_buffer);
+					printf("    Non-macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
 #endif
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 					output_buffer[buffer_length-1]='\x0';
@@ -400,7 +401,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					if(options & URL_ENCODE_MACRO_CHARS)
 						free(selected_macro);
 #ifdef TEST_MACROS
-					printf("    Just finished macro.  Running output: '%s'\n",output_buffer);
+					printf("    Just finished macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
 #endif
 				        }
 
@@ -2867,8 +2868,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
 void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int macro_options){
-	char temp_arg[MAX_INPUT_BUFFER];
-	char arg_buffer[MAX_INPUT_BUFFER];
+	char temp_arg[MAX_COMMAND_BUFFER];
+	char arg_buffer[MAX_COMMAND_BUFFER];
 	command *temp_command;
 	int x,y;
 	int arg_index;

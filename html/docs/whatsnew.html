@@ -57,14 +57,6 @@ There are a few known issues with the Nagios 2.0 code at the moment.  Hopefully 
 </p>
 
 <p>
-<pre>
-<strong>DOCUMENTATION TODO:</strong>
-** CHECK SCHEDULING: scheduled host checks, initial check spreads
-** HOST CHECK OPTIMIZATION: check_cluster, add $HOSTSERVICESTATEIDS$ macro...
-</pre>
-</p>
-
-<p>
 <ol>
 
 <li><b>Macro Changes</b> - <a href="macros.html">Macros</a> have undergone a major overhaul.  You will have to update most of your command definitions to match the new macros.  Most macros are now available as environment variables.  Also, "on-demand" host and service macros have been added.  See the <a href="macros.html">documentation on macros</a> for more information.<br>
@@ -122,6 +114,8 @@ There are a few known issues with the Nagios 2.0 code at the moment.  Hopefully 
 <li><b>New Stats Utility</b> - A new utility called 'nagiostats' is now included in the Nagios distribution.  Its a command-line utility that allows you to view current statistics for a running Nagios process.  It can also produce data compatible with MRTG, so you can graph statistical information.  More information on how to use the utility can be found <a href="nagiostats.html">here</a>.<br>
 <br>
 <li><b>Adaptive Monitoring</b> - You can now change certain attributes relating to host and service checks (check command, check interval, max check attempts etc.) during runtime by submitting the appropriate external commands.  This kind of adaptive monitoring will probably not be of much use to the majority of users out there, but it does provide a way for doing some neat stuff.  More information on adaptive monitoring can be found <a href="adaptive.html">here</a>.<br>
+<br>
+<li><b>Performance Data Changes</b> - The methods for processing performance data have changed slightly.  You can now process performance data by executing external commands and/or writing to files without recompiling Nagios.  Read the documentation on <a href="perfdata.html">performance data</a> for more information.<br>
 <br>
 <li><b>Native DB Support Dropped</b> - Native support for storing various types of data (status, retention, comment, downtime, etc.) in MySQL and PostgreSQL has been dropped.  Stop whining.  I expect someone will develop an alternative using the new event broker sometime in the near future.  Besides, DB support was not well implemented and dropping native DB support will make things easier for newbies to understand (one less thing to figure out).<br>
 <br>

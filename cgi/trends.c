@@ -463,9 +463,9 @@ int main(int argc, char **argv){
 
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed %s state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>");
-			printf("<input type='hidden' name='initialassumed%sstate' value='%d'>",(display_type==DISPLAY_HOST_TRENDS)?"service":"host",(display_type==DISPLAY_HOST_TRENDS)?initial_assumed_service_state:initial_assumed_host_state);
-			printf("<select name='initialassumed%sstate'>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
 			if(display_type==DISPLAY_HOST_TRENDS){
+				printf("<input type='hidden' name='initialassumedservicestate' value='%d'>",initial_assumed_service_state);
+				printf("<select name='initialassumedhoststate'>\n");
 				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_host_state==AS_NO_DATA)?"SELECTED":"");
 				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_host_state==AS_CURRENT_STATE)?"SELECTED":"");
 				printf("<option value=%d %s>Host Up\n",AS_HOST_UP,(initial_assumed_host_state==AS_HOST_UP)?"SELECTED":"");
@@ -473,6 +473,8 @@ int main(int argc, char **argv){
 				printf("<option value=%d %s>Host Unreachable\n",AS_HOST_UNREACHABLE,(initial_assumed_host_state==AS_HOST_UNREACHABLE)?"SELECTED":"");
 			        }
 			else{
+				printf("<input type='hidden' name='initialassumedhoststate' value='%d'>",initial_assumed_host_state);
+				printf("<select name='initialassumedservicestate'>\n");
 				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_service_state==AS_NO_DATA)?"SELECTED":"");
 				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_service_state==AS_CURRENT_STATE)?"SELECTED":"");
 				printf("<option value=%d %s>Service Ok\n",AS_SVC_OK,(initial_assumed_service_state==AS_SVC_OK)?"SELECTED":"");
@@ -984,7 +986,7 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed State:</td>\n");
+			printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed %s State:</td>\n",(display_type==DISPLAY_HOST_TRENDS)?"Host":"Service");
 			printf("<td class='reportSelectItem'>\n");
 			if(display_type==DISPLAY_HOST_TRENDS){
 				printf("<select name='initialassumedhoststate'>\n");
@@ -1610,6 +1612,7 @@ void graph_all_trend_data(void){
 	unsigned long wobble=300;
 	int first_real_state=AS_NO_DATA;
 	time_t initial_assumed_time;
+	int initial_assumed_state;
 	int error=FALSE;
 
 
@@ -1688,12 +1691,16 @@ void graph_all_trend_data(void){
 		if(display_type==DISPLAY_SERVICE_TRENDS){
 			if(initial_assumed_service_state!=AS_SVC_OK && initial_assumed_service_state!=AS_SVC_WARNING && initial_assumed_service_state!=AS_SVC_UNKNOWN && initial_assumed_service_state!=AS_SVC_CRITICAL && initial_assumed_service_state!=AS_CURRENT_STATE)
 				error=TRUE;
+			else
+				initial_assumed_state=initial_assumed_service_state;
 			if(initial_assumed_service_state==AS_CURRENT_STATE && svcstatus==NULL)
 				error=TRUE;
 		        }
 		else{
 			if(initial_assumed_host_state!=AS_HOST_UP && initial_assumed_host_state!=AS_HOST_DOWN && initial_assumed_host_state!=AS_HOST_UNREACHABLE && initial_assumed_host_state!=AS_CURRENT_STATE)
 				error=TRUE;
+			else
+				initial_assumed_state=initial_assumed_host_state;
 			if(initial_assumed_host_state==AS_CURRENT_STATE && hststatus==NULL)
 				error=TRUE;
 		        }
@@ -1703,13 +1710,13 @@ void graph_all_trend_data(void){
 			if(display_type==DISPLAY_HOST_TRENDS){
 				switch(hststatus->status){
 				case HOST_DOWN:
-					initial_assumed_host_state=AS_HOST_DOWN;
+					initial_assumed_state=AS_HOST_DOWN;
 					break;
 				case HOST_UNREACHABLE:
-					initial_assumed_host_state=AS_HOST_UNREACHABLE;
+					initial_assumed_state=AS_HOST_UNREACHABLE;
 					break;
 				case HOST_UP:
-					initial_assumed_host_state=AS_HOST_UP;
+					initial_assumed_state=AS_HOST_UP;
 					break;
 				default:
 					error=TRUE;
@@ -1719,16 +1726,16 @@ void graph_all_trend_data(void){
 			else{
 				switch(svcstatus->status){
 				case SERVICE_OK:
-					initial_assumed_service_state=AS_SVC_OK;
+					initial_assumed_state=AS_SVC_OK;
 					break;
 				case SERVICE_WARNING:
-					initial_assumed_service_state=AS_SVC_WARNING;
+					initial_assumed_state=AS_SVC_WARNING;
 					break;
 				case SERVICE_UNKNOWN:
-					initial_assumed_service_state=AS_SVC_UNKNOWN;
+					initial_assumed_state=AS_SVC_UNKNOWN;
 					break;
 				case SERVICE_CRITICAL:
-					initial_assumed_service_state=AS_SVC_CRITICAL;
+					initial_assumed_state=AS_SVC_CRITICAL;
 					break;
 				default:
 					error=TRUE;
@@ -1748,9 +1755,9 @@ void graph_all_trend_data(void){
 				initial_assumed_time=as_list->time_stamp-1;
 			
 			if(display_type==DISPLAY_HOST_TRENDS)
-				add_archived_state(initial_assumed_host_state,initial_assumed_time,"First Host State Assumed (Faked Log Entry)");
+				add_archived_state(initial_assumed_state,initial_assumed_time,"First Host State Assumed (Faked Log Entry)");
 			else
-				add_archived_state(initial_assumed_service_state,initial_assumed_time,"First Service State Assumed (Faked Log Entry)");
+				add_archived_state(initial_assumed_state,initial_assumed_time,"First Service State Assumed (Faked Log Entry)");
 		        }
 	        }
 
@@ -2709,7 +2716,7 @@ void get_time_breakdown_string(unsigned long total_time, unsigned long state_tim
 		percent_time=0.0;
 	else
 		percent_time=((double)state_time/total_time)*100.0;
-	snprintf(buffer,buffer_length-1,"%-13s: (%3.1f%%) %dd %dh %dm %ds",state_string,percent_time,days,hours,minutes,seconds);
+	snprintf(buffer,buffer_length-1,"%-13s: (%.3f%%) %dd %dh %dm %ds",state_string,percent_time,days,hours,minutes,seconds);
 	buffer[buffer_length-1]='\x0';
 
 	return;

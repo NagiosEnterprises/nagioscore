@@ -188,7 +188,7 @@ int display_type=DISPLAY_NO_HISTOGRAM;
 int mode=CREATE_HTML;
 int input_type=GET_INPUT_NONE;
 int timeperiod_type=TIMEPERIOD_LAST24HOURS;
-int breakdown_type=BREAKDOWN_DAY_OF_MONTH;
+int breakdown_type=BREAKDOWN_HOURLY;
 int compute_time_from_parts=FALSE;
 
 int initial_states_logged=FALSE;

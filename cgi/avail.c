@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2003
+ * Last Modified: 07-22-2003
  *
  * License:
  * 
@@ -40,6 +40,7 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
 extern host      *host_list;
 extern hostgroup *hostgroup_list;
+extern servicegroup *servicegroup_list;
 extern service   *service_list;
 
 extern int       log_rotation_method;
@@ -74,6 +75,7 @@ extern int       log_rotation_method;
 #define DISPLAY_HOSTGROUP_AVAIL 1
 #define DISPLAY_HOST_AVAIL      2
 #define DISPLAY_SERVICE_AVAIL   3
+#define DISPLAY_SERVICEGROUP_AVAIL 4
 
 /* subject types */
 #define HOST_SUBJECT            0
@@ -175,6 +177,7 @@ int end_year=2000;
 int get_date_parts=FALSE;
 int select_hostgroups=FALSE;
 int select_hosts=FALSE;
+int select_servicegroups=FALSE;
 int select_services=FALSE;
 int select_output_format=FALSE;
 
@@ -182,14 +185,17 @@ int compute_time_from_parts=FALSE;
 
 int show_all_hostgroups=FALSE;
 int show_all_hosts=FALSE;
+int show_all_servicegroups=FALSE;
 int show_all_services=FALSE;
 
 int assume_initial_states=TRUE;
 int assume_state_retention=TRUE;
-int initial_assumed_state=AS_NO_DATA;
+int initial_assumed_host_state=AS_NO_DATA;
+int initial_assumed_service_state=AS_NO_DATA;
 
 char *hostgroup_name="";
 char *host_name="";
+char *servicegroup_name="";
 char *svc_description="";
 
 void create_subject_list(void);
@@ -203,6 +209,8 @@ void compute_subject_downtime_times(time_t,time_t,avail_subject *,archived_state
 void compute_subject_downtime_part_times(time_t,time_t,int,avail_subject *);
 void display_hostgroup_availability(void);
 void display_specific_hostgroup_availability(hostgroup *);
+void display_servicegroup_availability(void);
+void display_specific_servicegroup_availability(servicegroup *);
 void display_host_availability(void);
 void display_service_availability(void);
 void write_log_entries(avail_subject *);
@@ -248,6 +256,7 @@ int main(int argc, char **argv){
 	time_t report_end_time;
 	int days, hours, minutes, seconds;
 	hostgroup *temp_hostgroup;
+	servicegroup *temp_servicegroup;
 	time_t t3;
 	time_t current_time;
 	struct tm *t;
@@ -351,12 +360,23 @@ int main(int argc, char **argv){
 		/* left column of the first row */
 		printf("<td align=left valign=top width=33%%>\n");
 
-		if(display_type==DISPLAY_HOST_AVAIL)
+		switch(display_type){
+		case DISPLAY_HOST_AVAIL:
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host Availability Report");
-		else if(display_type==DISPLAY_SERVICE_AVAIL)
+			break;
+		case DISPLAY_SERVICE_AVAIL:
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service Availability Report");
-		else
+			break;
+		case DISPLAY_HOSTGROUP_AVAIL:
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Hostgroup Availability Report");
+			break;
+		case DISPLAY_SERVICEGROUP_AVAIL:
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Servicegroup Availability Report");
+			break;
+		default:
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Availability Report");
+			break;
+		        }
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		display_info_table(temp_buffer,FALSE,&current_authdata);
 
@@ -368,7 +388,7 @@ int main(int argc, char **argv){
 			if(display_type==DISPLAY_HOST_AVAIL && show_all_hosts==FALSE){
 				host_report_url("all","View Availability Report For All Hosts");
 				printf("<BR>\n");
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
@@ -380,7 +400,7 @@ int main(int argc, char **argv){
 				service_report_url("null","all","View Availability Report For All Services");
 				printf("<BR>\n");
 				printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
-				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>View Trends For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
@@ -418,6 +438,12 @@ int main(int argc, char **argv){
 					printf("All Hostgroups");
 				else
 					printf("Hostgroup '%s'",hostgroup_name);
+		                }
+			else if(display_type==DISPLAY_SERVICEGROUP_AVAIL){
+				if(show_all_servicegroups==TRUE)
+					printf("All Servicegroups");
+				else
+					printf("Servicegroup '%s'",servicegroup_name);
 		                }
 			printf("</DIV>\n");
 
@@ -458,6 +484,8 @@ int main(int argc, char **argv){
 				printf("<input type='hidden' name='host' value='%s'>\n",host_name);
 			if(display_type==DISPLAY_SERVICE_AVAIL)
 				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+			if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
+				printf("<input type='hidden' name='servicegroup' value='%s'>\n",servicegroup_name);
 
 			printf("<tr><td valign=top align=left class='optBoxItem'>Assume initial states:</td><td valign=top align=left class='optBoxItem'>Assume state retention:</td></tr>\n");
 			printf("<tr>\n");
@@ -476,31 +504,45 @@ int main(int argc, char **argv){
 			printf("</td>\n");
 			printf("</tr>\n");
 
-			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host");
+			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
 			printf("<tr>\n");
 			printf("<td valign=top align=left class='optBoxItem'>\n");
-			printf("<select name='initialassumedstate'>\n");
-			printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_state==AS_NO_DATA)?"SELECTED":"");
-			printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_state==AS_CURRENT_STATE)?"SELECTED":"");
-			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL){
-				printf("<option value=%d %s>Host Up\n",AS_HOST_UP,(initial_assumed_state==AS_HOST_UP)?"SELECTED":"");
-				printf("<option value=%d %s>Host Down\n",AS_HOST_DOWN,(initial_assumed_state==AS_HOST_DOWN)?"SELECTED":"");
-				printf("<option value=%d %s>Host Unreachable\n",AS_HOST_UNREACHABLE,(initial_assumed_state==AS_HOST_UNREACHABLE)?"SELECTED":"");
+			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
+				printf("<select name='initialassumedhoststate'>\n");
+				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_host_state==AS_NO_DATA)?"SELECTED":"");
+				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_host_state==AS_CURRENT_STATE)?"SELECTED":"");
+				printf("<option value=%d %s>Host Up\n",AS_HOST_UP,(initial_assumed_host_state==AS_HOST_UP)?"SELECTED":"");
+				printf("<option value=%d %s>Host Down\n",AS_HOST_DOWN,(initial_assumed_host_state==AS_HOST_DOWN)?"SELECTED":"");
+				printf("<option value=%d %s>Host Unreachable\n",AS_HOST_UNREACHABLE,(initial_assumed_host_state==AS_HOST_UNREACHABLE)?"SELECTED":"");
+				printf("</select>\n");
 			        }
 			else{
-				printf("<option value=%d %s>Service Ok\n",AS_SVC_OK,(initial_assumed_state==AS_SVC_OK)?"SELECTED":"");
-				printf("<option value=%d %s>Service Warning\n",AS_SVC_WARNING,(initial_assumed_state==AS_SVC_WARNING)?"SELECTED":"");
-				printf("<option value=%d %s>Service Unknown\n",AS_SVC_UNKNOWN,(initial_assumed_state==AS_SVC_UNKNOWN)?"SELECTED":"");
-				printf("<option value=%d %s>Service Critical\n",AS_SVC_CRITICAL,(initial_assumed_state==AS_SVC_CRITICAL)?"SELECTED":"");
+				printf("<input type='hidden' name=initialassumedhoststate' value='%d'>",initial_assumed_host_state);
+				printf("<select name='initialassumedservicestate'>\n");
+				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_service_state==AS_NO_DATA)?"SELECTED":"");
+				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_service_state==AS_CURRENT_STATE)?"SELECTED":"");
+				printf("<option value=%d %s>Service Ok\n",AS_SVC_OK,(initial_assumed_service_state==AS_SVC_OK)?"SELECTED":"");
+				printf("<option value=%d %s>Service Warning\n",AS_SVC_WARNING,(initial_assumed_service_state==AS_SVC_WARNING)?"SELECTED":"");
+				printf("<option value=%d %s>Service Unknown\n",AS_SVC_UNKNOWN,(initial_assumed_service_state==AS_SVC_UNKNOWN)?"SELECTED":"");
+				printf("<option value=%d %s>Service Critical\n",AS_SVC_CRITICAL,(initial_assumed_service_state==AS_SVC_CRITICAL)?"SELECTED":"");
+				printf("</select>\n");
 			        }
-			printf("</select>\n");
 			printf("</td>\n");
 			printf("<td CLASS='optBoxItem'>\n");
-			printf("<input type='text' size='2' maxlength='2' name='backtrack' value='%d'>\n",backtrack_archives);
+			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
+				printf("<select name='initialassumedservicestate'>\n");
+				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_service_state==AS_NO_DATA)?"SELECTED":"");
+				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_service_state==AS_CURRENT_STATE)?"SELECTED":"");
+				printf("<option value=%d %s>Service Ok\n",AS_SVC_OK,(initial_assumed_service_state==AS_SVC_OK)?"SELECTED":"");
+				printf("<option value=%d %s>Service Warning\n",AS_SVC_WARNING,(initial_assumed_service_state==AS_SVC_WARNING)?"SELECTED":"");
+				printf("<option value=%d %s>Service Unknown\n",AS_SVC_UNKNOWN,(initial_assumed_service_state==AS_SVC_UNKNOWN)?"SELECTED":"");
+				printf("<option value=%d %s>Service Critical\n",AS_SVC_CRITICAL,(initial_assumed_service_state==AS_SVC_CRITICAL)?"SELECTED":"");
+				printf("</select>\n");
+			        }
 			printf("</td>\n");
 			printf("</tr>\n");
 
-			printf("<tr><td valign=top align=left class='optBoxItem'>Report period:</td><td valign=top align=left class='optBoxItem'></td></tr>\n");
+			printf("<tr><td valign=top align=left class='optBoxItem'>Report period:</td><td valign=top align=left class='optBoxItem'>Backtracked archives:</td></tr>\n");
 			printf("<tr>\n");
 			printf("<td valign=top align=left class='optBoxItem'>\n");
 			printf("<select name='timeperiod'>\n");
@@ -518,6 +560,7 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td>\n");
 			printf("<td valign=top align=left CLASS='optBoxItem'>\n");
+			printf("<input type='text' size='2' maxlength='2' name='backtrack' value='%d'>\n",backtrack_archives);
 			printf("</td>\n");
 			printf("</tr>\n");
 
@@ -546,6 +589,8 @@ int main(int argc, char **argv){
 			display_context_help(CONTEXTHELP_AVAIL_HOST);
 		else if(display_type==DISPLAY_SERVICE_AVAIL)
 			display_context_help(CONTEXTHELP_AVAIL_SERVICE);
+		else if(display_type==DISPLAY_SERVICE_AVAIL)
+			display_context_help(CONTEXTHELP_AVAIL_SERVICEGROUP);
 		else
 			display_context_help(CONTEXTHELP_AVAIL_MENU1);
 		printf("</td></tr>\n");
@@ -585,6 +630,8 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='host' value='%s'>\n",host_name);
 		if(display_type==DISPLAY_SERVICE_AVAIL)
 			printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
+		if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
+			printf("<input type='hidden' name='servicegroup' value='%s'>\n",servicegroup_name);
 
 		printf("<table border=0 cellpadding=5>\n");
 
@@ -677,22 +724,28 @@ int main(int argc, char **argv){
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
-		printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed State:</td>\n");
-		printf("<td class='reportSelectItem'>\n");
-		printf("<select name='initialassumedstate'>\n");
-		printf("<option value=%d>Unspecified\n",AS_NO_DATA);
-		printf("<option value=%d>Current State\n",AS_CURRENT_STATE);
 		if(display_type!=DISPLAY_SERVICE_AVAIL){
+			printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed Host State:</td>\n");
+			printf("<td class='reportSelectItem'>\n");
+			printf("<select name='initialassumedhoststate'>\n");
+			printf("<option value=%d>Unspecified\n",AS_NO_DATA);
+			printf("<option value=%d>Current State\n",AS_CURRENT_STATE);
 			printf("<option value=%d>Host Up\n",AS_HOST_UP);
 			printf("<option value=%d>Host Down\n",AS_HOST_DOWN);
 			printf("<option value=%d>Host Unreachable\n",AS_HOST_UNREACHABLE);
+			printf("</select>\n");
+			printf("</td></tr>\n");
 		        }
-		else{
-			printf("<option value=%d>Service Ok\n",AS_SVC_OK);
-			printf("<option value=%d>Service Warning\n",AS_SVC_WARNING);
-			printf("<option value=%d>Service Unknown\n",AS_SVC_UNKNOWN);
-			printf("<option value=%d>Service Critical\n",AS_SVC_CRITICAL);
-		        }
+
+		printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed Service State:</td>\n");
+		printf("<td class='reportSelectItem'>\n");
+		printf("<select name='initialassumedservicestate'>\n");
+		printf("<option value=%d>Unspecified\n",AS_NO_DATA);
+		printf("<option value=%d>Current State\n",AS_CURRENT_STATE);
+		printf("<option value=%d>Service Ok\n",AS_SVC_OK);
+		printf("<option value=%d>Service Warning\n",AS_SVC_WARNING);
+		printf("<option value=%d>Service Unknown\n",AS_SVC_UNKNOWN);
+		printf("<option value=%d>Service Critical\n",AS_SVC_CRITICAL);
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -779,6 +832,36 @@ int main(int argc, char **argv){
 		printf("</div></p>\n");
 
 		printf("<div align=center class='helpfulHint'>Tip: If you want to have the option of getting the availability data in CSV format, select '<b>** ALL HOSTS **</b>' from the pull-down menu.\n");
+	        }
+
+	/* step 2 - the user wants to select a servicegroup */
+	else if(select_servicegroups==TRUE){
+		printf("<p><div align=center class='reportSelectTitle'>Step 2: Select Servicegroup</div></p>\n");
+
+		printf("<p><div align=center>\n");
+
+	        printf("<form method=\"get\" action=\"%s\">\n",AVAIL_CGI);
+		printf("<input type='hidden' name='get_date_parts'>\n");
+
+		printf("<table border=0 cellpadding=5>\n");
+
+		printf("<tr><td class='reportSelectSubTitle' valign=center>Servicegroup(s):</td><td align=left valign=center class='reportSelectItem'>\n");
+		printf("<select name='servicegroup'>\n");
+		printf("<option value='all'>** ALL SERVICEGROUPS **\n");
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE)
+				printf("<option value='%s'>%s\n",temp_servicegroup->group_name,temp_servicegroup->group_name);
+		        }
+		printf("</select>\n");
+		printf("</td></tr>\n");
+
+		printf("<tr><td></td><td align=left class='dateSelectItem'><input type='submit' value='Continue to Step 3'></td></tr>\n");
+
+		printf("</table>\n");
+
+		printf("</form>\n");
+
+		printf("</div></p>\n");
 	        }
 
 	/* step 2 - the user wants to select a service */
@@ -877,8 +960,10 @@ int main(int argc, char **argv){
 				display_host_availability();
 			else if(display_type==DISPLAY_SERVICE_AVAIL)
 				display_service_availability();
-			else
+			else if(display_type==DISPLAY_HOSTGROUP_AVAIL)
 				display_hostgroup_availability();
+			else if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
+				display_servicegroup_availability();
 
 			/* free memory allocated to availability data */
 			free_availability_data();
@@ -902,6 +987,7 @@ int main(int argc, char **argv){
 		printf("<select name='report_type'>\n");
 		printf("<option value=hostgroups>Hostgroup(s)\n");
 		printf("<option value=hosts>Host(s)\n");
+		printf("<option value=servicegroups>Servicegroup(s)\n");
 		printf("<option value=services>Service(s)\n");
 		printf("</select>\n");
 		printf("</td></tr>\n");
@@ -1024,6 +1110,23 @@ int process_cgivars(void){
 			show_all_hostgroups=(strcmp(hostgroup_name,"all"))?FALSE:TRUE;
 		        }
 
+		/* we found the servicegroup argument */
+		else if(!strcmp(variables[x],"servicegroup")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			servicegroup_name=(char *)malloc(strlen(variables[x])+1);
+			if(servicegroup_name==NULL)
+				servicegroup_name="";
+			else
+				strcpy(servicegroup_name,variables[x]);
+			display_type=DISPLAY_SERVICEGROUP_AVAIL;
+			show_all_servicegroups=(strcmp(servicegroup_name,"all"))?FALSE:TRUE;
+		        }
+
 		/* we found the host argument */
 		else if(!strcmp(variables[x],"host")){
 			x++;
@@ -1098,15 +1201,26 @@ int process_cgivars(void){
 				assume_initial_states=FALSE;
 		        }
 
-		/* we found the assume initial state ok option */
-		else if(!strcmp(variables[x],"initialassumedstate")){
+		/* we found the initial assumed host state option */
+		else if(!strcmp(variables[x],"initialassumedhoststate")){
 			x++;
 			if(variables[x]==NULL){
 				error=TRUE;
 				break;
 			        }
 
-			initial_assumed_state=atoi(variables[x]);
+			initial_assumed_host_state=atoi(variables[x]);
+		        }
+
+		/* we found the initial assumed service state option */
+		else if(!strcmp(variables[x],"initialassumedservicestate")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			initial_assumed_service_state=atoi(variables[x]);
 		        }
 
 		/* we found the assume state retention option */
@@ -1218,6 +1332,8 @@ int process_cgivars(void){
 			        }
 			if(!strcmp(variables[x],"hostgroups"))
 				select_hostgroups=TRUE;
+			else if(!strcmp(variables[x],"servicegroups"))
+				select_servicegroups=TRUE;
 			else if(!strcmp(variables[x],"hosts"))
 				select_hosts=TRUE;
 			else
@@ -1471,6 +1587,7 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 	servicestatus *svcstatus=NULL;
 	int first_real_state=AS_NO_DATA;
 	time_t initial_assumed_time;
+	int initial_assumed_state=AS_NO_DATA;
 	int error;
 
 
@@ -1550,30 +1667,30 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 	/* INSERT FIRST ASSUMED STATE (IF WE CAN) */
 	/******************************************/
 
-	if(initial_assumed_state!=AS_NO_DATA){
+	if((subject->type==HOST_SUBJECT && initial_assumed_host_state!=AS_NO_DATA) || (subject->type==SERVICE_SUBJECT && initial_assumed_service_state!=AS_NO_DATA)){
 
 		/* see if its okay to assume initial state for this subject */
 		error=FALSE;
-		if(display_type==DISPLAY_SERVICE_AVAIL){
-			if(initial_assumed_state!=AS_SVC_OK && initial_assumed_state!=AS_SVC_WARNING && initial_assumed_state!=AS_SVC_UNKNOWN && initial_assumed_state!=AS_SVC_CRITICAL && initial_assumed_state!=AS_CURRENT_STATE)
+		if(subject->type==SERVICE_SUBJECT){
+			if(initial_assumed_service_state!=AS_SVC_OK && initial_assumed_service_state!=AS_SVC_WARNING && initial_assumed_service_state!=AS_SVC_UNKNOWN && initial_assumed_service_state!=AS_SVC_CRITICAL && initial_assumed_service_state!=AS_CURRENT_STATE)
 				error=TRUE;
-			if(subject->type!=SERVICE_SUBJECT)
-				error=TRUE;
-			if(initial_assumed_state==AS_CURRENT_STATE && svcstatus==NULL)
+			else
+				initial_assumed_state=initial_assumed_service_state;
+			if(initial_assumed_service_state==AS_CURRENT_STATE && svcstatus==NULL)
 				error=TRUE;
 		        }
 		else{
-			if(initial_assumed_state!=AS_HOST_UP && initial_assumed_state!=AS_HOST_DOWN && initial_assumed_state!=AS_HOST_UNREACHABLE && initial_assumed_state!=AS_CURRENT_STATE)
+			if(initial_assumed_host_state!=AS_HOST_UP && initial_assumed_host_state!=AS_HOST_DOWN && initial_assumed_host_state!=AS_HOST_UNREACHABLE && initial_assumed_host_state!=AS_CURRENT_STATE)
 				error=TRUE;
-			if(subject->type!=HOST_SUBJECT)
-				error=TRUE;
-			if(initial_assumed_state==AS_CURRENT_STATE && hststatus==NULL)
+			else
+				initial_assumed_state=initial_assumed_host_state;
+			if(initial_assumed_host_state==AS_CURRENT_STATE && hststatus==NULL)
 				error=TRUE;
 		        }
 
 		/* get the current state if applicable */
-		if(initial_assumed_state==AS_CURRENT_STATE && error==FALSE){
-			if(display_type==DISPLAY_SERVICE_AVAIL){
+		if(((subject->type==HOST_SUBJECT && initial_assumed_host_state==AS_CURRENT_STATE) || (subject->type==SERVICE_SUBJECT && initial_assumed_service_state==AS_CURRENT_STATE)) && error==FALSE){
+			if(subject->type==SERVICE_SUBJECT){
 				switch(svcstatus->status){
 				case SERVICE_OK:
 					initial_assumed_state=AS_SVC_OK;
@@ -2178,9 +2295,12 @@ int convert_service_state_to_archived_state(int current_status){
 /* create list of subjects to collect availability data for */
 void create_subject_list(void){
 	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_member;
+	hostgroupmember *temp_hgmember;
+	servicegroup *temp_servicegroup;
+	servicegroupmember *temp_sgmember;
 	host *temp_host;
 	service *temp_service;
+	char *last_host_name="";
 
 	/* we're displaying one or more hosts */
 	if(display_type==DISPLAY_HOST_AVAIL && host_name!=""){
@@ -2218,17 +2338,47 @@ void create_subject_list(void){
 	/* we're displaying one or more hostgroups (the host members of the groups) */
 	else if(display_type==DISPLAY_HOSTGROUP_AVAIL && hostgroup_name!=""){
 
-		/* we're displaying all hostgroups, so use all hosts */
+		/* we're displaying all hostgroups */
 		if(show_all_hostgroups==TRUE){
-			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
-				add_subject(HOST_SUBJECT,temp_host->name,NULL);
+			for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+				for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next)
+					add_subject(HOST_SUBJECT,temp_hgmember->host_name,NULL);
+			        }
 		        }
 		/* we're only displaying a specific hostgroup */
 		else{
 			temp_hostgroup=find_hostgroup(hostgroup_name);
 			if(temp_hostgroup!=NULL){
-				for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next)
-					add_subject(HOST_SUBJECT,temp_member->host_name,NULL);
+				for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next)
+					add_subject(HOST_SUBJECT,temp_hgmember->host_name,NULL);
+			        }
+		        }
+	        }
+
+	/* we're displaying one or more servicegroups (the host and service members of the groups) */
+	else if(display_type==DISPLAY_SERVICEGROUP_AVAIL && servicegroup_name!=""){
+
+		/* we're displaying all servicegroups */
+		if(show_all_servicegroups==TRUE){
+			for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+				for(temp_sgmember=temp_servicegroup->members;temp_sgmember!=NULL;temp_sgmember=temp_sgmember->next){
+					add_subject(SERVICE_SUBJECT,temp_sgmember->host_name,temp_sgmember->service_description);
+					if(strcmp(last_host_name,temp_sgmember->host_name))
+						add_subject(HOST_SUBJECT,temp_sgmember->host_name,NULL);
+					last_host_name=temp_sgmember->host_name;
+				        }
+			        }
+		        }
+		/* we're only displaying a specific hostgroup */
+		else{
+			temp_servicegroup=find_servicegroup(servicegroup_name);
+			if(temp_servicegroup!=NULL){
+				for(temp_sgmember=temp_servicegroup->members;temp_sgmember!=NULL;temp_sgmember=temp_sgmember->next){
+					add_subject(SERVICE_SUBJECT,temp_sgmember->host_name,temp_sgmember->service_description);
+					if(strcmp(last_host_name,temp_sgmember->host_name))
+						add_subject(HOST_SUBJECT,temp_sgmember->host_name,NULL);
+					last_host_name=temp_sgmember->host_name;
+				        }
 			        }
 		        }
 	        }
@@ -2589,7 +2739,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 		if(strstr(input_buffer,"Bailing out"))
 			add_global_archived_state(AS_PROGRAM_END,time_stamp,"Abnormal program termination");
 
-		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL){
+		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 
 			/* normal host alerts and initial/current states */
 			if(strstr(input_buffer,"HOST ALERT:") || strstr(input_buffer,"INITIAL HOST STATE:") || strstr(input_buffer,"CURRENT HOST STATE:")){
@@ -2656,7 +2806,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 			        }
 		        }
 
-		if(display_type==DISPLAY_SERVICE_AVAIL || display_type==DISPLAY_HOST_AVAIL){
+		if(display_type==DISPLAY_SERVICE_AVAIL || display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 
 			/* normal service alerts and initial/current states */
 			if(strstr(input_buffer,"SERVICE ALERT:") || strstr(input_buffer,"INITIAL SERVICE STATE:") || strstr(input_buffer,"CURRENT SERVICE STATE:")){
@@ -3189,6 +3339,198 @@ void display_specific_hostgroup_availability(hostgroup *hg){
         }
 
 
+/* display servicegroup availability */
+void display_servicegroup_availability(void){
+	servicegroup *temp_servicegroup;
+
+	/* display data for a specific servicegroup */
+	if(show_all_servicegroups==FALSE){
+		temp_servicegroup=find_servicegroup(servicegroup_name);
+		display_specific_servicegroup_availability(temp_servicegroup);
+	        }
+
+	/* display data for all servicegroups */
+	else{
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next)
+			display_specific_servicegroup_availability(temp_servicegroup);
+	        }
+
+	return;
+        }
+
+
+
+/* display availability for a specific servicegroup */
+void display_specific_servicegroup_availability(servicegroup *sg){
+	unsigned long total_time;
+	unsigned long time_determinate;
+	unsigned long time_indeterminate;
+	avail_subject *temp_subject;
+	double percent_time_up=0.0;
+	double percent_time_down=0.0;
+	double percent_time_unreachable=0.0;
+	double percent_time_up_known=0.0;
+	double percent_time_down_known=0.0;
+	double percent_time_unreachable_known=0.0;
+	double percent_time_indeterminate=0.0;
+	double percent_time_ok=0.0;
+	double percent_time_warning=0.0;
+	double percent_time_unknown=0.0;
+	double percent_time_critical=0.0;
+	double percent_time_ok_known=0.0;
+	double percent_time_warning_known=0.0;
+	double percent_time_unknown_known=0.0;
+	double percent_time_critical_known=0.0;
+	char *bgclass="";
+	int odd=1;
+	host *temp_host;
+	service *temp_service;
+	char last_host[MAX_INPUT_BUFFER];
+
+	if(sg==NULL)
+		return;
+
+	/* the user isn't authorized to view this servicegroup */
+	if(is_authorized_for_servicegroup(sg,&current_authdata)==FALSE)
+		return;
+
+	total_time=t2-t1;
+
+	printf("<BR><BR>\n");
+	printf("<DIV ALIGN=CENTER CLASS='dataTitle'>Servicegroup '%s' Host State Breakdowns:</DIV>\n",sg->group_name);
+
+	printf("<DIV ALIGN=CENTER>\n");
+	printf("<TABLE BORDER=0 CLASS='data'>\n");
+	printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>%% Time Up</TH><TH CLASS='data'>%% Time Down</TH><TH CLASS='data'>%% Time Unreachable</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
+
+	for(temp_subject=subject_list;temp_subject!=NULL;temp_subject=temp_subject->next){
+
+		if(temp_subject->type!=HOST_SUBJECT)
+			continue;
+
+		temp_host=find_host(temp_subject->host_name);
+		if(temp_host==NULL)
+			continue;
+
+		if(is_host_member_of_servicegroup(sg,temp_host)==FALSE)
+			continue;
+
+		/* reset variables */
+		percent_time_up=0.0;
+		percent_time_down=0.0;
+		percent_time_unreachable=0.0;
+		percent_time_indeterminate=0.0;
+		percent_time_up_known=0.0;
+		percent_time_down_known=0.0;
+		percent_time_unreachable_known=0.0;
+
+		time_determinate=temp_subject->time_up+temp_subject->time_down+temp_subject->time_unreachable;
+		time_indeterminate=total_time-time_determinate;
+	
+		if(total_time>0){
+			percent_time_up=(double)(((double)temp_subject->time_up*100.0)/(double)total_time);
+			percent_time_down=(double)(((double)temp_subject->time_down*100.0)/(double)total_time);
+			percent_time_unreachable=(double)(((double)temp_subject->time_unreachable*100.0)/(double)total_time);
+			percent_time_indeterminate=(double)(((double)time_indeterminate*100.0)/(double)total_time);
+			if(time_determinate>0){
+				percent_time_up_known=(double)(((double)temp_subject->time_up*100.0)/(double)time_determinate);
+				percent_time_down_known=(double)(((double)temp_subject->time_down*100.0)/(double)time_determinate);
+				percent_time_unreachable_known=(double)(((double)temp_subject->time_unreachable*100.0)/(double)time_determinate);
+	                        }
+		        }
+
+		if(odd){
+			odd=0;
+			bgclass="Odd";
+	                }
+		else{
+			odd=1;
+			bgclass="Even";
+	                }
+
+		printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
+		host_report_url(temp_subject->host_name,temp_subject->host_name);
+		printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
+                }
+
+	printf("</table>\n");
+	printf("</DIV>\n");
+
+	printf("<BR>\n");
+	printf("<DIV ALIGN=CENTER CLASS='dataTitle'>Servicegroup '%s' Service State Breakdowns:</DIV>\n",sg->group_name);
+
+	printf("<DIV ALIGN=CENTER>\n");
+	printf("<TABLE BORDER=0 CLASS='data'>\n");
+	printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>Service</TH><TH CLASS='data'>%% Time OK</TH><TH CLASS='data'>%% Time Warning</TH><TH CLASS='data'>%% Time Unknown</TH><TH CLASS='data'>%% Time Critical</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
+
+	for(temp_subject=subject_list;temp_subject!=NULL;temp_subject=temp_subject->next){
+
+		if(temp_subject->type!=SERVICE_SUBJECT)
+			continue;
+
+		temp_service=find_service(temp_subject->host_name,temp_subject->service_description);
+		if(temp_service==NULL)
+			continue;
+
+		if(is_service_member_of_servicegroup(sg,temp_service)==FALSE)
+			continue;
+
+		time_determinate=temp_subject->time_ok+temp_subject->time_warning+temp_subject->time_unknown+temp_subject->time_critical;
+		time_indeterminate=total_time-time_determinate;
+
+		/* adjust indeterminate time due to insufficient data (not all was caught) */
+		temp_subject->time_indeterminate_nodata=time_indeterminate-temp_subject->time_indeterminate_notrunning;
+
+		/* initialize values */
+		percent_time_ok=0.0;
+		percent_time_warning=0.0;
+		percent_time_unknown=0.0;
+		percent_time_critical=0.0;
+		percent_time_ok_known=0.0;
+		percent_time_warning_known=0.0;
+		percent_time_unknown_known=0.0;
+		percent_time_critical_known=0.0;
+
+		if(total_time>0){
+			percent_time_ok=(double)(((double)temp_subject->time_ok*100.0)/(double)total_time);
+			percent_time_warning=(double)(((double)temp_subject->time_warning*100.0)/(double)total_time);
+			percent_time_unknown=(double)(((double)temp_subject->time_unknown*100.0)/(double)total_time);
+			percent_time_critical=(double)(((double)temp_subject->time_critical*100.0)/(double)total_time);
+			if(time_determinate>0){
+				percent_time_ok_known=(double)(((double)temp_subject->time_ok*100.0)/(double)time_determinate);
+				percent_time_warning_known=(double)(((double)temp_subject->time_warning*100.0)/(double)time_determinate);
+				percent_time_unknown_known=(double)(((double)temp_subject->time_unknown*100.0)/(double)time_determinate);
+				percent_time_critical_known=(double)(((double)temp_subject->time_critical*100.0)/(double)time_determinate);
+	                        }
+                        }
+
+		if(odd){
+			odd=0;
+			bgclass="Odd";
+	                }
+		else{
+			odd=1;
+			bgclass="Even";
+	                }
+
+		printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
+		if(strcmp(temp_subject->host_name,last_host))
+			host_report_url(temp_subject->host_name,temp_subject->host_name);
+		printf("</td><td CLASS='data%s'>",bgclass);
+		service_report_url(temp_subject->host_name,temp_subject->service_description,temp_subject->service_description);
+		printf("</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_ok,percent_time_ok_known,percent_time_warning,percent_time_warning_known,percent_time_unknown,percent_time_unknown_known,percent_time_critical,percent_time_critical_known,bgclass,percent_time_indeterminate);
+
+		strncpy(last_host,temp_subject->host_name,sizeof(last_host)-1);
+		last_host[sizeof(last_host)-1]='\x0';
+	        }
+
+	printf("</table>\n");
+	printf("</DIV>\n");
+
+	return;
+        }
+
+
 /* display host availability */
 void display_host_availability(void){
 	unsigned long total_time;
@@ -3350,9 +3692,9 @@ void display_host_availability(void){
 
 		printf("<p align='center'>\n");
 		printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
-		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 		printf("<img src='%s?createimage&smallimage&host=%s",TRENDS_CGI,url_encode(host_name));
-		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d' border=1 alt='Host State Trends' width='500' height='20'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d' border=1 alt='Host State Trends' width='500' height='20'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 		printf("</a><br>\n");
 		printf("</p>\n");
 
@@ -3782,9 +4124,9 @@ void display_service_availability(void){
 
 		printf("<p align='center'>\n");
 		printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
-		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 		printf("<img src='%s?createimage&smallimage&host=%s",TRENDS_CGI,url_encode(host_name));
-		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d' border=1 alt='Service State Trends' width='500' height='20'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
+		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d' border=1 alt='Service State Trends' width='500' height='20'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 		printf("</a><br>\n");
 		printf("</p>\n");
 
@@ -4008,7 +4350,8 @@ void host_report_url(char *hn, char *label){
 	printf("&backtrack=%d",backtrack_archives);
 	printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
 	printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
-	printf("&initialassumedstate=%d",initial_assumed_state);
+	printf("&initialassumedhoststate=%d",initial_assumed_host_state);
+	printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 	if(show_log_entries==TRUE)
 		printf("&show_log_entries");
 	if(full_log_entries==TRUE)
@@ -4028,7 +4371,8 @@ void service_report_url(char *hn, char *sd, char *label){
 	printf("&backtrack=%d",backtrack_archives);
 	printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
 	printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
-	printf("&initialassumedstate=%d",initial_assumed_state);
+	printf("&initialassumedhoststate=%d",initial_assumed_host_state);
+	printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 	if(show_log_entries==TRUE)
 		printf("&show_log_entries");
 	if(full_log_entries==TRUE)

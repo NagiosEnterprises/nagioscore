@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2003
+ * Last Modified: 08-10-2003
  *
  * License:
  * 
@@ -898,7 +898,7 @@ void show_host_info(void){
 	
 	printf("<DIV CLASS='dataTitle'>Host State Information</DIV>\n");
 
-	if(temp_hoststatus->last_check==0L)
+	if(temp_hoststatus->has_been_checked==FALSE)
 		printf("<P><DIV ALIGN=CENTER>This host has not yet been checked, so status information is not available.</DIV></P>\n");
 
 	else{
@@ -1215,8 +1215,8 @@ void show_service_info(void){
 	
 	printf("<DIV CLASS='dataTitle'>Service State Information</DIV>\n");
 
-	if(temp_svcstatus->last_check==0L)
-		printf("<P><DIV ALIGN=CENTER>This service has not yet been checked, so its current status information and state statistics are not available.</DIV></P>\n");
+	if(temp_svcstatus->has_been_checked==FALSE)
+		printf("<P><DIV ALIGN=CENTER>This service has not yet been checked, so status information is not available.</DIV></P>\n");
 
 	else{
 

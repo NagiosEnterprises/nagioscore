@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-05-2003
+ * Last Modified: 08-10-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -271,6 +271,34 @@
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#endif
+
+#undef HAVE_LINUX_MODULE_H
+#ifdef HAVE_LINUX_MODULE_H
+#include <linux/module.h>
+#endif
+
+#undef HAVE_LTDL_H
+#undef HAVE_DLFCN_H
+#undef USE_LTDL
+
+/* configure script should allow user to override ltdl choice, but this will do for now... */
+#ifdef HAVE_LTDL_H
+#define USE_LTDL
+#endif
+
+#ifdef USE_LTDL
+#include <ltdl.h>
+#else
+#include <dlfcn.h>
+#endif
+
+#ifndef RTLD_GLOBAL
+#define RTLD_GLOBAL 0
+#endif
+
+#ifndef RTLD_NOW
+#define RTLD_NOW 0
 #endif
 
 #endif

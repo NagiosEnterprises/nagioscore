@@ -46,7 +46,7 @@ none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
 		@echo "   nagios cgis contrib"
 		@echo "   clean"
-		@echo "   install install-html install-config install-init install-commandmode fullinstall"
+		@echo "   install install-base install-cgis install-html install-config install-init install-commandmode fullinstall"
 #		@echo "   uninstall"
 
 # FreeBSD make does not support -C option, so we'll use the Apache style... (patch by Stanley Hopcroft 12/27/1999)
@@ -154,6 +154,12 @@ devclean: distclean
 
 install-html:
 	cd $(SRC_HTM) && $(MAKE) install
+
+install-base:
+	cd $(SRC_BASE) && $(MAKE) install
+
+install-cgis:
+	cd $(SRC_CGI) && $(MAKE) install
 
 install:
 	cd $(SRC_BASE) && $(MAKE) $@

@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 08-05-2003
+# Last Modified: 08-10-2003
 ############################
 
 
@@ -34,6 +34,9 @@ MATHLIBS=-lm
 PERLLIBS=@PERLLIBS@
 SOCKETLIBS=@SOCKETLIBS@
 THREADLIBS=@THREADLIBS@
+BROKERLIBS=@BROKERLIBS@
+
+BROKER_LDFLAGS=@BROKER_LDFLAGS@ 
 
 CP=@CP@
 
@@ -93,7 +96,7 @@ OBJS=broker.o checks.o config.o commands.o events.o flapping.o logging.o notific
 all: nagios nagiostats
 
 nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
-	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)
 
 nagiostats: nagiostats.c $(SRC_COMMON)/locations.h
 	$(CC) $(CFLAGS) -o $@ nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS)

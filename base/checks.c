@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2002
+ * Last Modified:   07-07-2002
  *
  * License:
  *
@@ -1352,7 +1352,7 @@ void check_service_result_freshness(void){
 		if(expiration_time<current_time){
 
 			/* log a warning */
-			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds.  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time));
+			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds (threshold=%lu seconds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 

@@ -2234,11 +2234,10 @@ int contains_illegal_object_chars(char *name){
 
 /* cleans illegal characters in macros before output */
 char *clean_macro_chars(char *macro,int options){
-	register int x;
-	register int y;
-	register int z;
+	register int x,y,z;
 	register int ch;
 	register int len;
+	register int illegal_char;
 
 	if(macro==NULL)
 		return "";
@@ -2249,7 +2248,7 @@ char *clean_macro_chars(char *macro,int options){
 	if(options & STRIP_ILLEGAL_MACRO_CHARS){
 
 		for(y=0,x=0;x<len;x++){
-
+			
 			ch=(int)macro[x];
 
 			/* illegal ASCII characters */
@@ -2261,12 +2260,18 @@ char *clean_macro_chars(char *macro,int options){
 				continue;
 
 			/* illegal user-specified characters */
-			if(illegal_output_chars!=NULL)
-				for(z=0;illegal_output_chars[z];z++)
-					if(ch==illegal_output_chars[z])
-						continue;
-
-			macro[y++]=macro[x];
+			illegal_char=FALSE;
+			if(illegal_output_chars!=NULL){
+				for(z=0;illegal_output_chars[z]!='\x0';z++){
+					if(ch==(int)illegal_output_chars[z]){
+						illegal_char=TRUE;
+						break;
+					        }
+				        }
+			        }
+				
+		        if(illegal_char==FALSE)
+				macro[y++]=macro[x];
 		        }
 
 		macro[y++]='\x0';

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2004
+ * Last Modified: 02-15-2004
  *
  * Description:
  *
@@ -231,6 +231,8 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 		result=xodtemplate_resolve_objects();
 
 	/* do the meat and potatos stuff... */
+	if(result==OK)
+		result=xodtemplate_recombobulate_contactgroups();
 	if(result==OK)
 		result=xodtemplate_recombobulate_hostgroups();
 	if(result==OK)
@@ -1034,6 +1036,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contact->name=NULL;
 		new_contact->contact_name=NULL;
 		new_contact->alias=NULL;
+		new_contact->contactgroups=NULL;
 		new_contact->email=NULL;
 		new_contact->pager=NULL;
 		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++)
@@ -2208,6 +2211,15 @@ int xodtemplate_add_object_property(char *input, int options){
 			if(temp_contact->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contact alias.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"contactgroups")){
+			temp_contact->contactgroups=strdup(value);
+			if(temp_contact->contactgroups==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for contact contactgroups.\n");
 #endif
 				return ERROR;
 			        }
@@ -6204,6 +6216,73 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 
 #ifdef NSCORE
 
+
+/* recombobulates contactgroup definitions */
+int xodtemplate_recombobulate_contactgroups(void){
+	xodtemplate_contact *temp_contact;
+	xodtemplate_contactgroup *temp_contactgroup;
+	char *contactgroup_names;
+	char *temp_ptr;
+	char *new_members;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_recombobulate_contactgroups() start\n");
+#endif
+
+	/* process all contacts that have contactgroup directives */
+	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+
+		/* skip contacts without contactgroup directives or contact names */
+		if(temp_contact->contactgroups==NULL || temp_contact->contact_name==NULL)
+			continue;
+
+		/* process the list of contactgroups */
+		contactgroup_names=strdup(temp_contact->contactgroups);
+		if(contactgroup_names==NULL)
+			continue;
+		for(temp_ptr=strtok(contactgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+			/* strip trailing spaces */
+			strip(temp_ptr);
+			
+			/* find the contactgroup */
+			temp_contactgroup=xodtemplate_find_real_contactgroup(temp_ptr);
+			if(temp_contactgroup==NULL){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find contactgroup '%s' specified in contact '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_contact->contact_name,xodtemplate_config_file_name(temp_contact->_config_file),temp_contact->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(contactgroup_names);
+				return ERROR;
+			        }
+
+			/* add this contact to the contactgroup members directive */
+			if(temp_contactgroup->members==NULL)
+				temp_contactgroup->members=strdup(temp_contact->contact_name);
+			else{
+				new_members=(char *)realloc(temp_contactgroup->members,strlen(temp_contactgroup->members)+strlen(temp_contact->contact_name)+2);
+				if(new_members!=NULL){
+					temp_contactgroup->members=new_members;
+					strcat(temp_contactgroup->members,",");
+					strcat(temp_contactgroup->members,temp_contact->contact_name);
+				        }
+			        }
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_recombobulate_contactgroups() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
 /* recombobulates hostgroup definitions */
 int xodtemplate_recombobulate_hostgroups(void){
 	xodtemplate_host *temp_host;
@@ -6532,6 +6611,24 @@ xodtemplate_contactgroup *xodtemplate_find_contactgroup(char *name){
 		if(temp_contactgroup->name==NULL)
 			continue;
 		if(!strcmp(temp_contactgroup->name,name))
+			break;
+	        }
+
+	return temp_contactgroup;
+        }
+
+
+/* finds a specific contactgroup object by its REAL name, not its TEMPLATE name */
+xodtemplate_contactgroup *xodtemplate_find_real_contactgroup(char *name){
+	xodtemplate_contactgroup *temp_contactgroup;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
+		if(temp_contactgroup->contactgroup_name==NULL)
+			continue;
+		if(!strcmp(temp_contactgroup->contactgroup_name,name))
 			break;
 	        }
 
@@ -7775,7 +7872,7 @@ int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	/* return with an error if we couldn't add the definition */
 	if(new_hostextinfo==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host extended information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register extended host information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7812,7 +7909,7 @@ int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_service
 	/* return with an error if we couldn't add the definition */
 	if(new_serviceextinfo==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service extended information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register extended service information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -8497,6 +8594,7 @@ int xodtemplate_free_memory(void){
 		free(this_contact->name);
 		free(this_contact->contact_name);
 		free(this_contact->alias);
+		free(this_contact->contactgroups);
 		free(this_contact->email);
 		free(this_contact->pager);
 		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++)

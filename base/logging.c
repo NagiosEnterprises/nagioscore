@@ -2,8 +2,8 @@
  *
  * LOGGING.C - Log file functions for use with Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-08-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-14-2004
  *
  * License:
  *
@@ -63,10 +63,21 @@ extern int      daemon_mode;
 
 /* write something to the log file, syslog, and possibly the console */
 int write_to_logs_and_console(char *buffer, unsigned long data_type, int display){
+	int len;
+	int x;
 
 #ifdef DEBUG0
 	printf("write_to_logs_and_console() start\n");
 #endif
+
+	/* strip unecessary newlines */
+	len=strlen(buffer);
+	for(x=len-1;x>=0;x--){
+		if(buffer[x]=='\n')
+			buffer[x]='\x0';
+		else
+			break;
+	        }
 
 	/* write messages to the logs */
 	write_to_all_logs(buffer,data_type);
@@ -164,7 +175,8 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
 
 	fp=fopen(log_file,"a+");
 	if(fp==NULL){
-		printf("Warning: Cannot open log file '%s' for writing\n",log_file);
+		if(daemon_mode==FALSE)
+			printf("Warning: Cannot open log file '%s' for writing\n",log_file);
 		return ERROR;
 		}
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-29-2004
+ * Last Modified:   02-15-2004
  *
  * License:
  *
@@ -98,6 +98,7 @@ typedef struct xodtemplate_contact_struct{
 
 	char      *contact_name;
 	char      *alias;
+	char      *contactgroups;
 	char      *email;
 	char      *pager;
 	char      *address[MAX_XODTEMPLATE_CONTACT_ADDRESSES];
@@ -573,6 +574,7 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *,char
 int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *,char *);
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *,char *);
 
+int xodtemplate_recombobulate_contactgroups(void);
 int xodtemplate_recombobulate_hostgroups(void);
 int xodtemplate_recombobulate_servicegroups(void);
 
@@ -594,6 +596,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *);
 xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *);
 xodtemplate_command *xodtemplate_find_command(char *);
 xodtemplate_contactgroup *xodtemplate_find_contactgroup(char *);
+xodtemplate_contactgroup *xodtemplate_find_real_contactgroup(char *);
 xodtemplate_hostgroup *xodtemplate_find_hostgroup(char *);
 xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *);
 xodtemplate_servicegroup *xodtemplate_find_servicegroup(char *);

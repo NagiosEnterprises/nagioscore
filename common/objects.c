@@ -2,8 +2,8 @@
  *
  * OBJECTS.C - Object addition and search functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-22-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-15-2004
  *
  * License:
  *
@@ -118,6 +118,9 @@ int read_object_config_data(char *main_config_file,int options,int cache){
 int add_host_to_hashlist(host *new_host){
 	host *temp_host, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(host_hashlist==NULL){
@@ -150,6 +153,11 @@ int add_host_to_hashlist(host *new_host){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate host '%s'.\n",new_host->name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -157,6 +165,9 @@ int add_host_to_hashlist(host *new_host){
 int add_service_to_hashlist(service *new_service){
 	service *temp_service, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(service_hashlist==NULL){
@@ -190,6 +201,11 @@ int add_service_to_hashlist(service *new_service){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate service '%s' on host '%s'.\n",new_service->description,new_service->host_name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -197,6 +213,9 @@ int add_service_to_hashlist(service *new_service){
 int add_command_to_hashlist(command *new_command){
 	command *temp_command, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(command_hashlist==NULL){
@@ -229,6 +248,11 @@ int add_command_to_hashlist(command *new_command){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate command '%s'.\n",new_command->name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -236,6 +260,9 @@ int add_command_to_hashlist(command *new_command){
 int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
 	timeperiod *temp_timeperiod, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(timeperiod_hashlist==NULL){
@@ -268,6 +295,11 @@ int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate timeperiod '%s'.\n",new_timeperiod->name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -275,6 +307,9 @@ int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
 int add_contact_to_hashlist(contact *new_contact){
 	contact *temp_contact, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(contact_hashlist==NULL){
@@ -307,6 +342,11 @@ int add_contact_to_hashlist(contact *new_contact){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate contact '%s'.\n",new_contact->name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -314,6 +354,9 @@ int add_contact_to_hashlist(contact *new_contact){
 int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
 	contactgroup *temp_contactgroup, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(contactgroup_hashlist==NULL){
@@ -346,6 +389,11 @@ int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate contactgroup '%s'.\n",new_contactgroup->group_name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -353,6 +401,9 @@ int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
 int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
 	hostgroup *temp_hostgroup, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(hostgroup_hashlist==NULL){
@@ -385,6 +436,11 @@ int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate hostgroup '%s'.\n",new_hostgroup->group_name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -392,6 +448,9 @@ int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
 int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
 	servicegroup *temp_servicegroup, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(servicegroup_hashlist==NULL){
@@ -424,6 +483,11 @@ int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate servicegroup '%s'.\n",new_servicegroup->group_name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -432,6 +496,9 @@ int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
 int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
 	hostextinfo *temp_hostextinfo, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(hostextinfo_hashlist==NULL){
@@ -464,6 +531,11 @@ int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate hostextinfo entry for host '%s'.\n",new_hostextinfo->host_name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 
@@ -471,6 +543,9 @@ int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
 int add_serviceextinfo_to_hashlist(serviceextinfo *new_serviceextinfo){
 	serviceextinfo *temp_serviceextinfo, *lastpointer;
 	int hashslot;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 	/* initialize hash list */
 	if(serviceextinfo_hashlist==NULL){
@@ -504,6 +579,11 @@ int add_serviceextinfo_to_hashlist(serviceextinfo *new_serviceextinfo){
 	        }
 
 	/* else already exists */
+#ifdef NSCORE
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add duplicate serviceextinfo entry for service '%s' on host '%s'.\n",new_serviceextinfo->description,new_serviceextinfo->host_name);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 	return 0;
         }
 

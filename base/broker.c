@@ -46,7 +46,7 @@ int event_broker_socket=-1;
 
 
 /******************************************************************/
-/************************* EVENT FUNCTIONS ************************/
+/************************* OUTPUT FUNCTIONS ***********************/
 /******************************************************************/
 
 /* sends data to the event broker worker thread */
@@ -121,6 +121,12 @@ int send_event_data_to_broker(char *data){
 	return OK;
         }
 
+
+
+
+/******************************************************************/
+/************************* EVENT FUNCTIONS ************************/
+/******************************************************************/
 
 
 /* sends program data (starts, restarts, stops, etc.) to broker */
@@ -213,7 +219,7 @@ void broker_log_data(int type, int flags, int attr, char *data, unsigned long da
 
 
 /* send system command data to broker */
-void broker_system_command(int type, int flags, int attr, int timeout, double exectime, int retcode, char *cmd, char *output, struct timeval *timestamp){
+void broker_system_command(int type, int flags, int attr, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, struct timeval *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
 
@@ -228,7 +234,7 @@ void broker_system_command(int type, int flags, int attr, int timeout, double ex
 	else
 		tv=*timestamp;
 
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%lf;%d;%s;%s\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,timeout,exectime,retcode,cmd,output);
+	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lf;%d;%d;%d;%s;%s\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,exectime,timeout,early_timeout,retcode,cmd,output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
 	send_event_data_to_broker(temp_buffer);
@@ -239,7 +245,7 @@ void broker_system_command(int type, int flags, int attr, int timeout, double ex
 
 
 /* send event handler data to broker */
-void broker_event_handler(int type, int flags, int attr, void *data, int state, int state_type, double exectime, struct timeval *timestamp){
+void broker_event_handler(int type, int flags, int attr, void *data, int state, int state_type, double exectime, int timeout, int early_timeout, struct timeval *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
 	service *temp_service=NULL;
@@ -262,9 +268,47 @@ void broker_event_handler(int type, int flags, int attr, void *data, int state, 
 		temp_host=(host *)data;
 
 	if(type==NEBTYPE_EVENTHANDLER_SERVICE || type==NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE)
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,state_type,exectime,temp_service->host_name,temp_service->description);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%d;%d;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,state_type,exectime,timeout,early_timeout,temp_service->host_name,temp_service->description);
 	else
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,state_type,exectime,temp_host->name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%d;%d;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,state_type,exectime,timeout,early_timeout,temp_host->name);
+
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+	send_event_data_to_broker(temp_buffer);
+
+	return;
+        }
+
+
+
+
+/* send obsessive compulsive host/service  data to broker */
+void broker_ocp_data(int type, int flags, int attr, void *data, int state, int state_type, double exectime, int timeout, int early_timeout, struct timeval *timestamp){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	struct timeval tv;
+	service *temp_service=NULL;
+	host *temp_host=NULL;
+
+	if(!(event_broker_options & BROKER_OCP_DATA))
+		return;
+	
+	if(data==NULL)
+		return;
+
+	if(timestamp==NULL)
+		gettimeofday(&tv,NULL);
+	else
+		tv=*timestamp;
+
+	if(type==NEBTYPE_OCP_SERVICE)
+		temp_service=(service *)data;
+	else
+		temp_host=(host *)data;
+
+	if(type==NEBTYPE_OCP_SERVICE)
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%d;%d;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,state_type,exectime,timeout,early_timeout,temp_service->host_name,temp_service->description);
+	else
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%d;%d;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,state_type,exectime,timeout,early_timeout,temp_host->name);
 
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
@@ -292,7 +336,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int state, doub
 		tv=*timestamp;
 
 	if(type==NEBTYPE_HOSTCHECK_INITIATE)
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,hst->name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lf;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,hst->latency,hst->name);
 	else if(type==NEBTYPE_HOSTCHECK_PROCESSED)
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%s;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,state,hst->name,hst->plugin_output,hst->perf_data);
 	else
@@ -324,7 +368,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, struct ti
 		tv=*timestamp;
 
 	if(type==NEBTYPE_SERVICECHECK_INITIATE)
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lu;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,svc->latency,svc->host_name,svc->description);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lf;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,svc->latency,svc->host_name,svc->description);
 	else
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%d;%d;%s;%s;%s;%s;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,svc->current_state,svc->state_type,svc->execution_time,svc->current_attempt,svc->max_attempts,svc->host_name,svc->description,svc->plugin_output,svc->perf_data);
 

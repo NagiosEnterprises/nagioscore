@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   06-05-2003
  *
  * License:
  *
@@ -33,37 +33,41 @@
 #define NEBTYPE_GOODBYE                       2
 #define NEBTYPE_INFO                          3
 
-#define NEBTYPE_PROCESS_START                 10
-#define NEBTYPE_PROCESS_DAEMON                11
-#define NEBTYPE_PROCESS_RESTART               12
-#define NEBTYPE_PROCESS_SHUTDOWN              13
+#define NEBTYPE_PROCESS_START                 100
+#define NEBTYPE_PROCESS_DAEMON                101
+#define NEBTYPE_PROCESS_RESTART               102
+#define NEBTYPE_PROCESS_SHUTDOWN              103
 
-#define NEBTYPE_TIMEDEVENT_ADD                20
-#define NEBTYPE_TIMEDEVENT_REMOVE             21
-#define NEBTYPE_TIMEDEVENT_EXECUTE            22
-#define NEBTYPE_TIMEDEVENT_DELAY              23
-#define NEBTYPE_TIMEDEVENT_SKIP               24
-#define NEBTYPE_TIMEDEVENT_SLEEP              25
+#define NEBTYPE_TIMEDEVENT_ADD                201
+#define NEBTYPE_TIMEDEVENT_REMOVE             201
+#define NEBTYPE_TIMEDEVENT_EXECUTE            202
+#define NEBTYPE_TIMEDEVENT_DELAY              203
+#define NEBTYPE_TIMEDEVENT_SKIP               204
+#define NEBTYPE_TIMEDEVENT_SLEEP              205
 
-#define NEBTYPE_LOG_DATA                      30
-#define NEBTYPE_LOG_ROTATION                  31
+#define NEBTYPE_LOG_DATA                      300
+#define NEBTYPE_LOG_ROTATION                  301
 
-#define NEBTYPE_SYSTEM_COMMAND                40
+#define NEBTYPE_SYSTEM_COMMAND                400
 
-#define NEBTYPE_EVENTHANDLER_HOST             50
-#define NEBTYPE_EVENTHANDLER_GLOBAL_HOST      51
-#define NEBTYPE_EVENTHANDLER_SERVICE          52
-#define NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE   53
+#define NEBTYPE_EVENTHANDLER_HOST             500
+#define NEBTYPE_EVENTHANDLER_GLOBAL_HOST      501
+#define NEBTYPE_EVENTHANDLER_SERVICE          502
+#define NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE   503
 
-#define NEBTYPE_NOTIFICATION_HOST             60
-#define NEBTYPE_NOTIFICATION_SERVICE          61
-#define NEBTYPE_NOTIFICATION_CONTACT          62
+#define NEBTYPE_NOTIFICATION_HOST             600
+#define NEBTYPE_NOTIFICATION_SERVICE          601
+#define NEBTYPE_NOTIFICATION_CONTACT          602
 
-#define NEBTYPE_SERVICECHECK_INITIATE         70
-#define NEBTYPE_SERVICECHECK_PROCESSED        71
-#define NEBTYPE_HOSTCHECK_INITIATE            75        /* a check of the route to the host has been initiated */
-#define NEBTYPE_HOSTCHECK_RAW                 76        /* the "raw" result of a host check */
-#define NEBTYPE_HOSTCHECK_PROCESSED           77        /* the processed/final result of a host check */
+#define NEBTYPE_SERVICECHECK_INITIATE         700
+#define NEBTYPE_SERVICECHECK_RAW              701        /* NOT IMPLEMENTED */
+#define NEBTYPE_SERVICECHECK_PROCESSED        702
+#define NEBTYPE_HOSTCHECK_INITIATE            703        /* a check of the route to the host has been initiated */
+#define NEBTYPE_HOSTCHECK_RAW                 704        /* the "raw" result of a host check */
+#define NEBTYPE_HOSTCHECK_PROCESSED           705        /* the processed/final result of a host check */
+
+#define NEBTYPE_OCP_SERVICE                   800
+#define NEBTYPE_OCP_HOST                      801
 
 
 

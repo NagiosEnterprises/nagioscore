@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-29-2003
+ * Last Modified:   06-05-2003
  *
  * License:
  *
@@ -239,13 +239,13 @@ int log_host_event(host *hst){
         }
 
 
-/* logs initial host states */
-int log_initial_host_states(void){
+/* logs host states */
+int log_host_states(int type){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	host *temp_host;
 
 	/* bail if we shouldn't be logging initial states */
-	if(log_initial_states==FALSE)
+	if(type==INITIAL_STATES && log_initial_states==FALSE)
 		return OK;
 
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -254,7 +254,7 @@ int log_initial_host_states(void){
 		clear_volatile_macros();
 		grab_host_macros(temp_host);
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"INITIAL HOST STATE: %s;%s;%s;%s;%s\n",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],temp_host->plugin_output);
+		snprintf(temp_buffer,sizeof(temp_buffer),"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],temp_host->plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
 	        }
@@ -263,14 +263,14 @@ int log_initial_host_states(void){
         }
 
 
-/* logs initial service states */
-int log_initial_service_states(void){
+/* logs service states */
+int log_service_states(int type){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	service *temp_service;
 	host *temp_host;
 
 	/* bail if we shouldn't be logging initial states */
-	if(log_initial_states==FALSE)
+	if(type==INITIAL_STATES && log_initial_states==FALSE)
 		return OK;
 
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -283,7 +283,7 @@ int log_initial_service_states(void){
 		grab_host_macros(temp_host);
 		grab_service_macros(temp_service);
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"INITIAL SERVICE STATE: %s;%s;%s;%s;%s;%s\n",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
+		snprintf(temp_buffer,sizeof(temp_buffer),"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
 
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_INFO_MESSAGE,FALSE);
@@ -345,6 +345,11 @@ int rotate_log_file(time_t rotation_time){
 		return ERROR;
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send data to the event broker */
+	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,NULL);
+#endif
+
 	/* record the log rotation after it has been done... */
 	snprintf(temp_buffer,sizeof(temp_buffer),"LOG ROTATION: %s\n",method_string);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -353,10 +358,10 @@ int rotate_log_file(time_t rotation_time){
 	/* record log file version format */
 	write_log_file_info();
 
-#ifdef USE_EVENT_BROKER
-	/* send data to the event broker */
-	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,NULL);
-#endif
+	/* log current host and service state */
+	log_host_states(CURRENT_STATES);
+	log_service_states(CURRENT_STATES);
+
 
 #ifdef DEBUG3
 	printf("\tRotated main log file to '%s'\n",log_archive);

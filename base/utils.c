@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2003
+ * Last Modified:   06-05-2003
  *
  * License:
  *
@@ -1461,7 +1461,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,attr,timeout,*exectime,result,cmd,output,NULL);
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,attr,*exectime,timeout,*early_timeout,result,cmd,output,NULL);
 #endif
 
 		/* close the pipe for reading */

@@ -963,9 +963,6 @@ int event_execution_loop(void){
 				/* update service check latency */
 				gettimeofday(&tv,NULL);
 				temp_service->latency=(double)((double)(tv.tv_sec-event_list_low->run_time)+(double)(tv.tv_usec/1000)/1000.0);
-#ifdef REMOVED_050803
-				temp_service->latency=(unsigned long)(current_time-event_list_low->run_time);
-#endif
 
 				/* don't run a service check if we're not supposed to right now */
 				if(execute_service_checks==FALSE && !(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)){
@@ -1019,9 +1016,6 @@ int event_execution_loop(void){
 				/* update host check latency */
 				gettimeofday(&tv,NULL);
 				temp_host->latency=(double)((double)(tv.tv_sec-event_list_low->run_time)+(double)(tv.tv_usec/1000)/1000.0);
-#ifdef REMOVED_050803
-				temp_host->latency=(unsigned long)(current_time-event_list_low->run_time);
-#endif
 
 				/* don't run a host check if we're not supposed to right now */
 				if(execute_host_checks==FALSE && !(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)){

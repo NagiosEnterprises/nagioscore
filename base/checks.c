@@ -1665,6 +1665,9 @@ int verify_route_to_host(host *hst, int check_options){
 	printf("verify_route_to_host() start\n");
 #endif
 
+	/* reset latency, since on-demand checks have none */
+	hst->latency=0.0;
+
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
 	result=check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS,check_options);
 

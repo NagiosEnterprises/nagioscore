@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 06-29-2002
+# Last Modified: 08-25-2002
 ############################
 
 
@@ -51,6 +51,9 @@ XDDH=@XDDH@
 # Extra base code
 BASEEXTRALIBS=@BASEEXTRALIBS@
 
+# Generated automatically from configure script
+SNPRINTF_O=@SNPRINTF_O@
+
 # Object data
 ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
 ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
@@ -82,7 +85,7 @@ DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=checks.o config.o commands.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)
+OBJS=checks.o config.o commands.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
 
 nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
 	$(CC) $(CFLAGS) $(LDFLAGS) nagios.c $(OBJS) $(PERLLIBS) $(MATHLIBS) -o $@

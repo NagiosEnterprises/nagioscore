@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 06-29-2002
+# Last Modified: 08-25-2002
 ###############################
 
 
@@ -52,9 +52,9 @@ none:
 # FreeBSD make does not support -C option, so we'll use the Apache style... (patch by Stanley Hopcroft 12/27/1999)
 
 all:
-	cd $(SRC_BASE); $(MAKE) ; cd ..
-	cd $(SRC_CGI); $(MAKE) ; cd ..
-	cd $(SRC_HTM); $(MAKE) ; cd ..
+	cd $(SRC_BASE) && $(MAKE)
+	cd $(SRC_CGI) && $(MAKE)
+	cd $(SRC_HTM) && $(MAKE)
 
 	@echo ""
 	@echo "*** Compile finished ***"
@@ -83,7 +83,7 @@ all:
 	@echo ""
 
 nagios:
-	cd $(SRC_BASE); $(MAKE) ; cd ..
+	cd $(SRC_BASE) && $(MAKE)
 
 config:
 	@echo "Sample config files are automatically generated once you run the"
@@ -91,21 +91,21 @@ config:
 	@echo "system by using the 'make install-config' command."
 
 cgis:
-	cd $(SRC_CGI); $(MAKE) ; cd ..
+	cd $(SRC_CGI) && $(MAKE)
 
 html:
-	cd $(SRC_HTM); $(MAKE) ; cd ..
+	cd $(SRC_HTM) && $(MAKE)
 
 contrib:
-	cd $(SRC_CONTRIB); $(MAKE) ; cd ..
+	cd $(SRC_CONTRIB) && $(MAKE)
 
 clean:
-	cd $(SRC_BASE); $(MAKE) $@ ; cd ..
-	cd $(SRC_CGI); $(MAKE) $@ ; cd ..
-	cd $(SRC_COMMON); $(MAKE) $@ ; cd ..
-	cd $(SRC_XDATA); $(MAKE) $@ ; cd ..
-	cd $(SRC_HTM); $(MAKE) $@ ; cd ..
-	cd $(SRC_CONTRIB); $(MAKE) $@ ; cd ..
+	cd $(SRC_BASE) && $(MAKE) $@
+	cd $(SRC_CGI) && $(MAKE) $@
+	cd $(SRC_COMMON) && $(MAKE) $@
+	cd $(SRC_XDATA) && $(MAKE) $@
+	cd $(SRC_HTM) && $(MAKE) $@
+	cd $(SRC_CONTRIB) && $(MAKE) $@
 	rm -f *.cfg *.sub core
 	rm -f *~ */*~
 	rm -f $(SRC_COMMON)/config.h $(SRC_COMMON)/locations.h $(SRC_COMMON)/snprintf.h 
@@ -118,12 +118,12 @@ distclean: clean
 devclean: clean
 
 install-html:
-	cd $(SRC_HTM); $(MAKE) install ; cd ..
+	cd $(SRC_HTM) && $(MAKE) install
 
 install:
-	cd $(SRC_BASE); $(MAKE) $@ ; cd ..
-	cd $(SRC_CGI); $(MAKE) $@ ; cd ..
-	cd $(SRC_HTM); $(MAKE) $@ ; cd ..
+	cd $(SRC_BASE) && $(MAKE) $@
+	cd $(SRC_CGI) && $(MAKE) $@
+	cd $(SRC_HTM) && $(MAKE) $@
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)/archives
 	if [ $(INSTALLPERLSTUFF) = yes ]; then \
@@ -190,7 +190,7 @@ Prototype:
 	$(INSTALL) -m 644 sample-config/template-object/misccommands.cfg $(PACKDIR)$(CFGDIR)/misccommands.cfg.$(VERSION)
 	$(INSTALL) -m 644 sample-config/template-object/services.cfg $(PACKDIR)$(CFGDIR)/services.cfg.$(VERSION)
 	$(INSTALL) -m 644 sample-config/template-object/timeperiods.cfg $(PACKDIR)$(CFGDIR)/timeperiods.cfg.$(VERSION)
-	cd contrib; $(MAKE) all; $(MAKE) DESTDIR=$(PACKDIR) INIT_OPTS='' INSTALL_OPTS='' COMMAND_OPTS='' nagios_grp='' nagios_usr='' install; cd ..
+	cd contrib; $(MAKE) all; $(MAKE) DESTDIR=$(PACKDIR) INIT_OPTS='' INSTALL_OPTS='' COMMAND_OPTS='' nagios_grp='' nagios_usr='' install
 	echo i pkginfo> Prototype
 	if [ -f checkinstall ] ; then echo i checkinstall>> Prototype; fi
 	if [ -f preinstall ] ; then echo i preinstall>> Prototype; fi
@@ -202,7 +202,7 @@ pkg/nagios/pkgmap: Prototype
 	pkgmk -o -r / -f Prototype -d $(PACKDIR) nagios
 
 nagios.SPARC.pkg.tar.gz: pkg/nagios/pkgmap
-	cd $(PACKDIR); tar -cf - nagios | gzip -9 -c > ../nagios.SPARC.pkg.tar.gz
+	cd $(PACKDIR) && tar -cf - nagios | gzip -9 -c > ../nagios.SPARC.pkg.tar.gz
 
 pkgset: nagios.SPARC.pkg.tar.gz
 

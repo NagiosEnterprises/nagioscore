@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 06-29-2002
+# Last Modified: 08-25-2002
 ###############################
 
 
@@ -42,6 +42,9 @@ XODC=@XODC@
 XODH=@XODH@
 XDDC=@XDDC@
 XDDH=@XDDH@
+
+# Generated automatically from configure script
+SNPRINTF_O=@SNPRINTF_O@
 
 # Object functions
 ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)

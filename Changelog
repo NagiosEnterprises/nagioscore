@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-2.0b3 - ??/??/2005
+2.0b3 - 04/03/2005
 ------------------
 * Sample config file fixes
 * Fixed segfaults in CGIs where plugin output was NULL

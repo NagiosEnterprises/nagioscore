@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2004
+ * Last Modified:   10-29-2004
  *
  * License:
  *
@@ -205,13 +205,13 @@ int read_all_object_data(char *main_config_file){
 
 /* process the main configuration file */
 int read_main_config_file(char *main_config_file){
-	char input[MAX_INPUT_BUFFER];
+	char *input;
 	char variable[MAX_INPUT_BUFFER];
 	char value[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char error_message[MAX_INPUT_BUFFER];
 	char *temp;
-	FILE *fp;
+	mmapfile *thefile;
 	int current_line=0;
 	int error=FALSE;
 	int command_check_interval_is_seconds=FALSE;
@@ -226,8 +226,7 @@ int read_main_config_file(char *main_config_file){
 #endif
 
 	/* open the config file for reading */
-	fp=fopen(main_config_file,"r");
-	if(fp==NULL){
+	if((thefile=mmap_fopen(main_config_file))==NULL){
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open main configuration file '%s' for reading!",main_config_file);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -242,7 +241,9 @@ int read_main_config_file(char *main_config_file){
 		strip(macro_x[MACRO_MAINCONFIGFILE]);
 
 	/* process all lines in the config file */
-	for(current_line=1,fgets(input,MAX_INPUT_BUFFER-1,fp);!feof(fp);current_line++,fgets(input,MAX_INPUT_BUFFER-1,fp)){
+	for(input=mmap_fgets(thefile);input=mmap_fgets(thefile);free(input)){
+
+		current_line=thefile->current_line;
 
 		/* skip blank lines */
 		if(input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
@@ -1447,7 +1448,9 @@ int read_main_config_file(char *main_config_file){
 		return ERROR;
 	        }
 
-	fclose(fp);
+	/* free leftover memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	/* make sure a log file has been specified */
 	strip(log_file);
@@ -1469,11 +1472,11 @@ int read_main_config_file(char *main_config_file){
 /* processes macros in resource file */
 int read_resource_file(char *resource_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char input[MAX_INPUT_BUFFER];
+	char *input;
 	char variable[MAX_INPUT_BUFFER];
 	char value[MAX_INPUT_BUFFER];
 	char *temp_ptr;
-	FILE *fp;
+	mmapfile *thefile;
 	int current_line=1;
 	int error=FALSE;
 	int user_index=0;
@@ -1486,8 +1489,7 @@ int read_resource_file(char *resource_file){
 	printf("processing resource file '%s'\n",resource_file);
 #endif
 
-	fp=fopen(resource_file,"r");
-	if(fp==NULL){
+	if((thefile=mmap_fopen(resource_file))==NULL){
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open resource file '%s' for reading!",resource_file);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -1495,7 +1497,9 @@ int read_resource_file(char *resource_file){
 		}
 
 	/* process all lines in the resource file */
-	for(current_line=1,fgets(input,MAX_INPUT_BUFFER-1,fp);!feof(fp);current_line++,fgets(input,MAX_INPUT_BUFFER-1,fp)){
+	for(input=mmap_fgets(thefile);input=mmap_fgets(thefile);free(input)){
+
+		current_line=thefile->current_line;
 
 		/* skip blank lines and comments */
 		if(input[0]=='#' || input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
@@ -1559,7 +1563,9 @@ int read_resource_file(char *resource_file){
 		        }
 	        }
 
-	fclose(fp);
+	/* free leftover memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	if(error==TRUE)
 		return ERROR;

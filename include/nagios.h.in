@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-28-2004
+ * Last Modified: 10-29-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -449,6 +449,19 @@ typedef struct circular_buffer_struct{
         }circular_buffer;
 
 
+/* MMAPFILE structure - used for reading files via mmap() */
+typedef struct mmapfile_struct{
+	char *path;
+	int mode;
+	int fd;
+	unsigned long file_size;
+	unsigned long current_position;
+	unsigned long current_line;
+	void *mmap_buf;
+        }mmapfile;
+
+
+
 /* slots in circular buffers */
 #define COMMAND_BUFFER_SLOTS              1024
 #define SERVICE_BUFFER_SLOTS		  1024
@@ -598,7 +611,6 @@ void file_lock_sighandler(int);				/* handles timeouts while waiting for file lo
 void strip(char *);                                  	/* strips whitespace from string */  
 char *my_strtok(char *,char *);                      	/* my replacement for strtok() function (doesn't skip consecutive tokens) */
 char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), so I took this from the glibc source code */
-char *my_fgets(char **,int,FILE *,int,int *);		/* reads a line from a file, dynamically allocating buffer space */
 char *get_url_encoded_string(char *);			/* URL encode a string */
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
@@ -725,5 +737,9 @@ void cleanup_command_file_worker_thread(void *);
 int submit_external_command(char *,int *);
 int submit_raw_external_command(char *,time_t *,int *);
 
+mmapfile *mmap_fopen(char *);				/* open a file read-only via mmap() */
+int mmap_fclose(mmapfile *);
+char *mmap_fgets(mmapfile *);
+char *mmap_fgets_multiline(mmapfile *);
 #endif
 

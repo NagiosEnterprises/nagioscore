@@ -2,8 +2,8 @@
  *
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -49,8 +49,8 @@ extern int             hostescalations_have_been_read;
 
 /* get current authentication information */
 int get_authentication_information(authdata *authinfo){
-	FILE *fp;
-	char input_buffer[MAX_INPUT_BUFFER];
+	mmapfile *thefile;
+	char *input=NULL;
 	char *temp_ptr;
 	int needed_options;
 
@@ -104,19 +104,15 @@ int get_authentication_information(authdata *authinfo){
 	        }
 
 	/* read in authorization override vars from config file... */
-	fp=fopen(get_cgi_config_location(),"r");
-	if(fp!=NULL){
+	if((thefile=mmap_fopen(get_cgi_config_location()))!=NULL){
 
-		while(read_line(input_buffer,MAX_INPUT_BUFFER,fp)){
+		for(;input=mmap_fgets(thefile);free(input)){
 
-			if(feof(fp))
-				break;
-
-			strip(input_buffer);
+			strip(input);
 
 			/* we don't have a username yet, so fake the authentication if we find a default username defined */
-			if(!strcmp(authinfo->username,"") && strstr(input_buffer,"default_user_name=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			if(!strcmp(authinfo->username,"") && strstr(input,"default_user_name=")==input){
+				temp_ptr=strtok(input,"=");
 				temp_ptr=strtok(NULL,",");
 				authinfo->username=(char *)malloc(strlen(temp_ptr)+1);
 				if(authinfo->username==NULL)
@@ -129,50 +125,50 @@ int get_authentication_information(authdata *authinfo){
 					authinfo->authenticated=TRUE;
 			        }
 
-			else if(strstr(input_buffer,"authorized_for_all_hosts=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_all_hosts=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_all_hosts=TRUE;
 				        }
 			        }
-			else if(strstr(input_buffer,"authorized_for_all_services=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_all_services=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_all_services=TRUE;
 				        }
 			        }
-			else if(strstr(input_buffer,"authorized_for_system_information=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_system_information=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_system_information=TRUE;
 				        }
 			        }
-			else if(strstr(input_buffer,"authorized_for_configuration_information=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_configuration_information=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_configuration_information=TRUE;
 				        }
 			        }
-			else if(strstr(input_buffer,"authorized_for_all_host_commands=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_all_host_commands=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_all_host_commands=TRUE;
 				        }
 			        }
-			else if(strstr(input_buffer,"authorized_for_all_service_commands=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_all_service_commands=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_all_service_commands=TRUE;
 				        }
 			        }
-			else if(strstr(input_buffer,"authorized_for_system_commands=")==input_buffer){
-				temp_ptr=strtok(input_buffer,"=");
+			else if(strstr(input,"authorized_for_system_commands=")==input){
+				temp_ptr=strtok(input,"=");
 				while((temp_ptr=strtok(NULL,","))){
 					if(!strcmp(temp_ptr,authinfo->username) || !strcmp(temp_ptr,"*"))
 						authinfo->authorized_for_system_commands=TRUE;
@@ -180,7 +176,9 @@ int get_authentication_information(authdata *authinfo){
 			        }
 		        }
 
-		fclose(fp);
+		/* free memory and close the file */
+		free(input);
+		mmap_fclose(thefile);
 	        }
 
 	if(authinfo->authenticated==TRUE)

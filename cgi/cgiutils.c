@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-25-2004
+ * Last Modified: 10-30-2004
  *
  * License:
  *
@@ -263,24 +263,20 @@ char * get_cmd_file_location(void){
 
 /*read the CGI configuration file */
 int read_cgi_config_file(char *filename){
-	char input_buffer[MAX_INPUT_BUFFER];
+	char *input=NULL;
 	char *temp_buffer;
-	FILE *fp;
+	mmapfile *thefile;
 
-	fp=fopen(filename,"r");
-	if(fp==NULL)
+
+	if((thefile=mmap_fopen(filename))==NULL)
 		return ERROR;
 
-	while(read_line(input_buffer,MAX_INPUT_BUFFER,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-	        if(feof(fp))
-		        break;
+		strip(input);
 
-		if(input_buffer==NULL)
-		        continue;
-
-		if(strstr(input_buffer,"main_config_file=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		if(strstr(input,"main_config_file=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			if(temp_buffer!=NULL){
 				strncpy(main_config_file,temp_buffer,sizeof(main_config_file));
@@ -289,8 +285,8 @@ int read_cgi_config_file(char *filename){
 			        }
 		        }
 
-		else if((strstr(input_buffer,"show_context_help=")==input_buffer)){
-			temp_buffer=strtok(input_buffer,"=");
+		else if((strstr(input,"show_context_help=")==input)){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				show_context_help=TRUE;
@@ -300,8 +296,8 @@ int read_cgi_config_file(char *filename){
 				show_context_help=TRUE;
 		        }
 
-		else if((strstr(input_buffer,"use_authentication=")==input_buffer)){
-			temp_buffer=strtok(input_buffer,"=");
+		else if((strstr(input,"use_authentication=")==input)){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				use_authentication=TRUE;
@@ -311,8 +307,8 @@ int read_cgi_config_file(char *filename){
 				use_authentication=TRUE;
 		        }
 
-		else if(strstr(input_buffer,"nagios_check_command=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"nagios_check_command=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			if(temp_buffer!=NULL){
 				strncpy(nagios_check_command,temp_buffer,sizeof(nagios_check_command));
@@ -321,14 +317,14 @@ int read_cgi_config_file(char *filename){
 			        }
 		        }
 
-		else if(strstr(input_buffer,"refresh_rate=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"refresh_rate=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			refresh_rate=atoi((temp_buffer==NULL)?"60":temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"physical_html_path=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"physical_html_path=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			strncpy(physical_html_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(physical_html_path));
 			physical_html_path[sizeof(physical_html_path)-1]='\x0';
@@ -343,8 +339,8 @@ int read_cgi_config_file(char *filename){
 			physical_ssi_path[sizeof(physical_ssi_path)-1]='\x0';
 		        }
 
-		else if(strstr(input_buffer,"url_html_path=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"url_html_path=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 
 			strncpy(url_html_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(url_html_path));
@@ -373,84 +369,84 @@ int read_cgi_config_file(char *filename){
 			url_media_path[sizeof(url_media_path)-1]='\x0';
 		        }
 
-		else if(strstr(input_buffer,"service_critical_sound=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"service_critical_sound=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			service_critical_sound=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"service_warning_sound=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"service_warning_sound=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			service_warning_sound=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"service_unknown_sound=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"service_unknown_sound=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			service_unknown_sound=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"host_down_sound=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"host_down_sound=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			host_down_sound=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"host_unreachable_sound=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"host_unreachable_sound=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			host_unreachable_sound=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"normal_sound=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"normal_sound=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			normal_sound=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"statusmap_background_image=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"statusmap_background_image=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			statusmap_background_image=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"default_statusmap_layout=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"default_statusmap_layout=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			default_statusmap_layout_method=atoi((temp_buffer==NULL)?"0":temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"default_statuswrl_layout=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"default_statuswrl_layout=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			default_statuswrl_layout_method=atoi((temp_buffer==NULL)?"0":temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"statuswrl_include=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"statuswrl_include=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			statuswrl_include=strdup(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"ping_syntax=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"ping_syntax=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
@@ -459,7 +455,9 @@ int read_cgi_config_file(char *filename){
 
  	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	if(!strcmp(main_config_file,""))
 		return ERROR;
@@ -471,39 +469,34 @@ int read_cgi_config_file(char *filename){
 
 /* read the main configuration file */
 int read_main_config_file(char *filename){
-	char input_buffer[MAX_INPUT_BUFFER];
+	char *input=NULL;
 	char *temp_buffer;
-	FILE *fp;
+	mmapfile *thefile;
 
 	
-	fp=fopen(filename,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(filename))==NULL)
 		return ERROR;
 
-	while(read_line(input_buffer,MAX_INPUT_BUFFER,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-	        if(feof(fp))
-		        break;
+		strip(input);
 
-		if(input_buffer==NULL)
-		        continue;
-
-		if(strstr(input_buffer,"interval_length=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		if(strstr(input,"interval_length=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			interval_length=(temp_buffer==NULL)?60:atoi(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"log_file=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"log_file=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			strncpy(log_file,(temp_buffer==NULL)?"":temp_buffer,sizeof(log_file));
 			log_file[sizeof(log_file)-1]='\x0';
 			strip(log_file);
 		        }
 
-		else if(strstr(input_buffer,"log_archive_path=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"log_archive_path=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			strncpy(log_archive_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(log_archive_path));
 			log_archive_path[sizeof(log_archive_path)-1]='\x0';
@@ -512,8 +505,8 @@ int read_main_config_file(char *filename){
 				strcat(log_archive_path,"/");
 		        }
 
-		else if(strstr(input_buffer,"log_rotation_method=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"log_rotation_method=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			if(temp_buffer==NULL)
 				log_rotation_method=LOG_ROTATION_NONE;
@@ -527,22 +520,22 @@ int read_main_config_file(char *filename){
 				log_rotation_method=LOG_ROTATION_MONTHLY;
 		        }
 
-		else if(strstr(input_buffer,"command_file=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"command_file=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			strncpy(command_file,(temp_buffer==NULL)?"":temp_buffer,sizeof(command_file));
 			command_file[sizeof(command_file)-1]='\x0';
 			strip(command_file);
 		        }
 
-		else if(strstr(input_buffer,"check_external_commands=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"check_external_commands=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			check_external_commands=(temp_buffer==NULL)?0:atoi(temp_buffer);
 		        }
 
-		else if(strstr(input_buffer,"date_format=")==input_buffer){
-			temp_buffer=strtok(input_buffer,"=");
+		else if(strstr(input,"date_format=")==input){
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			if(temp_buffer==NULL)
 				date_format=DATE_FORMAT_US;
@@ -557,7 +550,9 @@ int read_main_config_file(char *filename){
 		        }
                }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	return OK;
         }
@@ -741,29 +736,26 @@ int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, c
 
 /* reads contents of file into the lifo struct */
 int read_file_into_lifo(char *filename){
-	char input_buffer[1024];
-	FILE *fp;
+	char *input;
+	mmapfile *thefile;
 	int lifo_result;
 
-	fp=fopen(filename,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(filename))==NULL)
 		return LIFO_ERROR_FILE;
 
-	while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-		if(feof(fp))
-			break;
-
-		lifo_result=push_lifo(input_buffer);
+		lifo_result=push_lifo(input);
 
 		if(lifo_result!=LIFO_OK){
 			free_lifo_memory();
-			fclose(fp);
+			free(input);
+			mmap_fclose(thefile);
 			return lifo_result;
 		        }
 	        }
 
-	fclose(fp);
+	mmap_fclose(thefile);
 
 	return LIFO_OK;
         }
@@ -793,24 +785,18 @@ void free_lifo_memory(void){
 /* adds an item to lifo */
 int push_lifo(char *buffer){
 	lifo *temp_lifo;
-	int bytes_allocated;
 
 	temp_lifo=(lifo *)malloc(sizeof(lifo));
 	if(temp_lifo==NULL)
 		return LIFO_ERROR_MEMORY;
 
-	bytes_allocated=(int)(strlen(buffer)+1);
-	temp_lifo->data=(char *)malloc(bytes_allocated);
+	if(buffer==NULL)
+		temp_lifo->data=(char *)strdup("");
+	else
+		temp_lifo->data=(char *)strdup(buffer);
 	if(temp_lifo->data==NULL){
 		free(temp_lifo);
 		return LIFO_ERROR_MEMORY;
-	        }
-
-	if(buffer==NULL)
-		strcpy(temp_lifo->data,"");
-	else{
-		strncpy(temp_lifo->data,buffer,bytes_allocated);
-		temp_lifo->data[bytes_allocated-1]='\x0';
 	        }
 
 	/* add item to front of lifo... */
@@ -823,24 +809,14 @@ int push_lifo(char *buffer){
 
 
 /* returns/clears an item from lifo */
-int pop_lifo(char *buffer,int buffer_length){
+char *pop_lifo(void){
 	lifo *temp_lifo;
+	char *buf;
 
-	if(buffer==NULL)
-		return LIFO_ERROR_DATA;
+	if(lifo_list==NULL || lifo_list->data==NULL)
+		return NULL;
 
-	if(lifo_list==NULL){
-		strcpy(buffer,"");
-		return LIFO_ERROR_DATA;
-	        }
-
-	if(lifo_list->data==NULL){
-		strcpy(buffer,"");
-	        }
-	else{
-		strncpy(buffer,lifo_list->data,buffer_length);
-		buffer[buffer_length-1]='\x0';
-	        }
+	buf=strdup(lifo_list->data);
 
 	temp_lifo=lifo_list->next;
 
@@ -850,7 +826,7 @@ int pop_lifo(char *buffer,int buffer_length){
 
 	lifo_list=temp_lifo;
 
-	return LIFO_OK;
+	return buf;
         }
 
 
@@ -957,54 +933,6 @@ void sanitize_plugin_output(char *buffer){
 	free(new_buffer);
 
 	return;
-        }
-	
-
-
-/* reads a line of text from a file and strips it clean */
-char * read_raw_line(char *buffer, int maxlength, FILE *fp){
-	char *result;
-
-	/* clear the buffer */
-	strcpy(buffer,"");
-
-	/* read in one line of text */
-	result=fgets(buffer,maxlength-1,fp);
-
-	/* if we were able to read something, strip extra characters from the end */
-	if(result){
-		buffer[maxlength-1]='\x0';
-		strip(buffer);
-	        }
-
-	/* return the number of characters read */
-	return result;
-        }
-
-
-/* read a line of text from a file, skipping comments and empty lines */
-char * read_line(char *buffer, int maxlength, FILE *fp){
-	char *result;
-	int keep_line=TRUE;
-
-	while((result=read_raw_line(buffer,maxlength,fp))){
-
-		if(buffer[0]=='#')
-			keep_line=FALSE;
-		else if(buffer[0]=='\r')
-			keep_line=FALSE;
-		else if(buffer[0]=='\n')
-			keep_line=FALSE;
-		else if(buffer[0]=='\x0')
-			keep_line=FALSE;
-		else
-			keep_line=TRUE;
-
-		if(keep_line==TRUE)
-			break;
-	        }
-
-	return result;
         }
 
 
@@ -1167,81 +1095,153 @@ char *my_strsep (char **stringp, const char *delim){
 
 
 
-/* reads a line from a file, dynamically allocating memory */
-char *my_fgets(char **buf, int max_bytes, FILE *fp, int accept_multiline, int *lines_read){
-	int bytes_read=0;
-	int bytes_to_read=0;
-	int total_bytes_read=0;
-	char temp_buf[1024];
-	int bytes_allocated=0;
-	char *res;
-	int buflen=0;
-	int current_line=0;
+/* open a file read-only via mmap() */
+mmapfile *mmap_fopen(char *filename){
+	mmapfile *new_mmapfile;
+	int fd;
+	void *mmap_buf;
+	struct stat statbuf;
+	int mode=O_RDONLY;
 
-	if(fp==NULL || buf==NULL)
+	/* allocate memory */
+	if((new_mmapfile=(mmapfile *)malloc(sizeof(mmapfile)))==NULL)
 		return NULL;
 
-	*buf=NULL;
+	/* open the file */
+	if((fd=open(filename,mode))==-1)
+		return NULL;
+
+	/* get file info */
+	if((fstat(fd,&statbuf))==-1){
+		close(fd);
+		free(new_mmapfile);
+		return NULL;
+	        }
+
+	/* mmap() the file */
+	if((mmap_buf=(void *)mmap(0,statbuf.st_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
+		close(fd);
+		free(new_mmapfile);
+		return NULL;
+	        }
+
+	/* populate struct info for later use */
+	new_mmapfile->path=strdup(filename);
+	new_mmapfile->fd=fd;
+	new_mmapfile->file_size=(unsigned long)(statbuf.st_size);
+	new_mmapfile->current_position=0L;
+	new_mmapfile->current_line=0L;
+	new_mmapfile->mmap_buf=mmap_buf;
+
+	return new_mmapfile;
+        }
+
+
+
+/* close a file originally opened via mmap() */
+int mmap_fclose(mmapfile *temp_mmapfile){
+
+	if(temp_mmapfile==NULL)
+		return ERROR;
+
+	/* un-mmap() the file */
+	munmap(temp_mmapfile->mmap_buf,temp_mmapfile->file_size);
+
+	/* close the file */
+	close(temp_mmapfile->fd);
+
+	/* free memory */
+	free(temp_mmapfile);
+	
+	return OK;
+        }
+
+
+
+/* gets one line of input from an mmap()'ed file */
+char *mmap_fgets(mmapfile *temp_mmapfile){
+	char *buf;
+	unsigned long x;
+	int len;
+
+	if(temp_mmapfile==NULL)
+		return NULL;
+
+	/* we've reached the end of the file */
+	if(temp_mmapfile->current_position>=temp_mmapfile->file_size)
+		return NULL;
+
+	/* find the end of the string (or buffer) */
+	for(x=temp_mmapfile->current_position;x<temp_mmapfile->file_size;x++){
+		if(*(char *)(temp_mmapfile->mmap_buf+x)=='\n')
+			break;
+	        }
+
+	/* calculate length of line we just read */
+	len=(int)x-temp_mmapfile->current_position+1;
+
+	/* allocate memory for the new line */
+	if((buf=(char *)malloc(len+1))==NULL)
+		return NULL;
+
+	/* copy string to newly allocated memory and terminate the string */
+	memcpy(buf,(char *)(temp_mmapfile->mmap_buf+temp_mmapfile->current_position),len);
+	buf[len]='\x0';
+
+	/* update the current position */
+	temp_mmapfile->current_position=x+1;
+
+	/* increment the current line */
+	temp_mmapfile->current_line++;
+
+	return buf;
+        }
+
+
+/* gets one line of input from an mmap()'ed file (may be contained on more than one line in the source file) */
+char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
+	char *buf=NULL;
+	char *tempbuf=NULL;
+	int len;
+	int len2;
+
+	if(temp_mmapfile==NULL)
+		return NULL;
 
 	while(1){
 
-		/* how many bytes should we read? */
-		bytes_to_read=max_bytes-total_bytes_read;
-		if(bytes_to_read>sizeof(temp_buf))
-			bytes_to_read=sizeof(temp_buf);
+		free(tempbuf);
 
-		/* read from the file */
-		res=fgets(temp_buf,bytes_to_read,fp);
-
-		/* EOF */
-		if(res==NULL)
+		if((tempbuf=mmap_fgets(temp_mmapfile))==NULL)
 			break;
 
-		bytes_read=strlen(temp_buf);
-		total_bytes_read+=bytes_read;
-
-		/* allocate memory for data */
-		bytes_allocated=total_bytes_read+1;
-		*buf=(char *)realloc(*buf,bytes_allocated);
-		if(*buf==NULL)
-			break;
-
-		/* copy data to buffer */
-		strncpy(*buf+(bytes_allocated-bytes_read-1),temp_buf,bytes_read);
-		(*buf)[bytes_allocated-1]='\x0';
-
-		/* we've already read max bytes */
-		if(total_bytes_read>=max_bytes)
-			break;
-
-		buflen=strlen(*buf);
-
-		/* we've read an entire line */
-		if((*buf)[buflen-1]=='\n'){
-
-			current_line++;
-
-			/* we should continue to the next line... */
-			if(accept_multiline==TRUE && buflen>1 && (*buf)[buflen-2]=='\\'){
-				
-				/* stip out the trailing slash and newline */
-				(*buf)[buflen-2]='\x0';
-				total_bytes_read-=2;
-
-				/* keep reading from the next line in the file... */
-			        }
-
-			/* else we should just read this single line and bail out... */
-			else
+		if(buf==NULL){
+			len=strlen(tempbuf);
+			if((buf=(char *)malloc(len+1))==NULL)
 				break;
+			memcpy(buf,tempbuf,len);
+			buf[len]='\x0';
 		        }
+		else{
+			len=strlen(tempbuf);
+			len2=strlen(buf);
+			if((buf=(char *)realloc(buf,len+len2+1))==NULL)
+				break;
+			strcat(buf,tempbuf);
+			len+=len2;
+			buf[len]='\x0';
+		        }
+
+		/* we shouldn't continue to the next line... */
+		if(!(len>0 && buf[len-1]=='\\' && (len==1 || buf[len-2]!='\\')))
+			break;
 	        }
 
-	if(lines_read)
-		*lines_read=current_line;
+	free(tempbuf);
 
-	return *buf;
+	return buf;
         }
+
 
 
 /* get days, hours, minutes, and seconds from a raw time_t format or total seconds */

@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-28-2004
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -210,33 +210,33 @@ int xpddefault_initialize_performance_data(char *config_file){
 
 /* grabs configuration information from main config file */
 int xpddefault_grab_config_info(char *config_file){
-	char input_buffer[MAX_INPUT_BUFFER];
+	char *input=NULL;
+	char temp_buffer[MAX_INPUT_BUFFER];
 	char variable[MAX_INPUT_BUFFER];
 	char value[MAX_INPUT_BUFFER];
 	char *temp_ptr;
-	FILE *fp;
+	mmapfile *thefile;
 	int error=FALSE;
 
 	/* open the config file for reading */
-	fp=fopen(config_file,"r");
-	if(fp==NULL){
-		snprintf(input_buffer,sizeof(input_buffer)-1,"Error: Could not open main config file '%s' for reading performance variables!\n",config_file);
-		input_buffer[sizeof(input_buffer)-1]='\x0';
-		write_to_logs_and_console(input_buffer,NSLOG_CONFIG_ERROR,TRUE);
+	if((thefile=mmap_fopen(config_file))==NULL){
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not open main config file '%s' for reading performance variables!\n",config_file);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		return ERROR;
 	        }
 
 	/* read in all lines from the config file */
-	for(fgets(input_buffer,sizeof(input_buffer)-1,fp);!feof(fp);fgets(input_buffer,sizeof(input_buffer)-1,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
+
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(input_buffer[0]=='#' || input_buffer[0]=='\x0' || input_buffer[0]=='\n' || input_buffer[0]=='\r')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
 
-		strip(input_buffer);
-
 		/* get the variable name */
-		temp_ptr=my_strtok(input_buffer,"=");
+		temp_ptr=my_strtok(input,"=");
 
 		/* if there is no variable name, return error */
 		if(temp_ptr==NULL){
@@ -317,7 +317,9 @@ int xpddefault_grab_config_info(char *config_file){
 			xpddefault_service_perfdata_file_processing_command=strdup(value);
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	return OK;
         }

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-28-2004
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -3419,7 +3419,11 @@ void service_check_sighandler(int sig){
 	/* write plugin check results to message queue */
 	strncpy(svc_msg.output,"(Service Check Timed Out)",sizeof(svc_msg.output)-1);
 	svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
+#ifdef SERVICE_CHECK_TIMEOUTS_RETURN_UNKNOWN
+	svc_msg.return_code=STATE_UNKNOWN;
+#else
 	svc_msg.return_code=STATE_CRITICAL;
+#endif
 	svc_msg.exited_ok=TRUE;
 	svc_msg.check_type=SERVICE_CHECK_ACTIVE;
 	svc_msg.finish_time=end_time;
@@ -4166,83 +4170,6 @@ char *my_strsep (char **stringp, const char *delim){
 	}
 
 
-/* reads a line from a file, dynamically allocating memory */
-char *my_fgets(char **buf, int max_bytes, FILE *fp, int accept_multiline, int *lines_read){
-	int bytes_read=0;
-	int bytes_to_read=0;
-	int total_bytes_read=0;
-	char temp_buf[1024];
-	int bytes_allocated=0;
-	char *res;
-	int buflen=0;
-	int current_line=0;
-
-	if(fp==NULL || buf==NULL)
-		return NULL;
-
-	*buf=NULL;
-
-	while(1){
-
-		/* how many bytes should we read? */
-		bytes_to_read=max_bytes-total_bytes_read;
-		if(bytes_to_read>sizeof(temp_buf))
-			bytes_to_read=sizeof(temp_buf);
-
-		/* read from the file */
-		res=fgets(temp_buf,bytes_to_read,fp);
-
-		/* EOF */
-		if(res==NULL)
-			break;
-
-		bytes_read=strlen(temp_buf);
-		total_bytes_read+=bytes_read;
-
-		/* allocate memory for data */
-		bytes_allocated=total_bytes_read+1;
-		*buf=(char *)realloc(*buf,bytes_allocated);
-		if(*buf==NULL)
-			break;
-
-		/* copy data to buffer */
-		strncpy(*buf+(bytes_allocated-bytes_read-1),temp_buf,bytes_read);
-		(*buf)[bytes_allocated-1]='\x0';
-
-		/* we've already read max bytes */
-		if(total_bytes_read>=max_bytes)
-			break;
-
-		buflen=strlen(*buf);
-
-		/* we've read an entire line */
-		if((*buf)[buflen-1]=='\n'){
-
-			current_line++;
-
-			/* we should continue to the next line... */
-			if(accept_multiline==TRUE && buflen>1 && (*buf)[buflen-2]=='\\'){
-				
-				/* stip out the trailing slash and newline */
-				(*buf)[buflen-2]='\x0';
-				total_bytes_read-=2;
-
-				/* keep reading from the next line in the file... */
-			        }
-
-			/* else we should just read this single line and bail out... */
-			else
-				break;
-		        }
-	        }
-
-	if(lines_read)
-		*lines_read=current_line;
-
-	return *buf;
-        }
-
-
 /* encodes a string in proper URL format */
 char *get_url_encoded_string(char *input){
 	register int x,y;
@@ -4408,6 +4335,153 @@ int my_rename(char *source, char *dest){
 	        }
 
 	return rename_result;
+        }
+
+
+/* open a file read-only via mmap() */
+mmapfile *mmap_fopen(char *filename){
+	mmapfile *new_mmapfile;
+	int fd;
+	void *mmap_buf;
+	struct stat statbuf;
+	int mode=O_RDONLY;
+
+	/* allocate memory */
+	if((new_mmapfile=(mmapfile *)malloc(sizeof(mmapfile)))==NULL)
+		return NULL;
+
+	/* open the file */
+	if((fd=open(filename,mode))==-1)
+		return NULL;
+
+	/* get file info */
+	if((fstat(fd,&statbuf))==-1){
+		close(fd);
+		free(new_mmapfile);
+		return NULL;
+	        }
+
+	/* mmap() the file */
+	if((mmap_buf=(void *)mmap(0,statbuf.st_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
+		close(fd);
+		free(new_mmapfile);
+		return NULL;
+	        }
+
+	/* populate struct info for later use */
+	new_mmapfile->path=strdup(filename);
+	new_mmapfile->fd=fd;
+	new_mmapfile->file_size=(unsigned long)(statbuf.st_size);
+	new_mmapfile->current_position=0L;
+	new_mmapfile->current_line=0L;
+	new_mmapfile->mmap_buf=mmap_buf;
+
+	return new_mmapfile;
+        }
+
+
+/* close a file originally opened via mmap() */
+int mmap_fclose(mmapfile *temp_mmapfile){
+
+	if(temp_mmapfile==NULL)
+		return ERROR;
+
+	/* un-mmap() the file */
+	munmap(temp_mmapfile->mmap_buf,temp_mmapfile->file_size);
+
+	/* close the file */
+	close(temp_mmapfile->fd);
+
+	/* free memory */
+	free(temp_mmapfile);
+	
+	return OK;
+        }
+
+
+/* gets one line of input from an mmap()'ed file */
+char *mmap_fgets(mmapfile *temp_mmapfile){
+	char *buf;
+	unsigned long x;
+	int len;
+
+	if(temp_mmapfile==NULL)
+		return NULL;
+
+	/* we've reached the end of the file */
+	if(temp_mmapfile->current_position>=temp_mmapfile->file_size)
+		return NULL;
+
+	/* find the end of the string (or buffer) */
+	for(x=temp_mmapfile->current_position;x<temp_mmapfile->file_size;x++){
+		if(*(char *)(temp_mmapfile->mmap_buf+x)=='\n')
+			break;
+	        }
+
+	/* calculate length of line we just read */
+	len=(int)x-temp_mmapfile->current_position+1;
+
+	/* allocate memory for the new line */
+	if((buf=(char *)malloc(len+1))==NULL)
+		return NULL;
+
+	/* copy string to newly allocated memory and terminate the string */
+	memcpy(buf,(char *)(temp_mmapfile->mmap_buf+temp_mmapfile->current_position),len);
+	buf[len]='\x0';
+
+	/* update the current position */
+	temp_mmapfile->current_position=x+1;
+
+	/* increment the current line */
+	temp_mmapfile->current_line++;
+
+	return buf;
+        }
+
+
+
+/* gets one line of input from an mmap()'ed file (may be contained on more than one line in the source file) */
+char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
+	char *buf=NULL;
+	char *tempbuf=NULL;
+	int len;
+	int len2;
+
+	if(temp_mmapfile==NULL)
+		return NULL;
+
+	while(1){
+
+		free(tempbuf);
+
+		if((tempbuf=mmap_fgets(temp_mmapfile))==NULL)
+			break;
+
+		if(buf==NULL){
+			len=strlen(tempbuf);
+			if((buf=(char *)malloc(len+1))==NULL)
+				break;
+			memcpy(buf,tempbuf,len);
+			buf[len]='\x0';
+		        }
+		else{
+			len=strlen(tempbuf);
+			len2=strlen(buf);
+			if((buf=(char *)realloc(buf,len+len2+1))==NULL)
+				break;
+			strcat(buf,tempbuf);
+			len+=len2;
+			buf[len]='\x0';
+		        }
+
+		/* we shouldn't continue to the next line... */
+		if(!(len>0 && buf[len-1]=='\\' && (len==1 || buf[len-2]!='\\')))
+			break;
+	        }
+
+	free(tempbuf);
+
+	return buf;
         }
 
 
@@ -5282,3 +5356,4 @@ int reset_variables(void){
 
 	return OK;
         }
+

@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-30-2004
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -453,8 +453,8 @@ int process_cgivars(void){
 
 
 void display_notifications(void){
-	FILE *fp=NULL;
-	char input_buffer[MAX_INPUT_BUFFER];
+	mmapfile *thefile;
+	char *input=NULL;
 	char *temp_buffer;
 	char date_time[MAX_DATETIME_LENGTH];
 	char alert_level[MAX_INPUT_BUFFER];
@@ -489,8 +489,7 @@ void display_notifications(void){
 
 	if(use_lifo==FALSE){
 
-		fp=fopen(log_file_to_use,"r");
-		if(fp==NULL){
+		if((thefile=mmap_fopen(log_file_to_use))==NULL){
 			printf("<P><DIV CLASS='errorMessage'>Error: Cannot open log file '%s' for reading!</DIV></P>",log_file_to_use);
 			return;
 		        }
@@ -513,27 +512,30 @@ void display_notifications(void){
 	total_notifications=0;
   
 	while(1){
+
+		free(input);
     
 		if(use_lifo==TRUE){
-			if(pop_lifo(input_buffer,(int)sizeof(input_buffer))!=LIFO_OK)
+			if((input=pop_lifo())==NULL)
 				break;
 		        }
 		else{
-			fgets(input_buffer,(int)(sizeof(input_buffer)-1),fp);
-			if(feof(fp))
+			if((input=mmap_fgets(thefile))==NULL)
 				break;
 		        }
 
-		/* see if this line contains the notification event string */
-		if(strstr(input_buffer,HOST_NOTIFICATION_STRING)||strstr(input_buffer,SERVICE_NOTIFICATION_STRING)){
+		strip(input);
 
-			if(strstr(input_buffer,HOST_NOTIFICATION_STRING))
+		/* see if this line contains the notification event string */
+		if(strstr(input,HOST_NOTIFICATION_STRING)||strstr(input,SERVICE_NOTIFICATION_STRING)){
+
+			if(strstr(input,HOST_NOTIFICATION_STRING))
 				notification_type=HOST_NOTIFICATION;
 			else
 				notification_type=SERVICE_NOTIFICATION;
       
 			/* get the date/time */
-			temp_buffer=(char *)strtok(input_buffer,"]");
+			temp_buffer=(char *)strtok(input,"]");
 			t=(time_t)(temp_buffer==NULL)?0L:strtoul(temp_buffer+1,NULL,10);
 			get_time_string(&t,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 			strip(date_time);
@@ -713,10 +715,12 @@ void display_notifications(void){
 		printf(" in %s log file</DIV></P>",(log_archive==0)?"the current":"this archived");
 	        }
 
+	free(input);
+
 	if(use_lifo==TRUE)
 		free_lifo_memory();
 	else
-		fclose(fp);
+		mmap_fclose(thefile);
 
 	return;
         }

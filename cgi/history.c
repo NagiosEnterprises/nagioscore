@@ -2,8 +2,8 @@
  *
  * HISTORY.C - Nagios History CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-30-2004
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -483,10 +483,10 @@ int process_cgivars(void){
 
 
 void get_history(void){
-	FILE *fp=NULL;
+	mmapfile *thefile;
 	char image[MAX_INPUT_BUFFER];
 	char image_alt[MAX_INPUT_BUFFER];
-	char input_buffer[MAX_INPUT_BUFFER];
+	char *input=NULL;
 	char input_buffer2[MAX_INPUT_BUFFER];
 	char match1[MAX_INPUT_BUFFER];
 	char match2[MAX_INPUT_BUFFER];
@@ -525,8 +525,7 @@ void get_history(void){
 
 	if(use_lifo==FALSE){
 
-		fp=fopen(log_file_to_use,"r");
-		if(fp==NULL){
+		if((thefile=mmap_fopen(log_file_to_use))==NULL){
 			printf("<HR><P><DIV CLASS='errorMessage'>Error: Cannot open log file '%s' for reading!</DIV></P><HR>",log_file_to_use);
 			return;
 		        }
@@ -536,24 +535,27 @@ void get_history(void){
 
 	while(1){
 
+		free(input);
+
 		if(use_lifo==TRUE){
-			if(pop_lifo(input_buffer,(int)sizeof(input_buffer))!=LIFO_OK)
+			if((input=pop_lifo())==NULL)
 				break;
 		        }
 		else{
-			fgets(input_buffer,(int)(sizeof(input_buffer)-1),fp);
-			if(feof(fp))
+			if((input=mmap_fgets(thefile))==NULL)
 				break;
 		        }
+
+		strip(input);
 
 		strcpy(image,"");
 		strcpy(image_alt,"");
 		system_message=FALSE;
 
-		strcpy(input_buffer2,input_buffer);
+		strcpy(input_buffer2,input);
 
 		/* service state alerts */
-		if(strstr(input_buffer,"SERVICE ALERT:")){
+		if(strstr(input,"SERVICE ALERT:")){
 			
 			history_type=SERVICE_HISTORY;
 
@@ -567,22 +569,22 @@ void get_history(void){
 			strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
 			entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
 
-			if(strstr(input_buffer,";CRITICAL;")){
+			if(strstr(input,";CRITICAL;")){
 				strncpy(image,CRITICAL_ICON,sizeof(image));
 				strncpy(image_alt,CRITICAL_ICON_ALT,sizeof(image_alt));
 				history_detail_type=HISTORY_SERVICE_CRITICAL;
                                 }
-			else if(strstr(input_buffer,";WARNING;")){
+			else if(strstr(input,";WARNING;")){
 				strncpy(image,WARNING_ICON,sizeof(image));
 				strncpy(image_alt,WARNING_ICON_ALT,sizeof(image_alt));
 				history_detail_type=HISTORY_SERVICE_WARNING;
                                 }
-			else if(strstr(input_buffer,";UNKNOWN;")){
+			else if(strstr(input,";UNKNOWN;")){
 				strncpy(image,UNKNOWN_ICON,sizeof(image));
 				strncpy(image_alt,UNKNOWN_ICON_ALT,sizeof(image_alt));
  				history_detail_type=HISTORY_SERVICE_UNKNOWN;
                                 }
-			else if(strstr(input_buffer,";RECOVERY;") || strstr(input_buffer,";OK;")){
+			else if(strstr(input,";RECOVERY;") || strstr(input,";OK;")){
 				strncpy(image,OK_ICON,sizeof(image));
 				strncpy(image_alt,OK_ICON_ALT,sizeof(image_alt));
 				history_detail_type=HISTORY_SERVICE_RECOVERY;
@@ -590,7 +592,7 @@ void get_history(void){
 		        }
 
 		/* service flapping alerts */
-		else if(strstr(input_buffer,"SERVICE FLAPPING ALERT:")){
+		else if(strstr(input,"SERVICE FLAPPING ALERT:")){
 
 			if(display_flapping_alerts==FALSE)
 				continue;
@@ -609,16 +611,16 @@ void get_history(void){
 
 			strncpy(image,FLAPPING_ICON,sizeof(image));
 
-			if(strstr(input_buffer,";STARTED;"))
+			if(strstr(input,";STARTED;"))
 			        strncpy(image_alt,"Service started flapping",sizeof(image_alt));
-			else if(strstr(input_buffer,";STOPPED;"))
+			else if(strstr(input,";STOPPED;"))
 			        strncpy(image_alt,"Service stopped flapping",sizeof(image_alt));
-			else if(strstr(input_buffer,";DISABLED;"))
+			else if(strstr(input,";DISABLED;"))
 			        strncpy(image_alt,"Service flap detection disabled",sizeof(image_alt));
 		        }
 
 		/* service downtime alerts */
-		else if(strstr(input_buffer,"SERVICE DOWNTIME ALERT:")){
+		else if(strstr(input,"SERVICE DOWNTIME ALERT:")){
 			
 			if(display_downtime_alerts==FALSE)
 				continue;
@@ -637,16 +639,16 @@ void get_history(void){
 
 			strncpy(image,SCHEDULED_DOWNTIME_ICON,sizeof(image));
 
-			if(strstr(input_buffer,";STARTED;"))
+			if(strstr(input,";STARTED;"))
 			        strncpy(image_alt,"Service entered a period of scheduled downtime",sizeof(image_alt));
-			else if(strstr(input_buffer,";STOPPED;"))
+			else if(strstr(input,";STOPPED;"))
 			        strncpy(image_alt,"Service exited from a period of scheduled downtime",sizeof(image_alt));
-			else if(strstr(input_buffer,";CANCELLED;"))
+			else if(strstr(input,";CANCELLED;"))
 			        strncpy(image_alt,"Service scheduled downtime has been cancelled",sizeof(image_alt));
 		        }
 
 		/* host state alerts */
-		else if(strstr(input_buffer,"HOST ALERT:")){
+		else if(strstr(input,"HOST ALERT:")){
 
 			history_type=HOST_HISTORY;
 
@@ -657,17 +659,17 @@ void get_history(void){
 			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
 			entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-			if(strstr(input_buffer,";DOWN;")){
+			if(strstr(input,";DOWN;")){
 				strncpy(image,HOST_DOWN_ICON,sizeof(image));
 				strncpy(image_alt,HOST_DOWN_ICON_ALT,sizeof(image_alt));
 				history_detail_type=HISTORY_HOST_DOWN;
 		                }
-			else if(strstr(input_buffer,";UNREACHABLE;")){
+			else if(strstr(input,";UNREACHABLE;")){
 				strncpy(image,HOST_UNREACHABLE_ICON,sizeof(image));
 				strncpy(image_alt,HOST_UNREACHABLE_ICON_ALT,sizeof(image_alt));
 				history_detail_type=HISTORY_HOST_UNREACHABLE;
 		                }
-			else if(strstr(input_buffer,";RECOVERY") || strstr(input_buffer,";UP;")){
+			else if(strstr(input,";RECOVERY") || strstr(input,";UP;")){
 				strncpy(image,HOST_UP_ICON,sizeof(image));
 				strncpy(image_alt,HOST_UP_ICON_ALT,sizeof(image_alt));
 				history_detail_type=HISTORY_HOST_RECOVERY;
@@ -675,7 +677,7 @@ void get_history(void){
 		        }
 
 		/* host flapping alerts */
-		else if(strstr(input_buffer,"HOST FLAPPING ALERT:")){
+		else if(strstr(input,"HOST FLAPPING ALERT:")){
 			
 			if(display_flapping_alerts==FALSE)
 				continue;
@@ -691,16 +693,16 @@ void get_history(void){
 
 			strncpy(image,FLAPPING_ICON,sizeof(image));
 
-			if(strstr(input_buffer,";STARTED;"))
+			if(strstr(input,";STARTED;"))
 			        strncpy(image_alt,"Host started flapping",sizeof(image_alt));
-			else if(strstr(input_buffer,";STOPPED;"))
+			else if(strstr(input,";STOPPED;"))
 			        strncpy(image_alt,"Host stopped flapping",sizeof(image_alt));
-			else if(strstr(input_buffer,";DISABLED;"))
+			else if(strstr(input,";DISABLED;"))
 			        strncpy(image_alt,"Host flap detection disabled",sizeof(image_alt));
 		        }
 
 		/* host downtime alerts */
-		else if(strstr(input_buffer,"HOST DOWNTIME ALERT:")){
+		else if(strstr(input,"HOST DOWNTIME ALERT:")){
 			
 			if(display_downtime_alerts==FALSE)
 				continue;
@@ -716,11 +718,11 @@ void get_history(void){
 
 			strncpy(image,SCHEDULED_DOWNTIME_ICON,sizeof(image));
 
-			if(strstr(input_buffer,";STARTED;"))
+			if(strstr(input,";STARTED;"))
 			        strncpy(image_alt,"Host entered a period of scheduled downtime",sizeof(image_alt));
-			else if(strstr(input_buffer,";STOPPED;"))
+			else if(strstr(input,";STOPPED;"))
 			        strncpy(image_alt,"Host exited from a period of scheduled downtime",sizeof(image_alt));
-			else if(strstr(input_buffer,";CANCELLED;"))
+			else if(strstr(input,";CANCELLED;"))
 			        strncpy(image_alt,"Host scheduled downtime has been cancelled",sizeof(image_alt));
 		        }
 
@@ -728,28 +730,28 @@ void get_history(void){
 			continue;
 
 		/* program start */
-		else if(strstr(input_buffer," starting...")){
+		else if(strstr(input," starting...")){
 			strncpy(image,START_ICON,sizeof(image));
 			strncpy(image_alt,START_ICON_ALT,sizeof(image_alt));
 			system_message=TRUE;
 		        }
 
 		/* normal program termination */
-		else if(strstr(input_buffer," shutting down...")){
+		else if(strstr(input," shutting down...")){
 			strncpy(image,STOP_ICON,sizeof(image));
 			strncpy(image_alt,STOP_ICON_ALT,sizeof(image_alt));
 			system_message=TRUE;
 		        }
 
 		/* abnormal program termination */
-		else if(strstr(input_buffer,"Bailing out")){
+		else if(strstr(input,"Bailing out")){
 			strncpy(image,STOP_ICON,sizeof(image));
 			strncpy(image_alt,STOP_ICON_ALT,sizeof(image_alt));
 			system_message=TRUE;
 		        }
 
 		/* program restart */
-		else if(strstr(input_buffer," restarting...")){
+		else if(strstr(input," restarting...")){
 			strncpy(image,RESTART_ICON,sizeof(image));
 			strncpy(image_alt,RESTART_ICON_ALT,sizeof(image_alt));
 			system_message=TRUE;
@@ -759,7 +761,7 @@ void get_history(void){
 		image_alt[sizeof(image_alt)-1]='\x0';
 
 		/* get the timestamp */
-		temp_buffer=strtok(input_buffer,"]");
+		temp_buffer=strtok(input,"]");
 		t=(temp_buffer==NULL)?0L:strtoul(temp_buffer+1,NULL,10);
 
 		time_ptr=localtime(&t);
@@ -918,10 +920,12 @@ void get_history(void){
 
 	printf("<HR>\n");
 
+	free(input);
+
 	if(use_lifo==TRUE)
 		free_lifo_memory();
 	else
-		fclose(fp);
+		mmap_fclose(thefile);
 
 	return;
         }

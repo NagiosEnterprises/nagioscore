@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -110,10 +110,11 @@ char xsddefault_aggregate_temp_file[MAX_INPUT_BUFFER];
 
 /* grab configuration information */
 int xsddefault_grab_config_info(char *config_file){
-	char input_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+	char *input=NULL;
+	mmapfile *thefile;
 #ifdef NSCGI
-	FILE *fp2;
+	char *input2=NULL;
+	mmapfile *thefile2;
 	char *temp_buffer;
 #endif
 
@@ -127,55 +128,57 @@ int xsddefault_grab_config_info(char *config_file){
 	xsddefault_temp_file[sizeof(xsddefault_temp_file)-1]='\x0';
 
 	/* open the config file for reading */
-	fp=fopen(config_file,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(config_file))==NULL)
 		return ERROR;
 
 	/* read in all lines from the main config file */
-	for(fgets(input_buffer,sizeof(input_buffer)-1,fp);!feof(fp);fgets(input_buffer,sizeof(input_buffer)-1,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
+
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(input_buffer[0]=='#' || input_buffer[0]=='\x0' || input_buffer[0]=='\n' || input_buffer[0]=='\r')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
-
-		strip(input_buffer);
 
 #ifdef NSCGI
 		/* CGI needs to find and read contents of main config file, since it was passed the name of the CGI config file */
-		if(strstr(input_buffer,"main_config_file")==input_buffer){
+		if(strstr(input,"main_config_file")==input){
 
-			temp_buffer=strtok(input_buffer,"=");
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
-			
-			fp2=fopen(temp_buffer,"r");
-			if(fp2==NULL)
+
+			if((thefile2=mmap_fopen(temp_buffer))==NULL)
 				continue;
 
 			/* read in all lines from the main config file */
-			for(fgets(input_buffer,sizeof(input_buffer)-1,fp2);!feof(fp2);fgets(input_buffer,sizeof(input_buffer)-1,fp2)){
+			for(;input2=mmap_fgets(thefile2);free(input2)){
+
+				strip(input2);
 
 				/* skip blank lines and comments */
-				if(input_buffer[0]=='#' || input_buffer[0]=='\x0' || input_buffer[0]=='\n' || input_buffer[0]=='\r')
+				if(input2[0]=='#' || input2[0]=='\x0')
 					continue;
 
-				strip(input_buffer);
-
-				xsddefault_grab_config_directives(input_buffer);
+				xsddefault_grab_config_directives(input2);
 			        }
 
-			fclose(fp2);
+			/* free memory and close the file */
+			free(input2);
+			mmap_fclose(thefile2);
 		        }
 #endif
 
 #ifdef NSCORE
 		/* core reads variables directly from the main config file */
-		xsddefault_grab_config_directives(input_buffer);
+		xsddefault_grab_config_directives(input);
 #endif
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	/* we didn't find the status log name */
 	if(!strcmp(xsddefault_status_log,""))
@@ -464,8 +467,8 @@ int xsddefault_save_status_data(void){
 
 /* read all program, host, and service status information */
 int xsddefault_read_status_data(char *config_file,int options){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+	char *input;
+	mmapfile *thefile;
 	int data_type=XSDDEFAULT_NO_DATA;
 	hoststatus *temp_hoststatus=NULL;
 	servicestatus *temp_servicestatus=NULL;
@@ -479,24 +482,23 @@ int xsddefault_read_status_data(char *config_file,int options){
 		return ERROR;
 
 	/* open the status file for reading */
-	fp=fopen(xsddefault_status_log,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(xsddefault_status_log))==NULL)
 		return ERROR;
 
 	/* read all lines in the status file */
-	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-		strip(temp_buffer);
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
 
-		else if(!strcmp(temp_buffer,"info {"))
+		else if(!strcmp(input,"info {"))
 			data_type=XSDDEFAULT_INFO_DATA;
-		else if(!strcmp(temp_buffer,"program {"))
+		else if(!strcmp(input,"program {"))
 			data_type=XSDDEFAULT_PROGRAM_DATA;
-		else if(!strcmp(temp_buffer,"host {")){
+		else if(!strcmp(input,"host {")){
 			data_type=XSDDEFAULT_HOST_DATA;
 			temp_hoststatus=(hoststatus *)malloc(sizeof(hoststatus));
 			if(temp_hoststatus){
@@ -505,7 +507,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_hoststatus->perf_data=NULL;
 			        }
 		        }
-		else if(!strcmp(temp_buffer,"service {")){
+		else if(!strcmp(input,"service {")){
 			data_type=XSDDEFAULT_SERVICE_DATA;
 			temp_servicestatus=(servicestatus *)malloc(sizeof(servicestatus));
 			if(temp_servicestatus){
@@ -516,7 +518,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 			        }
 		        }
 
-		else if(!strcmp(temp_buffer,"}")){
+		else if(!strcmp(input,"}")){
 
 			switch(data_type){
 
@@ -545,7 +547,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 
 		else if(data_type!=XSDDEFAULT_NO_DATA){
 
-			var=strtok(temp_buffer,"=");
+			var=strtok(input,"=");
 			val=strtok(NULL,"\n");
 			if(val==NULL)
 				continue;
@@ -784,7 +786,9 @@ int xsddefault_read_status_data(char *config_file,int options){
 		        }
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	return OK;
         }

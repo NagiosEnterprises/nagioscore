@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Last Modified: 10-30-2004
  *
  * License:
  * 
@@ -1231,8 +1231,8 @@ void read_archived_event_data(void){
 
 /* grabs archived event data from a log file */
 void scan_log_file_for_archived_event_data(char *filename){
-	char input_buffer[MAX_INPUT_BUFFER];
-	char input_buffer2[MAX_INPUT_BUFFER];
+	char *input=NULL;
+	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_svc_description[MAX_INPUT_BUFFER];
 	int state;
@@ -1240,39 +1240,36 @@ void scan_log_file_for_archived_event_data(char *filename){
 	char *temp_buffer;
 	char *plugin_output;
 	time_t time_stamp;
-	FILE *fp;
+	mmapfile *thefile;
 
-	fp=fopen(filename,"r");
-	if(fp==NULL)
+
+	if((thefile=mmap_fopen(filename))==NULL)
 		return;
 
-	while(read_line(input_buffer,MAX_INPUT_BUFFER,fp)){
+	for(;input=mmap_fgets(thefile);free(input),free(input2)){
 
-		if(input_buffer==NULL)
-		        continue;
+		strip(input);
 
-		strcpy(input_buffer2,input_buffer);
+		if((input2=strdup(input))==NULL)
+			continue;
 
 		/* get the timestamp */
-		temp_buffer=strtok(input_buffer2,"]");
+		temp_buffer=my_strtok(input2,"]");
 		time_stamp=(temp_buffer==NULL)?(time_t)0:(time_t)strtoul(temp_buffer+1,NULL,10);
 		if(time_stamp<t1 || time_stamp>t2)
 			continue;
 		
 		/* host alerts */
-		if(strstr(input_buffer,"HOST ALERT:")){
-
-			strcpy(input_buffer2,input_buffer);
+		if(strstr(input,"HOST ALERT:")){
 
 			/* get host name */
-			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
 			entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
 			/* state type */
-			if(strstr(input_buffer,";SOFT;"))
+			if(strstr(input,";SOFT;"))
 				state_type=AE_SOFT_STATE;
 			else
 				state_type=AE_HARD_STATE;
@@ -1284,11 +1281,11 @@ void scan_log_file_for_archived_event_data(char *filename){
 			plugin_output=my_strtok(NULL,"\n");
 
 			/* state */
-			if(strstr(input_buffer,";DOWN;"))
+			if(strstr(input,";DOWN;"))
 				state=AE_HOST_DOWN;
-			else if(strstr(input_buffer,";UNREACHABLE;"))
+			else if(strstr(input,";UNREACHABLE;"))
 				state=AE_HOST_UNREACHABLE;
-			else if(strstr(input_buffer,";RECOVERY") || strstr(input_buffer,";UP;"))
+			else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
 				state=AE_HOST_UP;
 			else
 				continue;
@@ -1297,12 +1294,9 @@ void scan_log_file_for_archived_event_data(char *filename){
 		        }
 
 		/* service alerts */
-		if(strstr(input_buffer,"SERVICE ALERT:")){
-
-			strcpy(input_buffer2,input_buffer);
+		if(strstr(input,"SERVICE ALERT:")){
 
 			/* get host name */
-			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
 			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
@@ -1314,7 +1308,7 @@ void scan_log_file_for_archived_event_data(char *filename){
 			entry_svc_description[sizeof(entry_svc_description)-1]='\x0';
 
 			/* state type */
-			if(strstr(input_buffer,";SOFT;"))
+			if(strstr(input,";SOFT;"))
 				state_type=AE_SOFT_STATE;
 			else
 				state_type=AE_HARD_STATE;
@@ -1326,13 +1320,13 @@ void scan_log_file_for_archived_event_data(char *filename){
 			plugin_output=my_strtok(NULL,"\n");
 
 			/* state */
-			if(strstr(input_buffer,";WARNING;"))
+			if(strstr(input,";WARNING;"))
 				state=AE_SERVICE_WARNING;
-			else if(strstr(input_buffer,";UNKNOWN;"))
+			else if(strstr(input,";UNKNOWN;"))
 				state=AE_SERVICE_UNKNOWN;
-			else if(strstr(input_buffer,";CRITICAL;"))
+			else if(strstr(input,";CRITICAL;"))
 				state=AE_SERVICE_CRITICAL;
-			else if(strstr(input_buffer,";RECOVERY") || strstr(input_buffer,";OK;"))
+			else if(strstr(input,";RECOVERY") || strstr(input,";OK;"))
 				state=AE_SERVICE_OK;
 			else
 				continue;
@@ -1341,7 +1335,10 @@ void scan_log_file_for_archived_event_data(char *filename){
 		        }
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	free(input2);
+	mmap_fclose(thefile);
 	
 	return;
         }

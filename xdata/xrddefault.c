@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-13-2004
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -76,9 +76,9 @@ char xrddefault_retention_file[MAX_FILENAME_LENGTH]="";
 /******************************************************************/
 
 int xrddefault_grab_config_info(char *main_config_file){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *input=NULL;
 	char *temp_ptr;
-	FILE *fp;
+	mmapfile *thefile;
 							      
 
 	/* initialize the location of the retention file */
@@ -86,8 +86,7 @@ int xrddefault_grab_config_info(char *main_config_file){
 	xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
 
 	/* open the main config file for reading */
-	fp=fopen(main_config_file,"r");
-	if(fp==NULL){
+	if((thefile=mmap_fopen(main_config_file))==NULL){
 #ifdef DEBUG1
 		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
 #endif
@@ -95,18 +94,15 @@ int xrddefault_grab_config_info(char *main_config_file){
 	        }
 
 	/* read in all lines from the main config file */
-	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-		if(feof(fp))
-			break;
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0' || temp_buffer[0]=='\n' || temp_buffer[0]=='\r')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
 
-		strip(temp_buffer);
-
-		temp_ptr=my_strtok(temp_buffer,"=");
+		temp_ptr=my_strtok(input,"=");
 		if(temp_ptr==NULL)
 			continue;
 
@@ -123,7 +119,9 @@ int xrddefault_grab_config_info(char *main_config_file){
 		xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	/* save the retention file macro */
 	if(macro_x[MACRO_RETENTIONDATAFILE]!=NULL)
@@ -339,8 +337,9 @@ int xrddefault_save_state_information(char *main_config_file){
 int xrddefault_read_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_buffer2[MAX_INPUT_BUFFER];
+	char *input;
 	char *temp_ptr;
-	FILE *fp;
+	mmapfile *thefile;
 	char *host_name=NULL;
 	char *service_description=NULL;
 	int data_type=XRDDEFAULT_NO_DATA;
@@ -369,30 +368,29 @@ int xrddefault_read_state_information(char *main_config_file){
 	        }
 
 	/* open the retention file for reading */
-	fp=fopen(xrddefault_retention_file,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(xrddefault_retention_file))==NULL)
 		return ERROR;
 
 
 	/* read all lines in the retention file */
-	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-		strip(temp_buffer);
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
 
-		else if(!strcmp(temp_buffer,"info {"))
+		else if(!strcmp(input,"info {"))
 			data_type=XRDDEFAULT_INFO_DATA;
-		else if(!strcmp(temp_buffer,"program {"))
+		else if(!strcmp(input,"program {"))
 			data_type=XRDDEFAULT_PROGRAM_DATA;
-		else if(!strcmp(temp_buffer,"host {"))
+		else if(!strcmp(input,"host {"))
 			data_type=XRDDEFAULT_HOST_DATA;
-		else if(!strcmp(temp_buffer,"service {"))
+		else if(!strcmp(input,"service {"))
 			data_type=XRDDEFAULT_SERVICE_DATA;
 
-		else if(!strcmp(temp_buffer,"}")){
+		else if(!strcmp(input,"}")){
 
 			switch(data_type){
 
@@ -479,7 +477,7 @@ int xrddefault_read_state_information(char *main_config_file){
 
 		else if(data_type!=XRDDEFAULT_NO_DATA){
 
-			var=strtok(temp_buffer,"=");
+			var=strtok(input,"=");
 			val=strtok(NULL,"\n");
 			if(val==NULL)
 				continue;
@@ -907,9 +905,9 @@ int xrddefault_read_state_information(char *main_config_file){
 		        }
 	        }
 
-
-	fclose(fp);
-
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 #ifdef DEBUG0
 	printf("xrddefault_read_state_information() end\n");

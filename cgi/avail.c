@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Last Modified: 10-30-2004
  *
  * License:
  * 
@@ -2522,6 +2522,10 @@ void add_subject(int subject_type, char *hn, char *sd){
 	avail_subject *new_subject=NULL;
 	int is_authorized=FALSE;
 
+	/* bail if we've already added the subject */
+	if(find_subject(subject_type,hn,sd))
+		return;
+
 	/* see if the user is authorized to see data for this host or service */
 	if(subject_type==HOST_SUBJECT)
 		is_authorized=is_authorized_for_host(find_host(hn),&current_authdata);
@@ -2541,7 +2545,8 @@ void add_subject(int subject_type, char *hn, char *sd){
 		if(new_subject->host_name!=NULL)
 			strcpy(new_subject->host_name,hn);
 	        }
-	else new_subject->host_name=NULL;
+	else 
+		new_subject->host_name=NULL;
 
 	/* allocate memory fo the service description */
 	if(sd!=NULL){
@@ -2549,7 +2554,8 @@ void add_subject(int subject_type, char *hn, char *sd){
 		if(new_subject->service_description!=NULL)
 			strcpy(new_subject->service_description,sd);
 	        }
-	else new_subject->service_description=NULL;
+	else
+		new_subject->service_description=NULL;
 
 	new_subject->type=subject_type;
         new_subject->earliest_state=AS_NO_DATA;
@@ -2828,53 +2834,47 @@ void read_archived_state_data(void){
 
 /* grabs archives state data from a log file */
 void scan_log_file_for_archived_state_data(char *filename){
-	char input_buffer[MAX_INPUT_BUFFER];
-	char input_buffer2[MAX_INPUT_BUFFER];
+	char *input=NULL;
+	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_svc_description[MAX_INPUT_BUFFER];
 	char *plugin_output;
 	char *temp_buffer;
 	time_t time_stamp;
-	FILE *fp;
+	mmapfile *thefile;
 	avail_subject *temp_subject;
 
-	fp=fopen(filename,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(filename))==NULL)
 		return;
 
-	while(read_line(input_buffer,MAX_INPUT_BUFFER,fp)){
+	for(;input=mmap_fgets(thefile);free(input),free(input2)){
 
-	        if(feof(fp))
-		        break;
+		strip(input);
 
-		if(input_buffer==NULL)
-		        continue;
+		if((input2=strdup(input))==NULL)
+			continue;
 
-		strcpy(input_buffer2,input_buffer);
-		temp_buffer=strtok(input_buffer2,"]");
+		temp_buffer=my_strtok(input2,"]");
 		time_stamp=(temp_buffer==NULL)?(time_t)0:(time_t)strtoul(temp_buffer+1,NULL,10);
 
 		/* program starts/restarts */
-		if(strstr(input_buffer," starting..."))
+		if(strstr(input," starting..."))
 			add_global_archived_state(AS_PROGRAM_START,time_stamp,"Program start");
-		if(strstr(input_buffer," restarting..."))
+		if(strstr(input," restarting..."))
 			add_global_archived_state(AS_PROGRAM_START,time_stamp,"Program restart");
 
 		/* program stops */
-		if(strstr(input_buffer," shutting down..."))
+		if(strstr(input," shutting down..."))
 			add_global_archived_state(AS_PROGRAM_END,time_stamp,"Normal program termination");
-		if(strstr(input_buffer,"Bailing out"))
+		if(strstr(input,"Bailing out"))
 			add_global_archived_state(AS_PROGRAM_END,time_stamp,"Abnormal program termination");
 
 		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 
 			/* normal host alerts and initial/current states */
-			if(strstr(input_buffer,"HOST ALERT:") || strstr(input_buffer,"INITIAL HOST STATE:") || strstr(input_buffer,"CURRENT HOST STATE:")){
-
-				strcpy(input_buffer2,input_buffer);
+			if(strstr(input,"HOST ALERT:") || strstr(input,"INITIAL HOST STATE:") || strstr(input,"CURRENT HOST STATE:")){
 
 				/* get host name */
-				temp_buffer=my_strtok(input_buffer2,"]");
 				temp_buffer=my_strtok(NULL,":");
 				temp_buffer=my_strtok(NULL,";");
 				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
@@ -2886,7 +2886,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 					continue;
 
 				/* skip soft states */
-				if(strstr(input_buffer,";SOFT;"))
+				if(strstr(input,";SOFT;"))
 					continue;
 				
 				/* get the plugin output */
@@ -2895,23 +2895,20 @@ void scan_log_file_for_archived_state_data(char *filename){
 				temp_buffer=my_strtok(NULL,";");
 				plugin_output=my_strtok(NULL,"\n");
 
-				if(strstr(input_buffer,";DOWN;"))
+				if(strstr(input,";DOWN;"))
 					add_archived_state(AS_HOST_DOWN,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input_buffer,";UNREACHABLE;"))
+				else if(strstr(input,";UNREACHABLE;"))
 					add_archived_state(AS_HOST_UNREACHABLE,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input_buffer,";RECOVERY") || strstr(input_buffer,";UP;"))
+				else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
 					add_archived_state(AS_HOST_UP,time_stamp,plugin_output,temp_subject);
 				else
 					add_archived_state(AS_NO_DATA,time_stamp,plugin_output,temp_subject);
 			        }
 
 			/* scheduled downtime notices */
-			else if(strstr(input_buffer,"HOST DOWNTIME ALERT:")){
-
-				strcpy(input_buffer2,input_buffer);
+			else if(strstr(input,"HOST DOWNTIME ALERT:")){
 
 				/* get host name */
-				temp_buffer=my_strtok(input_buffer2,"]");
 				temp_buffer=my_strtok(NULL,":");
 				temp_buffer=my_strtok(NULL,";");
 				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
@@ -2925,7 +2922,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 				if(show_scheduled_downtime==FALSE)
 					continue;
 			
-				if(strstr(input_buffer,";STARTED;"))
+				if(strstr(input,";STARTED;"))
 					add_scheduled_downtime(AS_HOST_DOWNTIME_START,time_stamp,temp_subject);
 				else
 					add_scheduled_downtime(AS_HOST_DOWNTIME_END,time_stamp,temp_subject);
@@ -2936,12 +2933,9 @@ void scan_log_file_for_archived_state_data(char *filename){
 		if(display_type==DISPLAY_SERVICE_AVAIL || display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 
 			/* normal service alerts and initial/current states */
-			if(strstr(input_buffer,"SERVICE ALERT:") || strstr(input_buffer,"INITIAL SERVICE STATE:") || strstr(input_buffer,"CURRENT SERVICE STATE:")){
-
-				strcpy(input_buffer2,input_buffer);
+			if(strstr(input,"SERVICE ALERT:") || strstr(input,"INITIAL SERVICE STATE:") || strstr(input,"CURRENT SERVICE STATE:")){
 
 				/* get host name */
-				temp_buffer=my_strtok(input_buffer2,"]");
 				temp_buffer=my_strtok(NULL,":");
 				temp_buffer=my_strtok(NULL,";");
 				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
@@ -2958,7 +2952,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 					continue;
 
 				/* skip soft states */
-				if(strstr(input_buffer,";SOFT;"))
+				if(strstr(input,";SOFT;"))
 					continue;
 
 				/* get the plugin output */
@@ -2967,13 +2961,13 @@ void scan_log_file_for_archived_state_data(char *filename){
 				temp_buffer=my_strtok(NULL,";");
 				plugin_output=my_strtok(NULL,"\n");
 
-				if(strstr(input_buffer,";CRITICAL;"))
+				if(strstr(input,";CRITICAL;"))
 					add_archived_state(AS_SVC_CRITICAL,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input_buffer,";WARNING;"))
+				else if(strstr(input,";WARNING;"))
 					add_archived_state(AS_SVC_WARNING,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input_buffer,";UNKNOWN;"))
+				else if(strstr(input,";UNKNOWN;"))
 					add_archived_state(AS_SVC_UNKNOWN,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input_buffer,";RECOVERY;") || strstr(input_buffer,";OK;"))
+				else if(strstr(input,";RECOVERY;") || strstr(input,";OK;"))
 					add_archived_state(AS_SVC_OK,time_stamp,plugin_output,temp_subject);
 				else
 					add_archived_state(AS_NO_DATA,time_stamp,plugin_output,temp_subject);
@@ -2981,12 +2975,9 @@ void scan_log_file_for_archived_state_data(char *filename){
 			        }
 
 			/* scheduled service downtime notices */
-			else if(strstr(input_buffer,"SERVICE DOWNTIME ALERT:")){
-
-				strcpy(input_buffer2,input_buffer);
+			else if(strstr(input,"SERVICE DOWNTIME ALERT:")){
 
 				/* get host name */
-				temp_buffer=my_strtok(input_buffer2,"]");
 				temp_buffer=my_strtok(NULL,":");
 				temp_buffer=my_strtok(NULL,";");
 				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
@@ -3005,19 +2996,16 @@ void scan_log_file_for_archived_state_data(char *filename){
 				if(show_scheduled_downtime==FALSE)
 					continue;
 			
-				if(strstr(input_buffer,";STARTED;"))
+				if(strstr(input,";STARTED;"))
 					add_scheduled_downtime(AS_SVC_DOWNTIME_START,time_stamp,temp_subject);
 				else
 					add_scheduled_downtime(AS_SVC_DOWNTIME_END,time_stamp,temp_subject);
 		                }
 
 			/* scheduled host downtime notices */
-			else if(strstr(input_buffer,"HOST DOWNTIME ALERT:")){
-
-				strcpy(input_buffer2,input_buffer);
+			else if(strstr(input,"HOST DOWNTIME ALERT:")){
 
 				/* get host name */
-				temp_buffer=my_strtok(input_buffer2,"]");
 				temp_buffer=my_strtok(NULL,":");
 				temp_buffer=my_strtok(NULL,";");
 				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
@@ -3035,7 +3023,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 					if(show_scheduled_downtime==FALSE)
 						continue;
 			
-					if(strstr(input_buffer,";STARTED;"))
+					if(strstr(input,";STARTED;"))
 						add_scheduled_downtime(AS_HOST_DOWNTIME_START,time_stamp,temp_subject);
 					else
 						add_scheduled_downtime(AS_HOST_DOWNTIME_END,time_stamp,temp_subject);
@@ -3045,7 +3033,10 @@ void scan_log_file_for_archived_state_data(char *filename){
 		
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	free(input2);
+	mmap_fclose(thefile);
 	
 	return;
         }

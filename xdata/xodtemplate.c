@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Last Modified: 10-30-2004
  *
  * Description:
  *
@@ -108,10 +108,10 @@ char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
 int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 #ifdef NSCORE
 	char config_file[MAX_FILENAME_LENGTH];
-	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
+	char *input;
 	char *temp_ptr;
 #endif
-	FILE *fp;
+	mmapfile *thefile;
 	int result=OK;
 
 #ifdef DEBUG0
@@ -122,8 +122,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	xodtemplate_grab_config_info(main_config_file);
 
 	/* open the main config file for reading (we need to find all the config files to read) */
-	fp=fopen(main_config_file,"r");
-	if(fp==NULL){
+	if((thefile=mmap_fopen(main_config_file))==NULL){
 #ifdef DEBUG1
 		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
 #endif
@@ -152,7 +151,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	/* allocate memory for 256 config files (increased dynamically) */
 	xodtemplate_current_config_file=0;
 	xodtemplate_config_files=(char **)malloc(256*sizeof(char **));
-	if(fp==NULL){
+	if(xodtemplate_config_files==NULL){
 #ifdef DEBUG1
 		printf("Error: Cannot allocate memory for config file names!\n");
 #endif
@@ -163,14 +162,14 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 	/* daemon reads all config files/dirs specified in the main config file */
 	/* read in all lines from the main config file */
-	for(fgets(input,sizeof(input)-1,fp);!feof(fp);fgets(input,sizeof(input)-1,fp)){
-
-		/* skip blank lines and comments */
-		if(input[0]=='#' || input[0]==';' || input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
-			continue;
+	for(;input=mmap_fgets(thefile);free(input)){
 
 		/* strip input */
 		strip(input);
+
+		/* skip blank lines and comments */
+		if(input[0]=='#' || input[0]==';' || input[0]=='\x0')
+			continue;
 
 		temp_ptr=strtok(input,"=");
 		if(temp_ptr==NULL)
@@ -219,7 +218,9 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 		        }
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 #endif
 
 #ifdef NSCGI
@@ -271,9 +272,9 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 /* grab config variable from main config file */
 int xodtemplate_grab_config_info(char *main_config_file){
-	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
+	char *input;
 	char *temp_ptr;
-	FILE *fp;
+	mmapfile *thefile;
 	
 #ifdef DEBUGO
 	printf("xodtemplate_grab_config_info() start\n");
@@ -284,19 +285,18 @@ int xodtemplate_grab_config_info(char *main_config_file){
 	xodtemplate_cache_file[sizeof(xodtemplate_cache_file)-1]='\x0';
 
 	/* open the main config file for reading */
-	fp=fopen(main_config_file,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(main_config_file))==NULL)
 		return ERROR;
 
 	/* read in all lines from the main config file */
-	for(fgets(input,sizeof(input)-1,fp);!feof(fp);fgets(input,sizeof(input)-1,fp)){
-
-		/* skip blank lines and comments */
-		if(input[0]=='#' || input[0]==';' || input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
-			continue;
+	for(;input=mmap_fgets(thefile);free(input)){
 
 		/* strip input */
 		strip(input);
+
+		/* skip blank lines and comments */
+		if(input[0]=='#' || input[0]==';' || input[0]=='\x0')
+			continue;
 
 		temp_ptr=strtok(input,"=");
 		if(temp_ptr==NULL)
@@ -315,7 +315,9 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		        }
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 #ifdef NSCORE
 	/* save the object cache file macro */
@@ -523,7 +525,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 /* process data in a specific config file */
 int xodtemplate_process_config_file(char *filename, int options){
-	FILE *fp;
+	mmapfile *thefile;
 	char *input=NULL;
 	register int in_definition=FALSE;
 	register int current_line=0;
@@ -556,8 +558,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 	        }
 
 	/* open the config file for reading */
-	fp=fopen(filename,"r");
-	if(fp==NULL){
+	if((thefile=mmap_fopen(filename))==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open config file '%s' for reading: %s\n",filename,strerror(errno));
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -567,17 +568,13 @@ int xodtemplate_process_config_file(char *filename, int options){
 	        }
 
 	/* read in all lines from the config file */
-	while(my_fgets(&input,MAX_XODTEMPLATE_INPUT_BUFFER,fp,TRUE,&lines_read)){
+	for(;input=mmap_fgets_multiline(thefile);free(input)){
 
 		current_line+=lines_read;
 
 		/* skip empty lines */
-		if(input==NULL)
+		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n')
 			continue;
-		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n'){
-			free(input);
-			continue;
-		        }
 
 		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
 		for(x=0;input[x]!='\x0';x++)
@@ -589,10 +586,8 @@ int xodtemplate_process_config_file(char *filename, int options){
 		strip(input);
 
 		/* skip blank lines */
-		if(input[0]=='\x0'){
-			free(input);
+		if(input[0]=='\x0')
 			continue;
-		        }
 
 		/* this is the start of an object definition */
 		if(strstr(input,"define")==input){
@@ -745,13 +740,11 @@ int xodtemplate_process_config_file(char *filename, int options){
 			result=ERROR;
 			break;
 		        }
-
-		/* free allocated memory */
-		free(input);
 	        }
 
-	/* close file */
-	fclose(fp);
+	/* free memory and close file */
+	free(input);
+	mmap_fclose(thefile);
 
 	/* whoops - EOF while we were in the middle of an object definition... */
 	if(in_definition==TRUE && result==OK){

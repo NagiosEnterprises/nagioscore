@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-13-2004
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -64,10 +64,11 @@ extern char *macro_x[MACRO_X_COUNT];
 
 /* grab configuration information from appropriate config file(s) */
 int xdddefault_grab_config_info(char *config_file){
-	char input_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+	char *input=NULL;
+	mmapfile *thefile;
 #ifdef NSCGI
-	FILE *fp2;
+	char *input2=NULL;
+	mmapfile *thefile2;
 	char *temp_buffer;
 #endif
 
@@ -80,55 +81,55 @@ int xdddefault_grab_config_info(char *config_file){
 	xdddefault_temp_file[sizeof(xdddefault_temp_file)-1]='\x0';
 
 	/* open the config file for reading */
-	fp=fopen(config_file,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(config_file))==NULL)
 		return ERROR;
 
 	/* read in all lines from the config file */
-	for(fgets(input_buffer,sizeof(input_buffer)-1,fp);!feof(fp);fgets(input_buffer,sizeof(input_buffer)-1,fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
+
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(input_buffer[0]=='#' || input_buffer[0]=='\x0' || input_buffer[0]=='\n' || input_buffer[0]=='\r')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
-
-		strip(input_buffer);
 
 #ifdef NSCGI
 		/* CGI needs to find and read contents of main config file, since it was passed the name of the CGI config file */
-		if(strstr(input_buffer,"main_config_file")==input_buffer){
+		if(strstr(input,"main_config_file")==input){
 
-			temp_buffer=strtok(input_buffer,"=");
+			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
 			
-			fp2=fopen(temp_buffer,"r");
-			if(fp2==NULL)
+			if((thefile2=mmap_fopen(temp_buffer))==NULL)
 				continue;
 
 			/* read in all lines from the main config file */
-			for(fgets(input_buffer,sizeof(input_buffer)-1,fp2);!feof(fp2);fgets(input_buffer,sizeof(input_buffer)-1,fp2)){
+			for(;input2=mmap_fgets(thefile2);free(input2)){
+
+				strip(input2);
 
 				/* skip blank lines and comments */
-				if(input_buffer[0]=='#' || input_buffer[0]=='\x0' || input_buffer[0]=='\n' || input_buffer[0]=='\r')
+				if(input2[0]=='#' || input2[0]=='\x0')
 					continue;
 
-				strip(input_buffer);
-
-				xdddefault_grab_config_directives(input_buffer);
+				xdddefault_grab_config_directives(input2);
 			        }
 
-			fclose(fp2);
+			/* close the file */
+			mmap_fclose(thefile2);
 		        }
 #endif
 
 #ifdef NSCORE
 		/* core read variables directly from the main config file */
-		xdddefault_grab_config_directives(input_buffer);
+		xdddefault_grab_config_directives(input);
 #endif
 	        }
 
-	fclose(fp);
+	/* close the file */
+	mmap_fclose(thefile);
 
 	/* we didn't find the downtime file */
 	if(!strcmp(xdddefault_downtime_file,""))
@@ -480,11 +481,11 @@ int xdddefault_save_downtime_data(void){
 
 /* read the downtime file */
 int xdddefault_read_downtime_data(char *main_config_file){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *input;
 	int data_type=XDDDEFAULT_NO_DATA;
 	char *var;
 	char *val;
-	FILE *fp;
+	mmapfile *thefile;
 	unsigned long downtime_id=0;
 	time_t entry_time=0L;
 	time_t start_time=0L;
@@ -505,26 +506,25 @@ int xdddefault_read_downtime_data(char *main_config_file){
 #endif
 
 	/* open the downtime file */
-	fp=fopen(xdddefault_downtime_file,"r");
-	if(fp==NULL)
+	if((thefile=mmap_fopen(xdddefault_downtime_file))==NULL)
 		return ERROR;
 
-	while(fgets(temp_buffer,(int)(sizeof(temp_buffer)-1),fp)){
+	for(;input=mmap_fgets(thefile);free(input)){
 
-		strip(temp_buffer);
+		strip(input);
 
 		/* skip blank lines and comments */
-		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0')
+		if(input[0]=='#' || input[0]=='\x0')
 			continue;
 
-		else if(!strcmp(temp_buffer,"info {"))
+		else if(!strcmp(input,"info {"))
 			data_type=XDDDEFAULT_INFO_DATA;
-		else if(!strcmp(temp_buffer,"hostdowntime {"))
+		else if(!strcmp(input,"hostdowntime {"))
 			data_type=XDDDEFAULT_HOST_DATA;
-		else if(!strcmp(temp_buffer,"servicedowntime {"))
+		else if(!strcmp(input,"servicedowntime {"))
 			data_type=XDDDEFAULT_SERVICE_DATA;
 
-		else if(!strcmp(temp_buffer,"}")){
+		else if(!strcmp(input,"}")){
 
 			switch(data_type){
 
@@ -573,7 +573,7 @@ int xdddefault_read_downtime_data(char *main_config_file){
 
 		else if(data_type!=XDDDEFAULT_NO_DATA){
 
-			var=strtok(temp_buffer,"=");
+			var=strtok(input,"=");
 			val=strtok(NULL,"\n");
 			if(val==NULL)
 				continue;
@@ -616,7 +616,9 @@ int xdddefault_read_downtime_data(char *main_config_file){
 		        }
 	        }
 
-	fclose(fp);
+	/* free memory and close the file */
+	free(input);
+	mmap_fclose(thefile);
 
 	return OK;
         }

@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2004  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-09-2004
+ * Last Modified: 10-30-2004
  *
  * License:
  * 
@@ -416,6 +416,17 @@ typedef struct lifo_struct{
         }lifo;
 
 
+/* MMAPFILE structure - used for reading files via mmap() */
+typedef struct mmapfile_struct{
+	char *path;
+	int mode;
+	int fd;
+	unsigned long file_size;
+	unsigned long current_position;
+	unsigned long current_line;
+	void *mmap_buf;
+        }mmapfile;
+
 
 
 /******************************** FUNCTIONS *******************************/
@@ -439,8 +450,6 @@ int compare_hashdata2(const char *,const char *,const char *,const char *);
 
 void strip(char *);                                		/* strips newlines, carriage returns, and spaces from end of buffer */
 void sanitize_plugin_output(char *);                            /* strips HTML and bad characters from plugin output */
-char * read_raw_line(char *,int,FILE *);              		/* reads a line of text from a file and strip()s it clean */
-char * read_line(char *,int,FILE *);                  		/* reads only valid lines (no comments or blank lines) */
 
 void get_time_string(time_t *,char *,int,int);			/* gets a date/time string */
 void get_interval_time_string(int,char *,int);			/* gets a time string for an interval of time */
@@ -448,7 +457,6 @@ void get_expire_time_string(time_t *,char *,int);		/* gets a date/time string in
 
 char * my_strtok(char *,char *);				/* replacement for strtok() function - doesn't skip multiple tokens */
 char * my_strsep (char **, const char *);
-char *my_fgets(char **,int,FILE *,int,int *);			/* reads a line from a file, dynamically allocating buffer space */
 
 char * url_encode(char *);		        		/* encodes a string in proper URL format */
 char * html_encode(char *);					/* encodes a string in HTML format (for what the user sees) */
@@ -478,8 +486,12 @@ void display_context_help(char *);				/* displays context-sensitive help window 
 int read_file_into_lifo(char *);				/* LIFO functions */
 void free_lifo_memory(void);
 int push_lifo(char *);
-int pop_lifo(char *,int);
+char *pop_lifo(void);
 
+mmapfile *mmap_fopen(char *);					/* open a file read-only using mmap() */
+int mmap_fclose(mmapfile *);
+char *mmap_fgets(mmapfile *);
+char *mmap_fgets_multiline(mmapfile *);
 
 #endif
 

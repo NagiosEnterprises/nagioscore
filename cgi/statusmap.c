@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Last Modified: 10-23-2002
  *
  * Description:
  *
@@ -113,6 +113,7 @@ void calculate_canvas_bounds(void);
 void calculate_canvas_bounds_from_host(char *);
 void calculate_scaling_factor(void);
 void find_eligible_hosts(void);
+void load_background_image(void);
 void draw_background_image(void);
 void draw_background_extras(void);
 void draw_host_links(void);
@@ -155,9 +156,10 @@ authdata current_authdata;
 
 int create_type=CREATE_HTML;
 
-gdImagePtr unknown_logo_image=0;
-gdImagePtr logo_image=0;
-gdImagePtr map_image=0;
+gdImagePtr unknown_logo_image=NULL;
+gdImagePtr logo_image=NULL;
+gdImagePtr map_image=NULL;
+gdImagePtr background_image=NULL;
 int color_white=0;
 int color_black=0;
 int color_red=0;
@@ -199,6 +201,8 @@ int max_image_width=0;           /* max image size the user wants (scaled) */
 int max_image_height=0;
 double scaling_factor=1.0;       /* scaling factor to use */
 double user_scaling_factor=1.0;  /* user-supplied scaling factor */
+int background_image_width=0;
+int background_image_height=0;
 
 int canvas_x=0;                     /* upper left coords of drawing canvas */
 int canvas_y=0;
@@ -801,23 +805,19 @@ void display_page_header(void){
 /* top-level map generation... */
 void display_map(void){
 
+	load_background_image();
 	calculate_host_coords();
 	calculate_total_image_bounds();
 	calculate_canvas_bounds();
 	calculate_scaling_factor();
 	find_eligible_hosts();
 
-
 	/* display page header */
 	display_page_header();
 
-
 	initialize_graphics();
-
 	draw_background_image();
-
 	draw_background_extras();
-
 	draw_host_links();
 
 	if(create_type==CREATE_HTML)
@@ -1234,8 +1234,14 @@ void calculate_total_image_bounds(void){
 		total_image_height+=bottom_margin;
 	        }
 
+	/* image size should be at least as large as dimensions of background image */
+	if(total_image_width<background_image_width)
+		total_image_width=background_image_width;
+	if(total_image_height<background_image_height)
+		total_image_height=background_image_height;
+
 	/* we didn't find any hosts that had user-supplied coordinates, so we're going to display a warning */
-	else{
+	if(coordinates_were_specified==FALSE){
 		coordinates_were_specified=FALSE;
 		total_image_width=COORDS_WARNING_WIDTH;
 		total_image_height=COORDS_WARNING_HEIGHT;
@@ -1396,13 +1402,12 @@ void find_eligible_hosts(void){
 /******************************************************************/
 
 
-/* draws background image on drawing canvas */
-void draw_background_image(void){
+/* loads background image from file */
+void load_background_image(void){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	gdImagePtr background_image=0;
 
 	/* bail out if we shouldn't be drawing a background image */
-	if(create_type==CREATE_HTML || layout_method!=LAYOUT_USER_SUPPLIED || statusmap_background_image==NULL || coordinates_were_specified==FALSE)
+	if(layout_method!=LAYOUT_USER_SUPPLIED || statusmap_background_image==NULL)
 		return;
 
 	snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s%s",physical_images_path,statusmap_background_image);
@@ -1411,9 +1416,33 @@ void draw_background_image(void){
 	/* read the background image into memory */
 	background_image=load_image_from_file(temp_buffer);
 
+	/* grab background image dimensions for calculating total image width later */
+	if(background_image!=NULL){
+		background_image_width=background_image->sx;
+		background_image_height=background_image->sy;
+	        }
+
+	/* if we are just creating the html, we don't need the image anymore */
+	if(create_type==CREATE_HTML)
+		gdImageDestroy(background_image);
+
+	return;
+	}
+
+
+/* draws background image on drawing canvas */
+void draw_background_image(void){
+
+	/* bail out if we shouldn't be drawing a background image */
+	if(create_type==CREATE_HTML || layout_method!=LAYOUT_USER_SUPPLIED || statusmap_background_image==NULL)
+		return;
+
+	/* bail out if we don't have an image */
+	if(background_image==NULL)
+		return;
+
 	/* copy the background image to the canvas */
-	if(background_image!=NULL)
-		gdImageCopy(map_image,background_image,0,0,canvas_x,canvas_y,canvas_width,canvas_height);
+	gdImageCopy(map_image,background_image,0,0,canvas_x,canvas_y,canvas_width,canvas_height);
 
 	/* free memory for background image, as we don't need it anymore */
 	gdImageDestroy(background_image);
@@ -2141,9 +2170,7 @@ int initialize_graphics(void){
 	color_lightgrey=gdImageColorAllocate(map_image,210,210,210);
 	color_red=gdImageColorAllocate(map_image,255,0,0);
 	color_lightred=gdImageColorAllocate(map_image,215,175,175);
-	/*color_lightred=gdImageColorAllocate(map_image,255,215,210);*/
 	color_green=gdImageColorAllocate(map_image,0,175,0);
-	/*color_lightgreen=gdImageColorAllocate(map_image,175,215,175);*/
 	color_lightgreen=gdImageColorAllocate(map_image,210,255,215);
 	color_blue=gdImageColorAllocate(map_image,0,0,255);
 	color_yellow=gdImageColorAllocate(map_image,255,255,0);

@@ -1360,18 +1360,15 @@ void adjust_check_scheduling(void){
 
 	/* nothing to do... */
 	if(total_checks==0 || adjust_scheduling==FALSE){
+		/*
 		printf("\n\n");
 		printf("NOTHING TO DO!\n");
 		printf("# CHECKS:    %d\n",total_checks);
 		printf("WINDOW TIME: %d\n",auto_rescheduling_window);
 		printf("EXEC TIME:   %.3f\n",total_check_exec_time);
+		*/
 		return;
 	        }
-
-	printf("\n\n");
-	printf("TOTAL CHECKS: %d\n",total_checks);
-	printf("WINDOW TIME:  %d\n",auto_rescheduling_window);
-	printf("EXEC TIME:    %.3f\n",total_check_exec_time);
 
 	if((unsigned long)total_check_exec_time>auto_rescheduling_window){
 		inter_check_delay=0.0;
@@ -1382,8 +1379,15 @@ void adjust_check_scheduling(void){
 		exec_time_factor=1.0;
 	        }
 
+	/*
+	printf("\n\n");
+	printf("TOTAL CHECKS: %d\n",total_checks);
+	printf("WINDOW TIME:  %d\n",auto_rescheduling_window);
+	printf("EXEC TIME:    %.3f\n",total_check_exec_time);
 	printf("ICD:          %.3f\n",inter_check_delay);
 	printf("EXEC FACTOR:  %.3f\n",exec_time_factor);
+	*/
+
 
 	/* adjust check scheduling */
 	current_icd_offset=(inter_check_delay/2.0);

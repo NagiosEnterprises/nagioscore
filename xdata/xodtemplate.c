@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-29-2004
+ * Last Modified: 02-03-2004
  *
  * Description:
  *
@@ -410,6 +410,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 	int result=OK;
 	register int x;
 	register int y;
+	int lines_read=0;
 	char *ptr;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -446,9 +447,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 	        }
 
 	/* read in all lines from the config file */
-	while(my_fgets(&input,65536,fp)){
+	while(my_fgets(&input,65536,fp,TRUE,&lines_read)){
 
-		current_line++;
+		current_line+=lines_read;
 
 		/* skip empty lines */
 		if(input==NULL)

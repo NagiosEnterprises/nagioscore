@@ -111,6 +111,7 @@ int             service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
 int             max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
 int             service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 int             host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
+int             auto_rescheduling_interval=DEFAULT_AUTO_RESCHEDULING_INTERVAL;
 
 int             non_parallelized_check_running=FALSE;
 
@@ -118,6 +119,8 @@ int             check_external_commands=DEFAULT_CHECK_EXTERNAL_COMMANDS;
 int             check_orphaned_services=DEFAULT_CHECK_ORPHANED_SERVICES;
 int             check_service_freshness=DEFAULT_CHECK_SERVICE_FRESHNESS;
 int             check_host_freshness=DEFAULT_CHECK_HOST_FRESHNESS;
+int             auto_reschedule_checks=DEFAULT_AUTO_RESCHEDULE_CHECKS;
+int             auto_rescheduling_window=DEFAULT_AUTO_RESCHEDULING_WINDOW;
 
 time_t          last_command_check=0L;
 time_t          last_log_rotation=0L;

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-29-2004
+ * Last Modified: 02-08-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +133,8 @@
 #define DEFAULT_RETENTION_SCHEDULING_HORIZON    900     /* max seconds between program restarts that we will preserve scheduling information */
 #define DEFAULT_STATUS_UPDATE_INTERVAL		60	/* seconds between aggregated status data updates */
 #define DEFAULT_FRESHNESS_CHECK_INTERVAL        60      /* seconds between service result freshness checks */
+#define DEFAULT_AUTO_RESCHEDULING_INTERVAL      30      /* seconds between host and service check rescheduling events */
+#define DEFAULT_AUTO_RESCHEDULING_WINDOW        180     /* window of time (in seconds) for which we should reschedule host and service checks */
 
 #define DEFAULT_NOTIFICATION_TIMEOUT		30	/* max time in seconds to wait for notification commands to complete */
 #define DEFAULT_EVENT_HANDLER_TIMEOUT		30	/* max time in seconds to wait for event handler commands to complete */
@@ -156,7 +158,8 @@
 #define DEFAULT_ENABLE_FLAP_DETECTION           0       /* don't enable flap detection */
 #define DEFAULT_PROCESS_PERFORMANCE_DATA        0       /* don't process performance data */
 #define DEFAULT_CHECK_SERVICE_FRESHNESS         1       /* check service result freshness */
-#define DEFAULT_CHECK_HOST_FRESHNESS            0       /* check host result freshness */
+#define DEFAULT_CHECK_HOST_FRESHNESS            0       /* don't check host result freshness */
+#define DEFAULT_AUTO_RESCHEDULE_CHECKS          0       /* don't auto-reschedule host and service checks */
 
 #define DEFAULT_LOW_SERVICE_FLAP_THRESHOLD	20.0	/* low threshold for detection of service flapping */
 #define DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD	30.0	/* high threshold for detection of service flapping */
@@ -272,7 +275,8 @@
 #define EVENT_EXPIRE_DOWNTIME		11      /* checks for (and removes) expired scheduled downtime */
 #define EVENT_HOST_CHECK                12      /* active host check */
 #define EVENT_HFRESHNESS_CHECK          13      /* checks host result "freshness" */
-#define EVENT_USER_FUNCTION             14      /* USER-defined function (modules) */
+#define EVENT_RESCHEDULE_CHECKS		14      /* adjust scheduling of host and service checks */
+#define EVENT_USER_FUNCTION             99      /* USER-defined function (modules) */
 
 
 /******* INTER-CHECK DELAY CALCULATION TYPES **********/
@@ -457,6 +461,7 @@ int check_host_dependencies(host *,int);                /* checks host dependenc
 void check_for_orphaned_services(void);			/* checks for orphaned services */
 void check_service_result_freshness(void);              /* checks the "freshness" of service check results */
 void check_host_result_freshness(void);                 /* checks the "freshness" of host check results */
+void adjust_check_scheduling(void);		        /* auto-adjusts scheduling of host and service checks */
 int my_system(char *,int,int *,double *,char *,int);            	/* executes a command via popen(), but also protects against timeouts */
 void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */
 void adjust_timestamp_for_time_change(time_t,time_t,unsigned long,time_t *); /* adjusts a timestamp variable for a system time change */
@@ -555,7 +560,7 @@ void file_lock_sighandler(int);				/* handles timeouts while waiting for file lo
 void strip(char *);                                  	/* strips whitespace from string */  
 char *my_strtok(char *,char *);                      	/* my replacement for strtok() function (doesn't skip consecutive tokens) */
 char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), so I took this from the glibc source code */
-char *my_fgets(char **,int,FILE *);			/* reads a line from a file, dynamically allocating buffer space */
+char *my_fgets(char **,int,FILE *,int,int *);		/* reads a line from a file, dynamically allocating buffer space */
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
 void get_raw_command_line(char *,char *,int,int);      	/* given a raw command line, determine the actual command to run */

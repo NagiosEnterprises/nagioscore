@@ -417,6 +417,46 @@ service_reaper_frequency=10
 
 
 
+
+# AUTO-RESCHEDULING OPTION
+# This option determines whether or not Nagios will attempt to
+# automatically reschedule active host and service checks to
+# "smooth" them out over time.  This can help balance the load on
+# the monitoring server.  
+# WARNING: THIS IS AN EXPERIMENTAL FEATURE - IT CAN DEGRADE
+# PERFORMANCE, RATHER THAN INCREASE IT, IF USED IMPROPERLY
+
+auto_reschedule_checks=0
+
+
+
+# AUTO-RESCHEDULING INTERVAL
+# This option determines how often (in seconds) Nagios will
+# attempt to automatically reschedule checks.  This option only
+# has an effect if the auto_reschedule_checks option is enabled.
+# Default is 30 seconds.
+# WARNING: THIS IS AN EXPERIMENTAL FEATURE - IT CAN DEGRADE
+# PERFORMANCE, RATHER THAN INCREASE IT, IF USED IMPROPERLY
+
+auto_rescheduling_interval=30
+
+
+
+
+# AUTO-RESCHEDULING WINDOW
+# This option determines the "window" of time (in seconds) that
+# Nagios will look at when automatically rescheduling checks.
+# Only host and service checks that occur in the next X seconds
+# (determined by this variable) will be rescheduled. This option
+# only has an effect if the auto_reschedule_checks option is
+# enabled.  Default is 180 seconds (3 minutes).
+# WARNING: THIS IS AN EXPERIMENTAL FEATURE - IT CAN DEGRADE
+# PERFORMANCE, RATHER THAN INCREASE IT, IF USED IMPROPERLY
+
+auto_rescheduling_window=180
+
+
+
 # SLEEP TIME
 # This is the number of seconds to sleep between checking for system
 # events and service checks that need to be run.

@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 01-08-2003
+# Last Modified: 09-10-2003
 #
 #################################################################
 
@@ -272,53 +272,4 @@ refresh_rate=90
 #service_warning_sound=warning.wav
 #service_unknown_sound=warning.wav
 #normal_sound=noproblem.wav
-
-
-
-# DB STATUS DATA (Read-Only For CGIs)
-# Note: These config directives are only used if you compiled
-# in database support for status data!
-# The user you specify here only needs SELECT privileges on the 
-# 'programstatus', 'hoststatus', and 'servicestatus' tables
-# in the database, as these values are only used by the CGIs.
-# The core program will read the directives you specify in
-# in a resource file.
-
-#xsddb_host=somehost
-#xsddb_port=someport
-#xsddb_database=somedatabase
-#xsddb_username=someuser
-#xsddb_password=somepassword
-
-
-
-# DB COMMENT DATA (Read-Only For CGIs)
-# Note: These config directives are only used if you compiled
-# in database support for comment data!
-# The user you specify here only needs SELECT privileges on the 
-# 'hostcomments', and 'servicecomments' tables in the database,
-# as these values are only used by the CGIs.  The core program 
-# will read the directives you specify in a resource file.
-
-#xcddb_host=somehost
-#xcddb_port=someport
-#xcddb_database=somedatabase
-#xcddb_username=someuser
-#xcddb_password=somepassword
-
-
-
-# DB DOWNTIME DATA (Read-Only For CGIs)
-# Note: These config directives are only used if you compiled
-# in database support for downtime data!
-# The user you specify here only needs SELECT privileges on the 
-# 'hostdowntime', and 'servicedowntime' tables in the database,
-# as these values are only used by the CGIs.  The core program 
-# will read the directives you specify in a resource file.
-
-#xdddb_host=somehost
-#xdddb_port=someport
-#xdddb_database=somedatabase
-#xdddb_username=someuser
-#xdddb_password=somepassword
 

@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-06-2003
+ * Last Modified: 09-10-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,35 +56,15 @@
 
 /* Status data I/O implementations... */
 #undef USE_XSDDEFAULT
-#undef USE_XSDDB
-#undef USE_XSDMYSQL
-#undef USE_XSDPGSQL
 
 /* Comment data I/O implementations... */
 #undef USE_XCDDEFAULT
-#undef USE_XCDDB
-#undef USE_XCDMYSQL
-#undef USE_XCDPGSQL
-
-/* Extended data I/O implementations... */
-#undef USE_XEDDEFAULT
-#undef USE_XEDTEMPLATE
-#undef USE_XEDDB
-#undef USE_XEDMYSQL
-#undef USE_XEDPGSQL
 
 /* Retention data I/O implementations... */
 #undef USE_XRDDEFAULT
-#undef USE_XRDDB
-#undef USE_XRDMYSQL
-#undef USE_XRDPGSQL
 
 /* Object data I/O implementations... */
-#undef USE_XODDEFAULT
 #undef USE_XODTEMPLATE
-#undef USE_XODDB
-#undef USE_XODMYSQL
-#undef USE_XODPGSQL
 
 /* Performance data I/O implementations... */
 #undef USE_XPDDEFAULT
@@ -92,9 +72,6 @@
 
 /* Downtime data I/O implementations... */
 #undef USE_XDDDEFAULT
-#undef USE_XDDDB
-#undef USE_XDDMYSQL
-#undef USE_XDDPGSQL
 
 
 #undef STDC_HEADERS

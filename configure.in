@@ -188,109 +188,42 @@ XDDCOMMENT=
 USE_MYSQL=no
 USE_PGSQL=no
 
-dnl Should we use all MySQL xdata routines?
-AC_ARG_WITH(mysql-xdata,--with-mysql-xdata enables use of MySQL database for comment/downtime/status data,[
-	XDATATYPE=mysql
-	XSDTYPE=mysql
-	XCDTYPE=mysql
-	XDDTYPE=mysql
-	])
-
-dnl Should we use all PostgreSQL xdata routines?
-AC_ARG_WITH(pgsql-xdata,--with-pgsql-xdata enables use of PostgreSQL database for comment/downtime/status data,[
-	XDATATYPE=pgsql
-	XSDTYPE=pgsql
-	XCDTYPE=pgsql
-	XDDTYPE=pgsql
-	])
-
-dnl What status I/O implementation should we use?
-AC_ARG_WITH(mysql-status,--with-mysql-status enables use of MySQL database for storage of status data,XSDTYPE=mysql)
-AC_ARG_WITH(pgsql-status,--with-pgsql-status enables use of PostgreSQL database for storage of status data,XSDTYPE=pgsql)
-AC_ARG_WITH(default-status,--with-default-status enables use of default status data routines,XSDTYPE=default)
-if test $XSDTYPE = mysql; then
-	AC_DEFINE_UNQUOTED(USE_XSDDB)
-	AC_DEFINE_UNQUOTED(USE_XSDMYSQL)
-	USE_MYSQL=yes
-	XSDC="xsddb.c"
-	XSDH="xsddb.h"
-	XSDCOMMENT="Database (MySQL)"
-	echo "We'll use MySQL database routines (in xdata/xsddb.*) for status data I/O..."
-elif test $XSDTYPE = pgsql; then
-	AC_DEFINE_UNQUOTED(USE_XSDDB)
-	AC_DEFINE_UNQUOTED(USE_XSDPGSQL)
-	USE_PGSQL=yes
-	XSDC="xsddb.c"
-	XSDH="xsddb.h"
-	XSDCOMMENT="Database (PostgreSQL)"
-	echo "We'll use PostgreSQL database routines (in xdata/xsddb.*) for status data I/O..."
-else
-	AC_DEFINE_UNQUOTED(USE_XSDDEFAULT)
-	XSDC="xsddefault.c"
-	XSDH="xsddefault.h"
-	XSDCOMMENT="Default (text file)"
-	echo "We'll use default routines (in xdata/xsddefault.*) for status data I/O..."
-fi
+dnl Status data
+AC_DEFINE_UNQUOTED(USE_XSDDEFAULT)
+XSDC="xsddefault.c"
+XSDH="xsddefault.h"
+XSDCOMMENT="Default (text file)"
+echo "We'll use default routines (in xdata/xsddefault.*) for status data I/O..."
 AC_SUBST(XSDC)
 AC_SUBST(XSDH)
 
 
-dnl What comment I/O implementation should we use?
-AC_ARG_WITH(mysql-comments,--with-mysql-comments enables use of MySQL database for storage of comment data,XCDTYPE=mysql)
-AC_ARG_WITH(pgsql-comments,--with-pgsql-comments enables use of PostgreSQL database for storage of comment data,XCDTYPE=pgsql)
-AC_ARG_WITH(default-comments,--with-default-comments enables use of default comment data routines,XCDTYPE=default)
-if test $XCDTYPE = mysql; then
-	AC_DEFINE_UNQUOTED(USE_XCDDB)
-	AC_DEFINE_UNQUOTED(USE_XCDMYSQL)
-	USE_MYSQL=yes
-	XCDC="xcddb.c"
-	XCDH="xcddb.h"
-	echo "We'll use MySQL database routines (in xdata/xcddb.*) for comment data I/O..."
-	XCDCOMMENT="Database (MySQL)"
-elif test $XCDTYPE = pgsql; then
-	AC_DEFINE_UNQUOTED(USE_XCDDB)
-	AC_DEFINE_UNQUOTED(USE_XCDPGSQL)
-	USE_PGSQL=yes
-	XCDC="xcddb.c"
-	XCDH="xcddb.h"
-	echo "We'll use PostgreSQL database routines (in xdata/xcddb.*) for comment data I/O..."
-	XCDCOMMENT="Database (PostgreSQL)"
-else
-	AC_DEFINE_UNQUOTED(USE_XCDDEFAULT)
-	XCDC="xcddefault.c"
-	XCDH="xcddefault.h"
-	XCDCOMMENT="Default (text file)"
-	echo "We'll use default routines (in xdata/xcddefault.*) for comment data I/O..."
-fi
+dnl Comment data
+AC_DEFINE_UNQUOTED(USE_XCDDEFAULT)
+XCDC="xcddefault.c"
+XCDH="xcddefault.h"
+XCDCOMMENT="Default (text file)"
+echo "We'll use default routines (in xdata/xcddefault.*) for comment data I/O..."
 AC_SUBST(XCDC)
 AC_SUBST(XCDH)
 
 
-dnl What retention data I/O implementation should we use?
-dnl AC_ARG_WITH(mysql-retention,--with-mysql-retention enables use of MySQL database for storage of retention data,XRDTYPE=mysql)
-dnl AC_ARG_WITH(pgsql-retention,--with-pgsql-retention enables use of PostgresSQL database for storage of retention data,XRDTYPE=pgsql)
-dnl AC_ARG_WITH(default-retention,--with-default-retention enables use of default retention data routines,XRDTYPE=default)
-if test $XRDTYPE = default; then
-	AC_DEFINE_UNQUOTED(USE_XRDDEFAULT)
-	XRDC="xrddefault.c"
-	XRDH="xrddefault.h"
-	XRDCOMMENT="Default (text file)"
-	echo "We'll use default routines (in xdata/xrddefault.*) for retention data I/O..."
-fi
+dnl Retention data
+AC_DEFINE_UNQUOTED(USE_XRDDEFAULT)
+XRDC="xrddefault.c"
+XRDH="xrddefault.h"
+XRDCOMMENT="Default (text file)"
+echo "We'll use default routines (in xdata/xrddefault.*) for retention data I/O..."
 AC_SUBST(XRDC)
 AC_SUBST(XRDH)
 
 
-dnl What object data I/O implementation should we use?
-dnl AC_ARG_WITH(default-objects,--with-default-objects enables use of default object data routines,XODTYPE=default)
-dnl AC_ARG_WITH(template-objects,--with-template-objects enables use of template-based object data routines,XODTYPE=template)
-if test $XODTYPE = template; then
-	AC_DEFINE_UNQUOTED(USE_XODTEMPLATE)
-	XODC="xodtemplate.c"
-	XODH="xodtemplate.h"
-	XODCOMMENT="Template-based (text file)"
-	echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data I/O..."
-fi
+dnl Object data
+AC_DEFINE_UNQUOTED(USE_XODTEMPLATE)
+XODC="xodtemplate.c"
+XODH="xodtemplate.h"
+XODCOMMENT="Template-based (text file)"
+echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data I/O..."
 AC_SUBST(XODC)
 AC_SUBST(XODH)
 
@@ -316,129 +249,14 @@ AC_SUBST(XPDC)
 AC_SUBST(XPDH)
 
 
-
-dnl What downtime I/O implementation should we use?
-AC_ARG_WITH(mysql-downtime,--with-mysql-downtime enables use of MySQL database for storage of scheduled downtime data,XDDTYPE=mysql)
-AC_ARG_WITH(pgsql-downtime,--with-pgsql-downtime enables use of PostgreSQL database for storage of scheduled downtime data,XDDTYPE=pgsql)
-AC_ARG_WITH(default-downtime,--with-default-downtime enables use of default scheduled downtime data routines,XDDTYPE=default)
-if test $XDDTYPE = mysql; then
-	AC_DEFINE_UNQUOTED(USE_XDDDB)
-	AC_DEFINE_UNQUOTED(USE_XDDMYSQL)
-	USE_MYSQL=yes
-	XDDC="xdddb.c"
-	XDDH="xdddb.h"
-	XDDCOMMENT="Database (MySQL)"
-	echo "We'll use MySQL database routines (in xdata/xdddb.*) for scheduled downtime data I/O..."
-elif test $XDDTYPE = pgsql; then
-	AC_DEFINE_UNQUOTED(USE_XDDDB)
-	AC_DEFINE_UNQUOTED(USE_XDDPGSQL)
-	USE_PGSQL=yes
-	XDDC="xdddb.c"
-	XDDH="xdddb.h"
-	XDDCOMMENT="Database (PostgreSQL)"
-	echo "We'll use PostgreSQL database routines (in xdata/xdddb.*) for scheduled downtime data I/O..."
-else
-	AC_DEFINE_UNQUOTED(USE_XDDDEFAULT)
-	XDDC="xdddefault.c"
-	XDDH="xdddefault.h"
-	XDDCOMMENT="Default (text file)"
-	echo "We'll use default routines (in xdata/xdddefault.*) for scheduled downtime data I/O..."
-fi
+dnl Downtime data
+AC_DEFINE_UNQUOTED(USE_XDDDEFAULT)
+XDDC="xdddefault.c"
+XDDH="xdddefault.h"
+XDDCOMMENT="Default (text file)"
+echo "We'll use default routines (in xdata/xdddefault.*) for scheduled downtime data I/O..."
 AC_SUBST(XDDC)
 AC_SUBST(XDDH)
-
-
-dnl Optional MySQL library and include paths
-AC_ARG_WITH(mysql-lib,--with-mysql-lib=DIR sets location of the MySQL client library,[
-	LDFLAGS="${LDFLAGS} -L${withval}"
-	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
-	])
-AC_ARG_WITH(mysql-inc,--with-mysql-inc=DIR sets location of the MySQL client include files,[
-	CFLAGS="${CFLAGS} -I${withval}"
-	])
-
-
-dnl Optional PostgreSQL library and include paths
-AC_ARG_WITH(pgsql-lib,--with-pgsql-lib=DIR sets location of the PostgreSQL client library,[
-	LDFLAGS="${LDFLAGS} -L${withval}"
-	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
-	])
-AC_ARG_WITH(pgsql-inc,--with-pgsql-inc=DIR sets location of the PostgreSQL client include files,[
-	CFLAGS="${CFLAGS} -I${withval}"
-	])
-
-
-dnl Are we using any MySQL routines?
-if test $USE_MYSQL = yes; then
-
-	AC_CHECK_LIB(mysqlclient,main,,MYSQLFOUND=nope)
-
-	dnl Did we find the MySQL libraries?
-	if test x$MYSQLFOUND = xnope; then
-		echo ""
-		echo ""
-		echo "*** MySQL library could not be located... **************************"
-		echo ""
-		echo "You chose to compile Nagios with MySQL support, but I was unable to"
-		echo "locate the MySQL library on your system.  If the library is"
-		echo "installed,  use the --with-mysql-lib and --with-mysql-inc arguments"
-		echo "to specify the locations of the MySQL library and include files."
-		echo ""
-		echo "NOTE: After you install the necessary libraries on your system:"
-		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
-		echo "         which the MySQL libraries are installed."
-		echo "      2. Run 'ldconfig' to update the run-time linker options."
-		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
-		echo "         any old references to your previous compile."
-		echo "      4. Rerun the configure script."
-		echo ""
-		echo "********************************************************************"
-		echo ""
-		echo ""
-
-	dnl We found the MySQL lib!
-	else
-		echo "MySQL library was found!"
-
-	fi
-fi	
-
-dnl Are we using any PostgreSQL routines?
-if test $USE_PGSQL = yes; then
-
-	AC_CHECK_LIB(pq,main,,PGSQLFOUND=nope)
-
-	dnl Did we find the PostgreSQL libraries?
-	if test x$PGSQLFOUND = xnope; then
-		echo ""
-		echo ""
-		echo "*** PostgreSQL library could not be located... *********************"
-		echo ""
-		echo "You chose to compile Nagios with PostgreSQL support, but I was"
-		echo "unable to locate the PostgreSQL library on your system.  If the"
-		echo "library is installed,  use the --with-pgsql-lib and --with-pgsql-inc"
-		echo "arguments to specify the locations of the PostgreSQL library and"
-		echo "include files."
-		echo ""
-		echo "NOTE: After you install the necessary libraries on your system:"
-		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
-		echo "         which the PostgreSQL libraries are installed."
-		echo "      2. Run 'ldconfig' to update the run-time linker options."
-		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
-		echo "         any old references to your previous compile."
-		echo "      4. Rerun the configure script."
-		echo ""
-		echo "********************************************************************"
-		echo ""
-		echo ""
-
-	dnl We found the PostgreSQL lib!
-	else
-		echo "PostgreSQL library was found!"
-
-	fi
-fi	
-
 
 
 dnl Option GD library and include paths

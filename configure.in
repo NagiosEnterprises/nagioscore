@@ -176,7 +176,6 @@ AC_SUBST(lockfile)
 dnl Default xdata routines...
 XSDTYPE=default
 XCDTYPE=default
-XEDTYPE=template
 XRDTYPE=default
 XODTYPE=template
 XPDTYPE=default
@@ -184,7 +183,6 @@ XDDTYPE=default
 
 XSDCOMMENT=
 XCDCOMMENT=
-XEDCOMMENT=
 XRDCOMMENT=
 XODCOMMENT=
 XPDCOMMENT=
@@ -269,21 +267,6 @@ else
 fi
 AC_SUBST(XCDC)
 AC_SUBST(XCDH)
-
-
-dnl What extended data I/O implementation should we use?
-dnl AC_ARG_WITH(mysql-extinfo,--with-mysql-extinfo enables use of MySQL database for storage of extended data,XEDTYPE=mysql)
-dnl AC_ARG_WITH(pgsql-extinfo,--with-pgsql-extinfo enables use of PostgreSQL database for storage of extended data,XEDTYPE=pgsql)
-dnl AC_ARG_WITH(template-extinfo,--with-template-extinfo enables use of template-based extended info data routines,XEDTYPE=template)
-if test $XEDTYPE = template; then
-	AC_DEFINE_UNQUOTED(USE_XEDTEMPLATE)
-	XEDC="xedtemplate.c"
-	XEDH="xedtemplate.h"
-	XEDCOMMENT="Template-based (text file)"
-	echo "We'll use template-based routines (in xdata/xedtemplate.*) for extended data I/O..."
-fi
-AC_SUBST(XEDC)
-AC_SUBST(XEDH)
 
 
 dnl What retention data I/O implementation should we use?
@@ -739,17 +722,6 @@ perl subst sample-config/nagios.cfg
 perl subst sample-config/cgi.cfg
 perl subst sample-config/resource.cfg
 
-perl subst sample-config/default-object/hosts.cfg
-perl subst sample-config/default-object/hostgroups.cfg
-perl subst sample-config/default-object/services.cfg
-perl subst sample-config/default-object/contacts.cfg
-perl subst sample-config/default-object/contactgroups.cfg
-perl subst sample-config/default-object/timeperiods.cfg
-perl subst sample-config/default-object/escalations.cfg
-perl subst sample-config/default-object/dependencies.cfg
-perl subst sample-config/default-object/checkcommands.cfg
-perl subst sample-config/default-object/misccommands.cfg
-
 perl subst sample-config/template-object/hosts.cfg
 perl subst sample-config/template-object/hostgroups.cfg
 perl subst sample-config/template-object/services.cfg
@@ -802,12 +774,9 @@ echo " External Data Routines:"
 echo " ------------------------"
 
 AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
-dnl AC_MSG_RESULT([              Object data:  $XODCOMMENT])
 AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
 AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
-dnl AC_MSG_RESULT([           Retention data:  $XRDCOMMENT])
 AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
-dnl AC_MSG_RESULT([       Extended info data:  $XEDCOMMENT])
 
 
 echo ""

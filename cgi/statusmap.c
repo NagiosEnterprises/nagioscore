@@ -2,8 +2,8 @@
  *
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-23-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2003
  *
  * Description:
  *
@@ -37,7 +37,6 @@
 #include "cgiutils.h"
 #include "getcgi.h"
 #include "auth.h"
-#include "edata.h"
 
 #include <gd.h>			/* Boutell's GD library function */
 #include <gdfonts.h>		/* GD library small font definition */
@@ -285,9 +284,6 @@ int main(int argc, char **argv){
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);
-
-	/* read in extended host information */
-	read_extended_object_config_data(get_cgi_config_location(),READ_EXTENDED_HOST_INFO);
 
 	/* display the network map... */
 	display_map();
@@ -900,7 +896,7 @@ void calculate_host_coords(void){
 
 		/* none was found, so add a blank one */
 		if(temp_hostextinfo==NULL)
-			add_extended_host_info(temp_host->name,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
+			add_hostextinfo(temp_host->name,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
 	        }
 
 
@@ -1806,7 +1802,7 @@ void draw_hosts(void){
 			                }
 
 
-				if(temp_hostextinfo->gd2_icon_image!=NULL)
+				if(temp_hostextinfo->statusmap_image!=NULL)
 					has_image=TRUE;
 				else
 					has_image=FALSE;
@@ -1815,7 +1811,7 @@ void draw_hosts(void){
 				if(has_image==TRUE){
 
 				        /* get the name of the image file to open for the logo */
-					snprintf(image_input_file,sizeof(image_input_file)-1,"%s%s",physical_logo_images_path,temp_hostextinfo->gd2_icon_image);
+					snprintf(image_input_file,sizeof(image_input_file)-1,"%s%s",physical_logo_images_path,temp_hostextinfo->statusmap_image);
 					image_input_file[sizeof(image_input_file)-1]='\x0';
 
 				        /* read in the logo image from file... */

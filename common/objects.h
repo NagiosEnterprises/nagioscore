@@ -341,6 +341,37 @@ typedef struct hostdependency_struct{
         }hostdependency;
 
 
+/* EXTENDED HOST INFO structure */
+typedef struct hostextinfo_struct{
+	char *host_name;
+	char *notes_url;
+	char *icon_image;
+	char *vrml_image;
+	char *statusmap_image;
+	char *icon_image_alt;
+	int have_2d_coords;
+	int x_2d;
+	int y_2d;
+	int have_3d_coords;
+	double x_3d;
+	double y_3d;
+	double z_3d;
+	int should_be_drawn;
+	struct hostextinfo_struct *next;
+        }hostextinfo;
+
+
+/* EXTENDED SERVICE INFO structure */
+typedef struct serviceextinfo_struct{
+	char *host_name;
+	char *description;
+	char *notes_url;
+	char *icon_image;
+	char *icon_image_alt;
+	struct serviceextinfo_struct *next;
+        }serviceextinfo;
+
+
 
 /****************** HASH STRUCTURES ********************/
 
@@ -401,6 +432,9 @@ servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,in
 hostdependency *add_host_dependency(char *,char *,int,int,int,int);                                     /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,int);                                                 /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
+hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
+serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *);                                 /* add an extended service info definition */
+
 
 
 /**** Object Search Functions ****/
@@ -413,6 +447,9 @@ contactgroup * find_contactgroup(char *, contactgroup *);					/* finds a contact
 contactgroupmember *find_contactgroupmember(char *,contactgroup *,contactgroupmember *);	/* finds a contactgroup member object */
 command * find_command(char *,command *);							/* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
+hostextinfo *find_hostextinfo(char *);				                                /* find an extended host info object */
+serviceextinfo *find_serviceextinfo(char *,char *);                                             /* find an extended service info object */
+
 void move_first_service(void);									/* sets up the static memory area for get_next_service */
 service *get_next_service(void);								/* returns the next service, NULL at the end of the list */
 int find_all_services_by_host(char *host);							/* sets up the static memory area for get_next_service_by_host */
@@ -457,6 +494,7 @@ int check_for_circular_dependency(servicedependency *,servicedependency *);   /*
 
 /**** Object Cleanup Functions ****/
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
+int free_extended_data(void);                           /* frees memory allocated to the extended host/service information */
 
 
 

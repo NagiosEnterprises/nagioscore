@@ -1,8 +1,8 @@
 /************************************************************************
  *
  * CGIUTILS.H - Header file for common CGI functions
- * Copyright (c) 1999-2002  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-27-2002
+ * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2003
  *
  * License:
  * 
@@ -26,7 +26,6 @@
 
 #include "../common/objects.h"
 #include "auth.h"
-#include "edata.h"
 
 
 #undef USE_STATUSMAP		/* should we compile and use the statusmap CGI? */

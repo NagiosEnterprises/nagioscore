@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-08-2003
  *
  * Description:
  *
@@ -486,6 +486,9 @@ int main(int argc, char **argv){
 
 	/* else start to monitor things... */
 	else{
+
+		/* free extended info data - we don't need this for monitoring */
+		free_extended_data();
 
 		/* keep monitoring things until we get a shutdown command */
 		do{

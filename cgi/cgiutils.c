@@ -2,8 +2,8 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-05-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2003
  *
  * License:
  *
@@ -30,7 +30,6 @@
 
 #include "cgiutils.h"
 #include "popen.h"
-#include "edata.h"
 
 char            main_config_file[MAX_FILENAME_LENGTH];
 char            log_file[MAX_FILENAME_LENGTH];
@@ -105,6 +104,8 @@ int             servicedependencies_have_been_read=FALSE;
 int             serviceescalations_have_been_read=FALSE;
 int             hostdependencies_have_been_read=FALSE;
 int             hostescalations_have_been_read=FALSE;
+int             hostextinfo_have_been_read=FALSE;
+int             serviceextinfo_have_been_read=FALSE;
 
 int             host_status_has_been_read=FALSE;
 int             service_status_has_been_read=FALSE;
@@ -589,6 +590,10 @@ int read_all_object_configuration_data(char *config_file,int options){
 		options-=READ_HOSTDEPENDENCIES;
 	if(hostescalations_have_been_read==TRUE && (options & READ_HOSTESCALATIONS))
 		options-=READ_HOSTESCALATIONS;
+	if(hostextinfo_have_been_read==TRUE && (options & READ_HOSTEXTINFO))
+		options-=READ_HOSTEXTINFO;
+	if(serviceextinfo_have_been_read==TRUE && (options & READ_SERVICEEXTINFO))
+		options-=READ_SERVICEEXTINFO;
 
 	/* bail out if we've already read what we need */
 	if(options<=0)
@@ -620,6 +625,10 @@ int read_all_object_configuration_data(char *config_file,int options){
 		hostdependencies_have_been_read=TRUE;
 	if(options & READ_HOSTESCALATIONS)
 		hostescalations_have_been_read=TRUE;
+	if(options & READ_HOSTEXTINFO)
+		hostextinfo_have_been_read=TRUE;
+	if(options & READ_SERVICEEXTINFO)
+		serviceextinfo_have_been_read=TRUE;
 
 	return OK;
         }

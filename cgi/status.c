@@ -2,8 +2,8 @@
  *
  * STATUS.C -  Nagios Status CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-30-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2003
  *
  * License:
  * 
@@ -32,7 +32,6 @@
 #include "cgiutils.h"
 #include "getcgi.h"
 #include "auth.h"
-#include "edata.h"
 
 extern int             refresh_rate;
 extern time_t          program_start;
@@ -214,9 +213,6 @@ int main(void){
 
 	/* read in all host and service comments */
 	read_comment_data(get_cgi_config_location());
-
-	/* read in extended host information */
-	read_extended_object_config_data(get_cgi_config_location(),READ_ALL_EXTENDED_DATA);
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);

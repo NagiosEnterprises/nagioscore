@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 08-25-2002
+# Last Modified: 01-08-2003
 ###############################
 
 
@@ -36,8 +36,6 @@ XSDC=@XSDC@
 XSDH=@XSDH@
 XCDC=@XCDC@
 XCDH=@XCDH@
-XEDC=@XEDC@
-XEDH=@XEDH@
 XODC=@XODC@
 XODH=@XODH@
 XDDC=@XDDC@
@@ -55,11 +53,6 @@ ODATADEPS=$(ODATALIBS)
 SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
 SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
 SDATADEPS=$(SDATALIBS)
-
-# Extended information functions
-EDATALIBS=edata.o $(SRC_XDATA)/$(XEDC)
-EDATAHDRS=edata.h $(SRC_XDATA)/$(XEDC)
-EDATADEPS=$(EDATALIBS)
 
 # Host and service comment functions
 CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
@@ -97,8 +90,8 @@ $(COMMENTLIBS): $(COMMENTHDRS)
 avail.cgi: avail.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) avail.c $(CGILIBS) -o $@
 
-checksanity.cgi: checksanity.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS) $(DDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) checksanity.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) $(DDATALIBS) -o $@
+checksanity.cgi: checksanity.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) checksanity.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) -o $@
 
 cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) cmd.c  $(CGILIBS) $(CDATALIBS) $(DDATALIBS) -o $@
@@ -106,8 +99,8 @@ cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS)
 config.cgi: config.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) config.c  $(CGILIBS) -o $@
 
-extinfo.cgi: extinfo.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS) $(DDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) extinfo.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) $(DDATALIBS) -o $@
+extinfo.cgi: extinfo.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) extinfo.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) -o $@
 
 history.cgi: history.c $(CGIDEPS) $(LIFODEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) history.c $(CGILIBS) $(LIFOLIBS) -o $@
@@ -124,23 +117,23 @@ outages.cgi: outages.c $(CGIDEPS) $(CDATADEPS)
 showlog.cgi: showlog.c $(CGIDEPS) $(LIFODEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) showlog.c $(CGILIBS) $(LIFOLIBS) -o $@
 
-status.cgi: status.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) status.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) -o $@
+status.cgi: status.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) status.c $(CGILIBS) $(CDATALIBS) -o $@
 
 statuswml.cgi: statuswml.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) statuswml.c $(CGILIBS) -o $@
 
-statusmap.cgi: statusmap.c $(CGIDEPS) $(EDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) statusmap.c $(CGILIBS) $(GDLIBS) $(EDATALIBS) -o $@
+statusmap.cgi: statusmap.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) statusmap.c $(CGILIBS) $(GDLIBS) -o $@
 
-statuswrl.cgi: statuswrl.c $(CGIDEPS) $(EDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) statuswrl.c $(CGILIBS) $(MATHLIBS) $(EDATALIBS) -o $@
+statuswrl.cgi: statuswrl.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) statuswrl.c $(CGILIBS) $(MATHLIBS) -o $@
 
 summary.cgi: summary.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) summary.c $(CGILIBS) -o $@
 
-tac.cgi: tac.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) tac.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) -o $@
+tac.cgi: tac.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) tac.c $(CGILIBS) $(CDATALIBS) -o $@
 
 trends.cgi: trends.c $(CGIDEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) trends.c $(CGILIBS) $(GDLIBS) -o $@

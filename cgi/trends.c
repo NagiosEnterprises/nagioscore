@@ -2,8 +2,8 @@
  *
  * TRENDS.C -  Nagios State Trends CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-26-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2003
  *
  * License:
  * 
@@ -32,7 +32,6 @@
 #include "cgiutils.h"
 #include "getcgi.h"
 #include "auth.h"
-#include "edata.h"
 
 #include <gd.h>			/* Boutell's GD library function */
 #include <gdfonts.h>		/* GD library small font definition */

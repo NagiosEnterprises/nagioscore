@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-08-2003
  *
  * License:
  *
@@ -53,8 +53,10 @@ command         *command_list=NULL;
 timeperiod      *timeperiod_list=NULL;
 serviceescalation       *serviceescalation_list=NULL;
 servicedependency       *servicedependency_list=NULL;
-hostdependency          *hostdependency_list=NULL;
-hostescalation          *hostescalation_list=NULL;
+hostdependency  *hostdependency_list=NULL;
+hostescalation  *hostescalation_list=NULL;
+hostextinfo     *hostextinfo_list=NULL;
+serviceextinfo  *serviceextinfo_list=NULL;
 
 
 static host_cursor *static_host_cursor=NULL;
@@ -3233,6 +3235,290 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 
 
+/* adds an extended host info structure to the list in memory */
+hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image, char *vrml_image, char *statusmap_image, char *icon_image_alt, int x_2d, int y_2d, double x_3d, double y_3d, double z_3d, int have_2d_coords, int have_3d_coords){
+	hostextinfo *new_hostextinfo;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("add_hostextinfo() start\n");
+#endif
+
+	/* make sure we have what we need */
+	if(host_name==NULL || !strcmp(host_name,"")){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for a new data structure */
+	new_hostextinfo=(hostextinfo *)malloc(sizeof(hostextinfo));
+	if(new_hostextinfo==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+				
+	new_hostextinfo->host_name=strdup(host_name);
+	if(new_hostextinfo->host_name==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_hostextinfo);
+		return NULL;
+	        }
+
+	if(notes_url==NULL || !strcmp(notes_url,""))
+		new_hostextinfo->notes_url=NULL;
+	else{
+		new_hostextinfo->notes_url=strdup(notes_url);
+		if(new_hostextinfo->notes_url==NULL){
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
+	if(icon_image==NULL || !strcmp(icon_image,""))
+		new_hostextinfo->icon_image=NULL;
+	else{
+		new_hostextinfo->icon_image=strdup(icon_image);
+		if(new_hostextinfo->icon_image==NULL){
+			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+	                }
+	        }
+
+	if(vrml_image==NULL || !strcmp(vrml_image,""))
+		new_hostextinfo->vrml_image=NULL;
+	else{
+		new_hostextinfo->vrml_image=strdup(vrml_image);
+		if(new_hostextinfo->vrml_image==NULL){
+			free(new_hostextinfo->icon_image);
+			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+	                }
+	        }
+
+
+	if(statusmap_image==NULL || !strcmp(statusmap_image,""))
+		new_hostextinfo->statusmap_image=NULL;
+	else{
+		new_hostextinfo->statusmap_image=strdup(statusmap_image);
+		if(new_hostextinfo->statusmap_image==NULL){
+			free(new_hostextinfo->vrml_image);
+			free(new_hostextinfo->icon_image);
+			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
+
+	if(icon_image_alt==NULL || !strcmp(icon_image_alt,""))
+		new_hostextinfo->icon_image_alt=NULL;
+	else{
+		new_hostextinfo->icon_image_alt=strdup(icon_image_alt);
+		if(new_hostextinfo->icon_image_alt==NULL){
+			free(new_hostextinfo->statusmap_image);
+			free(new_hostextinfo->vrml_image);
+			free(new_hostextinfo->icon_image);
+			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
+	/* 2-D coordinates */
+	new_hostextinfo->x_2d=x_2d;
+	new_hostextinfo->y_2d=y_2d;
+	new_hostextinfo->have_2d_coords=have_2d_coords;
+
+	/* 3-D coordinates */
+	new_hostextinfo->x_3d=x_3d;
+	new_hostextinfo->y_3d=y_3d;
+	new_hostextinfo->z_3d=z_3d;
+	new_hostextinfo->have_3d_coords=have_3d_coords;
+
+	/* default is to not draw this item */
+	new_hostextinfo->should_be_drawn=FALSE;
+
+	/* add new host extended info entry to head of list */
+	new_hostextinfo->next=hostextinfo_list;
+	hostextinfo_list=new_hostextinfo;
+
+#ifdef DEBUG0
+	printf("add_hostextinfo() start\n");
+#endif
+	return OK;
+        }
+	
+
+
+/* adds an extended service info structure to the list in memory */
+serviceextinfo * add_serviceextinfo(char *host_name,char *description, char *notes_url, char *icon_image, char *icon_image_alt){
+	serviceextinfo *new_serviceextinfo;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("add_serviceextinfo() start\n");
+#endif
+
+	/* make sure we have what we need */
+	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,""))){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name or service description is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for a new data structure */
+	new_serviceextinfo=(serviceextinfo *)malloc(sizeof(serviceextinfo));
+	if(new_serviceextinfo==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+				
+	new_serviceextinfo->host_name=strdup(host_name);
+	if(new_serviceextinfo->host_name==NULL){
+		free(new_serviceextinfo);
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+				
+	new_serviceextinfo->description=strdup(description);
+	if(new_serviceextinfo->description==NULL){
+		free(new_serviceextinfo->host_name);
+		free(new_serviceextinfo);
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	if(notes_url==NULL || !strcmp(notes_url,""))
+		new_serviceextinfo->notes_url=NULL;
+	else{
+		new_serviceextinfo->notes_url=strdup(notes_url);
+		if(new_serviceextinfo->notes_url==NULL){
+			free(new_serviceextinfo->description);
+			free(new_serviceextinfo->host_name);
+			free(new_serviceextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
+	if(icon_image==NULL || !strcmp(icon_image,""))
+		new_serviceextinfo->icon_image=NULL;
+	else{
+		new_serviceextinfo->icon_image=strdup(icon_image);
+		if(new_serviceextinfo->icon_image==NULL){
+			free(new_serviceextinfo->notes_url);
+			free(new_serviceextinfo->description);
+			free(new_serviceextinfo->host_name);
+			free(new_serviceextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+	                }
+	        }
+
+	if(icon_image_alt==NULL || !strcmp(icon_image_alt,""))
+		new_serviceextinfo->icon_image_alt=NULL;
+	else{
+		new_serviceextinfo->icon_image_alt=strdup(icon_image_alt);
+		if(new_serviceextinfo->icon_image_alt==NULL){
+			free(new_serviceextinfo->icon_image);
+			free(new_serviceextinfo->notes_url);
+			free(new_serviceextinfo->description);
+			free(new_serviceextinfo->host_name);
+			free(new_serviceextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
+	/* add new service extended info entry to head of list */
+	new_serviceextinfo->next=serviceextinfo_list;
+	serviceextinfo_list=new_serviceextinfo;
+
+#ifdef DEBUG0
+	printf("add_serviceextinfo() end\n");
+#endif
+
+	return OK;
+        }
+	
+
+
+
 /******************************************************************/
 /******************** OBJECT SEARCH FUNCTIONS *********************/
 /******************************************************************/
@@ -3542,7 +3828,7 @@ command * find_command(char *name,command *cmd){
 
 	/* we couldn't find a matching command */
 	return NULL;
-}
+        }
 
 
 /* given a host/service name, find the service in the list in memory */
@@ -3562,6 +3848,57 @@ service * find_service(char *host_name,char *svc_desc){
         }
 
 
+
+/* find the extended information for a given host */
+hostextinfo * find_hostextinfo(char *host_name){
+	hostextinfo *temp_hostextinfo;
+
+#ifdef DEBUG0
+	printf("find_hostextinfo() start\n");
+#endif
+
+	if(host_name==NULL)
+		return NULL;
+
+	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		if(!strcmp(host_name,temp_hostextinfo->host_name))
+			return temp_hostextinfo;
+	        }
+	
+#ifdef DEBUG0
+	printf("find_hostextinfo() end\n");
+#endif
+
+	/* we couldn't find a matching extended host info object */
+	return NULL;
+        }
+
+
+/* find the extended information for a given service */
+serviceextinfo * find_serviceextinfo(char *host_name, char *description){
+	serviceextinfo *temp_serviceextinfo;
+
+#ifdef DEBUG0
+	printf("find_serviceextinfo() start\n");
+#endif
+
+	if(host_name==NULL || description==NULL)
+		return NULL;
+
+	for(temp_serviceextinfo=serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+		if(!strcmp(host_name,temp_serviceextinfo->host_name) && !strcmp(description,temp_serviceextinfo->description))
+			return temp_serviceextinfo;
+	        }
+	
+#ifdef DEBUG0
+	printf("find_serviceextinfo() end\n");
+#endif
+
+	/* we couldn't find a matching extended service info object */
+	return NULL;
+        }
+
+
 /* resets pointer to first service in memory */
 void move_first_service(void){
 
@@ -3570,6 +3907,7 @@ void move_first_service(void){
 
 	return;
         }
+
 
 /* returns the next service, NULL upon end of list
  * uses a static memory area, call move_first_service before your first call to this function
@@ -4338,6 +4676,9 @@ int free_object_data(void){
 	/* reset the host escalation list */
 	hostescalation_list=NULL;
 
+	/* free extended info data */
+	free_extended_data();
+
 #ifdef DEBUG1
 	printf("\thostescalation_list freed\n");
 #endif
@@ -4348,3 +4689,58 @@ int free_object_data(void){
 
 	return OK;
         }
+
+
+/* free all allocated memory for extended info objects */
+int free_extended_data(void){
+	hostextinfo *this_hostextinfo;
+	hostextinfo *next_hostextinfo;
+	serviceextinfo *this_serviceextinfo;
+	serviceextinfo *next_serviceextinfo;
+
+#ifdef DEBUG0
+	printf("free_extended_data() start\n");
+#endif
+
+	/* free memory for the extended host info list */
+	for(this_hostextinfo=hostextinfo_list;this_hostextinfo!=NULL;this_hostextinfo=next_hostextinfo){
+		next_hostextinfo=this_hostextinfo->next;
+		free(this_hostextinfo->host_name);
+		free(this_hostextinfo->notes_url);
+		free(this_hostextinfo->icon_image);
+		free(this_hostextinfo->vrml_image);
+		free(this_hostextinfo->statusmap_image);
+		free(this_hostextinfo->icon_image_alt);
+		free(this_hostextinfo);
+	        }
+
+#ifdef DEBUG1
+	printf("\thostextinfo_list freed\n");
+#endif
+
+	hostextinfo_list=NULL;
+
+	/* free memory for the extended service info list */
+	for(this_serviceextinfo=serviceextinfo_list;this_serviceextinfo!=NULL;this_serviceextinfo=next_serviceextinfo){
+		next_serviceextinfo=this_serviceextinfo->next;
+		free(this_serviceextinfo->host_name);
+		free(this_serviceextinfo->description);
+		free(this_serviceextinfo->notes_url);
+		free(this_serviceextinfo->icon_image);
+		free(this_serviceextinfo);
+	        }
+
+#ifdef DEBUG1
+	printf("\tserviceextinfo_list freed\n");
+#endif
+
+	serviceextinfo_list=NULL;
+
+
+#ifdef DEBUG0
+	printf("free_extended_data() start\n");
+#endif
+
+	return OK;
+        }
+

@@ -2,8 +2,8 @@
  *
  * OUTAGES.C -  Nagios Network Outages CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-26-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2003
  *
  * License:
  * 
@@ -32,7 +32,6 @@
 #include "cgiutils.h"
 #include "getcgi.h"
 #include "auth.h"
-#include "edata.h"
 
 extern int              refresh_rate;
 extern time_t		program_start;

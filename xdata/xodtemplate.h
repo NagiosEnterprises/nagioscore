@@ -387,6 +387,49 @@ typedef struct xodtemplate_hostescalation_struct{
         }xodtemplate_hostescalation;
 
 
+/* HOSTEXTINFO TEMPLATE STRUCTURE */
+typedef struct xodtemplate_hostextinfo_struct{
+	char       *template;
+	char       *name;
+	char       *host_name;
+	char       *hostgroup_name;
+	char       *notes_url;
+	char       *icon_image;
+	char       *icon_image_alt;
+	char       *vrml_image;
+	char       *gd2_image;
+	int        x_2d;
+	int        y_2d;
+	double     x_3d;
+	double     y_3d;
+	double     z_3d;
+	
+	int        have_2d_coords;
+	int        have_3d_coords;
+
+	int        has_been_resolved;
+	int        register_object;
+	struct xodtemplate_hostextinfo_struct *next;
+        }xodtemplate_hostextinfo;
+
+
+/* SERVICEEXTINFO TEMPLATE STRUCTURE */
+typedef struct xodtemplate_serviceextinfo_struct{
+	char       *template;
+	char       *name;
+	char       *host_name;
+	char       *hostgroup_name;
+	char       *service_description;
+	char       *notes_url;
+	char       *icon_image;
+	char       *icon_image_alt;
+
+	int        has_been_resolved;
+	int        register_object;
+	struct xodtemplate_serviceextinfo_struct *next;
+        }xodtemplate_serviceextinfo;
+
+
 /* HOST LIST STRUCTURE */
 typedef struct xodtemplate_hostlist_struct{
 	char      *host_name;

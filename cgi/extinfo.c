@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-05-2003
+ * Last Modified: 01-08-2003
  *
  * License:
  * 
@@ -33,7 +33,6 @@
 #include "cgiutils.h"
 #include "getcgi.h"
 #include "auth.h"
-#include "edata.h"
 
 extern char             nagios_check_command[MAX_INPUT_BUFFER];
 extern char             nagios_process_info[MAX_INPUT_BUFFER];
@@ -168,9 +167,6 @@ int main(void){
                 }
 
 	document_header(TRUE);
-
-	/* read in extended host information */
-	read_extended_object_config_data(get_cgi_config_location(),READ_ALL_EXTENDED_DATA);
 
 	/* get authentication information */
 	get_authentication_information(&current_authdata);

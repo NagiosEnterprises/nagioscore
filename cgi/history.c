@@ -2,8 +2,8 @@
  *
  * HISTORY.C - Nagios History CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-05-2003
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -841,6 +841,15 @@ void get_history(void){
 
 				if(strstr(temp_buffer,match1))
 					display_line=TRUE;
+
+				if(display_line==TRUE){
+					if(history_options==HISTORY_ALL || history_options==HISTORY_SERVICE_ALL)
+						display_line=TRUE;
+					else if(history_options & history_detail_type)
+						display_line=TRUE;
+					else 
+						display_line=FALSE;
+			                }
 
 				/* check alert state type */
 				if(display_line==TRUE && history_type==SERVICE_HISTORY){

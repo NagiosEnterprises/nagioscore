@@ -49,6 +49,11 @@ static PerlInterpreter *my_perl;
 #include <fcntl.h>
 /* In perl.h (or friends) there is a macro that defines sighandler as Perl_sighandler, so we must #undef it so we can use our sighandler() function */
 #undef sighandler
+/* and we don't need perl's reentrant versions */
+#undef localtime
+#undef getpwnam
+#undef getgrnam
+#undef strerror
 #endif
 
 char            *my_strtok_buffer=NULL;

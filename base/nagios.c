@@ -58,6 +58,8 @@
 #include <perl.h>
 static PerlInterpreter *my_perl;
 #include <fcntl.h>
+#undef ctime   /* don't need perl's threaded version */
+#undef printf   /* can't use perl's printf until initialized */
 
 /* include PERL xs_init code for module and C library support */
 
@@ -85,18 +87,22 @@ extern "C" {
 #    define EXTERN_C extern
 #  endif
 #endif
- 
+
+#ifdef THREADEDPERL
+EXTERN_C void xs_init _((pTHX));
+EXTERN_C void boot_DynaLoader _((pTHX_ CV* cv));
+#else
 EXTERN_C void xs_init _((void));
-
 EXTERN_C void boot_DynaLoader _((CV* cv));
+#endif
 
-EXTERN_C void
-xs_init(void)
+#ifdef THREADEDPERL
+EXTERN_C void xs_init(pTHX)
+#else
+EXTERN_C void xs_init(void)
+#endif
 {
 	char *file = __FILE__;
-#ifdef THREADEDPERL
-	dTHX;
-#endif
 	dXSUB_SYS;
 
 	/* DynaLoader is a special case */

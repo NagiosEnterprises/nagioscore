@@ -316,6 +316,10 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note1"><sup>1</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#hostcheckcommand">$HOSTCHECKCOMMAND$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td class='MacroName'><a href="#hostackauthor">$HOSTACKAUTHOR$</a></td>
 <td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
 </tr>
@@ -409,6 +413,10 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <td class='MacroName'><a href="#serviceperfdata">$SERVICEPERFDATA$</a></td>
 <td class="MacroYes">Yes <a href="#note2"><sup>2</sup></a></td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicecheckcommand">$SERVICECHECKCOMMAND$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
 <td class='MacroName'><a href="#serviceackauthor">$SERVICEACKAUTHOR$</a></td>
@@ -644,6 +652,12 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<a name="hostcheckcommand"></a>
+<td class="MacroName">$HOSTCHECKCOMMAND$</td>
+<td class="MacroDescription">This macro contains the name of the command (along with any arguments passed to it) used to perform the host check.</td>
+</tr>
+
+<tr>
 <a name="hostackauthor"></a>
 <td class="MacroName">$HOSTACKAUTHOR$</td>
 <td class="MacroDescription">A string containing the name of the user who acknowledged the host problem.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
@@ -783,6 +797,12 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="serviceperfdata"></a>
 <td class="MacroName">$SERVICEPERFDATA$</td>
 <td class="MacroDescription">This macro contains any <a href="perfdata.html">performance data</a> that may have been returned by the last service check.</td>
+</tr>
+
+<tr>
+<a name="servicecheckcommand"></a>
+<td class="MacroName">$SERVICECHECKCOMMAND$</td>
+<td class="MacroDescription">This macro contains the name of the command (along with any arguments passed to it) used to perform the service check.</td>
 </tr>
 
 <tr>

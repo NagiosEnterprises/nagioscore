@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-03-2004
+ * Last Modified:   10-20-2004
  *
  * License:
  *
@@ -838,8 +838,10 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		timeperiod_list=new_timeperiod;
 		timeperiod_list_tail=timeperiod_list;
 		}
-	timeperiod_list_tail->next=new_timeperiod;
-	timeperiod_list_tail=new_timeperiod;
+	else{
+		timeperiod_list_tail->next=new_timeperiod;
+		timeperiod_list_tail=new_timeperiod;
+		}
 #else
 	/* timeperiods are sorted in reverse for CGIs, so add new items to head of list */
 	new_timeperiod->next=timeperiod_list;
@@ -1468,8 +1470,10 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 		host_list=new_host;
 		host_list_tail=host_list;
 		}
-	host_list_tail->next=new_host;
-	host_list_tail=new_host;
+	else{
+		host_list_tail->next=new_host;
+		host_list_tail=new_host;
+		}
 #else
 	/* hosts are sorted in reverse for CGIs, so add new items to head of list */
 	new_host->next=host_list;
@@ -1741,8 +1745,10 @@ hostgroup *add_hostgroup(char *name,char *alias){
 		hostgroup_list=new_hostgroup;
 		hostgroup_list_tail=hostgroup_list;
 		}
-	hostgroup_list_tail->next=new_hostgroup;
-	hostgroup_list_tail=new_hostgroup;
+	else{
+		hostgroup_list_tail->next=new_hostgroup;
+		hostgroup_list_tail=new_hostgroup;
+		}
 #else
 	/* hostgroups are sorted in reverse for CGIs, so add new items to head of list */
 	new_hostgroup->next=hostgroup_list;
@@ -1951,8 +1957,10 @@ servicegroup *add_servicegroup(char *name,char *alias){
 		servicegroup_list=new_servicegroup;
 		servicegroup_list_tail=servicegroup_list;
 		}
-	servicegroup_list_tail->next=new_servicegroup;
-	servicegroup_list_tail=new_servicegroup;
+	else{
+		servicegroup_list_tail->next=new_servicegroup;
+		servicegroup_list_tail=new_servicegroup;
+		}
 #else
 	/* servicegroups are sorted in reverse for CGIs, so add new items to head of list */
 	new_servicegroup->next=servicegroup_list;
@@ -2389,8 +2397,10 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		contact_list=new_contact;
 		contact_list_tail=contact_list;
 		}
-	contact_list_tail->next=new_contact;
-	contact_list_tail=new_contact;
+	else{
+		contact_list_tail->next=new_contact;
+		contact_list_tail=new_contact;
+		}
 #else
 	/* contacts are sorted in reverse for CGIs, so add new items to head of list */
 	new_contact->next=contact_list;
@@ -2650,8 +2660,10 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		contactgroup_list=new_contactgroup;
 		contactgroup_list_tail=contactgroup_list;
 		}
-	contactgroup_list_tail->next=new_contactgroup;
-	contactgroup_list_tail=new_contactgroup;
+	else{
+		contactgroup_list_tail->next=new_contactgroup;
+		contactgroup_list_tail=new_contactgroup;
+		}
 #else
 	/* contactgroups are sorted in reverse for CGIs, so add new items to head of list */
 	new_contactgroup->next=contactgroup_list;
@@ -3286,8 +3298,10 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		service_list=new_service;
 		service_list_tail=service_list;
 		}
-	service_list_tail->next=new_service;
-	service_list_tail=new_service;
+	else{
+		service_list_tail->next=new_service;
+		service_list_tail=new_service;
+		}
 #else
 	/* services are sorted in reverse for CGIs, so add new items to head of list */
 	new_service->next=service_list;
@@ -3483,8 +3497,10 @@ command *add_command(char *name,char *value){
 		command_list=new_command;
 		command_list_tail=command_list;
 		}
-	command_list_tail->next=new_command;
-	command_list_tail=new_command;
+	else {
+		command_list_tail->next=new_command;
+		command_list_tail=new_command;
+		}
 #else
 	/* commands are sorted in reverse for CGIs, so add new items to head of list */
 	new_command->next=command_list;
@@ -3628,8 +3644,10 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 		serviceescalation_list=new_serviceescalation;
 		serviceescalation_list_tail=serviceescalation_list;
 		}
-	serviceescalation_list_tail->next=new_serviceescalation;
-	serviceescalation_list_tail=new_serviceescalation;
+	else{
+		serviceescalation_list_tail->next=new_serviceescalation;
+		serviceescalation_list_tail=new_serviceescalation;
+		}
 #else
 	/* service escalations are sorted in reverse for CGIs, so add new items to head of list */
 	new_serviceescalation->next=serviceescalation_list;
@@ -3902,8 +3920,10 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		servicedependency_list=new_servicedependency;
 		servicedependency_list_tail=servicedependency_list;
 		}
-	servicedependency_list_tail->next=new_servicedependency;
-	servicedependency_list_tail=new_servicedependency;
+	else{
+		servicedependency_list_tail->next=new_servicedependency;
+		servicedependency_list_tail=new_servicedependency;
+		}
 #else
 	/* service dependencies are sorted in reverse for CGIs, so add new items to head of list */
 	new_servicedependency->next=servicedependency_list;
@@ -4049,8 +4069,10 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		hostdependency_list=new_hostdependency;
 		hostdependency_list_tail=hostdependency_list;
 		}
-	hostdependency_list_tail->next=new_hostdependency;
-	hostdependency_list_tail=new_hostdependency;
+	else {
+		hostdependency_list_tail->next=new_hostdependency;
+		hostdependency_list_tail=new_hostdependency;
+		}
 #else
 	/* host dependencies are sorted in reverse for CGIs, so add new items to head of list */
 	new_hostdependency->next=hostdependency_list;
@@ -4174,8 +4196,10 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		hostescalation_list=new_hostescalation;
 		hostescalation_list_tail=hostescalation_list;
 		}
-	hostescalation_list_tail->next=new_hostescalation;
-	hostescalation_list_tail=new_hostescalation;
+	else{
+		hostescalation_list_tail->next=new_hostescalation;
+		hostescalation_list_tail=new_hostescalation;
+		}
 #else
 	/* host escalations are sorted in reverse for CGIs, so add new items to head of list */
 	new_hostescalation->next=hostescalation_list;
@@ -4484,8 +4508,10 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 		hostextinfo_list=new_hostextinfo;
 		hostextinfo_list_tail=hostextinfo_list;
 		}
-	hostextinfo_list_tail->next=new_hostextinfo;
-	hostextinfo_list_tail=new_hostextinfo;
+	else{
+		hostextinfo_list_tail->next=new_hostextinfo;
+		hostextinfo_list_tail=new_hostextinfo;
+		}
 #else
 	/* hostextinfo entries are sorted in reverse for CGIs, so add new items to head of list */
 	new_hostextinfo->next=hostextinfo_list;
@@ -4676,8 +4702,10 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 		serviceextinfo_list=new_serviceextinfo;
 		serviceextinfo_list_tail=serviceextinfo_list;
 		}
-	serviceextinfo_list_tail->next=new_serviceextinfo;
-	serviceextinfo_list_tail=new_serviceextinfo;
+	else{
+		serviceextinfo_list_tail->next=new_serviceextinfo;
+		serviceextinfo_list_tail=new_serviceextinfo;
+		}
 #else
 	/* serviceextinfo entries are sorted in reverse for CGIs, so add new items to head of list */
 	new_serviceextinfo->next=serviceextinfo_list;

@@ -87,6 +87,14 @@ When Nagios seems this format of plugin output it will split the output into two
 </p>
 
 <p>
+<strong><u>Format of Performance Data Output</u></strong>
+</p>
+
+<p>
+The Nagios daemon doesn't directly process performance data, so it doesn't really care what the performance data looks like.  There aren't really any inherent limitations on the format or content of the performance data.  However, if you are using an external addon to process the performance data (i.e. PerfParse), the addon may be expecting that the plugin returns performance data in a specific format.  Check the documentation that comes with the addon for more information.  Also, make sure to check the plugin developer guidelines at SourceForge (<a href="http://nagiosplug.sourceforge.net/">http://nagiosplug.sourceforge.net/</a>) for information on writing plugins.
+</p>
+
+<p>
 <strong><u>Enabling Performance Data Processing</u></strong>
 </p>
 

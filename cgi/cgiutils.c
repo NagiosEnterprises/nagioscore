@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-10-2004
+ * Last Modified: 10-20-2004
  *
  * License:
  *
@@ -1584,6 +1584,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata){
 void display_nav_table(char *url,int archive){
 	char date_time[MAX_DATETIME_LENGTH];
 	char archive_file[MAX_INPUT_BUFFER];
+	char *archive_basename;
 
 	if(log_rotation_method!=LOG_ROTATION_NONE){
 		printf("<table border=0 cellspacing=0 cellpadding=0 CLASS='navBox'>\n");
@@ -1636,8 +1637,16 @@ void display_nav_table(char *url,int archive){
 		printf("</table>\n");
 	        }
 
+	/* get archive to use */
 	get_log_archive_to_use(archive,archive_file,sizeof(archive_file)-1);
-	printf("<BR><DIV CLASS='navBoxFile'>File: %s</DIV>\n",archive_file);
+
+	/* cut the pathname for security, and the remaining slash for clarity */
+	archive_basename=(char *)&archive_file;
+	if(strrchr((char *)&archive_basename,'/')!=NULL)
+		archive_basename=strrchr((char *)&archive_file,'/')+1;
+
+	/* now it's safe to print the filename */
+	printf("<BR><DIV CLASS='navBoxFile'>File: %s</DIV>\n",archive_basename);
 
 	return;
         }

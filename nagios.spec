@@ -103,8 +103,7 @@ CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" \
 	--datadir=%{_prefix}/share/nagios \
 	--sysconfdir=/etc/nagios \
 	--localstatedir=/var/log/nagios \
-	--enable-embedded-perl \
-	--enable-webhelp
+	--enable-embedded-perl
 
 make all
 cd sample-config
@@ -128,9 +127,17 @@ make DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" INIT_OPTS="" inst
 # make DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" CGICFGDIR=/etc/nagios install-config
 install -m 0644 sample-config/nagios.cfg ${RPM_BUILD_ROOT}/etc/nagios
 install -m 0644 sample-config/cgi.cfg ${RPM_BUILD_ROOT}/etc/nagios
-install -m 0644 sample-config/resource.cfg ${RPM_BUILD_ROOT}/etc/nagios
-install -m 0644 sample-config/default-object/commands.cfg ${RPM_BUILD_ROOT}/etc/nagios
-install -m 0644 sample-config/default-object/hosts.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0640 sample-config/resource.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/checkcommands.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/contactgroups.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/contacts.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/dependencies.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/escalations.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/hostgroups.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/hosts.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/misccommands.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/services.cfg ${RPM_BUILD_ROOT}/etc/nagios
+install -m 0644 sample-config/template-object/timeperiods.cfg ${RPM_BUILD_ROOT}/etc/nagios
 # cp test.cfg ${RPM_BUILD_ROOT}/etc/nagios
 install -m 0644 common/locations.h ${RPM_BUILD_ROOT}%{_prefix}/include/nagios
 cp htaccess.sample ${RPM_BUILD_ROOT}/etc/httpd/conf/nagios-httpd.conf
@@ -225,11 +232,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/sbin/nagios
 
 %defattr(644,root,root)
-%config(noreplace) /etc/nagios/hosts.cfg
 %config(noreplace) /etc/nagios/nagios.cfg
 %config(noreplace) /etc/nagios/cgi.cfg
 #%config(noreplace) /etc/nagios/test.cfg
-%config(noreplace) /etc/nagios/commands.cfg
+%config(noreplace) /etc/nagios/checkcommands.cfg
+%config(noreplace) /etc/nagios/contactgroups.cfg
+%config(noreplace) /etc/nagios/contacts.cfg
+%config(noreplace) /etc/nagios/dependencies.cfg
+%config(noreplace) /etc/nagios/escalations.cfg
+%config(noreplace) /etc/nagios/hostgroups.cfg
+%config(noreplace) /etc/nagios/hosts.cfg
+%config(noreplace) /etc/nagios/misccommands.cfg
+%config(noreplace) /etc/nagios/services.cfg
+%config(noreplace) /etc/nagios/timeperiods.cfg
 
 %defattr(640,root,%{nsgrp})
 %config(noreplace) /etc/nagios/resource.cfg
@@ -261,6 +276,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue May 15 2002 Ethan Galstad <nagios@nagios.org) (1.0b1)
+- Updated to work with new sample config files (template-based)
+- Bugs were pointed out by Darren Gamble
+
 * Sun Feb 17 2002 Ole Gjerde <gjerde@ignus.com> (1.0a4)
 - Fixed spec file to work with Nagios
 

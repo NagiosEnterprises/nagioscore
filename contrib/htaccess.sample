@@ -1,5 +1,5 @@
-ScriptAlias /nagios/cgi-bin/ /usr/libexec/nagios/cgi/
-<Directory /usr/libexec/nagios/cgi/>
+ScriptAlias /nagios/cgi-bin/ /usr/lib/nagios/cgi/
+<Directory /usr/lib/nagios/cgi/>
    Options ExecCGI
    order deny,allow
    deny from all
@@ -15,8 +15,8 @@ Alias /nagios/ /usr/share/nagios/
 </Directory>
 
 # For SSL-servers
-#ScriptAlias /nagios/cgi-bin/ /usr/libexec/nagios/cgi/
-#<Directory /usr/libexec/nagios/cgi/>
+#ScriptAlias /nagios/cgi-bin/ /usr/lib/nagios/cgi/
+#<Directory /usr/lib/nagios/cgi/>
 #   Options ExecCGI
 #   SSLRequireSSL
 #   order deny,allow

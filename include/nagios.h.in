@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-25-2004
+ * Last Modified: 10-28-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #endif
 
 
-#define MAX_COMMAND_ARGUMENTS			16	/* maximum number of $ARGx$ macros */
+#define MAX_COMMAND_ARGUMENTS			32	/* maximum number of $ARGx$ macros */
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
 #define MAX_STATE_LENGTH			32	/* length definitions used in macros */
@@ -42,6 +42,7 @@
 #define MAX_NOTIFICATIONTYPE_LENGTH		32
 #define MAX_NOTIFICATIONNUMBER_LENGTH		8
 #define MAX_ATTEMPT_LENGTH			8
+#define MAX_TOTALS_LENGTH			8
 #define MAX_EXECUTIONTIME_LENGTH		10
 #define MAX_LATENCY_LENGTH			10
 #define MAX_DURATION_LENGTH			9
@@ -49,7 +50,7 @@
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				80	/* size of macro_x[] array */
+#define MACRO_X_COUNT				96	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -131,6 +132,22 @@
 #define MACRO_SERVICEACTIONURL			77
 #define MACRO_SERVICENOTESURL			78
 #define MACRO_SERVICENOTES			79
+#define MACRO_TOTALHOSTSUP			80
+#define MACRO_TOTALHOSTSDOWN			81
+#define MACRO_TOTALHOSTSUNREACHABLE		82
+#define MACRO_TOTALHOSTSDOWNUNHANDLED		83
+#define MACRO_TOTALHOSTSUNREACHABLEUNHANDLED	84
+#define MACRO_TOTALHOSTPROBLEMS			85
+#define MACRO_TOTALHOSTPROBLEMSUNHANDLED	86
+#define MACRO_TOTALSERVICESOK			87
+#define MACRO_TOTALSERVICESWARNING		88
+#define MACRO_TOTALSERVICESCRITICAL		89
+#define MACRO_TOTALSERVICESUNKNOWN		90
+#define MACRO_TOTALSERVICESWARNINGUNHANDLED	91
+#define MACRO_TOTALSERVICESCRITICALUNHANDLED	92
+#define MACRO_TOTALSERVICESUNKNOWNUNHANDLED	93
+#define MACRO_TOTALSERVICEPROBLEMS		94
+#define MACRO_TOTALSERVICEPROBLEMSUNHANDLED	95
 
 
 
@@ -602,9 +619,10 @@ int grab_service_macros(service *);                  	/* updates the service mac
 int grab_host_macros(host *);                        	/* updates the host macro data */
 int grab_contact_macros(contact *);                  	/* updates the contact macro data */
 int grab_datetime_macros(void);				/* updates date/time macros */
+int grab_summary_macros(contact *);			/* updates summary macros */
 int grab_on_demand_macro(char *);                       /* fetches an on-demand macro */
 int grab_on_demand_host_macro(host *,char *);		/* fetches an on-demand host macro */
-int grab_on_demand_service_macro(service *,char *);    /* fetches an on-demand service macro */
+int grab_on_demand_service_macro(service *,char *);     /* fetches an on-demand service macro */
 int clear_argv_macros(void);                            /* clear all argv macros used in commands */
 int clear_volatile_macros(void);                     	/* clear all "volatile" macros that change between service/host checks */
 int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile" macros which remain relatively constant */

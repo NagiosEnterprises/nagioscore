@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-20-2004
+ * Last Modified:   10-28-2004
  *
  * License:
  *
@@ -168,6 +168,9 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 			/* grab the macro variables for this contact */
 			grab_contact_macros(temp_notification->contact);
+
+			/* grab summary macros (customized for this contact) */
+			grab_summary_macros(temp_notification->contact);
 
 			/* notify this contact */
 			result=notify_contact_of_service(temp_notification->contact,svc,type);
@@ -912,6 +915,9 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 
 			/* grab the macro variables for this contact */
 			grab_contact_macros(temp_notification->contact);
+
+			/* grab summary macros (customized for this contact) */
+			grab_summary_macros(temp_notification->contact);
 
 			/* notify this contact */
 			result=notify_contact_of_host(temp_notification->contact,hst,type);

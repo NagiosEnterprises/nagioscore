@@ -1267,7 +1267,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 #ifdef DEBUG1
-			printf("\t\tlow_service_flap_threshold set to %lf\n",low_service_flap_threshold);
+			printf("\t\tlow_service_flap_threshold set to %f\n",low_service_flap_threshold);
 #endif
 		        }
 		else if(!strcmp(variable,"high_service_flap_threshold")){
@@ -1278,7 +1278,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 #ifdef DEBUG1
-			printf("\t\thigh_service_flap_threshold set to %lf\n",high_service_flap_threshold);
+			printf("\t\thigh_service_flap_threshold set to %f\n",high_service_flap_threshold);
 #endif
 		        }
 		else if(!strcmp(variable,"low_host_flap_threshold")){
@@ -1289,7 +1289,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 #ifdef DEBUG1
-			printf("\t\tlow_host_flap_threshold set to %lf\n",low_host_flap_threshold);
+			printf("\t\tlow_host_flap_threshold set to %f\n",low_host_flap_threshold);
 #endif
 		        }
 		else if(!strcmp(variable,"high_host_flap_threshold")){
@@ -1300,7 +1300,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 #ifdef DEBUG1
-			printf("\t\thigh_host_flap_threshold set to %lf\n",high_host_flap_threshold);
+			printf("\t\thigh_host_flap_threshold set to %f\n",high_host_flap_threshold);
 #endif
 		        }
 		else if(!strcmp(variable,"date_format")){

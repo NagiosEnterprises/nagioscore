@@ -451,6 +451,73 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
+<td colspan='9' class='MacroType'>Summary Macros:</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostsup">$TOTALHOSTSUP$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostsdown">$TOTALHOSTSDOWN$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostsunreachable">$TOTALHOSTSUNREACHABLE$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostsdownunhandled">$TOTALHOSTSDOWNUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostsunreachableunhandled">$TOTALHOSTSUNREACHABLEUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostproblems">$TOTALHOSTPROBLEMS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalhostproblemsunhandled">$TOTALHOSTPROBLEMSUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalservicesok">$TOTALSERVICESOK$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalserviceswarning">$TOTALSERVICESWARNING$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalservicescritical">$TOTALSERVICESCRITICAL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalservicesunknown">$TOTALSERVICESUNKNOWN$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalserviceswarningunhandled">$TOTALSERVICESWARNINGUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalservicescriticalunhandled">$TOTALSERVICESCRITICALUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalservicesunknownunhandled">$TOTALSERVICESUNKNOWNUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalserviceproblems">$TOTALSERVICEPROBLEMS$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#totalserviceproblemsunhandled">$TOTALSERVICEPROBLEMSUNHANDLED$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes <a href="#note4"><sup>4</sup></a></td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td colspan='9' class='MacroType'>Notification Macros:</td>
 </tr>
 <tr>
@@ -945,6 +1012,106 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<td colspan='9' class='MacroType'>SUMMARY Macros:</td>
+</tr>
+
+<tr>
+<a name="totalhostsup"></a>
+<td class="MacroName">$TOTALHOSTSUP$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently in an UP state.</td>
+</tr>
+
+<tr>
+<a name="totalhostsdown"></a>
+<td class="MacroName">$TOTALHOSTSDOWN$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently in a DOWN state.</td>
+</tr>
+
+<tr>
+<a name="totalhostsunreachable"></a>
+<td class="MacroName">$TOTALHOSTSUNREACHABLE$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently in an UNREACHABLE state.</td>
+</tr>
+
+<tr>
+<a name="totalhostsdownunhandled"></a>
+<td class="MacroName">$TOTALHOSTSDOWNUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently in a DOWN state that are not currently being "handled".  Unhandled host problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
+<a name="totalhostsunreachableunhandled"></a>
+<td class="MacroName">$TOTALHOSTSUNREACHABLEUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently in an UNREACHABLE state that are not currently being "handled".  Unhandled host problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
+<a name="totalhostproblems"></a>
+<td class="MacroName">$TOTALHOSTPROBLEMS$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently either in a DOWN or an UNREACHABLE state.</td>
+</tr>
+
+<tr>
+<a name="totalhostproblemsunhandled"></a>
+<td class="MacroName">$TOTALHOSTPROBLEMSUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of hosts that are currently either in a DOWN or an UNREACHABLE state that are not currently being "handled".  Unhandled host problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
+<a name="totalservicesok"></a>
+<td class="MacroName">$TOTALSERVICESOK$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in an OK state.</td>
+</tr>
+
+<tr>
+<a name="totalserviceswarning"></a>
+<td class="MacroName">$TOTALSERVICESWARNING$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in a WARNING state.</td>
+</tr>
+
+<tr>
+<a name="totalservicescritical"></a>
+<td class="MacroName">$TOTALSERVICESCRITICAL$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in a CRITICAL state.</td>
+</tr>
+
+<tr>
+<a name="totalservicesunknown"></a>
+<td class="MacroName">$TOTALSERVICESUNKNOWN$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in an UNKNOWN state.</td>
+</tr>
+
+<tr>
+<a name="totalserviceswarningunhandled"></a>
+<td class="MacroName">$TOTALSERVICESWARNINGUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in a WARNING state that are not currently being "handled".  Unhandled services problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
+<a name="totalservicescriticalunhandled"></a>
+<td class="MacroName">$TOTALSERVICESCRITICALUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in a CRITICAL state that are not currently being "handled".  Unhandled services problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
+<a name="totalservicesunknownunhandled"></a>
+<td class="MacroName">$TOTALSERVICESUNKNOWNUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently in an UNKNOWN state that are not currently being "handled".  Unhandled services problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
+<a name="totalserviceproblems"></a>
+<td class="MacroName">$TOTALSERVICEPROBLEMS$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently either in a WARNING, CRITICAL, or UNKNOWN state.</td>
+</tr>
+
+<tr>
+<a name="totalserviceproblemsunhandled"></a>
+<td class="MacroName">$TOTALSERVICEPROBLEMSUNHANDLED$</td>
+<td class="MacroDescription">This macro reflects the total number of services that are currently either in a WARNING, CRITICAL, or UNKNOWN state that are not currently being "handled".  Unhandled services problems are those that are not acknowledged, are not currently in scheduled downtime, and for which checks are currently enabled.</td>
+</tr>
+
+<tr>
 <td colspan='9' class='MacroType'>Contact Macros:</td>
 </tr>
 
@@ -1136,6 +1303,11 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="note3"></a>
 <p>
 <sup><b>3</b></sup>  When host macros are used in service-related commands (i.e. service notifications, event handlers, etc) they refer to they host that they service is associated with.
+</p>
+
+<a name="note4"></a>
+<p>
+<sup><b>4</b></sup>  When host and service summary macros are used in notification commands, the totals are filtered to reflect only those hosts and services for which the contact is authorized (i.e. hosts and services they are configured to receive notifications for).
 </p>
 
 <hr>

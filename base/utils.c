@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-25-2004
+ * Last Modified:   10-28-2004
  *
  * License:
  *
@@ -198,7 +198,9 @@ extern int      max_embedded_perl_calls;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
+extern host             *host_list;
 extern hostgroup	*hostgroup_list;
+extern service          *service_list;
 extern servicegroup     *servicegroup_list;
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
@@ -310,7 +312,6 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 	int arg_index=0;
 	int user_index=0;
 	int address_index=0;
-	char *encoded_macro=NULL;
 	char *selected_macro=NULL;
 	int clean_macro=FALSE;
 
@@ -592,6 +593,60 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				else if(!strcmp(temp_buffer,"NOTIFICATIONNUMBER"))
 					selected_macro=macro_x[MACRO_NOTIFICATIONNUMBER];
 
+
+				/**********************/
+				/*** SUMMARY MACROS ***/
+				/**********************/
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTSUP"))
+					selected_macro=macro_x[MACRO_TOTALHOSTSUP];
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTSDOWN"))
+					selected_macro=macro_x[MACRO_TOTALHOSTSDOWN];
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTSUNREACHABLE"))
+					selected_macro=macro_x[MACRO_TOTALHOSTSUNREACHABLE];
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTSDOWNUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED];
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTSUNREACHABLEUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED];
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTPROBLEMS"))
+					selected_macro=macro_x[MACRO_TOTALHOSTPROBLEMS];
+
+				else if(!strcmp(temp_buffer,"TOTALHOSTPROBLEMSUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESOK"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESOK];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESWARNING"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESWARNING];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESCRITICAL"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESCRITICAL];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESUNKNOWN"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESUNKNOWN];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESWARNINGUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESCRITICALUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICESUNKNOWNUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICEPROBLEMS"))
+					selected_macro=macro_x[MACRO_TOTALSERVICEPROBLEMS];
+
+				else if(!strcmp(temp_buffer,"TOTALSERVICEPROBLEMSUNHANDLED"))
+					selected_macro=macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED];
+
+
 				/**********************/
 				/*** GENERIC MACROS ***/
 				/**********************/
@@ -821,7 +876,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEEXECUTIONTIME]);
 	macro_x[MACRO_SERVICEEXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 	if(macro_x[MACRO_SERVICEEXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%lf",svc->execution_time);
+		snprintf(macro_x[MACRO_SERVICEEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%.3f",svc->execution_time);
 		macro_x[MACRO_SERVICEEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
@@ -830,7 +885,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICELATENCY]);
 	macro_x[MACRO_SERVICELATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
 	if(macro_x[MACRO_SERVICELATENCY]!=NULL){
-		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH,"%lf",svc->latency);
+		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH,"%.3f",svc->latency);
 		macro_x[MACRO_SERVICELATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
@@ -1148,7 +1203,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTEXECUTIONTIME]);
 	macro_x[MACRO_HOSTEXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 	if(macro_x[MACRO_HOSTEXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_HOSTEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%lf",hst->execution_time);
+		snprintf(macro_x[MACRO_HOSTEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%.3f",hst->execution_time);
 		macro_x[MACRO_HOSTEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
@@ -1157,7 +1212,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTLATENCY]);
 	macro_x[MACRO_HOSTLATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
 	if(macro_x[MACRO_HOSTLATENCY]!=NULL){
-		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH,"%lf",hst->latency);
+		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH,"%.3f",hst->latency);
 		macro_x[MACRO_HOSTLATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
@@ -1480,6 +1535,8 @@ int grab_on_demand_macro(char *str){
 /* grab an on-demand host macro */
 int grab_on_demand_host_macro(host *hst, char *macro){
 	hostgroup *temp_hostgroup;
+	hostextinfo *temp_hostextinfo;
+	char temp_buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	unsigned long duration;
 	int hours;
@@ -1492,6 +1549,9 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	if(hst==NULL || macro==NULL)
 		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-hst->last_state_change);
@@ -1613,7 +1673,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTEXECUTIONTIME")){
 		macro_ondemand=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%lf",hst->execution_time);
+			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%.3f",hst->execution_time);
 			macro_ondemand[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1622,7 +1682,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTLATENCY")){
 		macro_ondemand=(char *)malloc(MAX_LATENCY_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%lf",hst->latency);
+			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%.3f",hst->latency);
 			macro_ondemand[MAX_LATENCY_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1683,6 +1743,49 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		if(temp_hostgroup!=NULL)
 			macro_ondemand=strdup(temp_hostgroup->alias);
 	        }
+
+	/* extended info */
+	else if(!strcmp(macro,"HOSTACTIONURL") || !strcmp(macro,"HOSTNOTESURL") || !strcmp(macro,"HOSTNOTES")){
+		
+		/* find the extended info entry */
+		if((temp_hostextinfo=find_hostextinfo(hst->name))){
+
+			/* action url */
+			if(!strcmp(macro,"HOSTACTIONURL")){
+
+				if(temp_hostextinfo->action_url)
+					macro_ondemand=strdup(temp_hostextinfo->action_url);
+
+				/* action URL macros may themselves contain macros, so process them... */
+				if(macro_ondemand!=NULL){
+					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+					free(macro_ondemand);
+					macro_ondemand=strdup(temp_buffer);
+				        }
+			        }
+
+			/* notes url */
+			if(!strcmp(macro,"HOSTNOTESURL")){
+
+				if(temp_hostextinfo->notes_url)
+					macro_ondemand=strdup(temp_hostextinfo->notes_url);
+
+				/* action URL macros may themselves contain macros, so process them... */
+				if(macro_ondemand!=NULL){
+					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+					free(macro_ondemand);
+					macro_ondemand=strdup(temp_buffer);
+				        }
+			        }
+
+			/* notes */
+			if(!strcmp(macro,"HOSTNOTES")){
+				if(temp_hostextinfo->notes)
+					macro_ondemand=strdup(temp_hostextinfo->notes);
+			        }
+		        }
+	        }
+
 	else
 		return ERROR;
 
@@ -1697,6 +1800,8 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 /* grab an on-demand service macro */
 int grab_on_demand_service_macro(service *svc, char *macro){
 	servicegroup *temp_servicegroup;
+	serviceextinfo *temp_serviceextinfo;
+	char temp_buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	unsigned long duration;
 	int hours;
@@ -1709,6 +1814,9 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	if(svc==NULL || macro==NULL)
 		return ERROR;
+
+	/* initialize the macro */
+	macro_ondemand=NULL;
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-svc->last_state_change);
@@ -1783,7 +1891,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEEXECUTIONTIME")){
 		macro_ondemand=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%lf",svc->execution_time);
+			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%.3f",svc->execution_time);
 			macro_ondemand[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1792,7 +1900,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICELATENCY")){
 		macro_ondemand=(char *)malloc(MAX_LATENCY_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%lf",svc->latency);
+			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%.3f",svc->latency);
 			macro_ondemand[MAX_LATENCY_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1903,6 +2011,49 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 		if(temp_servicegroup!=NULL)
 			macro_ondemand=strdup(temp_servicegroup->alias);
 	        }
+
+	/* extended info */
+	else if(!strcmp(macro,"SERVICEACTIONURL") || !strcmp(macro,"SERVICENOTESURL") || !strcmp(macro,"SERVICENOTES")){
+		
+		/* find the extended info entry */
+		if((temp_serviceextinfo=find_serviceextinfo(svc->host_name,svc->description))){
+
+			/* action url */
+			if(!strcmp(macro,"SERVICEACTIONURL")){
+
+				if(temp_serviceextinfo->action_url)
+					macro_ondemand=strdup(temp_serviceextinfo->action_url);
+
+				/* action URL macros may themselves contain macros, so process them... */
+				if(macro_ondemand!=NULL){
+					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+					free(macro_ondemand);
+					macro_ondemand=strdup(temp_buffer);
+				        }
+			        }
+
+			/* notes url */
+			if(!strcmp(macro,"SERVICENOTESURL")){
+
+				if(temp_serviceextinfo->notes_url)
+					macro_ondemand=strdup(temp_serviceextinfo->notes_url);
+
+				/* action URL macros may themselves contain macros, so process them... */
+				if(macro_ondemand!=NULL){
+					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+					free(macro_ondemand);
+					macro_ondemand=strdup(temp_buffer);
+				        }
+			        }
+
+			/* notes */
+			if(!strcmp(macro,"SERVICENOTES")){
+				if(temp_serviceextinfo->notes)
+					macro_ondemand=strdup(temp_serviceextinfo->notes);
+			        }
+		        }
+	        }
+
 	else
 		return ERROR;
 
@@ -1976,6 +2127,290 @@ int grab_contact_macros(contact *cntct){
 
 	return OK;
         }
+
+
+
+/* grab summary macros (filtered for a specific contact) */
+int grab_summary_macros(contact *temp_contact){
+	host *temp_host;
+	service  *temp_service;
+	int authorized=TRUE;
+	int problem=TRUE;
+
+	int hosts_up=0;
+	int hosts_down=0;
+	int hosts_unreachable=0;
+	int hosts_down_unhandled=0;
+	int hosts_unreachable_unhandled=0;
+	int host_problems=0;
+	int host_problems_unhandled=0;
+
+	int services_ok=0;
+	int services_warning=0;
+	int services_unknown=0;
+	int services_critical=0;
+	int services_warning_unhandled=0;
+	int services_unknown_unhandled=0;
+	int services_critical_unhandled=0;
+	int service_problems=0;
+	int service_problems_unhandled=0;
+
+#ifdef DEBUG0
+	printf("grab_summary_macros() start\n");
+#endif
+
+	/* get host totals */
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* filter totals based on contact if necessary */
+		if(temp_contact!=NULL)
+			authorized=is_contact_for_host(temp_host,temp_contact);
+
+		if(authorized==TRUE){
+			problem=TRUE;
+			
+			if(temp_host->current_state==HOST_UP && temp_host->has_been_checked==TRUE)
+				hosts_up++;
+			else if(temp_host->current_state==HOST_DOWN){
+				if(temp_host->scheduled_downtime_depth>0)
+					problem=FALSE;
+				if(temp_host->problem_has_been_acknowledged==TRUE)
+					problem=FALSE;
+				if(temp_host->checks_enabled==FALSE)
+					problem=FALSE;
+				if(problem==TRUE)
+					hosts_down_unhandled++;
+				hosts_down++;
+				}
+			else if(temp_host->current_state==HOST_UNREACHABLE){
+				if(temp_host->scheduled_downtime_depth>0)
+					problem=FALSE;
+				if(temp_host->problem_has_been_acknowledged==TRUE)
+					problem=FALSE;
+				if(temp_host->checks_enabled==FALSE)
+					problem=FALSE;
+				if(problem==TRUE)
+					hosts_down_unhandled++;
+				hosts_unreachable++;
+				}
+			}
+		}
+
+	host_problems=hosts_down+hosts_unreachable;
+	host_problems_unhandled=hosts_down_unhandled+hosts_unreachable_unhandled;
+
+	/* get service totals */
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		/* filter totals based on contact if necessary */
+		if(temp_contact!=NULL)
+			authorized=is_contact_for_service(temp_service,temp_contact);
+
+		if(authorized==TRUE){
+			problem=TRUE;
+			
+			if(temp_service->current_state==STATE_OK && temp_service->has_been_checked==TRUE)
+				services_ok++;
+			else if(temp_service->current_state==STATE_WARNING){
+				temp_host=find_host(temp_service->host_name);
+				if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
+					problem=FALSE;
+				if(temp_service->scheduled_downtime_depth>0)
+					problem=FALSE;
+				if(temp_service->problem_has_been_acknowledged==TRUE)
+					problem=FALSE;
+				if(temp_service->checks_enabled==FALSE)
+					problem=FALSE;
+				if(problem==TRUE)
+					services_warning_unhandled++;
+				services_warning++;
+		        	}
+			else if(temp_service->current_state==STATE_UNKNOWN){
+				temp_host=find_host(temp_service->host_name);
+				if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
+					problem=FALSE;
+				if(temp_service->scheduled_downtime_depth>0)
+					problem=FALSE;
+				if(temp_service->problem_has_been_acknowledged==TRUE)
+					problem=FALSE;
+				if(temp_service->checks_enabled==FALSE)
+					problem=FALSE;
+				if(problem==TRUE)
+					services_unknown_unhandled++;
+				services_unknown++;
+				}
+			else if(temp_service->current_state==STATE_CRITICAL){
+				temp_host=find_host(temp_service->host_name);
+				if(temp_host!=NULL && (temp_host->current_state==HOST_DOWN || temp_host->current_state==HOST_UNREACHABLE))
+					problem=FALSE;
+				if(temp_service->scheduled_downtime_depth>0)
+					problem=FALSE;
+				if(temp_service->problem_has_been_acknowledged==TRUE)
+					problem=FALSE;
+				if(temp_service->checks_enabled==FALSE)
+					problem=FALSE;
+				if(problem==TRUE)
+					services_critical_unhandled++;
+				services_critical++;
+				}
+			}
+		}
+
+	service_problems=services_warning+services_critical+services_unknown;
+	service_problems_unhandled=services_warning_unhandled+services_critical_unhandled+services_unknown_unhandled;
+
+
+	/* get total hosts up */
+	if(macro_x[MACRO_TOTALHOSTSUP]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTSUP]);
+	macro_x[MACRO_TOTALHOSTSUP]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTSUP]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTSUP],MAX_TOTALS_LENGTH,"%d",hosts_up);
+		macro_x[MACRO_TOTALHOSTSUP][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total hosts down */
+	if(macro_x[MACRO_TOTALHOSTSDOWN]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTSDOWN]);
+	macro_x[MACRO_TOTALHOSTSDOWN]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTSDOWN]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTSDOWN],MAX_TOTALS_LENGTH,"%d",hosts_down);
+		macro_x[MACRO_TOTALHOSTSDOWN][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total hosts unreachable */
+	if(macro_x[MACRO_TOTALHOSTSUNREACHABLE]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTSUNREACHABLE]);
+	macro_x[MACRO_TOTALHOSTSUNREACHABLE]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTSUNREACHABLE]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTSUNREACHABLE],MAX_TOTALS_LENGTH,"%d",hosts_unreachable);
+		macro_x[MACRO_TOTALHOSTSUNREACHABLE][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled hosts down */
+	if(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]);
+	macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED],MAX_TOTALS_LENGTH,"%d",hosts_down_unhandled);
+		macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled hosts unreachable */
+	if(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]);
+	macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED],MAX_TOTALS_LENGTH,"%d",hosts_unreachable_unhandled);
+		macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total host problems */
+	if(macro_x[MACRO_TOTALHOSTPROBLEMS]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTPROBLEMS]);
+	macro_x[MACRO_TOTALHOSTPROBLEMS]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTPROBLEMS]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTPROBLEMS],MAX_TOTALS_LENGTH,"%d",host_problems);
+		macro_x[MACRO_TOTALHOSTPROBLEMS][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled host problems */
+	if(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]);
+	macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED],MAX_TOTALS_LENGTH,"%d",host_problems_unhandled);
+		macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total services ok */
+	if(macro_x[MACRO_TOTALSERVICESOK]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESOK]);
+	macro_x[MACRO_TOTALSERVICESOK]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESOK]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESOK],MAX_TOTALS_LENGTH,"%d",services_ok);
+		macro_x[MACRO_TOTALSERVICESOK][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total services warning */
+	if(macro_x[MACRO_TOTALSERVICESWARNING]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESWARNING]);
+	macro_x[MACRO_TOTALSERVICESWARNING]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESWARNING]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESWARNING],MAX_TOTALS_LENGTH,"%d",services_warning);
+		macro_x[MACRO_TOTALSERVICESWARNING][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total services critical */
+	if(macro_x[MACRO_TOTALSERVICESCRITICAL]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESCRITICAL]);
+	macro_x[MACRO_TOTALSERVICESCRITICAL]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESCRITICAL]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESCRITICAL],MAX_TOTALS_LENGTH,"%d",services_critical);
+		macro_x[MACRO_TOTALSERVICESCRITICAL][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total services unknown */
+	if(macro_x[MACRO_TOTALSERVICESUNKNOWN]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESUNKNOWN]);
+	macro_x[MACRO_TOTALSERVICESUNKNOWN]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESUNKNOWN]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESUNKNOWN],MAX_TOTALS_LENGTH,"%d",services_unknown);
+		macro_x[MACRO_TOTALSERVICESUNKNOWN][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled services warning */
+	if(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]);
+	macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED],MAX_TOTALS_LENGTH,"%d",services_warning_unhandled);
+		macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled services critical */
+	if(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]);
+	macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED],MAX_TOTALS_LENGTH,"%d",services_critical_unhandled);
+		macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled services unknown */
+	if(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]);
+	macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED],MAX_TOTALS_LENGTH,"%d",services_unknown_unhandled);
+		macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total service problems */
+	if(macro_x[MACRO_TOTALSERVICEPROBLEMS]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICEPROBLEMS]);
+	macro_x[MACRO_TOTALSERVICEPROBLEMS]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICEPROBLEMS]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICEPROBLEMS],MAX_TOTALS_LENGTH,"%d",service_problems);
+		macro_x[MACRO_TOTALSERVICEPROBLEMS][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+	/* get total unhandled service problems */
+	if(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]!=NULL)
+		free(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]);
+	macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
+	if(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]!=NULL){
+		snprintf(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED],MAX_TOTALS_LENGTH,"%d",service_problems_unhandled);
+		macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
+		}
+
+#ifdef DEBUG0
+	printf("grab_summary_macros() end\n");
+#endif
+
+	return OK;
+        }
+
 
 
 /* updates date/time macros */

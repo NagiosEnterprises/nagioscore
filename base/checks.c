@@ -229,6 +229,7 @@ void run_service_check(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
+	grab_summary_macros(NULL);
 
 	/* get the raw command line */
 	get_raw_command_line(svc->service_check_command,raw_command,sizeof(raw_command),0);
@@ -2289,6 +2290,7 @@ int run_host_check(host *hst, int check_options){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_summary_macros(NULL);
 
 	/* high resolution start time for event broker */
 	gettimeofday(&start_time_hires,NULL);

@@ -705,6 +705,7 @@ int grab_service_macros(service *svc){
 	int hours;
 	int minutes;
 	int seconds;
+	char temp_buffer[MAX_INPUT_BUFFER];
 	
 #ifdef DEBUG0
 	printf("grab_service_macros() start\n");
@@ -948,6 +949,19 @@ int grab_service_macros(service *svc){
 	strip(macro_x[MACRO_SERVICEOUTPUT]);
 	strip(macro_x[MACRO_SERVICEPERFDATA]);
 	strip(macro_x[MACRO_SERVICECHECKCOMMAND]);
+	strip(macro_x[MACRO_SERVICENOTES]);
+
+	/* notes and action URL macros may themselves contain macros, so process them... */
+	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
+		process_macros(macro_x[MACRO_SERVICEACTIONURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		free(macro_x[MACRO_SERVICEACTIONURL]);
+		macro_x[MACRO_SERVICEACTIONURL]=strdup(temp_buffer);
+	        }
+	if(macro_x[MACRO_SERVICENOTESURL]!=NULL){
+		process_macros(macro_x[MACRO_SERVICENOTESURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		free(macro_x[MACRO_SERVICENOTESURL]);
+		macro_x[MACRO_SERVICENOTESURL]=strdup(temp_buffer);
+	        }
 
 #ifdef DEBUG0
 	printf("grab_service_macros() end\n");
@@ -966,6 +980,7 @@ int grab_host_macros(host *hst){
 	int hours;
 	int minutes;
 	int seconds;
+	char temp_buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
 	printf("grab_host_macros() start\n");
@@ -1208,6 +1223,19 @@ int grab_host_macros(host *hst){
 	strip(macro_x[MACRO_HOSTOUTPUT]);
 	strip(macro_x[MACRO_HOSTPERFDATA]);
 	strip(macro_x[MACRO_HOSTCHECKCOMMAND]);
+	strip(macro_x[MACRO_HOSTNOTES]);
+
+	/* notes and action URL macros may themselves contain macros, so process them... */
+	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
+		process_macros(macro_x[MACRO_HOSTACTIONURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		free(macro_x[MACRO_HOSTACTIONURL]);
+		macro_x[MACRO_HOSTACTIONURL]=strdup(temp_buffer);
+	        }
+	if(macro_x[MACRO_HOSTNOTESURL]!=NULL){
+		process_macros(macro_x[MACRO_HOSTNOTESURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		free(macro_x[MACRO_HOSTNOTESURL]);
+		macro_x[MACRO_HOSTNOTESURL]=strdup(temp_buffer);
+	        }
 
 #ifdef DEBUG0
 	printf("grab_host_macros() end\n");

@@ -2,8 +2,8 @@
  *
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
- * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-07-2002
+ * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-16-2003
  *
  * License:
  *
@@ -49,6 +49,7 @@ char xcddefault_temp_file[MAX_FILENAME_LENGTH]="";
 
 #ifdef NSCORE
 int current_comment_id=0;
+extern comment *comment_list;
 #endif
 
 
@@ -184,6 +185,9 @@ int xcddefault_initialize_comment_data(char *main_config_file){
 	/* create comment file if necessary */
 	xcddefault_create_comment_file();
 
+	/* read comment data */
+	xcddefault_read_comment_data(main_config_file);
+
 	/* clean up the old comment data */
 	xcddefault_validate_comment_data();
 
@@ -194,7 +198,6 @@ int xcddefault_initialize_comment_data(char *main_config_file){
 
 /* creates an empty comment data file if one doesn't already exist */
 int xcddefault_create_comment_file(void){
-	FILE *fp;
 	struct stat statbuf;
 
 	/* bail out if file already exists */
@@ -202,11 +205,7 @@ int xcddefault_create_comment_file(void){
 		return OK;
 
 	/* create an empty file */
-	fp=fopen(xcddefault_comment_file,"w");
-	if(fp==NULL)
-		return ERROR;
-
-	fclose(fp);
+	xcddefault_save_comment_data();
 
 	return OK;
         }
@@ -215,139 +214,48 @@ int xcddefault_create_comment_file(void){
 
 /* removes invalid and old comments from the comment file */
 int xcddefault_validate_comment_data(void){
-	char input_buffer[MAX_INPUT_BUFFER];
-	char output_buffer[MAX_INPUT_BUFFER];
-	char *entry_time;
-	char *comment_author;
-	char *comment_data;
-	char *temp_buffer;
-	FILE *fpin;
-	FILE *fpout;
+	comment *temp_comment;
+	comment *next_comment;
+	int update_file=FALSE;
 	int save=TRUE;
-	host *temp_host=NULL;
-	service *temp_service=NULL;
-	int comment_type=HOST_COMMENT;
-	int comment_id;
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
+	/* remove stale comments */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=next_comment){
 
-	/* open a safe temp file for output */
-	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xcddefault_temp_file);
-	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
-		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
-		unlink(temp_file);
-		return ERROR;
-	        }
+		next_comment=temp_comment->next;
+		save=TRUE;
 
-	/* open current comment file for reading */
-	fpin=fopen(xcddefault_comment_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
+		/* delete comments with invalid host names */
+		if(find_host(temp_comment->host_name)==NULL)
+			save=FALSE;
+
+		/* delete comments with invalid service descriptions */
+		if(temp_comment->comment_type==SERVICE_COMMENT && find_service(temp_comment->host_name,temp_comment->service_description)==NULL)
+			save=FALSE;
+
+		/* delete non-persistent comments */
+		if(temp_comment->persistent==FALSE)
+			save=FALSE;
+
+		/* delete the comment */
+		if(save==FALSE){
+			update_file=TRUE;
+			delete_comment(temp_comment->comment_type,temp_comment->comment_id);
+		        }
+	        }	
+
+	/* update comment file */
+	if(update_file==TRUE)
+		xcddefault_save_comment_data();
 
 	/* reset the current comment counter */
 	current_comment_id=0;
 
-	/* process each line in the old comment file */
-	while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),fpin)){
-
-		if(feof(fpin))
-			break;
-
-		save=TRUE;
-
-		/* this is a host comment */
-		if(strstr(input_buffer,"] HOST_COMMENT;"))
-			comment_type=HOST_COMMENT;
-
-		/* this is a service comment */
-		else if(strstr(input_buffer,"] SERVICE_COMMENT;"))
-			comment_type=SERVICE_COMMENT;
-		
-		/* else this is not a comment, so skip it */
-		else
-			continue;
-
-		/* get the comment entry time */
-		temp_buffer=my_strtok(input_buffer,"[");
-		entry_time=my_strtok(NULL,"]");
-
-		/* skip the comment type identifier */
-		temp_buffer=my_strtok(NULL,";");
-
-		/* grab the comment ID number - make sure global comment counter is as big as the max value found */
-		temp_buffer=my_strtok(NULL,";");
-		comment_id=atoi(temp_buffer);
-		if(comment_id>=current_comment_id)
-			current_comment_id=comment_id;
-
-		/* see if the host still exists */
-		temp_buffer=my_strtok(NULL,";");
-		temp_host=find_host((temp_buffer==NULL)?"":temp_buffer);
-		if(temp_host==NULL)
-			save=FALSE;
-
-		/* if this is a service comment, make sure the service still exists */
-		if(comment_type==SERVICE_COMMENT){
-			temp_buffer=my_strtok(NULL,";");
-			if(temp_host!=NULL)
-				temp_service=find_service(temp_host->name,(temp_buffer==NULL)?"":temp_buffer);
-			else
-				temp_service=NULL;
-			if(temp_service==NULL)
-				save=FALSE;
-
-		        }
-
-		/* see if the comment is persistent */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			save=FALSE;
-		else if(atoi(temp_buffer)==0)
-			save=FALSE;
-
-		/* get the comment author */
-		comment_author=my_strtok(NULL,";");
-
-		/* get the comment data */
-		comment_data=my_strtok(NULL,"\n");
-
-		/* write the old comment to the new file - COMMENTS ARE NO LONGER RE-NUMBERED */
-		if(save==TRUE){
-
-			snprintf(output_buffer,sizeof(output_buffer)-1,"[%s] %s_COMMENT;%d;%s;",entry_time,(comment_type==HOST_COMMENT)?"HOST":"SERVICE",comment_id,temp_host->name);
-			output_buffer[sizeof(output_buffer)-1]='\x0';
-			fputs(output_buffer,fpout);
-
-			if(comment_type==SERVICE_COMMENT){
-				snprintf(output_buffer,sizeof(output_buffer)-1,"%s;",temp_service->description);
-				output_buffer[sizeof(output_buffer)-1]='\x0';
-				fputs(output_buffer,fpout);
-			        }
-
-			snprintf(output_buffer,sizeof(output_buffer)-1,"1;%s;%s\n",comment_author,comment_data);
-			output_buffer[sizeof(output_buffer)-1]='\x0';
-			fputs(output_buffer,fpout);
-		        }
+	/* find the new starting index for comment id */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+		if(temp_comment->comment_id>current_comment_id)
+			current_comment_id=temp_comment->comment_id;
 	        }
-
-	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
-
-	/* replace old comment file */
-	if(my_rename(temp_file,xcddefault_comment_file))
-		return ERROR;
 
 	return OK;
         }
@@ -369,24 +277,17 @@ int xcddefault_cleanup_comment_data(char *main_config_file){
 /******************************************************************/
 
 
-/* saves a new host comment */
-int xcddefault_save_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int *comment_id){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+/* adds a new host comment */
+int xcddefault_add_new_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int *comment_id){
 
 	/* increment the current comment id */
 	current_comment_id++;
 
-	/* create the comment string */
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu] HOST_COMMENT;%d;%s;%d;%s;%s\n",(unsigned long)entry_time,current_comment_id,host_name,persistent,author_name,comment_data);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	
-	/* open the comment file */
-	fp=fopen(xcddefault_comment_file,"a");
-	if(fp==NULL)
-		return ERROR;
-	fputs(temp_buffer,fp);
-	fclose(fp);
+	/* add comment to list in memory */
+	add_host_comment(host_name,entry_time,author_name,comment_data,current_comment_id,persistent,source);
+
+	/* update comment file */
+	xcddefault_save_comment_data();
 
 	/* return the id for the comment we just added */
 	if(comment_id!=NULL)
@@ -396,24 +297,17 @@ int xcddefault_save_host_comment(char *host_name, time_t entry_time, char *autho
         }
 
 
-/* saves a new service comment */
-int xcddefault_save_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int *comment_id){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+/* adds a new service comment */
+int xcddefault_add_new_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int *comment_id){
 
 	/* increment the current comment id */
 	current_comment_id++;
 
-	/* create the comment string */
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu] SERVICE_COMMENT;%d;%s;%s;%d;%s;%s\n",(unsigned long)entry_time,current_comment_id,host_name,svc_description,persistent,author_name,comment_data);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	
-	/* open the comment file */
-	fp=fopen(xcddefault_comment_file,"a");
-	if(fp==NULL)
-		return ERROR;
-	fputs(temp_buffer,fp);
-	fclose(fp);
+	/* add comment to list in memory */
+	add_service_comment(host_name,svc_description,entry_time,author_name,comment_data,current_comment_id,persistent,source);
+
+	/* update comment file */
+	xcddefault_save_comment_data();
 
 	/* return the id for the comment we just added */
 	if(comment_id!=NULL)
@@ -431,57 +325,9 @@ int xcddefault_save_service_comment(char *host_name, char *svc_description, time
 
 /* deletes a host comment */
 int xcddefault_delete_host_comment(int comment_id){
-	FILE *fpin;
-	FILE *fpout;
-	char match[MAX_INPUT_BUFFER];
-	char buffer[MAX_INPUT_BUFFER];
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
-	/* create the matching string we're looking for in the log file */
-	snprintf(match,sizeof(match),"] HOST_COMMENT;%d;",comment_id);
-	match[sizeof(match)-1]='\x0';
-
-	/* open a safe temp file for output */
-	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xcddefault_temp_file);
-	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
-		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* open current comment file for reading */
-	fpin=fopen(xcddefault_comment_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* write every line in the comment file, except the matching comment */
-	while(fgets(buffer,(int)(sizeof(buffer)-1),fpin)){
-
-		if(feof(fpin))
-			break;
-
-		if(!strstr(buffer,match))
-			fputs(buffer,fpout);
-	        }
-
-	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
-
-	/* replace old comment file */
-	if(my_rename(temp_file,xcddefault_comment_file))
-		return ERROR;
+	/* update comment file */
+	xcddefault_save_comment_data();
 
 	return OK;
         }
@@ -489,57 +335,9 @@ int xcddefault_delete_host_comment(int comment_id){
 
 /* deletes a service comment */
 int xcddefault_delete_service_comment(int comment_id){
-	FILE *fpin;
-	FILE *fpout;
-	char match[MAX_INPUT_BUFFER];
-	char buffer[MAX_INPUT_BUFFER];
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
-	/* create the matching string we're looking for in the log file */
-	snprintf(match,sizeof(match),"] SERVICE_COMMENT;%d;",comment_id);
-	match[sizeof(match)-1]='\x0';
-
-	/* open a safe temp file for output */
-	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xcddefault_temp_file);
-	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
-		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* open current comment file for reading */
-	fpin=fopen(xcddefault_comment_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* write every line in the comment file, except the matching comment */
-	while(fgets(buffer,(int)(sizeof(buffer)-1),fpin)){
-
-		if(feof(fpin))
-			break;
-
-		if(!strstr(buffer,match))
-			fputs(buffer,fpout);
-	        }
-
-	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
-
-	/* replace old comment file */
-	if(my_rename(temp_file,xcddefault_comment_file))
-		return ERROR;
+	/* update comment file */
+	xcddefault_save_comment_data();
 
 	return OK;
         }
@@ -547,60 +345,9 @@ int xcddefault_delete_service_comment(int comment_id){
 
 /* deletes all comments for a particular host */
 int xcddefault_delete_all_host_comments(char *host_name){
-	FILE *fpin;
-	FILE *fpout;
-	char buffer[MAX_INPUT_BUFFER];
-	char match1[MAX_INPUT_BUFFER];
-	char match2[MAX_INPUT_BUFFER];
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
-	/* create the matching string we're looking for in the log file */
-	snprintf(match1,sizeof(match1),"] HOST_COMMENT;");
-	snprintf(match2,sizeof(match2),";%s;",host_name);
-	match1[sizeof(match1)-1]='\x0';
-	match2[sizeof(match2)-1]='\x0';
-
-	/* open a safe temp file for output */
-	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xcddefault_temp_file);
-	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
-		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* open current comment file for reading */
-	fpin=fopen(xcddefault_comment_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* write every line in the comment file, except the matching comment(s) */
-	while(fgets(buffer,(int)(sizeof(buffer)-1),fpin)){
-
-		if(feof(fpin))
-			break;
-
-		if(!(strstr(buffer,match1) && strstr(buffer,match2)))
-			fputs(buffer,fpout);
-	        }
-
-	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
-
-	/* replace old comment file */
-	if(my_rename(temp_file,xcddefault_comment_file))
-		return ERROR;
+	/* update comment file */
+	xcddefault_save_comment_data();
 
 	return OK;
         }
@@ -608,58 +355,81 @@ int xcddefault_delete_all_host_comments(char *host_name){
 
 /* deletes all comments for a particular service */
 int xcddefault_delete_all_service_comments(char *host_name, char *svc_description){
-	FILE *fpin;
-	FILE *fpout;
-	char buffer[MAX_INPUT_BUFFER];
-	char match1[MAX_INPUT_BUFFER];
-	char match2[MAX_INPUT_BUFFER];
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
-	/* create the matching string we're looking for in the log file */
-	snprintf(match1,sizeof(match1),"] SERVICE_COMMENT;");
-	snprintf(match2,sizeof(match2),";%s;%s;",host_name,svc_description);
-	match1[sizeof(match1)-1]='\x0';
-	match2[sizeof(match2)-1]='\x0';
+	/* update comment file */
+	xcddefault_save_comment_data();
+
+	return OK;
+        }
+
+
+/******************************************************************/
+/****************** COMMENT OUTPUT FUNCTIONS **********************/
+/******************************************************************/
+
+/* writes comment data to file */
+int xcddefault_save_comment_data(void){
+	char buffer[MAX_INPUT_BUFFER];
+	char temp_file[MAX_FILENAME_LENGTH];
+	time_t current_time;
+	comment *temp_comment;
+	int fd=0;
+	FILE *fp=NULL;
 
 	/* open a safe temp file for output */
 	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xcddefault_temp_file);
 	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
+	if((fd=mkstemp(temp_file))==-1)
 		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
+	fp=fdopen(fd,"w");
+	if(fp==NULL){
+		close(fd);
 		unlink(temp_file);
 		return ERROR;
 	        }
 
-	/* open current comment file for reading */
-	fpin=fopen(xcddefault_comment_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
+	/* write header */
+	fprintf(fp,"########################################\n");
+	fprintf(fp,"#          NAGIOS COMMENT FILE\n");
+	fprintf(fp,"#\n");
+	fprintf(fp,"# THIS FILE IS AUTOMATICALLY GENERATED\n");
+	fprintf(fp,"# BY NAGIOS.  DO NOT MODIFY THIS FILE!\n");
+	fprintf(fp,"########################################\n\n");
 
-	/* write every line in the comment file, except the matching comment(s) */
-	while(fgets(buffer,(int)(sizeof(buffer)-1),fpin)){
+	time(&current_time);
 
-		if(feof(fpin))
-			break;
+	/* write file info */
+	fprintf(fp,"info {\n");
+	fprintf(fp,"\tcreated=%lu\n",current_time);
+	fprintf(fp,"\tversion=%s\n",PROGRAM_VERSION);
+	fprintf(fp,"\t}\n\n");
 
-		if(!(strstr(buffer,match1) && strstr(buffer,match2)))
-			fputs(buffer,fpout);
+	/* save all comments */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+
+		if(temp_comment->comment_type==HOST_COMMENT)
+			fprintf(fp,"hostcomment {\n");
+		else
+			fprintf(fp,"servicecomment {\n");
+		fprintf(fp,"\thost_name=%s\n",temp_comment->host_name);
+		if(temp_comment->comment_type==SERVICE_COMMENT)
+			fprintf(fp,"\tservice_description=%s\n",temp_comment->service_description);
+		fprintf(fp,"\tcomment_id=%d\n",temp_comment->comment_id);
+		fprintf(fp,"\tsource=%d\n",temp_comment->source);
+		fprintf(fp,"\tpersistent=%d\n",temp_comment->persistent);
+		fprintf(fp,"\tentry_time=%lu\n",temp_comment->entry_time);
+		fprintf(fp,"\tauthor=%s\n",temp_comment->author);
+		fprintf(fp,"\tcomment_data=%s\n",temp_comment->comment_data);
+		fprintf(fp,"\t}\n\n");
 	        }
 
 	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+	fchmod(fd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
+	/* close the temp file */
+	fclose(fp);
 
-	/* replace old comment file */
+	/* move the temp file to the comment file (overwrite the old comment file) */
 	if(my_rename(temp_file,xcddefault_comment_file))
 		return ERROR;
 
@@ -670,7 +440,6 @@ int xcddefault_delete_all_service_comments(char *host_name, char *svc_descriptio
 
 
 
-#ifdef NSCGI
 
 /******************************************************************/
 /****************** COMMENT INPUT FUNCTIONS ***********************/
@@ -679,92 +448,123 @@ int xcddefault_delete_all_service_comments(char *host_name, char *svc_descriptio
 
 /* read the comment file */
 int xcddefault_read_comment_data(char *main_config_file){
-	char input_buffer[MAX_INPUT_BUFFER];
-	char *temp_buffer;
+	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_ptr;
 	FILE *fp;
+	int data_type=XCDDEFAULT_NO_DATA;
+	int x;
+	char *var;
+	char *val;
+	int result;
 	int comment_id;
 	int comment_type;
-	int persistent=0;
+	int persistent=FALSE;
+	int source=COMMENTSOURCE_INTERNAL;
 	time_t entry_time;
-	char *host_name="";
-	char *service_description="";
-	char *author="";
-	char *comment_data="";
+	char *host_name=NULL;
+	char *service_description=NULL;
+	char *author=NULL;
+	char *comment_data=NULL;
 
-	/* grab configuration information */
-	if(xcddefault_grab_config_info(main_config_file)==ERROR)
+	/* grab configuration data */
+	result=xcddefault_grab_config_info(main_config_file);
+	if(result==ERROR)
 		return ERROR;
 
-	/* open the comment */
+	/* open the comment file for reading */
 	fp=fopen(xcddefault_comment_file,"r");
 	if(fp==NULL)
 		return ERROR;
 
-	while(read_line(input_buffer,MAX_INPUT_BUFFER-1,fp)){
+	/* read all lines in the comment file */
+	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
 
-	        if(feof(fp))
-		        break;
+		strip(temp_buffer);
 
-		if(input_buffer==NULL)
-		        continue;
-
-		if(!strstr(input_buffer,"] HOST_COMMENT;") && !strstr(input_buffer,"] SERVICE_COMMENT;"))
+		/* skip blank lines and comments */
+		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0')
 			continue;
 
-		/* host comment or service comment? */
-		if(strstr(input_buffer,"] HOST_COMMENT;"))
-			comment_type=HOST_COMMENT;
-		else
-			comment_type=SERVICE_COMMENT;
+		else if(!strcmp(temp_buffer,"info {"))
+			data_type=XCDDEFAULT_INFO_DATA;
+		else if(!strcmp(temp_buffer,"hostcomment {"))
+			data_type=XCDDEFAULT_HOST_DATA;
+		else if(!strcmp(temp_buffer,"servicecomment {"))
+			data_type=XCDDEFAULT_SERVICE_DATA;
 
+		else if(!strcmp(temp_buffer,"}")){
 
-		/* get the entry time */
-		temp_buffer=my_strtok(input_buffer,"[");
-		temp_buffer=my_strtok(NULL,"]");
-		if(temp_buffer==NULL)
-			continue;
-		entry_time=(time_t)strtoul(temp_buffer,NULL,10);
+			switch(data_type){
 
-		/* get the comment id */
-		temp_buffer=my_strtok(NULL,";");
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		comment_id=atoi(temp_buffer);
+			case XCDDEFAULT_INFO_DATA:
+				break;
 
-		/* get the host name */
-		host_name=my_strtok(NULL,";");
-		if(host_name==NULL)
-			continue;
+			case XCDDEFAULT_HOST_DATA:
+			case XCDDEFAULT_SERVICE_DATA:
+				/* we could possibly renumber commend IDs here if we wanted to, but we won't... */
+				add_comment((data_type==XCDDEFAULT_HOST_DATA)?HOST_COMMENT:SERVICE_COMMENT,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,source);
+				break;
 
-		/* get the service name */
-		if(comment_type==SERVICE_COMMENT){
-			service_description=my_strtok(NULL,";");
-			if(service_description==NULL)
-				continue;
+			default:
+				break;
+			        }
+
+			data_type=XCDDEFAULT_NO_DATA;
+
+			/* free temp memory */
+			free(host_name);
+			free(service_description);
+			free(author);
+			free(comment_data);
+
+			/* reset defaults */
+			host_name=NULL;
+			service_description=NULL;
+			author=NULL;
+			comment_data=NULL;
+			comment_id=0;
+			source=COMMENTSOURCE_INTERNAL;
+			persistent=FALSE;
+			entry_time=0L;
 		        }
-		
-		/* get the perisitent flag */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		persistent=atoi(temp_buffer);
 
-		/* get the author */
-		author=my_strtok(NULL,";");
-		if(author==NULL)
-			continue;
-		
-		/* get the comment data */
-		comment_data=my_strtok(NULL,"\n");
-		if(comment_data==NULL)
-			continue;
+		else if(data_type!=XCDDEFAULT_NO_DATA){
 
-		/* add the comment */
-		if(comment_type==HOST_COMMENT)
-			add_host_comment(host_name,entry_time,author,comment_data,comment_id,persistent);
-		else
-			add_service_comment(host_name,service_description,entry_time,author,comment_data,comment_id,persistent);
+			var=strtok(temp_buffer,"=");
+			val=strtok(NULL,"\n");
+			if(val==NULL)
+				continue;
+
+			switch(data_type){
+
+			case XCDDEFAULT_INFO_DATA:
+				break;
+
+			case XCDDEFAULT_HOST_DATA:
+			case XCDDEFAULT_SERVICE_DATA:
+				if(!strcmp(var,"host_name"))
+					host_name=strdup(val);
+				else if(!strcmp(var,"service_description"))
+					service_description=strdup(val);
+				else if(!strcmp(var,"comment_id"))
+					comment_id=atoi(val);
+				else if(!strcmp(var,"source"))
+					source=atoi(val);
+				else if(!strcmp(var,"persistent"))
+					persistent=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"entry_time"))
+					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"author"))
+					author=strdup(val);
+				else if(!strcmp(var,"comment_data"))
+					comment_data=strdup(val);
+				break;
+
+			default:
+				break;
+			        }
+
+		        }
 	        }
 
 	fclose(fp);
@@ -772,5 +572,4 @@ int xcddefault_read_comment_data(char *main_config_file){
 	return OK;
         }
 
-#endif
 

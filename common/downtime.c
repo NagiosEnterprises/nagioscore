@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   03-16-2003
  *
  * License:
  *
@@ -145,7 +145,10 @@ int unschedule_downtime(int type,int downtime_id){
 
 
 	/* delete the comment we added */
-	delete_comment((temp_downtime->type==HOST_DOWNTIME)?HOST_COMMENT:SERVICE_COMMENT,temp_downtime->comment_id);
+	if(temp_downtime->type==HOST_DOWNTIME)
+		delete_host_comment(temp_downtime->comment_id);
+	else
+		delete_service_comment(temp_downtime->comment_id);
 
 
 	/* find the host or service associated with this downtime */
@@ -291,9 +294,9 @@ int register_downtime(int type, int downtime_id){
 
 	/* add a non-persistent comment to the host or service regarding the scheduled outage */
 	if(temp_downtime->type==SERVICE_DOWNTIME)
-		save_comment(SERVICE_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",temp_buffer,0,&(temp_downtime->comment_id));
+		add_new_comment(SERVICE_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",temp_buffer,0,COMMENTSOURCE_INTERNAL,&(temp_downtime->comment_id));
 	else
-		save_comment(HOST_COMMENT,hst->name,NULL,time(NULL),"(Nagios Process)",temp_buffer,0,&(temp_downtime->comment_id));
+		add_new_comment(HOST_COMMENT,hst->name,NULL,time(NULL),"(Nagios Process)",temp_buffer,0,COMMENTSOURCE_INTERNAL,&(temp_downtime->comment_id));
 
 
 	/*** SCHEDULE DOWNTIME - FLEXIBLE (NON-FIXED) DOWNTIME IS HANDLED AT A LATER POINT ***/
@@ -410,7 +413,10 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			update_service_status(svc,FALSE);
 
 		/* delete the comment we added */
-		delete_comment((temp_downtime->type==HOST_DOWNTIME)?HOST_COMMENT:SERVICE_COMMENT,temp_downtime->comment_id);
+		if(temp_downtime->type==HOST_DOWNTIME)
+			delete_host_comment(temp_downtime->comment_id);
+		else
+			delete_service_comment(temp_downtime->comment_id);
 
 		/* delete downtime entry from the log */
 		delete_downtime(temp_downtime->type,temp_downtime->downtime_id);
@@ -628,7 +634,10 @@ int check_for_expired_downtime(void){
 			delete_downtime(temp_downtime->type,temp_downtime->downtime_id);
 
 			/* delete the comment we added */
-			delete_comment((temp_downtime->type==HOST_DOWNTIME)?HOST_COMMENT:SERVICE_COMMENT,temp_downtime->comment_id);
+			if(temp_downtime->type==HOST_DOWNTIME)
+				delete_host_comment(temp_downtime->comment_id);
+			else
+				delete_service_comment(temp_downtime->comment_id);
 
 			/* remove the entry from the list in memory */
 			if(scheduled_downtime_list==temp_downtime)

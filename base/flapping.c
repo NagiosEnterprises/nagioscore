@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   03-16-2003
  *
  * License:
  *
@@ -282,12 +282,12 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 	/* log a notice - this one is parsed by the history CGI */
 	snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;STARTED; Service appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+	write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,FALSE);
 
 	/* add a non-persistent comment to the service */
 	snprintf(buffer,sizeof(buffer)-1,"Notifications for this service are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	save_comment(SERVICE_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",buffer,0,&(svc->flapping_comment_id));
+	add_new_service_comment(svc->host_name,svc->description,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,&(svc->flapping_comment_id));
 
 	/* set the flapping indicator */
 	svc->is_flapping=TRUE;
@@ -317,7 +317,7 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 	/* log a notice - this one is parsed by the history CGI */
 	snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;STOPPED; Service appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,low_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
 
 	/* delete the comment we added earlier */
 	if(svc->flapping_comment_id!=-1)
@@ -353,12 +353,12 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 	/* log a notice - this one is parsed by the history CGI */
 	snprintf(buffer,sizeof(buffer)-1,"HOST FLAPPING ALERT: %s;STARTED; Host appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",hst->name,percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+	write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,FALSE);
 
 	/* add a non-persistent comment to the host */
 	snprintf(buffer,sizeof(buffer)-1,"Notifications for this host are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the host state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	save_comment(HOST_COMMENT,hst->name,"",time(NULL),"(Nagios Process)",buffer,0,&(hst->flapping_comment_id));
+	add_new_host_comment(hst->name,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,&(hst->flapping_comment_id));
 
 	/* set the flapping indicator */
 	hst->is_flapping=TRUE;
@@ -388,7 +388,7 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 	/* log a notice - this one is parsed by the history CGI */
 	snprintf(buffer,sizeof(buffer)-1,"HOST FLAPPING ALERT: %s;STOPPED; Host appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",hst->name,percent_change,low_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,FALSE);
 
 	/* delete the comment we added earlier */
 	if(hst->flapping_comment_id!=-1)

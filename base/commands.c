@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-24-2003
+ * Last Modified:   03-16-2003
  *
  * License:
  *
@@ -715,7 +715,7 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 		return ERROR;
 
 	/* add the comment */
-	result=save_comment((cmd==CMD_ADD_HOST_COMMENT)?HOST_COMMENT:SERVICE_COMMENT,host_name,svc_description,entry_time,user,comment,persistent,NULL);
+	result=add_new_comment((cmd==CMD_ADD_HOST_COMMENT)?HOST_COMMENT:SERVICE_COMMENT,host_name,svc_description,entry_time,user,comment,persistent,COMMENTSOURCE_EXTERNAL,NULL);
 
 	if(result<0)
 		return ERROR;
@@ -742,7 +742,10 @@ int cmd_delete_comment(int cmd,char *args){
 		return ERROR;
 
 	/* delete the specified comment */
-	delete_comment((cmd==CMD_DEL_HOST_COMMENT)?HOST_COMMENT:SERVICE_COMMENT,comment_id);
+	if(cmd==CMD_DEL_HOST_COMMENT)
+		delete_host_comment(comment_id);
+	else
+		delete_service_comment(comment_id);
 
 #ifdef DEBUG0
 	printf("cmd_del_comment() end\n");

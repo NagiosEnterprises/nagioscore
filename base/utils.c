@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2003
+ * Last Modified:   03-16-2003
  *
  * License:
  *
@@ -27,6 +27,7 @@
 #include "../common/common.h"
 #include "../common/objects.h"
 #include "../common/statusdata.h"
+#include "../common/comments.h"
 
 #include "nagios.h"
 #include "broker.h"
@@ -3175,6 +3176,9 @@ void free_memory(void){
 
 	/* free all allocated memory for the object definitions */
 	free_object_data();
+
+	/* free memory allocated to comments */
+	free_comment_data();
 
 	/* free memory for the high priority event list */
 	this_event=event_list_high;

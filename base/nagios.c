@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   03-11-2003
+ * Last Modified:   03-16-2003
  *
  * Description:
  *
@@ -597,12 +597,6 @@ int main(int argc, char **argv){
 		        /* initialize status data */
 			initialize_status_data(config_file);
 
-			/* read initial service and host state information  */
-			read_initial_state_information(config_file);
-
-			/* update all status data (with retained information) */
-			update_all_status_data();
-
 			/* initialize comment data */
 			initialize_comment_data(config_file);
 			
@@ -611,6 +605,12 @@ int main(int argc, char **argv){
 			
 			/* initialize performance data */
 			initialize_performance_data(config_file);
+
+			/* read initial service and host state information  */
+			read_initial_state_information(config_file);
+
+			/* update all status data (with retained information) */
+			update_all_status_data();
 
 			/* create pipe used for service check IPC */
 			if(pipe(ipc_pipe)){

@@ -442,12 +442,12 @@ int xsddefault_read_status_data(char *config_file,int options){
 	if(result==ERROR)
 		return ERROR;
 
-	/* opent the status log for reading */
+	/* open the status file for reading */
 	fp=fopen(xsddefault_status_log,"r");
 	if(fp==NULL)
 		return ERROR;
 
-	/* read all lines in the retention file */
+	/* read all lines in the status file */
 	while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
 
 		strip(temp_buffer);

@@ -5,6 +5,7 @@ Nagios Change Log
 1.0b3 - 06/??/2002
 ------------------
 * Bug fixes in template-based object code
+* Bug fix in tac CGI for counting host and service states properly
 
 
 1.0b2 - 05/27/2002

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-27-2002
+# Last Modified: 05-30-2002
 #
 ##############################################################################
 
@@ -113,8 +113,10 @@ check_external_commands=0
 # to reading the external command file at regularly scheduled intervals, 
 # Nagios will also check for external commands after event handlers are
 # executed.
+# NOTE: Setting this value to -1 causes Nagios to check the external
+# command file as often as possible.
 
-command_check_interval=1
+command_check_interval=-1
 
 
 

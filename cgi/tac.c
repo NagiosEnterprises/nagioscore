@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 05-30-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -140,34 +140,41 @@ int hosts_pending=0;
 int hosts_pending_disabled=0;
 int hosts_up_disabled=0;
 int hosts_up_unacknowledged=0;
+int hosts_up=0;
 int hosts_down_scheduled=0;
 int hosts_down_acknowledged=0;
 int hosts_down_disabled=0;
 int hosts_down_unacknowledged=0;
+int hosts_down=0;
 int hosts_unreachable_scheduled=0;
 int hosts_unreachable_acknowledged=0;
 int hosts_unreachable_disabled=0;
 int hosts_unreachable_unacknowledged=0;
+int hosts_unreachable=0;
 
 int services_pending=0;
 int services_pending_disabled=0;
 int services_ok_disabled=0;
 int services_ok_unacknowledged=0;
+int services_ok=0;
 int services_warning_host_problem=0;
 int services_warning_scheduled=0;
 int services_warning_acknowledged=0;
 int services_warning_disabled=0;
 int services_warning_unacknowledged=0;
+int services_warning=0;
 int services_unknown_host_problem=0;
 int services_unknown_scheduled=0;
 int services_unknown_acknowledged=0;
 int services_unknown_disabled=0;
 int services_unknown_unacknowledged=0;
+int services_unknown=0;
 int services_critical_host_problem=0;
 int services_critical_scheduled=0;
 int services_critical_acknowledged=0;
 int services_critical_disabled=0;
 int services_critical_unacknowledged=0;
+int services_critical=0;
 
 
 
@@ -429,6 +436,7 @@ void analyze_status_data(void){
 				services_ok_disabled++;
 			else
 				services_ok_unacknowledged++;
+			services_ok++;
 		        }
 
 		else if(temp_servicestatus->status==SERVICE_WARNING){
@@ -451,6 +459,7 @@ void analyze_status_data(void){
 			        }
 			if(problem==TRUE)
 				services_warning_unacknowledged++;
+			services_warning++;
 		        }
 
 		else if(temp_servicestatus->status==SERVICE_UNKNOWN){
@@ -473,6 +482,7 @@ void analyze_status_data(void){
 			        }
 			if(problem==TRUE)
 				services_unknown_unacknowledged++;
+			services_unknown++;
 		        }
 
 		else if(temp_servicestatus->status==SERVICE_CRITICAL){
@@ -495,13 +505,13 @@ void analyze_status_data(void){
 			        }
 			if(problem==TRUE)
 				services_critical_unacknowledged++;
+			services_critical++;
 		        }
 
 		else if(temp_servicestatus->status==SERVICE_PENDING){
 			if(temp_servicestatus->checks_enabled==FALSE)
 				services_pending_disabled++;
-			else
-				services_pending++;
+			services_pending++;
 		        }
 
 
@@ -581,6 +591,7 @@ void analyze_status_data(void){
 				hosts_up_disabled++;
 			else
 				hosts_up_unacknowledged++;
+			hosts_up++;
 		        }
 
 		else if(temp_hoststatus->status==HOST_DOWN){
@@ -598,6 +609,7 @@ void analyze_status_data(void){
 			        }
 			if(problem==TRUE)
 				hosts_down_unacknowledged++;
+			hosts_down++;
 		        }
 
 		else if(temp_hoststatus->status==HOST_UNREACHABLE){
@@ -615,13 +627,13 @@ void analyze_status_data(void){
 			        }
 			if(problem==TRUE)
 				hosts_unreachable_unacknowledged++;
+			hosts_unreachable++;
 		        }
 		
 		else if(temp_hoststatus->status==HOST_PENDING){
 			if(temp_hoststatus->checks_enabled==FALSE)
 				hosts_pending_disabled++;
-			else
-				hosts_pending++;
+			hosts_pending++;
 		        }
 
 		/* get health stats */
@@ -1028,9 +1040,9 @@ void display_tac_overview(void){
 	printf("<tr><td colspan=4 height=20 class='hostTitle'>&nbsp;Hosts</td></tr>\n");
 
 	printf("<tr>\n");
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Down</a></td>\n",STATUS_CGI,HOST_DOWN,hosts_down_unacknowledged+hosts_down_scheduled+hosts_down_acknowledged+hosts_down_disabled);
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Unreachable</a></td>\n",STATUS_CGI,HOST_UNREACHABLE,hosts_unreachable_unacknowledged+hosts_unreachable_scheduled+hosts_unreachable_acknowledged+hosts_unreachable_disabled);
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Up</a></td>\n",STATUS_CGI,HOST_UP,hosts_up_unacknowledged+hosts_up_disabled);
+	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Down</a></td>\n",STATUS_CGI,HOST_DOWN,hosts_down);
+	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Unreachable</a></td>\n",STATUS_CGI,HOST_UNREACHABLE,hosts_unreachable);
+	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Up</a></td>\n",STATUS_CGI,HOST_UP,hosts_up);
 	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Pending</a></td>\n",STATUS_CGI,HOST_PENDING,hosts_pending);
 	printf("</tr>\n");
 
@@ -1168,10 +1180,10 @@ void display_tac_overview(void){
 	printf("<tr><td colspan=5 height=20 class='hostTitle'>&nbsp;Services</td></tr>\n");
 
 	printf("<tr>\n");
-	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Critical</a></td>\n",STATUS_CGI,SERVICE_CRITICAL,services_critical_unacknowledged+services_critical_host_problem+services_critical_scheduled+services_critical_acknowledged+services_critical_disabled);
-	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Warning</a></td>\n",STATUS_CGI,SERVICE_WARNING,services_warning_unacknowledged+services_warning_host_problem+services_warning_scheduled+services_warning_acknowledged+services_warning_disabled);
-	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Unknown</a></td>\n",STATUS_CGI,SERVICE_UNKNOWN,services_unknown_unacknowledged+services_unknown_host_problem+services_unknown_scheduled+services_unknown_acknowledged+services_unknown_disabled);
-	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Ok</a></td>\n",STATUS_CGI,SERVICE_OK,services_ok_unacknowledged+services_ok_disabled);
+	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Critical</a></td>\n",STATUS_CGI,SERVICE_CRITICAL,services_critical);
+	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Warning</a></td>\n",STATUS_CGI,SERVICE_WARNING,services_warning);
+	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Unknown</a></td>\n",STATUS_CGI,SERVICE_UNKNOWN,services_unknown);
+	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Ok</a></td>\n",STATUS_CGI,SERVICE_OK,services_ok);
 	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Pending</a></td>\n",STATUS_CGI,SERVICE_PENDING,services_pending);
 	printf("</tr>\n");
 

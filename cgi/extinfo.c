@@ -2,8 +2,8 @@
  *
  * EXTINFO.C -  Nagios Extended Information CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-10-2005
  *
  * License:
  * 
@@ -843,7 +843,7 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",temp_hoststatus->information);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->information==NULL)?"":temp_hoststatus->information);
 
 		get_time_string(&temp_hoststatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last Status Check:</td><td CLASS='dataVal'>%s</td></tr>\n",date_time);
@@ -1113,7 +1113,7 @@ void show_service_info(void){
 			}
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",temp_svcstatus->information);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->information==NULL)?"":temp_svcstatus->information);
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d</TD></TR>\n",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
 

@@ -99,9 +99,9 @@
 
 	TABLE.queue { font-family: arial,serif; font-size: 10pt; background-color: white; padding: 2; }
 	TH.queue { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
-	.queueOdd { font-family: arial,serif;  font-size: 10pt; background-color: #DBDBDB; }
-	.queueEven { font-family: arial,serif;  font-size: 10pt; background-color: #C4C2C2; }
-	.queueENABLED { font-family: arial,serif;  font-size: 10pt; background-color: #33FF00; }
-	.queueDISABLED { font-family: arial,serif;  font-size: 10pt; background-color: #F83838; }
+	.queueOdd { font-family: arial,serif;  font-size: 9pt; background-color: #DBDBDB; }
+	.queueEven { font-family: arial,serif;  font-size: 9pt; background-color: #C4C2C2; }
+	.queueENABLED { font-family: arial,serif;  font-size: 9pt; background-color: #33FF00; }
+	.queueDISABLED { font-family: arial,serif;  font-size: 9pt; background-color: #F83838; }
 
 

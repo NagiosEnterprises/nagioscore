@@ -146,6 +146,27 @@ I've gotten several questions about why notification methods (paging, etc.) are 
 <a name="resources"></a>
 <strong><u>Helpful Resources</u></strong>
 </p>
+
+<p>
+There are many ways you could configure Nagios to send notifications out.  Its up to you to decide which method(s) you want to use.  Once you do that you'll have to install any necessary software and configure notification commands in your config files before you can use them.  Here are just a few possible notification methods:
+</p>
+
+<p>
+<ul>
+<li>Email
+<li>Pager
+<li>Phone (SMS)
+<li>WinPopup message
+<li>Yahoo, ICQ, or MSN instant message
+<li>Audio alerts
+<li>etc...
+</ul>
+</p>
+
+<p>
+Basically anything you can do from a command line can be tailored for use as a notification command.
+</p>
+
 <p>
 If you're interested in sending an alphanumeric notification to your pager or cellphone via email, you may be find the following information useful.  Here are a few links to various messaging service providers' websites that contain information on how to send alphanumeric messages to pagers and phones...
 </p>
@@ -172,6 +193,10 @@ using them...
 <li><a href="http://www.styx.demon.co.uk/" target="_top">SMS Client</a> (command line utility for 
 sending messages to pagers and mobile phones)
 </ul>
+</p>
+
+<p>
+If you want to try out a non-traditional method of notification, you might want to mess around with audio alerts.  If you want to have audio alerts played on the monitoring server (with synthesized speech), check out <a href="http://www.cstr.ed.ac.uk/projects/festival/">Festival</a>.  If you'd rather leave the monitoring box alone and have audio alerts played on another box, check out the <a href="http://radscan.com/nas.html">Network Audio System (NAS)</a> and <a href="http://rplay.doit.org/">rplay</a> projects.
 </p>
 
 <p>

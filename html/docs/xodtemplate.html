@@ -344,6 +344,8 @@ define service{
 	service_description	check-disk-sda1
 	check_command		check-disk!/dev/sda1
 	max_check_attempts	5
+	normal_check_interval	5
+	retry_check_interval	3
 	check_period		24x7
 	notification_interval	30
 	notification_period	24x7

@@ -353,24 +353,9 @@ void display_network_outages(void){
 			number_of_blocking_problem_hosts++;
 	        }
 
-	/* if there are no problems... */
-	if(hostoutage_list==NULL || number_of_blocking_problem_hosts<=0)
-		printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>No Outages Detected</DIV></P>\n");
-
-	else{
-		printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Problem(s) Detected</DIV></P>\n");
-		printf("<P><DIV ALIGN=CENTER CLASS='infoMessage'>\n");
-		if(number_of_blocking_problem_hosts==1)
-			printf("There is <B>1</B> problem host that is blocking child hosts and causing a network outage...");
-		else
-			printf("There are <B>%d</B> problem hosts that are blocking child hosts and causing network outages...",number_of_blocking_problem_hosts);
-		printf("</DIV></P>\n");
-	        }
-
-
 	/* display the problem hosts... */
 	printf("<P><DIV ALIGN=CENTER>\n");
-	printf("<DIV CLASS='dataTitle'>Problem Hosts</DIV>\n");
+	printf("<DIV CLASS='dataTitle'>Blocking Outages</DIV>\n");
 
 	printf("<TABLE BORDER=0 CLASS='data'>\n");
 	printf("<TR>\n");
@@ -469,7 +454,7 @@ void display_network_outages(void){
 	printf("</DIV></P>\n");
 
 	if(total_entries==0)
-		printf("<BR><DIV CLASS='itemTotalsTitle'>%d Blocking Outages Displayed</DIV>\n",total_entries);
+		printf("<DIV CLASS='itemTotalsTitle'>%d Blocking Outages Displayed</DIV>\n",total_entries);
 
 	/* free memory allocated to the host outage list */
 	free_hostoutage_list();

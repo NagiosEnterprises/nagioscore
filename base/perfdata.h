@@ -3,7 +3,7 @@
  * PERFDATA.H - Include file for performance data routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-18-2003
  *
  * License:
  *
@@ -31,7 +31,7 @@
 int initialize_performance_data(char *);	                /* initializes performance data */
 int cleanup_performance_data(char *);                           /* cleans up performance data */
 
-int update_host_performance_data(host *,int);       	        /* updates host performance data */
+int update_host_performance_data(host *);       	        /* updates host performance data */
 int update_service_performance_data(service *);         	/* updates service performance data */
 
 

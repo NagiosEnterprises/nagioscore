@@ -112,7 +112,7 @@ int update_service_performance_data(service *svc){
 
 
 /* updates host performance data */
-int update_host_performance_data(host *hst, int state){
+int update_host_performance_data(host *hst){
 
 	/* should we be processing performance data for anything? */
 	if(process_performance_data==FALSE)
@@ -124,10 +124,10 @@ int update_host_performance_data(host *hst, int state){
 
 	/* process the performance data! */
 #ifdef USE_XPDDEFAULT
-	xpddefault_update_host_performance_data(hst,state);
+	xpddefault_update_host_performance_data(hst);
 #endif
 #ifdef USE_XPDFILE
-	xpdfile_update_host_performance_data(hst,state);
+	xpdfile_update_host_performance_data(hst);
 #endif
 
 	return OK;

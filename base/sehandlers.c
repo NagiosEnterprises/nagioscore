@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   02-18-2003
  *
  * License:
  *
@@ -88,11 +88,11 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 	grab_service_macros(svc);
 
 	/* grab the service state type macro */
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		free(macro_x[MACRO_STATETYPE]);
-	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
+		free(macro_x[MACRO_SERVICESTATETYPE]);
+	macro_x[MACRO_SERVICESTATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_SERVICESTATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* grab the current service check number macro */
 	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
@@ -235,11 +235,11 @@ int handle_service_event(service *svc,int state_type){
 	grab_service_macros(svc);
 
 	/* grab the service state type macro */
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		free(macro_x[MACRO_STATETYPE]);
-	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_STATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
+		free(macro_x[MACRO_SERVICESTATETYPE]);
+	macro_x[MACRO_SERVICESTATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_SERVICESTATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* grab the current service check number macro */
 	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
@@ -307,7 +307,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -369,7 +369,7 @@ int run_service_event_handler(service *svc,int state_type){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -480,7 +480,7 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -541,7 +541,7 @@ int run_host_event_handler(host *hst){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -588,6 +588,9 @@ int handle_host_state(host *hst){
 	/* obsess over this host check */
 	obsessive_compulsive_host_check_processor(hst);
 
+	/* update performance data */
+	update_host_performance_data(hst);
+
 	/* has the host state changed? */
 	if(hst->last_state!=hst->current_state)
 		state_change=TRUE;
@@ -624,7 +627,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
 		if(hst->state_type==HARD_STATE)
-			host_notification(hst,hst->current_state,NULL);
+			host_notification(hst,NULL);
 
 		/* handle the host state change */
 		handle_host_event(hst);
@@ -642,7 +645,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts if host is still down or unreachable */
 		if(hst->current_state!=HOST_UP && hst->state_type==HARD_STATE)
-			host_notification(hst,hst->current_state,NULL);
+			host_notification(hst,NULL);
 
 		/* if we're in a soft state and we should log host retries, do so now... */
 		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)

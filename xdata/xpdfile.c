@@ -3,7 +3,7 @@
  * XPDFILE.C - File-based performance data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-18-2003
  *
  * License:
  *
@@ -326,7 +326,7 @@ int xpdfile_update_service_performance_data(service *svc){
 
 
 /* updates host performance data */
-int xpdfile_update_host_performance_data(host *hst, int state){
+int xpdfile_update_host_performance_data(host *hst){
 	char raw_output[MAX_INPUT_BUFFER];
 	char processed_output[MAX_INPUT_BUFFER];
 	int result=OK;
@@ -342,19 +342,6 @@ int xpdfile_update_host_performance_data(host *hst, int state){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-
-	/* make sure the host state macro is correct */
-	if(macro_host_state!=NULL)
-		free(macro_host_state);
-	macro_host_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_host_state!=NULL){
-		if(state==HOST_DOWN)
-			strcpy(macro_host_state,"DOWN");
-		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_host_state,"UNREACHABLE");
-		else
-			strcpy(macro_host_state,"UP");
-	        }
 
 	/* get the raw output */
 	strncpy(raw_output,xpdfile_host_perfdata_template,sizeof(raw_output));

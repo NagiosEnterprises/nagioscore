@@ -115,9 +115,9 @@ int service_notification(service *svc, char *ack_data){
 
 	/* if this is an aknowledgement, modify the $OUTPUT$ macro to have it contain the comment that was entered by the user */
 	if(ack_data!=NULL){
-		if(macro_x[MACRO_OUTPUT]!=NULL)
-			free(macro_x[MACRO_OUTPUT]);
-		macro_x[MACRO_OUTPUT]=strdup(ack_data);
+		if(macro_x[MACRO_SERVICEOUTPUT]!=NULL)
+			free(macro_x[MACRO_SERVICEOUTPUT]);
+		macro_x[MACRO_SERVICEOUTPUT]=strdup(ack_data);
 	        }
 
 	/* set the notification type macro */
@@ -515,9 +515,9 @@ int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
 				if(ack_data==NULL)
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
 				else
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION,FALSE);
 			        }
@@ -674,7 +674,7 @@ int create_notification_list_from_service(service *svc){
 
 
 /* notify all contacts for a host that the entire host is down or up */
-int host_notification(host *hst,int state, char *ack_data){
+int host_notification(host *hst, char *ack_data){
 	notification *temp_notification;
 	time_t current_time;
 
@@ -692,7 +692,7 @@ int host_notification(host *hst,int state, char *ack_data){
 #endif
 
 	/* check viability of sending out a host notification */
-	if(check_host_notification_viability(hst,state,ack_data)==ERROR){
+	if(check_host_notification_viability(hst,ack_data)==ERROR){
 #ifdef DEBUG4
 		printf("\tSending out a notification for this host is not viable at this time.\n");
 #endif
@@ -710,7 +710,7 @@ int host_notification(host *hst,int state, char *ack_data){
 #endif
 
 		/* calculate the next acceptable re-notification time */
-		hst->next_host_notification=get_next_host_notification_time(hst,state,current_time);
+		hst->next_host_notification=get_next_host_notification_time(hst,current_time);
 
 #ifdef DEBUG4
 		printf("\tCurrent Time: %s",ctime(&current_time));
@@ -722,24 +722,11 @@ int host_notification(host *hst,int state, char *ack_data){
 	clear_volatile_macros();
 	grab_host_macros(hst);
 
-	/* make sure the host state macro is correct */
-	if(macro_x[MACRO_HOSTSTATE]!=NULL)
-		free(macro_x[MACRO_HOSTSTATE]);
-	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_x[MACRO_HOSTSTATE]!=NULL){
-		if(state==HOST_DOWN)
-			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
-		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
-		else
-			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
-	        }
-
 	/* if this is an aknowledgement, modify the $OUTPUT$ macro to contain the comment that the user entered */
 	if(ack_data!=NULL){
-		if(macro_x[MACRO_OUTPUT]!=NULL)
-			free(macro_x[MACRO_OUTPUT]);
-		macro_x[MACRO_OUTPUT]=strdup(ack_data);
+		if(macro_x[MACRO_HOSTOUTPUT]!=NULL)
+			free(macro_x[MACRO_HOSTOUTPUT]);
+		macro_x[MACRO_HOSTOUTPUT]=strdup(ack_data);
 	        }
 
 	/* set the notification type macro */
@@ -749,7 +736,7 @@ int host_notification(host *hst,int state, char *ack_data){
 	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
 		if(ack_data!=NULL)
 			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
-		else if(state==HOST_UP)
+		else if(hst->current_state==HOST_UP)
 			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
 		else
 			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
@@ -765,7 +752,7 @@ int host_notification(host *hst,int state, char *ack_data){
 	        }
 
 	/* create the contact notification list for this host */
-	create_notification_list_from_host(hst,state);
+	create_notification_list_from_host(hst);
 
 	/* notify each contact (duplicates have been removed) */
 	for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
@@ -774,7 +761,7 @@ int host_notification(host *hst,int state, char *ack_data){
 		grab_contact_macros(temp_notification->contact);
 
 		/* notify this contact */
-		notify_contact_of_host(temp_notification->contact,hst,state,ack_data);
+		notify_contact_of_host(temp_notification->contact,hst,ack_data);
 	        }
 
 	/* there were no contacts, so no notification really occurred... */
@@ -815,7 +802,7 @@ int host_notification(host *hst,int state, char *ack_data){
 
 
 /* checks viability of sending a host notification */
-int check_host_notification_viability(host *hst,int state,char *ack_data){
+int check_host_notification_viability(host *hst, char *ack_data){
 	int state_change=FALSE;
 	time_t current_time;
 	time_t timeperiod_start;
@@ -875,7 +862,7 @@ int check_host_notification_viability(host *hst,int state,char *ack_data){
 	if(ack_data!=NULL){
 
 		/* don't send an acknowledgement if there isn't a problem... */
-		if(state==HOST_UP){
+		if(hst->current_state==HOST_UP){
 #ifdef DEBUG4
 			printf("\tThe host is currently UP, so we won't send an acknowledgement!\n");
 #endif
@@ -908,25 +895,25 @@ int check_host_notification_viability(host *hst,int state,char *ack_data){
 	        }
 
 	/* has the host state changed? */
-	if(hst->current_state!=state)
+	if(hst->last_state!=hst->current_state)
 		state_change=TRUE;
 	else
 		state_change=FALSE;
 
 	/* see if we should notify about problems with this host */
-	if((state==HOST_UNREACHABLE) && hst->notify_on_unreachable==FALSE){
+	if(hst->current_state==HOST_UNREACHABLE && hst->notify_on_unreachable==FALSE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't notify about UNREACHABLE status for this host!\n");
 #endif
 		return ERROR;
 	        }
-	if(state==HOST_DOWN && hst->notify_on_down==FALSE){
+	if(hst->current_state==HOST_DOWN && hst->notify_on_down==FALSE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't notify about DOWN states for this host!\n");
 #endif
 		return ERROR;
 	        }
-	if(state==HOST_UP){
+	if(hst->current_state==HOST_UP){
 
 		if(hst->notify_on_recovery==FALSE){
 #ifdef DEBUG4
@@ -967,7 +954,7 @@ int check_host_notification_viability(host *hst,int state,char *ack_data){
 	        }
 
 	/* check if we shouldn't renotify contacts about the host problem */
-	else if(state!=HOST_UP && hst->no_more_notifications==TRUE){
+	else if(hst->current_state!=HOST_UP && hst->no_more_notifications==TRUE){
 
 #ifdef DEBUG4
 		printf("\tWe shouldn't re-notify contacts about this host problem!!\n");
@@ -976,7 +963,7 @@ int check_host_notification_viability(host *hst,int state,char *ack_data){
 	        }
 
 	/* else if its time to re-notify the contacts about the host... */
-	else if(state!=HOST_UP && current_time >= hst->next_host_notification){
+	else if(hst->current_state!=HOST_UP && current_time >= hst->next_host_notification){
 
 #ifdef DEBUG4
 		printf("\tTime to re-notify the contacts about the host problem!\n");
@@ -1005,28 +992,28 @@ int check_host_notification_viability(host *hst,int state,char *ack_data){
 
 
 /* checks the viability of notifying a specific contact about a host */
-int check_contact_host_notification_viability(contact *cntct, host *hst, int state){
+int check_contact_host_notification_viability(contact *cntct, host *hst){
 
 #ifdef DEBUG0
 	printf("check_contact_host_notification_viability() start\n");
 #endif
 
 	/* see if we should notify about problems with this host */
-	if((state==HOST_DOWN) && cntct->notify_on_host_down==FALSE){
+	if(hst->current_state==HOST_DOWN && cntct->notify_on_host_down==FALSE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't notify this contact about DOWN states!\n");
 #endif
 		return ERROR;
 	        }
 
-	if(state==HOST_UNREACHABLE && cntct->notify_on_host_unreachable==FALSE){
+	if(hst->current_state==HOST_UNREACHABLE && cntct->notify_on_host_unreachable==FALSE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't notify this contact about UNREACHABLE states!\n");
 #endif
 		return ERROR;
 	        }
 
-	if(state==HOST_UP){
+	if(hst->current_state==HOST_UP){
 
 		if(cntct->notify_on_host_recovery==FALSE){
 #ifdef DEBUG4
@@ -1054,7 +1041,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int sta
 
 
 /* notify a specific contact that an entire host is down or up */
-int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
+int notify_contact_of_host(contact *cntct,host *hst, char *ack_data){
 	commandsmember *temp_commandsmember;
 	char temp_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -1081,7 +1068,7 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 
 	/* check viability of notifying this user about the host */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
-	if(check_contact_host_notification_viability(cntct,hst,state)==ERROR)
+	if(check_contact_host_notification_viability(cntct,hst)==ERROR)
 		return OK;
 
 	/* process all the notification commands this user has */
@@ -1110,9 +1097,9 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
 				if(ack_data==NULL)
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
 				else
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION,FALSE);
 			        }
@@ -1139,7 +1126,7 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 
 
 /* checks to see if a host escalation entry is a match for the current host notification */
-int is_valid_host_escalation_for_host_notification(host *hst,int state,hostescalation *he){
+int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he){
 	host *temp_host;
 	int notification_number;
 
@@ -1148,7 +1135,7 @@ int is_valid_host_escalation_for_host_notification(host *hst,int state,hostescal
 #endif
 
 	/* if this is a recovery, really we check for who got notified about a previous problem */
-	if(state==HOST_UP)
+	if(hst->current_state==HOST_UP)
 		notification_number=hst->current_notification_number-1;
 	else
 		notification_number=hst->current_notification_number;
@@ -1176,7 +1163,7 @@ int is_valid_host_escalation_for_host_notification(host *hst,int state,hostescal
 
 
 /* checks to see whether a host notification should be escalation */
-int should_host_notification_be_escalated(host *hst,int state){
+int should_host_notification_be_escalated(host *hst){
 	hostescalation *temp_he;
 
 #ifdef DEBUG0
@@ -1187,7 +1174,7 @@ int should_host_notification_be_escalated(host *hst,int state){
 	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 
 		/* we found a matching entry, so escalate this notification! */
-		if(is_valid_host_escalation_for_host_notification(hst,state,temp_he)==TRUE)
+		if(is_valid_host_escalation_for_host_notification(hst,temp_he)==TRUE)
 			return TRUE;
 	        }
 
@@ -1200,7 +1187,7 @@ int should_host_notification_be_escalated(host *hst,int state){
 
 
 /* given a host, create a list of contacts to be notified, removing duplicates */
-int create_notification_list_from_host(host *hst,int state){
+int create_notification_list_from_host(host *hst){
 	hostescalation *temp_he;
 	contactgroupsmember *temp_group;
 	contactgroup *temp_contactgroup;
@@ -1211,13 +1198,13 @@ int create_notification_list_from_host(host *hst,int state){
 #endif
 
 	/* see if this notification should be escalated */
-	if(should_host_notification_be_escalated(hst,state)==TRUE){
+	if(should_host_notification_be_escalated(hst)==TRUE){
 
 		/* check all the host escalation entries */
 		for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 
 			/* see if this escalation if valid for this notification */
-			if(is_valid_host_escalation_for_host_notification(hst,state,temp_he)==FALSE)
+			if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 				continue;
 
 			/* find each contact group in this escalation entry */
@@ -1336,7 +1323,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 
 
 /* calculates next acceptable re-notification time for a host */
-time_t get_next_host_notification_time(host *hst, int state, time_t offset){
+time_t get_next_host_notification_time(host *hst, time_t offset){
 	time_t next_notification;
 	int interval_to_use;
 	hostescalation *temp_he;
@@ -1357,7 +1344,7 @@ time_t get_next_host_notification_time(host *hst, int state, time_t offset){
 			continue;
 
 		/* skip this entry if it itsn't appropriate */
-		if(is_valid_host_escalation_for_host_notification(hst,state,temp_he)==FALSE)
+		if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 			continue;
 
 		/* if we haven't used a notification interval from an escalation yet, use this one */

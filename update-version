@@ -1,33 +1,58 @@
 #!/bin/sh
 
-if [ "x$1" = "x" ]
-then
-	echo "Usage: $0 <release number>"
-	exit 1
-fi
-
 # Get date (two formats)
 LONGDATE=`date "+%B %d, %Y"`
 SHORTDATE=`date "+%m-%d-%Y"`
 
+# Current version number
+CURRENTVERSION=2.0-very-pre-alpha
+
+# Last date
+LASTDATE=02-18-2003
+
+if [ "x$1" = "x" ]
+then
+	echo "Usage: $0 <version number | \"newdate\">"
+	echo ""
+	echo "Run this script with the name of the new version (i.e \"2.0b1\") to"
+	echo "update version number and modification date in files."
+	echo "Use the \"newdate\" argument if you want to keep the current version"
+	echo "number and just update the modification date."
+	echo ""
+	echo "Current version=$CURRENTVERSION"
+	echo "Current Modification date=$LASTDATE"
+	echo ""
+	exit 1
+fi
+
+newversion=$1
+if [ "x$newversion" = "xnewdate" ]
+then
+    newversion=$CURRENTVERSION
+fi
+
 # Update version number and release date in main HTML page
-perl -i -p -e "s/>Version .*</>Version $1</;" html/main.html
+perl -i -p -e "s/>Version .*</>Version $newversion</;" html/main.html
 perl -i -p -e "s/releaseDate\">.*<\//releaseDate\">$LONGDATE<\//;" html/main.html
 
 # Update version number and release date in common code
-perl -i -p -e "s/VERSION \".*\"/VERSION \"$1\"/;" common/common.h
+perl -i -p -e "s/VERSION \".*\"/VERSION \"$newversion\"/;" common/common.h
 perl -i -p -e "s/MODIFICATION_DATE \".*\"/MODIFICATION_DATE \"$SHORTDATE\"/;" common/common.h
 
 # Update version number and release date in main code
-perl -i -p -e "s/Version: .*/Version: $1/;" base/nagios.c
+perl -i -p -e "s/Version: .*/Version: $newversion/;" base/nagios.c
 perl -i -p -e "s/Last Modified:   [0-9].*/Last Modified:   $SHORTDATE/;" base/nagios.c
 
 # Update version number and release date in configure script and configure.in
-perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$1\"/;" configure
+perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$newversion\"/;" configure
 perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure
-perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$1\"/;" configure.in
+perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$newversion\"/;" configure.in
 perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.in
 
 # Update RPM spec file with version number
-perl -i -p -e "s/%define version .*/%define version $1/;" nagios.spec
+perl -i -p -e "s/%define version .*/%define version $newversion/;" nagios.spec
+
+# Update this file with version number and last date
+perl -i -p -e "s/^CURRENTVERSION=.*/CURRENTVERSION=$newversion/;" update-version
+perl -i -p -e "s/^LASTDATE=.*/LASTDATE=$SHORTDATE/;" update-version
 

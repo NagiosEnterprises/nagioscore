@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-18-2003
  *
  * License:
  *
@@ -224,7 +224,7 @@ int log_host_event(host *hst){
 		log_options=NSLOG_HOST_UP;
 
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->plugin_output);
+	snprintf(temp_buffer,sizeof(temp_buffer),"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->plugin_output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	write_to_logs_and_console(temp_buffer,log_options,FALSE);
 

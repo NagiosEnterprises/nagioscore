@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2003
+ * Last Modified:   02-18-2003
  *
  * License:
  *
@@ -263,7 +263,7 @@ int xpddefault_update_service_performance_data(service *svc){
 
 
 /* updates host performance data */
-int xpddefault_update_host_performance_data(host *hst, int state){
+int xpddefault_update_host_performance_data(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -283,19 +283,6 @@ int xpddefault_update_host_performance_data(host *hst, int state){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-
-	/* make sure the host state macro is correct */
-	if(macro_host_state!=NULL)
-		free(macro_host_state);
-	macro_host_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_host_state!=NULL){
-		if(state==HOST_DOWN)
-			strcpy(macro_host_state,"DOWN");
-		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_host_state,"UNREACHABLE");
-		else
-			strcpy(macro_host_state,"UP");
-	        }
 
 	/* find the host performance data command */
 	temp_command=find_command(xpddefault_host_perfdata_command,NULL);

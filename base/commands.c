@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   02-18-2003
  *
  * License:
  *
@@ -54,6 +54,7 @@ extern int      execute_host_checks;
 extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
+extern int      obsess_over_hosts;
 extern int      enable_failure_prediction;
 extern int      process_performance_data;
 
@@ -348,6 +349,11 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"DISABLE_PASSIVE_HOST_CHECKS"))
 			command_type=CMD_DISABLE_PASSIVE_HOST_CHECKS;
 
+		else if(!strcmp(command_id,"START_OBSESSING_OVER_HOST_CHECKS"))
+			command_type=CMD_START_OBSESSING_OVER_HOST_CHECKS;
+		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST_CHECKS"))
+			command_type=CMD_STOP_OBSESSING_OVER_HOST_CHECKS;
+
 		else{
 			/* log the bad external command */
 			snprintf(buffer,sizeof(buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
@@ -612,6 +618,11 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
 	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
 		cmd_enable_disable_passive_host_checks(cmd,args);
+		break;
+
+	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
+	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
+		cmd_start_stop_obsessing_over_host_checks(cmd);
 		break;
 
 	default:
@@ -1466,10 +1477,6 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	      *temp_ptr=':';
 
 
-	/***** PROCESS PERFORMANCE DATA *****/
-	update_host_performance_data(this_host,this_host->current_state);
-
-
 	/***** HANDLE THE HOST STATE *****/
 	handle_host_state(this_host);
 
@@ -1905,6 +1912,27 @@ int cmd_start_stop_obsessing_over_service_checks(int cmd){
 
 #ifdef DEBUG0
 	printf("cmd_start_stop_obsessing_over_service_checks() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* start or stop obsessing over host checks */
+int cmd_start_stop_obsessing_over_host_checks(int cmd){
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_obsessing_over_host_checks() start\n");
+#endif
+
+	if(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)
+		start_obsessing_over_host_checks();
+	else
+		stop_obsessing_over_host_checks();
+
+#ifdef DEBUG0
+	printf("cmd_start_stop_obsessing_over_host_checks() end\n");
 #endif
 
 	return OK;
@@ -2532,14 +2560,14 @@ void disable_and_propagate_notifications(host *hst){
 			disable_host_notifications(temp_host);
 
 			/* disable notifications for all services on this host... */
-			if(find_all_services_by_host(temp_host->name)) {
-				while(temp_service=get_next_service_by_host()) {
+			if(find_all_services_by_host(temp_host->name)){
+				while(temp_service=get_next_service_by_host()){
 					disable_service_notifications(temp_service);
-			        }
-		        }
+			                }
+		                }
 
+	                }
 	        }
-	}
 	free_host_cursor(host_cursor);
 
 #ifdef DEBUG0
@@ -2559,7 +2587,7 @@ void acknowledge_host_problem(host *hst, char *ack_data, int notify){
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		host_notification(hst,hst->current_state,ack_data);
+		host_notification(hst,ack_data);
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged=TRUE;
@@ -3146,6 +3174,50 @@ void stop_obsessing_over_service_checks(void){
 
 #ifdef DEBUG0
 	printf("stop_obsessing_over_service_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* start obsessing over host check results */
+void start_obsessing_over_host_checks(void){
+
+#ifdef DEBUG0
+        printf("start_obsessing_over_host_checks() start\n");
+#endif
+
+	/* set the host obsession flag */
+	obsess_over_hosts=TRUE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("start_obsessing_over_host_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* stop obsessing over host check results */
+void stop_obsessing_over_host_checks(void){
+
+#ifdef DEBUG0
+        printf("stop_obsessing_over_host_checks() start\n");
+#endif
+
+	/* set the host obsession flag */
+	obsess_over_hosts=FALSE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("stop_obsessing_over_host_checks() end\n");
 #endif
 
 	return;

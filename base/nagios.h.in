@@ -46,41 +46,57 @@
 #define MAX_LATENCY_LENGTH			10
 #define MAX_DURATION_LENGTH			9
 #define MAX_DOWNTIME_LENGTH			3
+#define MAX_STATEID_LENGTH			2
+#define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				32	/* size of macro_x[] array */
+#define MACRO_X_COUNT				46	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
 #define MACRO_HOSTADDRESS			2
 #define MACRO_SERVICEDESC			3
 #define MACRO_SERVICESTATE			4
-#define MACRO_SERVICEATTEMPT			5
-#define MACRO_LONGDATETIME			6
-#define MACRO_SHORTDATETIME			7
-#define MACRO_DATE				8
-#define MACRO_TIME				9
-#define MACRO_TIMET				10
-#define MACRO_LASTCHECK				11
-#define MACRO_LASTSTATECHANGE			12
-#define MACRO_OUTPUT				13
-#define MACRO_PERFDATA				14
-#define MACRO_CONTACTNAME			15
-#define MACRO_CONTACTALIAS			16
-#define MACRO_CONTACTEMAIL			17
-#define MACRO_CONTACTPAGER			18
-#define MACRO_ADMINEMAIL			19
-#define MACRO_ADMINPAGER			20
-#define MACRO_HOSTSTATE				21
-#define MACRO_HOSTATTEMPT			22
-#define MACRO_NOTIFICATIONTYPE			23
-#define MACRO_NOTIFICATIONNUMBER		24
-#define MACRO_EXECUTIONTIME			25
-#define MACRO_LATENCY				26
-#define MACRO_DURATION				27
-#define MACRO_DURATIONSEC			28
-#define MACRO_HOSTDOWNTIME			29
-#define MACRO_SERVICEDOWNTIME			30
-#define MACRO_STATETYPE				31
+#define MACRO_SERVICESTATEID                    5
+#define MACRO_SERVICEATTEMPT			6
+#define MACRO_LONGDATETIME			7
+#define MACRO_SHORTDATETIME			8
+#define MACRO_DATE				9
+#define MACRO_TIME				10
+#define MACRO_TIMET				11
+#define MACRO_LASTHOSTCHECK			12
+#define MACRO_LASTSERVICECHECK			13
+#define MACRO_LASTHOSTSTATECHANGE		14
+#define MACRO_LASTSERVICESTATECHANGE		15
+#define MACRO_HOSTOUTPUT			16
+#define MACRO_SERVICEOUTPUT			17
+#define MACRO_HOSTPERFDATA			18
+#define MACRO_SERVICEPERFDATA			19
+#define MACRO_CONTACTNAME			20
+#define MACRO_CONTACTALIAS			21
+#define MACRO_CONTACTEMAIL			22
+#define MACRO_CONTACTPAGER			23
+#define MACRO_ADMINEMAIL			24
+#define MACRO_ADMINPAGER			25
+#define MACRO_HOSTSTATE				26
+#define MACRO_HOSTSTATEID                       27
+#define MACRO_HOSTATTEMPT			28
+#define MACRO_NOTIFICATIONTYPE			29
+#define MACRO_NOTIFICATIONNUMBER		30
+#define MACRO_HOSTEXECUTIONTIME			31
+#define MACRO_SERVICEEXECUTIONTIME		32
+#define MACRO_SERVICELATENCY			33
+#define MACRO_HOSTDURATION			34
+#define MACRO_SERVICEDURATION			35
+#define MACRO_HOSTDURATIONSEC			36
+#define MACRO_SERVICEDURATIONSEC		37
+#define MACRO_HOSTDOWNTIME			38
+#define MACRO_SERVICEDOWNTIME			39
+#define MACRO_HOSTSTATETYPE			40
+#define MACRO_SERVICESTATETYPE			41
+#define MACRO_HOSTPERCENTCHANGE			42
+#define MACRO_SERVICEPERCENTCHANGE		43
+#define MACRO_HOSTGROUPNAME			44
+#define MACRO_HOSTGROUPALIAS			45
 
 
 
@@ -443,19 +459,19 @@ int check_service_notification_viability(service *,char *);		/* checks viability
 int is_valid_escalation_for_service_notification(service *,serviceescalation *);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);		/* checks if a service notification should be escalated */
 int service_notification(service *,char *);                        	/* notify all contacts about a service (problem or recovery) */
-int check_contact_service_notification_viability(contact *, service *);	/* checks viability of notifying a contact about a service */ 
+int check_contact_service_notification_viability(contact *,service *);	/* checks viability of notifying a contact about a service */ 
 int notify_contact_of_service(contact *,service *,char *);        	/* notify a single contact about a service */
-int check_host_notification_viability(host *,int,char *);		/* checks viability of notifying all contacts about a host */
-int is_valid_host_escalation_for_host_notification(host *,int,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
-int should_host_notification_be_escalated(host *,int);			/* checks if a host notification should be escalated */
-int host_notification(host *,int, char *);                           	/* notify all contacts about a host (problem or recovery) */
-int check_contact_host_notification_viability(contact *, host *, int);	/* checks viability of notifying a contact about a host */ 
-int notify_contact_of_host(contact *,host *,int, char *);            	/* notify a single contact about a host */
-int create_notification_list_from_host(host *,int);             	/* given a host, create list of contacts to be notified (remove duplicates) */
+int check_host_notification_viability(host *,char *);			/* checks viability of notifying all contacts about a host */
+int is_valid_host_escalation_for_host_notification(host *,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
+int should_host_notification_be_escalated(host *);			/* checks if a host notification should be escalated */
+int host_notification(host *,char *);                           	/* notify all contacts about a host (problem or recovery) */
+int check_contact_host_notification_viability(contact *, host *);	/* checks viability of notifying a contact about a host */ 
+int notify_contact_of_host(contact *,host *,char *);            	/* notify a single contact about a host */
+int create_notification_list_from_host(host *);             	/* given a host, create list of contacts to be notified (remove duplicates) */
 int create_notification_list_from_service(service *);        	/* given a service, create list of contacts to be notified (remove duplicates) */
 int add_notification(contact *);				/* adds a notification instance */
 notification * find_notification(char *);			/* finds a notification object */
-time_t get_next_host_notification_time(host *,int,time_t);	/* calculates nex acceptable re-notification time for a host */
+time_t get_next_host_notification_time(host *,time_t);		/* calculates nex acceptable re-notification time for a host */
 time_t get_next_service_notification_time(service *,time_t);	/* calculates nex acceptable re-notification time for a service */
 
 
@@ -547,6 +563,7 @@ int cmd_schedule_host_service_downtime(int,time_t,char *);      /* schedules dow
 int cmd_start_stop_executing_host_checks(int);			/* enables/disables active host checks */
 int cmd_start_stop_accepting_passive_host_checks(int);		/* enables/disables passive host checks */
 int cmd_enable_disable_passive_host_checks(int ,char *);	/* enables/disables passive checks for a particular host */
+int cmd_start_stop_obsessing_over_host_checks(int);		/* start/stop obsessing about host check results */
 
 /**** Internal Command Implementations ****/
 void disable_service_check(service *);			/* disables a service check */
@@ -580,6 +597,8 @@ void enable_host_check(host *);				/* enables checks of a particular host */
 void disable_host_check(host *);			/* disables checks of a particular host */
 void start_obsessing_over_service_checks(void);		/* start obsessing about service check results */
 void stop_obsessing_over_service_checks(void);		/* stop obsessing about service check results */
+void start_obsessing_over_host_checks(void);		/* start obsessing about host check results */
+void stop_obsessing_over_host_checks(void);		/* stop obsessing about host check results */
 void process_passive_service_checks(void);              /* processes passive service check results */
 void enable_all_failure_prediction(void);               /* enables failure prediction on a program-wide basis */
 void disable_all_failure_prediction(void);              /* disables failure prediction on a program-wide basis */

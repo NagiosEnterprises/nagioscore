@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   01-17-2005
+ * Last Modified:   01-19-2005
  *
  * Description:
  *
@@ -149,7 +149,7 @@ int             verify_config=FALSE;
 int             test_scheduling=FALSE;
 
 int             daemon_mode=FALSE;
-int             daemon_dumps_core=FALSE;
+int             daemon_dumps_core=TRUE;
 
 int             ipc_pipe[2];
 

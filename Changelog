@@ -15,6 +15,7 @@ Nagios Change Log
 * Fixed problem with installing sample config files
 * Sample config file fix
 * RPM spec file updates
+* Embedded Perl fixes (updated p1.pl and mini_epn)
 
 
 

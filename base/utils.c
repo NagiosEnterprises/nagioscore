@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-14-2005
+ * Last Modified:   01-19-2005
  *
  * License:
  *
@@ -3235,7 +3235,10 @@ void setup_sighandler(void){
 	signal(SIGQUIT,sighandler);
 	signal(SIGTERM,sighandler);
 	signal(SIGHUP,sighandler);
-	signal(SIGSEGV,sighandler);
+#if !defined(DEBUG0) && !defined(DEBUG1) && !defined(DEBUG2) && !defined(DEBUG3) && !defined(DEBUG4) && !defined(DEBUG5)
+	if(daemon_dumps_core==FALSE || daemon_mode==FALSE)
+		signal(SIGSEGV,sighandler);
+#endif
 
 #ifdef DEBUG0
 	printf("setup_sighandler() end\n");
@@ -3375,12 +3378,18 @@ int daemon_init(void){
 	char buf[256];
 	struct flock lock;
 	char temp_buffer[MAX_INPUT_BUFFER];
+	char *homedir=NULL;
 
 #ifdef RLIMIT_CORE
 	struct rlimit limit;
 #endif
 
-	chdir("/");		/* change working directory */
+	/* change working directory. scuttle home if we're dumping core */
+	homedir=getenv("HOME");
+	if(daemon_dumps_core==TRUE && homedir!=NULL)
+		chdir(homedir);
+	else
+		chdir("/");
 
 	umask(S_IWGRP|S_IWOTH);
 

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-08-2004
+ * Last Modified:   12-15-2004
  *
  * License:
  *
@@ -2464,10 +2464,16 @@ int set_macro_environment_var(char *name, char *value, int set){
 	strcat(env_macro_name,(name==NULL)?"":name);
 
 	/* set or unset the environment variable */
-	if(set==TRUE)
+	if(set==TRUE){
+#ifdef HAVE_SETENV
 		setenv(env_macro_name,(value==NULL)?"":value,1);
-	else
+#endif
+	        }
+	else{
+#ifdef HAVE_UNSETENV
 		unsetenv(env_macro_name);
+#endif
+	        }
 
 	/* free allocated memory */
 	free(env_macro_name);

@@ -11,7 +11,7 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 PKG_NAME=nagios
 PKG_VERSION="2.0b1"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="12-15-2005"
+PKG_REL_DATE="12-15-2004"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -45,7 +45,7 @@ dnl Checks for library functions.
 AC_CHECK_LIB(nsl,main,SOCKETLIBS="$SOCKETLIBS -lnsl")
 AC_CHECK_LIB(socket,socket,SOCKETLIBS="$SOCKETLIBS -lsocket")
 AC_SUBST(SOCKETLIBS)
-AC_CHECK_FUNCS(strdup strstr strtoul initgroups)
+AC_CHECK_FUNCS(initgroups setenv strdup strstr strtoul unsetenv)
 
 AC_MSG_CHECKING(for type of socket size)
 AC_TRY_COMPILE([#include <stdlib.h>

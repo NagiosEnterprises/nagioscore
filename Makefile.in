@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 10-29-2004
+# Last Modified: 12-15-2004
 ###############################
 
 
@@ -208,16 +208,10 @@ install-config:
 	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/nagios.cfg $(DESTDIR)$(CFGDIR)/nagios.cfg-sample
 	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/cgi.cfg $(DESTDIR)$(CFGDIR)/cgi.cfg-sample
 	$(INSTALL) -m 660 $(INSTALL_OPTS) sample-config/resource.cfg $(DESTDIR)$(CFGDIR)/resource.cfg-sample
+	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/bigger.cfg $(DESTDIR)$(CFGDIR)/bigger.cfg-sample
+	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/minimal.cfg $(DESTDIR)$(CFGDIR)/minimal.cfg-sample
 	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/checkcommands.cfg $(DESTDIR)$(CFGDIR)/checkcommands.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/contactgroups.cfg $(DESTDIR)$(CFGDIR)/contactgroups.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/contacts.cfg $(DESTDIR)$(CFGDIR)/contacts.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/dependencies.cfg $(DESTDIR)$(CFGDIR)/dependencies.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/escalations.cfg $(DESTDIR)$(CFGDIR)/escalations.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/hostgroups.cfg $(DESTDIR)$(CFGDIR)/hostgroups.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/hosts.cfg $(DESTDIR)$(CFGDIR)/hosts.cfg-sample
 	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/misccommands.cfg $(DESTDIR)$(CFGDIR)/misccommands.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/services.cfg $(DESTDIR)$(CFGDIR)/services.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/timeperiods.cfg $(DESTDIR)$(CFGDIR)/timeperiods.cfg-sample
 
 	@echo ""
 	@echo "*** Sample config file installed ***"
@@ -301,16 +295,10 @@ Prototype:
 	$(INSTALL) -m 644 sample-config/nagios.cfg $(PACKDIR)$(CFGDIR)/nagios.cfg.$(VERSION)
 	$(INSTALL) -m 644 sample-config/cgi.cfg $(PACKDIR)$(CFGDIR)/cgi.cfg.$(VERSION)
 	$(INSTALL) -m 640 sample-config/resource.cfg $(PACKDIR)$(CFGDIR)/resource.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/checkcommands.cfg $(PACKDIR)$(CFGDIR)/checkcommands.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/contactgroups.cfg $(PACKDIR)$(CFGDIR)/contactgroups.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/contacts.cfg $(PACKDIR)$(CFGDIR)/contacts.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/dependencies.cfg $(PACKDIR)$(CFGDIR)/dependencies.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/escalations.cfg $(PACKDIR)$(CFGDIR)/escalations.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/hostgroups.cfg $(PACKDIR)$(CFGDIR)/hostgroups.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/hosts.cfg $(PACKDIR)$(CFGDIR)/hosts.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/misccommands.cfg $(PACKDIR)$(CFGDIR)/misccommands.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/services.cfg $(PACKDIR)$(CFGDIR)/services.cfg.$(VERSION)
-	$(INSTALL) -m 644 sample-config/template-object/timeperiods.cfg $(PACKDIR)$(CFGDIR)/timeperiods.cfg.$(VERSION)
+	$(INSTALL) -m 664 sample-config/template-object/bigger.cfg $(PACKDIR)$(CFGDIR)/bigger.cfg.$(VERSION)
+	$(INSTALL) -m 664 sample-config/template-object/minimal.cfg $(PACKDIR)$(CFGDIR)/minimal.cfg.$(VERSION)
+	$(INSTALL) -m 664 sample-config/template-object/checkcommands.cfg $(PACKDIR)$(CFGDIR)/checkcommands.cfg.$(VERSION)
+	$(INSTALL) -m 664 sample-config/template-object/misccommands.cfg $(PACKDIR)$(CFGDIR)/misccommands.cfg.$(VERSION)
 	cd contrib; $(MAKE) all; $(MAKE) DESTDIR=$(PACKDIR) INIT_OPTS='' INSTALL_OPTS='' COMMAND_OPTS='' nagios_grp='' nagios_usr='' install
 	echo i pkginfo> Prototype
 	if [ -f checkinstall ] ; then echo i checkinstall>> Prototype; fi

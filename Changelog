@@ -3,7 +3,14 @@ Nagios Change Log
 ###################
 
 
-2.0a1 - ??/??/????
+2.0b2 - ??/??/????
+------------------
+* Removed (un)setenv() calls for systems that don't support it
+* Fixed problem with installing sample config files
+
+
+
+2.0b1 - 12/15/2004
 ------------------
 * Added triggered downtime
 * Basic adaptive monitoring features

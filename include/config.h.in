@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Last Modified: 12-15-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,14 +81,17 @@
 #undef USE_XDDDEFAULT
 
 
-#undef STDC_HEADERS
-#undef HAVE_SYSLOG_H
+#undef HAVE_SETENV
+#undef HAVE_UNSETENV
 #undef HAVE_SOCKET
 #undef HAVE_STRDUP
 #undef HAVE_STRSTR
 #undef HAVE_STRTOUL
 #undef HAVE_INITGROUPS
 #undef HAVE_GETLOADAVG
+
+#undef STDC_HEADERS
+#undef HAVE_SYSLOG_H
 #undef HAVE_SYS_LOADAVG_H
 #undef HAVE_SYS_SYSCTL_H
 #undef HAVE_LINUX_SYSCTL_H

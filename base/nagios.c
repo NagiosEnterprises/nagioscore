@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-15-2005
+ * Last Modified:   12-15-2004
  *
  * Description:
  *

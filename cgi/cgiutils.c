@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-13-2003
+ * Last Modified: 05-15-2003
  *
  * License:
  *
@@ -1582,14 +1582,14 @@ void include_ssi_files(char *cgi_name, int type){
 		cgi_ssi_file[x]=tolower(cgi_ssi_file[x]);
 
 	if(type==SSI_HEADER){
-		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2002 Ethan Galstad. -->\n");
+		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2003 Ethan Galstad. -->\n");
 		include_ssi_file(common_ssi_file);
 		include_ssi_file(cgi_ssi_file);
 	        }
 	else{
 		include_ssi_file(cgi_ssi_file);
 		include_ssi_file(common_ssi_file);
-		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2002 Ethan Galstad. -->\n");
+		printf("\n<!-- Produced by Nagios (http://www.nagios.org).  Copyright (c) 1999-2003 Ethan Galstad. -->\n");
 	        }
 
 	return;

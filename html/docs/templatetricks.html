@@ -47,9 +47,26 @@ This documentation attempts to explain how you can exploit the (somewhat) hidden
 Object types that are not listed above (i.e. timeperiods, commands, etc.) do not support the features I'm about to describe.
 </p>
 
+<p>
+<strong><u>Regular Expression Matching</u></strong>
+</p>
+
+<p>
+The examples I give below use "standard" matching of object names.  If you wish, you can enable regular expression matching for object names by using the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> config option.  By default, regular expression matching will only be used in object names that contain the <b>*</b> and <b>?</b> wildcard characters.  If you want regular expression matching to be used on all object names (regardless of whether or not they contain the * and ? wildcard characters), enable the <a href="configmain.html#use_true_regexp_matching">use_true_regexp_matching</a> config option.
+</p>
+
+<p>
+Regular expressions can be used in any of the fields used in the examples below (host names, hostgroup names, service names, and servicegroup names).
+</p>
+
+<p>
+<strong>NOTE:</strong> Be careful when enabling regular expression matching - you may have to change your config file, since some directives that you might not want to be interpreted as a regular expression just might be!  Any problems should become evident once you verify your configuration.
+</p>
+
+
 <a name="service"></a>
 <p>
-<strong><u>Services</u></strong>
+<strong><u>Service Definitions</u></strong>
 </p>
 
 <p>
@@ -108,7 +125,7 @@ The definition above would create a service called <i>SOMESERVICE</i> on <b>all 
 
 <a name="serviceescalation"></a>
 <p>
-<strong><u>Service Escalations</u></strong>
+<strong><u>Service Escalation Definitions</u></strong>
 </p>
 
 <p>
@@ -167,7 +184,7 @@ The definition above would create a service escalation for all services called <
 
 
 <p>
-<b>Multiple Services:</b> If you want to create <a href="xodtemplate.html#serviceescalation">service escalations</a> for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> directive as follows:
+<b>All Services On Same Host:</b> If you want to create <a href="xodtemplate.html#serviceescalation">service escalations</a> for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> directive as follows:
 </p>
 
 <p>
@@ -188,9 +205,45 @@ The definition above would create a service escalation for <b>all</b> services o
 If you feel like being particularly adventurous, you can specify a wildcard in both the <i>host_name</i> and <i>service_description</i> directives.  Doing so would create a service escalation for <b>all services</b> that you've defined in your configuration files.
 </p>
 
+<p>
+<b>Multiple Services On Same Host:</b> If you want to create <a href="xodtemplate.html#serviceescalation">service escalations</a> for all multiple services assigned to a particular host, you can use a specify more than one service description in the <i>service_description</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">host_name		<i>HOST1</i></font>
+		<font color="red">service_description	<i>SERVICE1,SERVICE2,...,SERVICEN</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service escalation for services <i>SERVICE1</i> through <i>SERVICEN</i> on host <i>HOST1</i>.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+<p>
+<b>All Services In Multiple Servicegroups:</b> If you want to create service escalations for all services that belong in one or more servicegroups, you can do use the <i>servicegroup_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">servicegroup_name		<i>SERVICEGROUP1,SERVICEGROUP2,...,SERVICEGROUPN</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create service escalations for all services that are members of servicegroups <i>SERVICEGROUP1</i> through <i>SERVICEGROUPN</i>.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+
 <a name="servicedependency"></a>
 <p>
-<strong><u>Service Dependencies</u></strong>
+<strong><u>Service Dependency Definitions</u></strong>
 </p>
 
 <p>
@@ -234,7 +287,7 @@ In the example above, service <i>SERVICE2</i> on all hosts in hostgroups <i>HOST
 </p>
 
 <p>
-<b>Multiple Services:</b> If you want to create service dependencies for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> and/or <i>dependent_service_description</i> directives as follows:
+<b>All Services On Same Host:</b> If you want to create service dependencies for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> and/or <i>dependent_service_description</i> directives as follows:
 </p>
 
 <p>
@@ -253,9 +306,40 @@ In the example above, service <i>SERVICE2</i> on all hosts in hostgroups <i>HOST
 In the example above, <b>all services</b> on host <i>HOST2</i> would be dependent on <b>all services</b> on host <i>HOST1</i>.  All the instances of the service dependencies would be identical (i.e. have the same notification failure criteria, etc.).
 </p>
 
+<p>
+<b>Multiple Services On Same Host:</b> If you want to create service dependencies for multiple services assigned to a particular host, you can specify more than one service description in the <i>service_description</i> and/or <i>dependent_service_description</i> directives as follows:
+</p>
+
+<p>
+<pre>
+	define <i>servicedependency</i>{
+		<font color="red">host_name			<i>HOST1</i></font>
+		<font color="red">service_description		<i>SERVICE1,SERVICE2,...,SERVICEN</i></font>
+		<font color="red">dependent_host_name		<i>HOST2</i></font>
+		<font color="red">dependent_service_description	<i>SERVICE1,SERVICE2,...,SERVICEN</i></font>
+		<i>other dependency directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+<b>All Services In Multiple Servicegroups:</b> If you want to create service dependencies for all services that belong in one or more servicegroups, you can do use the <i>servicegroup_name</i> and/or <i>dependent_servicegroup_name</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>servicedependency</i>{
+		<font color="red">servicegroup_name		<i>SERVICEGROUP1,SERVICEGROUP2,...,SERVICEGROUPN</i></font>
+		<font color="red">dependent_servicegroup_name	<i>SERVICEGROUP3,SERVICEGROUP4,...SERVICEGROUPN</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+
 <a name="hostescalation"></a>
 <p>
-<strong><u>Host Escalations</u></strong>
+<strong><u>Host Escalation Definitions</u></strong>
 </p>
 
 <p>
@@ -312,7 +396,7 @@ The definition above would create a hosts escalation for <b>all hosts</b> that a
 
 <a name="hostdependency"></a>
 <p>
-<strong><u>Host Dependencies</u></strong>
+<strong><u>Host Dependency Definitions</u></strong>
 </p>
 
 <p>

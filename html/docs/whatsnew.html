@@ -57,18 +57,12 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 - Event broker
 - Passive host checks
 - Config file options to initial spread of host and service checks
-- Template tricks
-	- Regexp matching in object config files
-	- Servicegroup names
-	- Multiple service descriptions can be used in both service dependency  and service escalation definitions
 </pre>
 </p>
 
 <p>
 <ol>
 
-<li><b>Blah</b>.  Lots o' stuff, all undocumented of course...<br><br>
-<br>
 <li><b>Macro Changes</b> - <a href="macros.html">Macros</a> have undergone a major overhaul.  Will will have to update most of your command definitions to match the new macros.  Also, "on-demand" host and service macros have been added.  See the <a href="macros.html">documentation on macros</a> for more information.<br>
 <br>
 <li><b>Hostgroup Changes</b>
@@ -134,6 +128,8 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>Logging changes</b> - Initial host and service states are now logged a bit differently.  Also, the initial states of all hosts and services are logged immediately after all <a href="configmain.html#log_rotation_method">log rotations</a>.  This should help with all those "undetermined time" problems in the availability and trends CGIs.
 	<li><b>Cached object config file</b> - An <a href="configmain.html#object_cache_file">object cache file</a> is now created by Nagios at startup.  It should help speed up the CGIs a bit and allow you to edit you object config files while Nagios is running without affecting the CGI output.
 	<li><b>Initial check limits</b> - You can now specify timeframes in which the initial checks of all hosts and services should be performed after Nagios start.  These timeframes are controlled by the <a href="configmain.html#max_host_check_spread">max_host_check_spread</a> and <a href="configmain.html#max_service_check_spread">max_service_check_spread</a> variables.
+	<li><b>"Sticky" acknowledgements</b> - You can now designate host and service acknowledgements as being "sticky" or not.  Sticky acknowledgements suppress notifications until a host or service fully recovers to an UP or OK state.  Non-sticky acknowledgements only suppress notifications until a host or service changes state.
+	<li><b>Regular expression matching</b> - Regular expression matching of various object directives can be enabled using the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> and <a href="configmain.html#use_true_regexp_matching">use_true_regexp_matching</a> variables.  Information on how and where regular expression matching can be used can be found in the <a href="templatetricks.html">template tips and tricks</a> documentation.
 	</ul>
 <br>
 </ol>

@@ -144,6 +144,9 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#illegal_object_name_chars">Illegal object name characters</a><br>
 <a href="#illegal_macro_output_chars">Illegal macro output characters</a><br>
 <br>
+<a href="#use_regexp_matching">Regular expression matching option</a><br>
+<a href="#use_true_regexp_matching">True regular expression matching option</a><br>
+<br>
 <a href="#admin_email">Administrator email address</a><br>
 <a href="#admin_pager">Administrator pager</a><br>
 </p>
@@ -2403,6 +2406,72 @@ This option allows you to specify illegal characters that should be stripped fro
 </p>
 <p>
 <b>$HOSTOUTPUT$</b>, <b>$HOSTPERFDATA$</b>, <b>$HOSTACKAUTHOR$</b>, <b>$HOSTACKCOMMENT$</b>, <b>$SERVICEOUTPUT$</b>, <b>$SERVICEPERFDATA$</b>, <b>$SERVICEACKAUTHOR$</b>, and <b>$SERVICEACKCOMMENT$</b>
+</p>
+
+
+<p>
+<a name="use_regexp_matching"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Regular Expression Matching Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>use_regexp_matching=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>use_regexp_matching=0</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines whether or not various directives in your <a href="configobject.html">object definitions</a> will be processed as regular expressions.  More information on how this works can be found <a href="templatetricks.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Don't use regular expression matching (default)
+<li>1 = Use regular expression matching
+</ul>
+</p>
+
+
+<p>
+<a name="use_true_regexp_matching"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>True Regular Expression Matching Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>use_true_regexp_matching=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>use_true_regexp_matching=0</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if the contain a <b>*</b> or <b>?</b> wildcard character.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="templatetricks.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Don't use true regular expression matching (default)
+<li>1 = Use true regular expression matching
+</ul>
 </p>
 
 

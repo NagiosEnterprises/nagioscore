@@ -285,8 +285,11 @@ As with service dependencies, host dependencies are not inherited.  In the examp
 </p>
 
 <p>
-Host notification dependencies work in a similiar manner to service dependencies.  If <i>all</i> of the notification dependency tests for the host <i>pass</i>, Nagios will send notifications out for the host as it normally would.  If even just one of the notification dependencies for a host fails, Nagios will temporarily repress notifications for that (dependent) host.  At some point in the future the notification dependency tests for the host may all pass.  If this happens, Nagios will start sending out notifications again as it normally would for the host.  More information on the notification logic can be found <a href="notifications.html">here</a>.
+Host notification dependencies work in a similiar manner to service notification dependencies.  If <i>all</i> of the notification dependency tests for the host <i>pass</i>, Nagios will send notifications out for the host as it normally would.  If even just one of the notification dependencies for a host fails, Nagios will temporarily repress notifications for that (dependent) host.  At some point in the future the notification dependency tests for the host may all pass.  If this happens, Nagios will start sending out notifications again as it normally would for the host.  More information on the notification logic can be found <a href="notifications.html">here</a>.
+</p>
 
+<p>
+<strong>NOTE:</strong> Host execution dependencies work in a similiar manner to service execution dependencies.  However, they only have an affect on <i>regularly scheduled host checks</i>.  On-demand host checks are not affected by host execution dependencies.
 </p>
 
 

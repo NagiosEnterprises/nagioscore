@@ -13,6 +13,7 @@ Nagios Change Log
 * If not specified, host address and alias now default to host name
 * Extended ASCII characters no longer auto-stripped from object names and macros
 * Added external commands to adjust host and service notification numbers
+* Init script changes
 
 
 

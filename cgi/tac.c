@@ -1238,7 +1238,7 @@ void display_tac_overview(void){
 
 	printf("<table class='tac' width=641 cellspacing=4 cellpadding=0 border=0>\n");
 
-	printf("<tr><td colspan=5 height=20 class='hostTitle'>&nbsp;Services</td></tr>\n");
+	printf("<tr><td colspan=5 height=20 class='serviceTitle'>&nbsp;Services</td></tr>\n");
 
 	printf("<tr>\n");
 	printf("<td class='serviceHeader' width=125><a href='%s?host=all&stye=detail&servicestatustypes=%d' class='serviceHeader'>%d Critical</a></td>\n",STATUS_CGI,SERVICE_CRITICAL,services_critical);

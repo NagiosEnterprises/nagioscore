@@ -32,14 +32,14 @@
 status_nagios ()
 {
 
-	if test ! -f $NagiosRun; then
-		echo "No lock file found in $NagiosRun"
+	if test ! -f $NagiosRunFile; then
+		echo "No lock file found in $NagiosRunFile"
 		return 1
 	fi
 
-	NagiosPID=`head -n 1 $NagiosRun`
+	NagiosPID=`head -n 1 $NagiosRunFile`
 	if test -x $NagiosCGI/daemonchk.cgi; then
-		if $NagiosCGI/daemonchk.cgi -l $NagiosRun; then
+		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile; then
 		        return 0
 		else
 			return 1
@@ -59,12 +59,12 @@ status_nagios ()
 killproc_nagios ()
 {
 
-	if test ! -f $NagiosRun; then
-		echo "No lock file found in $NagiosRun"
+	if test ! -f $NagiosRunFile; then
+		echo "No lock file found in $NagiosRunFile"
 		return 1
 	fi
 
-	NagiosPID=`head -n 1 $NagiosRun`
+	NagiosPID=`head -n 1 $NagiosRunFile`
 	kill $2 $NagiosPID
 }
 
@@ -80,17 +80,18 @@ fi
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 NagiosBin=@bindir@/nagios
-NagiosCfg=@sysconfdir@/nagios.cfg
-NagiosLog=@localstatedir@/status.dat
-NagiosTmp=@localstatedir@/nagios.tmp
-NagiosSav=@localstatedir@/retention.dat
-NagiosCmd=@localstatedir@/rw/nagios.cmd
-NagiosVar=@localstatedir@
-NagiosRun=@lockfile@
-NagiosLckDir=/var/lock/subsys
-NagiosLckFile=nagios
-NagiosCGI=@sbindir@
-Nagios=@nagios_user@
+NagiosCfgFile=@sysconfdir@/nagios.cfg
+NagiosStatusFile=@localstatedir@/status.dat
+NagiosTempFile=@localstatedir@/nagios.tmp
+NagiosRetentionFile=@localstatedir@/retention.dat
+NagiosCommandFile=@localstatedir@/rw/nagios.cmd
+NagiosVarDir=@localstatedir@
+NagiosRunFile=@lockfile@
+NagiosLockDir=/var/lock/subsys
+NagiosLockFile=nagios
+NagiosCGIDir=@sbindir@
+NagiosUser=@nagios_user@
+NagiosGroup=@nagios_grp@
           
 
 # Check that nagios exists.
@@ -100,8 +101,8 @@ if [ ! -f $NagiosBin ]; then
 fi
 
 # Check that nagios.cfg exists.
-if [ ! -f $NagiosCfg ]; then
-    echo "Configuration file $NagiosCfg not found.  Exiting."
+if [ ! -f $NagiosCfgFile ]; then
+    echo "Configuration file $NagiosCfgFile not found.  Exiting."
     exit 1
 fi
           
@@ -110,20 +111,27 @@ case "$1" in
 
 	start)
 		echo "Starting network monitor: nagios"
-		su - $Nagios -c "touch $NagiosVar/nagios.log $NagiosSav"
-		rm -f $NagiosCmd
-		touch $NagiosRun
-		chown $Nagios:$Nagios $NagiosRun
-		$NagiosBin -d $NagiosCfg
-		if [ -d $NagiosLckDir ]; then touch $NagiosLckDir/$NagiosLckFile; fi
-		sleep 1
-		status_nagios nagios
+		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
+		if [ $? -eq 0 ]; then
+			su - $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
+			rm -f $NagiosCommandFile
+			touch $NagiosRunFile
+			chown $NagiosUser:$NagiosGroup $NagiosRunFile
+			$NagiosBin -d $NagiosCfgFile
+			if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
+			#sleep 1
+			#status_nagios nagios
+			exit 0
+		else
+			echo "CONFIG ERROR!  Start aborted.  Check your Nagios configuration."
+			exit 1
+		fi
 		;;
 
 	stop)
 		echo "Stopping network monitor: nagios"
 		killproc_nagios nagios
-		rm -f $NagiosLog $NagiosTmp $NagiosRun $NagiosLckDir/$NagiosLckFile $NagiosCmd
+		rm -f $NagiosStatusFile $NagiosTempFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
 		;;
 
 	status)
@@ -132,27 +140,27 @@ case "$1" in
 
 	restart)
 		printf "Running configuration check..."
-		$NagiosBin -v $NagiosCfg > /dev/null 2>&1;
+		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
 		if [ $? -eq 0 ]; then
 			echo "done"
 			$0 stop
 			$0 start
 		else
-			$NagiosBin -v $NagiosCfg
-			echo "failed - aborting restart."
+			#$NagiosBin -v $NagiosCfgFile
+			echo " FAILED!  Restart aborted.  Check your Nagios configuration."
 			exit 1
 		fi
 		;;
 
 	reload|force-reload)
 		printf "Running configuration check..."
-		$NagiosBin -v $NagiosCfg > /dev/null 2>&1;
+		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
 		if [ $? -eq 0 ]; then
 			echo "done"
-			if test ! -f $NagiosRun; then
+			if test ! -f $NagiosRunFile; then
 				$0 start
 			else
-				NagiosPID=`head -n 1 $NagiosRun`
+				NagiosPID=`head -n 1 $NagiosRunFile`
 				if status_nagios > /dev/null; then
 					printf "Reloading nagios configuration..."
 					killproc_nagios nagios -HUP
@@ -163,8 +171,8 @@ case "$1" in
 				fi
 			fi
 		else
-			$NagiosBin -v $NagiosCfg
-			echo "failed - aborting reload."
+			#$NagiosBin -v $NagiosCfgFile
+			echo " FAILED!  Reload aborted.  Check your Nagios configuration."
 			exit 1
 		fi
 		;;

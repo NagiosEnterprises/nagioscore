@@ -1,5 +1,5 @@
 
-.trends { font-family: arial,serif;  background-color: white;  color: black; }
+.histogram { font-family: arial,serif;  background-color: white;  color: black; }
 
 .errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
 .errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }

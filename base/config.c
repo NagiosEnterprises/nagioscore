@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-04-2005
+ * Last Modified:   03-14-2005
  *
  * License:
  *
@@ -2277,7 +2277,7 @@ int pre_flight_check(void){
 
 		/* we couldn't find a hostgroup or service */
 		if(found==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact group '%s' is not used in any hostgroup/service definitions or host/hostgroup/service escalations!",temp_contactgroup->group_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact group '%s' is not used in any host/service definitions or host/service escalations!",temp_contactgroup->group_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			warnings++;

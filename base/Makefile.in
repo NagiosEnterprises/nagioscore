@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 04-09-2003
+# Last Modified: 08-05-2003
 ############################
 
 
@@ -12,7 +12,8 @@ SRC_XDATA=../xdata
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
 #CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
-LDFLAGS=@LDFLAGS@ @LIBS@ @THREADLIBS@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -32,6 +33,7 @@ HTMURL=@htmurl@
 MATHLIBS=-lm
 PERLLIBS=@PERLLIBS@
 SOCKETLIBS=@SOCKETLIBS@
+THREADLIBS=@THREADLIBS@
 
 CP=@CP@
 
@@ -88,16 +90,18 @@ DDATADEPS=$(DDATALIBS)
 
 OBJS=broker.o checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
 
-nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
-	$(CC) $(CFLAGS) $(LDFLAGS) nagios.c $(OBJS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) -o $@
+all: nagios nagiostats
 
-#$(SRC_COMMON)/locations.h: $(SRC_COMMON)/locations.sub
-#	perl -pe 's|\$${prefix}|${prefix}|g;s|\$${exec_prefix}|${exec_prefix}|g;s|\$${htmurl}|$(HTMURL)|g;s|\$${cgiurl}|$(CGIURL)|g;' $(SRC_COMMON)/locations.sub > $(SRC_COMMON)/locations.h
+nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
+	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(LIBS)
+
+nagiostats: nagiostats.c $(SRC_COMMON)/locations.h
+	$(CC) $(CFLAGS) -o $@ nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS)
 
 $(OBJS): $(SRC_COMMON)/locations.h
 
 clean:
-	rm -f nagios core *.o gmon.out
+	rm -f nagios nagiostats core *.o gmon.out
 	rm -f *~
 
 distclean: clean
@@ -109,5 +113,7 @@ install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 774 $(INSTALL_OPTS) @nagios_name@ $(DESTDIR)$(BINDIR)
 	$(STRIP) $(DESTDIR)$(BINDIR)/@nagios_name@
+	$(INSTALL) -m 774 $(INSTALL_OPTS) @nagiostats_name@ $(DESTDIR)$(BINDIR)
+	$(STRIP) $(DESTDIR)$(BINDIR)/@nagiostats_name@
 
 

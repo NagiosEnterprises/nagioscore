@@ -48,10 +48,6 @@
 #include "broker.h"
 
 
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
-
 char		*config_file=NULL;
 char		*log_file=NULL;
 char            *command_file=NULL;

@@ -42,6 +42,8 @@ perl -i -p -e "s/MODIFICATION_DATE \".*\"/MODIFICATION_DATE \"$SHORTDATE\"/;" co
 # Update version number and release date in main code
 perl -i -p -e "s/Version: .*/Version: $newversion/;" base/nagios.c
 perl -i -p -e "s/Last Modified:   [0-9].*/Last Modified:   $SHORTDATE/;" base/nagios.c
+perl -i -p -e "s/Version: .*/Version: $newversion/;" base/nagiostats.c
+perl -i -p -e "s/Last Modified:   [0-9].*/Last Modified:   $SHORTDATE/;" base/nagiostats.c
 
 # Update version number and release date in configure script and configure.in
 perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$newversion\"/;" configure

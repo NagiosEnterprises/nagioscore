@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-21-2003
+ * Last Modified:   08-03-2003
  *
  * License:
  *
@@ -752,6 +752,10 @@ void reap_service_checks(void){
 			/* if the host has never been checked before... */
 			if(temp_host->has_been_checked==FALSE){
 
+				/* verify the host status */
+				verify_route_to_host(temp_host,CHECK_OPTION_NONE);
+
+#ifdef REMOVED_080303
 				/* really check the host status if we're using agressive host checking */
 				if(use_aggressive_host_checking==TRUE)
 					verify_route_to_host(temp_host,CHECK_OPTION_NONE);
@@ -786,6 +790,7 @@ void reap_service_checks(void){
 						log_host_event(temp_host);
 #endif
 				        }
+#endif
 		                }
 
 #ifdef REMOVED_042903

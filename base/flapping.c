@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-09-2003
+ * Last Modified:   08-05-2003
  *
  * License:
  *
@@ -63,14 +63,6 @@ void check_for_service_flapping(service *svc, int update_history){
 #ifdef DEBUG0
 	printf("check_for_service_flapping() start\n");
 #endif
-
-	/* don't check anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection==FALSE)
-		return;
-
-	/* don't check anything if we don't have flap detection enabled for this service */
-	if(svc->flap_detection_enabled==FALSE)
-		return;
 
 	/* if this is a soft service state and not a soft recovery, don't record this in the history */
 	/* only hard states and soft recoveries get recorded for flap detection */
@@ -135,6 +127,14 @@ void check_for_service_flapping(service *svc, int update_history){
 
 	/* so what should we do (if anything)? */
 
+	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* don't do anything if we don't have flap detection enabled for this service */
+	if(svc->flap_detection_enabled==FALSE)
+		return;
+
 	/* did the service just start flapping? */
 	if(is_flapping==TRUE && svc->is_flapping==FALSE)
 		set_service_flap(svc,curved_percent_change,high_threshold);
@@ -168,14 +168,6 @@ void check_for_host_flapping(host *hst, int update_history){
 #ifdef DEBUG0
 	printf("check_for_host_flapping() start\n");
 #endif
-
-	/* don't check anything if we don't have flap detection enabled on a program-wide basis */
-	if(enable_flap_detection==FALSE)
-		return;
-
-	/* don't check anything if we don't have flap detection enabled for this host */
-	if(hst->flap_detection_enabled==FALSE)
-		return;
 
 	time(&current_time);
 
@@ -250,6 +242,14 @@ void check_for_host_flapping(host *hst, int update_history){
 		is_flapping=TRUE;
 
 	/* so what should we do (if anything)? */
+
+	/* don't do anything if we don't have flap detection enabled on a program-wide basis */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* don't do anything if we don't have flap detection enabled for this host */
+	if(hst->flap_detection_enabled==FALSE)
+		return;
 
 	/* did the host just start flapping? */
 	if(is_flapping==TRUE && hst->is_flapping==FALSE)

@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-20-2003
+ * Last Modified:   08-05-2003
  *
  * License:
  *
@@ -188,11 +188,11 @@ int xdddefault_initialize_downtime_data(char *main_config_file){
 	/* create downtime file if necessary */
 	xdddefault_create_downtime_file();
 
-	/* clean up the old downtime data */
-	xdddefault_validate_downtime_data();
-
 	/* read downtime data into memory */
 	xdddefault_read_downtime_data(main_config_file);
+
+	/* clean up the old downtime data */
+	xdddefault_validate_downtime_data();
 
 	return OK;
         }

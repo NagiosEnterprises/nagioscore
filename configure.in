@@ -82,9 +82,7 @@ AC_DEFUN(AC_PTHREAD_FREEBSD,[
 	])
 
 dnl Test for HPUX cma threads first..
-AC_CHECK_LIB(cma,pthread_create,
-	THREADLIBS="$THREADLIBS -lpthread"
-	])
+AC_CHECK_LIB(cma,pthread_create,THREADLIBS="$THREADLIBS -lpthread")
 if test $ac_cv_lib_cma_pthread_create = yes; then
 	have_pthreads="yes"
 fi
@@ -92,16 +90,12 @@ fi
 dnl special pthread handling 
 dnl AIX uses pthreads instead of pthread, and HP/UX uses cma
 dnl FreeBSD users -pthread
-AC_CHECK_LIB(pthread,pthread_create,[
-	THREADLIBS="$THREADLIBS -lpthread"
-	])
+AC_CHECK_LIB(pthread,pthread_create,THREADLIBS="$THREADLIBS -lpthread")
 if test $ac_cv_lib_pthread_pthread_create = yes; then
 	have_pthreads="yes"
 else
 	dnl For HP 11
-	AC_CHECK_LIB(pthread,pthread_mutex_init,[
-		THREADLIBS="$THREADLIBS -lpthread"
-		])
+	AC_CHECK_LIB(pthread,pthread_mutex_init,THREADLIBS="$THREADLIBS -lpthread")
 	if test $ac_cv_lib_pthread_pthread_mutex_init = yes; then
 		have_pthreads="yes"
 	fi
@@ -109,9 +103,7 @@ fi
 
 dnl AIX uses pthreads instead of pthread
 if test $have_pthreads = "no"; then
-	AC_CHECK_LIB(pthreads,pthread_create,[
-		THREADLIBS="$THREADLIBS -lpthreads"
-		])
+	AC_CHECK_LIB(pthreads,pthread_create,THREADLIBS="$THREADLIBS -lpthreads")
 	if test $ac_cv_lib_pthreads_pthread_create = yes; then
 		have_pthreads="yes"
 	fi
@@ -671,11 +663,14 @@ fi
 
 dnl Option for compiling under CYGWIN
 nagios_name=nagios
+nagiostats_name=nagiostats
 AC_ARG_ENABLE(cygwin,--enable-cygwin enables building under the CYGWIN environment,[
 	CFLAGS="${CFLAGS} -DCYGWIN" 
 	nagios_name=nagios.exe;
+	nagiostats_name=nagiostats.exe;
 	])
 AC_SUBST(nagios_name)
+AC_SUBST(nagiostats_name)
 
 
 dnl Should predictive failure routines be compiled in?

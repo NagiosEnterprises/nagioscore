@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-21-2003
+ * Last Modified:   08-05-2003
  *
  * License:
  *
@@ -259,7 +259,7 @@ int read_main_config_file(char *main_config_file){
 		variable[sizeof(variable)-1]='\x0';
 
 		/* get the value */
-		temp=my_strtok(NULL,"=");
+		temp=my_strtok(NULL,"\n");
 
 		/* if no value exists, return error */
 		if(temp==NULL){
@@ -1380,7 +1380,7 @@ int read_resource_file(char *resource_file){
 		variable[sizeof(variable)-1]='\x0';
 
 		/* get the value */
-		temp_ptr=my_strtok(NULL,"=");
+		temp_ptr=my_strtok(NULL,"\n");
 
 		/* if no value exists, return error */
 		if(temp_ptr==NULL){

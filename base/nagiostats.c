@@ -260,24 +260,21 @@ int main(int argc, char **argv){
 		printf("MRTG DATA VARIABLES (-d option):\n");
 		printf(" NUMSERVICES        total number of services.\n");
 		printf(" MINACTSVCLAT       min active service check latency (ms).\n");
-		printf(" MAZACTSVCLAT       max active service check latency (ms).\n");
+		printf(" MAXACTSVCLAT       max active service check latency (ms).\n");
 		printf(" AVGACTSVCLAT       average active service check latency (ms).\n");
 		printf(" MINACTSVCEXT       min active service check execution time (ms).\n");
-		printf(" MAZACTSVCEXT       max active service check execution time (ms).\n");
+		printf(" MAXACTSVCEXT       max active service check execution time (ms).\n");
 		printf(" AVGACTSVCEXT       average active service check execution time (ms).\n");
 		printf(" MINACTSVCPSC       min active service check %% state change.\n");
-		printf(" MAZACTSVCPSC       max active service check %% state change.\n");
+		printf(" MAXACTSVCPSC       max active service check %% state change.\n");
 		printf(" AVGACTSVCPSC       average active service check %% state change.\n");
 		printf(" MINPSVSVCPSC       min passive service check %% state change.\n");
-		printf(" MAZPSVSVCPSC       max passive service check %% state change.\n");
+		printf(" MAXPSVSVCPSC       max passive service check %% state change.\n");
 		printf(" AVGPSVSVCPSC       average passive service check %% state change.\n");
 		printf(" MINSVCPSC          min service check %% state change.\n");
-		printf(" MAZSVCPSC          max service check %% state change.\n");
+		printf(" MAXSVCPSC          max service check %% state change.\n");
 		printf(" AVGSVCPSC          average service check %% state change.\n");
-		printf("\n");
-		printf("Visit the Nagios website at http://www.nagios.org for bug fixes, new\n");
-		printf("releases, online documentation, FAQs, information on subscribing to\n");
-		printf("the mailing lists, and commercial and contract support for Nagios.\n");
+		printf(" ...                lots of others, see the source code for now.\n");
 		printf("\n");
 
 		exit(ERROR);
@@ -436,6 +433,28 @@ int display_mrtg_values(void){
 			printf("%d\n",passive_services_checked_last_15min);
 		else if(!strcmp(temp_ptr,"NUMPSVSVCCHK60M"))
 			printf("%d\n",passive_services_checked_last_1hour);
+
+		/* service states */
+		else if(!strcmp(temp_ptr,"NUMSVCOK"))
+			printf("%d\n",services_ok);
+		else if(!strcmp(temp_ptr,"NUMSVCWARN"))
+			printf("%d\n",services_warning);
+		else if(!strcmp(temp_ptr,"NUMSVCUNKN"))
+			printf("%d\n",services_unknown);
+		else if(!strcmp(temp_ptr,"NUMSVCCRIT"))
+			printf("%d\n",services_critical);
+		else if(!strcmp(temp_ptr,"NUMSVCPROB"))
+			printf("%d\n",services_warning+services_unknown+services_critical);
+
+		/* host states */
+		else if(!strcmp(temp_ptr,"NUMHSTUP"))
+			printf("%d\n",hosts_up);
+		else if(!strcmp(temp_ptr,"NUMHSTDOWN"))
+			printf("%d\n",hosts_down);
+		else if(!strcmp(temp_ptr,"NUMHSTUNR"))
+			printf("%d\n",hosts_unreachable);
+		else if(!strcmp(temp_ptr,"NUMHSTPROB"))
+			printf("%d\n",hosts_down+hosts_unreachable);
 
 		else
 			printf("%s\n",temp_ptr);

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-26-2004
+ * Last Modified:   04-05-2004
  *
  * License:
  *
@@ -3939,6 +3939,7 @@ void cleanup_command_file_worker_thread(void *arg){
 void * service_result_worker_thread(void *arg){	
 	struct pollfd pfd;
 	int pollval;
+	struct timeval tv;
 	int read_result;
 	int bytes_to_read;
 	int write_offset;
@@ -4063,6 +4064,13 @@ void * service_result_worker_thread(void *arg){
 				pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 			        }
                         }
+
+		/* no free space in the buffer, so wait a bit */
+		else{
+			tv.tv_sec=0;
+			tv.tv_usec=500;
+			select(0,NULL,NULL,NULL,&tv);
+		        }
 	        }
 
 	/* removes cleanup handler - should never be reached */
@@ -4574,6 +4582,7 @@ int reset_variables(void){
 	global_service_event_handler=NULL;
 
 	ocsp_command=NULL;
+	ochp_command=NULL;
 
 	/* reset umask */
 	umask(S_IWGRP|S_IWOTH);

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-23-2004
+ * Last Modified:   06-22-2004
  *
  * License:
  *
@@ -686,7 +686,7 @@ int is_valid_escalation_for_service_notification(service *svc,serviceescalation 
 		return FALSE;
 
 	/* skip this escalation if it has a timeperiod and the current time isn't valid */
-	if(se->escalation_period!=NULL && check_time_against_period(current_time,se->escalation_period)==FALSE)
+	if(se->escalation_period!=NULL && check_time_against_period(current_time,se->escalation_period)==ERROR)
 		return FALSE;
 
 	/* skip this escalation if the state options don't match */
@@ -1363,7 +1363,7 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 		return FALSE;
 
 	/* skip this escalation if it has a timeperiod and the current time isn't valid */
-	if(he->escalation_period!=NULL && check_time_against_period(current_time,he->escalation_period)==FALSE)
+	if(he->escalation_period!=NULL && check_time_against_period(current_time,he->escalation_period)==ERROR)
 		return FALSE;
 
 	/* skip this escalation if the state options don't match */

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -47,6 +47,7 @@ service         *service_list=NULL;
 contact		*contact_list=NULL;
 contactgroup	*contactgroup_list=NULL;
 hostgroup	*hostgroup_list=NULL;
+servicegroup    *servicegroup_list=NULL;
 command         *command_list=NULL;
 timeperiod      *timeperiod_list=NULL;
 serviceescalation       *serviceescalation_list=NULL;
@@ -1382,6 +1383,200 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 #endif
 
 	return new_hostgroupmember;
+        }
+
+
+/* add a new service group to the list in memory */
+servicegroup *add_servicegroup(char *name,char *alias){
+	servicegroup *temp_servicegroup;
+	servicegroup *new_servicegroup;
+	servicegroup *last_servicegroup;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("add_servicegroup() start\n");
+#endif
+
+	/* make sure we have the data we need */
+	if(name==NULL || alias==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup name and/or alias is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	strip(name);
+	strip(alias);
+
+	if(!strcmp(name,"") || !strcmp(alias,"")){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup name and/or alias is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* make sure a servicegroup by this name hasn't been added already */
+	temp_servicegroup=find_servicegroup(name,NULL);
+	if(temp_servicegroup!=NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup '%s' has already been defined\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory */
+	new_servicegroup=(servicegroup *)malloc(sizeof(servicegroup));
+	if(new_servicegroup==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	new_servicegroup->group_name=strdup(name);
+	if(new_servicegroup->group_name==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' name\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_servicegroup);
+		return NULL;
+	        }
+	new_servicegroup->alias=strdup(alias);
+	if(new_servicegroup->alias==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' alias\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_servicegroup->group_name);
+		free(new_servicegroup);
+		return NULL;
+	        }
+
+	new_servicegroup->members=NULL;
+
+	/* add new servicegroup to servicegroup list, sorted by servicegroup name */
+	last_servicegroup=servicegroup_list;
+	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(strcmp(new_servicegroup->group_name,temp_servicegroup->group_name)<0){
+			new_servicegroup->next=temp_servicegroup;
+			if(temp_servicegroup==servicegroup_list)
+				servicegroup_list=new_servicegroup;
+			else
+				last_servicegroup->next=new_servicegroup;
+			break;
+		        }
+		else
+			last_servicegroup=temp_servicegroup;
+	        }
+	if(servicegroup_list==NULL){
+		new_servicegroup->next=NULL;
+		servicegroup_list=new_servicegroup;
+	        }
+	else if(temp_servicegroup==NULL){
+		new_servicegroup->next=NULL;
+		last_servicegroup->next=new_servicegroup;
+	        }
+		
+#ifdef DEBUG1
+	printf("\tGroup name:     %s\n",new_servicegroup->group_name);
+	printf("\tAlias:          %s\n",new_servicegroup->alias);
+#endif
+
+#ifdef DEBUG0
+	printf("add_servicegroup() end\n");
+#endif
+
+	return new_servicegroup;
+	}
+
+
+/* add a new service to a service group */
+servicegroupmember *add_service_to_servicegroup(servicegroup *grp, char *host_name, char *svc_description){
+	servicegroupmember *new_servicegroupmember;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("add_service_to_servicegroup() start\n");
+#endif
+
+	/* make sure we have the data we need */
+	if(grp==NULL || host_name==NULL || svc_description==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup or group member is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	strip(host_name);
+	strip(svc_description);
+
+	if(!strcmp(host_name,"") || !strcmp(svc_description,"")){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup member is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for a new member */
+	new_servicegroupmember=malloc(sizeof(servicegroupmember));
+	if(new_servicegroupmember==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s')\n",grp->group_name,host_name,svc_description);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	new_servicegroupmember->host_name=strdup(host_name);
+	if(new_servicegroupmember->host_name==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",grp->group_name,host_name,svc_description);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_servicegroupmember);
+		return NULL;
+	        }
+	new_servicegroupmember->service_description=strdup(svc_description);
+	if(new_servicegroupmember->service_description==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",grp->group_name,host_name,svc_description);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_servicegroupmember->host_name);
+		free(new_servicegroupmember);
+		return NULL;
+	        }
+
+	
+	/* add the new member to the head of the member list */
+	new_servicegroupmember->next=grp->members;
+	grp->members=new_servicegroupmember;
+
+#ifdef DEBUG0
+	printf("add_service_to_servicegroup() end\n");
+#endif
+
+	return new_servicegroupmember;
         }
 
 
@@ -3907,6 +4102,81 @@ hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp,hostgroupmember
         }
 
 
+/* given a name and starting point, find a servicegroup from the list in memory */
+servicegroup * find_servicegroup(char *name,servicegroup *group){
+	servicegroup *temp_servicegroup;
+	int result;
+
+#ifdef DEBUG0
+	printf("find_servicegroup() start\n");
+#endif
+
+	if(name==NULL)
+		return NULL;
+
+	if(group==NULL)
+		temp_servicegroup=servicegroup_list;
+	else
+		temp_servicegroup=group->next;
+
+	while(temp_servicegroup!=NULL){
+
+		result=strcmp(temp_servicegroup->group_name,name);
+
+		/* we found a matching servicegroup */
+		if(result==0)
+			return temp_servicegroup;
+
+		/* we already passed any potential matches */
+		if(result>0)
+			return NULL;
+
+		temp_servicegroup=temp_servicegroup->next;
+		}
+
+#ifdef DEBUG0
+	printf("find_servicegroup() end\n");
+#endif
+
+	/* we couldn't find a matching servicegroup */
+	return NULL;
+	}
+
+
+/* given a host name and a starting point, find a member of a service group */
+servicegroupmember * find_servicegroupmember(char *host_name,char *svc_description,servicegroup *grp,servicegroupmember *member){
+	servicegroupmember *temp_member;
+
+#ifdef DEBUG0
+	printf("find_servicegroupmember() start\n");
+#endif
+
+	if(host_name==NULL || svc_description==NULL || grp==NULL)
+		return NULL;
+
+	if(member==NULL)
+		temp_member=grp->members;
+	else
+		temp_member=member->next;
+	while(temp_member!=NULL){
+
+		/* we found a match */
+		if(!strcmp(temp_member->host_name,host_name) && !strcmp(temp_member->service_description,svc_description))
+			return temp_member;
+
+		temp_member=temp_member->next;
+	        }
+	
+
+#ifdef DEBUG0
+	printf("find_servicegroupmember() end\n");
+#endif
+
+	/* we couldn't find a matching member */
+	return NULL;
+        }
+
+
 /* given a name and a starting point, find a contact from the list in memory */
 contact * find_contact(char *name,contact *cntct){
 	contact *temp_contact;
@@ -4330,6 +4600,22 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst){
         }
 
 
+/*  tests wether a service is a member of a particular servicegroup */
+int is_service_member_of_servicegroup(servicegroup *group, service *svc){
+	servicegroupmember *temp_servicegroupmember;
+
+	if(group==NULL || svc==NULL)
+		return FALSE;
+
+	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+		if(!strcmp(temp_servicegroupmember->host_name,svc->host_name) && !strcmp(temp_servicegroupmember->service_description,svc->description))
+			return TRUE;
+	        }
+
+	return FALSE;
+        }
+
+
 /*  tests wether a contact is a member of a particular contactgroup */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
 	contactgroupmember *temp_contactgroupmember;
@@ -4362,6 +4648,27 @@ int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
 		if(temp_host==NULL)
 			continue;
 		if(is_contact_for_host(temp_host,cntct)==TRUE)
+			return TRUE;
+	        }
+
+	return FALSE;
+        }
+
+
+
+/*  tests wether a contact is a member of a particular servicegroup - used only by the CGIs */
+int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
+	servicegroupmember *temp_servicegroupmember;
+	service *temp_service;
+
+	if(group==NULL || cntct==NULL)
+		return FALSE;
+
+	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+		temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+		if(temp_service==NULL)
+			continue;
+		if(is_contact_for_service(temp_service,cntct)==TRUE)
 			return TRUE;
 	        }
 
@@ -4574,6 +4881,10 @@ int free_object_data(void){
 	hostgroup *next_hostgroup=NULL;
 	hostgroupmember *this_hostgroupmember=NULL;
 	hostgroupmember *next_hostgroupmember=NULL;
+	servicegroup *this_servicegroup=NULL;
+	servicegroup *next_servicegroup=NULL;
+	servicegroupmember *this_servicegroupmember=NULL;
+	servicegroupmember *next_servicegroupmember=NULL;
 	contact	*this_contact=NULL;
 	contact *next_contact=NULL;
 	contactgroup *this_contactgroup=NULL;
@@ -4711,6 +5022,34 @@ int free_object_data(void){
 
 #ifdef DEBUG1
 	printf("\thostgroup_list freed\n");
+#endif
+
+	/* free memory for the service group list */
+	this_servicegroup=servicegroup_list;
+	while(this_servicegroup!=NULL){
+
+		/* free memory for the group members */
+		this_servicegroupmember=this_servicegroup->members;
+		while(this_servicegroupmember!=NULL){
+			next_servicegroupmember=this_servicegroupmember->next;
+			free(this_servicegroupmember->host_name);
+			free(this_servicegroupmember->service_description);
+			free(this_servicegroupmember);
+			this_servicegroupmember=next_servicegroupmember;
+		        }
+
+		next_servicegroup=this_servicegroup->next;
+		free(this_servicegroup->group_name);
+		free(this_servicegroup->alias);
+		free(this_servicegroup);
+		this_servicegroup=next_servicegroup;
+		}
+
+	/* reset the servicegroup pointer */
+	servicegroup_list=NULL;
+
+#ifdef DEBUG1
+	printf("\tservicegroup_list freed\n");
 #endif
 
 	/* free memory for the contact list */

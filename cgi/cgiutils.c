@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-09-2003
+ * Last Modified: 05-13-2003
  *
  * License:
  *
@@ -95,6 +95,7 @@ int             show_context_help=FALSE;
 
 int             hosts_have_been_read=FALSE;
 int             hostgroups_have_been_read=FALSE;
+int             servicegroups_have_been_read=FALSE;
 int             contacts_have_been_read=FALSE;
 int             contactgroups_have_been_read=FALSE;
 int             services_have_been_read=FALSE;
@@ -595,6 +596,8 @@ int read_all_object_configuration_data(char *config_file,int options){
 		options-=READ_HOSTEXTINFO;
 	if(serviceextinfo_have_been_read==TRUE && (options & READ_SERVICEEXTINFO))
 		options-=READ_SERVICEEXTINFO;
+	if(serviceextinfo_have_been_read==TRUE && (options & READ_SERVICEGROUPS))
+		options-=READ_SERVICEGROUPS;
 
 	/* bail out if we've already read what we need */
 	if(options<=0)
@@ -630,6 +633,8 @@ int read_all_object_configuration_data(char *config_file,int options){
 		hostextinfo_have_been_read=TRUE;
 	if(options & READ_SERVICEEXTINFO)
 		serviceextinfo_have_been_read=TRUE;
+	if(options & READ_SERVICEGROUPS)
+		servicegroups_have_been_read=TRUE;
 
 	return result;
         }

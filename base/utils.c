@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -178,6 +178,7 @@ extern int      max_embedded_perl_calls;
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
 extern hostgroup	*hostgroup_list;
+extern servicegroup     *servicegroup_list;
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
 extern notification     *notification_list;
@@ -450,6 +451,18 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 				else if(!strcmp(temp_buffer,"SERVICEPERCENTCHANGE"))
 					selected_macro=macro_x[MACRO_SERVICEPERCENTCHANGE];
 
+				else if(!strcmp(temp_buffer,"HOSTGROUPNAME"))
+					selected_macro=macro_x[MACRO_HOSTGROUPNAME];
+
+				else if(!strcmp(temp_buffer,"HOSTGROUPALIAS"))
+					selected_macro=macro_x[MACRO_HOSTGROUPALIAS];
+
+				else if(!strcmp(temp_buffer,"SERVICEGROUPNAME"))
+					selected_macro=macro_x[MACRO_SERVICEGROUPNAME];
+
+				else if(!strcmp(temp_buffer,"SERVICEGROUPALIAS"))
+					selected_macro=macro_x[MACRO_SERVICEGROUPALIAS];
+
 				else if(strstr(temp_buffer,"ARG")==temp_buffer){
 					arg_index=atoi(temp_buffer+3);
 					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
@@ -518,6 +531,7 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 
 /* grab macros that are specific to a particular service */
 int grab_service_macros(service *svc){
+	servicegroup *temp_servicegroup;
 	time_t current_time;
 	unsigned long duration;
 	int hours;
@@ -668,6 +682,26 @@ int grab_service_macros(service *svc){
 		snprintf(macro_x[MACRO_SERVICEDURATION],MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
 		macro_x[MACRO_SERVICEDURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
+
+	/* find one servicegroup (there may be none or several) this service is associated with */
+	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE)
+			break;
+	        }
+
+	/* get the servicegroup name */
+	if(macro_x[MACRO_SERVICEGROUPNAME]!=NULL)
+		free(macro_x[MACRO_SERVICEGROUPNAME]);
+	macro_x[MACRO_SERVICEGROUPNAME]=NULL;
+	if(temp_servicegroup!=NULL)
+		macro_x[MACRO_SERVICEGROUPNAME]=strdup(temp_servicegroup->group_name);
+	
+	/* get the servicegroup alias */
+	if(macro_x[MACRO_SERVICEGROUPALIAS]!=NULL)
+		free(macro_x[MACRO_SERVICEGROUPALIAS]);
+	macro_x[MACRO_SERVICEGROUPALIAS]=NULL;
+	if(temp_servicegroup!=NULL)
+		macro_x[MACRO_SERVICEGROUPALIAS]=strdup(temp_servicegroup->alias);
 
 	/* get the date/time macros */
 	grab_datetime_macros();

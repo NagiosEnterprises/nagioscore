@@ -390,7 +390,7 @@ int main(int argc, char **argv){
 			printf("     directives and data defintions.  If you are upgrading from a previous\n");
 			printf("     version of Nagios, you should be aware that some variables/definitions\n");
 			printf("     may have been removed or modified in this version.  Make sure to read\n");
-			printf("     the HTML documentation on the main and host config files, as well as the\n");
+			printf("     the HTML documentation regarding the config files, as well as the\n");
 			printf("     'Whats New' section to find out what has changed.\n\n");
 		        }
 
@@ -411,7 +411,7 @@ int main(int argc, char **argv){
 				printf("     directives and data defintions.  If you are upgrading from a previous\n");
 				printf("     version of Nagios, you should be aware that some variables/definitions\n");
 				printf("     may have been removed or modified in this version.  Make sure to read\n");
-				printf("     the HTML documentation on the main and host config files, as well as the\n");
+				printf("     the HTML documentation regarding the config files, as well as the\n");
 				printf("     'Whats New' section to find out what has changed.\n\n");
 			        }
 		        }

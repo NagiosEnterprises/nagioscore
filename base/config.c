@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -137,6 +137,7 @@ extern int      max_embedded_perl_calls;
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
 extern hostgroup	*hostgroup_list;
+extern servicegroup     *servicegroup_list;
 extern notification     *notification_list;
 extern command          *command_list;
 extern timeperiod       *timeperiod_list;
@@ -1389,6 +1390,8 @@ int pre_flight_check(void){
 	hostsmember *temp_hostsmember;
 	hostgroup *temp_hostgroup;
 	hostgroupmember *temp_hostgroupmember;
+	servicegroup *temp_servicegroup;
+	servicegroupmember *temp_servicegroupmember;
 	service *temp_service;
 	service *temp_service2;
 	command *temp_command;
@@ -1780,6 +1783,43 @@ int pre_flight_check(void){
 
 #ifdef DEBUG1
 	printf("\tCompleted hostgroup verification checks\n");
+#endif
+
+
+	/*****************************************/
+	/* check each service group...           */
+	/*****************************************/
+	if(verify_config==TRUE)
+		printf("Checking service groups...\n");
+	for(temp_servicegroup=servicegroup_list,total_objects=0;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next,total_objects++){
+
+		/* check all group members */
+		for(temp_servicegroupmember=temp_servicegroup->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+
+			temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+			if(temp_host==NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicegroupmember->service_description,temp_servicegroupmember->host_name,temp_servicegroup->group_name);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				errors++;
+			        }
+
+		        }
+
+		/* check for illegal characters in servicegroup name */
+		if(contains_illegal_object_chars(temp_servicegroup->group_name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+		}
+
+	if(verify_config==TRUE)
+		printf("\tChecked %d service groups.\n",total_objects);
+
+#ifdef DEBUG1
+	printf("\tCompleted servicegroup verification checks\n");
 #endif
 
 

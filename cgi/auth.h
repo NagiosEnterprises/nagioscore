@@ -2,7 +2,7 @@
  *
  * AUTH.H - Authorization utilities header file
  *
- * Last Modified:   01-29-2000
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -58,6 +58,7 @@ int is_authorized_for_host_commands(host *,authdata *);
 int is_authorized_for_service_commands(service *,authdata *);
 
 int is_authorized_for_hostgroup(hostgroup *,authdata *);
+int is_authorized_for_servicegroup(servicegroup *,authdata *);
 
 int is_authorized_for_configuration_information(authdata *);
 

@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -486,7 +486,7 @@ void cleanup_event_broker_worker_thread(void *arg){
 void * event_broker_worker_thread(void *arg){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
-	struct timeb start_time;
+	struct timeval start_time;
 	int write_result;
 	int hello_attr;
 	int x;
@@ -501,7 +501,7 @@ void * event_broker_worker_thread(void *arg){
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
 
-	ftime(&start_time);
+	gettimeofday(&start_time,NULL);
 
 	/***** MAKE THE CONNECTION (OR RECONNECT) TO BROKER SOCKET *****/
 
@@ -587,7 +587,7 @@ void * event_broker_worker_thread(void *arg){
 		if(broker_socket_open==FALSE){
 
 			gettimeofday(&tv,NULL);
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lu.%d;%s\n",tv.tv_sec,(tv.tv_usec/1000),NEBTYPE_HELLO,NEBFLAG_NONE,hello_attr,(unsigned long)start_time.time,start_time.millitm,PROGRAM_VERSION);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lu.%d;%s\n",tv.tv_sec,(tv.tv_usec/1000),NEBTYPE_HELLO,NEBFLAG_NONE,hello_attr,start_time.tv_sec,(start_time.tv_usec/1000),PROGRAM_VERSION);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			len=strlen(temp_buffer);
 			write_result=write_event_broker_data(event_broker_socket,temp_buffer,&len);

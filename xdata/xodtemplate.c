@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-29-2003
+ * Last Modified: 05-13-2003
  *
  * Description:
  *
@@ -12,8 +12,8 @@
  *
  *    1) Read
  *    2) Resolve
- *    3) Recombobulate
- *    4) Duplicate
+ *    3) Duplicate
+ *    4) Recombobulate
  *    5) Cache
  *    7) Register
  *    8) Cleanup
@@ -74,6 +74,7 @@ xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
 xodtemplate_command *xodtemplate_command_list=NULL;
 xodtemplate_contactgroup *xodtemplate_contactgroup_list=NULL;
 xodtemplate_hostgroup *xodtemplate_hostgroup_list=NULL;
+xodtemplate_servicegroup *xodtemplate_servicegroup_list=NULL;
 xodtemplate_servicedependency *xodtemplate_servicedependency_list=NULL;
 xodtemplate_serviceescalation *xodtemplate_serviceescalation_list=NULL;
 xodtemplate_contact *xodtemplate_contact_list=NULL;
@@ -128,6 +129,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	xodtemplate_command_list=NULL;
 	xodtemplate_contactgroup_list=NULL;
 	xodtemplate_hostgroup_list=NULL;
+	xodtemplate_servicegroup_list=NULL;
 	xodtemplate_servicedependency_list=NULL;
 	xodtemplate_serviceescalation_list=NULL;
 	xodtemplate_contact_list=NULL;
@@ -224,13 +226,18 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	if(result==OK)
 		result=xodtemplate_resolve_objects();
 
-	/* recombobulate object definitions */
-	if(result==OK)
-		result=xodtemplate_recombobulate_objects();
-
 	/* duplicate object definitions */
 	if(result==OK)
 		result=xodtemplate_duplicate_objects();
+
+	/* recombobulate object definitions */
+	/**** NOTE TO SELF - THIS USED TO BE CALLED AFTER RESOLUTION AND BEFORE DUPLICATION - I THINK IT CAN BE SAFELY MOVED HERE 05/13/03 ****/
+	if(result==OK)
+		result=xodtemplate_recombobulate_objects();
+
+	/* recombobulate service definitions */
+	if(result==OK)
+		result=xodtemplate_recombobulate_services();
 
 	/* cache object definitions */
 	if(result==OK && cache==TRUE)
@@ -485,7 +492,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			        }
 
 			/* check validity of object type */
-			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation") && strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo")){
+			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"servicegroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation") && strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo")){
 #ifdef NSCORE
 				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -539,7 +546,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 
 		/* this is a directive inside an object definition */
 		else if(in_definition==TRUE){
-			
+
 			/* add directive to object definition */
 			if(xodtemplate_add_object_property(input,options)==ERROR){
 #ifdef NSCORE
@@ -599,6 +606,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	xodtemplate_command *new_command;
 	xodtemplate_contactgroup *new_contactgroup;
 	xodtemplate_hostgroup *new_hostgroup;
+	xodtemplate_servicegroup *new_servicegroup;
 	xodtemplate_servicedependency *new_servicedependency;
 	xodtemplate_serviceescalation *new_serviceescalation;
 	xodtemplate_contact *new_contact;
@@ -626,6 +634,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		xodtemplate_current_object_type=XODTEMPLATE_CONTACTGROUP;
 	else if(!strcmp(input,"hostgroup"))
 		xodtemplate_current_object_type=XODTEMPLATE_HOSTGROUP;
+	else if(!strcmp(input,"servicegroup"))
+		xodtemplate_current_object_type=XODTEMPLATE_SERVICEGROUP;
 	else if(!strcmp(input,"timeperiod"))
 		xodtemplate_current_object_type=XODTEMPLATE_TIMEPERIOD;
 	else if(!strcmp(input,"servicedependency"))
@@ -668,6 +678,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		break;
 	case XODTEMPLATE_HOSTGROUP:
 		if(!(options & READ_HOSTGROUPS))
+			return OK;
+		break;
+	case XODTEMPLATE_SERVICEGROUP:
+		if(!(options & READ_SERVICEGROUPS))
 			return OK;
 		break;
 	case XODTEMPLATE_SERVICE:
@@ -825,6 +839,36 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* update current object pointer */
 		xodtemplate_current_object=xodtemplate_hostgroup_list;
+		break;
+
+	case XODTEMPLATE_SERVICEGROUP:
+
+		/* allocate memory */
+		new_servicegroup=(xodtemplate_servicegroup *)malloc(sizeof(xodtemplate_servicegroup));
+		if(new_servicegroup==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for servicegroup definition\n");
+#endif
+			return ERROR;
+		        }
+		
+		new_servicegroup->template=NULL;
+		new_servicegroup->name=NULL;
+		new_servicegroup->servicegroup_name=NULL;
+		new_servicegroup->alias=NULL;
+		new_servicegroup->members=NULL;
+		new_servicegroup->has_been_resolved=FALSE;
+		new_servicegroup->register_object=TRUE;
+		new_servicegroup->_config_file=config_file;
+		new_servicegroup->_start_line=start_line;
+
+		/* add new servicegroup to head of list in memory */
+		new_servicegroup->next=xodtemplate_servicegroup_list;
+		xodtemplate_servicegroup_list=new_servicegroup;
+
+		/* update current object pointer */
+		xodtemplate_current_object=xodtemplate_servicegroup_list;
+
 		break;
 
 	case XODTEMPLATE_SERVICEDEPENDENCY:
@@ -1051,6 +1095,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->hostgroup_name=NULL;
 		new_service->host_name=NULL;
 		new_service->service_description=NULL;
+		new_service->servicegroups=NULL;
 		new_service->check_command=NULL;
 		new_service->check_period=NULL;
 		new_service->event_handler=NULL;
@@ -1295,6 +1340,7 @@ int xodtemplate_add_object_property(char *input, int options){
 	xodtemplate_command *temp_command;
 	xodtemplate_contactgroup *temp_contactgroup;
 	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_servicegroup *temp_servicegroup;
 	xodtemplate_servicedependency *temp_servicedependency;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_contact *temp_contact;
@@ -1339,6 +1385,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		break;
 	case XODTEMPLATE_HOSTGROUP:
 		if(!(options & READ_HOSTGROUPS))
+			return OK;
+		break;
+	case XODTEMPLATE_SERVICEGROUP:
+		if(!(options & READ_SERVICEGROUPS))
 			return OK;
 		break;
 	case XODTEMPLATE_SERVICE:
@@ -1672,6 +1722,77 @@ int xodtemplate_add_object_property(char *input, int options){
 		else{
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostgroup object directive '%s'.\n",variable);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+
+		break;
+
+	
+	case XODTEMPLATE_SERVICEGROUP:
+
+		temp_servicegroup=(xodtemplate_servicegroup *)xodtemplate_current_object;
+
+		if(!strcmp(variable,"use")){
+			temp_servicegroup->template=strdup(value);
+			if(temp_servicegroup->template==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for servicegroup template.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"name")){
+			temp_servicegroup->name=strdup(value);
+			if(temp_servicegroup->name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for servicegroup name.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"servicegroup_name")){
+			temp_servicegroup->servicegroup_name=strdup(value);
+			if(temp_servicegroup->servicegroup_name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for servicegroup name.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"alias")){
+			temp_servicegroup->alias=strdup(value);
+			if(temp_servicegroup->alias==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for servicegroup alias.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"members")){
+			if(temp_servicegroup->members==NULL)
+				temp_servicegroup->members=strdup(value);
+			else{
+				temp_servicegroup->members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(value)+2);
+				if(temp_servicegroup->members!=NULL){
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,value);
+				        }
+			        }
+			if(temp_servicegroup->members==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for servicegroup members.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"register"))
+			temp_servicegroup->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else{
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid servicegroup object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2433,6 +2554,15 @@ int xodtemplate_add_object_property(char *input, int options){
 			if(temp_service->service_description==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for service service_description.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"servicegroups")){
+			temp_service->servicegroups=strdup(value);
+			if(temp_service->servicegroups==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for service servicegroups.\n");
 #endif
 				return ERROR;
 			        }
@@ -3746,6 +3876,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->hostgroup_name=NULL;
 	new_service->host_name=NULL;
 	new_service->service_description=NULL;
+	new_service->servicegroups=NULL;
 	new_service->check_command=NULL;
 	new_service->check_period=NULL;
 	new_service->event_handler=NULL;
@@ -3860,6 +3991,20 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			return ERROR;
 		        }
 	        } 
+	if(temp_service->servicegroups!=NULL){
+		new_service->servicegroups=strdup(temp_service->servicegroups);
+		if(new_service->servicegroups==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
+#endif
+			free(new_service->host_name);
+			free(new_service->template);
+			free(new_service->name);
+			free(new_service->service_description);
+			free(new_service);
+			return ERROR;
+		        }
+	        } 
 	if(temp_service->check_command!=NULL){
 		new_service->check_command=strdup(temp_service->check_command);
 		if(new_service->check_command==NULL){
@@ -3870,6 +4015,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->servicegroups);
 			free(new_service);
 			return ERROR;
 		        }
@@ -3885,6 +4031,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->name);
 			free(new_service->service_description);
 			free(new_service->check_command);
+			free(new_service->servicegroups);
 			free(new_service);
 			return ERROR;
 		        }
@@ -3899,8 +4046,10 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->servicegroups);
 			free(new_service->check_command);
 			free(new_service->check_period);
+			free(new_service->servicegroups);
 			free(new_service);
 			return ERROR;
 		        }
@@ -3915,6 +4064,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->servicegroups);
 			free(new_service->check_command);
 			free(new_service->check_period);
 			free(new_service->event_handler);
@@ -3932,6 +4082,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->servicegroups);
 			free(new_service->check_command);
 			free(new_service->check_period);
 			free(new_service->event_handler);
@@ -3950,6 +4101,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->servicegroups);
 			free(new_service->check_command);
 			free(new_service->check_period);
 			free(new_service->event_handler);
@@ -4603,6 +4755,7 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_command *temp_command;
 	xodtemplate_contactgroup *temp_contactgroup;
 	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_servicegroup *temp_servicegroup;
 	xodtemplate_servicedependency *temp_servicedependency;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_contact *temp_contact;
@@ -4639,6 +4792,12 @@ int xodtemplate_resolve_objects(void){
 	/* resolve all hostgroup objects */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 		if(xodtemplate_resolve_hostgroup(temp_hostgroup)==ERROR)
+			return ERROR;
+	        }
+
+	/* resolve all servicegroup objects */
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(xodtemplate_resolve_servicegroup(temp_servicegroup)==ERROR)
 			return ERROR;
 	        }
 
@@ -4913,6 +5072,59 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_hostgroup() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+
+/* resolves a servicegroup object */
+int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup){
+	xodtemplate_servicegroup *template_servicegroup;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_resolve_servicegroup() start\n");
+#endif
+
+	/* return if this servicegroup has already been resolved */
+	if(this_servicegroup->has_been_resolved==TRUE)
+		return OK;
+
+	/* set the resolved flag */
+	this_servicegroup->has_been_resolved=TRUE;
+
+	/* return if we have no template */
+	if(this_servicegroup->template==NULL)
+		return OK;
+
+	template_servicegroup=xodtemplate_find_servicegroup(this_servicegroup->template);
+	if(template_servicegroup==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', line %d)\n",this_servicegroup->template,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
+
+	/* resolve the template servicegroup... */
+	xodtemplate_resolve_servicegroup(template_servicegroup);
+
+	/* apply missing properties from template servicegroup... */
+	if(this_servicegroup->servicegroup_name==NULL && template_servicegroup->servicegroup_name!=NULL)
+		this_servicegroup->servicegroup_name=strdup(template_servicegroup->servicegroup_name);
+	if(this_servicegroup->alias==NULL && template_servicegroup->alias!=NULL)
+		this_servicegroup->alias=strdup(template_servicegroup->alias);
+	if(this_servicegroup->members==NULL && template_servicegroup->members!=NULL)
+		this_servicegroup->members=strdup(template_servicegroup->members);
+
+#ifdef DEBUG0
+	printf("xodtemplate_resolve_servicegroup() end\n");
 #endif
 
 	return OK;
@@ -5330,6 +5542,8 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 		this_service->host_name=strdup(template_service->host_name);
 	if(this_service->service_description==NULL && template_service->service_description!=NULL)
 		this_service->service_description=strdup(template_service->service_description);
+	if(this_service->servicegroups==NULL && template_service->servicegroups!=NULL)
+		this_service->servicegroups=strdup(template_service->servicegroups);
 	if(this_service->check_command==NULL && template_service->check_command!=NULL)
 		this_service->check_command=strdup(template_service->check_command);
 	if(this_service->check_period==NULL && template_service->check_period!=NULL)
@@ -5725,6 +5939,7 @@ int xodtemplate_recombobulate_objects(void){
 	char *hostgroup_names;
 	char *temp_ptr;
 	char *new_members;
+	void *xod_svc_cursor;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5815,6 +6030,82 @@ int xodtemplate_recombobulate_objects(void){
 
 #ifdef DEBUG0
 	printf("xodtemplate_recombobulate_objects() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* recombobulates service definitions */
+/***** THIS NEEDS TO BE CALLED AFTER OBJECTS (SERVICES) ARE RESOLVED AND DUPLICATED *****/
+int xodtemplate_recombobulate_services(void){
+	xodtemplate_service *temp_service;
+	xodtemplate_servicegroup *temp_servicegroup;
+	char *servicegroup_names;
+	char *temp_ptr;
+	char *new_members;
+	void *xod_svc_cursor;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_recombobulate_services() start\n");
+#endif
+
+	/* process all services that have servicegroup directives */
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+
+		/* skip services without servicegroup directives or service names */
+		if(temp_service->servicegroups==NULL || temp_service->host_name==NULL || temp_service->service_description==NULL)
+			continue;
+
+		/* process the list of servicegroups */
+		servicegroup_names=strdup(temp_service->servicegroups);
+		if(servicegroup_names==NULL)
+			continue;
+		for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+			/* strip trailing spaces */
+			strip(temp_ptr);
+			
+			/* find the servicegroup */
+			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
+			if(temp_servicegroup==NULL){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find servicegroup '%s' specified in service '%s' on host '%s' definition (config file '%s', line %d)\n",temp_ptr,temp_service->host_name,temp_service->service_description,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(servicegroup_names);
+				return ERROR;
+			        }
+
+			/* add this list to the servicegroup members directive */
+			if(temp_servicegroup->members==NULL){
+				temp_servicegroup->members=(char *)malloc(strlen(temp_service->host_name)+strlen(temp_service->service_description)+2);
+				if(temp_servicegroup->members!=NULL){
+					strcpy(temp_servicegroup->members,temp_service->host_name);
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,temp_service->service_description);
+				        }
+			        }
+			else{
+				new_members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(temp_service->host_name)+strlen(temp_service->service_description)+3);
+				if(new_members!=NULL){
+					temp_servicegroup->members=new_members;
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,temp_service->host_name);
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,temp_service->service_description);
+				        }
+			        }
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_recombobulate_services() end\n");
 #endif
 
 	return OK;
@@ -5917,6 +6208,42 @@ xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *name){
 	        }
 
 	return temp_hostgroup;
+        }
+
+
+/* finds a specific servicegroup object */
+xodtemplate_servicegroup *xodtemplate_find_servicegroup(char *name){
+	xodtemplate_servicegroup *temp_servicegroup;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(temp_servicegroup->name==NULL)
+			continue;
+		if(!strcmp(temp_servicegroup->name,name))
+			break;
+	        }
+
+	return temp_servicegroup;
+        }
+
+
+/* finds a specific servicegroup object by its REAL name, not its TEMPLATE name */
+xodtemplate_servicegroup *xodtemplate_find_real_servicegroup(char *name){
+	xodtemplate_servicegroup *temp_servicegroup;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(temp_servicegroup->servicegroup_name==NULL)
+			continue;
+		if(!strcmp(temp_servicegroup->servicegroup_name,name))
+			break;
+	        }
+
+	return temp_servicegroup;
         }
 
 
@@ -6134,6 +6461,7 @@ int xodtemplate_register_objects(void){
 	xodtemplate_command *temp_command;
 	xodtemplate_contactgroup *temp_contactgroup;
 	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_servicegroup *temp_servicegroup;
 	xodtemplate_contact *temp_contact;
 	xodtemplate_host *temp_host;
 	xodtemplate_service *temp_service;
@@ -6170,6 +6498,12 @@ int xodtemplate_register_objects(void){
 	/* register hostgroups */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
 		if((result=xodtemplate_register_hostgroup(temp_hostgroup))==ERROR)
+			return ERROR;
+	        }
+
+	/* register servicegroups */
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if((result=xodtemplate_register_servicegroup(temp_servicegroup))==ERROR)
 			return ERROR;
 	        }
 
@@ -6528,6 +6862,71 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_hostgroup() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* registers a servicegroup definition */
+int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegroup){
+	servicegroup *new_servicegroup;
+	servicegroupmember *new_servicegroupmember;
+	char *host_name;
+	char *svc_description;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_register_servicegroup() start\n");
+#endif
+
+	/* bail out if we shouldn't register this object */
+	if(this_servicegroup->register_object==FALSE)
+		return OK;
+
+	/* add the  service group */
+	new_servicegroup=add_servicegroup(this_servicegroup->servicegroup_name,this_servicegroup->alias);
+
+	/* return with an error if we couldn't add the servicegroup */
+	if(new_servicegroup==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register servicegroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
+
+	/* add all members to servicegroup */
+	for(host_name=strtok(this_servicegroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
+		strip(host_name);
+		svc_description=strtok(NULL,",");
+		if(svc_description==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Missing service name in servicegroup definition (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+		strip(svc_description);
+
+		new_servicegroupmember=add_service_to_servicegroup(new_servicegroup,host_name,svc_description);
+		if(new_servicegroupmember==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add service '%s' on host '%s' to servicegroup (config file '%s', line %d)\n",svc_description,host_name,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_register_servicegroup() end\n");
 #endif
 
 	return OK;
@@ -7078,6 +7477,7 @@ int xodtemplate_cache_objects(char *cache_file){
 	xodtemplate_command *temp_command;
 	xodtemplate_contactgroup *temp_contactgroup;
 	xodtemplate_hostgroup *temp_hostgroup;
+	xodtemplate_servicegroup *temp_servicegroup;
 	xodtemplate_contact *temp_contact;
 	xodtemplate_host *temp_host;
 	xodtemplate_service *temp_service;
@@ -7164,6 +7564,20 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"alias\t%s\n",temp_hostgroup->alias);
 		if(temp_hostgroup->members)
 			fprintf(fp,"members\t%s\n",temp_hostgroup->members);
+		fprintf(fp,"}\n");
+	        }
+
+	/* cache servicegroups */
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(temp_servicegroup->register_object==FALSE)
+			continue;
+		fprintf(fp,"define servicegroup {\n");
+		if(temp_servicegroup->servicegroup_name)
+			fprintf(fp,"servicegroup_name\t%s\n",temp_servicegroup->servicegroup_name);
+		if(temp_servicegroup->alias)
+			fprintf(fp,"alias\t%s\n",temp_servicegroup->alias);
+		if(temp_servicegroup->members)
+			fprintf(fp,"members\t%s\n",temp_servicegroup->members);
 		fprintf(fp,"}\n");
 	        }
 
@@ -7577,6 +7991,8 @@ int xodtemplate_free_memory(void){
 	xodtemplate_contactgroup *next_contactgroup;
 	xodtemplate_hostgroup *this_hostgroup;
 	xodtemplate_hostgroup *next_hostgroup;
+	xodtemplate_servicegroup *this_servicegroup;
+	xodtemplate_servicegroup *next_servicegroup;
 	xodtemplate_servicedependency *this_servicedependency;
 	xodtemplate_servicedependency *next_servicedependency;
 	xodtemplate_serviceescalation *this_serviceescalation;
@@ -7648,6 +8064,18 @@ int xodtemplate_free_memory(void){
 		free(this_hostgroup);
 	        }
 	xodtemplate_hostgroup_list=NULL;
+
+	/* free memory allocated to servicegroup list */
+	for(this_servicegroup=xodtemplate_servicegroup_list;this_servicegroup!=NULL;this_servicegroup=next_servicegroup){
+		next_servicegroup=this_servicegroup->next;
+		free(this_servicegroup->template);
+		free(this_servicegroup->name);
+		free(this_servicegroup->servicegroup_name);
+		free(this_servicegroup->alias);
+		free(this_servicegroup->members);
+		free(this_servicegroup);
+	        }
+	xodtemplate_servicegroup_list=NULL;
 
 	/* free memory allocated to servicedependency list */
 	for(this_servicedependency=xodtemplate_servicedependency_list;this_servicedependency!=NULL;this_servicedependency=next_servicedependency){
@@ -7729,6 +8157,7 @@ int xodtemplate_free_memory(void){
 				free(this_service->hostgroup_name);
 				free(this_service->host_name);
 				free(this_service->service_description);
+				free(this_service->servicegroups);
 				free(this_service->check_command);
 				free(this_service->check_period);
 				free(this_service->event_handler);

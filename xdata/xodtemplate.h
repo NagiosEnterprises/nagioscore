@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-25-2003
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -50,6 +50,7 @@
 #define XODTEMPLATE_HOSTDEPENDENCY      12
 #define XODTEMPLATE_HOSTEXTINFO         13
 #define XODTEMPLATE_SERVICEEXTINFO      14
+#define XODTEMPLATE_SERVICEGROUP        15
 
 
 
@@ -232,6 +233,7 @@ typedef struct xodtemplate_service_struct{
 	char       *hostgroup_name;
 	char       *host_name;
 	char       *service_description;
+	char       *servicegroups;
 	char       *check_command;
 	int        max_check_attempts;
         int        normal_check_interval;
@@ -296,6 +298,23 @@ typedef struct xodtemplate_service_struct{
 	int        register_object;
 	struct xodtemplate_service_struct *next;
         }xodtemplate_service;
+
+
+/* SERVICEGROUP TEMPLATE STRUCTURE */
+typedef struct xodtemplate_servicegroup_struct{
+	char      *template;
+	char      *name;
+	int        _config_file;
+	int        _start_line;
+
+	char      *servicegroup_name;
+	char      *alias;
+	char      *members;
+
+	int       has_been_resolved;
+	int       register_object;
+	struct xodtemplate_servicegroup_struct *next;
+        }xodtemplate_servicegroup;
 
 
 /* SERVICEDEPENDENCY TEMPLATE STRUCTURE */
@@ -516,6 +535,7 @@ int xodtemplate_free_memory(void);
 int xodtemplate_duplicate_objects(void);
 int xodtemplate_resolve_objects(void);
 int xodtemplate_recombobulate_objects(void);
+int xodtemplate_recombobulate_services(void);
 int xodtemplate_cache_objects(char *);
 
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
@@ -530,6 +550,7 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);
 int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *);
 int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *);
+int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *);
 int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *);
 int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *);
 int xodtemplate_resolve_contact(xodtemplate_contact *);
@@ -545,6 +566,8 @@ xodtemplate_command *xodtemplate_find_command(char *);
 xodtemplate_contactgroup *xodtemplate_find_contactgroup(char *);
 xodtemplate_hostgroup *xodtemplate_find_hostgroup(char *);
 xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *);
+xodtemplate_servicegroup *xodtemplate_find_servicegroup(char *);
+xodtemplate_servicegroup *xodtemplate_find_real_servicegroup(char *);
 xodtemplate_servicedependency *xodtemplate_find_servicedependency(char *);
 xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *);
 xodtemplate_contact *xodtemplate_find_contact(char *);
@@ -571,6 +594,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_register_command(xodtemplate_command *);
 int xodtemplate_register_contactgroup(xodtemplate_contactgroup *);
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *);
+int xodtemplate_register_servicegroup(xodtemplate_servicegroup *);
 int xodtemplate_register_servicedependency(xodtemplate_servicedependency *);
 int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *);
 int xodtemplate_register_contact(xodtemplate_contact *);

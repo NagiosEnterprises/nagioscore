@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -189,6 +189,23 @@ typedef struct hostgroup_struct{
 	hostgroupmember *members;
 	struct	hostgroup_struct *next;
 	}hostgroup;
+
+
+/* SERVICEGROUPMEMBER structure */
+typedef struct servicegroupmember_struct{
+	char    *host_name;
+	char    *service_description;
+	struct  servicegroupmember_struct *next;
+        }servicegroupmember;
+
+
+/* SERVICEGROUP structure */
+typedef struct servicegroup_struct{
+	char 	*group_name;
+	char    *alias;
+	servicegroupmember *members;
+	struct	servicegroup_struct *next;
+	}servicegroup;
 
 
 /* COMMANDSMEMBER structure */
@@ -459,6 +476,8 @@ timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definitio
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
 hostgroup *add_hostgroup(char *,char *);								/* adds a hostgroup definition */
 hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
+servicegroup *add_servicegroup(char *,char *);                                                          /* adds a servicegroup definition */
+servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);                          /* adds a service to a servicegroup definition */
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group defintion */
 command *add_command(char *,char *);									/* adds a command definition */
@@ -480,6 +499,8 @@ timeperiod * find_timeperiod(char *,timeperiod *);						/* finds a timeperiod ob
 host * find_host(char *);									/* finds a host object */
 hostgroup * find_hostgroup(char *, hostgroup *);						/* finds a hostgroup object */
 hostgroupmember *find_hostgroupmember(char *,hostgroup *,hostgroupmember *);			/* finds a hostgroup member object */
+servicegroup * find_servicegroup(char *, servicegroup *);					/* finds a servicegroup object */
+servicegroupmember *find_servicegroupmember(char *,char *,servicegroup *,servicegroupmember *);	/* finds a servicegroup member object */
 contact * find_contact(char *, contact *);							/* finds a contact object */
 contactgroup * find_contactgroup(char *, contactgroup *);					/* finds a contactgroup object */
 contactgroupmember *find_contactgroupmember(char *,contactgroup *,contactgroupmember *);	/* finds a contactgroup member object */
@@ -511,8 +532,10 @@ int is_host_immediate_child_of_host(host *,host *);	                /* checks if
 int is_host_primary_immediate_child_of_host(host *,host *);             /* checsk if a host is an immediate child (and primary child) of another host */
 int is_host_immediate_parent_of_host(host *,host *);	                /* checks if a host is an immediate child of another host */	
 int is_host_member_of_hostgroup(hostgroup *,host *);		        /* tests whether or not a host is a member of a specific hostgroup */
+int is_service_member_of_servicegroup(servicegroup *,service *);	/* tests whether or not a service is a member of a specific servicegroup */
 int is_contact_member_of_contactgroup(contactgroup *, contact *);	/* tests whether or not a contact is a member of a specific contact group */
 int is_contact_for_hostgroup(hostgroup *,contact *);	                /* tests whether or not a contact is a member of a specific hostgroup */
+int is_contact_for_servicegroup(servicegroup *,contact *);	        /* tests whether or not a contact is a member of a specific servicegroup */
 int is_contact_for_host(host *,contact *);			        /* tests whether or not a contact is a contact member for a specific host */
 int is_escalated_contact_for_host(host *,contact *);                    /* checsk whether or not a contact is an escalated contact for a specific host */
 int is_contact_for_service(service *,contact *);		        /* tests whether or not a contact is a contact member for a specific service */

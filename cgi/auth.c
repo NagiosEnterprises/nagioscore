@@ -2,8 +2,8 @@
  *
  * AUTH.C - Authorization utilities for Nagios CGIs
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-13-2003
  *
  * License:
  *
@@ -34,6 +34,7 @@
 extern char            main_config_file[MAX_FILENAME_LENGTH];
 
 extern hostgroup       *hostgroup_list;
+extern servicegroup    *servicegroup_list;
 
 extern int             use_authentication;
 
@@ -237,6 +238,26 @@ int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo){
 	for(temp_hostgroupmember=hg->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
 		temp_host=find_host(temp_hostgroupmember->host_name);
 		if(is_authorized_for_host(temp_host,authinfo)==TRUE)
+			return TRUE;
+	        }
+
+	return FALSE;
+        }
+
+
+
+/* check if user is authorized to view information about AT LEAST ONE service in a particular servicegroup */
+int is_authorized_for_servicegroup(servicegroup *sg, authdata *authinfo){
+	servicegroupmember *temp_servicegroupmember;
+	service *temp_service;
+
+	if(sg==NULL)
+		return FALSE;
+
+	/* see if user is authorized for any service in the servicegroup */
+	for(temp_servicegroupmember=sg->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+		temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+		if(is_authorized_for_service(temp_service,authinfo)==TRUE)
 			return TRUE;
 	        }
 

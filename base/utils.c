@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-15-2002
+ * Last Modified:   12-17-2002
  *
  * License:
  *
@@ -2562,6 +2562,7 @@ int init_service_result_worker_thread(void){
 	service_result_buffer.head=0;
 	service_result_buffer.tail=0;
 	service_result_buffer.items=0;
+	service_result_buffer.overflow=0L;
 	service_result_buffer.buffer=(void **)malloc(SERVICE_BUFFER_SLOTS*sizeof(service_message **));
 	if(service_result_buffer.buffer==NULL)
 		return ERROR;
@@ -2594,6 +2595,7 @@ int init_event_broker_worker_thread(void){
 	event_broker_buffer.head=0;
 	event_broker_buffer.tail=0;
 	event_broker_buffer.items=0;
+	event_broker_buffer.overflow=0L;
 	event_broker_buffer.buffer=(void **)malloc(EVENT_BUFFER_SLOTS*sizeof(char **));
 	if(event_broker_buffer.buffer==NULL)
 		return ERROR;
@@ -2665,6 +2667,7 @@ int init_command_file_worker_thread(void){
 	external_command_buffer.head=0;
 	external_command_buffer.tail=0;
 	external_command_buffer.items=0;
+	external_command_buffer.overflow=0L;
 	external_command_buffer.buffer=(void **)malloc(COMMAND_BUFFER_SLOTS*sizeof(char **));
 	if(external_command_buffer.buffer==NULL)
 		return ERROR;

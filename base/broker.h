@@ -31,25 +31,26 @@
 
 #define NEBTYPE_HELLO                         1
 #define NEBTYPE_GOODBYE                       2
+#define NEBTYPE_INFO                          3
 
-#define NEBTYPE_PROCESS_START                 3
-#define NEBTYPE_PROCESS_DAEMON                4
-#define NEBTYPE_PROCESS_RESTART               5
-#define NEBTYPE_PROCESS_SHUTDOWN              6
+#define NEBTYPE_PROCESS_START                 4
+#define NEBTYPE_PROCESS_DAEMON                5
+#define NEBTYPE_PROCESS_RESTART               6
+#define NEBTYPE_PROCESS_SHUTDOWN              7
 
-#define NEBTYPE_TIMEDEVENT_ADD                7
-#define NEBTYPE_TIMEDEVENT_REMOVE             8
-#define NEBTYPE_TIMEDEVENT_EXECUTE            9
-#define NEBTYPE_TIMEDEVENT_DELAY              10
-#define NEBTYPE_TIMEDEVENT_SKIP               11
-#define NEBTYPE_TIMEDEVENT_SLEEP              12
+#define NEBTYPE_TIMEDEVENT_ADD                8
+#define NEBTYPE_TIMEDEVENT_REMOVE             9
+#define NEBTYPE_TIMEDEVENT_EXECUTE            10
+#define NEBTYPE_TIMEDEVENT_DELAY              11
+#define NEBTYPE_TIMEDEVENT_SKIP               12
+#define NEBTYPE_TIMEDEVENT_SLEEP              13
 
-#define NEBTYPE_LOGDATA                       13
+#define NEBTYPE_LOGDATA                       14
 
-#define NEBTYPE_NOTIFICATION_HOST             14
-#define NEBTYPE_NOTIFICATION_SERVICE          15
-#define NEBTYPE_NOTIFICATION_HOST_CONTACT     16
-#define NEBTYPE_NOTIFICATION_SERVICE_CONTACT  17
+#define NEBTYPE_NOTIFICATION_HOST             15
+#define NEBTYPE_NOTIFICATION_SERVICE          16
+#define NEBTYPE_NOTIFICATION_HOST_CONTACT     17
+#define NEBTYPE_NOTIFICATION_SERVICE_CONTACT  18
 
 
 
@@ -67,10 +68,14 @@
 
 #define NEBATTR_NONE                          0
 
+#define NEBATTR_BROKERFILE_ERROR              1
+
+#define NEBATTR_BUFFER_OVERFLOW               1
+
 #define NEBATTR_SHUTDOWN_NORMAL               1
 #define NEBATTR_SHUTDOWN_ABNORMAL             2
-#define NEBATTR_RESTART_NORMAL                3
-#define NEBATTR_RESTART_ABNORMAL              4
+#define NEBATTR_RESTART_NORMAL                4
+#define NEBATTR_RESTART_ABNORMAL              8
 
 
 #endif

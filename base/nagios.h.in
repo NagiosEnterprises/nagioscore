@@ -346,6 +346,7 @@ typedef struct circular_buffer_struct{
 	int             tail;
 	int             head;
 	int             items;
+	unsigned long   overflow;
 	pthread_mutex_t buffer_lock;
         }circular_buffer;
 
@@ -353,7 +354,7 @@ typedef struct circular_buffer_struct{
 /* slots in circular buffers */
 #define COMMAND_BUFFER_SLOTS              512
 #define SERVICE_BUFFER_SLOTS		  512
-#define EVENT_BUFFER_SLOTS		  1536
+#define EVENT_BUFFER_SLOTS		  2048
 
 /* worker threads */
 #define TOTAL_WORKER_THREADS              3

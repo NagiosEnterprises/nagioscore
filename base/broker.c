@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-15-2002
+ * Last Modified:   12-17-2002
  *
  * License:
  *
@@ -44,6 +44,9 @@ int broker_file_open;
 
 /* sends data to the event broker worker thread */
 int send_event_data_to_broker(char *data){
+#ifdef BROKER_BLOCKS
+	struct timeval tv;
+#endif
 
 	if(event_broker_options==BROKER_NOTHING)
 		return OK;
@@ -59,15 +62,40 @@ int send_event_data_to_broker(char *data){
 	/* obtain a lock for writing to the buffer */
 	pthread_mutex_lock(&event_broker_buffer.buffer_lock);
 
-	/* save the data to the buffer - older data is overwritten if the buffer is full */
+#ifdef BROKER_BLOCKS
+	/* if the buffer is full and we're blocking , we'll wait... */
+	while(event_broker_buffer.items==EVENT_BUFFER_SLOTS){
+		
+		/* unlock the buffer */
+		pthread_mutex_unlock(&event_broker_buffer.buffer_lock);
+
+		/* wait a bit... */
+		tv.tv_sec=0;
+		tv.tv_usec=250000;
+		select(0,NULL,NULL,NULL,&tv);
+
+		/* lock the buffer for writing */
+		pthread_mutex_lock(&event_broker_buffer.buffer_lock);
+	        }
+#else
+	/* is the buffer full?  if it is and we're not blocking, we're going to lose some older data... */
+	if(event_broker_buffer.items==EVENT_BUFFER_SLOTS){
+
+		/* increment the overflow counter */
+		event_broker_buffer.overflow++;
+
+		/* free memory allocated to oldest data item */
+		free(((char **)event_broker_buffer.buffer)[event_broker_buffer.tail]);
+	        }
+#endif
+
+	/* save the data to the buffer */
 	((char **)event_broker_buffer.buffer)[event_broker_buffer.tail]=strdup(data);
 
 	/* increment the index counters and number of items */
 	event_broker_buffer.tail=(event_broker_buffer.tail + 1) % EVENT_BUFFER_SLOTS;
 	if(event_broker_buffer.items<EVENT_BUFFER_SLOTS)
 		event_broker_buffer.items++;
-	else
-		event_broker_buffer.head=(event_broker_buffer.head + 1) % EVENT_BUFFER_SLOTS;
 
 	/* unlock the buffer */
 	pthread_mutex_unlock(&event_broker_buffer.buffer_lock);
@@ -171,9 +199,12 @@ void broker_logged_data(int type, int flags, int attr, char *data, unsigned long
 void * event_broker_worker_thread(void *arg){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
+	struct timeb start_time;
 	struct timeb tb;
 	sigset_t newmask;
 	int write_result;
+	int open_failed;
+	int hello_attr;
 	int x;
 
 	/* this thread should block all signals */
@@ -188,18 +219,28 @@ void * event_broker_worker_thread(void *arg){
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
 
 	broker_file_open=FALSE;
+	open_failed=FALSE;
 	event_broker_fd=-1;
+
+	hello_attr=NEBATTR_NONE;
+
+	ftime(&start_time);
 
 	while(1){
 
 		/* open the event broker file for writing (non-blocked) */
 		if(event_broker_fd<0){
 
+			/* open the named pipe for writing */
 			event_broker_fd=open(event_broker_file,O_WRONLY | O_NONBLOCK | O_APPEND,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-			/*event_broker_fd=open(event_broker_file,O_WRONLY | O_NONBLOCK | O_CREAT,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);*/
 
 			/* wait a while if we couldn't open the file */
 			if(event_broker_fd<0){
+
+				/* flag this as a potential error */
+				if(open_failed==FALSE)
+					hello_attr+=NEBATTR_BROKERFILE_ERROR;
+				open_failed=TRUE;
 
 				for(x=0;x<10;x++){
 
@@ -230,7 +271,7 @@ void * event_broker_worker_thread(void *arg){
 		/* broker file was just opened - say hello... */
 		if(broker_file_open==FALSE){
 			ftime(&tb);
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s\n",(unsigned long)tb.time,tb.millitm,NEBTYPE_HELLO,NEBFLAG_NONE,NEBATTR_NONE,PROGRAM_VERSION);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lu.%d;%s\n",(unsigned long)tb.time,tb.millitm,NEBTYPE_HELLO,NEBFLAG_NONE,hello_attr,(unsigned long)start_time.time,start_time.millitm,PROGRAM_VERSION);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write(event_broker_fd,temp_buffer,strlen(temp_buffer));
 			broker_file_open=TRUE;
@@ -239,25 +280,19 @@ void * event_broker_worker_thread(void *arg){
 		/* obtain a lock for reading from the buffer */
 		pthread_mutex_lock(&event_broker_buffer.buffer_lock);
 
+		/* report the amount data lost due to overflows */
+		if(event_broker_buffer.overflow>0){
+			ftime(&tb);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lu\n",(unsigned long)tb.time,tb.millitm,NEBTYPE_INFO,NEBFLAG_NONE,NEBATTR_BUFFER_OVERFLOW,event_broker_buffer.overflow);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write(event_broker_fd,temp_buffer,strlen(temp_buffer));
+			event_broker_buffer.overflow=0L;
+		        }
+
 		/* process all data in the buffer */
 		if(event_broker_buffer.items>0){
 
-			/* write the data to the event broker file */
-			while(1){
-
-				write_result=write(event_broker_fd,((char **)event_broker_buffer.buffer)[event_broker_buffer.head],strlen(((char **)event_broker_buffer.buffer)[event_broker_buffer.head]));
-				
-				if(write_result==-1){
-
-					if(errno!=EINTR && errno!=EAGAIN)
-						break;
-				        }
-				else 
-					break;
-
-				/* should we shutdown? */
-				pthread_testcancel();
-			        }
+			write(event_broker_fd,((char **)event_broker_buffer.buffer)[event_broker_buffer.head],strlen(((char **)event_broker_buffer.buffer)[event_broker_buffer.head]));
 
 			/* free buffer data */
 			free(((char **)event_broker_buffer.buffer)[event_broker_buffer.head]);
@@ -294,7 +329,8 @@ void * cleanup_event_broker_worker_thread(void *arg){
 	/* flush remaining data in the buffer */
 	while(event_broker_buffer.items>0){
 
-		write(event_broker_fd,((char **)event_broker_buffer.buffer)[event_broker_buffer.head],strlen(((char **)event_broker_buffer.buffer)[event_broker_buffer.head]));
+		if(broker_file_open==TRUE)
+			write(event_broker_fd,((char **)event_broker_buffer.buffer)[event_broker_buffer.head],strlen(((char **)event_broker_buffer.buffer)[event_broker_buffer.head]));
 				
 		/* free buffer data */
 		free(((char **)event_broker_buffer.buffer)[event_broker_buffer.head]);
@@ -313,15 +349,18 @@ void * cleanup_event_broker_worker_thread(void *arg){
 	/* release lock on buffer */
 	pthread_mutex_unlock(&event_broker_buffer.buffer_lock);
 
-	/* say goodbye */
-	ftime(&tb);
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s\n",(unsigned long)tb.time,tb.millitm,NEBTYPE_GOODBYE,NEBFLAG_NONE,NEBATTR_NONE,PROGRAM_VERSION);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	write(event_broker_fd,temp_buffer,strlen(temp_buffer));
+	if(broker_file_open==TRUE){
 
-	/* close file */
-	fsync(event_broker_fd);
-	close(event_broker_fd);
+		/* say goodbye */
+		ftime(&tb);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s\n",(unsigned long)tb.time,tb.millitm,NEBTYPE_GOODBYE,NEBFLAG_NONE,NEBATTR_NONE,PROGRAM_VERSION);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write(event_broker_fd,temp_buffer,strlen(temp_buffer));
+
+		/* close file */
+		fsync(event_broker_fd);
+		close(event_broker_fd);
+	        }
 
 	return NULL;
         }

@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-31-2004
+ * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-04-2005
  *
  * License:
  *
@@ -638,7 +638,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"check_latency"))
 						temp_hoststatus->latency=strtod(val,NULL);
 					else if(!strcmp(var,"current_state"))
-						temp_hoststatus->status=(atoi(val)>0)?TRUE:FALSE;
+						temp_hoststatus->status=atoi(val);
 					else if(!strcmp(var,"last_hard_state"))
 						temp_hoststatus->last_hard_state=atoi(val);
 					else if(!strcmp(var,"plugin_output"))

@@ -27,7 +27,7 @@ Summary: Host/service/network monitoring program
 Name: %{name}
 Version: %{version}
 Release: %{release}
-Copyright: GPL
+License: GPL
 Group: Application/System
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-buildroot
@@ -268,13 +268,13 @@ cd ..
 install -m 0644 include/locations.h ${RPM_BUILD_ROOT}%{_prefix}/include/nagios
 
 # install httpd configuration in RH80-style httpd config subdir
-cp contrib/htaccess.sample ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
+ cp sample-contrib/httpd.conf ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
 
 # install CGIs
 cd contrib
-make INSTALL=install INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR=${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi install
-mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/convertcfg ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/
-mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/mini_epn ${RPM_BUILD_ROOT}%{_prefix}/sbin/
+make INSTALL=install DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR=%{_libdir}/nagios/cgi install
+#mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/convertcfg ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/
+#mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/mini_epn ${RPM_BUILD_ROOT}%{_prefix}/sbin/
 cd ..
 
 # install event handlers
@@ -301,7 +301,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/sbin/mini_epn
 %dir %{_prefix}/lib/nagios/eventhandlers
 %{_prefix}/lib/nagios/eventhandlers/*
-%{_prefix}/lib/nagios/convertcfg
+%{_sbindir}/convertcfg
 %dir /etc/nagios
 %defattr(644,root,root)
 %config(noreplace) /etc/nagios/*.cfg
@@ -320,7 +320,7 @@ rm -rf $RPM_BUILD_ROOT
 %files www
 %defattr(755,root,root)
 %dir %{_prefix}/lib/nagios/cgi
-%{_prefix}/lib/nagios/cgi/*
+%{_libdir}/nagios/cgi/*
 %dir %{_prefix}/share/nagios
 %defattr(-,root,root)
 %{_prefix}/share/nagios/*
@@ -334,6 +334,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Dec 30 2004 Rui Miguel Silva Seabra <rms@sibs.pt>
+- FIX spec (wrong tag for License, and update to current state of compile)
+
 * Sat May 31 2003 Karl DeBisschop <kdebisschop@users.sourceforge.net> (1.1-1)
 - Merge with CVS for 1.1 release
 

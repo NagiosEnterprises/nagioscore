@@ -566,6 +566,9 @@ AC_ARG_ENABLE(embedded-perl,--enable-embedded-perl will enable embedded Perl int
 	echo "creating base/perlxsi.c"
 	perl -MExtUtils::Embed -e xsinit -- -o base/perlxsi.c
 
+	dnl Added below for threaded Perl support
+	CFLAGS="${CFLAGS} -DWITH_THREADS"
+	AC_SUBST(CFLAGS)
 	])
 
 PERLCACHE=no;

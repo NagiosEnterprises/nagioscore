@@ -1,25 +1,29 @@
-Template-based Object Config File README
-----------------------------------------
+====================
+SAMPLE CONFIG README
+====================
 
-The files in this directory are sample config files that can
-be used if you have compiled Nagios and the CGIs with 
-support for template-based object definitions.  This is done
-by supplying the --with-template-objects option to the configure
-script.
+This directory contains sample object definition config files for
+use with the TEMPLATE-BASED object routines in Nagios.  This is
+the default type of object definition file for Nagios and the CGIs.
 
-Different types of definitions are spread across multiple files
-for convenience and clarity.  You could choose to keep all types
-of definitions in a single file if you wanted.  
+Sample config files have a .cfg extension.  Ignore any files with
+a .in extension, as they are templates used to generate the sample
+config files.
 
-In order to use the template-based config files with Nagios,
-you'll have to add one or more lines to your MAIN config file
-(i.e. /usr/local/nagios/etc/nagios.cfg) that look like this:
-
-xodtemplate_config_file=<commandfile>
-xodtemplate_config_file=<contactfile>
-xodtemplate_config_file=<hostfile>
-...
-etc.
+Please note that you can keep all of your object definitions in a
+single file if you wish.  You may also split them up into multiple
+config files, as is done here (for clarity).  Read the HTML docs
+for information on how to include multiple object config files.
 
 
-- Ethan Galstad (nagios@nagios.org)
+Note:
+
+Sample command definitions have been split into two sepearate files:
+
+  misccommands.cfg 	- This file contains sample notification
+			  commands, performance data commands, etc.
+
+  checkcommands.cfg	- This file contains sample command
+			  definitions for host and service checks.
+			  These definitions are highly volatile, as
+			  plugin arguments can change between releases!

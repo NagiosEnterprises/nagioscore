@@ -745,9 +745,16 @@ perl subst sample-config/default-object/dependencies.cfg
 perl subst sample-config/default-object/checkcommands.cfg
 perl subst sample-config/default-object/misccommands.cfg
 
+perl subst sample-config/template-object/hosts.cfg
+perl subst sample-config/template-object/hostgroups.cfg
+perl subst sample-config/template-object/services.cfg
+perl subst sample-config/template-object/contacts.cfg
+perl subst sample-config/template-object/contactgroups.cfg
+perl subst sample-config/template-object/timeperiods.cfg
+perl subst sample-config/template-object/escalations.cfg
+perl subst sample-config/template-object/dependencies.cfg
 perl subst sample-config/template-object/checkcommands.cfg
 perl subst sample-config/template-object/misccommands.cfg
-
 
 
 

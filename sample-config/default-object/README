@@ -2,6 +2,11 @@
 SAMPLE CONFIG README
 ====================
 
+This directory contains sample object definition config files for
+use with the DEFAULT (OLD-STYLE) object routines in Nagios.  You
+need to use the --with-default-objects option when running the
+configure script in order to use this config file format.
+
 Sample config files have a .cfg extension.  Ignore any files with
 a .in extension, as they are templates used to generate the sample
 config files.

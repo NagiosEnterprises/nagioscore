@@ -1,25 +1,17 @@
 ################################################################################
-# Sample Command Definition File for Nagios
-# Template-based config format
+# Sample object config file for Nagios @VERSION@
 #
-# Last Modified: 01-15-2002
-#
-# A primary objective of this file is reverse compatibility across
-# many generations of plugin releases. In addition to this file, there
-# is a command.cfg file that is distributed with the plugins
-# themselves.  The file distributed with the plugins is designed to
-# reflect forward porgress on the plugins, and makes no effort to be
-# comptible with plugin versions other than the one it is created
-# for. It is generally easiest to use the file you are looking at now,
-# but you will generally see examples of the newest plugin features by
-# using the command.cfg file distributed with the same plugin set you
-# are currently using.
+# Read the documentation for more information on this configuration file.  I've
+# provided some comments here, but things may not be so clear without further
+# explanation, so make sure to read the HTML documentation!
+# 
+# Last Modified: 03-07-2002
 #
 ################################################################################
 
 
 ################################################################################
-# COMMAND CONFIGURATION
+# COMMAND DEFINITIONS
 #
 # SYNTAX:
 #
@@ -57,7 +49,6 @@
 
 # 'check_tcp' command definition
 define command{
-	name		check_tcp	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_tcp
 	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$
 	}
@@ -65,7 +56,6 @@ define command{
 
 # 'check_udp' command definition
 define command{
-	name		check_udp	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_udp
 	command_line	$USER1$/check_udp -H $HOSTADDRESS$ -p $ARG1$
 	}
@@ -73,7 +63,6 @@ define command{
 
 # 'check_ftp' command definition
 define command{
-	name		check_ftp	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_ftp
 	command_line	$USER1$/check_ftp -H $HOSTADDRESS$
 	}
@@ -81,7 +70,6 @@ define command{
 
 # 'check_pop' command definition
 define command{
-	name		check_pop	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_pop
 	command_line	$USER1$/check_pop -H $HOSTADDRESS$
 	}
@@ -89,7 +77,6 @@ define command{
 
 # 'check_smtp' command definition
 define command{
-	name		check_smtp	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_smtp
 	command_line	$USER1$/check_smtp -H $HOSTADDRESS$
 	}
@@ -97,7 +84,6 @@ define command{
 
 # 'check_nntp' command definition
 define command{
-	name		check_nntp	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_nntp
 	command_line	$USER1$/check_nntp -H $HOSTADDRESS$
 	}
@@ -105,7 +91,6 @@ define command{
 
 # 'check_http' command definition
 define command{
-	name		check_http	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_http
 	command_line	$USER1$/check_http -H $HOSTADDRESS$
 	}
@@ -113,7 +98,6 @@ define command{
 
 # 'check_telnet' command definition
 define command{
-	name		check_telnet	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_telnet
 	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p 23
 	}
@@ -121,7 +105,6 @@ define command{
 
 # 'check_ping' command definition
 define command{
-	name		check_ping	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_ping
 	command_line	$USER1$/check_ping -H $HOSTADDRESS$ -w 10.0,20% -c 100.0,60% -p 5
 	}
@@ -129,7 +112,6 @@ define command{
 
 # 'check_dns' command definition
 define command{
-	name		check_dns	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_dns
 	command_line	$USER1$/check_dns -H www.yahoo.com -s $HOSTADDRESS$
 	}
@@ -137,7 +119,6 @@ define command{
 
 # 'check_hpjd' command definition
 define command{
-	name		check_hpjd	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_hpjd
 	command_line	$USER1$/check_hpjd -H $HOSTADDRESS$ -C public
 	}
@@ -145,7 +126,6 @@ define command{
 
 # 'check_local_disk' command definition
 define command{
-	name		check_local_disk	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_local_disk
 	command_line	$USER1$/check_disk -w 20% -c 10% -p $ARG1$
 	}
@@ -153,7 +133,6 @@ define command{
 
 # 'check_local_users' command definition
 define command{
-	name		check_local_users	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_local_users
 	command_line	$USER1$/check_users -w $ARG1$ -c $ARG2$
 	}
@@ -161,7 +140,6 @@ define command{
 
 # 'check_local_procs' command definition
 define command{
-	name		check_local_procs	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_local_procs
 	command_line	$USER1$/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$
 	}
@@ -169,7 +147,6 @@ define command{
 
 # 'check_local_load' command definition
 define command{
-	name		check_local_load	; The name of this command definition - can be used for template recursion/resolution
 	command_name	check_local_load
 	command_line	$USER1$/check_load -w $ARG1$ -c $ARG2$
 	}
@@ -191,7 +168,6 @@ define command{
 
 # 'check-host-alive' command definition
 define command{
-        name            check-host-alive        ; The name of this command definition - can be used for template recursion/resolution
         command_name    check-host-alive
         command_line    $USER1$/check_ping -H $HOSTADDRESS$ -w 3000.0,80% -c 5000.0,100% -p 1
         }

@@ -39,7 +39,11 @@
 	.statusHOSTPENDING { font-family: arial,serif; font-size: 8pt; background-color: #ACACAC; }
 	.statusHOSTUP { font-family: arial,serif; font-size: 8pt; background-color: #33FF00; }
 	.statusHOSTDOWN { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
+	.statusHOSTDOWNACK { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
+	.statusHOSTDOWNSCHED { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
 	.statusHOSTUNREACHABLE { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
+	.statusHOSTUNREACHABLEACK { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
+	.statusHOSTUNREACHABLESCHED { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
 
 	.statusBGUNKNOWN { font-family: arial,serif; font-size: 8pt; background-color: #FFDA9F; }
 	.statusBGUNKNOWNACK { font-family: arial,serif; font-size: 8pt; background-color: #FFDA9F; }

@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-1.0b6 - ??/??/2002
+1.0b6 - 09/15/2002
 ------------------
 * Added wildcards and multiple hosts/hostgroups to host dependency
   and service dependency definitions

@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-16-2003
+ * Last Modified: 07-19-2003
  *
  * License:
  *
@@ -209,6 +209,22 @@
 #define CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME         121
 #define CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME          122
 
+#define CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER            123
+#define CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER             124
+
+#define CMD_CHANGE_HOST_EVENT_HANDLER                   125
+#define CMD_CHANGE_SVC_EVENT_HANDLER                    126
+
+#define CMD_CHANGE_HOST_CHECK_COMMAND                   127
+#define CMD_CHANGE_SVC_CHECK_COMMAND                    128
+
+#define CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL           129
+#define CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL            130
+#define CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL             131
+
+#define CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS              132
+#define CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS               133
+
 
 /************************ SERVICE CHECK TYPES ****************************/
 
@@ -340,4 +356,10 @@
 #define MODATTR_FAILURE_PREDICTION_ENABLED      32
 #define MODATTR_PERFORMANCE_DATA_ENABLED        64
 #define MODATTR_OBSESSIVE_HANDLER_ENABLED       128
+#define MODATTR_EVENT_HANDLER_COMMAND           256
+#define MODATTR_CHECK_COMMAND                   512
+#define MODATTR_NORMAL_CHECK_INTERVAL           1024
+#define MODATTR_RETRY_CHECK_INTERVAL            2048
+#define MODATTR_MAX_CHECK_ATTEMPTS              4096
+
 	

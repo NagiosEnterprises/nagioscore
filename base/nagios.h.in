@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-14-2003
+ * Last Modified: 07-19-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -593,6 +593,9 @@ int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service pro
 int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
 int cmd_schedule_downtime(int,time_t,char *);                   /* schedules host or service downtime */
 int cmd_delete_downtime(int,char *);				/* cancels active/pending host or service scheduled downtime */
+int cmd_change_command(int,char *);				/* changes host/svc command */
+int cmd_change_check_interval(int,char *);			/* changes host/svc check interval */
+int cmd_change_max_attempts(int,char *);			/* changes host/svc max attempts */
 
 
 /**** Internal Command Implementations ****/

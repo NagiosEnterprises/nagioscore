@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-17-2003
+ * Last Modified:   07-19-2003
  *
  * License:
  *
@@ -63,6 +63,9 @@ extern int      log_passive_checks;
 
 extern unsigned long    modified_host_process_attributes;
 extern unsigned long    modified_service_process_attributes;
+
+extern char     *global_host_event_handler;
+extern char     *global_service_event_handler;
 
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
@@ -236,6 +239,11 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"DISABLE_FLAP_DETECTION"))
 			command_type=CMD_DISABLE_FLAP_DETECTION;
 
+		else if(!strcmp(command_id,"CHANGE_GLOBAL_HOST_EVENT_HANDLER"))
+			command_type=CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER;
+		else if(!strcmp(command_id,"CHANGE_GLOBAL_SVC_EVENT_HANDLER"))
+			command_type=CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER;
+
 
 		/*******************************/
 		/**** HOST-RELATED COMMANDS ****/
@@ -317,6 +325,17 @@ void check_for_external_commands(void){
 			command_type=CMD_START_OBSESSING_OVER_HOST;
 		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_HOST"))
 			command_type=CMD_STOP_OBSESSING_OVER_HOST;
+
+		else if(!strcmp(command_id,"CHANGE_HOST_EVENT_HANDLER"))
+			command_type=CMD_CHANGE_HOST_EVENT_HANDLER;
+		else if(!strcmp(command_id,"CHANGE_HOST_CHECK_COMMAND"))
+			command_type=CMD_CHANGE_HOST_CHECK_COMMAND;
+
+		else if(!strcmp(command_id,"CHANGE_NORMAL_HOST_CHECK_INTERVAL"))
+			command_type=CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL;
+
+		else if(!strcmp(command_id,"CHANGE_MAX_HOST_CHECK_ATTEMPTS"))
+			command_type=CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS;
 
 
 		/************************************/
@@ -421,6 +440,19 @@ void check_for_external_commands(void){
 			command_type=CMD_START_OBSESSING_OVER_SVC;
 		else if(!strcmp(command_id,"STOP_OBSESSING_OVER_SVC"))
 			command_type=CMD_STOP_OBSESSING_OVER_SVC;
+
+		else if(!strcmp(command_id,"CHANGE_SVC_EVENT_HANDLER"))
+			command_type=CMD_CHANGE_SVC_EVENT_HANDLER;
+		else if(!strcmp(command_id,"CHANGE_SVC_CHECK_COMMAND"))
+			command_type=CMD_CHANGE_SVC_CHECK_COMMAND;
+
+		else if(!strcmp(command_id,"CHANGE_NORMAL_SVC_CHECK_INTERVAL"))
+			command_type=CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL;
+		else if(!strcmp(command_id,"CHANGE_RETRY_SVC_CHECK_INTERVAL"))
+			command_type=CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL;
+
+		else if(!strcmp(command_id,"CHANGE_MAX_SVC_CHECK_ATTEMPTS"))
+			command_type=CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS;
 
 
 		/***************************************/
@@ -789,6 +821,26 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_SCHEDULE_HOST_CHECK:
 	case CMD_SCHEDULE_FORCED_HOST_CHECK:
 		cmd_schedule_check(cmd,args);
+		break;
+
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+		cmd_change_command(cmd,args);
+		break;
+
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+		cmd_change_check_interval(cmd,args);
+		break;
+
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+		cmd_change_max_attempts(cmd,args);
 		break;
 
 	default:
@@ -2212,6 +2264,274 @@ int cmd_delete_downtime(int cmd, char *args){
         }
 
         
+/* changes a host or service command */
+int cmd_change_command(int cmd,char *args){
+	service *temp_service=NULL;
+	host *temp_host=NULL;
+	command *temp_command=NULL;
+	char *host_name="";
+	char *svc_description="";
+	char *command_name="";
+	char *temp_ptr;
+	char *temp_ptr2;
+
+#ifdef DEBUG0
+	printf("cmd_change_command() start\n");
+#endif
+
+	if(cmd!=CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER && cmd!=CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER){
+
+		/* get the host name */
+		host_name=my_strtok(args,";");
+		if(host_name==NULL)
+			return ERROR;
+
+		if(cmd==CMD_CHANGE_SVC_EVENT_HANDLER || cmd==CMD_CHANGE_SVC_CHECK_COMMAND){
+
+			/* get the service name */
+			svc_description=my_strtok(NULL,";");
+			if(svc_description==NULL)
+				return ERROR;
+
+			/* verify that the service is valid */
+			temp_service=find_service(temp_host->name,svc_description);
+			if(temp_service==NULL)
+				return ERROR;
+	                }
+		else{
+
+			/* verify that the host is valid */
+			temp_host=find_host(host_name);
+			if(temp_host==NULL)
+				return ERROR;
+		        }
+
+		command_name=my_strtok(NULL,";");
+	        }
+
+	else
+		command_name=my_strtok(args,";");
+
+	if(command_name==NULL)
+		return ERROR;
+	temp_ptr=strdup(command_name);
+	if(temp_ptr==NULL)
+		return ERROR;
+
+	/* make sure the command exists */
+	temp_ptr2=my_strtok(command_name,"!");
+	temp_command=find_command(temp_ptr2);
+	if(temp_command==NULL)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
+		free(global_host_event_handler);
+		global_host_event_handler=temp_ptr;
+		modified_host_process_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		break;
+
+	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
+		free(global_service_event_handler);
+		global_service_event_handler=temp_ptr;
+		modified_service_process_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		break;
+
+	case CMD_CHANGE_HOST_EVENT_HANDLER:
+		free(temp_host->event_handler);
+		temp_host->event_handler=temp_ptr;
+		temp_host->modified_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		break;
+
+	case CMD_CHANGE_HOST_CHECK_COMMAND:
+		free(temp_host->host_check_command);
+		temp_host->host_check_command=temp_ptr;
+		temp_host->modified_attributes|=MODATTR_CHECK_COMMAND;
+		break;
+
+	case CMD_CHANGE_SVC_EVENT_HANDLER:
+		free(temp_service->event_handler);
+		temp_service->event_handler=temp_ptr;
+		temp_service->modified_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		break;
+
+	case CMD_CHANGE_SVC_CHECK_COMMAND:
+		free(temp_service->service_check_command);
+		temp_service->service_check_command=temp_ptr;
+		temp_service->modified_attributes|=MODATTR_CHECK_COMMAND;
+		break;
+
+	default:
+		break;
+	        }
+
+#ifdef DEBUG0
+	printf("cmd_change_command() start\n");
+#endif
+
+	return OK;
+        }
+	
+
+        
+/* changes a host or service check interval */
+int cmd_change_check_interval(int cmd,char *args){
+	service *temp_service=NULL;
+	host *temp_host=NULL;
+	char *host_name="";
+	char *svc_description="";
+	char *temp_ptr;
+	int interval;
+
+#ifdef DEBUG0
+	printf("cmd_change_check_interval() start\n");
+#endif
+
+	/* get the host name */
+	host_name=my_strtok(args,";");
+	if(host_name==NULL)
+		return ERROR;
+
+	if(cmd==CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL || cmd==CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL){
+
+		/* get the service name */
+		svc_description=my_strtok(NULL,";");
+		if(svc_description==NULL)
+			return ERROR;
+
+		/* verify that the service is valid */
+		temp_service=find_service(temp_host->name,svc_description);
+		if(temp_service==NULL)
+			return ERROR;
+	        }
+	else{
+
+		/* verify that the host is valid */
+		temp_host=find_host(host_name);
+		if(temp_host==NULL)
+			return ERROR;
+	        }
+
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+
+	interval=atoi(temp_ptr);
+	if(interval<0)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+		temp_host->check_interval=interval;
+		temp_host->modified_attributes|=MODATTR_NORMAL_CHECK_INTERVAL;
+		break;
+
+	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
+		temp_service->check_interval=interval;
+		temp_service->modified_attributes|=MODATTR_NORMAL_CHECK_INTERVAL;
+		break;
+
+	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
+		temp_service->retry_interval=interval;
+		temp_service->modified_attributes|=MODATTR_RETRY_CHECK_INTERVAL;
+		break;
+
+	default:
+		break;
+	        }
+
+#ifdef DEBUG0
+	printf("cmd_change_check_interval() start\n");
+#endif
+
+	return OK;
+        }
+	
+        
+/* changes a host or service max check attempts */
+int cmd_change_max_attempts(int cmd,char *args){
+	service *temp_service=NULL;
+	host *temp_host=NULL;
+	char *host_name="";
+	char *svc_description="";
+	char *temp_ptr;
+	int max_attempts;
+
+#ifdef DEBUG0
+	printf("cmd_change_max_attempts() start\n");
+#endif
+
+	/* get the host name */
+	host_name=my_strtok(args,";");
+	if(host_name==NULL)
+		return ERROR;
+
+	if(cmd==CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS){
+
+		/* get the service name */
+		svc_description=my_strtok(NULL,";");
+		if(svc_description==NULL)
+			return ERROR;
+
+		/* verify that the service is valid */
+		temp_service=find_service(temp_host->name,svc_description);
+		if(temp_service==NULL)
+			return ERROR;
+	        }
+	else{
+
+		/* verify that the host is valid */
+		temp_host=find_host(host_name);
+		if(temp_host==NULL)
+			return ERROR;
+	        }
+
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+
+	max_attempts=atoi(temp_ptr);
+	if(max_attempts<1)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
+		temp_host->max_attempts=max_attempts;
+		temp_host->modified_attributes|=MODATTR_MAX_CHECK_ATTEMPTS;
+
+		/* adjust current attempt number if in a hard state */
+		if(temp_host->state_type==HARD_STATE && temp_host->current_state!=HOST_UP && temp_host->current_attempt>1)
+			temp_host->current_attempt=temp_host->max_attempts;
+
+		update_host_status(temp_host,FALSE);
+		break;
+
+	case CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS:
+		temp_service->max_attempts=max_attempts;
+		temp_service->modified_attributes|=MODATTR_MAX_CHECK_ATTEMPTS;
+
+		/* adjust current attempt number if in a hard state */
+		if(temp_service->state_type==HARD_STATE && temp_service->current_state!=STATE_OK && temp_service->current_attempt>1)
+			temp_service->current_attempt=temp_service->max_attempts;
+
+		update_service_status(temp_service,FALSE);
+		break;
+
+	default:
+		break;
+	        }
+
+#ifdef DEBUG0
+	printf("cmd_change_max_attempts() start\n");
+#endif
+
+	return OK;
+        }
+	
+
 
 
 /******************************************************************/

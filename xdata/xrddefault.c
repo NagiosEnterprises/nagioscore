@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-18-2003
+ * Last Modified:   07-19-2003
  *
  * License:
  *
@@ -40,6 +40,9 @@
 
 extern host           *host_list;
 extern service        *service_list;
+
+extern char           *global_host_event_handler;
+extern char           *global_service_event_handler;
 
 extern int            enable_notifications;
 extern int            execute_service_checks;
@@ -193,6 +196,8 @@ int xrddefault_save_state_information(char *main_config_file){
 	fprintf(fp,"\tenable_flap_detection=%d\n",enable_flap_detection);
 	fprintf(fp,"\tenable_failure_prediction=%d\n",enable_failure_prediction);
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
+	fprintf(fp,"\tglobal_host_event_handler=%s\n",(global_host_event_handler==NULL)?"":global_host_event_handler);
+	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
 	fprintf(fp,"\t}\n\n");
 
 	/* save host state information */
@@ -201,6 +206,8 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
+		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
+		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_host->execution_time);
 		fprintf(fp,"\tcheck_latency=%.3f\n",temp_host->latency);
@@ -212,6 +219,8 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
+		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
+		fprintf(fp,"\tnormal_check_interval=%d\n",temp_host->check_interval);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
@@ -247,6 +256,8 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\thost_name=%s\n",temp_service->host_name);
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
+		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
+		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_service->execution_time);
 		fprintf(fp,"\tcheck_latency=%.3f\n",temp_service->latency);
@@ -254,6 +265,9 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tlast_state=%d\n",temp_service->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
+		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
+		fprintf(fp,"\tnormal_check_interval=%d\n",temp_service->check_interval);
+		fprintf(fp,"\tretry_check_interval=%d\n",temp_service->retry_interval);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_service->last_hard_state_change);
@@ -308,6 +322,7 @@ int xrddefault_save_state_information(char *main_config_file){
 
 int xrddefault_read_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
+	char temp_buffer2[MAX_INPUT_BUFFER];
 	char *temp_ptr;
 	FILE *fp;
 	char *host_name=NULL;
@@ -316,6 +331,7 @@ int xrddefault_read_state_information(char *main_config_file){
 	int x;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	command *temp_command=NULL;
 	char *var;
 	char *val;
 	time_t creation_time;
@@ -515,6 +531,38 @@ int xrddefault_read_state_information(char *main_config_file){
 						if(modified_host_process_attributes & MODATTR_PERFORMANCE_DATA_ENABLED)
 							process_performance_data=(atoi(val)>0)?TRUE:FALSE;
 					        }
+					else if(!strcmp(var,"global_host_event_handler")){
+						if(modified_host_process_attributes & MODATTR_EVENT_HANDLER_COMMAND){
+
+							/* make sure the check command still exists... */
+							strncpy(temp_buffer2,val,sizeof(temp_buffer2));
+							temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
+							temp_ptr=my_strtok(temp_buffer2,"!");
+							temp_command=find_command(temp_ptr);
+							temp_ptr=strdup(val);
+
+							if(temp_command!=NULL && temp_ptr!=NULL){
+								free(global_host_event_handler);
+								global_host_event_handler=temp_ptr;
+							        }
+						        }
+					        }
+					else if(!strcmp(var,"global_service_event_handler")){
+						if(modified_service_process_attributes & MODATTR_EVENT_HANDLER_COMMAND){
+
+							/* make sure the check command still exists... */
+							strncpy(temp_buffer2,val,sizeof(temp_buffer2));
+							temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
+							temp_ptr=my_strtok(temp_buffer2,"!");
+							temp_command=find_command(temp_ptr);
+							temp_ptr=strdup(val);
+
+							if(temp_command!=NULL && temp_ptr!=NULL){
+								free(global_service_event_handler);
+								global_service_event_handler=temp_ptr;
+							        }
+						        }
+					        }
 				        }
 				break;
 
@@ -612,6 +660,52 @@ int xrddefault_read_state_information(char *main_config_file){
 						else if(!strcmp(var,"obsess_over_host")){
 							if(temp_host->modified_attributes & MODATTR_OBSESSIVE_HANDLER_ENABLED)
 								temp_host->obsess_over_host=(atoi(val)>0)?TRUE:FALSE;
+						        }
+						else if(!strcmp(var,"check_command")){
+							if(temp_host->modified_attributes & MODATTR_CHECK_COMMAND){
+
+								/* make sure the check command still exists... */
+								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
+								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
+								temp_ptr=my_strtok(temp_buffer2,"!");
+								temp_command=find_command(temp_ptr);
+								temp_ptr=strdup(val);
+
+								if(temp_command!=NULL && temp_ptr!=NULL){
+									free(temp_host->host_check_command);
+									temp_host->host_check_command=temp_ptr;
+								        }
+							        }
+						        }
+						else if(!strcmp(var,"event_handler")){
+							if(temp_host->modified_attributes & MODATTR_EVENT_HANDLER_COMMAND){
+
+								/* make sure the check command still exists... */
+								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
+								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
+								temp_ptr=my_strtok(temp_buffer2,"!");
+								temp_command=find_command(temp_ptr);
+								temp_ptr=strdup(val);
+
+								if(temp_command!=NULL && temp_ptr!=NULL){
+									free(temp_host->event_handler);
+									temp_host->event_handler=temp_ptr;
+								        }
+							        }
+						        }
+						else if(!strcmp(var,"normal_check_interval")){
+							if(temp_host->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && atoi(val)>=0)
+								temp_host->check_interval=atoi(val);
+						        }
+						else if(!strcmp(var,"max_attempts")){
+							if(temp_host->modified_attributes & MODATTR_MAX_CHECK_ATTEMPTS && atoi(val)>=1){
+								
+								temp_host->max_attempts=atoi(val);
+
+								/* adjust current attempt number if in a hard state */
+								if(temp_host->state_type==HARD_STATE && temp_host->current_state!=HOST_UP && temp_host->current_attempt>1)
+									temp_host->current_attempt=temp_host->max_attempts;
+							        }
 						        }
 					        }
 
@@ -721,6 +815,56 @@ int xrddefault_read_state_information(char *main_config_file){
 						else if(!strcmp(var,"obsess_over_service")){
 							if(temp_service->modified_attributes & MODATTR_OBSESSIVE_HANDLER_ENABLED)
 								temp_service->obsess_over_service=(atoi(val)>0)?TRUE:FALSE;
+						        }
+						else if(!strcmp(var,"check_command")){
+							if(temp_service->modified_attributes & MODATTR_CHECK_COMMAND){
+
+								/* make sure the check command still exists... */
+								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
+								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
+								temp_ptr=my_strtok(temp_buffer2,"!");
+								temp_command=find_command(temp_ptr);
+								temp_ptr=strdup(val);
+
+								if(temp_command!=NULL && temp_ptr!=NULL){
+									free(temp_service->service_check_command);
+									temp_service->service_check_command=temp_ptr;
+								        }
+							        }
+						        }
+						else if(!strcmp(var,"event_handler")){
+							if(temp_service->modified_attributes & MODATTR_EVENT_HANDLER_COMMAND){
+
+								/* make sure the check command still exists... */
+								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
+								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
+								temp_ptr=my_strtok(temp_buffer2,"!");
+								temp_command=find_command(temp_ptr);
+								temp_ptr=strdup(val);
+
+								if(temp_command!=NULL && temp_ptr!=NULL){
+									free(temp_service->event_handler);
+									temp_service->event_handler=temp_ptr;
+								        }
+							        }
+						        }
+						else if(!strcmp(var,"normal_check_interval")){
+							if(temp_service->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && atoi(val)>=0)
+								temp_service->check_interval=atoi(val);
+						        }
+						else if(!strcmp(var,"retry_check_interval")){
+							if(temp_service->modified_attributes & MODATTR_RETRY_CHECK_INTERVAL && atoi(val)>=0)
+								temp_service->retry_interval=atoi(val);
+						        }
+						else if(!strcmp(var,"max_attempts")){
+							if(temp_service->modified_attributes & MODATTR_MAX_CHECK_ATTEMPTS && atoi(val)>=1){
+								
+								temp_service->max_attempts=atoi(val);
+
+								/* adjust current attempt number if in a hard state */
+								if(temp_service->state_type==HARD_STATE && temp_service->current_state!=STATE_OK && temp_service->current_attempt>1)
+									temp_service->current_attempt=temp_service->max_attempts;
+							        }
 						        }
 					        }
 				        }

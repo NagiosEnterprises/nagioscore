@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2004
+ * Last Modified: 03-23-2004
  *
  * Description:
  *
@@ -6408,7 +6408,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 
 			/* add this list to the hostgroup members directive */
 			if(temp_hostgroup->members==NULL)
-				temp_hostgroup->members=strdup(temp_ptr);
+				temp_hostgroup->members=strdup(temp_host->host_name);
 			else{
 				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(temp_host->host_name)+2);
 				if(new_members!=NULL){

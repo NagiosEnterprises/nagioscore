@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-10-2004
+ * Last Modified:   03-23-2004
  *
  * License:
  *
@@ -577,6 +577,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("notify_contact_of_service() start\n");
@@ -599,11 +600,11 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 		command_name_ptr=strtok(command_name,"!");
 
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),0);
+		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
 		strip(raw_command);
 
 		/* process any macros contained in the argument */
-		process_macros(raw_command,processed_command,sizeof(processed_command),0);
+		process_macros(raw_command,processed_command,sizeof(processed_command),macro_options);
 		strip(processed_command);
 
 		/* run the notification command */
@@ -1250,7 +1251,7 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 	char processed_command[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
-
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("notify_contact_of_host() start\n");
@@ -1273,11 +1274,11 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 		command_name_ptr=strtok(command_name,"!");
 
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),0);
+		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
 		strip(raw_command);
 
 		/* process any macros contained in the argument */
-		process_macros(raw_command,processed_command,sizeof(processed_command),0);
+		process_macros(raw_command,processed_command,sizeof(processed_command),macro_options);
 		strip(processed_command);
 
 		/* run the notification command */

@@ -94,10 +94,16 @@ Nagios=@nagios_user@
           
 
 # Check that nagios exists.
-test -f $NagiosBin || exit 0
+if [ ! -f $NagiosBin ]; then
+    echo "Executable file $NagiosBin not found.  Exiting."
+    exit 1
+fi
 
 # Check that nagios.cfg exists.
-test -f $NagiosCfg || exit 0
+if [ ! -f $NagiosCfg ]; then
+    echo "Configuration file $NagiosCfg not found.  Exiting."
+    exit 1
+fi
           
 # See how we were called.
 case "$1" in

@@ -1939,7 +1939,7 @@ int pre_flight_check(void){
 		for(temp_servicegroupmember=temp_servicegroup->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
 
 			temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
-			if(temp_host==NULL){
+			if(temp_service==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicegroupmember->service_description,temp_servicegroupmember->host_name,temp_servicegroup->group_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);

@@ -178,6 +178,8 @@ int main(void){
 	int result=OK;
 	char *sound=NULL;
 	host *temp_host=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	servicegroup *temp_servicegroup=NULL;
 	
 	time(&current_time);
 
@@ -255,7 +257,22 @@ int main(void){
 			                        }
 		                        }
 			        }
-		        }
+			}
+			/* last effort, search hostgroups then servicegroups */
+			if(temp_host==NULL){
+				if((temp_hostgroup=find_hostgroup(host_name))!=NULL){
+					display_type=DISPLAY_HOSTGROUPS;
+					show_all_hostgroups=FALSE;
+					free(host_name);
+					hostgroup_name=strdup(temp_hostgroup->group_name);
+					}
+				else if((temp_servicegroup=find_servicegroup(host_name))!=NULL){
+					display_type=DISPLAY_SERVICEGROUPS;
+					show_all_servicegroups=FALSE;
+					free(host_name);
+					servicegroup_name=strdup(temp_servicegroup->group_name);
+				}
+			}
 	        }
 
 	if(display_header==TRUE){
@@ -2196,15 +2213,14 @@ void show_servicegroup_overviews(void){
 		printf("<p>\n");
 		printf("<div align='center'>\n");
 
-		if(hoststatus_list!=NULL){
+		if(servicegroup_list!=NULL){
 			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
 			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
 		        }
 		else{
-			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
-			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n");
-		        }
+			printf("<DIV CLASS='errorMessage'>There are no service groups defined.</DIV>\n");
+			}
 
 		printf("</div>\n");
 		printf("</p>\n");
@@ -2369,15 +2385,14 @@ void show_servicegroup_summaries(void){
 
 		printf("<P><DIV ALIGN=CENTER>\n");
 
-		if(hoststatus_list!=NULL){
+		if(servicegroup_list!=NULL){
 			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
 			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
 		        }
 		else{
-			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
-			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n");
-		        }
+			printf("<DIV CLASS='errorMessage'>There are no service groups defined.</DIV>\n");
+			}
 
 		printf("</DIV></P>\n");
 	        }
@@ -2656,15 +2671,14 @@ void show_servicegroup_grids(void){
 
 		printf("<P><DIV ALIGN=CENTER>\n");
 
-		if(hoststatus_list!=NULL){
+		if(servicegroup_list!=NULL){
 			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
 			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
 			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
 		        }
 		else{
-			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
-			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n");
-		        }
+			printf("<DIV CLASS='errorMessage'>There are no service groups defined.</DIV>\n");
+			}
 
 		printf("</DIV></P>\n");
 	        }

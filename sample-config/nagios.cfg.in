@@ -52,6 +52,15 @@ cfg_file=@sysconfdir@/hosts.cfg
 cfg_file=@sysconfdir@/services.cfg
 cfg_file=@sysconfdir@/timeperiods.cfg
 
+# You can also tell Nagios to process all config files (with a .cfg
+# extension) in a particular directory by using the cfg_dir
+# directive as shown below:
+
+#cfg_dir=@sysconfdir@/servers
+#cfg_dir=@sysconfdir@/printers
+#cfg_dir=@sysconfdir@/switches
+#cfg_dir=@sysconfdir@/routers
+
 
 
 # RESOURCE FILE

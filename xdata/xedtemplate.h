@@ -3,7 +3,7 @@
  * XEDTEMPLATE.H - Template-based extended information data header file
  *
  * Copyright (c) 2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2001
+ * Last Modified:   12-03-2001
  *
  * License:
  *
@@ -91,6 +91,7 @@ typedef struct xedtemplate_serviceextinfo_struct{
 
 int xedtemplate_read_extended_object_config_data(char *,int);  /* top level routine for reading in extended info */
 int xedtemplate_process_config_file(char *,int);               /* process data in a specific config file */
+int xedtemplate_process_config_dir(char *,int);                /* process all config files in a specific directory */
 
 void xedtemplate_strip(char *);
 

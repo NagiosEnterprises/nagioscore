@@ -3,7 +3,7 @@
  * XEDTEMPLATE.C - Template-based extended information data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-10-2002
+ * Last Modified:   12-03-2002
  *
  * Description:
  *
@@ -93,24 +93,43 @@ int xedtemplate_read_extended_object_config_data(char *cgi_config_file, int opti
 		if(temp_ptr==NULL)
 			continue;
 
-		/* skip lines that don't specify the config file location */
-		if(strcmp(temp_ptr,"xedtemplate_config_file"))
-			continue;
+		/* process a single config file */
+		if(!strcmp(temp_ptr,"xedtemplate_config_file")){
 
-		/* get the config file name */
-		temp_ptr=strtok(NULL,"\n");
-		if(temp_ptr==NULL)
-			continue;
+			/* get the config file name */
+			temp_ptr=strtok(NULL,"\n");
+			if(temp_ptr==NULL)
+				continue;
 
-		strncpy(config_file,temp_ptr,sizeof(config_file)-1);
-		config_file[sizeof(config_file)-1]='\x0';
+			strncpy(config_file,temp_ptr,sizeof(config_file)-1);
+			config_file[sizeof(config_file)-1]='\x0';
 
-		/* process the config file... */
-		result=xedtemplate_process_config_file(config_file,options);
+			/* process the config file... */
+			result=xedtemplate_process_config_file(config_file,options);
 
-		/* if there was an error processing the config file, break out of loop */
-		if(result==ERROR)
-			break;
+			/* DON'T BAIL OUT ON ERRORS */
+		        }
+
+		/* process all files in a config directory */
+		else if(!strcmp(temp_ptr,"xedtemplate_config_dir")){
+
+			/* get the config directory name */
+			temp_ptr=strtok(NULL,"\n");
+			if(temp_ptr==NULL)
+				continue;
+
+			strncpy(config_file,temp_ptr,sizeof(config_file)-1);
+			config_file[sizeof(config_file)-1]='\x0';
+
+			/* strip trailing / if necessary */
+			if(config_file[strlen(config_file)-1]=='/')
+				config_file[strlen(config_file)-1]='\x0';
+
+			/* process the config directory... */
+			result=xedtemplate_process_config_dir(config_file,options);
+
+			/* DON'T BAIL OUT ON ERRORS */
+		        }
 	        }
 
 	fclose(fpm);
@@ -235,6 +254,79 @@ int xedtemplate_process_config_file(char *filename, int options){
 
 #ifdef DEBUG0
 	printf("xedtemplate_process_config_file() end\n");
+#endif
+
+	return result;
+        }
+
+
+
+/* process all files in a specific config directory */
+int xedtemplate_process_config_dir(char *dirname, int options){
+	char config_file[MAX_FILENAME_LENGTH];
+	DIR *dirp;
+	struct dirent *dirfile;
+	int result=OK;
+	int x;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xedtemplate_process_config_dir() start\n");
+#endif
+
+	/* open the directory for reading */
+	dirp=opendir(dirname);
+        if(dirp==NULL)
+		result=ERROR;
+
+	/* process all files/subdirectories in the directory... */
+	while((dirfile=readdir(dirp))!=NULL){
+
+		/* test if this is a config file... */
+		x=strlen(dirfile->d_name);
+		if(x>4 && !strcmp(dirfile->d_name+(x-4),".cfg")){
+
+#ifdef _DIRENT_HAVE_D_TYPE
+			/* only process normal files */
+			if(dirfile->d_type!=DT_REG)
+				continue;
+#endif
+			/* create the full path to the config file */
+			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
+			config_file[sizeof(config_file)-1]='\x0';
+
+			/* process the config file */
+			result=xedtemplate_process_config_file(config_file,options);
+
+			/* DON'T BAIL OUT ON ERROR */
+		        }
+
+#ifdef _DIRENT_HAVE_D_TYPE
+		/* recurse into subdirectories... */
+		if(dirfile->d_type==DT_DIR){
+
+			/* ignore current, parent and hidden directory entries */
+			if(dirfile->d_name[0]=='.')
+				continue;
+
+			/* create the full path to the config directory */
+			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
+			config_file[sizeof(config_file)-1]='\x0';
+
+			/* process the config directory */
+			result=xedtemplate_process_config_dir(config_file,options);
+
+			/* DON'T BAIL OUT ON ERROR */
+		        }
+#endif
+		}
+
+	closedir(dirp);
+
+#ifdef DEBUG0
+	printf("xedtemplate_process_config_dir() end\n");
 #endif
 
 	return result;

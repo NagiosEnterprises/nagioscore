@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2002
+ * Last Modified: 12-03-2002
  *
  * Description:
  *
@@ -243,23 +243,48 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	/* process all files in the directory... */
 	while((dirfile=readdir(dirp))!=NULL){
 
-		/* test if this is a config file, otherwise skip it... */
+		/* process this if it's a config file... */
 		x=strlen(dirfile->d_name);
-		if(x<=4)
-			continue;
-		if(strcmp(dirfile->d_name+(x-4),".cfg"))
-			continue;
+		if(x>4 && !strcmp(dirfile->d_name+(x-4),".cfg")){
 
-		/* create the full path to the config file */
-		snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
-		config_file[sizeof(config_file)-1]='\x0';
+#ifdef _DIRENT_HAVE_D_TYPE
+			/* only process normal files */
+			if(dirfile->d_type!=DT_REG)
+				continue;
+#endif
 
-		/* process the config file */
-		result=xodtemplate_process_config_file(config_file,options);
+			/* create the full path to the config file */
+			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
+			config_file[sizeof(config_file)-1]='\x0';
 
-		/* break out if we encountered an error */
-		if(result==ERROR)
-			break;
+			/* process the config file */
+			result=xodtemplate_process_config_file(config_file,options);
+
+			/* break out if we encountered an error */
+			if(result==ERROR)
+				break;
+		        }
+
+#ifdef _DIRENT_HAVE_D_TYPE
+		/* recurse into subdirectories... */
+		if(dirfile->d_type==DT_DIR){
+
+			/* ignore current, parent and hidden directory entries */
+			if(dirfile->d_name[0]=='.')
+				continue;
+
+			/* create the full path to the config directory */
+			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
+			config_file[sizeof(config_file)-1]='\x0';
+
+			/* process the config directory */
+			result=xodtemplate_process_config_dir(config_file,options);
+
+			/* break out if we encountered an error */
+			if(result==ERROR)
+				break;
+		        }
+#endif
 		}
 
 	closedir(dirp);

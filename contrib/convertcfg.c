@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-21-2002
+ * Last Modified: 12-03-2002
  *
  * License:
  *
@@ -639,7 +639,7 @@ int main(int argc, char **argv){
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
 			if(temp_ptr!=NULL && strcmp(temp_ptr,""))
-				printf("\tgd2_image\t\t%s\n",temp_ptr);
+				printf("\tstatusmap_image\t\t%s\n",temp_ptr);
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
 			if(temp_ptr!=NULL && strcmp(temp_ptr,""))

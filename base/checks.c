@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-07-2002
+ * Last Modified:   08-11-2002
  *
  * License:
  *
@@ -475,6 +475,7 @@ void run_service_check(service *svc){
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
 		/* make sure we rescheduled the next service check at a valid time */
+		preferred_time=current_time;
 		get_next_valid_time(preferred_time,&next_valid_time,svc->check_period);
 
 		/* the service could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */

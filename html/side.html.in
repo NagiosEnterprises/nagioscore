@@ -9,7 +9,7 @@
 
 <!--
 
-	A.NavBarItem { font-family: arial,serif; background-color : black; color: #DEE7C6; font-size: small; font-weight: bold; text-decoration: none; }
+	A.NavBarItem { font-family: arial,serif; background-color : black; color: #DEE7C6; font-size: 10pt; font-weight: bold; text-decoration: none; }
 	BODY.navbar { font-family: arial,serif; background-color : white; color: black;  background-color: black }
 
 -->

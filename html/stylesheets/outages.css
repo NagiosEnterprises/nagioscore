@@ -1,25 +1,25 @@
 
-	.outages { font-family: arial,serif; background-color: white; color: black; font-size: small; }
+	.outages { font-family: arial,serif; background-color: white; color: black; font-size: 10pt; }
 
-	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: medium; }
-	.errorDescription { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
-	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: small; }
-	.infoMessage { font-family: arial,serif; text-align: center; font-size: small; }
+	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: 12pt; }
+	.errorDescription { font-family: arial,serif; text-align: center; font-weight: bold; font-size: 12pt; }
+	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: 10pt; }
+	.infoMessage { font-family: arial,serif; text-align: center; font-size: 10pt; }
 
-	.infoBox { font-family: arial,serif; font-size: x-small; background-color: #C4C2C2; padding: 2; }
-	.infoBoxTitle { font-family: arial,serif; font-size: small; font-weight: bold; }
+	.infoBox { font-family: arial,serif; font-size: 8pt; background-color: #C4C2C2; padding: 2; }
+	.infoBoxTitle { font-family: arial,serif; font-size: 10pt; font-weight: bold; }
 	.infoBoxBadProcStatus { color: red; }
 	A.homepageURL:Hover { font-family: arial,serif; color: red; }
 	
-	.itemTotalsTitle { font-family: arial,serif; font-size: x-small; text-align: center; }
+	.itemTotalsTitle { font-family: arial,serif; font-size: 8pt; text-align: center; }
 
-	.dataTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
-	TABLE.data { font-family: arial,serif; font-size: small; background-color: white; padding: 2; }
-	TH.data { font-family: arial,serif; font-size: small; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
-	.dataOdd { font-family: arial,serif; font-size: small; background-color: #DBDBDB; }
-	.dataEven { font-family: arial,serif; font-size: small; background-color: #C4C2C2; }
+	.dataTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: 12pt; }
+	TABLE.data { font-family: arial,serif; font-size: 10pt; background-color: white; padding: 2; }
+	TH.data { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
+	.dataOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }
+	.dataEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }
 
-	.hostUP { font-family: arial,serif; font-size: small; text-align: left; background-color: #33FF00; font-weight: bold; }
-	.hostDOWN { font-family: arial,serif; font-size: small; text-align: left; background-color: #F83838; font-weight: bold; }
-	.hostUNREACHABLE { font-family: arial,serif; font-size: small; text-align: left; background-color: #F83838; font-weight: bold; }
+	.hostUP { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #33FF00; font-weight: bold; }
+	.hostDOWN { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #F83838; font-weight: bold; }
+	.hostUNREACHABLE { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #F83838; font-weight: bold; }
 	

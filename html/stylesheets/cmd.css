@@ -1,24 +1,24 @@
 
-	.cmd { font-family: arial,serif; background-color: white; color: black; font-size: small; }
+	.cmd { font-family: arial,serif; background-color: white; color: black; font-size: 10pt; }
 
-	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: medium; }
-	.errorDescription { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
-	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: small; }
-	.infoMessage { font-family: arial,serif; text-align: center; font-weight: bold; font-size: small; }
+	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: 12pt; }
+	.errorDescription { font-family: arial,serif; text-align: center; font-weight: bold; font-size: 12pt; }
+	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: 10pt; }
+	.infoMessage { font-family: arial,serif; text-align: center; font-weight: bold; font-size: 10pt; }
 
-	.infoBox { font-family: arial,serif; font-size: x-small; background-color: #C4C2C2; padding: 2; }
-	.infoBoxTitle { font-family: arial,serif; font-size: small; font-weight: bold; }
+	.infoBox { font-family: arial,serif; font-size: 8pt; background-color: #C4C2C2; padding: 2; }
+	.infoBoxTitle { font-family: arial,serif; font-size: 10pt; font-weight: bold; }
 	.infoBoxBadProcStatus { color: red; }
 	A.homepageURL:Hover { font-family: arial,serif; color: red; }
 
-	.cmdType { font-family: arial,serif; font-size: small; font-weight: bold; text-align: center; color: red; }
+	.cmdType { font-family: arial,serif; font-size: 10pt; font-weight: bold; text-align: center; color: red; }
 	
-	.commandDescription { font-family: arial,serif; font-size: x-small; text-align: center; background-color: #DBDBDB; padding: 5; }
-	.descriptionTitle { font-family: arial,serif; font-size: small; text-align: center; font-weight: bold; }
+	.commandDescription { font-family: arial,serif; font-size: 8pt; text-align: center; background-color: #DBDBDB; padding: 5; }
+	.descriptionTitle { font-family: arial,serif; font-size: 10pt; text-align: center; font-weight: bold; }
 
-	.optBox { font-family: arial,serif; font-size: x-small; text-align: left; padding: 5; background-color: #C4C2C2; padding: 5; }
-	.optBoxTitle { font-family: arial,serif; font-size: small; text-align: center; font-weight: bold; }
-	.optBoxItem { font-family: arial,serif; font-size: small; text-align: left; background-color: #C4C2C2; }
-	.optBoxRequiredItem { font-family: arial,serif; font-size: small; text-align: left; color: red; background-color: #C4C2C2; }
+	.optBox { font-family: arial,serif; font-size: 8pt; text-align: left; padding: 5; background-color: #C4C2C2; padding: 5; }
+	.optBoxTitle { font-family: arial,serif; font-size: 10pt; text-align: center; font-weight: bold; }
+	.optBoxItem { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #C4C2C2; }
+	.optBoxRequiredItem { font-family: arial,serif; font-size: 10pt; text-align: left; color: red; background-color: #C4C2C2; }
 	
 

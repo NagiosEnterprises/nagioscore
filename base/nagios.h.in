@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-29-2003
+ * Last Modified: 05-08-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -322,8 +322,8 @@ typedef struct service_message_struct{
 	int exited_ok;					/* did the plugin check return okay? */
 	int check_type;					/* was this an active or passive service check? */
 	int parallelized;                               /* was this check run in parallel? */
-	struct timeb start_time;			/* time the service check was initiated */
-	struct timeb finish_time;			/* time the service check was completed */
+	struct timeval start_time;			/* time the service check was initiated */
+	struct timeval finish_time;			/* time the service check was completed */
 	char output[MAX_PLUGINOUTPUT_LENGTH];		/* plugin output */
 	}service_message;
 
@@ -663,13 +663,13 @@ void cleanup_event_broker_worker_thread(void *);
 int send_event_data_to_broker(char *);
 void * event_broker_worker_thread(void *);
 int write_event_broker_data(int,char *,int *);
-void broker_program_state(int,int,int,struct timeb *);
-void broker_timed_event(int,int,int,timed_event *event,void *,struct timeb *);
-void broker_log_data(int,int,int,char *,unsigned long,struct timeb *);
-void broker_event_handler(int,int,int,void *,int,int,double,struct timeb *);
-void broker_system_command(int,int,int,int,double,int,char *,char *,struct timeb *);
-void broker_host_check(int,int,int,host *,int,double,struct timeb *);
-void broker_service_check(int,int,int,service *,struct timeb *);
+void broker_program_state(int,int,int,struct timeval *);
+void broker_timed_event(int,int,int,timed_event *event,void *,struct timeval *);
+void broker_log_data(int,int,int,char *,unsigned long,struct timeval *);
+void broker_event_handler(int,int,int,void *,int,int,double,struct timeval *);
+void broker_system_command(int,int,int,int,double,int,char *,char *,struct timeval *);
+void broker_host_check(int,int,int,host *,int,double,struct timeval *);
+void broker_service_check(int,int,int,service *,struct timeval *);
 #endif
 
 #endif

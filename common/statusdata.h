@@ -3,7 +3,7 @@
  * STATUSDATA.H - Header for external status data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-21-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -74,7 +74,7 @@ typedef struct hoststatus_struct{
 	int     flap_detection_enabled;
 	int     is_flapping;
 	double  percent_state_change;
-	unsigned long latency;
+	double  latency;
 	double  execution_time;
 	int     scheduled_downtime_depth;
 	int     failure_prediction_enabled;
@@ -116,7 +116,7 @@ typedef struct servicestatus_struct{
 	int     flap_detection_enabled;
 	int     is_flapping;
 	double  percent_state_change;
-	unsigned long latency;
+	double  latency;
 	double  execution_time;
 	int     scheduled_downtime_depth;
 	int     failure_prediction_enabled;

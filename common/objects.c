@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-25-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -910,7 +910,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->current_attempt=1;
 	new_host->state_type=HARD_STATE;
 	new_host->execution_time=0.0;
-	new_host->latency=0L;
+	new_host->latency=0.0;
 	new_host->last_state_change=(time_t)0;
 	new_host->last_hard_state_change=(time_t)0;
 	new_host->has_been_checked=FALSE;
@@ -2469,7 +2469,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->notified_on_warning=FALSE;
 	new_service->notified_on_critical=FALSE;
 	new_service->current_notification_number=0;
-	new_service->latency=0L;
+	new_service->latency=0.0;
 	new_service->execution_time=0.0;
 	new_service->is_executing=FALSE;
 	new_service->check_options=CHECK_OPTION_NONE;

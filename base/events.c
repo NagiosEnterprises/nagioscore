@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -861,6 +861,7 @@ int event_execution_loop(void){
 	host *temp_host;
 	service *temp_service;
 	struct timespec delay;
+	struct timeval tv;
 
 #ifdef DEBUG0
 	printf("event_execution_loop() start\n");
@@ -942,7 +943,11 @@ int event_execution_loop(void){
 				temp_service=(service *)event_list_low->event_data;
 
 				/* update service check latency */
+				gettimeofday(&tv,NULL);
+				temp_service->latency=(double)((double)(tv.tv_sec-event_list_low->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+#ifdef REMOVED_050803
 				temp_service->latency=(unsigned long)(current_time-event_list_low->run_time);
+#endif
 
 				/* don't run a service check if we're not supposed to right now */
 				if(execute_service_checks==FALSE && !(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)){
@@ -994,7 +999,11 @@ int event_execution_loop(void){
 				temp_host=(host *)event_list_low->event_data;
 
 				/* update host check latency */
+				gettimeofday(&tv,NULL);
+				temp_host->latency=(double)((double)(tv.tv_sec-event_list_low->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+#ifdef REMOVED_050803
 				temp_host->latency=(unsigned long)(current_time-event_list_low->run_time);
+#endif
 
 				/* don't run a host check if we're not supposed to right now */
 				if(execute_host_checks==FALSE && !(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)){
@@ -1277,6 +1286,10 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	/* adjust the next run time for all high priority timed events */
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){
 
+		/* skip special events that occur at specific times... */
+		if(temp_event->event_type==EVENT_LOG_ROTATION || temp_event->event_type==EVENT_SCHEDULED_DOWNTIME || temp_event->event_type==EVENT_EXPIRE_DOWNTIME)
+			continue;
+
 		/* we moved back in time... */
 		if(last_time>current_time){
 
@@ -1294,6 +1307,10 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 	/* adjust the next run time for all low priority timed events */
 	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+
+		/* skip special events that occur at specific times... */
+		if(temp_event->event_type==EVENT_LOG_ROTATION || temp_event->event_type==EVENT_SCHEDULED_DOWNTIME || temp_event->event_type==EVENT_EXPIRE_DOWNTIME)
+			continue;
 
 		/* we moved back in time... */
 		if(last_time>current_time){

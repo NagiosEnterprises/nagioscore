@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-21-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -313,8 +313,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
-		fprintf(fp,"\tcheck_execution_time=%.2f\n",temp_host->execution_time);
-		fprintf(fp,"\tcheck_latency=%lu\n",temp_host->latency);
+		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_host->execution_time);
+		fprintf(fp,"\tcheck_latency=%.3f\n",temp_host->latency);
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
 		fprintf(fp,"\tcheck_type=%d\n",temp_host->check_type);
@@ -363,8 +363,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_service->should_be_scheduled);
-		fprintf(fp,"\tcheck_execution_time=%.2f\n",temp_service->execution_time);
-		fprintf(fp,"\tcheck_latency=%lu\n",temp_service->latency);
+		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_service->execution_time);
+		fprintf(fp,"\tcheck_latency=%.3f\n",temp_service->latency);
 		fprintf(fp,"\tcurrent_state=%d\n",temp_service->current_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
@@ -569,7 +569,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"check_execution_time"))
 						temp_hoststatus->execution_time=strtod(val,NULL);
 					else if(!strcmp(var,"check_latency"))
-						temp_hoststatus->latency=strtoul(val,NULL,10);
+						temp_hoststatus->latency=strtod(val,NULL);
 					else if(!strcmp(var,"current_state"))
 						temp_hoststatus->status=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"last_hard_state"))
@@ -656,7 +656,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"check_execution_time"))
 						temp_servicestatus->execution_time=strtod(val,NULL);
 					else if(!strcmp(var,"check_latency"))
-						temp_servicestatus->latency=strtoul(val,NULL,10);
+						temp_servicestatus->latency=strtod(val,NULL);
 					else if(!strcmp(var,"current_state"))
 						temp_servicestatus->status=atoi(val);
 					else if(!strcmp(var,"last_hard_state"))

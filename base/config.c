@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-25-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -1123,7 +1123,7 @@ int read_main_config_file(char *main_config_file){
 			strip(value);
 			max_embedded_perl_calls=atoi(value);
 
-			if(max_embedded_perl_calls<=0){
+			if(max_embedded_perl_calls<0){
 				strcpy(error_message,"Illegal value for max_embedded_perl_calls");
 				error=TRUE;
 				break;

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-29-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -101,7 +101,7 @@ void run_service_check(service *svc){
 	char plugin_output[MAX_PLUGINOUTPUT_LENGTH];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int check_service=TRUE;
-	struct timeb start_time,end_time;
+	struct timeval start_time,end_time;
 	time_t current_time;
 	time_t preferred_time=0L;
 	time_t next_valid_time;
@@ -243,7 +243,7 @@ void run_service_check(service *svc){
 	strip(processed_command);
 
 	/* get the command start time */
-	ftime(&start_time);
+	gettimeofday(&start_time,NULL);
 
 	/* save service info */
 	strncpy(svc_msg.host_name,svc->host_name,sizeof(svc_msg.host_name)-1);
@@ -387,7 +387,7 @@ void run_service_check(service *svc){
 				alarm(0);
 
 				/* get the check finish time */
-				ftime(&end_time);
+				gettimeofday(&end_time,NULL);
 
 				/* record check result info */
 				strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
@@ -440,7 +440,7 @@ void run_service_check(service *svc){
 			alarm(0);
 
 			/* get the check finish time */
-			ftime(&end_time);
+			gettimeofday(&end_time,NULL);
 
 			/* record check result info */
 			strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
@@ -598,11 +598,14 @@ void reap_service_checks(void){
 			continue;
 		        }
 
-		/* update the execution time for this check */
+		/* update the execution time for this check (millisecond resolution) */
+		temp_service->execution_time=(double)((double)(queued_svc_msg.finish_time.tv_sec-queued_svc_msg.start_time.tv_sec)+(double)((queued_svc_msg.finish_time.tv_usec-queued_svc_msg.start_time.tv_usec)/1000)/1000.0);
+#ifdef REMOVED_050803
 		if(queued_svc_msg.start_time.time>current_time || queued_svc_msg.finish_time.time>current_time || (queued_svc_msg.finish_time.time<queued_svc_msg.start_time.time))
 			temp_service->execution_time=0.0;
 		else
 			temp_service->execution_time=(double)((double)(queued_svc_msg.finish_time.time-queued_svc_msg.start_time.time)+(double)((queued_svc_msg.finish_time.millitm-queued_svc_msg.start_time.millitm)/1000.0));
+#endif
 
 		/* clear the freshening flag (it would have been set if this service was determined to be stale) */
 		temp_service->is_being_freshened=FALSE;
@@ -633,7 +636,10 @@ void reap_service_checks(void){
 			temp_service->is_executing=FALSE;
 
 		/* get the last check time */
+		temp_service->last_check=queued_svc_msg.start_time.tv_sec;
+#ifdef REMOVED_050803
 		temp_service->last_check=queued_svc_msg.start_time.time;
+#endif
 
 		/* was this check passive or active? */
 		temp_service->check_type=(queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;

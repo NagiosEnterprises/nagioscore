@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-22-2003
+ * Last Modified: 05-08-2003
  *
  * License:
  * 
@@ -930,6 +930,13 @@ void show_host_info(void){
 		get_time_string(&temp_hoststatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Next Scheduled Active Check:&nbsp;&nbsp;</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_hoststatus->checks_enabled && temp_hoststatus->next_check!=(time_t)0 && temp_hoststatus->should_be_scheduled==TRUE)?date_time:"N/A");
 
+		printf("<TR><TD CLASS='dataVar'>Latency:</TD><TD CLASS='dataVal'>");
+		if(temp_hoststatus->check_type==HOST_CHECK_ACTIVE)
+			printf("%.3f seconds",temp_hoststatus->latency);
+		else
+			printf("N/A");
+		printf("</TD></TR>\n");
+
 		printf("<TR><TD CLASS='dataVar'>Check Duration:</td><td CLASS='dataVal'>%.3f seconds</td></tr>\n",temp_hoststatus->execution_time);
 
 		get_time_string(&temp_hoststatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
@@ -1247,7 +1254,7 @@ void show_service_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Latency:</TD><TD CLASS='dataVal'>");
 		if(temp_svcstatus->check_type==SERVICE_CHECK_ACTIVE)
-			printf("%s%d second%s",(temp_svcstatus->latency==0)?"&lt; ":"",(temp_svcstatus->latency==0)?1:temp_svcstatus->latency,(temp_svcstatus->latency>1)?"s":"");
+			printf("%.3f seconds",temp_svcstatus->latency);
 		else
 			printf("N/A");
 		printf("</TD></TR>\n");
@@ -1701,14 +1708,14 @@ void show_performance_data(void){
 	double total_service_execution_time=0.0;
 	int have_min_service_execution_time=FALSE;
 	int have_max_service_execution_time=FALSE;
-	int min_service_latency=0;
-	int max_service_latency=0;
-	unsigned long total_service_latency=0L;
+	double min_service_latency=0.0;
+	double max_service_latency=0.0;
+	double long total_service_latency=0.0;
 	int have_min_service_latency=FALSE;
 	int have_max_service_latency=FALSE;
-	int min_host_latency=0;
-	int max_host_latency=0;
-	unsigned long total_host_latency=0L;
+	double min_host_latency=0.0;
+	double max_host_latency=0.0;
+	double total_host_latency=0.0;
 	int have_min_host_latency=FALSE;
 	int have_max_host_latency=FALSE;
 	double min_service_percent_change_a=0.0;
@@ -1982,8 +1989,11 @@ void show_performance_data(void){
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr class='data'><th class='data'>Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
+
 	printf("<tr><td class='dataVar'>Check Execution Time:&nbsp;&nbsp;</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.3f sec</td></tr>\n",min_service_execution_time,max_service_execution_time,(double)((double)total_service_execution_time/(double)total_active_service_checks));
-	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_service_latency==0)?"&lt; ":"",(min_service_latency==0)?1:min_service_latency,(max_service_latency==0)?"&lt; ":"",(max_service_latency==0)?1:max_service_latency,(double)((double)total_service_latency/(double)total_active_service_checks));
+
+	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.3f sec</td></tr>\n",min_service_latency,max_service_latency,(double)((double)total_service_latency/(double)total_active_service_checks));
+
 	printf("<tr><td class='dataVar'>Percent State Change:</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td></tr>\n",min_service_percent_change_a,max_service_percent_change_a,(double)((double)total_service_percent_change_a/(double)total_active_service_checks));
 
 	printf("</TABLE>\n");
@@ -2070,8 +2080,11 @@ void show_performance_data(void){
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr class='data'><th class='data'>Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
+
 	printf("<tr><td class='dataVar'>Check Execution Time:&nbsp;&nbsp;</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.3f sec</td></tr>\n",min_host_execution_time,max_host_execution_time,(double)((double)total_host_execution_time/(double)total_active_host_checks));
-	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_host_latency==0)?"&lt; ":"",(min_host_latency==0)?1:min_host_latency,(max_host_latency==0)?"&lt; ":"",(max_host_latency==0)?1:max_host_latency,(double)((double)total_host_latency/(double)total_active_host_checks));
+
+	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.3f sec</td></tr>\n",min_host_latency,max_host_latency,(double)((double)total_host_latency/(double)total_active_host_checks));
+
 	printf("<tr><td class='dataVar'>Percent State Change:</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td></tr>\n",min_host_percent_change_a,max_host_percent_change_a,(double)((double)total_host_percent_change_a/(double)total_active_host_checks));
 
 	printf("</TABLE>\n");

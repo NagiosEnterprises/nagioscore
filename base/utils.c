@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-15-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -603,7 +603,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICELATENCY]);
 	macro_x[MACRO_SERVICELATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
 	if(macro_x[MACRO_SERVICELATENCY]!=NULL){
-		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH-1,"%lu",svc->latency);
+		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH-1,"%lf",svc->latency);
 		macro_x[MACRO_SERVICELATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
@@ -823,7 +823,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTLATENCY]);
 	macro_x[MACRO_HOSTLATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
 	if(macro_x[MACRO_HOSTLATENCY]!=NULL){
-		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH-1,"%lu",hst->latency);
+		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH-1,"%lf",hst->latency);
 		macro_x[MACRO_HOSTLATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
@@ -1121,7 +1121,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	int fd[2];
 	FILE *fp=NULL;
 	int bytes_read=0;
-	struct timeb start_time,end_time;
+	struct timeval start_time,end_time;
 	int attr=NEBATTR_NONE;
 #ifdef EMBEDDEDPERL
 	char fname[1024];
@@ -1196,7 +1196,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	fcntl(fd[1],F_SETFL,O_NONBLOCK);
 
 	/* get the command start time */
-	ftime(&start_time);
+	gettimeofday(&start_time,NULL);
 
 	/* fork */
 	pid=fork();
@@ -1371,10 +1371,13 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 		waitpid(pid,&status,0);
 
 		/* get the end time for running the command */
-		ftime(&end_time);
+		gettimeofday(&end_time,NULL);
 
 		/* return execution time in milliseconds */
+		*exectime=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000)/1000.0);
+#ifdef REMOVED_050803
 		*exectime=(double)((double)(end_time.time-start_time.time)+(double)((end_time.millitm-start_time.millitm)/1000.0));
+#endif
 
 		/* get the exit code returned from the program */
 		result=WEXITSTATUS(status);
@@ -1408,7 +1411,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			strcpy(output,"");
 
 		/* if there was a critical return code and no output AND the command time exceeded the timeout thresholds, assume a timeout */
-		if(result==STATE_CRITICAL && bytes_read==-1 && (end_time.time-start_time.time)>=timeout){
+		if(result==STATE_CRITICAL && bytes_read==-1 && (end_time.tv_sec-start_time.tv_sec)>=timeout){
 
 			/* set the early timeout flag */
 			*early_timeout=TRUE;
@@ -1912,10 +1915,10 @@ void sighandler(int sig){
 
 /* handle timeouts when executing service checks */
 void service_check_sighandler(int sig){
-	struct timeb end_time;
+	struct timeval end_time;
 
 	/* get the current time */
-	ftime(&end_time);
+	gettimeofday(&end_time,NULL);
 
 	/* write plugin check results to message queue */
 	strncpy(svc_msg.output,"(Service Check Timed Out)",sizeof(svc_msg.output)-1);

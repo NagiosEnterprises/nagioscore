@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-25-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -142,7 +142,7 @@ typedef struct host_struct{
 	char    *perf_data;
         int     state_type;
 	int     current_attempt;
-	unsigned long latency;
+	double  latency;
 	double  execution_time;
 	int     check_options;
 	int     notifications_enabled;
@@ -292,7 +292,7 @@ typedef struct service_struct{
 	int     notified_on_warning;
 	int     notified_on_critical;
 	int     current_notification_number;
-	unsigned long latency;
+	double  latency;
 	double  execution_time;
 	int     is_executing;
 	int     check_options;

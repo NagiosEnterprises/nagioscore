@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   05-08-2003
  *
  * License:
  *
@@ -3554,7 +3554,7 @@ void process_passive_service_checks(void){
 	passive_check_result *temp_pcr;
 	passive_check_result *this_pcr;
 	passive_check_result *next_pcr;
-	struct timeb end_time;
+	struct timeval end_time;
 
 
 #ifdef DEBUG0
@@ -3562,7 +3562,7 @@ void process_passive_service_checks(void){
 #endif
 
 	/* get the "end" time of the check */
-	ftime(&end_time);
+	gettimeofday(&end_time,NULL);
 
 	/* fork... */
 	pid=fork();
@@ -3605,8 +3605,8 @@ void process_passive_service_checks(void){
 				svc_msg.parallelized=FALSE;
 				svc_msg.exited_ok=TRUE;
 				svc_msg.check_type=SERVICE_CHECK_PASSIVE;
-				svc_msg.start_time.time=temp_pcr->check_time;
-				svc_msg.start_time.millitm=0;
+				svc_msg.start_time.tv_sec=temp_pcr->check_time;
+				svc_msg.start_time.tv_usec=0;
 				svc_msg.finish_time=end_time;
 
 				/* write the service check results... */

@@ -8,6 +8,7 @@ Nagios Change Log
 * Minor bug fixes in CGIs
 * Minor bug fixes in sample config files
 * Minor doc updates
+* Minor bug fixes to init script
 
 
 1.0b6 - 09/15/2002

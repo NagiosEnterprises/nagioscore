@@ -143,7 +143,7 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 
 
 /* handles host check results in an obsessive compulsive manner... */
-int obsessive_compulsive_host_check_processor(host *hst,int state){
+int obsessive_compulsive_host_check_processor(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -164,19 +164,6 @@ int obsessive_compulsive_host_check_processor(host *hst,int state){
 	/* update macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
-
-	/* make sure the host state macro is correct */
-	if(macro_x[MACRO_HOSTSTATE]!=NULL)
-		free(macro_x[MACRO_HOSTSTATE]);
-	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_x[MACRO_HOSTSTATE]!=NULL){
-		if(state==HOST_DOWN)
-			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
-		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
-		else
-			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
-	        }
 
 	/* find the host processor command */
 	temp_command=find_command(ochp_command,NULL);
@@ -419,7 +406,7 @@ int run_service_event_handler(service *svc,int state_type){
 
 
 /* handles a change in the status of a host */
-int handle_host_event(host *hst,int state){
+int handle_host_event(host *hst){
 
 #ifdef DEBUG0
 	printf("handle_host_event() start\n");
@@ -435,25 +422,12 @@ int handle_host_event(host *hst,int state){
 	clear_volatile_macros();
 	grab_host_macros(hst);
 
-	/* make sure the host state macro is correct */
-	if(macro_x[MACRO_HOSTSTATE]!=NULL)
-		free(macro_x[MACRO_HOSTSTATE]);
-	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_x[MACRO_HOSTSTATE]!=NULL){
-		if(state==HOST_DOWN)
-			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
-		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
-		else
-			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
-	        }
-
 	/* run the global host event handler */
-	run_global_host_event_handler(hst,state);
+	run_global_host_event_handler(hst);
 
 	/* run the event handler command if there is one */
 	if(hst->event_handler!=NULL)
-		run_host_event_handler(hst,state);
+		run_host_event_handler(hst);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -467,7 +441,7 @@ int handle_host_event(host *hst,int state){
 
 
 /* runs the global host event handler */
-int run_global_host_event_handler(host *hst,int state){
+int run_global_host_event_handler(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -524,7 +498,7 @@ int run_global_host_event_handler(host *hst,int state){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,state,hst->state_type,exectime,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -536,7 +510,7 @@ int run_global_host_event_handler(host *hst,int state){
 
 
 /* runs a host event handler command */
-int run_host_event_handler(host *hst,int state){
+int run_host_event_handler(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -585,7 +559,7 @@ int run_host_event_handler(host *hst,int state){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,state,hst->state_type,exectime,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,hst->current_state,hst->state_type,exectime,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -604,7 +578,7 @@ int run_host_event_handler(host *hst,int state){
 
 
 /* top level host state handler - occurs after every host check (soft/hard and active/passive) */
-int handle_host_state(host *hst,int state){
+int handle_host_state(host *hst){
 	int state_change=FALSE;
 
 #ifdef DEBUG0
@@ -612,10 +586,10 @@ int handle_host_state(host *hst,int state){
 #endif
 
 	/* obsess over this host check */
-	obsessive_compulsive_host_check_processor(hst,state);
+	obsessive_compulsive_host_check_processor(hst);
 
 	/* has the host state changed? */
-	if(hst->current_state!=state)
+	if(hst->last_state!=hst->current_state)
 		state_change=TRUE;
 
 	/* if the host state has changed... */
@@ -630,60 +604,49 @@ int handle_host_state(host *hst,int state){
 
 		/* set the state flags in case we "float" between down and unreachable states before a recovery */
 		if(hst->state_type==HARD_STATE){
-			if(state==HOST_DOWN)
+			if(hst->current_state==HOST_DOWN)
 				hst->has_been_down=TRUE;
-			else if(state==HOST_UNREACHABLE)
+			else if(hst->current_state==HOST_UNREACHABLE)
 				hst->has_been_unreachable=TRUE;
 		        }
 
 		/* the host just recovered, so reset the current host attempt number */
-		if(state==HOST_UP)
+		if(hst->current_state==HOST_UP)
 			hst->current_attempt=1;
 
 		/* write the host state change to the main log file */
 		if(hst->state_type==HARD_STATE || (hst->state_type==SOFT_STATE && log_host_retries==TRUE))
-			log_host_event(hst,state);
+			log_host_event(hst);
 
 		/* check for start of flexible (non-fixed) scheduled downtime */
 		if(hst->state_type==HARD_STATE)
-			check_pending_flex_host_downtime(hst,state);
+			check_pending_flex_host_downtime(hst,hst->current_state);
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
 		if(hst->state_type==HARD_STATE)
-			host_notification(hst,state,NULL);
+			host_notification(hst,hst->current_state,NULL);
 
 		/* handle the host state change */
-		handle_host_event(hst,state);
+		handle_host_event(hst);
 
 		/* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-		if(state==HOST_UP){
+		if(hst->current_state==HOST_UP){
 			hst->current_notification_number=0;
 			hst->has_been_down=FALSE;
 			hst->has_been_unreachable=FALSE;
-		        }
-
-		/* set the host state flag and update the status log if this is a hard state */
-		if(hst->state_type==HARD_STATE){
-			hst->current_state=state;
-			update_host_status(hst,FALSE);
 		        }
 	        }
 
 	/* else the host state has not changed */
 	else{
 
-		/* notify contacts if host is still down */
-		if(state!=HOST_UP && hst->state_type==HARD_STATE)
-			host_notification(hst,state,NULL);
+		/* notify contacts if host is still down or unreachable */
+		if(hst->current_state!=HOST_UP && hst->state_type==HARD_STATE)
+			host_notification(hst,hst->current_state,NULL);
 
 		/* if we're in a soft state and we should log host retries, do so now... */
 		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)
-			log_host_event(hst,state);
-
-		/* update the status log if this is a hard state */
-		if(hst->state_type==HARD_STATE)
-			update_host_status(hst,FALSE);
-
+			log_host_event(hst);
 	        }
 
 #ifdef DEBUG0

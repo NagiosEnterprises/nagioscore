@@ -203,7 +203,7 @@ int log_service_event(service *svc,int state_type){
 
 
 /* write a host problem/recovery to the log file */
-int log_host_event(host *hst, int state){
+int log_host_event(host *hst){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	unsigned long log_options=0L;
 
@@ -215,23 +215,10 @@ int log_host_event(host *hst, int state){
 	clear_volatile_macros();
 	grab_host_macros(hst);
 
-	/* make sure the host state macro is correct */
-	if(macro_x[MACRO_HOSTSTATE]!=NULL)
-		free(macro_x[MACRO_HOSTSTATE]);
-	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_x[MACRO_HOSTSTATE]!=NULL){
-		if(state==HOST_DOWN)
-			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
-		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
-		else
-			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
-	        }
-
 	/* get the log options */
-	if(state==HOST_DOWN)
+	if(hst->current_state==HOST_DOWN)
 		log_options=NSLOG_HOST_DOWN;
-	else if(state==HOST_UNREACHABLE)
+	else if(hst->current_state==HOST_UNREACHABLE)
 		log_options=NSLOG_HOST_UNREACHABLE;
 	else
 		log_options=NSLOG_HOST_UP;

@@ -1319,7 +1319,6 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	int return_code;
 	time_t current_time;
-	int old_state=HOST_UP;
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	void *host_cursor;
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -1410,7 +1409,6 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	this_host->current_attempt=1;
 
 	/* save the old plugin output and host state for use with state stalking routines */
-	old_state=this_host->current_state;
 	strncpy(old_plugin_output,(this_host->plugin_output==NULL)?"":this_host->plugin_output,sizeof(old_plugin_output)-1);
 	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
 
@@ -1469,11 +1467,11 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 
 	/***** PROCESS PERFORMANCE DATA *****/
-	update_host_performance_data(this_host,return_code);
+	update_host_performance_data(this_host,this_host->current_state);
 
 
 	/***** HANDLE THE HOST STATE *****/
-	handle_host_state(this_host,return_code);
+	handle_host_state(this_host);
 
 
 	/***** UPDATE HOST STATUS *****/
@@ -1482,21 +1480,21 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 	/****** STALKING STUFF *****/
 	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
-	if(old_state==return_code && strcmp(old_plugin_output,this_host->plugin_output)){
+	if(this_host->last_state==this_host->current_state && strcmp(old_plugin_output,this_host->plugin_output)){
 
-		if(return_code==HOST_UP && this_host->stalk_on_up==TRUE)
-			log_host_event(this_host,HOST_UP);
+		if(this_host->current_state==HOST_UP && this_host->stalk_on_up==TRUE)
+			log_host_event(this_host);
 
-		if(return_code==HOST_DOWN && this_host->stalk_on_down==TRUE)
-			log_host_event(this_host,HOST_DOWN);
+		else if(this_host->current_state==HOST_DOWN && this_host->stalk_on_down==TRUE)
+			log_host_event(this_host);
 
-		if(return_code==HOST_UNREACHABLE && this_host->stalk_on_unreachable==TRUE)
-			log_host_event(this_host,HOST_UNREACHABLE);
+		else if(this_host->current_state==HOST_UNREACHABLE && this_host->stalk_on_unreachable==TRUE)
+			log_host_event(this_host);
 	        }
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_PASSIVE,this_host,return_code,0.0,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_PASSIVE,this_host,this_host->current_state,0.0,NULL);
 #endif
 
 	/***** CHECK FOR FLAPPING *****/

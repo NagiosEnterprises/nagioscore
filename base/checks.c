@@ -755,7 +755,7 @@ void reap_service_checks(void){
 
 				/* log the initial state if the user wants */
 				if(log_initial_states==TRUE)
-					log_host_event(temp_host,HOST_UP);
+					log_host_event(temp_host);
 		                }
 
 			/* log the initial state if the user wants */
@@ -941,7 +941,7 @@ void reap_service_checks(void){
 
 					/* log the initial state if the user wants to and this host hasn't been checked yet */
 					if(log_initial_states==TRUE && temp_service->has_been_checked==FALSE)
-						log_host_event(temp_host,temp_host->current_state);
+						log_host_event(temp_host);
 
 				        /* possibly re-send host notifications... */
 					host_notification(temp_host,temp_host->current_state,NULL);
@@ -1411,11 +1411,6 @@ int verify_route_to_host(host *hst){
 	printf("verify_route_to_host() start\n");
 #endif
 
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->current_state,0.0,NULL);
-#endif
-
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
 	result=check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS);
 
@@ -1446,6 +1441,12 @@ int check_host(host *hst,int propagation_options){
 	printf("check_host() start\n");
 #endif
 
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->current_state,0.0,NULL);
+#endif
+
 	/* make sure we return the original host state unless it changes... */
 	return_result=hst->current_state;
 
@@ -1461,6 +1462,8 @@ int check_host(host *hst,int propagation_options){
 	strncpy(old_plugin_output,(hst->plugin_output==NULL)?"":hst->plugin_output,sizeof(old_plugin_output)-1);
 	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
 
+
+	/***** HOST IS NOT UP INITIALLY *****/
 	/* if the host is already down or unreachable... */
 	if(hst->current_state!=HOST_UP){
 
@@ -1485,10 +1488,13 @@ int check_host(host *hst,int propagation_options){
 			/* the host recovered from a hard problem... */
 			if(result==HOST_UP){
 
+				/* update host state */
+				hst->current_state=HOST_UP;
+
 				return_result=HOST_UP;
 
 				/* handle the hard host recovery */
-				handle_host_state(hst,HOST_UP);
+				handle_host_state(hst);
 
 				/* propagate the host recovery upwards (at least one parent should be up now) */
 				if(propagation_options & PROPAGATE_TO_PARENT_HOSTS){
@@ -1511,10 +1517,12 @@ int check_host(host *hst,int propagation_options){
 					/* check all child hosts... */
 					host_cursor=get_host_cursor();
 					while(child_host=get_next_host_cursor(host_cursor)){
+
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
 					        }
+
 					free_host_cursor(host_cursor);
 				        }
 
@@ -1528,7 +1536,7 @@ int check_host(host *hst,int propagation_options){
 		/* unreachable, its parent recovers, but it does not return to an UP state.  Even though it is not up, the host */
 		/* has changed from an unreachable to a down state */
 
-		if(hst->current_state==HOST_UNREACHABLE && result!=HOST_UP){
+		if(hst->last_state==HOST_UNREACHABLE && result!=HOST_UP){
 
 			/* check all parent hosts */
 			for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
@@ -1538,9 +1546,12 @@ int check_host(host *hst,int propagation_options){
 
 				/* if at least one parent host is up, this host is no longer unreachable - it is now down instead */
 				if(parent_host->current_state==HOST_UP){
+
+					/* change the host state to DOWN */
+					hst->current_state=HOST_DOWN;
 					
 					/* handle the hard host state change */
-					handle_host_state(hst,HOST_DOWN);
+					handle_host_state(hst);
 
 					break;
 				        }
@@ -1549,6 +1560,7 @@ int check_host(host *hst,int propagation_options){
 	        }
 
 
+	/***** HOST IS UP INITIALLY *****/
 	/* else the host is supposed to be up right now... */
 	else{
 
@@ -1574,6 +1586,7 @@ int check_host(host *hst,int propagation_options){
 			/* update performance data */
 			update_host_performance_data(hst,result);
 
+			/*** HARD ERROR STATE ***/
 			/* if this is the last check and we still haven't had a recovery, check the parents and children and then handle the hard host state */
 			if(result!=HOST_UP && (hst->current_attempt==hst->max_attempts)){
 
@@ -1607,8 +1620,11 @@ int check_host(host *hst,int propagation_options){
 				else
 					return_result=HOST_DOWN;
 
+				/* update host state */
+				hst->current_state=return_result;
+
 				/* handle the hard host state (whether it is DOWN or UNREACHABLE) */
-				handle_host_state(hst,return_result);
+				handle_host_state(hst);
 
 				/* propagate the host problem to all child hosts (they should be unreachable now unless they have multiple parents) */
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
@@ -1616,29 +1632,43 @@ int check_host(host *hst,int propagation_options){
 					/* check all child hosts... */
 					host_cursor=get_host_cursor();
 					while(child_host=get_next_host_cursor(host_cursor)){
+
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
 					        }
+
 					free_host_cursor(host_cursor);
 				        }
 			        }
 
+			/*** SOFT RECOVERY OR ERROR STATE ***/
 			/* handle any soft states (during host check retries that return a non-ok state) */
-			else if(result!=HOST_UP || (result==HOST_UP && hst->current_attempt!=1))
-				handle_host_state(hst,result);
+			else if(result!=HOST_UP || (result==HOST_UP && hst->current_attempt!=1)){
 
+				/* update the current host state */
+				hst->current_state=result;
+
+				/* handle the host state */
+				handle_host_state(hst);
+
+				/* update the status log with the current host info */
+				/* this needs to be called to update status data on soft error states */
+				update_host_status(hst,FALSE);
+			        }
+
+			/*** RECOVERY/OK STATE ***/
 			/* the host recovered (or it was never down), so break out of the check loop */
 			if(result==HOST_UP){
+
+				/* update the current host state */
+				hst->current_state=HOST_UP;
 
 				/* this is the first check of the host */
 				if(hst->has_been_checked==FALSE){
 
 					/* set the checked flag */
 					hst->has_been_checked=TRUE;
-
-					/* update the status log with the current host info */
-					update_host_status(hst,FALSE);
 				        }
 				break;
 			        }
@@ -1653,22 +1683,25 @@ int check_host(host *hst,int propagation_options){
 	/* make sure state type is hard */
 	hst->state_type=HARD_STATE;
 
+	/* update the status log with the current host info */
+	update_host_status(hst,FALSE);
+
 	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
-	if(old_state==return_result && strcmp(old_plugin_output,hst->plugin_output)){
+	if(hst->last_state==hst->current_state && strcmp(old_plugin_output,hst->plugin_output)){
 
-		if(return_result==HOST_UP && hst->stalk_on_up==TRUE)
-			log_host_event(hst,HOST_UP);
+		if(hst->current_state==HOST_UP && hst->stalk_on_up==TRUE)
+			log_host_event(hst);
 
-		if(return_result==HOST_DOWN && hst->stalk_on_down==TRUE)
-			log_host_event(hst,HOST_DOWN);
+		else if(hst->current_state==HOST_DOWN && hst->stalk_on_down==TRUE)
+			log_host_event(hst);
 
-		if(return_result==HOST_UNREACHABLE && hst->stalk_on_unreachable==TRUE)
-			log_host_event(hst,HOST_UNREACHABLE);
+		else if(hst->current_state==HOST_UNREACHABLE && hst->stalk_on_unreachable==TRUE)
+			log_host_event(hst);
 	        }
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,return_result,0.0,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->current_state,0.0,NULL);
 #endif
 
 	/* check to see if the associated host is flapping */

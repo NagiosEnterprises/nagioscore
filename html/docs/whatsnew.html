@@ -45,7 +45,9 @@ Many of the changes described below are the direct result of this project being 
 
 <li><b>URL Changes</b>.  The base URLs for accessing the HTML files and CGIs through the web interface are now <i>/nagios/</i> and <i>/nagios/cgi-bin/</i>, respectively.<br><br>
 
-<li><b>Config File Changes</b>.  The main config file is now <i>nagios.cfg</i> and the CGI config file is now <i>cgi.cfg</i>.<br><br>
+<li><b>Config File Changes</b>.  The <a href="configmain.html">main config file</a> is now <i>nagios.cfg</i> and the <a href="configcgi.html">CGI config file</a> is now <i>cgi.cfg</i>.<br><br>
+
+<li><b>Process Check Command Changes</b>.  The old process_check_command variable in the <a href="configcgi.html">CGI config file</a> has been renamed to <a href="configcgi.html#nagios_check_command">nagios_check_command</a>.  Also, if you do not specify a check command, the CGIs will assume the Nagios process is running properly.<br><br>
 
 <li><b>Archive Changes</b>.  Archived log files from Netsaint must be renamed from "netsaint-<i>date</i>.log" format to "nagios-<i>date</i>.log" format if you want to make them available to the Nagios CGIs. You can rename all your archived log files with the following command (assuming you've  already moved them to their new directory location): <font color="red">rename netsaint nagios netsaint*.log</font><br><br>
 

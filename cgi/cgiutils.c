@@ -243,7 +243,7 @@ int read_cgi_config_file(char *filename){
 				use_authentication=TRUE;
 		        }
 
-		else if(strstr(input_buffer,"nagios_check_command=")==input_buffer || strstr(input_buffer,"process_check_command=")==input_buffer){
+		else if(strstr(input_buffer,"nagios_check_command=")==input_buffer){
 			temp_buffer=strtok(input_buffer,"=");
 			temp_buffer=strtok(NULL,"\x0");
 			if(temp_buffer!=NULL){

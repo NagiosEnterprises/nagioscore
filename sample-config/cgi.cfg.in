@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 01-16-2002
+# Last Modified: 03-07-2002
 #
 #################################################################
 
@@ -37,7 +37,7 @@ url_html_path=@htmurl@
 
 
 
-# PROCESS CHECK COMMAND
+# NAGIOS PROCESS CHECK COMMAND
 # This is the full path and filename of the program used to check
 # the status of the Nagios process.  It is used only by the CGIs
 # and is completely optional.  However, if you don't use it, you'll
@@ -58,7 +58,7 @@ url_html_path=@htmurl@
 # Nagios.  Run the 'ps' command manually to see what the command
 # line entry for the Nagios process looks like.
 
-#process_check_command=@libexecdir@/check_nagios @localstatedir@/status.log 5 '@bindir@/nagios'
+#nagios_check_command=@libexecdir@/check_nagios @localstatedir@/status.log 5 '@bindir@/nagios'
 
 
 

@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-05-2004
  *
  * This CGI program will display various configuration information.
  *
@@ -410,7 +410,7 @@ int process_cgivars(void){
 				embedded=TRUE;
 		        }
 
-		/* we recieved an invalid argument */
+		/* we received an invalid argument */
 		else
 			error=TRUE;
 	

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  *
@@ -2591,7 +2591,7 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	temp_contactgroup=find_contactgroup(name);
 	if(temp_contactgroup!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup '%s' has already been defined\n",name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup '%s' has already been defined\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2758,7 +2758,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	printf("add_service() start\n");
 #endif
 
-	/* make sure we have everthing we need */
+	/* make sure we have everything we need */
 	if(host_name==NULL || description==NULL || check_command==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service description, host name, or check command is NULL\n");
@@ -3169,7 +3169,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->current_state=STATE_OK;
 	new_service->last_state=STATE_OK;
 	new_service->last_hard_state=STATE_OK;
-	/* inital state type changed from SOFT_STATE on 6/17/03 - shouldn't this have been HARD_STATE all along? */
+	/* initial state type changed from SOFT_STATE on 6/17/03 - shouldn't this have been HARD_STATE all along? */
 	new_service->state_type=HARD_STATE;
 	new_service->host_problem_at_last_check=FALSE;
 #ifdef REMOVED_041403
@@ -4511,7 +4511,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 #endif		
 
 #ifdef DEBUG0
-	printf("add_hostextinfo() start\n");
+	printf("add_hostextinfo() end\n");
 #endif
 	return new_hostextinfo;
         }
@@ -5300,7 +5300,7 @@ int number_of_total_parent_hosts(host *hst){
         }
 
 
-/*  tests wether a host is a member of a particular hostgroup */
+/*  tests whether a host is a member of a particular hostgroup */
 int is_host_member_of_hostgroup(hostgroup *group, host *hst){
 	hostgroupmember *temp_hostgroupmember;
 
@@ -5316,7 +5316,7 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst){
         }
 
 
-/*  tests wether a host is a member of a particular servicegroup */
+/*  tests whether a host is a member of a particular servicegroup */
 int is_host_member_of_servicegroup(servicegroup *group, host *hst){
 	servicegroupmember *temp_servicegroupmember;
 
@@ -5332,7 +5332,7 @@ int is_host_member_of_servicegroup(servicegroup *group, host *hst){
         }
 
 
-/*  tests wether a service is a member of a particular servicegroup */
+/*  tests whether a service is a member of a particular servicegroup */
 int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 	servicegroupmember *temp_servicegroupmember;
 
@@ -5348,7 +5348,7 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
         }
 
 
-/*  tests wether a contact is a member of a particular contactgroup */
+/*  tests whether a contact is a member of a particular contactgroup */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
 	contactgroupmember *temp_contactgroupmember;
 
@@ -5367,7 +5367,7 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
         }
 
 
-/*  tests wether a contact is a member of a particular hostgroup - used only by the CGIs */
+/*  tests whether a contact is a member of a particular hostgroup - used only by the CGIs */
 int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
 	hostgroupmember *temp_hostgroupmember;
 	host *temp_host;
@@ -5388,7 +5388,7 @@ int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
 
 
 
-/*  tests wether a contact is a member of a particular servicegroup - used only by the CGIs */
+/*  tests whether a contact is a member of a particular servicegroup - used only by the CGIs */
 int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
 	servicegroupmember *temp_servicegroupmember;
 	service *temp_service;
@@ -5605,7 +5605,7 @@ int check_for_circular_hostdependency(hostdependency *root_dep, hostdependency *
 			return TRUE;
 	        }
 
-	/* notification depdencies are ok at this point as long as they don't inherit */
+	/* notification dependencies are ok at this point as long as they don't inherit */
 	if(dependency_type==NOTIFICATION_DEPENDENCY && dep->inherits_parent==FALSE)
 		return FALSE;
 

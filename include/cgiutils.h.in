@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2004  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  * 
@@ -62,7 +62,7 @@
 #define SUMMARY_CGI	        "summary.cgi"
 
 
-/**************************** SYLE SHEET NAMES ******************************/
+/**************************** STYLE SHEET NAMES ******************************/
 
 #define COMMON_CSS		"common.css"
 

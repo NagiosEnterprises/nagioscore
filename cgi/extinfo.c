@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  * 
@@ -1572,7 +1572,7 @@ void show_hostgroup_info(void){
 
 	/* make sure hostgroup information exists */
 	if(temp_hostgroup==NULL){
-		printf("<P><DIV CLASS='errorMessage'>Error: Hostgroup Not Found!</DIV></P>>");
+		printf("<P><DIV CLASS='errorMessage'>Error: Hostgroup Not Found!</DIV></P>");
 		return;
 		}
 
@@ -1665,7 +1665,7 @@ void show_servicegroup_info(){
 
 	/* make sure servicegroup information exists */
 	if(temp_servicegroup==NULL){
-		printf("<P><DIV CLASS='errorMessage'>Error: Servicegroup Not Found!</DIV></P>>");
+		printf("<P><DIV CLASS='errorMessage'>Error: Servicegroup Not Found!</DIV></P>");
 		return;
 		}
 

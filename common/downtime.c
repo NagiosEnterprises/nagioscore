@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  *
@@ -61,7 +61,7 @@ extern timed_event *event_list_high;
 /******************************************************************/
 
 
-/* initalizes scheduled downtime data */
+/* initializes scheduled downtime data */
 int initialize_downtime_data(char *config_file){
 	int result;
 

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified:   11-05-2004
  *
  * License:
  *
@@ -954,7 +954,7 @@ int event_execution_loop(void){
 					run_event=FALSE;
 				        }
 
-				/* dont' run a service check if we're already maxed out on the number of parallel service checks...  */
+				/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
 				if(max_parallel_service_checks!=0 && (currently_running_service_checks >= max_parallel_service_checks)){
 #ifdef DEBUG3
 					printf("\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);

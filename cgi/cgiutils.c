@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-04-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  *
@@ -915,7 +915,7 @@ void sanitize_plugin_output(char *buffer){
 			continue;
 		        }
 
-		/* end of an HTML tage */
+		/* end of an HTML tag */
 		else if(buffer[x]=='>'){
 			in_html=FALSE;
 			continue;
@@ -1530,14 +1530,14 @@ void determine_log_rotation_times(int archive){
 		break;
 	        }
 
-	/* adust this rotation time for daylist savings time */
+	/* adjust this rotation time for daylight savings time */
 	t=localtime(&this_scheduled_log_rotation);
 	if(t->tm_isdst>0 && is_dst_now==FALSE)
 		this_scheduled_log_rotation=(time_t)(this_scheduled_log_rotation-3600);
 	else if(t->tm_isdst==0 && is_dst_now==TRUE)
 		this_scheduled_log_rotation=(time_t)(this_scheduled_log_rotation+3600);
 
-	/* adust last rotation time for daylist savings time */
+	/* adjust last rotation time for daylight savings time */
 	t=localtime(&last_scheduled_log_rotation);
 	if(t->tm_isdst>0 && is_dst_now==FALSE)
 		last_scheduled_log_rotation=(time_t)(last_scheduled_log_rotation-3600);
@@ -1828,7 +1828,7 @@ void include_ssi_file(char *filename){
         /* if file is executable, we want to run it rather than print it */
         call_return=stat(filename,&stat_result);
 
-	/* file is execuable */
+	/* file is executable */
 	if(call_return==0 && (stat_result.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))){
 
 		/* must flush output stream first so that output
@@ -1844,7 +1844,7 @@ void include_ssi_file(char *filename){
 		return;
 	        }
 
-	/* an erorr occurred trying to stat() the file */
+	/* an error occurred trying to stat() the file */
 	else if(call_return!=0){
 
 		/* Handle error conditions. Assume that standard posix error codes and errno are available. If not, comment this section out. */

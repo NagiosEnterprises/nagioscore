@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-04-2004
+ * Last Modified:   11-05-2004
  *
  * License:
  *
@@ -1375,7 +1375,7 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 	if(temp_host==NULL)
 		return ERROR;
 
-	/* get the persistant flag */
+	/* get the persistent flag */
 	temp_ptr=my_strtok(NULL,";");
 	if(temp_ptr==NULL)
 		return ERROR;
@@ -1447,7 +1447,7 @@ int cmd_delete_all_comments(int cmd,char *args){
 	printf("cmd_del_all_comments() start\n");
 #endif
 	
-	/* get the host nmae */
+	/* get the host name */
 	host_name=my_strtok(args,";");
 	if(host_name==NULL)
 		return ERROR;

@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  * 
@@ -1854,7 +1854,7 @@ void graph_all_trend_data(void){
 				if(b>t2)
 					b=t2;
 
-				/* clip first time if it preceeds graph limits */
+				/* clip first time if it precedes graph limits */
 				if(a<t1)
 					a=t1;
 

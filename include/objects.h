@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-12-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  *
@@ -526,7 +526,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host
 servicegroup *add_servicegroup(char *,char *);                                                          /* adds a servicegroup definition */
 servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);                          /* adds a service to a servicegroup definition */
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
-contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group defintion */
+contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
 command *add_command(char *,char *);									/* adds a command definition */
 service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
@@ -596,7 +596,7 @@ servicedependency *get_next_servicedependency_by_dependent_service(char *,char *
 
 /**** Object Query Functions ****/
 int is_host_immediate_child_of_host(host *,host *);	                /* checks if a host is an immediate child of another host */	
-int is_host_primary_immediate_child_of_host(host *,host *);             /* checsk if a host is an immediate child (and primary child) of another host */
+int is_host_primary_immediate_child_of_host(host *,host *);             /* checks if a host is an immediate child (and primary child) of another host */
 int is_host_immediate_parent_of_host(host *,host *);	                /* checks if a host is an immediate child of another host */	
 int is_host_member_of_hostgroup(hostgroup *,host *);		        /* tests whether or not a host is a member of a specific hostgroup */
 int is_host_member_of_servicegroup(servicegroup *,host *);	        /* tests whether or not a service is a member of a specific servicegroup */
@@ -605,9 +605,9 @@ int is_contact_member_of_contactgroup(contactgroup *, contact *);	/* tests wheth
 int is_contact_for_hostgroup(hostgroup *,contact *);	                /* tests whether or not a contact is a member of a specific hostgroup */
 int is_contact_for_servicegroup(servicegroup *,contact *);	        /* tests whether or not a contact is a member of a specific servicegroup */
 int is_contact_for_host(host *,contact *);			        /* tests whether or not a contact is a contact member for a specific host */
-int is_escalated_contact_for_host(host *,contact *);                    /* checsk whether or not a contact is an escalated contact for a specific host */
+int is_escalated_contact_for_host(host *,contact *);                    /* checks whether or not a contact is an escalated contact for a specific host */
 int is_contact_for_service(service *,contact *);		        /* tests whether or not a contact is a contact member for a specific service */
-int is_escalated_contact_for_service(service *,contact *);              /* checsk whether or not a contact is an escalated contact for a specific service */
+int is_escalated_contact_for_service(service *,contact *);              /* checks whether or not a contact is an escalated contact for a specific service */
 int is_host_immediate_parent_of_host(host *,host *);		        /* tests whether or not a host is an immediate parent of another host */
 
 int number_of_immediate_child_hosts(host *);		                /* counts the number of immediate child hosts for a particular host */

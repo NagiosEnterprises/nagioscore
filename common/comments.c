@@ -2,8 +2,8 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 11-05-2004
  *
  * License:
  *
@@ -60,7 +60,7 @@ comment     **comment_hashlist=NULL;
 /******************************************************************/
 
 
-/* initalizes comment data */
+/* initializes comment data */
 int initialize_comment_data(char *config_file){
 	int result;
 
@@ -581,7 +581,7 @@ void free_comment_data(void){
 /********************* UTILITY FUNCTIONS **************************/
 /******************************************************************/
 
-/* get the number of comments associated wth a particular host */
+/* get the number of comments associated with a particular host */
 int number_of_host_comments(char *host_name){
 	comment *temp_comment;
 	int total_comments=0;
@@ -598,7 +598,7 @@ int number_of_host_comments(char *host_name){
         }
 
 
-/* get the number of comments associated wth a particular service */
+/* get the number of comments associated with a particular service */
 int number_of_service_comments(char *host_name, char *svc_description){
 	comment *temp_comment;
 	int total_comments=0;

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2004
+ * Last Modified: 11-05-2004
  *
  * Description:
  *
@@ -240,7 +240,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	if(result==OK)
 		result=xodtemplate_resolve_objects();
 
-	/* do the meat and potatos stuff... */
+	/* do the meat and potatoes stuff... */
 	if(result==OK)
 		result=xodtemplate_recombobulate_contactgroups();
 	if(result==OK)
@@ -5279,7 +5279,7 @@ int xodtemplate_resolve_objects(void){
 
 
 
-/* resolves a timperiod object */
+/* resolves a timeperiod object */
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	xodtemplate_timeperiod *template_timeperiod;
 	int x;
@@ -5288,10 +5288,10 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 #endif
 
 #ifdef DEBUG0
-	printf("xodtemplate_resolve_timperiod() start\n");
+	printf("xodtemplate_resolve_timeperiod() start\n");
 #endif
 
-	/* return if this timperiod has already been resolved */
+	/* return if this timeperiod has already been resolved */
 	if(this_timeperiod->has_been_resolved==TRUE)
 		return OK;
 

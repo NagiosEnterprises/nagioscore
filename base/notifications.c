@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-01-2004
+ * Last Modified:   11-05-2004
  *
  * License:
  *
@@ -121,7 +121,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		grab_host_macros(temp_host);
 		grab_service_macros(svc);
 
-		/* if this is an aknowledgement, get the acknowledement macros */
+		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 			if(macro_x[MACRO_SERVICEACKAUTHOR]!=NULL)
 				free(macro_x[MACRO_SERVICEACKAUTHOR]);
@@ -191,7 +191,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 		if(type==NOTIFICATION_NORMAL){
 
-			/* adjust last/next notification time and notificiation flags if we notified someone */
+			/* adjust last/next notification time and notification flags if we notified someone */
 			if(contacts_notified>0){
 
 				/* calculate the next acceptable re-notification time */
@@ -442,7 +442,7 @@ int check_service_notification_viability(service *svc, int type){
 	        }
 #endif
 
-	/* dont notify contacts about this service problem again if the notification interval is set to 0 */
+	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
 	if(svc->no_more_notifications==TRUE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't re-notify contacts about this service problem!\n");
@@ -874,7 +874,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		clear_volatile_macros();
 		grab_host_macros(hst);
 
-		/* if this is an aknowledgement, get the acknowledement macros */
+		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
 			if(macro_x[MACRO_HOSTACKAUTHOR]!=NULL)
 				free(macro_x[MACRO_HOSTACKAUTHOR]);
@@ -1598,7 +1598,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 		if(temp_he->notification_interval<0)
 			continue;
 
-		/* skip this entry if it itsn't appropriate */
+		/* skip this entry if it isn't appropriate */
 		if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 			continue;
 

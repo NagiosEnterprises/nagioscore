@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  * 
@@ -595,7 +595,7 @@ int main(int argc, char **argv){
 			display_context_help(CONTEXTHELP_AVAIL_HOST);
 		else if(display_type==DISPLAY_SERVICE_AVAIL)
 			display_context_help(CONTEXTHELP_AVAIL_SERVICE);
-		else if(display_type==DISPLAY_SERVICE_AVAIL)
+		else if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
 			display_context_help(CONTEXTHELP_AVAIL_SERVICEGROUP);
 		else
 			display_context_help(CONTEXTHELP_AVAIL_MENU1);
@@ -1875,7 +1875,7 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 				if(b>t2)
 					b=t2;
 
-				/* clip first time if it preceeds graph limits */
+				/* clip first time if it precedes graph limits */
 				if(a<t1)
 					a=t1;
 
@@ -2231,7 +2231,7 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 	printf("ENTERING COMPUTE_SUBJECT_DOWNTIME_TIMES: start=%lu, end=%lu\n",start_time,end_time);
 #endif
 
-	/* times are wierd, so bail out... */
+	/* times are weird, so bail out... */
 	if(start_time>end_time)
 		return;
 	if(start_time<t1 || end_time>t2)
@@ -2288,7 +2288,7 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 	/* temp_as now points to first event to possibly "break" this chunk */
 	for(;temp_as!=NULL;temp_as=temp_as->next){
 
-		/* time looks wierd, skip this one but update subject state */
+		/* time looks weird, skip this one but update subject state */
 		if(temp_as->time_stamp<start_time){
 #ifdef DEBUG2
 			printf("\tSKIPPING EVENT %d (%d) at time %lu\n",temp_as->entry_type,temp_as->processed_state,temp_as->time_stamp);
@@ -2348,7 +2348,7 @@ void compute_subject_downtime_part_times(time_t start_time, time_t end_time, int
 	printf("ENTERING COMPUTE_SUBJECT_DOWNTIME_PART_TIMES\n");
 #endif
 
-	/* times are wierd */
+	/* times are weird */
 	if(start_time>end_time)
 		return;
 
@@ -2498,7 +2498,7 @@ void create_subject_list(void){
 				        }
 			        }
 		        }
-		/* we're only displaying a specific hostgroup */
+		/* we're only displaying a specific servicegroup */
 		else{
 			temp_servicegroup=find_servicegroup(servicegroup_name);
 			if(temp_servicegroup!=NULL){
@@ -2541,7 +2541,7 @@ void add_subject(int subject_type, char *hn, char *sd){
 	if(new_subject==NULL)
 		return;
 
-	/* allocate memory fo the host name */
+	/* allocate memory for the host name */
 	if(hn!=NULL){
 		new_subject->host_name=(char *)malloc(strlen(hn)+1);
 		if(new_subject->host_name!=NULL)
@@ -2550,7 +2550,7 @@ void add_subject(int subject_type, char *hn, char *sd){
 	else 
 		new_subject->host_name=NULL;
 
-	/* allocate memory fo the service description */
+	/* allocate memory for the service description */
 	if(sd!=NULL){
 		new_subject->service_description=(char *)malloc(strlen(sd)+1);
 		if(new_subject->service_description!=NULL)

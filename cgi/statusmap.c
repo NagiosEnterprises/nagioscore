@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-05-2004
  *
  * Description:
  *
@@ -1948,7 +1948,7 @@ void draw_host_text(char *name,int x,int y){
 
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
-		/* write the host status string to the generated imate... */
+		/* write the host status string to the generated image... */
 		draw_text(temp_buffer,x,y+gdFontSmall->h,status_color);
                 }
 

@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-29-2004
+ * Last Modified: 11-05-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@
 /* Context-sensitive web help (requires Nagios Admin Kit) */
 #undef CONTEXT_HELP
 
-/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contribued by Stephen Davies) */
+/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contributed by Stephen Davies) */
 #undef EMBEDDEDPERL
 #undef THREADEDPERL
 /* 0 = cache, 1 = do not cache */

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-01-2004
+ * Last Modified: 11-05-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -489,7 +489,7 @@ void init_timing_loop(void);                         	/* setup the initial sched
 void setup_sighandler(void);                         	/* trap signals */
 void reset_sighandler(void);                         	/* reset signals to default action */
 int daemon_init(void);				     	/* switches to daemon mode */
-int drop_privileges(char *,char *);			/* drops priveleges before startup */
+int drop_privileges(char *,char *);			/* drops privileges before startup */
 void display_scheduling_info(void);			/* displays service check scheduling information */
 
 

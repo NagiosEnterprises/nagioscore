@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-28-2004
+ * Last Modified:   11-05-2004
  *
  * License:
  *
@@ -70,7 +70,7 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 	printf("write_to_logs_and_console() start\n");
 #endif
 
-	/* strip unecessary newlines */
+	/* strip unnecessary newlines */
 	len=strlen(buffer);
 	for(x=len-1;x>=0;x--){
 		if(buffer[x]=='\n')

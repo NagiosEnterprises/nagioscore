@@ -2926,7 +2926,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 		else
 			args[3]=cmd+strlen(fname)+1;
 
-		/* reinialize embedded perl if necessary */
+		/* reinitialize embedded perl if necessary */
 		if(use_embedded_perl==TRUE && max_embedded_perl_calls>0 && embedded_perl_calls>max_embedded_perl_calls)
 			reinit_embedded_perl();
 
@@ -3019,7 +3019,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 										     : savepv("(No output!)\n") ;
 			strncpy(buffer, perl_output, sizeof(buffer));
 			buffer[sizeof(buffer)-1]='\x0';
-			/* The Perl scalar corresp to pclose_result could contain string or integer.
+			/* The Perl scalar corresponding to pclose_result could contain string or integer.
 			   It is better to let POPi do the dirty work (SvPVOK or SvIOK could be true).
 			*/
 			status = POPi ;
@@ -4587,7 +4587,7 @@ int my_rename(char *source, char *dest){
 				/* delete the original file */
 				unlink(source);
 
-				/* reset result since we sucessfully copied file */
+				/* reset result since we successfully copied file */
 				rename_result=0;
 			        }
 

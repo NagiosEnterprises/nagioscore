@@ -2,9 +2,9 @@
  *
  * HELLOWORLD.C - Example of a simple NEB module
  *
- * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-26-2003
+ * Last Modified: 11-05-2004
  *
  * Description:
  *
@@ -58,7 +58,7 @@ int nebmodule_init(int flags, char *args, nebmodule *handle){
         }
 
 
-/* this function gets called when the module is unoaded by the event broker */
+/* this function gets called when the module is unloaded by the event broker */
 int nebmodule_deinit(int flags, int reason){
 	char temp_buffer[1024];
 	

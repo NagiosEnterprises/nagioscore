@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-05-2004
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -274,7 +274,7 @@ int process_cgivars(void){
 		else if(!strcmp(variables[x],"notimebreaks"))
 			display_timebreaks=FALSE;
 
-		/* we recieved an invalid argument */
+		/* we received an invalid argument */
 		else
 			error=TRUE;
 	

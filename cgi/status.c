@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  * 
@@ -1915,7 +1915,7 @@ void show_host_detail(void){
 
 		user_has_seen_something=TRUE;
 
-		/* see if we should display services for hosts with tis type of status */
+		/* see if we should display services for hosts with this type of status */
 		if(!(host_status_types & temp_status->status))
 			continue;
 
@@ -2421,7 +2421,7 @@ void show_servicegroup_summaries(void){
 		printf("</DIV></P>\n");
 	        }
 
-	/* we dcouldn't find the servicegroup */
+	/* we couldn't find the servicegroup */
 	else if(servicegroup_error==TRUE){
 		printf("<P><DIV ALIGN=CENTER>\n");
 		printf("<DIV CLASS='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</DIV>\n",servicegroup_name);
@@ -2707,7 +2707,7 @@ void show_servicegroup_grids(void){
 		printf("</DIV></P>\n");
 	        }
 
-	/* we dcouldn't find the servicegroup */
+	/* we couldn't find the servicegroup */
 	else if(servicegroup_error==TRUE){
 		printf("<P><DIV ALIGN=CENTER>\n");
 		printf("<DIV CLASS='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</DIV>\n",servicegroup_name);
@@ -3371,7 +3371,7 @@ void show_hostgroup_summaries(void){
 		printf("</DIV></P>\n");
 	        }
 
-	/* we dcouldn't find the hostgroup */
+	/* we couldn't find the hostgroup */
 	else if(hostgroup_error==TRUE){
 		printf("<P><DIV ALIGN=CENTER>\n");
 		printf("<DIV CLASS='errorMessage'>Sorry, but hostgroup '%s' doesn't seem to exist...</DIV>\n",hostgroup_name);
@@ -3649,7 +3649,7 @@ void show_hostgroup_grids(void){
 		printf("</DIV></P>\n");
 	        }
 
-	/* we dcouldn't find the hostgroup */
+	/* we couldn't find the hostgroup */
 	else if(hostgroup_error==TRUE){
 		printf("<P><DIV ALIGN=CENTER>\n");
 		printf("<DIV CLASS='errorMessage'>Sorry, but hostgroup '%s' doesn't seem to exist...</DIV>\n",hostgroup_name);

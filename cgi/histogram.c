@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2004
+ * Last Modified: 11-05-2004
  *
  * License:
  * 
@@ -1465,7 +1465,7 @@ int process_cgivars(void){
 				assume_state_retention=FALSE;
 		        }
 
-		/* we found the initial states logges option */
+		/* we found the initial states logged option */
 		else if(!strcmp(variables[x],"initialstateslogged")){
 			x++;
 			if(variables[x]==NULL){

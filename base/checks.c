@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-01-2004
+ * Last Modified:   11-05-2004
  *
  * License:
  *
@@ -287,7 +287,7 @@ void run_service_check(service *svc){
 		else
 			args[3]=processed_command+strlen(fname)+1;
 
-		/* reinialize embedded perl if necessary */
+		/* reintialize embedded perl if necessary */
 		if(use_embedded_perl==TRUE && max_embedded_perl_calls>0 && embedded_perl_calls>max_embedded_perl_calls)
 			reinit_embedded_perl();
 
@@ -364,7 +364,7 @@ void run_service_check(service *svc){
 				perl_plugin_output = SvPOK(plugin_out_sv) && (SvCUR(plugin_out_sv) > 0) ? savepv(SvPVX(plugin_out_sv))
 													: savepv("(No output!)\n") ;
 				strncpy(plugin_output, perl_plugin_output, sizeof(plugin_output));
-				/* The Perl scalar corresp to pclose_result could contain string or integer.
+				/* The Perl scalar corresponding to pclose_result could contain string or integer.
 				   It is better to let POPi do the dirty work (SvPVOK or SvIOK could be true).
 				 */
 				pclose_result = POPi ;
@@ -793,7 +793,7 @@ void reap_service_checks(void){
 				verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
 #ifdef REMOVED_080303
-				/* really check the host status if we're using agressive host checking */
+				/* really check the host status if we're using aggressive host checking */
 				if(use_aggressive_host_checking==TRUE)
 					verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
@@ -894,7 +894,7 @@ void reap_service_checks(void){
 			temp_service->last_notification=(time_t)0;
 			temp_service->next_notification=(time_t)0;
 
-			/* reset notification supression option */
+			/* reset notification suppression option */
 			temp_service->no_more_notifications=FALSE;
 
 			if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
@@ -999,7 +999,7 @@ void reap_service_checks(void){
 				handle_service_event(temp_service);
 		                }
 
-			/* else no service state change has occured... */
+			/* else no service state change has occurred... */
 
 			/* should we obsessive over service checks? */
 			if(obsess_over_services==TRUE)
@@ -1059,7 +1059,7 @@ void reap_service_checks(void){
 				printf("\tSECTION B2a\n");
 #endif
 
-				/* we're using agressive host checking, so really do recheck the host... */
+				/* we're using aggressive host checking, so really do recheck the host... */
 				if(use_aggressive_host_checking==TRUE){
 					route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 #ifdef DEBUG_CHECKS
@@ -1110,7 +1110,7 @@ void reap_service_checks(void){
 				printf("\tSECTION B3\n");
 #endif
 
-				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earler... */
+				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
 				if(temp_service->last_hard_state!=temp_service->current_state)
 					hard_state_change=TRUE;
 
@@ -1596,7 +1596,7 @@ void check_for_orphaned_services(void){
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
-			/* decremement the number of running service checks */
+			/* decrement the number of running service checks */
 			if(currently_running_service_checks>0)
 				currently_running_service_checks--;
 
@@ -2391,7 +2391,7 @@ int run_host_check(host *hst, int check_options){
 	      *temp_ptr=':';
 
 
-	/* if we're not doing agressive host checking, let WARNING states indicate the host is up (fake the result to be STATE_OK) */
+	/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be STATE_OK) */
 	if(use_aggressive_host_checking==FALSE && result==STATE_WARNING)
 		result=STATE_OK;
 

@@ -44,7 +44,7 @@ When creating and/or editing configuration files, keep the following in mind:
 <p>
 <ol>
 <li>Lines that start with a '#' character are taken to be comments and are not processed
-<li>Variable names are case-sensitive
+<li>Directive names are case-sensitive
 </ol>
 </p>
 
@@ -101,7 +101,7 @@ A host definition is used to define a physical server, workstation, device, etc.
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -152,136 +152,136 @@ define host{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This variable is used to define a short name used to identify the host.  It is used in host group and service definitions to reference this particular host.  Hosts can have multiple services (which are monitored) associated with them.  When used properly, the $HOSTNAME$ <a href="macros.html">macro</a> will contain this short name.
+This directive is used to define a short name used to identify the host.  It is used in host group and service definitions to reference this particular host.  Hosts can have multiple services (which are monitored) associated with them.  When used properly, the $HOSTNAME$ <a href="macros.html">macro</a> will contain this short name.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>alias</strong>:</td>
 <td>
-This variable is used to define a longer name or description used to identify the host.  It is provided in order to allow you to more easily identify a particular host.  When used properly, the $HOSTALIAS$ <a href="macros.html">macro</a> will contain this alias/description.
+This directive is used to define a longer name or description used to identify the host.  It is provided in order to allow you to more easily identify a particular host.  When used properly, the $HOSTALIAS$ <a href="macros.html">macro</a> will contain this alias/description.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>address</strong>:</td>
 <td>
-This variable is used to define the address of the host.  Normally, this is an IP address, although it could really be anything you want (so long as it can be used to check the status of the host).  You can use a FQDN to identify the host instead of an IP address, but if DNS services are not availble this could cause problems. When used properly, the $HOSTADDRESS$ <a href="macros.html">macro</a> will contain this address.  <b>Note:</b> If you do not specify an address directive in a host definition, the name of the host will be used as its address.  A word of caution about doing this, however - if DNS fails, most of your service checks will fail because the plugins will be unable to resolve the host name.
+This directive is used to define the address of the host.  Normally, this is an IP address, although it could really be anything you want (so long as it can be used to check the status of the host).  You can use a FQDN to identify the host instead of an IP address, but if DNS services are not availble this could cause problems. When used properly, the $HOSTADDRESS$ <a href="macros.html">macro</a> will contain this address.  <b>Note:</b> If you do not specify an address directive in a host definition, the name of the host will be used as its address.  A word of caution about doing this, however - if DNS fails, most of your service checks will fail because the plugins will be unable to resolve the host name.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>parents</strong>:</td>
 <td>
-This variable is used to define a comma-delimited list of short names of the "parent" hosts for this particular host.  Parent hosts are typically routers, switches, firewalls, etc. that lie between the monitoring host and a remote hosts.  A router, switch, etc. which is closest to the remote host is considered to be that host's "parent".  Read the "Determining Status and Reachability of Network Hosts" document located <a href="networkreachability.html">here</a> for more information. If this host is on the same network segment as the host doing the monitoring (without any intermediate routers, etc.) the host is considered to be on the local network and will not have a parent host.  Leave this value blank if the host does not have a parent host (i.e. it is on the same segment as the Nagios host).   The order in which you specify parent hosts has no effect on how things are monitored.
+This directive is used to define a comma-delimited list of short names of the "parent" hosts for this particular host.  Parent hosts are typically routers, switches, firewalls, etc. that lie between the monitoring host and a remote hosts.  A router, switch, etc. which is closest to the remote host is considered to be that host's "parent".  Read the "Determining Status and Reachability of Network Hosts" document located <a href="networkreachability.html">here</a> for more information. If this host is on the same network segment as the host doing the monitoring (without any intermediate routers, etc.) the host is considered to be on the local network and will not have a parent host.  Leave this value blank if the host does not have a parent host (i.e. it is on the same segment as the Nagios host).   The order in which you specify parent hosts has no effect on how things are monitored.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>check_command</strong>:</td>
 <td>
-This variable is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be used to check if the host is up or down.  Typically, this command would try and ping the host to see if it is "alive".  The command must return a status of OK (0) or Nagios will assume the host is down.  If you leave this argument blank, the host will <i>not</i> be checked - Nagios will always assume the host is up.  This is useful if you are monitoring printers or other devices that are frequently turned off.  The maximum amount of time that the notification command can run is controlled by the <a href="configmain.html#host_check_timeout">host_check_timeout</a> option.
+This directive is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be used to check if the host is up or down.  Typically, this command would try and ping the host to see if it is "alive".  The command must return a status of OK (0) or Nagios will assume the host is down.  If you leave this argument blank, the host will <i>not</i> be checked - Nagios will always assume the host is up.  This is useful if you are monitoring printers or other devices that are frequently turned off.  The maximum amount of time that the notification command can run is controlled by the <a href="configmain.html#host_check_timeout">host_check_timeout</a> option.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>max_check_attempts</strong>:</td>
 <td>
-This variable is used to define the number of times that Nagios will retry the host check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the host check again.  Note: If you do not want to check the status of the host, you must still set this to a minimum value of 1.  To bypass the host check, just leave the <i>check_command</i> option blank.
+This directive is used to define the number of times that Nagios will retry the host check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the host check again.  Note: If you do not want to check the status of the host, you must still set this to a minimum value of 1.  To bypass the host check, just leave the <i>check_command</i> option blank.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>checks_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not checks of this host are enabled. Values: 0 = disable host checks, 1 = enable host checks.
+This directive is used to determine whether or not checks of this host are enabled. Values: 0 = disable host checks, 1 = enable host checks.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>event_handler</strong>:</td>
 <td>
-This variable is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be run whenever a change in the state of the host is detected (i.e. whenever it goes down or recovers).  Read the documentation on
+This directive is used to specify the <i>short name</i> of the <a href="#command">command</a> that should be run whenever a change in the state of the host is detected (i.e. whenever it goes down or recovers).  Read the documentation on
 <a href="eventhandlers.html">event handlers</a> for a more detailed explanation of how to write scripts for handling events.  The maximum amount of time that the event handler command can run is controlled by the <a href="configmain.html#event_handler_timeout">event_handler_timeout</a> option.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>event_handler_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not the event handler for this host is enabled. Values: 0 = disable host event handler, 1 = enable host event handler.
+This directive is used to determine whether or not the event handler for this host is enabled. Values: 0 = disable host event handler, 1 = enable host event handler.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>low_flap_threshold</strong>:</td>
 <td>
-This variable is used to specify the low state change threshold used in flap detection for this host.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this variable to a value of 0, the program-wide value specified by the <a href="configmain.html#low_host_flap_threshold">low_host_flap_threshold</a> directive will be used.
+This directive is used to specify the low state change threshold used in flap detection for this host.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this directive to a value of 0, the program-wide value specified by the <a href="configmain.html#low_host_flap_threshold">low_host_flap_threshold</a> directive will be used.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>high_flap_threshold</strong>:</td>
 <td>
-This variable is used to specify the high state change threshold used in flap detection for this host.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this variable to a value of 0, the program-wide value specified by the <a href="configmain.html#high_host_flap_threshold">high_host_flap_threshold</a> directive will be used.
+This directive is used to specify the high state change threshold used in flap detection for this host.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this directive to a value of 0, the program-wide value specified by the <a href="configmain.html#high_host_flap_threshold">high_host_flap_threshold</a> directive will be used.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>flap_detection_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not flap detection is enabled for this host.  More information on flap detection can be found <a href="flapping.html">here</a>. Values: 0 = disable host flap detection, 1 = enable host flap detection.
+This directive is used to determine whether or not flap detection is enabled for this host.  More information on flap detection can be found <a href="flapping.html">here</a>. Values: 0 = disable host flap detection, 1 = enable host flap detection.
 </td>
 </tr>
 <!--
 <tr>
 <td valign="top"><strong>failure_prediction_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not failure prediction is enabled for this host.  Values: 0 = disable host failure prediction, 1 = enable host failure prediction.
+This directive is used to determine whether or not failure prediction is enabled for this host.  Values: 0 = disable host failure prediction, 1 = enable host failure prediction.
 </td>
 </tr>
 //-->
 <tr>
 <td valign="top"><strong>process_perf_data</strong>:</td>
 <td>
-This variable is used to determine whether or not the processing of performance data is enabled for this host.  Values: 0 = disable performance data processing, 1 = enable performance data processing.
+This directive is used to determine whether or not the processing of performance data is enabled for this host.  Values: 0 = disable performance data processing, 1 = enable performance data processing.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>retain_status_information</strong>:</td>
 <td>
-This variable is used to determine whether or not status-related information about the host is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable status information retention, 1 = enable status information retention.
+This directive is used to determine whether or not status-related information about the host is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable status information retention, 1 = enable status information retention.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>retain_nonstatus_information</strong>:</td>
 <td>
-This variable is used to determine whether or not non-status information about the host is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable non-status information retention, 1 = enable non-status information retention.
+This directive is used to determine whether or not non-status information about the host is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable non-status information retention, 1 = enable non-status information retention.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_interval</strong>:</td>
 <td>
-This variable is used to define the number of "time units" to wait before re-notifying a contact that this server is <i>still</i> down or unreachable.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this host - only one problem notification will be sent out.
+This directive is used to define the number of "time units" to wait before re-notifying a contact that this server is <i>still</i> down or unreachable.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this host - only one problem notification will be sent out.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_period</strong>:</td>
 <td>
-This variable is used to specify the short name of the <a href="#timeperiod">time period</a> during which notifications of events for this host can be sent out to contacts.  If a host goes down, becomes unreachable, or recoveries during a time which is not covered by the time period, no notifications will be sent out.
+This directive is used to specify the short name of the <a href="#timeperiod">time period</a> during which notifications of events for this host can be sent out to contacts.  If a host goes down, becomes unreachable, or recoveries during a time which is not covered by the time period, no notifications will be sent out.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notifications_options</strong>:</td>
 <td>
-This variable is used to determine when notifications for the host should be sent out.  Valid options are a combination of one or more of the following: <b>d</b> = send notifications on a DOWN state, <b>u</b> = send notifications on an UNREACHABLE state, and <b>r</b> = send notifications on recoveries (OK state).  If you specify <b>n</b> (none) as an option, no host notifications will be sent out.  Example: If you specify <b>d,r</b> in this field, notifications will only be sent out when the host goes DOWN and when it recovers from a DOWN state.
+This directive is used to determine when notifications for the host should be sent out.  Valid options are a combination of one or more of the following: <b>d</b> = send notifications on a DOWN state, <b>u</b> = send notifications on an UNREACHABLE state, and <b>r</b> = send notifications on recoveries (OK state).  If you specify <b>n</b> (none) as an option, no host notifications will be sent out.  Example: If you specify <b>d,r</b> in this field, notifications will only be sent out when the host goes DOWN and when it recovers from a DOWN state.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notifications_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not notifications for this host are enabled. Values: 0 = disable host notifications, 1 = enable host notifications.
+This directive is used to determine whether or not notifications for this host are enabled. Values: 0 = disable host notifications, 1 = enable host notifications.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>stalking_options</strong>:</td>
 <td>
-This variable determines which host states "stalking" is enabled for.  Valid options are a combination of one or more of the following: <b>o</b> = stalk on UP states, <b>d</b> = stalk on DOWN states, and <b>u</b> = stalk on UNREACHABLE states.  More information on state stalking can be found <a href="stalking.html">here</a>.
+This directive determines which host states "stalking" is enabled for.  Valid options are a combination of one or more of the following: <b>o</b> = stalk on UP states, <b>d</b> = stalk on DOWN states, and <b>u</b> = stalk on UNREACHABLE states.  More information on state stalking can be found <a href="stalking.html">here</a>.
 </td>
 </tr>
 </table>
@@ -304,7 +304,7 @@ A service definition is used to identify a "service" that runs on a host.  The t
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -363,25 +363,25 @@ define service{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This variable is used to specify the <i>short name</i> of the <a href="#host">host</a> that the service "runs" on or is associated with.
+This directive is used to specify the <i>short name</i> of the <a href="#host">host</a> that the service "runs" on or is associated with.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>service_description;</strong>:</td>
 <td>
-This variable is used to define the description of the service, which may contain spaces, dashes, and colons (semicolons, apostrophes, and quotation marks should be avoided).  No two services associated with the same host can have the same description.  Services are uniquely identified with their <i>host_name</i> and <i>service_description</i> variables.
+This directive is used to define the description of the service, which may contain spaces, dashes, and colons (semicolons, apostrophes, and quotation marks should be avoided).  No two services associated with the same host can have the same description.  Services are uniquely identified with their <i>host_name</i> and <i>service_description</i> directives.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>is_volatile</strong>:</td>
 <td>
-This variable is used to denote whether the service is "volatile".  Services are normally <i>not</i> volatile.  More information on volatile service and how they differ from normal services can be found <a href="volatileservices.html">here</a>.  Value: 0 = service is not volatile, 1 = service is volatile.
+This directive is used to denote whether the service is "volatile".  Services are normally <i>not</i> volatile.  More information on volatile service and how they differ from normal services can be found <a href="volatileservices.html">here</a>.  Value: 0 = service is not volatile, 1 = service is volatile.
 </td>
 </tr>
 <tr>
@@ -417,43 +417,43 @@ The maximum amount of time that the service check command can run is controlled 
 <tr>
 <td valign="top"><strong>max_check_attempts</strong>:</td>
 <td>
-This variable is used to define the number of times that Nagios will retry the service check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the service check again.
+This directive is used to define the number of times that Nagios will retry the service check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the service check again.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>normal_check_interval</strong>:</td>
 <td>
-This variable is used to define the number of "time units" to wait before scheduling the next "regular" check of the service.  "Regular" checks are those that occur when the service is in an OK state or when the service is in a non-OK state, but has already been rechecked <b>max_attempts</b> number of times.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
+This directive is used to define the number of "time units" to wait before scheduling the next "regular" check of the service.  "Regular" checks are those that occur when the service is in an OK state or when the service is in a non-OK state, but has already been rechecked <b>max_attempts</b> number of times.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>retry_check_interval</strong>:</td>
 <td>
-This variable is used to define the number of "time units" to wait before scheduling a re-check of the service.  Services are rescheduled at the retry interval when the have changed to a non-OK state.  Once the service has been retried <b>max_attempts</b> times without a change in its status, it will revert to being scheduled at its "normal" rate as defined by the <b>check_interval</b> value. Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
+This directive is used to define the number of "time units" to wait before scheduling a re-check of the service.  Services are rescheduled at the retry interval when the have changed to a non-OK state.  Once the service has been retried <b>max_attempts</b> times without a change in its status, it will revert to being scheduled at its "normal" rate as defined by the <b>check_interval</b> value. Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>active_checks_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not active checks of this service are enabled. Values: 0 = disable active service checks, 1 = enable active service checks.
+This directive is used to determine whether or not active checks of this service are enabled. Values: 0 = disable active service checks, 1 = enable active service checks.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>passive_checks_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not passive checks of this service are enabled. Values: 0 = disable passive service checks, 1 = enable passive service checks.
+This directive is used to determine whether or not passive checks of this service are enabled. Values: 0 = disable passive service checks, 1 = enable passive service checks.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>check_period</strong>:</td>
 <td>
-This variable is used to specify the short name of the <a href="#timeperiod">time period</a> during which active checks of this service can be made.
+This directive is used to specify the short name of the <a href="#timeperiod">time period</a> during which active checks of this service can be made.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>parallelize_check</strong>:</td>
 <td>
-This variable is used to determine whether or not the service check can be parallelized.  By default, all service checks are parallelized.  Disabling parallel checks of services can result in serious performance problems.  More information on service check parallelization can be found <a href="parallelization.html">here</a>.  Values: 0 = service check cannot be parallelized (use with caution!), 1 = service check can be parallelized.
+This directive is used to determine whether or not the service check can be parallelized.  By default, all service checks are parallelized.  Disabling parallel checks of services can result in serious performance problems.  More information on service check parallelization can be found <a href="parallelization.html">here</a>.  Values: 0 = service check cannot be parallelized (use with caution!), 1 = service check can be parallelized.
 </td>
 </tr>
 <tr>
@@ -464,87 +464,87 @@ This variable is used to determine whether or not the service check can be paral
 <tr>
 <td valign="top"><strong>check_freshness</strong>:</td>
 <td>
-This variable is used to determine whether or not freshness checks are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks.
+This directive is used to determine whether or not freshness checks are enabled for this service. Values: 0 = disable freshness checks, 1 = enable freshness checks.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>freshness_threshold</strong>:</td>
 <td>
-This variable is used to specify the freshness threshold (in seconds) for this service.  If you set this variable to a value of 0, Nagios will determine a freshness threshold to use automatically.
+This directive is used to specify the freshness threshold (in seconds) for this service.  If you set this directive to a value of 0, Nagios will determine a freshness threshold to use automatically.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>event_handler_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not the event handler for this service is enabled. Values: 0 = disable service event handler, 1 = enable service event handler.
+This directive is used to determine whether or not the event handler for this service is enabled. Values: 0 = disable service event handler, 1 = enable service event handler.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>low_flap_threshold</strong>:</td>
 <td>
-This variable is used to specify the low state change threshold used in flap detection for this service.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this variable to a value of 0, the program-wide value specified by the <a href="configmain.html#low_service_flap_threshold">low_service_flap_threshold</a> directive will be used.
+This directive is used to specify the low state change threshold used in flap detection for this service.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this directive to a value of 0, the program-wide value specified by the <a href="configmain.html#low_service_flap_threshold">low_service_flap_threshold</a> directive will be used.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>high_flap_threshold</strong>:</td>
 <td>
-This variable is used to specify the high state change threshold used in flap detection for this service.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this variable to a value of 0, the program-wide value specified by the <a href="configmain.html#high_service_flap_threshold">high_service_flap_threshold</a> directive will be used.
+This directive is used to specify the high state change threshold used in flap detection for this service.  More information on flap detection can be found <a href="flapping.html">here</a>.  If you set this directive to a value of 0, the program-wide value specified by the <a href="configmain.html#high_service_flap_threshold">high_service_flap_threshold</a> directive will be used.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>flap_detection_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not flap detection is enabled for this service.  More information on flap detection can be found <a href="flapping.html">here</a>. Values: 0 = disable service flap detection, 1 = enable service flap detection.
+This directive is used to determine whether or not flap detection is enabled for this service.  More information on flap detection can be found <a href="flapping.html">here</a>. Values: 0 = disable service flap detection, 1 = enable service flap detection.
 </td>
 </tr>
 <!--
 <tr>
 <td valign="top"><strong>failure_prediction_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not failure prediction is enabled for this service.  Values: 0 = disable service failure prediction, 1 = enable service failure prediction.
+This directive is used to determine whether or not failure prediction is enabled for this service.  Values: 0 = disable service failure prediction, 1 = enable service failure prediction.
 </td>
 </tr>
 //-->
 <tr>
 <td valign="top"><strong>process_perf_data</strong>:</td>
 <td>
-This variable is used to determine whether or not the processing of performance data is enabled for this service.  Values: 0 = disable performance data processing, 1 = enable performance data processing.
+This directive is used to determine whether or not the processing of performance data is enabled for this service.  Values: 0 = disable performance data processing, 1 = enable performance data processing.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>retain_status_information</strong>:</td>
 <td>
-This variable is used to determine whether or not status-related information about the service is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable status information retention, 1 = enable status information retention.
+This directive is used to determine whether or not status-related information about the service is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable status information retention, 1 = enable status information retention.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>retain_nonstatus_information</strong>:</td>
 <td>
-This variable is used to determine whether or not non-status information about the service is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable non-status information retention, 1 = enable non-status information retention.
+This directive is used to determine whether or not non-status information about the service is retained across program restarts.  This is only useful if you have enabled state retention using the <a href="configmain.html#retain_state_information">retain_state_information</a> directive.  Value: 0 = disable non-status information retention, 1 = enable non-status information retention.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_interval</strong>:</td>
 <td>
-This variable is used to define the number of "time units" to wait before re-notifying a contact that this service is <i>still</i> in a non-OK state.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this service - only one problem notification will be sent out.
+This directive is used to define the number of "time units" to wait before re-notifying a contact that this service is <i>still</i> in a non-OK state.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this service - only one problem notification will be sent out.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_period</strong>:</td>
 <td>
-This variable is used to specify the short name of the <a href="#timeperiod">time period</a> during which notifications of events for this service can be sent out to contacts.  No service notifications will be sent out during times which is not covered by the time period.
+This directive is used to specify the short name of the <a href="#timeperiod">time period</a> during which notifications of events for this service can be sent out to contacts.  No service notifications will be sent out during times which is not covered by the time period.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notifications_options</strong>:</td>
 <td>
-This variable is used to determine when notifications for the service should be sent out.  Valid options are a combination of one or more of the following: <b>w</b> = send notifications on a WARNING state, <b>u</b> = send notifications on an UNKNOWN state, <b>c</b> = send notifications on a CRITICAL state, and <b>r</b> = send notifications on recoveries (OK state).  If you specify <b>n</b> (none) as an option, no service notifications will be sent out.  Example: If you specify <b>w,r</b> in this field, notifications will only be sent out when the service goes into a WARNING state and when it recovers from a WARNING state.
+This directive is used to determine when notifications for the service should be sent out.  Valid options are a combination of one or more of the following: <b>w</b> = send notifications on a WARNING state, <b>u</b> = send notifications on an UNKNOWN state, <b>c</b> = send notifications on a CRITICAL state, and <b>r</b> = send notifications on recoveries (OK state).  If you specify <b>n</b> (none) as an option, no service notifications will be sent out.  Example: If you specify <b>w,r</b> in this field, notifications will only be sent out when the service goes into a WARNING state and when it recovers from a WARNING state.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notifications_enabled</strong>:</td>
 <td>
-This variable is used to determine whether or not notifications for this service are enabled. Values: 0 = disable service notifications, 1 = enable service notifications.
+This directive is used to determine whether or not notifications for this service are enabled. Values: 0 = disable service notifications, 1 = enable service notifications.
 </td>
 </tr>
 <tr>
@@ -556,7 +556,7 @@ This is a list of the <i>short names</i> of the <a href="#contactgroup">contact 
 <tr>
 <td valign="top"><strong>stalking_options</strong>:</td>
 <td>
-This variable determines which service states "stalking" is enabled for.  Valid options are a combination of one or more of the following: <b>o</b> = stalk on OK states, <b>w</b> = stalk on WARNING states, <b>u</b> = stalk on UNKNOWN states, and <b>c</b> = stalk on CRITICAL states.  More information on state stalking can be found <a href="stalking.html">here</a>.
+This directive determines which service states "stalking" is enabled for.  Valid options are a combination of one or more of the following: <b>o</b> = stalk on OK states, <b>w</b> = stalk on WARNING states, <b>u</b> = stalk on UNKNOWN states, and <b>c</b> = stalk on CRITICAL states.  More information on state stalking can be found <a href="stalking.html">here</a>.
 </td>
 </tr>
 </table>
@@ -581,7 +581,7 @@ The different arguments to a contact definition are described below.
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -620,71 +620,71 @@ define contact{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>contact_name</strong>:</td>
 <td>
-This variable is used to define a short name used to identify the contact.  It is referenced in <a href="#contactgroup">contact group</a> definitions.  Under the right circumstances, the $CONTACTNAME$ <a href="macros.html">macro</a> will contain this
+This directive is used to define a short name used to identify the contact.  It is referenced in <a href="#contactgroup">contact group</a> definitions.  Under the right circumstances, the $CONTACTNAME$ <a href="macros.html">macro</a> will contain this
 value.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>alias</strong>:</td>
 <td>
-This variable is used to define a longer name or description for the contact.  Under the rights circumstances, the $CONTACTALIAS$ <a href="macros.html">macro</a> will contain this value.
+This directive is used to define a longer name or description for the contact.  Under the rights circumstances, the $CONTACTALIAS$ <a href="macros.html">macro</a> will contain this value.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>host_notification_period</strong>:</td>
 <td>
-This variable is used to specify the short name of the <a href="#timeperiod">time period</a> during which the contact can be notified about host problems or recoveries.  You can think of this as an "on call" time for host notifications for the contact.  Read the documentation on <a href="timeperiods.html">time periods</a> for more information on how this works and potential problems that may result from improper use.
+This directive is used to specify the short name of the <a href="#timeperiod">time period</a> during which the contact can be notified about host problems or recoveries.  You can think of this as an "on call" time for host notifications for the contact.  Read the documentation on <a href="timeperiods.html">time periods</a> for more information on how this works and potential problems that may result from improper use.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>service_notification_period</strong>:</td>
 <td>
-This variable is used to specify the short name of the <a href="#timeperiod">time period</a> during which the contact can be notified about service problems or recoveries.  You can think of this as an "on call" time for service notifications for the contact.  Read the documentation on <a href="timeperiods.html">time periods</a> for more information on how this works and potential problems that may result from improper use.
+This directive is used to specify the short name of the <a href="#timeperiod">time period</a> during which the contact can be notified about service problems or recoveries.  You can think of this as an "on call" time for service notifications for the contact.  Read the documentation on <a href="timeperiods.html">time periods</a> for more information on how this works and potential problems that may result from improper use.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>host_notification_commands</strong>:</td>
 <td>
-This variable is used to define a list of the <i>short names</i> of the <a href="#command">commands</a> used to notify the contact of a <i>host</i> problem or recovery.  Multiple notification commands should be separated by commas.  All
+This directive is used to define a list of the <i>short names</i> of the <a href="#command">commands</a> used to notify the contact of a <i>host</i> problem or recovery.  Multiple notification commands should be separated by commas.  All
 notification commands are executed when the contact needs to be notified.  The maximum amount of time that a notification command can run is controlled by the <a href="configmain.html#notification_timeout">notification_timeout</a> option.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>host_notification_options</strong>:</td>
 <td>
-This variable is used to define the host states for which notifications can be sent out to this contact.  Valid options are a combination of one or more of the following: <b>d</b> = notify on DOWN host states, <b>u</b> = notify on UNREACHABLE host states, and <b>r</b> = notify on host recoveries (UP states).  If you specify <b>n</b> (none) as an option, the contact will not receive any type of host notifications.
+This directive is used to define the host states for which notifications can be sent out to this contact.  Valid options are a combination of one or more of the following: <b>d</b> = notify on DOWN host states, <b>u</b> = notify on UNREACHABLE host states, and <b>r</b> = notify on host recoveries (UP states).  If you specify <b>n</b> (none) as an option, the contact will not receive any type of host notifications.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>service_notification_options</strong>:</td>
 <td>
-This variable is used to define the service states for which notifications can be sent out to this contact.  Valid options are a combination of one or more of the following: <b>w</b> = notify on WARNING service states, <b>u</b> = notify on UNKNOWN service states, <b>c</b> = notify on CRITICAL service states, and <b>r</b> = notify on service recoveries (OK states).  If you specify <b>n</b> (none) as an option, the contact will not receive any type of service notifications.
+This directive is used to define the service states for which notifications can be sent out to this contact.  Valid options are a combination of one or more of the following: <b>w</b> = notify on WARNING service states, <b>u</b> = notify on UNKNOWN service states, <b>c</b> = notify on CRITICAL service states, and <b>r</b> = notify on service recoveries (OK states).  If you specify <b>n</b> (none) as an option, the contact will not receive any type of service notifications.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>service_notification_commands</strong>:</td>
 <td>
-This variable is used to define a list of the <i>short names</i> of the <a href="#command">commands</a> used to notify the contact of a <i>service</i> problem or recovery.  Multiple notification commands should be separated by commas.  All
+This directive is used to define a list of the <i>short names</i> of the <a href="#command">commands</a> used to notify the contact of a <i>service</i> problem or recovery.  Multiple notification commands should be separated by commas.  All
 notification commands are executed when the contact needs to be notified.  The maximum amount of time that a notification command can run is controlled by the <a href="configmain.html#notification_timeout">notification_timeout</a> option.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>email</strong>:</td>
 <td>
-This variable is used to define an email address for the contact.  Depending on how you configure your notification commands, it can be used to send out an alert email to the contact.  Under the right circumstances, the $CONTACTEMAIL$
+This directive is used to define an email address for the contact.  Depending on how you configure your notification commands, it can be used to send out an alert email to the contact.  Under the right circumstances, the $CONTACTEMAIL$
 <a href="macros.html">macro</a> will contain this value.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>pager</strong>:</td>
 <td>
-This variable is used to define a pager number for the contact.  It can also be an email address to a pager gateway 
+This directive is used to define a pager number for the contact.  It can also be an email address to a pager gateway 
 (i.e. pagejoe@pagenet.com).  Depending on how you configure your notification commands, it can be used to send out an alert page to the contact.  Under the right circumstances, the $CONTACTPAGER$ <a href="macros.html">macro</a> will contact this value.
 </td>
 </tr>
@@ -711,7 +711,7 @@ Hosts can be in more than one host group.  When a host goes down, becomes unreac
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -738,19 +738,19 @@ define hostgroup{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>hostgroup_name</strong>:</td>
 <td>
-This variable is used to define a short name used to identify the host group.
+This directive is used to define a short name used to identify the host group.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>alias</strong>:</td>
 <td>
-This variable is used to define is a longer name or description used to identify the host group.  It is provided in order to allow you to more easily identify a particular host group.
+This directive is used to define is a longer name or description used to identify the host group.  It is provided in order to allow you to more easily identify a particular host group.
 </td>
 </tr>
 <tr>
@@ -785,7 +785,7 @@ A contact group definition is used to group one or more <a href="#contact">conta
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -810,25 +810,25 @@ define contactgroup{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>contactgroup_name</strong>:</td>
 <td>
-This variable is a short name used to identify the contact group.
+This directive is a short name used to identify the contact group.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>alias</strong>:</td>
 <td>
-This variable is used to define a longer name or description used to identify the contact group.
+This directive is used to define a longer name or description used to identify the contact group.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>members</strong>:</td>
 <td>
-This variable is used to define a list of the <i>short names</i> of <a href="#contact">contacts </a> that should be included in this group.   Multiple contact names should be separated by commas.
+This directive is used to define a list of the <i>short names</i> of <a href="#contact">contacts </a> that should be included in this group.   Multiple contact names should be separated by commas.
 </td>
 </tr>
 </table>
@@ -853,7 +853,7 @@ A time period is a list of times during various days that are considered to be "
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -890,25 +890,25 @@ define timeperiod{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>timeperiod_name</strong>:</td>
 <td>
-This variables is the short name used to identify the time period.
+This directives is the short name used to identify the time period.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>alias</strong>:</td>
 <td>
-This variable is a longer name or description used to identify the time period.
+This directive is a longer name or description used to identify the time period.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong><i>some</i>day</strong>:</td>
 <td>
-The <i>sunday</i> through <i>saturday</i> variables are comma-delimited lists of time ranges that are "valid" times for a particular day of the week.  Notice that there are seven different days for which you can define time ranges (Sunday through Saturday).  Each time range is in the form of <b>HH:MM-HH:MM</b>, where hours are specified on a 24 hour clock.  For example, <b>00:15-24:00</b> means 12:15am in the morning for this day until 12:20am midnight (a 23 hour, 45 minute total time range).  If you wish to exclude an entire day from the timeperiod, simply do not include it in the timeperiod definition.
+The <i>sunday</i> through <i>saturday</i> directives are comma-delimited lists of time ranges that are "valid" times for a particular day of the week.  Notice that there are seven different days for which you can define time ranges (Sunday through Saturday).  Each time range is in the form of <b>HH:MM-HH:MM</b>, where hours are specified on a 24 hour clock.  For example, <b>00:15-24:00</b> means 12:15am in the morning for this day until 12:20am midnight (a 23 hour, 45 minute total time range).  If you wish to exclude an entire day from the timeperiod, simply do not include it in the timeperiod definition.
 </td>
 </tr>
 </table>
@@ -932,7 +932,7 @@ A command definition is just that.  It defines a command.  Commands that can be 
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -955,19 +955,19 @@ define command{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>command_name</strong>:</td>
 <td>
-This variable is the short name used to identify the command.  It is referenced in <a href="#contact">contact</a>, <a href="#host">host</a>, and <a href="#service">service</a> definitions, among other places.
+This directive is the short name used to identify the command.  It is referenced in <a href="#contact">contact</a>, <a href="#host">host</a>, and <a href="#service">service</a> definitions, among other places.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>command_line</strong>:</td>
 <td>
-This variable is used to define what is actually executed by Nagios when the command is used for service or host checks, notifications, or <a href="eventhandlers.html">event handlers</a>. Before the command line is executed, all valid <a href="macros.html">macros</a> are replaced with their respective values.  See the documentation on macros for determining when you can use different macros.  Note that the command line is <i>not</i> surrounded in quotes.  Also, if you want to pass a dollar sign ($) on the command line, you have to escape it with another dollar sign.
+This directive is used to define what is actually executed by Nagios when the command is used for service or host checks, notifications, or <a href="eventhandlers.html">event handlers</a>. Before the command line is executed, all valid <a href="macros.html">macros</a> are replaced with their respective values.  See the documentation on macros for determining when you can use different macros.  Note that the command line is <i>not</i> surrounded in quotes.  Also, if you want to pass a dollar sign ($) on the command line, you have to escape it with another dollar sign.
 </td>
 </tr>
 </table>
@@ -991,7 +991,7 @@ Service dependencies are an advanced feature of Nagios that allow you to suppres
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.  However, you must supply at least one type of criteria for the definition to be of much use.
+Note:  Directives in red are required, while those in black are optional.  However, you must supply at least one type of criteria for the definition to be of much use.
 </p>
 <p>
 <table border=0>
@@ -1022,43 +1022,43 @@ define servicedependency{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>dependent_host</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#host">host</a> that the <i>dependent</i> service "runs" on or is associated with.
+This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the <i>dependent</i> service "runs" on or is associated with.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>dependent_service_description</strong>:</td>
 <td>
-This variable is used to identify the <i>description</i> of the <i>dependent</i> <a href="#service">service</a>.
+This directive is used to identify the <i>description</i> of the <i>dependent</i> <a href="#service">service</a>.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#host">host</a> that the service <i>that is being depended upon</i> "runs" on or is associated with.
+This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the service <i>that is being depended upon</i> "runs" on or is associated with.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>service_description</strong>:</td>
 <td>
-This variable is used to identify the <i>description</i> of the <a href="#service">service</a> <i>that is being depended upon</i>.
+This directive is used to identify the <i>description</i> of the <a href="#service">service</a> <i>that is being depended upon</i>.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>execution_failure_criteria</strong>:</td>
 <td>
-This variable is used to specify the criteria that determine when the dependent service should <i>not</i> be executed.  If the service <i>that is being depended upon</i> is in one of the failure states we specify, the <i>dependent</i> service will not be executed.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and checks of the dependent service will always be executed.  Example: If you specify <b>o,c,u</b> in this field, the <i>dependent</i> service will not be executed if the service <i>that's being depended upon</i> is in either an OK, a CRITICAL, or an UNKNOWN state.
+This directive is used to specify the criteria that determine when the dependent service should <i>not</i> be executed.  If the service <i>that is being depended upon</i> is in one of the failure states we specify, the <i>dependent</i> service will not be executed.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and checks of the dependent service will always be executed.  Example: If you specify <b>o,c,u</b> in this field, the <i>dependent</i> service will not be executed if the service <i>that's being depended upon</i> is in either an OK, a CRITICAL, or an UNKNOWN state.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_failure_criteria</strong>:</td>
 <td>
-This variable is used to define the criteria that determine when notifications for the dependent service should <i>not</i> be sent out.  If the service <i>that is being depended upon</i> is in one of the failure states we specify, notifications for the <i>dependent</i> service will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent service will always be sent out.  Example: If you specify <b>w</b> in this field, the notifications for the <i>dependent</i> service will not be sent out if the service <i>that is being depended upon</i> is in a WARNING state.
+This directive is used to define the criteria that determine when notifications for the dependent service should <i>not</i> be sent out.  If the service <i>that is being depended upon</i> is in one of the failure states we specify, notifications for the <i>dependent</i> service will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent service will always be sent out.  Example: If you specify <b>w</b> in this field, the notifications for the <i>dependent</i> service will not be sent out if the service <i>that is being depended upon</i> is in a WARNING state.
 </td>
 </tr>
 </table>
@@ -1082,7 +1082,7 @@ Service escalations are <i>completely optional</i> and are used to escalate noti
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -1113,43 +1113,43 @@ define serviceescalation{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#host">host</a> that the <a href="#service">service</a> the escalation should apply to is associated with.
+This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the <a href="#service">service</a> the escalation should apply to is associated with.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>service_description</strong>:</td>
 <td>
-This variable is used to identify the <i>description</i> of the <a href="#service">service</a> the escalation should apply to.
+This directive is used to identify the <i>description</i> of the <a href="#service">service</a> the escalation should apply to.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>first_notification</strong>:</td>
 <td>
-This variable is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if the service is in a non-OK state long enough for a third notification to go out.
+This directive is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if the service is in a non-OK state long enough for a third notification to go out.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>last_notification</strong>:</td>
 <td>
-This variable is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for the service.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
+This directive is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for the service.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>contact_groups</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#contactgroup">contact group</a> that should be notified when the service notification is escalated.  Multiple contact groups should be separated by commas.
+This directive is used to identify the <i>short name</i> of the <a href="#contactgroup">contact group</a> that should be notified when the service notification is escalated.  Multiple contact groups should be separated by commas.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_interval</strong>:</td>
 <td>
-This variable is used to determine the interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a host overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
+This directive is used to determine the interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a host overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
 </td>
 </tr>
 </table>
@@ -1172,7 +1172,7 @@ Host dependencies are an advanced feature of Nagios that allow you to suppress n
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -1197,25 +1197,25 @@ define hostdependency{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>dependent_host</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <i>dependent</i> <a href="#host">host</a>.
+This directive is used to identify the <i>short name</i> of the <i>dependent</i> <a href="#host">host</a>.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#host">host</a> <i>that is being depended upon</i>.
+This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> <i>that is being depended upon</i>.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_failure_criteria</strong>:</td>
 <td>
-This variable is used to define the criteria that determine when notifications for the dependent host should <i>not</i> be sent out.  If the host <i>that is being depended upon</i> is in one of the failure states we specify, notifications for the <i>dependent</i> host will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, and <b>u</b> = fail on an UNREACHABLE state.  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent host will always be sent out.  Example: If you specify <b>d</b> in this field, the notifications for the <i>dependent</i> host will not be sent out if the host <i>that is being depended upon</i> is in a DOWN state.
+This directive is used to define the criteria that determine when notifications for the dependent host should <i>not</i> be sent out.  If the host <i>that is being depended upon</i> is in one of the failure states we specify, notifications for the <i>dependent</i> host will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, and <b>u</b> = fail on an UNREACHABLE state.  If you specify <b>n</b> (none) as an option, the notification dependency will never fail and notifications for the dependent host will always be sent out.  Example: If you specify <b>d</b> in this field, the notifications for the <i>dependent</i> host will not be sent out if the host <i>that is being depended upon</i> is in a DOWN state.
 </td>
 </tr>
 </table>
@@ -1239,7 +1239,7 @@ Host escalations are <i>completely optional</i> and are used to escalate notific
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -1268,37 +1268,37 @@ define hostescalation{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#host">host</a> that the escalation should apply to.
+This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the escalation should apply to.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>first_notification</strong>:</td>
 <td>
-This variable is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if the host is down or unreachable long enough for a third notification to go out.
+This directive is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if the host is down or unreachable long enough for a third notification to go out.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>last_notification</strong>:</td>
 <td>
-This variable is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for the host.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
+This directive is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for the host.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>contact_groups</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#contactgroup">contact group</a> that should be notified when the host notification is escalated.  Multiple contact groups should be separated by commas.
+This directive is used to identify the <i>short name</i> of the <a href="#contactgroup">contact group</a> that should be notified when the host notification is escalated.  Multiple contact groups should be separated by commas.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_interval</strong>:</td>
 <td>
-This variable is used to determine the interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a host overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
+This directive is used to determine the interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a host overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
 </td>
 </tr>
 </table>
@@ -1322,7 +1322,7 @@ Hostgroup escalations are <i>completely optional</i> and are used to escalate no
 
 <p><div class="SectionTitle">Definition Format:</div></p>
 <p class="SectionBody">
-Note:  Variables in red are required, while those in black are optional.
+Note:  Directives in red are required, while those in black are optional.
 </p>
 <p>
 <table border=0>
@@ -1351,37 +1351,37 @@ define hostgroupescalation{
 </pre>
 </p>
 
-<p><div class="SectionTitle">Variable Descriptions:</div></p>
+<p><div class="SectionTitle">Directive Descriptions:</div></p>
 <p>
 <table border="0">
 <tr>
 <td valign="top"><strong>hostgroup_name</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#hostgroup">host group</a> that the escalation should apply to.
+This directive is used to identify the <i>short name</i> of the <a href="#hostgroup">host group</a> that the escalation should apply to.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>first_notification</strong>:</td>
 <td>
-This variable is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if a host in the hostgroup is down or unreachable long enough for a third notification to go out.
+This directive is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if a host in the hostgroup is down or unreachable long enough for a third notification to go out.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>last_notification</strong>:</td>
 <td>
-This variable is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for any particular host in the specified hostgroup.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
+This directive is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for any particular host in the specified hostgroup.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>contact_groups</strong>:</td>
 <td>
-This variable is used to identify the <i>short name</i> of the <a href="#contactgroup">contact group</a> that should be notified when a host notification is escalated.  Multiple contact groups should be separated by commas.
+This directive is used to identify the <i>short name</i> of the <a href="#contactgroup">contact group</a> that should be notified when a host notification is escalated.  Multiple contact groups should be separated by commas.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>notification_interval</strong>:</td>
 <td>
-This variable is used to determine the interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a hostgroup overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
+This directive is used to determine the interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a hostgroup overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
 </td>
 </tr>
 </table>

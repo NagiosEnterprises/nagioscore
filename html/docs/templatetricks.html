@@ -36,13 +36,15 @@ This documentation attempts to explain how you can exploit the (somewhat) hidden
 <ul>
 <li><a href="#service">Services</a>
 <li><a href="#serviceescalation">Service escalations</a>
+<li><a href="#servicedependency">Service dependencies</a>
 <li><a href="#hostescalation">Host escalations</a>
+<li><a href="#hostdependency">Host dependencies</a>
 <li><a href="#hostgroupescalation">Hostgroup escalations</a>
 </ul>
 </p>
 
 <p>
-Object types that are not listed above do not support the features I'm about to describe.  Host and service dependency definitions may support them in the future, but not yet.
+Object types that are not listed above (i.e. timeperiods, commands, etc.) do not support the features I'm about to describe.
 </p>
 
 <a name="service"></a>
@@ -164,6 +166,93 @@ The definition above would create a service escalation for all services called <
 </p>
 
 
+<p>
+<b>Multiple Services:</b> If you want to create <a href="xodtemplate.html#serviceescalation">service escalations</a> for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">host_name		<i>HOST1</i></font>
+		<font color="red">service_description	<i>*</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a service escalation for <b>all</b> services on host <i>HOST1</i>.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
+</p>
+
+<p>
+If you feel like being particularly adventurous, you can specify a wildcard in both the <i>host_name</i> and <i>service_description</i> directives.  Doing so would create a service escalation for <b>all services</b> that you've defined in your configuration files.
+</p>
+
+<a name="servicedependency"></a>
+<p>
+<strong><u>Service Dependencies</u></strong>
+</p>
+
+<p>
+<b>Multiple Hosts:</b> If you want to create <a href="xodtemplate.html#servicedependency">service dependencies</a> for services of the same name/description that are assigned to multiple hosts, you can specify multiple hosts in the <i>host_name</i> and or <i>dependent_host_name</i> directives as follows:
+</p>
+
+<p>
+<pre>
+	define <i>servicedependency</i>{
+		<font color="red">host_name			<i>HOST1,HOST2</i></font>
+		<font color="red">service_description		<i>SERVICE1</i></font>
+		<font color="red">dependent_host_name		<i>HOST3,HOST4</i></font>
+		<font color="red">dependent_service_description	<i>SERVICE2</i></font>
+		<i>other dependency directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+In the example above, service <i>SERVICE2</i> on hosts <i>HOST3</i> and <i>HOST4</i> would be dependent on service <i>SERVICE1</i> on hosts <i>HOST1</i> and <i>HOST2</i>.  All the instances of the service dependencies would be identical except for the host names (i.e. have the same notification failure criteria, etc.).
+</p>
+
+<p>
+<b>All Hosts In Multiple Hostgroups:</b> If you want to create service dependencies for services of the same name/description that are assigned to all hosts in in one or more hostgroups, you can do use the <i>hostgroup_name</i> and/or <i>dependent_hostgroup_name</i> directives as follows:
+</p>
+
+<p>
+<pre>
+	define <i>servicedependency</i>{
+		<font color="red">hostgroup_name			<i>HOSTGROUP1,HOSTGROUP2</i></font>
+		<font color="red">service_description		<i>SERVICE1</i></font>
+		<font color="red">dependent_hostgroup_name	<i>HOSTGROUP3,HOSTGROUP4</i></font>
+		<font color="red">dependent_service_description	<i>SERVICE2</i></font>
+		<i>other dependency directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+In the example above, service <i>SERVICE2</i> on all hosts in hostgroups <i>HOSTGROUP3</i> and <i>HOSTGROUP4</i> would be dependent on service <i>SERVICE1</i> on all hosts in hostgroups <i>HOSTGROUP1</i> and <i>HOSTGROUP2</i>.  Assuming there were five hosts in each of the hostgroups, this definition would be equivalent to creating 100 single service dependency definitions!  All the instances of the service dependency would be identical except for the host names (i.e. have the same notification failure criteria, etc.).
+</p>
+
+<p>
+<b>Multiple Services:</b> If you want to create service dependencies for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> and/or <i>dependent_service_description</i> directives as follows:
+</p>
+
+<p>
+<pre>
+	define <i>servicedependency</i>{
+		<font color="red">host_name			<i>HOST1</i></font>
+		<font color="red">service_description		<i>*</i></font>
+		<font color="red">dependent_host_name		<i>HOST2</i></font>
+		<font color="red">dependent_service_description	<i>*</i></font>
+		<i>other dependency directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+In the example above, <b>all services</b> on host <i>HOST2</i> would be dependent on <b>all services</b> on host <i>HOST1</i>.  All the instances of the service dependencies would be identical (i.e. have the same notification failure criteria, etc.).
+</p>
+
 <a name="hostescalation"></a>
 <p>
 <strong><u>Host Escalations</u></strong>
@@ -220,6 +309,47 @@ The definition above would create a host escalation on all hosts that are member
 The definition above would create a hosts escalation for <b>all hosts</b> that are defined in your configuration files.  All the instances of the host escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
 </p>
 
+
+<a name="hostdependency"></a>
+<p>
+<strong><u>Host Dependencies</u></strong>
+</p>
+
+<p>
+<b>Multiple Hosts:</b> If you want to create <a href="xodtemplate.html#hostdependency">host dependencies</a> for  multiple hosts, you can specify multiple hosts in the <i>host_name</i> and/or <i>dependent_host_name</i> directives as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostdependency</i>{
+		<font color="red">host_name		<i>HOST1,HOST2</i></font>
+		<font color="red">dependent_host_name	<i>HOST3,HOST4,HOST5</i></font>
+		<i>other dependency directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would be equivalent to creating six seperate host dependencies.   In the example above, hosts <i>HOST3</i>, <i>HOST4</i> and <i>HOST5</i> would be dependent upon both <i>HOST1</i> and <i>HOST2</i>.  All the instances of the host dependencies would be identical except for the host names (i.e. have the same notification failure criteria, etc.).
+</p>
+
+<p>
+<b>All Hosts In Multiple Hostgroups:</b> If you want to create host escalations for all hosts in in one or more hostgroups, you can do use the <i>hostgroup_name</i> and /or <i>dependent_hostgroup_name</i> directives as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostdependency</i>{
+		<font color="red">hostgroup_name			<i>HOSTGROUP1,HOSTGROUP2</i></font>
+		<font color="red">dependent_hostgroup_name	<i>HOSTGROUP3,HOSTGROUP4</i></font>
+		<i>other dependency directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+In the example above, all hosts in hostgroups <i>HOSTGROUP3</i> and <i>HOSTGROUP4</i> would be dependent on all hosts in hostgroups <i>HOSTGROUP1</i> and <i>HOSTGROUP2</i>.  All the instances of the host dependencies would be identical except for  host names (i.e. have the same notification failure criteria, etc.).
+</p>
 
 <a name="hostgroupescalation"></a>
 <p>

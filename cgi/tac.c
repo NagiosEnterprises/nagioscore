@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2003
+ * Last Modified: 02-25-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -123,10 +123,14 @@ double min_host_execution_time=-1.0;
 double max_host_execution_time=-1.0;
 double total_host_execution_time=0.0;
 double average_host_execution_time=-1.0;
-int min_latency=-1;
-int max_latency=-1;
-unsigned long total_latency=0L;
-double average_latency=-1.0;
+int min_service_latency=-1;
+int max_service_latency=-1;
+unsigned long total_service_latency=0L;
+double average_service_latency=-1.0;
+int min_host_latency=-1;
+int max_host_latency=-1;
+unsigned long total_host_latency=0L;
+double average_host_latency=-1.0;
 
 int flapping_services=0;
 int flapping_hosts=0;
@@ -539,17 +543,17 @@ void analyze_status_data(void){
 
 			total_active_service_checks++;
 
-			if(min_latency==-1 || temp_servicestatus->latency<min_latency)
-				min_latency=temp_servicestatus->latency;
-			if(max_latency==-1 || temp_servicestatus->latency>max_latency)
-				max_latency=temp_servicestatus->latency;
+			if(min_service_latency==-1 || temp_servicestatus->latency<min_service_latency)
+				min_service_latency=temp_servicestatus->latency;
+			if(max_service_latency==-1 || temp_servicestatus->latency>max_service_latency)
+				max_service_latency=temp_servicestatus->latency;
 
 			if(min_service_execution_time==-1.0 || temp_servicestatus->execution_time<min_service_execution_time)
 				min_service_execution_time=temp_servicestatus->execution_time;
 			if(max_service_execution_time==-1.0 || temp_servicestatus->execution_time>max_service_execution_time)
 				max_service_execution_time=temp_servicestatus->execution_time;
 
-			total_latency+=temp_servicestatus->latency;
+			total_service_latency+=temp_servicestatus->latency;
 			total_service_execution_time+=temp_servicestatus->execution_time;
 		        }
 		else
@@ -660,11 +664,17 @@ void analyze_status_data(void){
 
 			total_active_host_checks++;
 
+			if(min_host_latency==-1 || temp_hoststatus->latency<min_host_latency)
+				min_host_latency=temp_hoststatus->latency;
+			if(max_host_latency==-1 || temp_hoststatus->latency>max_host_latency)
+				max_host_latency=temp_hoststatus->latency;
+
 			if(min_host_execution_time==-1.0 || temp_hoststatus->execution_time<min_host_execution_time)
 				min_host_execution_time=temp_hoststatus->execution_time;
 			if(max_host_execution_time==-1.0 || temp_hoststatus->execution_time>max_host_execution_time)
 				max_host_execution_time=temp_hoststatus->execution_time;
 
+			total_host_latency+=temp_hoststatus->latency;
 			total_host_execution_time+=temp_hoststatus->execution_time;
 		        }
 		else
@@ -686,11 +696,17 @@ void analyze_status_data(void){
 	else
 		percent_host_health=((double)total_host_health/(double)potential_host_health)*100.0;
 
-	/* calculate latency */
-	if(total_latency==0L)
-		average_latency=0.0;
+	/* calculate service latency */
+	if(total_service_latency==0L)
+		average_service_latency=0.0;
 	else
-		average_latency=((double)total_latency/(double)total_active_service_checks);
+		average_service_latency=((double)total_service_latency/(double)total_active_service_checks);
+
+	/* calculate host latency */
+	if(total_host_latency==0L)
+		average_host_latency=0.0;
+	else
+		average_host_latency=((double)total_host_latency/(double)total_active_host_checks);
 
 	/* calculate service execution time */
 	if(total_service_execution_time==0.0)
@@ -909,11 +925,15 @@ void display_tac_overview(void){
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Service Check Latency:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
-	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_latency,max_latency,average_latency);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_service_latency,max_service_latency,average_service_latency);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Host Check Execution Time:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
 	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%.2f / %.2f / %.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_host_execution_time,max_host_execution_time,average_host_execution_time);
+	printf("</tr>\n");
+	printf("<tr>\n");
+	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Host Check Latency:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_host_latency,max_host_latency,average_host_latency);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Active Host / Service Checks:</a></td>",STATUS_CGI,SERVICE_ACTIVE_CHECK);

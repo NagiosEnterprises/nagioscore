@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-24-2003
+ * Last Modified: 02-25-2003
  *
  * License:
  * 
@@ -1025,14 +1025,16 @@ void show_host_info(void){
 
 		printf("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 CLASS='command'>\n");
 
-		if(temp_hoststatus->checks_enabled==TRUE)
+		if(temp_hoststatus->checks_enabled==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Disable active checks of this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_HOST_CHECK,url_encode(host_name));
+			printf("<tr CLASS='data'><td><img src='%s%s' border=0 ALT='Re-schedule Next Host Check'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Re-schedule the next check of this host</a></td></tr>\n",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_DELAY_HOST_CHECK,url_encode(host_name));
+		        }
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Active Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable active checks of this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(host_name));
 
 		if(temp_hoststatus->accept_passive_host_checks==TRUE){
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Stop accepting passive checks for this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_PASSIVE_HOST_CHECKS,url_encode(host_name));
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Submit Passive Check Result For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Submit passive check result for this host</a></td></tr>\n",url_images_path,PASSIVE_ICON,COMMAND_CGI,CMD_PROCESS_HOST_CHECK_RESULT,url_encode(host_name));
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Stop Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Stop accepting passive checks for this host</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_PASSIVE_HOST_CHECKS,url_encode(host_name));
 		        }
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start accepting passive checks for this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_PASSIVE_HOST_CHECKS,url_encode(host_name));
@@ -1686,6 +1688,11 @@ void show_performance_data(void){
 	unsigned long total_service_latency=0L;
 	int have_min_service_latency=FALSE;
 	int have_max_service_latency=FALSE;
+	int min_host_latency=0;
+	int max_host_latency=0;
+	unsigned long total_host_latency=0L;
+	int have_min_host_latency=FALSE;
+	int have_max_host_latency=FALSE;
 	double min_service_percent_change_a=0.0;
 	double max_service_percent_change_a=0.0;
 	double total_service_percent_change_a=0.0;
@@ -1864,6 +1871,16 @@ void show_performance_data(void){
 				max_host_percent_change_a=temp_hoststatus->percent_state_change;
 			        }
 
+			total_host_latency+=temp_hoststatus->latency;
+			if(have_min_host_latency==FALSE || temp_hoststatus->latency<min_host_latency){
+				have_min_host_latency=TRUE;
+				min_host_latency=temp_hoststatus->latency;
+			        }
+			if(have_max_host_latency==FALSE || temp_hoststatus->latency>max_host_latency){
+				have_max_host_latency=TRUE;
+				max_host_latency=temp_hoststatus->latency;
+			        }
+
 			if(temp_hoststatus->last_check>=(current_time-60))
 				active_host_checks_1min++;
 			if(temp_hoststatus->last_check>=(current_time-300))
@@ -2036,6 +2053,7 @@ void show_performance_data(void){
 
 	printf("<tr class='data'><th class='data'>Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
 	printf("<tr><td class='dataVar'>Check Execution Time:&nbsp;&nbsp;</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.3f sec</td></tr>\n",min_host_execution_time,max_host_execution_time,(double)((double)total_host_execution_time/(double)total_active_host_checks));
+	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_host_latency==0)?"&lt; ":"",(min_host_latency==0)?1:min_host_latency,(max_host_latency==0)?"&lt; ":"",(max_host_latency==0)?1:max_host_latency,(double)((double)total_host_latency/(double)total_active_host_checks));
 	printf("<tr><td class='dataVar'>Percent State Change:</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td></tr>\n",min_host_percent_change_a,max_host_percent_change_a,(double)((double)total_host_percent_change_a/(double)total_active_host_checks));
 
 	printf("</TABLE>\n");

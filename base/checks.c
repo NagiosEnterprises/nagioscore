@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2003
+ * Last Modified:   02-25-2003
  *
  * License:
  *
@@ -511,7 +511,12 @@ void run_service_check(service *svc){
 		/* this service could be rescheduled... */
 		else{
 			svc->next_check=next_valid_time;
-			svc->should_be_scheduled=TRUE;
+
+			/* only reschedule checks with recurring intervals */
+			if(svc->check_interval==0)
+				svc->should_be_scheduled=FALSE;
+			else
+				svc->should_be_scheduled=TRUE;
 		        }
 
 		/* update the status log with the current service */
@@ -1123,8 +1128,13 @@ void reap_service_checks(void){
 			get_next_valid_time(preferred_time,&next_valid_time,temp_service->check_period);
 			temp_service->next_check=next_valid_time;
 
-			/* schedule a non-forced check */
-			schedule_service_check(temp_service,temp_service->next_check,FALSE);
+			/* services with non-recurring intervals do not get rescheduled */
+			if(temp_service->check_interval==0)
+				temp_service->should_be_scheduled=FALSE;
+
+			/* schedule a non-forced check if we can */
+			if(temp_service->should_be_scheduled==TRUE)
+				schedule_service_check(temp_service,temp_service->next_check,FALSE);
 		        }
 
 		/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
@@ -1532,6 +1542,10 @@ int run_scheduled_host_check(host *hst){
 			hst->should_be_scheduled=TRUE;
 		        }
 
+		/* don't reschedule non-recurring checks */
+		if(hst->check_interval==0)
+			hst->should_be_scheduled=FALSE;
+
 		/* update the status data */
 		update_host_status(hst,FALSE);
 
@@ -1549,7 +1563,7 @@ int run_scheduled_host_check(host *hst){
 
 
 	/* should another host check be scheduled? */
-	if(hst->check_interval>0 && hst->should_be_scheduled==TRUE){
+	if(hst->should_be_scheduled==TRUE){
 
 		/* reschedule the next host check */
 		hst->next_check=current_time+(hst->check_interval*interval_length);

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2003
+ * Last Modified: 02-25-2003
  *
  * License:
  * 
@@ -1559,6 +1559,22 @@ void show_host_detail(void){
 	else
 		printf("Host Group '%s'",hostgroup_name);
 	printf("</DIV>\n");
+
+	if(use_sort==TRUE){
+		printf("<DIV ALIGN=CENTER CLASS='statusSort'>Entries sorted by <b>");
+		if(sort_option==SORT_HOSTNAME)
+			printf("host name");
+		else if(sort_option==SORT_HOSTSTATUS)
+			printf("host status");
+		else if(sort_option==SORT_LASTCHECKTIME)
+			printf("last check time");
+		else if(sort_option==SORT_CURRENTATTEMPT)
+			printf("attempt number");
+		else if(sort_option==SORT_STATEDURATION)
+			printf("state duration");
+		printf("</b> (%s)\n",(sort_type==SORT_ASCENDING)?"ascending":"descending");
+		printf("</DIV>\n");
+	        }
 
 	printf("<br>");
 

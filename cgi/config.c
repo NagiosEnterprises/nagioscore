@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-19-2002
+ * Last Modified: 11-10-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -1729,10 +1729,13 @@ void display_options(void){
 
 	printf("<div align=center class='reportSelectTitle'>Select Type of Config Data You Wish To View</div>\n");
 
+	printf("<br><br>\n");
+
         printf("<form method=\"get\" action=\"%s\">\n",CONFIG_CGI);
-	printf("<table border=0>\n");
 
 	printf("<div align=center>\n");
+	printf("<table border=0>\n");
+
 	printf("<tr><td align=left class='reportSelectSubTitle'>Object Type:</td></tr>\n");
 	printf("<tr><td align=left class='reportSelectItem'>");
 	printf("<select name='type'>\n");
@@ -1753,8 +1756,9 @@ void display_options(void){
 
 	printf("<tr><td class='reportSelectItem'><input type='submit' value='Continue'></td></tr>\n");
 	printf("</table>\n");
-	printf("</form>\n");
 	printf("</div>\n");
+
+	printf("</form>\n");
 
 	return;
         }

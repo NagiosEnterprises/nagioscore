@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   09-15-2002
+ * Last Modified:   11-10-2002
  *
  * Description:
  *
@@ -56,6 +56,7 @@
 #ifdef EMBEDDEDPERL 
 #include <EXTERN.h>
 #include <perl.h>
+static PerlInterpreter *my_perl;
 #include <fcntl.h>
 
 /* include PERL xs_init code for module and C library support */

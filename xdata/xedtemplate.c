@@ -3,7 +3,7 @@
  * XEDTEMPLATE.C - Template-based extended information data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Last Modified:   11-10-2002
  *
  * Description:
  *
@@ -185,10 +185,10 @@ int xedtemplate_process_config_file(char *filename, int options){
 			continue;
 
 		/* this is the start of an object definition */
-		else if(strstr(input,"define ")==input){
+		else if(strstr(input,"define")==input){
 
 			/* get the type of object we're defining... */
-			for(x=7;input[x]!='\x0';x++)
+			for(x=6;input[x]!='\x0';x++)
 				if(input[x]!=' ' && input[x]!='\t')
 					break;
 			for(y=0;input[x]!='\x0';x++){

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-02-2002
+ * Last Modified:   11-10-2002
  *
  * License:
  *
@@ -45,6 +45,7 @@
 #ifdef EMBEDDEDPERL
 #include <EXTERN.h>
 #include <perl.h>
+static PerlInterpreter *my_perl;
 #include <fcntl.h>
 /* In perl.h (or friends) there is a macro that defines sighandler as Perl_sighandler, so we must #undef it so we can use our sighandler() function */
 #undef sighandler

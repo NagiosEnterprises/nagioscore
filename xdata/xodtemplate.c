@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-31-2002
+ * Last Modified: 11-10-2002
  *
  * Description:
  *
@@ -339,10 +339,10 @@ int xodtemplate_process_config_file(char *filename, int options){
 			continue;
 
 		/* this is the start of an object definition */
-		else if(strstr(input,"define ")==input){
+		else if(strstr(input,"define")==input){
 
 			/* get the type of object we're defining... */
-			for(x=7;input[x]!='\x0';x++)
+			for(x=6;input[x]!='\x0';x++)
 				if(input[x]!=' ' && input[x]!='\t')
 					break;
 			for(y=0;input[x]!='\x0';x++){
@@ -5622,7 +5622,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	/* add all members to the host group */
 	if(temp_hostlist==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup has no members (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member hosts specified in hostgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6374,6 +6374,9 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 	char *host_name;
 	char *temp_ptr;
 	char *host_name_ptr;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
 
 #ifdef DEBUG0
 	printf("xodtemplate_expand_hostgroups() start\n");
@@ -6394,10 +6397,13 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 			/* find the hostgroup */
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not find hostgroup '%s'\n",temp_ptr);
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find hostgroup '%s'\n",temp_ptr);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-				return temp_list;
+				free(hostgroup_names);
+				return NULL;
 		                }
 
 			/* save a copy of the hosts */
@@ -6492,10 +6498,13 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				/* find the host */
 				temp_host=xodtemplate_find_real_host(temp_ptr);
 				if(temp_host==NULL){
-#ifdef DEBUG1
-					printf("Error: Could not find host '%s'\n",temp_ptr);
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find host '%s'\n",temp_ptr);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-					return temp_list;
+					free(host_names);
+					return NULL;
 		                        }
 
 				/* skip this host if its already in the list */

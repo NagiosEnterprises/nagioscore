@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   03-11-2003
  *
  * License:
  *
@@ -72,6 +72,7 @@ extern char     *nagios_group;
 extern char     *macro_x[MACRO_X_COUNT];
 extern char     *macro_argv[MAX_COMMAND_ARGUMENTS];
 extern char     *macro_user[MAX_USER_MACROS];
+extern char     *macro_contactaddress[MAX_CONTACT_ADDRESSES];
 
 extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
@@ -277,6 +278,7 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 	int in_macro;
 	int arg_index=0;
 	int user_index=0;
+	int address_index=0;
 	char *selected_macro=NULL;
 	int clean_macro=FALSE;
 
@@ -451,12 +453,24 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 					arg_index=atoi(temp_buffer+3);
 					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
 						selected_macro=macro_argv[arg_index-1];
+					else
+						selected_macro=NULL;
 				        }
 
 				else if(strstr(temp_buffer,"USER")==temp_buffer){
 					user_index=atoi(temp_buffer+4);
 					if(user_index>=1 && user_index<=MAX_USER_MACROS)
 						selected_macro=macro_user[user_index-1];
+					else
+						selected_macro=NULL;
+				        }
+
+				else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
+					address_index=atoi(temp_buffer+14);
+					if(address_index>=1 && address_index<=MAX_CONTACT_ADDRESSES)
+						selected_macro=macro_contactaddress[address_index-1];
+					else
+						selected_macro=NULL;
 				        }
 			
 				/* an escaped $ is done by specifying two $$ next to each other */
@@ -866,6 +880,7 @@ int grab_host_macros(host *hst){
 
 /* grab macros that are specific to a particular contact */
 int grab_contact_macros(contact *cntct){
+	int x;
 
 #ifdef DEBUG0
 	printf("grab_contact_macros() start\n");
@@ -897,6 +912,16 @@ int grab_contact_macros(contact *cntct){
 	else
 		macro_x[MACRO_CONTACTPAGER]=strdup(cntct->pager);
 
+	/* get misc contact addresses */
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+		if(macro_contactaddress[x]!=NULL)
+			free(macro_contactaddress[x]);
+		if(cntct->address[x]==NULL)
+			macro_contactaddress[x]=NULL;
+		else
+			macro_contactaddress[x]=strdup(cntct->address[x]);
+	        }
+
 	/* get the date/time macros */
 	grab_datetime_macros();
 
@@ -904,6 +929,10 @@ int grab_contact_macros(contact *cntct){
 	strip(macro_x[MACRO_CONTACTALIAS]);
 	strip(macro_x[MACRO_CONTACTEMAIL]);
 	strip(macro_x[MACRO_CONTACTPAGER]);
+
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
+		strip(macro_contactaddress[x]);
+			
 
 #ifdef DEBUG0
 	printf("grab_contact_macros() end\n");
@@ -1027,6 +1056,16 @@ int clear_volatile_macros(void){
 		        }
 	        }
 
+	/* contact address macros */
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+		if(macro_contactaddress[x]!=NULL){
+			free(macro_contactaddress[x]);
+			macro_contactaddress[x]=NULL;
+		        }
+	        }
+
+	clear_argv_macros();
+
 #ifdef DEBUG0
 	printf("clear_volatile_macros() end\n");
 #endif
@@ -1056,8 +1095,6 @@ int clear_nonvolatile_macros(void){
 			break;
 		        }
 	        }
-
-	clear_argv_macros();
 
 #ifdef DEBUG0
 	printf("clear_nonvolatile_macros() end\n");
@@ -3408,6 +3445,9 @@ int reset_variables(void){
 
 	for(x=0;x<MAX_USER_MACROS;x++)
 		macro_user[x]=NULL;
+
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
+		macro_contactaddress[x]=NULL;
 
 	global_host_event_handler=NULL;
 	global_service_event_handler=NULL;

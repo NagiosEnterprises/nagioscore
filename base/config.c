@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-10-2003
+ * Last Modified:   03-11-2003
  *
  * License:
  *
@@ -41,8 +41,7 @@ extern char     *event_broker_file;
 extern char     *nagios_user;
 extern char     *nagios_group;
 
-extern char     *macro_admin_email;
-extern char     *macro_admin_pager;
+extern char     *macro_x[MACRO_X_COUNT];
 extern char     *macro_user[MAX_USER_MACROS];
 
 extern char     *global_host_event_handler;
@@ -435,35 +434,35 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"admin_email")){
-			if(macro_admin_email!=NULL)
-				free(macro_admin_email);
-			macro_admin_email=(char *)strdup(value);
-			if(macro_admin_email==NULL){
+			if(macro_x[MACRO_ADMINEMAIL]!=NULL)
+				free(macro_x[MACRO_ADMINEMAIL]);
+			macro_x[MACRO_ADMINEMAIL]=(char *)strdup(value);
+			if(macro_x[MACRO_ADMINEMAIL]==NULL){
 				strcpy(error_message,"Could not allocate memory for admin email address");
 				error=TRUE;
 				break;
 			        }
 
-			strip(macro_admin_email);
+			strip(macro_x[MACRO_ADMINEMAIL]);
 
 #ifdef DEBUG1
-			printf("\t\tmacro_admin_email set to '%s'\n",macro_admin_email);
+			printf("\t\tmacro_admin_email set to '%s'\n",macro_x[MACRO_ADMINEMAIL]);
 #endif
 		        }
 		else if(!strcmp(variable,"admin_pager")){
-			if(macro_admin_pager!=NULL)
-				free(macro_admin_pager);
-			macro_admin_pager=(char *)strdup(value);
-			if(macro_admin_pager==NULL){
+			if(macro_x[MACRO_ADMINPAGER]!=NULL)
+				free(macro_x[MACRO_ADMINPAGER]);
+			macro_x[MACRO_ADMINPAGER]=(char *)strdup(value);
+			if(macro_x[MACRO_ADMINPAGER]==NULL){
 				strcpy(error_message,"Could not allocate memory for admin pager");
 				error=TRUE;
 				break;
 			        }
 
-			strip(macro_admin_pager);
+			strip(macro_x[MACRO_ADMINPAGER]);
 
 #ifdef DEBUG1
-			printf("\t\tmacro_admin_pager set to '%s'\n",macro_admin_pager);
+			printf("\t\tmacro_admin_pager set to '%s'\n",macro_x[MACRO_ADMINPAGER]);
 #endif
 		        }
 		else if(!strcmp(variable,"use_syslog")){
@@ -2425,8 +2424,8 @@ int pre_flight_check(void){
 
 	/* count number of services associated with each host (we need this for flap detection)... */
 	move_first_service();
-	while(temp_service = get_next_service()) {
-		if(temp_host=find_host(temp_service->host_name)) {
+	while(temp_service=get_next_service()){
+		if(temp_host=find_host(temp_service->host_name)){
 			temp_host->total_services++;
 			temp_host->total_service_check_interval+=temp_service->check_interval;
 		        }

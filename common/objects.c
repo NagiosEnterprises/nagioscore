@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   03-10-2003
  *
  * License:
  *
@@ -1344,10 +1344,11 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 
 
 /* add a new contact to the list in memory */
-contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_host_up, int notify_host_down, int notify_host_unreachable){
+contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_host_up, int notify_host_down, int notify_host_unreachable){
 	contact *temp_contact;
 	contact *new_contact;
 	contact *last_contact;
+	int x;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -1568,6 +1569,29 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char *svc
 	else
 		new_contact->host_notification_period=NULL;
 
+
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+		new_contact->address[x]=NULL;
+		if(addresses[x]!=NULL){
+			strip(addresses[x]);
+			new_contact->address[x]=strdup(addresses[x]);
+			if(new_contact->address[x]==NULL){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' address #%d\n",name,x);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(new_contact->name);
+				free(new_contact->alias);
+				free(new_contact->email);
+				free(new_contact->pager);
+				free(new_contact->service_notification_period);
+				free(new_contact->host_notification_period);
+				free(new_contact);
+				return NULL;
+		                }
+		        }
+	        }
 
 	new_contact->host_notification_commands=NULL;
 	new_contact->service_notification_commands=NULL;
@@ -4552,6 +4576,8 @@ int free_object_data(void){
 		free(this_contact->alias);
 		free(this_contact->email);
 		free(this_contact->pager);
+		for(i=0;i<MAX_CONTACT_ADDRESSES;i++)
+			free(this_contact->address[i]);
 		free(this_contact->host_notification_period);
 		free(this_contact->service_notification_period);
 		free(this_contact);

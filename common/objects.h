@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   03-10-2003
  *
  * License:
  *
@@ -37,6 +37,8 @@
 #define MAX_PLUGINOUTPUT_LENGTH			352	/* max. length of plugin output */
 
 #define MAX_STATE_HISTORY_ENTRIES		21	/* max number of old states to keep track of for flap detection */
+
+#define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
 #define SERVICES_HASHSLOTS 1024
 #define HOSTS_HASHSLOTS 1024
@@ -194,6 +196,7 @@ typedef struct contact_struct{
 	char	*alias;
 	char	*email;
 	char	*pager;
+	char    *address[MAX_CONTACT_ADDRESSES];
 	commandsmember *host_notification_commands;
 	commandsmember *service_notification_commands;	
 	int     notify_on_service_unknown;
@@ -422,7 +425,7 @@ typedef struct host_cursor_struct{
 int read_object_config_data(char *,int,int);        /* reads all external configuration data of specific types */
 
 /**** Object Creation Functions ****/
-contact *add_contact(char *,char *,char *,char *,char *,char *,int,int,int,int,int,int,int);		/* adds a contact definition */
+contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int);	/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */

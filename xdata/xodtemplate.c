@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2003
+ * Last Modified: 03-10-2003
  *
  * Description:
  *
@@ -922,6 +922,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contact->alias=NULL;
 		new_contact->email=NULL;
 		new_contact->pager=NULL;
+		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++)
+			new_contact->address[x]=NULL;
 		new_contact->host_notification_period=NULL;
 		new_contact->host_notification_commands=NULL;
 		new_contact->service_notification_period=NULL;
@@ -1946,6 +1948,22 @@ int xodtemplate_add_object_property(char *input, int options){
 			if(temp_contact->pager==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contact pager.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(strstr(variable,"address")==variable){
+			x=atoi(variable+7);
+			if(x<1 || x>MAX_XODTEMPLATE_CONTACT_ADDRESSES){
+#ifdef DEBUG1
+				printf("Error: Invalid contact address id '%d'.\n",x);
+#endif
+				return ERROR;
+			        }
+			temp_contact->address[x-1]=strdup(value);
+			if(temp_contact->address[x-1]==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for contact address #%d.\n",x);
 #endif
 				return ERROR;
 			        }
@@ -4904,6 +4922,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 /* resolves a contact object */
 int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	xodtemplate_contact *template_contact;
+	int x;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -4945,6 +4964,10 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 		this_contact->email=strdup(template_contact->email);
 	if(this_contact->pager==NULL && template_contact->pager!=NULL)
 		this_contact->pager=strdup(template_contact->pager);
+	for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
+		if(this_contact->address[x]==NULL && template_contact->address[x]!=NULL)
+			this_contact->address[x]=strdup(template_contact->address[x]);
+	        }
 	if(this_contact->host_notification_period==NULL && template_contact->host_notification_period!=NULL)
 		this_contact->host_notification_period=strdup(template_contact->host_notification_period);
 	if(this_contact->service_notification_period==NULL && template_contact->service_notification_period!=NULL)
@@ -6489,7 +6512,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 		return OK;
 
 	/* add the contact */
-	new_contact=add_contact(this_contact->contact_name,this_contact->alias,this_contact->email,this_contact->pager,this_contact->service_notification_period,this_contact->host_notification_period,this_contact->notify_on_service_recovery,this_contact->notify_on_service_critical,this_contact->notify_on_service_warning,this_contact->notify_on_service_unknown,this_contact->notify_on_host_recovery,this_contact->notify_on_host_down,this_contact->notify_on_host_unreachable);
+	new_contact=add_contact(this_contact->contact_name,this_contact->alias,this_contact->email,this_contact->pager,this_contact->address,this_contact->service_notification_period,this_contact->host_notification_period,this_contact->notify_on_service_recovery,this_contact->notify_on_service_critical,this_contact->notify_on_service_warning,this_contact->notify_on_service_unknown,this_contact->notify_on_host_recovery,this_contact->notify_on_host_down,this_contact->notify_on_host_unreachable);
 
 	/* return with an error if we couldn't add the contact */
 	if(new_contact==NULL){
@@ -7454,6 +7477,8 @@ int xodtemplate_free_memory(void){
 		free(this_contact->alias);
 		free(this_contact->email);
 		free(this_contact->pager);
+		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++)
+			free(this_contact->address[x]);
 		free(this_contact->service_notification_period);
 		free(this_contact->service_notification_commands);
 		free(this_contact->host_notification_period);

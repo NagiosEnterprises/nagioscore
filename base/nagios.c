@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-20-2003
+ * Last Modified:   03-11-2003
  *
  * Description:
  *
@@ -65,36 +65,10 @@ char            *event_broker_file=NULL;
 char            *nagios_user=NULL;
 char            *nagios_group=NULL;
 
-char            *macro_contact_name=NULL;
-char            *macro_contact_alias=NULL;
-char	        *macro_host_name=NULL;
-char	        *macro_host_alias=NULL;
-char	        *macro_host_address=NULL;
-char	        *macro_service_description=NULL;
-char	        *macro_service_state=NULL;
-char	        *macro_date_time[7]={NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-char	        *macro_output=NULL;
-char	        *macro_perfdata=NULL;
-char            *macro_contact_email=NULL;
-char            *macro_contact_pager=NULL;
-char            *macro_admin_email=NULL;
-char            *macro_admin_pager=NULL;
-char            *macro_host_state=NULL;
-char            *macro_state_type=NULL;
-char            *macro_current_service_attempt=NULL;
-char            *macro_current_host_attempt=NULL;
-char            *macro_notification_type=NULL;
-char            *macro_notification_number=NULL;
-char            *macro_execution_time=NULL;
-char            *macro_latency=NULL;
-char            *macro_status_duration=NULL;
-char            *macro_status_duration_seconds=NULL;
-char            *macro_host_downtime_depth=NULL;
-char            *macro_service_downtime_depth=NULL;
-
 char            *macro_x[MACRO_X_COUNT];
 char            *macro_argv[MAX_COMMAND_ARGUMENTS];
 char            *macro_user[MAX_USER_MACROS];
+char            *macro_contactaddress[MAX_CONTACT_ADDRESSES];
 
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;

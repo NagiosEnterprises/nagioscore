@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2003
+ * Last Modified:   03-10-2003
  *
  * License:
  *
@@ -32,6 +32,8 @@
 /*********** GENERAL DEFINITIONS ************/
 
 #define MAX_XODTEMPLATE_INPUT_BUFFER    8196
+
+#define MAX_XODTEMPLATE_CONTACT_ADDRESSES 6
 
 #define XODTEMPLATE_NONE                0
 #define XODTEMPLATE_TIMEPERIOD          1
@@ -97,6 +99,7 @@ typedef struct xodtemplate_contact_struct{
 	char      *alias;
 	char      *email;
 	char      *pager;
+	char      *address[MAX_XODTEMPLATE_CONTACT_ADDRESSES];
 	char      *host_notification_period;
 	char      *host_notification_commands;
 	int       notify_on_host_down;

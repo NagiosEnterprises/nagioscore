@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-21-2002
+ * Last Modified:   02-28-2002
  *
  * License:
  *
@@ -50,19 +50,12 @@ int main(int argc, char **argv){
 	if(argc!=3){
 		printf("Nagios Config File Converter\n");
 		printf("Written by Ethan Galstad (nagios@nagios.org)\n");
-		printf("Last Modified: 01-21-2002\n");
+		printf("Last Modified: 02-28-2002\n");
 		printf("\n");
 		printf("Usage: %s <config file> <object type>\n",argv[0]);
 		printf("\n");
-		printf("Notes: This utility is designed to aide you in converting your\n");
-		printf("       old (pre-Nagios) 'host' config file(s) to the new\n");
-		printf("       template-based config file style.  Supply the name of\n");
-		printf("       your old config file on the command line, along with the\n");
-		printf("       type of object you would like to produce a new config file\n");
-		printf("       for.  Your old config file is not overwritten - new config\n");
-		printf("       is printed to standard output so you can redirect it.\n");
-		printf("\n");
 		printf("Valid object types include:\n");
+		printf("\n");
 		printf("\ttimeperiods\n");
 		printf("\tcommands\n");
 		printf("\tcontacts\n");
@@ -74,17 +67,28 @@ int main(int argc, char **argv){
 		printf("\tservicedependencies\n");
 		printf("\tserviceescalations\n");
 		printf("\n");
+		printf("\thostextinfo\n");
+		printf("\tserviceextinfo\n");
+		printf("\n");
+		printf("Notes:\n");
+		printf("\n");
+		printf("This utility is designed to aide you in converting your old 'host'\n");
+		printf("config file(s) to the new template-based config file style.  It is\n");
+		printf("also capable of converting extended host and service information\n");
+		printf("definitions in your old CGI config file.\n");
+		printf("\n");
+		printf("Supply the name of your old 'host' config file (or your old CGI config\n");
+		printf("file if you're converting extended host/service definitions) on the\n");
+		printf("command line, along with the type of object you would like to produce\n");
+		printf("a new config file for.  Your old config file is not overwritten - new\n");
+		printf("configuration data is printed to standard output, so you can redirect it\n");
+		printf("wherever you like.\n");
+		printf("\n");
 		printf("Please note that you can only specify one type of object at a time\n");
 		printf("on the command line.  Also, when converting hostgroup escalations,\n");
 		printf("service escalations and service dependencies, you'll need to associate\n");
 		printf("the escalation or dependency entries with the appropriate hostgroup\n");
 		printf("or service manually.\n");
-		printf("\n");
-		printf("This utility is also capable of converting extended host and service\n");
-		printf("info definitions in your CGI config file.  In order to do this, use\n");
-		printf("the name of your CGI config file as the <config file> argument, and\n");
-		printf("specify either 'hostextinfo' or 'serviceextinfo' (without quotes) as\n");
-		printf("the <object type>.\n");
 		printf("\n");
 		return -1;
 	        }
@@ -110,7 +114,7 @@ int main(int argc, char **argv){
 
 			printf("# '%s' timeperiod definition\n",temp_ptr);
 			printf("define timeperiod{\n");
-			printf("\tname\t\t%s\n",temp_ptr);
+			/*printf("\tname\t\t%s\n",temp_ptr);*/
 			printf("\ttimeperiod_name\t%s\n",temp_ptr);
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
@@ -155,7 +159,7 @@ int main(int argc, char **argv){
 
 			printf("# '%s' command definition\n",temp_ptr);
 			printf("define command{\n");
-			printf("\tname\t\t%s\n",temp_ptr);
+			/*printf("\tname\t\t%s\n",temp_ptr);*/
 			printf("\tcommand_name\t%s\n",temp_ptr);
 
 			temp_ptr=strtok(NULL,"\n");
@@ -174,7 +178,7 @@ int main(int argc, char **argv){
 
 			printf("# '%s' contact definition\n",temp_ptr);
 			printf("define contact{\n");
-			printf("\tname\t\t\t\t%s\n",temp_ptr);
+			/*printf("\tname\t\t\t\t%s\n",temp_ptr);*/
 			printf("\tcontact_name\t\t\t%s\n",temp_ptr);
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
@@ -272,7 +276,7 @@ int main(int argc, char **argv){
 
 			printf("# '%s' contact group definition\n",temp_ptr);
 			printf("define contactgroup{\n");
-			printf("\tname\t\t\t%s\n",temp_ptr);
+			/*printf("\tname\t\t\t%s\n",temp_ptr);*/
 			printf("\tcontactgroup_name\t%s\n",temp_ptr);
 
 			temp_ptr=strtok(NULL,";");
@@ -382,7 +386,7 @@ int main(int argc, char **argv){
 
 			printf("# '%s' host group definition\n",temp_ptr);
 			printf("define hostgroup{\n");
-			printf("\tname\t\t%s\n",temp_ptr);
+			/*printf("\tname\t\t%s\n",temp_ptr);*/
 			printf("\thostgroup_name\t%s\n",temp_ptr);
 
 			temp_ptr=strtok(NULL,";");
@@ -578,7 +582,7 @@ int main(int argc, char **argv){
 
 			printf("# Servicedependency definition\n");
 			printf("define servicedependency{\n");
-			printf("\tname\t\t\t\tsd%d\n",x);
+			/*printf("\tname\t\t\t\tsd%d\n",x);*/
 			printf("\thost_name\t\t\t%s\n",host_name2);
 			printf("\tservice_description\t\t%s\n",service_description2);
 			printf("\tdependent_host_name\t\t%s\n",host_name);
@@ -589,8 +593,7 @@ int main(int argc, char **argv){
 				printf("%s%c",(y>0)?",":"",temp_ptr[y]);
 			if(y==0)
 				printf("n");
-			printf("\t # These are the criteria for which check execution will be supressed\n");
-			printf("\t}\n\n\n");
+			printf("\t; These are the criteria for which check execution will be supressed\n");
 
 			temp_ptr=my_strsep(&temp_ptr2,";\r\n");
 
@@ -599,7 +602,7 @@ int main(int argc, char **argv){
 				printf("%s%c",(y>0)?",":"",temp_ptr[y]);
 			if(y==0)
 				printf("n");
-			printf("\t# These are the criteria for which notifications will be supressed\n");
+			printf("\t; These are the criteria for which notifications will be supressed\n");
 			printf("\t}\n\n\n");
 		        }
 

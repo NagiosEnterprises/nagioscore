@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-31-2004
+ * Last Modified:   11-04-2004
  *
  * License:
  *
@@ -119,7 +119,7 @@ int xdddefault_grab_config_info(char *config_file){
 				free(input2);
 
 				/* read the next line */
-				if((input=mmap_fgets(thefile2))==NULL)
+				if((input2=mmap_fgets(thefile2))==NULL)
 					break;
 
 				strip(input2);

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-24-2003
+ * Last Modified: 09-25-2003
  *
  * License:
  * 
@@ -143,6 +143,7 @@ int display_type=DISPLAY_HOSTS;
 int overview_columns=3;
 int max_grid_width=8;
 int group_style_type=STYLE_OVERVIEW;
+int navbar_search=FALSE;
 
 int service_status_types=SERVICE_PENDING|SERVICE_OK|SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL;
 int all_service_status_types=SERVICE_PENDING|SERVICE_OK|SERVICE_UNKNOWN|SERVICE_WARNING|SERVICE_CRITICAL;
@@ -176,6 +177,7 @@ int display_header=TRUE;
 int main(void){
 	int result=OK;
 	char *sound=NULL;
+	host *temp_host=NULL;
 	
 	time(&current_time);
 
@@ -221,6 +223,19 @@ int main(void){
 		free_memory();
 		return ERROR;
                 }
+
+	/* if a navbar search was performed, find the host by name or address */
+	if(navbar_search==TRUE){
+		if((temp_host=find_host(host_name))==NULL){
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+				if(!strcmp(host_name,temp_host->address)){
+					free(host_name);
+					host_name=strdup(temp_host->name);
+					break;
+			                }
+		                }
+		        }
+	        }
 
 	document_header(TRUE);
 
@@ -499,6 +514,16 @@ int process_cgivars(void){
 		if(strlen(variables[x])>=MAX_INPUT_BUFFER-1){
 			x++;
 			continue;
+		        }
+
+		/* we found the navbar search argument */
+		else if(!strcmp(variables[x],"navbarsearch")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+			navbar_search=TRUE;
 		        }
 
 		/* we found the hostgroup argument */

@@ -11,7 +11,9 @@
 
 	TABLE.NavBarTitle { font-family: verdana,arial,serif; background-color: black; border: thin solid white; padding: 1; }
 	TD.NavBarTitle { font-family: verdana,arial,serif; background-color: black; color: #DEE7C6; font-size: 10pt; font-weight: bold; text-decoration: none; }
-	A.NavBarItem { font-family: verdana,arial,serif; background-color: black; color: #DEE7C6; font-size: 8pt; font-weight: bold; text-decoration: none; }
+	.NavBarItem { font-family: verdana,arial,serif; background-color: black; color: #DEE7C6; font-size: 8pt; font-weight: bold; text-decoration: none; }
+	.NavBarSearchItem { font-family: verdana,arial,serif; background-color: black; color: #DEE7C6; font-size: 8pt; }
+	INPUT.NavBarSearchItem { font-family: verdana,arial,serif; background-color: white; color: black; font-size: 8pt; }
 	BODY.navbar { font-family: verdana,arial,serif; background-color: white; color: black;  background-color: black }
 
 -->
@@ -149,6 +151,22 @@ function switchdot(name,on){
   <tr> 
     <td width=13><img src="images/greendot.gif" width="13" height="14" name="outages-dot"></td>
     <td nowrap><a href="@cgiurl@/outages.cgi" target="main" onMouseOver="switchdot('outages-dot',1)" onMouseOut="switchdot('outages-dot',0)" class="NavBarItem">Network Outages</a></td>
+  </tr>
+  <tr> 
+    <td colspan="2" height="10"></td>
+  </tr>
+  <tr> 
+    <td width=13></td>
+    <td nowrap class="NavBarSearchItem">Find Host:</td>
+  </tr>
+  <tr> 
+    <td width=13></td>
+    <td nowrap>
+	<form method="get" action="@cgiurl@/status.cgi" target="main">
+	<input type='hidden' name='navbarsearch' value='1'>
+	<input type='text' name='host' size='15' class="NavBarSearchItem">
+	</form>
+    </td>
   </tr>
   <tr> 
     <td colspan="2" height="10"></td>

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   11-01-2004
  *
  * License:
  *
@@ -205,7 +205,7 @@ int read_all_object_data(char *main_config_file){
 
 /* process the main configuration file */
 int read_main_config_file(char *main_config_file){
-	char *input;
+	char *input=NULL;
 	char variable[MAX_INPUT_BUFFER];
 	char value[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -241,7 +241,15 @@ int read_main_config_file(char *main_config_file){
 		strip(macro_x[MACRO_MAINCONFIGFILE]);
 
 	/* process all lines in the config file */
-	for(input=mmap_fgets(thefile);input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		current_line=thefile->current_line;
 
@@ -1472,7 +1480,7 @@ int read_main_config_file(char *main_config_file){
 /* processes macros in resource file */
 int read_resource_file(char *resource_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char *input;
+	char *input=NULL;
 	char variable[MAX_INPUT_BUFFER];
 	char value[MAX_INPUT_BUFFER];
 	char *temp_ptr;
@@ -1497,7 +1505,14 @@ int read_resource_file(char *resource_file){
 		}
 
 	/* process all lines in the resource file */
-	for(input=mmap_fgets(thefile);input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		current_line=thefile->current_line;
 

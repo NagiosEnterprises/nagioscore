@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-10-2005
+ * Last Modified:   01-14-2005
  *
  * License:
  *
@@ -2449,6 +2449,9 @@ int set_argv_macro_environment_vars(int set){
 /* sets or unsets a macro environment variable */
 int set_macro_environment_var(char *name, char *value, int set){
 	char *env_macro_name=NULL;
+#ifndef HAVE_SETENV
+	char *env_macro_string=NULL;
+#endif
 
 #ifdef DEBUG0
 	printf("set_macro_environment_var() start\n");
@@ -2471,6 +2474,14 @@ int set_macro_environment_var(char *name, char *value, int set){
 	if(set==TRUE){
 #ifdef HAVE_SETENV
 		setenv(env_macro_name,(value==NULL)?"":value,1);
+#else
+		/* needed for Solaris and systems that don't have setenv() */
+		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
+		env_macro_string=(char *)malloc(strlen(env_macro_name)+strlen((value==NULL)?"":value)+2);
+		if(env_macro_string!=NULL){
+			sprintf(env_macro_string,"%s=%s",env_macro_name,(value==NULL)?"":value);
+			putenv(env_macro_string);
+		        }
 #endif
 	        }
 	else{

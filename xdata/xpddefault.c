@@ -2,8 +2,8 @@
  *
  * XPDDEFAULT.C - Default performance data routines
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-29-2004
  *
  * License:
  *
@@ -220,6 +220,7 @@ int xpddefault_update_service_performance_data(service *svc){
 	int early_timeout=FALSE;
 	double exectime;
 	int result=OK;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("xpddefault_update_service_performance_data() start\n");
@@ -238,7 +239,7 @@ int xpddefault_update_service_performance_data(service *svc){
 	grab_service_macros(svc);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -246,7 +247,7 @@ int xpddefault_update_service_performance_data(service *svc){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed service performance data command line: %s\n",processed_command_line);
@@ -278,6 +279,7 @@ int xpddefault_update_host_performance_data(host *hst){
 	int early_timeout=FALSE;
 	double exectime;
 	int result=OK;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("xpddefault_update_host_performance_data() start\n");
@@ -292,7 +294,7 @@ int xpddefault_update_host_performance_data(host *hst){
 	grab_host_macros(hst);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -300,7 +302,7 @@ int xpddefault_update_host_performance_data(host *hst){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed host performance data command line: %s\n",processed_command_line);

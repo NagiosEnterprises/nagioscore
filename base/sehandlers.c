@@ -68,6 +68,7 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	host *temp_host;
 	int early_timeout=FALSE;
 	double exectime;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("obsessive_compulsive_service_check_processor() start\n");
@@ -92,7 +93,7 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	grab_service_macros(svc);
 
 	/* get the raw command line */
-	get_raw_command_line(ocsp_command,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(ocsp_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -100,7 +101,7 @@ int obsessive_compulsive_service_check_processor(service *svc){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed obsessive compulsive service processor command line: %s\n",processed_command_line);
@@ -132,6 +133,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("obsessive_compulsive_host_check_processor() start\n");
@@ -152,7 +154,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	grab_host_macros(hst);
 
 	/* get the raw command line */
-	get_raw_command_line(ochp_command,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(ochp_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -160,7 +162,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed obsessive compulsive host processor command line: %s\n",processed_command_line);
@@ -241,6 +243,7 @@ int run_global_service_event_handler(service *svc){
 	int early_timeout=FALSE;
 	double exectime;
 	int result;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("run_global_service_event_handler() start\n");
@@ -258,7 +261,7 @@ int run_global_service_event_handler(service *svc){
 	clear_argv_macros();
 
 	/* get the raw command line */
-	get_raw_command_line(global_service_event_handler,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(global_service_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -266,7 +269,7 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed global service event handler command line: %s\n",processed_command_line);
@@ -311,6 +314,7 @@ int run_service_event_handler(service *svc){
 	int early_timeout=FALSE;
 	double exectime;
 	int result;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("run_service_event_handler() start\n");
@@ -324,7 +328,7 @@ int run_service_event_handler(service *svc){
 	clear_argv_macros();
 
 	/* get the raw command line */
-	get_raw_command_line(svc->event_handler,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(svc->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -332,7 +336,7 @@ int run_service_event_handler(service *svc){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed service event handler command line: %s\n",processed_command_line);
@@ -418,6 +422,7 @@ int run_global_host_event_handler(host *hst){
 	int early_timeout=FALSE;
 	double exectime;
 	int result;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("run_global_host_event_handler() start\n");
@@ -435,7 +440,7 @@ int run_global_host_event_handler(host *hst){
 	clear_argv_macros();
 
 	/* get the raw command line */
-	get_raw_command_line(global_host_event_handler,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(global_host_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -443,7 +448,7 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed global host event handler command line: %s\n",processed_command_line);
@@ -487,6 +492,7 @@ int run_host_event_handler(host *hst){
 	int early_timeout=FALSE;
 	double exectime;
 	int result;
+	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
 	printf("run_host_event_handler() start\n");
@@ -500,7 +506,7 @@ int run_host_event_handler(host *hst){
 	clear_argv_macros();
 
 	/* get the raw command line */
-	get_raw_command_line(hst->event_handler,raw_command_line,sizeof(raw_command_line));
+	get_raw_command_line(hst->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -508,7 +514,7 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tProcessed host event handler command line: %s\n",processed_command_line);

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-08-2003
+ * Last Modified: 01-29-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -558,7 +558,7 @@ char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), 
 char *my_fgets(char **,int,FILE *);			/* reads a line from a file, dynamically allocating buffer space */
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
-void get_raw_command_line(char *,char *,int);        	/* given a raw command line, determine the actual command to run */
+void get_raw_command_line(char *,char *,int,int);      	/* given a raw command line, determine the actual command to run */
 int check_time_against_period(time_t,char *);		/* check to see if a specific time is covered by a time period */
 void get_next_valid_time(time_t, time_t *,char *);	/* get the next valid time in a time period */
 void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for use in output */

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-25-2004
+ * Last Modified:   01-29-2004
  *
  * License:
  *
@@ -301,7 +301,7 @@ int use_embedded_perl=TRUE;
 /******************************************************************/
 
 /* replace macros in notification commands with their values */
-int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int options){
+int process_macros(char *input_buffer, char *output_buffer, int buffer_length, int options){
 	char *temp_buffer;
 	int in_macro;
 	int arg_index=0;
@@ -603,13 +603,13 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 				/* insert macro */
 				if(selected_macro!=NULL){
 
-					/* some macros are cleaned */
+					/* some macros are cleaned... */
 					if(clean_macro==TRUE)
 						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
 
 					/* others are not */
 					else
-						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
+						strncat(output_buffer,(selected_macro==NULL)?"":selected_macro,buffer_length-strlen(output_buffer)-1);
 				        }
 
 				output_buffer[buffer_length-1]='\x0';
@@ -2140,8 +2140,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
-void get_raw_command_line(char *cmd,char *raw_command,int buffer_length){
+void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int macro_options){
 	char temp_buffer[MAX_INPUT_BUFFER];
+	char macro_buffer[MAX_INPUT_BUFFER];
 	char *buffer;
 	command *temp_command;
 	int x;
@@ -2153,18 +2154,16 @@ void get_raw_command_line(char *cmd,char *raw_command,int buffer_length){
 	printf("\tInput: %s\n",cmd);
 #endif
 
-	/* initialize the command */
-	strcpy(raw_command,"");
-
-	/* if we were handed a NULL string, throw it right back */
-	if(cmd==NULL){
-		
+	/* make sure we've got all the requirements */
+	if(cmd==NULL || raw_command==NULL || buffer_length<=0){
 #ifdef DEBUG1
-		printf("\tRaw command is NULL!\n");
+		printf("\tWe don't have enough data to get the raw command line!\n");
 #endif
-
 		return;
 	        }
+
+	/* initialize the command */
+	strcpy(raw_command,"");
 
 	/* clear the old command arguments */
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
@@ -2190,14 +2189,14 @@ void get_raw_command_line(char *cmd,char *raw_command,int buffer_length){
 	        }
 
 	/* get the arguments */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-		buffer=my_strtok(NULL,"!");
-		if(buffer==NULL)
-			break;
-		strip(buffer);
-		macro_argv[x]=(char *)malloc(strlen(buffer)+1);
-		if(macro_argv[x]!=NULL)
-			strcpy(macro_argv[x],buffer);
+	for(x=0,buffer=my_strtok(NULL,"!");x<MAX_COMMAND_ARGUMENTS && buffer!=NULL;x++,buffer=my_strtok(NULL,"!")){
+
+		/* ADDED 01/29/04 EG */
+		/* process any macros we find in the argument */
+		process_macros(buffer,macro_buffer,sizeof(macro_buffer),macro_options);
+
+		strip(macro_buffer);
+		macro_argv[x]=strdup(macro_buffer);
 	        }
 
 	/* find the command used to check this service */

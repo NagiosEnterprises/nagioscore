@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-29-2004
  *
  * License:
  *
@@ -599,7 +599,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 		command_name_ptr=strtok(command_name,"!");
 
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command));
+		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),0);
 		strip(raw_command);
 
 		/* process any macros contained in the argument */
@@ -1273,7 +1273,7 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 		command_name_ptr=strtok(command_name,"!");
 
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command));
+		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),0);
 		strip(raw_command);
 
 		/* process any macros contained in the argument */

@@ -9,8 +9,10 @@
 
 <!--
 
-	A.NavBarItem { font-family: arial,serif; background-color : black; color: #DEE7C6; font-size: 10pt; font-weight: bold; text-decoration: none; }
-	BODY.navbar { font-family: arial,serif; background-color : white; color: black;  background-color: black }
+	TABLE.NavBarTitle { font-family: verdana,arial,serif; background-color: black; border: thin solid white; padding: 1; }
+	TD.NavBarTitle { font-family: verdana,arial,serif; background-color: black; color: #DEE7C6; font-size: 10pt; font-weight: bold; text-decoration: none; }
+	A.NavBarItem { font-family: verdana,arial,serif; background-color: black; color: #DEE7C6; font-size: 8pt; font-weight: bold; text-decoration: none; }
+	BODY.navbar { font-family: verdana,arial,serif; background-color: white; color: black;  background-color: black }
 
 -->
 	
@@ -50,9 +52,15 @@ function switchdot(name,on){
   </tr>
 </table>
 
-<table width="150" border="0">
+<table width="150">
   <tr>
-    <td><img src="images/sbgeneral.png" width="147" height="21" alt="-- General --"></td>
+    <td>
+      <table width="100%" class="NavBarTitle" cellspacing="0">
+        <tr>
+  	  <td class="NavBarTitle">General</td>
+	</tr>
+      </table>
+    </td>
   </tr>
 </table>
 
@@ -70,9 +78,15 @@ function switchdot(name,on){
   </tr>
 </table>
 
-<table width="150" border="0">
-  <tr> 
-    <td><img src="images/sbmonitor.png" width="147" height="21" alt="-- Monitoring --"></td>
+<table width="150">
+  <tr>
+    <td>
+      <table width="100%" class="NavBarTitle" cellspacing="0">
+        <tr>
+  	  <td class="NavBarTitle">Monitoring</td>
+	</tr>
+      </table>
+    </td>
   </tr>
 </table>
 
@@ -167,9 +181,15 @@ function switchdot(name,on){
   </tr>
 </table>
 
-<table width="150" border="0">
-  <tr> 
-    <td><img src="images/sbreport.png" width="147" height="21" alt="-- Reporting --"></td>
+<table width="150">
+  <tr>
+    <td>
+      <table width="100%" class="NavBarTitle" cellspacing="0">
+        <tr>
+  	  <td class="NavBarTitle">Reporting</td>
+	</tr>
+      </table>
+    </td>
   </tr>
 </table>
 
@@ -208,9 +228,15 @@ function switchdot(name,on){
 </table>
 
 
-<table width="150" border="0">
-  <tr> 
-    <td><img src="images/sbconfig.png" width="147" height="21" alt="-- Configuration --"></td>
+<table width="150">
+  <tr>
+    <td>
+      <table width="100%" class="NavBarTitle" cellspacing="0">
+        <tr>
+  	  <td class="NavBarTitle">Configuration</td>
+	</tr>
+      </table>
+    </td>
   </tr>
 </table>
 

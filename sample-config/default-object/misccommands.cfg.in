@@ -54,26 +54,26 @@
 
 # Service notification command - send email with problem summary
 
-command[notify-by-email]=/usr/bin/printf '***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$' | @MAIL_PROG@ -s '** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **' $CONTACTEMAIL$
+command[notify-by-email]=/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$" | @MAIL_PROG@ -s "** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$
 
 # Service notification command - send email to alphanumeric pager gateway
 #       The notify-by-epager command assumes that each contact has a pager email gateway, and
 #       that the address has been entered into the appropriate contact field instead of an
 #       actual pager number. (i.e. 'pagejoe@nowhere.com' routes mail to Joe's alphanumeric pager)
 
-command[notify-by-epager]=/usr/bin/printf "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $OUTPUT$\nDate: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$' $CONTACTPAGER$
+command[notify-by-epager]=/usr/bin/printf "%b" "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $OUTPUT$\nDate: $DATETIME$" | @MAIL_PROG@ -s "$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$" $CONTACTPAGER$
 
 # Host notification commands (one for email, one for alphanumeric pager with email gateway)
 
-command[host-notify-by-email]=/usr/bin/printf "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s 'Host $HOSTSTATE$ alert for $HOSTNAME$!' $CONTACTEMAIL$
+command[host-notify-by-email]=/usr/bin/printf "%b" "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s "Host $HOSTSTATE$ alert for $HOSTNAME$!" $CONTACTEMAIL$
 
-command[host-notify-by-epager]=/usr/bin/printf "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $OUTPUT$\nTime: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$' $CONTACTPAGER$
+command[host-notify-by-epager]=/usr/bin/printf "%b" "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $OUTPUT$\nTime: $DATETIME$" | @MAIL_PROG@ -s "$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$" $CONTACTPAGER$
 
 
 # Sample performance data command - these simply append performance data to a
 # temporary text file for later processing by an external applications
 
-command[process-host-perfdata]=/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> @localstatedir@/host-perfdata.out
+command[process-host-perfdata]=/usr/bin/printf "%b" "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> @localstatedir@/host-perfdata.out
 
-command[process-service-perfdata]=/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> @localstatedir@/service-perfdata.out
+command[process-service-perfdata]=/usr/bin/printf "%b" "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> @localstatedir@/service-perfdata.out
 

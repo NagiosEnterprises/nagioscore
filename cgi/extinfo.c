@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-05-2004
+ * Last Modified: 01-20-2004
  *
  * License:
  * 
@@ -2372,7 +2372,7 @@ void display_comments(int type){
 	        }
 
 
-	printf("<A NAME=COMMENTS></A>\n");
+	printf("<A NAME=comments></A>\n");
 	printf("<DIV CLASS='commentTitle'>%s Comments</DIV>\n",(type==HOST_COMMENT)?"Host":"Service");
 	printf("<TABLE BORDER=0>\n");
 

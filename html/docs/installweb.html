@@ -42,8 +42,8 @@ You'll need to create an alias for the CGIs as well.  The default installation e
 <pre>
 <strong>
 <font color="red">
-ScriptAlias /nagios/cgi-bin/ /usr/local/nagios/sbin/
-&lt;Directory "/usr/local/nagios/sbin/"&gt;
+ScriptAlias /nagios/cgi-bin /usr/local/nagios/sbin
+&lt;Directory "/usr/local/nagios/sbin"&gt;
     AllowOverride AuthConfig
     Options ExecCGI
     Order allow,deny
@@ -77,7 +77,7 @@ Add the following to your web server configuration file (i.e. <b>httpd.conf</b>)
 <pre>
 <strong>
 <font color="red">
-Alias /nagios/ /usr/local/nagios/share/
+Alias /nagios /usr/local/nagios/share
 &lt;Directory "/usr/local/nagios/share"&gt;
     Options None
     AllowOverride AuthConfig

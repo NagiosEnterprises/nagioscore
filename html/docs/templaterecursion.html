@@ -68,7 +68,7 @@ The second variable is <i>use</i>.  This is where you specify the name of the te
 </p>
 
 <p>
-The third variable is <i>register</i>.  This variable is used to indicate whether or not the object definition should be "registered" with Nagios.  By default, all object definitions are registered.  If you are using a partial object definition as a template, you would want to prevent it from being registered (an example of this is provided later).  Values are as follows: 0 = do NOT register object definition, 1 = register object definition (this is the default).
+The third variable is <i>register</i>.  This variable is used to indicate whether or not the object definition should be "registered" with Nagios.  By default, all object definitions are registered.  If you are using a partial object definition as a template, you would want to prevent it from being registered (an example of this is provided later).  Values are as follows: 0 = do NOT register object definition, 1 = register object definition (this is the default).  This variable is NOT inherited; every (partial) object definition used as a template must explicitly set the <i>register</i> directive to be <i>0</i>.  This prevents the need to override an inherited <i>register</i> directive with a value of <i>1</i> for every object that should be registered.
 </p>
 
 <p>

@@ -17,7 +17,7 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">What's New in Version 1.0</h2>
+<h2 class="PageTitle">What's New in Version 2.0</h2>
 </div>
 </p>
 
@@ -28,7 +28,7 @@
 </p>
 
 <p>
-Many of the changes described below are the direct result of this project being renamed from <i>NetSaint</i>.  Transitioning from NetSaint to Nagios will undoubtedly take some time, but it'll be well worth it.
+<font color='red'><strong>WARNING:</strong></font> Nagios 2.0 is currently in heavy development and is at present not useable for production environments.  Most changes made since 1.0 have not been documented!
 </p>
 
 
@@ -48,62 +48,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <p>
 <ol>
 
-<li><b>User/Group Change</b>.  The default user/group that Nagios runs under is now <i>nagios/nagios</i>.<br><br>
-
-<li><b>Directory Change</b>.  The default directory that Nagios gets installed in is now <i>/usr/local/nagios</i>.<br><br>
-
-<li><b>URL Changes</b>.  The base URLs for accessing the HTML files and CGIs through the web interface are now <i>/nagios/</i> and <i>/nagios/cgi-bin/</i>, respectively.<br><br>
-
-<li><b>Config File Changes</b>.  The <a href="configmain.html">main config file</a> is now <i>nagios.cfg</i> and the <a href="configcgi.html">CGI config file</a> is now <i>cgi.cfg</i>.<br><br>
-
-<li><b>Process Check Command Changes</b>.  The old process_check_command variable in the <a href="configcgi.html">CGI config file</a> has been renamed to <a href="configcgi.html#nagios_check_command">nagios_check_command</a>.  Also, if you do not specify a check command, the CGIs will assume the Nagios process is running properly.<br><br>
-
-<li><b>Archive Changes</b>.  Archived log files from Netsaint must be renamed from "netsaint-<i>date</i>.log" format to "nagios-<i>date</i>.log" format if you want to make them available to the Nagios CGIs. You can rename all your archived log files with the following command (assuming you've  already moved them to their new directory location): <font color="red">rename netsaint nagios netsaint*.log</font><br><br>
-
-<li><b>Retention File Format Change</b>.  The format of the retention file (or database, if that's what you were using) has changed to support more variables.  No conversion utility is yet available, which means you'll either have to find a way to manually convert your retention data, or lose it when you make the changeover.<br><br>
-
-<li><b>Database Schema Changes</b>.  The database schema for status, retention, comment, and extended information data  has changed.  If you were using database support previously, you'll either have to recreate the databases using the sample scripts provided in the <i>contrib/database</i> directory just alter your existing tables (an exercise which will be left to you).  Also note that the default database name is now <i>nagios</i>.<br><br>
-
-</ol>
-</p>
-
-
-<p>
-<strong><u>New Features</u></strong>
-</p>
-
-<p>
-<ol>
-
-<li><b>Template-Based Object Config File</b>.  This is probably the biggest feature which has been added.   Use of the template-based object config file format is optional, but highly recommended.  Note that the <a href="xoddefault.html">older config file format</a> is still supported if you really want it.  The template-based config file is much easier to read, modify, and expand upon compared to the older format.  It also allows you to specify host- and service-specific values for things like flap detection thresholds, flap detection and performance data processing options, etc.  If you're interested in trying out the new template-based config file format, check out the <b>convertcfg</b> utility in the <i>contrib/</i> directory of the distribution - it can be used to quickly convert your old config files to the template-based format.  More information on the template-based object config file can be found <a href="xodtemplate.html">here</a>.<br><br>
-
-<li><b>Template-Based Extended Info Config File</b>.  This is similar to the template-based object configuration file format mentioned above.  You can now store extended host and service information in a template-based config file.  More information on doing this can be found <a href="xedtemplate.html">here</a>.  If you wish, you can still use the older style of defining extended information directives in the CGI configuration file as described <a href="xeddefault.html">here</a>.<br><br>
-
-<li><b>Host Dependencies</b>.  You can now define optional host dependencies which will prevent notifications from being sent out for a host if one or more criteria fail.  In the past there have been <i>implicit</i> dependencies between hosts that are related through "parenting", but this now allows you to create explicit dependencies between unrelated hosts.  More information on dependencies can be found <a href="dependencies.html">here</a>.<br><br>
-
-<li><b>Host Escalations</b>.  You can now define optional notification escalations for specific hosts.  In the past you were only able to define escalations for entire <i>hostgroups</i>.  While this was closely matched to non-escalated notification logic, it didn't provide much flexibility.  Note that hostgroup escalations are still supported and can be used in conjunction with host escalations.  More information on notification escalations can be found <a href="escalations.html">here</a>.<br><br>
-
-<li><b>Freshness Checking</b>.  Nagios now internally handles the concept of "freshness checking" of service check results.  If freshness checking is enabled for a particular service, Nagios will force an active check of that service if the results from the last check are "stale" or "too old" (as determined by a threshold you specify).  This makes implementing <a href="distributed.html">distributed monitoring servers</a> much simpler, as you don't need an additional addon to make sure service results are "fresh".  More information on how freshness checking works can be found <a href="freshness.html">here</a>.<br><br>
-
-<li><b>Scheduled Downtime</b>.  Scheduled downtime for hosts and service is now retained across program starts.  Additionally, you can now distinguish between "fixed" and "flexible" downtime.  Fixed downtime starts and stops at absolute times, while flexible downtime starts when a host or service first goes into a problem state.  More information on scheduled downtime can be found <a href="downtime.html">here</a>.<br><br>
-
-<li><b>State Stalking</b>.  You can now enable "stalking" for different states on a per-host or per-service basis.  Stalking provides you with more information about problems when you're analyzing archived log data.  More information on state stalking can be found <a href="stalking.html">here</a>.<br><br>
-
-<li><b>File-Based Performance Data Processing</b>.  Nagios can now be compiled to dump performance data directly to a file in a format you define.  This method is must faster and requires far less overhead that the default method of processing performance data.  More information on the file-based option can be found <a href="xpdfile.html">here</a>.  General information about performance data can be found <a href="perfdata.html">here</a>.<br><br>
-
-<li><b>New Histogram CGI</b>. A new <a href="cgis.html#histogram_cgi">histogram CGI</a> has been added.  This CGI allows you to see better analyze when host and service alerts occur over various periods of time.<br><br>
-
-<li><b>New Summary CGI</b>. A new <a href="cgis.html#summary_cgi">summary CGI</a> has been added.  This CGI allows you to generated basic reports about host and service alerts over various periods of time.  Reports can be created to show alert totals, top alert producers, most recent alerts, etc.<br><br>
-
-<li><b>Statusmap CGI Improvements</b>.  Several new layout methods have been added to the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>.  You can also now specify a default layout method with the <a href="configcgi.html#default_statusmap_layout">default_statusmap_layout</a> directive.<br><br>
-
-<li><b>Availability CGI Improvements</b>.  I have made several enhancements to the code in the <a href="cgis.html#avail_cgi">availability CGI</a>, including the ability to separate scheduled downtime from non-scheduled downtime.<br><br>
-
-<li><b>Configuration Directory</b>.  You can now specify one or more directories that should be scanned for object configuration files by using the <a href="configmain.html#cfg_dir">cfg_dir</a> directive.  You can use this in conjunction with (or instead of) the <a href="configmain.html#cfg_file">cfg_file</a> directive.<br><br>
-
-<li><b>Custom CGI Headers/Footers</b>.  You can now include optional headers and footers in the CGIs.  This is most useful if you do custom Nagios installations for customers and want to include tag line, contact info, etc in each page.  More information on doing this can be found <a href="cgiincludes.html">here</a>.<br><br>
-
-<li><b>Cleaning Of Dangerous Macro Output Characters</b>.  Potentially dangerous characters can now be stripped from the $OUTPUT$ and $PERFDATA$ macros before they're used in notification commands, etc. by using the <a href="configmain.html#illegal_macro_output_chars">illegal_macro_output_chars</a> directive.  At a bare minimum, I highly recommend you strip out the characters shown in the example, or an attacker might be able to execute arbitrary commands as the nagios user!<br><br>
+<li><b>Blah</b>.  Lots o' stuff.<br><br>
 
 </ol>
 </p>

@@ -345,15 +345,15 @@ if test x$TRYGD = xyep; then
 	dnl GD > 1.8.3 requires the TrueType library to be present as well, so test for that first...
 	JMD_CHECK_LIB_ORDER(gd,gdImagePng,1,[
 			GDLIBFOUND=yep
-			GDLIBS="-lgd -lttf -lz -lm -lpng -ljpeg"
-			],:,[-lz -lttf -lm -lpng -ljpeg])
+			GDLIBS="-lgd -lttf -lpng -ljpeg -lz -lm"
+			],:,[-lttf -lpng -ljpeg -lz -lm])
  
 	dnl GD > 1.8.1 requires the jpeg library to be present as well, so test for that...
 	if test x$GDLIBFOUND = x; then
 		JMD_CHECK_LIB_ORDER(gd,gdImagePng,2,[
 			GDLIBFOUND=yep
-			GDLIBS="-lgd $ICONV -lz -lm -lpng -ljpeg"
-        		],:,[$ICONV -lz -lm -lpng -ljpeg])
+			GDLIBS="-lgd $ICONV -lpng -ljpeg -lz -lm"
+        		],:,[$ICONV -lpng -ljpeg -lz -lm])
 	fi
 
 	dnl If we failed the first test, try without jpeg library

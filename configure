@@ -2522,7 +2522,7 @@ echo "configure:2520: checking for gdImagePng in -lgd (order 1)" >&5
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-	LIBS="-lgd -lz -lttf -lm -lpng -ljpeg $LIBS"
+	LIBS="-lgd -lttf -lpng -ljpeg -lz -lm $LIBS"
 	cat > conftest.$ac_ext <<EOF
 #line 2528 "configure"
 #include "confdefs.h"
@@ -2552,7 +2552,7 @@ fi
 	  echo "$ac_t""yes" 1>&6
 	  
 			GDLIBFOUND=yep
-			GDLIBS="-lgd -lttf -lz -lm -lpng -ljpeg"
+			GDLIBS="-lgd -lttf -lpng -ljpeg -lz -lm"
 			
 	else
 	  echo "$ac_t""no" 1>&6
@@ -2568,7 +2568,7 @@ echo "configure:2566: checking for gdImagePng in -lgd (order 2)" >&5
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-	LIBS="-lgd $ICONV -lz -lm -lpng -ljpeg $LIBS"
+	LIBS="-lgd $ICONV -lpng -ljpeg -lz -lm $LIBS"
 	cat > conftest.$ac_ext <<EOF
 #line 2574 "configure"
 #include "confdefs.h"
@@ -2598,7 +2598,7 @@ fi
 	  echo "$ac_t""yes" 1>&6
 	  
 			GDLIBFOUND=yep
-			GDLIBS="-lgd $ICONV -lz -lm -lpng -ljpeg"
+			GDLIBS="-lgd $ICONV -lpng -ljpeg -lz -lm"
         		
 	else
 	  echo "$ac_t""no" 1>&6

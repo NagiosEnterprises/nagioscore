@@ -40,7 +40,7 @@ Whenever a service check results in a non-OK status level, Nagios will attempt t
 "Local" hosts are hosts that reside on the same network segment as the host running Nagios - no routers or firewalls lay between them.  <a href="#figure1">Figure 1</a> shows an example network layout.  Host A is running Nagios and monitoring all other hosts and routers depicted in the diagram.  Hosts B, C, D, E and F are all considered to be "local" hosts in relation to host A.
 </p>
 <p>
-The &lt;<i>parent_hosts</i>&gt; option in the host definition for a "local" host should be left blank, as local hosts have no depencies or "parents" - that's why they're local.
+The &lt;<i>parents</i>&gt; option in the host definition for a "local" host should be left blank, as local hosts have no depencies or "parents" - that's why they're local.
 </p>
 
 <p>
@@ -69,7 +69,7 @@ If Nagios needs to check to see if a local host is "alive" it will simply run th
 Notice that some hosts are "farther away" than others.  Hosts H, I and J are one hop further away from host A than host G (the router) is.  From this observation we can construct a host dependency tree as show below in <a href="#figure2">Figure 2</a>. This tree diagram will help us in deciding how to configure each host in Nagios.
 </p>
 <p>
-The <b>&lt;parent_hosts&gt;</b> option in the host definition for a "remote" host should be the short name(s) of the host(s) directly above it in the tree diagram (as show below).  For example, the parent host for host H would be host G.  The parent host for host G is host F.  Host F has no parent host, since it is on the network segment as host A - it is a "local" host.
+The <b>&lt;parents&gt;</b> option in the host definition for a "remote" host should be the short name(s) of the host(s) directly above it in the tree diagram (as show below).  For example, the parent host for host H would be host G.  The parent host for host G is host F.  Host F has no parent host, since it is on the network segment as host A - it is a "local" host.
 </p>
 
 <p>
@@ -83,7 +83,7 @@ The <b>&lt;parent_hosts&gt;</b> option in the host definition for a "remote" hos
 </p>
 <p>
 Checking the status of remote hosts is a bit more complicated that for local hosts.  If Nagios cannot monitor services on a remote host, it needs to determine whether the remote host is down or whether it is unreachable.  Luckily, the 
-<b>&lt;parent_hosts&gt;</b> option allows Nagios to do this.
+<b>&lt;parents&gt;</b> option allows Nagios to do this.
 </p>
 <p>
 If a host check command for a remote host returns a non-OK state, Nagios will "walk" the depency tree (as shown in the figure above) until it reaches the top (or until a parent host check results in an OK state).  By doing this, Nagios is able to determine if a service problem is the result of a down host, an down network link, or just a plain old service failure.

@@ -112,6 +112,8 @@ case "$1" in
 		echo "Starting network monitor: nagios"
 		su - $Nagios -c "touch $NagiosVar/nagios.log $NagiosSav"
 		rm -f $NagiosCmd
+		touch $NagiosRun
+		chown $Nagios:$Nagios $NagiosRun
 		$NagiosBin -d $NagiosCfg
 		if [ -d $NagiosLckDir ]; then touch $NagiosLckDir/$NagiosLckFile; fi
 		sleep 1

@@ -2,8 +2,8 @@
  *
  * EXTINFO.C -  Nagios Extended Information CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-02-2005
  *
  * License:
  * 
@@ -68,6 +68,7 @@ extern scheduled_downtime  *scheduled_downtime_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 extern hostgroup *hostgroup_list;
+extern servicegroup *servicegroup_list;
 
 
 #define MAX_MESSAGE_BUFFER		4096
@@ -333,6 +334,28 @@ int main(void){
 				printf("<DIV CLASS='data'>Service</DIV><DIV CLASS='dataTitle'>%s</DIV><DIV CLASS='data'>On Host</DIV>\n",service_desc);
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_host->alias);
 				printf("<DIV CLASS='dataTitle'>(<A HREF='%s?type=%d&host=%s'>%s</a>)</DIV><BR>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name),temp_host->name);
+                                printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
+                                for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+                                        servicegroupmember *temp_member=temp_servicegroup->members;
+                                        while(temp_member!=NULL){
+
+                                                /* we found a match */
+                                                if(!strcmp(temp_member->host_name,temp_host->name)) {
+                                                        if (found==TRUE)
+                                                                printf(", ");
+                                                        printf("<A HREF='%s?servicegroup=%s&style=overview'>%s</A>",STATUS_CGI,url_encode(temp_servicegroup->group_name),temp_servicegroup->group_name);
+                                                        found=TRUE;
+                                                        }
+
+                                                temp_member=temp_member->next;
+                                                }
+                                        }
+
+                                if(found==FALSE) {
+                                                printf("No servicegroups.");
+                                        }
+                                printf("</DIV><BR>\n");
+
 				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
 				}
 			if(display_type==DISPLAY_HOSTGROUP_INFO){

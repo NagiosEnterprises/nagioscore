@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-19-2005
+ * Last Modified:   02-03-2005
  *
  * License:
  *
@@ -5245,7 +5245,7 @@ int reset_variables(void){
 
 	date_format=DATE_FORMAT_US;
 
-	for(x=0;x<=MACRO_X_COUNT;x++)
+	for(x=0;x<MACRO_X_COUNT;x++)
 		macro_x[x]=NULL;
 
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)

@@ -5,6 +5,11 @@ Nagios Change Log
 
 2.0b2 - ??/??/????
 ------------------
+* Minor doc updates and fixes
+* Init script mods
+* Fixed bug in macro routines
+* Changed library ordering in GD configure script tests
+* Increased command buffer from 4K to 32K
 * Added ability to report on soft problem states in avail and trends CGIs
 * Fixed bug with hard service problems being reported as soft after host recoveries
 * Fixed bug with current attempt number during scheduled host checks

@@ -40,7 +40,14 @@ When creating and/or editing configuration files, keep the following in mind:
 <strong><u>Sample Configuration</u></strong>
 </p>
 <p>
-A sample CGI configuration file is created when you run the configure script - you can find the sample config file in the <i>sample-config/</i> subdirectory of the Nagios distribution.  The default name of the CGI configuration file is <b>cgi.cfg</b>.
+A sample CGI configuration file is created when you run the configure script - you can find the sample config file in the <i>sample-config/</i> subdirectory of the Nagios distribution.
+</p>
+
+<p>
+<strong><u>Config File Location</u></strong>
+</p>
+<p>
+By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b> and located in the config file directory along with the <a href="configmain.html">main config file</a>.  If you need to change the name of the file or its location, you can configure Apache to pass an environment variable named NAGIOS_CGI_CONFIG (which points to the correct location) to the CGIs.  See the Apache documentation for information on how to do this. 
 </p>
 
 <p>

@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-29-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-02-2005
  *
  * License:
  * 
@@ -902,9 +902,10 @@ void request_command_data(int cmd){
 
 	printf("<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=1 CLASS='optBox'>\n");
 	printf("<TR><TD CLASS='optBoxItem'>\n");
+	printf("<form method='post' action='%s'>\n", COMMAND_CGI);
 	printf("<TABLE CELLSPACING=0 CELLPADDING=0 CLASS='optBox'>\n");
 
-	printf("<tr><td CLASS='optBoxItem'><form method='post' action='%s'></td><td><INPUT TYPE='HIDDEN' NAME='cmd_typ' VALUE='%d'><INPUT TYPE='HIDDEN' NAME='cmd_mod' VALUE='%d'></td></tr>\n",COMMAND_CGI,cmd,CMDMODE_COMMIT);
+	printf("<tr><td><INPUT TYPE='HIDDEN' NAME='cmd_typ' VALUE='%d'><INPUT TYPE='HIDDEN' NAME='cmd_mod' VALUE='%d'></td></tr>\n",cmd,CMDMODE_COMMIT);
 
 	switch(cmd){
 
@@ -1309,10 +1310,10 @@ void request_command_data(int cmd){
 
 
 	printf("<tr><td CLASS='optBoxItem' COLSPAN=2></td></tr>\n");
-	printf("<tr><td CLASS='optBoxItem'></td><td CLASS='optBoxItem'><INPUT TYPE='submit' NAME='btnSubmit' VALUE='Commit'> <INPUT TYPE='reset' VALUE='Reset'></FORM></td></tr>\n");
+	printf("<tr><td CLASS='optBoxItem'></td><td CLASS='optBoxItem'><INPUT TYPE='submit' NAME='btnSubmit' VALUE='Commit'> <INPUT TYPE='reset' VALUE='Reset'></td></tr>\n");
 
 	printf("</table>\n");
-
+	printf("</form>\n");	
 	printf("</td>\n");
 	printf("</tr>\n");
 	printf("</table>\n");

@@ -268,7 +268,7 @@ cd ..
 install -m 0644 include/locations.h ${RPM_BUILD_ROOT}%{_prefix}/include/nagios
 
 # install httpd configuration in RH80-style httpd config subdir
- cp sample-contrib/httpd.conf ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
+cp sample-config/httpd.conf ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
 
 # install CGIs
 cd contrib

@@ -797,15 +797,15 @@ void reap_service_checks(void){
 			state_change=TRUE;
 		        }
 
-#ifdef REMOVED_041403
 		/* checks for a hard state change where host was down at last service check */
+		/* this occurs in the case where host goes down and service current attempt gets reset to 1 */
+		/* if this check is not made, the service recovery looks like a soft recovery instead of a hard one */
 		if(temp_service->host_problem_at_last_check==TRUE && temp_service->current_state==STATE_OK){
 #ifdef DEBUG3
 			printf("\t\tService '%s' on host '%s' has had a HARD STATE CHANGE!!\n",temp_service->description,temp_service->host_name);
 #endif
 			hard_state_change=TRUE;
 	                }
-#endif
 
 		/* check for a "normal" hard state change where max check attempts is reached */
 		if(temp_service->current_attempt>=temp_service->max_attempts && temp_service->current_state!=temp_service->last_hard_state){
@@ -1868,9 +1868,9 @@ int check_host(host *hst, int propagation_options, int check_options){
 				        }
 			        }
 
-			/*** SOFT RECOVERY OR ERROR STATE ***/
-			/* handle any soft states (during host check retries that return a non-ok state) */
-			else if(result!=HOST_UP || (result==HOST_UP && hst->current_attempt!=1)){
+			/*** SOFT ERROR STATE ***/
+			/* handle any soft error states (during host check retries that return a non-ok state) */
+			else if(result!=HOST_UP){
 
 				/* update the current host state */
 				hst->current_state=result;
@@ -1883,9 +1883,26 @@ int check_host(host *hst, int propagation_options, int check_options){
 				update_host_status(hst,FALSE);
 			        }
 
-			/*** RECOVERY/OK STATE ***/
-			/* the host recovered (or it was never down), so break out of the check loop */
-			if(result==HOST_UP){
+			/*** SOFT RECOVERY STATE ***/
+			/* handle any soft recovery states (during host check retries that return an ok state) */
+			else if(result==HOST_UP && hst->current_attempt!=1){
+
+				/* update the current host state */
+				hst->current_state=result;
+
+				/* handle the host state */
+				handle_host_state(hst);
+
+				/* update the status log with the current host info */
+				/* this needs to be called to update status data on soft error states */
+				update_host_status(hst,FALSE);
+
+				break;
+			        }
+
+			/*** UNCHANGED OK STATE ***/
+			/* the host never went down */
+			else if(result==HOST_UP){
 
 				/* update the current host state */
 				hst->current_state=HOST_UP;

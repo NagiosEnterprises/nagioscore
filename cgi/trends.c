@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 05-19-2002
  *
  * License:
  * 
@@ -2402,38 +2402,43 @@ void write_popup_code(void){
 	int padding=3;
 	int x_offset=3;
 	int y_offset=3;
-	char *font="face='Verdana, Arial, Helvetica, sans-serif' size=2";
 
 	printf("<SCRIPT LANGUAGE='JavaScript'>\n");
 	printf("<!--\n");
 	printf("// JavaScript popup based on code originally found at http://www.helpmaster.com/htmlhelp/javascript/popjbpopup.htm\n");
 	printf("function showPopup(text, eventObj){\n");
+	printf("if(!document.all && document.getElementById)\n");
+	printf("{ document.all=document.getElementsByTagName(\"*\")}\n");
 	printf("ieLayer = 'document.all[\\'popup\\']';\n");
 	printf("nnLayer = 'document.layers[\\'popup\\']';\n");
+	printf("moLayer = 'document.getElementById(\\'popup\\')';\n");
 
-	printf("if(!(document.all||document.layers)) return;\n");
+	printf("if(!(document.all||document.layers||document.documentElement)) return;\n");
 
-	printf("if(document.all) document.popup=eval(ieLayer);\n");
-	printf("else document.popup=eval(nnLayer);\n");
+	printf("if(document.all) { document.popup=eval(ieLayer); }\n");
+	printf("else {\n");
+	printf("  if (document.documentElement) document.popup=eval(moLayer);\n");
+	printf("  else document.popup=eval(nnLayer);\n");
+	printf("}\n");
 
 	printf("var table = \"\";\n");
 
-	printf("if (document.all){\n");
+	printf("if (document.all||document.documentElement){\n");
 	printf("table += \"<table bgcolor='%s' border=%d cellpadding=%d cellspacing=0>\";\n",background_color,border,padding);
 	printf("table += \"<tr><td>\";\n");
 	printf("table += \"<table cellspacing=0 cellpadding=%d>\";\n",padding);
-	printf("table += \"<tr><td bgcolor='%s'><font %s>\" + text + \"</font></td></tr>\";\n",background_color,font);
+	printf("table += \"<tr><td bgcolor='%s' class='popupText'>\" + text + \"</td></tr>\";\n",background_color);
 	printf("table += \"</table></td></tr></table>\"\n");
 	printf("document.popup.innerHTML = table;\n");
-	printf("document.popup.style.left = eventObj.x + %d;\n",x_offset);
-	printf("document.popup.style.top  = eventObj.y + %d;\n",y_offset);
+	printf("document.popup.style.left = (document.all ? eventObj.x : eventObj.layerX) + %d;\n",x_offset);
+	printf("document.popup.style.top  = (document.all ? eventObj.y : eventObj.layerY) + %d;\n",y_offset);
 	printf("document.popup.style.visibility = \"visible\";\n");
 	printf("} \n");
  
 
 	printf("else{\n");
 	printf("table += \"<table cellpadding=%d border=%d cellspacing=0 bordercolor='%s'>\";\n",padding,border,border_color);
-	printf("table += \"<tr><td bgcolor='%s'><font %s>\" + text + \"</font></td></tr></table>\";\n",background_color,font);
+	printf("table += \"<tr><td bgcolor='%s' class='popupText'>\" + text + \"</td></tr></table>\";\n",background_color);
 	printf("document.popup.document.open();\n");
 	printf("document.popup.document.write(table);\n");
 	printf("document.popup.document.close();\n");
@@ -2456,9 +2461,9 @@ void write_popup_code(void){
 	printf("}\n");
 
 	printf("function hidePopup(){ \n");
-	printf("if (!(document.all || document.layers)) return;\n");
+	printf("if (!(document.all || document.layers || document.documentElement)) return;\n");
 	printf("if (document.popup == null){ }\n");
-	printf("else if (document.all) document.popup.style.visibility = \"hidden\";\n");
+	printf("else if (document.all||document.documentElement) document.popup.style.visibility = \"hidden\";\n");
 	printf("else document.popup.visibility = \"hidden\";\n");
 	printf("document.popup = null;\n");
 	printf("}\n");

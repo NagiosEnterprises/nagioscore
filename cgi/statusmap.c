@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 05-19-2002
  *
  * Description:
  *
@@ -2262,6 +2262,8 @@ void write_popup_code(void){
 	printf("<!--\n");
 	printf("// JavaScript popup based on code originally found at http://www.helpmaster.com/htmlhelp/javascript/popjbpopup.htm\n");
 	printf("function showPopup(text, eventObj){\n");
+	printf("if(!document.all && document.getElementById)\n");
+	printf("{ document.all=document.getElementsByTagName(\"*\")}\n");
 	printf("ieLayer = 'document.all[\\'popup\\']';\n");
 	printf("nnLayer = 'document.layers[\\'popup\\']';\n");
 	printf("moLayer = 'document.getElementById(\\'popup\\')';\n");

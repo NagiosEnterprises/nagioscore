@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 09-13-2003
  *
  * License:
  *
@@ -1165,6 +1165,60 @@ char *my_strsep (char **stringp, const char *delim){
 
 	return begin;
 	}
+
+
+/* reads a line from a file, dynamically allocating memory */
+char *my_fgets(char **buf, int max_bytes, FILE *fp){
+	int bytes_read=0;
+	int bytes_to_read=0;
+	int total_bytes_read=0;
+	char temp_buf[1024];
+	int bytes_allocated=0;
+	char *res;
+
+	if(fp==NULL || buf==NULL)
+		return NULL;
+
+	*buf=NULL;
+
+	while(1){
+
+		/* how many bytes should we read? */
+		bytes_to_read=max_bytes-total_bytes_read;
+		if(bytes_to_read>sizeof(temp_buf))
+			bytes_to_read=sizeof(temp_buf);
+
+		/* read from the file */
+		res=fgets(temp_buf,bytes_to_read,fp);
+
+		/* EOF */
+		if(res==NULL)
+			break;
+
+		bytes_read=strlen(temp_buf);
+		total_bytes_read+=bytes_read;
+
+		/* allocate memory for data */
+		bytes_allocated=total_bytes_read+1;
+		*buf=(char *)realloc(*buf,bytes_allocated);
+		if(*buf==NULL)
+			break;
+
+		/* copy data to buffer */
+		strncpy(*buf+(bytes_allocated-bytes_read-1),temp_buf,bytes_read);
+		(*buf)[bytes_allocated-1]='\x0';
+
+		/* we've already read max bytes */
+		if(bytes_read>=max_bytes)
+			break;
+
+		/* we've read an entire line */
+		if((*buf)[strlen(*buf)-1]=='\n')
+			break;
+	        }
+
+	return *buf;
+        }
 
 
 /* get days, hours, minutes, and seconds from a raw time_t format or total seconds */

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-06-2003
+ * Last Modified: 09-13-2003
  *
  * Description:
  *
@@ -340,7 +340,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-		result=ERROR;
+		return ERROR;
 	        }
 
 	/* process all files in the directory... */
@@ -403,12 +403,13 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 /* process data in a specific config file */
 int xodtemplate_process_config_file(char *filename, int options){
 	FILE *fp;
-	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
+	char *input=NULL;
 	register int in_definition=FALSE;
 	register int current_line=0;
 	int result=OK;
 	register int x;
 	register int y;
+	char *ptr;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -444,13 +445,17 @@ int xodtemplate_process_config_file(char *filename, int options){
 	        }
 
 	/* read in all lines from the config file */
-	while(fgets(input,sizeof(input)-1,fp)){
+	while(my_fgets(&input,65536,fp)){
 
 		current_line++;
 
 		/* skip empty lines */
-		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n')
+		if(input==NULL)
 			continue;
+		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n'){
+			free(input);
+			continue;
+		        }
 
 		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
 		for(x=0;input[x]!='\x0';x++)
@@ -462,8 +467,10 @@ int xodtemplate_process_config_file(char *filename, int options){
 		strip(input);
 
 		/* skip blank lines */
-		if(input[0]=='\x0')
+		if(input[0]=='\x0'){
+			free(input);
 			continue;
+		        }
 
 		/* this is the start of an object definition */
 		if(strstr(input,"define")==input){
@@ -544,18 +551,65 @@ int xodtemplate_process_config_file(char *filename, int options){
 			        }
 		        }
 
-		/* this is a directive inside an object definition */
+		/* we're currently inside an object definition */
 		else if(in_definition==TRUE){
 
-			/* add directive to object definition */
-			if(xodtemplate_add_object_property(input,options)==ERROR){
+			/* this is the close of an object definition */
+			if(!strcmp(input,"}")){
+
+				in_definition=FALSE;
+
+				/* close out current definition */
+				if(xodtemplate_end_object_definition(options)==ERROR){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add object property in file '%s' on line %d.\n",filename,current_line);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-				result=ERROR;
-				break;
+					result=ERROR;
+					break;
+			                }
+		                }
+
+			/* this is a directive inside an object definition */
+			else{
+
+				/* add directive to object definition */
+				if(xodtemplate_add_object_property(input,options)==ERROR){
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add object property in file '%s' on line %d.\n",filename,current_line);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					result=ERROR;
+					break;
+				        }
+			        }
+		        }
+
+		/* include another file */
+		else if(strstr(input,"include_file=")==input){
+
+			ptr=strtok(input,"=");
+			ptr=strtok(NULL,"\n");
+
+			if(ptr!=NULL){
+				result=xodtemplate_process_config_file(ptr,options);
+				if(result==ERROR)
+					break;
+			        }
+		        }
+
+		/* include a directory */
+		else if(strstr(input,"include_dir")==input){
+
+			ptr=strtok(input,"=");
+			ptr=strtok(NULL,"\n");
+
+			if(ptr!=NULL){
+				result=xodtemplate_process_config_dir(ptr,options);
+				if(result==ERROR)
+					break;
 			        }
 		        }
 
@@ -569,6 +623,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 			result=ERROR;
 			break;
 		        }
+
+		/* free allocated memory */
+		free(input);
 	        }
 
 	/* close file */

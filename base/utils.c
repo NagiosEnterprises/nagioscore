@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-03-2003
+ * Last Modified:   09-13-2003
  *
  * License:
  *
@@ -2869,6 +2869,7 @@ int write_svc_message(service_message *message){
 /* creates external command file as a named pipe (FIFO) and opens it for reading (non-blocked mode) */
 int open_command_file(void){
 	char buffer[MAX_INPUT_BUFFER];
+	struct stat st;
  	int result;
 
 #ifdef DEBUG0
@@ -2886,14 +2887,18 @@ int open_command_file(void){
 	/* reset umask (group needs write permissions) */
 	umask(S_IWOTH);
 
-	/* create the external command file as a named pipe (FIFO) */
-	if((result=mkfifo(command_file,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))!=0){
+	/* use existing FIFO if possible */
+	if(!(stat(command_file,&st)!=-1 && (st.st_mode & S_IFIFO))){
 
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n",command_file,errno,strerror(errno));
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		/* create the external command file as a named pipe (FIFO) */
+		if((result=mkfifo(command_file,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))!=0){
 
-		return ERROR;
+			snprintf(buffer,sizeof(buffer)-1,"Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n",command_file,errno,strerror(errno));
+			buffer[sizeof(buffer)-1]='\x0';
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+
+			return ERROR;
+		        }
 	        }
 
 	/* open the command file for reading (non-blocked) - O_TRUNC flag cannot be used due to errors on some systems */
@@ -2968,8 +2973,10 @@ int close_command_file(void){
 	fclose(command_file_fp);
 	
 	/* delete the named pipe */
+	/*
 	if(unlink(command_file)!=0)
 		return ERROR;
+	*/
 
 #ifdef DEBUG0
 	printf("close_command_file() end\n");
@@ -3189,6 +3196,60 @@ char *my_strsep (char **stringp, const char *delim){
 
 	return begin;
 	}
+
+
+/* reads a line from a file, dynamically allocating memory */
+char *my_fgets(char **buf, int max_bytes, FILE *fp){
+	int bytes_read=0;
+	int bytes_to_read=0;
+	int total_bytes_read=0;
+	char temp_buf[1024];
+	int bytes_allocated=0;
+	char *res;
+
+	if(fp==NULL || buf==NULL)
+		return NULL;
+
+	*buf=NULL;
+
+	while(1){
+
+		/* how many bytes should we read? */
+		bytes_to_read=max_bytes-total_bytes_read;
+		if(bytes_to_read>sizeof(temp_buf))
+			bytes_to_read=sizeof(temp_buf);
+
+		/* read from the file */
+		res=fgets(temp_buf,bytes_to_read,fp);
+
+		/* EOF */
+		if(res==NULL)
+			break;
+
+		bytes_read=strlen(temp_buf);
+		total_bytes_read+=bytes_read;
+
+		/* allocate memory for data */
+		bytes_allocated=total_bytes_read+1;
+		*buf=(char *)realloc(*buf,bytes_allocated);
+		if(*buf==NULL)
+			break;
+
+		/* copy data to buffer */
+		strncpy(*buf+(bytes_allocated-bytes_read-1),temp_buf,bytes_read);
+		(*buf)[bytes_allocated-1]='\x0';
+
+		/* we've already read max bytes */
+		if(bytes_read>=max_bytes)
+			break;
+
+		/* we've read an entire line */
+		if((*buf)[strlen(*buf)-1]=='\n')
+			break;
+	        }
+
+	return *buf;
+        }
 
 
 

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-26-2004
+ * Last Modified:   06-23-2004
  *
  * License:
  *
@@ -1645,6 +1645,10 @@ void check_service_result_freshness(void){
 		if(temp_service->is_being_freshened==TRUE)
 			continue;
 
+		/* see if the time is right... */
+		if(check_time_against_period(current_time,temp_service->check_period)==ERROR)
+			continue;
+
 		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
 		if(temp_service->freshness_threshold==0){
 			if(temp_service->state_type==HARD_STATE || temp_service->current_state==STATE_OK)
@@ -1864,6 +1868,10 @@ void check_host_result_freshness(void){
 
 		/* skip hosts that are already being freshened */
 		if(temp_host->is_being_freshened==TRUE)
+			continue;
+
+		/* see if the time is right... */
+		if(check_time_against_period(current_time,temp_host->check_period)==ERROR)
 			continue;
 
 		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */

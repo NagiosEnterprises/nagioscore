@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-22-2003
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2004
  *
  * License:
  *
@@ -85,6 +85,11 @@ extern int aggregate_status_updates;
 
 extern host *host_list;
 extern service *service_list;
+
+extern unsigned long  modified_host_process_attributes;
+extern unsigned long  modified_service_process_attributes;
+extern char           *global_host_event_handler;
+extern char           *global_service_event_handler;
 #endif
 
 
@@ -289,6 +294,8 @@ int xsddefault_save_status_data(void){
 
 	/* save program status data */
 	fprintf(fp,"program {\n");
+	fprintf(fp,"\tmodified_host_attributes=%lu\n",modified_host_process_attributes);
+	fprintf(fp,"\tmodified_service_attributes=%lu\n",modified_service_process_attributes);
 	fprintf(fp,"\tnagios_pid=%d\n",nagios_pid);
 	fprintf(fp,"\tdaemon_mode=%d\n",daemon_mode);
 	fprintf(fp,"\tprogram_start=%lu\n",program_start);
@@ -305,6 +312,8 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tenable_flap_detection=%d\n",enable_flap_detection);
 	fprintf(fp,"\tenable_failure_prediction=%d\n",enable_failure_prediction);
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
+	fprintf(fp,"\tglobal_host_event_handler=%s\n",(global_host_event_handler==NULL)?"":global_host_event_handler);
+	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
 	fprintf(fp,"\t}\n\n");
 
 
@@ -313,6 +322,9 @@ int xsddefault_save_status_data(void){
 
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
+		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
+		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
+		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_host->execution_time);
@@ -365,6 +377,9 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"service {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_service->host_name);
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
+		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
+		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
+		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_service->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_service->execution_time);
@@ -532,6 +547,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				break;
 
 			case XSDDEFAULT_PROGRAM_DATA:
+				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(!strcmp(var,"nagios_pid"))
 					nagios_pid=atoi(val);
 				else if(!strcmp(var,"daemon_mode"))
@@ -567,6 +583,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				break;
 
 			case XSDDEFAULT_HOST_DATA:
+				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(temp_hoststatus!=NULL){
 					if(!strcmp(var,"host_name"))
 						temp_hoststatus->host_name=strdup(val);
@@ -658,6 +675,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				break;
 
 			case XSDDEFAULT_SERVICE_DATA:
+				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(temp_servicestatus!=NULL){
 					if(!strcmp(var,"host_name"))
 						temp_servicestatus->host_name=strdup(val);

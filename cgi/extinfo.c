@@ -2,8 +2,8 @@
  *
  * EXTINFO.C -  Nagios Extended Information CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-24-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-05-2004
  *
  * License:
  * 
@@ -92,6 +92,7 @@ void show_service_info(void);
 void show_all_comments(void);
 void show_performance_data(void);
 void show_hostgroup_info(void);
+void show_servicegroup_info(void);
 void show_all_downtime(void);
 void show_scheduling_queue(void);
 void display_comments(int);
@@ -106,6 +107,7 @@ sortdata *sortdata_list=NULL;
 
 char *host_name="";
 char *hostgroup_name="";
+char *servicegroup_name="";
 char *service_desc="";
 
 int display_type=DISPLAY_PROCESS_INFO;
@@ -125,6 +127,7 @@ int main(void){
 	serviceextinfo *temp_serviceextinfo=NULL;
 	host *temp_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
+	servicegroup *temp_servicegroup=NULL;
 	
 
 	/* get the arguments passed in the URL */
@@ -195,6 +198,8 @@ int main(void){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Performance Information");
 		else if(display_type==DISPLAY_HOSTGROUP_INFO)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Hostgroup Information");
+		else if(display_type==DISPLAY_SERVICEGROUP_INFO)
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Servicegroup Information");
 		else if(display_type==DISPLAY_DOWNTIME)
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"All Host and Service Scheduled Downtime");
 		else if(display_type==DISPLAY_SCHEDULING_QUEUE)
@@ -226,7 +231,11 @@ int main(void){
 		else if(display_type==DISPLAY_HOSTGROUP_INFO)
 			temp_hostgroup=find_hostgroup(hostgroup_name);
 
-		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL)){
+		/* find the servicegroup */
+		else if(display_type==DISPLAY_SERVICEGROUP_INFO)
+			temp_servicegroup=find_servicegroup(servicegroup_name);
+
+		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
 			printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
 			printf("<TR><TD CLASS='linkBox'>\n");
 			if(display_type==DISPLAY_SERVICE_INFO)
@@ -266,6 +275,12 @@ int main(void){
 				printf("<A HREF='%s?hostgroup=%s&style=grid'>View Status Grid For This Hostgroup</A><BR>\n",STATUS_CGI,url_encode(hostgroup_name));
 				printf("<A HREF='%s?hostgroup=%s'>View Availability For This Hostgroup</A><BR>\n",AVAIL_CGI,url_encode(hostgroup_name));
 		                }
+			else if(display_type==DISPLAY_SERVICEGROUP_INFO){
+				printf("<A HREF='%s?servicegroup=%s&style=detail'>View Status Detail For This Servicegroup</A><BR>\n",STATUS_CGI,url_encode(servicegroup_name));
+				printf("<A HREF='%s?servicegroup=%s&style=overview'>View Status Overview For This Servicegroup</A><BR>\n",STATUS_CGI,url_encode(servicegroup_name));
+				printf("<A HREF='%s?servicegroup=%s&style=grid'>View Status Grid For This Servicegroup</A><BR>\n",STATUS_CGI,url_encode(servicegroup_name));
+				printf("<A HREF='%s?servicegroup=%s'>View Availability For This Servicegroup</A><BR>\n",AVAIL_CGI,url_encode(servicegroup_name));
+		                }
 			printf("</TD></TR>\n");
 			printf("</TABLE>\n");
 	                }
@@ -275,7 +290,7 @@ int main(void){
 		/* middle column of top row */
 		printf("<td align=center valign=center width=33%%>\n");
 
-		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL)){
+		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
 
 			if(display_type==DISPLAY_SERVICE_INFO)
 				printf("<DIV CLASS='data'>Service</DIV><DIV CLASS='dataTitle'>%s</DIV><DIV CLASS='data'>On Host</DIV>\n",service_desc);
@@ -290,6 +305,11 @@ int main(void){
 				printf("<DIV CLASS='data'>Hostgroup</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_hostgroup->alias);
 				printf("<DIV CLASS='dataTitle'>(%s)</DIV>\n",temp_hostgroup->group_name);
+			        }
+			if(display_type==DISPLAY_SERVICEGROUP_INFO){
+				printf("<DIV CLASS='data'>Servicegroup</DIV>\n");
+				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_servicegroup->alias);
+				printf("<DIV CLASS='dataTitle'>(%s)</DIV>\n",temp_servicegroup->group_name);
 			        }
 
 			if(display_type==DISPLAY_SERVICE_INFO){
@@ -371,6 +391,8 @@ int main(void){
 			display_context_help(CONTEXTHELP_EXT_SERVICE);
 		else if(display_type==DISPLAY_HOSTGROUP_INFO)
 			display_context_help(CONTEXTHELP_EXT_HOSTGROUP);
+		else if(display_type==DISPLAY_SERVICEGROUP_INFO)
+			display_context_help(CONTEXTHELP_EXT_SERVICEGROUP);
 		else if(display_type==DISPLAY_PROCESS_INFO)
 			display_context_help(CONTEXTHELP_EXT_PROCESS);
 		else if(display_type==DISPLAY_PERFORMANCE)
@@ -402,6 +424,8 @@ int main(void){
 		show_performance_data();
 	else if(display_type==DISPLAY_HOSTGROUP_INFO)
 		show_hostgroup_info();
+	else if(display_type==DISPLAY_SERVICEGROUP_INFO)
+		show_servicegroup_info();
 	else if(display_type==DISPLAY_DOWNTIME)
 		show_all_downtime();
 	else if(display_type==DISPLAY_SCHEDULING_QUEUE)
@@ -513,6 +537,8 @@ int process_cgivars(void){
 				display_type=DISPLAY_PERFORMANCE;
 			else if(temp_type==DISPLAY_HOSTGROUP_INFO)
 				display_type=DISPLAY_HOSTGROUP_INFO;
+			else if(temp_type==DISPLAY_SERVICEGROUP_INFO)
+				display_type=DISPLAY_SERVICEGROUP_INFO;
 			else if(temp_type==DISPLAY_DOWNTIME)
 				display_type=DISPLAY_DOWNTIME;
 			else if(temp_type==DISPLAY_SCHEDULING_QUEUE)
@@ -558,6 +584,19 @@ int process_cgivars(void){
 			service_desc=strdup(variables[x]);
 			if(service_desc==NULL)
 				service_desc="";
+			}
+
+		/* we found the servicegroup name */
+		else if(!strcmp(variables[x],"servicegroup")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			servicegroup_name=strdup(variables[x]);
+			if(servicegroup_name==NULL)
+				servicegroup_name="";
 			}
 
 		/* we found the sort type argument */
@@ -1595,6 +1634,14 @@ void show_hostgroup_info(void){
 
 	return;
 	}
+
+
+
+
+void show_servicegroup_info(){
+
+	return;
+        }
 
 
 

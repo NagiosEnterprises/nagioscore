@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-08-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2004
  *
  * License:
  *
@@ -2485,36 +2485,42 @@ int cmd_change_command(int cmd,char *args){
 		free(global_host_event_handler);
 		global_host_event_handler=temp_ptr;
 		modified_host_process_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		update_program_status(FALSE);
 		break;
 
 	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 		free(global_service_event_handler);
 		global_service_event_handler=temp_ptr;
 		modified_service_process_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		update_program_status(FALSE);
 		break;
 
 	case CMD_CHANGE_HOST_EVENT_HANDLER:
 		free(temp_host->event_handler);
 		temp_host->event_handler=temp_ptr;
 		temp_host->modified_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		update_host_status(temp_host,FALSE);
 		break;
 
 	case CMD_CHANGE_HOST_CHECK_COMMAND:
 		free(temp_host->host_check_command);
 		temp_host->host_check_command=temp_ptr;
 		temp_host->modified_attributes|=MODATTR_CHECK_COMMAND;
+		update_host_status(temp_host,FALSE);
 		break;
 
 	case CMD_CHANGE_SVC_EVENT_HANDLER:
 		free(temp_service->event_handler);
 		temp_service->event_handler=temp_ptr;
 		temp_service->modified_attributes|=MODATTR_EVENT_HANDLER_COMMAND;
+		update_service_status(temp_service,FALSE);
 		break;
 
 	case CMD_CHANGE_SVC_CHECK_COMMAND:
 		free(temp_service->service_check_command);
 		temp_service->service_check_command=temp_ptr;
 		temp_service->modified_attributes|=MODATTR_CHECK_COMMAND;
+		update_service_status(temp_service,FALSE);
 		break;
 
 	default:

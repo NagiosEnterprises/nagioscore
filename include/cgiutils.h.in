@@ -1,8 +1,8 @@
 /************************************************************************
  *
  * CGIUTILS.H - Header file for common CGI functions
- * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2003
+ * Copyright (c) 1999-2004  Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-05-2004
  *
  * License:
  * 
@@ -355,6 +355,7 @@
 #define CONTEXTHELP_EXT_COMMENTS	"I6"
 #define CONTEXTHELP_EXT_DOWNTIME	"I7"
 #define CONTEXTHELP_EXT_QUEUE		"I8"
+#define CONTEXTHELP_EXT_SERVICEGROUP	"I9"
 
 #define CONTEXTHELP_CMD_INPUT		"J1"
 #define CONTEXTHELP_CMD_COMMIT		"J2"

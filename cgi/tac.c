@@ -2,8 +2,8 @@
  *
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-02-2003
+ * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-05-2004
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -1097,10 +1097,10 @@ void display_tac_overview(void){
 	printf("<tr><td colspan=4 height=20 class='hostTitle'>&nbsp;Hosts</td></tr>\n");
 
 	printf("<tr>\n");
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Down</a></td>\n",STATUS_CGI,HOST_DOWN,hosts_down);
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Unreachable</a></td>\n",STATUS_CGI,HOST_UNREACHABLE,hosts_unreachable);
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Up</a></td>\n",STATUS_CGI,HOST_UP,hosts_up);
-	printf("<td class='hostHeader' width=125><a href='%s?host=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Pending</a></td>\n",STATUS_CGI,HOST_PENDING,hosts_pending);
+	printf("<td class='hostHeader' width=125><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Down</a></td>\n",STATUS_CGI,HOST_DOWN,hosts_down);
+	printf("<td class='hostHeader' width=125><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Unreachable</a></td>\n",STATUS_CGI,HOST_UNREACHABLE,hosts_unreachable);
+	printf("<td class='hostHeader' width=125><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Up</a></td>\n",STATUS_CGI,HOST_UP,hosts_up);
+	printf("<td class='hostHeader' width=125><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d' class='hostHeader'>%d Pending</a></td>\n",STATUS_CGI,HOST_PENDING,hosts_pending);
 	printf("</tr>\n");
 
 	printf("<tr>\n");
@@ -1116,16 +1116,16 @@ void display_tac_overview(void){
 	printf("<table border=0 width=100%%>\n");
 
 	if(hosts_down_unacknowledged>0)
-		printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled Problems</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_NO_SCHEDULED_DOWNTIME|HOST_STATE_UNACKNOWLEDGED|HOST_CHECKS_ENABLED,hosts_down_unacknowledged);
+		printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled Problems</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_NO_SCHEDULED_DOWNTIME|HOST_STATE_UNACKNOWLEDGED|HOST_CHECKS_ENABLED,hosts_down_unacknowledged);
 
 	if(hosts_down_scheduled>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_SCHEDULED_DOWNTIME,hosts_down_scheduled);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_SCHEDULED_DOWNTIME,hosts_down_scheduled);
 
 	if(hosts_down_acknowledged>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_STATE_ACKNOWLEDGED,hosts_down_acknowledged);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_STATE_ACKNOWLEDGED,hosts_down_acknowledged);
 
 	if(hosts_down_disabled>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_CHECKS_DISABLED,hosts_down_disabled);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_DOWN,HOST_CHECKS_DISABLED,hosts_down_disabled);
 
 	printf("</table>\n");
 	printf("</td>\n");
@@ -1150,13 +1150,13 @@ void display_tac_overview(void){
 		printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled Problems</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_NO_SCHEDULED_DOWNTIME|HOST_STATE_UNACKNOWLEDGED|HOST_CHECKS_ENABLED,hosts_unreachable_unacknowledged);
 
 	if(hosts_unreachable_scheduled>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_SCHEDULED_DOWNTIME,hosts_unreachable_scheduled);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_SCHEDULED_DOWNTIME,hosts_unreachable_scheduled);
 
 	if(hosts_unreachable_acknowledged>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_STATE_ACKNOWLEDGED,hosts_unreachable_acknowledged);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_STATE_ACKNOWLEDGED,hosts_unreachable_acknowledged);
 
 	if(hosts_unreachable_disabled>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_CHECKS_DISABLED,hosts_unreachable_disabled);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_UNREACHABLE,HOST_CHECKS_DISABLED,hosts_unreachable_disabled);
 
 	printf("</table>\n");
 	printf("</td>\n");
@@ -1178,7 +1178,7 @@ void display_tac_overview(void){
 	printf("<table border=0 width=100%%>\n");
 
 	if(hosts_up_disabled>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_UP,HOST_CHECKS_DISABLED,hosts_up_disabled);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_UP,HOST_CHECKS_DISABLED,hosts_up_disabled);
 
 	printf("</table>\n");
 	printf("</td>\n");
@@ -1200,7 +1200,7 @@ void display_tac_overview(void){
 	printf("<table border=0 width=100%%>\n");
 
 	if(hosts_pending_disabled>0)
-		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?host=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_PENDING,HOST_CHECKS_DISABLED,hosts_pending_disabled);
+		printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?hostgroup=all&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,HOST_PENDING,HOST_CHECKS_DISABLED,hosts_pending_disabled);
 
 	printf("</table>\n");
 	printf("</td>\n");

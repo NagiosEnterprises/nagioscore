@@ -39,6 +39,7 @@ This documentation attempts to explain how you can exploit the (somewhat) hidden
 <li><a href="#servicedependency">Service dependencies</a>
 <li><a href="#hostescalation">Host escalations</a>
 <li><a href="#hostdependency">Host dependencies</a>
+<li><a href="#hostgroup">Hostgroups</a>
 <li><a href="#hostgroupescalation">Hostgroup escalations</a>
 </ul>
 </p>
@@ -349,6 +350,29 @@ The definition above would be equivalent to creating six seperate host dependenc
 
 <p>
 In the example above, all hosts in hostgroups <i>HOSTGROUP3</i> and <i>HOSTGROUP4</i> would be dependent on all hosts in hostgroups <i>HOSTGROUP1</i> and <i>HOSTGROUP2</i>.  All the instances of the host dependencies would be identical except for  host names (i.e. have the same notification failure criteria, etc.).
+</p>
+
+<a name="hostgroup"></a>
+<p>
+<strong><u>Hostgroups</u></strong>
+</p>
+
+<p>
+<b>All Hosts:</b> If you want to create a hostgroup that has all hosts that are defined in your configuration files as members, you can use a wildcard in the <i>members</i> directive as follows:
+</p>
+
+<p>
+<pre>
+	define <i>hostgroup</i>{
+		<i>hostgroup_name</i>		<i>HOSTGROUP1</i>
+		<font color="red">members			<i>*</i></font>
+		<i>other hostgroup directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+The definition above would create a hostgroup called <i>HOSTGROUP1</i> that has all <b>all hosts</b> that are defined in your configuration files as members.
 </p>
 
 <a name="hostgroupescalation"></a>

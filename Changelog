@@ -7,6 +7,7 @@ Nagios Change Log
 ------------------
 * Added wildcards and multiple hosts/hostgroups to host dependency
   and service dependency definitions
+* Added wildcard support for members directive in hostgroup definitions
 * Minor bug fixes and cleanups in CGIs
 * Minor cleanups in the core
 * Makefile fixes

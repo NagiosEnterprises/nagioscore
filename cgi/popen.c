@@ -29,6 +29,9 @@
 
 #include "popen.h"
 
+pid_t *childpid;
+int *childerr;
+
 
 /* 4.3BSD Reno <signal.h> doesn't define SIG_ERR */
 #if defined(SIG_IGN) && !defined(SIG_ERR)

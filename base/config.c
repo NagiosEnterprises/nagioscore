@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-13-2003
+ * Last Modified:   06-19-2003
  *
  * License:
  *
@@ -2351,6 +2351,15 @@ int pre_flight_check(void){
 		printf("Checking extended host info definitions...\n");
 
 	for(temp_hostextinfo=hostextinfo_list,total_objects=0;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next,total_objects++){
+
+		/* find the host */
+		temp_host=find_host(temp_hostextinfo->host_name);
+		if(temp_host==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in extended host information is not defined anywhere!",temp_hostextinfo->host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
 	        }
 
 	if(verify_config==TRUE)
@@ -2368,6 +2377,15 @@ int pre_flight_check(void){
 		printf("Checking extended service info definitions...\n");
 
 	for(temp_serviceextinfo=serviceextinfo_list,total_objects=0;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next,total_objects++){
+
+		/* find the service */
+		temp_service=find_service(temp_serviceextinfo->host_name,temp_serviceextinfo->description);
+		if(temp_service==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in extended service information is not defined anywhere!",temp_serviceextinfo->description,temp_serviceextinfo->host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
 	        }
 
 	if(verify_config==TRUE)

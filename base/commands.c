@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-29-2002
+ * Last Modified:   07-10-2002
  *
  * License:
  *
@@ -2863,6 +2863,7 @@ void process_passive_service_checks(void){
 			next_pcr=this_pcr->next;
 			free(this_pcr->host_name);
 			free(this_pcr->svc_description);
+			free(this_pcr->output);
 			free(this_pcr);
 			this_pcr=next_pcr;
 	                }
@@ -2880,6 +2881,7 @@ void process_passive_service_checks(void){
 		next_pcr=this_pcr->next;
 		free(this_pcr->host_name);
 		free(this_pcr->svc_description);
+		free(this_pcr->output);
 		free(this_pcr);
 		this_pcr=next_pcr;
 	        }

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-05-2004
+ * Last Modified: 05-19-2004
  *
  * License:
  * 
@@ -67,6 +67,7 @@ extern comment           *comment_list;
 extern scheduled_downtime  *scheduled_downtime_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
+extern hostgroup *hostgroup_list;
 
 
 #define MAX_MESSAGE_BUFFER		4096
@@ -122,6 +123,7 @@ int display_header=TRUE;
 
 int main(void){
 	int result=OK;
+	int found=FALSE;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	hostextinfo *temp_hostextinfo=NULL;
 	serviceextinfo *temp_serviceextinfo=NULL;
@@ -292,15 +294,39 @@ int main(void){
 
 		if(((display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO) && temp_host!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
 
-			if(display_type==DISPLAY_SERVICE_INFO)
-				printf("<DIV CLASS='data'>Service</DIV><DIV CLASS='dataTitle'>%s</DIV><DIV CLASS='data'>On Host</DIV>\n",service_desc);
-			if(display_type==DISPLAY_HOST_INFO)
+			if(display_type==DISPLAY_HOST_INFO){
 				printf("<DIV CLASS='data'>Host</DIV>\n");
-			if(display_type==DISPLAY_SERVICE_INFO || display_type==DISPLAY_HOST_INFO){
+				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_host->alias);
+				printf("<DIV CLASS='dataTitle'>(%s)</DIV><BR>\n",temp_host->name);
+				printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
+				for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+					hostgroupmember *temp_member=temp_hostgroup->members;
+				        while(temp_member!=NULL){
+
+				                /* we found a match */
+				                if(!strcmp(temp_member->host_name,temp_host->name)) {
+							if (found==TRUE)
+								printf(", ");	
+							printf("%s",temp_hostgroup->group_name);
+							found=TRUE;
+							}
+						
+				                temp_member=temp_member->next;
+			                	}		
+					}
+			
+				if(found==FALSE) {
+						printf("No hostgroups");
+					}
+				printf("</DIV><BR>\n");
+				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
+			        }
+			if(display_type==DISPLAY_SERVICE_INFO){
+				printf("<DIV CLASS='data'>Service</DIV><DIV CLASS='dataTitle'>%s</DIV><DIV CLASS='data'>On Host</DIV>\n",service_desc);
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_host->alias);
 				printf("<DIV CLASS='dataTitle'>(%s)</DIV><BR>\n",temp_host->name);
 				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
-			        }
+				}
 			if(display_type==DISPLAY_HOSTGROUP_INFO){
 				printf("<DIV CLASS='data'>Hostgroup</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_hostgroup->alias);

@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2002
+ * Last Modified:   08-19-2002
  *
  * License:
  *
@@ -825,40 +825,32 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	if(new_downtime==NULL)
 		return ERROR;
 
-	new_downtime->host_name=(char *)malloc(strlen(host_name)+1);
+	new_downtime->host_name=strdup(host_name);
 	if(new_downtime->host_name==NULL){
 		free(new_downtime);
 		return ERROR;
 	        }
-	strcpy(new_downtime->host_name,host_name);
 
 	if(downtime_type==SERVICE_DOWNTIME){
-		new_downtime->service_description=(char *)malloc(strlen(svc_description)+1);
+		new_downtime->service_description=strdup(svc_description);
 		if(new_downtime->service_description==NULL){
 			free(new_downtime->host_name);
 			free(new_downtime);
 			return ERROR;
 		        }
-		strcpy(new_downtime->service_description,svc_description);
 	        }
 	else
 		new_downtime->service_description=NULL;
 
 	if(author==NULL)
 		new_downtime->author=NULL;
-	else{
-		new_downtime->author=(char *)malloc(strlen(author)+1);
-		if(new_downtime->author!=NULL)
-			strcpy(new_downtime->author,author);
-	        }
+	else
+		new_downtime->author=strdup(author);
 
 	if(comment==NULL)
 		new_downtime->comment=NULL;
-	else{
-		new_downtime->comment=(char *)malloc(strlen(comment)+1);
-		if(new_downtime->comment!=NULL)
-			strcpy(new_downtime->comment,comment);
-	        }
+	else
+		new_downtime->comment=strdup(comment);
 
 	new_downtime->type=downtime_type;
 	new_downtime->entry_time=entry_time;
@@ -952,8 +944,7 @@ void free_downtime_data(void){
 	for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=next_downtime){
 		next_downtime=this_downtime->next;
 		free(this_downtime->host_name);
-		if(this_downtime->service_description!=NULL)
-			free(this_downtime->service_description);
+		free(this_downtime->service_description);
 		free(this_downtime);
 	        }
 

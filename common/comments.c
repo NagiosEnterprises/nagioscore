@@ -2,8 +2,8 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-19-2001
+ * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   08-19-2002
  *
  * License:
  *
@@ -308,26 +308,24 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 	if(new_comment==NULL)
 		return ERROR;
 
-	new_comment->host_name=(char *)malloc(strlen(host_name)+1);
+	new_comment->host_name=strdup(host_name);
 	if(new_comment->host_name==NULL){
 		free(new_comment);
 		return ERROR;
 	        }
-	strcpy(new_comment->host_name,host_name);
 
 	if(comment_type==SERVICE_COMMENT){
-		new_comment->service_description=(char *)malloc(strlen(svc_description)+1);
+		new_comment->service_description=strdup(svc_description);
 		if(new_comment->service_description==NULL){
 			free(new_comment->host_name);
 			free(new_comment);
 			return ERROR;
 		        }
-		strcpy(new_comment->service_description,svc_description);
 	        }
 	else
 		new_comment->service_description=NULL;
 
-	new_comment->author=(char *)malloc(strlen(author)+1);
+	new_comment->author=strdup(author);
 	if(new_comment->author==NULL){
 		if(new_comment->service_description!=NULL)
 			free(new_comment->service_description);
@@ -335,9 +333,8 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 		free(new_comment);
 		return ERROR;
 	        }
-	strcpy(new_comment->author,author);
 
-	new_comment->comment_data=(char *)malloc(strlen(comment_data)+1);
+	new_comment->comment_data=strdup(comment_data);
 	if(new_comment->comment_data==NULL){
 		free(new_comment->author);
 		if(new_comment->service_description!=NULL)
@@ -346,7 +343,6 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 		free(new_comment);
 		return ERROR;
 	        }
-	strcpy(new_comment->comment_data,comment_data);
 
 	new_comment->comment_type=comment_type;
 	new_comment->entry_time=entry_time;
@@ -396,8 +392,7 @@ void free_comment_data(void){
 	for(this_comment=comment_list;this_comment!=NULL;this_comment=next_comment){
 		next_comment=this_comment->next;
 		free(this_comment->host_name);
-		if(this_comment->service_description!=NULL)
-			free(this_comment->service_description);
+		free(this_comment->service_description);
 		free(this_comment->author);
 		free(this_comment->comment_data);
 		free(this_comment);

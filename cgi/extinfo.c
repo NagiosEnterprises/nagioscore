@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2002
+ * Last Modified: 08-19-2002
  *
  * License:
  * 
@@ -957,45 +957,6 @@ void show_host_info(void){
 	printf("<TD ALIGN=CENTER VALIGN=TOP>\n");
 	printf("<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>\n");
 
-#ifdef USE_OLDCRUD
-	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateStatisticsPanel'>\n");
-
-	printf("<DIV CLASS='dataTitle'>Host State Statistics</DIV>\n");
-
-	if(temp_hoststatus->last_check==0L)
-		printf("<P><DIV ALIGN=CENTER>This host has not yet been checked, so state statistics are not available.</DIV></P>\n");
-
-	else{
-
-		/* calculate host state times */
-		calculate_host_state_times(temp_host->name,&total_monitored_time,&time_up,&percent_time_up,&time_down,&percent_time_down,&time_unreachable,&percent_time_unreachable);
-
-		get_time_breakdown(total_monitored_time,&days,&hours,&minutes,&seconds);
-		snprintf(total_time_string,sizeof(total_time_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		get_time_breakdown(time_up,&days,&hours,&minutes,&seconds);
-		snprintf(time_up_string,sizeof(time_up_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		get_time_breakdown(time_down,&days,&hours,&minutes,&seconds);
-		snprintf(time_down_string,sizeof(time_down_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		get_time_breakdown(time_unreachable,&days,&hours,&minutes,&seconds);
-		snprintf(time_unreachable_string,sizeof(time_unreachable_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-
-		printf("<TABLE BORDER=0 CLASS='data'>\n");
-		printf("<TR><TH CLASS='data'>State</TH><TH CLASS='data'>Time</TH><TH CLASS='data'>%% Time</TH></TR>\n");
-
-		printf("<tr CLASS='dataEven'><td CLASS='hostUP'>UP</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>%2.1f%%</td></tr>\n",time_up_string,percent_time_up);
-		printf("<tr CLASS='dataOdd'><td CLASS='hostDOWN'>DOWN</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>%2.1f%%</td></tr>\n",time_down_string,percent_time_down);
-		printf("<tr CLASS='dataEven'><td CLASS='hostUNREACHABLE'>UNREACHABLE</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>%2.1f%%</td></tr>\n",time_unreachable_string,percent_time_unreachable);
-
-		printf("<tr><td colspan=3></td></tr>\n");
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>All States</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>100.0%%</td></tr>\n",total_time_string);
-		printf("</table>\n");
-		}
-
-	printf("</TD>\n");
-
-	printf("</TR><TR>\n");
-#endif
-
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='commandPanel'>\n");
 
 	printf("<DIV CLASS='commandTitle'>Host Commands</DIV>\n");
@@ -1304,53 +1265,6 @@ void show_service_info(void){
 
 	printf("<TD ALIGN=CENTER VALIGN=TOP>\n");
 	printf("<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>\n");
-
-#ifdef USE_OLDCRUD
-	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateStatisticsPanel'>\n");
-
-	printf("<DIV CLASS='dataTitle'>Service State Statistics</DIV>\n");
-
-	if(temp_svcstatus->last_check==0L)
-		printf("<P><DIV ALIGN=CENTER>This service has not yet been checked, so state statistics are not available.</DIV></P>\n");
-
-	else{
-
-		/* calculate service state times */
-		calculate_service_state_times(temp_service->host_name,temp_service->description,&total_monitored_time,&time_ok,&percent_time_ok,&time_warning,&percent_time_warning,&time_unknown,&percent_time_unknown,&time_critical,&percent_time_critical);
-
-		get_time_breakdown(time_ok,&days,&hours,&minutes,&seconds);
-		snprintf(time_ok_string,sizeof(time_ok_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		get_time_breakdown(time_warning,&days,&hours,&minutes,&seconds);
-		snprintf(time_warning_string,sizeof(time_warning_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		get_time_breakdown(time_unknown,&days,&hours,&minutes,&seconds);
-		snprintf(time_unknown_string,sizeof(time_unknown_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		get_time_breakdown(time_critical,&days,&hours,&minutes,&seconds);
-		snprintf(time_critical_string,sizeof(time_critical_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-
-		get_time_breakdown(total_monitored_time,&days,&hours,&minutes,&seconds);
-		snprintf(total_time_string,sizeof(total_time_string)-1,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-
-		printf("<TABLE BORDER=0 CLASS='data'>\n");
-		printf("<TR><TH CLASS='data'>State</TH><TH CLASS='data'>Time</TH><TH CLASS='data'>%% Time</TH></TR>\n");
-
-		printf("<tr CLASS='dataEven'><td CLASS='serviceOK'>OK</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>%2.1f%%</td></tr>\n",time_ok_string,percent_time_ok);
-		printf("<tr CLASS='dataOdd'><td CLASS='serviceWARNING'>WARNING</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>%2.1f%%</td></tr>\n",time_warning_string,percent_time_warning);
-		printf("<tr CLASS='dataEven'><td CLASS='serviceUNKNOWN'>UNKNOWN</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>%2.1f%%</td></tr>\n",time_unknown_string,percent_time_unknown);
-		printf("<tr CLASS='dataOdd'><td CLASS='serviceCRITICAL'>CRITICAL</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>%2.1f%%</td></tr>\n",time_critical_string,percent_time_critical);
-
-		printf("<tr><td colspan=3></td></tr>\n");
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>All States</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>100.0%%</td></tr>\n",total_time_string);
-		printf("</table>\n");
-
-		if(temp_svcstatus->state_type==SOFT_STATE)
-			printf("<P><DIV ALIGN=CENTER>NOTE: This service is currently in a soft state, so the state statistics may be temporarily inaccurate.  When the service returns to a hard state, the statistics will be correct.</DIV></P>\n");
-		}
-
-	printf("</TD>\n");
-
-	printf("</TR>\n");
-	printf("<TR>\n");
-#endif
 
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='commandPanel'>\n");
 

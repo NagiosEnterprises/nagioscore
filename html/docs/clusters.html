@@ -59,19 +59,19 @@ Monitoring individual host or service cluster elements is easier than you think.
 </p>
 
 <p>
-Monitoring the overall cluster can be done by using the previously cached results of cluster elements.  Although you could re-check all elements of the cluster to determine the cluster's status, why waste bandwidth and resources when you already have the results cached?  Where are the results cached?  Cached results for cluster elements can be found in the <a href="configmain.html#status_file">status file</a> (assuming you are monitoring each element).  The <i>check_cluster</i> plugin is designed specifically for checking cached host and service states in the status file.  <b>Important:</b> Although you didn't enable notifications for individual elements of the cluster, you will want them enabled for the overall cluster status check.
+Monitoring the overall cluster can be done by using the previously cached results of cluster elements.  Although you could re-check all elements of the cluster to determine the cluster's status, why waste bandwidth and resources when you already have the results cached?  Where are the results cached?  Cached results for cluster elements can be found in the <a href="configmain.html#status_file">status file</a> (assuming you are monitoring each element).  The <i>check_cluster2</i> plugin is designed specifically for checking cached host and service states in the status file.  <b>Important:</b> Although you didn't enable notifications for individual elements of the cluster, you will want them enabled for the overall cluster status check.
 </p>
 
 <p>
-<strong><u>Using the <i>check_cluster</i> Plugin</u></strong>
+<strong><u>Using the <i>check_cluster2</i> Plugin</u></strong>
 </p>
 
 <p>
-The check_cluster plugin is designed to check the overall status of a host or service cluster.  It works by checking the cached status information of individual host or service cluster elements in the <a href="configmain.html#status_file">status file</a>.
+The check_cluster2 plugin is designed to report the overall status of a host or service cluster by checking the status information of each individual host or service cluster elements.
 </p>
 
 <p>
-More to come...  The <i>check_cluster</i> plugin can obtained from the contrib directory of the Nagios Plugins release at <a 
+More to come...  The <i>check_cluster2</i> plugin can be found in the contrib directory of the Nagios Plugins release at <a 
 href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projects/nagiosplug/</a>.
 
 </p>
@@ -81,11 +81,11 @@ href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projec
 </p>
 
 <p>
-First off, you're going to have to define a new service for monitoring the cluster.  This service will perform the check of the overall status of the cluster.  You are probably going to want to have notifications enabled for this service so you know when there are problems that need to be looked at.  You probably don't care so much about the status of any one of the services that are members of the cluster, so you can disable notifications in those those service definitions.
+Let's say you have three DNS servers that provide redundant services on your network.  First off, you need to be monitoring each of these DNS servers seperately before you can monitor them as a cluster.  I'll assume that you already have three seperate services (all called "DNS Service") associated with your DNS hosts (called "host1", "host2" and "host3").
 </p>
 
 <p>
-Okay, let's assume that you have a <i>check_service_cluster</i> command defined as follows:
+In order to monitor the services as a cluster, you'll need to create a new "cluster" service.  However, before you do that, make sure you have a service cluster check command configured.  Let's assume that you have a command called <i>check_service_cluster</i> defined as follows:
 </p>
 
 <p>
@@ -94,7 +94,7 @@ Okay, let's assume that you have a <i>check_service_cluster</i> command defined 
 <pre>
 define command{
 	command_name	check_service_cluster
-	command_line	/usr/local/nagios/libexec/check_cluster --service /usr/local/nagios/var/status.log $ARG1$ $ARG2$ &lt; $ARG3$ 
+	command_line	/usr/local/nagios/libexec/check_cluster2 --service -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
 
@@ -103,34 +103,25 @@ define command{
 </p>
 
 <p>
-Let's say you have five services that are members of the service cluster.  If you want Nagios to generate a warning alert if two or more services in the cluster and in a non-ok state or a critical alert if three or more are in a non-ok state, the <i>&lt;check_command&gt;</i> argument of the service you define to monitor the cluster looks something like this:
+Now you'll need to create the "cluster" service and use the <i>check_service_cluster</i> command you just created as the cluster's check command.  The example below gives an example of how to do this.  The example below will generate a CRITICAL alert if 2 or more services in the cluster are in a non-OK state, and a WARNING alert if only 1 of the services is in a non-OK state.  If all the individual service members of the cluster are OK, the cluster check will return an OK state as well.
 </p>
 
-<p>
+<pre>
 <font color="red">
 <strong>
-check_service_cluster!2!3!/usr/local/nagios/etc/servicecluster.cfg
+define service{
+	...
+	check_command	check_service_cluster!"DNS Cluster"!1!2!$SERVICESTATEID:host1:DNS Service$,$SERVICESTATEID:host2:DNS Service$,$SERVICESTATEID:host3:DNS Service$
+	...
+	}
 </strong>
 </font>
-</p>
-
-
-<p>
-The $ARG3$ macro will be replaced with <i>/usr/local/nagios/etc/servicecluster.cfg</i> when the check is made.  Since this is the file from which the <i>check_cluster</i> plugin will read the names of cluster members, you'll need to create that file and add the services that are members (one per line).  The format of a service entry is the short name of the host the service is associated with, followed by a semi-colon, and then the service description.  An example of the file contents would be as follows:
-</p>
+</pre>
 
 <p>
-<font color="red">
-<strong>
-host1;DNS Service<br>
-host2;DNS Service<br>
-host3;DNS Service<br>
-host4;DNS Service<br>
-host5;DNS Service<br>
-host6;DNS Service<br>
-</strong>
-</font>
+It is important to notice that we are passing a comma-delimited list of <i>on-demand</i> service state <a href="macros.html">macros</a> to the $ARG4$ macro in the cluster check command.  That's important!  Nagios will fill those on-demand macros in with the current service state IDs (numerical values, rather than text strings) of the individual members of the cluster.
 </p>
+
 
 
 <p>
@@ -138,7 +129,7 @@ host6;DNS Service<br>
 </p>
 
 <p>
-Monitoring host clusters is very similiar to monitoring service clusters.  Obviously, the main difference is that the cluster members are hosts and not services.  In order to monitor the status of a host cluster, you must define a service that uses the <i>check_cluster</i> plugin.  The service should <i>not</i> be associated with any of the hosts in the cluster, as this will cause problems with notifications for the cluster if that host goes down.  A good idea might be to associate the service with the host that Nagios is running on.  After all, if the host that Nagios is running on goes down, then Nagios isn't running anymore, so there isn't anything you can do as far as monitoring (unless you've setup <a href="redundancy.html">redundant monitoring hosts</a>)...
+Monitoring host clusters is very similiar to monitoring service clusters.  Obviously, the main difference is that the cluster members are hosts and not services.  In order to monitor the status of a host cluster, you must define a service that uses the <i>check_cluster2</i> plugin.  The service should <i>not</i> be associated with any of the hosts in the cluster, as this will cause problems with notifications for the cluster if that host goes down.  A good idea might be to associate the service with the host that Nagios is running on.  After all, if the host that Nagios is running on goes down, then Nagios isn't running anymore, so there isn't anything you can do as far as monitoring (unless you've setup <a href="redundancy.html">redundant monitoring hosts</a>)...
 </p>
 
 <p>
@@ -151,7 +142,7 @@ Anyway, let's assume that you have a <i>check_host_cluster</i> command defined a
 <pre>
 define command{
 	command_name	check_host_cluster
-	command_line	/usr/local/nagios/libexec/check_cluster --host $ARG1$ $ARG2$ /usr/local/nagios/var/status.log &lt; $ARG3$
+	command_line	/usr/local/nagios/libexec/check_cluster2 --host -l $ARG1$ -w $ARG2$ -c $ARG3$ -d $ARG4$ 
 	}
 </pre>
 </strong>
@@ -159,32 +150,23 @@ define command{
 </p>
 
 <p>
-Let's say you have six hosts in the host cluster.  If you want Nagios to generate a warning alert if two or more hosts in the cluster are not up or a critical alert if four or more hosts are not up, the <i>&lt;check_command&gt;</i> argument of the service you define to monitor the cluster looks something like this:
+Let's say you have three hosts (named "host1", "host2" and "host3") in the host cluster.  If you want Nagios to generate a warning alert if one host in the cluster is not UP or a critical alert if two or more hosts are not UP, the the service you define to monitor the host cluster might look something like this:
 </p>
 
-<p>
+<pre>
 <font color="red">
 <strong>
-check_host_cluster!2!4!/usr/local/nagios/etc/hostcluster.cfg
+define service{
+	...
+	check_command	check_host_cluster!"Super Host Cluster"!1!2!$HOSTSTATEID:host1$,$HOSTSTATEID:host2$,$HOSTSTATEID:host3$
+	...
+	}
 </strong>
 </font>
-</p>
+</pre>
 
 <p>
-The $ARG3$ macro will be replaced with <i>/usr/local/nagios/etc/hostcluster.cfg</i> when the check is made.  Since this is the file from which the <i>check_cluster</i> plugin will read the names of cluster members, you'll need to create that file and add the short names of all hosts (as they were defined in your host definitions) that are members (one per line).  An example of the file contents would be as follows:
-</p>
-
-<p>
-<font color="red">
-<strong>
-host1<br>
-host2<br>
-host3<br>
-host4<br>
-host5<br>
-host6<br>
-</strong>
-</font>
+It is important to notice that we are passing a comma-delimited list of <i>on-demand</i> host state <a href="macros.html">macros</a> to the $ARG4$ macro in the cluster check command.  That's important!  Nagios will fill those on-demand macros in with the current host state IDs (numerical values, rather than text strings) of the individual members of the cluster.
 </p>
 
 <p>

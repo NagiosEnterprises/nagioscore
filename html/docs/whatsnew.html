@@ -48,7 +48,6 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <p>
 <pre>
 <strong>DOCUMENTATION TODO:</strong>
-** CHECKING CLUSTERS: new macros
 ** CHECK SCHEDULING: scheduled host checks, initial check spreads
 ** HOST CHECK OPTIMIZATION: check_cluster, add $HOSTSERVICESTATEIDS$ macro...
 ** DISTRIBUTED MONITORING: passive host checks, OCHP, host freshness checking
@@ -132,6 +131,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>Cached object config file</b> - An <a href="configmain.html#object_cache_file">object cache file</a> is now created by Nagios at startup.  It should help speed up the CGIs a bit and allow you to edit you object config files while Nagios is running without affecting the CGI output.
 	<li><b>Initial check limits</b> - You can now specify timeframes in which the initial checks of all hosts and services should be performed after Nagios start.  These timeframes are controlled by the <a href="configmain.html#max_host_check_spread">max_host_check_spread</a> and <a href="configmain.html#max_service_check_spread">max_service_check_spread</a> variables.
 	<li><b>"Sticky" acknowledgements</b> - You can now designate host and service acknowledgements as being "sticky" or not.  Sticky acknowledgements suppress notifications until a host or service fully recovers to an UP or OK state.  Non-sticky acknowledgements only suppress notifications until a host or service changes state.
+	<li><b>Changed in checking clusters</b> - The way you monitor service and host "clusters" has now changed and is more reliable than before.  This is due to the incorporation of on-demand macros and a new plugin (check_cluster2).  Read more about checking clusters <a href="clusters.html">here</a>.
 	<li><b>Regular expression matching</b> - Regular expression matching of various object directives can be enabled using the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> and <a href="configmain.html#use_true_regexp_matching">use_true_regexp_matching</a> variables.  Information on how and where regular expression matching can be used can be found in the <a href="templatetricks.html">template tips and tricks</a> documentation.
 	</ul>
 <br>

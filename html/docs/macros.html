@@ -130,12 +130,12 @@ If you would like to reference values for another host or service in a command (
 <p>
 <ul>
 <li>$HOSTMACRO:<i>host_name</i>$</li>
-<li>$SERVICEMACRO:<i>host_name</i>;<i>service_description</i>$</li>
+<li>$SERVICEMACRO:<i>host_name</i>:<i>service_description</i>$</li>
 </ul>
 </p>
 
 <p>
-Note that the macro name is seperated from the host or service identifier by a colon (:).  For on-demand service macros, the service identifier consists of both a host name and a service description - these are seperated by a semicolon (;).
+Note that the macro name is seperated from the host or service identifier by a colon (:).  For on-demand service macros, the service identifier consists of both a host name and a service description - these are seperated by a colon (:) as well.
 </p>
 
 <p>
@@ -145,7 +145,7 @@ Examples of on-demand host and service macros follow:
 <p>
 <pre>
 $HOSTDOWNTIME:myhost$
-$SERVICESTATEID:novellserver;DS Database$
+$SERVICESTATEID:novellserver:DS Database$
 </pre>
 </p>
 

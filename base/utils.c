@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-07-2004
+ * Last Modified:   03-11-2004
  *
  * License:
  *
@@ -697,7 +697,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICESTATEID]);
 	macro_x[MACRO_SERVICESTATEID]=(char *)malloc(MAX_STATEID_LENGTH);
 	if(macro_x[MACRO_SERVICESTATEID]!=NULL){
-		snprintf(macro_x[MACRO_SERVICESTATEID],MAX_STATEID_LENGTH-1,"%d",svc->current_state);
+		snprintf(macro_x[MACRO_SERVICESTATEID],MAX_STATEID_LENGTH,"%d",svc->current_state);
 		macro_x[MACRO_SERVICESTATEID][MAX_STATEID_LENGTH-1]='\x0';
 	        }
 
@@ -706,7 +706,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEATTEMPT]);
 	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
 	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEATTEMPT],MAX_ATTEMPT_LENGTH-1,"%d",svc->current_attempt);
+		snprintf(macro_x[MACRO_SERVICEATTEMPT],MAX_ATTEMPT_LENGTH,"%d",svc->current_attempt);
 		macro_x[MACRO_SERVICEATTEMPT][MAX_ATTEMPT_LENGTH-1]='\x0';
 	        }
 
@@ -715,7 +715,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEEXECUTIONTIME]);
 	macro_x[MACRO_SERVICEEXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 	if(macro_x[MACRO_SERVICEEXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lf",svc->execution_time);
+		snprintf(macro_x[MACRO_SERVICEEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%lf",svc->execution_time);
 		macro_x[MACRO_SERVICEEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
@@ -724,7 +724,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICELATENCY]);
 	macro_x[MACRO_SERVICELATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
 	if(macro_x[MACRO_SERVICELATENCY]!=NULL){
-		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH-1,"%lf",svc->latency);
+		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH,"%lf",svc->latency);
 		macro_x[MACRO_SERVICELATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
@@ -733,7 +733,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_LASTSERVICECHECK]);
 	macro_x[MACRO_LASTSERVICECHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTSERVICECHECK]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICECHECK],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_check);
+		snprintf(macro_x[MACRO_LASTSERVICECHECK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_check);
 		macro_x[MACRO_LASTSERVICECHECK][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -742,7 +742,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_LASTSERVICESTATECHANGE]);
 	macro_x[MACRO_LASTSERVICESTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTSERVICESTATECHANGE]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICESTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_state_change);
+		snprintf(macro_x[MACRO_LASTSERVICESTATECHANGE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_state_change);
 		macro_x[MACRO_LASTSERVICESTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -751,7 +751,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_LASTSERVICEOK]);
 	macro_x[MACRO_LASTSERVICEOK]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTSERVICEOK]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEOK],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_ok);
+		snprintf(macro_x[MACRO_LASTSERVICEOK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_ok);
 		macro_x[MACRO_LASTSERVICEOK][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -760,7 +760,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_LASTSERVICEWARNING]);
 	macro_x[MACRO_LASTSERVICEWARNING]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTSERVICEWARNING]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEWARNING],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_warning);
+		snprintf(macro_x[MACRO_LASTSERVICEWARNING],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_warning);
 		macro_x[MACRO_LASTSERVICEWARNING][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -769,7 +769,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_LASTSERVICEUNKNOWN]);
 	macro_x[MACRO_LASTSERVICEUNKNOWN]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTSERVICEUNKNOWN]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEUNKNOWN],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_unknown);
+		snprintf(macro_x[MACRO_LASTSERVICEUNKNOWN],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_unknown);
 		macro_x[MACRO_LASTSERVICEUNKNOWN][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -778,7 +778,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_LASTSERVICECRITICAL]);
 	macro_x[MACRO_LASTSERVICECRITICAL]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTSERVICECRITICAL]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICECRITICAL],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_critical);
+		snprintf(macro_x[MACRO_LASTSERVICECRITICAL],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_critical);
 		macro_x[MACRO_LASTSERVICECRITICAL][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -787,7 +787,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEDOWNTIME]);
 	macro_x[MACRO_SERVICEDOWNTIME]=(char *)malloc(MAX_DOWNTIME_LENGTH);
 	if(macro_x[MACRO_SERVICEDOWNTIME]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEDOWNTIME],MAX_DOWNTIME_LENGTH-1,"%d",svc->scheduled_downtime_depth);
+		snprintf(macro_x[MACRO_SERVICEDOWNTIME],MAX_DOWNTIME_LENGTH,"%d",svc->scheduled_downtime_depth);
 		macro_x[MACRO_SERVICEDOWNTIME][MAX_DOWNTIME_LENGTH-1]='\x0';
 	        }
 
@@ -796,7 +796,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEPERCENTCHANGE]);
 	macro_x[MACRO_SERVICEPERCENTCHANGE]=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
 	if(macro_x[MACRO_SERVICEPERCENTCHANGE]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEPERCENTCHANGE],MAX_PERCENTCHANGE_LENGTH-1,"%.2f",svc->percent_state_change);
+		snprintf(macro_x[MACRO_SERVICEPERCENTCHANGE],MAX_PERCENTCHANGE_LENGTH,"%.2f",svc->percent_state_change);
 		macro_x[MACRO_SERVICEPERCENTCHANGE][MAX_PERCENTCHANGE_LENGTH-1]='\x0';
 	        }
 
@@ -808,7 +808,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_SERVICEDURATIONSEC]);
 	macro_x[MACRO_SERVICEDURATIONSEC]=(char *)malloc(MAX_DURATION_LENGTH);
 	if(macro_x[MACRO_SERVICEDURATIONSEC]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEDURATIONSEC],MAX_DURATION_LENGTH-1,"%lu",duration);
+		snprintf(macro_x[MACRO_SERVICEDURATIONSEC],MAX_DURATION_LENGTH,"%lu",duration);
 		macro_x[MACRO_SERVICEDURATIONSEC][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
@@ -822,7 +822,7 @@ int grab_service_macros(service *svc){
 		minutes=duration/60;
 		duration-=(minutes*60);
 		seconds=duration;
-		snprintf(macro_x[MACRO_SERVICEDURATION],MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
+		snprintf(macro_x[MACRO_SERVICEDURATION],MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
 		macro_x[MACRO_SERVICEDURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
@@ -906,7 +906,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTSTATEID]);
 	macro_x[MACRO_HOSTSTATEID]=(char *)malloc(MAX_STATEID_LENGTH);
 	if(macro_x[MACRO_HOSTSTATEID]!=NULL){
-		snprintf(macro_x[MACRO_HOSTSTATEID],MAX_STATEID_LENGTH-1,"%d",hst->current_state);
+		snprintf(macro_x[MACRO_HOSTSTATEID],MAX_STATEID_LENGTH,"%d",hst->current_state);
 		macro_x[MACRO_HOSTSTATEID][MAX_STATEID_LENGTH-1]='\x0';
 	        }
 
@@ -938,7 +938,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTATTEMPT]);
 	macro_x[MACRO_HOSTATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
 	if(macro_x[MACRO_HOSTATTEMPT]!=NULL){
-		snprintf(macro_x[MACRO_HOSTATTEMPT],MAX_ATTEMPT_LENGTH-1,"%d",hst->current_attempt);
+		snprintf(macro_x[MACRO_HOSTATTEMPT],MAX_ATTEMPT_LENGTH,"%d",hst->current_attempt);
 		macro_x[MACRO_HOSTATTEMPT][MAX_ATTEMPT_LENGTH-1]='\x0';
 	        }
 
@@ -947,7 +947,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTDOWNTIME]);
 	macro_x[MACRO_HOSTDOWNTIME]=(char *)malloc(MAX_DOWNTIME_LENGTH);
 	if(macro_x[MACRO_HOSTDOWNTIME]!=NULL){
-		snprintf(macro_x[MACRO_HOSTDOWNTIME],MAX_DOWNTIME_LENGTH-1,"%d",hst->scheduled_downtime_depth);
+		snprintf(macro_x[MACRO_HOSTDOWNTIME],MAX_DOWNTIME_LENGTH,"%d",hst->scheduled_downtime_depth);
 		macro_x[MACRO_HOSTDOWNTIME][MAX_DOWNTIME_LENGTH-1]='\x0';
 	        }
 
@@ -956,7 +956,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTPERCENTCHANGE]);
 	macro_x[MACRO_HOSTPERCENTCHANGE]=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
 	if(macro_x[MACRO_HOSTPERCENTCHANGE]!=NULL){
-		snprintf(macro_x[MACRO_HOSTPERCENTCHANGE],MAX_PERCENTCHANGE_LENGTH-1,"%.2f",hst->percent_state_change);
+		snprintf(macro_x[MACRO_HOSTPERCENTCHANGE],MAX_PERCENTCHANGE_LENGTH,"%.2f",hst->percent_state_change);
 		macro_x[MACRO_HOSTPERCENTCHANGE][MAX_PERCENTCHANGE_LENGTH-1]='\x0';
 	        }
 
@@ -968,7 +968,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTDURATIONSEC]);
 	macro_x[MACRO_HOSTDURATIONSEC]=(char *)malloc(MAX_DURATION_LENGTH);
 	if(macro_x[MACRO_HOSTDURATIONSEC]!=NULL){
-		snprintf(macro_x[MACRO_HOSTDURATIONSEC],MAX_DURATION_LENGTH-1,"%lu",duration);
+		snprintf(macro_x[MACRO_HOSTDURATIONSEC],MAX_DURATION_LENGTH,"%lu",duration);
 		macro_x[MACRO_HOSTDURATIONSEC][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
@@ -982,7 +982,7 @@ int grab_host_macros(host *hst){
 		minutes=duration/60;
 		duration-=(minutes*60);
 		seconds=duration;
-		snprintf(macro_x[MACRO_HOSTDURATION],MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
+		snprintf(macro_x[MACRO_HOSTDURATION],MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
 		macro_x[MACRO_HOSTDURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
@@ -991,7 +991,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTEXECUTIONTIME]);
 	macro_x[MACRO_HOSTEXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 	if(macro_x[MACRO_HOSTEXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_HOSTEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lf",hst->execution_time);
+		snprintf(macro_x[MACRO_HOSTEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%lf",hst->execution_time);
 		macro_x[MACRO_HOSTEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
@@ -1000,7 +1000,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_HOSTLATENCY]);
 	macro_x[MACRO_HOSTLATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
 	if(macro_x[MACRO_HOSTLATENCY]!=NULL){
-		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH-1,"%lf",hst->latency);
+		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH,"%lf",hst->latency);
 		macro_x[MACRO_HOSTLATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
@@ -1009,7 +1009,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_LASTHOSTCHECK]);
 	macro_x[MACRO_LASTHOSTCHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTHOSTCHECK]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTCHECK],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
+		snprintf(macro_x[MACRO_LASTHOSTCHECK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
 		macro_x[MACRO_LASTHOSTCHECK][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -1018,7 +1018,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_LASTHOSTSTATECHANGE]);
 	macro_x[MACRO_LASTHOSTSTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTHOSTSTATECHANGE]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTSTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
+		snprintf(macro_x[MACRO_LASTHOSTSTATECHANGE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
 		macro_x[MACRO_LASTHOSTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -1027,7 +1027,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_LASTHOSTUP]);
 	macro_x[MACRO_LASTHOSTUP]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTHOSTUP]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTUP],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_up);
+		snprintf(macro_x[MACRO_LASTHOSTUP],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_up);
 		macro_x[MACRO_LASTHOSTUP][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -1036,7 +1036,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_LASTHOSTDOWN]);
 	macro_x[MACRO_LASTHOSTDOWN]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTHOSTDOWN]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTDOWN],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_down);
+		snprintf(macro_x[MACRO_LASTHOSTDOWN],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_down);
 		macro_x[MACRO_LASTHOSTDOWN][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -1045,7 +1045,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_LASTHOSTUNREACHABLE]);
 	macro_x[MACRO_LASTHOSTUNREACHABLE]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTHOSTUNREACHABLE]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTUNREACHABLE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_unreachable);
+		snprintf(macro_x[MACRO_LASTHOSTUNREACHABLE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_unreachable);
 		macro_x[MACRO_LASTHOSTUNREACHABLE][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -1111,6 +1111,7 @@ int grab_on_demand_macro(char *str){
 	ptr=strchr(macro,':');
 	if(ptr==NULL)
 		return ERROR;
+	/* terminate the macro name at the host name delimiter */
 	ptr[0]='\x0';
 	host_name=strdup(ptr+1);
 	if(host_name==NULL){
@@ -1121,6 +1122,7 @@ int grab_on_demand_macro(char *str){
 	/* get the service description (if applicable) */
 	ptr=strchr(host_name,':');
 	if(ptr!=NULL){
+		/* terminate the host name at the service description delimiter */
 		ptr[0]='\x0';
 		service_description=strdup(ptr+1);
 		if(service_description==NULL){
@@ -1202,7 +1204,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTSTATEID")){
 		macro_ondemand=(char *)malloc(MAX_STATEID_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_STATEID_LENGTH-1,"%d",hst->current_state);
+			snprintf(macro_ondemand,MAX_STATEID_LENGTH,"%d",hst->current_state);
 			macro_ondemand[MAX_STATEID_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1238,8 +1240,8 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTATTEMPT")){
 		macro_ondemand=(char *)malloc(MAX_ATTEMPT_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_ATTEMPT_LENGTH-1,"%d",hst->current_attempt);
-			macro_ondemand='\x0';
+			snprintf(macro_ondemand,MAX_ATTEMPT_LENGTH,"%d",hst->current_attempt);
+			macro_ondemand[MAX_ATTEMPT_LENGTH-1]='\x0';
 		        }
 	        }
 
@@ -1247,8 +1249,8 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTDOWNTIME")){
 		macro_ondemand=(char *)malloc(MAX_DOWNTIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DOWNTIME_LENGTH-1,"%d",hst->scheduled_downtime_depth);
-			macro_ondemand='\x0';
+			snprintf(macro_ondemand,MAX_DOWNTIME_LENGTH,"%d",hst->scheduled_downtime_depth);
+			macro_ondemand[MAX_ATTEMPT_LENGTH-1]='\x0';
 		        }
 	        }
 
@@ -1256,7 +1258,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTPERCENTCHANGE")){
 		macro_ondemand=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_PERCENTCHANGE_LENGTH-1,"%.2f",hst->percent_state_change);
+			snprintf(macro_ondemand,MAX_PERCENTCHANGE_LENGTH,"%.2f",hst->percent_state_change);
 			macro_ondemand[MAX_PERCENTCHANGE_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1265,7 +1267,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTDURATIONSEC")){
 		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH-1,"%lu",duration);
+			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%lu",duration);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1279,7 +1281,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			minutes=duration/60;
 			duration-=(minutes*60);
 			seconds=duration;
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
+			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1288,7 +1290,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTEXECUTIONTIME")){
 		macro_ondemand=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH-1,"%lf",hst->execution_time);
+			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%lf",hst->execution_time);
 			macro_ondemand[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1297,7 +1299,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTLATENCY")){
 		macro_ondemand=(char *)malloc(MAX_LATENCY_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_LATENCY_LENGTH-1,"%lf",hst->latency);
+			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%lf",hst->latency);
 			macro_ondemand[MAX_LATENCY_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1306,7 +1308,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTCHECK")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1315,7 +1317,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTSTATECHANGE")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1324,7 +1326,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTUP")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_up);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_up);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1333,7 +1335,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTDOWN")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_down);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_down);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1342,7 +1344,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTUNREACHABLE")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_unreachable);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_unreachable);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1438,7 +1440,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICESTATEID")){
 		macro_ondemand=(char *)malloc(MAX_STATEID_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_STATEID_LENGTH-1,"%d",svc->current_state);
+			snprintf(macro_ondemand,MAX_STATEID_LENGTH,"%d",svc->current_state);
 			macro_ondemand[MAX_STATEID_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1447,7 +1449,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEATTEMPT")){
 		macro_ondemand=(char *)malloc(MAX_ATTEMPT_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_ATTEMPT_LENGTH-1,"%d",svc->current_attempt);
+			snprintf(macro_ondemand,MAX_ATTEMPT_LENGTH,"%d",svc->current_attempt);
 			macro_ondemand[MAX_ATTEMPT_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1456,7 +1458,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEEXECUTIONTIME")){
 		macro_ondemand=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH-1,"%lf",svc->execution_time);
+			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%lf",svc->execution_time);
 			macro_ondemand[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1465,7 +1467,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICELATENCY")){
 		macro_ondemand=(char *)malloc(MAX_LATENCY_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_LATENCY_LENGTH-1,"%lf",svc->latency);
+			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%lf",svc->latency);
 			macro_ondemand[MAX_LATENCY_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1474,7 +1476,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"LASTSERVICECHECK")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_check);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_check);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1483,7 +1485,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"LASTSERVICESTATECHANGE")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_state_change);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_state_change);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1492,7 +1494,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"LASTSERVICEOK")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_ok);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_ok);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1501,7 +1503,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"LASTSERVICEWARNING")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_warning);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_warning);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1510,7 +1512,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"LASTSERVICEUNKNOWN")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_unknown);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_unknown);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1519,7 +1521,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"LASTSERVICECRITICAL")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_critical);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_critical);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1528,7 +1530,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEDOWNTIME")){
 		macro_ondemand=(char *)malloc(MAX_DOWNTIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DOWNTIME_LENGTH-1,"%d",svc->scheduled_downtime_depth);
+			snprintf(macro_ondemand,MAX_DOWNTIME_LENGTH,"%d",svc->scheduled_downtime_depth);
 			macro_ondemand[MAX_DOWNTIME_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1537,7 +1539,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEPERCENTCHANGE")){
 		macro_ondemand=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_PERCENTCHANGE_LENGTH-1,"%.2f",svc->percent_state_change);
+			snprintf(macro_ondemand,MAX_PERCENTCHANGE_LENGTH,"%.2f",svc->percent_state_change);
 			macro_ondemand[MAX_PERCENTCHANGE_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1546,7 +1548,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEDURATIONSEC")){
 		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH-1,"%lu",duration);
+			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%lu",duration);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1560,7 +1562,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			minutes=duration/60;
 			duration-=(minutes*60);
 			seconds=duration;
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
+			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dh %dm %ds",hours,minutes,seconds);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
 		        }
 	        }
@@ -1688,7 +1690,7 @@ int grab_datetime_macros(void){
 	if(macro_x[MACRO_TIMET]==NULL)
 		macro_x[MACRO_TIMET]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_TIMET]!=NULL){
-		snprintf(macro_x[MACRO_TIMET],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)t);
+		snprintf(macro_x[MACRO_TIMET],MAX_DATETIME_LENGTH,"%lu",(unsigned long)t);
 		macro_x[MACRO_TIMET][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 

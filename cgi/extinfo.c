@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-19-2002
+ * Last Modified: 08-27-2002
  *
  * License:
  * 
@@ -972,7 +972,6 @@ void show_host_info(void){
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Checks Of This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Enable checks of this host</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_HOST_CHECK,url_encode(host_name));
 
-		/*if(temp_hoststatus->status!=HOST_UP && temp_hoststatus->last_notification!=(time_t)0){*/
 		if(temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE){
 			if(temp_hoststatus->problem_has_been_acknowledged==FALSE)
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Host Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Acknowledge this host problem</a></td></tr>\n",url_images_path,ACKNOWLEDGEMENT_ICON,COMMAND_CGI,CMD_ACKNOWLEDGE_HOST_PROBLEM,url_encode(host_name));
@@ -1278,38 +1277,6 @@ void show_service_info(void){
 
 		if(temp_svcstatus->checks_enabled){
 
-			/*if(temp_svcstatus->status!=SERVICE_OK && temp_svcstatus->status!=SERVICE_RECOVERY && temp_svcstatus->status!=SERVICE_PENDING && temp_svcstatus->state_type==HARD_STATE && temp_svcstatus->last_notification!=(time_t)0){*/
-			if((temp_svcstatus->status==SERVICE_WARNING || temp_svcstatus->status==SERVICE_UNKNOWN || temp_svcstatus->status==SERVICE_CRITICAL) && temp_svcstatus->state_type==HARD_STATE){
-				if(temp_svcstatus->problem_has_been_acknowledged==FALSE){
-					printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Service Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ACKNOWLEDGEMENT_ICON,COMMAND_CGI,CMD_ACKNOWLEDGE_SVC_PROBLEM,url_encode(host_name));
-					printf("&service=%s'>Acknowledge this service problem</a></td></tr>\n",url_encode(service_desc));
-				        }
-				else{
-					printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Remove Problem Acknowledgement'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,REMOVE_ACKNOWLEDGEMENT_ICON,COMMAND_CGI,CMD_REMOVE_SVC_ACKNOWLEDGEMENT,url_encode(host_name));
-					printf("&service=%s'>Remove problem acknowledgement</a></td></tr>\n",url_encode(service_desc));
-				        }
-			        }
-			if(temp_svcstatus->notifications_enabled){
-				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_NOTIFICATIONS,url_encode(host_name));
-				printf("&service=%s'>Disable notifications for this service</a></td></tr>\n",url_encode(service_desc));
-				if(temp_svcstatus->status!=SERVICE_OK){
-					printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Delay Next Service Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_DELAY_SVC_NOTIFICATION,url_encode(host_name));
-					printf("&service=%s'>Delay next service notification</a></td></tr>\n",url_encode(service_desc));
-			                }
-			        }
-			else{
-				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_NOTIFICATIONS,url_encode(host_name));
-				printf("&service=%s'>Enable notifications for this service</a></td></tr>\n",url_encode(service_desc));
-			        }
-
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_SVC_DOWNTIME,url_encode(host_name));
-			printf("&service=%s'>Schedule downtime for this service</a></td></tr>\n",url_encode(service_desc));
-
-			/*
-			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Cancel Scheduled Downtime For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,SCHEDULED_DOWNTIME_ICON,COMMAND_CGI,CMD_CANCEL_SVC_DOWNTIME,url_encode(host_name));
-			printf("&service=%s'>Cancel scheduled downtime for this service</a></td></tr>\n",url_encode(service_desc));
-			*/
-
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_CHECK,url_encode(host_name));
 			printf("&service=%s'>Disable checks of this service</a></td></tr>\n",url_encode(service_desc));
 
@@ -1320,6 +1287,7 @@ void show_service_info(void){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Checks Of This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_CHECK,url_encode(host_name));
 			printf("&service=%s'>Enable checks of this service</a></td></tr>\n",url_encode(service_desc));
 	                }
+
 		if(temp_svcstatus->accept_passive_service_checks==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Submit Passive Check Result For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,PASSIVE_ICON,COMMAND_CGI,CMD_PROCESS_SERVICE_CHECK_RESULT,url_encode(host_name));
 			printf("&service=%s'>Submit passive check result for this service</a></td></tr>\n",url_encode(service_desc));
@@ -1331,6 +1299,38 @@ void show_service_info(void){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Accepting Passive Checks For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_PASSIVE_SVC_CHECKS,url_encode(host_name));
 			printf("&service=%s'>Start accepting passive checks for this service</a></td></tr>\n",url_encode(service_desc));
 		        }
+
+		if((temp_svcstatus->status==SERVICE_WARNING || temp_svcstatus->status==SERVICE_UNKNOWN || temp_svcstatus->status==SERVICE_CRITICAL) && temp_svcstatus->state_type==HARD_STATE){
+			if(temp_svcstatus->problem_has_been_acknowledged==FALSE){
+				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Service Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ACKNOWLEDGEMENT_ICON,COMMAND_CGI,CMD_ACKNOWLEDGE_SVC_PROBLEM,url_encode(host_name));
+				printf("&service=%s'>Acknowledge this service problem</a></td></tr>\n",url_encode(service_desc));
+			        }
+			else{
+				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Remove Problem Acknowledgement'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,REMOVE_ACKNOWLEDGEMENT_ICON,COMMAND_CGI,CMD_REMOVE_SVC_ACKNOWLEDGEMENT,url_encode(host_name));
+				printf("&service=%s'>Remove problem acknowledgement</a></td></tr>\n",url_encode(service_desc));
+			        }
+		        }
+		if(temp_svcstatus->notifications_enabled){
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_NOTIFICATIONS,url_encode(host_name));
+			printf("&service=%s'>Disable notifications for this service</a></td></tr>\n",url_encode(service_desc));
+			if(temp_svcstatus->status!=SERVICE_OK){
+				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Delay Next Service Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DELAY_ICON,COMMAND_CGI,CMD_DELAY_SVC_NOTIFICATION,url_encode(host_name));
+				printf("&service=%s'>Delay next service notification</a></td></tr>\n",url_encode(service_desc));
+		                }
+		        }
+		else{
+			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Enable Notifications For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_SVC_NOTIFICATIONS,url_encode(host_name));
+			printf("&service=%s'>Enable notifications for this service</a></td></tr>\n",url_encode(service_desc));
+		        }
+
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DOWNTIME_ICON,COMMAND_CGI,CMD_SCHEDULE_SVC_DOWNTIME,url_encode(host_name));
+		printf("&service=%s'>Schedule downtime for this service</a></td></tr>\n",url_encode(service_desc));
+
+		/*
+		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Cancel Scheduled Downtime For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,SCHEDULED_DOWNTIME_ICON,COMMAND_CGI,CMD_CANCEL_SVC_DOWNTIME,url_encode(host_name));
+		printf("&service=%s'>Cancel scheduled downtime for this service</a></td></tr>\n",url_encode(service_desc));
+		*/
+
 		if(temp_svcstatus->event_handler_enabled==TRUE){
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Disable Event Handler For This Service'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_SVC_EVENT_HANDLER,url_encode(host_name));
 			printf("&service=%s'>Disable event handler for this service</a></td></tr>\n",url_encode(service_desc));

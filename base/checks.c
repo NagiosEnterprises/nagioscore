@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-18-2002
+ * Last Modified:   08-07-2002
  *
  * License:
  *
@@ -50,6 +50,7 @@ extern int      service_check_timeout;
 extern int      host_check_timeout;
 
 extern int      service_check_reaper_interval;
+extern int      max_check_reaper_time;
 
 extern int      use_aggressive_host_checking;
 
@@ -1130,9 +1131,9 @@ void reap_service_checks(void){
 		/* update service performance info */
 		update_service_performance_data(temp_service);
 
-		/* break out if we've been here too long (15 seconds) */
+		/* break out if we've been here too long (max_check_reaper_time seconds) */
 		time(&current_time);
-		if((int)(current_time-reaper_start_time)>15)
+		if((int)(current_time-reaper_start_time)>max_check_reaper_time)
 			break;
 
 #if OLD_CRUD

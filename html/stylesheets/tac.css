@@ -30,11 +30,42 @@
 	.featureEnabled { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ccffcc; color: #8f8f8f; }
 	.featureDisabled { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
 	
-	.featureItemEnabled { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
-	.featureItemDisabled { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureEnabledFlapDetection { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ccffcc; color: #8f8f8f; }
+	.featureDisabledFlapDetection { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
+	.featureItemEnabledServiceFlapDetection { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledServiceFlapDetection { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemEnabledHostFlapDetection { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledHostFlapDetection { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemServicesNotFlapping { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemServicesFlapping { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemHostsNotFlapping { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemHostsFlapping { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
 
-	.featureItemEnabledPassiveChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
-	.featureItemDisabledPassiveChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureEnabledNotifications { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ccffcc; color: #8f8f8f; }
+	.featureDisabledNotifications { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
+	.featureItemEnabledServiceNotifications { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledServiceNotifications { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemEnabledHostNotifications { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledHostNotifications { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+
+	.featureEnabledHandlers { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ccffcc; color: #8f8f8f; }
+	.featureDisabledHandlers { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
+	.featureItemEnabledServiceHandlers { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledServiceHandlers { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemEnabledHostHandlers { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledHostHandlers { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+
+	.featureEnabledActiveChecks { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ccffcc; color: #8f8f8f; }
+	.featureDisabledActiveChecks { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
+	.featureItemEnabledActiveServiceChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledActiveServiceChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+	.featureItemEnabledActiveHostChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledActiveHostChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
+
+	.featureEnabledPassiveChecks { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ccffcc; color: #8f8f8f; }
+	.featureDisabledPassiveChecks { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #ffcccc; color: #b3b3b3; }
+	.featureItemEnabledPassiveServiceChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledPassiveServiceChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
 
 	.outageTitle { text-align: left; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #999797; color: black; }
 	.outageHeader { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #C4C2C2; color: black; text-decoration: none; }

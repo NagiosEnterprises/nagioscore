@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 1.0b4
+ * Version: 1.0b5
  * License: GPL
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   07-04-2002
+ * Last Modified:   08-07-2002
  *
  * Description:
  *
@@ -179,6 +179,7 @@ int             interleave_factor_method=ILF_SMART;
 
 int             command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 int             service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
+int             max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
 int             freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 
 int             non_parallelized_check_running=FALSE;

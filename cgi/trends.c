@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-28-2002
+ * Last Modified: 08-07-2002
  *
  * License:
  * 
@@ -2061,7 +2061,7 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 			sanitize_plugin_output(state_info);
 
 			printf("onMouseOver='showPopup(\"");
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"<B><U>%s</U></B><BR><B>Time Range</B>: <I>%s</I> to <I>%s</I><BR><B>Duration</B>: <I>%dd %dh %dm %ds</I><BR><B>State Info</B>: <I>%s</I>",state_string,start_timestring,end_timestring,days,hours,minutes,seconds,(state_info==NULL)?"N/A":html_encode(state_info));
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"<B><U>%s</U></B><BR><B>Time Range</B>: <I>%s</I> to <I>%s</I><BR><B>Duration</B>: <I>%dd %dh %dm %ds</I><BR><B>State Info</B>: <I>%s</I>",state_string,start_timestring,end_timestring,days,hours,minutes,seconds,(state_info==NULL)?"N/A":state_info);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			printf("%s",temp_buffer);
 			printf("\",event)' onMouseOut='hidePopup()'");

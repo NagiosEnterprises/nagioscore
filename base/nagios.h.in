@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-30-2002
+ * Last Modified: 08-07-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,7 @@
 #define DEFAULT_RETRY_INTERVAL  		30	/* services are retried in 30 seconds if they're not OK */
 #define DEFAULT_COMMAND_CHECK_INTERVAL		-1	/* interval to check for external commands (default = as often as possible) */
 #define DEFAULT_SERVICE_REAPER_INTERVAL		10	/* interval in seconds to reap service check results */
+#define DEFAULT_MAX_REAPER_TIME                 30      /* maximum number of seconds to spend reaping service checks before we break out for a while */
 #define DEFAULT_MAX_PARALLEL_SERVICE_CHECKS 	0	/* maximum number of service checks we can have running at any given time (0=unlimited) */
 #define DEFAULT_RETENTION_UPDATE_INTERVAL	60	/* minutes between auto-save of retention data */
 #define DEFAULT_STATUS_UPDATE_INTERVAL		60	/* seconds between aggregated status data updates */

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-27-2003
+ * Last Modified: 08-28-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -229,7 +229,19 @@
 #define STATE_UNKNOWN			3       /* changed from -1 on 02/24/2001 */
 
 
+/****************** FLAPPING TYPES ********************/
+
+#define HOST_FLAPPING                   0
+#define SERVICE_FLAPPING                1
+
+
 /**************** NOTIFICATION TYPES ******************/
+
+#define HOST_NOTIFICATION               0
+#define SERVICE_NOTIFICATION            1
+
+
+/************* NOTIFICATION REASON TYPES ***************/
 
 #define NOTIFICATION_NORMAL             0
 #define NOTIFICATION_ACKNOWLEDGEMENT    1
@@ -254,28 +266,6 @@
 #define EVENT_HOST_CHECK                12      /* active host check */
 #define EVENT_HFRESHNESS_CHECK          13      /* checks host result "freshness" */
 #define EVENT_USER_FUNCTION             14      /* USER-defined function (modules) */
-
-
-
-/*************** EVENT BROKER OPTIONS *****************/
-
-#define BROKER_NOTHING                  0
-#define BROKER_EVERYTHING	 	8191
-
-#define BROKER_PROGRAM_STATE            1	/* DONE */
-#define BROKER_TIMED_EVENTS             2	/* DONE */
-#define BROKER_SERVICE_CHECKS           4	/* DONE */
-#define BROKER_HOST_CHECKS              8	/* DONE */
-#define BROKER_EVENT_HANDLERS   	16	/* DONE */
-#define BROKER_LOGGED_DATA              32	/* DONE */
-#define BROKER_NOTIFICATIONS    	64
-#define BROKER_FLAPPING_DATA   	        128	/* DONE */
-#define BROKER_COMMENT_DATA         	256	/* DONE */
-#define BROKER_DOWNTIME_DATA		512
-#define BROKER_SYSTEM_COMMANDS          1024	/* DONE */
-#define BROKER_OCP_DATA                 2048	/* DONE */
-#define BROKER_STATUS_DATA              4096    /* DONE */
-
 
 
 /******* INTER-CHECK DELAY CALCULATION TYPES **********/

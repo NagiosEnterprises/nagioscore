@@ -126,7 +126,7 @@ void broker_log_data(int type, int flags, int attr, char *data, unsigned long da
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	ds.data_type=data_type;
-	ds.log_entry=data;
+	ds.data=data;
 
 	/* make callbacks */
 	neb_make_callbacks(NEBCALLBACK_LOG_DATA,(void *)&ds);
@@ -214,7 +214,7 @@ void broker_event_handler(int type, int flags, int attr, void *data, int state, 
 
 
 /* send host check data to broker */
-void broker_host_check(int type, int flags, int attr, host *hst, int state, int state_type, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, char *perfdata, struct timeval *timestamp){
+void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, char *perfdata, struct timeval *timestamp){
 	nebstruct_host_check_data ds;
 
 	if(!(event_broker_options & BROKER_HOST_CHECKS))
@@ -230,6 +230,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int state, int 
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	ds.host_name=hst->name;
+	ds.check_type=check_type;
 	ds.current_attempt=hst->current_attempt;
 	ds.max_attempts=hst->max_attempts;
 	ds.state=state;
@@ -252,7 +253,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int state, int 
 
 
 /* send service check data to broker */
-void broker_service_check(int type, int flags, int attr, service *svc, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, struct timeval *timestamp){
+void broker_service_check(int type, int flags, int attr, service *svc, int check_type, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, struct timeval *timestamp){
 	nebstruct_service_check_data ds;
 
 	if(!(event_broker_options & BROKER_SERVICE_CHECKS))
@@ -269,6 +270,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, double la
 
 	ds.host_name=svc->host_name;
 	ds.service_description=svc->description;
+	ds.check_type=check_type;
 	ds.current_attempt=svc->current_attempt;
 	ds.max_attempts=svc->max_attempts;
 	ds.state=svc->current_state;
@@ -291,7 +293,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, double la
 
 
 /* send comment data to broker */
-void broker_comment_data(int type, int flags, int attr, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp){
+void broker_comment_data(int type, int flags, int attr, int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp){
 	nebstruct_comment_data ds;
 
 	if(!(event_broker_options & BROKER_COMMENT_DATA))
@@ -303,6 +305,7 @@ void broker_comment_data(int type, int flags, int attr, int entry_type, char *ho
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
+	ds.comment_type=comment_type;
 	ds.entry_type=entry_type;
 	ds.host_name=host_name;
 	ds.service_description=svc_description;
@@ -324,7 +327,7 @@ void broker_comment_data(int type, int flags, int attr, int entry_type, char *ho
 
 
 /* send downtime data to broker */
-void broker_downtime_data(int type, int flags, int attr, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, struct timeval *timestamp){
+void broker_downtime_data(int type, int flags, int attr, int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, struct timeval *timestamp){
 	nebstruct_downtime_data ds;
 
 	if(!(event_broker_options & BROKER_DOWNTIME_DATA))
@@ -336,6 +339,7 @@ void broker_downtime_data(int type, int flags, int attr, char *host_name, char *
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
+	ds.downtime_type=downtime_type;
 	ds.host_name=host_name;
 	ds.service_description=svc_description;
 	ds.entry_time=entry_time;
@@ -357,7 +361,7 @@ void broker_downtime_data(int type, int flags, int attr, char *host_name, char *
 
 
 /* send flapping data to broker */
-void broker_flapping_data(int type, int flags, int attr, void *data, double percent_change, double threshold, struct timeval *timestamp){
+void broker_flapping_data(int type, int flags, int attr, int flapping_type, void *data, double percent_change, double threshold, struct timeval *timestamp){
 	nebstruct_flapping_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -374,7 +378,8 @@ void broker_flapping_data(int type, int flags, int attr, void *data, double perc
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
-	if(attr & NEBATTR_SERVICE_FLAPPING){
+	ds.flapping_type=flapping_type;
+	if(flapping_type==SERVICE_FLAPPING){
 		temp_service=(service *)data;
 		ds.host_name=temp_service->host_name;
 		ds.service_description=temp_service->description;
@@ -480,6 +485,47 @@ void broker_service_status(int type, int flags, int attr, service *svc, struct t
         }
 
 
+
+/* send notification data to broker */
+void broker_notification_data(int type, int flags, int attr, int notification_type, int reason_type, void *data, char *ack_author, char *ack_data,int contacts_notified, struct timeval *timestamp){
+	nebstruct_notification_data ds;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+
+	if(!(event_broker_options & BROKER_NOTIFICATIONS))
+		return;
+	
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.notification_type=notification_type;
+	ds.reason_type=reason_type;
+	if(notification_type==SERVICE_NOTIFICATION){
+		temp_service=(service *)data;
+		ds.host_name=temp_service->host_name;
+		ds.service_description=temp_service->description;
+		ds.state=temp_service->current_state;
+		ds.output=temp_service->plugin_output;
+	        }
+	else{
+		temp_host=(host *)data;
+		ds.host_name=temp_host->name;
+		ds.service_description=NULL;
+		ds.state=temp_host->current_state;
+		ds.output=temp_host->plugin_output;
+	        }
+	ds.ack_author=ack_author;
+	ds.ack_data=ack_data;
+	ds.contacts_notified=contacts_notified;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_NOTIFICATION_DATA,(void *)&ds);
+
+	return;
+        }
 
 
 /******************************************************************/

@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-26-2003
+ * Last Modified:   08-28-2003
  *
  * License:
  *
@@ -30,6 +30,28 @@
 #include "nagios.h"
 
 
+
+/*************** EVENT BROKER OPTIONS *****************/
+
+#define BROKER_NOTHING                  0
+#define BROKER_EVERYTHING	 	8191
+
+#define BROKER_PROGRAM_STATE            1	/* DONE */
+#define BROKER_TIMED_EVENTS             2	/* DONE */
+#define BROKER_SERVICE_CHECKS           4	/* DONE */
+#define BROKER_HOST_CHECKS              8	/* DONE */
+#define BROKER_EVENT_HANDLERS   	16	/* DONE */
+#define BROKER_LOGGED_DATA              32	/* DONE */
+#define BROKER_NOTIFICATIONS    	64
+#define BROKER_FLAPPING_DATA   	        128	/* DONE */
+#define BROKER_COMMENT_DATA         	256	/* DONE */
+#define BROKER_DOWNTIME_DATA		512
+#define BROKER_SYSTEM_COMMANDS          1024	/* DONE */
+#define BROKER_OCP_DATA                 2048	/* DONE */
+#define BROKER_STATUS_DATA              4096    /* DONE */
+
+
+
 /****** EVENT TYPES ************************/
 
 #define NEBTYPE_NONE                          0
@@ -39,7 +61,7 @@
 #define NEBTYPE_INFO                          3
 
 #define NEBTYPE_PROCESS_START                 100
-#define NEBTYPE_PROCESS_DAEMON                101
+#define NEBTYPE_PROCESS_DAEMONIZE             101
 #define NEBTYPE_PROCESS_RESTART               102
 #define NEBTYPE_PROCESS_SHUTDOWN              103
 
@@ -60,9 +82,8 @@
 #define NEBTYPE_EVENTHANDLER_SERVICE          502
 #define NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE   503
 
-#define NEBTYPE_NOTIFICATION_HOST             600
-#define NEBTYPE_NOTIFICATION_SERVICE          601
-#define NEBTYPE_NOTIFICATION_CONTACT          602
+#define NEBTYPE_NOTIFICATION_START            600
+#define NEBTYPE_NOTIFICATION_END              601
 
 #define NEBTYPE_SERVICECHECK_INITIATE         700
 #define NEBTYPE_SERVICECHECK_RAW              701        /* NOT IMPLEMENTED */
@@ -96,6 +117,7 @@
 #define NEBFLAG_NONE                          0
 #define NEBFLAG_PROCESS_INITIATED             1         /* event was initiated by Nagios process */
 #define NEBFLAG_USER_INITIATED                2         /* event was initiated by a user request */
+#define NEBFLAG_MODULE_INITIATED              3         /* event was initiated by an event broker module */
 
 
 
@@ -104,35 +126,16 @@
 
 #define NEBATTR_NONE                          0
 
-#define NEBATTR_BROKERFILE_ERROR              1
-
-#define NEBATTR_BUFFER_OVERFLOW               1
-
 #define NEBATTR_SHUTDOWN_NORMAL               1
 #define NEBATTR_SHUTDOWN_ABNORMAL             2
 #define NEBATTR_RESTART_NORMAL                4
 #define NEBATTR_RESTART_ABNORMAL              8
 
-#define NEBATTR_HOSTCHECK_ACTIVE              1
-#define NEBATTR_HOSTCHECK_PASSIVE             2
+#define NEBATTR_FLAPPING_STOP_NORMAL          1
+#define NEBATTR_FLAPPING_STOP_DISABLED        2         /* flapping stopped because flap detection was disabled */
 
-#define NEBATTR_SERVICECHECK_ACTIVE           1
-#define NEBATTR_SERVICECHECK_PASSIVE          2
-
-#define NEBATTR_HOST_COMMENT                  1
-#define NEBATTR_SERVICE_COMMENT               2
-
-#define NEBATTR_HOST_FLAPPING                 1
-#define NEBATTR_SERVICE_FLAPPING              2
-#define NEBATTR_FLAPPING_STOP_NORMAL          4
-#define NEBATTR_FLAPPING_STOP_DISABLED        8         /* flapping stopped because flap detection was disabled */
-
-#define NEBATTR_HOST_DOWNTIME                 1
-#define NEBATTR_SERVICE_DOWNTIME              2
-#define NEBATTR_DOWNTIME_STOP_NORMAL          4
-#define NEBATTR_DOWNTIME_STOP_CANCELLED       8
-
-#define NEBATTR_EARLY_COMMAND_TIMEOUT         512
+#define NEBATTR_DOWNTIME_STOP_NORMAL          1
+#define NEBATTR_DOWNTIME_STOP_CANCELLED       2
 
 
 
@@ -146,14 +149,15 @@ void broker_log_data(int,int,int,char *,unsigned long,struct timeval *);
 void broker_event_handler(int,int,int,void *,int,int,double,int,int,int,char *,char *,struct timeval *);
 void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
 void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct timeval *);
-void broker_host_check(int,int,int,host *,int,int,double,double,int,int,int,char *,char *,char *,struct timeval *);
-void broker_service_check(int,int,int,service *,double,double,int,int,int,char *,struct timeval *);
-void broker_comment_data(int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
-void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
-void broker_flapping_data(int,int,int,void *,double,double,struct timeval *);
+void broker_host_check(int,int,int,host *,int,int,int,double,double,int,int,int,char *,char *,char *,struct timeval *);
+void broker_service_check(int,int,int,service *,int,double,double,int,int,int,char *,struct timeval *);
+void broker_comment_data(int,int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
+void broker_downtime_data(int,int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
+void broker_flapping_data(int,int,int,int,void *,double,double,struct timeval *);
 void broker_program_status(int,int,int,struct timeval *);
 void broker_host_status(int,int,int,host *,struct timeval *);
 void broker_service_status(int,int,int,service *,struct timeval *);
+void broker_notification_data(int,int,int,int,int,void *,char *,char *,int,struct timeval *);
 #endif
 
 #endif

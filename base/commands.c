@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-26-2003
+ * Last Modified:   09-03-2003
  *
  * License:
  *
@@ -98,6 +98,7 @@ void check_for_external_commands(void){
 	time_t entry_time;
 	int command_type=CMD_NONE;
 	char *temp_ptr;
+	int buffer_items;
 
 #ifdef DEBUG0
 	printf("check_for_external_commands() start\n");
@@ -118,11 +119,16 @@ void check_for_external_commands(void){
 	passive_check_result_list=NULL;
 	passive_check_result_list_tail=NULL;
 
-	/* get a lock on the buffer */
+	/* get number of items the buffer */
 	pthread_mutex_lock(&external_command_buffer.buffer_lock);
+	buffer_items=external_command_buffer.items;
+	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 	/* process all commands found in the buffer */
-	while(external_command_buffer.items>0){
+	while(buffer_items>0){
+
+		/* get a lock on the buffer */
+		pthread_mutex_lock(&external_command_buffer.buffer_lock);
 
 		if(external_command_buffer.buffer[external_command_buffer.tail]){
 			strncpy(buffer,((char **)external_command_buffer.buffer)[external_command_buffer.tail],sizeof(buffer)-1);
@@ -137,6 +143,11 @@ void check_for_external_commands(void){
 		/* adjust tail counter and number of items */
 		external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
 		external_command_buffer.items--;
+
+		buffer_items=external_command_buffer.items;
+
+		/* release the lock on the buffer */
+		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 		/* strip the buffer of newlines and carriage returns */
 		strip(buffer);
@@ -528,9 +539,6 @@ void check_for_external_commands(void){
 		/* process the command if its not a passive check */
 		process_external_command(command_type,entry_time,args);
 	        }
-
-	/* release the lock on the buffer */
-	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 	/**** PROCESS ALL PASSIVE SERVICE CHECK RESULTS AT ONE TIME ****/
 	if(passive_check_result_list!=NULL)
@@ -1909,7 +1917,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_PASSIVE,this_host,this_host->current_state,this_host->state_type,0.0,this_host->execution_time,0,FALSE,return_code,NULL,this_host->plugin_output,this_host->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,this_host,HOST_CHECK_PASSIVE,this_host->current_state,this_host->state_type,0.0,this_host->execution_time,0,FALSE,return_code,NULL,this_host->plugin_output,this_host->perf_data,NULL);
 #endif
 
 	/***** CHECK FOR FLAPPING *****/

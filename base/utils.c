@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-27-2003
+ * Last Modified:   09-03-2003
  *
  * License:
  *
@@ -1665,7 +1665,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	FILE *fp=NULL;
 	int bytes_read=0;
 	struct timeval start_time,end_time;
-	int attr=NEBATTR_NONE;
 #ifdef EMBEDDEDPERL
 	char fname[1024];
 	char tmpfname[32];
@@ -1958,7 +1957,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 			/* set the early timeout flag */
 			*early_timeout=TRUE;
-			attr+=NEBATTR_EARLY_COMMAND_TIMEOUT;
 
 			/* try to kill the command that timed out by sending termination signal to child process group */
 			kill((pid_t)(-pid),SIGTERM);
@@ -1968,7 +1966,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,attr,*exectime,timeout,*early_timeout,result,cmd,output,NULL);
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,NEBATTR_NONE,*exectime,timeout,*early_timeout,result,cmd,output,NULL);
 #endif
 
 		/* close the pipe for reading */
@@ -2646,7 +2644,7 @@ int daemon_init(void){
 
 #ifdef USE_EVENT_BROKER
 	/* send program data to broker */
-	broker_program_state(NEBTYPE_PROCESS_DAEMON,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+	broker_program_state(NEBTYPE_PROCESS_DAEMONIZE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 #endif
 
 	return OK;
@@ -3535,6 +3533,7 @@ void * service_result_worker_thread(void *arg){
 	int read_result;
 	int bytes_to_read;
 	int write_offset;
+	int buffer_items;
 	service_message message;
 	service_message *new_message;
 
@@ -3563,11 +3562,13 @@ void * service_result_worker_thread(void *arg){
 		/* should we shutdown? */
 		pthread_testcancel();
 
-		/* obtain a lock for writing to the buffer */
+		/* get number of items in the buffer */
 		pthread_mutex_lock(&service_result_buffer.buffer_lock);
+		buffer_items=service_result_buffer.items;
+		pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 
-		/* process all data in the buffer if there's some space in the buffer */
-		if(service_result_buffer.items<SERVICE_BUFFER_SLOTS){
+		/* process data in the pipe (one message max) if there's some free space in the circular buffer */
+		if(buffer_items<SERVICE_BUFFER_SLOTS){
 
 			/* clear the message buffer */
 			bzero((void *)&message,sizeof(service_message));
@@ -3602,10 +3603,16 @@ void * service_result_worker_thread(void *arg){
 
 				/* did we read fewer bytes than we were supposed to?  if so, try and get the rest of the message... */
 				else if(read_result<bytes_to_read){
+
 					bytes_to_read-=read_result;
+
+					/* should we shutdown? */
+					pthread_testcancel();
+
 					continue;
 				        }
 
+				/* we read the entire message... */
 				else
 					break;
 			        }
@@ -3621,7 +3628,11 @@ void * service_result_worker_thread(void *arg){
 				/* copy the data we read to the message buffer */
 				memcpy(new_message,&message,sizeof(service_message));
 
+				/* obtain a lock for writing to the buffer */
+				pthread_mutex_lock(&service_result_buffer.buffer_lock);
+
 				/* handle overflow conditions */
+				/* NOTE: This should never happen (see check above) - child processes will instead block trying to write messages to the pipe... */
 				if(service_result_buffer.items==SERVICE_BUFFER_SLOTS){
 
 					/* record overflow */
@@ -3638,21 +3649,14 @@ void * service_result_worker_thread(void *arg){
 				service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
 				if(service_result_buffer.items<SERVICE_BUFFER_SLOTS)
 					service_result_buffer.items++;
+
+				/* release lock on buffer */
+				pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 			        }
-
-			/* bail out if the buffer is now full */
-			if(service_result_buffer.items==SERVICE_BUFFER_SLOTS)
-				break;
-
-			/* should we shutdown? */
-			pthread_testcancel();
                         }
-
-		/* release lock on buffer */
-		pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 	        }
 
-	/* removes cleanup handler */
+	/* removes cleanup handler - should never be reached */
 	pthread_cleanup_pop(0);
 
 	return NULL;
@@ -3664,6 +3668,7 @@ void * service_result_worker_thread(void *arg){
 void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
+	int buffer_items;
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
@@ -3677,7 +3682,7 @@ void * command_file_worker_thread(void *arg){
 		/* should we shutdown? */
 		pthread_testcancel();
 
-		/**** REPLACE THIS WITH A CALL TO POLL(), AS SELECT() DOESN'T WORK ****/
+		/**** POLL() AND SELECT() DON'T SEEM TO WORK ****/
 		/* wait a bit */
 		tv.tv_sec=0;
 		tv.tv_usec=500000;
@@ -3686,16 +3691,21 @@ void * command_file_worker_thread(void *arg){
 		/* should we shutdown? */
 		pthread_testcancel();
 
-		/* obtain a lock for writing to the buffer */
+		/* get number of items in the buffer */
 		pthread_mutex_lock(&external_command_buffer.buffer_lock);
+		buffer_items=external_command_buffer.items;
+		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 		/* process all commands in the file (named pipe) if there's some space in the buffer */
-		if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
+		if(buffer_items<COMMAND_BUFFER_SLOTS){
 
 			/* clear EOF condition from prior run (FreeBSD fix) */
 			clearerr(command_file_fp);
 
 			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
+
+				/* obtain a lock for writing to the buffer */
+				pthread_mutex_lock(&external_command_buffer.buffer_lock);
 
 				/* save the line in the buffer */
 				((char **)external_command_buffer.buffer)[external_command_buffer.head]=strdup(input_buffer);
@@ -3704,23 +3714,27 @@ void * command_file_worker_thread(void *arg){
 				external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
 				external_command_buffer.items++;
 
-				/* bail out if the buffer is now full */
-				if(external_command_buffer.items==COMMAND_BUFFER_SLOTS)
+				buffer_items=external_command_buffer.items;
+
+				/* release lock on buffer */
+				pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+
+				/* bail if the circular buffer is full */
+				if(buffer_items==COMMAND_BUFFER_SLOTS)
 					break;
 
 				/* should we shutdown? */
 				pthread_testcancel();
 	                        }
 
+#ifdef REMOVED_09032003
 			/* rewind file pointer (fix for FreeBSD, may already be taken care of due to clearerr() call before reading begins) */
 			rewind(command_file_fp);
+#endif
 		        }
-
-		/* release lock on buffer */
-		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 	        }
 
-	/* removes cleanup handler */
+	/* removes cleanup handler - this should never be reached */
 	pthread_cleanup_pop(0);
 
 	return NULL;

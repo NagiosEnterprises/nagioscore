@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-28-2003
  *
  * License:
  *
@@ -255,7 +255,7 @@ void run_service_check(service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_SERVICECHECK_ACTIVE,svc,svc->latency,0.0,0,FALSE,0,processed_command,NULL);
+	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,svc->latency,0.0,0,FALSE,0,processed_command,NULL);
 #endif
 
 #ifdef EMBEDDEDPERL
@@ -1283,7 +1283,7 @@ void reap_service_checks(void){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,(temp_service->check_type==SERVICE_CHECK_ACTIVE)?NEBATTR_SERVICECHECK_ACTIVE:NEBATTR_SERVICECHECK_PASSIVE,temp_service,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_svc_msg.early_timeout,queued_svc_msg.return_code,NULL,NULL);
+		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_svc_msg.early_timeout,queued_svc_msg.return_code,NULL,NULL);
 #endif
 
 		/* set the checked flag */
@@ -1894,7 +1894,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->current_state,hst->state_type,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL);
 #endif
 
 	/* make sure we return the original host state unless it changes... */
@@ -2159,7 +2159,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->current_state,hst->state_type,hst->latency,hst->execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,hst->latency,hst->execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->perf_data,NULL);
 #endif
 
 	/* check to see if the associated host is flapping */
@@ -2337,7 +2337,7 @@ int run_host_check(host *hst, int check_options){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,return_result,hst->state_type,hst->latency,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,hst->latency,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->perf_data,NULL);
 #endif
 
 #ifdef DEBUG3

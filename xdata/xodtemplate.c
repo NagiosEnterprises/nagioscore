@@ -79,7 +79,7 @@ xodtemplate_servicedependency *xodtemplate_servicedependency_list=NULL;
 xodtemplate_serviceescalation *xodtemplate_serviceescalation_list=NULL;
 xodtemplate_contact *xodtemplate_contact_list=NULL;
 xodtemplate_host *xodtemplate_host_list=NULL;
-xodtemplate_service **xodtemplate_service_list=NULL;
+xodtemplate_service *xodtemplate_service_list=NULL;
 xodtemplate_hostdependency *xodtemplate_hostdependency_list=NULL;
 xodtemplate_hostescalation *xodtemplate_hostescalation_list=NULL;
 xodtemplate_hostextinfo *xodtemplate_hostextinfo_list=NULL;
@@ -1165,8 +1165,9 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->_config_file=config_file;
 		new_service->_start_line=start_line;
 
-		/* add new service to list */
-		xodtemplate_add_service_allocated(new_service);
+		/* add new service to head of list in memory */
+		new_service->next=xodtemplate_service_list;
+		xodtemplate_service_list=new_service;
 
 		/* update current object pointer */
 		xodtemplate_current_object=new_service;
@@ -2575,7 +2576,8 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
-			if(!xodtemplate_rename_service(temp_service,value)){
+			temp_service->name=strdup(value);
+			if(temp_service->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for service name.\n");
 #endif
@@ -3384,7 +3386,6 @@ int xodtemplate_duplicate_services(void){
 	xodtemplate_hostlist *this_hostlist;
 	char *host_name="";
 	int first_item;
-	void *xod_svc_cursor;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -3395,8 +3396,7 @@ int xodtemplate_duplicate_services(void){
 
 
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip service definitions without enough data */
 		if(temp_service->hostgroup_name==NULL && temp_service->host_name==NULL)
@@ -3444,7 +3444,6 @@ int xodtemplate_duplicate_services(void){
 		/* free memory we used for host list */
 		xodtemplate_free_hostlist(temp_hostlist);
 	        }
-	free_xodtemplate_service_cursor(xod_svc_cursor);
 
  #ifdef DEBUG0
 	printf("xodtemplate_duplicate_services() end\n");
@@ -4288,8 +4287,9 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		        }
 	        } 
 
-	/* add new service to service list */
-	xodtemplate_add_service_allocated(new_service);
+	/* add new service to head of list in memory */
+	new_service->next=xodtemplate_service_list;
+	xodtemplate_service_list=new_service;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_service() end\n");
@@ -4958,7 +4958,6 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_hostextinfo *temp_hostextinfo;
 	xodtemplate_serviceextinfo *temp_serviceextinfo;
-	void *xod_svc_cursor;
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_objects() start\n");
@@ -5019,12 +5018,10 @@ int xodtemplate_resolve_objects(void){
 	        }
 
 	/* resolve all service objects */
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 		if(xodtemplate_resolve_service(temp_service)==ERROR)
 			return ERROR;
 	        }
-	free_xodtemplate_service_cursor(xod_svc_cursor);
 
 	/* resolve all hostdependency objects */
 	for(temp_hostdependency=xodtemplate_hostdependency_list;temp_hostdependency!=NULL;temp_hostdependency=temp_hostdependency->next){
@@ -6162,7 +6159,6 @@ int xodtemplate_recombobulate_hostgroups(void){
 	char *hostgroup_names;
 	char *temp_ptr;
 	char *new_members;
-	void *xod_svc_cursor;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6273,7 +6269,6 @@ int xodtemplate_recombobulate_servicegroups(void){
 	char *temp_ptr;
 	char *temp_ptr2;
 	char *new_members;
-	void *xod_svc_cursor;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6370,8 +6365,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 
 
 	/* process all services that have servicegroup directives */
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services without servicegroup directives or service names */
 		if(temp_service->servicegroups==NULL || temp_service->host_name==NULL || temp_service->service_description==NULL)
@@ -6727,37 +6721,33 @@ xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *name){
 
 /* finds a specific service object */
 xodtemplate_service *xodtemplate_find_service(char *name){
-	xodtemplate_service *iptr;
+	xodtemplate_service *temp_service;
 
-	if(name==NULL || xodtemplate_service_list==NULL)
-		return NULL;
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+		if(temp_service->name==NULL)
+			continue;
+		if(!strcmp(temp_service->name,name))
+			break;
+	        }
 
-	for(iptr=xodtemplate_service_list[hashfunc1(name,SERVICE_HASHSLOTS)];iptr && xodtemplate_service_comes_after(iptr, name);iptr=iptr->next);
-
-	if(iptr && (compare_xodtemplate_service(iptr,name)==0))
-		return iptr;
-
-	return NULL;
+	return temp_service;
         }
 
 
 /* finds a specific service object by its REAL name, not its TEMPLATE name */
 xodtemplate_service *xodtemplate_find_real_service(char *host, char *description){
 	xodtemplate_service *temp_service;
-	void *xod_svc_cursor;
 
 	if(host==NULL || description==NULL || xodtemplate_service_list==NULL)
 		return NULL;
 
-	temp_service=NULL;
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
+
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 			continue;
 		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))
 			break;
 	        }
-	free_xodtemplate_service_cursor(xod_svc_cursor);
 
 	return temp_service;
         }
@@ -6787,7 +6777,6 @@ int xodtemplate_register_objects(void){
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_hostextinfo *temp_hostextinfo;
 	xodtemplate_serviceextinfo *temp_serviceextinfo;
-	void *xod_svc_cursor;
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_objects() start\n");
@@ -6836,12 +6825,10 @@ int xodtemplate_register_objects(void){
 	        }
 
 	/* register services */
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 		if((result=xodtemplate_register_service(temp_service))==ERROR)
 			return ERROR;
 	        }
-	free_xodtemplate_service_cursor(xod_svc_cursor);
 
 	/* register service dependencies */
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
@@ -7803,7 +7790,6 @@ int xodtemplate_cache_objects(char *cache_file){
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_hostextinfo *temp_hostextinfo;
 	xodtemplate_serviceextinfo *temp_serviceextinfo;
-	void *xod_svc_cursor;
 	time_t current_time;
 
 #ifdef DEBUG0
@@ -8025,8 +8011,7 @@ int xodtemplate_cache_objects(char *cache_file){
 	        }
 
 	/* cache services */
-	xod_svc_cursor=get_xodtemplate_service_cursor();
-	while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 		if(temp_service->register_object==FALSE)
 			continue;
 		fprintf(fp,"define service {\n");
@@ -8097,7 +8082,6 @@ int xodtemplate_cache_objects(char *cache_file){
 
 		fprintf(fp,"\t}\n\n");
 	        }
-	free_xodtemplate_service_cursor(xod_svc_cursor);
 
 	/* cache service dependencies */
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
@@ -8482,28 +8466,21 @@ int xodtemplate_free_memory(void){
 	xodtemplate_host_list=NULL;
 
 	/* free memory allocated to service list (chained hash) */
-	if(xodtemplate_service_list){
-
-		for(x=0;x<SERVICE_HASHSLOTS;x++){
-			for(this_service=xodtemplate_service_list[x];this_service!=NULL;this_service=next_service){
-
-				next_service=this_service->next;
-				free(this_service->template);
-				free(this_service->name);
-				free(this_service->hostgroup_name);
-				free(this_service->host_name);
-				free(this_service->service_description);
-				free(this_service->servicegroups);
-				free(this_service->check_command);
-				free(this_service->check_period);
-				free(this_service->event_handler);
-				free(this_service->notification_period);
-				free(this_service->contact_groups);
-				free(this_service->failure_prediction_options);
-				free(this_service);
-			        }
-		        }
-		free(xodtemplate_service_list);
+	for(this_service=xodtemplate_service_list;this_service!=NULL;this_service=next_service){
+		next_service=this_service->next;
+		free(this_service->template);
+		free(this_service->name);
+		free(this_service->hostgroup_name);
+		free(this_service->host_name);
+		free(this_service->service_description);
+		free(this_service->servicegroups);
+		free(this_service->check_command);
+		free(this_service->check_period);
+		free(this_service->event_handler);
+		free(this_service->notification_period);
+		free(this_service->contact_groups);
+		free(this_service->failure_prediction_options);
+		free(this_service);
 	        }
 	xodtemplate_service_list=NULL;
 
@@ -8687,7 +8664,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 			if(regcomp(&preg,temp_ptr,0)){
 				free(hostgroup_names);
 				return NULL;
-		                }
+	                        }
 			
 			/* test match against all hostgroup names */
 			for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
@@ -8698,11 +8675,10 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				/* break out if this hostgroup matched the expression */
 				if(!regexec(&preg,temp_hostgroup->hostgroup_name,0,NULL,0))
 					break;
-			        }
+		                } 
 
 			/* free memory allocated to compiled regexp */
 			regfree(&preg);
-	
 #else
 
 			/* find the hostgroup */
@@ -8950,7 +8926,6 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 	char *member_name;
 	char *member_ptr;
 	char *temp_ptr;
-	void *xod_svc_cursor;
 #ifdef USE_REGEXP_MATCHING
 	regex_t preg;
 	regex_t preg2;
@@ -9120,8 +9095,7 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 
 			/* test match against all services */
 			found_match=FALSE;
-			xod_svc_cursor=get_xodtemplate_service_cursor();
-			while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
+			for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 				if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 					continue;
@@ -9188,8 +9162,7 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 		/* return list of all services on the host */
 		if(!strcmp(service_names,"*")){
 
-			xod_svc_cursor=get_xodtemplate_service_cursor();
-			while((temp_service=get_next_xodtemplate_service(xod_svc_cursor))){
+			for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 				if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 					continue;
@@ -9218,8 +9191,6 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 				new_list->next=temp_list;
 				temp_list=new_list;
 	                        }
-
-			free_xodtemplate_service_cursor(xod_svc_cursor);
                         }
 
 		/* else lookup individual services */
@@ -9296,139 +9267,4 @@ char *xodtemplate_config_file_name(int config_file){
 
 #endif
 
-
-
-
-/******************************************************************/
-/************************ HASH FUNCTIONS **************************/
-/******************************************************************/
-
-
-int compare_xodtemplate_service(xodtemplate_service *xod_service,const char *service_name){
-
-	if(xod_service->name && service_name)
-		return strcmp(xod_service->name,service_name);
-	else if(!(xod_service->name) && !service_name)
-		return 0;
-	else if(!(xod_service->name))
-		return 1;
-
-	return -1;
-        }
-
-
-int xodtemplate_service_comes_after(xodtemplate_service *xod_service, const char *service_name){
-
-	return compare_xodtemplate_service(xod_service,service_name) < 0;
-        }
-
-
-int xodtemplate_add_service_allocated(xodtemplate_service *new_service){
-	xodtemplate_service *tempsvc, *lastpointer;
-	int hashslot=hashfunc1(new_service->name,SERVICE_HASHSLOTS);
-
-	if(xodtemplate_service_list==NULL){
-		int i;
-
-		xodtemplate_service_list=(xodtemplate_service **)malloc(sizeof(xodtemplate_service *)*SERVICE_HASHSLOTS);
-		if(xodtemplate_service_list==NULL)
-			return 0;
-
-		for(i=0;i<SERVICE_HASHSLOTS;i++)
-			xodtemplate_service_list[i]=NULL;
-	        }
-
-	if(!new_service)
-		return 0;
-
-	lastpointer=NULL;
-	for(tempsvc=xodtemplate_service_list[hashslot];tempsvc && xodtemplate_service_comes_after(tempsvc,new_service->name);tempsvc=tempsvc->next)
-		lastpointer=tempsvc;
-
-	if(lastpointer)
-		lastpointer->next=new_service;
-	else
-		xodtemplate_service_list[hashslot]=new_service;
-	new_service->next=tempsvc;
-
-	return 1;
-        }
-
-
-int xodtemplate_remove_pointer(xodtemplate_service *to_remove){
-	int hashslot=hashfunc1(to_remove->name,SERVICE_HASHSLOTS);
-	xodtemplate_service *tempsvc, *lastpointer;
-
-	if(xodtemplate_service_list==NULL)
-		return 0;
-
-	if(!to_remove)
-		return 0;
-
-	lastpointer=NULL;
-	for(tempsvc=xodtemplate_service_list[hashslot];tempsvc && (tempsvc!=to_remove);tempsvc=tempsvc->next)
-		lastpointer=tempsvc;
-
-	if(tempsvc!=to_remove)
-		return 0;
-
-	if(lastpointer)
-		lastpointer->next=to_remove->next;
-	else
-		xodtemplate_service_list[hashslot]=to_remove->next;
-
-	return 1;
-        }
-
-
-int xodtemplate_rename_service(xodtemplate_service *new_service,const char *newname){
-
-	/* remove the pointer from its old position */
-	if(!xodtemplate_remove_pointer(new_service))
-		return 0;
-
-	if(new_service->name)
-		free(new_service->name);
-
-	new_service->name=strdup(newname);
-	if(new_service->name==NULL)
-		return 0;
-
-	/* re-add the pointer */
-	return xodtemplate_add_service_allocated(new_service);
-        }
-
-
-void *get_xodtemplate_service_cursor(void){
-	xodtemplate_service_cursor *retval;
-
-	if(!(retval=malloc(sizeof(xodtemplate_service_cursor))))
-		return NULL;
-
-	retval->xodtemplate_service_iterator=0;
-	retval->current_xodtemplate_service=NULL;
-
-	return retval;
-        }
-
-
-xodtemplate_service *get_next_xodtemplate_service(void *v_cursor){
-	xodtemplate_service_cursor *cursor=v_cursor;
-
-	if(!cursor)
-		return NULL;
-
-	cursor->current_xodtemplate_service=get_next_N((void **)xodtemplate_service_list,SERVICE_HASHSLOTS,&(cursor->xodtemplate_service_iterator),cursor->current_xodtemplate_service,(cursor->current_xodtemplate_service?cursor->current_xodtemplate_service->next:NULL));
-
-	return cursor->current_xodtemplate_service;
-        }
-
-
-void free_xodtemplate_service_cursor(void *cursor){
-
-	if(cursor)
-		free(cursor);
-
-	return;
-        }
 

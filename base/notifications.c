@@ -28,6 +28,7 @@
 #include "../include/objects.h"
 #include "../include/statusdata.h"
 #include "../include/nagios.h"
+#include "../include/broker.h"
 
 extern notification    *notification_list;
 extern contact         *contact_list;
@@ -103,6 +104,11 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 #endif
 
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,(void *)svc,ack_author,ack_data,0,NULL);
+#endif
 
 	/* create the contact notification list for this service */
 	create_notification_list_from_service(svc);
@@ -211,6 +217,11 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
 #endif
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_notification_data(NEBTYPE_NOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,(void *)svc,ack_author,ack_data,contacts_notified,NULL);
+#endif
 
 	/* update the status log with the service information */
 	update_service_status(svc,FALSE);
@@ -831,6 +842,11 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 #endif
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,(void *)hst,ack_author,ack_data,0,NULL);
+#endif
+
 	/* create the contact notification list for this host */
 	create_notification_list_from_host(hst);
 
@@ -937,6 +953,11 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
 #endif
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_notification_data(NEBTYPE_NOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,(void *)hst,ack_author,ack_data,contacts_notified,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);

@@ -3,7 +3,7 @@
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-26-2003
+ * Last Modified: 08-28-2003
  *
  * License:
  *
@@ -56,6 +56,7 @@ typedef struct nebstruct_timed_event_struct{
 	void            *event_data;
         }nebstruct_timed_event_data;
 
+
 /* log data structure */
 typedef struct nebstruct_log_struct{
 	int             type;
@@ -64,7 +65,7 @@ typedef struct nebstruct_log_struct{
 	struct timeval  timestamp;
 
 	int             data_type;
-	char            *log_entry;
+	char            *data;
         }nebstruct_log_data;
 
 
@@ -113,6 +114,7 @@ typedef struct nebstruct_host_check_struct{
 
 	char            *host_name;
 	int             current_attempt;
+	int             check_type;
 	int             max_attempts;
 	int             state_type;
 	int             state;
@@ -136,6 +138,7 @@ typedef struct nebstruct_service_check_struct{
 
 	char            *host_name;
 	char            *service_description;
+	int             check_type;
 	int             current_attempt;
 	int             max_attempts;
 	int             state_type;
@@ -157,7 +160,8 @@ typedef struct nebstruct_comment_struct{
 	int             flags;
 	int             attr;
 	struct timeval  timestamp;
-	
+
+	int             comment_type;
 	char            *host_name;
 	char            *service_description;
 	time_t          entry_time;
@@ -178,7 +182,8 @@ typedef struct nebstruct_downtime_struct{
 	int             flags;
 	int             attr;
 	struct timeval  timestamp;
-	
+
+	int             downtime_type;
 	char            *host_name;
 	char            *service_description;
 	time_t          entry_time;
@@ -200,6 +205,7 @@ typedef struct nebstruct_flapping_struct{
 	int             attr;
 	struct timeval  timestamp;
 
+	int             flapping_type;
 	char            *host_name;
 	char            *service_description;
 	double          percent_change;
@@ -254,6 +260,25 @@ typedef struct nebstruct_service_status_struct{
 
 	void            *object_ptr;
         }nebstruct_service_status_data;
+
+
+/* notification data structure */
+typedef struct nebstruct_notification_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	int             notification_type;
+	char            *host_name;
+	char            *service_description;
+	int             reason_type;
+	int             state;
+	char            *output;
+	char            *ack_author;
+	char            *ack_data;
+	int             contacts_notified;
+        }nebstruct_notification_data;
 
 
 #endif

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-26-2003
+ * Last Modified:   08-28-2003
  *
  * License:
  *
@@ -27,6 +27,7 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/nagios.h"
+#include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 

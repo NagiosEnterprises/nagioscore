@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-16-2003
+ * Last Modified:   03-29-2003
  *
  * License:
  *
@@ -1422,7 +1422,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,attr,timeout,*exectime,result,cmd,buffer,NULL);
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,attr,timeout,*exectime,result,cmd,output,NULL);
 #endif
 
 		/* close the pipe for reading */
@@ -2043,7 +2043,7 @@ int daemon_init(void){
 		return(ERROR);
 
 	/* parent process goes away.. */
-	else if((int)pid != 0)
+	else if((int)pid!=0)
 		exit(OK);
 
 	/* child continues... */
@@ -2057,8 +2057,10 @@ int daemon_init(void){
 	lock.l_whence=SEEK_SET;
 	lock.l_len=0;
 	if(fcntl(lockfile,F_SETLK,&lock)<0){
-		if(errno==EACCES || errno==EAGAIN)
+		if(errno==EACCES || errno==EAGAIN){
+			fcntl(lockfile,F_GETLK,&lock);
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Lockfile '%s' is held by PID %d.  Bailing out...",lock_file,(int)lock.l_pid);
+		        }
 		else
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
@@ -2225,6 +2227,7 @@ int drop_privileges(char *user, char *group){
 
 /* reads a service message from the circular buffer */
 int read_svc_message(service_message *message){
+	char buffer[MAX_INPUT_BUFFER];
 	int result;
 
 #ifdef DEBUG0
@@ -2240,22 +2243,34 @@ int read_svc_message(service_message *message){
 	/* get a lock on the buffer */
 	pthread_mutex_lock(&service_result_buffer.buffer_lock);
 
+	/* handle detected overflows */
+	if(service_result_buffer.overflow>0){
+
+		/* log the warning */
+		snprintf(buffer,sizeof(buffer)-1,"Warning: Overflow detected in service check result buffer - %d message(s) lost.\n",service_result_buffer.overflow);
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+		/* reset overflow counter */
+		service_result_buffer.overflow=0;
+	        }
+
 	/* there are no items in the buffer */
 	if(service_result_buffer.items==0)
 		result=-1;
 
-	/* return the message from the head of the buffer */
+	/* return the message from the tail of the buffer */
 	else{
 		
 		/* copy message to user-supplied structure */
-		memcpy(message,((service_message **)service_result_buffer.buffer)[service_result_buffer.head],sizeof(service_message));
+		memcpy(message,((service_message **)service_result_buffer.buffer)[service_result_buffer.tail],sizeof(service_message));
 
 		/* free memory allocated for buffer slot */
-		free(((service_message **)service_result_buffer.buffer)[service_result_buffer.head]);
-		service_result_buffer.buffer[service_result_buffer.head]=NULL;
+		free(((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]);
+		service_result_buffer.buffer[service_result_buffer.tail]=NULL;
 
-		/* adjust head counter and number of items */
-		service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
+		/* adjust tail counter and number of items */
+		service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
 		service_result_buffer.items--;
 
 		result=0;
@@ -2830,7 +2845,7 @@ void cleanup_service_result_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
-	for(x=service_result_buffer.head;x!=service_result_buffer.tail;x=(x+1) % SERVICE_BUFFER_SLOTS){
+	for(x=service_result_buffer.tail;x!=service_result_buffer.head;x=(x+1) % SERVICE_BUFFER_SLOTS){
 		free(((service_message **)service_result_buffer.buffer)[x]);
 		((service_message **)service_result_buffer.buffer)[x]=NULL;
 	        }
@@ -2896,7 +2911,7 @@ void cleanup_command_file_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
-	for(x=external_command_buffer.head;x!=external_command_buffer.tail;x=(x+1) % COMMAND_BUFFER_SLOTS){
+	for(x=external_command_buffer.tail;x!=external_command_buffer.head;x=(x+1) % COMMAND_BUFFER_SLOTS){
 		free(((char **)external_command_buffer.buffer)[x]);
 		((char **)external_command_buffer.buffer)[x]=NULL;
 	        }
@@ -2907,12 +2922,9 @@ void cleanup_command_file_worker_thread(void *arg){
 
 
 /* service worker thread - artificially increases buffer of IPC pipe */
-void * service_result_worker_thread(void *arg){
-	struct timeval tv;
-#ifdef DOESNT_WORK
-	int retval;
-	fd_set readfs;
-#endif
+void * service_result_worker_thread(void *arg){	
+	struct pollfd pfd;
+	int pollval;
 	int read_result;
 	int bytes_to_read;
 	int write_offset;
@@ -2926,27 +2938,20 @@ void * service_result_worker_thread(void *arg){
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
 
-#ifdef DOESNT_WORK
-	FD_ZERO(&readfs);
-	FD_SET(ipc_pipe[0],&readfs);
-#endif
-
 	while(1){
 
 		/* should we shutdown? */
 		pthread_testcancel();
 
-		/* wait a bit */
-		tv.tv_sec=0;
-		tv.tv_usec=500000;
-		select(0,NULL,NULL,NULL,&tv);
+		/* wait for data to arrive */
+		/* select seems to not work, so we have to use poll instead */
+		pfd.fd=ipc_pipe[0];
+		pfd.events=POLLIN;
+		pollval=poll(&pfd,1,500);
 
-#ifdef DOESNT_WORK
-		/* I can't seem to get this working (using blocked or non-blocked pipe) - why? */
-		retval=select(ipc_pipe[0]+1,&readfs,NULL,NULL,&tv);
-		if(retval<=0)
+		/* loop if no data */
+		if(pollval<=0)
 			continue;
-#endif
 
 		/* should we shutdown? */
 		pthread_testcancel();
@@ -3009,12 +3014,23 @@ void * service_result_worker_thread(void *arg){
 				/* copy the data we read to the message buffer */
 				memcpy(new_message,&message,sizeof(service_message));
 
-				/* save the data to the buffer */
-				((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]=new_message;
+				/* handle overflow conditions */
+				if(service_result_buffer.items==SERVICE_BUFFER_SLOTS){
 
-				/* increment the tail counter and items */
-				service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
-				service_result_buffer.items++;
+					/* record overflow */
+					service_result_buffer.overflow++;
+
+					/* update tail pointer */
+					service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
+				        }
+
+				/* save the data to the buffer */
+				((service_message **)service_result_buffer.buffer)[service_result_buffer.head]=new_message;
+
+				/* increment the head counter and items */
+				service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
+				if(service_result_buffer.items<SERVICE_BUFFER_SLOTS)
+					service_result_buffer.items++;
 			        }
 
 			/* bail out if the buffer is now full */
@@ -3041,13 +3057,6 @@ void * service_result_worker_thread(void *arg){
 void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
-#ifdef DOESNT_WORK
-	int retval;
-	fd_set readfs;
-	fd_set writefs;
-	fd_set errfs;
-#endif
-
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
@@ -3056,38 +3065,16 @@ void * command_file_worker_thread(void *arg){
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
 
-#ifdef DOESNT_WORK
-	FD_ZERO(&readfs);
-	FD_SET(command_file_fd,&readfs);
-	FD_ZERO(&writefs);
-	FD_SET(command_file_fd,&writefs);
-	FD_ZERO(&errfs);
-	FD_SET(command_file_fd,&errfs);
-#endif
-
 	while(1){
 
 		/* should we shutdown? */
 		pthread_testcancel();
 
+		/**** REPLACE THIS WITH A CALL TO POLL(), AS SELECT() DOESN'T WORK ****/
 		/* wait a bit */
 		tv.tv_sec=0;
 		tv.tv_usec=500000;
 		select(0,NULL,NULL,NULL,&tv);
-
-		/* I can't seem to get this working (blocked or non-blocked) - retval is always 0 */
-#ifdef DOESNT_WORK
-		retval=select(command_file_fd+1,&readfs,&writefs,&errfs,&tv);
-		printf("RETVAL: %d\n",retval);
-		if(FD_ISSET(command_file_fd,&readfs))
-			printf("  READ IS TRUE\n");
-		if(FD_ISSET(command_file_fd,&writefs))
-			printf("  WRITE IS TRUE\n");
-		if(FD_ISSET(command_file_fd,&errfs))
-			printf("  ERROR IS TRUE\n");
-		if(retval<=0)
-			continue;
-#endif
 
 		/* should we shutdown? */
 		pthread_testcancel();
@@ -3104,10 +3091,10 @@ void * command_file_worker_thread(void *arg){
 			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
 
 				/* save the line in the buffer */
-				((char **)external_command_buffer.buffer)[external_command_buffer.tail]=strdup(input_buffer);
+				((char **)external_command_buffer.buffer)[external_command_buffer.head]=strdup(input_buffer);
 
-				/* increment the tail counter and items */
-				external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
+				/* increment the head counter and items */
+				external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
 				external_command_buffer.items++;
 
 				/* bail out if the buffer is now full */

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   04-03-2003
  *
  * License:
  *
@@ -972,8 +972,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 #endif
 
 	/* add new host to host list, sorted by host name */
-	if(!add_host_allocated(new_host)) {
-		/* Failure */
+	if(!add_host_allocated(new_host)){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host list to add host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2458,7 +2457,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 
 #endif
 	/* add new service to service list, sorted by host name then service description */
-	if(!add_service_allocated(new_service)) {
+	if(!add_service_allocated(new_service)){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add new service '%s' on host '%s' (out of memory?)\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';

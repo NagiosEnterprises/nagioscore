@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-22-2003
+ * Last Modified:   03-31-2003
  *
  * License:
  *
@@ -113,18 +113,18 @@ void check_for_external_commands(void){
 	/* process all commands found in the buffer */
 	while(external_command_buffer.items>0){
 
-		if(external_command_buffer.buffer[external_command_buffer.head]){
-			strncpy(buffer,((char **)external_command_buffer.buffer)[external_command_buffer.head],sizeof(buffer)-1);
+		if(external_command_buffer.buffer[external_command_buffer.tail]){
+			strncpy(buffer,((char **)external_command_buffer.buffer)[external_command_buffer.tail],sizeof(buffer)-1);
 			buffer[sizeof(buffer)-1]='\x0';
 		        }
 		else
 			strcpy(buffer,"");
 
 		/* free memory allocated for buffer slot */
-		free(((char **)external_command_buffer.buffer)[external_command_buffer.head]);
+		free(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
 
-		/* adjust head counter and number of items */
-		external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
+		/* adjust tail counter and number of items */
+		external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
 		external_command_buffer.items--;
 
 		/* strip the buffer of newlines and carriage returns */

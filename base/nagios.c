@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   03-16-2003
+ * Last Modified:   04-01-2003
  *
  * Description:
  *
@@ -448,12 +448,6 @@ int main(int argc, char **argv){
 			exit(ERROR);
 		        }
 
-	        /* calculate the inter-check delay to use when initially scheduling host and service checks */
-		calculate_inter_check_delay();
-
-		/* calculate interleave factor to use for spreading out service checks */
-		calculate_interleave_factor();
-
 	        /* initialize the event timing loop */
 		init_timing_loop();
 
@@ -585,11 +579,11 @@ int main(int argc, char **argv){
 				exit(ERROR);
 		                }
 
-		        /* calculate the inter-check delay to use when initially scheduling host and service checks */
-			calculate_inter_check_delay();
 
-			/* calculate interleave factor to use for spreading out service checks */
-			calculate_interleave_factor();
+#ifdef USE_EVENT_BROKER
+			/* start the event broker */
+			start_event_broker_worker_thread();
+#endif
 
 		        /* initialize the event timing loop */
 			init_timing_loop();
@@ -691,7 +685,22 @@ int main(int argc, char **argv){
 
 			/* cleanup worker threads */
 			shutdown_service_result_worker_thread();
+
+			/* shutdown stuff... */
+			if(sigshutdown==TRUE){
+
+				/* make sure lock file has been removed - it may not have been if we received a shutdown command */
+				if(daemon_mode==TRUE)
+					unlink(lock_file);
+
+				/* log a shutdown message */
+				snprintf(buffer,sizeof(buffer),"Successfully shutdown... (PID=%d)\n",(int)getpid());
+				buffer[sizeof(buffer)-1]='\x0';
+				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
+ 			        }
+
 #ifdef USE_EVENT_BROKER
+			/* cleanup event broker */
 			shutdown_event_broker_worker_thread();
 #endif
 
@@ -700,22 +709,10 @@ int main(int argc, char **argv){
 
 	                }while(sigrestart==TRUE && sigshutdown==FALSE);
 
+	        }
 
-
-		/* we've shutdown... */
-
-		/* make sure lock file has been removed - it may not have been if we received a shutdown command */
-		if(daemon_mode==TRUE)
-			unlink(lock_file);
-
-		/* free misc memory */
-		free(config_file);
-
-		/* log a shutdown message */
-		snprintf(buffer,sizeof(buffer),"Successfully shutdown... (PID=%d)\n",(int)getpid());
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
- 	        }
+	/* free misc memory */
+	free(config_file);
 
 	return OK;
 	}

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-22-2003
+ * Last Modified: 04-01-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -331,9 +331,11 @@ typedef struct service_message_struct{
 /* SCHED_INFO structure */
 typedef struct sched_info_struct{
 	int total_services;
+	int total_scheduled_services;
 	int total_hosts;
 	int total_scheduled_hosts;
 	double average_services_per_host;
+	double average_scheduled_services_per_host;
 	unsigned long service_check_interval_total;
 	unsigned long host_check_interval_total;
 	double average_service_check_interval;
@@ -410,8 +412,6 @@ int read_resource_file(char *);				/* processes macros in resource file */
 
 /**** Setup Functions ****/
 int pre_flight_check(void);                          	/* try and verify the configuration data */
-void calculate_inter_check_delay(void);              	/* calculate the inter check delay to use when scheduling services */
-void calculate_interleave_factor(void);			/* calculate interleave factor for spreading out service checks */
 void init_timing_loop(void);                         	/* setup the initial scheduling queue */
 void setup_sighandler(void);                         	/* trap signals */
 void reset_sighandler(void);                         	/* reset signals to default action */
@@ -655,10 +655,12 @@ void cleanup_command_file_worker_thread(void *);
 /**** Event Broker Functions ****/
 #ifdef USE_EVENT_BROKER
 int init_event_broker_worker_thread(void);
+int start_event_broker_worker_thread(void);
 int shutdown_event_broker_worker_thread(void);
 void cleanup_event_broker_worker_thread(void *);
 int send_event_data_to_broker(char *);
 void * event_broker_worker_thread(void *);
+int write_event_broker_data(int,char *,int *);
 void broker_program_state(int,int,int,struct timeb *);
 void broker_timed_event(int,int,int,timed_event *event,void *,struct timeb *);
 void broker_log_data(int,int,int,char *,unsigned long,struct timeb *);

@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-04-2003
+ * Last Modified: 03-30-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -233,4 +233,40 @@
 #undef HAVE_REGEX_H
 #ifdef HAVE_REGEX_H
 #include <regex.h>
+
+#undef HAVE_SYS_SOCKET_H
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
+#undef HAVE_SOCKET
+#ifdef HAVE_SOCKET_H
+#include <socket.h>
+#endif
+
+#undef HAVE_NETINET_IN_H
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#undef HAVE_ARPA_INET_H
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#undef HAVE_NETDB_H
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+
+#undef HAVE_SYS_UN_H
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+
+#undef HAVE_SYS_POLL_H
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif
+
 #endif

@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-09-2003
+ * Last Modified:   06-11-2003
  *
  * License:
  *
@@ -300,6 +300,31 @@ void broker_comment_data(int type, int flags, int attr, char *host_name, char *s
 
 	return;
         }
+
+
+
+/* send downtime data to broker */
+void broker_downtime_data(int type, int flags, int attr, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long downtime_id, struct timeval *timestamp){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	struct timeval tv;
+
+	if(!(event_broker_options & BROKER_DOWNTIME_DATA))
+		return;
+	
+	tv=get_broker_timestamp(timestamp);
+
+	if((attr & NEBATTR_HOST_DOWNTIME))
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;%lu;%s;%s;%lu;%lu;%d;%lu;%lu;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,duration,downtime_id);
+	else
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;%s;%lu;%s;%s;%lu;%lu;%d;%lu;%lu;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,host_name,svc_description,entry_time,author_name,comment_data,start_time,end_time,fixed,duration,downtime_id);
+
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+	send_event_data_to_broker(temp_buffer);
+
+	return;
+        }
+
 
 
 /* send flapping data to broker */
@@ -600,7 +625,9 @@ void * event_broker_worker_thread(void *arg){
 	/* you have to love GOTO statements... */
         brokerconnect:
 
+#ifdef DEBUGBROKER
 	printf("Attempting to (re)connect to socket...\n");
+#endif
 
 	/* initialize socket */
 	while((event_broker_socket=socket(AF_UNIX,SOCK_STREAM,0))==-1){

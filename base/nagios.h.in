@@ -687,6 +687,7 @@ void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct t
 void broker_host_check(int,int,int,host *,int,double,struct timeval *);
 void broker_service_check(int,int,int,service *,struct timeval *);
 void broker_comment_data(int,int,int,char *,char *,time_t,char *,char *,int,int,unsigned long,struct timeval *);
+void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,struct timeval *);
 void broker_flapping_data(int,int,int,void *,double,double,struct timeval *);
 #endif
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-04-2003
+ * Last Modified: 09-06-2003
  *
  * Description:
  *
@@ -93,6 +93,9 @@ char **xodtemplate_config_files;
 
 char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
 
+/* THESE NEED TO BE MOVED AND MADE TO CONFIG FILE VARS... */
+int use_regexp_matches=FALSE;
+int use_true_regexp_matching=FALSE;
 
 
 
@@ -8618,19 +8621,55 @@ int xodtemplate_free_servicelist(xodtemplate_servicelist *temp_list){
 
 /* expands a comma-delimited list of hostgroups and/or hosts to member host names */
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,char *hosts){
-	xodtemplate_hostlist *temp_list;
-	xodtemplate_hostlist *new_list;
-	xodtemplate_hostgroup *temp_hostgroup;
-	xodtemplate_host *temp_host;
+	xodtemplate_hostlist *temp_list=NULL;
+	int result;
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_hostgroups_and_hosts() start\n");
+#endif
+
+	/* process list of hostgroups... */
+	if(hostgroups!=NULL){
+
+		/* expand host */
+		result=xodtemplate_expand_hostgroups(&temp_list,hostgroups);
+		if(result!=OK){
+			xodtemplate_free_hostlist(temp_list);
+			return NULL;
+		        }
+	        }
+
+	/* process host names */
+	if(hosts!=NULL){
+
+		/* expand hosts */
+		result=xodtemplate_expand_hosts(&temp_list,hosts);
+		if(result!=OK){
+			xodtemplate_free_hostlist(temp_list);
+			return NULL;
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_hostgroups_and_hosts() end\n");
+#endif
+
+	return temp_list;
+        }
+
+
+
+/* expands hostgroups */
+int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, char *hostgroups){
 	char *hostgroup_names;
 	char *host_names;
 	char *host_name;
 	char *temp_ptr;
 	char *host_name_ptr;
-#ifdef USE_REGEXP_MATCHING
+	xodtemplate_hostgroup *temp_hostgroup;
 	regex_t preg;
-	int found_match;
-#endif
+	int found_match=FALSE;
+	int use_regexp=FALSE;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -8639,28 +8678,35 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 	printf("xodtemplate_expand_hostgroups() start\n");
 #endif
 
-	temp_list=NULL;
+	if(list==NULL || hostgroups==NULL)
+		return ERROR;
 
-	/* process list of hostgroups... */
-	if(hostgroups!=NULL){
+	/* allocate memory for hostgroup name list */
+	hostgroup_names=strdup(hostgroups);
+	if(hostgroup_names==NULL)
+		return ERROR;
 
-		/* allocate memory for hostgroup name list */
-		hostgroup_names=strdup(hostgroups);
-		if(hostgroup_names==NULL)
-			return temp_list;
+	for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
-		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+		found_match=FALSE;
+		
+		/* strip trailing spaces */
+		strip(temp_ptr);
 
-			/* strip trailing spaces */
-			strip(temp_ptr);
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+		else
+			use_regexp=FALSE;
 
-#ifdef USE_REGEXP_MATCHING
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
 
 			/* compile regular expression */
 			if(regcomp(&preg,temp_ptr,0)){
 				free(hostgroup_names);
-				return NULL;
-	                        }
+				return ERROR;
+		                }
 			
 			/* test match against all hostgroup names */
 			for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
@@ -8668,244 +8714,244 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 				if(temp_hostgroup->hostgroup_name==NULL)
 					continue;
 
-				/* break out if this hostgroup matched the expression */
-				if(!regexec(&preg,temp_hostgroup->hostgroup_name,0,NULL,0))
-					break;
+				/* skip this hostgroup if it did not match the expression */
+				if(regexec(&preg,temp_hostgroup->hostgroup_name,0,NULL,0))
+					continue;
+
+				found_match=TRUE;
+
+				/* add hostgroup members to list */
+				xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
 		                } 
 
 			/* free memory allocated to compiled regexp */
 			regfree(&preg);
-#else
+		        }
+		
+		/* use standard matching... */
+		else{
 
 			/* find the hostgroup */
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
+			if(temp_hostgroup!=NULL){
 
-#endif
+				found_match=TRUE;
 
-			if(temp_hostgroup==NULL){
+				/* add hostgroup members to list */
+				xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
+			        }
+		        }
+
+		if(found_match==FALSE){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any hostgroup matching '%s'\n",temp_ptr);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any hostgroup matching '%s'\n",temp_ptr);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-				free(hostgroup_names);
-				return NULL;
-		                }
-
-			/* skip hostgroups with no defined members */
-			if(temp_hostgroup->members==NULL)
-				continue;
-
-			/* save a copy of the hosts */
-			host_names=strdup(temp_hostgroup->members);
-			if(host_names==NULL){
-				free(hostgroup_names);
-				return temp_list;
-	                        }
-
-			/* process all hosts that belong to the hostgroup */
-			host_name_ptr=host_names;
-			for(host_name=my_strsep(&host_name_ptr,",");host_name!=NULL;host_name=my_strsep(&host_name_ptr,",")){
-
-				/* strip trailing spaces from host name */
-				strip(host_name);
-
-				/* skip this host if its already in the list */
-				for(new_list=temp_list;new_list;new_list=new_list->next)
-					if(!strcmp(host_name,new_list->host_name))
-						break;
-				if(new_list!=NULL)
-					continue;
-
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
-				if(new_list==NULL){
-					free(host_names);
-					free(hostgroup_names);
-					return temp_list;
-			                }
-
-				/* save the host name */
-				new_list->host_name=strdup(host_name);
-				if(new_list->host_name==NULL){
-					free(host_names);
-					free(hostgroup_names);
-					return temp_list;
-			                }
-
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-		                }
-
-			free(host_names);
+			free(hostgroup_names);
+			return ERROR;
 	                }
-
-		free(hostgroup_names);
 	        }
 
-	/* process list of hosts... */
-	if(hosts!=NULL){
+	/* free memory */
+	free(hostgroup_names);
 
-		/* allocate memory for host name list */
-		host_names=strdup(hosts);
-		if(host_names==NULL)
-			return temp_list;
+#ifdef DEBUG0
+	printf("xodtemplate_expand_hostgroups() end\n");
+#endif
 
-#ifdef USE_REGEXP_MATCHING
+	return OK;
+        }
 
-		for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
-			/* strip trailing spaces */
-			strip(temp_ptr);
+
+/* expands hosts */
+int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
+	char *host_names;
+	char *temp_ptr;
+	xodtemplate_host *temp_host;
+	regex_t preg;
+	int found_match=FALSE;
+	int use_regexp=FALSE;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_hosts() start\n");
+#endif
+
+	if(list==NULL || hosts==NULL)
+		return ERROR;
+
+	host_names=strdup(hosts);
+	if(host_names==NULL)
+		return ERROR;
+
+	/* expand each host name */
+	for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		found_match=FALSE;
+
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
 
 			/* compile regular expression */
 			if(regcomp(&preg,temp_ptr,0)){
 				free(host_names);
-				return NULL;
+				return ERROR;
 		                }
 			
-			/* test match against all host names */
-			found_match=FALSE;
+			/* test match against all hosts */
 			for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 				if(temp_host->host_name==NULL)
 					continue;
 
-				/* skip this host if it doesn't match the expression */
+				/* skip this host if it did not match the expression */
 				if(regexec(&preg,temp_host->host_name,0,NULL,0))
 					continue;
-				else
-					found_match=TRUE;
 
-				/* skip this host if its already in the list */
-				for(new_list=temp_list;new_list;new_list=new_list->next)
-					if(!strcmp(temp_host->host_name,new_list->host_name))
-						break;
-				if(new_list!=NULL)
-					continue;
+				found_match=TRUE;
 
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
-				if(new_list==NULL){
-					regfree(&preg);
-					free(host_names);
-					return temp_list;
-		                        }
-
-				/* save the host name */
-				new_list->host_name=strdup(temp_host->host_name);
-				if(new_list->host_name==NULL){
-					regfree(&preg);
-					free(host_names);
-					return temp_list;
-			                }
-				
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-	                        }
+				/* add host to list */
+				xodtemplate_add_host_to_hostlist(list,temp_ptr);
+		                } 
 
 			/* free memory allocated to compiled regexp */
 			regfree(&preg);
+		        }
+		
+		/* use standard matching... */
+		else{
 
-			/* we didn't find a match */
-			if(found_match==FALSE){
-#ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find a host matching '%s'\n",temp_ptr);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-				return NULL;
+			/* return a list of all hosts */
+			if(!strcmp(temp_ptr,"*")){
+
+				found_match=TRUE;
+
+				for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+					if(temp_host->host_name==NULL)
+						continue;
+
+					/* add host to list */
+					xodtemplate_add_host_to_hostlist(list,temp_host->host_name);
+				        }
+			        }
+
+			/* else this is just a single host... */
+			else{
+
+				/* find the host */
+				temp_host=xodtemplate_find_real_host(temp_ptr);
+				if(temp_host!=NULL){
+
+					found_match=TRUE;
+
+					/* add host to list */
+					xodtemplate_add_host_to_hostlist(list,temp_ptr);
+				        }
 			        }
 		        }
 
-#else
-
-		/* return list of all hosts */
-		if(!strcmp(host_names,"*")){
-
-			for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-				if(temp_host->host_name==NULL)
-					continue;
-
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
-				if(new_list==NULL){
-					free(host_names);
-					return temp_list;
-			                }
-
-				/* save the host name */
-				new_list->host_name=strdup(temp_host->host_name);
-				if(new_list->host_name==NULL){
-					free(host_names);
-					return temp_list;
-	                                }
-
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-		                }
-	                }
-
-		/* else lookup individual hosts */
-		else{
-
-			for(temp_ptr=strtok(host_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
-			
-				/* strip trailing spaces */
-				strip(temp_ptr);
-			
-				/* find the host */
-				temp_host=xodtemplate_find_real_host(temp_ptr);
-				if(temp_host==NULL){
+		if(found_match==FALSE){
 #ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find host '%s'\n",temp_ptr);
-					temp_buffer[sizeof(temp_buffer)-1]='\x0';
-					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any host matching '%s'\n",temp_ptr);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-					free(host_names);
-					return NULL;
-		                        }
-
-				/* skip this host if its already in the list */
-				for(new_list=temp_list;new_list;new_list=new_list->next)
-					if(!strcmp(new_list->host_name,temp_ptr))
-						break;
-				if(new_list)
-					continue;
-
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
-				if(new_list==NULL){
-					free(host_names);
-					return temp_list;
-			                }
-
-				/* save the host name */
-				new_list->host_name=strdup(temp_host->host_name);
-				if(new_list->host_name==NULL){
-					free(host_names);
-					return temp_list;
-	                                }
-
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-                                }
+			free(host_names);
+			return ERROR;
 	                }
-#endif
-
-		free(host_names);
 	        }
 
+	/* free memory */
+	free(host_names);
+
 #ifdef DEBUG0
-	printf("xodtemplate_expand_hostgroups_and_hosts() end\n");
+	printf("xodtemplate_expand_hosts() end\n");
 #endif
 
-	return temp_list;
+	return OK;
+        }
+
+
+/* adds members of a hostgroups to the list of expanded hosts */
+int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, xodtemplate_hostgroup *temp_hostgroup){
+	char *group_members;
+	char *member_name;
+	char *member_ptr;
+
+	if(list==NULL || temp_hostgroup==NULL)
+		return ERROR;
+
+	/* skip hostgroups with no defined members */
+	if(temp_hostgroup->members==NULL)
+		return OK;
+
+	/* save a copy of the members */
+	group_members=strdup(temp_hostgroup->members);
+	if(group_members==NULL)
+		return ERROR;
+
+	/* process all hosts that belong to the hostgroup */
+	/* NOTE: members of the group have already have been expanded by xodtemplate_recombobulate_hostgroups(), so we don't need to do it here */
+	member_ptr=group_members;
+	for(member_name=my_strsep(&member_ptr,",");member_name!=NULL;member_name=my_strsep(&member_ptr,",")){
+
+		/* strip trailing spaces from member name */
+		strip(member_name);
+
+		/* add host to the list */
+		xodtemplate_add_host_to_hostlist(list,member_name);
+	        }
+
+	free(group_members);
+
+	return OK;
+        }
+
+
+/* adds a host entry to the list of expanded hosts */
+int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **list, char *host_name){
+	xodtemplate_hostlist *temp_item;
+	xodtemplate_hostlist *new_item;
+
+	if(list==NULL || host_name==NULL)
+		return ERROR;
+
+	/* skip this host if its already in the list */
+	for(temp_item=*list;temp_item;temp_item=temp_item->next)
+		if(!strcmp(temp_item->host_name,host_name))
+			break;
+	if(temp_item)
+		return OK;
+
+	/* allocate memory for a new list item */
+	new_item=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
+	if(new_item==NULL)
+		return ERROR;
+
+	/* save the host name */
+	new_item->host_name=strdup(host_name);
+	if(new_item->host_name==NULL){
+		free(new_item);
+		return ERROR;
+	        }
+
+	/* add new item to head of list */
+	new_item->next=*list;
+	*list=new_item;
+
+	return OK;
         }
 
 
@@ -8953,14 +8999,9 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 	xodtemplate_servicegroup  *temp_servicegroup;
 	regex_t preg;
 	char *servicegroup_names;
-	char *group_members;
-	char *member_name;
-	char *host_name;
-	char *member_ptr;
 	char *temp_ptr;
+	int found_match=FALSE;
 	int use_regexp=FALSE;
-	int use_regexp_matches=FALSE;
-	int use_true_regexp_matching=FALSE;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -8972,10 +9013,6 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 	if(list==NULL || servicegroups==NULL)
 		return ERROR;
 
-	/* should we use regular expression matching? */
-	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(servicegroups,"*") || strstr(servicegroups,"?")))
-		use_regexp=TRUE;
-
 	/* allocate memory for servicegroup name list */
 	servicegroup_names=strdup(servicegroups);
 	if(servicegroup_names==NULL)
@@ -8983,9 +9020,17 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 
 	/* expand each servicegroup */
 	for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		found_match=FALSE;
 		
 		/* strip trailing spaces */
 		strip(temp_ptr);
+
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+		else
+			use_regexp=FALSE;
 
 		/* use regular expression matching */
 		if(use_regexp==TRUE){
@@ -9002,9 +9047,14 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 				if(temp_servicegroup->servicegroup_name==NULL)
 					continue;
 
-				/* break out if this servicegroup matched the expression */
-				if(!regexec(&preg,temp_servicegroup->servicegroup_name,0,NULL,0))
-					break;
+				/* skip this servicegroup if it did not match the expression */
+				if(regexec(&preg,temp_servicegroup->servicegroup_name,0,NULL,0))
+					continue;
+
+				found_match=TRUE;
+
+				/* add servicegroup members to list */
+				xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
 			        }
 
 			/* free memory allocated to compiled regexp */
@@ -9016,10 +9066,17 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 
 			/* find the servicegroup */
 			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
+			if(temp_servicegroup!=NULL){
+
+				found_match=TRUE;
+
+				/* add servicegroup members to list */
+				xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
+			        }
 		        }
 
 		/* we didn't find a matching servicegroup */
-		if(temp_servicegroup==NULL){
+		if(found_match==FALSE){
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any servicegroup matching '%s'\n",temp_ptr);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -9027,46 +9084,6 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servi
 #endif
 			free(servicegroup_names);
 			return ERROR;
-		        }
-
-		/* skip servicegroups with no defined members */
-		if(temp_servicegroup->members==NULL)
-			continue;
-
-		/* save a copy of the members */
-		group_members=strdup(temp_servicegroup->members);
-		if(group_members==NULL){
-			free(servicegroup_names);
-			return ERROR;
-		        }
-
-		/* process all services that belong to the servicegroup */
-		/* NOTE: members of the service group have already have been expanded by now, so we don't need to do it here */
-		member_ptr=group_members;
-		host_name=NULL;
-		for(member_name=my_strsep(&member_ptr,",");member_name!=NULL;member_name=my_strsep(&member_ptr,",")){
-
-			/* strip trailing spaces from member name */
-			strip(member_name);
-
-			/* host name */
-			if(host_name==NULL){
-				host_name=strdup(member_name);
-				if(host_name==NULL){
-					free(servicegroup_names);
-					return ERROR;
-				        }
-			        }
-
-			/* service description */
-			else{
-				
-				/* add service to the list */
-				xodtemplate_add_service_to_servicelist(list,host_name,member_name);
-
-				free(host_name);
-				host_name=NULL;
-			        }
 		        }
 	        }
 
@@ -9089,9 +9106,8 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 	regex_t preg;
 	regex_t preg2;
 	int found_match=FALSE;
-	int use_regexp=FALSE;
-	int use_regexp_matches=FALSE;
-	int use_true_regexp_matching=FALSE;
+	int use_regexp_host=FALSE;
+	int use_regexp_service=FALSE;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -9103,19 +9119,19 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 	if(list==NULL || host_name==NULL || services==NULL)
 		return ERROR;
 
-	/* should we use regular expression matching? */
-	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(services,"*") || strstr(services,"?")))
-		use_regexp=TRUE;
+	/* should we use regular expression matching for the host name? */
+	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(host_name,"*") || strstr(host_name,"?")))
+		use_regexp_host=TRUE;
 
 	/* compile regular expression for host name */
-	if(use_regexp==TRUE){
+	if(use_regexp_host==TRUE){
 		if(regcomp(&preg2,host_name,0))
 			return ERROR;
 	        }
 
 	service_names=strdup(services);
 	if(service_names==NULL){
-		if(use_regexp==TRUE)
+		if(use_regexp_host==TRUE)
 			regfree(&preg2);
 		return ERROR;
 	        }
@@ -9123,34 +9139,57 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 	/* expand each service description */
 	for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
+		found_match=FALSE;
+
 		/* strip trailing spaces */
 		strip(temp_ptr);
 
-		/* use regular expression matching */
-		if(use_regexp==TRUE){
+		/* should we use regular expression matching for the service description? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp_service=TRUE;
+		else
+			use_regexp_service=FALSE;
 
-			/* compile regular expression for service description */
+		/* compile regular expression for service description */
+		if(use_regexp_service==TRUE){
 			if(regcomp(&preg,temp_ptr,0)){
+				if(use_regexp_host==TRUE)
+					regfree(&preg2);
 				free(service_names);
 				return ERROR;
-	                        }
+			        }
+			}
+
+		/* use regular expression matching */
+		if(use_regexp_host==TRUE || use_regexp_service==TRUE){
 
 			/* test match against all services */
-			found_match=FALSE;
 			for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 				if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 					continue;
 
 				/* skip this service if it doesn't match the host name expression */
-				if(regexec(&preg2,temp_service->host_name,0,NULL,0))
-					continue;
+				if(use_regexp_host==TRUE){
+					if(regexec(&preg2,temp_service->host_name,0,NULL,0))
+						continue;
+				        }
+				else{
+					if(strcmp(temp_service->host_name,host_name))
+						continue;
+				        }
 
 				/* skip this service if it doesn't match the service description expression */
-				if(regexec(&preg,temp_service->service_description,0,NULL,0))
-					continue;
-				else
-					found_match=TRUE;
+				if(use_regexp_service==TRUE){
+					if(regexec(&preg,temp_service->service_description,0,NULL,0))
+						continue;
+				        }
+				else{
+					if(strcmp(temp_service->service_description,temp_ptr))
+						continue;
+				        }
+
+				found_match=TRUE;
 
 				/* add service to the list */
 				xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
@@ -9158,18 +9197,6 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 
 			/* free memory allocated to compiled regexp */
 			regfree(&preg);
-
-			/* we didn't find a match */
-			if(found_match==FALSE){
-#ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find a service matching host name '%s' and description '%s'\n",host_name,temp_ptr);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-				regfree(&preg2);
-				free(service_names);
-				return ERROR;
-		                }
 		        }
 
 		/* use standard matching... */
@@ -9177,6 +9204,8 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 
 			/* return a list of all services on the host */
 			if(!strcmp(temp_ptr,"*")){
+
+				found_match=TRUE;
 
 				for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
@@ -9196,28 +9225,91 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name,
 
 				/* find the service */
 				temp_service=xodtemplate_find_real_service(host_name,temp_ptr);
-				if(temp_service==NULL){
-#ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find service '%s' on host '%s'\n",temp_ptr,host_name);
-					temp_buffer[sizeof(temp_buffer)-1]='\x0';
-					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-					free(service_names);
-					return ERROR;
-				        }
+				if(temp_service!=NULL){
 
-				/* add service to the list */
-				xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
+					found_match=TRUE;
+
+					/* add service to the list */
+					xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
+				        }
 			        }
 		        }
+
+		/* we didn't find a match */
+		if(found_match==FALSE){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find a service matching host name '%s' and description '%s'\n",host_name,temp_ptr);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			if(use_regexp_host==TRUE)
+				regfree(&preg2);
+			free(service_names);
+			return ERROR;
+	                }
 	        }
 
-	if(use_regexp==TRUE)
+	if(use_regexp_host==TRUE)
 		regfree(&preg2);
+	free(service_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_expand_services() end\n");
 #endif
+
+	return OK;
+        }
+
+
+/* adds members of a servicegroups to the list of expanded services */
+int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **list, xodtemplate_servicegroup *temp_servicegroup){
+	char *group_members;
+	char *member_name;
+	char *host_name;
+	char *member_ptr;
+
+	if(list==NULL || temp_servicegroup==NULL)
+		return ERROR;
+
+	/* skip servicegroups with no defined members */
+	if(temp_servicegroup->members==NULL)
+		return OK;
+
+	/* save a copy of the members */
+	group_members=strdup(temp_servicegroup->members);
+	if(group_members==NULL)
+		return ERROR;
+
+	/* process all services that belong to the servicegroup */
+	/* NOTE: members of the group have already have been expanded by xodtemplate_recombobulate_servicegroups(), so we don't need to do it here */
+	member_ptr=group_members;
+	host_name=NULL;
+	for(member_name=my_strsep(&member_ptr,",");member_name!=NULL;member_name=my_strsep(&member_ptr,",")){
+
+		/* strip trailing spaces from member name */
+		strip(member_name);
+
+		/* host name */
+		if(host_name==NULL){
+			host_name=strdup(member_name);
+			if(host_name==NULL){
+				free(group_members);
+				return ERROR;
+			        }
+		        }
+
+		/* service description */
+		else{
+				
+			/* add service to the list */
+			xodtemplate_add_service_to_servicelist(list,host_name,member_name);
+
+			free(host_name);
+			host_name=NULL;
+		        }
+	        }
+
+	free(group_members);
 
 	return OK;
         }

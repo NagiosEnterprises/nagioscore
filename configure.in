@@ -719,8 +719,6 @@ if test x$USE_EVENTBROKER = xyes; then
 fi
 
 
-AC_ARG_ENABLE(regexp-matching,--enable-regexp-matching enables regular expression matching in config files,AC_DEFINE_UNQUOTED(USE_REGEXP_MATCHING))
-
 USEPERL=no;
 INSTALLPERLSTUFF=no;
 AC_ARG_ENABLE(embedded-perl,--enable-embedded-perl will enable embedded Perl interpreter,[

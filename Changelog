@@ -11,6 +11,7 @@ Nagios Change Log
 * Minor bug fixes to init script
 * Spec file updates
 * Bug fix for flex host downtime
+* Embedded perl bug fixe for arguments with spaces
 
 
 1.0b6 - 09/15/2002

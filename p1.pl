@@ -6,13 +6,14 @@
 # the execution so that the cache can be kept in "non-volatile" parent
 # process while the execution is done from "volatile" child processes
 # and that STDOUT is redirected to a file by means of a tied filehandle
-# so that it can be returned to NetSaint in the same way as for
+# so that it can be returned to Nagios in the same way as for
 # commands executed via the normal popen method.
 #
 
  use strict;
  use vars '%Cache';
  use Symbol qw(delete_package);
+ use Text::ParseWords qw(parse_line) ;
 
 
 package OutputTrap;
@@ -127,7 +128,7 @@ sub CLOSE {
 
      tie (*STDOUT, 'OutputTrap', $tmpfname);
 
-     my @a = split(/ /,$ar);
+     my @a = &parse_line('\s+', 0, $ar) ;
      
      eval {$res = $package->hndlr(@a);};
 

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-15-2002
+ * Last Modified:   05-24-2002
  *
  * License:
  *
@@ -662,11 +662,11 @@ void reap_service_checks(void){
 		/* make sure the return code is within bounds */
 		else if(queued_svc_msg.return_code<0 || queued_svc_msg.return_code>3){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.\n",queued_svc_msg.return_code,temp_service->description,temp_service->host_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_svc_msg.return_code,temp_service->description,temp_service->host_name,(queued_svc_msg.return_code==126 || queued_svc_msg.return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
-			snprintf(temp_service->plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"(Return code of %d is out of bounds)",queued_svc_msg.return_code);
+			snprintf(temp_service->plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"(Return code of %d is out of bounds%s)",queued_svc_msg.return_code,(queued_svc_msg.return_code==126 || queued_svc_msg.return_code==127)?" - plugin may be missing":"");
 			temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 
 			temp_service->current_state=STATE_CRITICAL;

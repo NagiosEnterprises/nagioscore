@@ -222,7 +222,12 @@ cd ..
 
 # make daemonchk.cgi and event handlers
 cd contrib
-make
+make daemonchk.cgi \
+	traceroute.cgi \
+%if %{EMBPERL}
+	mini_epn \
+%endif
+	convertcfg
 cd eventhandlers
 for f in `find . -type f` ; do
 	F=`mktemp temp.XXXXXX`
@@ -273,7 +278,9 @@ cp contrib/htaccess.sample ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
 cd contrib
 make INSTALL=install INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR=${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi install
 mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/convertcfg ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/
+%if %{EMBPERL}
 mv ${RPM_BUILD_ROOT}%{_prefix}/lib/nagios/cgi/mini_epn ${RPM_BUILD_ROOT}%{_prefix}/sbin/
+%endif
 cd ..
 
 # install event handlers
@@ -295,8 +302,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/sbin/nagios
 %if %{EMBPERL}
 %{_prefix}/sbin/p1.pl
-%endif
 %{_prefix}/sbin/mini_epn
+%endif
 %dir %{_prefix}/lib/nagios/eventhandlers
 %{_prefix}/lib/nagios/eventhandlers/*
 %{_prefix}/lib/nagios/convertcfg

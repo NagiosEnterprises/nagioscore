@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2004
+ * Last Modified:   10-20-2004
  *
  * License:
  *
@@ -430,6 +430,15 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				else if(!strcmp(temp_buffer,"HOSTGROUPALIAS"))
 					selected_macro=macro_x[MACRO_HOSTGROUPALIAS];
 
+				else if(!strcmp(temp_buffer,"HOSTACTIONURL"))
+					selected_macro=macro_x[MACRO_HOSTACTIONURL];
+
+				else if(!strcmp(temp_buffer,"HOSTNOTESURL"))
+					selected_macro=macro_x[MACRO_HOSTNOTESURL];
+
+				else if(!strcmp(temp_buffer,"HOSTNOTES"))
+					selected_macro=macro_x[MACRO_HOSTNOTES];
+
 				/* on-demand host macros */
 				else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
 					grab_on_demand_macro(temp_buffer);
@@ -519,6 +528,15 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 				else if(!strcmp(temp_buffer,"SERVICEDOWNTIME"))
 					selected_macro=macro_x[MACRO_SERVICEDOWNTIME];
+
+				else if(!strcmp(temp_buffer,"SERVICEACTIONURL"))
+					selected_macro=macro_x[MACRO_SERVICEACTIONURL];
+
+				else if(!strcmp(temp_buffer,"SERVICENOTESURL"))
+					selected_macro=macro_x[MACRO_SERVICENOTESURL];
+
+				else if(!strcmp(temp_buffer,"SERVICENOTES"))
+					selected_macro=macro_x[MACRO_SERVICENOTES];
 
 				/* on-demand service macros */
 				else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
@@ -681,6 +699,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 /* grab macros that are specific to a particular service */
 int grab_service_macros(service *svc){
 	servicegroup *temp_servicegroup;
+	serviceextinfo *temp_serviceextinfo;
 	time_t current_time;
 	unsigned long duration;
 	int hours;
@@ -896,6 +915,33 @@ int grab_service_macros(service *svc){
 	if(temp_servicegroup!=NULL)
 		macro_x[MACRO_SERVICEGROUPALIAS]=strdup(temp_servicegroup->alias);
 
+	if((temp_serviceextinfo=find_serviceextinfo(svc->host_name,svc->description))){
+
+		/* get the action url */
+		if(macro_x[MACRO_SERVICEACTIONURL]!=NULL)
+			free(macro_x[MACRO_SERVICEACTIONURL]);
+		if(temp_serviceextinfo->action_url==NULL)
+			macro_x[MACRO_SERVICEACTIONURL]=NULL;
+		else
+			macro_x[MACRO_SERVICEACTIONURL]=strdup(temp_serviceextinfo->action_url);
+
+		/* get the notes url */
+		if(macro_x[MACRO_SERVICENOTESURL]!=NULL)
+			free(macro_x[MACRO_SERVICENOTESURL]);
+		if(temp_serviceextinfo->notes_url==NULL)
+			macro_x[MACRO_SERVICENOTESURL]=NULL;
+		else
+			macro_x[MACRO_SERVICENOTESURL]=strdup(temp_serviceextinfo->notes_url);
+
+		/* get the notes */
+		if(macro_x[MACRO_SERVICENOTES]!=NULL)
+			free(macro_x[MACRO_SERVICENOTES]);
+		if(temp_serviceextinfo->notes==NULL)
+			macro_x[MACRO_SERVICENOTES]=NULL;
+		else
+			macro_x[MACRO_SERVICENOTES]=strdup(temp_serviceextinfo->notes);
+	        }
+
 	/* get the date/time macros */
 	grab_datetime_macros();
 
@@ -914,6 +960,7 @@ int grab_service_macros(service *svc){
 /* grab macros that are specific to a particular host */
 int grab_host_macros(host *hst){
 	hostgroup *temp_hostgroup;
+	hostextinfo *temp_hostextinfo;
 	time_t current_time;
 	unsigned long duration;
 	int hours;
@@ -1127,6 +1174,33 @@ int grab_host_macros(host *hst){
 	macro_x[MACRO_HOSTGROUPALIAS]=NULL;
 	if(temp_hostgroup!=NULL)
 		macro_x[MACRO_HOSTGROUPALIAS]=strdup(temp_hostgroup->alias);
+
+	if((temp_hostextinfo=find_hostextinfo(hst->name))){
+
+		/* get the action url */
+		if(macro_x[MACRO_HOSTACTIONURL]!=NULL)
+			free(macro_x[MACRO_HOSTACTIONURL]);
+		if(temp_hostextinfo->action_url==NULL)
+			macro_x[MACRO_HOSTACTIONURL]=NULL;
+		else
+			macro_x[MACRO_HOSTACTIONURL]=strdup(temp_hostextinfo->action_url);
+
+		/* get the notes url */
+		if(macro_x[MACRO_HOSTNOTESURL]!=NULL)
+			free(macro_x[MACRO_HOSTNOTESURL]);
+		if(temp_hostextinfo->notes_url==NULL)
+			macro_x[MACRO_HOSTNOTESURL]=NULL;
+		else
+			macro_x[MACRO_HOSTNOTESURL]=strdup(temp_hostextinfo->notes_url);
+
+		/* get the notes */
+		if(macro_x[MACRO_HOSTNOTES]!=NULL)
+			free(macro_x[MACRO_HOSTNOTES]);
+		if(temp_hostextinfo->notes==NULL)
+			macro_x[MACRO_HOSTNOTES]=NULL;
+		else
+			macro_x[MACRO_HOSTNOTES]=strdup(temp_hostextinfo->notes);
+	        }
 
 	/* get the date/time macros */
 	grab_datetime_macros();

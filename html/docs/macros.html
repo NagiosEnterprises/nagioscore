@@ -328,6 +328,18 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#hostactionurl">$HOSTACTIONURL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostnotesurl">$HOSTNOTESURL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#hostnotes">$HOSTNOTES$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td colspan='9' class='MacroType'>Service Macros:</td>
 </tr>
 <tr>
@@ -425,6 +437,18 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <td class='MacroName'><a href="#serviceackcomment">$SERVICEACKCOMMENT$</a></td>
 <td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#serviceactionurl">$SERVICEACTIONURL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicenotesurl">$SERVICENOTESURL$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
+</tr>
+<tr>
+<td class='MacroName'><a href="#servicenotes">$SERVICENOTES$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
 </tr>
 <tr>
 <td colspan='9' class='MacroType'>Notification Macros:</td>
@@ -721,6 +745,24 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<a name="hostactionurl"></a>
+<td class="MacroName">$HOSTACTIONURL$</td>
+<td class="MacroDescription">Action URL for the host.  This value is taken from the <i>action_url</i> directive in the <a href="xodtemplate.html#hostextinfo">extended host information definition</a>.</td>
+</tr>
+
+<tr>
+<a name="hostnotesurl"></a>
+<td class="MacroName">$HOSTNOTESURL$</td>
+<td class="MacroDescription">Notes URL for the host.  This value is taken from the <i>notes_url</i> directive in the <a href="xodtemplate.html#hostextinfo">extended host information definition</a>.</td>
+</tr>
+
+<tr>
+<a name="hostnotes"></a>
+<td class="MacroName">$HOSTNOTES$</td>
+<td class="MacroDescription">Notes for the host.  This value is taken from the <i>notes</i> directive in the <a href="xodtemplate.html#hostextinfo">extended host information definition</a>.</td>
+</tr>
+
+<tr>
 <td colspan='9' class='MacroType'>Service Macros:</td>
 </tr>
 
@@ -866,6 +908,24 @@ The tables below list all macros currently available in Nagios, along with a bri
 <a name="serviceackcomment"></a>
 <td class="MacroName">$SERVICEACKCOMMENT$</td>
 <td class="MacroDescription">A string containing the acknowledgement comment that was entered by the user who acknowledged the service problem. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
+</tr>
+
+<tr>
+<a name="serviceactionurl"></a>
+<td class="MacroName">$SERVICEACTIONURL$</td>
+<td class="MacroDescription">Action URL for the service.  This value is taken from the <i>action_url</i> directive in the <a href="xodtemplate.html#serviceextinfo">extended service information definition</a>.</td>
+</tr>
+
+<tr>
+<a name="servicenotesurl"></a>
+<td class="MacroName">$SERVICENOTESURL$</td>
+<td class="MacroDescription">Notes URL for the service.  This value is taken from the <i>notes_url</i> directive in the <a href="xodtemplate.html#serviceextinfo">extended service information definition</a>.</td>
+</tr>
+
+<tr>
+<a name="servicenotes"></a>
+<td class="MacroName">$SERVICENOTES$</td>
+<td class="MacroDescription">Notes for the service.  This value is taken from the <i>notes</i> directive in the <a href="xodtemplate.html#serviceextinfo">extended service information definition</a>.</td>
 </tr>
 
 <tr>

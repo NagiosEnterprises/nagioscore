@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-10-2004
+ * Last Modified: 10-20-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				74	/* size of macro_x[] array */
+#define MACRO_X_COUNT				80	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -125,6 +125,12 @@
 #define MACRO_COMMANDFILE			71
 #define MACRO_HOSTPERFDATAFILE			72
 #define MACRO_SERVICEPERFDATAFILE		73
+#define MACRO_HOSTACTIONURL			74
+#define MACRO_HOSTNOTESURL			75
+#define MACRO_HOSTNOTES				76
+#define MACRO_SERVICEACTIONURL			77
+#define MACRO_SERVICENOTESURL			78
+#define MACRO_SERVICENOTES			79
 
 
 

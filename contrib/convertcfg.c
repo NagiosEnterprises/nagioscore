@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-04-2002
+ * Last Modified:   03-10-2002
  *
  * License:
  *
@@ -50,7 +50,7 @@ int main(int argc, char **argv){
 	if(argc!=3){
 		printf("Nagios Config File Converter\n");
 		printf("Written by Ethan Galstad (nagios@nagios.org)\n");
-		printf("Last Modified: 03-04-2002\n");
+		printf("Last Modified: 03-10-2002\n");
 		printf("\n");
 		printf("Usage: %s <config file> <object type>\n",argv[0]);
 		printf("\n");
@@ -297,7 +297,7 @@ int main(int argc, char **argv){
 				printf("\tnotifications_enabled\t\t1\t; Host notifications are enabled\n");
 				printf("\tevent_handler_enabled\t\t1\t; Host event handler is enabled\n");
 				printf("\tflap_detection_enabled\t\t1\t; Flap detection is enabled\n");
-				printf("\tfailure_prediction_enabled\t1\t; Failure prediction is enabled\n");
+				/*printf("\tfailure_prediction_enabled\t1\t; Failure prediction is enabled\n");*/
 				printf("\tprocess_perf_data\t\t1\t; Process performance data\n");
 				printf("\tretain_status_information\t1\t; Retain status information across program restarts\n");
 				printf("\tretain_nonstatus_information\t1\t; Retain non-status information across program restarts\n");
@@ -416,7 +416,7 @@ int main(int argc, char **argv){
 				printf("\tnotifications_enabled\t\t1\t; Service notifications are enabled\n");
 				printf("\tevent_handler_enabled\t\t1\t; Service event handler is enabled\n");
 				printf("\tflap_detection_enabled\t\t1\t; Flap detection is enabled\n");
-				printf("\tfailure_prediction_enabled\t1\t; Failure prediction is enabled\n");
+				/*printf("\tfailure_prediction_enabled\t1\t; Failure prediction is enabled\n");*/
 				printf("\tprocess_perf_data\t\t1\t; Process performance data\n");
 				printf("\tretain_status_information\t1\t; Retain status information across program restarts\n");
 				printf("\tretain_nonstatus_information\t1\t; Retain non-status information across program restarts\n");

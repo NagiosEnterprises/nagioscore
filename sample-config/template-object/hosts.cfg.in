@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 03-07-2002
+# Last Modified: 03-10-2002
 #
 ################################################################################
 
@@ -23,7 +23,6 @@ define host{
 	notifications_enabled		1	; Host notifications are enabled
 	event_handler_enabled		1	; Host event handler is enabled
 	flap_detection_enabled		1	; Flap detection is enabled
-	failure_prediction_enabled	1	; Failure prediction is enabled
 	process_perf_data		1	; Process performance data
 	retain_status_information	1	; Retain status information across program restarts
 	retain_nonstatus_information	1	; Retain non-status information across program restarts

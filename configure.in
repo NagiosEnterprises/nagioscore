@@ -622,11 +622,11 @@ if test x$USEPERL = xyes; then
 fi
 
 dnl Should predictive failure routines be compiled in?
-AC_ARG_ENABLE(failure-prediction,--enable-failure-prediction will enable integration with failure prediction module (NOT HERE YET!),[
-	AC_DEFINE_UNQUOTED(PREDICT_FAILURES)
-	BASEEXTRALIBS="$BASEEXTRALIBS \$(FDATALIBS)"
-	echo "Failure prediction routines (incomplete!) will be compiled in..."
-	])
+dnl AC_ARG_ENABLE(failure-prediction,--enable-failure-prediction will enable integration with failure prediction module (NOT HERE YET!),[
+dnl	AC_DEFINE_UNQUOTED(PREDICT_FAILURES)
+dnl	BASEEXTRALIBS="$BASEEXTRALIBS \$(FDATALIBS)"
+dnl	echo "Failure prediction routines (incomplete!) will be compiled in..."
+dnl	])
 
 dnl Find traceroute
 AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)

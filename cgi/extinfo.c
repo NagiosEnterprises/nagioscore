@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2002
+ * Last Modified: 03-10-2002
  *
  * License:
  * 
@@ -1699,7 +1699,7 @@ void show_all_comments(void){
 
 	printf("<div CLASS='comment'><img src='%s%s' border=0>&nbsp;",url_images_path,COMMENT_ICON);
 	printf("<a href='%s?cmd_typ=%d'>",COMMAND_CGI,CMD_ADD_HOST_COMMENT);
-	printf("Add a new host comment</div>\n");
+	printf("Add a new host comment</a></div>\n");
 
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -1751,7 +1751,7 @@ void show_all_comments(void){
 
 	printf("<div CLASS='comment'><img src='%s%s' border=0>&nbsp;",url_images_path,COMMENT_ICON);
 	printf("<a href='%s?cmd_typ=%d'>",COMMAND_CGI,CMD_ADD_SVC_COMMENT);
-	printf("Add a new service comment</div>\n");
+	printf("Add a new service comment</a></div>\n");
 
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");

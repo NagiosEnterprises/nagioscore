@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified:   10-25-2004
  *
  * License:
  *
@@ -310,6 +310,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 	int arg_index=0;
 	int user_index=0;
 	int address_index=0;
+	char *encoded_macro=NULL;
 	char *selected_macro=NULL;
 	int clean_macro=FALSE;
 
@@ -327,7 +328,17 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 	in_macro=FALSE;
 
+/*#define TEST_MACROS 1*/
+#ifdef TEST_MACROS
+	printf("**** BEGIN MACRO PROCESSING ***********\n");
+	printf("Processing: '%s'\n",input_buffer);
+#endif
+
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
+
+#ifdef TEST_MACROS
+		printf("  Processing part: '%s'\n",temp_buffer);
+#endif
 
 		selected_macro=NULL;
 		clean_macro=FALSE;
@@ -337,6 +348,9 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
 				output_buffer[buffer_length-1]='\x0';
 			        }
+#ifdef TEST_MACROS
+			printf("    Not currently in macro.  Running output: '%s'\n",output_buffer);
+#endif
 			in_macro=TRUE;
 			}
 		else{
@@ -657,28 +671,45 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 				/* an escaped $ is done by specifying two $$ next to each other */
 				else if(!strcmp(temp_buffer,"")){
+#ifdef TEST_MACROS
+					printf("    Escaped $.  Running output: '%s'\n",output_buffer);
+#endif
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 				        }
 
 				/* a non-macro, just some user-defined string between two $s */
 				else{
+#ifdef TEST_MACROS
+					printf("    Non-macro.  Running output: '%s'\n",output_buffer);
+#endif
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 					output_buffer[buffer_length-1]='\x0';
 					strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
 					output_buffer[buffer_length-1]='\x0';
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 				        }
-				
+
 				/* insert macro */
 				if(selected_macro!=NULL){
 
+					/* URL encode the macro */
+					if(options & URL_ENCODE_MACRO_CHARS)
+						selected_macro=get_url_encoded_string(selected_macro);
+				
 					/* some macros are cleaned... */
 					if(clean_macro==TRUE)
 						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
 
-					/* others are not */
+					/* others are not cleaned */
 					else
 						strncat(output_buffer,(selected_macro==NULL)?"":selected_macro,buffer_length-strlen(output_buffer)-1);
+
+					/* free memory if necessary */
+					if(options & URL_ENCODE_MACRO_CHARS)
+						free(selected_macro);
+#ifdef TEST_MACROS
+					printf("    Just finished macro.  Running output: '%s'\n",output_buffer);
+#endif
 				        }
 
 				output_buffer[buffer_length-1]='\x0';
@@ -687,6 +718,11 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 			in_macro=FALSE;
 			}
 		}
+
+#ifdef TEST_MACROS
+	printf("Done.  Final output: '%s'\n",output_buffer);
+	printf("**** END MACRO PROCESSING *************\n");
+#endif
 
 #ifdef DEBUG0
 	printf("process_macros() end\n");
@@ -953,12 +989,12 @@ int grab_service_macros(service *svc){
 
 	/* notes and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICEACTIONURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		process_macros(macro_x[MACRO_SERVICEACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		free(macro_x[MACRO_SERVICEACTIONURL]);
 		macro_x[MACRO_SERVICEACTIONURL]=strdup(temp_buffer);
 	        }
 	if(macro_x[MACRO_SERVICENOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_SERVICENOTESURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		process_macros(macro_x[MACRO_SERVICENOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		free(macro_x[MACRO_SERVICENOTESURL]);
 		macro_x[MACRO_SERVICENOTESURL]=strdup(temp_buffer);
 	        }
@@ -1227,12 +1263,12 @@ int grab_host_macros(host *hst){
 
 	/* notes and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTACTIONURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		process_macros(macro_x[MACRO_HOSTACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		free(macro_x[MACRO_HOSTACTIONURL]);
 		macro_x[MACRO_HOSTACTIONURL]=strdup(temp_buffer);
 	        }
 	if(macro_x[MACRO_HOSTNOTESURL]!=NULL){
-		process_macros(macro_x[MACRO_HOSTNOTESURL],temp_buffer,sizeof(temp_buffer),STRIP_ILLEGAL_MACRO_CHARS);
+		process_macros(macro_x[MACRO_HOSTNOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		free(macro_x[MACRO_HOSTNOTESURL]);
 		macro_x[MACRO_HOSTNOTESURL]=strdup(temp_buffer);
 	        }
@@ -3769,6 +3805,52 @@ char *my_fgets(char **buf, int max_bytes, FILE *fp, int accept_multiline, int *l
 		*lines_read=current_line;
 
 	return *buf;
+        }
+
+
+/* encodes a string in proper URL format */
+char *get_url_encoded_string(char *input){
+	register int x,y;
+	char *encoded_url_string=NULL;
+	char temp_expansion[4];
+
+
+	/* bail if no input */
+	if(input==NULL)
+		return NULL;
+
+	/* allocate enough memory to escape all characters if necessary */
+	if((encoded_url_string=(char *)malloc((strlen(input)*3)+1))==NULL)
+		return NULL;
+
+	/* check/encode all characters */
+	for(x=0,y=0;input[x]!=(char)'\x0';x++){
+
+		/* alpha-numeric characters and a few other characters don't get encoded */
+		if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z') || (char)input[x]==(char)'.' || (char)input[x]==(char)'-' || (char)input[x]==(char)'_'){
+			encoded_url_string[y]=input[x];
+			y++;
+		        }
+
+		/* spaces are pluses */
+		else if((char)input[x]<=(char)' '){
+			encoded_url_string[y]='+';
+			y++;
+		        }
+
+		/* anything else gets represented by its hex value */
+		else{
+			encoded_url_string[y]='\x0';
+			sprintf(temp_expansion,"%%%02X",(unsigned int)input[x]);
+			strcat(encoded_url_string,temp_expansion);
+			y+=3;
+		        }
+	        }
+
+	/* terminate encoded string */
+	encoded_url_string[y]='\x0';
+
+	return encoded_url_string;
         }
 
 

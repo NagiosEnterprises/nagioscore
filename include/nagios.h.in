@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Last Modified: 10-25-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -329,6 +329,7 @@
 
 #define STRIP_ILLEGAL_MACRO_CHARS       1
 #define ESCAPE_MACRO_CHARS              2
+#define URL_ENCODE_MACRO_CHARS		4
 
 
 
@@ -581,6 +582,7 @@ void strip(char *);                                  	/* strips whitespace from 
 char *my_strtok(char *,char *);                      	/* my replacement for strtok() function (doesn't skip consecutive tokens) */
 char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), so I took this from the glibc source code */
 char *my_fgets(char **,int,FILE *,int,int *);		/* reads a line from a file, dynamically allocating buffer space */
+char *get_url_encoded_string(char *);			/* URL encode a string */
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
 void get_raw_command_line(char *,char *,int,int);      	/* given a raw command line, determine the actual command to run */

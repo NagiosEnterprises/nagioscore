@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-25-2003
+ * Last Modified:   10-12-2003
  *
  * License:
  *
@@ -351,6 +351,15 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 				else if(!strcmp(temp_buffer,"LASTHOSTSTATECHANGE"))
 					selected_macro=macro_x[MACRO_LASTHOSTSTATECHANGE];
 
+				else if(!strcmp(temp_buffer,"LASTHOSTUP"))
+					selected_macro=macro_x[MACRO_LASTHOSTUP];
+
+				else if(!strcmp(temp_buffer,"LASTHOSTDOWN"))
+					selected_macro=macro_x[MACRO_LASTHOSTDOWN];
+
+				else if(!strcmp(temp_buffer,"LASTHOSTUNREACHABLE"))
+					selected_macro=macro_x[MACRO_LASTHOSTUNREACHABLE];
+
 				else if(!strcmp(temp_buffer,"HOSTOUTPUT")){
 					selected_macro=macro_x[MACRO_HOSTOUTPUT];
 					clean_macro=TRUE;
@@ -430,6 +439,18 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 
 				else if(!strcmp(temp_buffer,"LASTSERVICESTATECHANGE"))
 					selected_macro=macro_x[MACRO_LASTSERVICESTATECHANGE];
+
+				else if(!strcmp(temp_buffer,"LASTSERVICEOK"))
+					selected_macro=macro_x[MACRO_LASTSERVICEOK];
+
+				else if(!strcmp(temp_buffer,"LASTSERVICEWARNING"))
+					selected_macro=macro_x[MACRO_LASTSERVICEWARNING];
+
+				else if(!strcmp(temp_buffer,"LASTSERVICEUNKNOWN"))
+					selected_macro=macro_x[MACRO_LASTSERVICEUNKNOWN];
+
+				else if(!strcmp(temp_buffer,"LASTSERVICECRITICAL"))
+					selected_macro=macro_x[MACRO_LASTSERVICECRITICAL];
 
 				else if(!strcmp(temp_buffer,"SERVICEOUTPUT")){
 					selected_macro=macro_x[MACRO_SERVICEOUTPUT];
@@ -706,6 +727,42 @@ int grab_service_macros(service *svc){
 		macro_x[MACRO_LASTSERVICESTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
+	/* get the last time ok macro */
+	if(macro_x[MACRO_LASTSERVICEOK]!=NULL)
+		free(macro_x[MACRO_LASTSERVICEOK]);
+	macro_x[MACRO_LASTSERVICEOK]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTSERVICEOK]!=NULL){
+		snprintf(macro_x[MACRO_LASTSERVICEOK],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_ok);
+		macro_x[MACRO_LASTSERVICEOK][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last time warning macro */
+	if(macro_x[MACRO_LASTSERVICEWARNING]!=NULL)
+		free(macro_x[MACRO_LASTSERVICEWARNING]);
+	macro_x[MACRO_LASTSERVICEWARNING]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTSERVICEWARNING]!=NULL){
+		snprintf(macro_x[MACRO_LASTSERVICEWARNING],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_warning);
+		macro_x[MACRO_LASTSERVICEWARNING][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last time unknown macro */
+	if(macro_x[MACRO_LASTSERVICEUNKNOWN]!=NULL)
+		free(macro_x[MACRO_LASTSERVICEUNKNOWN]);
+	macro_x[MACRO_LASTSERVICEUNKNOWN]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTSERVICEUNKNOWN]!=NULL){
+		snprintf(macro_x[MACRO_LASTSERVICEUNKNOWN],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_unknown);
+		macro_x[MACRO_LASTSERVICEUNKNOWN][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last time critical macro */
+	if(macro_x[MACRO_LASTSERVICECRITICAL]!=NULL)
+		free(macro_x[MACRO_LASTSERVICECRITICAL]);
+	macro_x[MACRO_LASTSERVICECRITICAL]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTSERVICECRITICAL]!=NULL){
+		snprintf(macro_x[MACRO_LASTSERVICECRITICAL],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_critical);
+		macro_x[MACRO_LASTSERVICECRITICAL][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
 	/* get the service downtime depth */
 	if(macro_x[MACRO_SERVICEDOWNTIME]!=NULL)
 		free(macro_x[MACRO_SERVICEDOWNTIME]);
@@ -944,6 +1001,33 @@ int grab_host_macros(host *hst){
 	if(macro_x[MACRO_LASTHOSTSTATECHANGE]!=NULL){
 		snprintf(macro_x[MACRO_LASTHOSTSTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
 		macro_x[MACRO_LASTHOSTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last time up macro */
+	if(macro_x[MACRO_LASTHOSTUP]!=NULL)
+		free(macro_x[MACRO_LASTHOSTUP]);
+	macro_x[MACRO_LASTHOSTUP]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTHOSTUP]!=NULL){
+		snprintf(macro_x[MACRO_LASTHOSTUP],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_up);
+		macro_x[MACRO_LASTHOSTUP][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last time down macro */
+	if(macro_x[MACRO_LASTHOSTDOWN]!=NULL)
+		free(macro_x[MACRO_LASTHOSTDOWN]);
+	macro_x[MACRO_LASTHOSTDOWN]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTHOSTDOWN]!=NULL){
+		snprintf(macro_x[MACRO_LASTHOSTDOWN],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_down);
+		macro_x[MACRO_LASTHOSTDOWN][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last time unreachable macro */
+	if(macro_x[MACRO_LASTHOSTUNREACHABLE]!=NULL)
+		free(macro_x[MACRO_LASTHOSTUNREACHABLE]);
+	macro_x[MACRO_LASTHOSTUNREACHABLE]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTHOSTUNREACHABLE]!=NULL){
+		snprintf(macro_x[MACRO_LASTHOSTUNREACHABLE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_unreachable);
+		macro_x[MACRO_LASTHOSTUNREACHABLE][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
 	/* find one hostgroup (there may be none or several) this host is associated with */
@@ -1217,6 +1301,33 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		        }
 	        }
 
+	/* get the last time up macro */
+	else if(!strcmp(macro,"LASTHOSTUP")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_up);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last time down macro */
+	else if(!strcmp(macro,"LASTHOSTDOWN")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_down);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last time unreachable macro */
+	else if(!strcmp(macro,"LASTHOSTUNREACHABLE")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_time_unreachable);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
 	/* get the hostgroup name */
 	else if(!strcmp(macro,"HOSTGROUPNAME")){
 		if(temp_hostgroup!=NULL)
@@ -1354,6 +1465,42 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
 			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_state_change);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last time ok macro */
+	else if(!strcmp(macro,"LASTSERVICEOK")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_ok);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last time warning macro */
+	else if(!strcmp(macro,"LASTSERVICEWARNING")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_warning);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last time unknown macro */
+	else if(!strcmp(macro,"LASTSERVICEUNKNOWN")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_unknown);
+			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last time critical macro */
+	else if(!strcmp(macro,"LASTSERVICECRITICAL")){
+		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_time_critical);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }

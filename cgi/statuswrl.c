@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-15-2002
+ * Last Modified:   10-22-2002
  *
  * Description:
  *
@@ -933,6 +933,8 @@ void draw_host(hostextinfo *temp_hostextinfo){
 	hoststatus *temp_hoststatus=NULL;
 	char state_string[16]="";
 	double x, y, z;
+	char *vrml_safe_hostname=NULL;
+	int a, ch;
 
 	if(temp_hostextinfo==NULL)
 		return;
@@ -950,6 +952,16 @@ void draw_host(hostextinfo *temp_hostextinfo){
 	temp_host=find_host(temp_hostextinfo->host_name,NULL);
 	if(temp_host==NULL)
 		return;
+
+	/* make the host name safe for embedding in VRML */
+	vrml_safe_hostname=(char *)strdup(temp_host->name);
+	if(vrml_safe_hostname==NULL)
+		return;
+	for(a=0;vrml_safe_hostname[a]!='\x0';a++){
+		ch=vrml_safe_hostname[a];
+		if((ch<'a' || ch>'z') && (ch<'A' || ch>'Z') && (ch<'0' || ch>'9'))
+			vrml_safe_hostname[a]='_';
+	        }
 
 	/* see if user is authorized to view this host  */
 	if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
@@ -969,9 +981,9 @@ void draw_host(hostextinfo *temp_hostextinfo){
 	printf("translation %2.2f %2.2f %2.2f\n",x,y,z);
 	printf("children [\n");
 
-	printf("DEF Host%s Shape{\n",temp_host->name);
+	printf("DEF Host%s Shape{\n",vrml_safe_hostname);
 	printf("appearance Appearance{\n");
-	printf("material DEF HostMat%s Material{\n",temp_host->name);
+	printf("material DEF HostMat%s Material{\n",vrml_safe_hostname);
 	if(temp_hoststatus==NULL)
 		printf("emissiveColor 0.2 0.2 0.2\ndiffuseColor 0.2 0.2 0.2\n");
 	else if(temp_hoststatus->status==HOST_UP)
@@ -1037,7 +1049,9 @@ void draw_host(hostextinfo *temp_hostextinfo){
 
 	/* host is down or unreachable, so make it fade in and out */
 	if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE))
-		printf("ROUTE ProblemTimer.fraction_changed TO HostMat%s.set_transparency\n",temp_host->name);
+		printf("ROUTE ProblemTimer.fraction_changed TO HostMat%s.set_transparency\n",vrml_safe_hostname);
+
+	free(vrml_safe_hostname);
 
 	return;
 	}

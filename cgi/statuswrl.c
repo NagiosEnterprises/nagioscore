@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-12-2002
+ * Last Modified:   10-15-2002
  *
  * Description:
  *
@@ -357,8 +357,9 @@ void display_world(void){
 		printf("}\n");
 		printf("}\n");
 		printf("geometry Text {\n");
-		printf("string [ \"You have not supplied any 3-D drawing coordinates.\", \"Read the FAQs for more information on doing this.\" ]\n");
+		printf("string [ \"Error: You have not supplied any 3-D drawing coordinates.\", \"Read the documentation for more information on supplying\", \"3-D drawing coordinates by defining\", \"extended host information entries in your config files.\" ]\n");
 		printf("fontStyle FontStyle {\n");
+		printf("family \"TYPEWRITER\"\n");
 		printf("size 0.3\n");
 		printf("justify \"MIDDLE\"\n");
 		printf("}\n");
@@ -525,9 +526,19 @@ void calculate_host_coords(void){
 	/******************************/
 
 	/* user-supplied coords */
-	if(layout_method==LAYOUT_USER_SUPPLIED)
-		return;
+	if(layout_method==LAYOUT_USER_SUPPLIED){
 
+		/* see which hosts we should draw (only those with 3-D coords) */
+		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+
+			if(temp_hostextinfo->have_3d_coords==TRUE)
+				temp_hostextinfo->should_be_drawn=TRUE;
+			else
+				temp_hostextinfo->should_be_drawn=FALSE;
+		        }
+
+		return;
+		}
 
 	/*****************************/
 	/***** AUTO-LAYOUT MODES *****/
@@ -542,6 +553,10 @@ void calculate_host_coords(void){
 		/* none was found, so add a blank one */
 		if(temp_hostextinfo==NULL)
 			add_extended_host_info(temp_host->name,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
+
+		/* default z coord should 0 for auto-layout modes unless overridden later */
+		else
+			temp_hostextinfo->z_3d=0.0;
 	        }
 
 
@@ -796,6 +811,8 @@ void calculate_world_bounds(void){
 /* write global VRML data */
 void write_global_vrml_data(void){
 	hostextinfo *temp_hostextinfo;
+	float visibility_range=0.0;
+	float viewpoint_z=0.0;
 
 	/* write VRML code header */
 	printf("#VRML V2.0 utf8\n");
@@ -814,12 +831,17 @@ void write_global_vrml_data(void){
 	printf("skyColor 0.1 0.1 0.15\n");
 	printf("}\n");
 
+	/* calculate visibility range - don't let it get too low */
+	visibility_range=(max_world_size*2.0);
+	if(visibility_range<25.0)
+		visibility_range=25.0;
+
 	/* write fog information */
 	printf("\n");
 	printf("Fog{\n");
 	printf("color 0.1 0.1 0.15\n");
 	printf("fogType \"EXPONENTIAL\"\n");
-	printf("visibilityRange %2.2f\n",max_world_size*2.0);
+	printf("visibilityRange %2.2f\n",visibility_range);
 	printf("}\n");
 
 	/* custom viewpoint */
@@ -846,10 +868,15 @@ void write_global_vrml_data(void){
 	                }
 	        }
 
+	/* calculate z coord for default viewpoint - don't get too close */
+	viewpoint_z=max_world_size;
+	if(viewpoint_z<10.0)
+		viewpoint_z=10.0;
+
 	/* default viewpoint */
 	printf("\n");
 	printf("Viewpoint{\n");
-	printf("position %2.2f %2.2f %2.2f\n",min_x_coord+((max_x_coord-min_x_coord)/2.0),min_y_coord+((max_y_coord-min_y_coord)/2.0),max_world_size);
+	printf("position %2.2f %2.2f %2.2f\n",min_x_coord+((max_x_coord-min_x_coord)/2.0),min_y_coord+((max_y_coord-min_y_coord)/2.0),viewpoint_z);
 	printf("fieldOfView 0.78\n");
 	printf("description \"Default Viewpoint\"\n");
 	printf("}\n");

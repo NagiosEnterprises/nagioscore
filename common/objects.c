@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-18-2003
+ * Last Modified:   06-30-2003
  *
  * License:
  *
@@ -1024,7 +1024,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 #endif
 		return NULL;
 	        }
-	if(stalk_up<0 || stalk_up>0){
+	if(stalk_up<0 || stalk_up>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_up value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1032,7 +1032,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 #endif
 		return NULL;
 	        }
-	if(stalk_down<0 || stalk_down>0){
+	if(stalk_down<0 || stalk_down>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_warning value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1040,7 +1040,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 #endif
 		return NULL;
 	        }
-	if(stalk_unreachable<0 || stalk_unreachable>0){
+	if(stalk_unreachable<0 || stalk_unreachable>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_unknown value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';

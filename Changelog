@@ -14,6 +14,7 @@ Nagios Change Log
 * Fix for popup window in statusmap CGI
 * CGI bug fixes (tac, statusmap, histogram, trends)
 * HTML fixes
+* Notification logic fix
 
 
 1.1 - 06/02/2003

@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-16-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   12-04-2003
  *
  * License:
  *
@@ -592,6 +592,9 @@ int handle_host_state(host *hst,int state,int state_type){
 		/* reset the next and last notification times */
 		hst->last_host_notification=(time_t)0;
 		hst->next_host_notification=(time_t)0;
+
+		/* reset notification supression option */
+		hst->no_more_notifications=FALSE;
 
 		/* set the state flags in case we "float" between down and unreachable states before a recovery */
 		if(state_type==HARD_STATE){

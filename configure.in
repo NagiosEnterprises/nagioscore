@@ -124,7 +124,6 @@ AC_ARG_WITH(mysql-xdata,--with-mysql-xdata enables use of MySQL database for all
 	XDATATYPE=mysql
 	XSDTYPE=mysql
 	XCDTYPE=mysql
-	XEDTYPE=mysql
 	XRDTYPE=mysql
 	XDDTYPE=mysql
 	])
@@ -134,7 +133,6 @@ AC_ARG_WITH(pgsql-xdata,--with-pgsql-xdata enables use of PostgreSQL database fo
 	XDATATYPE=pgsql
 	XSDTYPE=pgsql
 	XCDTYPE=pgsql
-	XEDTYPE=pgsql
 	XRDTYPE=pgsql
 	XDDTYPE=pgsql
 	])
@@ -202,26 +200,10 @@ AC_SUBST(XCDH)
 
 
 dnl What extended data I/O implementation should we use?
-AC_ARG_WITH(mysql-extinfo,--with-mysql-extinfo enables use of MySQL database for storage of extended data,XEDTYPE=mysql)
-AC_ARG_WITH(pgsql-extinfo,--with-pgsql-extinfo enables use of PostgreSQL database for storage of extended data,XEDTYPE=pgsql)
-AC_ARG_WITH(template-extinfo,--with-template-extinfo enables use of template-based extended info data routines,XEDTYPE=template)
-if test $XEDTYPE = mysql; then
-	AC_DEFINE_UNQUOTED(USE_XEDDB)
-	AC_DEFINE_UNQUOTED(USE_XEDMYSQL)
-	USE_MYSQL=yes
-	XEDC="xeddb.c"
-	XEDH="xeddb.h"
-	XEDCOMMENT="Database (MySQL)"
-	echo "We'll use MySQL database routines (in xdata/xeddb.*) for extended data I/O..."
-elif test $XEDTYPE = pgsql; then
-	AC_DEFINE_UNQUOTED(USE_XEDDB)
-	AC_DEFINE_UNQUOTED(USE_XEDPGSQL)
-	USE_PGSQL=yes
-	XEDC="xeddb.c"
-	XEDH="xeddb.h"
-	XEDCOMMENT="Database (PostgreSQL)"
-	echo "We'll use PostgreSQL database routines (in xdata/xeddb.*) for extended data I/O..."
-else
+dnl AC_ARG_WITH(mysql-extinfo,--with-mysql-extinfo enables use of MySQL database for storage of extended data,XEDTYPE=mysql)
+dnl AC_ARG_WITH(pgsql-extinfo,--with-pgsql-extinfo enables use of PostgreSQL database for storage of extended data,XEDTYPE=pgsql)
+dnl AC_ARG_WITH(template-extinfo,--with-template-extinfo enables use of template-based extended info data routines,XEDTYPE=template)
+if test $XEDTYPE = template; then
 	AC_DEFINE_UNQUOTED(USE_XEDTEMPLATE)
 	XEDC="xedtemplate.c"
 	XEDH="xedtemplate.h"
@@ -766,7 +748,7 @@ AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
 AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
 AC_MSG_RESULT([           Retention data:  $XRDCOMMENT])
 AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
-AC_MSG_RESULT([       Extended info data:  $XEDCOMMENT])
+dnl AC_MSG_RESULT([       Extended info data:  $XEDCOMMENT])
 
 
 echo ""

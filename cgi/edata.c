@@ -37,10 +37,6 @@
 #ifdef USE_XEDTEMPLATE
 #include "../xdata/xedtemplate.h"		/* template-based routines */
 #endif
-#ifdef USE_XEDDB
-#include "../xdata/xeddb.h"			/* database routines */
-#endif
-
 
 
 
@@ -75,11 +71,6 @@ int read_extended_object_config_data(char *config_file, int options){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XEDTEMPLATE
 	result=xedtemplate_read_extended_object_config_data(config_file,options);
-	if(result!=OK)
-		return ERROR;
-#endif
-#ifdef USE_XEDDB
-	result=xeddb_read_extended_object_config_data(config_file,options);
 	if(result!=OK)
 		return ERROR;
 #endif

@@ -2761,7 +2761,7 @@ int xodtemplate_duplicate_objects(void){
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in service\n");
+				printf("Error: Could not find hostgroup '%s' specified in service (config file '%s', line %d)\n",temp_ptr,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 				return ERROR;
 			        }

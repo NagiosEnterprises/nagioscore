@@ -2,8 +2,8 @@
  *
  * AVAIL.C -  Nagios Availability CGI
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2003
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -41,8 +41,17 @@ extern host      *host_list;
 extern hostgroup *hostgroup_list;
 extern servicegroup *servicegroup_list;
 extern service   *service_list;
+extern timeperiod *timeperiod_list;
 
 extern int       log_rotation_method;
+
+#ifndef max
+#define max(a,b)  (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+
 
 
 /* output types */
@@ -232,16 +241,21 @@ void free_archived_state_list(archived_state *);
 void read_archived_state_data(void);
 void scan_log_file_for_archived_state_data(char *);
 void convert_timeperiod_to_times(int);
+unsigned long calculate_total_time(time_t,time_t);
 
 void document_header(int);
 void document_footer(void);
 int process_cgivars(void);
+
+
 
 int backtrack_archives=2;
 int earliest_archive=0;
 
 int embedded=FALSE;
 int display_header=TRUE;
+
+timeperiod *current_timeperiod=NULL;
 
 int output_format=HTML_OUTPUT;
 
@@ -260,6 +274,7 @@ int main(int argc, char **argv){
 	int days, hours, minutes, seconds;
 	hostgroup *temp_hostgroup;
 	servicegroup *temp_servicegroup;
+	timeperiod *temp_timeperiod;
 	time_t t3;
 	time_t current_time;
 	struct tm *t;
@@ -698,6 +713,19 @@ int main(int argc, char **argv){
 		printf("</td>\n");
 		printf("</tr>\n");
 
+		printf("<tr><td colspan=2><br></td></tr>\n");
+
+		printf("<tr>");
+		printf("<td valign=top class='reportSelectSubTitle'>Report time Period:</td>\n");
+		printf("<td valign=top align=left class='optBoxItem'>\n");
+		printf("<select name='rpttimeperiod'>\n");
+		printf("<option value=\"\">None\n");
+		/* check all the time periods... */
+		for(temp_timeperiod=timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next)
+			printf("<option value=%s>%s\n",url_encode(temp_timeperiod->name),temp_timeperiod->name);
+		printf("</select>\n");
+		printf("</td>\n");
+		printf("</tr>\n");
 		printf("<tr><td colspan=2><br></td></tr>\n");
 
 		printf("<tr><td class='reportSelectSubTitle' align=right>Assume Initial States:</td>\n");
@@ -1563,6 +1591,23 @@ int process_cgivars(void){
 				show_scheduled_downtime=FALSE;
 		        }
 
+		/* we found the report timeperiod option */
+		else if(!strcmp(variables[x],"rpttimeperiod")){
+			timeperiod *temp_timeperiod;
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			for(temp_timeperiod=timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
+				if(!strcmp(url_encode(temp_timeperiod->name),variables[x])){
+					current_timeperiod=temp_timeperiod;
+					break;
+				        }
+			        }
+		        }
+
 	        }
 
 	/* free memory allocated to the CGI variables */
@@ -1899,12 +1944,20 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
         }
 
 
-
 /* computes availability times */
 void compute_subject_availability_times(int first_state,int last_state,time_t real_start_time,time_t start_time,time_t end_time,avail_subject *subject, archived_state *as){
 	int start_state;
 	int end_state;
 	unsigned long state_duration;
+	struct tm *t;
+	unsigned long midnight_today;
+	int weekday;
+	timerange *temp_timerange;
+	unsigned long temp_duration;
+	unsigned long temp_end;
+	unsigned long temp_start;
+	unsigned long start;
+	unsigned long end;
 
 #ifdef DEBUG
 	if(subject->type==HOST_SUBJECT)
@@ -1927,8 +1980,60 @@ void compute_subject_availability_times(int first_state,int last_state,time_t re
 	if(end_time<t1)
 		return;
 
-	/* calculate time in this state */
-	state_duration=(unsigned long)(end_time-start_time);
+	/* MickeM - attempt to handle the current time_period (if any) */
+	if(current_timeperiod!=NULL){
+		t=localtime((time_t *)&start_time);
+		state_duration = 0;
+
+		/* calculate the start of the day (midnight, 00:00 hours) */
+		t->tm_sec=0;
+		t->tm_min=0;
+		t->tm_hour=0;
+		midnight_today=(unsigned long)mktime(t);
+		weekday=t->tm_wday;
+
+		while(midnight_today<end_time){
+			temp_duration=0;
+			temp_end=min(86400,end_time-midnight_today);
+			temp_start=0;
+			if(start_time>midnight_today)
+				temp_start=start_time-midnight_today;
+#ifdef DEBUG
+			printf("<b>Matching: %ld -> %ld. (%ld -> %ld)</b><br>\n",temp_start, temp_end, midnight_today+temp_start, midnight_today+temp_end);
+#endif
+			/* check all time ranges for this day of the week */
+			for(temp_timerange=current_timeperiod->days[weekday];temp_timerange!=NULL;temp_timerange=temp_timerange->next){
+					
+#ifdef DEBUG
+				printf("<li>Matching in timerange[%d]: %d -> %d (%ld -> %ld)<br>\n",weekday,temp_timerange->range_start,temp_timerange->range_end,temp_start,temp_end);
+#endif
+				start=max(temp_timerange->range_start,temp_start);
+				end=min(temp_timerange->range_end,temp_end);
+
+				if(start<end){
+					temp_duration+=end-start;
+#ifdef DEBUG
+					printf("<li>Matched time: %ld -> %ld = %d<br>\n",start, end, temp_duration);
+#endif
+				        } 
+#ifdef DEBUG
+				else
+					printf("<li>Ignored time: %ld -> %ld<br>\n",start, end);
+#endif
+			        }
+			state_duration+=temp_duration;
+			temp_start=0;
+			midnight_today+=86400;
+			if(++weekday>6)
+				weekday=0;
+		        }
+		}
+
+	/* no report timeperiod was selected (assume 24x7) */
+	else{
+		/* calculate time in this state */
+		state_duration=(unsigned long)(end_time-start_time);
+	        }
 
 	/* can't graph if we don't have data... */
 	if(first_state==AS_NO_DATA || last_state==AS_NO_DATA){
@@ -3310,7 +3415,8 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 	if(is_authorized_for_hostgroup(hg,&current_authdata)==FALSE)
 		return;
 
-	total_time=t2-t1;
+	/* calculate total time during period based on timeperiod used for reporting */
+	total_time=calculate_total_time(t1,t2);
 
 	printf("<BR><BR>\n");
 	printf("<DIV ALIGN=CENTER CLASS='dataTitle'>Hostgroup '%s' Host State Breakdowns:</DIV>\n",hg->group_name);
@@ -3471,7 +3577,8 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 	if(is_authorized_for_servicegroup(sg,&current_authdata)==FALSE)
 		return;
 
-	total_time=t2-t1;
+	/* calculate total time during period based on timeperiod used for reporting */
+	total_time=calculate_total_time(t1,t2);
 
 	printf("<BR><BR>\n");
 	printf("<DIV ALIGN=CENTER CLASS='dataTitle'>Servicegroup '%s' Host State Breakdowns:</DIV>\n",sg->group_name);
@@ -3737,9 +3844,12 @@ void display_host_availability(void){
 	char *bgclass="";
 	int odd=1;
 
+	/* calculate total time during period based on timeperiod used for reporting */
+	total_time=calculate_total_time(t1,t2);
 
-	total_time=t2-t1;
-
+#ifdef DEBUG
+	printf("Total time: '%ld' seconds<br>\n",total_time);
+#endif
 
 	/* show data for a specific host */
 	if(show_all_hosts==FALSE){
@@ -4214,7 +4324,8 @@ void display_service_availability(void){
 	char last_host[128]="";
 
 
-	total_time=t2-t1;
+	/* calculate total time during period based on timeperiod used for reporting */
+	total_time=calculate_total_time(t1,t2);
 
 	/* we're only getting data for one service */
 	if(show_all_services==FALSE){
@@ -4583,6 +4694,8 @@ void host_report_url(char *hn, char *label){
 	if(full_log_entries==TRUE)
 		printf("&full_log_entries");
 	printf("&showscheduleddowntime=%s",(show_scheduled_downtime==TRUE)?"yes":"no");
+	if(current_timeperiod!=NULL)
+		printf("&rpttimeperiod=%s",url_encode(current_timeperiod->name));
 	printf("'>%s</a>",label);
 
 	return;
@@ -4605,6 +4718,8 @@ void service_report_url(char *hn, char *sd, char *label){
 	if(full_log_entries==TRUE)
 		printf("&full_log_entries");
 	printf("&showscheduleddowntime=%s",(show_scheduled_downtime==TRUE)?"yes":"no");
+	if(current_timeperiod!=NULL)
+		printf("&rpttimeperiod=%s",url_encode(current_timeperiod->name));
 	printf("'>%s</a>",label);
 
 	return;
@@ -4619,3 +4734,61 @@ void get_running_average(double *running_average, double new_value, int current_
 	return;
         }
 
+
+/* used in reports where a timeperiod is selected */
+unsigned long calculate_total_time(time_t start_time, time_t end_time){
+	struct tm *t;
+	unsigned long midnight_today;
+	int weekday;
+	unsigned long total_time;
+	timerange *temp_timerange;
+	unsigned long temp_duration;
+	unsigned long temp_end;
+	unsigned long temp_start;
+	unsigned long start;
+	unsigned long end;
+
+	/* attempt to handle the current time_period */
+	if(current_timeperiod!=NULL){
+
+		/* "A day" is 86400 seconds */
+		t=localtime(&start_time);
+
+		/* calculate the start of the day (midnight, 00:00 hours) */
+		t->tm_sec=0;
+		t->tm_min=0;
+		t->tm_hour=0;
+		midnight_today=(unsigned long)mktime(t);
+		weekday=t->tm_wday;
+
+		total_time=0;
+		while(midnight_today<end_time){
+			temp_duration=0;
+			temp_end=min(86400,t2-midnight_today);
+			temp_start=0;
+			if(t1>midnight_today)
+				temp_start=t1-midnight_today;
+
+			/* check all time ranges for this day of the week */
+			for(temp_timerange=current_timeperiod->days[weekday];temp_timerange!=NULL;temp_timerange=temp_timerange->next){
+				start=max(temp_timerange->range_start,temp_start);
+				end=min(temp_timerange->range_end,temp_end);
+#ifdef DEBUG
+				printf("<li>Matching in timerange[%d]: %d -> %d (%ld -> %ld) %d -> %d = %ld<br>\n",weekday,temp_timerange->range_start,temp_timerange->range_end,temp_start,temp_end,start,end,end-start);
+#endif
+				if(end>start)
+					temp_duration += end-start;
+			        }
+			total_time+=temp_duration;
+			temp_start=0;
+			midnight_today+=86400;
+			if(++weekday>6)
+				weekday=0;
+		        }
+
+		return total_time;
+	        }
+
+	/* no timeperiod was selected */
+	return end_time-start_time;
+        }

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-29-2003
+ * Last Modified: 06-02-2003
  *
  * Description:
  *
@@ -1267,6 +1267,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostextinfo->name=NULL;
 		new_hostextinfo->host_name=NULL;
 		new_hostextinfo->hostgroup_name=NULL;
+		new_hostextinfo->notes=NULL;
 		new_hostextinfo->notes_url=NULL;
 		new_hostextinfo->icon_image=NULL;
 		new_hostextinfo->icon_image_alt=NULL;
@@ -1308,6 +1309,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_serviceextinfo->host_name=NULL;
 		new_serviceextinfo->hostgroup_name=NULL;
 		new_serviceextinfo->service_description=NULL;
+		new_serviceextinfo->notes=NULL;
 		new_serviceextinfo->notes_url=NULL;
 		new_serviceextinfo->icon_image=NULL;
 		new_serviceextinfo->icon_image_alt=NULL;
@@ -3090,6 +3092,15 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 		        }
+		else if(!strcmp(variable,"notes")){
+			temp_hostextinfo->notes=strdup(value);
+			if(temp_hostextinfo->notes==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info notes.\n");
+#endif
+				return ERROR;
+			        }
+		        }
 		else if(!strcmp(variable,"notes_url")){
 			temp_hostextinfo->notes_url=strdup(value);
 			if(temp_hostextinfo->notes_url==NULL){
@@ -3249,6 +3260,15 @@ int xodtemplate_add_object_property(char *input, int options){
 			if(temp_serviceextinfo->service_description==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for extended service info service_description.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"notes")){
+			temp_serviceextinfo->notes=strdup(value);
+			if(temp_serviceextinfo->notes==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info notes.\n");
 #endif
 				return ERROR;
 			        }
@@ -4778,6 +4798,7 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	new_hostextinfo->name=NULL;
 	new_hostextinfo->host_name=NULL;
 	new_hostextinfo->hostgroup_name=NULL;
+	new_hostextinfo->notes=NULL;
 	new_hostextinfo->notes_url=NULL;
 	new_hostextinfo->icon_image=NULL;
 	new_hostextinfo->icon_image_alt=NULL;
@@ -4791,6 +4812,8 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 		new_hostextinfo->template=strdup(this_hostextinfo->template);
 	if(this_hostextinfo->name!=NULL)
 		new_hostextinfo->name=strdup(this_hostextinfo->name);
+	if(this_hostextinfo->notes!=NULL)
+		new_hostextinfo->notes=strdup(this_hostextinfo->notes);
 	if(this_hostextinfo->notes_url!=NULL)
 		new_hostextinfo->notes_url=strdup(this_hostextinfo->notes_url);
 	if(this_hostextinfo->icon_image!=NULL)
@@ -4847,6 +4870,7 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	new_serviceextinfo->name=NULL;
 	new_serviceextinfo->host_name=NULL;
 	new_serviceextinfo->hostgroup_name=NULL;
+	new_serviceextinfo->notes=NULL;
 	new_serviceextinfo->notes_url=NULL;
 	new_serviceextinfo->icon_image=NULL;
 	new_serviceextinfo->icon_image_alt=NULL;
@@ -4863,6 +4887,8 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 		new_serviceextinfo->name=strdup(this_serviceextinfo->name);
 	if(this_serviceextinfo->service_description!=NULL)
 		new_serviceextinfo->service_description=strdup(this_serviceextinfo->service_description);
+	if(this_serviceextinfo->notes!=NULL)
+		new_serviceextinfo->notes=strdup(this_serviceextinfo->notes);
 	if(this_serviceextinfo->notes_url!=NULL)
 		new_serviceextinfo->notes_url=strdup(this_serviceextinfo->notes_url);
 	if(this_serviceextinfo->icon_image!=NULL)
@@ -5994,6 +6020,8 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 		this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
 	if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
 		this_hostextinfo->hostgroup_name=strdup(template_hostextinfo->hostgroup_name);
+	if(this_hostextinfo->notes==NULL && template_hostextinfo->notes!=NULL)
+		this_hostextinfo->notes=strdup(template_hostextinfo->notes);
 	if(this_hostextinfo->notes_url==NULL && template_hostextinfo->notes_url!=NULL)
 		this_hostextinfo->notes_url=strdup(template_hostextinfo->notes_url);
 	if(this_hostextinfo->icon_image==NULL && template_hostextinfo->icon_image!=NULL)
@@ -6069,6 +6097,8 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 		this_serviceextinfo->hostgroup_name=strdup(template_serviceextinfo->hostgroup_name);
 	if(this_serviceextinfo->service_description==NULL && template_serviceextinfo->service_description!=NULL)
 		this_serviceextinfo->service_description=strdup(template_serviceextinfo->service_description);
+	if(this_serviceextinfo->notes==NULL && template_serviceextinfo->notes!=NULL)
+		this_serviceextinfo->notes=strdup(template_serviceextinfo->notes);
 	if(this_serviceextinfo->notes_url==NULL && template_serviceextinfo->notes_url!=NULL)
 		this_serviceextinfo->notes_url=strdup(template_serviceextinfo->notes_url);
 	if(this_serviceextinfo->icon_image==NULL && template_serviceextinfo->icon_image!=NULL)
@@ -7659,7 +7689,7 @@ int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 		return OK;
 
 	/* register the extended host object */
-	new_hostextinfo=add_hostextinfo(this_hostextinfo->host_name,this_hostextinfo->notes_url,this_hostextinfo->icon_image,this_hostextinfo->vrml_image,this_hostextinfo->statusmap_image,this_hostextinfo->icon_image_alt,this_hostextinfo->x_2d,this_hostextinfo->y_2d,this_hostextinfo->x_3d,this_hostextinfo->y_3d,this_hostextinfo->z_3d,this_hostextinfo->have_2d_coords,this_hostextinfo->have_3d_coords);
+	new_hostextinfo=add_hostextinfo(this_hostextinfo->host_name,this_hostextinfo->notes,this_hostextinfo->notes_url,this_hostextinfo->icon_image,this_hostextinfo->vrml_image,this_hostextinfo->statusmap_image,this_hostextinfo->icon_image_alt,this_hostextinfo->x_2d,this_hostextinfo->y_2d,this_hostextinfo->x_3d,this_hostextinfo->y_3d,this_hostextinfo->z_3d,this_hostextinfo->have_2d_coords,this_hostextinfo->have_3d_coords);
 
 	/* return with an error if we couldn't add the definition */
 	if(new_hostextinfo==NULL){
@@ -7696,7 +7726,7 @@ int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_service
 		return OK;
 
 	/* register the extended service object */
-	new_serviceextinfo=add_serviceextinfo(this_serviceextinfo->host_name,this_serviceextinfo->service_description,this_serviceextinfo->notes_url,this_serviceextinfo->icon_image,this_serviceextinfo->icon_image_alt);
+	new_serviceextinfo=add_serviceextinfo(this_serviceextinfo->host_name,this_serviceextinfo->service_description,this_serviceextinfo->notes,this_serviceextinfo->notes_url,this_serviceextinfo->icon_image,this_serviceextinfo->icon_image_alt);
 
 	/* return with an error if we couldn't add the definition */
 	if(new_serviceextinfo==NULL){
@@ -8203,6 +8233,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"2d_coords\t%d,%d\n",temp_hostextinfo->x_2d,temp_hostextinfo->y_2d);
 		if(temp_hostextinfo->have_3d_coords==TRUE)
 			fprintf(fp,"3d_coords\t%f,%f,%f\n",temp_hostextinfo->x_3d,temp_hostextinfo->y_3d,temp_hostextinfo->z_3d);
+		if(temp_hostextinfo->notes)
+			fprintf(fp,"notes\t%s\n",temp_hostextinfo->notes);
 		if(temp_hostextinfo->notes_url)
 			fprintf(fp,"notes_url\t%s\n",temp_hostextinfo->notes_url);
 		fprintf(fp,"}\n");
@@ -8221,6 +8253,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"icon_image\t%s\n",temp_serviceextinfo->icon_image);
 		if(temp_serviceextinfo->icon_image_alt)
 			fprintf(fp,"icon_image_alt\t%s\n",temp_serviceextinfo->icon_image_alt);
+		if(temp_serviceextinfo->notes)
+			fprintf(fp,"notes\t%s\n",temp_serviceextinfo->notes);
 		if(temp_serviceextinfo->notes_url)
 			fprintf(fp,"notes_url\t%s\n",temp_serviceextinfo->notes_url);
 		fprintf(fp,"}\n");
@@ -8467,6 +8501,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostextinfo->name);
 		free(this_hostextinfo->host_name);
 		free(this_hostextinfo->hostgroup_name);
+		free(this_hostextinfo->notes);
 		free(this_hostextinfo->notes_url);
 		free(this_hostextinfo->icon_image);
 		free(this_hostextinfo->icon_image_alt);
@@ -8484,6 +8519,7 @@ int xodtemplate_free_memory(void){
 		free(this_serviceextinfo->host_name);
 		free(this_serviceextinfo->hostgroup_name);
 		free(this_serviceextinfo->service_description);
+		free(this_serviceextinfo->notes);
 		free(this_serviceextinfo->notes_url);
 		free(this_serviceextinfo->icon_image);
 		free(this_serviceextinfo->icon_image_alt);

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-29-2003
+ * Last Modified:   06-02-2003
  *
  * License:
  *
@@ -455,6 +455,7 @@ typedef struct xodtemplate_hostextinfo_struct{
 
 	char       *host_name;
 	char       *hostgroup_name;
+	char       *notes;
 	char       *notes_url;
 	char       *icon_image;
 	char       *icon_image_alt;
@@ -485,6 +486,7 @@ typedef struct xodtemplate_serviceextinfo_struct{
 	char       *host_name;
 	char       *hostgroup_name;
 	char       *service_description;
+	char       *notes;
 	char       *notes_url;
 	char       *icon_image;
 	char       *icon_image_alt;

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-08-2003
+ * Last Modified: 06-02-2003
  *
  * License:
  * 
@@ -300,16 +300,20 @@ int main(void){
 						printf("<img src='%s%s' border=0 alt='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_serviceextinfo->icon_image,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt);
 					if(temp_serviceextinfo->icon_image_alt!=NULL)
 						printf("<font size=-1><i>( %s )</i><font>\n",temp_serviceextinfo->icon_image_alt);
+					if(temp_serviceextinfo->notes!=NULL)
+						printf("<p>%s</p>\n",temp_serviceextinfo->notes);
 				        }
 			        }
 
-			if(display_type==DISPLAY_HOST_INFO || temp_serviceextinfo==NULL){
+			if(display_type==DISPLAY_HOST_INFO){
 				temp_hostextinfo=find_hostextinfo(host_name);
 				if(temp_hostextinfo!=NULL){
 					if(temp_hostextinfo->icon_image!=NULL)
 						printf("<img src='%s%s' border=0 alt='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_hostextinfo->icon_image,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 					if(temp_hostextinfo->icon_image_alt!=NULL)
 						printf("<font size=-1><i>( %s )</i><font>\n",temp_hostextinfo->icon_image_alt);
+					if(temp_hostextinfo->notes!=NULL)
+						printf("<p>%s</p>\n",temp_hostextinfo->notes);
 				        }
 		                }
  	                }

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-29-2003
+ * Last Modified:   06-02-2003
  *
  * License:
  *
@@ -3686,7 +3686,7 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 
 /* adds an extended host info structure to the list in memory */
-hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image, char *vrml_image, char *statusmap_image, char *icon_image_alt, int x_2d, int y_2d, double x_3d, double y_3d, double z_3d, int have_2d_coords, int have_3d_coords){
+hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, char *icon_image, char *vrml_image, char *statusmap_image, char *icon_image_alt, int x_2d, int y_2d, double x_3d, double y_3d, double z_3d, int have_2d_coords, int have_3d_coords){
 	hostextinfo *new_hostextinfo;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -3728,11 +3728,28 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 		return NULL;
 	        }
 
+	if(notes==NULL || !strcmp(notes,""))
+		new_hostextinfo->notes=NULL;
+	else{
+		new_hostextinfo->notes=strdup(notes);
+		if(new_hostextinfo->notes==NULL){
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
 	if(notes_url==NULL || !strcmp(notes_url,""))
 		new_hostextinfo->notes_url=NULL;
 	else{
 		new_hostextinfo->notes_url=strdup(notes_url);
 		if(new_hostextinfo->notes_url==NULL){
+			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 #ifdef NSCORE
@@ -3750,6 +3767,7 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 		new_hostextinfo->icon_image=strdup(icon_image);
 		if(new_hostextinfo->icon_image==NULL){
 			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 #ifdef NSCORE
@@ -3768,6 +3786,7 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 		if(new_hostextinfo->vrml_image==NULL){
 			free(new_hostextinfo->icon_image);
 			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 #ifdef NSCORE
@@ -3788,6 +3807,7 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 			free(new_hostextinfo->vrml_image);
 			free(new_hostextinfo->icon_image);
 			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 #ifdef NSCORE
@@ -3809,6 +3829,7 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 			free(new_hostextinfo->vrml_image);
 			free(new_hostextinfo->icon_image);
 			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
 			free(new_hostextinfo);
 #ifdef NSCORE
@@ -3847,7 +3868,7 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 
 
 /* adds an extended service info structure to the list in memory */
-serviceextinfo * add_serviceextinfo(char *host_name,char *description, char *notes_url, char *icon_image, char *icon_image_alt){
+serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *notes, char *notes_url, char *icon_image, char *icon_image_alt){
 	serviceextinfo *new_serviceextinfo;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -3901,11 +3922,29 @@ serviceextinfo * add_serviceextinfo(char *host_name,char *description, char *not
 		return NULL;
 	        }
 
+	if(notes==NULL || !strcmp(notes,""))
+		new_serviceextinfo->notes=NULL;
+	else{
+		new_serviceextinfo->notes=strdup(notes);
+		if(new_serviceextinfo->notes==NULL){
+			free(new_serviceextinfo->description);
+			free(new_serviceextinfo->host_name);
+			free(new_serviceextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
 	if(notes_url==NULL || !strcmp(notes_url,""))
 		new_serviceextinfo->notes_url=NULL;
 	else{
 		new_serviceextinfo->notes_url=strdup(notes_url);
 		if(new_serviceextinfo->notes_url==NULL){
+			free(new_serviceextinfo->notes);
 			free(new_serviceextinfo->description);
 			free(new_serviceextinfo->host_name);
 			free(new_serviceextinfo);
@@ -3923,6 +3962,7 @@ serviceextinfo * add_serviceextinfo(char *host_name,char *description, char *not
 	else{
 		new_serviceextinfo->icon_image=strdup(icon_image);
 		if(new_serviceextinfo->icon_image==NULL){
+			free(new_serviceextinfo->notes);
 			free(new_serviceextinfo->notes_url);
 			free(new_serviceextinfo->description);
 			free(new_serviceextinfo->host_name);
@@ -3942,6 +3982,7 @@ serviceextinfo * add_serviceextinfo(char *host_name,char *description, char *not
 		new_serviceextinfo->icon_image_alt=strdup(icon_image_alt);
 		if(new_serviceextinfo->icon_image_alt==NULL){
 			free(new_serviceextinfo->icon_image);
+			free(new_serviceextinfo->notes);
 			free(new_serviceextinfo->notes_url);
 			free(new_serviceextinfo->description);
 			free(new_serviceextinfo->host_name);
@@ -5342,6 +5383,7 @@ int free_extended_data(void){
 	for(this_hostextinfo=hostextinfo_list;this_hostextinfo!=NULL;this_hostextinfo=next_hostextinfo){
 		next_hostextinfo=this_hostextinfo->next;
 		free(this_hostextinfo->host_name);
+		free(this_hostextinfo->notes);
 		free(this_hostextinfo->notes_url);
 		free(this_hostextinfo->icon_image);
 		free(this_hostextinfo->vrml_image);
@@ -5361,6 +5403,7 @@ int free_extended_data(void){
 		next_serviceextinfo=this_serviceextinfo->next;
 		free(this_serviceextinfo->host_name);
 		free(this_serviceextinfo->description);
+		free(this_serviceextinfo->notes);
 		free(this_serviceextinfo->notes_url);
 		free(this_serviceextinfo->icon_image);
 		free(this_serviceextinfo);

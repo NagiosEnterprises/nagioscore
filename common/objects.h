@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-29-2003
+ * Last Modified:   06-02-2003
  *
  * License:
  *
@@ -407,6 +407,7 @@ typedef struct hostdependency_struct{
 /* EXTENDED HOST INFO structure */
 typedef struct hostextinfo_struct{
 	char *host_name;
+	char *notes;
 	char *notes_url;
 	char *icon_image;
 	char *vrml_image;
@@ -428,6 +429,7 @@ typedef struct hostextinfo_struct{
 typedef struct serviceextinfo_struct{
 	char *host_name;
 	char *description;
+	char *notes;
 	char *notes_url;
 	char *icon_image;
 	char *icon_image_alt;
@@ -497,8 +499,8 @@ servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,in
 hostdependency *add_host_dependency(char *,char *,int,int,int,int,int);                                 /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
-hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
-serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *);                                 /* add an extended service info definition */
+hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
+serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *);                          /* add an extended service info definition */
 
 
 

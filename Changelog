@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Added notes directive to extended host/service definitions
 * Added inheritable flag to host and service dependencies
 * Added servicegroups
 * Added host freshness checking

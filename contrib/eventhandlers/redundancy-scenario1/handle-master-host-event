@@ -2,7 +2,7 @@
 
 # REDUNDANCY EVENT HANDLER SCRIPT
 # Written By: Ethan Galstad (nagios@nagios.org)
-# Last Modified: 02-18-2002
+# Last Modified: 02-19-2004
 #
 # This is an example script for implementing redundancy.
 # Read the HTML documentation on redundant monitoring for more
@@ -37,7 +37,7 @@ HARD)
 		# occurred while we were in standby mode, so this is a good idea...
 
 		#`$echocmd "Master Nagios host is down!" | /bin/mail -s "Master Nagios Host Is Down" admin@somedomain.com`
-		#`$echocmd "Slave Nagios host has entered ACTIVE mode and taken over network monitoring responsibilities!" | $mailcmd -s "Slave Nagios Host Has Entered ACTIVE Mode" admin@somedomain.com`
+		#`$echocmd "Slave Nagios host has entered ACTIVE mode and taken over network monitoring responsibilities!" | $mailcmd -s "Slave Nagios Host Has Entered ACTIVE Mode" root@localhost`
 
 		;;
 
@@ -56,7 +56,7 @@ HARD)
 		# However, we should let someone know that we're switching
 		# back to standby mode...
 
-		#`$echocmd "The master Nagios host has recovered, so the slave Nagios host has returned to standby mode..." | $mailcmd -s "Slave Nagios Host Has Returned To STANDBY Mode" admin@somedomain.com`
+		#`$echocmd "The master Nagios host has recovered, so the slave Nagios host has returned to standby mode..." | $mailcmd -s "Slave Nagios Host Has Returned To STANDBY Mode" root@localhost`
 
 		;;
 

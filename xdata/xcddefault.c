@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-03-2002
+ * Last Modified:   12-07-2002
  *
  * License:
  *
@@ -248,7 +248,6 @@ int xcddefault_validate_comment_data(void){
 	fpin=fopen(xcddefault_comment_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -344,7 +343,6 @@ int xcddefault_validate_comment_data(void){
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old comment file */
@@ -460,7 +458,6 @@ int xcddefault_delete_host_comment(int comment_id){
 	fpin=fopen(xcddefault_comment_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -480,7 +477,6 @@ int xcddefault_delete_host_comment(int comment_id){
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old comment file */
@@ -520,7 +516,6 @@ int xcddefault_delete_service_comment(int comment_id){
 	fpin=fopen(xcddefault_comment_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -540,7 +535,6 @@ int xcddefault_delete_service_comment(int comment_id){
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old comment file */
@@ -583,7 +577,6 @@ int xcddefault_delete_all_host_comments(char *host_name){
 	fpin=fopen(xcddefault_comment_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -603,7 +596,6 @@ int xcddefault_delete_all_host_comments(char *host_name){
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old comment file */
@@ -646,7 +638,6 @@ int xcddefault_delete_all_service_comments(char *host_name, char *svc_descriptio
 	fpin=fopen(xcddefault_comment_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -666,7 +657,6 @@ int xcddefault_delete_all_service_comments(char *host_name, char *svc_descriptio
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old comment file */

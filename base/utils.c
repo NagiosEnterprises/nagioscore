@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-06-2002
+ * Last Modified:   12-07-2002
  *
  * License:
  *
@@ -190,6 +190,8 @@ extern char     *tzname[2];
 
 
 extern service_message svc_msg;
+extern pthread_t       command_worker_tid;
+extern pthread_mutex_t command_buffer_lock;
 
 extern int errno;
 
@@ -2160,6 +2162,22 @@ int open_command_file(void){
 		return ERROR;
 	        }
 
+	/* initialize worker thread */
+	if(init_command_file_worker_thread()==ERROR){
+
+		snprintf(buffer,sizeof(buffer)-1,"Error: Could not initialize command file worker thread.\n");
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+
+		/* close the command file */
+		fclose(command_file_fp);
+	
+		/* delete the named pipe */
+		unlink(command_file);
+
+		return ERROR;
+	        }
+
 	/* set a flag to remember we already created the file */
 	command_file_created=TRUE;
 
@@ -2182,9 +2200,14 @@ int close_command_file(void){
 	if(check_external_commands==FALSE)
 		return OK;
 
+	/* tell the worker thread to exit */
+	pthread_cancel(command_worker_tid);
+
+	/* wait for the worker thread to exit */
+	pthread_join(command_worker_tid,NULL);
+
 	/* close the command file */
 	fclose(command_file_fp);
-	close(command_file_fd);
 	
 	/* delete the named pipe */
 	if(unlink(command_file)!=0)

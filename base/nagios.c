@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-05-2002
+ * Last Modified:   12-07-2002
  *
  * Description:
  *
@@ -622,7 +622,7 @@ int main(int argc, char **argv){
 			/* there was a problem opening the command file */
 			if(result!=OK){
 
-				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while trying to open the external command file for reading... (PID=%d)\n",(int)getpid());
+				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
 

@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Added worker thread to increase buffer size of external command file
 * Added object_cache_file directive to allow CGI to read cached copy of
   object definitions
 * Added DURATION, DURATIONSEC, HOSTDOWNTIME, and SERVICEDOWNTIME macros

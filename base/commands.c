@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2002
+ * Last Modified:   12-07-2002
  *
  * License:
  *
@@ -61,15 +61,125 @@ extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
 
 extern FILE     *command_file_fp;
+extern int      command_file_fd;
 
 passive_check_result    *passive_check_result_list;
 
-int             flush_pending_commands=FALSE;
+
+#define COMMAND_BUFFER_SLOTS              512
+#define COMMAND_BUFFER_FLUSH_FREQUENCY    60
+
+/* circular buffer */
+static struct command_buf_struct{
+	char            *buffer[COMMAND_BUFFER_SLOTS];
+	int             tail;
+	int             head;
+	int             items;
+        }external_command_buffer;
+
+pthread_t command_worker_tid;
+pthread_mutex_t command_buffer_lock=PTHREAD_MUTEX_INITIALIZER;
+
 
 
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
 /******************************************************************/
+
+
+/* initializes command file worker thread */
+int init_command_file_worker_thread(void){
+	int result;
+	sigset_t newmask, oldmask;
+
+	/* initialize circular buffer */
+	external_command_buffer.head=0;
+	external_command_buffer.tail=0;
+	external_command_buffer.items=0;
+
+	/* initialize mutex */
+	pthread_mutex_init(&command_buffer_lock,NULL);
+
+	/* worker thread should ignore signals */
+	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
+	
+	/* create worker thread */
+	result=pthread_create(&command_worker_tid,NULL,command_file_worker_thread,NULL);
+	if(result)
+		return ERROR;
+
+	/* restore signal catching in main thread */
+	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
+
+	return OK;
+        }
+
+
+
+/* worker thread - artificially increases buffer of named pipe */
+void * command_file_worker_thread(void *arg){
+	char input_buffer[MAX_INPUT_BUFFER];
+	struct timeval tv;
+
+	/* set cancellation info */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
+
+	tv.tv_sec=1;
+	tv.tv_usec=250000;
+
+	while(1){
+
+		/* should we shutdown? */
+		pthread_testcancel();
+
+		/* wait a while... */
+		/* this should be replaced with a call to select(), but I can't seem to get it working (blocked or non-blocked) */
+		/* even a call with NULL vars seems to fail, when it should wait.... */
+		/*select(0,NULL,NULL,NULL,&tv);*/
+		sleep(1);
+
+		/* should we shutdown? */
+		pthread_testcancel();
+
+		/* obtain a lock for writing to the buffer */
+		pthread_mutex_lock(&command_buffer_lock);
+
+		/* process all commands in the file (named pipe) if there's some space in the buffer */
+		if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
+
+			/* clear EOF condition from prior run (FreeBSD fix) */
+			clearerr(command_file_fp);
+
+			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
+
+				/* save the line in the buffer */
+				external_command_buffer.buffer[external_command_buffer.tail]=strdup(input_buffer);
+
+				/* increment the tail counter and items */
+				external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
+				external_command_buffer.items++;
+
+				/* bail out if the buffer is now full */
+				if(external_command_buffer.items==COMMAND_BUFFER_SLOTS)
+					break;
+
+				/* should we shutdown? */
+				pthread_testcancel();
+	                        }
+
+			/* rewind file pointer (fix for FreeBSD, may already be taken care of due to clearerr() call before reading begins) */
+			rewind(command_file_fp);
+		        }
+
+		/* release lock on buffer */
+		pthread_mutex_unlock(&command_buffer_lock);
+	        }
+
+	return;
+        }
+
+
 
 /* checks for the existence of the external command file and processes all
    commands found in it */
@@ -85,6 +195,7 @@ void check_for_external_commands(void){
 	printf("check_for_external_commands() start\n");
 #endif
 
+
 	/* bail out if we shouldn't be checking for external commands */
 	if(check_external_commands==FALSE)
 		return;
@@ -98,18 +209,25 @@ void check_for_external_commands(void){
 	/* reset passive check result list pointer */
 	passive_check_result_list=NULL;
 
-	/* reset flush flag */
-	flush_pending_commands=FALSE;
+	/* get a lock on the buffer */
+	pthread_mutex_lock(&command_buffer_lock);
 
-	/* clear EOF condition from prior run (FreeBSD fix) */
-	clearerr(command_file_fp);
+	/* process all commands found in the buffer */
+	while(external_command_buffer.items>0){
 
-	/* process all commands in the file (now implemented as a named pipe) */
-	while(fgets(buffer,(int)(sizeof(buffer)-1),command_file_fp)!=NULL){
+		if(external_command_buffer.buffer[external_command_buffer.head]){
+			strncpy(buffer,external_command_buffer.buffer[external_command_buffer.head],sizeof(buffer)-1);
+			buffer[sizeof(buffer)-1]='\x0';
+		        }
+		else
+			strcpy(buffer,"");
 
-		/* we're flushing all remaining commands from the file */
-		if(flush_pending_commands==TRUE)
-			continue;
+		/* free memory allocated for buffer slot */
+		free(external_command_buffer.buffer[external_command_buffer.head]);
+
+		/* adjust head counter and number of items */
+		external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
+		external_command_buffer.items--;
 
 		/* strip the buffer of newlines and carriage returns */
 		strip(buffer);
@@ -358,9 +476,8 @@ void check_for_external_commands(void){
 		process_external_command(command_type,entry_time,args);
 	        }
 
-	/* rewind file pointer (fix for FreeBSD, may already be taken care of due to clearerr() call before reading begins) */
-	rewind(command_file_fp);
-
+	/* release the lock on the buffer */
+	pthread_mutex_unlock(&command_buffer_lock);
 
 	/**** PROCESS ALL PASSIVE CHECK RESULTS AT ONE TIME ****/
 	if(passive_check_result_list!=NULL)
@@ -563,10 +680,6 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 
 	case CMD_CANCEL_ACTIVE_HOST_SVC_DOWNTIME:
 	case CMD_CANCEL_PENDING_HOST_SVC_DOWNTIME:
-		break;
-
-	case CMD_FLUSH_PENDING_COMMANDS:
-		flush_pending_commands=TRUE;
 		break;
 
 	case CMD_ENABLE_FAILURE_PREDICTION:

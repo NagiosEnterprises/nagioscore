@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 10-17-2002
+# Last Modified: 12-07-2002
 ############################
 
 
@@ -30,6 +30,7 @@ CGIURL=@cgiurl@
 HTMURL=@htmurl@
 
 MATHLIBS=-lm
+THREADLIBS=-lpthread
 PERLLIBS=@PERLLIBS@
 
 CP=@CP@
@@ -88,7 +89,7 @@ DDATADEPS=$(DDATALIBS)
 OBJS=checks.o config.o commands.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
 
 nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
-	$(CC) $(CFLAGS) $(LDFLAGS) nagios.c $(OBJS) $(PERLLIBS) $(MATHLIBS) -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) nagios.c $(OBJS) $(PERLLIBS) $(MATHLIBS) $(THREADLIBS) -o $@
 
 #$(SRC_COMMON)/locations.h: $(SRC_COMMON)/locations.sub
 #	perl -pe 's|\$${prefix}|${prefix}|g;s|\$${exec_prefix}|${exec_prefix}|g;s|\$${htmurl}|$(HTMURL)|g;s|\$${cgiurl}|$(CGIURL)|g;' $(SRC_COMMON)/locations.sub > $(SRC_COMMON)/locations.h

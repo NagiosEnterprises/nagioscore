@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-29-2001
+ * Last Modified:   12-07-2001
  *
  * License:
  *
@@ -238,7 +238,6 @@ int xsddefault_end_aggregated_dump(void){
 
 	/* close the temp file */
 	fclose(xsddefault_aggregate_fp);
-	close(xsddefault_aggregate_fd);
 
 	/* move the temp file to the status log (overwrite the old status log) */
 	if(my_rename(xsddefault_aggregate_temp_file,xsddefault_status_log))
@@ -290,7 +289,6 @@ int xsddefault_update_program_status(time_t _program_start, int _nagios_pid, int
 	fpin=fopen(xsddefault_status_log,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -326,7 +324,6 @@ int xsddefault_update_program_status(time_t _program_start, int _nagios_pid, int
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* move the temp file to the status log (overwrite the old status log) */
@@ -380,7 +377,6 @@ int xsddefault_update_host_status(char *host_name, char *status, time_t last_upd
 	fpin=fopen(xsddefault_status_log,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -416,7 +412,6 @@ int xsddefault_update_host_status(char *host_name, char *status, time_t last_upd
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* move the temp file to the status log (overwrite the old status log) */
@@ -473,7 +468,6 @@ int xsddefault_update_service_status(char *host_name, char *description, char *s
 	fpin=fopen(xsddefault_status_log,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -509,7 +503,6 @@ int xsddefault_update_service_status(char *host_name, char *description, char *s
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* move the temp file to the status log (overwrite the old status log) */

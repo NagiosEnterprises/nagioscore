@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2002
+ * Last Modified:   12-07-2002
  *
  * License:
  *
@@ -253,7 +253,6 @@ int xdddefault_validate_downtime_data(void){
 	fpin=fopen(xdddefault_downtime_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -355,7 +354,6 @@ int xdddefault_validate_downtime_data(void){
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old downtime file */
@@ -489,7 +487,6 @@ int xdddefault_delete_downtime(int type, int downtime_id){
 	fpin=fopen(xdddefault_downtime_file,"r");
 	if(fpin==NULL){
 		fclose(fpout);
-		close(tempfd);
 		unlink(temp_file);
 		return ERROR;
 	        }
@@ -509,7 +506,6 @@ int xdddefault_delete_downtime(int type, int downtime_id){
 
 	/* close files */
 	fclose(fpout);
-	close(tempfd);
 	fclose(fpin);
 
 	/* replace old downtime file */

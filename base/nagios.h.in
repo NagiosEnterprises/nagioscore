@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-06-2002
+ * Last Modified: 12-07-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -548,6 +548,9 @@ void start_accepting_passive_host_checks(void);		/* starts accepting passive hos
 void stop_accepting_passive_host_checks(void);		/* stops accepting passive host check results */
 void enable_passive_host_checks(host *);	        /* enables passive host checks for a particular host */
 void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
+
+int init_command_file_worker_thread(void);
+void * command_file_worker_thread(void *arg);
 
 #endif
 

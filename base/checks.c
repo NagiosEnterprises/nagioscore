@@ -788,6 +788,11 @@ void reap_service_checks(void){
 		if(temp_service->state_type==SOFT_STATE && (temp_service->current_attempt < temp_service->max_attempts))
 			temp_service->current_attempt=temp_service->current_attempt+1;
 
+#ifdef DEBUG_CHECKS
+		printf("SERVICE '%s' on HOST '%s'\n",temp_service->description,temp_service->host_name);
+		printf("\tST: %s  CA: %d  MA: %d  CS: %d  LS: %d  LHS: %d\n",(temp_service->state_type==SOFT_STATE)?"SOFT":"HARD",temp_service->current_attempt,temp_service->max_attempts,temp_service->current_state,temp_service->last_state,temp_service->last_hard_state);
+#endif
+
 
 		/* check for a state change (either soft or hard) */
 		if(temp_service->current_state!=temp_service->last_state){
@@ -795,6 +800,9 @@ void reap_service_checks(void){
 			printf("\t\tService '%s' on host '%s' has changed state since last check!\n",temp_service->description,temp_service->host_name);
 #endif
 			state_change=TRUE;
+#ifdef DEBUG_CHECKS
+			printf("\tSTATE CHANGE\n");
+#endif
 		        }
 
 		/* checks for a hard state change where host was down at last service check */
@@ -805,6 +813,9 @@ void reap_service_checks(void){
 			printf("\t\tService '%s' on host '%s' has had a HARD STATE CHANGE!!\n",temp_service->description,temp_service->host_name);
 #endif
 			hard_state_change=TRUE;
+#ifdef DEBUG_CHECKS
+			printf("\tHARD STATE CHANGE A\n");
+#endif
 	                }
 
 		/* check for a "normal" hard state change where max check attempts is reached */
@@ -813,6 +824,9 @@ void reap_service_checks(void){
 			printf("\t\tService '%s' on host '%s' has had a HARD STATE CHANGE!!\n",temp_service->description,temp_service->host_name);
 #endif
 			hard_state_change=TRUE;
+#ifdef DEBUG_CHECKS
+			printf("\tHARD STATE CHANGE B\n");
+#endif
 		        }
 
 		/* reset last and next notification times and acknowledgement flag if necessary */
@@ -1064,6 +1078,10 @@ void reap_service_checks(void){
 
 			/* we've reached the maximum number of service rechecks, so handle the error */
 			else{
+
+#ifdef DEBUG_CHECKS
+				printf("\tMAXED OUT! HSC: %d\n",hard_state_change);
+#endif
 
 				/* this is a hard state */
 				temp_service->state_type=HARD_STATE;

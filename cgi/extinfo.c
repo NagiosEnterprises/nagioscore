@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-17-2002
+ * Last Modified: 07-28-2002
  *
  * License:
  * 
@@ -554,6 +554,9 @@ int process_cgivars(void){
 		else if(!strcmp(variables[x],"noheader"))
 			display_header=FALSE;
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

@@ -124,8 +124,8 @@ authdata current_authdata;
 time_t current_time;
 
 char alert_message[MAX_MESSAGE_BUFFER];
-char *host_name="all";
-char *hostgroup_name="all";
+char *host_name=NULL;
+char *hostgroup_name=NULL;
 int host_alert=FALSE;
 int show_all_hosts=TRUE;
 int show_all_hostgroups=TRUE;
@@ -452,13 +452,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			hostgroup_name=(char *)malloc(strlen(variables[x])+1);
-			if(hostgroup_name==NULL)
-				hostgroup_name="all";
-			else
-				strcpy(hostgroup_name,variables[x]);
+			hostgroup_name=strdup(variables[x]);
 
-			if(!strcmp(hostgroup_name,"all"))
+			if(hostgroup_name!=NULL && !strcmp(hostgroup_name,"all"))
 				show_all_hostgroups=TRUE;
 			else
 				show_all_hostgroups=FALSE;
@@ -473,13 +469,9 @@ int process_cgivars(void){
 				break;
 			        }
 
-			host_name=(char *)malloc(strlen(variables[x])+1);
-			if(host_name==NULL)
-				host_name="all";
-			else
-				strcpy(host_name,variables[x]);
+			host_name=strdup(variables[x]);
 
-			if(!strcmp(host_name,"all"))
+			if(host_name!=NULL && !strcmp(host_name,"all"))
 				show_all_hosts=TRUE;
 			else
 				show_all_hosts=FALSE;
@@ -593,8 +585,10 @@ int process_cgivars(void){
 		/* we found the noheader option */
 		else if(!strcmp(variables[x],"noheader"))
 			display_header=FALSE;
-
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

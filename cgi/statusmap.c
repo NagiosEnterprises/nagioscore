@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-19-2002
+ * Last Modified: 07-28-2002
  *
  * Description:
  *
@@ -575,6 +575,9 @@ int process_cgivars(void){
 			add_layer(variables[x]);
 		        }
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

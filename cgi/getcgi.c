@@ -2,7 +2,7 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 02-20-2001
+ * Last Modified: 07-28-2001
  *
  *****************************************/
 
@@ -249,3 +249,14 @@ char **getcgivars(void){
 	return cgivars;
         }
 
+
+
+/* free() memory allocated to storing the CGI variables */
+void free_cgivars(char **cgivars){
+	register int x;
+
+	for(x=0;cgivars[x]!='\x0';x++)
+		free(cgivars[x]);
+
+	return;
+        }

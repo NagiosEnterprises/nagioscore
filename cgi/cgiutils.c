@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2002
+ * Last Modified: 07-28-2002
  *
  * License:
  *
@@ -195,6 +195,9 @@ void reset_cgi_vars(void){
 
 	ping_syntax=NULL;
 
+	my_strtok_buffer=NULL;
+	original_my_strtok_buffer=NULL;
+
 	return;
         }
 
@@ -219,6 +222,9 @@ void free_memory(void){
 	free(statusmap_background_image);
 	free(statuswrl_include);
 	free(ping_syntax);
+
+	free(my_strtok_buffer);
+	free(original_my_strtok_buffer);
 
 	return;
         }

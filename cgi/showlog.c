@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 07-28-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -279,6 +279,9 @@ int process_cgivars(void){
 			error=TRUE;
 	
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

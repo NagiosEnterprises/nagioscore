@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-01-2002
+ * Last Modified: 07-28-2002
  *
  * License:
  * 
@@ -338,6 +338,9 @@ int process_cgivars(void){
 		        }
 
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

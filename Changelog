@@ -7,6 +7,8 @@ Nagios Change Log
 * Fixed another memory leak related to processing of passive checks
 * Init script mods (killproc doesn't colllide with RedHat's killproc)
 * Added minimalistic sample object config file (minimal.cfg)
+* Memory leak fixes in the CGIs
+* Minor interface changes to the status and TAC CGIs
 
 
 1.0b4 - 07/04/2002

@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D Network Status View
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2002
+ * Last Modified:   05-28-2002
  *
  * Description:
  *
@@ -304,6 +304,9 @@ int process_cgivars(void){
 		        }
 
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

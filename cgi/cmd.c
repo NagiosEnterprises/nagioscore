@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 07-28-2002
  *
  * License:
  * 
@@ -543,6 +543,9 @@ int process_cgivars(void){
 				content_type=HTML_CONTENT;
 		        }
                 }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

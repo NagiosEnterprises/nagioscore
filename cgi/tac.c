@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-27-2002
+ * Last Modified: 07-28-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -380,6 +380,9 @@ int process_cgivars(void){
 			error=TRUE;
 	
 	        }
+
+	/* free memory allocated to the CGI variables */
+	free_cgivars(variables);
 
 	return error;
         }

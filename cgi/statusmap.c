@@ -2,8 +2,8 @@
  *
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-22-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-19-2004
  *
  * Description:
  *
@@ -1419,7 +1419,7 @@ void load_background_image(void){
 	        }
 
 	/* if we are just creating the html, we don't need the image anymore */
-	if(create_type==CREATE_HTML)
+	if(create_type==CREATE_HTML && background_image!=NULL)
 		gdImageDestroy(background_image);
 
 	return;

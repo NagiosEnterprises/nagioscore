@@ -356,7 +356,7 @@ int main(int argc, char **argv){
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
 				printf("service=%s'>View History This Service</A><BR>\n",url_encode(svc_description));
 				printf("<A HREF='%s?host=%s&",NOTIFICATIONS_CGI,url_encode(host_name));
-				printf("service=%s'>View Notifications This Service</A><BR>\n",url_encode(svc_description));
+				printf("service=%s'>View Notifications For This Service</A><BR>\n",url_encode(svc_description));
 		                }
 
 			printf("</TD></TR>\n");

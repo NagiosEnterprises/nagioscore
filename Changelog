@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0b2 - ??/??/????
 ------------------
+* Added ability to report on soft problem states in avail and trends CGIs
+* Fixed bug with hard service problems being reported as soft after host recoveries
 * Fixed bug with current attempt number during scheduled host checks
 * Fixed macro processing bug
 * Fixed bug where GUI didn't show UNREACHABLE hosts properly

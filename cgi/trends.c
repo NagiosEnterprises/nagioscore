@@ -2,8 +2,8 @@
  *
  * TRENDS.C -  Nagios State Trends CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-17-2005
  *
  * License:
  * 
@@ -63,6 +63,9 @@ extern service *service_list;
 #define AS_SVC_WARNING		8
 #define AS_SVC_CRITICAL		9
 
+#define AS_SOFT_STATE           1 
+#define AS_HARD_STATE           2
+
 /* display types */
 #define DISPLAY_HOST_TRENDS	0
 #define DISPLAY_SERVICE_TRENDS	1
@@ -107,6 +110,7 @@ typedef struct archived_state_struct{
 	time_t  time_stamp;
 	int     entry_type;
 	int     processed_state;
+	int     state_type;
 	char    *state_info;
 	struct archived_state_struct *next;
         }archived_state;
@@ -145,6 +149,7 @@ int display_header=TRUE;
 int assume_initial_states=TRUE;
 int assume_state_retention=TRUE;
 int assume_states_during_notrunning=TRUE;
+int include_soft_states=FALSE;
 
 char *host_name="";
 char *svc_description="";
@@ -161,7 +166,7 @@ void draw_dashed_line(int,int,int,int,int);
 
 int convert_host_state_to_archived_state(int);
 int convert_service_state_to_archived_state(int);
-void add_archived_state(int,time_t,char *);
+void add_archived_state(int,int,time_t,char *);
 void free_archived_state_list(void);
 void read_archived_state_data(void);
 void scan_log_file_for_archived_state_data(char *);
@@ -379,16 +384,16 @@ int main(int argc, char **argv){
 			printf("<TR><TD CLASS='linkBox'>\n");
 
 			if(display_type==DISPLAY_HOST_TRENDS){
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedhoststate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedhoststate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(include_soft_states==TRUE)?"yes":"no",(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 		                }
 			else{
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(include_soft_states==TRUE)?"yes":"no",(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",AVAIL_CGI,url_encode(host_name));
-				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
+				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&includesoftstates=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(include_soft_states==TRUE)?"yes":"no",(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
@@ -452,6 +457,7 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='assumeinitialstates' value='%s'>\n",(assume_initial_states==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='assumestateretention' value='%s'>\n",(assume_state_retention==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
+			printf("<input type='hidden' name='includesoftstates' value='%s'>\n",(include_soft_states==TRUE)?"yes":"no");
 
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed %s state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>");
@@ -727,6 +733,7 @@ int main(int argc, char **argv){
 			printf("&initialassumedhoststate=%d",initial_assumed_host_state);
 			printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 			printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
+			printf("&includesoftstates=%s",(include_soft_states==TRUE)?"yes":"no");
 			printf("&host=%s",url_encode(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
 				printf("&service=%s",url_encode(svc_description));
@@ -985,6 +992,14 @@ int main(int argc, char **argv){
 			printf("<select name='assumestatesduringnotrunning'>\n");
 			printf("<option value=yes>Yes\n");
 			printf("<option value=no>No\n");
+			printf("</select>\n");
+			printf("</td></tr>\n");
+
+			printf("<tr><td class='reportSelectSubTitle' align=right>Include Soft States:</td>\n");
+			printf("<td class='reportSelectItem'>\n");
+			printf("<select name='includesoftstates'>\n");
+			printf("<option value=yes>Yes\n");
+			printf("<option value=no SELECTED>No\n");
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
@@ -1302,6 +1317,20 @@ int process_cgivars(void){
 				assume_state_retention=TRUE;
 			else
 				assume_state_retention=FALSE;
+		        }
+
+		/* we found the include soft states option */
+		else if(!strcmp(variables[x],"includesoftstates")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			if(!strcmp(variables[x],"yes"))
+				include_soft_states=TRUE;
+			else
+				include_soft_states=FALSE;
 		        }
 
 		/* we found the zoom factor argument */
@@ -1671,7 +1700,7 @@ void graph_all_trend_data(void){
 					last_known_state=AS_HOST_UP;
 
 				/* add a dummy archived state item, so something can get graphed */
-				add_archived_state(last_known_state,t1,"Current Host State Assumed (Faked Log Entry)");
+				add_archived_state(last_known_state,AS_HARD_STATE,t1,"Current Host State Assumed (Faked Log Entry)");
 
 				/* use the current state as the last known real state */
 				first_real_state=last_known_state;
@@ -1690,7 +1719,7 @@ void graph_all_trend_data(void){
 					last_known_state=AS_SVC_UNKNOWN;
 
 				/* add a dummy archived state item, so something can get graphed */
-				add_archived_state(last_known_state,t1,"Current Service State Assumed (Faked Log Entry)");
+				add_archived_state(last_known_state,AS_HARD_STATE,t1,"Current Service State Assumed (Faked Log Entry)");
 
 				/* use the current state as the last known real state */
 				first_real_state=last_known_state;
@@ -1774,9 +1803,9 @@ void graph_all_trend_data(void){
 				initial_assumed_time=as_list->time_stamp-1;
 			
 			if(display_type==DISPLAY_HOST_TRENDS)
-				add_archived_state(initial_assumed_state,initial_assumed_time,"First Host State Assumed (Faked Log Entry)");
+				add_archived_state(initial_assumed_state,AS_HARD_STATE,initial_assumed_time,"First Host State Assumed (Faked Log Entry)");
 			else
-				add_archived_state(initial_assumed_state,initial_assumed_time,"First Service State Assumed (Faked Log Entry)");
+				add_archived_state(initial_assumed_state,AS_HARD_STATE,initial_assumed_time,"First Service State Assumed (Faked Log Entry)");
 		        }
 	        }
 
@@ -2151,6 +2180,7 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 		printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 		printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
 		printf("&assumestatesduringnotrunning=%s",(assume_states_during_notrunning==TRUE)?"yes":"no");
+		printf("&includesoftstates=%s",(include_soft_states==TRUE)?"yes":"no");
 		if(backtrack_archives>0)
 			printf("&backtrack=%d",backtrack_archives);
 		printf("&zoom=%d",zoom_factor);
@@ -2250,7 +2280,7 @@ int convert_service_state_to_archived_state(int current_status){
 
 
 /* adds an archived state entry */
-void add_archived_state(int state_type, time_t time_stamp, char *state_info){
+void add_archived_state(int entry_type, int state_type, time_t time_stamp, char *state_info){
 	archived_state *last_as=NULL;
 	archived_state *temp_as=NULL;
 	archived_state *new_as=NULL;
@@ -2272,8 +2302,9 @@ void add_archived_state(int state_type, time_t time_stamp, char *state_info){
 	        }
 	else new_as->state_info=NULL;
 
-	new_as->entry_type=state_type;
-	new_as->processed_state=state_type;
+	new_as->entry_type=entry_type;
+	new_as->processed_state=entry_type;
+	new_as->state_type=state_type;
 	new_as->time_stamp=time_stamp;
 
 	/* add the new entry to the list in memory, sorted by time */
@@ -2378,6 +2409,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 	char *temp_buffer;
 	time_t time_stamp;
 	mmapfile *thefile;
+	int state_type;
 
 	/* print something so browser doesn't time out */
 	if(mode==CREATE_HTML){
@@ -2418,15 +2450,15 @@ void scan_log_file_for_archived_state_data(char *filename){
 
 		/* program starts/restarts */
 		if(strstr(input," starting..."))
-			add_archived_state(AS_PROGRAM_START,time_stamp,"Program start");
+			add_archived_state(AS_PROGRAM_START,AS_NO_DATA,time_stamp,"Program start");
 		if(strstr(input," restarting..."))
-			add_archived_state(AS_PROGRAM_START,time_stamp,"Program restart");
+			add_archived_state(AS_PROGRAM_START,AS_NO_DATA,time_stamp,"Program restart");
 
 		/* program stops */
 		if(strstr(input," shutting down..."))
-			add_archived_state(AS_PROGRAM_END,time_stamp,"Normal program termination");
+			add_archived_state(AS_PROGRAM_END,AS_NO_DATA,time_stamp,"Normal program termination");
 		if(strstr(input,"Bailing out"))
-			add_archived_state(AS_PROGRAM_END,time_stamp,"Abnormal program termination");
+			add_archived_state(AS_PROGRAM_END,AS_NO_DATA,time_stamp,"Abnormal program termination");
 
 		if(display_type==DISPLAY_HOST_TRENDS){
 			if(strstr(input,"HOST ALERT:") || strstr(input,"INITIAL HOST STATE:") || strstr(input,"CURRENT HOST STATE:")){
@@ -2445,9 +2477,14 @@ void scan_log_file_for_archived_state_data(char *filename){
 				if(strcmp(host_name,entry_host_name))
 					continue;
 
-				/* skip soft states */
-				if(strstr(input,";SOFT;"))
-					continue;
+				/* state types */
+				if(strstr(input,";SOFT;")){
+					if(include_soft_states==FALSE)
+						continue;
+					state_type=AS_SOFT_STATE;
+				        }
+				if(strstr(input,";HARD;"))
+					state_type=AS_HARD_STATE;
 				
 				/* get the plugin output */
 				temp_buffer=my_strtok(NULL,";");
@@ -2456,13 +2493,13 @@ void scan_log_file_for_archived_state_data(char *filename){
 				plugin_output=my_strtok(NULL,"\n");
 
 				if(strstr(input,";DOWN;"))
-					add_archived_state(AS_HOST_DOWN,time_stamp,plugin_output);
+					add_archived_state(AS_HOST_DOWN,state_type,time_stamp,plugin_output);
 				else if(strstr(input,";UNREACHABLE;"))
-					add_archived_state(AS_HOST_UNREACHABLE,time_stamp,plugin_output);
+					add_archived_state(AS_HOST_UNREACHABLE,state_type,time_stamp,plugin_output);
 				else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
-					add_archived_state(AS_HOST_UP,time_stamp,plugin_output);
+					add_archived_state(AS_HOST_UP,state_type,time_stamp,plugin_output);
 				else
-					add_archived_state(AS_NO_DATA,time_stamp,plugin_output);
+					add_archived_state(AS_NO_DATA,AS_NO_DATA,time_stamp,plugin_output);
 			        }
 		        }
 		if(display_type==DISPLAY_SERVICE_TRENDS){
@@ -2490,10 +2527,15 @@ void scan_log_file_for_archived_state_data(char *filename){
 				if(strcmp(svc_description,entry_svc_description))
 					continue;
 
-				/* skip soft states */
-				if(strstr(input,";SOFT;"))
-					continue;
-
+				/* state types */
+				if(strstr(input,";SOFT;")){
+					if(include_soft_states==FALSE)
+						continue;
+					state_type=AS_SOFT_STATE;
+				        }
+				if(strstr(input,";HARD;"))
+					state_type=AS_HARD_STATE;
+				
 				/* get the plugin output */
 				temp_buffer=my_strtok(NULL,";");
 				temp_buffer=my_strtok(NULL,";");
@@ -2501,15 +2543,15 @@ void scan_log_file_for_archived_state_data(char *filename){
 				plugin_output=my_strtok(NULL,"\n");
 
 				if(strstr(input,";CRITICAL;"))
-					add_archived_state(AS_SVC_CRITICAL,time_stamp,plugin_output);
+					add_archived_state(AS_SVC_CRITICAL,state_type,time_stamp,plugin_output);
 				else if(strstr(input,";WARNING;"))
-					add_archived_state(AS_SVC_WARNING,time_stamp,plugin_output);
+					add_archived_state(AS_SVC_WARNING,state_type,time_stamp,plugin_output);
 				else if(strstr(input,";UNKNOWN;"))
-					add_archived_state(AS_SVC_UNKNOWN,time_stamp,plugin_output);
+					add_archived_state(AS_SVC_UNKNOWN,state_type,time_stamp,plugin_output);
 				else if(strstr(input,";RECOVERY;") || strstr(input,";OK;"))
-					add_archived_state(AS_SVC_OK,time_stamp,plugin_output);
+					add_archived_state(AS_SVC_OK,state_type,time_stamp,plugin_output);
 				else
-					add_archived_state(AS_NO_DATA,time_stamp,plugin_output);
+					add_archived_state(AS_NO_DATA,AS_NO_DATA,time_stamp,plugin_output);
 
 			        }
 		        }

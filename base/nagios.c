@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-15-2004
+ * Last Modified:   01-17-2005
  *
  * Description:
  *
@@ -284,7 +284,7 @@ int main(int argc, char **argv){
 
 	if(daemon_mode==FALSE){
 		printf("\nNagios %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)\n");
+		printf("Copyright (c) 1999-2005 Ethan Galstad (www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }

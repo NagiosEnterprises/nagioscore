@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2005
+ * Last Modified:   01-17-2005
  *
  * License:
  *
@@ -1128,7 +1128,11 @@ void reap_service_checks(void){
 				/* reset the current check counter, so we give the service a chance */
 				/* this helps prevent the case where service has N max check attempts, N-1 of which have already occurred. */
 				/* if we didn't do this, the next check might fail and result in a hard problem - we should really give it more time */
-				temp_service->current_attempt=1;
+				/* ADDED IF STATEMENT 01-17-05 EG */
+				/* 01-17-05: Services in hard problem states before hosts went down would sometimes come back as soft problem states after */
+				/* the hosts recovered.  This caused problems, so hopefully this will fix it */
+				if(temp_service->state_type==SOFT_STATE)
+					temp_service->current_attempt=1;
 
 #ifdef REMOVED_041403
 				/* don't send a recovery notification if the service recovers at the next check */

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-13-2003
+ * Last Modified: 05-18-2003
  *
  * Description:
  *
@@ -1038,6 +1038,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_max_check_attempts=FALSE;
 		new_host->event_handler_enabled=TRUE;
 		new_host->have_event_handler_enabled=FALSE;
+		new_host->check_freshness=FALSE;
+		new_host->have_check_freshness=FALSE;
+		new_host->freshness_threshold=0;
+		new_host->have_freshness_threshold=0;
 		new_host->flap_detection_enabled=TRUE;
 		new_host->have_flap_detection_enabled=FALSE;
 		new_host->low_flap_threshold=0.0;
@@ -2405,6 +2409,14 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"event_handler_enabled")){
 			temp_host->event_handler_enabled=(atoi(value)>0)?TRUE:FALSE;
 			temp_host->have_event_handler_enabled=TRUE;
+		        }
+		else if(!strcmp(variable,"check_freshness")){
+			temp_host->check_freshness=(atoi(value)>0)?TRUE:FALSE;
+			temp_host->have_check_freshness=TRUE;
+		        }
+		else if(!strcmp(variable,"freshness_threshold")){
+			temp_host->freshness_threshold=atoi(value);
+			temp_host->have_freshness_threshold=TRUE;
 		        }
 		else if(!strcmp(variable,"low_flap_threshold")){
 			temp_host->low_flap_threshold=strtod(value,NULL);
@@ -5443,6 +5455,14 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		this_host->event_handler_enabled=template_host->event_handler_enabled;
 		this_host->have_event_handler_enabled=TRUE;
 	        }
+	if(this_host->have_check_freshness==FALSE && template_host->have_check_freshness==TRUE){
+		this_host->check_freshness=template_host->check_freshness;
+		this_host->have_check_freshness=TRUE;
+	        }
+	if(this_host->have_freshness_threshold==FALSE && template_host->have_freshness_threshold==TRUE){
+		this_host->freshness_threshold=template_host->freshness_threshold;
+		this_host->have_freshness_threshold=TRUE;
+	        }
 	if(this_host->have_low_flap_threshold==FALSE && template_host->have_low_flap_threshold==TRUE){
 		this_host->low_flap_threshold=template_host->low_flap_threshold;
 		this_host->have_low_flap_threshold=TRUE;
@@ -7149,7 +7169,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		return OK;
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){
@@ -7669,6 +7689,8 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"low_flap_threshold\t%f\n",temp_host->low_flap_threshold);
 		fprintf(fp,"high_flap_threshold\t%f\n",temp_host->high_flap_threshold);
 		fprintf(fp,"flap_detection_enabled\t%d\n",temp_host->flap_detection_enabled);
+		fprintf(fp,"freshness_threshold\t%d\n",temp_host->freshness_threshold);
+		fprintf(fp,"check_freshness\t%d\n",temp_host->check_freshness);
 		fprintf(fp,"notification_options\t");
 		x=0;
 		if(temp_host->notify_on_down==TRUE)

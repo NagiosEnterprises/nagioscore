@@ -88,11 +88,13 @@ extern int      max_parallel_service_checks;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
-extern int      freshness_check_interval;
+extern int      service_freshness_check_interval;
+extern int      host_freshness_check_interval;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
 extern int      check_service_freshness;
+extern int      check_host_freshness;
 
 extern int      use_aggressive_host_checking;
 
@@ -993,17 +995,44 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tcheck_service_freshness set to %s\n",(check_service_freshness==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
-		else if(!strcmp(variable,"freshness_check_interval")){
+		else if(!strcmp(variable,"check_host_freshness")){
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for check_host_freshness");
+				error=TRUE;
+				break;
+			        }
+
 			strip(value);
-			freshness_check_interval=atoi(value);
-			if(freshness_check_interval<=0){
-				strcpy(error_message,"Illegal value for freshness_check_interval");
+			check_host_freshness=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tcheck_host_freshness set to %s\n",(check_host_freshness==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+		else if(!strcmp(variable,"service_freshness_check_interval") || !strcmp(variable,"freshness_check_interval")){
+			strip(value);
+			service_freshness_check_interval=atoi(value);
+			if(service_freshness_check_interval<=0){
+				strcpy(error_message,"Illegal value for service_freshness_check_interval");
 				error=TRUE;
 				break;
 			        }
 
 #ifdef DEBUG1
-			printf("\t\tfreshness_check_interval set to %d\n",freshness_check_interval);
+			printf("\t\tservice_freshness_check_interval set to %d\n",service_freshness_check_interval);
+#endif
+		        }
+		else if(!strcmp(variable,"host_freshness_check_interval")){
+			strip(value);
+			host_freshness_check_interval=atoi(value);
+			if(host_freshness_check_interval<=0){
+				strcpy(error_message,"Illegal value for host_freshness_check_interval");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\thost_freshness_check_interval set to %d\n",host_freshness_check_interval);
 #endif
 		        }
 		else if(!strcmp(variable,"aggregate_status_updates")){

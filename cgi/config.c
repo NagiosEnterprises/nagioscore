@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-25-2003
+ * Last Modified: 05-18-2003
  *
  * This CGI program will display various configuration information.
  *
@@ -42,6 +42,7 @@ extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern host *host_list;
 extern service *service_list;
 extern hostgroup *hostgroup_list;
+extern servicegroup *servicegroup_list;
 extern contactgroup *contactgroup_list;
 extern command *command_list;
 extern timeperiod *timeperiod_list;
@@ -69,6 +70,7 @@ extern serviceextinfo *serviceextinfo_list;
 #define DISPLAY_HOSTESCALATIONS          12
 #define DISPLAY_HOSTEXTINFO              13
 #define DISPLAY_SERVICEEXTINFO           14
+#define DISPLAY_SERVICEGROUPS            15
 
 void document_header(int);
 void document_footer(void);
@@ -78,6 +80,7 @@ void display_options(void);
 
 void display_hosts(void);
 void display_hostgroups(void);
+void display_servicegroups(void);
 void display_contacts(void);
 void display_contactgroups(void);
 void display_services(void);
@@ -167,6 +170,7 @@ int main(void){
 		printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
 		printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
 		printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
+		printf("<option value='servicegroups' %s>Service Groups\n",(display_type==DISPLAY_SERVICEGROUPS)?"SELECTED":"");
 		printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
 		printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");
 		printf("<option value='contacts' %s>Contacts\n",(display_type==DISPLAY_CONTACTS)?"SELECTED":"");
@@ -190,6 +194,9 @@ int main(void){
 		break;
 	case DISPLAY_HOSTGROUPS:
 		display_context_help(CONTEXTHELP_CONFIG_HOSTGROUPS);
+		break;
+	case DISPLAY_SERVICEGROUPS:
+		display_context_help(CONTEXTHELP_CONFIG_SERVICEGROUPS);
 		break;
 	case DISPLAY_CONTACTS:
 		display_context_help(CONTEXTHELP_CONFIG_CONTACTS);
@@ -242,6 +249,9 @@ int main(void){
 		break;
 	case DISPLAY_HOSTGROUPS:
 		display_hostgroups();
+		break;
+	case DISPLAY_SERVICEGROUPS:
+		display_servicegroups();
 		break;
 	case DISPLAY_CONTACTS:
 		display_contacts();
@@ -369,6 +379,8 @@ int process_cgivars(void){
 				display_type=DISPLAY_HOSTS;
 			else if(!strcmp(variables[x],"hostgroups"))
 				display_type=DISPLAY_HOSTGROUPS;
+			else if(!strcmp(variables[x],"servicegroups"))
+				display_type=DISPLAY_SERVICEGROUPS;
 			else if(!strcmp(variables[x],"contacts"))
 				display_type=DISPLAY_CONTACTS;
 			else if(!strcmp(variables[x],"contactgroups"))
@@ -436,13 +448,18 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Alias/Description</TH>");
 	printf("<TH CLASS='data'>Address</TH>");
 	printf("<TH CLASS='data'>Parent Hosts</TH>");
-	printf("<TH CLASS='data'>Default Contact Groups</TH>");
+	printf("<TH CLASS='data'>Max. Check Attempts</TH>");
+	printf("<TH CLASS='data'>Check Interval</TH>\n");
+	printf("<TH CLASS='data'>Host Check Command</TH>");
+	printf("<TH CLASS='data'>Obsess Over</TH>\n");
+	printf("<TH CLASS='data'>Enable Active Checks</TH>\n");
+	printf("<TH CLASS='data'>Enable Passive Checks</TH>\n");
+	printf("<TH CLASS='data'>Check Freshness</TH>\n");
+	printf("<TH CLASS='data'>Freshness Threshold</TH>\n");
+	printf("<TH CLASS='data'>Default Contact Groups</TH>\n");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
 	printf("<TH CLASS='data'>Notification Options</TH>");
 	printf("<TH CLASS='data'>Notification Period</TH>");
-	printf("<TH CLASS='data'>Max. Check Attempts</TH>");
-	printf("<TH CLASS='data'>Host Check Command</TH>");
-	printf("<TH CLASS='data'>Enable Checks</TH>");
 	printf("<TH CLASS='data'>Event Handler</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
@@ -485,9 +502,36 @@ void display_hosts(void){
 			printf("&nbsp;");
 		printf("</TD>\n");
 
+		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_host->max_attempts);
+
+		get_interval_time_string(temp_host->check_interval,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_host->host_check_command==NULL)
+			printf("&nbsp;");
+		else
+		printf("<a href='%s?type=commands#%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->host_check_command),temp_host->host_check_command);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->obsess_over_host==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->checks_enabled==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->accept_passive_host_checks==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->check_freshness==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_host->freshness_threshold==0)
+			printf("Auto-determined value\n");
+		else
+			printf("%d seconds\n",temp_host->freshness_threshold);
+		printf("</TD>\n");
+
 		printf("<TD CLASS='%s'>",bg_class);
 
-		/* find all the contact groups for this hostp... */
+		/* find all the contact groups for this host... */
 		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 			if(temp_contactgroupsmember!=temp_host->contact_groups)
@@ -527,19 +571,6 @@ void display_hosts(void){
 			printf("&nbsp;");
 		else
 			printf("<a href='%s?type=timeperiods#%s'>%s</a>",CONFIG_CGI,url_encode(temp_host->notification_period),temp_host->notification_period);
-		printf("</TD>\n");
-
-		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_host->max_attempts);
-
-		printf("<TD CLASS='%s'>",bg_class);
-		if(temp_host->host_check_command==NULL)
-			printf("&nbsp;");
-		else
-		printf("<a href='%s?type=commands#%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(temp_host->host_check_command),temp_host->host_check_command);
-		printf("</TD>\n");
-
-		printf("<TD CLASS='%s'>",bg_class);
-		printf("%s\n",(temp_host->event_handler_enabled==TRUE)?"Yes":"No");
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -676,6 +707,73 @@ void display_hostgroups(void){
 				printf(", ");
 			printf("<A HREF='%s?type=hosts#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_hostgroupmember->host_name),temp_hostgroupmember->host_name);
 		        }
+		printf("</TD>\n");
+
+		printf("</TR>\n");
+	        }
+
+	printf("</TABLE>\n");
+	printf("</DIV>\n");
+	printf("</P>\n");
+
+	return;
+        }
+
+
+
+void display_servicegroups(void){
+	servicegroup *temp_servicegroup;
+	servicegroupmember *temp_servicegroupmember;
+	int odd=0;
+	char *bg_class="";
+
+	/* see if user is authorized to view servicegroup information... */
+	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
+		unauthorized_message();
+		return;
+	        }
+
+	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Groups</DIV></P>\n");
+
+	printf("<P>\n");
+	printf("<DIV ALIGN=CENTER>\n");
+
+	printf("<TABLE BORDER=0 CLASS='data'>\n");
+	printf("<TR>\n");
+	printf("<TH CLASS='data'>Group Name</TH>");
+	printf("<TH CLASS='data'>Description</TH>");
+	printf("<TH CLASS='data'>Service Members</TH>");
+	printf("</TR>\n");
+
+	/* check all the servicegroups... */
+	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+
+		if(odd){
+			odd=0;
+			bg_class="dataOdd";
+		        }
+		else{
+			odd=1;
+			bg_class="dataEven";
+		        }
+
+		printf("<TR CLASS='%s'>\n",bg_class);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,temp_servicegroup->group_name);
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_servicegroup->alias);
+
+		printf("<TD CLASS='%s'>",bg_class);
+
+		/* find all the services that are members of this servicegroup... */
+		for(temp_servicegroupmember=temp_servicegroup->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+
+			printf("%s<A HREF='%s?type=hosts#%s'>%s</A> / ",(temp_servicegroupmember==temp_servicegroup->members)?"":", ",CONFIG_CGI,url_encode(temp_servicegroupmember->host_name),temp_servicegroupmember->host_name);
+
+			printf("<A HREF='%s?type=services#%s;",CONFIG_CGI,url_encode(temp_servicegroupmember->host_name));
+			printf("%s'>%s</A>\n",url_encode(temp_servicegroupmember->service_description),temp_servicegroupmember->service_description);
+		        }
+
 		printf("</TD>\n");
 
 		printf("</TR>\n");
@@ -1909,6 +2007,7 @@ void display_options(void){
 	printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
 	printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
 	printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
+	printf("<option value='servicegroups' %s>Service Groups\n",(display_type==DISPLAY_SERVICEGROUPS)?"SELECTED":"");
 	printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
 	printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");
 	printf("<option value='contacts' %s>Contacts\n",(display_type==DISPLAY_CONTACTS)?"SELECTED":"");

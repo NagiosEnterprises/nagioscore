@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-31-2003
+# Last Modified: 05-18-2003
 #
 ##############################################################################
 
@@ -627,12 +627,32 @@ check_service_freshness=1
 
 
 
-# FRESHNESS CHECK INTERVAL
+# SERVICE FRESHNESS CHECK INTERVAL
 # This setting determines how often (in seconds) Nagios will
 # check the "freshness" of service check results.  If you have
 # disabled service freshness checking, this option has no effect.
 
-freshness_check_interval=60
+service_freshness_check_interval=60
+
+
+
+# HOST FRESHNESS CHECK OPTION
+# This option determines whether or not Nagios will periodically
+# check the "freshness" of host results.  Enabling this option
+# is useful for ensuring passive checks are received in a timely
+# manner.
+# Values: 1 = enabled freshness checking, 0 = disable freshness checking
+
+check_host_freshness=0
+
+
+
+# HOST FRESHNESS CHECK INTERVAL
+# This setting determines how often (in seconds) Nagios will
+# check the "freshness" of host check results.  If you have
+# disabled host freshness checking, this option has no effect.
+
+host_freshness_check_interval=60
 
 
 

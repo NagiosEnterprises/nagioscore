@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2003
+ * Last Modified:   05-18-2003
  *
  * License:
  *
@@ -122,6 +122,8 @@ typedef struct host_struct{
 	int     stalk_on_up;
 	int     stalk_on_down;
 	int     stalk_on_unreachable;
+	int     check_freshness;
+	int     freshness_threshold;
 	int     process_performance_data;
 	int     checks_enabled;
 	int     accept_passive_host_checks;
@@ -154,6 +156,7 @@ typedef struct host_struct{
 	time_t	last_state_change;
 	time_t	last_hard_state_change;
 	int     has_been_checked;
+	int     is_being_freshened;
 	int     notified_on_down;
 	int     notified_on_unreachable;
 	int     current_notification_number;
@@ -469,7 +472,7 @@ int read_object_config_data(char *,int,int);        /* reads all external config
 contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */

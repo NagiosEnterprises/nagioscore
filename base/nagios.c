@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-29-2003
+ * Last Modified:   05-18-2003
  *
  * Description:
  *
@@ -107,13 +107,15 @@ int             service_interleave_factor_method=ILF_SMART;
 int             command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 int             service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
 int             max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
-int             freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
+int             service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
+int             host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 
 int             non_parallelized_check_running=FALSE;
 
 int             check_external_commands=DEFAULT_CHECK_EXTERNAL_COMMANDS;
 int             check_orphaned_services=DEFAULT_CHECK_ORPHANED_SERVICES;
 int             check_service_freshness=DEFAULT_CHECK_SERVICE_FRESHNESS;
+int             check_host_freshness=DEFAULT_CHECK_HOST_FRESHNESS;
 
 time_t          last_command_check=0L;
 time_t          last_log_rotation=0L;

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2003
+ * Last Modified:   05-18-2003
  *
  * License:
  *
@@ -504,7 +504,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host;
 	host *last_host;
 	host *new_host;
@@ -703,6 +703,22 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 #endif
 		return NULL;
 	        }
+	if(check_freshness<0 || check_freshness>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid check_freshness value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(freshness_threshold<0){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid freshness_threshold value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
 	if(obsess_over_host<0 || obsess_over_host>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid obsess_over_host value for host '%s'\n",name);
@@ -891,6 +907,8 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->stalk_on_down=(stalk_down>0)?TRUE:FALSE;
 	new_host->stalk_on_unreachable=(stalk_unreachable>0)?TRUE:FALSE;
 	new_host->process_performance_data=(process_perfdata>0)?TRUE:FALSE;
+	new_host->check_freshness=(check_freshness>0)?TRUE:FALSE;
+	new_host->freshness_threshold=freshness_threshold;
 	new_host->accept_passive_host_checks=(accept_passive_checks>0)?TRUE:FALSE;
 	new_host->event_handler_enabled=(event_handler_enabled>0)?TRUE:FALSE;
 	new_host->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
@@ -915,6 +933,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->last_state_change=(time_t)0;
 	new_host->last_hard_state_change=(time_t)0;
 	new_host->has_been_checked=FALSE;
+	new_host->is_being_freshened=FALSE;
 	new_host->problem_has_been_acknowledged=FALSE;
 	new_host->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 	new_host->notified_on_down=FALSE;

@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2003
+ * Last Modified: 05-18-2003
  *
  * License:
  * 
@@ -369,6 +369,7 @@
 #define CONTEXTHELP_CONFIG_COMMANDS		"L13"
 #define CONTEXTHELP_CONFIG_HOSTEXTINFO		"L14"
 #define CONTEXTHELP_CONFIG_SERVICEEXTINFO	"L15"
+#define CONTEXTHELP_CONFIG_SERVICEGROUPS        "L16"
 
 #define CONTEXTHELP_HISTOGRAM_MENU1	"M1"
 #define CONTEXTHELP_HISTOGRAM_MENU2	"M2"

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2003
+ * Last Modified:   05-18-2003
  *
  * License:
  *
@@ -117,11 +117,13 @@ extern int      service_interleave_factor_method;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
-extern int      freshness_check_interval;
+extern int      service_freshness_check_interval;
+extern int      host_freshness_check_interval;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
 extern int      check_service_freshness;
+extern int      check_host_freshness;
 
 extern int      use_aggressive_host_checking;
 
@@ -3422,11 +3424,13 @@ int reset_variables(void){
 
 	command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 	service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
-	freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
+	service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
+	host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 
 	check_external_commands=DEFAULT_CHECK_EXTERNAL_COMMANDS;
 	check_orphaned_services=DEFAULT_CHECK_ORPHANED_SERVICES;
 	check_service_freshness=DEFAULT_CHECK_SERVICE_FRESHNESS;
+	check_host_freshness=DEFAULT_CHECK_HOST_FRESHNESS;
 
 	log_rotation_method=LOG_ROTATION_NONE;
 

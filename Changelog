@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Added servicegroups
+* Added host freshness checking
 * Changed way in which initial states are logged
 * Added timeperiods and state options to escalation definitions
 * Added hostgroups directive to host definitions

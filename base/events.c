@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-18-2003
  *
  * License:
  *
@@ -47,11 +47,13 @@ extern int      service_interleave_factor_method;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
-extern int      freshness_check_interval;
+extern int      service_freshness_check_interval;
+extern int      host_freshness_check_interval;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
 extern int      check_service_freshness;
+extern int      check_host_freshness;
 
 extern int      retain_state_information;
 extern int      retention_update_interval;
@@ -518,7 +520,19 @@ void init_timing_loop(void){
 	if(check_service_freshness==TRUE){
 		new_event=malloc(sizeof(timed_event));
 		if(new_event!=NULL){
-			new_event->event_type=EVENT_FRESHNESS_CHECK;
+			new_event->event_type=EVENT_SFRESHNESS_CHECK;
+			new_event->event_data=(void *)NULL;
+			new_event->run_time=current_time;
+			new_event->recurring=TRUE;
+			schedule_event(new_event,&event_list_high);
+	                }
+	        }
+
+	/* add a host result "freshness" check event */
+	if(check_host_freshness==TRUE){
+		new_event=malloc(sizeof(timed_event));
+		if(new_event!=NULL){
+			new_event->event_type=EVENT_HFRESHNESS_CHECK;
 			new_event->event_data=(void *)NULL;
 			new_event->run_time=current_time;
 			new_event->recurring=TRUE;
@@ -751,8 +765,12 @@ void schedule_event(timed_event *event,timed_event **event_list){
 		event->run_time=event->run_time+(service_check_timeout*2);
 
 	/* if this is a service result freshness check */
-	else if(event->event_type==EVENT_FRESHNESS_CHECK)
-		event->run_time=event->run_time+freshness_check_interval;
+	else if(event->event_type==EVENT_SFRESHNESS_CHECK)
+		event->run_time=event->run_time+service_freshness_check_interval;
+
+	/* if this is a host result freshness check */
+	else if(event->event_type==EVENT_HFRESHNESS_CHECK)
+		event->run_time=event->run_time+host_freshness_check_interval;
 
 	/* if this is a state retention save event... */
 	else if(event->event_type==EVENT_RETENTION_SAVE)
@@ -1143,8 +1161,11 @@ int handle_timed_event(timed_event *event){
 	else if(event->event_type==EVENT_SCHEDULED_DOWNTIME)
 		printf("(scheduled downtime)\n");
 
-	else if(event->event_type==EVENT_FRESHNESS_CHECK)
+	else if(event->event_type==EVENT_SFRESHNESS_CHECK)
 		printf("(service result freshness check)\n");
+
+	else if(event->event_type==EVENT_HFRESHNESS_CHECK)
+		printf("(host result freshness check)\n");
 
 	else if(event->event_type==EVENT_EXPIRE_DOWNTIME)
 		printf("(expire downtime)\n");
@@ -1233,10 +1254,16 @@ int handle_timed_event(timed_event *event){
 		handle_scheduled_downtime((scheduled_downtime *)event->event_data);
 		break;
 
-	case EVENT_FRESHNESS_CHECK:
+	case EVENT_SFRESHNESS_CHECK:
 		
 		/* check service result freshness */
 		check_service_result_freshness();
+		break;
+
+	case EVENT_HFRESHNESS_CHECK:
+		
+		/* check host result freshness */
+		check_host_result_freshness();
 		break;
 
 	case EVENT_EXPIRE_DOWNTIME:

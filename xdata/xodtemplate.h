@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2003
+ * Last Modified:   05-18-2003
  *
  * License:
  *
@@ -162,6 +162,8 @@ typedef struct xodtemplate_host_struct{
 	int       obsess_over_host;
 	char      *event_handler;
 	int       event_handler_enabled;
+	int       check_freshness;
+	int       freshness_threshold;
 	float     low_flap_threshold;
 	float     high_flap_threshold;
 	int       flap_detection_enabled;
@@ -188,6 +190,8 @@ typedef struct xodtemplate_host_struct{
 	int       have_passive_checks_enabled;
 	int       have_obsess_over_host;
 	int       have_event_handler_enabled;
+	int       have_check_freshness;
+	int       have_freshness_threshold;
 	int       have_low_flap_threshold;
 	int       have_high_flap_threshold;
 	int       have_flap_detection_enabled;

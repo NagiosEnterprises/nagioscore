@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   05-18-2003
  *
  * License:
  *
@@ -69,6 +69,7 @@ extern int      obsess_over_services;
 extern int      obsess_over_hosts;
 
 extern int      check_service_freshness;
+extern int      check_host_freshness;
 
 extern time_t   program_start;
 
@@ -1777,6 +1778,78 @@ int run_scheduled_host_check(host *hst){
 
 
 
+/* check freshness of host results */
+void check_host_result_freshness(void){
+	host *temp_host;
+	time_t current_time;
+	time_t expiration_time;
+	int freshness_threshold;
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("check_host_result_freshness() start\n");
+#endif
+
+	/* bail out if we're not supposed to be checking freshness */
+	if(check_host_freshness==FALSE)
+		return;
+
+	/* get the current time */
+	time(&current_time);
+
+	/* check all hosts... */
+	move_first_host();
+	while((temp_host=get_next_host())){
+
+		/* skip hosts we shouldn't be checking for freshness */
+		if(temp_host->check_freshness==FALSE)
+			continue;
+
+		/* skip hosts that have both active and passive checks disabled */
+		if(temp_host->checks_enabled==FALSE && temp_host->accept_passive_host_checks==FALSE)
+			continue;
+
+		/* skip hosts that are already being freshened */
+		if(temp_host->is_being_freshened==TRUE)
+			continue;
+
+		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
+		if(temp_host->freshness_threshold==0)
+			freshness_threshold=(temp_host->check_interval*interval_length)+temp_host->latency+15;
+		else
+			freshness_threshold=temp_host->freshness_threshold;
+
+		/* calculate expiration time */
+		if(temp_host->has_been_checked==FALSE)
+			expiration_time=(time_t)(program_start+freshness_threshold);
+		else
+			expiration_time=(time_t)(temp_host->last_check+freshness_threshold);
+
+		/* the results for the last check of this host are stale */
+		if(expiration_time<current_time){
+
+			/* log a warning */
+			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the host.\n",temp_host->name,(current_time-expiration_time),freshness_threshold);
+			buffer[sizeof(buffer)-1]='\x0';
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+			/* set the freshen flag */
+			temp_host->is_being_freshened=TRUE;
+
+			/* schedule an immediate forced check of the host */
+			schedule_host_check(temp_host,current_time,TRUE);
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("check_host_result_freshness() end\n");
+#endif
+
+	return;
+        }
+
+
+
 /* see if the remote host is alive at all */
 int check_host(host *hst, int propagation_options, int check_options){
 	int result=HOST_UP;
@@ -1809,6 +1882,9 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 	/* set the checked flag */
 	hst->has_been_checked=TRUE;
+
+	/* clear the freshness flag */
+	hst->is_being_freshened=FALSE;
 
 	/* save the old plugin output and host state for use with state stalking routines */
 	old_state=hst->current_state;

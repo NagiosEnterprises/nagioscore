@@ -75,6 +75,9 @@ xodtemplate_hostescalation *xodtemplate_hostescalation_list=NULL;
 void *xodtemplate_current_object=NULL;
 int xodtemplate_current_object_type=XODTEMPLATE_NONE;
 
+int xodtemplate_current_config_file=0;
+char **xodtemplate_config_files;
+
 
 
 
@@ -118,6 +121,15 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 	xodtemplate_service_list=NULL;
 	xodtemplate_hostdependency_list=NULL;
 	xodtemplate_hostescalation_list=NULL;
+
+	/* allocate memory for 256 config files (increased dynamically) */
+	xodtemplate_config_files=(char **)malloc(256*sizeof(char **));
+	if(fp==NULL){
+#ifdef DEBUG1
+		printf("Error: Cannot allocate memory for config file names!\n");
+#endif
+		return ERROR;
+	        }
 
 	/* read in all lines from the main config file */
 	for(fgets(input,sizeof(input)-1,fp);!feof(fp);fgets(input,sizeof(input)-1,fp)){
@@ -209,6 +221,9 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	struct dirent *dirfile;
 	int result=OK;
 	int x;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 #ifdef DEBUG0
 	printf("xodtemplate_process_config_dir() start\n");
@@ -218,7 +233,9 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	dirp=opendir(dirname);
         if(dirp==NULL){
 #ifdef NSCORE
-		printf("Error: Could not open config directory '%s' for reading.\n",dirname);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not open config directory '%s' for reading.\n",dirname);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		result=ERROR;
 	        }
@@ -265,16 +282,36 @@ int xodtemplate_process_config_file(char *filename, int options){
 	int result=OK;
 	register int x;
 	register int y;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 #ifdef DEBUG0
 	printf("xodtemplate_process_config_file() start\n");
 #endif
 
+
+	/* save config file name */
+	xodtemplate_config_files[xodtemplate_current_config_file++]=strdup(filename);
+
+	/* reallocate memory for config files */
+	if(!(xodtemplate_current_config_file%256)){
+		xodtemplate_config_files=(char **)realloc(xodtemplate_config_files,(xodtemplate_current_config_file+256)*sizeof(char **));
+		if(xodtemplate_config_files==NULL){
+#ifdef DEBUG1
+			printf("Error: Cannot re-allocate memory for config file names!\n");
+#endif
+			return ERROR;
+		        }
+	        }
+
 	/* open the config file for reading */
 	fp=fopen(filename,"r");
 	if(fp==NULL){
 #ifdef NSCORE
-		printf("Error: Cannot open config file '%s' for reading!\n",filename);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open config file '%s' for reading!\n",filename);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return ERROR;
 	        }
@@ -319,7 +356,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* make sure an object type is specified... */
 			if(input[0]=='\x0'){
 #ifdef NSCORE
-				printf("Error: No object type specified in file '%s' on line %d.\n",filename,current_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: No object type specified in file '%s' on line %d.\n",filename,current_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 				result=ERROR;
 				break;
@@ -328,7 +367,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* check validity of object type */
 			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation")){
 #ifdef NSCORE
-				printf("Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 				result=ERROR;
 				break;
@@ -337,16 +378,20 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* we're already in an object definition... */
 			if(in_definition==TRUE){
 #ifdef NSCORE
-				printf("Error: Unexpected start of object definition in file '%s' on line %d.  Make sure you close preceding objects before starting a new one.\n",filename,current_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Unexpected start of object definition in file '%s' on line %d.  Make sure you close preceding objects before starting a new one.\n",filename,current_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif				
 				result=ERROR;
 				break;
 			        }
 
 			/* start a new definition */
-			if(xodtemplate_begin_object_definition(input,options)==ERROR){
+			if(xodtemplate_begin_object_definition(input,options,xodtemplate_current_config_file,current_line)==ERROR){
 #ifdef NSCORE
-				printf("Error: Could not add object definition in file '%s' on line %d.\n",filename,current_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add object definition in file '%s' on line %d.\n",filename,current_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 				result=ERROR;
 				break;
@@ -363,7 +408,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* close out current definition */
 			if(xodtemplate_end_object_definition(options)==ERROR){
 #ifdef NSCORE
-				printf("Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not complete object definition in file '%s' on line %d.\n",filename,current_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 				result=ERROR;
 				break;
@@ -376,7 +423,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 			/* add directive to object definition */
 			if(xodtemplate_add_object_property(input,options)==ERROR){
 #ifdef NSCORE
-				printf("Error: Could not add object property in file '%s' on line %d.\n",filename,current_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add object property in file '%s' on line %d.\n",filename,current_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 				result=ERROR;
 				break;
@@ -386,7 +435,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 		/* unexpected token or statement */
 		else{
 #ifdef NSCORE
-			printf("Error: Unexpected token or statement in file '%s' on line %d.\n",filename,current_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Unexpected token or statement in file '%s' on line %d.\n",filename,current_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 			result=ERROR;
 			break;
@@ -399,7 +450,9 @@ int xodtemplate_process_config_file(char *filename, int options){
 	/* whoops - EOF while we were in the middle of an object definition... */
 	if(in_definition==TRUE && result==OK){
 #ifdef NSCORE
-		printf("Error: Unexpected EOF in file '%s' on line %d - check for a missing closing bracket.\n",filename,current_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Unexpected EOF in file '%s' on line %d - check for a missing closing bracket.\n",filename,current_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		result=ERROR;
 	        }
@@ -474,7 +527,7 @@ void xodtemplate_strip(char *buffer){
 /******************************************************************/
 
 /* starts a new object definition */
-int xodtemplate_begin_object_definition(char *input, int options){
+int xodtemplate_begin_object_definition(char *input, int options, int config_file, int start_line){
 	int result=OK;
 	xodtemplate_timeperiod *new_timeperiod;
 	xodtemplate_command *new_command;
@@ -601,6 +654,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 			new_timeperiod->timeranges[x]=NULL;
 		new_timeperiod->has_been_resolved=FALSE;
 		new_timeperiod->register_object=TRUE;
+		new_timeperiod->_config_file=config_file;
+		new_timeperiod->_start_line=start_line;
 
 		/* add new timeperiod to head of list in memory */
 		new_timeperiod->next=xodtemplate_timeperiod_list;
@@ -628,6 +683,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_command->command_line=NULL;
 		new_command->has_been_resolved=FALSE;
 		new_command->register_object=TRUE;
+		new_command->_config_file=config_file;
+		new_command->_start_line=start_line;
 
 		/* add new command to head of list in memory */
 		new_command->next=xodtemplate_command_list;
@@ -656,6 +713,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_contactgroup->members=NULL;
 		new_contactgroup->has_been_resolved=FALSE;
 		new_contactgroup->register_object=TRUE;
+		new_contactgroup->_config_file=config_file;
+		new_contactgroup->_start_line=start_line;
 
 		/* add new contactgroup to head of list in memory */
 		new_contactgroup->next=xodtemplate_contactgroup_list;
@@ -685,6 +744,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_hostgroup->contact_groups=NULL;
 		new_hostgroup->has_been_resolved=FALSE;
 		new_hostgroup->register_object=TRUE;
+		new_hostgroup->_config_file=config_file;
+		new_hostgroup->_start_line=start_line;
 
 		/* add new hostgroup to head of list in memory */
 		new_hostgroup->next=xodtemplate_hostgroup_list;
@@ -723,6 +784,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_servicedependency->have_notification_dependency_options=FALSE;
 		new_servicedependency->has_been_resolved=FALSE;
 		new_servicedependency->register_object=TRUE;
+		new_servicedependency->_config_file=config_file;
+		new_servicedependency->_start_line=start_line;
 
 		/* add new servicedependency to head of list in memory */
 		new_servicedependency->next=xodtemplate_servicedependency_list;
@@ -757,6 +820,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_serviceescalation->have_notification_interval=FALSE;
 		new_serviceescalation->has_been_resolved=FALSE;
 		new_serviceescalation->register_object=TRUE;
+		new_serviceescalation->_config_file=config_file;
+		new_serviceescalation->_start_line=start_line;
 
 		/* add new serviceescalation to head of list in memory */
 		new_serviceescalation->next=xodtemplate_serviceescalation_list;
@@ -789,6 +854,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_hostgroupescalation->have_notification_interval=FALSE;
 		new_hostgroupescalation->has_been_resolved=FALSE;
 		new_hostgroupescalation->register_object=TRUE;
+		new_hostgroupescalation->_config_file=config_file;
+		new_hostgroupescalation->_start_line=start_line;
 
 		/* add new hostgroupescalation to head of list in memory */
 		new_hostgroupescalation->next=xodtemplate_hostgroupescalation_list;
@@ -830,6 +897,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_contact->have_service_notification_options=FALSE;
 		new_contact->has_been_resolved=FALSE;
 		new_contact->register_object=TRUE;
+		new_contact->_config_file=config_file;
+		new_contact->_start_line=start_line;
 
 		/* add new contact to head of list in memory */
 		new_contact->next=xodtemplate_contact_list;
@@ -895,6 +964,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_host->have_retain_nonstatus_information=FALSE;
 		new_host->has_been_resolved=FALSE;
 		new_host->register_object=TRUE;
+		new_host->_config_file=config_file;
+		new_host->_start_line=start_line;
 
 		/* add new host to head of list in memory */
 		new_host->next=xodtemplate_host_list;
@@ -979,6 +1050,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_service->have_retain_nonstatus_information=FALSE;
 		new_service->has_been_resolved=FALSE;
 		new_service->register_object=TRUE;
+		new_service->_config_file=config_file;
+		new_service->_start_line=start_line;
 
 		/* add new service to head of list in memory */
 		new_service->next=xodtemplate_service_list;
@@ -1009,6 +1082,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_hostdependency->have_notification_dependency_options=FALSE;
 		new_hostdependency->has_been_resolved=FALSE;
 		new_hostdependency->register_object=TRUE;
+		new_hostdependency->_config_file=config_file;
+		new_hostdependency->_start_line=start_line;
 
 		/* add new hostdependency to head of list in memory */
 		new_hostdependency->next=xodtemplate_hostdependency_list;
@@ -1042,6 +1117,8 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		new_hostescalation->have_notification_interval=FALSE;
 		new_hostescalation->has_been_resolved=FALSE;
 		new_hostescalation->register_object=TRUE;
+		new_hostescalation->_config_file=config_file;
+		new_hostescalation->_start_line=start_line;
 
 		/* add new hostescalation to head of list in memory */
 		new_hostescalation->next=xodtemplate_hostescalation_list;
@@ -2626,7 +2703,7 @@ int xodtemplate_duplicate_objects(void){
 			host_names=(char *)malloc(strlen(temp_service->host_name)+1);
 			if(host_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for host name list in service '%s' ('%s')\n",temp_service->name,temp_service->service_description);
+				printf("Error: Could not allocate memory for host name list in service\n");
 #endif
 				return ERROR;
 			        }
@@ -2670,7 +2747,7 @@ int xodtemplate_duplicate_objects(void){
 		hostgroup_names=(char *)malloc(strlen(temp_service->hostgroup_name)+1);
 		if(hostgroup_names==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for hostgroup name list in service '%s' ('%s')\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for hostgroup name list in service\n");
 #endif
 			return ERROR;
 		        }
@@ -2684,7 +2761,7 @@ int xodtemplate_duplicate_objects(void){
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in service '%s' ('%s')\n",temp_ptr,temp_service->name,temp_service->service_description);
+				printf("Error: Could not find hostgroup '%s' specified in service\n");
 #endif
 				return ERROR;
 			        }
@@ -2692,7 +2769,7 @@ int xodtemplate_duplicate_objects(void){
 			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
 			if(host_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in service '%s' ('%s')\n",temp_service->name,temp_service->service_description);
+				printf("Error: Could not allocate memory for hostgroup name list in service\n");
 #endif
 				return ERROR;
 		                }
@@ -2795,7 +2872,7 @@ int xodtemplate_duplicate_objects(void){
 			host_names=(char *)malloc(strlen(temp_hostescalation->host_name)+1);
 			if(host_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for host name list in hostescalation '%s' ('%s')\n",temp_hostescalation->name,temp_hostescalation->host_name);
+				printf("Error: Could not allocate memory for host name list in host escalation\n");
 #endif
 				return ERROR;
 			        }
@@ -2839,7 +2916,7 @@ int xodtemplate_duplicate_objects(void){
 		hostgroup_names=(char *)malloc(strlen(temp_hostescalation->hostgroup_name)+1);
 		if(hostgroup_names==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for hostgroup name list in hostescalation '%s'\n",temp_hostescalation->name);
+			printf("Error: Could not allocate memory for hostgroup name list in host escalation\n");
 #endif
 			return ERROR;
 		        }
@@ -2853,7 +2930,7 @@ int xodtemplate_duplicate_objects(void){
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in hostescalation '%s'\n",temp_ptr,temp_hostescalation->name);
+				printf("Error: Could not find hostgroup '%s' specified in host escalation (config file '%s', line %d)\n",temp_ptr,xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -2861,7 +2938,7 @@ int xodtemplate_duplicate_objects(void){
 			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
 			if(host_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in hostescalation '%s'\n",temp_hostescalation->name);
+				printf("Error: Could not allocate memory for hostgroup name list in host escalation\n");
 #endif
 				return ERROR;
 		                }
@@ -2964,7 +3041,7 @@ int xodtemplate_duplicate_objects(void){
 			host_names=(char *)malloc(strlen(temp_serviceescalation->host_name)+1);
 			if(host_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for host name list in serviceescalation '%s' ('%s')\n",temp_serviceescalation->name,temp_serviceescalation->host_name);
+				printf("Error: Could not allocate memory for host name list in service escalation\n");
 #endif
 				return ERROR;
 			        }
@@ -3008,7 +3085,7 @@ int xodtemplate_duplicate_objects(void){
 		hostgroup_names=(char *)malloc(strlen(temp_serviceescalation->hostgroup_name)+1);
 		if(hostgroup_names==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for hostgroup name list in serviceescalation '%s' ('%s')\n",temp_serviceescalation->name,temp_serviceescalation->service_description);
+			printf("Error: Could not allocate memory for hostgroup name list in service escalation\n");
 #endif
 			return ERROR;
 		        }
@@ -3022,7 +3099,7 @@ int xodtemplate_duplicate_objects(void){
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in serviceescalation '%s' ('%s')\n",temp_ptr,temp_serviceescalation->name,temp_serviceescalation->service_description);
+				printf("Error: Could not find hostgroup '%s' specified in service escalation (config file '%s', line %d)\n",temp_ptr,xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -3030,7 +3107,7 @@ int xodtemplate_duplicate_objects(void){
 			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
 			if(host_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in serviceescalation '%s' ('%s')\n",temp_serviceescalation->name,temp_serviceescalation->service_description);
+				printf("Error: Could not allocate memory for hostgroup name list in service escalation\n");
 #endif
 				return ERROR;
 		                }
@@ -3127,6 +3204,10 @@ int xodtemplate_duplicate_objects(void){
 		if(temp_serviceescalation->service_description==NULL)
 			continue;
 
+		/* skip serviceescalations with NULL host names */
+		if(temp_serviceescalation->host_name==NULL)
+			continue;
+
 		/* this serviceescalation definition has a wildcard description - duplicate it to all services on the host */
 		if(!strcmp(temp_serviceescalation->service_description,"*")){
 			
@@ -3176,7 +3257,7 @@ int xodtemplate_duplicate_objects(void){
 			hostgroup_names=(char *)malloc(strlen(temp_hostgroupescalation->hostgroup_name)+1);
 			if(hostgroup_names==NULL){
 #ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in hostgroupescalation '%s'\n",temp_hostgroupescalation->name);
+				printf("Error: Could not allocate memory for hostgroup name list in hostgroup escalation\n");
 #endif
 				return ERROR;
 			        }
@@ -3230,7 +3311,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service=(xodtemplate_service *)malloc(sizeof(xodtemplate_service));
 	if(new_service==NULL){
 #ifdef NSCORE
-		printf("Error: Could not allocate memory for new duplicate service definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+		printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 		return ERROR;
 	        }
@@ -3304,13 +3385,15 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 
 	new_service->has_been_resolved=temp_service->has_been_resolved;
 	new_service->register_object=temp_service->register_object;
+	new_service->_config_file=temp_service->_config_file;
+	new_service->_start_line=temp_service->_start_line;
 
 	/* allocate memory for and copy string members of service definition (host name provided, DO NOT duplicate hostgroup member!)*/
 	if(temp_service->host_name!=NULL){
 		new_service->host_name=(char *)malloc(strlen(host_name)+1);
 		if(new_service->host_name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service);
 			return ERROR;
@@ -3321,7 +3404,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->template=(char *)malloc(strlen(temp_service->template)+1);
 		if(new_service->template==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service);
@@ -3333,7 +3416,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->name=(char *)malloc(strlen(temp_service->name)+1);
 		if(new_service->name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3346,7 +3429,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->service_description=(char *)malloc(strlen(temp_service->service_description)+1);
 		if(new_service->service_description==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3360,7 +3443,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->check_command=(char *)malloc(strlen(temp_service->check_command)+1);
 		if(new_service->check_command==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3375,7 +3458,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->check_period=(char *)malloc(strlen(temp_service->check_period)+1);
 		if(new_service->check_period==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3391,7 +3474,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->event_handler=(char *)malloc(strlen(temp_service->event_handler)+1);
 		if(new_service->event_handler==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3408,7 +3491,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->notification_period=(char *)malloc(strlen(temp_service->notification_period)+1);
 		if(new_service->notification_period==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3426,7 +3509,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->contact_groups=(char *)malloc(strlen(temp_service->contact_groups)+1);
 		if(new_service->contact_groups==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3445,7 +3528,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		new_service->failure_prediction_options=(char *)malloc(strlen(temp_service->failure_prediction_options)+1);
 		if(new_service->failure_prediction_options==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s' ('%s').\n",temp_service->name,temp_service->service_description);
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
 			free(new_service->host_name);
 			free(new_service->template);
@@ -3488,7 +3571,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation=(xodtemplate_hostescalation *)malloc(sizeof(xodtemplate_hostescalation));
 	if(new_hostescalation==NULL){
 #ifdef NSCORE
-		printf("Error: Could not allocate memory for new duplicate host escalation definition of '%s'.\n",temp_hostescalation->host_name);
+		printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
 		return ERROR;
 	        }
@@ -3502,6 +3585,8 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 
 	new_hostescalation->has_been_resolved=temp_hostescalation->has_been_resolved;
 	new_hostescalation->register_object=temp_hostescalation->register_object;
+	new_hostescalation->_config_file=temp_hostescalation->_config_file;
+	new_hostescalation->_start_line=temp_hostescalation->_start_line;
 
 	new_hostescalation->first_notification=temp_hostescalation->first_notification;
 	new_hostescalation->last_notification=temp_hostescalation->last_notification;
@@ -3516,7 +3601,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		new_hostescalation->host_name=(char *)malloc(strlen(host_name)+1);
 		if(new_hostescalation->host_name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
 			free(new_hostescalation);
 			return ERROR;
@@ -3527,7 +3612,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		new_hostescalation->template=(char *)malloc(strlen(temp_hostescalation->template)+1);
 		if(new_hostescalation->template==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
 			free(new_hostescalation->host_name);
 			free(new_hostescalation);
@@ -3539,7 +3624,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		new_hostescalation->name=(char *)malloc(strlen(temp_hostescalation->name)+1);
 		if(new_hostescalation->name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
 			free(new_hostescalation->host_name);
 			free(new_hostescalation->template);
@@ -3552,7 +3637,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		new_hostescalation->contact_groups=(char *)malloc(strlen(temp_hostescalation->contact_groups)+1);
 		if(new_hostescalation->contact_groups==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
 			free(new_hostescalation->host_name);
 			free(new_hostescalation->template);
@@ -3589,7 +3674,7 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 	new_hostgroupescalation=(xodtemplate_hostgroupescalation *)malloc(sizeof(xodtemplate_hostgroupescalation));
 	if(new_hostgroupescalation==NULL){
 #ifdef NSCORE
-		printf("Error: Could not allocate memory for new duplicate host escalation definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+		printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
 #endif
 		return ERROR;
 	        }
@@ -3602,6 +3687,8 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 
 	new_hostgroupescalation->has_been_resolved=temp_hostgroupescalation->has_been_resolved;
 	new_hostgroupescalation->register_object=temp_hostgroupescalation->register_object;
+	new_hostgroupescalation->_config_file=temp_hostgroupescalation->_config_file;
+	new_hostgroupescalation->_start_line=temp_hostgroupescalation->_start_line;
 
 	new_hostgroupescalation->first_notification=temp_hostgroupescalation->first_notification;
 	new_hostgroupescalation->last_notification=temp_hostgroupescalation->last_notification;
@@ -3616,7 +3703,7 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 		new_hostgroupescalation->hostgroup_name=(char *)malloc(strlen(hostgroup_name)+1);
 		if(new_hostgroupescalation->hostgroup_name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
 #endif
 			free(new_hostgroupescalation);
 			return ERROR;
@@ -3627,7 +3714,7 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 		new_hostgroupescalation->template=(char *)malloc(strlen(temp_hostgroupescalation->template)+1);
 		if(new_hostgroupescalation->template==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
 #endif
 			free(new_hostgroupescalation->hostgroup_name);
 			free(new_hostgroupescalation);
@@ -3639,7 +3726,7 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 		new_hostgroupescalation->name=(char *)malloc(strlen(temp_hostgroupescalation->name)+1);
 		if(new_hostgroupescalation->name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
 #endif
 			free(new_hostgroupescalation->hostgroup_name);
 			free(new_hostgroupescalation->template);
@@ -3652,7 +3739,7 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 		new_hostgroupescalation->contact_groups=(char *)malloc(strlen(temp_hostgroupescalation->contact_groups)+1);
 		if(new_hostgroupescalation->contact_groups==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_hostgroupescalation->hostgroup_name);
+			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
 #endif
 			free(new_hostgroupescalation->hostgroup_name);
 			free(new_hostgroupescalation->template);
@@ -3688,7 +3775,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	new_serviceescalation=(xodtemplate_serviceescalation *)malloc(sizeof(xodtemplate_serviceescalation));
 	if(new_serviceescalation==NULL){
 #ifdef NSCORE
-		printf("Error: Could not allocate memory for new duplicate service escalation definition of '%s' on '%s'.\n",temp_serviceescalation->service_description,temp_serviceescalation->host_name);
+		printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 		return ERROR;
 	        }
@@ -3702,6 +3789,8 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 
 	new_serviceescalation->has_been_resolved=temp_serviceescalation->has_been_resolved;
 	new_serviceescalation->register_object=temp_serviceescalation->register_object;
+	new_serviceescalation->_config_file=temp_serviceescalation->_config_file;
+	new_serviceescalation->_start_line=temp_serviceescalation->_start_line;
 
 	new_serviceescalation->first_notification=temp_serviceescalation->first_notification;
 	new_serviceescalation->last_notification=temp_serviceescalation->last_notification;
@@ -3716,7 +3805,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->host_name=(char *)malloc(strlen(host_name)+1);
 		if(new_serviceescalation->host_name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation);
 			return ERROR;
@@ -3727,7 +3816,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->host_name=(char *)malloc(strlen(temp_serviceescalation->host_name)+1);
 		if(new_serviceescalation->host_name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation);
 			return ERROR;
@@ -3738,7 +3827,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->template=(char *)malloc(strlen(temp_serviceescalation->template)+1);
 		if(new_serviceescalation->template==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation->host_name);
 			free(new_serviceescalation);
@@ -3750,7 +3839,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->name=(char *)malloc(strlen(temp_serviceescalation->name)+1);
 		if(new_serviceescalation->name==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation->host_name);
 			free(new_serviceescalation->template);
@@ -3763,7 +3852,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->service_description=(char *)malloc(strlen(svc_description)+1);
 		if(new_serviceescalation->service_description==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation->host_name);
 			free(new_serviceescalation->template);
@@ -3777,7 +3866,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->service_description=(char *)malloc(strlen(temp_serviceescalation->service_description)+1);
 		if(new_serviceescalation->service_description==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation->host_name);
 			free(new_serviceescalation->template);
@@ -3791,7 +3880,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		new_serviceescalation->contact_groups=(char *)malloc(strlen(temp_serviceescalation->contact_groups)+1);
 		if(new_serviceescalation->contact_groups==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
 			free(new_serviceescalation->service_description);
 			free(new_serviceescalation->host_name);
@@ -5275,7 +5364,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	/* return with an error if we couldn't add the timeperiod */
 	if(new_timeperiod==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add timeperiod '%s'.\n",this_timeperiod->timeperiod_name);
+		printf("Error: Could not register timeperiod (config file '%s', line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5293,7 +5382,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			range_buffer=my_strsep(&range_ptr,"-");
 			if(range_buffer==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d (No start time delimiter).\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not add timerange for day %d to timeperiod (No start time delimiter) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5302,7 +5391,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d (No start time hours).\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not timerange for day %d to timeperiod (No start time hours) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5310,7 +5399,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d (No start time minutes).\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not timerange for day %d to timeperiod (No start time minutes) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5322,7 +5411,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			range_buffer=my_strsep(&range_ptr,"-");
 			if(range_buffer==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d (No end time delimiter).\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not add timerange for day %d to timeperiod (No end time delimiter) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5331,7 +5420,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d (No end time hours).\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not timerange for day %d to timeperiod (No end time hours) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5340,7 +5429,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d (No end time minutes).\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not add timerange for day %d to timeperiod (No end time minutes) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5353,7 +5442,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			new_timerange=add_timerange_to_timeperiod(new_timeperiod,day,range_start_time,range_end_time);
 			if(new_timerange==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add timeperiod '%s' timerange for day %d.\n",this_timeperiod->timeperiod_name,day);
+				printf("Error: Could not add timerange for day %d to timeperiod (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5388,7 +5477,7 @@ int xodtemplate_register_command(xodtemplate_command *this_command){
 	/* return with an error if we couldn't add the command */
 	if(new_command==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add command '%s'\n",this_command->command_name);
+		printf("Error: Could not register command (config file '%s', line %d)\n",xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5422,7 +5511,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	/* return with an error if we couldn't add the contactgroup */
 	if(new_contactgroup==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add contactgroup '%s'.\n",this_contactgroup->contactgroup_name);
+		printf("Error: Could not register contactgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5430,7 +5519,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	/* add all members to the contact group */
 	if(this_contactgroup->members==NULL){
 #ifdef NSCORE
-		printf("Error: Contactgroup '%s' has no members.\n",this_contactgroup->contactgroup_name);
+		printf("Error: Contactgroup has no members (config file '%s', line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5438,7 +5527,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		new_contactgroupmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
 		if(new_contactgroupmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add contact '%s' to contactgroup '%s'\n",contact_name,this_contactgroup->contactgroup_name);
+			printf("Error: Could not add contact '%s' to contactgroup (config file '%s', line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5475,7 +5564,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	/* return with an error if we couldn't add the hostgroup */
 	if(new_hostgroup==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add hostgroup '%s'.\n",this_hostgroup->hostgroup_name);
+		printf("Error: Could not register hostgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5483,7 +5572,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	/* add all members to the host group */
 	if(this_hostgroup->members==NULL){
 #ifdef NSCORE
-		printf("Error: Hostgroup '%s' has no members.\n",this_hostgroup->hostgroup_name);
+		printf("Error: Hostgroup has no members (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5491,7 +5580,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,host_name);
 		if(new_hostgroupmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add host '%s' to hostgroup '%s'.\n",host_name,this_hostgroup->hostgroup_name);
+			printf("Error: Could not add host '%s' to hostgroup (config file '%s', line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5504,7 +5593,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 			new_contactgroupsmember=add_contactgroup_to_hostgroup(new_hostgroup,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add contactgroup '%s' to hostgroup '%s'.\n",contact_group,this_hostgroup->hostgroup_name);
+				printf("Error: Could not add contactgroup '%s' to hostgroup (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 #endif
 				return ERROR;
 			        }
@@ -5540,7 +5629,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add service execution dependency for service '%s' on host '%s'.\n",this_servicedependency->dependent_service_description,this_servicedependency->dependent_host_name);
+			printf("Error: Could not register service execution dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5552,7 +5641,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add service notification dependency for service '%s' on host '%s'.\n",this_servicedependency->dependent_service_description,this_servicedependency->dependent_host_name);
+			printf("Error: Could not register service notification dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5587,7 +5676,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* return with an error if we couldn't add the serviceescalation */
 	if(new_serviceescalation==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add notification escalation for service '%s' on host '%s'.\n",this_serviceescalation->service_description,this_serviceescalation->host_name);
+		printf("Error: Could not register service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5595,7 +5684,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* add the contact groups */
 	if(this_serviceescalation->contact_groups==NULL){
 #ifdef NSCORE
-		printf("Error: Escalation entry for service '%s' on host '%s' has no contact groups.\n",this_serviceescalation->service_description,this_serviceescalation->host_name);
+		printf("Error: Service escalation has no contact groups (config file '%s', line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5603,7 +5692,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 		new_contactgroupsmember=add_contactgroup_to_serviceescalation(new_serviceescalation,contact_group);
 		if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add contactgroup '%s' to escalation for service '%s' on host '%s'.\n",contact_group,this_serviceescalation->service_description,this_serviceescalation->host_name);
+			printf("Error: Could not add contactgroup '%s' to service escalation (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5637,7 +5726,7 @@ int xodtemplate_register_hostgroupescalation(xodtemplate_hostgroupescalation *th
 	/* return with an error if we couldn't add the hostgroupescalation */
 	if(new_hostgroupescalation==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add notification escalation for hostgroup '%s'.\n",this_hostgroupescalation->hostgroup_name);
+		printf("Error: Could not register hostgroup escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5645,7 +5734,7 @@ int xodtemplate_register_hostgroupescalation(xodtemplate_hostgroupescalation *th
 	/* add the contact groups */
 	if(this_hostgroupescalation->contact_groups==NULL){
 #ifdef NSCORE
-		printf("Error: Escalation entry for hostgroup '%s' has no contact groups.\n",this_hostgroupescalation->hostgroup_name);
+		printf("Error: Hostgroup escalation has not contact groups (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5653,7 +5742,7 @@ int xodtemplate_register_hostgroupescalation(xodtemplate_hostgroupescalation *th
 		new_contactgroupsmember=add_contactgroup_to_hostgroupescalation(new_hostgroupescalation,contact_group);
 		if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add contactgroup '%s' to escalation for hostgroup '%s'.\n",this_hostgroupescalation->hostgroup_name,contact_group);
+			printf("Error: Could not add contactgroup '%s' to hostgroup escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -5688,30 +5777,36 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 	/* return with an error if we couldn't add the contact */
 	if(new_contact==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add contact '%s'.\n",this_contact->contact_name);
+		printf("Error: Could not register contact (config file '%s', line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
 		return ERROR;
 	        }
 
 	/* add all the host notification commands */
-	for(command_name=strtok(this_contact->host_notification_commands,", ");command_name!=NULL;command_name=strtok(NULL,", ")){
-		new_commandsmember=add_host_notification_command_to_contact(new_contact,command_name);
-		if(new_commandsmember==NULL){
+	if(this_contact->host_notification_commands!=NULL){
+
+		for(command_name=strtok(this_contact->host_notification_commands,", ");command_name!=NULL;command_name=strtok(NULL,", ")){
+			new_commandsmember=add_host_notification_command_to_contact(new_contact,command_name);
+			if(new_commandsmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add host notification command '%s' to contact '%s'.\n",command_name,this_contact->contact_name);
+				printf("Error: Could not add host notification command '%s' to contact (config file '%s', line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
-			return ERROR;
+				return ERROR;
+			        }
 		        }
 	        }
 
 	/* add all the service notification commands */
-	for(command_name=strtok(this_contact->service_notification_commands,", ");command_name!=NULL;command_name=strtok(NULL,", ")){
-		new_commandsmember=add_service_notification_command_to_contact(new_contact,command_name);
-		if(new_commandsmember==NULL){
+	if(this_contact->service_notification_commands!=NULL){
+
+		for(command_name=strtok(this_contact->service_notification_commands,", ");command_name!=NULL;command_name=strtok(NULL,", ")){
+			new_commandsmember=add_service_notification_command_to_contact(new_contact,command_name);
+			if(new_commandsmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add service notification command '%s' to contact '%s'.\n",command_name,this_contact->contact_name);
+				printf("Error: Could not add service notification command '%s' to contact (config file '%s', line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 #endif
-			return ERROR;
+				return ERROR;
+			        }
 		        }
 	        }
 
@@ -5744,19 +5839,22 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add host '%s'.\n",this_host->host_name);
+		printf("Error: Could not register host (config file '%s', line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
 		return ERROR;
 	        }
 
 	/* add the parent hosts */
-	for(parent_host=strtok(this_host->parents,", ");parent_host!=NULL;parent_host=strtok(NULL,", ")){
-		new_hostsmember=add_parent_host_to_host(new_host,parent_host);
-		if(new_hostsmember==NULL){
+	if(this_host->parents!=NULL){
+
+		for(parent_host=strtok(this_host->parents,", ");parent_host!=NULL;parent_host=strtok(NULL,", ")){
+			new_hostsmember=add_parent_host_to_host(new_host,parent_host);
+			if(new_hostsmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add parent host '%s' to host '%s'.\n",parent_host,this_host->host_name);
+				printf("Error: Could not add parent host '%s' to host (config file '%s', line %d)\n",parent_host,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 #endif
-			return ERROR;
+				return ERROR;
+			        }
 		        }
 	        }
 
@@ -5790,7 +5888,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add service '%s' on host '%s'.\n",this_service->service_description,this_service->host_name);
+		printf("Error: Could not register service (config file '%s', line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5806,7 +5904,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 			/* stop adding contact groups if we ran into an error */
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				printf("Error: Could not add contact group '%s' to service '%s' on host '%s'.\n",contactgroup_name,this_service->service_description,this_service->host_name);
+				printf("Error: Could not add contact group '%s' to service (config file '%s', line %d)\n",contactgroup_name,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 #endif
 				return ERROR;
 		                }
@@ -5843,7 +5941,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add host notification dependency for host '%s'.\n",this_hostdependency->dependent_host_name);
+			printf("Error: Could not register host notification dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 #endif
 			return ERROR;
                         }
@@ -5878,7 +5976,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	/* return with an error if we couldn't add the hostescalation */
 	if(new_hostescalation==NULL){
 #ifdef NSCORE
-		printf("Error: Could not add notification escalation for host '%s'.\n",this_hostescalation->host_name);
+		printf("Error: Could not register host escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5886,7 +5984,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	/* add the contact groups */
 	if(this_hostescalation->contact_groups==NULL){
 #ifdef NSCORE
-		printf("Error: Escalation entry for host '%s' has no contact groups.\n",this_hostescalation->host_name);
+		printf("Error: Host escalation has no contact groups (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 		return ERROR;
 	        }
@@ -5894,7 +5992,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 		new_contactgroupsmember=add_contactgroup_to_hostescalation(new_hostescalation,contact_group);
 		if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-			printf("Error: Could not add contactgroup '%s' to escalation for host '%s'.\n",contact_group,this_hostescalation->host_name);
+			printf("Error: Could not add contactgroup '%s' to host escalation (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 #endif
 			return ERROR;
 		        }
@@ -6095,10 +6193,26 @@ int xodtemplate_free_memory(void){
 		free(this_hostescalation);
 	        }
 
+	/* free memory for the config file names */
+	for(x=0;x<xodtemplate_current_config_file;x++)
+		free(xodtemplate_config_files[x]);
+	free(xodtemplate_config_files);
+	xodtemplate_current_config_file=0;
+
 
 #ifdef DEBUG0
 	printf("xodtemplate_free_memory() end\n");
 #endif
 
 	return OK;
+        }
+
+
+/* returns the name of a numbered config file */
+char *xodtemplate_config_file_name(int config_file){
+
+	if(config_file<=xodtemplate_current_config_file)
+		return xodtemplate_config_files[config_file-1];
+
+	return "?";
         }

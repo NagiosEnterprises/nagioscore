@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-21-2002
+ * Last Modified:   05-23-2002
  *
  * License:
  *
@@ -56,6 +56,8 @@
 typedef struct xodtemplate_timeperiod_struct{
 	char       *template;
 	char       *name;
+	int        _config_file;
+	int        _start_line;
 
 	char       *timeperiod_name;
 	char       *alias;
@@ -71,6 +73,8 @@ typedef struct xodtemplate_timeperiod_struct{
 typedef struct xodtemplate_command_struct{
 	char       *template;
 	char       *name;
+	int        _config_file;
+	int        _start_line;
 
 	char       *command_name;
 	char       *command_line;
@@ -85,6 +89,8 @@ typedef struct xodtemplate_command_struct{
 typedef struct xodtemplate_contact_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *contact_name;
 	char      *alias;
@@ -115,6 +121,8 @@ typedef struct xodtemplate_contact_struct{
 typedef struct xodtemplate_contactgroup_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *contactgroup_name;
 	char      *alias;
@@ -130,6 +138,8 @@ typedef struct xodtemplate_contactgroup_struct{
 typedef struct xodtemplate_host_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *host_name;
 	char      *alias;
@@ -183,6 +193,8 @@ typedef struct xodtemplate_host_struct{
 typedef struct xodtemplate_hostgroup_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *hostgroup_name;
 	char      *alias;
@@ -199,6 +211,8 @@ typedef struct xodtemplate_hostgroup_struct{
 typedef struct xodtemplate_hostgroupescalation_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *hostgroup_name;
 	int       first_notification;
@@ -220,6 +234,8 @@ typedef struct xodtemplate_hostgroupescalation_struct{
 typedef struct xodtemplate_service_struct{
         char       *template;
 	char       *name;
+	int        _config_file;
+	int        _start_line;
 
 	char       *hostgroup_name;
 	char       *host_name;
@@ -293,6 +309,8 @@ typedef struct xodtemplate_service_struct{
 typedef struct xodtemplate_servicedependency_struct{
 	char       *template;
         char       *name;
+	int        _config_file;
+	int        _start_line;
 
 	char       *host_name;
 	char       *service_description;
@@ -320,6 +338,8 @@ typedef struct xodtemplate_servicedependency_struct{
 typedef struct xodtemplate_serviceescalation_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *hostgroup_name;
 	char      *host_name;
@@ -343,6 +363,8 @@ typedef struct xodtemplate_serviceescalation_struct{
 typedef struct xodtemplate_hostdependency_struct{
 	char      *template;
         char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *host_name;
 	char      *dependent_host_name;
@@ -362,6 +384,8 @@ typedef struct xodtemplate_hostdependency_struct{
 typedef struct xodtemplate_hostescalation_struct{
 	char      *template;
 	char      *name;
+	int        _config_file;
+	int        _start_line;
 
 	char      *hostgroup_name;
 	char      *host_name;
@@ -386,10 +410,11 @@ typedef struct xodtemplate_hostescalation_struct{
 int xodtemplate_read_config_data(char *,int);               /* top-level routine processes all config files */
 int xodtemplate_process_config_file(char *,int);            /* process data in a specific config file */
 int xodtemplate_process_config_dir(char *,int);             /* process all files in a specific config directory */
+char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
 void xodtemplate_strip(char *);
 
-int xodtemplate_begin_object_definition(char *,int);
+int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);
 int xodtemplate_end_object_definition(int);
 

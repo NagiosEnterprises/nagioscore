@@ -3,7 +3,7 @@
  * XODDEFAULT.C - Default object configuration data input routines
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-19-2002
+ * Last Modified:   05-23-2002
  *
  * License:
  *
@@ -280,6 +280,9 @@ int xoddefault_process_config_dir(char *dirname, int options){
 	struct dirent *dirfile;
 	int result=OK;
 	int x;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
 
 #ifdef DEBUG0
 	printf("xoddefault_process_config_dir() start\n");
@@ -289,7 +292,9 @@ int xoddefault_process_config_dir(char *dirname, int options){
 	dirp=opendir(dirname);
         if(dirp==NULL){
 #ifdef NSCORE
-		printf("Error: Could not open config directory '%s' for reading.\n",dirname);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not open config directory '%s' for reading.\n",dirname);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		result=ERROR;
 	        }
@@ -349,7 +354,9 @@ int xoddefault_process_config_file(char *filename, int options){
 	fp=fopen(filename,"r");
 	if(fp==NULL){
 #ifdef NSCORE
-		printf("Error: Cannot open host configuration file '%s' for reading!\n",filename);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open host configuration file '%s' for reading!\n",filename);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return ERROR;
 	        }

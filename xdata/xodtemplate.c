@@ -2730,73 +2730,139 @@ int xodtemplate_add_object_property(char *input, int options){
 
 		if(!strcmp(variable,"use")){
 			temp_hostextinfo->template=strdup(value);
-			if(temp_hostextinfo->template==NULL)
+			if(temp_hostextinfo->template==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info template.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"name")){
 			temp_hostextinfo->name=strdup(value);
-			if(temp_hostextinfo->name==NULL)
+			if(temp_hostextinfo->name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info name.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"host_name")){
 			temp_hostextinfo->host_name=(char *)malloc(strlen(value)+1);
-			if(temp_hostextinfo->host_name==NULL)
+			if(temp_hostextinfo->host_name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info host_name.\n");
+#endif
 				return ERROR;
+			        }
 			strcpy(temp_hostextinfo->host_name,value);
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
 			temp_hostextinfo->hostgroup_name=strdup(value);
-			if(temp_hostextinfo->hostgroup_name==NULL)
+			if(temp_hostextinfo->hostgroup_name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info hostgroup_name.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"notes_url")){
 			temp_hostextinfo->notes_url=strdup(value);
-			if(temp_hostextinfo->notes_url==NULL)
+			if(temp_hostextinfo->notes_url==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info notes_url.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"icon_image")){
 			temp_hostextinfo->icon_image=strdup(value);
-			if(temp_hostextinfo->icon_image==NULL)
+			if(temp_hostextinfo->icon_image==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info icon_image.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"icon_image_alt")){
 			temp_hostextinfo->icon_image_alt=strdup(value);
-			if(temp_hostextinfo->icon_image_alt==NULL)
+			if(temp_hostextinfo->icon_image_alt==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info icon_image_alt.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"vrml_image")){
 			temp_hostextinfo->vrml_image=strdup(value);
-			if(temp_hostextinfo->vrml_image==NULL)
+			if(temp_hostextinfo->vrml_image==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info vrml_image.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"gd2_image")|| !strcmp(variable,"statusmap_image")){
 			temp_hostextinfo->statusmap_image=strdup(value);
-			if(temp_hostextinfo->statusmap_image==NULL)
+			if(temp_hostextinfo->statusmap_image==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended host info statusmap_image.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"2d_coords")){
 			temp_ptr=strtok(value,", ");
-			if(temp_ptr==NULL)
+			if(temp_ptr==NULL){
+#ifdef DEBUG1
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 2d_coords value in extended host info definition.\n",temp_ptr);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 				return ERROR;
+			        }
 			temp_hostextinfo->x_2d=atoi(temp_ptr);
 			temp_ptr=strtok(NULL,", ");
-			if(temp_ptr==NULL)
+			if(temp_ptr==NULL){
+#ifdef DEBUG1
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 2d_coords value in extended host info definition.\n",temp_ptr);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 				return ERROR;
+			        }
 			temp_hostextinfo->y_2d=atoi(temp_ptr);
 			temp_hostextinfo->have_2d_coords=TRUE;
 		        }
 		else if(!strcmp(variable,"3d_coords")){
 			temp_ptr=strtok(value,", ");
-			if(temp_ptr==NULL)
+			if(temp_ptr==NULL){
+#ifdef DEBUG1
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value in extended host info definition.\n",temp_ptr);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 				return ERROR;
+			        }
 			temp_hostextinfo->x_3d=strtod(temp_ptr,NULL);
 			temp_ptr=strtok(NULL,", ");
-			if(temp_ptr==NULL)
+			if(temp_ptr==NULL){
+#ifdef DEBUG1
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value in extended host info definition.\n",temp_ptr);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 				return ERROR;
+			        }
 			temp_hostextinfo->y_3d=strtod(temp_ptr,NULL);
 			temp_ptr=strtok(NULL,", ");
-			if(temp_ptr==NULL)
+			if(temp_ptr==NULL){
+#ifdef DEBUG1
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid 3d_coords value in extended host info definition.\n",temp_ptr);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
 				return ERROR;
+			        }
 			temp_hostextinfo->z_3d=strtod(temp_ptr,NULL);
 			temp_hostextinfo->have_3d_coords=TRUE;
 		        }
@@ -2819,43 +2885,75 @@ int xodtemplate_add_object_property(char *input, int options){
 
 		if(!strcmp(variable,"use")){
 			temp_serviceextinfo->template=strdup(value);
-			if(temp_serviceextinfo->template==NULL)
+			if(temp_serviceextinfo->template==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info template.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"name")){
 			temp_serviceextinfo->name=strdup(value);
-			if(temp_serviceextinfo->name==NULL)
+			if(temp_serviceextinfo->name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info name.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"host_name")){
 			temp_serviceextinfo->host_name=strdup(value);
-			if(temp_serviceextinfo->host_name==NULL)
+			if(temp_serviceextinfo->host_name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info host_name.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
 			temp_serviceextinfo->hostgroup_name=strdup(value);
-			if(temp_serviceextinfo->hostgroup_name==NULL)
+			if(temp_serviceextinfo->hostgroup_name==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info hostgroup_name.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"service_description")){
 			temp_serviceextinfo->service_description=strdup(value);
-			if(temp_serviceextinfo->service_description==NULL)
+			if(temp_serviceextinfo->service_description==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info service_description.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"notes_url")){
 			temp_serviceextinfo->notes_url=strdup(value);
-			if(temp_serviceextinfo->notes_url==NULL)
+			if(temp_serviceextinfo->notes_url==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info notes_url.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"icon_image")){
 			temp_serviceextinfo->icon_image=strdup(value);
-			if(temp_serviceextinfo->icon_image==NULL)
+			if(temp_serviceextinfo->icon_image==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info icon_image.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"icon_image_alt")){
 			temp_serviceextinfo->icon_image_alt=strdup(value);
-			if(temp_serviceextinfo->icon_image_alt==NULL)
+			if(temp_serviceextinfo->icon_image_alt==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for extended service info icon_image_alt.\n");
+#endif
 				return ERROR;
+			        }
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_serviceextinfo->register_object=(atoi(value)>0)?TRUE:FALSE;

@@ -52,6 +52,11 @@ cfg_file=@sysconfdir@/hosts.cfg
 cfg_file=@sysconfdir@/services.cfg
 cfg_file=@sysconfdir@/timeperiods.cfg
 
+# Extended host/service info definitions are now stored along with
+# other object definitions:
+#cfg_file=@sysconfdir@/hostextinfo.cfg
+#cfg_file=@sysconfdir@/serviceextinfo.cfg
+
 # You can also tell Nagios to process all config files (with a .cfg
 # extension) in a particular directory by using the cfg_dir
 # directive as shown below:

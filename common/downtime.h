@@ -60,9 +60,9 @@ typedef struct scheduled_downtime_struct{
 int initialize_downtime_data(char *);                                /* initializes scheduled downtime data */
 int cleanup_downtime_data(char *);                                   /* cleans up scheduled downtime data */
 
-int save_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
-int save_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
-int save_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
+int add_new_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
+int add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
+int add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,int *);
 
 int delete_host_downtime(int);
 int delete_service_downtime(int);

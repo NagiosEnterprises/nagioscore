@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-16-2003
+ * Last Modified:   03-19-2003
  *
  * License:
  *
@@ -289,7 +289,7 @@ int xcddefault_add_new_host_comment(char *host_name, time_t entry_time, char *au
 	/* update comment file */
 	xcddefault_save_comment_data();
 
-	/* return the id for the comment we just added */
+	/* return the id for the comment we are about to add (this happens in the main code) */
 	if(comment_id!=NULL)
 		*comment_id=current_comment_id;
 
@@ -309,7 +309,7 @@ int xcddefault_add_new_service_comment(char *host_name, char *svc_description, t
 	/* update comment file */
 	xcddefault_save_comment_data();
 
-	/* return the id for the comment we just added */
+	/* return the id for the comment we are about to add (this happens in the main code) */
 	if(comment_id!=NULL)
 		*comment_id=current_comment_id;
 
@@ -501,7 +501,6 @@ int xcddefault_read_comment_data(char *main_config_file){
 
 			case XCDDEFAULT_HOST_DATA:
 			case XCDDEFAULT_SERVICE_DATA:
-				/* we could possibly renumber commend IDs here if we wanted to, but we won't... */
 				add_comment((data_type==XCDDEFAULT_HOST_DATA)?HOST_COMMENT:SERVICE_COMMENT,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,source);
 				break;
 

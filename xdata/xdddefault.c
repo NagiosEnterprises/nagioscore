@@ -2,8 +2,8 @@
  *
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-07-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-19-2003
  *
  * License:
  *
@@ -51,6 +51,7 @@ char xdddefault_temp_file[MAX_FILENAME_LENGTH]="";
 
 #ifdef NSCORE
 int current_downtime_id=0;
+extern scheduled_downtime *scheduled_downtime_list;
 #endif
 
 
@@ -200,7 +201,6 @@ int xdddefault_initialize_downtime_data(char *main_config_file){
 
 /* creates an empty downtime data file if one doesn't already exist */
 int xdddefault_create_downtime_file(void){
-	FILE *fp;
 	struct stat statbuf;
 
 	/* bail out if file already exists */
@@ -208,11 +208,7 @@ int xdddefault_create_downtime_file(void){
 		return OK;
 
 	/* create an empty file */
-	fp=fopen(xdddefault_downtime_file,"w");
-	if(fp==NULL)
-		return ERROR;
-
-	fclose(fp);
+	xdddefault_save_downtime_data();
 
 	return OK;
         }
@@ -221,144 +217,48 @@ int xdddefault_create_downtime_file(void){
 
 /* removes invalid and old downtime entries from the downtime file */
 int xdddefault_validate_downtime_data(void){
-	char input_buffer[MAX_INPUT_BUFFER];
-	char output_buffer[MAX_INPUT_BUFFER];
-	char *entry_time;
-	char *temp_buffer;
-	FILE *fpin;
-	FILE *fpout;
+	scheduled_downtime *temp_downtime;
+	scheduled_downtime *next_downtime;
+	int update_file=FALSE;
 	int save=TRUE;
-	host *temp_host=NULL;
-	service *temp_service=NULL;
-	int downtime_type=HOST_DOWNTIME;
-	time_t start_time;
-	time_t end_time;
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
+	/* remove stale downtimes */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=next_downtime){
 
-	/* open a safe temp file for output */
-	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xdddefault_temp_file);
-	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
-		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* open current downtime file for reading */
-	fpin=fopen(xdddefault_downtime_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
-
-	/* reset the current downtime counter */
-	current_downtime_id=1;
-
-	/* process each line in the old downtime file */
-	while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),fpin)){
-
-		if(feof(fpin))
-			break;
-
+		next_downtime=temp_downtime->next;
 		save=TRUE;
 
-		/* this is a host entry */
-		if(strstr(input_buffer,"] HOST_DOWNTIME;"))
-			downtime_type=HOST_DOWNTIME;
-
-		/* this is a service entry */
-		else if(strstr(input_buffer,"] SERVICE_DOWNTIME;"))
-			downtime_type=SERVICE_DOWNTIME;
-		
-		/* else this is not a downtime entry, so skip it */
-		else
-			continue;
-
-		/* get the downtime entry time */
-		temp_buffer=my_strtok(input_buffer,"[");
-		entry_time=my_strtok(NULL,"]");
-
-		/* skip the downtime type identifier */
-		temp_buffer=my_strtok(NULL,";");
-
-		/* skip the downtime ID number */
-		temp_buffer=my_strtok(NULL,";");
-
-		/* see if the host still exists */
-		temp_buffer=my_strtok(NULL,";");
-		temp_host=find_host((temp_buffer==NULL)?"":temp_buffer);
-		if(temp_host==NULL)
+		/* delete downtimes with invalid host names */
+		if(find_host(temp_downtime->host_name)==NULL)
 			save=FALSE;
 
-		/* if this is a service entry, make sure the service still exists */
-		if(downtime_type==SERVICE_DOWNTIME){
-			temp_buffer=my_strtok(NULL,";");
-			if(temp_host!=NULL)
-				temp_service=find_service(temp_host->name,(temp_buffer==NULL)?"":temp_buffer);
-			else
-				temp_service=NULL;
-			if(temp_service==NULL)
-				save=FALSE;
-
-		        }
-
-		/* get the start time */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		start_time=(time_t)strtoul(temp_buffer,NULL,10);
-
-		/* get the end time */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		end_time=(time_t)strtoul(temp_buffer,NULL,10);
-
-		/* see if this downtime has expired */
-		if(end_time<=time(NULL))
+		/* delete downtimes with invalid service descriptions */
+		if(temp_downtime->type==SERVICE_DOWNTIME && find_service(temp_downtime->host_name,temp_downtime->service_description)==NULL)
 			save=FALSE;
 
-		/* get the rest of the downtime data */
-		temp_buffer=my_strtok(NULL,"\n");
+		/* delete downtimes that have expired */
+		if(temp_downtime->end_time<time(NULL))
+			save=FALSE;
 
-		/* write the old entry to the new file, re-numbering them as we go */
-		if(save==TRUE){
-
-			snprintf(output_buffer,sizeof(output_buffer)-1,"[%s] %s_DOWNTIME;%d;%s;",entry_time,(downtime_type==HOST_DOWNTIME)?"HOST":"SERVICE",current_downtime_id,temp_host->name);
-			output_buffer[sizeof(output_buffer)-1]='\x0';
-			fputs(output_buffer,fpout);
-
-			if(downtime_type==SERVICE_DOWNTIME){
-				snprintf(output_buffer,sizeof(output_buffer)-1,"%s;",temp_service->description);
-				output_buffer[sizeof(output_buffer)-1]='\x0';
-				fputs(output_buffer,fpout);
-			        }
-
-			snprintf(output_buffer,sizeof(output_buffer)-1,"%lu;%lu;%s\n",(unsigned long)start_time,(unsigned long)end_time,temp_buffer);
-			output_buffer[sizeof(output_buffer)-1]='\x0';
-			fputs(output_buffer,fpout);
-
-			/* increment the current downtime counter */
-			current_downtime_id++;
+		/* delete the downtime */
+		if(save==FALSE){
+			update_file=TRUE;
+			delete_downtime(temp_downtime->type,temp_downtime->downtime_id);
 		        }
+	        }	
+
+	/* update downtime file */
+	if(update_file==TRUE)
+		xdddefault_save_downtime_data();
+
+	/* reset the current downtime counter */
+	current_downtime_id=0;
+
+	/* find the new starting index for downtime id */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+		if(temp_downtime->downtime_id>current_downtime_id)
+			current_downtime_id=temp_downtime->downtime_id;
 	        }
-
-	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
-
-	/* replace old downtime file */
-	if(my_rename(temp_file,xdddefault_downtime_file))
-		return ERROR;
 
 	return OK;
         }
@@ -378,26 +278,19 @@ int xdddefault_cleanup_downtime_data(char *main_config_file){
 /************************ SAVE FUNCTIONS **************************/
 /******************************************************************/
 
-/* saves a scheduled host downtime entry */
-int xdddefault_save_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, int *downtime_id){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+/* adds a new scheduled host downtime entry */
+int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, int *downtime_id){
 
 	/* increment the current downtime id */
 	current_downtime_id++;
 
-	/* create the downtime string */
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu] HOST_DOWNTIME;%d;%s;%lu;%lu;%d;%lu;%s;%s\n",(unsigned long)entry_time,current_downtime_id,host_name,(unsigned long)start_time,(unsigned long)end_time,fixed,duration,author,comment);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	
-	/* open the downtime file */
-	fp=fopen(xdddefault_downtime_file,"a");
-	if(fp==NULL)
-		return ERROR;
-	fputs(temp_buffer,fp);
-	fclose(fp);
+	/* add downtime to list in memory */
+	add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,current_downtime_id);
 
-	/* return the id for the downtime we just added */
+	/* update downtime file */
+	xdddefault_save_downtime_data();
+
+	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id!=NULL)
 		*downtime_id=current_downtime_id;
 
@@ -406,26 +299,19 @@ int xdddefault_save_host_downtime(char *host_name, time_t entry_time, char *auth
 
 
 
-/* saves a scheduled service downtime entry */
-int xdddefault_save_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, int *downtime_id){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+/* adds a new scheduled service downtime entry */
+int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, int *downtime_id){
 
 	/* increment the current downtime id */
 	current_downtime_id++;
 
-	/* create the downtime string */
-	snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu] SERVICE_DOWNTIME;%d;%s;%s;%lu;%lu;%d;%lu;%s;%s\n",(unsigned long)entry_time,current_downtime_id,host_name,service_description,(unsigned long)start_time,(unsigned long)end_time,fixed,duration,author,comment);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
-	
-	/* open the downtime file */
-	fp=fopen(xdddefault_downtime_file,"a");
-	if(fp==NULL)
-		return ERROR;
-	fputs(temp_buffer,fp);
-	fclose(fp);
+	/* add downtime to list in memory */
+	add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,current_downtime_id);
 
-	/* return the id for the downtime we just added */
+	/* update downtime file */
+	xdddefault_save_downtime_data();
+
+	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id!=NULL)
 		*downtime_id=current_downtime_id;
 
@@ -460,58 +346,87 @@ int xdddefault_delete_service_downtime(int downtime_id){
 
 /* deletes a scheduled host or service downtime entry */
 int xdddefault_delete_downtime(int type, int downtime_id){
-	FILE *fpin;
-	FILE *fpout;
-	char match[MAX_INPUT_BUFFER];
-	char buffer[MAX_INPUT_BUFFER];
-	char temp_file[MAX_INPUT_BUFFER];
-	int tempfd;
 
-	/* create the matching string we're looking for in the log file */
-	snprintf(match,sizeof(match),"] %s_DOWNTIME;%d;",(type==HOST_DOWNTIME)?"HOST":"SERVICE",downtime_id);
-	match[sizeof(match)-1]='\x0';
+	/* rewrite the downtime file (downtime was already removed from memory) */
+	xdddefault_save_downtime_data();
+
+	return OK;
+        }
+
+
+
+/******************************************************************/
+/****************** DOWNTIME OUTPUT FUNCTIONS *********************/
+/******************************************************************/
+
+/* writes downtime data to file */
+int xdddefault_save_downtime_data(void){
+	char buffer[MAX_INPUT_BUFFER];
+	char temp_file[MAX_FILENAME_LENGTH];
+	time_t current_time;
+	scheduled_downtime *temp_downtime;
+	int fd=0;
+	FILE *fp=NULL;
 
 	/* open a safe temp file for output */
 	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xdddefault_temp_file);
 	temp_file[sizeof(temp_file)-1]='\x0';
-	if((tempfd=mkstemp(temp_file))==-1)
+	if((fd=mkstemp(temp_file))==-1)
 		return ERROR;
-	fpout=fdopen(tempfd,"w");
-	if(fpout==NULL){
-		close(tempfd);
+	fp=fdopen(fd,"w");
+	if(fp==NULL){
+		close(fd);
 		unlink(temp_file);
 		return ERROR;
 	        }
 
-	/* open the current downtime file for reading */
-	fpin=fopen(xdddefault_downtime_file,"r");
-	if(fpin==NULL){
-		fclose(fpout);
-		unlink(temp_file);
-		return ERROR;
-	        }
+	/* write header */
+	fprintf(fp,"########################################\n");
+	fprintf(fp,"#          NAGIOS DOWNTIME FILE\n");
+	fprintf(fp,"#\n");
+	fprintf(fp,"# THIS FILE IS AUTOMATICALLY GENERATED\n");
+	fprintf(fp,"# BY NAGIOS.  DO NOT MODIFY THIS FILE!\n");
+	fprintf(fp,"########################################\n\n");
 
-	/* write every line in the downtime file, except the matching comment */
-	while(fgets(buffer,(int)(sizeof(buffer)-1),fpin)){
+	time(&current_time);
 
-		if(feof(fpin))
-			break;
+	/* write file info */
+	fprintf(fp,"info {\n");
+	fprintf(fp,"\tcreated=%lu\n",current_time);
+	fprintf(fp,"\tversion=%s\n",PROGRAM_VERSION);
+	fprintf(fp,"\t}\n\n");
 
-		if(!strstr(buffer,match))
-			fputs(buffer,fpout);
+	/* save all downtime */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+
+		if(temp_downtime->type==HOST_DOWNTIME)
+			fprintf(fp,"hostdowntime {\n");
+		else
+			fprintf(fp,"servicedowntime {\n");
+		fprintf(fp,"\thost_name=%s\n",temp_downtime->host_name);
+		if(temp_downtime->type==SERVICE_DOWNTIME)
+			fprintf(fp,"\tservice_description=%s\n",temp_downtime->service_description);
+		fprintf(fp,"\tdowntime_id=%d\n",temp_downtime->downtime_id);
+		fprintf(fp,"\tentry_time=%lu\n",temp_downtime->entry_time);
+		fprintf(fp,"\tstart_time=%lu\n",temp_downtime->start_time);
+		fprintf(fp,"\tend_time=%lu\n",temp_downtime->end_time);
+		fprintf(fp,"\tfixed=%d\n",temp_downtime->fixed);
+		fprintf(fp,"\tduration=%lu\n",temp_downtime->duration);
+		fprintf(fp,"\tauthor=%s\n",temp_downtime->author);
+		fprintf(fp,"\tcomment=%s\n",temp_downtime->comment);
+		fprintf(fp,"\t}\n\n");
 	        }
 
 	/* reset file permissions */
-	fchmod(tempfd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+	fchmod(fd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
-	/* close files */
-	fclose(fpout);
-	fclose(fpin);
+	/* close the temp file */
+	fclose(fp);
 
-	/* replace old downtime file */
+	/* move the temp file to the downtime file (overwrite the old downtime file) */
 	if(my_rename(temp_file,xdddefault_downtime_file))
 		return ERROR;
- 
+
 	return OK;
         }
 
@@ -528,20 +443,21 @@ int xdddefault_delete_downtime(int type, int downtime_id){
 
 /* read the downtime file */
 int xdddefault_read_downtime_data(char *main_config_file){
-	char input_buffer[MAX_INPUT_BUFFER];
-	char *temp_buffer;
+	char temp_buffer[MAX_INPUT_BUFFER];
+	int data_type=XDDDEFAULT_NO_DATA;
+	char *var;
+	char *val;
 	FILE *fp;
-	int downtime_id;
-	int downtime_type;
-	time_t entry_time;
-	time_t start_time;
-	time_t end_time;
-	int fixed;
+	int downtime_id=0;
+	time_t entry_time=0L;
+	time_t start_time=0L;
+	time_t end_time=0L;
+	int fixed=FALSE;
 	unsigned long duration;
-	char *host_name="";
-	char *service_description="";
-	char *comment="";
-	char *author="";
+	char *host_name=NULL;
+	char *service_description=NULL;
+	char *comment=NULL;
+	char *author=NULL;
 
 
 #ifdef NSCGI
@@ -555,93 +471,108 @@ int xdddefault_read_downtime_data(char *main_config_file){
 	if(fp==NULL)
 		return ERROR;
 
-	while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),fp)){
+	while(fgets(temp_buffer,(int)(sizeof(temp_buffer)-1),fp)){
 
-	        if(feof(fp))
-		        break;
+		strip(temp_buffer);
 
-		if(input_buffer==NULL)
-		        continue;
-
-		/* host comment or service downtime? */
-		if(strstr(input_buffer,"] HOST_DOWNTIME;"))
-			downtime_type=HOST_DOWNTIME;
-		else if(strstr(input_buffer,"] SERVICE_DOWNTIME;"))
-			downtime_type=SERVICE_DOWNTIME;
-		else
+		/* skip blank lines and comments */
+		if(temp_buffer[0]=='#' || temp_buffer[0]=='\x0')
 			continue;
 
-		/* get the entry time */
-		temp_buffer=my_strtok(input_buffer,"[");
-		temp_buffer=my_strtok(NULL,"]");
-		if(temp_buffer==NULL)
-			continue;
-		entry_time=(time_t)strtoul(temp_buffer,NULL,10);
+		else if(!strcmp(temp_buffer,"info {"))
+			data_type=XDDDEFAULT_INFO_DATA;
+		else if(!strcmp(temp_buffer,"hostdowntime {"))
+			data_type=XDDDEFAULT_HOST_DATA;
+		else if(!strcmp(temp_buffer,"servicedowntime {"))
+			data_type=XDDDEFAULT_SERVICE_DATA;
 
-		/* get the downtime id */
-		temp_buffer=my_strtok(NULL,";");
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		downtime_id=atoi(temp_buffer);
+		else if(!strcmp(temp_buffer,"}")){
 
-		/* get the host name */
-		host_name=my_strtok(NULL,";");
-		if(host_name==NULL)
-			continue;
+			switch(data_type){
 
-		/* get the service name */
-		if(downtime_type==SERVICE_DOWNTIME){
-			service_description=my_strtok(NULL,";");
-			if(service_description==NULL)
-				continue;
-		        }
-		
-		/* get the start time */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		start_time=(time_t)strtoul(temp_buffer,NULL,10);
+			case XDDDEFAULT_INFO_DATA:
+				break;
 
-		/* get the end time */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		end_time=(time_t)strtoul(temp_buffer,NULL,10);
+			case XDDDEFAULT_HOST_DATA:
+			case XDDDEFAULT_SERVICE_DATA:
 
-		/* get the fixed flag */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		fixed=atoi(temp_buffer);
-
-		/* get the duration */
-		temp_buffer=my_strtok(NULL,";");
-		if(temp_buffer==NULL)
-			continue;
-		duration=strtoul(temp_buffer,NULL,10);
-
-		/* get the author */
-		author=my_strtok(NULL,";");
-		if(author==NULL)
-			continue;
-
-		/* get the comment */
-		comment=my_strtok(NULL,"\n");
-		if(comment==NULL)
-			continue;
-
-
-		/* add the downtime */
-		if(downtime_type==HOST_DOWNTIME)
-			add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
-		else
-			add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
-
+				/* add the downtime */
+				if(data_type==XDDDEFAULT_HOST_DATA)
+					add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+				else
+					add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
 #ifdef NSCORE
-		/* must register the downtime with Nagios so it can schedule it, add comments, etc. */
-		register_downtime(downtime_type,downtime_id);
+				/* must register the downtime with Nagios so it can schedule it, add comments, etc. */
+				register_downtime((data_type==XDDDEFAULT_HOST_DATA)?HOST_DOWNTIME:SERVICE_DOWNTIME,downtime_id);
 #endif
+				break;
+
+			default:
+				break;
+			        }
+
+			data_type=XDDDEFAULT_NO_DATA;
+
+			/* free temp memory */
+			free(host_name);
+			free(service_description);
+			free(author);
+			free(comment);
+
+			/* reset defaults */
+			host_name=NULL;
+			service_description=NULL;
+			author=NULL;
+			comment=NULL;
+			downtime_id=0;
+			entry_time=0L;
+			start_time=0L;
+			end_time=0L;
+			fixed=FALSE;
+			duration=0L;
+		        }
+
+		else if(data_type!=XDDDEFAULT_NO_DATA){
+
+			var=strtok(temp_buffer,"=");
+			val=strtok(NULL,"\n");
+			if(val==NULL)
+				continue;
+
+			switch(data_type){
+
+			case XDDDEFAULT_INFO_DATA:
+				break;
+
+			case XDDDEFAULT_HOST_DATA:
+			case XDDDEFAULT_SERVICE_DATA:
+				if(!strcmp(var,"host_name"))
+					host_name=strdup(val);
+				else if(!strcmp(var,"service_description"))
+					service_description=strdup(val);
+				else if(!strcmp(var,"downtime_id"))
+					downtime_id=atoi(val);
+				else if(!strcmp(var,"entry_time"))
+					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"start_time"))
+					start_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"end_time"))
+					end_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"fixed"))
+					fixed=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"duration"))
+					duration=strtoul(val,NULL,10);
+				else if(!strcmp(var,"author"))
+					author=strdup(val);
+				else if(!strcmp(var,"comment"))
+					comment=strdup(val);
+				break;
+
+			default:
+				break;
+			        }
+
+		        }
 	        }
 
 	fclose(fp);

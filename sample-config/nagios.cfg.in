@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 02-18-2002
+# Last Modified: 05-27-2002
 #
 ##############################################################################
 
@@ -20,7 +20,7 @@ log_file=@localstatedir@/nagios.log
 
 
 
-# OBJECT CONFIGURATION FILE
+# OBJECT CONFIGURATION FILE(S)
 # This is the configuration file in which you define hosts, host
 # groups, contacts, contact groups, services, etc.  I guess it would
 # be better called an object definition file, but for historical
@@ -30,26 +30,27 @@ log_file=@localstatedir@/nagios.log
 # This can be very useful if you want to keep command definitions 
 # separate from host and contact definitions...
 
-# Most everything is stored in this "host" config file
-cfg_file=@sysconfdir@/hosts.cfg
+# Plugin commands (service and host check commands)
+# Arguments are likely to change between different releases of the
+# plugins, so you should use the same config file provided with the
+# plugin release rather than the one provided with Nagios.
+cfg_file=@sysconfdir@/checkcommands.cfg
 
-# Command definitions for plugins are stored in a different file, 
-# although they don't necessarily have to be...
-
-# This comes with Nagios. Choose it to work with any plugin set.
-cfg_file=@sysconfdir@/commands.cfg
-
-# This comes with the plugins. Choose it for the newest plugin features.
-#cfg_file=@sysconfdir@/command.cfg
+# Misc commands (notification and event handler commands, etc)
+cfg_file=@sysconfdir@/misccommands.cfg
 
 # You can split other types of object definitions across several
-# other config files if you wish...
-#cfg_file=@sysconfdir@/contacts.cfg
-#cfg_file=@sysconfdir@/contactgroups.cfg
-#cfg_file=@sysconfdir@/hostgroups.cfg
-#cfg_file=@sysconfdir@/services.cfg
-#cfg_file=@sysconfdir@/timeperiods.cfg
-#cfg_file=@sysconfdir@/escalations.cfg
+# config files if you wish (as done here), or keep them all in a
+# single config file.
+
+cfg_file=@sysconfdir@/contactgroups.cfg
+cfg_file=@sysconfdir@/contacts.cfg
+cfg_file=@sysconfdir@/dependencies.cfg
+cfg_file=@sysconfdir@/escalations.cfg
+cfg_file=@sysconfdir@/hostgroups.cfg
+cfg_file=@sysconfdir@/hosts.cfg
+cfg_file=@sysconfdir@/services.cfg
+cfg_file=@sysconfdir@/timeperiods.cfg
 
 
 

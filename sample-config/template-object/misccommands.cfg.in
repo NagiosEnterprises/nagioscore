@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 05-09-2002
+# Last Modified: 05-27-2002
 #
 ################################################################################
 
@@ -92,14 +92,14 @@ define command{
 # 'process-host-perfdata' command definition
 define command{
 	command_name	process-host-perfdata
-	command_line	/usr/bin/printf "%b" "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> /tmp/host-perfdata
+	command_line	/usr/bin/printf "%b" "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> @localstatedir@/host-perfdata.out
 	}
 
 
 # 'process-service-perfdata' command definition
 define command{
 	command_name	process-service-perfdata
-	command_line	/usr/bin/printf "%b" "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> /tmp/service-perfdata
+	command_line	/usr/bin/printf "%b" "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> @localstatedir@/service-perfdata.out
 	}
 
 

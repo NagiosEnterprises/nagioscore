@@ -51,65 +51,6 @@
 #include <getopt.h>
 #endif
 
-/******** BEGIN EMBEDDED PERL INTERPRETER DECLARATIONS ********/
-
-#ifdef EMBEDDEDPERL 
-#include <EXTERN.h>
-#include <perl.h>
-static PerlInterpreter *my_perl;
-#include <fcntl.h>
-
-/* include PERL xs_init code for module and C library support */
-
-#if defined(__cplusplus) && !defined(PERL_OBJECT)
-#define is_cplusplus
-#endif
-
-#ifdef is_cplusplus
-extern "C" {
-#endif
-
-#ifdef PERL_OBJECT
-#define NO_XSLOCKS
-#include <XSUB.h>
-#include "win32iop.h"
-#include <perlhost.h>
-#endif
-#ifdef is_cplusplus
-}
-#  ifndef EXTERN_C
-#    define EXTERN_C extern "C"
-#  endif
-#else
-#  ifndef EXTERN_C
-#    define EXTERN_C extern
-#  endif
-#endif
- 
-EXTERN_C void xs_init _((void));
-
-EXTERN_C void boot_DynaLoader _((CV* cv));
-
-EXTERN_C void
-xs_init(void)
-{
-	char *file = __FILE__;
-#ifdef THREADEDPERL
-	dTHX;
-#endif
-	dXSUB_SYS;
-
-	/* DynaLoader is a special case */
-	newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
-}
-
- static PerlInterpreter *perl = NULL;
-
-#endif
-
-/******** END EMBEDDED PERL INTERPRETER DECLARATIONS ********/
-
-
 char		config_file[MAX_FILENAME_LENGTH]="";
 char		log_file[MAX_FILENAME_LENGTH]="";
 char            command_file[MAX_FILENAME_LENGTH]="";
@@ -242,6 +183,8 @@ double          high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 int             date_format=DATE_FORMAT_US;
 
+int             max_embedded_perl_calls=DEFAULT_MAX_EMBEDDED_PERL_CALLS;
+
 int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;
@@ -282,11 +225,6 @@ int main(int argc, char **argv){
 	int create_status_data=FALSE;
 	int display_modules=FALSE;
 	int c;
-
-#ifdef EMBEDDEDPERL
-	char *embedding[] = { "", P1LOC };
-	int exitstatus = 0;
-#endif
 
 #ifdef HAVE_GETOPT_H
 	int option_index=0;
@@ -616,22 +554,14 @@ int main(int argc, char **argv){
 #ifdef EMBEDDEDPERL
 			if(sigrestart==FALSE){
 
-				if((perl=perl_alloc())==NULL){
-
-					snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
-					buffer[sizeof(buffer)-1]='\x0';
-					write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+				if(init_embedded_perl()==ERROR){
 
 					snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while initializing embedded Perl interpreter... (PID=%d)\n",(int)getpid());
 					buffer[sizeof(buffer)-1]='\x0';
 					write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
 					
 					exit(1);
-		                }
-				perl_construct(perl);
-				exitstatus=perl_parse(perl,xs_init,2,embedding,NULL);
-				if(!exitstatus)
-					exitstatus=perl_run(perl);
+		                        }
 			        }
 #endif
 
@@ -776,11 +706,7 @@ int main(int argc, char **argv){
 			unlink(lock_file);
 
 		/* cleanup embedded perl */
-#ifdef EMBEDDEDPERL
-		PL_perl_destruct_level=0;
-		perl_destruct(perl);
-		perl_free(perl);
-#endif
+		deinit_embedded_perl();
 
 		/* log a shutdown message */
 		snprintf(buffer,sizeof(buffer),"Successfully shutdown... (PID=%d)\n",(int)getpid());

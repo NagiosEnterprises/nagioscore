@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-07-2002
+ * Last Modified: 12-01-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,6 +91,8 @@
 #define DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD	30.0	/* high threshold for detection of service flapping */
 #define DEFAULT_LOW_HOST_FLAP_THRESHOLD		20.0	/* low threshold for detection of host flapping */
 #define DEFAULT_HIGH_HOST_FLAP_THRESHOLD	30.0	/* high threshold for detection of host flapping */
+
+#define DEFAULT_MAX_EMBEDDED_PERL_CALLS		100     /* number of times to use embedded perl interpreter before reloading it */
 
 
 
@@ -419,6 +421,9 @@ int check_time_against_period(time_t,char *);		/* check to see if a specific tim
 void get_next_valid_time(time_t, time_t *,char *);	/* get the next valid time in a time period */
 void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for use in output */
 void get_next_log_rotation_time(time_t *);	     	/* determine the next time to schedule a log rotation */
+int init_embedded_perl(void);	 			/* initialized embedded perl interpreter */
+int deinit_embedded_perl(void);				/* cleans up embedded perl */
+int reinit_embedded_perl(void);				/* reinitialized embedded perl during runtime */
 
 
 /**** Macro Functions ****/

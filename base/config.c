@@ -123,6 +123,8 @@ extern double   high_host_flap_threshold;
 
 extern int      date_format;
 
+extern int      max_embedded_perl_calls;
+
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
 extern host		**host_list;
@@ -1015,6 +1017,20 @@ int read_main_config_file(char *main_config_file){
 				date_format=DATE_FORMAT_US;
 #ifdef DEBUG1
 			printf("\t\tdate_format set to %d\n",date_format);
+#endif
+		        }
+		else if(!strcmp(variable,"max_embedded_perl_calls")){
+			strip(value);
+			max_embedded_perl_calls=atoi(value);
+
+			if(max_embedded_perl_calls<=0){
+				strcpy(error_message,"Illegal value for max_embedded_perl_calls");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tmax_embedded_perl_calls set to %d\n",max_embedded_perl_calls);
 #endif
 		        }
 		else if(!strcmp(variable,"illegal_object_name_chars")){

@@ -180,6 +180,8 @@ extern double   high_host_flap_threshold;
 
 extern int      date_format;
 
+extern int      max_embedded_perl_calls;
+
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
 extern hostgroup	*hostgroup_list;
@@ -203,9 +205,70 @@ extern char     *tzname[2];
 #endif
 #endif
 
+
 extern service_message svc_msg;
 
 extern int errno;
+
+
+
+/******** BEGIN EMBEDDED PERL INTERPRETER DECLARATIONS ********/
+
+#ifdef EMBEDDEDPERL 
+#include <EXTERN.h>
+#include <perl.h>
+static PerlInterpreter *my_perl;
+#include <fcntl.h>
+
+/* include PERL xs_init code for module and C library support */
+
+#if defined(__cplusplus) && !defined(PERL_OBJECT)
+#define is_cplusplus
+#endif
+
+#ifdef is_cplusplus
+extern "C" {
+#endif
+
+#ifdef PERL_OBJECT
+#define NO_XSLOCKS
+#include <XSUB.h>
+#include "win32iop.h"
+#include <perlhost.h>
+#endif
+#ifdef is_cplusplus
+}
+#  ifndef EXTERN_C
+#    define EXTERN_C extern "C"
+#  endif
+#else
+#  ifndef EXTERN_C
+#    define EXTERN_C extern
+#  endif
+#endif
+ 
+EXTERN_C void xs_init _((void));
+
+EXTERN_C void boot_DynaLoader _((CV* cv));
+
+EXTERN_C void xs_init(void){
+	char *file = __FILE__;
+#ifdef THREADEDPERL
+	dTHX;
+#endif
+	dXSUB_SYS;
+	/* DynaLoader is a special case */
+	newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
+        }
+
+static PerlInterpreter *perl=NULL;
+
+int embedded_perl_calls=0;
+int use_embedded_perl=TRUE;
+#endif
+
+/******** END EMBEDDED PERL INTERPRETER DECLARATIONS ********/
+
 
 
 
@@ -952,11 +1015,11 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 		fclose(fp);
 	        }
 
-	isperl=0;
+	isperl=FALSE;
 
 	if(strstr(buffer,"/bin/perl")!=NULL){
 
-		isperl = 1;
+		isperl = TRUE;
 		args[0] = fname;
 		args[2] = tmpfname;
 
@@ -965,8 +1028,15 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 		else
 			args[3]=cmd+strlen(fname)+1;
 
+		/* reinialize embedded perl if necessary */
+		if(use_embedded_perl==TRUE && max_embedded_perl_calls>0 && embedded_perl_calls>max_embedded_perl_calls)
+			reinit_embedded_perl();
+
+		embedded_perl_calls++;
+
 		/* call our perl interpreter to compile and optionally cache the compiled script. */
-		perl_call_argv("Embed::Persistent::eval_file", G_DISCARD | G_EVAL, args);
+		if(use_embedded_perl==TRUE)
+			perl_call_argv("Embed::Persistent::eval_file", G_DISCARD | G_EVAL, args);
 	        }
 #endif 
 
@@ -1028,7 +1098,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 		/******** BEGIN EMBEDDED PERL CODE EXECUTION ********/
 
 #ifdef EMBEDDEDPERL
-		if(isperl){
+		if(isperl==TRUE && use_embedded_perl==TRUE){
 
 			/* generate a temporary filename to which stdout can be redirected. */
 			snprintf(tmpfname,sizeof(tmpfname)-1,"/tmp/embeddedXXXXXX");
@@ -2436,6 +2506,74 @@ int my_rename(char *source, char *dest){
 
 
 /******************************************************************/
+/******************** EMBEDDED PERL FUNCTIONS *********************/
+/******************************************************************/
+
+/* initializes embedded perl interpreter */
+int init_embedded_perl(void){
+#ifdef EMBEDDEDPERL
+	char *embedding[] = { "", P1LOC };
+	int exitstatus = 0;
+	char buffer[MAX_INPUT_BUFFER];
+
+	embedded_perl_calls=0;
+
+	if((perl=perl_alloc())==NULL){
+		use_embedded_perl=FALSE;
+		snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		return ERROR;
+                }
+
+	perl_construct(perl);
+	exitstatus=perl_parse(perl,xs_init,2,embedding,NULL);
+	if(!exitstatus)
+		exitstatus=perl_run(perl);
+
+#endif
+	return OK;
+        }
+
+
+/* closes embedded perl interpreter */
+int deinit_embedded_perl(void){
+#ifdef EMBEDDEDPERL
+
+	PL_perl_destruct_level=0;
+	perl_destruct(perl);
+	perl_free(perl);
+
+#endif
+	return OK;
+        }
+
+
+/* reinitialized embedded perl interpreter */
+int reinit_embedded_perl(void){
+#ifdef EMBEDDEDPERL
+	char buffer[MAX_INPUT_BUFFER];
+
+	snprintf(buffer,sizeof(buffer),"Re-initializing embedded Perl interpreter after %d uses...\n",embedded_perl_calls);
+	buffer[sizeof(buffer)-1]='\x0';
+	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+
+	deinit_embedded_perl();
+	
+	if(init_embedded_perl()==ERROR){
+		snprintf(buffer,sizeof(buffer),"Error: Could not re-initialize embedded Perl interpreter!\n");
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		return ERROR;
+                }
+
+#endif
+	return OK;
+        }
+
+
+
+/******************************************************************/
 /*********************** CLEANUP FUNCTIONS ************************/
 /******************************************************************/
 
@@ -2694,6 +2832,8 @@ int reset_variables(void){
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
 
 	date_format=DATE_FORMAT_US;
+
+	max_embedded_perl_calls=DEFAULT_MAX_EMBEDDED_PERL_CALLS;
 
 	macro_contact_name=NULL;
 	macro_contact_alias=NULL;

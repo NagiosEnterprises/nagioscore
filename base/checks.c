@@ -66,6 +66,8 @@ extern int      check_service_freshness;
 
 extern time_t   program_start;
 
+extern int      max_embedded_perl_calls;
+
 extern timed_event       *event_list_low;
 
 extern servicedependency *servicedependency_list;
@@ -73,6 +75,10 @@ extern hostdependency    *hostdependency_list;
 
 extern service_message svc_msg;
 
+#ifdef EMBEDDEDPERL
+extern int      use_embedded_perl;
+extern int      embedded_perl_calls;
+#endif
 
 
 /******************************************************************/
@@ -243,11 +249,11 @@ void run_service_check(service *svc){
 		fclose(fp);
 	        }
 
-	isperl=0;
+	isperl=FALSE;
 
 	if(strstr(raw_command,"/bin/perl")!=NULL){
 
-		isperl = 1;
+		isperl = TRUE;
 		args[0] = fname;
 		args[2] = tmpfname;
 
@@ -256,8 +262,15 @@ void run_service_check(service *svc){
 		else
 			args[3]=processed_command+strlen(fname)+1;
 
+		/* reinialize embedded perl if necessary */
+		if(use_embedded_perl==TRUE && max_embedded_perl_calls>0 && embedded_perl_calls>max_embedded_perl_calls)
+			reinit_embedded_perl();
+
+		embedded_perl_calls++;
+
 		/* call our perl interpreter to compile and optionally cache the command */
-		perl_call_argv("Embed::Persistent::eval_file", G_DISCARD | G_EVAL, args);
+		if(use_embedded_perl==TRUE)
+			perl_call_argv("Embed::Persistent::eval_file", G_DISCARD | G_EVAL, args);
 	        }
 #endif
 
@@ -302,7 +315,7 @@ void run_service_check(service *svc){
 
 			/******** BEGIN EMBEDDED PERL INTERPRETER EXECUTION ********/
 #ifdef EMBEDDEDPERL
-			if(isperl){
+			if(isperl==TRUE && use_embedded_perl==TRUE){
 
 				/* generate a temporary filename to which stdout can be redirected. */
 				snprintf(tmpfname,sizeof(tmpfname)-1,"/tmp/embeddedXXXXXX");

@@ -5,7 +5,10 @@ Nagios Change Log
 
 2.0 - ??/??/????
 ----------------
-* Removed older extended info support
+* Added option to reload embedded Perl interpreter after X calls
+  during runtime - useful if you notice embedded Perl leaking memory
+* Removed older object config support
+* Removed older extended info config support
 * CGIs can now determine config file and external command file locations
   from environment variables (Russell Scibetti)
 * Host and services use chained hash for faster lookups (Daniel Drown)

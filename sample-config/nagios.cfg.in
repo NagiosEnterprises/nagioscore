@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 06-30-2002
+# Last Modified: 07-02-2002
 #
 ##############################################################################
 
@@ -622,7 +622,7 @@ date_format=us
 # be used in host names, service descriptions, or names of other
 # object types.
 
-illegal_object_name_chars=`~!@#$%^&*|'"<>?,()=\
+illegal_object_name_chars=`~!@$%^&*|'"<>?,()=
 
 
 
@@ -634,7 +634,7 @@ illegal_object_name_chars=`~!@#$%^&*|'"<>?,()=\
 # The following macros are stripped: 
 # 	$OUTPUT, $PERFDATA
 
-illegal_macro_output_chars=`~!@#$^&*|'"<>?,\
+illegal_macro_output_chars=`~$^&|'"<>
 
 
 

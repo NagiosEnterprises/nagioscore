@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2002
+ * Last Modified:   07-02-2002
  *
  * License:
  *
@@ -2241,12 +2241,12 @@ char *clean_macro_chars(char *macro,int options){
 	if(macro==NULL)
 		return "";
 
-	x=(int)strlen(macro)-1;
+	len=(int)strlen(macro)-1;
 
 	/* strip illegal characters out of macro */
 	if(options & STRIP_ILLEGAL_MACRO_CHARS){
 
-		for(y=0;x>=0;x--){
+		for(y=0,x=0;x<len;x++){
 
 			ch=(int)macro[x];
 

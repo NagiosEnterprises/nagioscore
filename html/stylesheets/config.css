@@ -1,0 +1,25 @@
+<STYLE type="text/css">
+
+	.config { font-family: arial,serif; background-color: white; color: black; }
+
+	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: medium; }
+	.errorDescription { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
+	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: small; }
+
+	.infoBox { font-family: arial,serif; font-size: x-small; background-color: #C4C2C2; padding: 2; }
+	.infoBoxTitle { font-family: arial,serif; font-size: small; font-weight: bold; }
+	.infoBoxBadProcStatus { font-family: arial,serif;  color: red; }
+	A.homepageURL:Hover { font-family: arial,serif; color: red; }
+	
+	.dataTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
+
+	TABLE.data { font-family: arial,serif; font-size: x-small; background-color: white; padding: 2; }
+	TH.data { font-family: arial,serif; font-size: x-small; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
+	.dataOdd { font-family: arial,serif; font-size: x-small; background-color: #DBDBDB; }
+	.dataEven { font-family: arial,serif; font-size: x-small; background-color: #C4C2C2; }
+
+	.reportSelectTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: medium; }
+	.reportSelectSubTitle {font-family: arial,serif;  text-align: left; font-weight: bold; font-size: small; }
+	.reportSelectItem {font-family: arial,serif;  text-align: left; font-size: x-small; }
+
+</STYLE>

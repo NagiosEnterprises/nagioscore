@@ -1,0 +1,162 @@
+###############################
+# Makefile for Nagios CGIs
+#
+# Last Modified: 01-19-2002
+###############################
+
+
+# Source code directories
+SRC_COMMON=../common
+SRC_XDATA=../xdata
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+HTMLDIR=@datadir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+
+CGIEXTRAS=@CGIEXTRAS@
+
+CP=@CP@
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@ -DNSCGI
+#CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCGI
+LDFLAGS=@LDFLAGS@ @LIBS@
+
+CGIS=avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi notifications.cgi outages.cgi showlog.cgi status.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
+
+# External data I/O code and headers
+XSDC=@XSDC@
+XSDH=@XSDH@
+XCDC=@XCDC@
+XCDH=@XCDH@
+XEDC=@XEDC@
+XEDH=@XEDH@
+XODC=@XODC@
+XODH=@XODH@
+XDDC=@XDDC@
+XDDH=@XDDH@
+
+# Object functions
+ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
+ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
+ODATADEPS=$(ODATALIBS)
+
+# Host, service, and program status functions
+SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
+SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
+SDATADEPS=$(SDATALIBS)
+
+# Extended information functions
+EDATALIBS=edata.o $(SRC_XDATA)/$(XEDC)
+EDATAHDRS=edata.h $(SRC_XDATA)/$(XEDC)
+EDATADEPS=$(EDATALIBS)
+
+# Host and service comment functions
+CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
+CDATAHDRS=$(SRC_COMMON)/comments.h $(SRC_XDATA)/$(XCDH)
+CDATADEPS=$(CDATALIBS)
+
+# Host and service downtime functions
+DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
+DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
+DDATADEPS=$(DDATALIBS)
+
+# LIFO functions (log file reversal)
+LIFOLIBS=lifo.o
+LIFOHDRS=lifo.h
+LIFODEPS=$(LIFOLIBS)
+
+# Common CGI functions (includes object and status functions)
+CGILIBS=getcgi.o cgiutils.o auth.o popen.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS)
+CGIHDRS=$(SRC_COMMON)/config.h $(SRC_COMMON)/common.h $(SRC_COMMON)/locations.h popen.h $(ODATAHDRS) $(SDATAHDRS)
+CGIDEPS=$(CGILIBS) $(ODATALIBS) $(SDATALIBS)
+
+
+MATHLIBS=-lm
+GDLIBS=@GDLIBS@
+
+
+all cgis: $(CGIS)
+
+$(CGILIBS): $(CGIHDRS)
+
+$(LIFOLIBS): $(LIFOHDRS)
+
+$(COMMENTLIBS): $(COMMENTHDRS)
+
+avail.cgi: avail.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) avail.c $(CGILIBS) -o $@
+
+checksanity.cgi: checksanity.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS) $(DDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) checksanity.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) $(DDATALIBS) -o $@
+
+cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) cmd.c  $(CGILIBS) $(CDATALIBS) $(DDATALIBS) -o $@
+
+config.cgi: config.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) config.c  $(CGILIBS) -o $@
+
+extinfo.cgi: extinfo.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS) $(DDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) extinfo.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) $(DDATALIBS) -o $@
+
+history.cgi: history.c $(CGIDEPS) $(LIFODEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) history.c $(CGILIBS) $(LIFOLIBS) -o $@
+
+ministatus.cgi: ministatus.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) ministatus.c $(CGILIBS) -o $@
+
+notifications.cgi: notifications.c $(CGIDEPS) $(LIFODEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) notifications.c $(CGILIBS) $(LIFOLIBS) -o $@
+
+outages.cgi: outages.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) outages.c $(CGILIBS) $(CDATALIBS) -o $@
+
+showlog.cgi: showlog.c $(CGIDEPS) $(LIFODEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) showlog.c $(CGILIBS) $(LIFOLIBS) -o $@
+
+status.cgi: status.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) status.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) -o $@
+
+statuswml.cgi: statuswml.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) statuswml.c $(CGILIBS) -o $@
+
+statusmap.cgi: statusmap.c $(CGIDEPS) $(EDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) statusmap.c $(CGILIBS) $(GDLIBS) $(EDATALIBS) -o $@
+
+statuswrl.cgi: statuswrl.c $(CGIDEPS) $(EDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) statuswrl.c $(CGILIBS) $(MATHLIBS) $(EDATALIBS) -o $@
+
+summary.cgi: summary.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) summary.c $(CGILIBS) -o $@
+
+tac.cgi: tac.c $(CGIDEPS) $(CDATADEPS) $(EDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) tac.c $(CGILIBS) $(CDATALIBS) $(EDATALIBS) -o $@
+
+trends.cgi: trends.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) trends.c $(CGILIBS) $(GDLIBS) -o $@
+
+histogram.cgi: histogram.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) histogram.c $(CGILIBS) $(GDLIBS) -o $@
+
+clean:
+	rm -f $(CGIS) *.o *.cfg *.sub core
+	rm -f Makefile cgiutils.h
+	rm -f *~
+
+distclean: clean
+
+devclean: clean
+
+install:
+	strip *.cgi
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CGIDIR)
+	for file in *.cgi; \
+	do $(INSTALL) -m 775 $(INSTALL_OPTS) $$file $(DESTDIR)$(CGIDIR); done
+
+

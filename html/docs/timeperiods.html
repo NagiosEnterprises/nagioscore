@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<HEAD>
+<TITLE>Time Periods</TITLE>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</HEAD>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Time Periods</h2><br>
+or...<br>
+<b>"Is This a Good Time?"</b>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+Time periods allow you to have greater control over when service checks may be run, when host and service notifications may be sent out, and when contacts may receive notifications.  With this newly added power come some potential problems, as I will describe later.  I was initially very hesitant to introduce time periods because of these snafus.  I'll leave it up to you to decide what it right for your particular situation...
+</p>
+
+<p>
+<a name="checks"></a>
+<strong><u>How Time Periods Work With Service Checks</u></strong>
+</p>
+
+<p>
+Without the implementation of time periods, Nagios would monitor all services that you had defined 24 hours a day, 7 days a week.  While this is fine for most services that need monitoring, it doesn't work out so well for others.  For instance, do you really need to monitor printers all the time when they're really only used during normal business hours?  Perhaps you have development servers which you would prefer to have up, but aren't "mission critical" and therefore don't have to be monitored for problems over the weekend.  Time period definitions now allow you to have more control over when such services may be checked...
+</p>
+<p>
+The &lt;<i>check_period</i>&gt; argument of each service definition allows you to specify a time period that tells Nagios when the service can be checked.  When Nagios attempts to reschedule a service check, it will make sure that the next check falls within a valid time range within the defined time period.  If it doesn't, Nagios will adjust the next service check time to coincide with the next "valid" time in the specified time period.  This means that the service may not get checked again for another hour, day, or week, etc.
+</p>
+
+<p>
+<a name="check_problems"></a>
+<strong><u>Potential Problems With Service Checks</u></strong>
+</p>
+
+<p>
+If you use time periods which do not cover a 24x7 range, you <i>will</i> run into problems, especially if a service (or its corresponding host) is down when the check is delayed until the next valid time in the time period.  Here are some of those problems...
+</p>
+<p>
+<ol>
+<li>Contacts will not get re-notified of problems with a service until the next service check can be run.
+<li>If a service recovers during a time that has been excluded from the check period, contacts will not be notified of the recovery.
+<li>The status of the service will appear unchanged (in the status log and CGI) until it can be checked next.
+<li>If all services associated with a particular host are on the same check time period, host problems or recoveries will not be recognized until one of the services can be checked (and therefore notifications may be delayed or not get sent out at all).
+</ol>
+</p>
+</p>
+<p>
+Limiting the service check period to anything other than a 24 hour a day, 7 days a week basis can cause a lot of problems.  Well, not really problems so much as annoyances and inaccuracies...  Unless you have good reason to do so, I would <i>strongly</i> suggest that you set the &lt;<i>check_period</i>&gt; argument of each service definition to a "24x7" type of time period.
+</p>
+
+<p>
+<a name="notifications"></a>
+<strong><u>How Time Periods Work With Contact Notifications</u></strong>
+</p>
+
+<p>
+Probably the best use of time periods is to control when notifications can be sent out to contacts.  By using the &lt;<i>service_notification_period</i>&gt; and &lt;<i>host_notification_period</i>&gt; arguments in contact definitions, you're able to essentially define an "on call" period for each contact.  Note that you can specify different time periods for host and service notifications.  This is helpful if you want host notifications to go out to the contact any day of the week, but only have service notifications get sent to the contact on weekdays.  It should be noted that these two notification periods should cover <i>any time</i> that the contact can be notified.  You can control notification times for specific services and hosts on a one-by-one basis as follows...
+</p>
+<p>
+By setting the &lt;<i>notification_period</i>&gt; argument of the host definition, you can control when Nagios is allowed to send notifications out regarding problems or recoveries for that host.  When a host notification is about to get sent out, Nagios will make sure that the current time is within a valid range in the &lt;<i>notification_period</i>&gt; time period.  If it is a valid time, then Nagios will attempt to notify each contact of the host problem.  Some contacts may not receive the host notification if their &lt;<i>host_notification_period</i>&gt; does not allow for host notifications at that time.  If the time is <i>not</i> valid within the &lt;<i>notification_period</i>&gt; defined for the host, Nagios will not send the notification out to <i>any</i> contacts.
+</p>
+<p>
+You can control notification times for services in a similiar manner to host notification times.
+By setting the &lt;<i>notification_period</i>&gt; argument of the service definition, you can control when Nagios is allowed to send notifications out regarding problems or recoveries for that service.  When a service notification is about to get sent out, Nagios will make sure that the current time is within a valid range in the &lt;<i>notification_period</i>&gt; time period.  If it is a valid time, then Nagios will attempt to notify each contact of the service problem.  Some contacts may not receive the service notification if their &lt;<i>svc_notification_period</i>&gt; does not allow for service notifications at that time.  If the time is <i>not</i> valid within the &lt;<i>notification_period</i>&gt; defined for the service, Nagios will not send the notification out to <i>any</i> contacts.
+</p>
+
+<p>
+<a name="notification_problems"></a>
+<strong><u>Potential Problems With Contact Notifications</u></strong>
+</p>
+
+<p>
+There aren't really any major problems that you'll run into with using time periods to create custom contact notification times.  You do, however, need to be aware that contacts may not always be notified of a service or host problem or recovery.  If the time isn't right for both the host or service notification period and the contact notification period, the notification won't go through.  Once you weigh the potential problems of time-restricted notifications against your needs, you should be able to come up with a configuration that works well for your situation.
+</p>
+
+<p>
+<a name="conclusion"></a>
+<strong><u>Conclusion</u></strong>
+</p>
+
+<p>
+Time periods allow you to have greater control of how Nagios performs its monitoring and notification functions, but can lead to problems.  If you are unsure of what type of time periods to implement, or if you are having problems with your current implementation, I would suggest using "24x7" time periods (where all times are valid for each day of the week).  Feel free to contact me if you have questions or are running into problems.
+</p>
+
+<hr>
+
+</body>
+</html>

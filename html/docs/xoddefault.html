@@ -1,0 +1,896 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Default Object Data Configuration File Options</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Default Object Data Configuration File Options</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><font color='red'>Important:</font></strong> Nagios can be configured to use different object configuration file formats by using arguments to the configure script.  This documentation describes how to configure object definitions if you've compiled Nagios with support for default object data routines (i.e. using the <i>--with-default-objects</i> argument to the configure script).  Please note that this configuration format is provided primarily for backward compatability.  It offers neither the flexibility nor clarity that the <a href="xodtemplate.html">template-based object definitions</a> do.  I would highly suggest that you consider moving to the template-based config file, as it will be the standard in the future.
+</p>
+
+<hr>
+
+<p>
+<strong><u>Notes</u></strong>
+</p>
+<p>
+When creating and/or editing configuration files, keep the following in mind:
+</p>
+<p>
+<ol>
+<li>Lines that start with a '#' character are taken to be comments and are not processed
+<li>Variables names must begin at the start of the line - no white space is allowed before the name
+<li>Variable names are case-sensitive
+</ol>
+</p>
+
+<p>
+<strong><u>Index</u></strong>
+</p>
+<p>
+<a href="#host">Host definitions</a><br>
+<a href="#hostgroup">Host group definitions</a><br>
+<a href="#contact">Contact definitions</a><br>
+<a href="#contactgroup">Contact group definitions</a><br>
+<a href="#command">Command definitions</a><br>
+<a href="#service">Service definitions</a><br>
+<a href="#timeperiod">Time period definitions</a><br>
+<a href="#serviceescalation">Service escalation definitions</a><br>
+<a href="#hostgroupescalation">Hostgroup escalation definitions</a><br>
+<a href="#servicedependency">Service dependency definitions</a><br>
+</p>
+
+<p>
+<a name="host"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>host[&lt;host_name&gt;]=&lt;host_alias&gt;;&lt;address&gt;;&lt;parent_hosts&gt;;&lt;host_check_command&gt;;&lt;max_attempts&gt;;&lt;notification_interval&gt;;&lt;notification_period&gt;;&lt;notify_recovery&gt;;&lt;notify_down&gt;;&lt;notify_unreachable&gt;;&lt;event_handler&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>host[novell1]=Novell Server #1;192.168.0.1;;check-host-alive;3;120;24x7;1;1;1;</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A host definition is used to define a physical server, workstation, device, etc. that resides on your network.
+The different arguments to a host definition are described below.
+</p>
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;host_name&gt;</strong></td>
+<td>
+This is a short name used to identify the host.  It is used in host group and service definitions to reference
+this particular host. Hosts can have multiple services (which are monitored) associated with them.
+When used properly, the $HOSTNAME$ <a href="macros.html">macro</a> will contain this short name.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_alias&gt;</strong></td>
+<td>
+This is a longer name or description used to identify the host.  It is provided in order to allow you to more
+easily identify a particular host.  When used properly, the $HOSTALIAS$ <a href="macros.html">macro</a> will contain this alias/description.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;address&gt;</strong></td>
+<td>
+This is the IP address of the host.  You can use a FQDN to identify the host, but if DNS services
+are not availble this could cause problems. When used properly, the $HOSTADDRESS$ 
+<a href="macros.html">macro</a> will contain this address.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;parent_hosts&gt;</strong></td>
+<td>
+This is a comma-delimited list of short names of the "parent" hosts for this particular host.  Parent hosts are typically routers, switches, firewalls, etc. that lie between the monitoring host and a remote hosts.  A router, switch, etc. which is closest to the remote host is considered to be that host's "parent".  Read the "Determining Status and Reachability of Network Hosts" document located <a href="networkreachability.html">here</a> for more information. If this host is on the same network segment as the host doing the monitoring (without any intermediate routers, etc.) the host is considered to be on the local network and will not have a parent host.  Leave this value blank if the host does not have a parent host (i.e. it is on the same segment as the Nagios host).   The order in which you specify parent hosts has no effect on how things are monitored.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_check_command&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#command">command</a> that should be used to check if the host is up or down.  Typically, this command would try and ping the host to see if it is "alive".  The command must return a status of OK (0) or Nagios will assume the host is down.  If you leave this argument blank, the host will not be checked - Nagios will always assume the host is up.  This is useful if you are monitoring printers or other devices that are frequently turned off.  The maximum amount of time that the notification command can run is controlled by the <a href="configmain.html#host_check_timeout">host_check_timeout</a> option.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;max_attempts&gt;</strong></td>
+<td>
+This is the number of times that Nagios will retry the host check command if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert without retrying the host check again.  Note: If you do not want to check the status of the host, you must still set this to a minimum value of 1.  To bypass the host check, just leave the <b>&lt;host_check_command&gt;</b> option blank.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_interval&gt;</strong></td>
+<td>
+This is the number of "time units" to wait before re-notifying a contact that this server is <i>still</i> down or unreachable.  Unless you've changed the <b>interval_length</b> value in the <a href="configmain.html">main configuration file</a> from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this host - only one problem notification will be sent out.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_period&gt;</strong></td>
+<td>
+This is the short name of the <a href="#timeperiod">time period</a> during which notifications of events for this host can be sent out to contacts.  If a host goes down, becomes unreachable, or recoveries during a time which is not covered by the time period, no notifications will be sent out.  Read the "Time Periods" document located <a href="timeperiods.html">here</a> for more information.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notify_recovery&gt;</strong></td>
+<td>
+This value determines whether or not notifications should be sent to any contacts if the host is in a
+RECOVERY state.  Set this value to
+<b>1</b> if notifications should be sent out about recovery states, <b>0</b> if they <i>shouldn't</i>.
+Note: If a <a href="#contact">contact</a> is configured to not receive notifications of host recoveries, they
+will not be notified, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notify_down&gt;</strong></td>
+<td>
+This value determines whether or not notifications should be sent to any contacts if the host is in a
+DOWN state.  Set this value to
+<b>1</b> if notifications should be sent out when the host goes down, <b>0</b> if they <i>shouldn't</i>.
+Note: If a <a href="#contact">contact</a> is configured to not receive notifications about hosts that go down, they
+will not be notified, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notify_unreachable&gt;</strong></td>
+<td>
+This value determines whether or not notifications should be sent to any contacts if the host is in an
+UNREACHABLE state.  Set this value to
+<b>1</b> if notifications should be sent out when the host becomes unreachable, <b>0</b> if they <i>shouldn't</i>.
+Note: If a <a href="#contact">contact</a> is configured to not receive notifications about unreachable hosts, they
+will not be notified, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;event_handler&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#command">command</a> that should be run whenever a change
+in the state of the host is detected (i.e. whenever it goes down or recovers).  Read the documentation on
+<a href="eventhandlers.html">event handlers</a> for a more detailed explanation of how to write scripts for
+handling events.  If you do not wish to define an event handler for the host, leave this option blank
+(as shown in the example above).  The maximum amount of time that the event handler command can run is controlled by the <a href="configmain.html#event_handler_timeout">event_handler_timeout</a> option.
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+<a name="hostgroup"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Group Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>hostgroup[&lt;group_name&gt;]=&lt;group_alias&gt;;&lt;contact_groups&gt;;&lt;hosts&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>hostgroup[nt-servers]=All NT Servers;nt-admins;nt1,nt2,nt3</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A host group definition is used to group one or more hosts together for the purposes of simplifying notifications.
+Each host that you define must be a member of at least one host group - even if it is the only host in that group.
+Hosts can be in more than one host group.  When a host goes down, becomes unreachable, or recovers, Nagios will find which
+host group(s) the host is a member of, get the <a href="#contactgroup">contact group</a> for each of those hostgroups, and notify all <a href="#contact">contacts</a> associated with those contact groups.  This may sound complex, but for most people it doesn't have to be.  It does,  however, allow for flexibility in determining who gets paged for what kind of problems.  The different arguments to
+a host group definition are outlined below.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;group_name&gt;</strong></td>
+<td>
+This is a short name used to identify the host group.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;group_alias&gt;</strong></td>
+<td>
+This is a longer name or description used to identify the host group.  It is provided in order to allow you to more
+easily identify a particular host group.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;contact_groups&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of the <a href="#contactgroup">contact groups</a> that should be notified whenever
+there are problems (or recoveries) with any of the hosts in this host group.  Multiple contact groups should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;hosts&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of <a href="#host">hosts</a> that should be included in this group.   Multiple host names should be separated by commas.
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+<a name="contact"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Contact Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>contact[&lt;contact_name&gt;]=&lt;contact_alias&gt;;&lt;svc_notification_period&gt;;&lt;host_notification_period&gt;;&lt;svc_notify_recovery&gt;;&lt;svc_notify_critical&gt;;&lt;svc_notify_warning&gt;;lt;host_notify_recovery&gt;;&lt;host_notify_down&gt;;&lt;host_notify_unreachable&gt;;&lt;service_notify_commands&gt;;&lt;host_notify_commands&gt;;&lt;email_address&gt;;&lt;pager&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>contact[nagiosadmin]=Nagios Administrator;24x7;24x7;1;1;1;1;1;1;notify-by-email,notify-by-epager;host-notify-by-epager;nagiosadmin@localhost.localdomain;pageadmin@localhost.localdomain</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A contact definition is used to identify someone who should be contacted in the event of a problem on your network.
+The different arguments to a contact definition are described below.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;contact_name&gt;</strong></td>
+<td>
+This is the short name used to identify the contact.  It is referenced in <a href="#contactgroup">contact group</a> 
+definitions.  Under the right circumstances, the $CONTACTNAME$ <a href="macros.html">macro</a> will contain this
+value.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;contact_alias&gt;</strong></td>
+<td>
+This is a longer name or description for the contact.  Under the rights circumstances, the $CONTACTALIAS$ 
+<a href="macros.html">macro</a> will contain this value.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;svc_notification_period&gt;</strong></td>
+<td>
+This is the short name of the <a href="#timeperiod">time period</a> during which the contact can be notified about service problems or recoveries.  You can think of this as an "on call" time for service notifications for the contact.  Read the "Time Periods" document located <a href="timeperiods.html">here</a> for more information on how this works and potential problems that may result from improper use.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_notification_period&gt;</strong></td>
+<td>
+This is the short name of the <a href="#timeperiod">time period</a> during which the contact can be notified about host problems or recoveries.  You can think of this as an "on call" time for host notifications for the contact.  Read the "Time Periods" document located <a href="timeperiods.html">here</a> for more information on how this works and potential problems that may result from improper use.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;svc_notify_recovery&gt;</strong></td>
+<td>
+This value determines whether or not the contact will be notified of service recoveries.  Set this value to
+<b>1</b> if the contact should be notified, <b>0</b> if they shouldn't.  Note: If a <a href="#service">service</a> is configured to not send out notifications upon recovery, contacts will not be notified about recoveries for that service, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;svc_notify_critical&gt;</strong></td>
+<td>
+This value determines whether or not the contact will be notified if a service is in a critical state.  Set this value to <b>1</b> if the contact should be notified of critical states, <b>0</b> if they shouldn't.
+Note: If a <a href="#service">service</a> is configured to not send out notifications for critical states, contacts will not be notified about critical states for that service, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;svc_notify_warning&gt;</strong></td>
+<td>
+This value determines whether or not the contact will be notified if a service is in either a warning or an unknown state.  Set this value to <b>1</b> if the contact should be notified of warning/unknown states, <b>0</b> if they shouldn't. Note: If a <a href="#service">service</a> is configured to not send out notifications for warning/unknown states, contacts will not be notified about warning/unknown states for that service, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_notify_recovery&gt;</strong></td>
+<td>
+This value determines whether or not the contact will be notified if any host recovers.  Set this value to <b>1</b> if the contact should be notified of hosts that recover, <b>0</b> if they shouldn't. Note: If a <a href="#host">host</a> is configured to not send out notifications for recoveries, contacts will not be notified when the host recovers, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_notify_down&gt;</strong></td>
+<td>
+This value determines whether or not the contact will be notified if any host goes down.  Set this value to <b>1</b> if the contact should be notified of hosts that go down, <b>0</b> if they shouldn't. Note: If a <a href="#host">host</a> is configured to not send out notifications for down states, contacts will not be notified when the host goes down, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_notify_unreachable&gt;</strong></td>
+<td>
+This value determines whether or not the contact will be notified if any host becomes unreachable.  Set this value to <b>1</b> if the contact should be notified of hosts that become unreachable, <b>0</b> if they shouldn't. Note: If a <a href="#host">host</a> is configured to not send out notifications for unreachable states, contacts will not be notified when the host becomes unreachable, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;service_notify_commands&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of the <a href="#command">commands</a> used to notify the contact
+of a <i>service</i> problem or recovery.  Multiple notification commands should be separated by commas.  All
+notification commands are executed when the contact needs to be notified.  The maximum amount of time that a notification command can run is controlled by the <a href="configmain.html#notification_timeout">notification_timeout</a> option.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host_notify_commands&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of the <a href="#command">commands</a> used to notify the contact
+of a <i>host</i> problem or recovery.  Multiple notification commands should be separated by commas.  All
+notification commands are executed when the contact needs to be notified.  The maximum amount of time that a notification command can run is controlled by the <a href="configmain.html#notification_timeout">notification_timeout</a> option.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;email_address&gt;</strong></td>
+<td>
+This is the email address for the contact.  Depending on how you configure your notification commands, it
+can be used to send out an alert email to the contact.  Under the right circumstances, the $CONTACTEMAIL$
+<a href="macros.html">macro</a> will contain this value.
+fs</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;pager&gt;</strong></td>
+<td>
+This is the pager number for the contact.  It can also be an email address to a pager gateway 
+(i.e. pagejoe@pagenet.com).  Depending on how you configure your notification commands, it
+can be used to send out an alert page to the contact.  Under the right circumstances, the $CONTACTPAGER$
+<a href="macros.html">macro</a> will contact this value.
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+<a name="contactgroup"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Contact Group Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>contactgroup[&lt;group_name&gt;]=&lt;group_alias&gt;;&lt;contacts&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>contactgroup[nt-admins]=NT Administrators;bbarker,jdoe</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A contact group definition is used to group one or more contacts together for the purpose of sending out alert/recovery notifications.  When a host or service has a problem or recovers, Nagios will find the appropriate contact groups to send notifications to, and notify all <a href="#contact">contacts</a> in those contact groups.  This may sound complex, but for most people it doesn't have to be.  It does, however, allow for flexibility in determining who gets notified for particular events.  The different arguments to a contact group definition are outlined below.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;group_name&gt;</strong></td>
+<td>
+This is a short name used to identify the contact group.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;group_alias&gt;</strong></td>
+<td>
+This is a longer name or description used to identify the contact group.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;contacts&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of <a href="#contact">contacts </a> that should be included
+in this group.   Multiple contact names should be separated by commas.
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+<a name="command"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Command Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>command[&lt;command_name&gt;]=&lt;command_line&gt;</strong></td>
+</tr>
+<tr>
+<td nowrap>Example 1:</td>
+<td><font color="red"><strong>command[check-host-alive]=/usr/local/nagios/libexec/check_ping -H $HOSTADDRESS$ -w 1000.0,80% -c 2000.0,100%</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 2:</td>
+<td><font color="red"><strong>command[check_pop]=/usr/local/nagios/libexec/check_pop -H $HOSTADDRESS$</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 3:</td>
+<td><font color="red"><strong>command[check_local_disk]=/usr/local/nagios/libexec/check_disk -w 20% -c 10% -p $ARG1$</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A command definition is just that.  It defines a command.  Commands that can be defined include service checks, service notifications, service event handlers, host checks, host notifications, and host event handlers.  Command definitions can contain <a href="macros.html">macros</a>, but you must make sure that you include only those macros that are "valid" for the circumstances when the command will be used.  More information on what macros are available and when they are "valid" can be found <a href="macros.html">here</a>. The different arguments to a command definition are outlined below.
+</p>
+
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;command_name&gt;</strong></td>
+<td>
+This is a short name used to identify the command.  It is referenced in <a href="#contact">contact</a>, <a href="#host">host</a>, and <a href="#service">service</a> definitions.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;command_line&gt;</strong></td>
+<td>
+This is what is actually executed by Nagios when the command is used for service or host checks, notifications, or <a href="eventhandlers.html">event handlers</a>. Before the command line is executed, all valid <a href="macros.html">macros</a> are replaced with their respective values.  See the documentation on macros for determining when you can use different macros. Note that the command line is <i>not</i> surrounded in quotes.
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+<a name="service"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>service[&lt;host&gt;]=&lt;description&gt;;&lt;volatile&gt;;&lt;check_period&gt;;&lt;max_attempts&gt;;&lt;check_interval&gt;;&lt;retry_interval&gt;;&lt;contactgroups&gt;;&lt;notification_interval&gt;;&lt;notification_period&gt;;&lt;notify_recovery&gt;;&lt;notify_critical&gt;;&lt;notify_warning&gt;;&lt;event_handler&gt;;&lt;check_command&gt;</strong></td></tr>
+<tr>
+<td nowrap>Example 1:</td>
+<td><font color="red"><strong>service[nt1]=FTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_ftp</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 2:</td>
+<td><font color="red"><strong>service[nt1]=HTTP;0;24x7;3;5;1;nt-admins;240;24x7;1;1;1;;check_http2!192.168.0.2!/!88</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 3:</td>
+<td><font color="red"><strong>service[linux1]=Zombie Processes;0;24x7;3;5;1;linux-admins;240;24x7;1;1;1;;check_procs!5!10!Z</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A service definition is used to identify a "service" that runs on a host.  The term "service" is used very loosely.  It can mean an actual service that runs on the host (POP, SMTP, HTTP, etc.) or some other type of metric associated with the host (response to a ping, number of logged in users, free disk space, etc.).  The different arguments to a service definition are outlined below.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;host&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#host">host</a> that the service "runs" on or is associated with.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;description&gt;</strong></td>
+<td>
+A description of the service, which may contain spaces, dashes, and colons (semicolons, apostrophes, and quotation marks should be avoided).  No two services associated with the same host can have the same description.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;volatile&gt;</strong></td>
+<td>
+This field is used to denote whether the service is "volatile".  Services are normally <i>not</i> volatile.  More information on volatile service and how they differ from normal services can be found <a href="volatileservices.html">here</a>.  Set this field to <b>1</b> to mark the service as being volatile, <b>0</b> to mark it as a normal service.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;check_period&gt;</strong></td>
+<td>
+This is the short name of the <a href="#timeperiod">time period</a> that identifies when this service can be checked.  Services checks are scheduled in such a way that they are only checked (or rechecked) during times that are valid within the specified service check time period.  See the "Time Periods" documentation located <a href="timeperiods.html">here</a> for more information on how time periods works and potentials problems with using them improperly.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;max_attempts&gt;</strong></td>
+<td>
+This is the number of times that Nagios will retry the service check if it returns any state other than an OK state.  Setting this value to 1 will cause Nagios to generate an alert (if the service check detected a problem) without retrying the service check again.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;check_interval&gt;</strong></td>
+<td>
+This is the number of "time units" to wait before scheduling the next "regular" check of the service.  "Regular" checks
+are those that occur when the service is in an OK state or when the service is in a non-OK state, but has already been rechecked <b>max_attempts</b> number of times.  Unless you've changed the <b>interval_length</b> value in the <a href="configmain.html">main configuration file</a> from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;retry_interval&gt;</strong></td>
+<td>
+This is the number of "time units" to wait before scheduling a re-check of the service.  Services are rescheduled at the retry interval when the have changed to a non-OK state.  Once the service has been retried <b>max_attempts</b> times without a change in its status, it will revert to being scheduled at its "normal" rate as defined by the <b>check_interval</b> value. Unless you've changed the <b>interval_length</b> value in the <a href="configmain.html">main configuration file</a> from the default value of 60, this number will mean minutes.  More information on this value can be found in the <a href="checkscheduling.html">check scheduling</a> documentation.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;contactgroups&gt;</strong></td>
+<td>
+This is a comma-delimited list of the short names of <a href="#contactgroup">contact groups</a> that should be notified about problems or recoveries for this service.  If a problem or recovery occurs for this service, Nagios will attempt to notify all the contacts in each contact group (depending on the notification options that are set below).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_interval&gt;</strong></td>
+<td>
+This is the number of "time units" to wait before re-notifying a contact that this service is <i>still</i> at a non-OK state.  Unless you've changed the <b>interval_length</b> value in the <a href="configmain.html">main configuration file</a> from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this service - only one problem notification will be sent out.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_period&gt;</strong></td>
+<td>
+This is the short name of the <a href="#timeperiod">time period</a> that identifies when notifications about problems or recoveries for this service may be sent out.  If a service problem or recovery occurs outside valid times within this time period, notifications will not be sent out.  See the "Time Periods" documentation located <a href="timeperiods.html">here</a> for more information on how time periods works and potentials problems with using them improperly.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notify_recovery&gt;</strong></td>
+<td>
+This value determines whether or not alert notifications will be generated if the service recovers from a non-OK state.  Set this value to <b>1</b> if the service should generate alerts for recoveries, <b>0</b> if it shouldn't.
+Note: If a <a href="#contact">contact</a> is configured to not receive recovery notifications, they will not be notified of any recoveries for this service, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notify_critical&gt;</strong></td>
+<td>
+This value determines whether or not alert notifications will be generated if the service is in a 
+CRITICAL state.  Set this value to <b>1</b> if the service should generate alerts for critical states, <b>0</b> if it shouldn't.  Note: If a <a href="#contact">contact</a> is configured to not receive critical notifications, they will not be notified of any critical states for this service, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notify_warning&gt;</strong></td>
+<td>
+This value determines whether or not alert notifications will be generated if the service is in a WARNING or UNKNOWN state.  Set this value to <b>1</b> if the service should generate alerts for warning/unknown states, <b>0</b> if it shouldn't.  Note: If a <a href="#contact">contact</a> is configured to not receive warning/unknown notifications, they will not be notified of any warning/unknown states for this service, regardless of this setting.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;event_handler&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#command">command</a> that should be run whenever a change in the status of the services is detected (i.e. whenever it goes down or recovers).  Read the documentation on <a href="eventhandlers.html">event handlers</a> for a more detailed explanation of how to write scripts for handling events.  If you do not wish to define an event handler for the service, leave this option blank (as shown in the examples above).  The maximum amount of time that the event handler command can run is controlled by the <a href="configmain.html#event_handler_timeout">event_handler_timeout</a> option.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;check_command&gt;</strong></td>
+<td>
+<p>
+This is the command that Nagios will run in order to check the status of the service.  There are three command formats that can be used:
+</p>
+<p>
+<table border="0">
+<tr>
+<td valign="top"><strong>1. "Vanilla" Command:</strong></td>
+<td>
+The command name is just the name of <a href="#command">command</a> that was previously defined.  Example 1 above shows this type of command.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>2. Command w/ Arguments:</strong></td>
+<td>
+This is basically the same as the "vanilla" command style, but with command options separated by a <b>!</b> character.  Example 2 above shows this type of command.  Arguments are separated from the command name (and other arguments) with the <b>!</b> character.  The command should be defined to make use of the $ARGx$ <a href="macros.html">macros</a>. In Example 2 above, $ARG1$ would resolve to <b>192.168.0.2</b>, $ARG2$ would resolve to <b>/</b>, and $ARG3$ would resolve to <b>88</b> for that particular service.  Note: Nagios will handle a maximum of sixteen command line arguments ($ARG1$ through $ARG16$).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>3. "Raw" Command Line:</strong></td>
+<td>
+You may optionally specify an actual command line to be executed.  To do so you must enclose the entire command line in double quotes.  The outer double quotes will be stripped off before the command is actually executed.  No macros are processed inside of raw command lines.
+</td>
+</tr>
+</table>
+The maximum amount of time that the service check command can run is controlled by the <a href="configmain.html#service_check_timeout">service_check_timeout</a> option.</p>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+<a name="timeperiod"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Time Period Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>timeperiod[&lt;timeperiod_name&gt;]=&lt;timeperiod_alias&gt;;&lt;sunday_ranges&gt;;&lt;monday_ranges&gt;;&lt;tuesday_ranges&gt;;&lt;wenesday_ranges&gt;;&lt;thursday_ranges&gt;;&lt;friday_ranges&gt;;&lt;saturday_ranges&gt;;</strong></td></tr>
+<tr>
+<td nowrap>Example 1:</td>
+<td><font color="red"><strong>timeperiod[24x7]=All Day, Every Day;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 2:</td>
+<td><font color="red"><strong>timeperiod[workhours]="Normal" Working Hours;;09:00-17:00;09:00-17:00;09:00-17:00;09:00-17:00;09:00-17:00;</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 3:</td>
+<td><font color="red"><strong>timeperiod[none]=No Time Is A Good Time;;;;;;;</strong></font></td>
+</tr>
+<tr>
+<td nowrap>Example 4:</td>
+<td><font color="red"><strong>timeperiod[nonworkhours]=Non-Work Hours;00:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-24:00</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+A time period is a list of times during various days that are considered to be "valid" times for notifications and service checks. It consists one or more time periods for each day of the week that "rotate" once the week has come to an end.  Exceptions to the normal weekly time range rotations are not suported.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;timeperiod_name&gt;</strong></td>
+<td>
+This is a short name used to identify the time period.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;timeperiod_alias&gt;</strong></td>
+<td>
+This is a longer name or description used to identify the time period.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;xday_ranges&gt;</strong></td>
+<td>
+This is a comma-delimited list of time ranges that are "valid" times for a particular day of the week.  Notice that there are seven different days for which you must define time ranges (Sunday through Saturday).  Each time range is in the form of <b>HH:MM-HH:MM</b>, where hours are specified on a 24 hour clock.  For example, <b>00:15-24:00</b> means 12:15am in the morning for this day until 12:20am midnight (a 23 hour, 45 minute total time range).  If you leave a particular day's time range blank, it means that there are no "valid" times for that day.
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<a name="serviceescalation"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Escalation Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>serviceescalation[&lt;host&gt;;&lt;description&gt;]=&lt;first_notification&gt;-&lt;last_notificiation&gt;;&lt;contact_groups&gt;;&lt;notification_interval&gt;</strong></td>
+</tr>
+<tr>
+<td>Examples:</td>
+<td>
+<font color="red"><strong>serviceescalation[linux1;Zombie Processes]=3-5;linux-admins,managers;0</strong></font><br>
+<font color="red"><strong>serviceescalation[nt1;HTTP]=6-0;nt-admins,managers,everyone;30</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+A service escalation definition is <i>completely optional</i> and is used to escalate notifications for a particular <a href="#service">service</a>.  More information on how notification escalations work can be found <a href="escalations.html">here</a>.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;host&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#host">host</a> that the service "runs" on or is associated with.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;description&gt;</strong></td>
+<td>
+A description of the service, which may contain spaces, dashes, and colons (semicolons, parentheses, and apostrophes  are not allowed).  No two services associated with the same host can have the same description.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;first_notification&gt;</strong></td>
+<td>
+This is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if the service is in a non-OK state long enough for a third escalation to go out.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;last_notification&gt;</strong></td>
+<td>
+This is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for the specified service.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;contact_groups&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of the <a href="#contactgroup">contact groups</a> that should be notified when a service notification is escalated.  Multiple contact groups should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_interval&gt;</strong></td>
+<td>
+The interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the service recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a service overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<a name="hostgroupescalation"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Host Group Escalation Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>hostgroupescalation[&lt;group_name&gt;]=&lt;first_notification&gt;-&lt;last_notificiation&gt;;&lt;contact_groups&gt;;&lt;notification_interval&gt;</strong></td>
+</tr>
+<tr>
+<td>Examples:</td>
+<td>
+<font color="red"><strong>hostgroupescalation[nt-servers]=3-5;nt-admins,managers;0</strong></font><br>
+<font color="red"><strong>hostgroupescalation[nt-servers]=6-0;nt-admins,managers,everyone;60</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+A host group escalation definition is <i>completely optional</i> and is used to escalate notifications for hosts in a particular hostgroup.  More information on how notification escalations work can be found <a href="escalations.html">here</a>.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;group_name&gt;</strong></td>
+<td>
+This is a short name used to identify the host group (as previously defined in a <a href="#hostgroup">hostgroup definition</a>) that the escalation should apply to.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;first_notification&gt;</strong></td>
+<td>
+This is a number that identifies the <i>first</i> notification for which this escalation is effective.  For instance, if you set this value to 3, this escalation will only be used if a host in the hostgroup is down or unreachable long enough for a third escalation to go out.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;last_notification&gt;</strong></td>
+<td>
+This is a number that identifies the <i>last</i> notification for which this escalation is effective.  For instance, if you set this value to 5, this escalation will not be used if more than five notifications are sent out for any particular host in the specified hostgroup.  Setting this value to 0 means to keep using this escalation entry forever (no matter how many notifications go out).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;contact_groups&gt;</strong></td>
+<td>
+This is a list of the <i>short names</i> of the <a href="#contactgroup">contact groups</a> that should be notified when a host notification is escalated.  Multiple contact groups should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_interval&gt;</strong></td>
+<td>
+The interval at which notifications should be made while this escalation is valid.  If you specify a value of 0 for the interval, Nagios will send the first notification when this escalation definition is valid, but will then prevent any more problem notifications from being sent out for the host.  Notifications are sent out again until the host recovers.  This is useful if you want to stop having notifications sent out after a certain amount of time.  Note:  If multiple escalation entries for a hostgroup overlap for one or more notification ranges, the smallest notification interval from all escalation entries is used.
+</td>
+</tr>
+</table>
+</p>
+
+
+
+<p>
+<a name="servicedependency"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Service Dependency Definition</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td>Format:</td><td><strong>servicedepency[&lt;dependent_host&gt;;&lt;dependent_description&gt;]=&lt;host&gt;;&lt;description&gt;;&lt;execution_failure_options&gt;;&lt;notification_failure_options&gt;</strong></td>
+</tr>
+<tr>
+<td>Examples:</td>
+<td>
+<font color="red"><strong>servicedependency[nt1;WWW1 Website]=nt1;HTTP;;wc</strong></font><br>
+<font color="red"><strong>servicedependency[nt1;WWW2 Website]=nt1;HTTP;wcu;wcu</strong></font><br>
+<font color="red"><strong>servicedependency[nt1;WWW2 Website]=nt2;SQL Server;c;</strong></font><br>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+Service dependency definitions are <i>completely optional</i>.  They are used to control both the <i>execution of services</i> and <i>notifications for services</i> based on the status of other services that are being monitored.  Service dependencies are mainly targeted at advanced users who have complicated monitoring setups.  More information on how service dependencies work (read this!) can be found <a href="dependencies.html">here</a>.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;dependent_host&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#host">host</a> that the <i>dependent</i> service "runs" on or is associated with.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;dependent_description&gt;</strong></td>
+<td>
+This is the <i>description</i> of the <i>dependent</i> <a href="#service">service</a>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;host&gt;</strong></td>
+<td>
+This is the <i>short name</i> of the <a href="#host">host</a> that the service <i>we are depending on</i> "runs" on or is associated with.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;description&gt;</strong></td>
+<td>
+This is the <i>description</i> of the <a href="#service">service</a> <i>we are depending on</i>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;execution_failure_options&gt;</strong></td>
+<td>
+These options are used to define situations where the dependent service should <i>not</i> be executed.  If the service <i>we are depending on</i> is in one of the failure states we specify, the <i>dependent</i> service will not be executed.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  Example: If you specify <b>ocu</b> in this field, the dependency will fail if the service <i>we're depending on</i> is in either an OK, a CRITICAL, or an UNKNOWN state and the <i>dependent</i> service will not be executed.  You do not have to specify any failure options in this field.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notification_failure_options&gt;</strong></td>
+<td>
+These options are used to define situations where notifications for the dependent service should <i>not</i> be sent out.  If the service <i>we are depending on</i> is in one of the failure states we specify, notifications for the <i>dependent</i> service will not be sent to contacts.  Valid options are a combination of one or more of the following: <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, and <b>c</b> = fail on a CRITICAL state.  Example: If you specify <b>w</b> in this field, the dependency will fail if the service <i>we're depending on</i> is in a WARNING state and notifications for the <i>dependent</i> service will not be sent out.  You do not have to specify any failure options in this field.
+</td>
+</tr>
+</table>
+</p>
+
+
+<hr>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# OBSESSIVE_SVC_HANDLER
+# Written by Ethan Galstad (nagios@nagils.org)
+# Last Modified: 07-19-2001
+#
+# This script is intended to run as the OCSP command
+# on a distributed monitoring server.  The script calls
+# submit_check_result_via_nsca to send the service check
+# results to the central monitoring server.
+#
+# Arguments:
+#  $1 = host_name (Short name of host that the service is
+#       associated with)
+#  $2 = svc_description (Description of the service)
+#  $3 = state_string (A string representing the status of
+#       the given service - "OK", "WARNING", "CRITICAL"
+#       or "UNKNOWN")
+#  $4 = plugin_output (A text string that should be used
+#       as the plugin output for the service checks)
+#
+
+# Location of the submit_check_result_via_nsca script
+SubmitCmd="/usr/local/nagios/libexec/eventhandlers/submit_check_result_via_nsca"
+
+# Convert the state string to the corresponding return code
+return_code=-1
+
+case "$3" in
+	OK)
+		return_code=0
+		;;
+	WARNING)
+		return_code=1
+		;;
+	CRITICAL)
+		return_code=2
+		;;
+	UNKNOWN)
+		return_code=3
+		;;
+esac
+
+# Send the service check results to the central monitoring server
+$SubmitCmd "$1" "$2" $return_code "$4"
+

@@ -1,0 +1,336 @@
+<html>
+<head>
+<title>Authentication And Authorization In The CGIs</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Authentication And Authorization In The CGIs</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Notes</u></strong>
+</p>
+<p>
+Throughout these instructions I will be assuming that you are running the <a href="http://www.apache.org">Apache</a> web server on your machine.  If you are running some other web server, you will have to make some adjustments.
+</p>
+
+<p>
+<a name="definitions"></a>
+<strong><u>Definitions</u></strong>
+</p>
+<p>
+Throughout these instructions I will be using the following terms, so you should understand what they mean...
+</p>
+<p>
+<ul>
+<li>An <i>authenticated user</i> is an someone who has authenticated to the web server with a username and password and has been granted access to the CGIs by the web server
+<li>An <i>authenticated contact</i> is an authenticated user whose username matches the short name of a contact definition in your <a href="configobject.html">object configuration file(s)</a>.
+</ul>
+</p>
+
+<p>
+<strong><u>Index</u></strong>
+</p>
+<p>
+<a href="#config_web_server">Configuring web server authentication</a><br>
+<a href="#config_web_users">Setting up authenticated users</a><br>
+<a href="#enable_cgi_auth">Enabling authentication/authorization functionality in the CGIs</a><br>
+<a href="#default_rights">Default permissions to CGI information</a><br>
+<a href="#additional_rights">Granting additional permissions to CGI information</a><br>
+<a href="#secure_web_servers">Authentication on secure web servers</a><br>
+</p>
+
+<p>
+<a name="config_web_server"></a>
+<strong><u>Configuring Web Server Authentication</u></strong>
+</p>
+
+<p>
+The first step to configuring your web server for authentication is to make sure the web server configuration file (i.e. <b>httpd.conf</b>) file contains an '<b>AuthOverride AuthConfig</b>' statement in it for the Nagios CGI-BIN directory.  If it doesn't, you'll have to add something similiar to the following to your web server configuration file.  Note that you will have to restart the web server in order for this change to take effect.
+</p>
+
+<p>
+<font color="red"><strong>
+<pre>
+&lt;Directory /usr/local/nagios/sbin&gt;
+AllowOverride AuthConfig
+order allow,deny
+allow from all
+Options ExecCGI
+&lt;/Directory&gt;
+</pre>
+</strong></font>
+</p>
+
+<p>
+If you also want to require authentication for access the HTML pages for Nagios, add something similiar to the following in the web server configuration file as well.
+</p>
+
+<p>
+<font color="red"><strong>
+<pre>
+&lt;Directory /usr/local/nagios/share&gt;
+AllowOverride AuthConfig
+order allow,deny
+allow from all
+&lt;/Directory&gt;
+</pre>
+</strong></font>
+</p>
+
+<p>
+The second step is to create a file named <b>.htaccess</b> in the root your CGI directory (and optionally also you HTML directory) for Nagios (usually /usr/local/nagios/sbin and /usr/local/nagios/share, respectively).  The file(s) should have contents similiar to the following...
+</p>
+
+<p>
+<font color="red"><strong>
+<pre>
+AuthName "Nagios Access"
+AuthType Basic
+AuthUserFile /usr/local/nagios/etc/htpasswd.users
+require valid-user
+</pre>
+</strong></font>
+</p>
+
+
+<p>
+<a name="config_web_users"></a>
+<strong><u>Setting Up Authenticated Users</u></strong>
+</p>
+
+<p>
+Now that you've configured the web server to require authentication for access to the CGIs, you'll need to configure users who can acess the CGIs. This is done by using the <b>htpasswd</b> command supplied with Apache.
+</p>
+<p>
+Running the following command will create a new file called <i>htpasswd.users</i> in the <i>/usr/local/nagios/etc</i> directory. It will also create an username/password entry for <i>nagiosadmin</i>.  You will be asked to provide a password that will be used when <i>nagiosadmin</i> authenticates to the web server.
+</p>
+
+<p>
+<font color="red"><strong>htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin</strong></font>
+</p>
+
+<p>
+Continue adding more users until you've created an account for everyone you want to access the CGIs.  Use the following command to add additional users, replacing &lt;username&gt; with the actual username you want to add.  Note that the <b>-c</b> option is not used, since you already created the initial file.
+</p>
+
+<p>
+<font color="red"><strong>htpasswd /usr/local/nagios/etc/htpasswd.users &lt;username&gt;</strong></font>
+</p>
+
+<p>
+Okay, so you're done with the first part of what needs to be done.  If you point your web browser to your Nagios CGIs you should be asked for a username and password. If you have problems getting user authentication to work at this point, read your webserver documentation for more info.
+</p>
+
+
+<p>
+<a name="enable_cgi_auth"></a>
+<strong><u>Enabling Authentication/Authorization Functionality In The CGIs</u></strong>
+</p>
+
+<p>
+The next thing you need to do is make sure that the CGIs are configured to use the authentication and authorization functionality in determining what information and/or commands users have access to.  This is done be setting the <a href="configcgi.html#use_authentication">use_authentication</a> variable in the <a href="configcgi.html">CGI configuration file</a> to a non-zero value.  Example:
+</p>
+
+<p>
+<font color="red"><strong>use_authentication=1</strong></font>
+</p>
+
+<p>
+Okay, you're now done with setting up basic authentication/authorization functionality in the CGIs.
+</p>
+
+
+<p>
+<a name="default_rights"></a>
+<strong><u>Default Permissions To CGI Information</u></strong>
+</p>
+
+<p>
+So what default permissions do users have in the CGIs by default when the authentication/authorization functionality is enabled?
+</p>
+
+<p>
+<table border=1>
+<tr bgcolor="#cbcbcb">
+<td>CGI Data</td>
+<td>Authenticated Contacts<sup><a href="#definitions">*</a></sup></td>
+<td>Other Authenticated Users<sup><a href="#definitions">*</a></sup></td>
+</tr>
+<tr>
+<td>Host Status Information</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Host Configuration Information</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Host History</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Host Notifications</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Host Commands</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Service Status Information</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Service Configuration Information</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Service History</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Service Notifications</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Service Commands</td>
+<td bgcolor="#00FF00">Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>All Configuration Information</td>
+<td>No</td></td>
+<td>No</td>
+</tr>
+<tr>
+<td>System/Process Information</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>System/Process Commands</td>
+<td>No</td>
+<td>No</td>
+</tr>
+</table>
+</p>
+
+<p>
+<i>Authenticated contacts<sup><a href="#definitions">*</a></sup></i> are granted the following permissions for each <b>service</b> for which they are contacts (but not for services for which they are not contacts)...
+</p>
+<p>
+<ul>
+<li>Authorization to view service status information
+<li>Authorization to view service configuration information
+<li>Authorization to view history and notifications for the service
+<li>Authorization to issue service commands
+</ul>
+</p>
+
+<p>
+<i>Authenticated contacts<sup><a href="#definitions">*</a></sup></i> are granted the following permissions for each <b>host</b> for which they are contacts (but not for hosts for which they are not contacts)...
+</p>
+<p>
+<ul>
+<li>Authorization to view host status information
+<li>Authorization to view host configuration information
+<li>Authorization to view history and notifications for the host
+<li>Authorization to issue host commands
+<li>Authorization to view status information for all services on the host
+<li>Authorization to view configuration information for all services on the host
+<li>Authorization to view history and notification information for all services on the host
+<li>Authorization to issue commands for all services on the host
+</ul>
+</p>
+
+<p>
+It is important to note that by default <b>no one</b> is authorized for the following...
+</p>
+<p>
+<ul>
+<li>Viewing the raw log file via the <a href="cgis.html#showlog_cgi">showlog CGI</a>
+<li>Viewing Nagios process information via the <a href="cgis.html#extinfo_cgi">extended information CGI</a>
+<li>Issuing Nagios process commands via the <a href="cgis.html#cmd_cgi">command CGI</a>
+<li>Viewing host group, contact, contact group, time period, and command definitions via the <a href="cgis.html#config_cgi">configuration CGI</a>
+<li>
+</ul>
+</p>
+
+<p>
+You will undoubtably want to access this information, so you'll have to assign additional rights for yourself (and possibly other users) as described below...
+</p>
+
+<p>
+<a name="additional_rights"></a>
+<strong><u>Granting Additional Permissions To CGI Information</u></strong>
+</p>
+
+<p>
+You can grant <i>authenticated contacts</i> or other <i>authenticated users</i> permission to additional information in the CGIs by adding them to various authorization variables in the <a href="configcgi.html">CGI configuration file</a>.  I realize that the available options don't allow for getting really specific about particular permissions, but its better than nothing..
+</p>
+
+<p>
+Additional authorization can be given to users by adding them to the following variables in the CGI configuration file...
+</p>
+<p>
+<ul>
+<li><a href="configcgi.html#authorized_for_system_information">authorized_for_system_information</a>
+<li><a href="configcgi.html#authorized_for_system_commands">authorized_for_system_commands</a>
+<li><a href="configcgi.html#authorized_for_configuration_information">authorized_for_configuration_information</a>
+<li><a href="configcgi.html#authorized_for_all_hosts">authorized_for_all_hosts</a>
+<li><a href="configcgi.html#authorized_for_all_host_commands">authorized_for_all_host_commands</a>
+<li><a href="configcgi.html#authorized_for_all_services">authorized_for_all_services</a>
+<li><a href="configcgi.html#authorized_for_all_service_commands">authorized_for_all_service_commands</a>
+</ul>
+</p>
+
+<p>
+<a name="cgi_auth_requirements"></a>
+<strong><u>CGI Authorization Requirements</u></strong>
+</p>
+
+<p>
+If you are confused about the authorization needed to access various information in the CGIs, read the <i><b>Authorization Requirements</b></i> section for each CGI as described <a href="cgis.html">here</a>.
+</p>
+
+
+<p>
+<a name="secure_web_servers"></a>
+<strong><u>Authentication On Secured Web Servers</u></strong>
+</p>
+
+<p>
+If your web server is located in a secure domain (i.e., behind a firewall) or if you are using SSL, you can define a default username that can be used to access the CGIs.  This is done by defining the <a href="configcgi.html#default_user_name">default_user_name</a> option in the <a href="configcgi.html">CGI configuration file</a>.  By defining a default username that can access the CGIs, you can allow users to access the CGIs without necessarily having to authenticate to the web server..   You may want to use this to avoid having to use basic web authentication, as basic authentication transmits passwords in clear text over the Internet.
+</p>
+<p>
+<strong>Important:</strong>  Do <i>not</i> define a default username unless you are running a secure web server and are sure that everyone who has access to the CGIs has been authenticated in some manner!  If you define this variable, anyone who has not authenticated to the web server will inherit all rights you assign to this user!
+</p>
+
+<hr>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Tuning Nagios For Maximum Performance</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Tuning Nagios For Maximum Performance</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+So you've finally got Nagios up and running and you want to know how you can tweak it a bit...  Here are a few things to look at for optimizing Nagios.  Let me know if you think of any others...
+</p>
+
+<p><strong>Optimization Tips:</strong></p>
+
+<p>
+<ol>
+
+<li><b>Use aggregated status updates</b>.  Enabling aggregated status updates (with the <a href="configmain.html#aggregate_status_updates">aggregate_status_updates</a> option) will greatly reduce the load on your monitoring host because it won't be constantly trying to update the <a href="configmain.html#status_file">status log</a>.  This is especially recommended if you are monitoring a large number of services.  The main trade-off with using aggregated status updates is that changes in the states of hosts and services will not be reflected immediately in the status file.  This may or may not be a big concern for you.<br><br>
+
+<li><b>Use a ramdisk for holding status data</b>.  If you're using the standard <a href="configmain.html#status_file">status log</a> and you're <i>not</i> using aggregated status updates, consider putting the directory where the status log is stored on a ramdisk.  This will speed things up quite a bit (in both the core program and the CGIs) because it saves a lot of interrupts and disk thrashing.<br><br>
+
+<li><b>Check service latencies to determine best value for maximum concurrent checks</b>.  Nagios can restrict the number of maximum concurrently executing service checks to the value you specify with the <a href="configmain.html#max_concurrent_checks">max_concurrent_checks</a> option.  This is good because it gives you some control over how much load Nagios will impose on your monitoring host, but it can also slow things down.  If you are seeing high latency values (> 10 or 15 seconds) for the majority of your service checks (via the <a href="cgis.html#extinfo_cgi">extinfo CGI</a>), you are probably starving Nagios of the checks it needs.  That's not Nagios's fault - its yours.  Under ideal conditions, all service checks would have a latency of 0, meaning they were executed at the exact time that they were scheduled to be executed.  However, it is normal for some checks to have small latency values.  I would recommend taking the minimum number of maximum concurrent checks reported when running Nagios with the <b>-s</b> command line argument and doubling it.  Keep increasing it until the average check latency for your services is fairly low.  More information on service check scheduling can be found <a href="checkscheduling.html">here</a>.<br><br>
+
+<li><b>Use passive checks when possible</b>.  The overhead needed to process the results of <a href="passivechecks.html">passive service checks</a> is much lower than that of "normal" active checks, so make use of that piece of info if you're monitoring a slew of services.  It should be noted that passive service checks are only really useful if you have some external application doing some type of monitoring or reporting, so if you're having Nagios do all the work, this won't help things.<br><br>
+
+<li><b>Avoid using interpreted plugins</b>.  One thing that will significantly reduce the load on your monitoring host is the use of compiled (C/C++, etc.) plugins rather than interpreted script (Perl, etc) plugins.  While Perl scripts and such are easy to write and work well, the fact that they are compiled/interpreted at every execution instance can significantly increase the load on your monitoring host if you have a lot of service checks.  If you want to use Perl plugins, consider compiling them into true executables using perlcc(1) (a utility which is part of the standard Perl distribution) or compiling Nagios with an embedded Perl interpreter (see below).<br><br>
+
+<li><b>Use the embedded Perl interpreter</b>.  If you're using a lot of Perl scripts for service checks, etc., you will probably find that compiling an embedded Perl interpreter into the Nagios binary will speed things up.  In order to compile in the embedded Perl interpreter, you'll need to supply the <i>--enable-embedded-perl</i> option to the configure script before you compile Nagios.  Also, if you use the <i>--with-perlcache</i> option, the compiled version of all Perl scripts processed by the embedded interpreter will be cached for later reuse.
+<br><br>
+
+<li><b>Optimize host check commands</b>.  If you're checking host states using the check_ping plugin you'll find that host checks will be performed much faster if you break up the checks.  Instead of specifying a <i>max_attempts</i> value of 1 in the host definition and having the check_ping plugin send 10 ICMP packets to the host, it would be much faster to set the <i>max_attempts</i> value to 10 and only send out 1 ICMP packet each time.  This is due to the fact that Nagios can often determine the status of a host after executing the plugin once, so you want to make the first check as fast as possible.  This method does have its pitfalls in some situations (i.e. hosts that are slow to respond may be assumed to be down), but I you'll see faster host checks if you use it.  Another option would be to use a faster plugin (i.e. check_fping) as the <i>host_check_command</i> instead of check_ping.<br><br>
+
+<li><b>Don't use agressive host checking</b>.  Unless you're having problems with Nagios recognizing host recoveries, I would recommend <i>not</i> enabling the <a href="configmain.html#use_agressive_host_checking">use_aggressive_host_checking</a> option.  With this option turned off host checks will execute much faster, resulting in speedier processing of service check results.  However, host recoveries can be missed under certain circumstances when this it turned off.  For example, if a host recovers and all of the services associated with that host stay in non-OK states (and don't "wobble" between different non-OK states), Nagios may miss the fact that the host has recovered.  A few people may need to enable this option, but the majority don't and I would recommend <i>not</i> using it unless you find it necessary...
+<br><br>
+
+<li><b>Optimize hardware for maximum performance</b>.  Your system configuration and your hardware setup are going to directly affect how your operating system performs, so they'll affect how Nagios performs.  The most common hardware optimization you can make is with your hard drives.  CPU and memory speed are obviously factors that affect performance, but disk access is going to be your biggest bottlenck.  Don't store plugins, the status log, etc on slow drives (i.e. old IDE drives or NFS mounts).  If you've got them, use UltraSCSI drives or fast IDE drives.  An important note for IDE/Linux users is that many Linux installations do not attempt to optimize disk access.  If you don't change the disk access parameters (by using a utility like <b>hdparam</b>), you'll loose out on a <b>lot</b> of the speedy features of the new IDE drives.  See <a href="http://linux.about.com/compute/linux/library/weekly/aa110600q-a.htm">this article</a> for more information on tuning hard drive performance under Linux.
+
+</ol>
+</p>
+
+
+<hr>
+
+</body>
+</html>

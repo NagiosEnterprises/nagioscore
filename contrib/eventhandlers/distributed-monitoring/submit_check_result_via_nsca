@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# SUBMIT_CHECK_RESULT_VIA_NSCA
+# Written by Ethan Galstad (nagios@nagios.org)
+# Last Modified: 07-19-2001
+#
+# This script will send passive check results to the
+# nsca daemon that runs on the central Nagios server.
+# If you simply want to submit passive checks from the 
+# same machine that Nagios is running on, look at the
+# submit_check_result script.
+#
+# Arguments:
+#  $1 = host_name (Short name of host that the service is
+#       associated with)
+#  $2 = svc_description (Description of the service)
+#  $3 = return_code (An integer that determines the state
+#       of the service check, 0=OK, 1=WARNING, 2=CRITICAL,
+#       3=UNKNOWN).
+#  $4 = plugin_output (A text string that should be used
+#       as the plugin output for the service check)s
+# 
+#
+# Note:
+# Modify the NagiosHost parameter to match the name or
+# IP address of the central server that has the nsca
+# daemon running.
+
+# Under Linux, the -e option to /bin/echo enables the
+# interpretation of tab and newline characters. 
+echocmd="/bin/echo -e"
+
+NscaBin="/usr/local/nagios/libexec/send_nsca" 
+NscaCfg="/usr/local/nagios/etc/send_nsca.cfg"
+NagiosHost="nagioshost"
+ 
+# create the command line to add to the command file
+cmdline="$1;$2;$3;$4"
+ 
+$echocmd "$1\t$2\t$3\t$4\n" | $NscaBin $NagiosHost -c $NscaCfg
+
+# EOF
+

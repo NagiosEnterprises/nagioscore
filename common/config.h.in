@@ -1,0 +1,222 @@
+/************************************************************************
+ *
+ * Nagios Config Header File
+ * Written By: Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-15-2002
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define DEFAULT_NAGIOS_USER nagios
+#define DEFAULT_NAGIOS_GROUP nagios
+
+/* Experimental performance tweaks - use with caution */
+#undef USE_MEMORY_PERFORMANCE_TWEAKS
+
+/* Be very verbose during program debugging... */
+#undef DEBUG0						/* function entry and exit */
+#undef DEBUG1						/* general info messages */
+#undef DEBUG2						/* warning messages */
+#undef DEBUG3	        				/* service and host checks, other events */
+#undef DEBUG4						/* service and host notifications */
+#undef DEBUG5						/* SQL queries */
+
+/* "Dummy" install - no, I don't mean stupid people... */
+#undef DUMMY_INSTALL
+
+/* Context-sensitive web help (requires Nagios Admin Kit) */
+#undef CONTEXT_HELP
+
+/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contribued by Stephen Davies) */
+#undef EMBEDDEDPERL
+#undef THREADEDPERL
+#define DO_CLEAN		"1"     /* 0 = cache, 1 = do not cache */
+
+/* Enable failure prediction routines */
+#undef PREDICT_FAILURES
+
+#undef TRACEROUTE_COMMAND
+#undef PING_COMMAND
+#undef PING_PACKETS_FIRST
+
+/* Status data I/O implementations... */
+#undef USE_XSDDEFAULT
+#undef USE_XSDDB
+#undef USE_XSDMYSQL
+#undef USE_XSDPGSQL
+
+/* Comment data I/O implementations... */
+#undef USE_XCDDEFAULT
+#undef USE_XCDDB
+#undef USE_XCDMYSQL
+#undef USE_XCDPGSQL
+
+/* Extended data I/O implementations... */
+#undef USE_XEDDEFAULT
+#undef USE_XEDTEMPLATE
+#undef USE_XEDDB
+#undef USE_XEDMYSQL
+#undef USE_XEDPGSQL
+
+/* Retention data I/O implementations... */
+#undef USE_XRDDEFAULT
+#undef USE_XRDDB
+#undef USE_XRDMYSQL
+#undef USE_XRDPGSQL
+
+/* Object data I/O implementations... */
+#undef USE_XODDEFAULT
+#undef USE_XODTEMPLATE
+#undef USE_XODDB
+#undef USE_XODMYSQL
+#undef USE_XODPGSQL
+
+/* Performance data I/O implementations... */
+#undef USE_XPDDEFAULT
+#undef USE_XPDFILE
+
+/* Downtime data I/O implementations... */
+#undef USE_XDDDEFAULT
+#undef USE_XDDDB
+#undef USE_XDDMYSQL
+#undef USE_XDDPGSQL
+
+/* Failure prediction data I/O implementations... */
+#undef USE_XFDDEFAULT
+
+
+#undef STDC_HEADERS
+#undef HAVE_SYSLOG_H
+#undef HAVE_SOCKET
+#undef HAVE_STRDUP
+#undef HAVE_STRSTR
+#undef HAVE_STRTOUL
+#undef HAVE_INITGROUPS
+#undef HAVE_GETLOADAVG
+#undef HAVE_SYS_LOADAVG_H
+#undef HAVE_SYS_SYSCTL_H
+#undef HAVE_LINUX_SYSCTL_H
+#undef HAVE_LIMITS_H
+#undef HAVE_SYS_RESOURCE_H
+#undef HAVE_GETOPT_H
+#undef HAVE_PWD_H
+#undef HAVE_GRP_H
+#undef HAVE_TM_ZONE
+#undef HAVE_TZNAME
+
+#undef USE_PROC
+
+#define SOCKET_SIZE_TYPE ""
+#define GETGROUPS_T ""
+#define RETSIGTYPE ""
+
+#undef HAVE_STRINGS_H
+#undef HAVE_STRING_H
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <string.h>
+#endif
+
+#undef HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#undef HAVE_SYSLOG_H
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
+
+#undef HAVE_SIGNAL_H
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+
+#undef HAVE_SYS_STAT_H
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+
+#undef HAVE_FCNTL_H
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
+#undef HAVE_SYS_TYPES_H
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
+#undef HAVE_SYS_WAIT_H
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
+
+#undef HAVE_ERRNO_H
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+/* needed for the time_t structures we use later... */
+#undef TIME_WITH_SYS_TIME
+#undef HAVE_SYS_TIME_H
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
+#undef HAVE_SYS_IPC_H
+#ifdef HAVE_SYS_IPC_H
+#include <sys/ipc.h>
+#endif
+
+#undef HAVE_SYS_MSG_H
+#ifdef HAVE_SYS_MSG_H
+#include <sys/msg.h>
+#endif
+
+#undef HAVE_MATH_H
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+
+#undef HAVE_CTYPE_H
+#ifdef HAVE_CTYPE_H
+#include <ctype.h>
+#endif
+
+#undef HAVE_DIRENT_H
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#endif
+

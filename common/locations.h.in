@@ -1,0 +1,37 @@
+/************************************************************************
+ *
+ * Nagios Locations Header File
+ * Written By: Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 12-15-2001
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************/
+
+#define DEFAULT_TEMP_FILE			"@localstatedir@/tempfile"
+#define DEFAULT_STATUS_FILE			"@localstatedir@/status.log"
+#define DEFAULT_LOG_FILE			"@localstatedir@/nagios.log"
+#define DEFAULT_LOG_ARCHIVE_PATH		"@localstatedir@/archives/"
+#define DEFAULT_COMMENT_FILE			"@localstatedir@/comment.log"
+#define DEFAULT_DOWNTIME_FILE			"@localstatedir@/downtime.log"
+#define DEFAULT_COMMAND_FILE			"@localstatedir@/rw/nagios.cmd"
+#define DEFAULT_PHYSICAL_HTML_PATH		"@datadir@"
+#define DEFAULT_URL_HTML_PATH			"@htmurl@"
+#define DEFAULT_PHYSICAL_CGIBIN_PATH		"@sbindir@"
+#define DEFAULT_URL_CGIBIN_PATH			"@cgiurl@"
+#define DEFAULT_CGI_CONFIG_FILE			"@sysconfdir@/cgi.cfg"
+#define DEFAULT_LOCK_FILE			"@lockfile@"
+
+/* used by embedded perl interpreter (Stephen Davies) */
+#define P1LOC					"@bindir@/p1.pl"

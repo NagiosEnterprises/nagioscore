@@ -1,0 +1,169 @@
+#!/bin/sh
+# 
+# chkconfig: 345 99 01
+# description: Nagios network monitor
+#
+# File : nagios
+#
+# Author : Jorge Sanchez Aymar (jsanchez@lanchile.cl)
+# 
+# Changelog :
+#
+# 1999-07-09 Karl DeBisschop <kdebisschop@infoplease.com>
+#  - setup for autoconf
+#  - add reload function
+# 1999-08-06 Ethan Galstad <nagios@nagios.org>
+#  - Added configuration info for use with RedHat's chkconfig tool
+#    per Fran Boon's suggestion
+# 1999-08-13 Jim Popovitch <jimpop@rocketship.com>
+#  - added variable for nagios/var directory
+#  - cd into nagios/var directory before creating tmp files on startup
+# 1999-08-16 Ethan Galstad <nagios@nagios.org>
+#  - Added test for rc.d directory as suggested by Karl DeBisschop
+# 2000-07-23 Karl DeBisschop <kdebisschop@users.sourceforge.net>
+#  - Clean out redhat macros and other dependencies
+#
+# Description: Starts and stops the Nagios monitor
+#              used to provide network services status.
+#
+  
+status ()
+{
+
+	if test ! -f $NagiosRun; then
+		echo "No lock file found in $NagiosRun"
+		return 1
+	fi
+
+	NagiosPID=`head -n 1 $NagiosRun`
+	if test -x $NagiosCGI/daemonchk.cgi; then
+		if $NagiosCGI/daemonchk.cgi -l $NagiosRun; then
+		        return 0
+		else
+			return 1
+		fi
+	else
+		if ps -p $NagiosPID; then
+		        return 0
+		else
+			return 1
+		fi
+	fi
+
+	return 1
+}
+
+
+killproc ()
+{
+
+	if test ! -f $NagiosRun; then
+		echo "No lock file found in $NagiosRun"
+		return 1
+	fi
+
+	NagiosPID=`head -n 1 $NagiosRun`
+	kill $2 $NagiosPID
+}
+
+
+# Source function library
+# Solaris doesn't have an rc.d directory, so do a test first
+#if [ -f /etc/rc.d/init.d/functions ]; then
+#. /etc/rc.d/init.d/functions
+#elif [ -f /etc/init.d/functions ]; then
+#. /etc/init.d/functions
+#fi
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+NagiosBin=@bindir@/nagios
+NagiosCfg=@sysconfdir@/nagios.cfg
+NagiosLog=@localstatedir@/status.log
+NagiosTmp=@localstatedir@/nagios.tmp
+NagiosSav=@localstatedir@/status.sav
+NagiosCmd=@localstatedir@/rw/nagios.cmd
+NagiosVar=@localstatedir@
+NagiosRun=@lockfile@
+NagiosLckDir=/var/lock/subsys
+NagiosLckFile=nagios
+NagiosCGI=@sbindir@
+Nagios=@nagios_user@
+          
+
+# Check that nagios exists.
+test -f $NagiosBin || exit 0
+
+# Check that nagios.cfg exists.
+test -f $NagiosCfg || exit 0
+          
+# See how we were called.
+case "$1" in
+
+	start)
+		echo "Starting network monitor: nagios"
+		su $Nagios -c "touch $NagiosVar/nagios.log $NagiosSav"
+		rm -f $NagiosCmd
+		$NagiosBin -d $NagiosCfg
+		if [ -d $NagiosLckDir ]; then touch $NagiosLckDir/$NagiosLckFile; fi
+		sleep 1
+		status nagios
+		;;
+
+	stop)
+		echo "Stopping network monitor: nagios"
+		killproc nagios
+		rm -f $NagiosLog $NagiosTmp $NagiosRun $NagiosLckDir/$NagiosLckFile $NagiosCmd
+		;;
+
+	status)
+		status nagios
+		;;
+
+	restart)
+		printf "Running configuration check..."
+		$NagiosBin -v $NagiosCfg > /dev/null 2>&1;
+		if [ $? -eq 0 ]; then
+			echo "done"
+			$0 stop
+			$0 start
+		else
+			$NagiosBin -v $NagiosCfg
+			echo "failed - aborting restart."
+			exit 1
+		fi
+		;;
+
+	reload|force-reload)
+		printf "Running configuration check..."
+		$NagiosBin -v $NagiosCfg > /dev/null 2>&1;
+		if [ $? -eq 0 ]; then
+			echo "done"
+			if test ! -f $NagiosRun; then
+				$0 start
+			else
+				NagiosPID=`head -n 1 $NagiosRun`
+				if status nagios > /dev/null; then
+					printf "Reloading nagios configuration..."
+					killproc nagios -HUP
+					echo "done"
+				else
+					$0 stop
+					$0 start
+				fi
+			fi
+		else
+			$NagiosBin -v $NagiosCfg
+			echo "failed - aborting reload."
+			exit 1
+		fi
+		;;
+
+	*)
+		echo "Usage: nagios {start|stop|restart|reload|force-reload|status}"
+		exit 1
+		;;
+
+esac
+  
+# End of this script

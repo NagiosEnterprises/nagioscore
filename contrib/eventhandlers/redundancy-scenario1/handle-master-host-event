@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# REDUNDANCY EVENT HANDLER SCRIPT
+# Written By: Ethan Galstad (nagios@nagios.org)
+# Last Modified: 02-18-2002
+#
+# This is an example script for implementing redundancy.
+# Read the HTML documentation on redundant monitoring for more
+# information on what this does.
+
+# Location of the echo and mail commands
+echocmd="/bin/echo"
+mailcmd="/bin/mail"
+
+# Location of the event handlers
+eventhandlerdir="/usr/local/nagios/libexec/eventhandlers"
+
+
+# Only take action on hard host states...
+case "$2" in
+HARD)
+
+	case "$1" in
+	DOWN)
+		# The master host has gone down!
+		# We should now become the master host and take
+		# over the responsibilities of monitoring the 
+		# network, so enable notifications...
+
+		`$eventhandlerdir/enable_notifications`
+
+
+		# Notify someone of what has happened with the original
+		# master server and our taking over the monitoring
+		# responsibilities.  No one was notified of the master
+		# host going down, since the notification would have
+		# occurred while we were in standby mode, so this is a good idea...
+
+		#`$echocmd "Master Nagios host is down!" | /bin/mail -s "Master Nagios Host Is Down" admin@somedomain.com`
+		#`$echocmd "Slave Nagios host has entered ACTIVE mode and taken over network monitoring responsibilities!" | $mailcmd -s "Slave Nagios Host Has Entered ACTIVE Mode" admin@somedomain.com`
+
+		;;
+
+	UP)
+		# The master host has recovered!
+		# We should go back to being the slave host and
+		# let the master host do the monitoring, so 
+		# disable notifications...
+
+		`$eventhandlerdir/disable_notifications`
+
+
+		# Notify someone of what has happened.  Users were 
+		# already notified of the master host recovery because we
+		# were in active mode at the time the recovery happened.
+		# However, we should let someone know that we're switching
+		# back to standby mode...
+
+		#`$echocmd "The master Nagios host has recovered, so the slave Nagios host has returned to standby mode..." | $mailcmd -s "Slave Nagios Host Has Returned To STANDBY Mode" admin@somedomain.com`
+
+		;;
+
+	esac
+	;;
+
+esac
+exit 0
+

@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Notifications</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Notifications</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+I've had a lot of questions as to exactly how notifications work.  This will attempt to explain exactly when and how host and service notifications are sent out, as well as who receives them.
+</p>
+
+
+<p>
+<strong><u>Index</u></strong>
+</p>
+<p>
+<a href="#occur">When do notifications occur?</a><br>
+<a href="#contacts">Who gets notified?</a><br>
+<a href="#filters">What filters must be passed in order for notifications to be sent?</a><br>
+<a href="#incorporation">What aren't any notification methods incorporated directly into Nagios?</a><br>
+<a href="#resources">Helpful resources</a><br>
+</p>
+
+<p>
+<a name="occur"></a>
+<strong><u>When Do Notifications Occur?</u></strong>
+</p>
+
+<p>
+The decision to send out notifications is made in the service check and host check logic.  Host and service notifications occur in the following instances...
+</p>
+
+<p>
+<ul>
+<li>When a hard state change occurs.  More information on state types and hard state changes can be found <a href="statetypes.html">here</a>.
+<li>When a host or service remains in a hard non-OK state and the time specified by the &lt;<i>notification_interval</i>&gt; option in the host or service definition has passed since the last notification was sent out (for that specified host or service).  If you don't like the idea of recurring notifications, set the &lt;<i>notification_interval</i>&gt; value to 0 - this prevents notifications from getting sent out more than once for any given problem.
+</ul>
+</p>
+
+
+<p>
+<a name="contacts"></a>
+<strong><u>Who Gets Notified?</u></strong>
+</p>
+
+<p>
+Each service definition has a &lt;<i>contact_groups</i>&gt; option that specifies what contact groups receive notifications for that particular service.  Each contact group can contain one or more individual contacts.  When Nagios sends out a service notification, it will notify each contact that is a member of any contact groups specified in the &lt;<i>contactgroups</i>&gt; option of the service definition.  Nagios realizes that any given contact may be a member of more than one contact group, so it removes duplicate contact notifications before it does anything.
+</p>
+
+<p>
+Each host may belong to one or more host groups.  Each host group has a &lt;<i>contact_groups</i>&gt; option that specifies what contact groups receive notifications for hosts in that particular host group.  When Nagios sends out a host notification, it will notify contacts that are members of all the contact groups that that should be notified for any and all host groups that the host is a member of.  Nagios removes any duplicate contacts from the notification list before it does anything.
+</p>
+
+
+<p>
+<a name="filters"></a>
+<strong><u>What Filters Must Be Passed In Order For Notifications To Be Sent?</u></strong>
+</p>
+
+<p>
+Just because there is a need to send out a host or service notification doesn't mean that any contacts are going to get notified.  There are several filters that potential notifications must pass before they are deemed worthy enough to be sent out.  Even then, specific contacts may not be notified if their notification filters do not allow for the notification to be sent to them.  Let's go into the filters that have to be passed in more detail...
+</p>
+
+
+<p>
+<strong><u>Program-Wide Filter:</u></strong>
+</p>
+<p>
+The first filter that notifications must pass is a test of whether or not notifications are enabled on a program-wide basis.  This is initially determined by the <a href="configmain.html#enable_notifications">enable_notifications</a> directive in the main config file, but may be changed during runtime from the web interface.  If notifications are disabled on a program-wide basis, no host or service notifications can be sent out - period.  If they are enabled on a program-wide basis, there are still other tests that must be passed...
+</p>
+
+<p>
+<strong><u>Service and Host Filters:</u></strong>
+</p>
+
+<p>
+The first filter for host or service notifications is a check to see if the host or service is in a period of <a href="downtime.html">scheduled downtime</a>.  It it is in a scheduled downtime, <b>no one gets notified</b>.  If it isn't in a period of downtime, it gets passed on to the next filter.  As a side note, notifications for services are supressed if the host they're associated with is in a period of scheduled downtime.
+</p>
+
+<p>
+The second filter for host or service notification is a check to see if the host or service is <a href="flapping.html">flapping</a> (if you enabled flap detection).  If the service or host is currently flapping, <b>no one gets notified</b>.  Otherwise it gets passed to the next filter.
+</p>
+
+<p>
+The third host or service filter that must be passed is the host- or service-specific notification options.  Each service definition contains options that determine whether or not notifications can be sent out for warning states, critical states, and recoveries.  Similiarly, each host definition contains options that determine whether or not notifications can be sent out when the host goes down, becomes unreachable, or recovers.  If the host or service notification does not pass these options, <b>no one gets notified</b>.  If it does pass these options, the notification gets passed to the next filter...  Note: Notifications about host or service recoveries are only sent out if a notification was sent out for the original problem.  It doesn't make sense to get a recovery notification for something you never knew was a problem.
+</p>
+
+<p>
+The fourth host or service filter that must be passed is the time period test.  Each host and service definition has a &lt;<i>notification_period</i>&gt; option that specifies which time period contains valid notification times for the host or service.  If the time that the notification is being made does not fall within a valid time range in the specified time period, <b>no one gets contacted</b>.  If it falls within a valid time range, the notification gets passed to the next filter...  Note: If the time period filter is not passed, Nagios will reschedule the next notification for the host or service (if its in a non-OK state) for the next valid time present in the time period.  This helps ensure that contacts are notified of problems as soon as possible when the next valid time in time period arrives.
+</p>
+
+<p>
+The last set of host or service filters is conditional upon two things: (1) a notification was already sent out about a problem with the host or service at some point in the past and (2) the host or service has remained in the same non-OK state that it was when the last notification went out.  If these two criteria are met, then Nagios will check and make sure the time that has passed since the last notification went out either meets or exceeds the value specified by the &lt;<i>notification_interval</i>&gt; option in the host or service definition.  If not enough time has passed since the last notification, <b>no one gets contacted</b>.  If either enough time has passed since the last notification or the two criteria for this filter were not met, the notification will be sent out!  Whether or not it actually is sent to individual contacts is up to another set of filters...
+</p>
+
+<p>
+<strong><u>Contact Filters:</u></strong>
+</p>
+<p>
+At this point the notification has passed the program mode filter and all host or service filters and Nagios starts to notify <a href="#contacts">all the people it should</a>.  Does this mean that each contact is going to receive the notification?  No!  Each contact has their own set of filters that the notification must pass before they receive it.  Note: Contact filters are specific to each contact and do not affect whether or not other contacts receive notifications.
+</p>
+
+<p>
+The first filter that must be passed for each contact are the notification options.  Each contact definition contains options that determine whether or not service notifications can be sent out for warning states, critical states, and recoveries.  Each contact definition also contains options that determine whether or not host notifications can be sent out when the host goes down, becomes unreachable, or recovers.  If the host or service notification does not pass these options, <b>the contact will not be notified</b>.  If it does pass these options, the notification gets passed to the next filter... Note: Notifications about host or service recoveries are only sent out if a notification was sent out for the original problem.  It doesn't make sense to get a recovery notification for something you never knew was a problem...
+</p>
+
+
+<p>
+The last filter that must be passed for each contact is the time period test.  Each contact definition has a &lt;<i>notification_period</i>&gt; option that specifies which time period contains valid notification times for the contact.  If the time that the notification is being made does not fall within a valid time range in the specified time period, <b>the contact will not be notified</b>.  If it falls within a valid time range, the contact gets notified!
+</p>
+
+</dir>
+
+<p>
+<a name="incorporation"></a>
+<strong><u>What Aren't Any Notification Methods Incorporated Directly Into Nagios?</u></strong>
+</p>
+
+<p>
+I've gotten several questions about why notification methods (paging, etc.) are not directly incorporated into the Nagios code.  The answer is simple - it just doesn't make much sense.  The "core" of Nagios is not designed to be an all-in-one application.  If service checks were embedded in Nagios's core it would be very difficult for users to add new check methods, modify existing checks, etc.  Notifications work in a similiar manner.  There are a thousand different ways to do notifications and there are already a lot of packages out there that handle the dirty work, so why re-invent the wheel and limit yourself to a bike tire?  Its much easier to let an external entity (i.e. a simple script or a full-blown messaging system) do the messy stuff.  Some messaging packages that can handle notifications for pagers and cellphones are listed below in the resource section.
+</p>
+
+<p>
+<a name="resources"></a>
+<strong><u>Helpful Resources</u></strong>
+</p>
+<p>
+If you're interested in sending an alphanumeric notification to your pager or cellphone via email, you may be find the following information useful.  Here are a few links to various messaging service providers' websites that contain information on how to send alphanumeric messages to pagers and phones...
+</p>
+
+<p>
+<ul>
+<li><a href="http://sap.mobile.att.net/mc/email.html">AT&amp;T Wireless</a><br>
+<li><a href="http://www.pagenet.com/sendamessage/emailpage.asp">PageNet</a><br>
+<li><a href="http://www.messaging.sprintpcs.com/sms_help/send_email.html">SprintPCS</a> (SMS phones)<br>
+</ul>
+</p>
+
+<p>
+If you're looking for an alternative to using email for sending messages to your pager or cellphone, check out these packages. They could be used in conjuction with Nagios to send out a notification via a modem when a problem
+arises.  That way you don't have to rely on email to send notifications out (remember, email may *not* work if 
+there are network problems).  I haven't actually tried these packages myself, but others have reported success
+using them...
+</p>
+<p>
+<ul>
+<li><a href="http://www.gnokii.org">Gnokii</a> (SMS software for contacting Nokia phones via GSM network)
+<li><a href="http://www.qpage.org" target="_top">QuickPage</a> (alphanumeric pager software)
+<li><a href="http://sendpage.cpoint.net/" target="_top">Sendpage</a> (paging software)
+<li><a href="http://www.styx.demon.co.uk/" target="_top">SMS Client</a> (command line utility for 
+sending messages to pagers and mobile phones)
+</ul>
+</p>
+
+<p>
+Lastly, there in an area in the contrib downloads section on the <a href="http://www.nagios.org">Nagios homepage</a> for notification scripts that have been contributed by users.  You might find these scripts useful, as they take care of a lot of the dirty work needed to send out alphanumeric notifications...
+</p>
+
+<p>
+</p>
+
+<hr>
+
+</body>
+</html>

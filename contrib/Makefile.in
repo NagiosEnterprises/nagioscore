@@ -1,0 +1,67 @@
+# Contrib Makefile - Last updated 02/18/2002
+
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@
+LDFLAGS=@LDFLAGS@ @LIBS@
+
+# Source code directories
+SRC_COMMON=../common
+SRC_CGI=../cgi
+
+# Generated automatically from configure script
+SNPRINTF_O=@SNPRINTF_O@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+CGIDIR=@sbindir@
+
+ALL=daemonchk.cgi traceroute.cgi mini_epn convertcfg
+
+CGI_C=$(SRC_CGI)/getcgi.c
+CGI_O=$(SRC_CGI)/getcgi.o $(SNPRINTF_O)
+CGI_H=$(SRC_CGI)/getcgi.h
+COMMON_H=$(SRC_COMMON)/config.h $(SRC_COMMON)/common.h $(SRC_COMMON)/locations.h
+
+##############################################################################
+# standard targets (all, clean, distclean, devclean, install)
+
+all: $(ALL)
+
+clean:
+	rm -f convertcfg daemonchk.cgi mini_epn core *.o
+	rm -f template-objects/checkcommands.cfg template-objects/misccommands.cfg
+	rm -f */*/*~
+	rm -f */*~
+	rm -f *~
+	rm -f Makefile
+
+distclean: clean
+
+devclean: distclean
+
+install:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(CGIDIR)
+	for f in $(ALL); do $(INSTALL) -m 775 $(INSTALL_OPTS) $$f $(DESTDIR)$(CGIDIR); done
+
+##############################################################################
+# rules and dependencies for actual target programs
+
+daemonchk.cgi: daemonchk.c $(CGI_O) $(CGI_H) $(COMMON_H)
+
+mini_epn: mini_epn.c
+	$(CC) $(CFLAGS) $(LDFLAGS) mini_epn.c `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
+
+ministatus: ministatus.cgi
+ministatus.cgi: ministatus.c
+	echo "You must copy this file to the CGI source code directory ($(CGIDIR)) and compile it from there"
+
+##############################################################################
+# dependencies
+
+$(CGI_O): $(CGI_C)
+	cd $(SRC_CGI); make $(CGI_O)
+
+##############################################################################
+# implicit rules
+
+%.cgi : %.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(CGI_O) -o $@

@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Scheduled Downtime</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Scheduled Downtime</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+Nagios allows you to schedule periods of planned downtime for hosts and service that you're monitoring.  This is useful in the event that you actually know you're going to be taking a server down for an upgrade, etc.  When a host a service is in a period of scheduled downtime, notifications for that host or service will be supressed.
+</p>
+
+<p>
+<strong><u>Downtime File</u></strong>
+</p>
+
+<p>
+Scheduled host and service downtime is stored in the file you specify by the <a href="configmain.html#downtime_file">downtime_file</a> directive in your main configuration file.
+</p>
+
+<p>
+<strong><u>Downtime Retention</u></strong>
+</p>
+
+<p>
+Scheduled host and service downtime is automatically preserved across program restarts.  When Nagios starts up, it will scan the <a href="configmain.html#downtime_file">downtime file</a>, delete any old or invalid entries, and schedule downtime for all valid host and service entries.
+</p>
+
+<p>
+<strong><u>Scheduling Downtime</u></strong>
+</p>
+
+<p>
+You can schedule downtime for hosts and service through the <a href="cgis.html#extinfo_cgi">extinfo CGI</a> (either when viewing host or service information).  Click in the "Schedule downtime for this host/service" link to actually schedule the downtime.
+</p>
+
+<p>
+Once you schedule downtime for a host or service, Nagios will add a comment to that host/service indicating that it is scheduled for downtime during the period of time you indicated.  When that period of downtime passes, Nagios will automatically delete the comment that it added.  Nice, huh?
+</p>
+
+<p>
+<strong><u>Types of Scheduled Downtime</u></strong>
+</p>
+
+<p>
+There are two types of scheduled downtime - "fixed" and "flexible".  When you schedule downtime for a host or service through the web interface you'll be asked if the downtime is fixed or not.  Here's an explanation of how "fixed" and "flexible" downtime differs:
+</p>
+
+<p>
+"Fixed" downtime starts and stops at the exact start and end times that you specify when you schedule it.  Okay, that was easy enough...
+</p>
+
+<p>
+"Flexible" downtime is intended for times when you know that a host or service is going to be down for X minutes (or hours), but you don't know exactly when that'll start.  When you schedule flexible downtime, Nagios will start the scheduled downtime sometime between the start and end times you specified.  The downtime will last for as long as the duration you specified when you scheduled the downtime.  This assumes that the host or service for which you scheduled flexible downtime either goes down (or becomes unreachable) or goes into a non-OK state sometime between the start and end times you specified.  The time at which a host or service transitions to a problem state determines the time at which Nagios actually starts the downtime.  The downtime will then last for the duration you specified, even if the host or service recovers before the downtime expires.  This is done for a very good reason.  As we all know, you can think you've got a problem fixed (and restart a server) ten times before it actually works right.  Smart, eh?
+</p>
+
+<p>
+<strong><u>How Scheduled Downtime Affects Notifications</u></strong>
+</p>
+
+<p>
+When a host or service is in a period of scheduled downtime, Nagios will not allow notifications to be sent out for the host or service.  Supression of notifications is accomplished by adding an additional filter to the <a href="notifications.html">notification logic</a>.  You will <i>not</i> see an icon in the CGIs indicating that notifications for that host/service are disabled.  When the scheduled downtime has passed, Nagios will allow notifications to be sent out for the host or service as it normally would.
+</p>
+
+<p>
+<strong><u>Overlapping Scheduled Downtime</u></strong>
+</p>
+
+<p>
+I like to refer to this as the "Oh crap, its not working" syndrome.  You know what I'm talking about.  You take a server down to perform a "routine" hardware upgrade, only to later realize that the OS drivers aren't working, the RAID array blew up, or the drive imaging failed and left your original disks useless to the world.  Moral of the story is that any routine work on a server is quite likely to take three or four times as long as you had originally planned...
+</p>
+
+<p>
+Let's take the following scenario:
+</p>
+
+<p>
+<ol>
+<li>You schedule downtime for host A from 7:30pm-9:30pm on a Monday
+<li>You bring the server down about 7:45pm Monday evening to start a hard drive upgrade
+<li>After wasting an hour and a half battling with SCSI errors and driver incompatabilities, you finally get the machine to boot up
+<li>At 9:15 you realize that one of your partitions is either hosed or doesn't seem to exist anywhere on the drive
+<li>Knowing you're in for a long night, you go back and schedule additional downtime for host A from 9:20pm Monday evening to 1:30am Tuesday Morning.
+</ol>
+</p>
+
+<p>
+If you schedule overlapping periods of downtime for a host or service (in this case the periods were 7:40pm-9:30pm and 9:20pm-1:30am), Nagios will wait until the last period of scheduled downtime is over before it allows notifications to be sent out for that host or service.  In this example notifications would be supressed for host A until 1:30am Tuesday morning.
+</p>
+
+<hr>
+
+</body>
+</html>

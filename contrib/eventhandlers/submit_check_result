@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# SUBMIT_CHECK_RESULT
+# Written by Ethan Galstad (nagios@nagios.org)
+# Last Modified: 02-18-2002
+#
+# This script will write a command to the Nagios command
+# file to cause Nagios to process a passive service check
+# result.  Note: This script is intended to be run on the
+# same host that is running Nagios.  If you want to 
+# submit passive check results from a remote machine, look
+# at using the nsca addon.
+#
+# Arguments:
+#  $1 = host_name (Short name of host that the service is
+#       associated with)
+#  $2 = svc_description (Description of the service)
+#  $3 = return_code (An integer that determines the state
+#       of the service check, 0=OK, 1=WARNING, 2=CRITICAL,
+#       3=UNKNOWN).
+#  $4 = plugin_output (A text string that should be used
+#       as the plugin output for the service check)
+# 
+ 
+echocmd="/bin/echo"
+ 
+CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
+ 
+# get the current date/time in seconds since UNIX epoch
+datetime=`date +%s`
+ 
+# create the command line to add to the command file
+cmdline="[$datetime] PROCESS_SERVICE_CHECK_RESULT;$1;$2;$3;$4"
+ 
+# append the command to the end of the command file
+`$echocmd $cmdline >> $CommandFile`

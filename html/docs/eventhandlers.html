@@ -1,0 +1,239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Event Handlers</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Event Handlers</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+<p>
+Event handlers are optional commands that are executed whenever a host or service state change occurs.  An obvious use for event handlers (especially with services) is the ability for Nagios to proactively fix problems before anyone is notified.  Another potential use for event handlers might be to log service or host events to an external database.
+</p>
+
+<p>
+<strong><u>Event Handler Types</u></strong>
+</p>
+<p>
+There are two main types of event handlers than can be defined - service event handlers and host event handlers.  Event handler commands are (optionally) defined in each host and service definition.  Because these event handlers are only associated with particular services or hosts, I will call these "local" event handlers.  If a local event handler has been defined for a service or host, it will be executed when that host or service changes state.
+</p>
+<p>
+You may also specify global event handlers that should be run for <i>every</i> host or service state change by using the <a href="configmain.html#global_host_event_handler">global_host_event_handler</a> and <a href="configmain.html#global_service_event_handler">global_service_event_handler</a> options in your main configuration file.  Global event handlers are run immediately <i>prior</i> to running a local service or host event handler.
+</p>
+
+<p>
+<strong><u>When Are Event Handler Commands Executed?</u></strong>
+</p>
+<p>
+Service and host event handler commands are executed when a service or host:
+</p>
+<p>
+<ul>
+<li>is in a "soft" error state
+<li>initially goes into a "hard" error state
+<li>recovers from a "soft" or "hard" error state
+</ul>
+</p>
+<p>
+What are "soft" and "hard" states you ask?  They are described <a href="statetypes.html">here</a> .
+</p>
+
+<p>
+<strong><u>Event Handler Execution Order</u></strong>
+</p>
+<p>
+Global event handlers are executed before any local event handlers that you have configured for specific hosts or services.  
+</p>
+
+<p>
+<strong><u>Writing Event Handler Commands</u></strong>
+</p>
+<p>
+In most cases, event handler commands will be shell or perl scripts.  At a minimum, the scripts should take
+the following <a href="macros.html">macros</a> as arguments:
+</p>
+<p>
+Service event handler macros: <b>$SERVICESTATE$</b>, <b>$STATETYPE$</b>, <b>$SERVICEATTEMPT$</b><br>
+Host event handler macros: <b>$HOSTSTATE$</b>, <b>$STATETYPE$</b>, <b>$HOSTATTEMPT$</b>
+</p>
+<p>
+The scripts should examine the values of the arguments passed in and take any necessary action based upon those values.  The best way to understand how event handlers should work is to see and example.  Lucky for you, one is provided <a href="#example">below</a>.  There are also some sample event handler scripts included in the <b>eventhandlers/</b> subdirectory of the Nagios distribution.  Some of these sample scripts demonstrate the use of <a href="extcommands.html">external commands</a> to implement <a href="redundancy.html">redundant monitoring hosts</a>.
+</p>
+
+<p>
+<strong><u>Permissions For Event Handler Commands</u></strong>
+</p>
+<p>
+Any event handler commands you configure will execute with the same permissions as the user under which 
+Nagios is running on your machine.  This presents a problem with scripts that attempt to restart system 
+services, as root privileges are generally required to do these sorts of tasks.  
+</p>
+<p>
+Ideally you should evaluate the types of event handlers you will be implementing and grant just enough permissions
+to the Nagios user for executing the necessary system commands.  I'll leave the details of how to do that up to you...
+</p>
+
+<p>
+<strong><u>Debugging Event Handler Commands</u></strong>
+</p>
+<p>
+When you are debugging event handler commands, I would highly recommend that you enable logging of 
+<a href="configmain.html#log_service_retries">service retries</a>, <a href="configmain.html#log_host_retries">host retries</a>, and <a href="configmain.html#log_event_handlers">event handler commands</a>.  All of these logging options are configured in the <a href="configmain.html">main configuration file</a>.  Enabling logging for these options will allow you to see exactly when and why event handler commands are being executed.
+</p>
+<p>
+When you're done debugging your event handler commands you'll probably want to disable logging of service and host
+retries.  They can fill up your log file fast, but if you have enabled <a href="configmain.html#log_rotation_method">log rotation</a> you might not care.
+</p>
+
+<a name="example"></a>
+<p>
+<strong><u>Service Event Handler Example</u></strong>
+</p>
+<p>
+The example below assumes that you are monitoring the HTTP server on the local machine and have specified <b>restart-httpd</b> as the event handler command for the HTTP service definition.  Also, I will be assuming that you have set the &lt;max_check_attempts&gt; option for the service to be a value of 4 or greater (i.e. the service is checked 4 times before it is considered to have a real problem).  An example service definition (w/ only the fields we discuss) might look like this...
+</p>
+
+<p>
+<font color="red"><strong>
+<pre>
+define service{
+	host_name			somehost
+	service_description		HTTP
+	max_check_attempts		4
+	event_handler			restart-httpd
+	<i>...other service variables...</i>
+	}
+</pre>
+</strong></font>
+</p>
+
+
+<p>
+Once the service has been defined with an event handler, we must define that event handler as a command.  Notice the macros in the command line that I am passing to the event handler - these are important!
+</p>
+
+<p>
+<font color="red"><strong>
+<pre>
+define command{
+	command_name	restart-httpd
+	command_line	/usr/local/nagios/libexec/eventhandlers/restart-httpd  $SERVICESTATE$ $STATETYPE$ $SERVICEATTEMPT$
+	}
+</pre>
+</strong></font>
+</p>
+
+<p>
+Now, let's actually write the event handler script (this is the <b>/usr/local/nagios/libexec/eventhandlers/restart-httpd</b> file).
+</p>
+<p>
+<table border=1>
+<tr>
+<td>
+<font size=-1>
+<pre>
+#!/bin/sh
+#
+# Event handler script for restarting the web server on the local machine
+#
+# Note: This script will only restart the web server if the service is
+#       retried 3 times (in a "soft" state) or if the web service somehow
+#       manages to fall into a "hard" error state.
+#
+
+
+# What state is the HTTP service in?
+case "$1" in
+OK)
+	# The service just came back up, so don't do anything...
+	;;
+WARNING)
+	# We don't really care about warning states, since the service is probably still running...
+	;;
+UNKNOWN)
+	# We don't know what might be causing an unknown error, so don't do anything...
+	;;
+CRITICAL)
+	# Aha!  The HTTP service appears to have a problem - perhaps we should restart the server...
+
+	# Is this a "soft" or a "hard" state?
+	case "$2" in
+		
+	# We're in a "soft" state, meaning that Nagios is in the middle of retrying the
+	# check before it turns into a "hard" state and contacts get notified...
+	SOFT)
+			
+		# What check attempt are we on?  We don't want to restart the web server on the first
+		# check, because it may just be a fluke!
+		case "$3" in
+				
+		# Wait until the check has been tried 3 times before restarting the web server.
+		# If the check fails on the 4th time (after we restart the web server), the state
+		# type will turn to "hard" and contacts will be notified of the problem.
+		# Hopefully this will restart the web server successfully, so the 4th check will
+		# result in a "soft" recovery.  If that happens no one gets notified because we
+		# fixed the problem!
+		3)
+			echo -n "Restarting HTTP service (3rd soft critical state)..."
+			# Call the init script to restart the HTTPD server
+			/etc/rc.d/init.d/httpd restart
+			;;
+			esac
+		;;
+				
+	# The HTTP service somehow managed to turn into a hard error without getting fixed.
+	# It should have been restarted by the code above, but for some reason it didn't.
+	# Let's give it one last try, shall we?  
+	# Note: Contacts have already been notified of a problem with the service at this
+	# point (unless you disabled notifications for this service)
+	HARD)
+		echo -n "Restarting HTTP service..."
+		# Call the init script to restart the HTTPD server
+		/etc/rc.d/init.d/httpd restart
+		;;
+	esac
+	;;
+esac
+exit 0
+</pre>
+</font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+The sample script provided above will attempt to restart the web server on the local machine in two different instances - after the HTTP service is being retried for the 3rd time (in an "soft" error state) and after the service falls into a 
+"hard" state.  The "hard" state situation shouldn't really occur, since the script should restart the service 
+when its still in a "soft" state (i.e. the 3rd check retry), but its left as a fallback anyway.
+</p>
+<p>
+It should be noted that the service event handler will only be execute the first time that the service falls 
+into a "hard" state.  This will prevent Nagios from continuously executing the script to restart the web
+server when it is in a "hard" state.
+</p>
+
+
+<hr>
+
+</body>
+</html>

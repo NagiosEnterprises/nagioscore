@@ -1,0 +1,82 @@
+###############################################################################
+# TEST-DEFAULT.CFG
+#
+# NOTE: This config file is intended to be used to test a Nagios installation
+#       that has been compiled with support for the older, "default" object
+#       configuration files.
+#
+#       This config file is not intended to provide a real example of how you
+#       should create a configuration file.  If you're interested in sample
+#       object configuration files for Nagios, look in the sample-config
+#       directory of the distribution.
+#
+# Last Modified: 02-22-2002
+###############################################################################
+
+
+
+###############################################################################
+# TIME PERIODS
+###############################################################################
+
+timeperiod[24x7]=24 Hours A Day, 7 Days A Week;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00
+
+
+
+###############################################################################
+# COMMANDS
+###############################################################################
+
+command[notify-by-email]=/bin/echo -e '***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$' |  @MAIL_PROG@ -s '** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **' $CONTACTEMAIL$
+
+command[host-notify-by-email]=/bin/echo -e "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" |  @MAIL_PROG@ -s 'Host $HOSTSTATE$ alert for $HOSTNAME$!' $CONTACTEMAIL$
+
+
+command[test1]=/bin/df -lk /
+command[test2]=/bin/ping -c 1 $HOSTADDRESS$
+command[check-host-alive]=/bin/check_ping -H $HOSTADDRESS$ -w 99,99% -c 100,100% -p 1 
+
+
+
+###############################################################################
+# CONTACTS
+###############################################################################
+
+contact[@nagios_user@-admin]=Nagios Admin;24x7;24x7;1;1;1;1;1;1;notify-by-email;host-notify-by-email;@nagios_user@-admin@localhost;
+
+
+
+###############################################################################
+# CONTACT GROUPS
+###############################################################################
+
+contactgroup[admins]=Nagios Administrators;@nagios_user@-admin
+
+
+
+###############################################################################
+# HOSTS
+###############################################################################
+
+host[localhost]=localhost;127.0.0.1;;check-host-alive;10;120;24x7;1;1;1;
+
+
+
+###############################################################################
+# HOST GROUPS
+###############################################################################
+
+hostgroup[test]=Test Servers;localhost;admins
+
+
+
+###############################################################################
+# SERVICES
+###############################################################################
+
+service[localhost]=PING;0;24x7;4;5;1;localhost;960;24x7;0;0;0;;test1
+service[localhost]=DISK;0;24x7;4;5;1;localhost;960;24x7;0;0;0;;test2
+
+
+
+# EOF

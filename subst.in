@@ -1,0 +1,50 @@
+#!/usr/bin/perl -w
+
+my ${exec_prefix};
+my ${prefix};
+
+${prefix}="@prefix@";
+${exec_prefix}="@exec_prefix@";
+while ($f = shift @ARGV) {
+
+	if (-x "/bin/mktemp") { 
+		$TEMP = `/bin/mktemp $f.$$.XXXXXX`;
+		die 'Cannot make temporary file $TEMP' if($?);
+		chomp $TEMP;
+	} else {
+		$XXXXXX = rand;
+		$TEMP = "$f.$$.$XXXXXX";
+	}
+
+	open(IN,"<$f.in");
+	open(OUT,">$TEMP") || die 'Cannot make temporary file $TEMP';
+
+	while (<IN>) {
+		s|\@nagios_user\@|@nagios_user@|g;
+		s|\@nagios_grp\@|@nagios_grp@|g;
+		s|\@lockfile\@|@lockfile@|g;
+		s|\@libexecdir\@|@libexecdir@|g; # put all --with-vars before directories
+		s|\@localstatedir\@|@localstatedir@|g;
+		s|\@sysconfdir\@|@sysconfdir@|g;
+		s|\@datadir\@|@datadir@|g;
+		s|\@sbindir\@|@sbindir@|g;
+		s|\@bindir\@|@bindir@|g;
+		s|\@htmurl\@|@htmurl@|g;
+		s|\@cgiurl\@|@cgiurl@|g;
+		s|\@MAIL_PROG\@|@MAIL_PROG@|g;
+		s|\@VERSION\@|@VERSION@|g;
+		s|\$\{exec_prefix\}|@exec_prefix@|g; # must be next to last
+		s|\$\{prefix\}|@prefix@|g; # must be last
+		print OUT $_;
+	}
+
+	close IN;
+	close OUT;
+
+	if ((! -e $f) || (`diff $f $TEMP`)) {
+		`mv $TEMP $f`;
+	} else {
+	         unlink $TEMP;
+	}
+
+}

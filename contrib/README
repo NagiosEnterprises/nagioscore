@@ -1,0 +1,63 @@
+#####################
+Nagios Contrib README
+#####################
+
+This directory contains various programs, scripts, etc. that
+have been contribed by various people.  Read the source code
+if you want to find who did what.
+
+Here is a description of what you'll find...
+
+
+Conversion Programs:
+--------------------
+
+- convertcfg.c is a program to quickly convert old "host" config
+  files to the new template-based object config files.  It can also
+  convert extended host information definitions. Type 'make convertcfg'
+  to compile the utility.
+
+
+Database Creation Scripts:
+--------------------------
+
+- You'll find scripts to create tables for MySQL and PostgreSQL for
+  in the database/ subdirectory.  Use these scripts if you want to
+  store status, comment, downtime, and other data in a database
+  instead of a flat text file.  No, the tables are not normalized.
+  They're not *meant* to be.
+
+
+Additional CGIs:
+----------------
+
+- ministatus.c is a very stripped down version of the status CGI.  It
+  does not use the authorization function of the CGIs.  If you want to
+  compile this CGI, move it to the CGI source code folder (../cgi) and
+  type 'make ministatus.cgi' from within that folder.
+
+- traceroute.cgi is (surprise) a CGI that allows you to do a traceroute
+  to a specific IP address.  Simply do a 'chmod +x' to make it executeable
+  and place it in the CGI directory (i.e. /usr/local/nagios/sbin).
+  Requires Perl.
+
+- daemonchk.c is a CGI contributed by Karl DeBisschop that can test to
+  see whether or not the Nagios process is running.
+
+
+Miscellaneous Goodies:
+----------------------
+
+- htaccess.sample is a *sample* .htaccess file that can be used with
+  Apache to require password authentication for access to the web
+  interface.
+
+- mini_epn.c is a mini embedded Perl interpreter that can be used to
+  test the feasibility of running various Perl plugins with the
+  embedded Perl interpreter compiled in.
+
+
+
+
+
+

@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Volatile Services</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Volatile Services</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+Nagios has the ability to distinguish between "normal" services and "volatile" services.  The <i>is_volatile</i> option in each service definition allows you to specify whether a specific service is volatile or not.  For most people, the majority of all monitored services will be non-volatile (i.e. "normal").  However, volatile services can be very useful when used properly...
+</p>
+
+<p>
+<strong><u>What Are They Useful For?</u></strong>
+</p>
+
+<p>
+Volatile services are useful for monitoring...
+</p>
+
+<p>
+<ul>
+<li>things that automatically reset themselves to an "OK" state each time they are checked
+<li>events such as security alerts which require attention every time there is a problem (and not just the first time)
+</ul>
+</p>
+
+<p>
+<strong><u>What's So Special About Volatile Services?</u></strong>
+</p>
+
+<p>
+Volatile services differ from "normal" services in three important ways.  <i>Each time</i> they are checked when they are in a <a href="statetypes.html">hard</a> non-OK state, and the check returns a non-OK state (i.e. no state change has occurred)...
+</p>
+
+<p>
+<ul>
+<li>the non-OK service state is logged
+<li>contacts are notified about the problem (if that's <a href="notifications.html">what should be done</a>)
+<li>the <a href="eventhandlers.html">event handler</a> for the service is run (if one has been defined)
+</ul>
+</p>
+
+<p>
+These events normally only occur for services when they are in a non-OK state and a hard state change has just occurred.  In other words, they only happen the first time that a service goes into a non-OK state.  If future checks of the service result in the same non-OK state, no hard state change occurs and none of the events mentioned take place again.
+</p>
+
+<p>
+<strong><u>The Power Of Two</u></strong>
+</p>
+
+<p>
+If you combine the features of volatile services and <a href="passivechecks.html">passive service checks</a>, you can do some very useful things.  Examples of this include handling SNMP traps, security alerts, etc.
+</p>
+
+<p>
+How about an example... Let's say you're running <a href="http://www.psionic.com">Psionic Software's</a> <a href="http://www.psionic.com/abacus/portsentry">PortSentry</a> product (which is free, by the way) to detect port scans on your machine and automatically firewall potential intruders.  If you want to let Nagios know about port scans, you could do the following..
+</p>
+
+<p>
+<font color="red"><b>In Nagios:</b></font>
+</p>
+
+<p>
+<ul>
+<li>Configure a service called <i>Port Scans</i> and associate it with the host that PortSentry is running on.
+<li>Set the <i>max_check_attempts</i> option in the service definition to 1.  This will tell Nagios to immediate force the service into a <a href="statetypes.html">hard state</a> when a non-OK state is reported.
+<li>Either set the <i>active_checks_enabled</i> option to 0 or set the <i>check_time</i> option in the service definition to a <a href="timeperiods.html">timeperiod</a> that contains <i>no</i> valid time ranges.  Doing either of these will prevent Nagios from ever actively checking the service.  Even though the service check will get scheduled, it will never actually be checked.
+</ul>
+</p>
+
+<p>
+<font color="red"><b>In PortSentry:</b></font>
+</p>
+
+<p>
+<ul>
+<li>Edit your PortSentry configuration file (portsentry.conf), define a command for the <B>KILL_RUN_CMD</b> directive as follows:<br><br>
+ <font color="red">KILL_RUN_CMD="/usr/local/Nagios/libexec/eventhandlers/submit_check_result <i>&lt;host_name&gt;</i> 'Port Scans' 2 'Port scan from host $TARGET$ on port $PORT$.  Host has been firewalled.'"</font>
+<br><br>
+Make sure to replace <i>&lt;host_name&gt;</i> with the short name of the host that the service is associated with.
+</ul>
+</p>
+
+<p>
+Create a shell script in the <i>/usr/local/nagios/libexec/eventhandlers</i> directory named <i>submit_check_result</i>.  The contents of the shell script should be something similiar to the following...
+</p>
+
+<p>
+<font size=-1>
+<pre>
+	#!/bin/sh
+ 
+	# Write a command to the Nagios command file to cause
+	# it to process a service check result
+ 
+	echocmd="/bin/echo"
+ 
+	CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
+ 
+	# get the current date/time in seconds since UNIX epoch
+	datetime=`date +%s`
+ 
+	# create the command line to add to the command file
+	cmdline="[$datetime] PROCESS_SERVICE_CHECK_RESULT;$1;$2;$3;$4"
+ 
+	# append the command to the end of the command file
+	`$echocmd $cmdline >> $CommandFile`
+</pre>
+</font> 
+</p>
+
+<p>
+Note that if you are running PortSentry as root, you will have to make additions to the script to reset file ownership and permissions so that Nagios and the CGIs can read/modify the command file.  Details on permissions/ownership of the command file can be found <a href="faqs.html#command_file_permissions">here</a>.
+</p>
+
+<p>
+So what happens when PortSentry detects a port scan on the machine?
+</p>
+
+<p>
+<ul>
+<li>It blocks the host (this is a function of the PortSentry software)
+<li>It executes the <i>submit_check_result</i> shell script to send the security alert info to Nagios
+<li>Nagios reads the command file, recognized the port scan entry as a passive service check
+<li>Nagios processes the results of the service by logging the CRITICAL state, sending notifications to contacts (if configured to do so), and executes the event handler for the <i>Port Scans</i> service (if one is defined)
+</ul>
+</p>
+
+<hr>
+
+</body>
+</html>

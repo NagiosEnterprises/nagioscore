@@ -1,0 +1,192 @@
+###############################
+# Makefile for Nagios
+#
+# Last Modified: 02-11-2002
+###############################
+
+
+# Source code directories
+SRC_BASE=@srcdir@/base
+SRC_CGI=@srcdir@/cgi
+SRC_HTM=@srcdir@/html
+SRC_COMMON=@srcdir@/common
+SRC_XDATA=@srcdir@/xdata
+SRC_CONTRIB=@srcdir@/contrib
+
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@
+LDFLAGS=@LDFLAGS@ @LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+HTMLDIR=@datadir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+INIT_DIR=@init_dir@
+INIT_OPTS=-o root -g root
+CGICFGDIR=$(CGIDIR)
+PERLDIR=@PERLDIR@
+
+INSTALLPERLSTUFF=@INSTALLPERLSTUFF@
+
+CGIEXTRAS=@CGIEXTRAS@
+
+SNPRINTF_O=@SNPRINTF_O@
+
+CP=@CP@
+
+@SET_MAKE@
+
+none:
+		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
+		@echo "   nagios cgis contrib"
+		@echo "   clean"
+		@echo "   install install-html install-config install-init install-commandmode fullinstall"
+#		@echo "   uninstall"
+
+# FreeBSD make does not support -C option, so we'll use the Apache style... (patch by Stanley Hopcroft 12/27/1999)
+
+all:
+	cd $(SRC_BASE); $(MAKE) ; cd ..
+	cd $(SRC_CGI); $(MAKE) ; cd ..
+	cd $(SRC_HTM); $(MAKE) ; cd ..
+
+	@echo ""
+	@echo "*** Compile finished ***"
+	@echo ""
+	@echo "If the main program and CGIs compiled without any errors, you"
+	@echo "can continue with installing Nagios as follows (type 'make'"
+	@echo "without any arguments for a list of all possible options):"
+	@echo ""
+	@echo "  make install"
+	@echo "     - This installs the main program, CGIs, and HTML files"
+	@echo ""
+	@echo "  make install-init"
+	@echo "     - This installs the init script in $(DESTDIR)$(INIT_DIR)"
+	@echo ""
+	@echo "  make install-commandmode"
+	@echo "     - This installs and configures permissions on the"
+	@echo "       directory for holding the external command file"
+	@echo ""
+	@echo "  make install-config"
+	@echo "     - This installs *SAMPLE* config files in $(DESTDIR)$(CFGDIR)"
+	@echo "       You'll have to modify these sample files before you can"
+	@echo "       use Nagios.  Read the HTML documentation for more info"
+	@echo "       on doing this.  Pay particular attention to the docs on"
+	@echo "       object configuration files, as they determine what/how"
+	@echo "       things get monitored!"
+	@echo ""
+
+nagios:
+	cd $(SRC_BASE); $(MAKE) ; cd ..
+
+config:
+	@echo "Sample config files are automatically generated once you run the"
+	@echo "configure script.  You can install the sample config files on your"
+	@echo "system by using the 'make install-config' command."
+
+cgis:
+	cd $(SRC_CGI); $(MAKE) ; cd ..
+
+html:
+	cd $(SRC_HTM); $(MAKE) ; cd ..
+
+contrib:
+	cd $(SRC_CONTRIB); $(MAKE) ; cd ..
+
+clean:
+	cd $(SRC_BASE); $(MAKE) $@ ; cd ..
+	cd $(SRC_CGI); $(MAKE) $@ ; cd ..
+	cd $(SRC_COMMON); $(MAKE) $@ ; cd ..
+	cd $(SRC_XDATA); $(MAKE) $@ ; cd ..
+	cd $(SRC_HTM); $(MAKE) $@ ; cd ..
+	cd $(SRC_CONTRIB); $(MAKE) $@ ; cd ..
+	rm -f *.cfg *.sub core
+	rm -f *~ */*~
+	rm -f $(SRC_COMMON)/config.h $(SRC_COMMON)/locations.h $(SRC_COMMON)/snprintf.h 
+	rm -f sample-config/*.cfg sample-config/template-object/*.cfg sample-config/default-object/*.cfg
+	rm -f daemon-init pkginfo
+	rm -f config.log config.status config.cache Makefile
+
+distclean: clean
+
+devclean: clean
+
+install-html:
+	cd $(SRC_HTM); $(MAKE) install ; cd ..
+
+install:
+	cd $(SRC_BASE); $(MAKE) $@ ; cd ..
+	cd $(SRC_CGI); $(MAKE) $@ ; cd ..
+	cd $(SRC_HTM); $(MAKE) $@ ; cd ..
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)/archives
+	if [ $(INSTALLPERLSTUFF) = yes ]; then \
+		$(INSTALL) -m 664 $(INSTALL_OPTS) p1.pl $(DESTDIR)$(BINDIR); \
+	fi;
+
+install-config:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CFGDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/nagios.cfg $(DESTDIR)$(CFGDIR)/nagios.cfg-sample
+	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/cgi.cfg $(DESTDIR)$(CFGDIR)/cgi.cfg-sample
+	$(INSTALL) -m 660 $(INSTALL_OPTS) sample-config/resource.cfg $(DESTDIR)$(CFGDIR)/resource.cfg-sample
+
+install-init: install-daemoninit
+
+install-daemoninit:
+	$(INSTALL) -m 774 $(INIT_OPTS) daemon-init $(DESTDIR)$(INIT_DIR)/nagios
+
+install-commandmode:
+	$(INSTALL) -m 775 $(COMMAND_OPTS) -d $(DESTDIR)$(LOGDIR)/rw
+	chmod g+s $(DESTDIR)$(LOGDIR)/rw
+
+fullinstall: install install-init install-commandmode
+
+# Uninstall is too destructive if base install directory is /usr, etc.
+#uninstall:
+#	rm -rf $(DESTDIR)$(BINDIR)/nagios $(DESTDIR)$(CGIDIR)/*.cgi $(DESTDIR)$(CFGDIR)/*.cfg $(DESTDIR)$(HTMLDIR)
+
+#
+# Targets for creating packages on various architectures
+#
+
+# Solaris pkgmk
+PACKDIR=@PACKDIR@
+VERSION=@VERSION@
+
+Prototype:
+	if [ ! -d $(PACKDIR) ] ; then mkdir $(PACKDIR); fi
+	if [ ! -d $(PACKDIR)/etc ] ; then mkdir $(PACKDIR)/etc; fi
+	if [ ! -d $(PACKDIR)/etc/init.d ] ; then mkdir $(PACKDIR)/etc/init.d; fi
+	if [ ! -d $(PACKDIR)/etc/nagios ] ; then mkdir $(PACKDIR)/etc/nagios; fi
+	$(MAKE) all
+	$(MAKE) DESTDIR=$(PACKDIR) INIT_OPTS='' INSTALL_OPTS='' COMMAND_OPTS='' nagios_grp='' nagios_usr='' fullinstall
+	$(INSTALL) -m 644 nagios.cfg $(PACKDIR)$(CFGDIR)/nagios.cfg.$(VERSION)
+	$(INSTALL) -m 644 hosts.cfg $(PACKDIR)$(CFGDIR)/hosts.cfg.$(VERSION)
+	$(INSTALL) -m 644 commands.cfg $(PACKDIR)$(CFGDIR)/commands.cfg.$(VERSION)
+	$(INSTALL) -m 644 cgi.cfg $(PACKDIR)$(CFGDIR)/cgi.cfg.$(VERSION)
+	$(INSTALL) -m 644 resource.cfg $(PACKDIR)$(CFGDIR)/resource.cfg.$(VERSION)
+	$(INSTALL) -m 755 resource.cfg $(PACKDIR)$(CFGDIR)/resource.cfg.$(VERSION)
+	cd contrib; $(MAKE) all; $(MAKE) DESTDIR=$(PACKDIR) INIT_OPTS='' INSTALL_OPTS='' COMMAND_OPTS='' nagios_grp='' nagios_usr='' install; cd ..
+	echo i pkginfo> Prototype
+	if [ -f checkinstall ] ; then echo i checkinstall>> Prototype; fi
+	if [ -f preinstall ] ; then echo i preinstall>> Prototype; fi
+	if [ -f postinstall ] ; then echo i postinstall>> Prototype; fi
+	pkgproto $(PACKDIR)=/ | sed -e "s|$(LOGNAME) $(GROUP)$$|root root|" | egrep -v "(s|d) none (/|/etc|/var|/usr|/usr/local) " >> Prototype
+
+pkg/nagios/pkgmap: Prototype
+	mkdir $(PACKDIR)/nagios
+	pkgmk -o -r / -f Prototype -d $(PACKDIR) nagios
+
+nagios.SPARC.pkg.tar.gz: pkg/nagios/pkgmap
+	cd $(PACKDIR); tar -cf - nagios | gzip -9 -c > ../nagios.SPARC.pkg.tar.gz
+
+pkgset: nagios.SPARC.pkg.tar.gz
+
+pkgclean:
+	rm -rf pkg Prototype nagios.SPARC.pkg.tar.gz

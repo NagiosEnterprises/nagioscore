@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Write a command to the Nagios command file to cause
+# it to disable host and service notifications
+
+# Notes: 
+# 1) This script is not intended to be used as an 
+#    event handler by itself.  Instead, it is used by other
+#    event handler scripts (like the redundancy examples).
+# 2) In order for Nagios to process any commands that
+#    are written to the command file, you must enable
+#    the check_external_commands option in the main
+#    configuration file.
+
+echocmd="/bin/echo"
+
+CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
+
+# get the current date/time in seconds since UNIX epoch
+datetime=`date +%s`
+
+# create the command line to add to the command file
+cmdline="[$datetime] DISABLE_NOTIFICATIONS;$datetime"
+
+# append the command to the end of the command file
+`$echocmd $cmdline >> $CommandFile`
+

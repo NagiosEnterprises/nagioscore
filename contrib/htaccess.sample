@@ -1,0 +1,45 @@
+ScriptAlias /nagios/cgi-bin/ /usr/libexec/nagios/cgi/
+<Directory /usr/libexec/nagios/cgi/>
+   Options ExecCGI
+   order deny,allow
+   deny from all
+   allow from 127.0.0.1
+</Directory>
+
+Alias /nagios/ /usr/share/nagios/
+<Directory /usr/share/nagios/>
+   Options None
+   order deny,allow
+   deny from all
+   allow from 127.0.0.1
+</Directory>
+
+# For SSL-servers
+#ScriptAlias /nagios/cgi-bin/ /usr/libexec/nagios/cgi/
+#<Directory /usr/libexec/nagios/cgi/>
+#   Options ExecCGI
+#   SSLRequireSSL
+#   order deny,allow
+#   deny from all
+#   AuthType Basic
+#   AuthUserFile /site/cfg/passwd
+#   AuthGroupFile /site/cfg/group
+#   AuthName "nagios"
+#   require group nagios
+#   Satisfy Any
+#</Directory>
+#
+#Alias /nagios/ /usr/share/nagios/
+#<Directory /usr/share/nagios/>
+#   Options None
+#   SSLRequireSSL
+#   order deny,allow
+#   deny from all
+#   AuthType Basic
+#   AuthUserFile /site/cfg/passwd
+#   AuthGroupFile /site/cfg/group
+#   AuthName "nagios"
+#   require group nagios
+#   Satisfy Any
+#</Directory>
+

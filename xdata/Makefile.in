@@ -1,0 +1,36 @@
+############################
+# Makefile for Nagios
+#
+# Last Modified: 01-27-2002
+############################
+
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@
+LDFLAGS=@LDFLAGS@ @LIBS@
+
+BASEFLAGS=-DNSCORE
+CGIFLAGS=-DNSCGI
+
+
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f Makefile
+
+distclean: clean
+
+devclean: clean
+
+
+# Object Data Routines
+xoddefault-base.o: xoddefault.c xoddefault.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $(BASEFLAGS) xoddefault.c -o $@
+
+xoddefault-cgi.o: xoddefault.c xoddefault.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $(CGIFLAGS) xoddefault.c -o $@
+
+xodtemplate-base.o: xodtemplate.c xodtemplate.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $(BASEFLAGS) xodtemplate.c -o $@
+
+xodtemplate-cgi.o: xodtemplate.c xodtemplate.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $(CGIFLAGS) xodtemplate.c -o $@

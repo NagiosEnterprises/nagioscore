@@ -1,0 +1,34 @@
+<STYLE type="text/css">
+
+	.trends { font-family: arial,serif; background-color: white; color: black; }
+
+	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: medium; }
+	.errorDescription { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
+	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: small; }
+	.infoMessage { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
+
+	.helpfulHints { font-family: arial,serif; text-align: center; font-size: small; }
+
+	.infoBox { font-family: arial,serif; font-size: x-small; background-color: #C4C2C2; padding: 2; }
+	.infoBoxTitle { font-family: arial,serif; font-size: small; font-weight: bold; }
+	.infoBoxBadProcStatus { color: red; }
+	A.homepageURL:Hover { font-family: arial,serif; color: red; }
+	
+	.linkBox { font-family: arial,serif; font-size: x-small; background-color: #DBDBDB; padding: 1; }
+
+	.dataTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: medium; }
+
+	.reportRange {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: small; }
+	.reportDuration {font-family: arial,serif;  text-align: center; font-size: x-small; }
+	.reportTime {font-family: arial,serif;  text-align: center; font-size: x-small; }
+
+	.optBox { font-family: arial narrow,serif; font-size: small; font-weight: bold; }
+	.optBoxItem { font-family: arial,serif; font-size: x-small; font-weight: bold; color: red;  }
+
+	.reportSelectTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: medium; }
+	.reportSelectSubTitle {font-family: arial,serif; text-align: right; font-size: small; }
+	.reportSelectItem {font-family: arial,serif;  text-align: left; font-size: x-small; }
+
+	.helpfulHint {font-family: arial,serif;  text-align: left; font-size: x-small; font-style: italic; text-align: center; }
+
+</STYLE>

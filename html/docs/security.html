@@ -1,0 +1,102 @@
+<html>
+<head>
+<title>Securing Nagios</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Securing Nagios</h2>
+</div>
+</p>
+
+<hr>
+
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+This is intended to be a brief overview of some things you should keep in mind when installing Nagios, so as to not set it up in an insecure manner.  This document is new, so if anyone has additional notes or comments on securing Nagios, please drop me a note at <a href="mailto:nagios@nagios.org">nagios@nagios.org</a>
+</p>
+
+<p>
+<font color="red"><strong><u>Do Not Run Nagios As Root!</u></strong></font>
+</p>
+
+<p>
+Nagios doesn't need to run as root, so don't do it.  Even if you start Nagios at boot time with an init script, you can force it to drop privileges after startup and run as another user/group by using the <a href="configmain.html#nagios_user">nagios_user</a> and <a href="configmain.html#nagios_group">nagios_group</a> directives in the main config file.
+</p>
+
+<p>
+<font color="red"><strong><u>Enable External Commands Only If Necessary</u></strong></font>
+</p>
+
+<p>
+By default, <a href="extcommands.html">external commands</a> are disabled.  This is done to prevent an admin from setting up Nagios and unknowingly leaving its command interface open for use by "others"..  If you are planning on using <a href="eventhandlers.html">event handlers</a> or issuing commands from the web interface, you will have to enable external commands.  If you aren't planning on using event handlers or the web interface to issue commands, I would recommend leaving external commands disabled.
+</p>
+
+<p>
+<font color="red"><strong><u>Set Proper Permissions On The External Command File</u></strong></font>
+</p>
+
+<p>
+If you enable <a href="extcommands.html">external commands</a>, make sure you set proper permissions on the <i>/usr/local/nagios/var/rw</i> directory.  You only want the Nagios user (usually <i>nagios</i>) and the web server user (usually <i>nobody</i>) to have permissions to write to the command file.  If you've installed Nagios on a machine that is dedicated to monitoring and admin tasks and is not used for public accounts, that should be fine.  
+</p>
+
+<p>
+If you've installed it on a public or multi-user machine, allowing the web server user to have write access to the command file can be a security problem.  After all, you don't want just any user on your system controlling Nagios through the external command file.  In this case, I would suggest only granting write access on the command file to the <i>nagios</i> user and using something like <a href="http://cgiwrap.unixtools.org/">CGIWrap</a> to run the CGIs as the <i>nagios</i> user instead of <i>nobody</i>.  See the blurb below for more information on using CGIWrap.
+</p>
+
+<p>
+Instructions on setting up permissions for the external command file can be found <a href="commandfile.html">here</a>.
+</p>
+
+<p>
+<font color="red"><strong><u>Require Authentication In The CGIs</u></strong></font>
+</p>
+
+<p>
+I would strongly suggest requiring authentication for accessing the CGIs.  Once you do that, read the documentation on the default rights that authenticated contacts have, and only authorize specific contacts for additional rights as necessary.  Instructions on setting up authentication and configuring authorization rights can be found <a href="cgiauth.html">here</a>.  If you disable the CGI authentication features using the <a href="configcgi.html#use_authentication">use_authentication</a> directive in the CGI config file, the <a href="cgis.html#cmd_cgi">command CGI</a> will refuse to write any commands to the <a href="configmain.html#command_file">external command file</a>.  After all, you don't want the world to be able to control Nagios do you?
+</p>
+
+
+<p>
+<font color="red"><strong><u>Run The CGIs As The Nagios User</u></strong></font>
+</p>
+
+<p>
+If you're running Nagios on a public or mutli-user system, I would suggest 
+</p>
+
+
+<p>
+<font color="red"><strong><u>Use Full Paths In Command Definitions</u></strong></font>
+</p>
+
+<p>
+When you define commands, make sure you specify the <i>full path</i> to any scripts or binaries you're executing.
+</p>
+
+<p>
+<font color="red"><strong><u>Hide Sensitive Information With $USERn$ Macros</u></strong></font>
+</p>
+
+<p>
+The CGIs read the <a href="configmain.html">main config file</a> and <a href="configobject.html">object config file(s)</a>, so you don't want to keep any sensitive information (usernames, passwords, etc) in there.  If you need to specify a username and/or password in a command definition use a $USERn$ <a href="macros.html">macro</a> to hide it.  $USERn$ macros are defined in one or more <a href="configmain.html#resource_file">resource files</a>.  The CGIs will not attempt to read the contents of resource files, so you can set more restrictive permissions (600 or 660) on them.  See the sample <i>resource.cfg</i> file in the base of the Nagios distribution for an example of how to define $USERn$ macros.
+</p>
+
+<hr>
+
+</body>
+</html>

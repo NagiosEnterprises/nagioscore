@@ -1,0 +1,591 @@
+/*****************************************************************************
+ *
+ * FLAPPING.C - State flap detection and handling routines for Nagios
+ *
+ * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-19-2001
+ *
+ * License:
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *****************************************************************************/
+
+/*********** COMMON HEADER FILES ***********/
+
+#include "../common/config.h"
+#include "../common/common.h"
+#include "../common/objects.h"
+#include "../common/comments.h"
+#include "../common/statusdata.h"
+#include "nagios.h"
+
+extern int      interval_length;
+
+extern int      enable_flap_detection;
+
+extern double   low_service_flap_threshold;
+extern double   high_service_flap_threshold;
+extern double   low_host_flap_threshold;
+extern double   high_host_flap_threshold;
+
+
+/******************************************************************/
+/******************** FLAP DETECTION FUNCTIONS ********************/
+/******************************************************************/
+
+
+/* detects service flapping */
+void check_for_service_flapping(service *svc){
+	int is_flapping=FALSE;
+	int x,y;
+	int last_state_history_value=STATE_OK;
+	double curved_changes=0.0;
+	double curved_percent_change=0.0;
+	double low_threshold=0.0;
+	double high_threshold=0.0;
+	double low_curve_value=0.75;
+	double high_curve_value=1.25;
+
+#ifdef DEBUG0
+	printf("check_for_service_flapping() start\n");
+#endif
+
+	/* don't check anything if we don't have flap detection enabled on a program-wide basis */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* don't check anything if we don't have flap detection enabled for this service */
+	if(svc->flap_detection_enabled==FALSE)
+		return;
+
+	/* if this is a soft service state and not a soft recovery, don't record this in the history */
+	/* only hard states and soft recoveries get recorded for flap detection */
+	if(svc->state_type==SOFT_STATE && svc->current_state!=STATE_OK)
+		return;
+
+	/* what threshold values should we use (global or service-specific)? */
+	low_threshold=(svc->low_flap_threshold<=0.0)?low_service_flap_threshold:svc->low_flap_threshold;
+	high_threshold=(svc->high_flap_threshold<=0.0)?high_service_flap_threshold:svc->high_flap_threshold;
+
+	/* record the current state in the state history */
+	svc->state_history[svc->state_history_index]=svc->current_state;
+
+	/* increment state history index to next available slot */
+	svc->state_history_index++;
+	if(svc->state_history_index>=MAX_STATE_HISTORY_ENTRIES)
+		svc->state_history_index=0;
+
+	/* calculate overall and curved percent state changes */
+	for(x=0,y=svc->state_history_index;x<MAX_STATE_HISTORY_ENTRIES;x++){
+
+		if(x==0){
+			last_state_history_value=svc->state_history[y];
+			y++;
+			if(y>=MAX_STATE_HISTORY_ENTRIES)
+				y=0;
+			continue;
+		        }
+
+		if(last_state_history_value!=svc->state_history[y])
+			curved_changes+=(((double)(x-1)*(high_curve_value-low_curve_value))/((double)(MAX_STATE_HISTORY_ENTRIES-2)))+low_curve_value;
+
+		last_state_history_value=svc->state_history[y];
+
+		y++;
+		if(y>=MAX_STATE_HISTORY_ENTRIES)
+			y=0;
+	        }
+
+	/* calculate overall percent change in state */
+	curved_percent_change=(double)(((double)curved_changes*100.0)/(double)(MAX_STATE_HISTORY_ENTRIES-1));
+
+	svc->percent_state_change=curved_percent_change;
+
+
+	/* are we flapping, undecided, or what?... */
+
+	/* we're undecided, so don't change the current flap state */
+	if(curved_percent_change>low_threshold && curved_percent_change<high_threshold)
+		return;
+
+	/* we're below the lower bound, so we're not flapping */
+	else if(curved_percent_change<=low_threshold)
+		is_flapping=FALSE;
+       
+	/* else we're above the upper bound, so we are flapping */
+	else if(curved_percent_change>=high_threshold)
+		is_flapping=TRUE;
+
+	/* so what should we do (if anything)? */
+
+	/* did the service just start flapping? */
+	if(is_flapping==TRUE && svc->is_flapping==FALSE)
+		set_service_flap(svc,curved_percent_change,high_threshold);
+
+	/* did the service just stop flapping? */
+	else if(is_flapping==FALSE && svc->is_flapping==TRUE)
+		clear_service_flap(svc,curved_percent_change,low_threshold);
+
+#ifdef DEBUG0
+	printf("check_for_service_flapping() end\n");
+#endif
+
+	return;
+        }
+
+
+/* detects host flapping */
+void check_for_host_flapping(host *hst){
+	int is_flapping=FALSE;
+	int x;
+	int last_state_history_value=HOST_UP;
+	unsigned long wait_threshold;
+	double curved_changes=0.0;
+	double curved_percent_change=0.0;
+	time_t current_time;
+	double low_threshold=0.0;
+	double high_threshold=0.0;
+	double low_curve_value=0.75;
+	double high_curve_value=1.25;
+
+#ifdef DEBUG0
+	printf("check_for_host_flapping() start\n");
+#endif
+
+	/* don't check anything if we don't have flap detection enabled on a program-wide basis */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* don't check anything if we don't have flap detection enabled for this host */
+	if(hst->flap_detection_enabled==FALSE)
+		return;
+
+	time(&current_time);
+
+	/* period to wait for updating archived state info if we have no state change */
+	if(hst->total_services==0)
+		wait_threshold=hst->notification_interval*interval_length;
+	
+	else
+		wait_threshold=(hst->total_service_check_interval*interval_length)/hst->total_services;
+
+	/* if we haven't waited long enough since last record, only update if we've had a state change */
+	if((current_time-hst->last_state_history_update)<wait_threshold){
+
+		/* get the last recorded state */
+		last_state_history_value=hst->state_history[(hst->state_history_index==0)?MAX_STATE_HISTORY_ENTRIES-1:hst->state_history_index-1];
+
+		/* if we haven't had a state change since our last recorded state, bail out */
+		if(last_state_history_value==hst->status)
+			return;
+	        }
+
+	/* update the last record time */
+	hst->last_state_history_update=current_time;
+
+	/* what thresholds should we use (global or host-specific)? */
+	low_threshold=(hst->low_flap_threshold<=0.0)?low_host_flap_threshold:hst->low_flap_threshold;
+	high_threshold=(hst->high_flap_threshold<=0.0)?high_host_flap_threshold:hst->high_flap_threshold;
+
+	/* record the current state in the state history */
+	hst->state_history[hst->state_history_index]=hst->status;
+	hst->state_history_index++;
+	if(hst->state_history_index>=MAX_STATE_HISTORY_ENTRIES)
+		hst->state_history_index=0;
+
+	/* calculate overall changes in state */
+	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){
+
+		if(x==0){
+			last_state_history_value=hst->state_history[x];
+			continue;
+		        }
+
+		if(last_state_history_value!=hst->state_history[x])
+			curved_changes+=(((double)(x-1)*(high_curve_value-low_curve_value))/((double)(MAX_STATE_HISTORY_ENTRIES-2)))+low_curve_value;
+
+		last_state_history_value=hst->state_history[x];
+	        }
+
+	/* calculate overall percent change in state */
+	curved_percent_change=(double)(((double)curved_changes*100.0)/(double)(MAX_STATE_HISTORY_ENTRIES-1));
+
+	hst->percent_state_change=curved_percent_change;
+
+
+	/* are we flapping, undecided, or what?... */
+
+	/* we're undecided, so don't change the current flap state */
+	if(curved_percent_change>low_threshold && curved_percent_change<high_threshold)
+		return;
+
+	/* we're below the lower bound, so we're not flapping */
+	else if(curved_percent_change<=low_threshold)
+		is_flapping=FALSE;
+       
+	/* else we're above the upper bound, so we are flapping */
+	else if(curved_percent_change>=high_threshold)
+		is_flapping=TRUE;
+
+	/* so what should we do (if anything)? */
+
+	/* did the host just start flapping? */
+	if(is_flapping==TRUE && hst->is_flapping==FALSE)
+		set_host_flap(hst,curved_percent_change,high_threshold);
+
+	/* did the host just stop flapping? */
+	else if(is_flapping==FALSE && hst->is_flapping==TRUE)
+		clear_host_flap(hst,curved_percent_change,low_threshold);
+
+#ifdef DEBUG0
+	printf("check_for_host_flapping() end\n");
+#endif
+
+	return;
+        }
+
+
+/******************************************************************/
+/********************* FLAP HANDLING FUNCTIONS ********************/
+/******************************************************************/
+
+
+/* handles a service that is flapping */
+void set_service_flap(service *svc, double percent_change, double high_threshold){
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("set_service_flap() start\n");
+#endif
+
+	/* log a notice - this one is parsed by the history CGI */
+	snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;STARTED; Service appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,high_threshold);
+	buffer[sizeof(buffer)-1]='\x0';
+	write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+	/* add a non-persistent comment to the service */
+	snprintf(buffer,sizeof(buffer)-1,"Notifications for this service are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
+	buffer[sizeof(buffer)-1]='\x0';
+	save_comment(SERVICE_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",buffer,0,&(svc->flapping_comment_id));
+
+	/* set the flapping indicator */
+	svc->is_flapping=TRUE;
+
+#ifdef DEBUG0
+	printf("set_service_flap() end\n");
+#endif
+
+	return;
+        }
+
+
+/* handles a service that has stopped flapping */
+void clear_service_flap(service *svc, double percent_change, double low_threshold){
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("clear_service_flap() start\n");
+#endif
+
+	/* log a notice - this one is parsed by the history CGI */
+	snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;STOPPED; Service appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,low_threshold);
+	buffer[sizeof(buffer)-1]='\x0';
+	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+
+	/* delete the comment we added earlier */
+	if(svc->flapping_comment_id!=-1)
+		delete_service_comment(svc->flapping_comment_id);
+	svc->flapping_comment_id=-1;
+
+	/* clear the flapping indicator */
+	svc->is_flapping=FALSE;
+
+#ifdef DEBUG0
+	printf("clear_service_flap() end\n");
+#endif
+
+	return;
+        }
+
+/* handles a host that is flapping */
+void set_host_flap(host *hst, double percent_change, double high_threshold){
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("set_host_flap() start\n");
+#endif
+
+	/* log a notice - this one is parsed by the history CGI */
+	snprintf(buffer,sizeof(buffer)-1,"HOST FLAPPING ALERT: %s;STARTED; Host appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",hst->name,percent_change,high_threshold);
+	buffer[sizeof(buffer)-1]='\x0';
+	write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+	/* add a non-persistent comment to the host */
+	snprintf(buffer,sizeof(buffer)-1,"Notifications for this host are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the host state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
+	buffer[sizeof(buffer)-1]='\x0';
+	save_comment(HOST_COMMENT,hst->name,"",time(NULL),"(Nagios Process)",buffer,0,&(hst->flapping_comment_id));
+
+	/* set the flapping indicator */
+	hst->is_flapping=TRUE;
+
+#ifdef DEBUG0
+	printf("set_host_flap() end\n");
+#endif
+
+	return;
+        }
+
+
+/* handles a host that has stopped flapping */
+void clear_host_flap(host *hst, double percent_change, double low_threshold){
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("clear_host_flap() start\n");
+#endif
+
+	/* log a notice - this one is parsed by the history CGI */
+	snprintf(buffer,sizeof(buffer)-1,"HOST FLAPPING ALERT: %s;STOPPED; Host appears to have stopped flapping (%2.1f%% change < %2.1f%% threshold)\n",hst->name,percent_change,low_threshold);
+	buffer[sizeof(buffer)-1]='\x0';
+	write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+
+	/* delete the comment we added earlier */
+	if(hst->flapping_comment_id!=-1)
+		delete_host_comment(hst->flapping_comment_id);
+	hst->flapping_comment_id=-1;
+
+	/* clear the flapping indicator */
+	hst->is_flapping=FALSE;
+
+#ifdef DEBUG0
+	printf("clear_host_flap() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/******************************************************************/
+/***************** FLAP DETECTION STATUS FUNCTIONS ****************/
+/******************************************************************/
+
+/* enables flap detection on a program wide basis */
+void enable_flap_detection_routines(void){
+
+#ifdef DEBUG0
+	printf("enable_flap_detection() start\n");
+#endif
+
+	/* set flap detection flag */
+	enable_flap_detection=TRUE;
+
+	/* update program status */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("enable_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* disables flap detection on a program wide basis */
+void disable_flap_detection_routines(void){
+
+#ifdef DEBUG0
+	printf("disable_flap_detection() start\n");
+#endif
+
+	/* set flap detection flag */
+	enable_flap_detection=FALSE;
+
+	/* update program status */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("disable_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* enables flap detection for a specific host */
+void enable_host_flap_detection(host *hst){
+	int x;
+
+#ifdef DEBUG0
+	printf("enable_host_flap_detection() start\n");
+#endif
+
+	/* nothing to do... */
+	if(hst->flap_detection_enabled==TRUE)
+		return;
+
+	/* reset the archived state history */
+	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
+		hst->state_history[x]=hst->status;
+
+	/* reset percent state change indicator */
+	hst->percent_state_change=0.0;
+
+	/* set the flap detection enabled flag */
+	hst->flap_detection_enabled=TRUE;
+
+	/* update host status */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("enable_host_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* disables flap detection for a specific host */
+void disable_host_flap_detection(host *hst){
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("disable_host_flap_detection() start\n");
+#endif
+
+	/* nothing to do... */
+	if(hst->flap_detection_enabled==FALSE)
+		return;
+
+	/* set the flap detection enabled flag */
+	hst->flap_detection_enabled=FALSE;
+
+	/* if the host was flapping, remove the flapping indicator */
+	if(hst->is_flapping==TRUE){
+
+		hst->is_flapping=FALSE;
+
+		/* delete the original comment we added earlier */
+		if(hst->flapping_comment_id!=-1)
+			delete_host_comment(hst->flapping_comment_id);
+		hst->flapping_comment_id=-1;
+
+		/* log a notice - this one is parsed by the history CGI */
+		snprintf(buffer,sizeof(buffer)-1,"HOST FLAPPING ALERT: %s;DISABLED; Flap detection has been disabled\n",hst->name);
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+	        }
+
+	/* reset the percent change indicator */
+	hst->percent_state_change=0.0;
+
+	/* update host status */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("disable_host_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+/* enables flap detection for a specific service */
+void enable_service_flap_detection(service *svc){
+	int x;
+
+#ifdef DEBUG0
+	printf("enable_service_flap_detection() start\n");
+#endif
+
+	/* nothing to do... */
+	if(svc->flap_detection_enabled==TRUE)
+		return;
+
+	/* reset the archived state history */
+	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
+		svc->state_history[x]=svc->current_state;
+
+	/* reset percent state change indicator */
+	svc->percent_state_change=0.0;
+
+	/* set the flap detection enabled flag */
+	svc->flap_detection_enabled=TRUE;
+
+	/* update service status */
+	update_service_status(svc,FALSE);
+
+#ifdef DEBUG0
+	printf("enable_service_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* disables flap detection for a specific service */
+void disable_service_flap_detection(service *svc){
+	char buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("disable_service_flap_detection() start\n");
+#endif
+
+	/* nothing to do... */
+	if(svc->flap_detection_enabled==FALSE)
+		return;
+
+	/* set the flap detection enabled flag */
+	svc->flap_detection_enabled=FALSE;
+
+	/* if the service was flapping, remove the flapping indicator */
+	if(svc->is_flapping==TRUE){
+
+		svc->is_flapping=FALSE;
+
+		/* delete the original comment we added earlier */
+		if(svc->flapping_comment_id!=-1)
+			delete_service_comment(svc->flapping_comment_id);
+		svc->flapping_comment_id=-1;
+
+		/* log a notice - this one is parsed by the history CGI */
+		snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;DISABLED; Flap detection has been disabled\n",svc->host_name,svc->description);
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_INFO_MESSAGE,TRUE);
+	        }
+
+	/* reset the percent change indicator */
+	svc->percent_state_change=0.0;
+
+	/* update service status */
+	update_service_status(svc,FALSE);
+
+#ifdef DEBUG0
+	printf("disable_service_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+
+
+
+

@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Service Result Freshness Checks</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Service Result Freshness Checks</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+Nagios supports a feature that does "freshness" checking on the results of service checks.  This feature is useful when you want to ensure that <a href="passivechecks.html">passive checks</a> are being received as frequently as you want.  Although freshness checking can be used in a number of situations, it is primarily useful when attempting to configure a <a href="distributed.html">distributed monitoring environment</a>.
+</p>
+
+<p>
+The purpose of "freshness" checking is to ensure that service checks are being provided passively by external applications on a regular basis.  If the results of a particular service check (for which freshness checking has been enabled) is determined to be "stale", Nagios will force an active check of that service.
+</p>
+
+<p>
+<strong><u>Configuring Freshness Checking</u></strong>
+</p>
+
+<p>
+Before you configure per-service freshness threshold, you must enable freshness checking using the <a href="configmain.html#check_service_freshness">check_service_freshness</a> and <a href="configmain.html#freshness_check_interval">freshness_check_interval</a> directives in the main config file.
+</p>
+
+<p>
+So how do you go about enabling freshness checking for a particular service?  Well, at the moment you can only enable freshness checking of services if you are using <a href="xodtemplate.html">template-based object configuration</a> file(s).  The <a href="xoddefault.html">older object configuration</a> files formats have not been expanded to support freshness checking.
+</p>
+
+<p>
+Assuming you're using the template-based object configuration file(s), you need to configure <a href="xodtemplate.html#service">service definitions</a> as follows.
+</p>
+
+<p>
+<ul>
+<li>The <b>check_freshness</b> option in the service definition should be set to 1.  This enables "freshness" checking for the service.
+<li>The <b>freshness_threshold</b> option in the service definition should be set to a value (usually in seconds, unless you changed the <a href="configmain.html#interval_length">interval_length</a> directive) which reflects how "fresh" the results for the service should be.
+<li>The <b>check_command</b> option in the service definition should reflect valid command that should be used to actively check the service when it is detected as being "stale".
+</ul>
+</p>
+
+<p>
+<strong><u>How The Freshness Threshold Works</u></strong>
+</p>
+
+<p>
+Nagios periodically checks the "freshness" of the results for all services that have freshness checking enabled.  The <i>freshness_threshold</i> option in each service definition is used to determine how "fresh" the results for each service should be.  For example, if you set the <i>freshness_threshold</i> option to 5 for one of your services and your <a href="configmain.html#interval_length">interval_length</a> directive is set to 60 seconds, Nagios will consider that service to be "stale" if its results are older than 5 minutes.  If you do not specify a value for the <i>freshness_threshold</i> option (or you set it to zero), Nagios will automatically calculate a "freshness" threshold to use by looking at either the <i>normal_check_interval</i> or <i>retry_check_interval</i> options (depending on what <a href="statetypes.html">type of state</a> the service is currently in).
+</p>
+
+<p>
+<strong><u>What Happens When A Service Check Result Becomes "Stale"</u></strong>
+</p>
+
+<p>
+If the check results of a service are found to be "stale" (as described above), Nagios will force an active check of the service by executing the command specified by the <i>check_command</i> option in the service definition.  It is important to note that an active service check which is being forced because the service was detected as being "stale" gets executed <i>even if active service checks are disabled on a program-wide or service-specific basis</i>.
+</p>
+
+<p>
+<strong><u>Working With Passive-Only Checks</u></strong>
+</p>
+
+<p>
+As I mentioned earlier, freshness checking is of most use when you are dealing with services that get their results from <a href="passivechecks.html">passive checks</a>.  More often than not (as in the case with <a href="distributed.html">distributed monitoring setups</a>), these services may not be getting <i>all</i> of their results from passive checks - no results are obtained from active checks.
+</p>
+
+<p>
+An example of a passive-only service might be one that reports the status of your nightly backup jobs.  Perhaps you have a external script that submit the results of the backup job to Nagios once the backup is completed.  In this case, all of the checks/results for the service are provided by an external application using passive checks.  In order to ensure that the status of the backup job gets reported every day, you may want to enable freshness checking for the service.  If the external script doesn't submit the results of the backup job, you can have Nagios fake a critical result by doing something like this...
+</p>
+
+<p>
+Here's what the definition for the service might look like (some required options are omitted)...
+</p>
+
+<p>
+<strong>
+<font color="red">
+<pre>
+define service{
+	host_name		backup-server
+	service_description	ArcServe Backup Job
+	active_checks_enabled	0			; active checks are NOT enabled
+	passive_checks_enabled	1			; passive checks are enabled (this is how results are reported)
+	check_freshness		1
+	freshness_threshold	93600			; 26 hour threshold, since backups may not always finish at the same time
+	check_command		no-backup-report	; this command is run only if the service results are "stale"
+	...other options...
+	}
+</pre>
+</font>
+</strong>
+</p>
+
+<p>
+Notice that active checks are disabled for the service.  This is because the results for the service are only made by an external application using passive checks.  Freshness checking is enabled and the freshness threshold has been set to 26 hours.  This is a bit longer than 24 hours because backup jobs sometimes run late from day to day (depending on how much data there is to backup, how much network traffic is present, etc.).  The <i>no-backup-report</i> command is executed only if the results of the service are determined to be "stale".  The definition of the <i>no-backup-report</i> command might look like this...
+</p>
+
+<p>
+<strong>
+<font color="red">
+<pre>
+define command{
+	command_name	no-backup-report
+	command_line	/usr/local/nagios/libexec/nobackupreport.sh
+	}
+</pre>
+</font>
+</strong>
+</p>
+
+<p>
+The <b>nobackupreport.sh</b> script in your <i>/usr/local/nagios/libexec</i> directory might look something like this:
+</p>
+
+<p>
+<dir>
+<table border=1>
+<tr>
+<td>
+<pre>
+#!/bin/sh
+
+/bin/echo "CRITICAL: Results of backup job were not reported!"
+
+exit 2
+</pre>
+</td>
+</tr>
+</table>
+</dir>
+</p>
+
+<p>
+If Nagios detects that the service results are stale, it will run the <b>no-backup-report</b> command as an active service check (even though active checks are disabled for this specific service - remember that this is a special case).  This causes the <i>/usr/local/nagios/libexec/nobackupreport.sh</i> script to be executed, which returns a critical state.  The service go into to a critical state (if it isn't already there) and someone will probably get notified of the problem.
+</p>
+
+<hr>
+
+</body>
+</html>

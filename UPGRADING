@@ -1,0 +1,43 @@
+Upgrading to Nagios 1.0
+-----------------------
+
+Yes, upgrading is going to be a bit of a pain, but it was ten
+times more difficult for me to change the code, documentation, 
+etc, soo deal with it...
+
+
+- The default program path, URL alias, etc. are now as follows
+
+	PHYSICAL PATH:		/usr/local/nagios/
+	CGI ALIAS:		/nagios/cgi-bin/
+	URL ALIAS:		/nagios/
+
+- The default user/group that Nagios runs under is nagios/nagios.
+
+- The main config file (by default) is now nagios.cfg instead of
+  netsaint.cfg
+
+- The CGI config file is now called cgi.cfg instead of nscgi.cfg
+
+- Archived log files must be renamed from "netsaint-<date>.log"
+  format to "nagios-<date>.log" format. You can rename all your
+  archived log files with the following command (assuming you've
+  already moved them to their new directory location):
+
+ 	rename netsaint nagios netsaint*.log
+
+- The format of the retention file (or database, if that's what
+  you were using) has changed to support more variables.  No
+  conversion utility is yet available.
+
+- If you were using DB support for status, retention, comment, or
+  extended info, make sure to recreate the databases using the
+  sample scripts provided in the contrib/database directory.  You
+  could also just alter your existing tables - that excercise is 
+  left to you to do.
+
+
+
+
+
+

@@ -1,0 +1,414 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Database Support</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Database Support</h2>
+(MySQL and PostgreSQL)
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Index</u></strong>
+</p>
+<p>
+<a href="#intro">Introduction</a><br>
+<a href="#forget_the_old_stuff">Out with the old...</a><br>
+<a href="#getting_started">Getting started</a><br>
+<a href="#compiling_mysql">Compiling with MySQL support</a><br>
+<a href="#compiling_postgresql">Compiling with PostgreSQL support</a><br>
+<a href="#config">Configuration Directives</a><br>
+<ul>
+<li><a href="#config_downtime">Downtime data configuration</a><br>
+<li><a href="#config_comments">Comment data configuration</a><br>
+<li><a href="#config_status">Status data configuration</a><br>
+<li><a href="#config_retention">Retention data configuration</a><br>
+<li><a href="#config_extinfo">Extended data configuration</a><br>
+</ul>
+<a href="#table_definitions">Table definitions</a><br>
+<ul>
+<li><a href="#tabledef_downtime">Downtime data tables</a><br>
+<li><a href="#tabledef_comments">Comment data tables</a><br>
+<li><a href="#tabledef_status">Status data tables</a><br>
+<li><a href="#tabledef_retention">Retention data tables</a><br>
+<li><a href="#tabledef_extinfo">Extended data tables</a><br>
+</ul>
+<br>
+
+<a name="intro"></a>
+<p><strong><u>Introduction</u></strong></p>
+
+<p>
+This will explain how to optionally compile both the core program and the CGIs so that they <i>natively</i> support storage of various types of data in one or more databases.  Currently only MySQL and PostgreSQL databases are supported, although more may be supported in the future.
+</p>
+
+<a name="forget_the_old_stuff"></a>
+<p><strong><u>Out With The Old...</u></strong></p>
+
+<p>
+Okay, before we go ahead and get into the details of the database integration stuff, you need to understand something.  The default method for storing status data, comments, etc. in Nagios is (and probably will continue to be) in plain old text files.  The standard files used by the default external data routines include the <a href="configmain.html#status_file">status file</a>, <a href="configmain.html#downtime_file">downtime file</a>, <a href="configmain.html#comment_file">comment file</a>, and the <a href="configmain.html#state_retention_file">state_retention file</a>.  With the default install, extended host and service information is not stored in its own file, but in <a href="configextinfo.html">extended host and service information</a> definitions in the <a href="configcgi.html">CGI configuration file</a>.
+</p>
+
+<p>
+Assuming you plan on using a database to store some or all external data, a few things are obviously going to change.  Data will no longer be stored in text files, but rather in one or more databases.  Since I don't feel like rewriting a lot of documentation, you're going to have to make a mental transition.  You'll need to realize that status information is no longer stored in the status log, but rather in a few tables in a database somewhere.  Same thing applies for other types of external data (downtime data, comments, retention information, and extended host information).
+</p>
+
+<a name="getting_started"></a>
+<p><strong><u>Getting Started</u></strong></p>
+
+<p>
+First off, I assume you've got a <a href="http://www.mysql.com">MySQL</a> or <a href="http://www.postgresql.org">PostgreSQL</a> database server up and running on your network somewhere and you've got the appropriate client libraries installed on the same machine where you're going to compile and run Nagios.  I'm also assumimg you're familiar with creating databases and tables and managing accounts and security in the particular database system(s) you're going to use.  If you're not, go out and learn before you attempt to compile Nagios with database support.
+</p>
+
+<p>
+<font color='red'><strong>Very Important Note:</strong></font> Once you (re)run the configure script to add support for database storage (as will be described below), make sure you recompile <i>both</i> the core program and <i>all</i> the CGIs (using the <b>make all</b> command)!!
+</p>
+
+
+<a name="compiling_mysql"></a>
+<p><strong><u>Compiling With MySQL Support</u></strong></p>
+
+<p>
+In order to support storage of various types of data in MySQL, you're going to have to supply one or more options to the configure script.
+</p>
+
+<p>
+You have a few options here.  First, you need to decide what data you want to keep in MySQL and what (if any) you want to leave in the older format (text files).  Use the table below to determine what options you'll need to supply to the configure script once you determine your needs.  <strong>Note:</strong> MySQL support for storage of object data (service, host, and command definitions, etc) is not yet supported.
+</p>
+
+<p>
+<table border=1>
+<tr bgcolor="#aeaeae"><th>Data Type</th><th>Configure Script Option</th><th>Comments</th></tr>
+
+<tr>
+<td><strong>All types</strong></td>
+<td nowrap><font color="red">--with-mysql-xdata</font></td>
+<td>This will compile in MySQL support for all types of external data (downtime data, comment data, status data, retention data, and extended data).  Support for object data (service and host definitions, etc.) is as of yet non-existent.
+</tr>
+
+<tr>
+<td><strong>Comment data</strong></td>
+<td nowrap><font color="red">--with-mysql-downtime</font></td>
+<td>This will compile in MySQL support for downtime data (it will replace the standard <a href="configmain.html#downtime_file">downtime file</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Comment data</strong></td>
+<td nowrap><font color="red">--with-mysql-comments</font></td>
+<td>This will compile in MySQL support for comment data (it will replace the standard <a href="configmain.html#comment_file">comment file</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Status data</strong></td>
+<td nowrap><font color="red">--with-mysql-status</font></td>
+<td>This will compile in MySQL support for status data (it will replace the standard <a href="configmain.html#status_file">status log</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Retention data</strong></td>
+<td nowrap><font color="red">--with-mysql-retention</font></td>
+<td>This will compile in MySQL support for retention data (it will replace the standard <a href="configmain.html#state_retention_file">state_retention file</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Extended data</strong></td>
+<td nowrap><font color="red">--with-mysql-extinfo</font></td>
+<td>This will compile in MySQL support for extended data (it will replace the standard <a href="xeddefault.html#hostextinfo">hostextinfo[]</a> and <a href="xeddefault.html#serviceextinfo">serviceextinfo[]</a> definitions in the CGI config file)</td>
+</tr>
+
+</table>
+</p>
+
+
+<a name="compiling_postgresql"></a>
+<p><strong><u>Compiling With PostgreSQL Support</u></strong></p>
+
+<p>
+In order to support storage of various types of data in PostgreSQL, you're going to have to supply one or more options to the configure script.
+</p>
+
+<p>
+You have a few options here.  First, you need to decide what data you want to keep in PostgreSQL and what (if any) you want to leave in the older format (text files) or possibly in MySQL.  Use the table below to determine what options you'll need to supply to the configure script once you determine your needs.  <strong>Note:</strong> PostgreSQL support for storage of object data (service, host, and command definitions, etc) is not yet supported.
+</p>
+
+<p>
+<table border=1>
+<tr bgcolor="#aeaeae"><th>Data Type</th><th>Configure Script Option</th><th>Comments</th></tr>
+
+<tr>
+<td><strong>All types</strong></td>
+<td nowrap><font color="red">--with-pgsql-xdata</font></td>
+<td>This will compile in PostgreSQL support for all types of external data (downtime data, comment data, status data, retention data, and extended data).  Support for object data (service and host definitions, etc.) is as of yet non-existent.
+</tr>
+
+<tr>
+<td><strong>Comment data</strong></td>
+<td nowrap><font color="red">--with-pgsql-downtime</font></td>
+<td>This will compile in PostgreSQL support for downtime data (it will replace the standard <a href="configmain.html#downtime_file">downtime file</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Comment data</strong></td>
+<td nowrap><font color="red">--with-pgsql-comments</font></td>
+<td>This will compile in PostgreSQL support for comment data (it will replace the standard <a href="configmain.html#comment_file">comment file</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Status data</strong></td>
+<td nowrap><font color="red">--with-pgsql-status</font></td>
+<td>This will compile in PostgreSQL support for status data (it will replace the standard <a href="configmain.html#status_file">status log</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Retention data</strong></td>
+<td nowrap><font color="red">--with-pgsql-retention</font></td>
+<td>This will compile in PostgreSQL support for retention data (it will replace the standard <a href="configmain.html#state_retention_file">state_retention file</a>)</td>
+</tr>
+
+<tr>
+<td><strong>Extended data</strong></td>
+<td nowrap><font color="red">--with-pgsql-extinfo</font></td>
+<td>This will compile in PostgreSQL support for extended data (it will replace the standard <a href="xeddefault.html#hostextinfo">hostextinfo[]</a> and <a href="xeddefault.html#serviceextinfo">serviceextinfo[]</a> definitions in the CGI config file)</td>
+</tr>
+
+</table>
+</p>
+
+<a name="config"></a>
+<p><strong><u>Configuration Directives</u></strong></p>
+
+<p>
+Once you decide what types of external data you want to store in one or more databases, you'll have to add some configuration directives to the <a href="configmain.html#resource_file">resource file</a> and/or the <a href="configcgi.html">CGI config file</a>.  Here we go...
+</p>
+
+<a name="config_downtime"></a>
+<p><u><strong>Configuration Directives For Downtime Data:</strong></u> (<i>--with-mysql-downtime</i> or <i>--with-pgsql-downtime</i> options):</p>
+
+<p>
+In the <a href="configcgi.html">CGI config file</a>, you need to add the following directives (the <a href="configmain.html#downtime_file">downtime_file directive</a> in the <a href="configmain.html">main configuration file</a> is no longer used)...
+</p>
+
+<p>
+<font color='red'>
+xdddb_host=<i>database_host</i><br>
+xdddb_port=<i>database_port</i><br>
+xdddb_username=<i>database_user</i><br>
+xdddb_password=<i>database_password</i><br>
+xdddb_database=<i>database_name</i><br>
+</font>
+</p>
+
+<p>
+These are fairly self-explanatory.  They are used by the CGIs to identify the address of your database server (and the port it is running on), the name of the database in which the downtime entries should be stored, and the username/password that should be used when connecting to the databse server.  Nagios will assume that two tables (as defined <a href="#tabledef_comments">here</a>) exist in this database for storage of downtime data.  <b>Note:</b> The CGIs only need read access to the downtime data, so this user should only have SELECT privileges on the comment tables.
+</p>
+
+<p>
+In a <a href="configmain.html#resource_file">resource file</a>, you need to add the following directives...
+</p>
+
+<p>
+<font color='red'>
+xdddb_host=<i>database_host</i><br>
+xdddb_port=<i>database_port</i><br>
+xdddb_username=<i>database_user</i><br>
+xdddb_password=<i>database_password</i><br>
+xdddb_database=<i>database_name</i><br>
+xdddb_optimize_data=<i>[0/1]</i><br>
+</font>
+</p>
+
+<p>
+There directives are identical to the ones you added to the CGI config file, except these are used by the Nagios process.  The database user you specify here needs to have SELECT, INSERT, UPDATE, and DELETE privileges on the downtime tables.  The CGIs do not attempt to read the contents of any resource files, so you can set restrictive permissions on them and make sure that no one other than the Nagios process can read them.  The <i>xdddb_optimize_data</i> option will force Nagios to optimize data in the downtime tables when it starts/restarts.  If you're using PostgreSQL DB support for downtime data, this means that a VACUUM is run on the downtime tables.
+</p>
+
+<a name="config_comments"></a>
+<p><u><strong>Configuration Directives For Comment Data:</strong></u> (<i>--with-mysql-comments</i> or <i>--with-pgsql-comments</i> options):</p>
+
+<p>
+In the <a href="configcgi.html">CGI config file</a>, you need to add the following directives (the <a href="configmain.html#comment_file">comment_file directive</a> in the <a href="configmain.html">main configuration file</a> is no longer used)...
+</p>
+
+<p>
+<font color='red'>
+xcddb_host=<i>database_host</i><br>
+xcddb_port=<i>database_port</i><br>
+xcddb_username=<i>database_user</i><br>
+xcddb_password=<i>database_password</i><br>
+xcddb_database=<i>database_name</i><br>
+</font>
+</p>
+
+<p>
+These are fairly self-explanatory.  They are used by the CGIs to identify the address of your database server (and the port it is running on), the name of the database in which the comments should be stored, and the username/password that should be used when connecting to the databse server.  Nagios will assume that two tables (as defined <a href="#tabledef_comments">here</a>) exist in this database for storage of comment data.  <b>Note:</b> The CGIs only need read access to the comments, so this user should only have SELECT privileges on the comment tables.
+</p>
+
+<p>
+In a <a href="configmain.html#resource_file">resource file</a>, you need to add the following directives...
+</p>
+
+<p>
+<font color='red'>
+xcddb_host=<i>database_host</i><br>
+xcddb_port=<i>database_port</i><br>
+xcddb_username=<i>database_user</i><br>
+xcddb_password=<i>database_password</i><br>
+xcddb_database=<i>database_name</i><br>
+xcddb_optimize_data=<i>[0/1]</i><br>
+</font>
+</p>
+
+<p>
+There directives are identical to the ones you added to the CGI config file, except these are used by the Nagios process.  The database user you specify here needs to have SELECT, INSERT, UPDATE, and DELETE privileges on the comment tables.  The CGIs do not attempt to read the contents of any resource files, so you can set restrictive permissions on them and make sure that no one other than the Nagios process can read them.  The <i>xcddb_optimize_data</i> option will force Nagios to optimize data in the comment tables when it starts/restarts.  If you're using PostgreSQL DB support for comments, this means that a VACUUM is run on the comment data tables.
+</p>
+
+<a name="config_status"></a>
+<p><u><strong>Configuration Directives For Status Data:</strong></u> (<i>--with-mysql-status</i> or <i>--with-pgsql-status</i> options):</p>
+
+<p>
+In the <a href="configcgi.html">CGI config file</a>, you need to add the following directives (the <a href="configmain.html#status_file">status_file directive</a> in the <a href="configmain.html">main configuration file</a> is no longer used)...
+</p>
+
+<p>
+<font color='red'>
+xsddb_host=<i>database_host</i><br>
+xsddb_port=<i>database_port</i><br>
+xsddb_username=<i>database_user</i><br>
+xsddb_password=<i>database_password</i><br>
+xsddb_database=<i>database_name</i><br>
+</font>
+</p>
+
+<p>
+These are fairly self-explanatory.  They are used by the CGIs to identify the address of your database server (and the port it is running on), the name of the database in which the status data should be stored, and the username/password that should be used when connecting to the database.  Nagios will assume that three tables (as defined <a href="#tabledef_status">here</a>) exist in this database for storage of status data.  <b>Note:</b> The CGIs only need read access to the status data, so the database user you specify here should only have SELECT privileges on the status tables.
+</p>
+
+<p>
+In a <a href="configmain.html#resource_file">resource file</a>, you need to add the following directives...
+</p>
+
+<p>
+<font color='red'>
+xsddb_host=<i>database_host</i><br>
+xsddb_port=<i>database_port</i><br>
+xsddb_username=<i>database_user</i><br>
+xsddb_password=<i>database_password</i><br>
+xsddb_database=<i>database_name</i><br>
+xsddb_optimize_data=<i>[0/1]</i><br>
+xsddb_optimize_interval=<i>seconds</i><br>
+</font>
+</p>
+
+<p>
+These directives are used by the Nagios process instead of the CGIs.  The only difference between these directives and those found in the CGI config file is the fact that the database user you specify here needs to have SELECT, INSERT, UPDATE, and DELETE privileges on the status tables.  The CGIs do not attempt to read the contents of any resource files, so you can set restrictive permissions on them and make sure that no one other than the Nagios process can read them.    The <i>xsddb_optimize_data</i> option will force Nagios to periodically optimize data in the status tables.  The frequency of optimization is determined by the number of seconds specified by the <i>xsddb_optimize_interval</i> option.  If you're using PostgreSQL DB support for status data, this means that a VACUUM is run on the status data tables.
+</p>
+
+<a name="config_retention"></a>
+<p><u><strong>Configuration Directives For Retention Data:</strong></u> (<i>--with-mysql-retention</i> or <i>--with-pgsql-retention</i> options):</p>
+
+<p>
+In a <a href="configmain.html#resource_file">resource file</a>, you need to add the following directives (the <a href="configmain.html#state_retention_file">state_retention_file directive</a> in the <a href="configmain.html">main config file</a> is no longer used)...
+</p>
+
+<p>
+<font color='red'>
+xrddb_host=<i>database_host</i><br>
+xrddb_port=<i>database_port</i><br>
+xrddb_username=<i>database_user</i><br>
+xrddb_password=<i>database_password</i><br>
+xrddb_database=<i>database_name</i><br>
+xrddb_optimize_data=<i>[0/1]</i><br>
+</font>
+</p>
+
+<p>
+These are fairly self-explanatory.  They are used by the Nagios process to identify the address of your database server (and the port it is running on), the name of the database in which the retention data should be stored, and the username/password that should be used when connecting to the database.  Nagios will assume that three tables (as defined <a href="#tabledef_retention">here</a>) exist in this database for storage of retention data.  The user you specify here needs to have SELECT, INSERT, UPDATE, and DELETE privileges on the retention tables.  The CGIs do not attempt to read the contents of any resource files, so you can set restrictive permissions on them and make sure that no one other than the Nagios process can read them.  The <i>xrddb_optimize_data</i> option will force Nagios to  optimize data in the retention tables when it starts/restarts.  If you're using PostgreSQL DB support for retention data, this means that a VACUUM is run on the retention data tables.
+</p>
+
+<a name="config_extinfo"></a>
+<p><u><strong>Configuration Directives For Extended Data:</strong></u> (<i>--with-mysql-extinfo</i> or <i>--with-pgsql-extinfo</i> options):</p>
+
+<p>
+In the <a href="configcgi.html">CGI config file</a>, you need to add the following directives (the <a href="xeddefault.html#hostextinfo">hostextino[]</a> and <a href="xeddefault.html#serviceextinfo">serviceextinfo[]</a> directives in the CGI config file are no longer used)...
+</p>
+
+<p>
+<font color='red'>
+xeddb_host=<i>database_host</i><br>
+xeddb_port=<i>database_port</i><br>
+xeddb_username=<i>database_user</i><br>
+xeddb_password=<i>database_password</i><br>
+xeddb_database=<i>database_name</i><br>
+</font>
+</p>
+
+<p>
+These are fairly self-explanatory.  They are used by the CGIs to identify the address of your database server (and the port it is running on), the name of the database in which the extended data is stored, and the username/password that should be used when connecting to the database.  Nagios will assume that two tables (as defined <a href="#tabledef_extinfo">here</a>) exists in this database for storage of extended data.  The user you specify here should only have SELECT privileges on the extended info tables.
+</p>
+
+
+<a name="table_definitions"></a>
+<p><strong><u>Table Definitions</u></strong></p>
+
+<p>
+In order to read from or write to a database, you first have to create it and setup some tables to hold your data.
+Note: If you are storing more than one type of external data in  databases, you could create separate databases for each type of data (comments, status info, etc.)  You could also keep everything in a single database (different data is kept in different tables).  In your database(s) you're going to have to setup the appropriate table(s) so Nagios can actually read/write data. 
+</p>
+
+<p>
+<font color='red'><strong>Important</strong></font>: Scripts for creating tables for all types of external data for both MySQL and PostgreSQL databases can be found in the <i>contrib/database/</i> directory of the distribution.
+</p>
+
+<a name="tabledef_downtime"></a>
+<p><u><strong>Downtime Data Tables</strong>:</u></p>
+
+<p>
+There are two tables (named <b>hostdowntime</b> and <b>servicedowntime</b>) you need to create in order to store downtime entries in a database.  One of the tables is used to store host downtime and the other for service downtime.  The CGIs only need SELECT rights on these tables, while the main Nagios process needs SELECT, INSERT, UPDATE, and DELETE privileges.
+</p>
+
+<a name="tabledef_comments"></a>
+<p><u><strong>Comment Data Tables</strong>:</u></p>
+
+<p>
+There are two tables (named <b>hostcomments</b> and <b>servicecomments</b>) you need to create in order to store comments in a database.  One of the tables is used to store host comments and the other for service comments.  The CGIs only need SELECT rights on these tables, while the main Nagios process needs SELECT, INSERT, UPDATE, and DELETE privileges.
+</p>
+
+<a name="tabledef_status"></a>
+<p><u><strong>Status Data Tables</strong>:</u></p>
+
+<p>
+There are three tables (named <b>programstatus</b>, <b>hoststatus</b>, and <b>servicestatus</b>) you need to create in order to store status data in a database.  One of the tables is used to store program status data, one for host status data, and another for service status data.  The CGIs only need SELECT rights on these tables, while the main process needs SELECT, INSERT, UPDATE, and DELETE privileges.
+</p>
+
+<a name="tabledef_retention"></a>
+<p><u><strong>Retention Data Tables</strong>:</u></p>
+
+<p>
+There are three tables (named <b>programretention</b>, <b>hostretention</b>, and <b>serviceretention</b>) you need to create in order to store retention data in a database.  One is used to store program data, one for host data, and another for service data.  The main process needs SELECT, INSERT, UPDATE, and DELETE privileges on these tables.  The CGIs <i>do not</i> access these tables at all.
+</p>
+
+<a name="tabledef_extinfo"></a>
+<p><u><strong>Extended Data Tables</strong>:</u></p>
+
+<p>
+There are two tables (named <b>hostextinfo</b> and <b>serviceextinfo</b>) you need to create in order to store extended data in a database.  One table is used to store extended host information and the other for extended service information (used by the CGIs).  The CGIs need SELECT privileges on these tables.  The main Nagios process <i>does not</i> access these tables at all.
+</p>
+
+<hr>
+
+</body>
+</html>

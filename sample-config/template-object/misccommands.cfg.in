@@ -1,0 +1,119 @@
+################################################################################
+# Sample Command Definition File for Nagios 1.0
+# Template-based config format
+#
+# Last Modified: 05-02-2000
+#
+# A primary objective of this file is reverse compatibility across
+# many generations of plugin releases. In addition to this file, there
+# is a command.cfg file that is distributed with the plugins
+# themselves.  The file distributed with the plugins is designed to
+# reflect forward porgress on the plugins, and makes no effort to be
+# comptible with plugin versions other than the one it is created
+# for. It is generally easiest to use the file you are looking at now,
+# but you will generally see examples of the newest plugin features by
+# using the command.cfg file distributed with the same plugin set you
+# are currently using.
+#
+################################################################################
+
+
+################################################################################
+# COMMAND CONFIGURATION
+#
+# SYNTAX:
+#
+#	define command{
+#               template      <templatename>
+#		name          <objectname>
+#               command_name  <commandname>
+#               command_line  <commandline>
+#               }
+#
+# WHERE:
+#
+# <templatename> = object name of another command definition that should be
+#                  used as a template for this definition (optional)
+# <objectname>   = object name of command definition, referenced by other
+#                  command definitions that use it as a template (optional)
+# <commandname>  = name of the command, as recognized/used by Nagios
+# <commandline>  = command line
+#
+################################################################################
+
+
+
+
+################################################################################
+#
+# SAMPLE NOTIFICATION COMMANDS
+#
+# These are some example notification commands.  They may or may not work on
+# your system without modification.
+#
+################################################################################
+
+
+# 'notify-by-email' command definition
+define command{
+	name		notify-by-email	; The name of this command definition - can be used for template recursion/resolution
+	command_name	notify-by-email	; The name of this command, as used/recognized by Nagios
+	command_line	/usr/bin/printf '***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$' | @MAIL_PROG@ -s '** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **' $CONTACTEMAIL$
+	}
+
+
+# 'notify-by-epager' command definition
+define command{
+	name		notify-by-epager	; The name of this command definition - can be used for template recursion/resolution
+	command_name	notify-by-epager	; The name of this command, as used/recognized by Nagios
+	command_line	/usr/bin/printf "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $OUTPUT$\nDate: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$' $CONTACTPAGER$
+	}
+
+
+# 'host-notify-by-email' command definition
+define command{
+	name		host-notify-by-email	; The name of this command definition - can be used for template recursion/resolution
+	command_name	host-notify-by-email	; The name of this command, as used/recognized by Nagios
+	command_line	/usr/bin/printf "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s 'Host $HOSTSTATE$ alert for $HOSTNAME$!' $CONTACTEMAIL$
+	}
+
+
+# 'host-notify-by-epager' command definition
+define command{
+	name		host-notify-by-epager	; The name of this command definition - can be used for template recursion/resolution
+	command_name	host-notify-by-epager	; The name of this command, as used/recognized by Nagios
+	command_line	/usr/bin/printf "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $OUTPUT$\nTime: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$' $CONTACTPAGER$
+	}
+
+
+
+
+################################################################################
+#
+# SAMPLE PERFORMANCE DATA COMMANDS
+#
+# These are sample performance data commands that can be used to send performance
+# data output to two text files (one for hosts, another for services).  If you
+# plan on simply writing performance data out to a file, consider compiling
+# Nagios with native file support for performance data.  This is done by
+# supplying the --with-file-perfdata option to the configure script.
+#
+################################################################################
+
+
+# 'process-host-perfdata' command definition
+define command{
+	name		process-host-perfdata	; The name of this command definition - can be used for template recursion/resolution
+	command_name	process-host-perfdata	; The name of this command, as used/recognized by Nagios
+	command_line	/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> /tmp/host-perfdata
+	}
+
+
+# 'process-service-perfdata' command definition
+define command{
+	name		process-service-perfdata	; The name of this command definition - can be used for template recursion/resolution
+	command_name	process-service-perfdata	; The name of this command, as used/recognized by Nagios
+	command_line	/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> /tmp/service-perfdata
+	}
+
+

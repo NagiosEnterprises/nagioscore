@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Portsentry Integration</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Portsentry Integration</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+This example explains how to easily generate alerts in Nagios for port scan that are detected by Psionic Software's <a href="http://www.psionic.com/abacus/portsentry">Portsentry</a> software.  These directions assume that the host which you are generating alerts for (i.e. the host you are running Portsentry on) is not the same host on which Nagios is running.  If you want to generate alerts on the same host that Nagios is running you will need to make a few modifications to the examples I provide.  Also, I am assuming that you having installed the <a href="addons.html#nsca">nsca daemon</a> on your monitoring server and the nsca client (<i>send_nsca</i>) on the machine that you are running Portsentry on.
+</p>
+
+<p>
+<strong><u>Defining The Service</u></strong>
+</p>
+
+<p>
+First off you're going to have to define a service in your <a href="configobject.html">object configuration file</a> for the port scan alerts.  Assuming that the host that the alerts are originating from is called <b>firestorm</b>, a sample service definition might look something like this:
+</p>
+
+<p>
+<font color="red">
+<pre>
+define service{
+	host_name                       firestorm
+	service_description             Port Scans
+	is_volatile                     1
+	active_checks_enabled		0
+	passive_checks_enabled		1
+	max_check_attempts              1
+	contact_groups                  security-admins
+	notification_interval           120
+	notification_period             24x7
+	notification_options            w,u,c,r
+	check_command                   check_none
+	}
+</pre>
+</font>
+</p>
+
+<p>
+Important things to note are the fact that this service has the <i>volatile</i> option enabled.  We want this option enabled because we want a notification to be generated for every alert that comes in.  Also of note is the fact that active checks are disabled for the service.  The command used in the <i>check_command</i> option is not really used at all - its just there to keep Nagios from complaining.  Passive checks are enabled however, as all port scan alert information will have to be sent in passively by the <i>nsca client</i> from the <b>firestorm</b> host.
+</p>
+
+<p>
+<strong><u>Configuring Portsentry</u></strong>
+</p>
+
+<p>
+In order to get Portsentry to send an alert to your monitoring box when it detects a port scan, you'll need to define a command for the <i>KILL_RUN_CMD</i> option in the Portsentry config file (<i>portsentry.conf</i>).  It should look something like the following:
+</p>
+
+<p>
+<font color="red">
+<pre>
+KILL_RUN_CMD="/usr/local/nagios/libexec/eventhandlers/handle_port_scan $TARGET$ $PORT$"
+</pre>
+</font>
+</p>
+
+<p>
+This line assumes that there is a script called <i>handle_port_scan</i> in the <i>/usr/local/nagios/libexec/eventhandlers/</i> directory on <b>firestorm</b>.  The directory and script name can be changed to whatever you want.
+</p>
+
+<p>
+<strong><u>Writing The Script</u></strong>
+</p>
+
+<p>
+The last thing you need to do is write the <i>handle_port_scan</i> script on <b>firestorm</b> that will send the alert back to the monitoring host.  It might look something like this:
+</p>
+
+<p>
+<font color="red">
+<pre>
+#!/bin/sh
+
+# Arguments:
+#	$1 = target
+#	$2 = port
+
+# Submit port scan to Nagios
+/usr/local/nagios/libexec/eventhandlers/submit_check_result firestorm "Port Scans" 2 "Port scan from $1 on port $2.  Host has been firewalled."
+</pre>
+</font>
+</p>
+
+<p>
+Notice that the <i>handle_port_scan</i> script calls the <i>submit_check_result</i> to actually send the alert back to the monitoring host.  Assuming your monitoring host is called <b>monitor</b>, the <i>submit check_result</i> script might look like this (you'll have to modify this to specify the proper location of the <i>send_nsca</i> program on <b>firestorm</b>):
+</p>
+
+<p>
+<font color="red">
+<pre>
+#!/bin/sh
+
+# Arguments
+#	$1 = name of host in service definition
+#	$2 = name/description of service in service definition
+#	$3 = return code
+#	$4 = output
+
+/bin/echo -e "$1\t$2\t$3\t$4\n" | /usr/local/nagios/bin/send_nsca monitor -c /usr/local/nagios/etc/send_nsca.cfg
+</pre>
+</font>
+</p>
+
+<p>
+<strong><u>Finishing Up</u></strong>
+</p>
+
+<p>
+You've now configured everything you need to, so all you have to do is restart the <i>portsentry</i> process on <b>firestorm</b> and restart Nagios on your monitoring server.  That's it!  When the Portsentry software on <b>firestorm</b> detects a port scan, you should be getting alerts in Nagios.  The plugin output for the alert will look something like the following:
+</p>
+
+<p>
+<font color="red">
+<pre>
+Port scan from 24.24.137.131 on port 21. Host has been firewalled. 
+</pre>
+</font>
+</p>
+
+
+<hr>
+
+</body>
+</html>

@@ -1,0 +1,801 @@
+dnl Process this -*-m4-*- file with autoconf to produce a configure script.
+AC_INIT(base/nagios.c)
+AC_CONFIG_HEADER(common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h)
+AC_PREFIX_DEFAULT(/usr/local/nagios)
+
+PKG_NAME=nagios
+PKG_VERSION="1.0a6"
+PKG_HOME_URL="http://www.nagios.org/"
+PKG_REL_DATE="02-25-2002"
+
+dnl Figure out how to invoke "install" and what install options to use.
+AC_PROG_INSTALL
+AC_SUBST(INSTALL)
+
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_MAKE_SET
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_TIME
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(ctype.h dirent.h errno.h fcntl.h getopt.h grp.h limits.h math.h pwd.h signal.h strings.h string.h syslog.h unistd.h uio.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/stat.h sys/ipc.h sys/msg.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_STRUCT_TM
+AC_STRUCT_TIMEZONE
+AC_TYPE_MODE_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_SIGNAL
+AC_TYPE_GETGROUPS
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(strdup strstr strtoul initgroups)
+
+AC_MSG_CHECKING(for type of socket size)
+AC_TRY_COMPILE([#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+],
+[int a = send(1, (const void *) 0, (size_t) 0, (int) 0);],
+[AC_DEFINE(SOCKET_SIZE_TYPE, size_t) AC_MSG_RESULT(size_t)],
+[AC_DEFINE(SOCKET_SIZE_TYPE, int) AC_MSG_RESULT(int)])
+
+
+
+
+
+AC_ARG_WITH(nagios_user,--with-nagios-user=<user> sets user name to run nagios,nagios_user=$withval,nagios_user=nagios)
+AC_ARG_WITH(nagios_grp,--with-nagios-grp=<grp> sets group name to run nagios,nagios_grp=$withval,nagios_grp=nagios)
+AC_SUBST(nagios_user)
+AC_SUBST(nagios_grp)
+AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_USER,"$nagios_user")
+AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_GROUP,"$nagios_grp")
+INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
+AC_SUBST(INSTALL_OPTS)
+
+dnl Check for location of mail program
+MAIL_PROG=no
+AC_ARG_WITH(mail,--with-mail=<path_to_mail> sets path to equivalent program to mail,MAIL_PROG=$withval,MAIL_PROG=no) 
+if test MAIL_PROG=no; then
+	AC_PATH_PROG(MAIL_PROG,mail) 
+fi 
+AC_SUBST(MAIL_PROG)
+
+AC_ARG_WITH(command_user,--with-command-user=<user> sets user name for command access,command_user=$withval,command_user=nagios)
+AC_ARG_WITH(command_grp,--with-command-grp=<grp> sets group name for command access,command_grp=$withval,command_grp=nagios)
+AC_SUBST(command_user)
+AC_SUBST(command_grp)
+COMMAND_OPTS="-o $command_user -g $command_grp"
+AC_SUBST(COMMAND_OPTS)
+
+dnl Check for location of init scripts
+init_dir=/etc/rc.d/init.d
+if test -d /etc/rc.d/init.d; then
+	init_dir="/etc/rc.d/init.d"
+elif test -d /usr/local/etc/rc.d; then
+	init_dir="/usr/local/etc/rc.d"
+elif test -d /etc/rc.d; then
+	init_dir="/etc/rc.d"
+elif test -d /etc/init.d; then
+	init_dir="/etc/init.d"
+elif test -d /sbin/init.d; then
+	init_dir="/sbin/init.d"
+fi
+
+dnl User can override init script location
+AC_ARG_WITH(init_dir,--with-init-dir=<path> sets directory to place init script into,init_dir=$withval)
+AC_SUBST(init_dir)
+
+echo "Init script directory: " $init_dir
+
+AC_ARG_WITH(lockfile,--with-lockfile=<path> sets path and file name for lock file,lockfile=$withval,lockfile=$localstatedir/nagios.lock)
+AC_SUBST(lockfile)
+
+
+
+dnl Default xdata routines...
+XSDTYPE=default
+XCDTYPE=default
+XEDTYPE=template
+XRDTYPE=default
+XODTYPE=template
+XPDTYPE=default
+XDDTYPE=default
+XFDTYPE=default
+
+XSDCOMMENT=
+XCDCOMMENT=
+XEDCOMMENT=
+XRDCOMMENT=
+XODCOMMENT=
+XPDCOMMENT=
+XDDCOMMENT=
+XFDCOMMENT=
+
+USE_MYSQL=no
+USE_PGSQL=no
+
+dnl Should we use all MySQL xdata routines?
+AC_ARG_WITH(mysql-xdata,--with-mysql-xdata enables use of MySQL database for all external data types except objects,[
+	XDATATYPE=mysql
+	XSDTYPE=mysql
+	XCDTYPE=mysql
+	XEDTYPE=mysql
+	XRDTYPE=mysql
+	XDDTYPE=mysql
+	])
+
+dnl Should we use all PostgreSQL xdata routines?
+AC_ARG_WITH(pgsql-xdata,--with-pgsql-xdata enables use of PostgreSQL database for all external data types except objects,[
+	XDATATYPE=pgsql
+	XSDTYPE=pgsql
+	XCDTYPE=pgsql
+	XEDTYPE=pgsql
+	XRDTYPE=pgsql
+	XDDTYPE=pgsql
+	])
+
+dnl What status I/O implementation should we use?
+AC_ARG_WITH(mysql-status,--with-mysql-status enables use of MySQL database for storage of status data,XSDTYPE=mysql)
+AC_ARG_WITH(pgsql-status,--with-pgsql-status enables use of PostgreSQL database for storage of status data,XSDTYPE=pgsql)
+AC_ARG_WITH(default-status,--with-default-status enables use of default status data routines,XSDTYPE=default)
+if test $XSDTYPE = mysql; then
+	AC_DEFINE_UNQUOTED(USE_XSDDB)
+	AC_DEFINE_UNQUOTED(USE_XSDMYSQL)
+	USE_MYSQL=yes
+	XSDC="xsddb.c"
+	XSDH="xsddb.h"
+	XSDCOMMENT="Database (MySQL)"
+	echo "We'll use MySQL database routines (in xdata/xsddb.*) for status data I/O..."
+elif test $XSDTYPE = pgsql; then
+	AC_DEFINE_UNQUOTED(USE_XSDDB)
+	AC_DEFINE_UNQUOTED(USE_XSDPGSQL)
+	USE_PGSQL=yes
+	XSDC="xsddb.c"
+	XSDH="xsddb.h"
+	XSDCOMMENT="Database (PostgreSQL)"
+	echo "We'll use PostgreSQL database routines (in xdata/xsddb.*) for status data I/O..."
+else
+	AC_DEFINE_UNQUOTED(USE_XSDDEFAULT)
+	XSDC="xsddefault.c"
+	XSDH="xsddefault.h"
+	XSDCOMMENT="Default (text file)"
+	echo "We'll use default routines (in xdata/xsddefault.*) for status data I/O..."
+fi
+AC_SUBST(XSDC)
+AC_SUBST(XSDH)
+
+
+dnl What comment I/O implementation should we use?
+AC_ARG_WITH(mysql-comments,--with-mysql-comments enables use of MySQL database for storage of comment data,XCDTYPE=mysql)
+AC_ARG_WITH(pgsql-comments,--with-pgsql-comments enables use of PostgreSQL database for storage of comment data,XCDTYPE=pgsql)
+AC_ARG_WITH(default-comments,--with-default-comments enables use of default comment data routines,XCDTYPE=default)
+if test $XCDTYPE = mysql; then
+	AC_DEFINE_UNQUOTED(USE_XCDDB)
+	AC_DEFINE_UNQUOTED(USE_XCDMYSQL)
+	USE_MYSQL=yes
+	XCDC="xcddb.c"
+	XCDH="xcddb.h"
+	echo "We'll use MySQL database routines (in xdata/xcddb.*) for comment data I/O..."
+	XCDCOMMENT="Database (MySQL)"
+elif test $XCDTYPE = pgsql; then
+	AC_DEFINE_UNQUOTED(USE_XCDDB)
+	AC_DEFINE_UNQUOTED(USE_XCDPGSQL)
+	USE_PGSQL=yes
+	XCDC="xcddb.c"
+	XCDH="xcddb.h"
+	echo "We'll use PostgreSQL database routines (in xdata/xcddb.*) for comment data I/O..."
+	XCDCOMMENT="Database (PostgreSQL)"
+else
+	AC_DEFINE_UNQUOTED(USE_XCDDEFAULT)
+	XCDC="xcddefault.c"
+	XCDH="xcddefault.h"
+	XCDCOMMENT="Default (text file)"
+	echo "We'll use default routines (in xdata/xcddefault.*) for comment data I/O..."
+fi
+AC_SUBST(XCDC)
+AC_SUBST(XCDH)
+
+
+dnl What extended data I/O implementation should we use?
+AC_ARG_WITH(mysql-extinfo,--with-mysql-extinfo enables use of MySQL database for storage of extended data,XEDTYPE=mysql)
+AC_ARG_WITH(pgsql-extinfo,--with-pgsql-extinfo enables use of PostgreSQL database for storage of extended data,XEDTYPE=pgsql)
+AC_ARG_WITH(default-extinfo,--with-default-extinfo enables use of default extended data routines,XEDTYPE=default)
+AC_ARG_WITH(template-extinfo,--with-template-extinfo enables use of template-based extended info data routines,XEDTYPE=template)
+if test $XEDTYPE = template; then
+	AC_DEFINE_UNQUOTED(USE_XEDTEMPLATE)
+	XEDC="xedtemplate.c"
+	XEDH="xedtemplate.h"
+	XEDCOMMENT="Template-based (text file)"
+	echo "We'll use template-based routines (in xdata/xedtemplate.*) for extended data I/O..."
+elif test $XEDTYPE = mysql; then
+	AC_DEFINE_UNQUOTED(USE_XEDDB)
+	AC_DEFINE_UNQUOTED(USE_XEDMYSQL)
+	USE_MYSQL=yes
+	XEDC="xeddb.c"
+	XEDH="xeddb.h"
+	XEDCOMMENT="Database (MySQL)"
+	echo "We'll use MySQL database routines (in xdata/xeddb.*) for extended data I/O..."
+elif test $XEDTYPE = pgsql; then
+	AC_DEFINE_UNQUOTED(USE_XEDDB)
+	AC_DEFINE_UNQUOTED(USE_XEDPGSQL)
+	USE_PGSQL=yes
+	XEDC="xeddb.c"
+	XEDH="xeddb.h"
+	XEDCOMMENT="Database (PostgreSQL)"
+	echo "We'll use PostgreSQL database routines (in xdata/xeddb.*) for extended data I/O..."
+else
+	AC_DEFINE_UNQUOTED(USE_XEDDEFAULT)
+	XEDC="xeddefault.c"
+	XEDH="xeddefault.h"
+	XEDCOMMENT="Default (text file)"
+	echo "We'll use default routines (in xdata/xeddefault.*) for extended data I/O..."
+fi
+AC_SUBST(XEDC)
+AC_SUBST(XEDH)
+
+
+dnl What retention data I/O implementation should we use?
+AC_ARG_WITH(mysql-retention,--with-mysql-retention enables use of MySQL database for storage of retention data,XRDTYPE=mysql)
+AC_ARG_WITH(pgsql-retention,--with-pgsql-retention enables use of PostgresSQL database for storage of retention data,XRDTYPE=pgsql)
+AC_ARG_WITH(default-retention,--with-default-retention enables use of default retention data routines,XRDTYPE=default)
+if test $XRDTYPE = mysql; then
+	AC_DEFINE_UNQUOTED(USE_XRDDB)
+	AC_DEFINE_UNQUOTED(USE_XRDMYSQL)
+	USE_MYSQL=yes
+	XRDC="xrddb.c"
+	XRDH="xrddb.h"
+	XRDCOMMENT="Database (MySQL)"
+	echo "We'll use MySQL database routines (in xdata/xrddb.*) for retention data I/O..."
+elif test $XRDTYPE = pgsql; then
+	AC_DEFINE_UNQUOTED(USE_XRDDB)
+	AC_DEFINE_UNQUOTED(USE_XRDPGSQL)
+	USE_PGSQL=yes
+	XRDC="xrddb.c"
+	XRDH="xrddb.h"
+	XRDCOMMENT="Database (PostgreSQL)"
+	echo "We'll use PostgreSQL database routines (in xdata/xrddb.*) for retention data I/O..."
+else
+	AC_DEFINE_UNQUOTED(USE_XRDDEFAULT)
+	XRDC="xrddefault.c"
+	XRDH="xrddefault.h"
+	XRDCOMMENT="Default (text file)"
+	echo "We'll use default routines (in xdata/xrddefault.*) for retention data I/O..."
+fi
+AC_SUBST(XRDC)
+AC_SUBST(XRDH)
+
+
+dnl What object data I/O implementation should we use?
+dnl AC_ARG_WITH(mysql-objects,--with-mysql-objects enables use of MySQL database for object data,XODTYPE=mysql)
+dnl AC_ARG_WITH(pgsql-objects,--with-pgsql-objects enables use of PostgreSQL database for object data,XODTYPE=pgsql)
+AC_ARG_WITH(default-objects,--with-default-objects enables use of default object data routines,XODTYPE=default)
+AC_ARG_WITH(template-objects,--with-template-objects enables use of template-based object data routines,XODTYPE=template)
+if test $XODTYPE = template; then
+	AC_DEFINE_UNQUOTED(USE_XODTEMPLATE)
+	XODC="xodtemplate.c"
+	XODH="xodtemplate.h"
+	XODCOMMENT="Template-based (text file)"
+	echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data I/O..."
+elif test $XODTYPE = mysql; then
+	AC_DEFINE_UNQUOTED(USE_XODDB)
+	AC_DEFINE_UNQUOTED(USE_XODMYSQL)
+	USE_MYSQL=yes
+	XODC="xoddb.c"
+	XODH="xoddb.h"
+	XODCOMMENT="Database (MySQL)"
+	echo "We'll use MySQL database routines (in xdata/xoddb.*) for object data I/O..."
+elif test $XODTYPE = pgsql; then
+	AC_DEFINE_UNQUOTED(USE_XODDB)
+	AC_DEFINE_UNQUOTED(USE_XODPGSQL)
+	USE_PGSQL=yes
+	XODC="xoddb.c"
+	XODH="xoddb.h"
+	XODCOMMENT="Database (PostgreSQL)"
+	echo "We'll use PostgreSQL database routines (in xdata/xoddb.*) for object data I/O..."
+else
+	AC_DEFINE_UNQUOTED(USE_XODDEFAULT)
+	XODC="xoddefault.c"
+	XODH="xoddefault.h"
+	XODCOMMENT="Default (text file)"
+	echo "We'll use default routines (in xdata/xoddefault.*) for object data I/O..."
+fi
+AC_SUBST(XODC)
+AC_SUBST(XODH)
+
+
+
+dnl What performance data I/O implementation should we use?
+AC_ARG_WITH(default-perfdata,--with-default-perfdata enables use of default performance data routines,XPDTYPE=default)
+AC_ARG_WITH(file-perfdata,--with-file-perfdata enables use of file-based performance data routines,XPDTYPE=file)
+if test $XPDTYPE = file; then
+	AC_DEFINE_UNQUOTED(USE_XPDFILE)
+	XPDC="xpdfile.c"
+	XPDH="xpdfile.h"
+	XPDCOMMENT="File"
+	echo "We'll use file-based routines (in xdata/xpdfile.*) for performance data I/O..."
+else
+	AC_DEFINE_UNQUOTED(USE_XPDDEFAULT)
+	XPDC="xpddefault.c"
+	XPDH="xpddefault.h"
+	XPDCOMMENT="Default (external commands)"
+	echo "We'll use default routines (in xdata/xpddefault.*) for performance data I/O..."
+fi
+AC_SUBST(XPDC)
+AC_SUBST(XPDH)
+
+
+
+dnl What downtime I/O implementation should we use?
+AC_ARG_WITH(mysql-downtime,--with-mysql-downtime enables use of MySQL database for storage of scheduled downtime data,XDDTYPE=mysql)
+AC_ARG_WITH(pgsql-downtime,--with-pgsql-downtime enables use of PostgreSQL database for storage of scheduled downtime data,XDDTYPE=pgsql)
+AC_ARG_WITH(default-downtime,--with-default-downtime enables use of default scheduled downtime data routines,XDDTYPE=default)
+if test $XDDTYPE = mysql; then
+	AC_DEFINE_UNQUOTED(USE_XDDDB)
+	AC_DEFINE_UNQUOTED(USE_XDDMYSQL)
+	USE_MYSQL=yes
+	XDDC="xdddb.c"
+	XDDH="xdddb.h"
+	XDDCOMMENT="Database (MySQL)"
+	echo "We'll use MySQL database routines (in xdata/xdddb.*) for scheduled downtime data I/O..."
+elif test $XDDTYPE = pgsql; then
+	AC_DEFINE_UNQUOTED(USE_XDDDB)
+	AC_DEFINE_UNQUOTED(USE_XDDPGSQL)
+	USE_PGSQL=yes
+	XDDC="xdddb.c"
+	XDDH="xdddb.h"
+	XDDCOMMENT="Database (PostgreSQL)"
+	echo "We'll use PostgreSQL database routines (in xdata/xdddb.*) for scheduled downtime data I/O..."
+else
+	AC_DEFINE_UNQUOTED(USE_XDDDEFAULT)
+	XDDC="xdddefault.c"
+	XDDH="xdddefault.h"
+	XDDCOMMENT="Default (text file)"
+	echo "We'll use default routines (in xdata/xdddefault.*) for scheduled downtime data I/O..."
+fi
+AC_SUBST(XDDC)
+AC_SUBST(XDDH)
+
+
+dnl What failure prediction I/O implementation should we use?
+if test $XFDTYPE = default; then
+	AC_DEFINE_UNQUOTED(USE_XFDDEFAULT)
+	XFDC="xfddefault.c"
+	XFDH="xfddefault.h"
+fi
+AC_SUBST(XFDC)
+AC_SUBST(XFDH)
+
+
+
+dnl Optional MySQL library and include paths
+AC_ARG_WITH(mysql-lib,--with-mysql-lib=DIR sets location of the MySQL client library,[
+	LDFLAGS="${LDFLAGS} -L${withval}"
+	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
+	])
+AC_ARG_WITH(mysql-inc,--with-mysql-inc=DIR sets location of the MySQL client include files,[
+	CFLAGS="${CFLAGS} -I${withval}"
+	])
+
+
+dnl Optional PostgreSQL library and include paths
+AC_ARG_WITH(pgsql-lib,--with-pgsql-lib=DIR sets location of the PostgreSQL client library,[
+	LDFLAGS="${LDFLAGS} -L${withval}"
+	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
+	])
+AC_ARG_WITH(pgsql-inc,--with-pgsql-inc=DIR sets location of the PostgreSQL client include files,[
+	CFLAGS="${CFLAGS} -I${withval}"
+	])
+
+
+dnl Are we using any MySQL routines?
+if test $USE_MYSQL = yes; then
+	AC_CHECK_LIB(mysqlclient,main)
+fi	
+
+dnl Are we using any PostgreSQL routines?
+if test $USE_PGSQL = yes; then
+	AC_CHECK_LIB(pq,main)
+fi	
+
+
+
+dnl Option GD library and include paths
+AC_ARG_WITH(gd-lib,--with-gd-lib=DIR sets location of the gd library,[
+	LDFLAGS="${LDFLAGS} -L${withval}"
+	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
+	])
+AC_ARG_WITH(gd-inc,--with-gd-inc=DIR sets location of the gd include files,[
+	CFLAGS="${CFLAGS} -I${withval}"
+	])
+
+
+TRYGD=yep
+
+dnl statusmap CGI enabled by default, unless users chooses not to use it
+TRYSTATUSMAP=yep
+AC_ARG_ENABLE(statusmap,--disable-statusmap=disables compilation of statusmap CGI,TRYSTATUSMAP=nope)
+
+
+dnl statuswrl CGI enabled by default, unless users chooses not to use it
+TRYSTATUSWRL=yep
+AC_ARG_ENABLE(statuswrl,--disable-statuswrl=disables compilation of statuswrl (VRML) CGI,TRYSTATUSWRL=nope)
+
+if test x$TRYSTATUSWRL = xyep; then
+	AC_DEFINE_UNQUOTED(USE_STATUSWRL)
+	CGIEXTRAS="$CGIEXTRAS statuswrl.cgi"
+fi
+
+
+dnl JMD_CHECK_LIB_ORDER(LIBRARY, FUNCTION, ORDER [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND
+dnl              [, OTHER-LIBRARIES]]])
+	AC_DEFUN(JMD_CHECK_LIB_ORDER,
+	[AC_MSG_CHECKING([for $2 in -l$1 (order $3)])
+	dnl Use a cache variable name containing both the library and function name,
+	dnl because the test really is for library $1 defining function $2, not
+	dnl just for library $1.  Separate tests with the same $1 and different $2s
+	dnl may have different results.
+	ac_lib_var=`echo $1['_']$2['_']$3 | sed 'y%./+-%__p_%'`
+	AC_CACHE_VAL(ac_cv_lib_$ac_lib_var,
+	[ac_save_LIBS="$LIBS"
+	LIBS="-l$1 $6 $LIBS"
+	AC_TRY_LINK(dnl
+	ifelse(AC_LANG, [FORTRAN77], ,
+	ifelse([$2], [main], , dnl Avoid conflicting decl of main.
+[/* Override any gcc2 internal prototype to avoid an error.  */
+]ifelse(AC_LANG, CPLUSPLUS, [#ifdef __cplusplus
+extern "C"
+#endif
+])dnl
+[/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char $2();
+])),
+	            [$2()],
+	            eval "ac_cv_lib_$ac_lib_var=yes",
+	            eval "ac_cv_lib_$ac_lib_var=no")
+	LIBS="$ac_save_LIBS"
+	])dnl
+	if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+	  AC_MSG_RESULT(yes)
+	  ifelse([$4], ,
+	[changequote(, )dnl
+	  ac_tr_lib=HAVE_LIB`echo $1 | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+	    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+	changequote([, ])dnl
+	  AC_DEFINE_UNQUOTED($ac_tr_lib)
+	  LIBS="-l$1 $LIBS"
+	], [$4])
+	else
+	  AC_MSG_RESULT(no)
+	ifelse([$5], , , [$5
+	])dnl
+	fi
+	])
+
+
+
+dnl Should we try and detect the GD libs?
+if test x$TRYGD = xyep; then
+
+	dnl See if the GD lib is available and supports PNG images...
+
+	dnl GD > 1.8.1 requires the jpeg library to be present as well, so test for that first...
+	JMD_CHECK_LIB_ORDER(gd,gdImagePng,1,[
+			GDLIBFOUND=yep
+			GDLIBS="-lgd -lz -lm -lpng -ljpeg"
+	        	],:,[-lz -lm -lpng -ljpeg])
+
+	dnl If we failed the first test, try without jpeg library
+	if test x$GDLIBFOUND = x; then
+		JMD_CHECK_LIB_ORDER(gd,gdImagePng,2,[
+			GDLIBFOUND=yep
+			GDLIBS="-lgd -lz -lm -lpng"
+		        ],:,[-lz -lm -lpng])
+	fi
+
+	dnl We failed again, so try a different library ordering (without jpeg libs)
+	if test x$GDLIBFOUND = x; then
+		JMD_CHECK_LIB_ORDER(gd,gdImagePng,3,[
+			GDLIBFOUND=yep
+			GDLIBS="-lgd -lpng -lz -lm"
+	        	],:,[-lpng -lz -lm])
+	fi
+
+	dnl Did we find the necessary GD libraries?
+	if test x$GDLIBFOUND = x; then
+		echo ""
+		echo ""
+		echo "*** GD library could not be located... *****************************"
+		echo ""
+		echo "Boutell's GD library is required to compile the statusmap and trends"
+		echo "trends CGIs.  Get it from http://www.boutell.com/gd/, compile it,"
+		echo "and use the --with-gd-lib and --with-gd-inc arguments to specify the"
+		echo "locations of the GD library and include files."
+		echo ""
+		echo "NOTE: RedHat Linux users can download the 'gd' and 'gd-devel' RPMs"
+		echo "from http://www.rpmfind.net/linux/RPM/GByName.html (try installing"
+		echo "version 1.8.3-4 or newer if you can)."
+		echo ""
+		echo "NOTE: If you can't get the configure script to recognize the GD libs"
+		echo "      on your system, get over it and move on to other things.  The"
+		echo "      CGIs that use the GD libs are just a small part of the entire"
+		echo "      Nagios package.  Get everything else working first and then"
+		echo "      revisit the problem.  Make sure to check the nagios-users"
+		echo "      mailing list archives for possible solutions to GD library"
+		echo "      problems when you resume your troubleshooting."
+		echo ""
+		echo "NOTE: After you install the GD libraries on your system:"
+		echo "      1. Make sure /etc/ld.so.conf has an entry for the directory in"
+		echo "         which the GD libraries are installed."
+		echo "      2. Run 'ldconfig' to update the run-time linker options."
+		echo "      3. Run 'make clean' in the Nagios distribution to clean out"
+		echo "         any old references to your previous compile."
+		echo "      4. Rerun the configure script."
+		echo ""
+		echo "********************************************************************"
+		echo ""
+		echo ""
+
+	dnl We found the GD lib!
+	else
+		echo "GD library was found!"
+		if test x$TRYSTATUSMAP = xyep; then
+			AC_DEFINE_UNQUOTED(USE_STATUSMAP)
+			CGIEXTRAS="$CGIEXTRAS statusmap.cgi"
+		fi
+
+		dnl compile trends CGI
+		AC_DEFINE_UNQUOTED(USE_TRENDS)
+		CGIEXTRAS="$CGIEXTRAS trends.cgi"
+	
+		dnl compile histogram CGI
+		AC_DEFINE_UNQUOTED(USE_HISTOGRAM)
+	        CGIEXTRAS="$CGIEXTRAS histogram.cgi"
+	fi
+fi
+
+
+AC_ARG_WITH(cgiurl,--with-cgiurl=<dir> sets URL for cgi programs (do not use a trailing slash),cgiurl=$withval,cgiurl=/nagios/cgi-bin)
+AC_ARG_WITH(htmurl,--with-htmurl=<dir> sets URL for public html,htmurl=$withval,htmurl=/nagios)
+AC_SUBST(htmurl)
+AC_SUBST(cgiurl)
+
+AC_ARG_ENABLE(DEBUG0,--enable-DEBUG0 shows function entry and exit,AC_DEFINE_UNQUOTED(DEBUG0))
+AC_ARG_ENABLE(DEBUG1,--enable-DEBUG1 shows general info messages,AC_DEFINE_UNQUOTED(DEBUG1))
+AC_ARG_ENABLE(DEBUG2,--enable-DEBUG2 shows warning messages,AC_DEFINE_UNQUOTED(DEBUG2))
+AC_ARG_ENABLE(DEBUG3,--enable-DEBUG3 shows scheduled events (service and host checks... etc),AC_DEFINE_UNQUOTED(DEBUG3))
+AC_ARG_ENABLE(DEBUG4,--enable-DEBUG4 shows service and host notifications,AC_DEFINE_UNQUOTED(DEBUG4))
+AC_ARG_ENABLE(DEBUG5,--enable-DEBUG5 shows SQL queries,AC_DEFINE_UNQUOTED(DEBUG5))
+
+
+dnl Context-sensitive help for the web interface
+USEWEBHELP=dno
+AC_ARG_ENABLE(webhelp,--enable-webhelp enables context-sensitive help for the web interface,USEWEBHELP=yes)
+if test x$USEWEBHELP = xyes; then
+	AC_DEFINE_UNQUOTED(CONTEXT_HELP)
+fi
+
+
+USEPERL=no;
+INSTALLPERLSTUFF=no;
+AC_ARG_ENABLE(embedded-perl,--enable-embedded-perl will enable embedded Perl interpreter,[
+	AC_DEFINE_UNQUOTED(EMBEDDEDPERL)
+	PERLLIBS="`perl -MExtUtils::Embed -e ldopts`" 
+	PERLDIR="`perl -MConfig -e 'print $Config{installsitearch}'`" 
+	CFLAGS="${CFLAGS} `perl -MExtUtils::Embed -e ccopts`" 
+	USEPERL=yes
+	INSTALLPERLSTUFF=yes;
+	])
+
+PERLCACHE=no;
+AC_ARG_WITH(perlcache,--with-perlcache turns on cacheing of internally compiled Perl scripts,[
+	AC_DEFINE(DO_CLEAN,"0")
+	PERLCACHE=yes;
+	]
+	,[
+	AC_DEFINE(DO_CLEAN,"1")
+	PERLCACHE=no;
+	])
+
+dnl Is embedded Perl being compiled in?
+if test x$USEPERL = xyes; then
+	echo "Embedded Perl interpreter will be compiled in..."
+	if test x$PERLCACHE = xyes; then
+		echo "Internally compiled Perl scripts will be cached..."
+	else
+		echo "Internally compiled Perl scripts will NOT be cached..."
+	fi
+fi
+
+dnl Test if we're using threaded Perl (patch by Chip Ach)
+if test x$USEPERL = xyes; then
+	if (perl -e 'use Config;exit -1 unless ($Config{'usethreads'});'); then
+		echo "Using threaded perl"
+		AC_DEFINE_UNQUOTED(THREADEDPERL)
+	fi
+fi
+
+dnl Should predictive failure routines be compiled in?
+AC_ARG_ENABLE(failure-prediction,--enable-failure-prediction will enable integration with failure prediction module (NOT HERE YET!),[
+	AC_DEFINE_UNQUOTED(PREDICT_FAILURES)
+	BASEEXTRALIBS="$BASEEXTRALIBS \$(FDATALIBS)"
+	echo "Failure prediction routines (incomplete!) will be compiled in..."
+	])
+
+dnl Find traceroute
+AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)
+AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE")
+
+
+dnl Find ping and (the infamous) proper syntax...
+AC_PATH_PROG(PATH_TO_PING,ping)
+
+AC_ARG_WITH(ping_command,--with-ping-command=<syntax> sets syntax for ping,PING_COMMAND=$withval)
+if test -n "$PING_COMMAND"
+then
+        echo "      ping syntax... (command-line) $PING_COMMAND"
+        if test -n "$PING_PACKETS_FIRST"
+        then
+                AC_DEFINE_UNQUOTED(PING_PACKETS_FIRST,"$PING_COMMAND")
+        fi
+elif [ping -n -U -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n -U -c %d %s"
+        AC_DEFINE_UNQUOTED(PING_PACKETS_FIRST,"$PING_COMMAND")
+        echo "      ping syntax... $PATH_TO_PING -n -U -c <count> <host>"
+elif [ping -n -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n -c %d %s"
+        AC_DEFINE_UNQUOTED(PING_PACKETS_FIRST,"$PING_COMMAND")
+        echo "      ping syntax... $PATH_TO_PING -n -c <count> <host>"
+elif [ping -n 127.0.0.1 -c 1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n %s -c %d"
+        echo "      ping syntax... $PATH_TO_PING -n <host> -c <count>"
+elif [ping 127.0.0.1 -n 1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING %s -n %d"
+        echo "      ping syntax... $PATH_TO_PING <host> -n <count>"
+elif [ping -n -s 127.0.0.1 56 1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n -s %s 56 %d"
+        echo "      ping syntax... $PATH_TO_PING -n -s <host> 56 <count>"
+elif [ping -n -h 127.0.0.1 -s 56 -c 1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n -h %s -s 56 -c %d"
+        echo "      ping syntax... $PATH_TO_PING -n -h <host> -s 56 -c <count>"
+elif [ping -n -s 56 -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n -s 56 -c %d %s"
+        AC_DEFINE_UNQUOTED(PING_PACKETS_FIRST,"$PING_COMMAND")
+        echo "      ping syntax... $PATH_TO_PING -n -s 56 -c <count> <host>"
+elif [ping -n -c 1 127.0.0.1 2>/dev/null | egrep -i "^round-trip" >/dev/null]
+then
+        PING_COMMAND="$PATH_TO_PING -n -c %d %s"
+        AC_DEFINE_UNQUOTED(PING_PACKETS_FIRST,"$PING_COMMAND")
+        echo "      ping syntax... $PATH_TO_PING -n -c <count> <host>"
+else
+        echo "** Unable to find usable ping syntax"
+fi
+AC_DEFINE_UNQUOTED(PING_COMMAND,"$PING_COMMAND")
+
+
+
+dnl Package directory for Solaris pkgmk (and other OSs, eventually)
+VERSION=`grep 1.0 common/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
+PACKDIR=`pwd`/pkg
+AC_SUBST(PACKDIR)
+AC_SUBST(VERSION)
+ 
+AC_CHECK_FUNC(snprintf,AC_DEFINE(HAVE_SNPRINTF),SNPRINTF_O=../common/snprintf.o)
+AC_SUBST(SNPRINTF_O)
+
+AC_MSG_CHECKING(for type va_list)
+AC_TRY_COMPILE([#ifdef __STDC__
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#else
+#include <sys/types.h>
+#include <stdio.h>
+#include <varargs.h>
+#endif],
+[va_list args;],
+[AC_MSG_RESULT(yes)],
+[AC_DEFINE(NEED_VA_LIST) AC_MSG_RESULT(no)])
+
+AC_SUBST(CGIEXTRAS)
+AC_SUBST(GDLIBS)
+AC_SUBST(PERLLIBS)
+AC_SUBST(PERLDIR)
+AC_SUBST(BASEEXTRALIBS)
+AC_SUBST(INITDIR)
+AC_SUBST(INSTALLPERLSTUFF)
+
+AC_PATH_PROG(PERL,perl)
+AC_OUTPUT(Makefile subst pkginfo test-default.cfg test-template.cfg base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
+
+perl subst test-default.cfg
+perl subst test-template.cfg
+
+perl subst common/locations.h
+perl subst base/nagios.h
+
+perl subst sample-config/nagios.cfg
+perl subst sample-config/cgi.cfg
+perl subst sample-config/resource.cfg
+
+perl subst sample-config/default-object/hosts.cfg
+perl subst sample-config/default-object/commands.cfg
+
+perl subst sample-config/template-object/checkcommands.cfg
+perl subst sample-config/template-object/misccommands.cfg
+
+
+
+
+dnl Review options
+echo ""
+echo ""
+AC_MSG_RESULT([*** Configuration summary for $PKG_NAME $PKG_VERSION $PKG_REL_DATE ***:])
+
+echo ""
+echo " General Options:"
+echo " -------------------------"
+
+AC_MSG_RESULT([              Nagios user:  $nagios_user])
+AC_MSG_RESULT([             Nagios group:  $nagios_grp])
+AC_MSG_RESULT([             Command user:  $command_user])
+AC_MSG_RESULT([            Command group:  $command_grp])
+if test x$USEPERL = xyes; then
+if test x$PERLCACHE = xyes; then
+AC_MSG_RESULT([            Embedded Perl:  yes, with caching])
+else
+AC_MSG_RESULT([            Embedded Perl:  yes, without caching])
+fi
+else
+AC_MSG_RESULT([            Embedded Perl:  no])
+fi
+AC_MSG_RESULT([        Install \${prefix}:  $prefix])
+AC_MSG_RESULT([                Lock file:  $lockfile])
+AC_MSG_RESULT([           Init directory:  $init_dir])
+
+echo ""
+echo " Web Interface Options:"
+echo " ------------------------"
+
+AC_MSG_RESULT([                 HTML URL:  http://localhost$htmurl/])
+AC_MSG_RESULT([                  CGI URL:  http://localhost$cgiurl/])
+if test x$USEWEBHELP = xyes; then
+AC_MSG_RESULT([                 Web help:  yes])
+dnl else
+dnl AC_MSG_RESULT([                 Web help:  no])
+fi
+AC_MSG_RESULT([       Ping (used by WAP):  $PING_COMMAND])
+AC_MSG_RESULT([ Traceroute (used by WAP):  $PATH_TO_TRACEROUTE])
+
+echo ""
+echo " External Data Routines:"
+echo " ------------------------"
+
+AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
+AC_MSG_RESULT([              Object data:  $XODCOMMENT])
+AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
+AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
+AC_MSG_RESULT([           Retention data:  $XRDCOMMENT])
+AC_MSG_RESULT([          Peformance data:  $XPDCOMMENT])
+AC_MSG_RESULT([       Extended info data:  $XEDCOMMENT])
+
+
+echo ""
+echo ""
+echo "Review the options above for accuracy.  If they look okay,"
+echo "type 'make all' to compile the main program and CGIs."
+echo ""
+

@@ -1,0 +1,563 @@
+################################################################################
+# Sample HOSTS.CFG file for Nagios @VERSION@
+#
+# Read the documentation for more information on this configuration file.  I've
+# provided some comments here, but things may not be so clear without further
+# explanation, so make sure to read the HTML documentation!
+# 
+# Last Modified: 01-15-2002
+#
+# NOTE: Command definitions have been moved out to a separate file (commands.cfg)
+#       to make it easier to update them when new plugin releases are made and
+#       plugin argument formats change.  However, here is nothing preventing you
+#       from keeping command definitions in this file.  If you do move the 
+#       command definitions to this file, make sure to remove the old
+#       'cfg_file=/usr/local/nagios/etc/commands.cfg' reference in your main
+#       configuration file (nagios.cfg)
+################################################################################
+
+################################################################################
+# TIME PERIOD CONFIGURATION
+#
+# SYNTAX:
+# timeperiod[<timeperiod_name>]=<timeperiod_alias>;<sun_timeranges>;
+#                               <mon_timeranges>;<tue_timeranges>;
+#                               <wed_timeranges>;<thu_timeranges>;
+#                               <fri_timeranges>;<sat_timeranges>
+#
+# <timeperiod_name>             = A short name used to identify the time period
+# <timeperiod_alias>		= A longer name and/or description of the time 
+#                                 period
+# <xx_timeranges>               = Time ranges during the day.  Ranges are in the
+#                                 following format (based on a 24 hour clock)
+#				  and represent intervals of time (with a start 
+#                                 and end time).  Multiple time ranges per day
+#                                 should be separated with commas.
+#
+#      Example: 09:00-17:00  (9:00am to 5:00pm)
+#      Example: 00:00-8:00,17:00-24:00  (12:00am to 8:00am AND 5:00pm-12:00am)
+#
+#      A NULL value for a particular day indicates that no times are valid 
+#      during that particular day of the week.
+#
+################################################################################
+
+#  timeperiod_name = "24x7"
+#  timeperiod_alias = "Hours A Days, 7 Days A Week"
+#  timeranges = 12:00am to 12:00pm (repeat 7 times to represent everyday)
+
+timeperiod[24x7]=24 Hours A Day, 7 Days A Week;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00
+
+#  timeperiod_name = "workhours"
+#  timeperiod_alias = ""Normal" Working Hours"
+#  timeranges = 9:00am to 5:00pm (Notice the extra semicolon after the aliasname
+#               and the extra semicolon at the end (representing an off time for 
+#               Sunday and Saturday)
+
+timeperiod[workhours]="Normal" Working Hours;;09:00-17:00;09:00-17:00;09:00-17:00;09:00-17:00;09:00-17:00;
+
+#  timeperiod_name = "nonworkhours"
+#  timeperiod_alias = "Non-Work Hours"
+#  timeranges = 12:00am to 12:00pm Sunday
+#               12:00am to 9:00am and 5:00pm to 12:00am weekday
+#               (Notice the above time is repeated 5 times to represent
+#               Monday to Friday)
+#               12:00am to 12:00pm Saturday
+
+timeperiod[nonworkhours]=Non-Work Hours;00:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-24:00
+
+#  timeperiod_name = "none"
+#  timeperiod_alias = "No Time Is A Good Time"
+#  timeranges = none
+
+timeperiod[none]=No Time Is A Good Time;;;;;;;
+
+
+
+################################################################################
+# HOST CONFIGURATION
+#
+# SYNTAX:
+# host[<host_name>]=<host_alias>;<address>;<parent_hosts>;<host_check_command>;
+#                   <max_attempts>;<notification_interval>;<notification_period>
+#                   ;<notify_recovery>;<notify_down>;<notify_unreachable>;
+#                   <event_handler>
+#
+# <host_name>             = A short name used to identify the host
+# <host_alias>            = A longer name and/or description of the host
+# <address>               = The address of the host (preferably an IP address!)
+# <parent_hosts>          = This is a list of short name of the "parent" hosts of
+#			    this host.  Multiple parent hosts are separated by 
+#                           commas. Read the HTML documentation (particularly the
+#                           "theory of operation section") for more information
+#                           on this.
+# <host_check_command>    = This is the short name for the command that should
+#                           be used to check to see if the host is down or up
+# <max_attempts>          = Maximum number of times the host will be checked 
+#                           before it is deemed to be "down"
+# <notification_interval> = Number of minutes to wait before re-notifying 
+#                           contact that the host is still down.
+# <notification_period>   = The short name of the timeperiod (as defined above) 
+#                           that determines when notifications about this host
+#                           may be sent out
+# <notify_recovery>       = Notify contacts when this host recovers? 
+#                           1= yes, 0 =no
+# <notify_down>           = Notify contacts when host is down?
+#                           1 = yes, 0 = no
+# <notify_unreachable>    = Notify contacts when host is unreachable?
+#                           1 = yes, 0 = no
+# <event_handler>         = The short name of the command that should be
+#                           executed when change is detected in the status of
+#                           host (i.e. when it goes down or recovers.   If you
+#                           do not want to use an event handlers, leave this
+#                           options blanks
+#
+################################################################################
+
+# Note: The host definitions below do not have any event handlers specified
+
+# Novell Servers
+host[novell1]=Novell Server #1;192.168.1.2;;check-host-alive;10;120;24x7;1;1;1;
+host[novell2]=Novell Server #2;192.168.1.3;;check-host-alive;10;120;24x7;1;1;1;
+
+# NT Servers
+host[nt1]=NT Server #1;192.168.1.4;;check-host-alive;10;120;24x7;1;1;1;
+host[nt2]=NT Server #2;192.168.1.5;;check-host-alive;10;120;24x7;1;1;1;
+
+# Linux Servers
+host[linux1]=Linux Server #1;192.169.1.6;;check-host-alive;10;480;24x7;1;1;1;
+host[linux2]=Linux Server #2;192.168.0.2;router1;check-host-alive;10;480;24x7;1;1;1;
+
+# Switches
+host[switch1]=Switch #1;192.168.1.230;;check-host-alive;10;60;24x7;1;1;1;
+host[switch2]=Switch #2;192.168.1.231;;check-host-alive;10;60;24x7;1;1;1;
+host[switch3]=Switch #3;192.168.1.232;;check-host-alive;10;60;24x7;1;1;1;
+host[switch4]=Switch #4;192.168.1.233;;check-host-alive;10;60;24x7;1;1;1;
+host[switch5]=Switch #5;192.168.1.234;;check-host-alive;10;60;24x7;1;1;1;
+
+# Routers
+host[router1]=Router #1;192.168.1.254;;check-host-alive;20;60;24x7;1;1;1;
+
+# Printers - only send notifications about printers during normal working hours
+host[printer1]=Printer #1;192.168.1.100;;check-host-alive;10;480;workhours;0;0;0;
+host[printer2]=Printer #2;192.168.1.101;;check-host-alive;10;480;workhours;0;0;0;
+host[printer3]=Printer #3;192.168.1.102;;check-host-alive;10;480;workhours;0;0;0;
+
+
+################################################################################
+# HOST GROUP CONFIGURATION
+#
+# SYNTAX:
+# hostgroup[<group_name>]=<group_alias>;<contact_groups>;<hosts>
+#
+# <group_name>     = A short name used to identify the host group
+#                    (i.e. 'nt-servers')
+# <group_alias>    = A long name and/or description for this host group
+#                    (i.e. 'All NT Servers')
+# <contact_groups> = The name of the contact groups (defined later) that are
+#                    contacted if there are any problems with the hosts in this
+#                    group.  Multiple groups are separated by commas.
+# <hosts>          = The short names of hosts (as defined above) that are
+#                    included in this host group.  Multiple hosts are separated
+#                    by commas.
+################################################################################
+
+hostgroup[novell-servers]=Novell Servers;novell-admins;novell1,novell2
+hostgroup[nt-servers]=NT Servers;nt-admins;nt1,nt2
+hostgroup[linux-boxes]=Linux Servers;linux-admins;linux1,linux2
+hostgroup[switches]=Switches;switch-admins;switch1,switch2,switch3,switch4,switch5
+hostgroup[routers]=Routers;router-admins;router1
+hostgroup[printers]=Printers;printer-admins,linux-admins;printer1,printer2,printer3
+
+
+################################################################################
+# COMMAND CONFIGURATION
+#
+# SYNTAX:
+# command[<command_name>]=<command_line>
+#
+# <command_name> = A short name used to identify the command
+# <command_line> = The actual command line.  The command line doesn't have to be
+#                  surrounded in quotes, but may contain quotes as needed within
+#                  the command line.  Take care to use single quotes at the
+#                  outer edges of commands or you will have command line
+#                  expansion problems when the command is executed by the shell.
+#                  Any valid shell command can be used.  Multiple commands can
+#                  be separated with semicolons, piping is allowed.  The 
+#                  command line can contain macros, but not are macros are valid
+#                  at all time (notifications, service checks, etc).  See the
+#                  HTML documentaion for more informationon on using macros in
+#                  commands.
+#                  
+# Note: Service check, service notification, host check, host notification,
+#       service event handler, and host event handler functions are all defined
+#       here.
+################################################################################
+
+
+# NOTE: Sample command definitions for plugins have been moved out to a separate
+#       config file to make it easier to upgrade the definitions as new plugins 
+#       are released and command line arguments change.  The command definitions
+#       for plugins can be found in commands.cfg
+
+
+# Note: 'printf' is specified by POSIX (IEEE 1003.2) section 4.50, so
+# is prefrred to echo
+#
+# I have not been able to verify that printf is in /usr/bin for all
+# systems, but I think I read that once as well (kbd).
+#
+# Under Linux the 'echo -e' option to echo enables processing of
+# newline sequences in the output, and thus will also work.  Iin
+# severely damaged systems, /bin may be available when /usr/bin is
+# not, but you would be running nagios then anyway, right?
+
+# Service notification command - send email with problem summary
+
+command[notify-by-email]=/usr/bin/printf '***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$' | @MAIL_PROG@ -s '** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **' $CONTACTEMAIL$
+
+# Service notification command - send email to alphanumeric pager gateway
+#       The notify-by-epager command assumes that each contact has a pager email gateway, and
+#       that the address has been entered into the appropriate contact field instead of an
+#       actual pager number. (i.e. 'pagejoe@nowhere.com' routes mail to Joe's alphanumeric pager)
+
+command[notify-by-epager]=/usr/bin/printf "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $OUTPUT$\nDate: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$' $CONTACTPAGER$
+
+# Host notification commands (one for email, one for alphanumeric pager with email gateway)
+
+command[host-notify-by-email]=/usr/bin/printf "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s 'Host $HOSTSTATE$ alert for $HOSTNAME$!' $CONTACTEMAIL$
+
+command[host-notify-by-epager]=/usr/bin/printf "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $OUTPUT$\nTime: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$' $CONTACTPAGER$
+
+
+# Sample performance data command - these simply append performance data to a
+# temporary text file for later processing by an external applications
+
+command[process-host-perfdata]=/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> /tmp/host-perfdata
+
+command[process-service-perfdata]=/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> /tmp/service-perfdata
+
+
+################################################################################
+# CONTACT CONFIGURATION
+#
+# SYNTAX:
+# contact[<contact_name>]=<contact_alias>;<svc_notification_period>;
+#                         <host_notification_period>;<notify_service_recovery>;
+#                         <notify_service_critical>;<notify_service_warning>;
+#                         <notify_host_recovery>;<notify_host_down>;
+#                         <notify_host_unreachable>;<service_notify_commands>;
+#                         <host_notify_commands>;<email_address>;<pager>
+#
+# <contact_name>             = A short name used to identify the contact
+#                              (i.e. username)
+# <contact_alias>            = Full name and/or description for the contact
+# <svc_notification_period>  = The short name of the timeperiod (as defined
+#                              above) that determines when service notifications
+#                              may be sent to this contact
+# <host_notification_period> = The short name of the timeperiod (as defined
+#                              above) that determines when host notifications
+#                              may be sent to this contact
+# <notify_service_recovery>  = Notify the contact on service recoveries?
+#                              1 = yes, 0 = no
+# <notify_service_critical>  = Notify the contact on critical service states?
+#                              1 = yes, 0 = no
+# <notify_service_warning>   = Notify the contact on warning service states?
+#                              1 = yes, 0 = no
+# <notify_host_recovery>     = Notify the contact on host recoveries?
+#                              1 = yes, 0 = no
+# <notify_host_down>         = Notify the contact when hosts are down?
+#                              1 = yes, 0 = no
+# <notify_host_unreachable>  = Notify the contact when hosts are unreachable?
+#                              1 = yes, 0 = no
+# <service_notify_commands>  = Short names for commands (defined above) used to
+#                              notify the contact of service recoveries and 
+#                              warning or critical service levels.  Multiple
+#                              commands are comma delimited.  All commands are
+#                              executed when the contact needs to be notified.
+# <host_notify_commands>     = Short names for commands (defined above) used to
+#                              notify the contact when a host goes down or comes
+#                              back up.  Multiple commands are comma delimited.
+#                              All commands are executed when the contact needs
+#                              to be notified.
+# <email_address>            = Email address for the contact
+# <pager>                    = Pager number or pager email address for the
+#                              contact (see documentation for more information)
+#
+# Note: All fields are required, except for the <email_address> and <pager>
+#       fields.  However,either the email address *or* the pager must be
+#       specified - both cannot be empty!
+#
+################################################################################
+
+contact[@nagios_user@]=Nagios Admin;24x7;24x7;1;1;1;1;1;1;notify-by-email,notify-by-epager;host-notify-by-email,host-notify-by-epager;@nagios_user@-admin@localhost.localdomain;page@nagios_user@-admin@localhost.localdomain
+contact[jdoe]=John Doe;workhours;workhours;1;1;0;1;1;0;notify-by-email;host-notify-by-email;jdoe@localhost.localdomain;
+
+
+################################################################################
+# CONTACT GROUP CONFIGURATION
+#
+# SYNTAX:
+# contactgroup[<group_name>]=<group_alias>;<contacts>
+#
+# <group_name>  = The short name used to identify the contact group
+# <group_alias> = A longer name and/or description for the contact group
+# <contacts>    = The short names of contacts (as defined above) that are
+#                 members of this contact group.  Multiple contacts are 
+#                 separated by commas.
+################################################################################
+
+contactgroup[novell-admins]=Novell Administrators;@nagios_user@
+contactgroup[nt-admins]=NT Administrators;@nagios_user@,jdoe
+contactgroup[linux-admins]=Linux Administrators;@nagios_user@
+contactgroup[switch-admins]=Etherswitch Administrators;@nagios_user@
+contactgroup[router-admins]=Router Technicians;@nagios_user@
+contactgroup[printer-admins]=Etherswitch Administrators;@nagios_user@,jdoe
+
+
+################################################################################
+# SERVICE CONFIGURATION
+#
+# SYNTAX:
+# service[<host>]=<description>;<volatile>;<check_period>;<max_attempts>;
+#                 <check_interval>;<retry_interval>;<notification_group>;
+#                 <notification_interval>;<notification_period>;<notify_recovery>;
+#                 <notify_critical>;<notify_warning>;<event_hander>;<check_command>
+#
+# <host>                  = The short name of the host (as defined above) that
+#                           this service is running on
+# <description>           = A description for this service (i.e 'My Website')
+# <volatile>              = Specifies whether this service is volatile or not.
+#                           See the HTML documentation for more information on
+#                           what volatile services are and how they work.  Most
+#                           service are *not* volatile.
+#                           1 = volatile, 0 = not volatile
+# <check_period>          = The short name of the timeperiod (as defined above)
+#                           that determines when this service may be checked
+# <max_attempts>          = Number of times to retry the service check before
+#                           reporting that it is at a warning or critical level
+# <check_interval>        = Number of minutes to wait between regular checks
+#                           of the service
+# <retry_interval>        = Number of minutes to wait between retry of the
+#                           service
+# <notification_group>    = The short name of the contact group (as defined
+#                           above) that should be notified of problems with 
+#                           this service.
+# <notification_interval> = Number of minutes to wait before *re-notifying*
+#                           a contact that the service is *still* at a warning
+#                           or critical level (after we notify them about the
+#                           problem immediately)
+# <notification_period>   = The short name of the timeperiod (as defined above)
+#                           that determines when notifications about this
+#                           service may be sent out
+# <notify_recovery>       = Notify contacts when this service recovers?
+#                           1 = yes, 0 = no
+# <notify_critical>       = Notify contacts when service is at a critical level?
+#                           1 = yes, 0 = no
+# <notify_warning>        = Notify contacts when service is at a warning level?
+#                           1 = yes, 0 = no
+# <event_handler>         = A command that should be executed whenever a change
+#                           is detected in the status of the service.  If you do
+#		            not want to use an event handler, leave this option
+#                           blank.
+# <check_command>         = The command used to check the status of the service.
+#                           This can be in one of three formats (described
+#                           below)
+#
+# Note: Commands can be in on of three formats...
+#
+#       1. The short name of a command defined above (this is the simplest form)
+#
+#		Example: <command_name>
+#
+#       2. The short name of a command defined above, with arguments delimited
+#          with bang (!) characters.  If this format is used, the command must
+#          be defined with $ARGx$ macros in order to actually use the arguments
+#          that are passed to it (read the doc for more information on this)
+#
+#		Example: <command_name>!<arg1>!<arg2>!...!<argx>
+#
+#	3. An actual command line enclosed in quotation marks.  The outside
+#          quotation marks are stripped off before the command is exected.
+#          Macros can be used in this "raw" command format, but are still 
+#          limited to only the macros which are valid during service check
+#          (read the documentation for more information)
+#
+#		Example: "./check_ping $HOSTADDRESS$ 40 80 5.0 100.0"
+################################################################################
+
+# Note: The service definitions below do not have event handlers defined
+
+# Novell Server #1
+service[novell1]=SMTP;0;24x7;3;3;1;novell-admins;120;24x7;1;1;1;;check_smtp
+service[novell1]=FTP;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_ftp
+service[novell1]=POP3;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_pop
+service[novell1]=PING;0;24x7;3;5;1;novell-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# Novell Server #2
+service[novell2]=SMTP;0;24x7;3;3;1;novell-admins;120;24x7;1;1;1;;check_smtp
+service[novell2]=FTP;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_ftp
+service[novell2]=POP3;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_pop
+service[novell2]=PING;0;24x7;3;5;1;novell-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# NT Server #1
+#	Important, so notify every two hours if problems persist
+service[nt1]=PING;0;24x7;3;5;1;nt-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[nt1]=FTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_ftp
+service[nt1]=HTTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_http
+
+# NT Server #2
+#	Important, so notify every two hours if problems persist
+service[nt2]=PING;0;24x7;3;5;1;nt-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[nt2]=FTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_ftp
+service[nt2]=HTTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_http
+
+# Linux Server #1
+service[linux1]=PING;0;24x7;3;5;1;linux-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[linux1]=HTTP;0;24x7;3;2;1;linux-admins;240;24x7;1;1;1;;check_http
+service[linux1]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150
+service[linux1]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200
+service[linux1]=/dev/hda1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hda1
+service[linux1]=/dev/hdb2 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hdb2
+
+# Linux Server #2
+service[linux2]=PING;0;24x7;3;5;1;linux-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[linux2]=HTTP;0;24x7;3;2;1;linux-admins;240;24x7;1;1;1;;check_http
+service[linux2]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150
+service[linux2]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200
+service[linux2]=/dev/hda1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hda1
+service[linux2]=/dev/hdb1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hdb1
+
+# Switches
+service[switch1]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch2]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch3]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch4]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch5]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# Routers
+service[router1]=PING;0;24x7;3;5;1;router-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# Printers
+service[printer1]=Printer Status;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_hpjd
+service[printer1]=PING;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[printer2]=Printer Status;0;workhours;4;5;1;printer-admins;960;workhours;0;0;0;;check_hpjd
+service[printer2]=PING;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[printer3]=Printer Status;0;workhours;4;5;1;printer-admins;960;workhours;0;0;0;;check_hpjd
+service[printer3]=PING;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+
+
+
+
+################################################################################
+# HOST GROUP NOTIFICATION ESCALATION
+#
+# SYNTAX:
+# hostgroupescalation[<group_name>]=<first_notification>-<last_notification>;
+#					<contact_groups>;<notification_interval>
+#
+# <group_name>         = The short name of the host group that this escalation
+#                 	 entry is to be used for.
+# <first_notification> = The first notification that that this escalation is
+#			 valid for.
+# <last_notification>  = The last notification that that this escalation is
+#			 valid for.  If this value is zero (0), the escalation
+#                        entry will be valid for all notification beyond the
+#                        first notification you specified.
+# <contact_groups>     = A list of the short names of the contact groups that
+#			 should be notified of problems when this escalation
+#                        is valid.  Multiple contact groups should be separated
+#                        with commas.
+# <notification_interval> = Interval to use between notifications when this 
+#                        escalation entry is valid.  A value of 0 means to
+#                        send one notification and then stop sending notifications
+#                        for the host until it recovers.
+################################################################################
+
+#hostgroupescalation[novell-servers]=2-5;novell-admins,nt-admins;10
+#hostgroupescalation[novell-servers]=6-0;novell-admins,nt-admins,linux-admins;5
+
+
+
+
+################################################################################
+# SERVICE NOTIFICATION ESCALATION
+#
+# SYNTAX:
+# serviceescalation[<host_name>;<description>]=<first_notification>-<last_notification>;
+#					<contact_groups>;<notification_interval>
+#
+# <host_name>          = The short name of the host that is associated with
+#                        this service.
+# <description>	       = The description of the service that this escalation
+#                        entry is associated with.
+# <first_notification> = The first notification that that this escalation is
+#			 valid for.
+# <last_notification>  = The last notification that that this escalation is
+#			 valid for.  If this value is zero (0), the escalation
+#                        entry will be valid for all notification beyond the
+#                        first notification you specified.
+# <contact_groups>     = A list of the short names of the contact groups that
+#			 should be notified of problems when this escalation
+#                        is valid.  Multiple contact groups should be separated
+#                        with commas.
+# <notification_interval> = Interval to use between notifications when this 
+#                        escalation entry is valid.  A value of 0 means to
+#                        send one notification and then stop sending notifications
+#                        for the service until it recovers.
+################################################################################
+
+#serviceescalation[linux1;PING]=2-6;linux-admins,novell-admins;0
+#serviceescalation[linux1;Current Users]=5-0;linux-admins,novell-admins;0
+
+
+
+#############################################################################################
+# SERVICE DEPENDENCY CONFIGURATION
+#
+# SYNTAX:
+# servicedependency[<dependent_host_name>;<dependent_service_description>]= \
+#                                         <host_name>;<service_description>; \
+#                                         <execution_failure_options>; \
+#                                         <notification_failure_options>
+# 
+# NOTE: READ THE DOCUMENTATION TO UNDERSTAND HOW SERVICE DEPENDENCIES WORK!
+#
+# <dependent_host_name> = The short name of the host that is associated with the dependent service
+# <dependent_service_description> = The description of the dependent service
+# <host_name>           = The short name of the host that is associated with the service we are
+#                         depending on.
+# <service_description> = The description of the service we are depending on.
+# <execution_failure_options> = Criteria (if any) under which the dependent service will not 
+#                         be executed.  The criteria you specify here are compared against the
+#                         state of the service that is being depended upon.  Values are as
+#                          follows (these can be combined):
+#                            o = Fail on ok state
+#                            w = Fail on warning state
+#                            u = Fail on unknown state
+#                            c = Fail on critical state
+# <notification_failure_options> = Criteria (if any) under which the dependent service will
+#                         not have notifications sent out. The criteria you specify here are 
+#                         compared against the state of the service that is being depended upon.
+#                         Values are as follows (these can be combined):
+#                            o = Fail on ok state
+#                            w = Fail on warning state
+#                            u = Fail on unknown state
+#                            c = Fail on critical state
+#############################################################################################
+
+#servicedependency[nt1;Website #1]=nt1;IIS Process;;wuc
+#servicedependency[nt1;Website #2]=nt1;IIS Process;wuc;wuc
+
+
+# EOF
+
+
+
+
+
+
+
+
+

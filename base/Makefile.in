@@ -1,0 +1,115 @@
+############################
+# Makefile for Nagios
+#
+# Last Modified: 12-13-2001
+############################
+
+
+# Source code directories
+SRC_COMMON=../common
+SRC_XDATA=../xdata
+
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
+#CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
+LDFLAGS=@LDFLAGS@ @LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+HTMLDIR=@datadir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+
+CGIURL=@cgiurl@
+HTMURL=@htmurl@
+
+MATHLIBS=-lm
+PERLLIBS=@PERLLIBS@
+
+CP=@CP@
+
+# External data I/O code and headers
+XSDC=@XSDC@
+XSDH=@XSDH@
+XCDC=@XCDC@
+XCDH=@XCDH@
+XRDC=@XRDC@
+XRDH=@XRDH@
+XODC=@XODC@
+XODH=@XODH@
+XPDC=@XPDC@
+XPDH=@XPDH@
+XDDC=@XDDC@
+XDDH=@XDDH@
+XFDC=@XFDC@
+XFDH=@XFDH@
+
+# Extra base code
+BASEEXTRALIBS=@BASEEXTRALIBS@
+
+# Object data
+ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
+ODATAHDRS=$(SRC_COMMON)/objects.h $(SRC_XDATA)/$(XODH)
+ODATADEPS=$(ODATALIBS)
+
+# Retention data
+RDATALIBS=sretention.o $(SRC_XDATA)/$(XRDC)
+RDATAHDRS=sretention.h $(SRC_XDATA)/$(XRDH)
+RDATADEPS=$(RDATALIBS)
+
+# Comment data
+CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
+CDATAHDRS=$(SRC_COMMON)/comments.h $(SRC_XDATA)/$(XCDH)
+CDATADEPS=$(CDATALIBS)
+
+# Status data
+SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
+SDATAHDRS=$(SRC_COMMON)/statusdata.h $(SRC_XDATA)/$(XSDH)
+SDATADEPS=$(SDATALIBS)
+
+# Performance data
+PDATALIBS=perfdata.o $(SRC_XDATA)/$(XPDC)
+PDATAHDRS=perfdata.h $(SRC_XDATA)/$(XPDH)
+PDATADEPS=$(PDATALIBS)
+
+# Downtime data
+DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
+DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
+DDATADEPS=$(DDATALIBS)
+
+# Failure prediction data
+FDATALIBS=predict.c $(SRC_XDATA)/$(XFDC)
+FDATAHDRS=predict.h $(SRC_XDATA)/$(XFDH)
+FDATADEPS=$(FDATALIBS)
+
+
+OBJS=checks.o config.o commands.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)
+
+nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
+	$(CC) $(CFLAGS) $(LDFLAGS) nagios.c $(OBJS) $(PERLLIBS) $(MATHLIBS) -o $@
+
+#$(SRC_COMMON)/locations.h: $(SRC_COMMON)/locations.sub
+#	perl -pe 's|\$${prefix}|${prefix}|g;s|\$${exec_prefix}|${exec_prefix}|g;s|\$${htmurl}|$(HTMURL)|g;s|\$${cgiurl}|$(CGIURL)|g;' $(SRC_COMMON)/locations.sub > $(SRC_COMMON)/locations.h
+
+$(OBJS): $(SRC_COMMON)/locations.h
+
+clean:
+	rm -f nagios core *.o
+	rm -f *~
+	rm -f Makefile nagios.h
+
+distclean: clean
+
+devclean: clean
+
+install:
+	strip nagios 
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 774 $(INSTALL_OPTS) nagios $(DESTDIR)$(BINDIR)
+
+

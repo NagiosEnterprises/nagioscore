@@ -1,0 +1,635 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>CGI Configuration File Options</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">CGI Configuration File Options</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Notes</u></strong>
+</p>
+<p>
+When creating and/or editing configuration files, keep the following in mind:
+</p>
+<p>
+<ol>
+<li>Lines that start with a '#' character are taken to be comments and are not processed
+<li>Variables names must begin at the start of the line - no white space is allowed before the name
+<li>Variable names are case-sensitive
+</ol>
+</p>
+
+<p>
+<strong><u>Sample Configuration</u></strong>
+</p>
+<p>
+A sample CGI configuration file can be created by running the '<b>make config</b>' command.  The default name of the CGI configuration file is <b>cgi.cfg</b>.
+</p>
+
+<p>
+<strong><u>Index</u></strong>
+</p>
+<p>
+<a href="#main_cfg_file">Main configuration file location</a><br>
+<a href="#physical_html_path">Physical HTML path</a><br>
+<a href="#url_html_path">URL HTML path</a><br>
+<br>
+<a href="#process_check_command">Process check command</a><br>
+<br>
+<a href="#use_authentication">Authentication usage</a><br>
+<a href="#default_user_name">Default user name</a><br>
+<a href="#authorized_for_system_information">System/process information access</a><br>
+<a href="#authorized_for_system_commands">System/process command access</a><br>
+<a href="#authorized_for_configuration_information">Configuration information access</a><br>
+<a href="#authorized_for_all_hosts">Global host information access</a><br>
+<a href="#authorized_for_all_host_commands">Global host command access</a><br>
+<a href="#authorized_for_all_services">Global service information access</a><br>
+<a href="#authorized_for_all_service_commands">Global service command access</a><br>
+<br>
+<a href="#statusmap_background_image">Statusmap CGI background image</a><br>
+<a href="#default_statusmap_layout">Default statusmap layout method</a><br>
+<a href="#statuswrl_include">Statuswrl CGI include world</a><br>
+<a href="#default_statuswrl_layout">Default statuswrl layout method</a><br>
+<br>
+<a href="#refresh_rate">CGI refresh rate</a><br>
+<a href="#audio_alerts">Audio alerts</a><br>
+</p>
+
+<p>
+<a name="main_cfg_file"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Main Configuration File Location</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>main_config_file=&lt;file_name&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>main_config_file=/usr/local/nagios/etc/nagios.cfg</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This specifies the location of your <a href="configmain.html">main configuration file</a>.  The CGIs need to know where to find this file in order to get information about configuration information, current host and service status, etc.
+</p>
+
+<p>
+<a name="physical_html_path"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Physical HTML Path</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>physical_html_path=&lt;path&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>physical_html_path=/usr/local/nagios/share</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is the <i>physical</i> path where the HTML files for Nagios are kept on your workstation or server.  Nagios
+assumes that the documentation and images files (used by the CGIs) are stored in subdirectories called <i>docs/</i> and <i>images/</i>, respectively.
+</p>
+
+
+<p>
+<a name="url_html_path"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>URL HTML Path</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>url_html_path=&lt;path&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>url_html_path=/nagios</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+If, when accessing Nagios via a web browser, you point to an URL like <b>http://www.myhost.com/nagios</b>, this value
+should be <i>/nagios</i>.  Basically, its the path portion of the URL that is used to access the Nagios HTML pages.
+</p>
+
+
+<p>
+<a name="process_check_command"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Process Check Command</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>process_check_command=&lt;command_line&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>process_check_command=/usr/local/nagios/libexec/check_nagios /usr/local/nagios/var/status.log 5 '/usr/local/nagios/bin/nagios -d /usr/local/nagios/etc/nagios.cfg'</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is an <i>optional</i> command that the CGIs can use to check the status of the Nagios process.  This provides the CGIs (as well as yourself) with some idea of whether or not Nagios is still running.  If you do not specify a command to be run, the CGIs will assume that the Nagios process is running.   If you do define a process check command, it should follow the same guidelines that are required of standard plugins.  If the command returns a non-OK status, the CGIs will think the Nagios process is not running and will refuse to allow you to commit any commands via the <a href="cgis.html#cmd_cgi">command CGI</a>.
+</p>
+
+<p>
+<a name="use_authentication"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Authentication Usage</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>use_authentication=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>use_authentication=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option controls whether or not the CGIs will use the authentication and authorization functionality when determining what information and commands users have access to.  I would strongly suggest that you use the authentication functionality for the CGIs.  If you decide not to use authentication, make sure to remove the <a href="cgis.html#command_cgi">command CGI</a> to prevent unauthorized users from issuing commands to Nagios.  The CGI will not issue commands to Nagios if authentication is disabled, but I would suggest removing it altogether just to be on the safe side.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Don't use authentication functionality
+<li>1 = Use authentication and authorization functionality (default)
+</ul>
+</p>
+
+
+<p>
+<a name="default_user_name"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Default User Name</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>default_user_name=&lt;username&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>default_user_name=guest</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+Setting this variable will define a default username that can access the CGIs.  This allows people within a secure domain (i.e., behind a firewall) to access the CGIs without necessarily having to authenticate to the web server.   You may want to use this to avoid having to use basic authentication if you are not using a secure server, as basic authentication transmits passwords in clear text over the Internet.
+</p>
+<p>
+<strong>Important:</strong>  Do <i>not</i> define a default username unless you are running a secure web server and are sure that everyone who has access to the CGIs has been authenticated in some manner!  If you define this variable, anyone who has not authenticated to the web server will inherit all rights you assign to this user!
+</p>
+
+<p>
+<a name="authorized_for_system_information"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>System/Process Information Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_system_information=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_system_information=nagiosadmin,theboss</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can view system/process information in the <a href="cgis.html#extinfo_cgi">extended information CGI</a>.  Users in this list are <i>not</i> automatically authorized to issue system/process commands.  If you want users to be able to issue system/process commands as well, you must add them to the <a href="#authorized_for_system_commands">authorized_for_system_commands</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="authorized_for_system_commands"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>System/Process Command Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_system_commands=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_system_commands=nagiosadmin</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can issue system/process commands via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are <i>not</i> automatically authorized to view system/process information.  If you want users to be able to view system/process information as well, you must add them to the <a href="#authorized_for_system_information">authorized_for_system_information</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="authorized_for_configuration_information"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Configuration Information Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_configuration_information=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_configuration_information=nagiosadmin</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can view configuration information in the <a href="cgis.html#config_cgi">configuration CGI</a>.  Users in this list can view information on all configured hosts, host groups, services, contacts, contact groups, time periods, and commands.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="authorized_for_all_hosts"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Global Host Information Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_all_hosts=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_all_hosts=nagiosadmin,theboss</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can view status and configuration information for all hosts.  Users in this list are also automatically authorized to view information for all services.  Users in this list are <i>not</i> automatically authorized to issue commands for all hosts or services.  If you want users able to issue commands for all hosts and services as well, you must add them to the <a href="#authorized_for_all_host_commands">authorized_for_all_host_commands</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="authorized_for_all_host_commands"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Global Host Command Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_all_host_commands=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_all_host_commands=nagiosadmin</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can issue commands for all hosts via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are also automatically authorized to issue commands for all services.  Users in this list are <i>not</i> automatically authorized to view status or configuration information for all hosts or services.  If you want users able to view status and configuration information for all hosts and services as well, you must add them to the <a href="#authorized_for_all_hosts">authorized_for_all_hosts</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="authorized_for_all_services"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Global Service Information Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_all_services=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_all_services=nagiosadmin,theboss</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can view status and configuration information for all services.  Users in this list are <i>not</i> automatically authorized to view information for all hosts.  Users in this list are <i>not</i> automatically authorized to issue commands for all services.  If you want users able to issue commands for all services as well, you must add them to the <a href="#authorized_for_all_service_commands">authorized_for_all_service_commands</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="authorized_for_all_service_commands"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Global Service Command Access</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>authorized_for_all_service_commands=&lt;user1&gt;,&lt;user2&gt;,&lt;user3&gt;,...&lt;user<i>n</i>&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>authorized_for_all_service_commands=nagiosadmin</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a comma-delimited list of names of <i>authenticated users</i> who can issue commands for all services via the <a href="cgis.html#cmd_cgi">command CGI</a>.  Users in this list are <i>not</i> automatically authorized to issue commands for all hosts.  Users in this list are <i>not</i> automatically authorized to view status or configuration information for all hosts.  If you want users able to view status and configuration information for all services as well, you must add them to the <a href="#authorized_for_all_services">authorized_for_all_services</a> variable.  More information on how to setup authentication and configure authorization for the CGIs can be found <a href="cgiauth.html">here</a>.
+</p>
+
+
+<p>
+<a name="statusmap_background_image"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Statusmap CGI Background Image</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>statusmap_background_image=&lt;gd2_image&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>statusmap_background_image=statusmapbg.gd2</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to specify an image to be used as a background in the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>.  It is assumed that the image resides in the HTML images path (i.e. /usr/local/nagios/share/images). This path is automatically determined by appending "/images" to the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note: The image file must be in GD2 format (preferably in uncompressed format)!
+</p>
+
+
+<p>
+<a name="default_statusmap_layout"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Default Statusmap Layout Method</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>default_statusmap_layout=&lt;layout_number&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>default_statusmap_layout=4</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to specify the default layout method used by the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>. Valid options are:
+</p>
+
+<p>
+<table border=1 cellspacing=0 cellpadding=5>
+<tr><th>&lt;layout_number&gt; Value</th><th>Layout Method</th></tr>
+<tr><td>0</td><td>User-defined coordinates</td></tr>
+<tr><td>1</td><td>Depth layers</td></tr>
+<tr><td>2</td><td>Collapsed tree</td></tr>
+<tr><td>3</td><td>Balanced tree</td></tr>
+<tr><td>4</td><td>Circular</td></tr>
+<tr><td>5</td><td>Circular (Marked Up)</td></tr>
+<tr><td>6</td><td>Circular (Balloon)</td></tr>
+</table>
+</p>
+
+
+<p>
+<a name="statuswrl_include"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Statuswrl CGI Include World</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>statuswrl_include=&lt;vrml_file&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>statuswrl_include=myworld.wrl</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to include your own objects in the generated VRML world.  It is assumed that the file resides in the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note:  This file must be a fully qualified VRML world (i.e. you can view it by itself in a VRML browser).
+</p>
+
+
+
+<p>
+<a name="default_statuswrl_layout"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Default Statuswrl Layout Method</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>default_statuswrl_layout=&lt;layout_number&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>default_statuswrl_layout=4</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to specify the default layout method used by the <a href="cgis.html#statuswrl_cgi">statuswrl CGI</a>. Valid options are:
+</p>
+
+<p>
+<table border=1 cellspacing=0 cellpadding=5>
+<tr><th>&lt;layout_number&gt; Value</th><th>Layout Method</th></tr>
+<tr><td>0</td><td>User-defined coordinates</td></tr>
+<tr><td>2</td><td>Collapsed tree</td></tr>
+<tr><td>3</td><td>Balanced tree</td></tr>
+<tr><td>4</td><td>Circular</td></tr>
+</table>
+</p>
+
+
+<p>
+<a name="refresh_rate"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>CGI Refresh Rate</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>refresh_rate=&lt;rate_in_seconds&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>refresh_rate=90</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to specify the number of seconds between page refreshes for the <a href="cgis.html#status_cgi">status</a>, <a href="cgis.html#statusmap_cgi">statusmap</a>, and <a href="cgis.html#extinfo_cgi">extinfo</a> CGIs.
+</p>
+
+
+<p>
+<a name="audio_alerts"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Audio Alerts</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Formats:</td>
+<td>
+<strong>host_unreachable_sound=&lt;sound_file&gt;</strong><br>
+<strong>host_down_sound=&lt;sound_file&gt;</strong><br>
+<strong>service_critical_sound=&lt;sound_file&gt;</strong><br>
+<strong>service_warning_sound=&lt;sound_file&gt;</strong><br>
+<strong>service_unknown_sound=&lt;sound_file&gt;</strong><br>
+</td>
+</tr>
+<tr>
+<td valign=top>Examples:</td>
+<td>
+<font color="red"><strong>host_unreachable_sound=hostu.wav</strong></font><br>
+<font color="red"><strong>host_down_sound=hostd.wav</strong></font><br>
+<font color="red"><strong>service_critical_sound=critical.wav</strong></font><br>
+<font color="red"><strong>service_warning_sound=warning.wav</strong></font><br>
+<font color="red"><strong>service_unknown_sound=unknown.wav</strong></font><br>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+These options allow you to specify an audio file that should be played in your browser if there are problems when you are viewing the <a href="cgis.html#status_cgi">status CGI</a>.  If there are problems, the audio file for the most critical type of problem will be played.  The most critical type of problem is on or more unreachable hosts, while the least critical is one or more services in an unknown state (see the order in the example above).  Audio files are assumed to be in the <b>media/</b> subdirectory in your HTML directory (i.e. <i>/usr/local/nagios/share/media</i>).
+</p>
+
+
+<hr>
+
+</body>
+</html>

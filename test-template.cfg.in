@@ -1,0 +1,195 @@
+###############################################################################
+# TEST-TEMPLATE.CFG
+#
+# NOTE: This config file is intended to be used to test a Nagios installation
+#       that has been compiled with support for the template-based object
+#       configuration files.
+#
+#       This config file is not intended to provide a real example of how you
+#       should create a configuration file.  If you're interested in sample
+#       object configuration files for Nagios, look in the sample-config
+#       directory of the distribution.
+#
+# Last Modified: 02-22-2002
+###############################################################################
+
+
+
+###############################################################################
+# TIME PERIODS
+###############################################################################
+
+define timeperiod{
+        timeperiod_name 24x7
+        alias           24 Hours A Day, 7 Days A Week
+        sunday          00:00-24:00
+        monday          00:00-24:00
+        tuesday         00:00-24:00
+        wednesday       00:00-24:00
+        thursday        00:00-24:00
+        friday          00:00-24:00
+        saturday        00:00-24:00
+        }
+
+
+
+###############################################################################
+# COMMANDS
+###############################################################################
+
+define command{
+        command_name    notify-by-email
+        command_line    /bin/echo -e '***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$' |  @MAIL_PROG@ -s '** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **' $CONTACTEMAIL$
+        }
+
+define command{
+        command_name    host-notify-by-email
+        command_line    /bin/echo -e "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" |  @MAIL_PROG@ -s 'Host $HOSTSTATE$ alert for $HOSTNAME$!' $CONTACTEMAIL$
+        }
+
+define command{
+        command_name    test1
+        command_line    /bin/df -lk /
+        }
+
+define command{
+        command_name    test2
+        command_line    /bin/ping -c 1 $HOSTADDRESS$
+        }
+
+define command{
+        command_name    check-host-alive
+        command_line    /bin/check_ping -H $HOSTADDRESS$ -w 99,99% -c 100,100% -p 1 
+        }
+
+
+
+###############################################################################
+# CONTACTS
+###############################################################################
+
+define contact{
+        contact_name                    @nagios_user@-admin
+        alias                           Nagios Admin
+        service_notification_period     24x7
+        host_notification_period        24x7
+        service_notification_options    w,u,c,r
+        host_notification_options       d,u,r
+        service_notification_commands   notify-by-email
+        host_notification_commands      host-notify-by-email
+        email                           @nagios_user@-admin@localhost
+        }
+
+
+
+###############################################################################
+# CONTACT GROUPS
+###############################################################################
+
+define contactgroup{
+        contactgroup_name       admins
+        alias                   Nagios Administrators
+        members                 @nagios_user@-admin
+        }
+
+
+
+###############################################################################
+# HOSTS
+###############################################################################
+
+# Generic host definition template
+define host{
+        name                            generic-host    ; The name of this host template
+        notifications_enabled           1       ; Host notifications are enabled
+        event_handler_enabled           1       ; Host event handler is enabled
+        flap_detection_enabled          1       ; Flap detection is enabled
+        failure_prediction_enabled      1       ; Failure prediction is enabled
+        process_perf_data               1       ; Process performance data
+        retain_status_information       1       ; Retain status information across program restarts
+        retain_nonstatus_information    1       ; Retain non-status information across program restarts
+        register                        0       ; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
+        }
+
+define host{
+        use                     generic-host            ; Name of host template to use
+        host_name               localhost
+        alias                   localhost
+        address                 127.0.0.1
+        check_command           check-host-alive
+        max_check_attempts      10
+        notification_interval   120
+        notification_period     24x7
+        notification_options    d,u,r
+        }
+
+
+
+###############################################################################
+# HOST GROUPS
+###############################################################################
+
+define hostgroup{
+        hostgroup_name  test
+        alias           Test Servers
+        contact_groups  admins
+        members         localhost
+        }
+
+
+
+###############################################################################
+# SERVICES
+###############################################################################
+
+# Generic service definition template
+define service{
+        name                            generic-service ; The 'name' of this service template
+        active_checks_enabled           1       ; Active service checks are enabled
+        passive_checks_enabled          1       ; Passive service checks are enabled/accepted
+        parallelize_check               1       ; Active service checks should be parallelized (disabling this can lead to major performance problems)
+        obsess_over_service             1       ; We should obsess over this service (if necessary)
+        check_freshness                 0       ; Default is to NOT check service 'freshness'
+        notifications_enabled           1       ; Service notifications are enabled
+        event_handler_enabled           1       ; Service event handler is enabled
+        flap_detection_enabled          1       ; Flap detection is enabled
+        failure_prediction_enabled      1       ; Failure prediction is enabled
+        process_perf_data               1       ; Process performance data
+        retain_status_information       1       ; Retain status information across program restarts
+        retain_nonstatus_information    1       ; Retain non-status information across program restarts
+        register                        0       ; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+        }
+
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             PING
+        is_volatile                     0
+        check_period                    24x7
+        max_check_attempts              4
+        normal_check_interval           5
+        retry_check_interval            1
+        contact_groups                  localhost
+        notification_interval           960
+        notification_period             24x7
+        check_command                   test1
+        }
+
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             DISK
+        is_volatile                     0
+        check_period                    24x7
+        max_check_attempts              4
+        normal_check_interval           5
+        retry_check_interval            1
+        contact_groups                  localhost
+        notification_interval           960
+        notification_period             24x7
+        check_command                   test2
+        }
+
+
+
+# EOF

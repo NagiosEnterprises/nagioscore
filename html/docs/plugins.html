@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Nagios Plugins</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Nagios Plugins</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>What Are Plugins?</u></strong>
+</p>
+
+<p>
+Plugins are compiled executables or scripts (Perl, shell, etc.) that can be run from a command line to check the status or a host or service.  Nagios uses the results from plugins to determine the current status or hosts and services on your network.  No, you can't get away without using plugins - Nagios is useless without them.
+</p>
+
+<p>
+<strong><u>Obtaining Plugins</u></strong>
+</p>
+
+<p>
+Plugin development for Nagios is being done at SourceForge.  The Nagios plugin development project page (where the latest version of by plugins can always be found) is located at <a href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projects/nagiosplug/</a>.
+</p>
+
+<p>
+<strong><u>How Do I Use Plugin <i>X</i>?</u></strong>
+</p>
+
+<p>
+Documentation on how to use individual plugins is <i>not</i> supplied with the core NetSaint distribution.  You should refer to the latest plugin distribution for information on using plugins.  Karl DeBisschop, lead plugin developer/maintainer points out the following:
+</p>
+
+<p>
+<dir>
+All plugins that comply with minimal development guideline for this project include internal documentation.  The documentation can be read executing plugin with the '-h' option ('--help' if long options are enabled).  If the '-h' option does not work, that is a bug.
+</dir>
+</p>
+
+<p>
+For example, if you want to know how the check_http plugin works or what options it accepts, you should try executing either:
+</p>
+
+<p>
+<dir>
+<strong>
+./check_httpd --help
+</strong>
+</dir>
+</p>
+
+<p>
+or
+</p>
+  
+<p>
+<dir>
+<strong>
+./check_httpd --h
+</strong>
+</dir>
+</p>
+
+<p>
+<strong><u>Command Definition Examples For Services</u></strong>
+</p>
+
+<p>
+It is important to note that command definitions found in sample config files in the core Nagios distribution are probably <i>not</i> accurate as to command line parameters, etc when it comes to the plugins.  They are simply provided as examples of how to define commands.
+</p>
+
+<a name="howto"></a>
+<p>
+<strong><u>Creating Custom Plugins</u></strong>
+</p>
+
+<p>
+Creating your own plugins to perform custom host or service checks is easy.  You can find information on how to write plugins at <a href="http://sourceforge.net/projects/nagiosplug/">http://sourceforge.net/projects/nagiosplug/</a> .
+</p>
+
+<hr>
+
+</body>
+</html>

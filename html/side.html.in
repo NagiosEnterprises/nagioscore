@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<HEAD>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+<TITLE>Nagios</TITLE>
+
+<STYLE type="text/css">
+
+<!--
+
+	A.NavBarItem { font-family: arial,serif; background-color : black; color: #DEE7C6; font-size: small; font-weight: bold; text-decoration: none; }
+	BODY.navbar { font-family: arial,serif; background-color : white; color: black;  background-color: black }
+
+-->
+	
+</STYLE>
+
+</HEAD>
+
+<BODY CLASS='navbar'>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+if(parseInt(navigator.appVersion.substring(0,1))>=3){
+  doton = new Image(13,14);
+  doton.src = "images/orangedot.gif";
+  dotoff = new Image(13,14);
+  dotoff.src = "images/greendot.gif";
+  }
+
+function switchdot(name,on){
+  if(parseInt(navigator.appVersion.substring(0,1))>=3){
+    image = eval("" + (on == 1 ? "doton.src" : "dotoff.src"));
+    document[name].src=image;
+    }
+  }
+
+//-->
+</SCRIPT>
+
+
+
+<table width="150" border="0">
+  <tr>
+    <td>
+      <div align="center"><a href="http://www.nagios.org" target="_blank"><img src="images/sblogo.jpg" border="0" alt="Nagios"></a></div>
+    </td>
+  </tr>
+</table>
+
+<table width="150" border="0">
+  <tr>
+    <td><img src="images/sbgeneral.png" width="147" height="21" alt="-- General --"></td>
+  </tr>
+</table>
+
+<table width=150 border="0" cellpadding=0 cellspacing=0>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="home-dot"></td>
+    <td nowrap width=134><a href="main.html" target="main" onMouseOver="switchdot('home-dot',1)" onMouseOut="switchdot('home-dot',0)" class="NavBarItem">Home</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="docs-dot"></td>
+    <td nowrap><a href="docs/index.html" target="main" onMouseOver="switchdot('docs-dot',1)" onMouseOut="switchdot('docs-dot',0)" class="NavBarItem">Documentation</a></td>
+  </tr>
+  <tr>
+    <td colspan="2" height="10"></td>
+  </tr>
+</table>
+
+<table width="150" border="0">
+  <tr> 
+    <td><img src="images/sbmonitor.png" width="147" height="21" alt="-- Monitoring --"></td>
+  </tr>
+</table>
+
+<table width="150" border="0" cellpadding=0 cellspacing=0>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="tac-dot"></td>
+    <td nowrap width=134><a href="@cgiurl@/tac.cgi" target="main" onMouseOver="switchdot('tac-dot',1)" onMouseOut="switchdot('tac-dot',0)" class="NavBarItem">Tactical Overview</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="status-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?host=all" target="main" onMouseOver="switchdot('status-dot',1)" onMouseOut="switchdot('status-dot',0)" class="NavBarItem">Service Detail</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="hoststatus-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=hostdetail" target="main" onMouseOver="switchdot('hoststatus-dot',1)" onMouseOut="switchdot('hoststatus-dot',0)" class="NavBarItem">Host Detail</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="hgstatus-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all" target="main" onMouseOver="switchdot('hgstatus-dot',1)" onMouseOut="switchdot('hgstatus-dot',0)" class="NavBarItem">Status Overview</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="hgstatus2-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=summary" target="main" onMouseOver="switchdot('hgstatus2-dot',1)" onMouseOut="switchdot('hgstatus2-dot',0)" class="NavBarItem">Status Summary</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="hgstatus3-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=grid" target="main" onMouseOver="switchdot('hgstatus3-dot',1)" onMouseOut="switchdot('hgstatus3-dot',0)" class="NavBarItem">Status Grid</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="statusmap-dot"></td>
+    <td nowrap><a href="@cgiurl@/statusmap.cgi?host=all" target="main" onMouseOver="switchdot('statusmap-dot',1)" onMouseOut="switchdot('statusmap-dot',0)" class="NavBarItem">Status Map</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="statuswrl-dot"></td>
+    <td nowrap><a href="@cgiurl@/statuswrl.cgi?host=all" target="main" onMouseOver="switchdot('statuswrl-dot',1)" onMouseOut="switchdot('statuswrl-dot',0)" class="NavBarItem">3-D Status Map</a></td>
+  </tr>
+  <tr> 
+    <td colspan="2" height="10"></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="svcproblems-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?host=all&servicestatustypes=248" target="main" onMouseOver="switchdot('svcproblems-dot',1)" onMouseOut="switchdot('svcproblems-dot',0)" class="NavBarItem">Service Problems</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="hostproblems-dot"></td>
+    <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12" target="main" onMouseOver="switchdot('hostproblems-dot',1)" onMouseOut="switchdot('hostproblems-dot',0)" class="NavBarItem">Host Problems</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="outages-dot"></td>
+    <td nowrap><a href="@cgiurl@/outages.cgi" target="main" onMouseOver="switchdot('outages-dot',1)" onMouseOut="switchdot('outages-dot',0)" class="NavBarItem">Network Outages</a></td>
+  </tr>
+  <tr> 
+    <td colspan="2" height="10"></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="comment-dot"></td>
+    <td nowrap><a href="@cgiurl@/extinfo.cgi?&type=3" target="main" onMouseOver="switchdot('comment-dot',1)" onMouseOut="switchdot('comment-dot',0)" class="NavBarItem">Comments</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="downtime-dot"></td>
+    <td nowrap><a href="@cgiurl@/extinfo.cgi?&type=6" target="main" onMouseOver="switchdot('downtime-dot',1)" onMouseOut="switchdot('downtime-dot',0)" class="NavBarItem">Downtime</a></td>
+  </tr>
+  <tr> 
+    <td colspan="2" height="10"></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="processinfo-dot"></td>
+    <td nowrap><a href="@cgiurl@/extinfo.cgi?&type=0" target="main" onMouseOver="switchdot('processinfo-dot',1)" onMouseOut="switchdot('processinfo-dot',0)" class="NavBarItem">Process Info</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="performance-dot"></td>
+    <td nowrap><a href="@cgiurl@/extinfo.cgi?&type=4" target="main" onMouseOver="switchdot('performance-dot',1)" onMouseOut="switchdot('performance-dot',0)" class="NavBarItem">Performance Info</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="queue-dot"></td>
+    <td nowrap><a href="@cgiurl@/extinfo.cgi?&type=7" target="main" onMouseOver="switchdot('queue-dot',1)" onMouseOut="switchdot('queue-dot',0)" class="NavBarItem">Scheduling Queue</a></td>
+  </tr>
+  <tr>
+    <td colspan="2" height="10"></td>
+  </tr>
+</table>
+
+<table width="150" border="0">
+  <tr> 
+    <td><img src="images/sbreport.png" width="147" height="21" alt="-- Reporting --"></td>
+  </tr>
+</table>
+
+<table width="150" border="0" cellpadding=0 cellspacing=0>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="trends-dot"></td>
+    <td nowrap width=134><a href="@cgiurl@/trends.cgi" target="main" onMouseOver="switchdot('trends-dot',1)" onMouseOut="switchdot('trends-dot',0)" class="NavBarItem">Trends</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="avail-dot"></td>
+    <td nowrap><a href="@cgiurl@/avail.cgi" target="main" onMouseOver="switchdot('avail-dot',1)" onMouseOut="switchdot('avail-dot',0)" class="NavBarItem">Availability</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="histogram-dot"></td>
+    <td nowrap><a href="@cgiurl@/histogram.cgi" target="main" onMouseOver="switchdot('histogram-dot',1)" onMouseOut="switchdot('histogram-dot',0)" class="NavBarItem">Alert Histogram</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="history-dot"></td>
+    <td nowrap><a href="@cgiurl@/history.cgi?host=all" target="main" onMouseOver="switchdot('history-dot',1)" onMouseOut="switchdot('history-dot',0)" class="NavBarItem">Alert History</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="summary-dot"></td>
+    <td nowrap><a href="@cgiurl@/summary.cgi" target="main" onMouseOver="switchdot('summary-dot',1)" onMouseOut="switchdot('summary-dot',0)" class="NavBarItem">Alert Summary</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="notifications-dot"></td>
+    <td nowrap><a href="@cgiurl@/notifications.cgi?contact=all" target="main" onMouseOver="switchdot('notifications-dot',1)" onMouseOut="switchdot('notifications-dot',0)" class="NavBarItem">Notifications</a></td>
+  </tr>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="logfile-dot"></td>
+    <td nowrap><a href="@cgiurl@/showlog.cgi" target="main" onMouseOver="switchdot('logfile-dot',1)" onMouseOut="switchdot('logfile-dot',0)" class="NavBarItem">Event Log</a></td>
+  </tr>
+  <tr>
+    <td colspan="2" height="10"></td>
+  </tr>
+</table>
+
+
+<table width="150" border="0">
+  <tr> 
+    <td><img src="images/sbconfig.png" width="147" height="21" alt="-- Configuration --"></td>
+  </tr>
+</table>
+
+<table width="150" border="0" cellpadding=0 cellspacing=0>
+  <tr> 
+    <td width=13><img src="images/greendot.gif" width="13" height="14" name="config-dot"></td>
+    <td nowrap width=134><a href="@cgiurl@/config.cgi" target="main" onMouseOver="switchdot('config-dot',1)" onMouseOut="switchdot('config-dot',0)" class="NavBarItem">View Config</a></td>
+  </tr>
+</table>
+
+</BODY>
+</HTML>

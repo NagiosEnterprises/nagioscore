@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Default Extended Data Configuration File Options</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Default Extended Data Configuration File Options</h2>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><font color='red'>Important:</font></strong> Nagios can be configured to use different methods for storing <a href="configextinfo.html">extended information</a>.  This documentation describes how to configure extended data definitions if you've compiled Nagios with support for default extended data routines (i.e. using the <i>--with-default-extinfo</i> argument to the configure script).  Please note that this configuration format is provided primarily for backward compatability.  It offers neither the flexibility nor clarity that the <a href="xedtemplate.html">template-based extended data definitions</a> do.  I would highly suggest that you consider moving to the template-based config file, as it will be the standard in the future.
+</p>
+
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+When using the default extended data routines, both host and service extended information definitions must be placed in your <a href="configcgi.html">CGI configuration file</a>.  Each definition should be on a seperate line in the config file.
+</p>
+
+
+<p>
+<strong><u>Index</u></strong>
+</p>
+<p>
+<a href="#hostextinfo">Extended host information</a><br>
+<a href="#serviceextinfo">Extended service information</a><br>
+</p>
+
+<p>
+<a name="hostextinfo"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Extended Host Information</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>hostextinfo[&lt;host_name&gt;]=&lt;notes_url&gt;;&lt;icon_image&gt;;&lt;vrml_image&gt;;&lt;gd2_image&gt;;&lt;alt_tag&gt;;&lt;x_2d&gt;,&lt;y_2d&gt;;&lt;x_3d&gt;,&lt;y_3d&gt;,&lt;z_3d&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>hostextinfo[router3]=/hostinfo/router3.html;cat5000.png;cat5000.png;cat5000.gd2;Cisco Catalyst 5000;100,50;3.5,2.0,5.5</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+Extended host information entries are basically used to make the output from the <a href="cgis.html#status_cgi">status</a>, <a href="cgis.html#statusmap_cgi">statusmap</a>, <a href="cgis.html#statuswrl_cgi">statuswrl</a>, and <a href="cgis.html#extinfo_cgi">extinfo</a> CGIs look pretty.  They have no effect on monitoring and are completely optional.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;host_name&gt;</strong></td>
+<td>
+This is a short name of the host, as defined in the <a href="confighost.html">host configuration file</a>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notes_url&gt;</strong></td>
+<td>
+This is an optional URL that can be used to provide more information about the host.  If you specify an URL, you will see a link that says "Notes About This Host" in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified host).  Any valid URL can be used.  If you plan on using relative paths, the base path will the the same as what is used to access the CGIs (i.e. <i>/cgi-bin/nagios/</i>).  This can be very useful if you want to make detailed information on the host, emergency contact methods, etc available to other support staff.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;icon_image&gt;</strong></td>
+<td>
+The name of a GIF, PNG, or JPG image that should be associated with this host.  This image will be displayed in the <a href="cgis.html#status_cgi">status</a> and <a href="cgis.html#extinfo_cgi">extended information</a> CGIs.  The image will look best if it is 40x40 pixels in size.  Images for hosts are assumed to be in the <b>logos/</b> subdirectory in your HTML images directory (i.e. <i>/usr/local/nagios/share/images/logos</i>).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;vrml_image&gt;</strong></td>
+<td>
+The name of a GIF, PNG, or JPG image that should be associated with this host.  This image will be used as the texture map for the specified host in the <a href="cgis.html#statuswrl_cgi">statuswrl</a> CGI.  Unlike the image you use for the <i>&lt;icon_image&gt;</i> variable, this one should probably <i>not</i> have any transparency.  If it does, the host object will look a bit wierd.  Images for hosts are assumed to be in the <b>logos/</b> subdirectory in your HTML images directory (i.e. <i>/usr/local/nagios/share/images/logos</i>).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;gd2_image&gt;</strong></td>
+<td>
+The name of a GD2 format image that should be associated with this host.  This image will be used in the image created by the <a href="cgis.html#statusmap_cgi">statusmap</a> CGI.  GD2 images can be created from PNG images by using the <b>pngtogd2</b> utility supplied with Thomas Boutell's <a href="http://www.boutell.com/gd">gd library</a>.  The GD2 images should be created in <i>uncompressed</i> format in order to minimize CPU load when the statusmap CGI is generating the network map image.  The image will look best if it is 40x40 pixels in size.  You can leave these option blank if you are not using the statusmap CGI.  Images for hosts are assumed to be in the <b>logos/</b> subdirectory in your HTML images directory (i.e. <i>/usr/local/nagios/share/images/logos</i>).
+<td>
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;alt_tag&gt;</strong></td>
+<td>
+An optional string that is used in the ALT tag of the image specified by the <i>&lt;icon_image&gt;</i> argument.  The ALT tag is used in both the <a href="cgis.html#status_cgi">status</a> and <a href="cgis.html#statusmap_cgi">statusmap</a> CGIs.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;x_2d&gt;,&lt;y_2d&gt;</strong></td>
+<td>
+Coordinates to use when drawing the host in the <a href="cgis.html#statusmap_cgi">statusmap</a> CGI.  Coordinates should be given in positive integers, as the correspond to physical pixels in the generated image.  The origin for drawing (0,0) is in the upper left hand corner of the image and extends in the positive x direction (to the right) along the top of the image and in the positive y direction (down) along the left hand side of the image.  For reference, the size of the icons drawn is usually about 40x40 pixels (text takes a little extra space).  The coordinates you specify here are for the upper left hand corner of the host icon that is drawn.  Note:  Don't worry about what the maximum x and y coordinates that you can use are.  The CGI will automatically calculate the maximum dimensions of the image it creates based on the largest x and y coordinates you specify.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;x_3d&gt;,&lt;y_3d&gt;,&lt;z_3d&gt;</strong></td>
+<td>
+Coordinates to use when drawing the host in the <a href="cgis.html#statuswrl_cgi">statuswrl</a> CGI.  Coordinates can be positive or negative real numbers.  The origin for drawing is (0.0,0.0,0.0).  For reference, the size of the host cubes drawn is 0.5 units on each side (text takes a little more space).  The coordinates you specify here are used as the center of the host cube.
+</td>
+</tr>
+</table>
+</p>
+
+
+<p>
+<a name="serviceextinfo"></a>
+<table border="0" width="100%">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Extended Service Information</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0">
+<tr>
+<td valign=top>Format:</td>
+<td><strong>serviceextinfo[&lt;host_name&gt;;&lt;svc_description&gt;]=&lt;notes_url&gt;;&lt;icon_image&gt;;&lt;alt_tag&gt;</strong></td>
+</tr>
+<tr>
+<td valign=top>Example:</td>
+<td><font color="red"><strong>serviceextinfo[router3;PING]=/serviceinfo/router3.html#PING;ping.png;PING Stats</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+Extended service information entries are basically used to make the output from the <a href="cgis.html#status_cgi">status</a> and <a href="cgis.html#extinfo_cgi">extinfo</a> CGIs look pretty.  They have no effect on monitoring and are completely optional.
+</p>
+
+<p>
+<table border="1">
+<tr>
+<td valign="top"><strong>&lt;host_name&gt;</strong></td>
+<td>
+This is a short name of the host associated with the service, as specified in the <a href="confighost.html#service">service definition</a>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;svc_description&gt;</strong></td>
+<td>
+This is a description of the service, as specified in the <a href="confighost.html#service">service definition</a>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;notes_url&gt;</strong></td>
+<td>
+This is an optional URL that can be used to provide more information about the service.  If you specify an URL, you will see a link that says "Notes About This Service" in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified service).  Any valid URL can be used.  If you plan on using relative paths, the base path will the the same as what is used to access the CGIs (i.e. <i>/cgi-bin/nagios/</i>).  This can be very useful if you want to make detailed information on the service, emergency contact methods, etc available to other support staff.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;icon_image&gt;</strong></td>
+<td>
+The name of a GIF, PNG, or JPG image that should be associated with this service.  This image will be displayed in the <a href="cgis.html#status_cgi">status</a> and <a href="cgis.html#extinfo_cgi">extended information</a> CGIs.  The image will look best if it is 40x40 pixels in size.  Images for hosts are assumed to be in the <b>logos/</b> subdirectory in your HTML images directory (i.e. <i>/usr/local/nagios/share/images/logos</i>).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>&lt;alt_tag&gt;</strong></td>
+<td>
+An optional string that is used in the ALT tag of the image specified by the <i>&lt;icon_image&gt;</i> argument.  The ALT tag is used in the <a href="cgis.html#status_cgi">status</a> CGI.
+</td>
+</tr>
+</table>
+</p>
+
+
+<hr>
+
+</body>
+</html>

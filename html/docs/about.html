@@ -1,0 +1,139 @@
+<HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>About Nagios</title>
+
+<STYLE type="text/css">
+<!--
+        .Trademark { font-size: x-small; }
+
+        .Disclaimer { text-align: center; font-size: xx-small; font-style: italic; }
+
+        .Default { font-family: arial,serif; font-size: small; }
+        .PageTitle { font-family: arial,serif; font-size: large; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">About Nagios<sup class="Trademark">TM</sup></h2>
+</div>
+</p>
+<hr>
+
+<p>
+<a name="whatis"></a>
+<strong><u>What Is This?</u></strong>
+</p>
+<p>
+Nagios<sup class="Trademark">TM</sup> is a system and network monitoring application.  It watches hosts and services that you specify, alerting you when things go bad and when they get better.
+</p>
+<p>
+Nagios<sup class="Trademark">TM</sup> was originally designed to run under <a href="http://www.linux.com">Linux</a>, although it should work under most other unices as well.  For more information on what operating systems Nagios will and will not run under, see the OS ports page at <a href="http://www.nagios.org/ports.shtml">http://www.nagios.org/ports.shtml</a>.
+</p>
+<p>
+Some of the many features of Nagios<sup class="Trademark">TM</sup> include:
+</p>
+<p>
+<ul>
+<li>Monitoring of network services (SMTP, POP3, HTTP, NNTP, PING, etc.)
+<li>Monitoring of host resources (processor load, disk usage, etc.)
+<li>Simple plugin design that allows users to easily develop their own service checks
+<li>Parallelized service checks
+<li>Ability to define network host hierarchy using "parent" hosts, allowing detection of and distinction between hosts that are down and those that are unreachable
+<li>Contact notifications when service or host problems occur and get resolved (via email, pager, or user-defined method) 
+<li>Ability to define event handlers to be run during service or host events for proactive problem resolution
+<li>Automatic log file rotation
+<li>Support for implementing redundant monitoring hosts
+<li>Optional web interface for viewing current network status, notification and problem history, log file, etc.
+</ul>
+</p>
+
+
+<p>
+<a name="requirements"></a>
+<strong><u>System Requirements</u></strong>
+</p>
+<p>
+<i>The only requirement of running Nagios is a machine running Linux (or UNIX variant) and a C compiler.</i>  You will probably also want to have TCP/IP configured, as most service checks will be performed over the network.
+</p>
+<p>
+You are <i>not required</i> to use the CGIs included with Nagios.  However, if you do decide to use them, you will need to have the following software installed...
+</p>
+
+<p>
+<ol>
+<li>A web server (preferrably <a href="http://www.apache.org" target="_top">Apache</a>)
+<li>Thomas Boutell's <a href="http://www.boutell.com/gd">gd library</a> version 1.6.3 or higher (required by the <a href="cgis.html#statusmap">statusmap</a> and <a href="cgis.html#trends_cgi">trends</a> CGIs)
+</ol>
+</p>
+
+<p>
+<a name="licensing"></a>
+<strong><u>Licensing</u></strong>
+</p>
+<p class="SectionBody">
+Nagios<sup class="Trademark">TM</sup> is licensed under the terms of the <a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a> Version 2 as published by the <a href="http://www.fsf.org">Free Software Foundation</a>.  This gives you legal permission to copy, distribute and/or modify Nagios under certain conditions.  Read the 'LICENSE' file in the Nagios distribution or read the <a href="http://www.gnu.org/copyleft/gpl.html">online version of the license</a> for more details.
+</p>
+
+<p>
+Nagios<sup class="Trademark">TM</sup> is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.
+</p>
+
+<p>
+<a name="acknowledgements"></a>
+<strong><u>Acknowledgements</u></strong>
+</p>
+<p>
+Several people have contributed to Nagios by either reporting bugs, suggesting improvements, writing plugins, etc.  A list of some of the many contributors to the development of Nagios can be found at <a href="http://www.nagios.org/">http://www.nagios.org</a>.
+</p>
+
+<p>
+<a name="downloading"></a>
+<strong><u>Downloading The Latest Version</u></strong>
+</p>
+<p>
+You can check for new versions of Nagios at <a href="http://www.nagios.org" target="_top">http://www.nagios.org</a>.
+</p>
+
+<p>
+<a name="othermonitors"></a>
+<strong><u>Other Monitoring Utilities</u></strong>
+</p>
+<p>
+In case you weren't aware, there are other network monitoring utilities available besides Nagios.  I think Nagios is a pretty good contender, but I'm obviously biased.  Here are links to a few other free monitoring utilities.  There are many others that are not listed here - search the net (or <a href="http://freshmeat.net/browse/152/">Freshmeat</a>) and you'll find them.
+</p>
+<p>
+<ul>
+<li><a href="http://www.paganini.net/angel/" target="_top">Angel Network Monitor</a>
+<li><a href="http://www.angio.net/consult/autostatus/" target="_top">Autostatus</a>
+<li><a href="http://maclawran.ca/sean/bb-dnld/" target="_top">Big Brother</a>
+<li><a href="http://www.hiways.org/" target="_top">HiWAyS</a>
+<li><a href="http://www.altara.org/mars.html" target="_top">MARS</a>
+<li><a href="http://www.kernel.org/software/mon/" target="_top">Mon</a>
+<li><a href="http://www.pasteur.fr/units/sis/netup/" target="_top">Netup (French)</a>
+<li><a href="http://www2.discpro.org/nocmon/" target="_top">NocMonitor</a>
+<li><a href="http://www.skendric.com/nodewatch/" target="_top">NodeWatch</a>
+<li><a href="http://www.communityprojects.org/apps/penemo/" target="_top">Penemo</a>
+<li><a href="http://pikt.org/" target="_top">PIKT</a>
+<li><a href="http://www.terravista.pt/Ancora/1883/ritw_e.html" target="_top">RITW</a>
+<li><a href="http://wwwhome.cs.utwente.nl/~schoenw/scotty/" target="_top">Scotty</a>
+<li><a href="http://spong.sourceforge.net/" target="_top">Spong</a>
+<li><a href="http://www.sysmon.org/" target="_top">Sysmon</a>
+</ul>
+</p>
+
+<hr>
+
+<br clear="all">
+<div class="Disclaimer">
+Nagios and the Nagios logo are trademarks of Ethan Galstad.  All other trademarks, servicemarks, registered trademarks, and registered servicemarks may be the property of their respective owner(s).
+</div>
+
+</body>
+</html>

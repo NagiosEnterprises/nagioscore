@@ -1,0 +1,197 @@
+################################################################################
+# Sample Command Definition File for Nagios
+# Template-based config format
+#
+# Last Modified: 01-15-2002
+#
+# A primary objective of this file is reverse compatibility across
+# many generations of plugin releases. In addition to this file, there
+# is a command.cfg file that is distributed with the plugins
+# themselves.  The file distributed with the plugins is designed to
+# reflect forward porgress on the plugins, and makes no effort to be
+# comptible with plugin versions other than the one it is created
+# for. It is generally easiest to use the file you are looking at now,
+# but you will generally see examples of the newest plugin features by
+# using the command.cfg file distributed with the same plugin set you
+# are currently using.
+#
+################################################################################
+
+
+################################################################################
+# COMMAND CONFIGURATION
+#
+# SYNTAX:
+#
+#	define command{
+#               template      <templatename>
+#		name          <objectname>
+#               command_name  <commandname>
+#               command_line  <commandline>
+#               }
+#
+# WHERE:
+#
+# <templatename> = object name of another command definition that should be
+#                  used as a template for this definition (optional)
+# <objectname>   = object name of command definition, referenced by other
+#                  command definitions that use it as a template (optional)
+# <commandname>  = name of the command, as recognized/used by Nagios
+# <commandline>  = command line
+#
+################################################################################
+
+
+
+
+################################################################################
+#
+# SAMPLE SERVICE CHECK COMMANDS
+#
+# These are some example service check commands.  They may or may not work on
+# your system, as they must be modified for your plugins.  See the HTML 
+# documentation on the plugins for examples of how to configure command definitions.
+#
+################################################################################
+
+
+# 'check_tcp' command definition
+define command{
+	name		check_tcp	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_tcp
+	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$
+	}
+
+
+# 'check_udp' command definition
+define command{
+	name		check_udp	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_udp
+	command_line	$USER1$/check_udp -H $HOSTADDRESS$ -p $ARG1$
+	}
+
+
+# 'check_ftp' command definition
+define command{
+	name		check_ftp	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_ftp
+	command_line	$USER1$/check_ftp -H $HOSTADDRESS$
+	}
+
+
+# 'check_pop' command definition
+define command{
+	name		check_pop	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_pop
+	command_line	$USER1$/check_pop -H $HOSTADDRESS$
+	}
+
+
+# 'check_smtp' command definition
+define command{
+	name		check_smtp	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_smtp
+	command_line	$USER1$/check_smtp -H $HOSTADDRESS$
+	}
+
+
+# 'check_nntp' command definition
+define command{
+	name		check_nntp	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_nntp
+	command_line	$USER1$/check_nntp -H $HOSTADDRESS$
+	}
+
+
+# 'check_http' command definition
+define command{
+	name		check_http	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_http
+	command_line	$USER1$/check_http -H $HOSTADDRESS$
+	}
+
+
+# 'check_telnet' command definition
+define command{
+	name		check_telnet	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_telnet
+	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p 23
+	}
+
+
+# 'check_ping' command definition
+define command{
+	name		check_ping	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_ping
+	command_line	$USER1$/check_ping -H $HOSTADDRESS$ -w 10.0,20% -c 100.0,60% -p 5
+	}
+
+
+# 'check_dns' command definition
+define command{
+	name		check_dns	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_dns
+	command_line	$USER1$/check_dns -H www.yahoo.com -s $HOSTADDRESS$
+	}
+
+
+# 'check_hpjd' command definition
+define command{
+	name		check_hpjd	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_hpjd
+	command_line	$USER1$/check_hpjd -H $HOSTADDRESS$ -C public
+	}
+
+
+# 'check_local_disk' command definition
+define command{
+	name		check_local_disk	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_local_disk
+	command_line	$USER1$/check_disk -w 20% -c 10% -p $ARG1$
+	}
+
+
+# 'check_local_users' command definition
+define command{
+	name		check_local_users	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_local_users
+	command_line	$USER1$/check_users -w $ARG1$ -c $ARG2$
+	}
+
+
+# 'check_local_procs' command definition
+define command{
+	name		check_local_procs	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_local_procs
+	command_line	$USER1$/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$
+	}
+
+
+# 'check_local_load' command definition
+define command{
+	name		check_local_load	; The name of this command definition - can be used for template recursion/resolution
+	command_name	check_local_load
+	command_line	$USER1$/check_load -w $ARG1$ -c $ARG2$
+	}
+
+
+
+
+################################################################################
+#
+# SAMPLE HOST CHECK COMMANDS
+#
+################################################################################
+
+
+# This command checks to see if a host is "alive" by pinging it
+# The check must result in a 100% packet loss or 5 second (5000ms) round trip 
+# average time to produce a critical error.
+# Note: Only one ICMP echo packet is sent (determined by the '-p 1' argument)
+
+# 'check-host-alive' command definition
+define command{
+        name            check-host-alive        ; The name of this command definition - can be used for template recursion/resolution
+        command_name    check-host-alive
+        command_line    $USER1$/check_ping -H $HOSTADDRESS$ -w 3000.0,80% -c 5000.0,100% -p 1
+        }

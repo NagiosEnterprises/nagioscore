@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Setting Up The Web Interface</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Setting Up The Web Interface</h2>
+</div>
+</p>
+<hr>
+
+
+<p>
+<strong><u>Notes</u></strong>
+</p>
+
+<p>
+In these instructions I will assume that you are running the <a href="http://www.apache.org">Apache</a> web server on your machine.  If you are using some other web server, you'll have to make changes where appropriate.  I am also assuming that you used the <i>/usr/local/nagios</i> as the installation prefix.
+</p>
+
+<p>
+<strong><u>Configure Script Alias For The CGIs</u></strong>
+</p>
+
+<p>
+You'll need to create an alias for the CGIs as well.  The default installation expects to find them accessible at <b>http://yourmachine/nagios/cgi-bin/</b>, although this can be changed using the <b>--with-cgiurl</b> option in the configure script.  Anyway, add something like the following to your web server configuration file (i.e. <b>httpd.conf</b>) (changing it to match any directory differences on your system)...
+</p>
+
+<pre>
+<strong>
+<font color="red">
+ScriptAlias /nagios/cgi-bin/ /usr/local/nagios/sbin/
+&lt;Directory "/usr/local/nagios/sbin/"&gt;
+    AllowOverride AuthConfig
+    Options ExecCGI
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;
+</font>
+</strong>
+</pre>
+
+<p>
+<strong>Important!</strong>  If you are installing Nagios on a multi-user system, you may want use <a href="http://cgiwrap.unixtools.org/">CGIWrap</a> to provide additional security between the CGIs and the <a href="commandfile.html">external command file</a>.  If you decide to use CGIWrap, the ScriptAlias to you'll end up using will most likely be different from that mentioned above.  More information on doing this can be found <a href="security.html">here</a>.
+</p>
+
+<p>
+<a name="web"></a>
+<strong><u>Configure Alias For The HTML Files</u></strong>
+</p>
+
+<p>
+In order to make the HTML files accessible via the web server, you'll have to edit your Apache configuration file as follows...
+</p>
+
+<p>
+Add the following to your web server configuration file (i.e. <b>httpd.conf</b>) as follows:
+</p>
+
+<pre>
+<strong>
+<font color="red">
+Alias /nagios/ /usr/local/nagios/share/
+&lt;Directory "/usr/local/nagios/share"&gt;
+    Options None
+    AllowOverride AuthConfig
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;
+</font>
+</strong>
+</pre>
+
+<p>
+This will allow you to use an URL like <b>http://yourmachine/nagios/</b> to view the HTML web interface and documentation.  The alias should be the same value that you entered for the <b>--with-htmurl</b> argument to the configure script (default is <i>/nagios/</i>).
+</p>
+
+<p>
+<strong>Important!</strong>  The Alias directive you just added for the HTML files must come <i>after</i> the ScriptAlias directive for the CGIs.  If it doesn't, you'll get a 404 error when attempting to access the CGIs.
+</p>
+
+<p>
+<strong><u>Restart The Web Server</u></strong>
+</p>
+
+<p>
+Once you've finished editing the Apache configuration file, you'll need to restart the web server with a command like this...
+</p>
+
+<p>
+<strong>
+<font color="red">
+/etc/rc.d/init.d/httpd restart
+</font>
+</strong>
+</p>
+
+<p>
+<strong><u>Verify Your Changes</u></strong>
+</p>
+
+<p>
+Don't forget to check and see if the changes you made to Apache work.  You should be able to point your web browser at <b>http://yourmachine/nagios</b> and get the web interface for Nagios.  The CGIs may not display any information, but this will be remedied once you configure everything and start Nagios.
+</p>
+
+<p>
+<strong><u>Configuring Web Authentication</u></strong>
+</p>
+
+<p>
+Once you have configured the web interface properly, you'll need to enable web server authentication for accessing the CGIs and configure user authorization information.  Details on doing this can be found <a href="cgiauth.html">here</a>.
+</p>
+
+<hr>
+
+</body>
+</html>

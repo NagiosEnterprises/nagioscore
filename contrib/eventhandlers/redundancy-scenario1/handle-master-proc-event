@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# REDUNDANCY EVENT HANDLER SCRIPT
+# Written By: Ethan Galstad (nagios@nagios.org)
+# Last Modified: 02-18-2002
+#
+# This is an example script for implementing redundancy.
+# Read the HTML documentation on redundant monitoring for more
+# information on what this does.
+
+# Location of the echo and mail commands
+echocmd="/bin/echo"
+mailcmd="/bin/mail"
+
+# Location of the event handlers
+eventhandlerdir="/usr/local/nagios/libexec/eventhandlers"
+
+
+# Only take action on hard service states...
+case "$2" in
+HARD)
+
+	case "$1" in
+	CRITICAL)
+
+		# The master Nagios process is not running!
+		# We should now become the master host and
+		# take over the responsibility of monitoring
+		# the network, so enable active checks...
+
+		`$eventhandlerdir/enable_active_service_checks`
+		;;
+
+	WARNING)
+	UNKNOWN)
+
+		# The master Nagios process may or may not
+		# be running.. We won't do anything here, but
+		# to be on the safe side you may decide you 
+		# want the slave host to become the master in
+		# these situations...
+		;;
+
+	OK)
+
+		# The master Nagios process running again!
+		# We should go back to being the slave host, 
+		# so disable active checks
+
+		`eventhandlerdir/disable_active_service_checks`
+		;;
+
+	esac
+	;;
+
+esac
+exit 0
+
+ 

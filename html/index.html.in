@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<HEAD>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+<TITLE>Nagios</TITLE>
+</HEAD>
+<FRAMESET BORDER="0" FRAMEBORDER="0" FRAMESPACING="0" COLS="180,*">
+<FRAME SRC="side.html" NAME="side" TARGET="main">
+<FRAME SRC="main.html" NAME="main">
+</FRAMESET>
+
+<NOFRAMES>
+<!-- This page requires a web browser which supports frames. --> 
+<p>
+<center>
+<h2>Nagios</h2>
+<a href="http://www.nagios.org" alt="Nagios Home">www.nagios.org</a><br>
+Copyright (c) 1999-2001 Ethan A. Galstad<br>
+</center>
+</p>
+<p>
+<i>Note: These pages require a browser which supports frames</i>
+</p>
+</NOFRAMES>
+
+</HTML>

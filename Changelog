@@ -1,0 +1,35 @@
+###################
+Nagios Change Log
+###################
+
+1.0b1 - Sometime 2001
+---------------------
+
+* More verbose listing of object information in configuration CGI
+* Added histogram CGI for graphing host/service events
+* Added view of service check scheduling queue to extended info CGI
+* Added host escalations and host notification dependencies
+* Implemented optional template-based object and extended information
+  configuration routines
+* Added optional service "freshness" checking
+* Added grid layout view to status CGI
+* Added optional performance data routines to output directly to a file
+  instead of running a system command
+* CGIs will assume Nagios process is running if no process check
+  command is specified
+* Expanded host and service definitions to include:
+	- Retention data options
+	- Failure prediction options
+	- Performance data option
+* Scheduled host and service downtime changes:
+	- Downtime is now preserved across program restarts
+	- Author/comment are recorded with downtime entries
+ 	- Downtime may be fixed of flexible
+* Removed euro_style_dates directive from main config file and added 
+  date_format, which now supports "us", "euro", "iso8601", and 
+  "strict-iso8601" for short date/time formats.
+* Removed program_mode directive from main config file and added
+  enable_notifications directive
+* CGI config file renamed to cgi.cfg
+* Default CGI URL is now /nagios/cgi-bin
+

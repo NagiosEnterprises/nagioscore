@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-22-2003
+ * Last Modified: 08-02-2003
  *
  * License:
  * 
@@ -90,6 +90,7 @@
 #define TIMEPERIOD_LASTYEAR	10
 #define TIMEPERIOD_LAST24HOURS	11
 #define TIMEPERIOD_LAST7DAYS	12
+#define TIMEPERIOD_LAST31DAYS   13
 
 
 #define MAX_ARCHIVE_SPREAD	65
@@ -379,7 +380,7 @@ int main(int argc, char **argv){
 
 			printf("<BR>\n");
 
-			printf("<IMG SRC='%s%s' BORDER=0 ALT='%s Event Histogram'>\n",url_images_path,TRENDS_ICON,(display_type==DISPLAY_HOST_HISTOGRAM)?"Host":"Service");
+			printf("<IMG SRC='%s%s' BORDER=0 ALT='%s Event Histogram' TITLE='%s Event Histogram'>\n",url_images_path,TRENDS_ICON,(display_type==DISPLAY_HOST_HISTOGRAM)?"Host":"Service",(display_type==DISPLAY_HOST_HISTOGRAM)?"Host":"Service");
 
 			printf("<BR CLEAR=ALL>\n");
 
@@ -411,17 +412,18 @@ int main(int argc, char **argv){
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>Report period:</td><td CLASS='optBoxItem' valign=top align=left>Assume state retention:</td></tr>\n");
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<select name='timeperiod'>\n");
-			printf("<option value=custom SELECTED>[ Current time range ]\n");
-			printf("<option value=last24hours>Last 24 Hours\n");
-			printf("<option value=today>Today\n");
-			printf("<option value=yesterday>Yesterday\n");
-			printf("<option value=thisweek>This Week\n");
-			printf("<option value=last7days>Last 7 Days\n");
-			printf("<option value=lastweek>Last Week\n");
-			printf("<option value=thismonth>This Month\n");
-			printf("<option value=lastmonth>Last Month\n");
-			printf("<option value=thisyear>This Year\n");
-			printf("<option value=lastyear>Last Year\n");
+			printf("<option value=custom>[ Current time range ]\n");
+			printf("<option value=today %s>Today\n",(timeperiod_type==TIMEPERIOD_TODAY)?"SELECTED":"");
+			printf("<option value=last24hours %s>Last 24 Hours\n",(timeperiod_type==TIMEPERIOD_LAST24HOURS)?"SELECTED":"");
+			printf("<option value=yesterday %s>Yesterday\n",(timeperiod_type==TIMEPERIOD_YESTERDAY)?"SELECTED":"");
+			printf("<option value=thisweek %s>This Week\n",(timeperiod_type==TIMEPERIOD_THISWEEK)?"SELECTED":"");
+			printf("<option value=last7days %s>Last 7 Days\n",(timeperiod_type==TIMEPERIOD_LAST7DAYS)?"SELECTED":"");
+			printf("<option value=lastweek %s>Last Week\n",(timeperiod_type==TIMEPERIOD_LASTWEEK)?"SELECTED":"");
+			printf("<option value=thismonth %s>This Month\n",(timeperiod_type==TIMEPERIOD_THISMONTH)?"SELECTED":"");
+			printf("<option value=last31days %s>Last 31 Days\n",(timeperiod_type==TIMEPERIOD_LAST31DAYS)?"SELECTED":"");
+			printf("<option value=lastmonth %s>Last Month\n",(timeperiod_type==TIMEPERIOD_LASTMONTH)?"SELECTED":"");
+			printf("<option value=thisyear %s>This Year\n",(timeperiod_type==TIMEPERIOD_THISYEAR)?"SELECTED":"");
+			printf("<option value=lastyear %s>Last Year\n",(timeperiod_type==TIMEPERIOD_LASTYEAR)?"SELECTED":"");
 			printf("</select>\n");
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<select name='assumestateretention'>\n");
@@ -791,13 +793,14 @@ int main(int argc, char **argv){
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report Period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='timeperiod'>\n");
-			printf("<option value=last24hours>Last 24 Hours\n");
 			printf("<option value=today>Today\n");
+			printf("<option value=last24hours>Last 24 Hours\n");
 			printf("<option value=yesterday>Yesterday\n");
 			printf("<option value=thisweek>This Week\n");
 			printf("<option value=last7days SELECTED>Last 7 Days\n");
 			printf("<option value=lastweek>Last Week\n");
 			printf("<option value=thismonth>This Month\n");
+			printf("<option value=last31days>Last 31 Days\n");
 			printf("<option value=lastmonth>Last Month\n");
 			printf("<option value=thisyear>This Year\n");
 			printf("<option value=lastyear>Last Year\n");
@@ -1176,6 +1179,8 @@ int process_cgivars(void){
 				timeperiod_type=TIMEPERIOD_LAST24HOURS;
 			else if(!strcmp(variables[x],"last7days"))
 				timeperiod_type=TIMEPERIOD_LAST7DAYS;
+			else if(!strcmp(variables[x],"last31days"))
+				timeperiod_type=TIMEPERIOD_LAST31DAYS;
 			else if(!strcmp(variables[x],"custom"))
 				timeperiod_type=TIMEPERIOD_CUSTOM;
 			else
@@ -2385,6 +2390,10 @@ void convert_timeperiod_to_times(int type){
 	case TIMEPERIOD_LAST7DAYS:
 		t2=current_time;
 		t1=current_time-(7*24*60*60);
+		break;
+	case TIMEPERIOD_LAST31DAYS:
+		t2=current_time;
+		t1=current_time-(31*24*60*60);
 		break;
 	default:
 		break;

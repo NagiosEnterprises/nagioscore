@@ -2,8 +2,8 @@
  *
  * SHOWLOG.C - Nagios Log File CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-27-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 08-02-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -512,7 +512,7 @@ int display_log(void){
 			temp_buffer=strtok(NULL,"\n");
 			
 			if(display_frills==TRUE)
-				printf("<img align='left' src='%s%s' alt='%s'>",url_images_path,image,image_alt);
+				printf("<img align='left' src='%s%s' alt='%s' title='%s'>",url_images_path,image,image_alt,image_alt);
 			printf("[%s] %s<br clear='all'>\n",date_time,(temp_buffer==NULL)?"":temp_buffer);
 		        }
 

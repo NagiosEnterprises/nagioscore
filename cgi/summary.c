@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2003
+ * Last Modified: 08-02-2003
  *
  * License:
  * 
@@ -82,6 +82,7 @@ extern int       log_rotation_method;
 #define TIMEPERIOD_LASTYEAR	10
 #define TIMEPERIOD_LAST24HOURS	11
 #define TIMEPERIOD_LAST7DAYS	12
+#define TIMEPERIOD_LAST31DAYS	13
 
 #define AE_SOFT_STATE           1
 #define AE_HARD_STATE           2
@@ -519,13 +520,14 @@ int main(int argc, char **argv){
 		printf("<td valign=top class='reportSelectSubTitle'>Report Period:</td>\n");
 		printf("<td valign=top align=left class='optBoxItem'>\n");
 		printf("<select name='timeperiod'>\n");
-		printf("<option value=last24hours>Last 24 Hours\n");
 		printf("<option value=today>Today\n");
+		printf("<option value=last24hours>Last 24 Hours\n");
 		printf("<option value=yesterday>Yesterday\n");
 		printf("<option value=thisweek>This Week\n");
 		printf("<option value=last7days SELECTED>Last 7 Days\n");
 		printf("<option value=lastweek>Last Week\n");
 		printf("<option value=thismonth>This Month\n");
+		printf("<option value=last31days>Last 31 Days\n");
 		printf("<option value=lastmonth>Last Month\n");
 		printf("<option value=thisyear>This Year\n");
 		printf("<option value=lastyear>Last Year\n");
@@ -825,6 +827,8 @@ int process_cgivars(void){
 				timeperiod_type=TIMEPERIOD_LAST24HOURS;
 			else if(!strcmp(variables[x],"last7days"))
 				timeperiod_type=TIMEPERIOD_LAST7DAYS;
+			else if(!strcmp(variables[x],"last31days"))
+				timeperiod_type=TIMEPERIOD_LAST31DAYS;
 			else if(!strcmp(variables[x],"custom"))
 				timeperiod_type=TIMEPERIOD_CUSTOM;
 			else
@@ -1422,6 +1426,10 @@ void convert_timeperiod_to_times(int type){
 	case TIMEPERIOD_LAST7DAYS:
 		t2=current_time;
 		t1=current_time-(7*24*60*60);
+		break;
+	case TIMEPERIOD_LAST31DAYS:
+		t2=current_time;
+		t1=current_time-(31*24*60*60);
 		break;
 	default:
 		break;

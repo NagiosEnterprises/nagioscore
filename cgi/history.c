@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2003
+ * Last Modified: 08-02-2003
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -898,7 +898,7 @@ void get_history(void){
 				        }
 
 				if(display_frills==TRUE)
-					printf("<img align='left' src='%s%s' alt='%s'>",url_images_path,image,image_alt);
+					printf("<img align='left' src='%s%s' alt='%s' title='%s'>",url_images_path,image,image_alt,image_alt);
 				printf("[%s] %s<br clear='all'>\n",date_time,temp_buffer);
 				found_line=TRUE;
 			        }

@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-24-2003
+ * Last Modified: 08-02-2003
  *
  * License:
  * 
@@ -96,6 +96,7 @@ extern int       log_rotation_method;
 #define TIMEPERIOD_LASTYEAR	10
 #define TIMEPERIOD_LAST24HOURS	11
 #define TIMEPERIOD_LAST7DAYS	12
+#define TIMEPERIOD_LAST31DAYS	13
 
 #define MIN_TIMESTAMP_SPACING	10
 
@@ -452,7 +453,7 @@ int main(int argc, char **argv){
 
 			printf("<BR>\n");
 
-			printf("<IMG SRC='%s%s' BORDER=0 ALT='Availability Report'>\n",url_images_path,TRENDS_ICON);
+			printf("<IMG SRC='%s%s' BORDER=0 ALT='Availability Report' TITLE='Availability Report'>\n",url_images_path,TRENDS_ICON);
 
 			printf("<BR CLEAR=ALL>\n");
 
@@ -537,16 +538,17 @@ int main(int argc, char **argv){
 			printf("<td valign=top align=left class='optBoxItem'>\n");
 			printf("<select name='timeperiod'>\n");
 			printf("<option SELECTED>[ Current time range ]\n");
-			printf("<option value=last24hours>Last 24 Hours\n");
-			printf("<option value=today>Today\n");
-			printf("<option value=yesterday>Yesterday\n");
-			printf("<option value=thisweek>This Week\n");
-			printf("<option value=last7days>Last 7 Days\n");
-			printf("<option value=lastweek>Last Week\n");
-			printf("<option value=thismonth>This Month\n");
-			printf("<option value=lastmonth>Last Month\n");
-			printf("<option value=thisyear>This Year\n");
-			printf("<option value=lastyear>Last Year\n");
+			printf("<option value=today %s>Today\n",(timeperiod_type==TIMEPERIOD_TODAY)?"SELECTED":"");
+			printf("<option value=last24hours %s>Last 24 Hours\n",(timeperiod_type==TIMEPERIOD_LAST24HOURS)?"SELECTED":"");
+			printf("<option value=yesterday %s>Yesterday\n",(timeperiod_type==TIMEPERIOD_YESTERDAY)?"SELECTED":"");
+			printf("<option value=thisweek %s>This Week\n",(timeperiod_type==TIMEPERIOD_THISWEEK)?"SELECTED":"");
+			printf("<option value=last7days %s>Last 7 Days\n",(timeperiod_type==TIMEPERIOD_LAST7DAYS)?"SELECTED":"");
+			printf("<option value=lastweek %s>Last Week\n",(timeperiod_type==TIMEPERIOD_LASTWEEK)?"SELECTED":"");
+			printf("<option value=thismonth %s>This Month\n",(timeperiod_type==TIMEPERIOD_THISMONTH)?"SELECTED":"");
+			printf("<option value=last31days %s>Last 31 Days\n",(timeperiod_type==TIMEPERIOD_LAST31DAYS)?"SELECTED":"");
+			printf("<option value=lastmonth %s>Last Month\n",(timeperiod_type==TIMEPERIOD_LASTMONTH)?"SELECTED":"");
+			printf("<option value=thisyear %s>This Year\n",(timeperiod_type==TIMEPERIOD_THISYEAR)?"SELECTED":"");
+			printf("<option value=lastyear %s>Last Year\n",(timeperiod_type==TIMEPERIOD_LASTYEAR)?"SELECTED":"");
 			printf("</select>\n");
 			printf("</td>\n");
 			printf("<td valign=top align=left CLASS='optBoxItem'>\n");
@@ -629,13 +631,14 @@ int main(int argc, char **argv){
 		printf("<td valign=top class='reportSelectSubTitle'>Report Period:</td>\n");
 		printf("<td valign=top align=left class='optBoxItem'>\n");
 		printf("<select name='timeperiod'>\n");
-		printf("<option value=last24hours>Last 24 Hours\n");
 		printf("<option value=today>Today\n");
+		printf("<option value=last24hours>Last 24 Hours\n");
 		printf("<option value=yesterday>Yesterday\n");
 		printf("<option value=thisweek>This Week\n");
 		printf("<option value=last7days SELECTED>Last 7 Days\n");
 		printf("<option value=lastweek>Last Week\n");
 		printf("<option value=thismonth>This Month\n");
+		printf("<option value=last31days>Last 31 Days\n");
 		printf("<option value=lastmonth>Last Month\n");
 		printf("<option value=thisyear>This Year\n");
 		printf("<option value=lastyear>Last Year\n");
@@ -1300,6 +1303,8 @@ int process_cgivars(void){
 				timeperiod_type=TIMEPERIOD_LAST24HOURS;
 			else if(!strcmp(variables[x],"last7days"))
 				timeperiod_type=TIMEPERIOD_LAST7DAYS;
+			else if(!strcmp(variables[x],"last31days"))
+				timeperiod_type=TIMEPERIOD_LAST31DAYS;
 			else if(!strcmp(variables[x],"custom"))
 				timeperiod_type=TIMEPERIOD_CUSTOM;
 			else
@@ -3018,6 +3023,10 @@ void convert_timeperiod_to_times(int type){
 		t2=current_time;
 		t1=current_time-(7*24*60*60);
 		break;
+	case TIMEPERIOD_LAST31DAYS:
+		t2=current_time;
+		t1=current_time-(31*24*60*60);
+		break;
 	default:
 		break;
 	        }
@@ -3831,7 +3840,7 @@ void display_host_availability(void){
 		printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
 		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 		printf("<img src='%s?createimage&smallimage&host=%s",TRENDS_CGI,url_encode(host_name));
-		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d' border=1 alt='Host State Trends' width='500' height='20'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
+		printf("&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d' border=1 alt='Host State Trends' title='Host State Trends' width='500' height='20'>",t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 		printf("</a><br>\n");
 		printf("</p>\n");
 
@@ -4320,7 +4329,7 @@ void display_service_availability(void){
 		printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
 		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 		printf("<img src='%s?createimage&smallimage&host=%s",TRENDS_CGI,url_encode(host_name));
-		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d' border=1 alt='Service State Trends' width='500' height='20'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
+		printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d' border=1 alt='Service State Trends' title='Service State Trends' width='500' height='20'>",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 		printf("</a><br>\n");
 		printf("</p>\n");
 

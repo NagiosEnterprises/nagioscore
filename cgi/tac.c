@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2003
+ * Last Modified: 08-02-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -1062,11 +1062,11 @@ void display_tac_overview(void){
 	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='healthItem'>Host Health:</td>");
-	printf("<td valign=top width=100 class='healthBar'><img src='%s%s' border=0 width=%d height=20 alt='%2.1f%% Health'></td>\n",url_images_path,host_health_image,(percent_host_health<5.0)?5:(int)percent_host_health,percent_host_health);
+	printf("<td valign=top width=100 class='healthBar'><img src='%s%s' border=0 width=%d height=20 alt='%2.1f%% Health' title='%2.1f%% Health'></td>\n",url_images_path,host_health_image,(percent_host_health<5.0)?5:(int)percent_host_health,percent_host_health,percent_host_health);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='healthItem'>Service Health:</td>");
-	printf("<td valign=top width=100 class='healthBar'><img src='%s%s' border=0 width=%d height=20 alt='%2.1f%% Health'></td>\n",url_images_path,service_health_image,(percent_service_health<5.0)?5:(int)percent_service_health,percent_service_health);
+	printf("<td valign=top width=100 class='healthBar'><img src='%s%s' border=0 width=%d height=20 alt='%2.1f%% Health' title='%2.1f%% Health'></td>\n",url_images_path,service_health_image,(percent_service_health<5.0)?5:(int)percent_service_health,percent_service_health,percent_service_health);
 	printf("</tr>\n");
 	printf("</table>\n");
 	printf("</td>\n");
@@ -1432,7 +1432,7 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Flap Detection %s'></a></td>\n",COMMAND_CGI,(enable_flap_detection==TRUE)?CMD_DISABLE_FLAP_DETECTION:CMD_ENABLE_FLAP_DETECTION,url_images_path,(enable_flap_detection==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_flap_detection==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Flap Detection %s' title='Flap Detection %s'></a></td>\n",COMMAND_CGI,(enable_flap_detection==TRUE)?CMD_DISABLE_FLAP_DETECTION:CMD_ENABLE_FLAP_DETECTION,url_images_path,(enable_flap_detection==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_flap_detection==TRUE)?"Enabled":"Disabled",(enable_flap_detection==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(enable_flap_detection==TRUE){
 		printf("<Td valign=top width=100%% class='featureEnabledFlapDetection'>\n");
@@ -1473,7 +1473,7 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Notifications %s'></a></td>\n",COMMAND_CGI,(enable_notifications==TRUE)?CMD_DISABLE_NOTIFICATIONS:CMD_ENABLE_NOTIFICATIONS,url_images_path,(enable_notifications==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_notifications==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Notifications %s' title='Notifications %s'></a></td>\n",COMMAND_CGI,(enable_notifications==TRUE)?CMD_DISABLE_NOTIFICATIONS:CMD_ENABLE_NOTIFICATIONS,url_images_path,(enable_notifications==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_notifications==TRUE)?"Enabled":"Disabled",(enable_notifications==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(enable_notifications==TRUE){
 		printf("<Td valign=top width=100%% class='featureEnabledNotifications'>\n");
@@ -1505,7 +1505,7 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Event Handlers %s'></a></td>\n",COMMAND_CGI,(enable_event_handlers==TRUE)?CMD_DISABLE_EVENT_HANDLERS:CMD_ENABLE_EVENT_HANDLERS,url_images_path,(enable_event_handlers==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_event_handlers==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?cmd_typ=%d'><img src='%s%s' border=0 alt='Event Handlers %s' title='Event Handlers %s'></a></td>\n",COMMAND_CGI,(enable_event_handlers==TRUE)?CMD_DISABLE_EVENT_HANDLERS:CMD_ENABLE_EVENT_HANDLERS,url_images_path,(enable_event_handlers==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(enable_event_handlers==TRUE)?"Enabled":"Disabled",(enable_event_handlers==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(enable_event_handlers==TRUE){
 		printf("<Td valign=top width=100%% class='featureEnabledHandlers'>\n");
@@ -1537,7 +1537,7 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Active Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(execute_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(execute_service_checks==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Active Checks %s' title='Active Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(execute_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(execute_service_checks==TRUE)?"Enabled":"Disabled",(execute_service_checks==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(execute_service_checks==TRUE){
 		printf("<Td valign=top width=100%% class='featureEnabledActiveChecks'>\n");
@@ -1569,7 +1569,7 @@ void display_tac_overview(void){
 	printf("<td valign=top>\n");
 	printf("<table border=0 width=135 cellspacing=0 cellpadding=0>\n");
 	printf("<tr>\n");
-	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Passive Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(accept_passive_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(accept_passive_service_checks==TRUE)?"Enabled":"Disabled");
+	printf("<td valign=top><a href='%s?type=%d'><img src='%s%s' border='0' alt='Passive Checks %s' title='Passive Checks %s'></a></td>\n",EXTINFO_CGI,DISPLAY_PROCESS_INFO,url_images_path,(accept_passive_service_checks==TRUE)?TAC_ENABLED_ICON:TAC_DISABLED_ICON,(accept_passive_service_checks==TRUE)?"Enabled":"Disabled",(accept_passive_service_checks==TRUE)?"Enabled":"Disabled");
 	printf("<Td width=10>&nbsp;</td>\n");
 	if(accept_passive_service_checks==TRUE){
 

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-15-2003
+ * Last Modified: 08-02-2003
  *
  * License:
  *
@@ -1454,11 +1454,11 @@ void display_nav_table(char *url,int archive){
 		printf("<td align=center valign=center CLASS='navBoxItem'>\n");
 		if(archive==0){
 			printf("Latest Archive<br>");
-			printf("<a href='%sarchive=1'><img src='%s%s' border=0 alt='Latest Archive'></a>",url,url_images_path,LEFT_ARROW_ICON);
+			printf("<a href='%sarchive=1'><img src='%s%s' border=0 alt='Latest Archive' title='Latest Archive'></a>",url,url_images_path,LEFT_ARROW_ICON);
 		        }
 		else{
 			printf("Earlier Archive<br>");
-			printf("<a href='%sarchive=%d'><img src='%s%s' border=0 alt='Earlier Archive'></a>",url,archive+1,url_images_path,LEFT_ARROW_ICON);
+			printf("<a href='%sarchive=%d'><img src='%s%s' border=0 alt='Earlier Archive' title='Earlier Archive'></a>",url,archive+1,url_images_path,LEFT_ARROW_ICON);
 		        }
 		printf("</td>\n");
 
@@ -1483,11 +1483,11 @@ void display_nav_table(char *url,int archive){
 			printf("<td align=center valign=center CLASS='navBoxItem'>\n");
 			if(archive==1){
 				printf("Current Log<br>");
-				printf("<a href='%s'><img src='%s%s' border=0 alt='Current Log'></a>",url,url_images_path,RIGHT_ARROW_ICON);
+				printf("<a href='%s'><img src='%s%s' border=0 alt='Current Log' title='Current Log'></a>",url,url_images_path,RIGHT_ARROW_ICON);
 			        }
 			else{
 				printf("More Recent Archive<br>");
-				printf("<a href='%sarchive=%d'><img src='%s%s' border=0 alt='More Recent Archive'></a>",url,archive-1,url_images_path,RIGHT_ARROW_ICON);
+				printf("<a href='%sarchive=%d'><img src='%s%s' border=0 alt='More Recent Archive' title='More Recent Archive'></a>",url,archive-1,url_images_path,RIGHT_ARROW_ICON);
 			        }
 			printf("</td>\n");
 		        }
@@ -1804,7 +1804,7 @@ void display_context_help(char *chid){
 	if(!strcmp(chid,CONTEXTHELP_TAC))
 		icon=CONTEXT_HELP_ICON2;
 
-	printf("<a href='%s%s.html' target='cshw' onClick='javascript:window.open(\"%s%s.html\",\"cshw\",\"width=550,height=600,toolbar=0,location=0,status=0,resizable=1,scrollbars=1\");return true'><img src='%s%s' border=0 alt='Display context-sensitive help for this screen'></a>\n",url_context_help_path,chid,url_context_help_path,chid,url_images_path,icon);
+	printf("<a href='%s%s.html' target='cshw' onClick='javascript:window.open(\"%s%s.html\",\"cshw\",\"width=550,height=600,toolbar=0,location=0,status=0,resizable=1,scrollbars=1\");return true'><img src='%s%s' border=0 alt='Display context-sensitive help for this screen' title='Display context-sensitive help for this screen'></a>\n",url_context_help_path,chid,url_context_help_path,chid,url_images_path,icon);
 
 	return;
         }

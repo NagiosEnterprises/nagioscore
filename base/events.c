@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-05-2004
+ * Last Modified:   11-29-2004
  *
  * License:
  *
@@ -676,7 +676,7 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 	else
 		event_list=&event_list_low;
 
-	new_event=malloc(sizeof(timed_event));
+	new_event=(timed_event *)malloc(sizeof(timed_event));
 	if(new_event!=NULL){
 		new_event->event_type=event_type;
 		new_event->event_data=event_data;

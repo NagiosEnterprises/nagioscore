@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-01-2004
+ * Last Modified:   11-30-2004
  *
  * License:
  *
@@ -900,6 +900,8 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
+			if(log_archive_path!=NULL)
+				free(log_archive_path);
 			log_archive_path=(char *)strdup(value);
 			strip(log_archive_path);
 
@@ -1566,7 +1568,7 @@ int read_resource_file(char *resource_file){
 				if(user_index>=0 && user_index<MAX_USER_MACROS){
 					if(macro_user[user_index]!=NULL)
 						free(macro_user[user_index]);
-					macro_user[user_index]=(char *)malloc(strlen(value)+1);
+					macro_user[user_index]=strdup(value);
 					if(macro_user[user_index]!=NULL){
 						strcpy(macro_user[user_index],value);
 #ifdef DEBUG1
@@ -1603,30 +1605,30 @@ int read_resource_file(char *resource_file){
 
 /* do a pre-flight check to make sure object relationships make sense */
 int pre_flight_check(void){
-	contact *temp_contact;
-	commandsmember *temp_commandsmember;
-	contactgroup *temp_contactgroup;
-	contactgroupmember *temp_contactgroupmember;
-	contactgroupsmember *temp_contactgroupsmember;
-	host *temp_host;
-	host *temp_host2;
-	hostsmember *temp_hostsmember;
-	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_hostgroupmember;
-	servicegroup *temp_servicegroup;
-	servicegroupmember *temp_servicegroupmember;
-	service *temp_service;
-	service *temp_service2;
-	command *temp_command;
-	timeperiod *temp_timeperiod;
-	serviceescalation *temp_se;
-	hostescalation *temp_he;
-	servicedependency *temp_sd;
-	servicedependency *temp_sd2;
-	hostdependency *temp_hd;
-	hostdependency *temp_hd2;
-	hostextinfo *temp_hostextinfo;
-	serviceextinfo *temp_serviceextinfo;
+	contact *temp_contact=NULL;
+	commandsmember *temp_commandsmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	contactgroupmember *temp_contactgroupmember=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	host *temp_host=NULL;
+	host *temp_host2=NULL;
+	hostsmember *temp_hostsmember=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	hostgroupmember *temp_hostgroupmember=NULL;
+	servicegroup *temp_servicegroup=NULL;
+	servicegroupmember *temp_servicegroupmember=NULL;
+	service *temp_service=NULL;
+	service *temp_service2=NULL;
+	command *temp_command=NULL;
+	timeperiod *temp_timeperiod=NULL;
+	serviceescalation *temp_se=NULL;
+	hostescalation *temp_he=NULL;
+	servicedependency *temp_sd=NULL;
+	servicedependency *temp_sd2=NULL;
+	hostdependency *temp_hd=NULL;
+	hostdependency *temp_hd2=NULL;
+	hostextinfo *temp_hostextinfo=NULL;
+	serviceextinfo *temp_serviceextinfo=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char *temp_command_name="";
 	int found;

@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-01-2004
+ * Last Modified:   11-29-2004
  *
  * License:
  *
@@ -336,18 +336,52 @@ int xpddefault_grab_config_info(char *config_file){
 int xpddefault_cleanup_performance_data(char *config_file){
 
 	/* free memory */
-	free(xpddefault_host_perfdata_command);
-	free(xpddefault_service_perfdata_command);
-	free(xpddefault_host_perfdata_file_template);
-	free(xpddefault_service_perfdata_file_template);
-	free(xpddefault_host_perfdata_file);
-	free(xpddefault_service_perfdata_file);
-	free(xpddefault_host_perfdata_file_processing_command);
-	free(xpddefault_service_perfdata_file_processing_command);
+	xpddefault_free_memory();
 
 	/* close the files */
 	xpddefault_close_host_perfdata_file();
 	xpddefault_close_service_perfdata_file();
+
+	return OK;
+        }
+
+
+/* frees allocated memory */
+int xpddefault_free_memory(void){
+
+	/* free memory */
+	if(xpddefault_host_perfdata_command!=NULL){
+		free(xpddefault_host_perfdata_command);
+		xpddefault_host_perfdata_command=NULL;
+	        }
+	if(xpddefault_service_perfdata_command!=NULL){
+		free(xpddefault_service_perfdata_command);
+		xpddefault_service_perfdata_command=NULL;
+	        }
+	if(xpddefault_host_perfdata_file_template!=NULL){
+		free(xpddefault_host_perfdata_file_template);
+		xpddefault_host_perfdata_file_template=NULL;
+	        }
+	if(xpddefault_service_perfdata_file_template!=NULL){
+		free(xpddefault_service_perfdata_file_template);
+		xpddefault_service_perfdata_file_template=NULL;
+	        }
+	if(xpddefault_host_perfdata_file!=NULL){
+		free(xpddefault_host_perfdata_file);
+		xpddefault_host_perfdata_file=NULL;
+	        }
+	if(xpddefault_service_perfdata_file!=NULL){
+		free(xpddefault_service_perfdata_file);
+		xpddefault_service_perfdata_file=NULL;
+	        }
+	if(xpddefault_host_perfdata_file_processing_command!=NULL){
+		free(xpddefault_host_perfdata_file_processing_command);
+		xpddefault_host_perfdata_file_processing_command=NULL;
+	        }
+	if(xpddefault_service_perfdata_file_processing_command!=NULL){
+		free(xpddefault_service_perfdata_file_processing_command);
+		xpddefault_service_perfdata_file_processing_command=NULL;
+	        }
 
 	return OK;
         }

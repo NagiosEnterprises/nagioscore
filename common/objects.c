@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Last Modified: 11-30-2004
  *
  * License:
  *
@@ -3698,7 +3698,7 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 	        }
 
 	/* allocate memory for the contactgroups member */
-	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
+	new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember));
 	if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' for service '%s' on host '%s' escalation\n",group_name,se->description,se->host_name);
@@ -4247,7 +4247,7 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 	        }
 
 	/* allocate memory for the contactgroups member */
-	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
+	new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember));
 	if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' for host '%s' escalation\n",group_name,he->host_name);
@@ -4473,6 +4473,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 	/* default is to not draw this item */
 	new_hostextinfo->should_be_drawn=FALSE;
 
+	new_hostextinfo->next=NULL;
 	new_hostextinfo->nexthash=NULL;
 
 	/* add new hostextinfo to hostextinfo chained hash list */
@@ -4668,6 +4669,7 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 		        }
 	        }
 
+	new_serviceextinfo->next=NULL;
 	new_serviceextinfo->nexthash=NULL;
 
 	/* add new serviceextinfo to serviceextinfo chained hash list */
@@ -6038,10 +6040,10 @@ int free_object_data(void){
 
 /* free all allocated memory for extended info objects */
 int free_extended_data(void){
-	hostextinfo *this_hostextinfo;
-	hostextinfo *next_hostextinfo;
-	serviceextinfo *this_serviceextinfo;
-	serviceextinfo *next_serviceextinfo;
+	hostextinfo *this_hostextinfo=NULL;
+	hostextinfo *next_hostextinfo=NULL;
+	serviceextinfo *this_serviceextinfo=NULL;
+	serviceextinfo *next_serviceextinfo=NULL;
 
 #ifdef DEBUG0
 	printf("free_extended_data() start\n");
@@ -6079,6 +6081,7 @@ int free_extended_data(void){
 		free(this_serviceextinfo->notes_url);
 		free(this_serviceextinfo->action_url);
 		free(this_serviceextinfo->icon_image);
+		free(this_serviceextinfo->icon_image_alt);
 		free(this_serviceextinfo);
 	        }
 

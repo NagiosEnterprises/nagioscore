@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-06-2004
+ * Last Modified:   11-24-2004
  *
  * License:
  *
@@ -2276,6 +2276,18 @@ int clear_nonvolatile_macros(void){
 		switch(x){
 		case MACRO_ADMINEMAIL:
 		case MACRO_ADMINPAGER:
+		case MACRO_MAINCONFIGFILE:
+		case MACRO_STATUSDATAFILE:
+		case MACRO_COMMENTDATAFILE:
+		case MACRO_DOWNTIMEDATAFILE:
+		case MACRO_RETENTIONDATAFILE:
+		case MACRO_OBJECTCACHEFILE:
+		case MACRO_TEMPFILE:
+		case MACRO_LOGFILE:
+		case MACRO_RESOURCEFILE:
+		case MACRO_COMMANDFILE:
+		case MACRO_HOSTPERFDATAFILE:
+		case MACRO_SERVICEPERFDATAFILE:
 			if(macro_x[x]!=NULL){
 				free(macro_x[x]);
 				macro_x[x]=NULL;
@@ -2515,6 +2527,9 @@ int set_macro_environment_var(char *name, char *value, int set){
 #ifdef DEBUG0
 	printf("set_macro_environment_var() start\n");
 #endif
+
+	/* SETENV() APPEARS TO CAUSE MEMORY LEAKS! */
+	return OK;
 
 	/* we won't mess with null variable names */
 	if(name==NULL)
@@ -4325,7 +4340,8 @@ mmapfile *mmap_fopen(char *filename){
 	        }
 
 	/* populate struct info for later use */
-	new_mmapfile->path=strdup(filename);
+	/*new_mmapfile->path=strdup(filename);*/
+	new_mmapfile->path=NULL;
 	new_mmapfile->fd=fd;
 	new_mmapfile->file_size=(unsigned long)(statbuf.st_size);
 	new_mmapfile->current_position=0L;
@@ -4349,6 +4365,8 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 	close(temp_mmapfile->fd);
 
 	/* free memory */
+	if(temp_mmapfile->path!=NULL)
+		free(temp_mmapfile->path);
 	free(temp_mmapfile);
 	
 	return OK;
@@ -4975,15 +4993,8 @@ void cleanup(void){
 	        }
 #endif
 
-	/* free all allocated memory */
+	/* free all allocated memory - including macros */
 	free_memory();
-
-	/* reset global variables to default values */
-	reset_variables();
-
-	/* clear all macros */
-	clear_volatile_macros();
-	clear_nonvolatile_macros();
 
 #ifdef DEBUG0
 	printf("cleanup() end\n");
@@ -5078,12 +5089,28 @@ void free_memory(void){
 		ochp_command=NULL;
 	        }
 
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
-		macro_argv[x]=NULL;
+	/* free memory associated with macros */
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+		if(macro_argv[x]!=NULL){
+			free(macro_argv[x]);
+			macro_argv[x]=NULL;
+		        }
+	        }
 
-	for(x=0;x<MAX_USER_MACROS;x++)
-		macro_user[x]=NULL;
-	
+	for(x=0;x<MAX_USER_MACROS;x++){
+		if(macro_user[x]!=NULL){
+			free(macro_user[x]);
+			macro_user[x]=NULL;
+		        }
+	        }
+
+	for(x=0;x<MACRO_X_COUNT;x++){
+		if(macro_x[x]!=NULL){
+			free(macro_x[x]);
+			macro_x[x]=NULL;
+		        }
+	        }
+
 	free_macrox_names();
 
 

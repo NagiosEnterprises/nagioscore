@@ -2,8 +2,8 @@
  *
  * PERFDATA.C - Performance data routines for Nagios
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2001
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   11-29-2004
  *
  * License:
  *
@@ -37,9 +37,6 @@
 #ifdef USE_XPDDEFAULT
 #include "../xdata/xpddefault.h"
 #endif
-#ifdef USE_XPDFILE
-#include "../xdata/xpdfile.h"
-#endif
 
 
 extern int   process_performance_data;
@@ -57,10 +54,6 @@ int initialize_performance_data(char *config_file){
 	xpddefault_initialize_performance_data(config_file);
 #endif
 
-#ifdef USE_XPDFILE
-	xpdfile_initialize_performance_data(config_file);
-#endif
-
 	return OK;
         }
 
@@ -71,10 +64,6 @@ int cleanup_performance_data(char *config_file){
 
 #ifdef USE_XPDDEFAULT
 	xpddefault_cleanup_performance_data(config_file);
-#endif
-
-#ifdef USE_XPDFILE
-	xpdfile_cleanup_performance_data(config_file);
 #endif
 
 	return OK;
@@ -102,9 +91,6 @@ int update_service_performance_data(service *svc){
 #ifdef USE_XPDDEFAULT
 	xpddefault_update_service_performance_data(svc);
 #endif
-#ifdef USE_XPDFILE
-	xpdfile_update_service_performance_data(svc);
-#endif
 
 	return OK;
         }
@@ -125,9 +111,6 @@ int update_host_performance_data(host *hst){
 	/* process the performance data! */
 #ifdef USE_XPDDEFAULT
 	xpddefault_update_host_performance_data(hst);
-#endif
-#ifdef USE_XPDFILE
-	xpdfile_update_host_performance_data(hst);
 #endif
 
 	return OK;

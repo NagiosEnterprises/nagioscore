@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Last Modified: 11-29-2004
  *
  * Description:
  *
@@ -6475,6 +6475,9 @@ int xodtemplate_recombobulate_contactgroups(void){
 				        }
 			        }
 		        }
+
+		/* free memory */
+		free(contactgroup_names);
 	        }
 
 #ifdef DEBUG0
@@ -6581,6 +6584,9 @@ int xodtemplate_recombobulate_hostgroups(void){
 				        }
 			        }
 		        }
+
+		/* free memory */
+		free(hostgroup_names);
 	        }
 
 #ifdef DEBUG0

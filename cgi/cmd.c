@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 11-29-2004
  *
  * License:
  * 
@@ -1970,7 +1970,7 @@ int commit_command(int cmd){
 		
 	case CMD_START_EXECUTING_HOST_CHECKS:
 	case CMD_STOP_EXECUTING_HOST_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_EXECUTING_SVC_CHECKS;\n",current_time,(cmd==CMD_START_EXECUTING_HOST_CHECKS)?"START":"STOP");
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_EXECUTING_HOST_CHECKS;\n",current_time,(cmd==CMD_START_EXECUTING_HOST_CHECKS)?"START":"STOP");
 		break;
 
 	case CMD_START_ACCEPTING_PASSIVE_HOST_CHECKS:

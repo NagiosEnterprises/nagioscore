@@ -1,18 +1,23 @@
 #!/bin/sh
 
 # Get date (two formats)
-LONGDATE=`date "+%B %d, %Y"`
-SHORTDATE=`date "+%m-%d-%Y"`
+if [ -n "$2" ]; then
+    LONGDATE=`date -d "$2" "+%B %d, %Y"`
+    SHORTDATE=`date -d "$2" "+%m-%d-%Y"`
+else
+    LONGDATE=`date "+%B %d, %Y"`
+    SHORTDATE=`date "+%m-%d-%Y"`
+fi
 
 # Current version number
-CURRENTVERSION=2.0a1
+CURRENTVERSION=2.0b1
 
 # Last date
-LASTDATE=11-18-2003
+LASTDATE=12-15-2005
 
 if [ "x$1" = "x" ]
 then
-	echo "Usage: $0 <version number | \"newdate\">"
+	echo "Usage: $0 <version number | \"newdate\"> [revision date]"
 	echo ""
 	echo "Run this script with the name of the new version (i.e \"2.0b1\") to"
 	echo "update version number and modification date in files."

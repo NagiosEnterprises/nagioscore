@@ -567,9 +567,9 @@ fi
 
 
 PKG_NAME=nagios
-PKG_VERSION="2.0a1"
+PKG_VERSION="2.0b1"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="11-18-2003"
+PKG_REL_DATE="12-15-2005"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do

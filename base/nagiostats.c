@@ -3,11 +3,11 @@
  * NAGIOSTATS.C - Displays Nagios Statistics
  *
  * Program: Nagiostats
- * Version: 2.0a1
+ * Version: 2.0b1
  * License: GPL
  * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   10-24-2004
+ * Last Modified:   12-15-2005
  *
  * License:
  *

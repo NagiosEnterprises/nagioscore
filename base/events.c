@@ -345,19 +345,15 @@ void init_timing_loop(void){
 #endif
 
 	/* add all service checks as separate events (with interleaving) */
-	current_interleave_block=1;
+	current_interleave_block=0;
 	move_first_service();
-	while(temp_service=get_next_service()){
-
-		current_interleave_block++;
+	do{
 
 #ifdef DEBUG1
 		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);
 #endif
 
-		for(interleave_block_index=0;interleave_block_index<scheduling_info.service_interleave_factor;interleave_block_index++,temp_service=get_next_service()){
-			if(temp_service==NULL)
-				break;
+		for(interleave_block_index=0,temp_service=get_next_service();interleave_block_index<scheduling_info.service_interleave_factor,temp_service!=NULL;interleave_block_index++,temp_service=get_next_service()){
 
 			mult_factor=current_interleave_block+(interleave_block_index*total_interleave_blocks);
 
@@ -415,7 +411,10 @@ void init_timing_loop(void){
 		                }
 		        }
 
-	        }
+		current_interleave_block++;
+
+	        }while(temp_service!=NULL);
+
 
 	/* add all host checks as seperate events */
 	scheduling_info.first_host_check=(time_t)0L;
@@ -426,8 +425,6 @@ void init_timing_loop(void){
 
 		if(temp_host->check_interval==0)
 			continue;
-
-		mult_factor++;
 
 		/* calculate first host check */
 		temp_host->next_check=(time_t)(current_time+(mult_factor*scheduling_info.host_inter_check_delay));
@@ -471,6 +468,8 @@ void init_timing_loop(void){
 				schedule_event(new_event,&event_list_low);
 			        }
 		        }
+
+		mult_factor++;
 	        }
 	
 

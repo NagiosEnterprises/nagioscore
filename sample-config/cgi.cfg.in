@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 05-30-2002
+# Last Modified: 10-29-2002
 #
 #################################################################
 
@@ -200,18 +200,18 @@ use_authentication=1
 #                      notes is found in the extinfo CGI.
 #                      Note: You may use the $HOSTNAME$ and
 #                      $HOSTADDRESS$ macros in this URL.
-# <icon_image>       = A GIF, PNG, or JPG image to associate with
+# <icon_image>       = A GIF, PNG, or JPEG image to associate with
 #                      the host.  This is used in the status and
 #                      extinfo CGIs.  
 # <vrml_image>       = An image to use in the statuswrl CGI in the
 #                      VRML generation.  Transparent images don't
 #                      work so great..
-# <gd2_image>        = A GD2 format image used by the statusmap CGI
-#                      to represent the host.  PNG images can be
-#                      converted to GD2 format by using the 'pngtogd2'
+# <gd2_image>        = An image used by the statusmap CGI to
+#                      represent the host.  This can be a GIF, PNG,
+#                      JPEG, or GD2 image.  GD2 format is recommended,	
+#                      as it produces the load CPU load.
 #                      utility supplied with Boutell's gd library.
-# <image_alt>        = ALT tag used with PNG, GIF, and GD2 images
-#                      in the status, statusmap, and extinfo CGIs
+# <image_alt>        = ALT tag used with images in various CGIs
 # <x_2d>,<y_2d>      = X and Y coordinates used when drawing the
 #                      host in the statusmap CGI.  (0,0) is located
 #                      in the upper left corner of the screen and is
@@ -259,7 +259,7 @@ use_authentication=1
 #                      notes URL is found in the extinfo CGI.
 #                      Note: You may use the $HOSTNAME$, $HOSTADDRESS$,
 #                      and $SERVICEDESC$ macros in this URL.
-# <icon_image>       = A GIF, PNG, or JPG image to associate with
+# <icon_image>       = A GIF, PNG, or JPEG image to associate with
 #                      the service.  This is used in the status and
 #                      extinfo CGIs.  
 # <image_alt>        = ALT tag used with image
@@ -280,7 +280,10 @@ use_authentication=1
 # resides in the HTML images path (i.e. /usr/local/nagios/share/images).
 # This path is automatically determined by appending "/images"
 # to the path specified by the 'physical_html_path' directive.
-# Note:  The image file must be in GD2 format!
+# Note:  The image file may be in GIF, PNG, JPEG, or GD2 format.
+# However, I recommend that you convert your image to GD2 format
+# (uncompressed), as this will cause less CPU load when the CGI
+# generates the image.
 
 #statusmap_background_image=smbackground.gd2
 

@@ -446,17 +446,17 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 <table border="0">
 <tr>
 <td valign=top>Format:</td>
-<td><strong>statusmap_background_image=&lt;gd2_image&gt;</strong></td>
+<td><strong>statusmap_background_image=&lt;image_file&gt;</strong></td>
 </tr>
 <tr>
 <td valign=top>Example:</td>
-<td><font color="red"><strong>statusmap_background_image=statusmapbg.gd2</strong></font></td>
+<td><font color="red"><strong>statusmap_background_image=smbackground.gd2</strong></font></td>
 </tr>
 </table>
 </p>
 
 <p>
-This option allows you to specify an image to be used as a background in the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>.  It is assumed that the image resides in the HTML images path (i.e. /usr/local/nagios/share/images). This path is automatically determined by appending "/images" to the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note: The image file must be in GD2 format (preferably in uncompressed format)!
+This option allows you to specify an image to be used as a background in the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>.  It is assumed that the image resides in the HTML images path (i.e. /usr/local/nagios/share/images). This path is automatically determined by appending "/images" to the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note: The image file can be in GIF, JPEG, PNG, or GD2 format.  However, GD2 format (preferably in uncompressed format) is recommended, as it will reduce the CPU load when the CGI generates the map image.
 </p>
 
 

@@ -16,7 +16,9 @@ autoconf
 PWDSAVE=`pwd`
 PACKAGE=nagios
 pushd ..
-#ln -s `basename $PWDSAVE` $PACKAGE-$1
+if [ ! -d $PACKAGE-$1 ]; then
+  ln -s `basename $PWDSAVE` $PACKAGE-$1
+fi
 tar zhcvf $PACKAGE-$1.tar.gz --exclude RCS --exclude CVS --exclude build-* --exclude *~ --exclude .\#* $PACKAGE-$1
 #rm $PACKAGE-$1
 popd

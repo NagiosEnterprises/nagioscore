@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-22-2002
+ * Last Modified: 05-28-2002
  *
  * Description:
  *
@@ -2659,6 +2659,8 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_serviceescalation *temp_serviceescalation;
+	xodtemplate_hostlist *temp_hostlist;
+	xodtemplate_hostlist *this_hostlist;
 	char *host_names;
 	char *hostgroup_names;
 	char *temp_ptr;
@@ -2742,79 +2744,54 @@ int xodtemplate_duplicate_objects(void){
 		/* skip services with NULL hostgroup names */
 		if(temp_service->hostgroup_name==NULL)
 			continue;
-		
-		/* allocate memory for hostgroup name list */
-		hostgroup_names=(char *)malloc(strlen(temp_service->hostgroup_name)+1);
-		if(hostgroup_names==NULL){
+
+		/* get list of hosts */
+		temp_hostlist=xodtemplate_expand_hostgroups(temp_service->hostgroup_name);
+		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for hostgroup name list in service\n");
+			printf("Error: Could not find expand hostgroups specified in service (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 #endif
 			return ERROR;
 		        }
-		strcpy(hostgroup_names,temp_service->hostgroup_name);
 
-		/* duplicate service entries */
+		/* add a copy of the service for every host in the hostgroup */
 		first_item=TRUE;
-		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
 
-			/* find the hostgroup */
-			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
-			if(temp_hostgroup==NULL){
-#ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in service (config file '%s', line %d)\n",temp_ptr,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
-#endif
-				return ERROR;
+			/* if this is the first duplication, see if we can use the existing entry */
+			if(first_item==TRUE){
+
+				if(temp_service->host_name==NULL){
+					temp_service->host_name=(char *)malloc(strlen(this_hostlist->host_name)+1);
+					if(temp_service->host_name==NULL){
+						xodtemplate_free_hostlist(temp_hostlist);
+						return ERROR;
+					        }
+					strcpy(temp_service->host_name,this_hostlist->host_name);
+				        }
+				else{
+					result=xodtemplate_duplicate_service(temp_service,this_hostlist->host_name);
+					if(result==ERROR){
+						xodtemplate_free_hostlist(temp_hostlist);
+						return ERROR;
+					        }
+				        }
+				first_item=FALSE;
+				continue;
 			        }
 
-			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
-			if(host_names==NULL){
-#ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in service\n");
-#endif
+			/* duplicate service definition */
+			result=xodtemplate_duplicate_service(temp_service,this_hostlist->host_name);
+
+			/* exit on error */
+			if(result==ERROR){
+				free(host_name);
 				return ERROR;
 		                }
-			strcpy(host_names,temp_hostgroup->members);
-
-			/* add a copy of the service for every host in the hostgroup */
-			host_name_ptr=host_names;
-			for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
-
-				/* if this is the first duplication, see if we can use the existing entry */
-				if(first_item==TRUE){
-
-					if(temp_service->host_name==NULL){
-						temp_service->host_name=(char *)malloc(strlen(host_name)+1);
-						if(temp_service->host_name==NULL){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-						strcpy(temp_service->host_name,host_name);
-					        }
-					else{
-						result=xodtemplate_duplicate_service(temp_service,host_name);
-						if(result==ERROR){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-					        }
-
-					first_item=FALSE;
-					continue;
-				        }
-
-				/* duplicate service definition */
-				result=xodtemplate_duplicate_service(temp_service,host_name);
-
-				/* exit on error */
-				if(result==ERROR){
-					free(host_name);
-					return ERROR;
-			                }
-			        }
 		        }
 
-		/* free memory we used for hostgroup name list */
-		free(hostgroup_names);
+		/* free memory we used for host list */
+		xodtemplate_free_hostlist(temp_hostlist);
 	        }
 
 
@@ -2912,78 +2889,54 @@ int xodtemplate_duplicate_objects(void){
 		if(temp_hostescalation->hostgroup_name==NULL)
 			continue;
 		
-		/* allocate memory for hostgroup name list */
-		hostgroup_names=(char *)malloc(strlen(temp_hostescalation->hostgroup_name)+1);
-		if(hostgroup_names==NULL){
+		/* get list of hosts */
+		temp_hostlist=xodtemplate_expand_hostgroups(temp_hostescalation->hostgroup_name);
+		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for hostgroup name list in host escalation\n");
+			printf("Error: Could not find expand hostgroups specified in host escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 #endif
 			return ERROR;
 		        }
-		strcpy(hostgroup_names,temp_hostescalation->hostgroup_name);
 
-		/* duplicate hostescalation entries */
+		/* add a copy of the hostescalation for every host in the hostgroup */
 		first_item=TRUE;
-		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
 
-			/* find the hostgroup */
-			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
-			if(temp_hostgroup==NULL){
-#ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in host escalation (config file '%s', line %d)\n",temp_ptr,xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
-#endif
-				return ERROR;
-			        }
+			/* if this is the first duplication, see if we can use the existing entry */
+			if(first_item==TRUE){
 
-			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
-			if(host_names==NULL){
-#ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in host escalation\n");
-#endif
-				return ERROR;
-		                }
-			strcpy(host_names,temp_hostgroup->members);
-
-			/* add a copy of the hostescalation for every host in the hostgroup */
-			host_name_ptr=host_names;
-			for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
-
-				/* if this is the first duplication, see if we can use the existing entry */
-				if(first_item==TRUE){
-
+				if(temp_hostescalation->host_name==NULL){
+					temp_hostescalation->host_name=(char *)malloc(strlen(this_hostlist->host_name)+1);
 					if(temp_hostescalation->host_name==NULL){
-						temp_hostescalation->host_name=(char *)malloc(strlen(host_name)+1);
-						if(temp_hostescalation->host_name==NULL){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-						strcpy(temp_hostescalation->host_name,host_name);
+						xodtemplate_free_hostlist(temp_hostlist);
+						return ERROR;
 					        }
-					else{
-						result=xodtemplate_duplicate_hostescalation(temp_hostescalation,host_name);
-						if(result==ERROR){
-							free(hostgroup_names);
-							return ERROR;
-						        }
+					strcpy(temp_hostescalation->host_name,this_hostlist->host_name);
+				        }
+				else{
+					result=xodtemplate_duplicate_hostescalation(temp_hostescalation,this_hostlist->host_name);
+					if(result==ERROR){
+						xodtemplate_free_hostlist(temp_hostlist);
+						return ERROR;
 					        }
-
-					first_item=FALSE;
-					continue;
 				        }
 
-				/* duplicate hostescalation definition */
-				result=xodtemplate_duplicate_hostescalation(temp_hostescalation,host_name);
-
-				/* exit on error */
-				if(result==ERROR){
-					free(host_name);
-					return ERROR;
-			                }
+				first_item=FALSE;
+				continue;
 			        }
+
+			/* duplicate hostescalation definition */
+			result=xodtemplate_duplicate_hostescalation(temp_hostescalation,this_hostlist->host_name);
+
+			/* exit on error */
+			if(result==ERROR){
+				free(host_name);
+				return ERROR;
+		                }
 		        }
 
-		/* free memory we used for hostgroup name list */
-		free(hostgroup_names);
+		/* free memory we used for host list */
+		xodtemplate_free_hostlist(temp_hostlist);
 	        }
 
 
@@ -3081,78 +3034,54 @@ int xodtemplate_duplicate_objects(void){
 		if(temp_serviceescalation->hostgroup_name==NULL)
 			continue;
 		
-		/* allocate memory for hostgroup name list */
-		hostgroup_names=(char *)malloc(strlen(temp_serviceescalation->hostgroup_name)+1);
-		if(hostgroup_names==NULL){
+		/* get list of hosts */
+		temp_hostlist=xodtemplate_expand_hostgroups(temp_serviceescalation->hostgroup_name);
+		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			printf("Error: Could not allocate memory for hostgroup name list in service escalation\n");
+			printf("Error: Could not find expand hostgroups specified in service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 #endif
 			return ERROR;
 		        }
-		strcpy(hostgroup_names,temp_serviceescalation->hostgroup_name);
 
 		/* duplicate service escalation entries */
 		first_item=TRUE;
-		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+		for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
 
-			/* find the hostgroup */
-			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
-			if(temp_hostgroup==NULL){
-#ifdef NSCORE
-				printf("Error: Could not find hostgroup '%s' specified in service escalation (config file '%s', line %d)\n",temp_ptr,xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
-#endif
-				return ERROR;
-			        }
+			/* if this is the first duplication, see if we can use the existing entry */
+			if(first_item==TRUE){
 
-			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
-			if(host_names==NULL){
-#ifdef NSCORE
-				printf("Error: Could not allocate memory for hostgroup name list in service escalation\n");
-#endif
-				return ERROR;
-		                }
-			strcpy(host_names,temp_hostgroup->members);
-
-			/* add a copy of the service escalation for every host in the hostgroup */
-			host_name_ptr=host_names;
-			for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
-
-				/* if this is the first duplication, see if we can use the existing entry */
-				if(first_item==TRUE){
-
+				if(temp_serviceescalation->host_name==NULL){
+					temp_serviceescalation->host_name=(char *)malloc(strlen(this_hostlist->host_name)+1);
 					if(temp_serviceescalation->host_name==NULL){
-						temp_serviceescalation->host_name=(char *)malloc(strlen(host_name)+1);
-						if(temp_serviceescalation->host_name==NULL){
-							free(hostgroup_names);
-							return ERROR;
-						        }
-						strcpy(temp_serviceescalation->host_name,host_name);
+						xodtemplate_free_hostlist(temp_hostlist);
+						return ERROR;
 					        }
-					else{
-						result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name,NULL);
-						if(result==ERROR){
-							free(hostgroup_names);
-							return ERROR;
-						        }
+					strcpy(temp_serviceescalation->host_name,this_hostlist->host_name);
+				        }
+				else{
+					result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,this_hostlist->host_name,NULL);
+					if(result==ERROR){
+						xodtemplate_free_hostlist(temp_hostlist);
+						return ERROR;
 					        }
-
-					first_item=FALSE;
-					continue;
 				        }
 
-				/* duplicate service escalation definition */
-				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name,NULL);
-
-				/* exit on error */
-				if(result==ERROR){
-					free(host_name);
-					return ERROR;
-			                }
+				first_item=FALSE;
+				continue;
 			        }
+
+			/* duplicate service escalation definition */
+			result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,this_hostlist->host_name,NULL);
+
+			/* exit on error */
+			if(result==ERROR){
+				xodtemplate_free_hostlist(temp_hostlist);
+				return ERROR;
+		                }
 		        }
 
-		/* free memory we used for hostgroup name list */
-		free(hostgroup_names);
+		/* free memory we used for host list */
+		xodtemplate_free_hostlist(temp_hostlist);
 	        }
 
 
@@ -3783,6 +3712,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	/* defaults */
 	new_serviceescalation->template=NULL;
 	new_serviceescalation->name=NULL;
+	new_serviceescalation->hostgroup_name=NULL;
 	new_serviceescalation->host_name=NULL;
 	new_serviceescalation->service_description=NULL;
 	new_serviceescalation->contact_groups=NULL;
@@ -6202,6 +6132,122 @@ int xodtemplate_free_memory(void){
 
 #ifdef DEBUG0
 	printf("xodtemplate_free_memory() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* expands a comma-delimited list of hostgroups to member host names */
+xodtemplate_hostlist *xodtemplate_expand_hostgroups(char *hostgroups){
+	xodtemplate_hostlist *temp_list;
+	xodtemplate_hostlist *new_list;
+	xodtemplate_hostgroup *temp_hostgroup;
+	char *hostgroup_names;
+	char *host_names;
+	char *host_name;
+	char *temp_ptr;
+	char *host_name_ptr;
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_hostgroups() start\n");
+#endif
+	if(hostgroups==NULL)
+		return NULL;
+
+	temp_list=NULL;
+
+	/* allocate memory for hostgroup name list */
+	hostgroup_names=(char *)malloc(strlen(hostgroups)+1);
+	if(hostgroup_names==NULL)
+		return NULL;
+	strcpy(hostgroup_names,hostgroups);
+
+	for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+
+		/* find the hostgroup */
+		temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
+		if(temp_hostgroup==NULL){
+#ifdef NSCORE
+			printf("Error: Could not find hostgroup '%s'\n",temp_ptr);
+#endif
+			return NULL;
+		        }
+
+		/* save a copy of the hosts */
+		host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
+		if(host_names==NULL){
+			free(hostgroup_names);
+			return NULL;
+	                }
+		strcpy(host_names,temp_hostgroup->members);
+
+		/* process all hosts that belong to the hostgroup */
+		host_name_ptr=host_names;
+		for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
+
+			/* skip this host if its already in the list */
+			for(new_list=temp_list;new_list!=NULL;new_list=new_list->next){
+				if(!strcmp(host_name,new_list->host_name))
+					break;
+			        }
+			if(new_list!=NULL)
+				continue;
+
+			/* allocate memory for a new list item */
+			new_list=(xodtemplate_hostlist *)malloc(sizeof(xodtemplate_hostlist));
+			if(new_list==NULL){
+				free(host_names);
+				free(hostgroup_names);
+				return NULL;
+			        }
+
+			/* save the host name */
+			new_list->host_name=strdup(host_name);
+			if(new_list->host_name==NULL){
+				free(host_names);
+				free(hostgroup_names);
+				return NULL;
+			        }
+
+			/* add new item to head of list */
+			new_list->next=temp_list;
+			temp_list=new_list;
+		        }
+
+		free(host_names);
+	        }
+
+	free(hostgroup_names);
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_hostgroups() end\n");
+#endif
+
+	return temp_list;
+        }
+
+
+/* frees memory allocated to a temporary host list */
+int xodtemplate_free_hostlist(xodtemplate_hostlist *temp_list){
+	xodtemplate_hostlist *this_hostlist;
+	xodtemplate_hostlist *next_hostlist;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_hostlist() start\n");
+#endif
+
+	/* free memory allocated to host name list */
+	for(this_hostlist=temp_list;this_hostlist!=NULL;this_hostlist=next_hostlist){
+		next_hostlist=this_hostlist->next;
+		free(this_hostlist->host_name);
+		free(this_hostlist);
+	        }
+
+	temp_list=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_hostlist() end\n");
 #endif
 
 	return OK;

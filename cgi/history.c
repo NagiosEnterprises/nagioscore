@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-05-2003
+ * Last Modified: 05-20-2003
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -831,11 +831,11 @@ void get_history(void){
 			else if(display_type==DISPLAY_SERVICES){
 
 				if(history_type==SERVICE_HISTORY)
-					sprintf(match1," SERVICE ALERT: %s;%s",host_name,svc_description);
+					sprintf(match1," SERVICE ALERT: %s;%s;",host_name,svc_description);
 				else if(history_type==SERVICE_FLAPPING_HISTORY)
-					sprintf(match1," SERVICE FLAPPING ALERT: %s;%s",host_name,svc_description);
+					sprintf(match1," SERVICE FLAPPING ALERT: %s;%s;",host_name,svc_description);
 				else if(history_type==SERVICE_DOWNTIME_HISTORY)
-					sprintf(match1," SERVICE DOWNTIME ALERT: %s;%s",host_name,svc_description);
+					sprintf(match1," SERVICE DOWNTIME ALERT: %s;%s;",host_name,svc_description);
 
 				if(strstr(temp_buffer,match1))
 					display_line=TRUE;

@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2002  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-14-2002
+ * Last Modified: 07-27-2002
  *
  * License:
  * 
@@ -122,6 +122,7 @@
 
 #define DISABLED_ICON			"disabled.gif"
 #define ENABLED_ICON			"enabled.gif"
+#define PASSIVE_ONLY_ICON		"passiveonly.gif"
 #define NOTIFICATIONS_DISABLED_ICON	"ndisabled.gif"
 #define ACKNOWLEDGEMENT_ICON            "ack.gif"
 #define REMOVE_ACKNOWLEDGEMENT_ICON     "noack.gif"

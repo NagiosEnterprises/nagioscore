@@ -33,6 +33,9 @@
 	.featureItemEnabled { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
 	.featureItemDisabled { text-align: left; font-family: arial; font-size: 8pt; background-color: #ff0000; color: black; }
 
+	.featureItemEnabledPassiveChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+	.featureItemDisabledPassiveChecks { text-align: left; font-family: arial; font-size: 8pt; background-color: #ccffcc; color: black; }
+
 	.outageTitle { text-align: left; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #999797; color: black; }
 	.outageHeader { text-align: center; font-family: arial; font-weight: bold; font-size: 10pt; background-color: #C4C2C2; color: black; text-decoration: none; }
 

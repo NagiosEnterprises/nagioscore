@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-30-2002
+ * Last Modified: 07-27-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -1516,9 +1516,9 @@ void display_tac_overview(void){
 		printf("<table border=0 width=100%% cellspacing=0 cellpadding=0>\n");
 
 		if(passive_checks_disabled_services>0)
-			printf("<tr><td width=100%% class='featureItemDisabled'><a href='%s?host=all&type=detail&serviceprops=%d'>%d Service%s Disabled</a></td></tr>\n",STATUS_CGI,SERVICE_PASSIVE_CHECKS_DISABLED,passive_checks_disabled_services,(passive_checks_disabled_services==1)?"":"s");
+			printf("<tr><td width=100%% class='featureItemDisabledPassiveChecks'><a href='%s?host=all&type=detail&serviceprops=%d'>%d Service%s Disabled</a></td></tr>\n",STATUS_CGI,SERVICE_PASSIVE_CHECKS_DISABLED,passive_checks_disabled_services,(passive_checks_disabled_services==1)?"":"s");
 		else
-			printf("<tr><td width=100%% class='featureItemEnabled'>All Services Enabled</td></tr>\n");
+			printf("<tr><td width=100%% class='featureItemEnabledPassiveChecks'>All Services Enabled</td></tr>\n");
 
 		printf("</table>\n");
 		printf("</td>\n");

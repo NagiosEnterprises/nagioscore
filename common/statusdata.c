@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-15-2003
+ * Last Modified:   06-18-2003
  *
  * License:
  *
@@ -484,7 +484,11 @@ void free_status_data(void){
 		free(this_svcstatus);
 	        }
 
-	/* reset list pointers */
+	/* free hash lists reset list pointers */
+	free(hoststatus_hashlist);
+	free(servicestatus_hashlist);
+	hoststatus_hashlist=NULL;
+	servicestatus_hashlist=NULL;
 	hoststatus_list=NULL;
 	servicestatus_list=NULL;
 

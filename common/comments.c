@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-16-2003
+ * Last Modified:   06-18-2003
  *
  * License:
  *
@@ -545,7 +545,9 @@ void free_comment_data(void){
 		free(this_comment);
 	        }
 
-	/* reset list pointer */
+	/* free hash list and reset list pointer */
+	free(comment_hashlist);
+	comment_hashlist=NULL;
 	comment_list=NULL;
 
 	return;

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-17-2003
+ * Last Modified:   06-18-2003
  *
  * License:
  *
@@ -5723,7 +5723,9 @@ int free_object_data(void){
 		this_timeperiod=next_timeperiod;
 		}
 
-	/* reset the host pointer */
+	/* free hashlist and reset pointers */
+	free(timeperiod_hashlist);
+	timeperiod_hashlist=NULL;
 	timeperiod_list=NULL;
 
 #ifdef DEBUG1
@@ -5770,7 +5772,9 @@ int free_object_data(void){
 		this_host=next_host;
 	        }
 
-	/* reset host list pointer */
+	/* free hashlist and reset pointers */
+	free(host_hashlist);
+	host_hashlist=NULL;
 	host_list=NULL;
 
 #ifdef DEBUG1
@@ -5797,7 +5801,9 @@ int free_object_data(void){
 		this_hostgroup=next_hostgroup;
 		}
 
-	/* reset the hostgroup pointer */
+	/* free hashlist and reset pointers */
+	free(hostgroup_hashlist);
+	hostgroup_hashlist=NULL;
 	hostgroup_list=NULL;
 
 #ifdef DEBUG1
@@ -5825,7 +5831,9 @@ int free_object_data(void){
 		this_servicegroup=next_servicegroup;
 		}
 
-	/* reset the servicegroup pointer */
+	/* free hashlist and reset pointers */
+	free(servicegroup_hashlist);
+	servicegroup_hashlist=NULL;
 	servicegroup_list=NULL;
 
 #ifdef DEBUG1
@@ -5865,7 +5873,9 @@ int free_object_data(void){
 		this_contact=next_contact;
 		}
 
-	/* reset the contact pointer */
+	/* free hashlist and reset pointers */
+	free(contact_hashlist);
+	contact_hashlist=NULL;
 	contact_list=NULL;
 
 #ifdef DEBUG1
@@ -5892,7 +5902,9 @@ int free_object_data(void){
 		this_contactgroup=next_contactgroup;
 		}
 
-	/* reset the contactgroup pointer */
+	/* free hashlist and reset pointers */
+	free(contactgroup_hashlist);
+	contactgroup_hashlist=NULL;
 	contactgroup_list=NULL;
 
 #ifdef DEBUG1
@@ -5929,7 +5941,9 @@ int free_object_data(void){
 		this_service=next_service;
 	        }
 
-	/* reset service list pointer */
+	/* free hashlist and reset pointers */
+	free(service_hashlist);
+	service_hashlist=NULL;
 	service_list=NULL;
 
 #ifdef DEBUG1
@@ -5946,7 +5960,9 @@ int free_object_data(void){
 		this_command=next_command;
 	        }
 
-	/* reset the command list */
+	/* free hashlist and reset pointers */
+	free(command_hashlist);
+	command_hashlist=NULL;
 	command_list=NULL;
 
 #ifdef DEBUG1
@@ -5964,7 +5980,9 @@ int free_object_data(void){
 		this_serviceescalation=next_serviceescalation;
 	        }
 
-	/* reset the service escalation list */
+	/* free hashlist and reset pointers */
+	free(serviceescalation_hashlist);
+	serviceescalation_hashlist=NULL;
 	serviceescalation_list=NULL;
 
 #ifdef DEBUG1
@@ -5983,7 +6001,9 @@ int free_object_data(void){
 		this_servicedependency=next_servicedependency;
 	        }
 
-	/* reset the service dependency list */
+	/* free hashlist and reset pointers */
+	free(servicedependency_hashlist);
+	servicedependency_hashlist=NULL;
 	servicedependency_list=NULL;
 
 #ifdef DEBUG1
@@ -6000,7 +6020,9 @@ int free_object_data(void){
 		this_hostdependency=next_hostdependency;
 	        }
 
-	/* reset the host dependency list */
+	/* free hashlist and reset pointers */
+	free(hostdependency_hashlist);
+	hostdependency_hashlist=NULL;
 	hostdependency_list=NULL;
 
 #ifdef DEBUG1
@@ -6017,7 +6039,9 @@ int free_object_data(void){
 		this_hostescalation=next_hostescalation;
 	        }
 
-	/* reset the host escalation list */
+	/* free hashlist and reset pointers */
+	free(hostescalation_hashlist);
+	hostescalation_hashlist=NULL;
 	hostescalation_list=NULL;
 
 	/* free extended info data */
@@ -6064,6 +6088,9 @@ int free_extended_data(void){
 	printf("\thostextinfo_list freed\n");
 #endif
 
+	/* free hashlist and reset pointers */
+	free(hostextinfo_hashlist);
+	hostextinfo_hashlist=NULL;
 	hostextinfo_list=NULL;
 
 	/* free memory for the extended service info list */
@@ -6082,6 +6109,9 @@ int free_extended_data(void){
 	printf("\tserviceextinfo_list freed\n");
 #endif
 
+	/* free hashlist and reset pointers */
+	free(serviceextinfo_hashlist);
+	serviceextinfo_hashlist=NULL;
 	serviceextinfo_list=NULL;
 
 

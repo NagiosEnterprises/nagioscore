@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-20-2003
+ * Last Modified:   08-05-2003
  *
  * License:
  *
@@ -139,12 +139,6 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 	temp_downtime=find_downtime(type,downtime_id);
 	if(temp_downtime==NULL)
 		return ERROR;
-
-	/* delete the comment we added */
-	if(temp_downtime->type==HOST_DOWNTIME)
-		delete_host_comment(temp_downtime->comment_id);
-	else
-		delete_service_comment(temp_downtime->comment_id);
 
 	/* find the host or service associated with this downtime */
 	if(temp_downtime->type==HOST_DOWNTIME){
@@ -415,12 +409,6 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		else
 			update_service_status(svc,FALSE);
 
-		/* delete the comment we added */
-		if(temp_downtime->type==HOST_DOWNTIME)
-			delete_host_comment(temp_downtime->comment_id);
-		else
-			delete_service_comment(temp_downtime->comment_id);
-
 		/* decrement pending flex downtime if necessary */
 		if(temp_downtime->fixed==FALSE && temp_downtime->incremented_pending_downtime==TRUE){
 			if(temp_downtime->type==HOST_DOWNTIME){
@@ -642,12 +630,6 @@ int check_for_expired_downtime(void){
 		/* this entry should be removed */
 		if(temp_downtime->is_in_effect==FALSE && temp_downtime->end_time<current_time){
 
-			/* delete the comment we added */
-			if(temp_downtime->type==HOST_DOWNTIME)
-				delete_host_comment(temp_downtime->comment_id);
-			else
-				delete_service_comment(temp_downtime->comment_id);
-
 			/* delete the downtime entry */
 			if(temp_downtime->type==HOST_DOWNTIME)
 				delete_host_downtime(temp_downtime->downtime_id);
@@ -767,6 +749,12 @@ int delete_downtime(int type,unsigned long downtime_id){
 
 	/* remove the downtime from the list in memory */
 	if(this_downtime!=NULL){
+
+		/* first remove the comment associated with this downtime */
+		if(this_downtime->type==HOST_DOWNTIME)
+			delete_host_comment(this_downtime->comment_id);
+		else
+			delete_service_comment(this_downtime->comment_id);
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */

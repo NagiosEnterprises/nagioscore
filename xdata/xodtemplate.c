@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-25-2003
+ * Last Modified: 11-10-2003
  *
  * Description:
  *
@@ -8876,7 +8876,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, char *hosts){
 				found_match=TRUE;
 
 				/* add host to list */
-				xodtemplate_add_host_to_hostlist(list,temp_ptr);
+				xodtemplate_add_host_to_hostlist(list,temp_host->host_name);
 		                } 
 
 			/* free memory allocated to compiled regexp */

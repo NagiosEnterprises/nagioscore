@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: verdana,arial,serif; font-size: large; }
-        .Default { font-family: verdana,arial,serif; font-size: small; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt;  }
 		
 		TH.Macros { font-family: verdana,arial,serif; font-size: 9pt; font-weight: bold; background-color: #cbcbcb; }
 		.MacroName { font-family: verdana,arial,serif; font-size: 8pt; font-weight: bold; }
@@ -39,6 +39,43 @@ One of the features available in Nagios is the ability to use macros in command 
 </p>
 
 <p>
+<strong><u>Macro Substitution</u></strong>
+</p>
+
+<p>
+Describe how macro substitution works...
+</p>
+
+<p>
+<strong><u>Macro Cleansing</u></strong>
+</p>
+
+<p>
+Some macros are stripped of potentially dangerous shell metacharacters before being substituted into commands to be executed.  Which characters are stripped from the macros depends on the setting of the <a href="configmain.html#illegal_macro_output_chars">illegal_macro_output_chars</a> directive.  The following macros are stripped of potentially dangerous characters:
+</p>
+
+<p>
+<ol>
+<li><a href="#hostoutput">$HOSTOUTPUT$</a>
+<li><a href="#hostperfdata">$HOSTPERFDATA$</a>
+<li><a href="#hostackauthor">$HOSTACKAUTHOR$</a>
+<li><a href="#hostackcomment">$HOSTACKCOMMENT$</a>
+<li><a href="#serviceoutput">$SERVICEOUTPUT$</a>
+<li><a href="#serviceperfdata">$SERVICEPERFDATA$</a>
+<li><a href="#serviceackauthor">$SERVICEACKAUTHOR$</a>
+<li><a href="#serviceackcomment">$SERVICEACKCOMMENT$</a>
+</ol>
+</p>
+
+<p>
+<strong><u>On-Demand Macros</u></strong>
+</p>
+
+<p>
+Describe how on-demand macros work...
+</p>
+
+<p>
 <strong><u>Macro Validity</u></strong>
 </p>
 
@@ -61,16 +98,16 @@ Although macros can be used in all commands you define, not all macros may be "v
 </p>
 
 <p>
-The table below lists all macros currently available in Nagios, along with a brief description of each and the types of commands in which they are valid.  If a macro is used in a command in which it is invalid, it is replaced with an empty string. It should be noted that macros consist of all uppercase characters and are enclosed in <b>$</b> characters.
+The tables below list all macros currently available in Nagios, along with a brief description of each and the types of commands in which they are valid.  If a macro is used in a command in which it is invalid, it is replaced with an empty string. It should be noted that macros consist of all uppercase characters and are enclosed in <b>$</b> characters.
 </p>
 
 <p>
 <strong><u>Macro Availability Chart</u></strong>
 </p>
 
-<p align=right>
+<p align=left>
 <b>Legend:</b>
-<table border="1" cellspacing="0" cellpadding="5">
+<table border="1" cellspacing="0" cellpadding="5" class="Default">
 <tr><td class="MacroNo">No</td><td>The macro is not available</td></tr>
 <tr><td class="MacroYes">Yes</td><td>The macro is available</td></tr>
 </table>
@@ -91,7 +128,7 @@ The table below lists all macros currently available in Nagios, along with a bri
 <th class="Macros">Host Performance Data Commands</td>
 </tr>
 <tr>
-<td colspan='9' class='MacroType'>Host Macros:</td>
+<td colspan='9' class='MacroType'>Host Macros: <a href="#note3"><sup>3</sup></a></td>
 </tr>
 <tr>
 <td class='MacroName'><a href="#hostname">$HOSTNAME$</a></td>
@@ -353,7 +390,7 @@ The table below lists all macros currently available in Nagios, along with a bri
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
-<td class='MacroName'><a href="#user">$ARGn$</a></td>
+<td class='MacroName'><a href="#arg">$ARGn$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
 <tr>
@@ -374,6 +411,316 @@ The table below lists all macros currently available in Nagios, along with a bri
 <table border="1" cellspacing="0" cellpadding="5">
 
 <tr>
+<td colspan='9' class='MacroType'>Host Macros: <a href="#note3"><sup>3</sup></a></td>
+</tr>
+
+<tr>
+<a name="hostname"></a>
+<td class="MacroName">$HOSTNAME$</td>
+<td class="MacroDescription">Short name for the host (i.e. "biglinuxbox").  This value is taken from the <i>host_name</i> directive in the <a href="xodtemplate.html#host">host definition</a>.</td>
+</tr>
+
+<tr>
+<a name="hostalias"></a>
+<td class="MacroName">$HOSTALIAS$</td>
+<td class="MacroDescription">Long name/description for the host.  This value is taken from the <i>alias</i> directive in the <a href="xodtemplate.html#host">host definition</a>.</td>
+</tr>
+
+<tr>
+<a name="hostaddress"></a>
+<td class="MacroName">$HOSTADDRESS$</td>
+<td class="MacroDescription">Address of the host.  This value is taken from the <i>address</i> directive in the <a href="xodtemplate.html#host">host definition</a>.</td>
+</tr>
+
+<tr>
+<a name="hoststate"></a>
+<td class="MacroName">$HOSTSTATE$</td>
+<td class="MacroDescription">A string indicating the current state of the host ("UP", "DOWN", or "UNREACHABLE").</td>
+</tr>
+
+<tr>
+<a name="hoststateid"></a>
+<td class="MacroName">$HOSTSTATEID$</td>
+<td class="MacroDescription">A number that corresponds to the current state of the host: 0=UP, 1=DOWN, 2=UNREACHABLE.</td>
+</tr>
+
+<tr>
+<a name="hoststatetype"></a>
+<td class="MacroName">$HOSTSTATETYPE$</td>
+<td class="MacroDescription">A string indicating the <a href="statetypes.html">state type</a> for the current host check ("HARD" or "SOFT"). Soft states occur when host checks return a non-OK (non-UP) state and are in the process of being retried. Hard states result when host checks have been checked a specified maximum number of times.</td>
+</tr>
+
+<tr>
+<a name="hostattempt"></a>
+<td class="MacroName">$HOSTATTEMPT$</td>
+<td class="MacroDescription">The number of the current host check retry. For instance, if this is the second time that the host is being rechecked, this will be the number two.  Current attempt number is really only useful when writing host event handlers for "soft" states that take a specific action based on the host retry number.</td>
+</tr>
+
+<tr>
+<a name="hostlatency"></a>
+<td class="MacroName">$HOSTLATENCY$</td>
+<td class="MacroDescription">A (floating point) number indicating the number of seconds that a <i>scheduled</i> host check lagged behind its scheduled check time. For instance, if a check was scheduled for 03:04:15 and it didn't get executed until 03:14:17, there would be a check latency of 2.0 seconds.  On-demand host checks have a latency of zero seconds.</td>
+</tr>
+
+<tr>
+<a name="hostexecutiontime"></a>
+<td class="MacroName">$HOSTEXECUTIONTIME$</td>
+<td class="MacroDescription">A (floating point) number indicating the number of seconds that the host check took to execute (i.e. the amount of time the check was executing).</td>
+</tr>
+
+<tr>
+<a name="hostduration"></a>
+<td class="MacroName">$HOSTDURATION$</td>
+<td class="MacroDescription">A string indicating the amount of time that the host has spent in its current state.  Format is "XXh YYm ZZs", indicating hours, minutes and seconds.</td>
+</tr>
+
+<tr>
+<a name="hostdurationsec"></a>
+<td class="MacroName">$HOSTDURATIONSEC$</td>
+<td class="MacroDescription">A number indicating the number of seconds that the host has spent in its current state.</td>
+</tr>
+
+<tr>
+<a name="hostdowntime"></a>
+<td class="MacroName">$HOSTDOWNTIME$</td>
+<td class="MacroDescription">A number indicating the current "downtime depth" for the host.  If this host is currently in a period of <a href="downtime.html">scheduled downtime</a>, the value will be greater than zero.  If the host is not currently in a period of downtime, this value will be zero.</td>
+</tr>
+
+<tr>
+<a name="hostpercentchange"></a>
+<td class="MacroName">$HOSTPERCENTCHANGE$</td>
+<td class="MacroDescription">A (floating point) number indicating the percent state change the host has undergone.  Percent state change is used by the <a href="flapping.html">flap detection</a> algorithm.</td>
+</tr>
+
+<tr>
+<a name="hostgroupname"></a>
+<td class="MacroName">$HOSTGROUPNAME$</td>
+<td class="MacroDescription">The short name of the hostgroup that this host belongs to.  This value is taken from the <i>hostgroup_name</i> directive in the <a href="xodtemplate.html#hostgroup">hostgroup definition</a>.  If the host belongs to more than one hostgroup this macro will contain the name of just one of them.</td>
+</tr>
+
+<tr>
+<a name="hostgroupalias"></a>
+<td class="MacroName">$HOSTGROUPALIAS$</td>
+<td class="MacroDescription">The longer name/alias of the hostgroup that this host belongs to.  This value is taken from the <i>alias</i> directive in the <a href="xodtemplate.html#hostgroup">hostgroup definition</a>.  If the host belongs to more than one hostgroup, this macro contains the alias of just one of them.</td>
+</tr>
+
+<tr>
+<a name="lasthostcheck"></a>
+<td class="MacroName">$LASTHOSTCHECK$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a check of the host was last performed.</td>
+</tr>
+
+<tr>
+<a name="lasthoststatechange"></a>
+<td class="MacroName">$LASTHOSTSTATECHANGE$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time the host last changed state.</td>
+</tr>
+
+<tr>
+<a name="lasthostup"></a>
+<td class="MacroName">$LASTHOSTUP$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the host was last detected as being in an UP state.</td>
+</tr>
+
+<tr>
+<a name="lasthostdown"></a>
+<td class="MacroName">$LASTHOSTDOWN$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the host was last detected as being in a DOWN state.</td>
+</tr>
+
+<tr>
+<a name="lasthostunreachable"></a>
+<td class="MacroName">$LASTHOSTUNREACHABLE$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the host was last detected as being in an UNREACHABLE state.</td>
+</tr>
+
+<tr>
+<a name="hostoutput"></a>
+<td class="MacroName">$HOSTOUTPUT$</td>
+<td class="MacroDescription">The text output from the last host check (i.e. "Ping OK").</td>
+</tr>
+
+<tr>
+<a name="hostperfdata"></a>
+<td class="MacroName">$HOSTPERFDATA$</td>
+<td class="MacroDescription">This macro contains any <a href="perfdata.html">performance data</a> that may have been returned by the last host check.</td>
+</tr>
+
+<tr>
+<a name="hostackauthor"></a>
+<td class="MacroName">$HOSTACKAUTHOR$</td>
+<td class="MacroDescription">A string containing the name of the user who acknowledged the host problem.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
+</tr>
+
+<tr>
+<a name="hostackcomment"></a>
+<td class="MacroName">$HOSTACKCOMMENT$</td>
+<td class="MacroDescription">A string containing the acknowledgement comment that was entered by the user who acknowledged the host problem.  This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
+</tr>
+
+<tr>
+<td colspan='9' class='MacroType'>Service Macros:</td>
+</tr>
+
+<tr>
+<a name="servicedesc"></a>
+<td class="MacroName">$SERVICEDESC$</td>
+<td class="MacroDescription">The long name/description of the service (i.e. "Main Website").  This value is taken from the <i>description</i> directive of the <a href="xodtemplate.html#service">service definition</a>.</td>
+</tr>
+
+<tr>
+<a name="servicestate"></a>
+<td class="MacroName">$SERVICESTATE$</td>
+<td class="MacroDescription">A string indicating the current state of the service ("OK", "WARNING", "UNKNOWN", or "CRITICAL").</td>
+</tr>
+
+<tr>
+<a name="servicestateid"></a>
+<td class="MacroName">$SERVICESTATEID$</td>
+<td class="MacroDescription">A number that corresponds to the current state of the service: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN.</td>
+</tr>
+
+<tr>
+<a name="servicestatetype"></a>
+<td class="MacroName">$SERVICESTATETYPE$</td>
+<td class="MacroDescription">A string indicating the <a href="statetypes.html">state type</a> for the current service check ("HARD" or "SOFT"). Soft states occur when service checks return a non-OK state and are in the process of being retried. Hard states result when service checks have been checked a specified maximum number of times.</td>
+</tr>
+
+<tr>
+<a name="serviceattempt"></a>
+<td class="MacroName">$SERVICEATTEMPT$</td>
+<td class="MacroDescription">The number of the current service check retry. For instance, if this is the second time that the service is being rechecked, this will be the number two. Current attempt number is really only useful when writing service event handlers for "soft" states that take a specific action based on the service retry number.</td>
+</tr>
+
+<tr>
+<a name="servicelatency"></a>
+<td class="MacroName">$SERVICELATENCY$</td>
+<td class="MacroDescription">A (floating point) number indicating the number of seconds that a scheduled service check lagged behind its scheduled check time. For instance, if a check was scheduled for 03:04:15 and it didn't get executed until 03:14:17, there would be a check latency of 2.0 seconds.</td>
+</tr>
+
+<tr>
+<a name="serviceexecutiontime"></a>
+<td class="MacroName">$SERVICEEXECUTIONTIME$</td>
+<td class="MacroDescription">A (floating point) number indicating the number of seconds that the service check took to execute (i.e. the amount of time the check was executing).</td>
+</tr>
+
+<tr>
+<a name="serviceduration"></a>
+<td class="MacroName">$SERVICEDURATION$</td>
+<td class="MacroDescription">A string indicating the amount of time that the service has spent in its current state. Format is "XXh YYm ZZs", indicating hours, minutes and seconds.</td>
+</tr>
+
+<tr>
+<a name="servicedurationsec"></a>
+<td class="MacroName">$SERVICEDURATIONSEC$</td>
+<td class="MacroDescription">A number indicating the number of seconds that the service has spent in its current state.</td>
+</tr>
+
+<tr>
+<a name="servicedowntime"></a>
+<td class="MacroName">$SERVICEDOWNTIME$</td>
+<td class="MacroDescription">A number indicating the current "downtime depth" for the service. If this service is currently in a period of <a href="downtime.html">scheduled downtime</a>, the value will be greater than zero. If the service is not currently in a period of downtime, this value will be zero.</td>
+</tr>
+
+<tr>
+<a name="servicepercentchange"></a>
+<td class="MacroName">$SERVICEPERCENTCHANGE$</td>
+<td class="MacroDescription">A (floating point) number indicating the percent state change the service has undergone. Percent state change is used by the <a href="flapping.html">flap detection</a> algorithm.</td>
+</tr>
+
+<tr>
+<a name="servicegroupname"></a>
+<td class="MacroName">$SERVICEGROUPNAME$</td>
+<td class="MacroDescription">The short name of the servicegroup that this service belongs to. This value is taken from the <i>servicegroup_name</i> directive in the <a href="xodtemplate.html#servicegroup">servicegroup</a> definition. If the service belongs to more than one servicegroup this macro will contain the name of just one of them.</td>
+</tr>
+
+<tr>
+<a name="servicegroupalias"></a>
+<td class="MacroName">$SERVICEGROUPALIAS$</td>
+<td class="MacroDescription">The long name/alias of the servicegroup that this service belongs to. This value is taken from the <i>alias</i> directive in the <a href="xodtemplate.html#servicegroup">servicegroup</a> definition. If the service belongs to more than one servicegroup this macro will contain the name of just one of them.</td>
+</tr>
+
+<tr>
+<a name="lastservicecheck"></a>
+<td class="MacroName">$LASTSERVICECHECK$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a check of the service was last performed.</td>
+</tr>
+
+<tr>
+<a name="lastservicestatechange"></a>
+<td class="MacroName">$LASTSERVICESTATECHANGE$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time the service last changed state.</td>
+</tr>
+
+<tr>
+<a name="lastserviceok"></a>
+<td class="MacroName">$LASTSERVICEOK$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the service was last detected as being in an OK state.</td>
+</tr>
+
+<tr>
+<a name="lastservicewarning"></a>
+<td class="MacroName">$LASTSERVICEWARNING$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the service was last detected as being in a WARNING state.</td>
+</tr>
+
+<tr>
+<a name="lastserviceunknown"></a>
+<td class="MacroName">$LASTSERVICEUNKNOWN$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the service was last detected as being in an UNKNOWN state.</td>
+</tr>
+
+<tr>
+<a name="lastservicecritical"></a>
+<td class="MacroName">$LASTSERVICECRITICAL$</td>
+<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which the service was last detected as being in a CRITICAL state.</td>
+</tr>
+
+<tr>
+<a name="serviceoutput"></a>
+<td class="MacroName">$SERVICEOUTPUT$</td>
+<td class="MacroDescription">The text output from the last service check (i.e. "Ping OK").</td>
+</tr>
+
+<tr>
+<a name="serviceperfdata"></a>
+<td class="MacroName">$SERVICEPERFDATA$</td>
+<td class="MacroDescription">This macro contains any <a href="perfdata.html">performance data</a> that may have been returned by the last service check.</td>
+</tr>
+
+<tr>
+<a name="serviceackauthor"></a>
+<td class="MacroName">$SERVICEACKAUTHOR$</td>
+<td class="MacroDescription">A string containing the name of the user who acknowledged the service problem. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
+</tr>
+
+<tr>
+<a name="serviceackcomment"></a>
+<td class="MacroName">$SERVICEACKCOMMENT$</td>
+<td class="MacroDescription">A string containing the acknowledgement comment that was entered by the user who acknowledged the service problem. This macro is only valid in notifications where the $NOTIFICATIONTYPE$ macro is set to "ACKNOWLEDGEMENT".</td>
+</tr>
+
+<tr>
+<td colspan='9' class='MacroType'>Notification Macros:</td>
+</tr>
+
+<tr>
+<a name="notificationtype"></a>
+<td class="MacroName">$NOTIFICATIONTYPE$</td>
+<td class="MacroDescription">A string identifying the type of notification that is being sent ("PROBLEM", "RECOVERY", "ACKNOWLEDGEMENT", "FLAPPINGSTART" or "FLAPPINGSTOP").</td>
+</tr>
+
+<tr>
+<a name="notificationnumber"></a>
+<td class="MacroName">$NOTIFICATIONNUMBER$</td>
+<td class="MacroDescription">The current notification number for the service or host.  The notification number increases by one (1) each time a new notification is sent out for a host or service (except for acknowledgements).  The notification number is reset to 0 when the host or service recovers (<i>after</i> the recovery notification has gone out).  Acknowledgements do not cause the notification number to increase.</td>
+</tr>
+
+<tr>
+<td colspan='9' class='MacroType'>Contact Macros:</td>
+</tr>
+
+<tr>
 <a name="contactname"></a>
 <td class="MacroName">$CONTACTNAME$</td>
 <td class="MacroDescription">Short name for the contact (i.e. "jdoe") that is being notified of a host or service problem.  This value is taken from the <i>contact_name</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
@@ -382,8 +729,7 @@ The table below lists all macros currently available in Nagios, along with a bri
 <tr>
 <a name="contactalias"></a>
 <td class="MacroName">$CONTACTALIAS$</td>
-<td class="MacroDescription">Long name/description for the contact (i.e. "John Doe") being notified.  This value is taken from the <i>alias</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
-</tr>
+<td class="MacroDescription">Long name/description for the contact (i.e. "John Doe") being notified.  This value is taken from the <i>alias</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td></tr>
 
 <tr>
 <a name="contactemail"></a>
@@ -397,178 +743,96 @@ The table below lists all macros currently available in Nagios, along with a bri
 <td class="MacroDescription">Pager number/address of the contact being notified.  This value is taken from the <i>pager</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
 </tr>
 
+<tr>
+<a name="contactaddress"></a>
+<td class="MacroName">$CONTACTADDRESSn$</td>
+<td class="MacroDescription">Address of the contact being notified.  Each contact can have six different addresses (in addition to email address and pager number).  The macros for these addresses are $CONTACTADDRESS1$ - $CONTACTADDRESS6$.  This value is taken from the <i>addressx</i> directive in the <a href="xodtemplate.html#contact">contact definition</a>.</td>
+</tr>
+
+<tr>
+<td colspan='9' class='MacroType'>Date Macros:</td>
+</tr>
+
+<tr>
+<a name="datetime"></a>
+<td class="MacroName">$DATETIME$</td>
+<td class="MacroDescription">Current date/time stamp (i.e. <i>Fri Oct 13 00:30:28 CDT 2000</i>).  Format of date is determined by <a href="configmain.html#date_format">date_format</a> directive.</td>
+</tr>
+
+<tr>
+<a name="shortdatetime"></a>
+<td class="MacroName">$SHORTDATETIME$</td>
+<td class="MacroDescription">Current date/time stamp (i.e. <i>10-13-2000 00:30:28</i>).  Format of date is determined by <a href="configmain.html#date_format">date_format</a> directive.</td>
+</tr>
+
+<tr>
+<a name="date"></a>
+<td class="MacroName">$DATE$</td>
+<td class="MacroDescription">Date stamp (i.e. <i>10-13-2000</i>).  Format of date is determined by <a href="configmain.html#date_format">date_format</a> directive.</td>
+</tr>
+
+<tr>
+<a name="time"></a>
+<td class="MacroName">$TIME$</td>
+<td class="MacroDescription">Current time stamp (i.e. <i>00:30:28</i>).</td>
+</tr>
+
+<tr>
+<a name="timet"></a>
+<td class="MacroName">$TIMET$</td>
+<td class="MacroDescription">Current time stamp in time_t format (seconds since the UNIX epoch).</td>
+</tr>
+
+<tr>
+<td colspan='9' class='MacroType'>Misc Macros:</td>
+</tr>
+
+<tr>
+<a name="adminemail"></a>
+<td class="MacroName">$ADMINEMAIL$</td>
+<td class="MacroDescription">Global administrative email address.  This value is taken from the <a href="configmain.html#admin_email">admin_email</a> directive.</td>
+</tr>
+
+<tr>
+<a name="adminpager"></a>
+<td class="MacroName">$ADMINPAGER$</td>
+<td class="MacroDescription">Global administrative pager number/address.  This value is taken from the <a href="configmain.html#admin_pager">admin_pager</a> directive.</td>
+</tr>
+
+<tr>
+<a name="arg"></a>
+<td class="MacroName">$ARGn$</td>
+<td class="MacroDescription">The <i>n</i>th argument passed to the command (notification, event handler, service check, etc.). Nagios supports up to 32 argument macros ($ARG1$ through $ARG32$).</td>
+</tr>
+
+<tr>
+<a name="user"></a>
+<td class="MacroName">$USERn$</td>
+<td class="MacroDescription">The <i>n</i>th user-definable macro. User macros can be defined in one or more <a href="configmain.html#resource_file">resource files</a>. Nagios supports up to thrity-two user macros ($USER1$ through $USER32$).</td>
+</tr>
+
 </table>
 </p>
 
 
 <p>
-<div align="center">
-<table border="1" cellspacing="0" cellpadding="5">
-<tr class="Macros">
-<th class="Macros">Macro Name</td>
-<th class="Macros">Macro Description</td>
-<th class="Macros">Service Checks</td>
-<th class="Macros">Service Notifications</td>
-<th class="Macros">Host Checks</td>
-<th class="Macros">Host Notifications</td>
-<th class="Macros">Service Event Handlers, Global Service Event Handler, <a href="configmain.html#ocsp_command">OCSP</a> Command</td>
-<th class="Macros">Host Event Handlers, Global Host Event Handler, <a href="configmain.html#ochp_command">OCHP</a> Command</td>
-<th class="Macros">Service Performance Data Commands</td>
-<th class="Macros">Host Performance Data Commands</td>
-</tr>
-<tr>
-<td class='MacroName'>$HOSTNAME$</td>
-<td class="MacroDescription">Short name for the host (i.e. "biglinuxbox").  During a service notification, this refers to the host associated with the service.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$HOSTALIAS$</td>
-<td class="MacroDescription">Long name/description for the host (i.e. "Big Linux Server")</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$HOSTADDRESS$</td>
-<td class="MacroDescription">The IP address of the host</td>
-<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$HOSTSTATE$</td>
-<td class="MacroDescription">The current state of the host ("UP", "DOWN", or "UNREACHABLE")</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td class='MacroName'>$ARGn$</td>
-<td class="MacroDescription">The nth argument passed to the service check command. Nagios supports up to 32 argument macros ($ARG1$ through $ARG32$).</td>
-<td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td class='MacroName'>$SERVICEDESC$</td>
-<td class="MacroDescription">The long name/description of the service being monitored (i.e. "Main Website")</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td class='MacroName'>$SERVICESTATE$</td>
-<td class="MacroDescription">The current status of the service being monitored ("WARNING", "UNKNOWN", "CRITICAL", or "OK")</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td class='MacroName'>$OUTPUT$</td>
-<td class="MacroDescription">The text output from the service or host check (i.e. "FTP ok - 1 second response time").   For service notifications and event handlers, this will contain the text output from the service check.  For host notifications and event handlers, this will contain the text output from the host check.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$PERFDATA$</td>
-<td class="MacroDescription">This macro contains any <a href="perfdata.html">performance data</a> that may have been returned by the service or host check.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$EXECUTIONTIME$</td>
-<td class="MacroDescription">This is the number of seconds that the host or service check took to execute  (i.e. the amount of time the check was executing).</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$LATENCY$</td>
-<td class="MacroDescription">This is the number of seconds that a service check lagged behind its scheduled check time.  For instance, if a check was scheduled for 03:04:15 and it didn't get executed until 03:14:17, there would be a check latency of 2 seconds.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td class='MacroName'>$NOTIFICATIONTYPE$</td>
-<td class="MacroDescription">Identifies the type of notification that is being sent ("PROBLEM", "RECOVERY", or "ACKNOWLEDGEMENT").  </td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td class='MacroName'>$NOTIFICATIONNUMBER$</td>
-<td class="MacroDescription">The current notification number for the service or host.  The notification number increases by one (1) each time a new notification is sent out for a host or service (except for acknowledgements).  The notification number is reset to 0 when the host or service recovers (<i>after</i> the recovery notification has gone out).  Acknowledgements do not cause the notification number to increase.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td class='MacroName'>$DATETIME$</td>
-<td class="MacroDescription">Date/time stamp (i.e. <i>Fri Oct 13 00:30:28 CDT 2000</i>)</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$SHORTDATETIME$</td>
-<td class="MacroDescription">Date/time stamp (i.e. <i>10-13-2000 00:30:28</i>)</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$DATE$</td>
-<td class="MacroDescription">Date stamp (i.e. <i>10-13-2000</i>)</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$TIME$</td>
-<td class="MacroDescription">Time stamp (i.e. <i>00:30:28</i>)</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$TIMET$</td>
-<td class="MacroDescription">Time stamp in time_t format (seconds since the UNIX epoch)</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$LASTCHECK$</td>
-<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a service or host check was last performed.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$LASTSTATECHANGE$</td>
-<td class="MacroDescription">This is a timestamp in time_t format (seconds since the UNIX epoch) indicating the time at which a service or host last changed state.</td>
-<td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td class='MacroName'>$ADMINEMAIL$</td>
-<td class="MacroDescription">Email address for the local administrator (of the host doing the monitoring)</td>
-<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$ADMINPAGER$</td>
-<td class="MacroDescription">Pager number/address for the local administrator</td>
-<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td class='MacroName'>$STATETYPE$</td>
-<td class="MacroDescription">The <a href="statetypes.html">state type</a> for the current service or host check ("HARD" or "SOFT").  Soft states occur when service or host checks return a non-OK state and are in the process of being retried.  Hard states result when service or host checks have been checked a specified maximum number of times.  Notifications are sent out only when hard state changes occur.</td>
-<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td class='MacroName'>$SERVICEATTEMPT$</td>
-<td class="MacroDescription">This refers to the number of the current service check retry.  For instance, if this is the second time that the service is being rechecked, this will be the number two.  Current attempt number is only useful when writing service <a href="eventhandlers.html">event handlers</a> for "soft" states that take a specific action based on the service retry number.</td>
-<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td>
-</tr>
-<tr>
-<td class='MacroName'>$HOSTATTEMPT$</td>
-<td class="MacroDescription">This refers to the number of the current host check retry.  For instance, if this is the second time that the host is being rechecked, this will be the number two.  Current attempt number is only useful when writing host <a href="eventhandlers.html">event handlers</a> for "soft" states that take a specific action based on the host retry number.</td>
-<td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td><td class="MacroNo">No</td><td class="MacroYes">Yes</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td class='MacroName'>$USERn$</td>
-<td class="MacroDescription">The nth user-definable macro.  User macros can be defined in one or more <a href="configmain.html#resource_file">resource files</a> .  Nagios supports up to thrity-two user macros ($USER1$ through $USER32$).</td>
-<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
-</tr>
-
-</table>
-</div>
+<strong><u>Notes</u></strong>
 </p>
 
+<a name="note1"></a>
+<p>
+<sup><b>1</b></sup>  These macros are not valid for the host they are associated with when that host is being checked (i.e. they make no sense, as they haven't been determined yet).
+</p>
+
+<a name="note2"></a>
+<p>
+<sup><b>2</b></sup>  These macros are not valid for the service they are associated with when that service is being checked (i.e. they make no sense, as they haven't been determined yet).
+</p>
+
+<a name="note3"></a>
+<p>
+<sup><b>3</b></sup>  When host macros are used in service-related commands (i.e. service notifications, event handlers, etc) they refer to they host that they service is associated with.
+</p>
 
 <hr>
 

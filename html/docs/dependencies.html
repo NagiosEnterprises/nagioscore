@@ -42,7 +42,7 @@ The image below shows an example logical layout of service dependencies.  There 
 <ol>
 <li>A service can be dependent on one or more other services
 <li>A service can be dependent on services which are not associated with the same host
-<li>Service dependencies are not inherited
+<li>Service dependencies are not inherited (unless specifically configured to)
 <li>Service dependencies can be used to cause service execution and service notifications to be suppressed under different circumstances (OK, WARNING, UNKNOWN, and/or CRITICAL states)
 </ol>
 </p>
@@ -105,6 +105,46 @@ define servicedependency{
 
 
 <p>
+The other dependency definitions shown in the image above would be defined as follows:
+</p>
+
+<p>
+<strong>
+<font color='red'>
+<pre>
+define servicedependency{
+	host_name			Host A
+	service_description		Service A
+	dependent_host_name		Host B
+	dependent_service_description	Service D
+	execution_failure_criteria	u
+	notification_failure_criteria	n
+	}
+
+define servicedependency{
+	host_name			Host A
+	service_description		Service B
+	dependent_host_name		Host B
+	dependent_service_description	Service E
+	execution_failure_criteria	w,u
+	notification_failure_criteria	c
+	}
+
+define servicedependency{
+	host_name			Host B
+	service_description		Service C
+	dependent_host_name		Host B
+	dependent_service_description	Service E
+	execution_failure_criteria	n
+	notification_failure_criteria	w,u,c
+	}
+</pre>
+</font>
+</strong>
+</p>
+
+
+<p>
 <strong><u>How Service Dependencies Are Tested</u></strong>
 </p>
 
@@ -130,7 +170,11 @@ This cycle continues until either all dependencies for the service have been che
 </p>
 
 <p>
-<strong><u>Service Execution Dependencies</u></strong>
+<strong><u>Execution Dependencies</u></strong>
+</p>
+
+<p>
+Execution dependencies are used to restrict when <i>active</i> checks of a service can be performed.  Passive checks are not restricted by execution dependencies.
 </p>
 
 <p>
@@ -142,7 +186,7 @@ In the example above, <b>Service E</b> would have failed execution dependencies 
 </p>
 
 <p>
-<strong><u>Service Notification Dependencies</u></strong>
+<strong><u>Notification Dependencies</u></strong>
 </p>
 
 <p>
@@ -154,13 +198,46 @@ In the example above, <b>Service F</b> would have failed notification dependenci
 </p>
 
 <p>
-<strong><u>Service Dependency Inheritance</u></strong>
+<strong><u>Dependency Inheritance</u></strong>
 </p>
 
 <p>
 As mentioned before, service dependencies are <i>not</i> inherited.  In the example above you can see that Service F is dependent on Service E.  However, it does not automatically inherit Service E's dependencies on Service B and Service C.  In order to make Service F dependent on Service C we had to add another service dependency definition.  There is no dependency definition for Service B, so Service F is <i>not</i> dependent on Service B.
+</p>
 
-In some cases the lack of inheritance means you're going to have to add some additional dependency definitions in your config file, but I think it makes things much more flexible.  For instance, in the example above we might have good reason for not making Service F dependent on Service B.  If dependencies were automatically inherited, this would not be possible.
+<p>
+If you <i>do</i> wish to make service dependencies inheritable, you must use the <i>inherits_parent</i> directive in the <a href="xodtemplate.html#servicedependency">service dependency</a> definition.  When this directive is enabled, it indicates that the dependency inherits dependencies of the service <i>that is being depended upon</i> (also referred to as the master service). In other words, if the master service is dependent upon other services and any one of those dependencies fail, this dependency will also fail. 
+</p>
+
+<p>
+In the example above, imagine that you want to add a new dependency for service F to make it dependent on service A.  You could create a new dependency definition that specified service F as the <i>dependent</i> service and service A as being the <i>master</i> service (i.e. the service <i>that is being dependend on</i>).  You could alternatively modify the dependency definition for services D and F to look like this:
+</p>
+
+<p>
+<strong>
+<font color='red'>
+<pre>
+define servicedependency{
+	host_name			Host B
+	service_description		Service D
+	dependent_host_name		Host C
+	dependent_service_description	Service F
+	execution_failure_criteria	o
+	notification_failure_criteria	n
+	inherits_parent		1
+	}
+
+</pre>
+</font>
+</strong>
+</p>
+
+<p>
+Since the <i>inherits_parent</i> directive is enabled, the dependency between services A and D will be tested when the dependency between services F and D are being tested.
+</p>
+
+<p>
+Dependencies can have multiple levels of inheritence.  If the dependency definition between A and D had its <i>inherits_parent</i> directive enable and service A was dependent on some other service (let's call it service G), the service F would be dependent on services D, A, and G (each with potentially different criteria).
 </p>
 
 <p>

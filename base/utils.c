@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-15-2003
+ * Last Modified:   10-23-2003
  *
  * License:
  *
@@ -370,11 +370,15 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 					clean_macro=TRUE;
 				        }
 
-				else if(!strcmp(temp_buffer,"HOSTACKAUTHOR"))
+				else if(!strcmp(temp_buffer,"HOSTACKAUTHOR")){
 					selected_macro=macro_x[MACRO_HOSTACKAUTHOR];
+					clean_macro=TRUE;
+				        }
 
-				else if(!strcmp(temp_buffer,"HOSTACKCOMMENT"))
+				else if(!strcmp(temp_buffer,"HOSTACKCOMMENT")){
 					selected_macro=macro_x[MACRO_HOSTACKCOMMENT];
+					clean_macro=TRUE;
+				        }
 
 				else if(!strcmp(temp_buffer,"HOSTSTATE"))
 					selected_macro=macro_x[MACRO_HOSTSTATE];
@@ -462,11 +466,15 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 					clean_macro=TRUE;
 				        }
 
-				else if(!strcmp(temp_buffer,"SERVICEACKAUTHOR"))
+				else if(!strcmp(temp_buffer,"SERVICEACKAUTHOR")){
 					selected_macro=macro_x[MACRO_SERVICEACKAUTHOR];
+					clean_macro=TRUE;
+				        }
 
-				else if(!strcmp(temp_buffer,"SERVICEACKCOMMENT"))
+				else if(!strcmp(temp_buffer,"SERVICEACKCOMMENT")){
 					selected_macro=macro_x[MACRO_SERVICEACKCOMMENT];
+					clean_macro=TRUE;
+				        }
 
 				else if(!strcmp(temp_buffer,"SERVICESTATETYPE"))
 					selected_macro=macro_x[MACRO_SERVICESTATETYPE];
@@ -593,11 +601,11 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 				/* insert macro */
 				if(selected_macro!=NULL){
 
-					/* $xOUTPUT$ and $xPERFDATA$ macros are cleaned */
+					/* some macros are cleaned */
 					if(clean_macro==TRUE)
 						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
 
-					/* normal macros as not cleaned */
+					/* others are not */
 					else
 						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
 				        }

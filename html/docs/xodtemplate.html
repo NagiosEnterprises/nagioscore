@@ -405,6 +405,7 @@ Note:  Directives in red are required, while those in black are optional.
 
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
 <tr><td></td><td class="Required">service_description</td><td class="Required"><i>service_description</i></td></tr>
+<tr><td></td><td class="Optional">servicegroups</td><td class="Optional">servicegroup_names</td></tr>
 <tr><td></td><td class="Optional">is_volatile</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Required">check_command</td><td class="Required"><i>command_name</i></td></tr>
 <tr><td></td><td class="Required">max_check_attempts</td><td class="Required">#</td></tr>
@@ -469,6 +470,12 @@ This directive is used to specify the <i>short name</i> of the <a href="#host">h
 <td valign="top"><strong>service_description;</strong>:</td>
 <td>
 This directive is used to define the description of the service, which may contain spaces, dashes, and colons (semicolons, apostrophes, and quotation marks should be avoided).  No two services associated with the same host can have the same description.  Services are uniquely identified with their <i>host_name</i> and <i>service_description</i> directives.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>servicegroups</strong>:</td>
+<td>
+This directive is used to identify the <i>short name(s)</i> of the <a href="#servicegroup">servicegroup(s)</a> that the service belongs to.  Multiple servicegroups should are seperated by commas.  This directive may be used as an alternative to using the <i>members</i> directive in <a href="#servicegroup">servicegroup</a> definitions.
 </td>
 </tr>
 <tr>
@@ -695,7 +702,7 @@ This directive is used to define is a longer name or description used to identif
 <td valign="top"><strong>members</strong>:</td>
 <td>
 <p>
-This is a list of the <i>short names</i> of <a href="#service">services</a> (and the names of their corresponding hosts) that should be included in this group.   Host and service names should be separated by commas.  The format of the member directive is as follows (note that a host name must precede a service name/description):
+This is a list of the <i>short names</i> of <a href="#service">services</a> (and the names of their corresponding hosts) that should be included in this group.   Host and service names should be separated by commas.  This directive may be used as an alternative to the <i>servicegroups</i> directive in <a href="#service">service definitions</a>.  The format of the member directive is as follows (note that a host name must precede a service name/description):
 </p>
 <p>
 members=&lt;host1&gt;,&lt;service1&gt;,&lt;host2&gt;,&lt;service2&gt;,...,&lt;host<i>n</i>&gt;,&lt;service<i>n</i>&gt;

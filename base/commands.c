@@ -1827,6 +1827,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	snprintf(temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"%s",temp_ptr);
 	temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 
+	
 
 	/********* LET'S DO IT (SUBSET OF NORMAL HOST CHECK OPERATIONS) ********/
 

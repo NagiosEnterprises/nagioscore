@@ -46,6 +46,30 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 </p>
 
 <p>
+<pre>
+<strong>DOCUMENTATION TODO:</strong>
+** CHECKING CLUSTERS: new macros
+** CHECK SCHEDULING: scheduled host checks, initial check spreads
+** HOST CHECK OPTIMIZATION: check_cluster, add $HOSTSERVICESTATEIDS$ macro...
+** DISTRIBUTED MONITORING: passive host checks
+- Macros
+- Triggered downtime
+- Adaptive monitoring features
+- Dependency inheritance
+- Notification types ("FLAPPINGSTART", "FLAPPINGSTOP", "RECOVERY", etc.)
+- Event broker
+- Passive host checks
+- Host freshness checking
+- OCHP command
+- Config file options to initial spread of host and service checks
+- Template tricks
+	- Regexp matching in object config files
+	- Servicegroup names
+	- Multiple service descriptions can be used in both service dependency  and service escalation definitions
+</pre>
+</p>
+
+<p>
 <ol>
 
 <li><b>Blah</b>.  Lots o' stuff, all undocumented of course...<br><br>
@@ -57,6 +81,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>Hostgroup escalations removed</b> - Hostgroup escalations have been removed.  Their functionality can be duplicated by using the <i>hostgroup_name</i> directive in <a href="xodtemplate.html#hostgroup">hostgroup definitions</a>.
 	<li><b>Member directive changes</b> - Hostgroup <a href="xodtemplate.html#hostgroup">definitions</a> can now contain multiple <i>members</i> directives, which should make editing the config files easier when you have a lot of member hosts.  Alternatively, you may use the <i>hostgroups</i> directive in <a href="xodtemplate.html#host">host definitions</a> to specify what hostgroup(s) a particular host is a member of.
 	<li><b>Contact group changes</b> - The <i>contact_groups</i> directive has been moved from hostgroup definitions to <a href="xodtemplate.html#host">host definitions</a>.  This was done in order to maintain consistency with the way service contacts are specified.  Make sure to update your config files!
+	<li><b>Authorization changes</b> - Authorization for access to hostgroups in the CGIs has been changed.  You must now be authorized for all hosts that are members of the hostgroup in order to be authorized for the hostgroup.
 	</ul>
 <br>
 <li><b>Retention Changes</b>
@@ -65,6 +90,28 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>Smarter retention</b> - Values of various host and service directives that can be retained across program restarts are now only retained if they are changed during runtime by an <a href="extcommands.html">external command</a>.  This should make things less confusing to people when they try and modify host and service directive values and then restart Nagios, expecting to see some changes.
 	<li><b>More stuff retained</b> - More information is now retained across program restarts, including <a href="flapping.html">flap detection</a> history.  Hoorah!
 	</ul>
+<br>
+<li><b>Extended Info Changes</b>
+	<ul>
+	<li><b>New location</b> - Extended <a href="xodtemplate.html#hostextinfo">host info</a> and <a href="xodtemplate.html#serviceextinfo">service info</a> definitions are now stored in object config files along with host definitions, etc.  As a result, extended info definitions are now parsed and validated by the Nagios daemon before startup.
+	<li><b>New directives</b> - Extended <a href="xodtemplate.html#hostextinfo">host info</a> and <a href="xodtemplate.html#serviceextinfo">service info</a> definitions now have two new directives: <i>notes</i> and <i>action_url</i>.
+	</ul>
+<br>
+<li><b>Embedded Perl Changes</b>
+	<ul>
+	<li><b>Max calls before reload option</b> - You can now specify the maximum number of times the embedded Perl interpreter can be called before it is reloaded.  This may help with handling memory leaks several people have reported.  This option is controlled by the <a href="configmain.html#max_embedded_perl_calls">max_embedded_perl_calls</a> directive.
+	<li><b>p1.pl location</b> - You can now specify the location of the embedded Perl "helper" file (p1.pl) using the <a href="configmain.html#p1_file">p1_file</a> directive.
+	</ul>
+<br>
+<li><b>Notification Changes</b>
+	<ul>
+	<li><b>Flapping notifications</b> - Notifications are now sent out when <a href="flapping.html">flapping</a> starts and stops for hosts and services.  This feature can be controlled using the <i>f</i> option in the <i>notification_options</i> for <a href="xodtemplate.html#contact">contacts</a>, <a href="xodtemplate.html#host">hosts</a> and <a href="xodtemplate.html#service">services</a>.
+	<li><b>Better logic</b> - Notification logic has been improved a bit.  This should prevent recovery notifications getting sent out when no problem notification was sent out to begin with.
+	<li><b>Service notifications</b> - Before service notifications are sent out, notification <a href="xodtemplate.html#hostdependency">dependencies</a> for the host are now checked.  If host notifications are not deemed to be viable, notifications for the service will not be sent out either.
+	<li><b>Escalation options</b> - Time period and state options have been added to <a href="xodtemplate.html#hostescalation">host</a> and <a href="xodtemplate.html#serviceescalation">service</a> escalations.  This gives you more control in determining when escalations can be used.  More information on escalations can be found <a href="escalations.html">here</a>.
+	</ul>
+<br>
+<li><b>Service Groups Added</b> - <a href="xodtemplate.html#servicegroup">Service groups</a> have now been added.  They allow you to group services together for display purposes in the CGIs and <a href="templatetricks.html">can be referenced</a> in service dependency and service escalation definitions to make configuration a bit easier.<br>
 <br>
 <li><b>Native DB Support Dropped</b> - Native support for storing various types of data (status, retention, comment, downtime, etc.) in MySQL and PostgreSQL has been dropped.  Stop whining.  I expect someone will develop an alternative using the new event broker sometime in the near future.  Besides, DB support was not well implemented and dropping native DB support will make things easier for newbies to understand (one less thing to figure out).<br>
 <br>
@@ -76,6 +123,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 	<li><b>Faster searches</b> - Objects are now stored in a chained hash in order to speed searches.  This should greatly improve the performance of the CGIs.
 	<li><b>Worker threads</b> - A few worker threads have been added in order to artificially buffer data for the <a href="configmain.html#command_file">external command file</a> and the internal pipe used to process service check results.  This should substantially increase performance in larger setups.
 	<li><b>Logging changes</b> - Initial host and service states are now logged a bit differently.  Also, the initial states of all hosts and services are logged immediately after all <a href="configmain.html#log_rotation_method">log rotations</a>.  This should help with all those "undetermined time" problems in the availability and trends CGIs.
+	<li><b>Cached object config file</b> - An <a href="configmain.html#object_cache_file">object cache file</a> is now created by Nagios at startup.  It should help speed up the CGIs a bit and allow you to edit you object config files while Nagios is running without affecting the CGI output.
 	</ul>
 <br>
 </ol>

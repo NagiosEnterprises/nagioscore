@@ -50,6 +50,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#log_file">Log file</a><br>
 <a href="#cfg_file">Object configuration file</a><br>
 <a href="#cfg_dir">Object configuration directory</a><br>
+<a href="#object_cache_file">Object cache file</a><br>
 <a href="#resource_file">Resource file</a><br>
 <a href="#temp_file">Temp file</a><br>
 <br>
@@ -226,6 +227,35 @@ This directive is used to specify an <a href="configobject.html">object configur
 
 <p>
 This directive is used to specify a directory which contains <a href="configobject.html">object configuration files</a> that Nagios should use for monitoring.  All files in the directory with a <b>.cfg</b> extension are processed as object config files.  Additionally, Nagios will recursively process all config files in subdirectories of the directory you specify here.  You can seperate your configuration files into different directories and specify multiple <b>cfg_dir=</b> statements to have all config files in each directory processed.
+</p>
+
+
+
+<a name="object_cache_file"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Object Cache File</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>object_cache_file=&lt;file_name&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td>
+<font color="red"><strong>object_cache_file_file=/usr/local/nagios/var/objects.cache</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+This directive is used to specify a file in which a cached copy of <a href="configobject.html">object definitions</a> should be stored.  The cache file is (re)created every time Nagios is (re)started and is used by the CGIs.   It is intended to speed up config file caching in the CGIs and allow you to edit the source <a href="#cfg_file">object config files</a> while Nagios is running without affecting the output displayed in the CGIs.
 </p>
 
 
@@ -2072,7 +2102,7 @@ This option allows you to specify illegal characters that cannot be used in host
 This option allows you to specify illegal characters that should be stripped from <a href="macros.html">macros</a> before being used in notifications, event handlers, and other commands.  This DOES NOT affect macros used in service or host check commands.  You can choose to not strip out the characters shown in the example above, but I recommend you do not do this.  Some of these characters are interpreted by the shell (i.e. the backtick) and can lead to security problems.  The following macros are stripped of the characters you specify: 
 </p>
 <p>
-<b>$OUTPUT$</b>, <b>$PERFDATA$</b>
+<b>$HOSTOUTPUT$</b>, <b>$HOSTPERFDATA$</b>, <b>$HOSTACKAUTHOR$</b>, <b>$HOSTACKCOMMENT$</b>, <b>$SERVICEOUTPUT$</b>, <b>$SERVICEPERFDATA$</b>, <b>$SERVICEACKAUTHOR$</b>, and <b>$SERVICEACKCOMMENT$</b>
 </p>
 
 

@@ -36,7 +36,7 @@ Nagios supports <i>optional</i> escalation of contact notifications for hosts an
 </p>
 
 <p>
-Escalation of service notifications is accomplished by defining service escalation definitions in your <a href="configobject.html">object configuration file</a>.  Service escalation definitions are used to escalate notifications for a particular service.
+Escalation of service notifications is accomplished by defining <a href="xodtemplate.html#serviceescalation">service escalations</a> in your <a href="configobject.html">object configuration file</a>.  Service escalation definitions are used to escalate notifications for a particular service.
 </p>
 
 <p>
@@ -44,7 +44,7 @@ Escalation of service notifications is accomplished by defining service escalati
 </p>
 
 <p>
-Escalation of host notifications is accomplished by defining either host or hostgroup escalation definitions in your <a href="configobject.html">object configuration file</a>.  Host escalation definitions are used to escalate notifications for specific hosts, while hostgroup escalation definitions are used to escalate notifications for all hosts in a particular hostgroup.  The examples I provide below all use service escalation definitions, but host and hostgroup escalations work the same way (except for the fact that they are used for host notifications and not service notifications).
+Escalation of host notifications is accomplished by defining <a href="xodtemplate.html#hostescalation">host escalations</a> in your <a href="configobject.html">object configuration file</a>.  The examples I provide below all use service escalation definitions, but host escalations work the same way (except for the fact that they are used for host notifications and not service notifications).
 </p>
 
 <p>
@@ -322,6 +322,29 @@ define serviceescalation{
 In the example above, the maximum number of problem notifications that could be sent out about the service would be four.  This is because the notification interval of 0 in the second escalation definition indicates that only one notification should be sent out (starting with and including the 4th notification) and all subsequent notifications should be repressed.  Because of this, the third service escalation definition has no effect whatsoever, as there will never be more than four notifications.
 </p>
 
+<p>
+<strong><u>Time Period Restrictions</u></strong>
+</p>
+
+<p>
+Under normal circumstances, escalations can be used at any time that a notification could normally be sent out for the service.  This "notification time window" is determined by the <i>notification_period</i> directive in the <a href="xodtemplate.html#service">service definition</a>.
+</p>
+
+<p>
+You can optionally restrict escalations so that they are only used during specific time periods by using the <i>escalation_period</i> directive in the <a href="xodtemplate.html#serviceescalation">service escalation</a> definition.  If you use the <i>escalation_period</i> directive to specify a <a href="xodtemplate.html#timeperiod">timeperiod</a> during which the escalation can be used, the escalation will only be used during that time.  If you do not specify any <i>escalation_period</i> directive, the escalation can be used at any time within the "notification time window" for the service.
+</p>
+
+<p>
+Note that the notification is still subject to the normal time restrictions imposed by the <i>notification_period</i> directive in the service escalation, so the timeperiod you specify in the escalation should be a subset of that larger "notification time window".
+</p>
+
+<p>
+<strong><u>State Restrictions</u></strong>
+</p>
+
+<p>
+If you would like to restrict the escalation definition so that it is only used when the service is in a particular state, you can use the <i>escalation_options</i> directive in the <a href="xodtemplate.html#serviceescalation">service escalation</a> definition.  If you do not use the <i>escalation_options</i> directive, the escalation can be used when the service is in any state.
+</p>
 
 <hr>
 

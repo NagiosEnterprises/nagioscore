@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2005
+ * Last Modified:   03-19-2005
  *
  * License:
  *
@@ -4378,12 +4378,14 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 
 	/* find the end of the string (or buffer) */
 	for(x=temp_mmapfile->current_position;x<temp_mmapfile->file_size;x++){
-		if(*(char *)(temp_mmapfile->mmap_buf+x)=='\n')
+		if(*(char *)(temp_mmapfile->mmap_buf+x)=='\n'){
+			x++;
 			break;
+			}
 	        }
 
 	/* calculate length of line we just read */
-	len=(int)x-temp_mmapfile->current_position+1;
+	len=(int)x-temp_mmapfile->current_position;
 
 	/* allocate memory for the new line */
 	if((buf=(char *)malloc(len+1))==NULL)
@@ -4394,7 +4396,7 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 	buf[len]='\x0';
 
 	/* update the current position */
-	temp_mmapfile->current_position=x+1;
+	temp_mmapfile->current_position=x;
 
 	/* increment the current line */
 	temp_mmapfile->current_line++;

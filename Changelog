@@ -15,6 +15,9 @@ Nagios Change Log
 * Added external commands to adjust host and service notification numbers
 * Init script changes
 * Fixed bug where passive checks with empty plugin output were being dropped
+* Fixed bug in state retention routines
+* Configure script changes to (hopefully) support event broker under AIX 5
+* Documentation fixes
 
 
 

@@ -3059,7 +3059,7 @@ fi
 	echo $ac_n "checking for extra flags needed to export symbols""... $ac_c" 1>&6
 echo "configure:3061: checking for extra flags needed to export symbols" >&5
 	case $host_os in
-		aix4*)
+		aix4*|aix5*)
 			BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-bexpall,-brtl"
 		;;
 		bsdi*)
@@ -3119,7 +3119,7 @@ echo "configure:3118: checking for linker flags for loadable modules" >&5
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
 		;;
-		aix4*)
+		aix4*|aix5*)
 			#MOD_LDFLAGS="-G -bnoentry -bexpall"
 			MOD_LDFLAGS="-G -bM:SRE -bnoentry -bexpall"
 		;;

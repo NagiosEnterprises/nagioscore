@@ -487,7 +487,7 @@ if test x$USE_EVENTBROKER = xyes; then
 	# Otherwise we assume that if the linker accepts the flag, it is needed.
 	AC_MSG_CHECKING(for extra flags needed to export symbols)
 	case $host_os in
-		aix4*)
+		aix4*|aix5*)
 			BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-bexpall,-brtl"
 		;;
 		bsdi*)
@@ -515,7 +515,7 @@ if test x$USE_EVENTBROKER = xyes; then
 		solaris2*|sysv4*)
 			MOD_LDFLAGS="-G"
 		;;
-		aix4*)
+		aix4*|aix5*)
 			#MOD_LDFLAGS="-G -bnoentry -bexpall"
 			MOD_LDFLAGS="-G -bM:SRE -bnoentry -bexpall"
 		;;

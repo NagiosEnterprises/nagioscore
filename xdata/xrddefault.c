@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-10-2005
+ * Last Modified:   03-19-2005
  *
  * License:
  *
@@ -69,6 +69,7 @@ extern unsigned long  modified_service_process_attributes;
 
 
 char xrddefault_retention_file[MAX_FILENAME_LENGTH]="";
+char xrddefault_temp_file[MAX_FILENAME_LENGTH]="";
 
 
 
@@ -85,7 +86,9 @@ int xrddefault_grab_config_info(char *main_config_file){
 
 	/* initialize the location of the retention file */
 	strncpy(xrddefault_retention_file,DEFAULT_RETENTION_FILE,sizeof(xrddefault_retention_file)-1);
+	strncpy(xrddefault_temp_file,DEFAULT_TEMP_FILE,sizeof(xrddefault_temp_file)-1);
 	xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
+	xrddefault_temp_file[sizeof(xrddefault_temp_file)-1]='\x0';
 
 	/* open the main config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL){
@@ -149,12 +152,13 @@ int xrddefault_grab_config_info(char *main_config_file){
 
 int xrddefault_save_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
+	char temp_file[MAX_FILENAME_LENGTH];
 	time_t current_time;
 	int result=OK;
-	FILE *fp;
+	FILE *fp=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	int x;
+	int x, fd=0;
 
 #ifdef DEBUG0
 	printf("xrddefault_save_state_information() start\n");
@@ -170,11 +174,18 @@ int xrddefault_save_state_information(char *main_config_file){
 		return ERROR;
 	        }
 
-	/* open the retention file for writing */
-	fp=fopen(xrddefault_retention_file,"w");
+	/* open a safe temp file for output */
+	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xrddefault_temp_file);
+	temp_file[sizeof(temp_file)-1]='\x0';
+	if((fd=mkstemp(temp_file))==-1)
+		return ERROR;
+	fp=fdopen(fd,"w");
 	if(fp==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not open state retention file '%s' for writing!\n",xrddefault_retention_file);
+		close(fd);
+		unlink(temp_file);
+
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not open temp state retention file '%s' for writing!\n",temp_file);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 
@@ -329,6 +340,9 @@ int xrddefault_save_state_information(char *main_config_file){
 
 	fclose(fp);
 
+	/* move the temp file to the retention file (overwrite the old retention file) */
+	if(my_rename(temp_file,xrddefault_retention_file))
+		return ERROR;
 
 
 #ifdef DEBUG0

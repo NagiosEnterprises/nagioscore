@@ -23,7 +23,7 @@
 
 #define MAX_COMMANDLINE_LENGTH 160
 
-static PerlInterpreter *perl = NULL;
+static PerlInterpreter *my_perl = NULL;
 
 
 int main(int argc, char **argv, char **env){
@@ -41,17 +41,17 @@ int main(int argc, char **argv, char **env){
         int pclose_result;
         int i;
 
-        if((perl=perl_alloc())==NULL){
+        if((my_perl=perl_alloc())==NULL){
                 snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
                 buffer[sizeof(buffer)-1]='\x0';
                 printf("%s\n", buffer);
                 exit(1);
                 }
-        perl_construct(perl);
-        exitstatus=perl_parse(perl,xs_init,2,embedding,NULL);
+        perl_construct(my_perl);
+        exitstatus=perl_parse(my_perl,xs_init,2,embedding,NULL);
         if(!exitstatus){
 
-                exitstatus=perl_run(perl);
+                exitstatus=perl_run(my_perl);
 
 		while(printf("Enter file name: ") && fgets(command_line,sizeof(command_line),stdin)){
 
@@ -114,7 +114,7 @@ int main(int argc, char **argv, char **env){
 	}
         
         PL_perl_destruct_level = 0;
-        perl_destruct(perl);
-        perl_free(perl);
+        perl_destruct(my_perl);
+        perl_free(my_perl);
         exit(exitstatus);
 }

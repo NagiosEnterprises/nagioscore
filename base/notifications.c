@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-29-2004
+ * Last Modified:   02-10-2004
  *
  * License:
  *
@@ -1522,8 +1522,8 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 
 	        }
 
-	/* if notification interval is 0, we shouldn't send any more problem notifications */
-	if(interval_to_use==0)
+	/* if notification interval is 0, we shouldn't send any more problem notifications (unless service is volatile) */
+	if(interval_to_use==0 && svc->is_volatile==FALSE)
 		svc->no_more_notifications=TRUE;
 	else
 		svc->no_more_notifications=FALSE;

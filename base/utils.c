@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-18-2002
+ * Last Modified:   05-01-2002
  *
  * License:
  *
@@ -1853,10 +1853,16 @@ int daemon_init(void){
 	val|=FD_CLOEXEC;
 	fcntl(lockfile,F_SETFD,val);
 
-        /* close stdin, sdout, stderr */
+        /* close existing stdin, stdout, stderr */
 	close(0);
 	close(1);
 	close(2);
+
+	/* THIS HAS TO BE DONE TO AVOID PROBLEMS WITH STDERR BEING REDIRECTED TO SERVICE MESSAGE PIPE! */
+	/* re-open stdin, stdout, stderr with known values */
+	open("/dev/null",O_RDONLY);
+	open("/dev/null",O_WRONLY);
+	open("/dev/null",O_WRONLY);
 
 	return OK;
 	}

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-29-2002
+ * Last Modified:   05-01-2002
  *
  * Description:
  *
@@ -399,7 +399,8 @@ int main(int argc, char **argv){
 		printf("       verification/sanity check.  Always make sure you verify your\n");
 		printf("       config data before (re)starting Nagios.\n");
 		printf("\n");
-		printf("  -s   Shows projected/recommended service check scheduling information.\n");
+		printf("  -s   Shows projected/recommended service check scheduling information\n");
+		printf("       based on the current data in the configuration files.\n");
 		printf("\n");
 		printf("  -c   When used in conjunction with the -s option, this option will cause\n");
 		printf("       the status data to be updated with scheduling information.  It is\n");
@@ -589,7 +590,7 @@ int main(int argc, char **argv){
 			/* get PID */
 			nagios_pid=(int)getpid();
 
-			/* read in the configuration files (main config file and all host config files) */
+			/* read in the configuration files (main config file and all object config files) */
 			result=read_all_config_data(config_file);
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */

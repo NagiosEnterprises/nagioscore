@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-30-2002
+ * Last Modified: 05-01-2002
  *
  * Description:
  *
@@ -3228,6 +3228,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	/* defaults */
 	new_hostescalation->template=NULL;
 	new_hostescalation->name=NULL;
+	new_hostescalation->hostgroup_name=NULL;
 	new_hostescalation->host_name=NULL;
 	new_hostescalation->contact_groups=NULL;
 

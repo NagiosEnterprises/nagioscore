@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2002
+ * Last Modified: 12-05-2002
  *
  * License:
  *
@@ -103,7 +103,6 @@ int             timeperiods_have_been_read=FALSE;
 int             commands_have_been_read=FALSE;
 int             servicedependencies_have_been_read=FALSE;
 int             serviceescalations_have_been_read=FALSE;
-int             hostgroupescalations_have_been_read=FALSE;
 int             hostdependencies_have_been_read=FALSE;
 int             hostescalations_have_been_read=FALSE;
 
@@ -122,7 +121,6 @@ extern command         *command_list;
 extern timeperiod      *timeperiod_list;
 extern contact         *contact_list;
 extern serviceescalation *serviceescalation_list;
-extern hostgroupescalation *hostgroupescalation_list;
 
 extern hoststatus      *hoststatus_list;
 extern servicestatus   *servicestatus_list;
@@ -587,8 +585,6 @@ int read_all_object_configuration_data(char *config_file,int options){
 		options-=READ_SERVICEDEPENDENCIES;
 	if(serviceescalations_have_been_read==TRUE && (options & READ_SERVICEESCALATIONS))
 		options-=READ_SERVICEESCALATIONS;
-	if(hostgroupescalations_have_been_read==TRUE && (options & READ_HOSTGROUPESCALATIONS))
-		options-=READ_HOSTGROUPESCALATIONS;
 	if(hostdependencies_have_been_read==TRUE && (options & READ_HOSTDEPENDENCIES))
 		options-=READ_HOSTDEPENDENCIES;
 	if(hostescalations_have_been_read==TRUE && (options & READ_HOSTESCALATIONS))
@@ -620,8 +616,6 @@ int read_all_object_configuration_data(char *config_file,int options){
 		servicedependencies_have_been_read=TRUE;
 	if(options & READ_SERVICEESCALATIONS)
 		serviceescalations_have_been_read=TRUE;
-	if(options & READ_HOSTGROUPESCALATIONS)
-		hostgroupescalations_have_been_read=TRUE;
 	if(options & READ_HOSTDEPENDENCIES)
 		hostdependencies_have_been_read=TRUE;
 	if(options & READ_HOSTESCALATIONS)

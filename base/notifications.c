@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-30-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -32,7 +32,6 @@
 extern notification    *notification_list;
 extern contact         *contact_list;
 extern serviceescalation *serviceescalation_list;
-extern hostgroupescalation *hostgroupescalation_list;
 extern hostescalation  *hostescalation_list;
 
 extern int             interval_length;
@@ -1181,49 +1180,9 @@ int is_valid_host_escalation_for_host_notification(host *hst,int state,hostescal
         }
 
 
-/* checks to see if a hostgroup escalation entry is a match for the current host notification */
-int is_valid_hostgroup_escalation_for_host_notification(host *hst,int state,hostgroupescalation *hge){
-	hostgroup *temp_hostgroup;
-	int notification_number;
-
-#ifdef DEBUG0
-	printf("is_valid_hostgroup_escalation_for_host_notification() start\n");
-#endif
-
-	/* if this is a recovery, really we check for who got notified about a previous problem */
-	if(state==HOST_UP)
-		notification_number=hst->current_notification_number-1;
-	else
-		notification_number=hst->current_notification_number;
-
-	/* find the hostgroup this escalation entry is associated with */
-	temp_hostgroup=find_hostgroup(hge->group_name,NULL);
-	if(temp_hostgroup==NULL)
-		return FALSE;
-
-	/* see if the host is a member of this hostgroup */
-	if(is_host_member_of_hostgroup(temp_hostgroup,hst)==FALSE)
-		return FALSE;
-
-	/* skip this escalation if it happens later */
-	if(hge->first_notification > notification_number)
-		return FALSE;
-
-	/* skip this escalation if it has already passed */
-	if(hge->last_notification!=0 && hge->last_notification < notification_number)
-		return FALSE;
-
-#ifdef DEBUG0
-	printf("is_valid_hostgroup_escalation_for_host_notification() end\n");
-#endif
-
-	return TRUE;
-        }
-
 
 /* checks to see whether a host notification should be escalation */
 int should_host_notification_be_escalated(host *hst,int state){
-	hostgroupescalation *temp_hge;
 	hostescalation *temp_he;
 
 #ifdef DEBUG0
@@ -1238,14 +1197,6 @@ int should_host_notification_be_escalated(host *hst,int state){
 			return TRUE;
 	        }
 
-	/* search the hostgroup escalation list */
-	for(temp_hge=hostgroupescalation_list;temp_hge!=NULL;temp_hge=temp_hge->next){
-
-		/* we found a matching entry, so escalate this notification! */
-		if(is_valid_hostgroup_escalation_for_host_notification(hst,state,temp_hge)==TRUE)
-			return TRUE;
-	        }
-
 #ifdef DEBUG0
 	printf("should_host_notification_be_escalated() end\n");
 #endif
@@ -1256,7 +1207,6 @@ int should_host_notification_be_escalated(host *hst,int state){
 
 /* given a host, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_host(host *hst,int state){
-	hostgroupescalation *temp_hge;
 	hostescalation *temp_he;
 	contactgroupsmember *temp_group;
 	contactgroup *temp_contactgroup;
@@ -1278,29 +1228,6 @@ int create_notification_list_from_host(host *hst,int state){
 
 			/* find each contact group in this escalation entry */
 			for(temp_group=temp_he->contact_groups;temp_group!=NULL;temp_group=temp_group->next){
-
-				temp_contactgroup=find_contactgroup(temp_group->group_name,NULL);
-				if(temp_contactgroup==NULL)
-					continue;
-
-				/* check all contacts */
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					
-					if(is_contact_member_of_contactgroup(temp_contactgroup,temp_contact)==TRUE)
-						add_notification(temp_contact);
-				        }
-			        }
-		        }
-
-		/* check all the hostgroup escalation entries */
-		for(temp_hge=hostgroupescalation_list;temp_hge!=NULL;temp_hge=temp_hge->next){
-
-			/* see if this escalation if valid for this notification */
-			if(is_valid_hostgroup_escalation_for_host_notification(hst,state,temp_hge)==FALSE)
-				continue;
-
-			/* find each contact group in this escalation entry */
-			for(temp_group=temp_hge->contact_groups;temp_group!=NULL;temp_group=temp_group->next){
 
 				temp_contactgroup=find_contactgroup(temp_group->group_name,NULL);
 				if(temp_contactgroup==NULL)
@@ -1418,7 +1345,6 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 time_t get_next_host_notification_time(host *hst, int state, time_t offset){
 	time_t next_notification;
 	int interval_to_use;
-	hostgroupescalation *temp_hge;
 	hostescalation *temp_he;
 	int have_escalated_interval=FALSE;
 
@@ -1449,28 +1375,6 @@ time_t get_next_host_notification_time(host *hst, int state, time_t offset){
 		/* else use the shortest of all valid escalation intervals  */
 		else if(temp_he->notification_interval<interval_to_use)
 			interval_to_use=temp_he->notification_interval;
-	        }
-
-	/* check all the hostgroup escalation entries for valid matches for this host (at its current notification number) */
-	for(temp_hge=hostgroupescalation_list;temp_hge!=NULL;temp_hge=temp_hge->next){
-
-		/* interval < 0 means to use non-escalated interval */
-		if(temp_hge->notification_interval<0)
-			continue;
-
-		/* skip this entry if it itsn't appropriate */
-		if(is_valid_hostgroup_escalation_for_host_notification(hst,state,temp_hge)==FALSE)
-			continue;
-
-		/* if we haven't used a notification interval from an escalation yet, use this one */
-		if(have_escalated_interval==FALSE){
-			have_escalated_interval=TRUE;
-			interval_to_use=temp_hge->notification_interval;
-		        }
-
-		/* else use the shortest of all valid escalation intervals */
-		else if(temp_hge->notification_interval<interval_to_use)
-			interval_to_use=temp_hge->notification_interval;
 	        }
 
 	/* if interval is 0, no more notifications should be sent */

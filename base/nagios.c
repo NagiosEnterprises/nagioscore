@@ -202,7 +202,6 @@ extern timed_event     *event_list_low;
 extern command         *command_list;
 extern timeperiod      *timeperiod_list;
 extern serviceescalation *serviceescalation_list;
-extern hostgroupescalation *hostgroupescalation_list;
 
 timed_event *event_list_low=NULL;
 timed_event *event_list_high=NULL;

@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-10-2002
+ * Last Modified: 12-05-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -43,7 +43,6 @@ extern contactgroup *contactgroup_list;
 extern command *command_list;
 extern timeperiod *timeperiod_list;
 extern contact *contact_list;
-extern hostgroupescalation *hostgroupescalation_list;
 extern servicedependency *servicedependency_list;
 extern serviceescalation *serviceescalation_list;
 extern hostdependency *hostdependency_list;
@@ -58,7 +57,7 @@ extern hostescalation *hostescalation_list;
 #define DISPLAY_SERVICES                 5
 #define DISPLAY_TIMEPERIODS              6
 #define DISPLAY_COMMANDS                 7
-#define DISPLAY_HOSTGROUPESCALATIONS     8
+#define DISPLAY_HOSTGROUPESCALATIONS     8    /* no longer implemented */
 #define DISPLAY_SERVICEDEPENDENCIES      9
 #define DISPLAY_SERVICEESCALATIONS       10
 #define DISPLAY_HOSTDEPENDENCIES         11
@@ -77,7 +76,6 @@ void display_contactgroups(void);
 void display_services(void);
 void display_timeperiods(void);
 void display_commands(void);
-void display_hostgroupescalations(void);
 void display_servicedependencies(void);
 void display_serviceescalations(void);
 void display_hostdependencies(void);
@@ -159,7 +157,6 @@ int main(void){
 		printf("<option value='hostdependencies' %s>Host Dependencies\n",(display_type==DISPLAY_HOSTDEPENDENCIES)?"SELECTED":"");
 		printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
 		printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
-		printf("<option value='hostgroupescalations' %s>Host Group Escalations\n",(display_type==DISPLAY_HOSTGROUPESCALATIONS)?"SELECTED":"");
 		printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
 		printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
 		printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");
@@ -197,9 +194,6 @@ int main(void){
 		break;
 	case DISPLAY_COMMANDS:
 		display_context_help(CONTEXTHELP_CONFIG_COMMANDS);
-		break;
-	case DISPLAY_HOSTGROUPESCALATIONS:
-		display_context_help(CONTEXTHELP_CONFIG_HOSTGROUPESCALATIONS);
 		break;
 	case DISPLAY_SERVICEDEPENDENCIES:
 		display_context_help(CONTEXTHELP_CONFIG_SERVICEDEPENDENCIES);
@@ -246,9 +240,6 @@ int main(void){
 		break;
 	case DISPLAY_COMMANDS:
 		display_commands();
-		break;
-	case DISPLAY_HOSTGROUPESCALATIONS:
-		display_hostgroupescalations();
 		break;
 	case DISPLAY_SERVICEDEPENDENCIES:
 		display_servicedependencies();
@@ -365,8 +356,6 @@ int process_cgivars(void){
 				display_type=DISPLAY_TIMEPERIODS;
 			else if(!strcmp(variables[x],"commands"))
 				display_type=DISPLAY_COMMANDS;
-			else if(!strcmp(variables[x],"hostgroupescalations"))
-				display_type=DISPLAY_HOSTGROUPESCALATIONS;
 			else if(!strcmp(variables[x],"servicedependencies"))
 				display_type=DISPLAY_SERVICEDEPENDENCIES;
 			else if(!strcmp(variables[x],"serviceescalations"))
@@ -1285,87 +1274,6 @@ void display_commands(void){
 
 
 
-void display_hostgroupescalations(void){
-	hostgroupescalation *temp_hge;
-	contactgroupsmember *temp_contactgroupsmember;
-	int odd=0;
-	char *bg_class="";
-
-	/* see if user is authorized to view hostgroup information... */
-	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
-		unauthorized_message();
-		return;
-	        }
-
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Hostgroup Escalations</DIV></P>\n");
-
-	printf("<P>\n");
-	printf("<DIV ALIGN=CENTER>\n");
-
-	printf("<TABLE BORDER=0 CLASS='data'>\n");
-	printf("<TR>\n");
-	printf("<TH CLASS='data'>Hostgroup</TH>");
-	printf("<TH CLASS='data'>Contact Groups</TH>");
-	printf("<TH CLASS='data'>First Notification</TH>");
-	printf("<TH CLASS='data'>Last Notification</TH>");
-	printf("<TH CLASS='data'>Notification Interval</TH>");
-	printf("</TR>\n");
-
-	/* check all the hostgroup escalations... */
-	for(temp_hge=hostgroupescalation_list;temp_hge!=NULL;temp_hge=temp_hge->next){
-
-		if(odd){
-			odd=0;
-			bg_class="dataOdd";
-		        }
-		else{
-			odd=1;
-			bg_class="dataEven";
-		        }
-
-		printf("<TR CLASS='%s'>\n",bg_class);
-
-		printf("<TD CLASS='%s'><A HREF='%s?type=hostgroups#%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hge->group_name),temp_hge->group_name);
-
-		printf("<TD CLASS='%s'>",bg_class);
-		for(temp_contactgroupsmember=temp_hge->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			if(temp_contactgroupsmember!=temp_hge->contact_groups)
-				printf(", ");
-
-			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
-		        }
-		printf("</TD>\n");
-
-		printf("<TD CLASS='%s'>%d</TD>",bg_class,temp_hge->first_notification);
-
-		printf("<TD CLASS='%s'>",bg_class);
-		if(temp_hge->last_notification==0)
-			printf("Infinity");
-		else
-			printf("%d",temp_hge->last_notification);
-		printf("</TD>\n");
-
-		printf("<TD CLASS='%s'>",bg_class);
-		if(temp_hge->notification_interval==0)
-			printf("Notify Only Once (No Re-notification)");
-		else
-			printf("%d",temp_hge->notification_interval);
-		printf("</TD>\n");
-
-
-		printf("</TR>\n");
-	        }
-
-	printf("</TABLE>\n");
-	printf("</DIV>\n");
-	printf("</P>\n");
-
-	return;
-        }
-
-
-
 void display_servicedependencies(void){
 	servicedependency *temp_sd;
 	int odd=0;
@@ -1741,7 +1649,6 @@ void display_options(void){
 	printf("<option value='hostdependencies' %s>Host Dependencies\n",(display_type==DISPLAY_HOSTDEPENDENCIES)?"SELECTED":"");
 	printf("<option value='hostescalations' %s>Host Escalations\n",(display_type==DISPLAY_HOSTESCALATIONS)?"SELECTED":"");
 	printf("<option value='hostgroups' %s>Host Groups\n",(display_type==DISPLAY_HOSTGROUPS)?"SELECTED":"");
-	printf("<option value='hostgroupescalations' %s>Host Group Escalations\n",(display_type==DISPLAY_HOSTGROUPESCALATIONS)?"SELECTED":"");
 	printf("<option value='services' %s>Services\n",(display_type==DISPLAY_SERVICES)?"SELECTED":"");
 	printf("<option value='servicedependencies' %s>Service Dependencies\n",(display_type==DISPLAY_SERVICEDEPENDENCIES)?"SELECTED":"");
 	printf("<option value='serviceescalations' %s>Service Escalations\n",(display_type==DISPLAY_SERVICEESCALATIONS)?"SELECTED":"");

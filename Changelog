@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Removed hostgroup escalations
 * Added passive host checks
 * Event handler commands can now contain arguments
 * Contact notification commands can now contain arguments (Greg Vickers)

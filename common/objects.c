@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2002
+ * Last Modified:   12-05-2002
  *
  * License:
  *
@@ -52,7 +52,6 @@ service		**service_list=NULL;
 command         *command_list=NULL;
 timeperiod      *timeperiod_list=NULL;
 serviceescalation       *serviceescalation_list=NULL;
-hostgroupescalation     *hostgroupescalation_list=NULL;
 servicedependency       *servicedependency_list=NULL;
 hostdependency          *hostdependency_list=NULL;
 hostescalation          *hostescalation_list=NULL;
@@ -2791,152 +2790,6 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 
 
-/* add a new hostgroup escalation to the list in memory */
-hostgroupescalation *add_hostgroupescalation(char *group_name,int first_notification,int last_notification, int notification_interval){
-	hostgroupescalation *new_hostgroupescalation;
-#ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostgroupescalation() start\n");
-#endif
-
-	/* make sure we have the data we need */
-	if(group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup escalation group name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup escalation group name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* allocate memory for a new hostgroup escalation entry */
-	new_hostgroupescalation=malloc(sizeof(hostgroupescalation));
-	if(new_hostgroupescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' escalation\n",group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	new_hostgroupescalation->group_name=strdup(group_name);
-	if(new_hostgroupescalation->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' escalation group name\n",group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		free(new_hostgroupescalation);
-		return NULL;
-	        }
-
-
-	new_hostgroupescalation->first_notification=first_notification;
-	new_hostgroupescalation->last_notification=last_notification;
-	new_hostgroupescalation->notification_interval=(notification_interval<=0)?0:notification_interval;
-	new_hostgroupescalation->contact_groups=NULL;
-
-	/* add new hostgroup escalation to the head of the hostgroup escalation list (unsorted) */
-	new_hostgroupescalation->next=hostgroupescalation_list;
-	hostgroupescalation_list=new_hostgroupescalation;
-		
-
-#ifdef DEBUG1
-	printf("\tHostgroup name:        %s\n",new_hostgroupescalation->group_name);
-	printf("\tFirst notification:    %d\n",new_hostgroupescalation->first_notification);
-	printf("\tLast notification:     %d\n",new_hostgroupescalation->last_notification);
-	printf("\tNotification interval: %d\n",new_hostgroupescalation->notification_interval);
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostgroupescalation() end\n");
-#endif
-
-	return new_hostgroupescalation;
-	}
-
-
-
-
-/* adds a contact group to a hostgroup escalation */
-contactgroupsmember *add_contactgroup_to_hostgroupescalation(hostgroupescalation *hge,char *group_name){
-	contactgroupsmember *new_contactgroupsmember;
-#ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_hostgroupescalation() start\n");
-#endif
-
-	/* bail out if we weren't given the data we need */
-	if(hge==NULL || group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup escalation or contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* allocate memory for the contactgroups member */
-	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
-	if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' for hostgroup '%s' escalation\n",group_name,hge->group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	new_contactgroupsmember->group_name=strdup(group_name);
-	if(new_contactgroupsmember->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for hostgroup '%s' escalation\n",group_name,hge->group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		free(new_contactgroupsmember);
-		return NULL;
-	        }
-
-	/* add this contactgroup to the hostgroup escalation */
-	new_contactgroupsmember->next=hge->contact_groups;
-	hge->contact_groups=new_contactgroupsmember;
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_hostgroupescalation() end\n");
-#endif
-
-	return new_contactgroupsmember;
-	}
-
-
 /* adds a service dependency definition */
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical){
 	servicedependency *new_servicedependency;
@@ -3991,7 +3844,6 @@ int is_contact_for_host(host *hst, contact *cntct){
 
 /* tests whether or not a contact is an escalated contact for a particular host */
 int is_escalated_contact_for_host(host *hst, contact *cntct){
-	hostgroupescalation *temp_hostgroupescalation;
 	contactgroupsmember *temp_contactgroupsmember;
 	contactgroup *temp_contactgroup;
 	hostgroup *temp_hostgroup;
@@ -4017,32 +3869,6 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 				return TRUE;
 		        }
 	         }
-
-	/* search all the hostgroup escalations */
-	for(temp_hostgroupescalation=hostgroupescalation_list;temp_hostgroupescalation!=NULL;temp_hostgroupescalation=temp_hostgroupescalation->next){
-
-		/* find the hostgroup */
-		temp_hostgroup=find_hostgroup(temp_hostgroupescalation->group_name,NULL);
-		if(temp_hostgroup==NULL)
-			continue;
-
-		/* see if this host is a member of the hostgroup */
-		if(is_host_member_of_hostgroup(temp_hostgroup,hst)==FALSE)
-			continue;
-
-		/* search all the contact groups in this escalation... */
-		for(temp_contactgroupsmember=temp_hostgroupescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
-			if(temp_contactgroup==NULL)
-				continue;
-
-			/* see if the contact is a member of this contact group */
-			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
-				return TRUE;
-		        }
-	        }
 
 	return FALSE;
         }
@@ -4213,8 +4039,6 @@ int free_object_data(void){
 	commandsmember *next_commandsmember=NULL;
 	serviceescalation *this_serviceescalation=NULL;
 	serviceescalation *next_serviceescalation=NULL;
-	hostgroupescalation *this_hostgroupescalation=NULL;
-	hostgroupescalation *next_hostgroupescalation=NULL;
 	servicedependency *this_servicedependency=NULL;
 	servicedependency *next_servicedependency=NULL;
 	hostdependency *this_hostdependency=NULL;
@@ -4473,22 +4297,6 @@ int free_object_data(void){
 
 #ifdef DEBUG1
 	printf("\tserviceescalation_list freed\n");
-#endif
-
-	/* free memory for the hostgroup escalation list */
-	this_hostgroupescalation=hostgroupescalation_list;
-	while(this_hostgroupescalation!=NULL){
-		next_hostgroupescalation=this_hostgroupescalation->next;
-		free(this_hostgroupescalation->group_name);
-		free(this_hostgroupescalation);
-		this_hostgroupescalation=next_hostgroupescalation;
-	        }
-
-	/* reset the hostgroup escalation list */
-	hostgroupescalation_list=NULL;
-
-#ifdef DEBUG1
-	printf("\thostgroupescalation_list freed\n");
 #endif
 
 	/* free memory for the service dependency list */

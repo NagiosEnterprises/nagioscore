@@ -136,7 +136,6 @@ extern notification     *notification_list;
 extern command          *command_list;
 extern timeperiod       *timeperiod_list;
 extern serviceescalation *serviceescalation_list;
-extern hostgroupescalation *hostgroupescalation_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency   *hostdependency_list;
 extern hostescalation   *hostescalation_list;
@@ -1291,7 +1290,6 @@ int pre_flight_check(void){
 	timeperiod *temp_timeperiod;
 	serviceescalation *temp_se;
 	hostescalation *temp_he;
-	hostgroupescalation *temp_hge;
 	servicedependency *temp_sd;
 	servicedependency *temp_sd2;
 	hostdependency *temp_hd;
@@ -1869,18 +1867,6 @@ int pre_flight_check(void){
 			        }
 		        }
 		if(found==FALSE){
-			for(temp_hge=hostgroupescalation_list;temp_hge!=NULL;temp_hge=temp_hge->next){
-				for(temp_contactgroupsmember=temp_hge->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
-						found=TRUE;
-						break;
-				                }
-			                 }
-				if(found==TRUE)
-					break;
-			        }
-		        }
-		if(found==FALSE){
 			for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 				for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
@@ -1970,46 +1956,6 @@ int pre_flight_check(void){
 	printf("\tCompleted service escalation checks\n");
 #endif
 
-
-
- 
-	/*****************************************/
-	/* check all hostgroup escalations...    */
-	/*****************************************/
-	if(verify_config==TRUE)
-		printf("Checking host group escalations...\n");
-
-	for(temp_hge=hostgroupescalation_list,total_objects=0;temp_hge!=NULL;temp_hge=temp_hge->next,total_objects++){
-
-		/* find the hostgroup */
-		temp_hostgroup=find_hostgroup(temp_hge->group_name,NULL);
-		if(temp_hostgroup==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Hostgroup escalation for hostgroup '%s' is invalid because the hostgroup is not defined anywhere!",temp_hge->group_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			errors++;
-		        }
-
-		/* find the contact groups */
-		for(temp_contactgroupsmember=temp_hge->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-			
-			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
-			if(temp_contactgroup==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in hostgroup escalation for hostgroup '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_hge->group_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				errors++;
-			        }
-		        }
-	        }
-
-	if(verify_config==TRUE)
-		printf("\tChecked %d host group escalations.\n",total_objects);
- 
-#ifdef DEBUG1
-	printf("\tCompleted hostgroup escalation checks\n");
-#endif
 
 
 	/*****************************************/

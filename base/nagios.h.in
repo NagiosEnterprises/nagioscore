@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-04-2002
+ * Last Modified: 12-05-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -377,7 +377,6 @@ int check_contact_service_notification_viability(contact *, service *);	/* check
 int notify_contact_of_service(contact *,service *,char *);        	/* notify a single contact about a service */
 int check_host_notification_viability(host *,int,char *);		/* checks viability of notifying all contacts about a host */
 int is_valid_host_escalation_for_host_notification(host *,int,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
-int is_valid_hostgroup_escalation_for_host_notification(host *,int,hostgroupescalation *);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *,int);			/* checks if a host notification should be escalated */
 int host_notification(host *,int, char *);                           	/* notify all contacts about a host (problem or recovery) */
 int check_contact_host_notification_viability(contact *, host *, int);	/* checks viability of notifying a contact about a host */ 

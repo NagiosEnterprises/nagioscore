@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Last Modified:   12-05-2002
  *
  * License:
  *
@@ -42,7 +42,7 @@
 #define XODTEMPLATE_HOSTGROUP           6
 #define XODTEMPLATE_SERVICE             7
 #define XODTEMPLATE_SERVICEDEPENDENCY   8
-#define XODTEMPLATE_HOSTGROUPESCALATION 9
+#define XODTEMPLATE_HOSTGROUPESCALATION 9      /* no longer implemented */
 #define XODTEMPLATE_SERVICEESCALATION   10
 #define XODTEMPLATE_HOSTESCALATION      11
 #define XODTEMPLATE_HOSTDEPENDENCY      12
@@ -207,29 +207,6 @@ typedef struct xodtemplate_hostgroup_struct{
 	int       register_object;
 	struct xodtemplate_hostgroup_struct *next;
         }xodtemplate_hostgroup;
-
-
-/* HOSTGROUPESCALATION TEMPLATE STRUCTURE */
-typedef struct xodtemplate_hostgroupescalation_struct{
-	char      *template;
-	char      *name;
-	int        _config_file;
-	int        _start_line;
-
-	char      *hostgroup_name;
-	int       first_notification;
-	int       last_notification;
-	int       notification_interval;
-	char      *contact_groups;
-
-	int       have_first_notification;
-	int       have_last_notification;
-	int       have_notification_interval;
-
-	int       has_been_resolved;
-	int       register_object;
-	struct xodtemplate_hostgroupescalation_struct *next;
-        }xodtemplate_hostgroupescalation;
 
 
 /* SERVICE TEMPLATE STRUCTURE */
@@ -449,7 +426,6 @@ int xodtemplate_register_objects(void);
 int xodtemplate_free_memory(void);
 
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
-int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *,char *);
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *,char *);
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *,char *,char *);
 int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *,char *,char *);
@@ -461,7 +437,6 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *);
 int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *);
 int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *);
 int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *);
-int xodtemplate_resolve_hostgroupescalation(xodtemplate_hostgroupescalation *);
 int xodtemplate_resolve_contact(xodtemplate_contact *);
 int xodtemplate_resolve_host(xodtemplate_host *);
 int xodtemplate_resolve_service(xodtemplate_service *);
@@ -475,7 +450,6 @@ xodtemplate_hostgroup *xodtemplate_find_hostgroup(char *);
 xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *);
 xodtemplate_servicedependency *xodtemplate_find_servicedependency(char *);
 xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *);
-xodtemplate_hostgroupescalation *xodtemplate_find_hostgroupescalation(char *);
 xodtemplate_contact *xodtemplate_find_contact(char *);
 xodtemplate_host *xodtemplate_find_host(char *);
 xodtemplate_host *xodtemplate_find_real_host(char *);
@@ -493,7 +467,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *);
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *);
 int xodtemplate_register_servicedependency(xodtemplate_servicedependency *);
 int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *);
-int xodtemplate_register_hostgroupescalation(xodtemplate_hostgroupescalation *);
 int xodtemplate_register_contact(xodtemplate_contact *);
 int xodtemplate_register_host(xodtemplate_host *);
 int xodtemplate_register_service(xodtemplate_service *);

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-04-2002
+ * Last Modified: 12-05-2002
  *
  * Description:
  *
@@ -65,7 +65,6 @@ xodtemplate_contactgroup *xodtemplate_contactgroup_list=NULL;
 xodtemplate_hostgroup *xodtemplate_hostgroup_list=NULL;
 xodtemplate_servicedependency *xodtemplate_servicedependency_list=NULL;
 xodtemplate_serviceescalation *xodtemplate_serviceescalation_list=NULL;
-xodtemplate_hostgroupescalation *xodtemplate_hostgroupescalation_list=NULL;
 xodtemplate_contact *xodtemplate_contact_list=NULL;
 xodtemplate_host *xodtemplate_host_list=NULL;
 xodtemplate_service **xodtemplate_service_list=NULL;
@@ -114,7 +113,6 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 	xodtemplate_hostgroup_list=NULL;
 	xodtemplate_servicedependency_list=NULL;
 	xodtemplate_serviceescalation_list=NULL;
-	xodtemplate_hostgroupescalation_list=NULL;
 	xodtemplate_contact_list=NULL;
 	xodtemplate_host_list=NULL;
 	xodtemplate_service_list=NULL;
@@ -559,7 +557,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	xodtemplate_hostgroup *new_hostgroup;
 	xodtemplate_servicedependency *new_servicedependency;
 	xodtemplate_serviceescalation *new_serviceescalation;
-	xodtemplate_hostgroupescalation *new_hostgroupescalation;
 	xodtemplate_contact *new_contact;
 	xodtemplate_host *new_host;
 	xodtemplate_service *new_service;
@@ -589,8 +586,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		xodtemplate_current_object_type=XODTEMPLATE_SERVICEDEPENDENCY;
 	else if(!strcmp(input,"serviceescalation"))
 		xodtemplate_current_object_type=XODTEMPLATE_SERVICEESCALATION;
-	else if(!strcmp(input,"hostgroupescalation"))
-		xodtemplate_current_object_type=XODTEMPLATE_HOSTGROUPESCALATION;
 	else if(!strcmp(input,"hostdependency"))
 		xodtemplate_current_object_type=XODTEMPLATE_HOSTDEPENDENCY;
 	else if(!strcmp(input,"hostescalation"))
@@ -635,10 +630,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		break;
 	case XODTEMPLATE_SERVICEESCALATION:
 		if(!(options & READ_SERVICEESCALATIONS))
-			return OK;
-		break;
-	case XODTEMPLATE_HOSTGROUPESCALATION:
-		if(!(options & READ_HOSTGROUPESCALATIONS))
 			return OK;
 		break;
 	case XODTEMPLATE_HOSTDEPENDENCY:
@@ -855,40 +846,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* update current object pointer */
 		xodtemplate_current_object=xodtemplate_serviceescalation_list;
-		break;
-
-	case XODTEMPLATE_HOSTGROUPESCALATION:
-
-		/* allocate memory */
-		new_hostgroupescalation=(xodtemplate_hostgroupescalation *)malloc(sizeof(xodtemplate_hostgroupescalation));
-		if(new_hostgroupescalation==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for hostgroupescalation definition\n");
-#endif
-			return ERROR;
-		        }
-		
-		new_hostgroupescalation->template=NULL;
-		new_hostgroupescalation->name=NULL;
-		new_hostgroupescalation->hostgroup_name=NULL;
-		new_hostgroupescalation->contact_groups=NULL;
-		new_hostgroupescalation->first_notification=-2;
-		new_hostgroupescalation->last_notification=-2;
-		new_hostgroupescalation->notification_interval=-2;
-		new_hostgroupescalation->have_first_notification=FALSE;
-		new_hostgroupescalation->have_last_notification=FALSE;
-		new_hostgroupescalation->have_notification_interval=FALSE;
-		new_hostgroupescalation->has_been_resolved=FALSE;
-		new_hostgroupescalation->register_object=TRUE;
-		new_hostgroupescalation->_config_file=config_file;
-		new_hostgroupescalation->_start_line=start_line;
-
-		/* add new hostgroupescalation to head of list in memory */
-		new_hostgroupescalation->next=xodtemplate_hostgroupescalation_list;
-		xodtemplate_hostgroupescalation_list=new_hostgroupescalation;
-
-		/* update current object pointer */
-		xodtemplate_current_object=xodtemplate_hostgroupescalation_list;
 		break;
 
 	case XODTEMPLATE_CONTACT:
@@ -1183,7 +1140,6 @@ int xodtemplate_add_object_property(char *input, int options){
 	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_servicedependency *temp_servicedependency;
 	xodtemplate_serviceescalation *temp_serviceescalation;
-	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_contact *temp_contact;
 	xodtemplate_host *temp_host;
 	xodtemplate_service *temp_service;
@@ -1236,10 +1192,6 @@ int xodtemplate_add_object_property(char *input, int options){
 		break;
 	case XODTEMPLATE_SERVICEESCALATION:
 		if(!(options & READ_SERVICEESCALATIONS))
-			return OK;
-		break;
-	case XODTEMPLATE_HOSTGROUPESCALATION:
-		if(!(options & READ_HOSTGROUPESCALATIONS))
 			return OK;
 		break;
 	case XODTEMPLATE_HOSTDEPENDENCY:
@@ -1790,72 +1742,6 @@ int xodtemplate_add_object_property(char *input, int options){
 		else{
 #ifdef DEBUG1
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid serviceescalation object directive '%s'.\n",variable);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return ERROR;
-		        }
-
-		break;
-	
-
-	case XODTEMPLATE_HOSTGROUPESCALATION:
-
-		temp_hostgroupescalation=(xodtemplate_hostgroupescalation *)xodtemplate_current_object;
-
-		if(!strcmp(variable,"use")){
-			temp_hostgroupescalation->template=strdup(value);
-			if(temp_hostgroupescalation->template==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroupescalation template.\n");
-#endif
-				return ERROR;
-			        }
-		        }
-		else if(!strcmp(variable,"name")){
-			temp_hostgroupescalation->name=strdup(value);
-			if(temp_hostgroupescalation->name==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroupescalation name.\n");
-#endif
-				return ERROR;
-			        }
-		        }
-		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
-			temp_hostgroupescalation->hostgroup_name=strdup(value);
-			if(temp_hostgroupescalation->hostgroup_name==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroupescalation hostgroup.\n");
-#endif
-				return ERROR;
-			        }
-		        }
-		else if(!strcmp(variable,"contact_groups")){
-			temp_hostgroupescalation->contact_groups=strdup(value);
-			if(temp_hostgroupescalation->contact_groups==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroupescalation contact_groups.\n");
-#endif
-				return ERROR;
-			        }
-		        }
-		else if(!strcmp(variable,"first_notification")){
-			temp_hostgroupescalation->first_notification=atoi(value);
-			temp_hostgroupescalation->have_first_notification=TRUE;
-		        }
-		else if(!strcmp(variable,"last_notification")){
-			temp_hostgroupescalation->last_notification=atoi(value);
-			temp_hostgroupescalation->have_last_notification=TRUE;
-		        }
-		else if(!strcmp(variable,"notification_interval")){
-			temp_hostgroupescalation->notification_interval=atoi(value);
-			temp_hostgroupescalation->have_notification_interval=TRUE;
-		        }
-		else if(!strcmp(variable,"register"))
-			temp_hostgroupescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
-		else{
-#ifdef DEBUG1
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid hostgroupescalation object directive '%s'.\n",variable);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2699,7 +2585,6 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_service *temp_service;
 	xodtemplate_host *temp_host;
 	xodtemplate_hostgroup *temp_hostgroup;
-	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_hostdependency *temp_hostdependency;
@@ -2786,6 +2671,7 @@ int xodtemplate_duplicate_objects(void){
 		xodtemplate_free_hostlist(temp_hostlist);
 	        }
 	free_xodtemplate_service_cursor(xod_svc_cursor);
+
 
 	/****** DUPLICATE HOST ESCALATION DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
@@ -2942,52 +2828,6 @@ int xodtemplate_duplicate_objects(void){
 					return ERROR;
 			        }
 			free_xodtemplate_service_cursor(xod_svc_cursor);
-		        }
-	        }
-
-
-	/****** DUPLICATE HOSTGROUP ESCALATION DEFINITIONS WITH MULTIPLE HOSTGROUP NAMES ******/
-	for(temp_hostgroupescalation=xodtemplate_hostgroupescalation_list;temp_hostgroupescalation!=NULL;temp_hostgroupescalation=temp_hostgroupescalation->next){
-
-		/* skip hostgroup escalations with NULL hostgroup names */
-		if(temp_hostgroupescalation->hostgroup_name==NULL)
-			continue;
-
-		/* this hostgroupescalation definition should be assigned to multiple hostgroups... */
-		if(strstr(temp_hostgroupescalation->hostgroup_name,",")){
-			
-			/* allocate memory for hostgroup name list */
-			hostgroup_names=strdup(temp_hostgroupescalation->hostgroup_name);
-			if(hostgroup_names==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroup name list in hostgroup escalation\n");
-#endif
-				return ERROR;
-			        }
-
-			/* duplicate hostgroupescalation entries */
-			first_item=TRUE;
-			for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
-
-				/* existing definition gets first hostgroup name (memory has already been allocated) */
-				if(first_item==TRUE){
-					strcpy(temp_hostgroupescalation->hostgroup_name,temp_ptr);
-					first_item=FALSE;
-					continue;
-				        }
-
-				/* duplicate hostgroupescalation definition */
-				result=xodtemplate_duplicate_hostgroupescalation(temp_hostgroupescalation,temp_ptr);
-
-				/* exit on error */
-				if(result==ERROR){
-					free(hostgroup_names);
-					return ERROR;
-				        }
-			        }
-
-			/* free memory we used for host name list */
-			free(hostgroup_names);
 		        }
 	        }
 
@@ -3577,104 +3417,6 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 
 
 
-
-/* duplicates a hostgroup escalation definition (with a new hostgroup name) */
-int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *temp_hostgroupescalation, char *hostgroup_name){
-	xodtemplate_hostgroupescalation *new_hostgroupescalation;
-
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostgroupescalation() start\n");
-#endif
-
-	/* allocate memory for a new host escalation definition */
-	new_hostgroupescalation=(xodtemplate_hostgroupescalation *)malloc(sizeof(xodtemplate_hostgroupescalation));
-	if(new_hostgroupescalation==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
-#endif
-		return ERROR;
-	        }
-
-	/* defaults */
-	new_hostgroupescalation->template=NULL;
-	new_hostgroupescalation->name=NULL;
-	new_hostgroupescalation->hostgroup_name=NULL;
-	new_hostgroupescalation->contact_groups=NULL;
-
-	new_hostgroupescalation->has_been_resolved=temp_hostgroupescalation->has_been_resolved;
-	new_hostgroupescalation->register_object=temp_hostgroupescalation->register_object;
-	new_hostgroupescalation->_config_file=temp_hostgroupescalation->_config_file;
-	new_hostgroupescalation->_start_line=temp_hostgroupescalation->_start_line;
-
-	new_hostgroupescalation->first_notification=temp_hostgroupescalation->first_notification;
-	new_hostgroupescalation->last_notification=temp_hostgroupescalation->last_notification;
-	new_hostgroupescalation->have_first_notification=temp_hostgroupescalation->have_first_notification;
-	new_hostgroupescalation->have_last_notification=temp_hostgroupescalation->have_last_notification;
-	new_hostgroupescalation->notification_interval=temp_hostgroupescalation->notification_interval;
-	new_hostgroupescalation->have_notification_interval=temp_hostgroupescalation->have_notification_interval;
-	
-
-	/* allocate memory for and copy string members of hostgroupescalation definition */
-	if(temp_hostgroupescalation->hostgroup_name!=NULL){
-		new_hostgroupescalation->hostgroup_name=strdup(hostgroup_name);
-		if(new_hostgroupescalation->hostgroup_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
-#endif
-			free(new_hostgroupescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostgroupescalation->template!=NULL){
-		new_hostgroupescalation->template=strdup(temp_hostgroupescalation->template);
-		if(new_hostgroupescalation->template==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
-#endif
-			free(new_hostgroupescalation->hostgroup_name);
-			free(new_hostgroupescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostgroupescalation->name!=NULL){
-		new_hostgroupescalation->name=strdup(temp_hostgroupescalation->name);
-		if(new_hostgroupescalation->name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
-#endif
-			free(new_hostgroupescalation->hostgroup_name);
-			free(new_hostgroupescalation->template);
-			free(new_hostgroupescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostgroupescalation->contact_groups!=NULL){
-		new_hostgroupescalation->contact_groups=strdup(temp_hostgroupescalation->contact_groups);
-		if(new_hostgroupescalation->contact_groups==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of hostgroup escalation.\n");
-#endif
-			free(new_hostgroupescalation->hostgroup_name);
-			free(new_hostgroupescalation->template);
-			free(new_hostgroupescalation->name);
-			free(new_hostgroupescalation);
-			return ERROR;
-		        }
-	        } 
-
-	/* add new hostgroupescalation to head of list in memory */
-	new_hostgroupescalation->next=xodtemplate_hostgroupescalation_list;
-	xodtemplate_hostgroupescalation_list=new_hostgroupescalation;
-
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostgroupescalation() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
 /* duplicates a service escalation definition (with a new host name and/or service description) */
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_serviceescalation, char *host_name, char *svc_description){
 	xodtemplate_serviceescalation *new_serviceescalation;
@@ -4039,7 +3781,6 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_servicedependency *temp_servicedependency;
 	xodtemplate_serviceescalation *temp_serviceescalation;
-	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	xodtemplate_contact *temp_contact;
 	xodtemplate_host *temp_host;
 	xodtemplate_service *temp_service;
@@ -4084,12 +3825,6 @@ int xodtemplate_resolve_objects(void){
 	/* resolve all serviceescalation objects */
 	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
 		if(xodtemplate_resolve_serviceescalation(temp_serviceescalation)==ERROR)
-			return ERROR;
-	        }
-
-	/* resolve all hostgroupescalation objects */
-	for(temp_hostgroupescalation=xodtemplate_hostgroupescalation_list;temp_hostgroupescalation!=NULL;temp_hostgroupescalation=temp_hostgroupescalation->next){
-		if(xodtemplate_resolve_hostgroupescalation(temp_hostgroupescalation)==ERROR)
 			return ERROR;
 	        }
 
@@ -4478,68 +4213,6 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_servicedeescalation() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* resolves a hostgroupescalation object */
-int xodtemplate_resolve_hostgroupescalation(xodtemplate_hostgroupescalation *this_hostgroupescalation){
-	xodtemplate_hostgroupescalation *template_hostgroupescalation;
-#ifdef NSCORE
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostgroupescalation() start\n");
-#endif
-
-	/* return if this hostgroupescalation has already been resolved */
-	if(this_hostgroupescalation->has_been_resolved==TRUE)
-		return OK;
-
-	/* set the resolved flag */
-	this_hostgroupescalation->has_been_resolved=TRUE;
-
-	/* return if we have no template */
-	if(this_hostgroupescalation->template==NULL)
-		return OK;
-
-	template_hostgroupescalation=xodtemplate_find_hostgroupescalation(this_hostgroupescalation->template);
-	if(template_hostgroupescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in hostgroup escalation definition could not be not found (config file '%s', line %d)\n",this_hostgroupescalation->template,xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return ERROR;
-	        }
-
-	/* resolve the template hostgroupescalation... */
-	xodtemplate_resolve_hostgroupescalation(template_hostgroupescalation);
-
-	/* apply missing properties from template hostgroupescalation... */
-	if(this_hostgroupescalation->hostgroup_name==NULL && template_hostgroupescalation->hostgroup_name!=NULL)
-		this_hostgroupescalation->hostgroup_name=strdup(template_hostgroupescalation->hostgroup_name);
-	if(this_hostgroupescalation->contact_groups==NULL && template_hostgroupescalation->contact_groups!=NULL)
-		this_hostgroupescalation->contact_groups=strdup(template_hostgroupescalation->contact_groups);
-		if(this_hostgroupescalation->have_first_notification==FALSE && template_hostgroupescalation->have_first_notification==TRUE){
-		this_hostgroupescalation->first_notification=template_hostgroupescalation->first_notification;
-		this_hostgroupescalation->have_first_notification=TRUE;
-	        }
-	if(this_hostgroupescalation->have_last_notification==FALSE && template_hostgroupescalation->have_last_notification==TRUE){
-		this_hostgroupescalation->last_notification=template_hostgroupescalation->last_notification;
-		this_hostgroupescalation->have_last_notification=TRUE;
-	        }
-	if(this_hostgroupescalation->have_notification_interval==FALSE && template_hostgroupescalation->have_notification_interval==TRUE){
-		this_hostgroupescalation->notification_interval=template_hostgroupescalation->notification_interval;
-		this_hostgroupescalation->have_notification_interval=TRUE;
-	        }
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostgroupescalation() end\n");
 #endif
 
 	return OK;
@@ -5157,24 +4830,6 @@ xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *name){
         }
 
 
-/* finds a specific hostgroupescalation object */
-xodtemplate_hostgroupescalation *xodtemplate_find_hostgroupescalation(char *name){
-	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
-
-	if(name==NULL)
-		return NULL;
-
-	for(temp_hostgroupescalation=xodtemplate_hostgroupescalation_list;temp_hostgroupescalation!=NULL;temp_hostgroupescalation=temp_hostgroupescalation->next){
-		if(temp_hostgroupescalation->name==NULL)
-			continue;
-		if(!strcmp(temp_hostgroupescalation->name,name))
-			break;
-	        }
-
-	return temp_hostgroupescalation;
-        }
-
-
 /* finds a specific contact object */
 xodtemplate_contact *xodtemplate_find_contact(char *name){
 	xodtemplate_contact *temp_contact;
@@ -5313,7 +4968,6 @@ int xodtemplate_register_objects(void){
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_hostdependency *temp_hostdependency;
 	xodtemplate_hostescalation *temp_hostescalation;
-	xodtemplate_hostgroupescalation *temp_hostgroupescalation;
 	void *xod_svc_cursor;
 
 #ifdef DEBUG0
@@ -5385,12 +5039,6 @@ int xodtemplate_register_objects(void){
 	/* register host escalations */
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 		if((result=xodtemplate_register_hostescalation(temp_hostescalation))==ERROR)
-			return ERROR;
-	        }
-
-	/* register hostgroup escalations */
-	for(temp_hostgroupescalation=xodtemplate_hostgroupescalation_list;temp_hostgroupescalation!=NULL;temp_hostgroupescalation=temp_hostgroupescalation->next){
-		if((result=xodtemplate_register_hostgroupescalation(temp_hostgroupescalation))==ERROR)
 			return ERROR;
 	        }
 
@@ -5844,65 +5492,6 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 
 
 
-/* registers a hostgroupescalation definition */
-int xodtemplate_register_hostgroupescalation(xodtemplate_hostgroupescalation *this_hostgroupescalation){
-	hostgroupescalation *new_hostgroupescalation;
-	contactgroupsmember *new_contactgroupsmember;
-	char *contact_group;
-#ifdef NSCORE
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostgroupescalation() start\n");
-#endif
-	/* bail out if we shouldn't register this object */
-	if(this_hostgroupescalation->register_object==FALSE)
-		return OK;
-
-	/* add hostgroupescalation */
-	new_hostgroupescalation=add_hostgroupescalation(this_hostgroupescalation->hostgroup_name,this_hostgroupescalation->first_notification,this_hostgroupescalation->last_notification,this_hostgroupescalation->notification_interval);
-
-	/* return with an error if we couldn't add the hostgroupescalation */
-	if(new_hostgroupescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register hostgroup escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return ERROR;
-	        }
-
-	/* add the contact groups */
-	if(this_hostgroupescalation->contact_groups==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup escalation has not contact groups (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return ERROR;
-	        }
-	for(contact_group=strtok(this_hostgroupescalation->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
-		new_contactgroupsmember=add_contactgroup_to_hostgroupescalation(new_hostgroupescalation,contact_group);
-		if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to hostgroup escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroupescalation->_config_file),this_hostgroupescalation->_start_line);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return ERROR;
-		        }
-	        }
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostgroupescalation() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
 /* registers a contact definition */
 int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 	contact *new_contact;
@@ -6209,8 +5798,6 @@ int xodtemplate_free_memory(void){
 	xodtemplate_servicedependency *next_servicedependency;
 	xodtemplate_serviceescalation *this_serviceescalation;
 	xodtemplate_serviceescalation *next_serviceescalation;
-	xodtemplate_hostgroupescalation *this_hostgroupescalation;
-	xodtemplate_hostgroupescalation *next_hostgroupescalation;
 	xodtemplate_contact *this_contact;
 	xodtemplate_contact *next_contact;
 	xodtemplate_host *this_host;
@@ -6296,16 +5883,6 @@ int xodtemplate_free_memory(void){
 		free(this_serviceescalation->service_description);
 		free(this_serviceescalation->contact_groups);
 		free(this_serviceescalation);
-	        }
-
-	/* free memory allocated to hostgroupescalation list */
-	for(this_hostgroupescalation=xodtemplate_hostgroupescalation_list;this_hostgroupescalation!=NULL;this_hostgroupescalation=next_hostgroupescalation){
-		next_hostgroupescalation=this_hostgroupescalation->next;
-		free(this_hostgroupescalation->template);
-		free(this_hostgroupescalation->name);
-		free(this_hostgroupescalation->hostgroup_name);
-		free(this_hostgroupescalation->contact_groups);
-		free(this_hostgroupescalation);
 	        }
 
 	/* free memory allocated to contact list */

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-30-2004
+ * Last Modified: 10-03-2004
  *
  * Description:
  *
@@ -242,8 +242,9 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	if(result==OK)
 		result=xodtemplate_duplicate_objects();
 
-	/* TODO - SORT OBJECTS BEFORE CACHING - THIS WILL SAVE CGI TIME LATER */
-	/* MOVE SORT FUNCTIONALITY FROM OBJECTS.C TO HERE, JUST ADD OBJECTS TO HEAD OR TAIL OF LIST IN OBJECTS.C */
+	/* sort objects */
+	if(result==OK)
+		result=xodtemplate_sort_objects();
 
 	/* cache object definitions */
 	if(result==OK && cache==TRUE)
@@ -8145,6 +8146,909 @@ int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_service
 
 	return OK;
         }
+
+
+
+/******************************************************************/
+/********************** SORTING FUNCTIONS *************************/
+/******************************************************************/
+
+#ifdef NSCORE
+
+/* sorts all objects by name */
+int xodtemplate_sort_objects(void){
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_objects() start\n");
+#endif
+
+	/* sort timeperiods */
+	if(xodtemplate_sort_timeperiods()==ERROR)
+		return ERROR;
+
+	/* sort commands */
+	if(xodtemplate_sort_commands()==ERROR)
+		return ERROR;
+
+	/* sort contactgroups */
+	if(xodtemplate_sort_contactgroups()==ERROR)
+		return ERROR;
+
+	/* sort hostgroups */
+	if(xodtemplate_sort_hostgroups()==ERROR)
+		return ERROR;
+
+	/* sort servicegroups */
+	if(xodtemplate_sort_servicegroups()==ERROR)
+		return ERROR;
+
+	/* sort contacts */
+	if(xodtemplate_sort_contacts()==ERROR)
+		return ERROR;
+
+	/* sort hosts */
+	if(xodtemplate_sort_hosts()==ERROR)
+		return ERROR;
+
+	/* sort services */
+	if(xodtemplate_sort_services()==ERROR)
+		return ERROR;
+
+	/* sort service dependencies */
+	if(xodtemplate_sort_servicedependencies()==ERROR)
+		return ERROR;
+
+	/* sort service escalations */
+	if(xodtemplate_sort_serviceescalations()==ERROR)
+		return ERROR;
+
+	/* sort host dependencies */
+	if(xodtemplate_sort_hostdependencies()==ERROR)
+		return ERROR;
+
+	/* sort hostescalations */
+	if(xodtemplate_sort_hostescalations()==ERROR)
+		return ERROR;
+
+	/* sort host extended info */
+	if(xodtemplate_sort_hostextinfo()==ERROR)
+		return ERROR;
+
+	/* sort service extended info */
+	if(xodtemplate_sort_serviceextinfo()==ERROR)
+		return ERROR;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_objects() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* used to compare two strings (object names) */
+int xodtemplate_compare_strings1(char *string1, char *string2){
+	
+	if(string1==NULL && string2==NULL)
+		return 0;
+	else if(string1==NULL)
+		return -1;
+	else if(string2==NULL)
+		return 1;
+	else
+		return strcmp(string1,string2);
+	}
+
+
+/* used to compare two sets of strings (dually-named objects, i.e. services) */
+int xodtemplate_compare_strings2(char *string1a, char *string1b, char *string2a, char *string2b){
+	int result;
+
+	if((result=xodtemplate_compare_strings1(string1a,string2a))==0)
+		result=xodtemplate_compare_strings1(string1b,string2b);
+
+	return result;
+	}
+
+
+/* sort timeperiods by name */
+int xodtemplate_sort_timeperiods(){
+	xodtemplate_timeperiod *new_timeperiod_list=NULL;
+	xodtemplate_timeperiod *temp_timeperiod=NULL;
+	xodtemplate_timeperiod *last_timeperiod=NULL;
+	xodtemplate_timeperiod *temp_timeperiod_orig=NULL;
+	xodtemplate_timeperiod *next_timeperiod_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_timeperiods() start\n");
+#endif
+
+	/* sort all existing timeperiods */
+	for(temp_timeperiod_orig=xodtemplate_timeperiod_list;temp_timeperiod_orig!=NULL;temp_timeperiod_orig=next_timeperiod_orig){
+
+		next_timeperiod_orig=temp_timeperiod_orig->next;
+
+		/* add timeperiod to new list, sorted by timeperiod name */
+		last_timeperiod=new_timeperiod_list;
+		for(temp_timeperiod=new_timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
+
+			if(xodtemplate_compare_strings1(temp_timeperiod_orig->timeperiod_name,temp_timeperiod->timeperiod_name)<=0)
+				break;
+			else
+				last_timeperiod=temp_timeperiod;
+			}
+
+		/* first item added to new sorted list */
+		if(new_timeperiod_list==NULL){
+			temp_timeperiod_orig->next=NULL;
+			new_timeperiod_list=temp_timeperiod_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_timeperiod==new_timeperiod_list){
+			temp_timeperiod_orig->next=new_timeperiod_list;
+			new_timeperiod_list=temp_timeperiod_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_timeperiod_orig->next=temp_timeperiod;
+			last_timeperiod->next=temp_timeperiod_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_timeperiod_list=new_timeperiod_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_timeperiods() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort commands by name */
+int xodtemplate_sort_commands(){
+	xodtemplate_command *new_command_list=NULL;
+	xodtemplate_command *temp_command=NULL;
+	xodtemplate_command *last_command=NULL;
+	xodtemplate_command *temp_command_orig=NULL;
+	xodtemplate_command *next_command_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_commands() start\n");
+#endif
+
+	/* sort all existing commands */
+	for(temp_command_orig=xodtemplate_command_list;temp_command_orig!=NULL;temp_command_orig=next_command_orig){
+
+		next_command_orig=temp_command_orig->next;
+
+		/* add command to new list, sorted by command name */
+		last_command=new_command_list;
+		for(temp_command=new_command_list;temp_command!=NULL;temp_command=temp_command->next){
+
+			if(xodtemplate_compare_strings1(temp_command_orig->command_name,temp_command->command_name)<=0)
+				break;
+			else
+				last_command=temp_command;
+			}
+
+		/* first item added to new sorted list */
+		if(new_command_list==NULL){
+			temp_command_orig->next=NULL;
+			new_command_list=temp_command_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_command==new_command_list){
+			temp_command_orig->next=new_command_list;
+			new_command_list=temp_command_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_command_orig->next=temp_command;
+			last_command->next=temp_command_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_command_list=new_command_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_commands() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort contactgroups by name */
+int xodtemplate_sort_contactgroups(){
+	xodtemplate_contactgroup *new_contactgroup_list=NULL;
+	xodtemplate_contactgroup *temp_contactgroup=NULL;
+	xodtemplate_contactgroup *last_contactgroup=NULL;
+	xodtemplate_contactgroup *temp_contactgroup_orig=NULL;
+	xodtemplate_contactgroup *next_contactgroup_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_contactgroups() start\n");
+#endif
+
+	/* sort all existing contactgroups */
+	for(temp_contactgroup_orig=xodtemplate_contactgroup_list;temp_contactgroup_orig!=NULL;temp_contactgroup_orig=next_contactgroup_orig){
+
+		next_contactgroup_orig=temp_contactgroup_orig->next;
+
+		/* add contactgroup to new list, sorted by contactgroup name */
+		last_contactgroup=new_contactgroup_list;
+		for(temp_contactgroup=new_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
+
+			if(xodtemplate_compare_strings1(temp_contactgroup_orig->contactgroup_name,temp_contactgroup->contactgroup_name)<=0)
+				break;
+			else
+				last_contactgroup=temp_contactgroup;
+			}
+
+		/* first item added to new sorted list */
+		if(new_contactgroup_list==NULL){
+			temp_contactgroup_orig->next=NULL;
+			new_contactgroup_list=temp_contactgroup_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_contactgroup==new_contactgroup_list){
+			temp_contactgroup_orig->next=new_contactgroup_list;
+			new_contactgroup_list=temp_contactgroup_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_contactgroup_orig->next=temp_contactgroup;
+			last_contactgroup->next=temp_contactgroup_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_contactgroup_list=new_contactgroup_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_contactgroups() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort hostgroups by name */
+int xodtemplate_sort_hostgroups(){
+	xodtemplate_hostgroup *new_hostgroup_list=NULL;
+	xodtemplate_hostgroup *temp_hostgroup=NULL;
+	xodtemplate_hostgroup *last_hostgroup=NULL;
+	xodtemplate_hostgroup *temp_hostgroup_orig=NULL;
+	xodtemplate_hostgroup *next_hostgroup_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostgroups() start\n");
+#endif
+
+	/* sort all existing hostgroups */
+	for(temp_hostgroup_orig=xodtemplate_hostgroup_list;temp_hostgroup_orig!=NULL;temp_hostgroup_orig=next_hostgroup_orig){
+
+		next_hostgroup_orig=temp_hostgroup_orig->next;
+
+		/* add hostgroup to new list, sorted by hostgroup name */
+		last_hostgroup=new_hostgroup_list;
+		for(temp_hostgroup=new_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+
+			if(xodtemplate_compare_strings1(temp_hostgroup_orig->hostgroup_name,temp_hostgroup->hostgroup_name)<=0)
+				break;
+			else
+				last_hostgroup=temp_hostgroup;
+			}
+
+		/* first item added to new sorted list */
+		if(new_hostgroup_list==NULL){
+			temp_hostgroup_orig->next=NULL;
+			new_hostgroup_list=temp_hostgroup_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_hostgroup==new_hostgroup_list){
+			temp_hostgroup_orig->next=new_hostgroup_list;
+			new_hostgroup_list=temp_hostgroup_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_hostgroup_orig->next=temp_hostgroup;
+			last_hostgroup->next=temp_hostgroup_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_hostgroup_list=new_hostgroup_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostgroups() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort servicegroups by name */
+int xodtemplate_sort_servicegroups(){
+	xodtemplate_servicegroup *new_servicegroup_list=NULL;
+	xodtemplate_servicegroup *temp_servicegroup=NULL;
+	xodtemplate_servicegroup *last_servicegroup=NULL;
+	xodtemplate_servicegroup *temp_servicegroup_orig=NULL;
+	xodtemplate_servicegroup *next_servicegroup_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_servicegroups() start\n");
+#endif
+
+	/* sort all existing servicegroups */
+	for(temp_servicegroup_orig=xodtemplate_servicegroup_list;temp_servicegroup_orig!=NULL;temp_servicegroup_orig=next_servicegroup_orig){
+
+		next_servicegroup_orig=temp_servicegroup_orig->next;
+
+		/* add servicegroup to new list, sorted by servicegroup name */
+		last_servicegroup=new_servicegroup_list;
+		for(temp_servicegroup=new_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+
+			if(xodtemplate_compare_strings1(temp_servicegroup_orig->servicegroup_name,temp_servicegroup->servicegroup_name)<=0)
+				break;
+			else
+				last_servicegroup=temp_servicegroup;
+			}
+
+		/* first item added to new sorted list */
+		if(new_servicegroup_list==NULL){
+			temp_servicegroup_orig->next=NULL;
+			new_servicegroup_list=temp_servicegroup_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_servicegroup==new_servicegroup_list){
+			temp_servicegroup_orig->next=new_servicegroup_list;
+			new_servicegroup_list=temp_servicegroup_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_servicegroup_orig->next=temp_servicegroup;
+			last_servicegroup->next=temp_servicegroup_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_servicegroup_list=new_servicegroup_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_servicegroups() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort contacts by name */
+int xodtemplate_sort_contacts(){
+	xodtemplate_contact *new_contact_list=NULL;
+	xodtemplate_contact *temp_contact=NULL;
+	xodtemplate_contact *last_contact=NULL;
+	xodtemplate_contact *temp_contact_orig=NULL;
+	xodtemplate_contact *next_contact_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_contacts() start\n");
+#endif
+
+	/* sort all existing contacts */
+	for(temp_contact_orig=xodtemplate_contact_list;temp_contact_orig!=NULL;temp_contact_orig=next_contact_orig){
+
+		next_contact_orig=temp_contact_orig->next;
+
+		/* add contact to new list, sorted by contact name */
+		last_contact=new_contact_list;
+		for(temp_contact=new_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+
+			if(xodtemplate_compare_strings1(temp_contact_orig->contact_name,temp_contact->contact_name)<=0)
+				break;
+			else
+				last_contact=temp_contact;
+			}
+
+		/* first item added to new sorted list */
+		if(new_contact_list==NULL){
+			temp_contact_orig->next=NULL;
+			new_contact_list=temp_contact_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_contact==new_contact_list){
+			temp_contact_orig->next=new_contact_list;
+			new_contact_list=temp_contact_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_contact_orig->next=temp_contact;
+			last_contact->next=temp_contact_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_contact_list=new_contact_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_contacts() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort hosts by name */
+int xodtemplate_sort_hosts(){
+	xodtemplate_host *new_host_list=NULL;
+	xodtemplate_host *temp_host=NULL;
+	xodtemplate_host *last_host=NULL;
+	xodtemplate_host *temp_host_orig=NULL;
+	xodtemplate_host *next_host_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hosts() start\n");
+#endif
+
+	/* sort all existing hosts */
+	for(temp_host_orig=xodtemplate_host_list;temp_host_orig!=NULL;temp_host_orig=next_host_orig){
+
+		next_host_orig=temp_host_orig->next;
+
+		/* add host to new list, sorted by host name */
+		last_host=new_host_list;
+		for(temp_host=new_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+			if(xodtemplate_compare_strings1(temp_host_orig->host_name,temp_host->host_name)<=0)
+				break;
+			else
+				last_host=temp_host;
+			}
+
+		/* first item added to new sorted list */
+		if(new_host_list==NULL){
+			temp_host_orig->next=NULL;
+			new_host_list=temp_host_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_host==new_host_list){
+			temp_host_orig->next=new_host_list;
+			new_host_list=temp_host_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_host_orig->next=temp_host;
+			last_host->next=temp_host_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_host_list=new_host_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hosts() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort services by name */
+int xodtemplate_sort_services(){
+	xodtemplate_service *new_service_list=NULL;
+	xodtemplate_service *temp_service=NULL;
+	xodtemplate_service *last_service=NULL;
+	xodtemplate_service *temp_service_orig=NULL;
+	xodtemplate_service *next_service_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_services() start\n");
+#endif
+
+	/* sort all existing services */
+	for(temp_service_orig=xodtemplate_service_list;temp_service_orig!=NULL;temp_service_orig=next_service_orig){
+
+		next_service_orig=temp_service_orig->next;
+
+		/* add service to new list, sorted by host name then service description */
+		last_service=new_service_list;
+		for(temp_service=new_service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+			if(xodtemplate_compare_strings2(temp_service_orig->host_name,temp_service_orig->service_description,temp_service->host_name,temp_service->service_description)<=0)
+				break;
+			else
+				last_service=temp_service;
+			}
+
+		/* first item added to new sorted list */
+		if(new_service_list==NULL){
+			temp_service_orig->next=NULL;
+			new_service_list=temp_service_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_service==new_service_list){
+			temp_service_orig->next=new_service_list;
+			new_service_list=temp_service_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_service_orig->next=temp_service;
+			last_service->next=temp_service_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_service_list=new_service_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_services() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort servicedependencies by name */
+int xodtemplate_sort_servicedependencies(){
+	xodtemplate_servicedependency *new_servicedependency_list=NULL;
+	xodtemplate_servicedependency *temp_servicedependency=NULL;
+	xodtemplate_servicedependency *last_servicedependency=NULL;
+	xodtemplate_servicedependency *temp_servicedependency_orig=NULL;
+	xodtemplate_servicedependency *next_servicedependency_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_servicedependencies() start\n");
+#endif
+
+	/* sort all existing servicedependencies */
+	for(temp_servicedependency_orig=xodtemplate_servicedependency_list;temp_servicedependency_orig!=NULL;temp_servicedependency_orig=next_servicedependency_orig){
+
+		next_servicedependency_orig=temp_servicedependency_orig->next;
+
+		/* add servicedependency to new list, sorted by host name then service description */
+		last_servicedependency=new_servicedependency_list;
+		for(temp_servicedependency=new_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
+
+			if(xodtemplate_compare_strings2(temp_servicedependency_orig->host_name,temp_servicedependency_orig->service_description,temp_servicedependency->host_name,temp_servicedependency->service_description)<=0)
+				break;
+			else
+				last_servicedependency=temp_servicedependency;
+			}
+
+		/* first item added to new sorted list */
+		if(new_servicedependency_list==NULL){
+			temp_servicedependency_orig->next=NULL;
+			new_servicedependency_list=temp_servicedependency_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_servicedependency==new_servicedependency_list){
+			temp_servicedependency_orig->next=new_servicedependency_list;
+			new_servicedependency_list=temp_servicedependency_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_servicedependency_orig->next=temp_servicedependency;
+			last_servicedependency->next=temp_servicedependency_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_servicedependency_list=new_servicedependency_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_servicedependencies() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort serviceescalations by name */
+int xodtemplate_sort_serviceescalations(){
+	xodtemplate_serviceescalation *new_serviceescalation_list=NULL;
+	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
+	xodtemplate_serviceescalation *last_serviceescalation=NULL;
+	xodtemplate_serviceescalation *temp_serviceescalation_orig=NULL;
+	xodtemplate_serviceescalation *next_serviceescalation_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_serviceescalations() start\n");
+#endif
+
+	/* sort all existing serviceescalations */
+	for(temp_serviceescalation_orig=xodtemplate_serviceescalation_list;temp_serviceescalation_orig!=NULL;temp_serviceescalation_orig=next_serviceescalation_orig){
+
+		next_serviceescalation_orig=temp_serviceescalation_orig->next;
+
+		/* add serviceescalation to new list, sorted by host name then service description */
+		last_serviceescalation=new_serviceescalation_list;
+		for(temp_serviceescalation=new_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+
+			if(xodtemplate_compare_strings2(temp_serviceescalation_orig->host_name,temp_serviceescalation_orig->service_description,temp_serviceescalation->host_name,temp_serviceescalation->service_description)<=0)
+				break;
+			else
+				last_serviceescalation=temp_serviceescalation;
+			}
+
+		/* first item added to new sorted list */
+		if(new_serviceescalation_list==NULL){
+			temp_serviceescalation_orig->next=NULL;
+			new_serviceescalation_list=temp_serviceescalation_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_serviceescalation==new_serviceescalation_list){
+			temp_serviceescalation_orig->next=new_serviceescalation_list;
+			new_serviceescalation_list=temp_serviceescalation_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_serviceescalation_orig->next=temp_serviceescalation;
+			last_serviceescalation->next=temp_serviceescalation_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_serviceescalation_list=new_serviceescalation_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_serviceescalations() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort hostescalations by name */
+int xodtemplate_sort_hostescalations(){
+	xodtemplate_hostescalation *new_hostescalation_list=NULL;
+	xodtemplate_hostescalation *temp_hostescalation=NULL;
+	xodtemplate_hostescalation *last_hostescalation=NULL;
+	xodtemplate_hostescalation *temp_hostescalation_orig=NULL;
+	xodtemplate_hostescalation *next_hostescalation_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostescalations() start\n");
+#endif
+
+	/* sort all existing hostescalations */
+	for(temp_hostescalation_orig=xodtemplate_hostescalation_list;temp_hostescalation_orig!=NULL;temp_hostescalation_orig=next_hostescalation_orig){
+
+		next_hostescalation_orig=temp_hostescalation_orig->next;
+
+		/* add hostescalation to new list, sorted by host name then hostescalation description */
+		last_hostescalation=new_hostescalation_list;
+		for(temp_hostescalation=new_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+
+			if(xodtemplate_compare_strings1(temp_hostescalation_orig->host_name,temp_hostescalation->host_name)<=0)
+				break;
+			else
+				last_hostescalation=temp_hostescalation;
+			}
+
+		/* first item added to new sorted list */
+		if(new_hostescalation_list==NULL){
+			temp_hostescalation_orig->next=NULL;
+			new_hostescalation_list=temp_hostescalation_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_hostescalation==new_hostescalation_list){
+			temp_hostescalation_orig->next=new_hostescalation_list;
+			new_hostescalation_list=temp_hostescalation_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_hostescalation_orig->next=temp_hostescalation;
+			last_hostescalation->next=temp_hostescalation_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_hostescalation_list=new_hostescalation_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostescalations() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort hostdependencies by name */
+int xodtemplate_sort_hostdependencies(){
+	xodtemplate_hostdependency *new_hostdependency_list=NULL;
+	xodtemplate_hostdependency *temp_hostdependency=NULL;
+	xodtemplate_hostdependency *last_hostdependency=NULL;
+	xodtemplate_hostdependency *temp_hostdependency_orig=NULL;
+	xodtemplate_hostdependency *next_hostdependency_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostdependencies() start\n");
+#endif
+
+	/* sort all existing hostdependencys */
+	for(temp_hostdependency_orig=xodtemplate_hostdependency_list;temp_hostdependency_orig!=NULL;temp_hostdependency_orig=next_hostdependency_orig){
+
+		next_hostdependency_orig=temp_hostdependency_orig->next;
+
+		/* add hostdependency to new list, sorted by host name then hostdependency description */
+		last_hostdependency=new_hostdependency_list;
+		for(temp_hostdependency=new_hostdependency_list;temp_hostdependency!=NULL;temp_hostdependency=temp_hostdependency->next){
+
+			if(xodtemplate_compare_strings1(temp_hostdependency_orig->host_name,temp_hostdependency->host_name)<=0)
+				break;
+			else
+				last_hostdependency=temp_hostdependency;
+			}
+
+		/* first item added to new sorted list */
+		if(new_hostdependency_list==NULL){
+			temp_hostdependency_orig->next=NULL;
+			new_hostdependency_list=temp_hostdependency_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_hostdependency==new_hostdependency_list){
+			temp_hostdependency_orig->next=new_hostdependency_list;
+			new_hostdependency_list=temp_hostdependency_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_hostdependency_orig->next=temp_hostdependency;
+			last_hostdependency->next=temp_hostdependency_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_hostdependency_list=new_hostdependency_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostdependencies() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort extended host info by name */
+int xodtemplate_sort_hostextinfo(){
+	xodtemplate_hostextinfo *new_hostextinfo_list=NULL;
+	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
+	xodtemplate_hostextinfo *last_hostextinfo=NULL;
+	xodtemplate_hostextinfo *temp_hostextinfo_orig=NULL;
+	xodtemplate_hostextinfo *next_hostextinfo_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostextinfo() start\n");
+#endif
+
+	/* sort all existing existing host info */
+	for(temp_hostextinfo_orig=xodtemplate_hostextinfo_list;temp_hostextinfo_orig!=NULL;temp_hostextinfo_orig=next_hostextinfo_orig){
+
+		next_hostextinfo_orig=temp_hostextinfo_orig->next;
+
+		/* add hostextinfo to new list, sorted by host name then hostextinfo description */
+		last_hostextinfo=new_hostextinfo_list;
+		for(temp_hostextinfo=new_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+
+			if(xodtemplate_compare_strings1(temp_hostextinfo_orig->host_name,temp_hostextinfo->host_name)<=0)
+				break;
+			else
+				last_hostextinfo=temp_hostextinfo;
+			}
+
+		/* first item added to new sorted list */
+		if(new_hostextinfo_list==NULL){
+			temp_hostextinfo_orig->next=NULL;
+			new_hostextinfo_list=temp_hostextinfo_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_hostextinfo==new_hostextinfo_list){
+			temp_hostextinfo_orig->next=new_hostextinfo_list;
+			new_hostextinfo_list=temp_hostextinfo_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_hostextinfo_orig->next=temp_hostextinfo;
+			last_hostextinfo->next=temp_hostextinfo_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_hostextinfo_list=new_hostextinfo_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_hostextinfo() end\n");
+#endif
+
+	return OK;
+	}
+
+
+/* sort extended service info by name */
+int xodtemplate_sort_serviceextinfo(){
+	xodtemplate_serviceextinfo *new_serviceextinfo_list=NULL;
+	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
+	xodtemplate_serviceextinfo *last_serviceextinfo=NULL;
+	xodtemplate_serviceextinfo *temp_serviceextinfo_orig=NULL;
+	xodtemplate_serviceextinfo *next_serviceextinfo_orig=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_serviceextinfo() start\n");
+#endif
+
+	/* sort all existing extended service info */
+	for(temp_serviceextinfo_orig=xodtemplate_serviceextinfo_list;temp_serviceextinfo_orig!=NULL;temp_serviceextinfo_orig=next_serviceextinfo_orig){
+
+		next_serviceextinfo_orig=temp_serviceextinfo_orig->next;
+
+		/* add serviceextinfo to new list, sorted by host name then service description */
+		last_serviceextinfo=new_serviceextinfo_list;
+		for(temp_serviceextinfo=new_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+
+			if(xodtemplate_compare_strings2(temp_serviceextinfo_orig->host_name,temp_serviceextinfo_orig->service_description,temp_serviceextinfo->host_name,temp_serviceextinfo->service_description)<=0)
+				break;
+			else
+				last_serviceextinfo=temp_serviceextinfo;
+			}
+
+		/* first item added to new sorted list */
+		if(new_serviceextinfo_list==NULL){
+			temp_serviceextinfo_orig->next=NULL;
+			new_serviceextinfo_list=temp_serviceextinfo_orig;
+			}
+
+		/* item goes at head of new sorted list */
+		else if(temp_serviceextinfo==new_serviceextinfo_list){
+			temp_serviceextinfo_orig->next=new_serviceextinfo_list;
+			new_serviceextinfo_list=temp_serviceextinfo_orig;
+			}
+
+		/* item goes in middle or at end of new sorted list */
+		else{
+			temp_serviceextinfo_orig->next=temp_serviceextinfo;
+			last_serviceextinfo->next=temp_serviceextinfo_orig;
+			}
+	        }
+
+	/* list is now sorted */
+	xodtemplate_serviceextinfo_list=new_serviceextinfo_list;
+
+#ifdef DEBUG0
+	printf("xodtemplate_sort_serviceextinfo() end\n");
+#endif
+
+	return OK;
+	}
+
+#endif
 
 
 

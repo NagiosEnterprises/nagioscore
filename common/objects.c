@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2004
+ * Last Modified:   10-03-2004
  *
  * License:
  *
@@ -42,20 +42,20 @@
 #endif
   
 
-host            *host_list=NULL;
-service         *service_list=NULL;
-contact		*contact_list=NULL;
-contactgroup	*contactgroup_list=NULL;
-hostgroup	*hostgroup_list=NULL;
-servicegroup    *servicegroup_list=NULL;
-command         *command_list=NULL;
-timeperiod      *timeperiod_list=NULL;
-serviceescalation *serviceescalation_list=NULL;
-servicedependency *servicedependency_list=NULL;
-hostdependency  *hostdependency_list=NULL;
-hostescalation  *hostescalation_list=NULL;
-hostextinfo     *hostextinfo_list=NULL;
-serviceextinfo  *serviceextinfo_list=NULL;
+host            *host_list=NULL,*host_list_tail=NULL;
+service         *service_list=NULL,*service_list_tail=NULL;
+contact		*contact_list=NULL,*contact_list_tail=NULL;
+contactgroup	*contactgroup_list=NULL,*contactgroup_list_tail=NULL;
+hostgroup	*hostgroup_list=NULL,*hostgroup_list_tail=NULL;
+servicegroup    *servicegroup_list=NULL,*servicegroup_list_tail=NULL;
+command         *command_list=NULL,*command_list_tail=NULL;
+timeperiod      *timeperiod_list=NULL,*timeperiod_list_tail=NULL;
+serviceescalation *serviceescalation_list=NULL,*serviceescalation_list_tail=NULL;
+servicedependency *servicedependency_list=NULL,*servicedependency_list_tail=NULL;
+hostdependency  *hostdependency_list=NULL,*hostdependency_list_tail=NULL;
+hostescalation  *hostescalation_list=NULL,*hostescalation_list_tail=NULL;
+hostextinfo     *hostextinfo_list=NULL,*hostextinfo_list_tail=NULL;
+serviceextinfo  *serviceextinfo_list=NULL,*serviceextinfo_list_tail=NULL;
 
 host		**host_hashlist=NULL;
 service		**service_hashlist=NULL;
@@ -741,7 +741,6 @@ int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
 timeperiod *add_timeperiod(char *name,char *alias){
 	timeperiod *new_timeperiod;
 	timeperiod *temp_timeperiod;
-	timeperiod *last_timeperiod;
 	int day=0;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -833,29 +832,20 @@ timeperiod *add_timeperiod(char *name,char *alias){
 		return NULL;
 	        }
 
-	/* add new timeperiod to command list, sorted by name */
-	last_timeperiod=timeperiod_list;
-	for(temp_timeperiod=timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
-		if(strcmp(new_timeperiod->name,temp_timeperiod->name)<0){
-			new_timeperiod->next=temp_timeperiod;
-			if(temp_timeperiod==timeperiod_list)
-				timeperiod_list=new_timeperiod;
-			else
-				last_timeperiod->next=new_timeperiod;
-			break;
-		        }
-		else
-			last_timeperiod=temp_timeperiod;
-	        }
+#ifdef NSCORE
+	/* timeperiods are sorted alphabetically for daemon, so add new items to tail of list */
 	if(timeperiod_list==NULL){
-		new_timeperiod->next=NULL;
 		timeperiod_list=new_timeperiod;
-	        }
-	else if(temp_timeperiod==NULL){
-		new_timeperiod->next=NULL;
-		last_timeperiod->next=new_timeperiod;
-	        }
-		
+		timeperiod_list_tail=timeperiod_list;
+		}
+	timeperiod_list_tail->next=new_timeperiod;
+	timeperiod_list_tail=new_timeperiod;
+#else
+	/* timeperiods are sorted in reverse for CGIs, so add new items to head of list */
+	new_timeperiod->next=timeperiod_list;
+	timeperiod_list=new_timeperiod;
+#endif
+
 #ifdef DEBUG1
 	printf("\tName:         %s\n",new_timeperiod->name);
 	printf("\tAlias:        %s\n",new_timeperiod->alias);
@@ -938,7 +928,6 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 /* add a new host definition */
 host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host;
-	host *last_host;
 	host *new_host;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -1473,28 +1462,19 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 		return NULL;
 	        }
 
-	/* add new host to host list, sorted by host name */
-	last_host=host_list;
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-		if(strcmp(new_host->name,temp_host->name)<0){
-			new_host->next=temp_host;
-			if(temp_host==host_list)
-				host_list=new_host;
-			else
-				last_host->next=new_host;
-			break;
-		        }
-		else
-			last_host=temp_host;
-	        }
+#ifdef NSCORE
+	/* hosts are sorted alphabetically for daemon, so add new items to tail of list */
 	if(host_list==NULL){
-		new_host->next=NULL;
 		host_list=new_host;
-	        }
-	else if(temp_host==NULL){
-		new_host->next=NULL;
-		last_host->next=new_host;
-	        }
+		host_list_tail=host_list;
+		}
+	host_list_tail->next=new_host;
+	host_list_tail=new_host;
+#else
+	/* hosts are sorted in reverse for CGIs, so add new items to head of list */
+	new_host->next=host_list;
+	host_list=new_host;
+#endif
 
 #ifdef DEBUG1
 	printf("\tHost Name:                %s\n",new_host->name);
@@ -1663,7 +1643,6 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 hostgroup *add_hostgroup(char *name,char *alias){
 	hostgroup *temp_hostgroup;
 	hostgroup *new_hostgroup;
-	hostgroup *last_hostgroup;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -1756,28 +1735,19 @@ hostgroup *add_hostgroup(char *name,char *alias){
 		return NULL;
 	        }
 
-	/* add new hostgroup to hostgroup list, sorted by hostgroup name */
-	last_hostgroup=hostgroup_list;
-	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-		if(strcmp(new_hostgroup->group_name,temp_hostgroup->group_name)<0){
-			new_hostgroup->next=temp_hostgroup;
-			if(temp_hostgroup==hostgroup_list)
-				hostgroup_list=new_hostgroup;
-			else
-				last_hostgroup->next=new_hostgroup;
-			break;
-		        }
-		else
-			last_hostgroup=temp_hostgroup;
-	        }
+#ifdef NSCORE
+	/* hostgroups are sorted alphabetically for daemon, so add new items to tail of list */
 	if(hostgroup_list==NULL){
-		new_hostgroup->next=NULL;
 		hostgroup_list=new_hostgroup;
-	        }
-	else if(temp_hostgroup==NULL){
-		new_hostgroup->next=NULL;
-		last_hostgroup->next=new_hostgroup;
-	        }
+		hostgroup_list_tail=hostgroup_list;
+		}
+	hostgroup_list_tail->next=new_hostgroup;
+	hostgroup_list_tail=new_hostgroup;
+#else
+	/* hostgroups are sorted in reverse for CGIs, so add new items to head of list */
+	new_hostgroup->next=hostgroup_list;
+	hostgroup_list=new_hostgroup;
+#endif
 		
 #ifdef DEBUG1
 	printf("\tGroup name:     %s\n",new_hostgroup->group_name);
@@ -1883,7 +1853,6 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 servicegroup *add_servicegroup(char *name,char *alias){
 	servicegroup *temp_servicegroup;
 	servicegroup *new_servicegroup;
-	servicegroup *last_servicegroup;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -1976,28 +1945,19 @@ servicegroup *add_servicegroup(char *name,char *alias){
 		return NULL;
 	        }
 
-	/* add new servicegroup to servicegroup list, sorted by servicegroup name */
-	last_servicegroup=servicegroup_list;
-	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-		if(strcmp(new_servicegroup->group_name,temp_servicegroup->group_name)<0){
-			new_servicegroup->next=temp_servicegroup;
-			if(temp_servicegroup==servicegroup_list)
-				servicegroup_list=new_servicegroup;
-			else
-				last_servicegroup->next=new_servicegroup;
-			break;
-		        }
-		else
-			last_servicegroup=temp_servicegroup;
-	        }
+#ifdef NSCORE
+	/* servicegroups are sorted alphabetically for daemon, so add new items to tail of list */
 	if(servicegroup_list==NULL){
-		new_servicegroup->next=NULL;
 		servicegroup_list=new_servicegroup;
-	        }
-	else if(temp_servicegroup==NULL){
-		new_servicegroup->next=NULL;
-		last_servicegroup->next=new_servicegroup;
-	        }
+		servicegroup_list_tail=servicegroup_list;
+		}
+	servicegroup_list_tail->next=new_servicegroup;
+	servicegroup_list_tail=new_servicegroup;
+#else
+	/* servicegroups are sorted in reverse for CGIs, so add new items to head of list */
+	new_servicegroup->next=servicegroup_list;
+	servicegroup_list=new_servicegroup;
+#endif
 		
 #ifdef DEBUG1
 	printf("\tGroup name:     %s\n",new_servicegroup->group_name);
@@ -2126,7 +2086,6 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping){
 	contact *temp_contact;
 	contact *new_contact;
-	contact *last_contact;
 	int x;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -2424,29 +2383,19 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		return NULL;
 	        }
 
-	/* add new contact to contact list, sorted by contact name */
-	last_contact=contact_list;
-	for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-		if(strcmp(new_contact->name,temp_contact->name)<0){
-			new_contact->next=temp_contact;
-			if(temp_contact==contact_list)
-				contact_list=new_contact;
-			else
-				last_contact->next=new_contact;
-			break;
-		        }
-		else
-			last_contact=temp_contact;
-	        }
+#ifdef NSCORE
+	/* contacts are sorted alphabetically for daemon, so add new items to tail of list */
 	if(contact_list==NULL){
-		new_contact->next=NULL;
 		contact_list=new_contact;
-	        }
-	else if(temp_contact==NULL){
-		new_contact->next=NULL;
-		last_contact->next=new_contact;
-	        }
-
+		contact_list_tail=contact_list;
+		}
+	contact_list_tail->next=new_contact;
+	contact_list_tail=new_contact;
+#else
+	/* contacts are sorted in reverse for CGIs, so add new items to head of list */
+	new_contact->next=contact_list;
+	contact_list=new_contact;
+#endif
 		
 #ifdef DEBUG1
 	printf("\tContact Name:                  %s\n",new_contact->name);
@@ -2603,7 +2552,6 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 contactgroup *add_contactgroup(char *name,char *alias){
 	contactgroup *temp_contactgroup;
 	contactgroup *new_contactgroup;
-	contactgroup *last_contactgroup;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -2696,29 +2644,19 @@ contactgroup *add_contactgroup(char *name,char *alias){
 		return NULL;
 	        }
 
-	/* add new contactgroup to contactgroup list, sorted by contactgroup name */
-	last_contactgroup=contactgroup_list;
-	for(temp_contactgroup=contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
-		if(strcmp(new_contactgroup->group_name,temp_contactgroup->group_name)<0){
-			new_contactgroup->next=temp_contactgroup;
-			if(temp_contactgroup==contactgroup_list)
-				contactgroup_list=new_contactgroup;
-			else
-				last_contactgroup->next=new_contactgroup;
-			break;
-		        }
-		else
-			last_contactgroup=temp_contactgroup;
-	        }
+#ifdef NSCORE
+	/* contactgroups are sorted alphabetically for daemon, so add new items to tail of list */
 	if(contactgroup_list==NULL){
-		new_contactgroup->next=NULL;
 		contactgroup_list=new_contactgroup;
-	        }
-	else if(temp_contactgroup==NULL){
-		new_contactgroup->next=NULL;
-		last_contactgroup->next=new_contactgroup;
-	        }
-		
+		contactgroup_list_tail=contactgroup_list;
+		}
+	contactgroup_list_tail->next=new_contactgroup;
+	contactgroup_list_tail=new_contactgroup;
+#else
+	/* contactgroups are sorted in reverse for CGIs, so add new items to head of list */
+	new_contactgroup->next=contactgroup_list;
+	contactgroup_list=new_contactgroup;
+#endif		
 
 #ifdef DEBUG1
 	printf("\tGroup name:   %s\n",new_contactgroup->group_name);
@@ -3342,39 +3280,19 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		return NULL;
 	        }
 
-	/* add new service to service list, sorted by host name then service description */
-	last_service=service_list;
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		if(strcmp(new_service->host_name,temp_service->host_name)<0){
-			new_service->next=temp_service;
-			if(temp_service==service_list)
-				service_list=new_service;
-			else
-				last_service->next=new_service;
-			break;
-		        }
-
-		else if(strcmp(new_service->host_name,temp_service->host_name)==0 && strcmp(new_service->description,temp_service->description)<0){
-			new_service->next=temp_service;
-			if(temp_service==service_list)
-				service_list=new_service;
-			else
-				last_service->next=new_service;
-			break;
-		        }
-
-		else
-			last_service=temp_service;
-	        }
+#ifdef NSCORE
+	/* services are sorted alphabetically for daemon, so add new items to tail of list */
 	if(service_list==NULL){
-		new_service->next=NULL;
 		service_list=new_service;
-	        }
-	else if(temp_service==NULL){
-		new_service->next=NULL;
-		last_service->next=new_service;
-	        }
+		service_list_tail=service_list;
+		}
+	service_list_tail->next=new_service;
+	service_list_tail=new_service;
+#else
+	/* services are sorted in reverse for CGIs, so add new items to head of list */
+	new_service->next=service_list;
+	service_list=new_service;
+#endif
 
 #ifdef DEBUG1
 	printf("\tHost:                     %s\n",new_service->host_name);
@@ -3471,7 +3389,6 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 command *add_command(char *name,char *value){
 	command *new_command;
 	command *temp_command;
-	command *last_command;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -3560,29 +3477,20 @@ command *add_command(char *name,char *value){
 		return NULL;
 	        }
 
-	/* add new command to command list, sorted by command name */
-	last_command=command_list;
-	for(temp_command=command_list;temp_command!=NULL;temp_command=temp_command->next){
-		if(strcmp(new_command->name,temp_command->name)<0){
-			new_command->next=temp_command;
-			if(temp_command==command_list)
-				command_list=new_command;
-			else
-				last_command->next=new_command;
-			break;
-		        }
-		else
-			last_command=temp_command;
-	        }
+#ifdef NSCORE
+	/* commands are sorted alphabetically for daemon, so add new items to tail of list */
 	if(command_list==NULL){
-		new_command->next=NULL;
 		command_list=new_command;
-	        }
-	else if(temp_command==NULL){
-		new_command->next=NULL;
-		last_command->next=new_command;
-	        }
-		
+		command_list_tail=command_list;
+		}
+	command_list_tail->next=new_command;
+	command_list_tail=new_command;
+#else
+	/* commands are sorted in reverse for CGIs, so add new items to head of list */
+	new_command->next=command_list;
+	command_list=new_command;
+#endif		
+
 #ifdef DEBUG1
 	printf("\tName:         %s\n",new_command->name);
 	printf("\tCommand Line: %s\n",new_command->command_line);
@@ -3714,10 +3622,19 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 		return NULL;
 	        }
 
-	/* add new service escalation to the head of the service escalation list (unsorted) */
+#ifdef NSCORE
+	/* service escalations are sorted alphabetically for daemon, so add new items to tail of list */
+	if(serviceescalation_list==NULL){
+		serviceescalation_list=new_serviceescalation;
+		serviceescalation_list_tail=serviceescalation_list;
+		}
+	serviceescalation_list_tail->next=new_serviceescalation;
+	serviceescalation_list_tail=new_serviceescalation;
+#else
+	/* service escalations are sorted in reverse for CGIs, so add new items to head of list */
 	new_serviceescalation->next=serviceescalation_list;
 	serviceescalation_list=new_serviceescalation;
-		
+#endif		
 
 #ifdef DEBUG1
 	printf("\tHost name:             %s\n",new_serviceescalation->host_name);
@@ -3806,7 +3723,6 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending){
 	servicedependency *new_servicedependency;
 	servicedependency *temp_servicedependency;
-	servicedependency *last_servicedependency;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -3980,28 +3896,19 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		return NULL;
 	        }
 
-	/* add new service dependency to service dependency list, sorted by host name */
-	last_servicedependency=servicedependency_list;
-	for(temp_servicedependency=servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
-		if(strcmp(new_servicedependency->dependent_host_name,temp_servicedependency->dependent_host_name)<0){
-			new_servicedependency->next=temp_servicedependency;
-			if(temp_servicedependency==servicedependency_list)
-				servicedependency_list=new_servicedependency;
-			else
-				last_servicedependency->next=new_servicedependency;
-			break;
-		        }
-		else
-			last_servicedependency=temp_servicedependency;
-	        }
+#ifdef NSCORE
+	/* service dependencies are sorted alphabetically for daemon, so add new items to tail of list */
 	if(servicedependency_list==NULL){
-		new_servicedependency->next=NULL;
 		servicedependency_list=new_servicedependency;
-	        }
-	else if(temp_servicedependency==NULL){
-		new_servicedependency->next=NULL;
-		last_servicedependency->next=new_servicedependency;
-	        }
+		servicedependency_list_tail=servicedependency_list;
+		}
+	servicedependency_list_tail->next=new_servicedependency;
+	servicedependency_list_tail=new_servicedependency;
+#else
+	/* service dependencies are sorted in reverse for CGIs, so add new items to head of list */
+	new_servicedependency->next=servicedependency_list;
+	servicedependency_list=new_servicedependency;
+#endif		
 
 #ifdef DEBUG0
 	printf("add_service_dependency() end\n");
@@ -4014,7 +3921,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 /* adds a host dependency definition */
 hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending){
 	hostdependency *new_hostdependency;
-	hostdependency *temp_hostdependency;
 	hostdependency *last_hostdependency;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -4137,28 +4043,19 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 		return NULL;
 	        }
 
-	/* add new host dependency to host dependency list, sorted by host name */
-	last_hostdependency=hostdependency_list;
-	for(temp_hostdependency=hostdependency_list;temp_hostdependency!=NULL;temp_hostdependency=temp_hostdependency->next){
-		if(strcmp(new_hostdependency->dependent_host_name,temp_hostdependency->dependent_host_name)<0){
-			new_hostdependency->next=temp_hostdependency;
-			if(temp_hostdependency==hostdependency_list)
-				hostdependency_list=new_hostdependency;
-			else
-				last_hostdependency->next=new_hostdependency;
-			break;
-		        }
-		else
-			last_hostdependency=temp_hostdependency;
-	        }
+#ifdef NSCORE
+	/* host dependencies are sorted alphabetically for daemon, so add new items to tail of list */
 	if(hostdependency_list==NULL){
-		new_hostdependency->next=NULL;
 		hostdependency_list=new_hostdependency;
-	        }
-	else if(temp_hostdependency==NULL){
-		new_hostdependency->next=NULL;
-		last_hostdependency->next=new_hostdependency;
-	        }
+		hostdependency_list_tail=hostdependency_list;
+		}
+	hostdependency_list_tail->next=new_hostdependency;
+	hostdependency_list_tail=new_hostdependency;
+#else
+	/* host dependencies are sorted in reverse for CGIs, so add new items to head of list */
+	new_hostdependency->next=hostdependency_list;
+	hostdependency_list=new_hostdependency;
+#endif		
 
 #ifdef DEBUG0
 	printf("add_host_dependency() end\n");
@@ -4271,10 +4168,19 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		return NULL;
 	        }
 
-	/* add new host escalation to the head of the host escalation list (unsorted) */
+#ifdef NSCORE
+	/* host escalations are sorted alphabetically for daemon, so add new items to tail of list */
+	if(hostescalation_list==NULL){
+		hostescalation_list=new_hostescalation;
+		hostescalation_list_tail=hostescalation_list;
+		}
+	hostescalation_list_tail->next=new_hostescalation;
+	hostescalation_list_tail=new_hostescalation;
+#else
+	/* host escalations are sorted in reverse for CGIs, so add new items to head of list */
 	new_hostescalation->next=hostescalation_list;
 	hostescalation_list=new_hostescalation;
-		
+#endif		
 
 #ifdef DEBUG1
 	printf("\tHost name:             %s\n",new_hostescalation->host_name);
@@ -4572,9 +4478,19 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 		return NULL;
 	        }
 
-	/* add new host extended info entry to head of list */
+#ifdef NSCORE
+	/* hostextinfo entries are sorted alphabetically for daemon, so add new items to tail of list */
+	if(hostextinfo_list==NULL){
+		hostextinfo_list=new_hostextinfo;
+		hostextinfo_list_tail=hostextinfo_list;
+		}
+	hostextinfo_list_tail->next=new_hostextinfo;
+	hostextinfo_list_tail=new_hostextinfo;
+#else
+	/* hostextinfo entries are sorted in reverse for CGIs, so add new items to head of list */
 	new_hostextinfo->next=hostextinfo_list;
 	hostextinfo_list=new_hostextinfo;
+#endif		
 
 #ifdef DEBUG0
 	printf("add_hostextinfo() start\n");
@@ -4754,9 +4670,19 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 		return NULL;
 	        }
 
-	/* add new service extended info entry to head of list */
+#ifdef NSCORE
+	/* serviceextinfo entries are sorted alphabetically for daemon, so add new items to tail of list */
+	if(serviceextinfo_list==NULL){
+		serviceextinfo_list=new_serviceextinfo;
+		serviceextinfo_list_tail=serviceextinfo_list;
+		}
+	serviceextinfo_list_tail->next=new_serviceextinfo;
+	serviceextinfo_list_tail=new_serviceextinfo;
+#else
+	/* serviceextinfo entries are sorted in reverse for CGIs, so add new items to head of list */
 	new_serviceextinfo->next=serviceextinfo_list;
 	serviceextinfo_list=new_serviceextinfo;
+#endif		
 
 #ifdef DEBUG0
 	printf("add_serviceextinfo() end\n");

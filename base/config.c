@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-25-2004
+ * Last Modified:   05-20-2004
  *
  * License:
  *
@@ -237,11 +237,15 @@ int read_main_config_file(char *main_config_file){
 	/* process all lines in the config file */
 	for(current_line=1,fgets(input,MAX_INPUT_BUFFER-1,fp);!feof(fp);current_line++,fgets(input,MAX_INPUT_BUFFER-1,fp)){
 
-		/* skip blank lines and comments */
-		if(input[0]=='#' || input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
+		/* skip blank lines */
+		if(input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
 			continue;
 
 		strip(input);
+
+		/* skip comments */
+		if(input[0]=='#' || input[0]==';')
+			continue;
 
 		/* skip external data directives */
 		if(strstr(input,"x")==input)

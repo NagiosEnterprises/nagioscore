@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2004
+ * Last Modified: 05-20-2004
  *
  * Description:
  *
@@ -358,15 +358,24 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		x=strlen(dirfile->d_name);
 		if(x>4 && !strcmp(dirfile->d_name+(x-4),".cfg")){
 
-#ifdef _DIRENT_HAVE_D_TYPE
-			/* only process normal files and symlinks */
-			if(dirfile->d_type!=DT_REG && dirfile->d_type!=DT_LNK)
-				continue;
-#endif
-
 			/* create the full path to the config file */
 			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
 			config_file[sizeof(config_file)-1]='\x0';
+
+#ifdef _DIRENT_HAVE_D_TYPE
+			/* only process normal files and symlinks */
+			if(dirfile->d_type==DT_UNKNOWN){
+				x=stat(config_file,&stat_buf);
+				if(x!=0){
+					if(!S_ISREG(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
+						continue;
+				        }
+			        }
+			else{
+				if(dirfile->d_type!=DT_REG && dirfile->d_type!=DT_LNK)
+					continue;
+			        }
+#endif
 
 			/* process the config file */
 			result=xodtemplate_process_config_file(config_file,options);
@@ -378,7 +387,17 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 #ifdef _DIRENT_HAVE_D_TYPE
 		/* recurse into subdirectories... */
-		if(dirfile->d_type==DT_DIR || dirfile->d_type==DT_LNK){
+		if(dirfile->d_type==DT_UNKNOWN || dirfile->d_type==DT_DIR || dirfile->d_type==DT_LNK){
+
+			if(dirfile->d_type==DT_UNKNOWN){
+				x=stat(config_file,&stat_buf);
+				if(x!=0){
+					if(!S_ISDIR(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
+						continue;
+				        }
+				else
+					continue;
+			        }
 
 			/* ignore current, parent and hidden directory entries */
 			if(dirfile->d_name[0]=='.')
@@ -386,7 +405,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 			/* check that a symlink points to a dir */
 
-			if(dirfile->d_type==DT_LNK){
+			if(dirfile->d_type==DT_LNK || (dirfile->d_type==DT_UNKNOWN && S_ISLNK(stat_buf.st_mode))){
 
 				/* copy full path info to link buffer */
 				snprintf(file_name_buffer,sizeof(file_name_buffer)-1,"%s/%s",dirname,dirfile->d_name);
@@ -6536,9 +6555,8 @@ int xodtemplate_recombobulate_servicegroups(void){
 		if(temp_servicegroup->members==NULL)
 			continue;
 
-		member_names=strdup(temp_servicegroup->members);
-		if(member_names==NULL)
-			return ERROR;
+		member_names=temp_servicegroup->members;
+		temp_servicegroup->members=NULL;
 
 		for(temp_ptr=member_names;temp_ptr;temp_ptr=strchr(temp_ptr+1,',')){
 
@@ -6578,8 +6596,6 @@ int xodtemplate_recombobulate_servicegroups(void){
 					return ERROR;
 				        }
 
-				free(temp_servicegroup->members);
-				temp_servicegroup->members=NULL;
 				for(this_servicelist=temp_servicelist;this_servicelist;this_servicelist=this_servicelist->next){
 
 					/* add this service to the servicegroup members directive */

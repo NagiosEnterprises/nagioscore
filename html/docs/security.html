@@ -96,7 +96,7 @@ The CGIs read the <a href="configmain.html">main config file</a> and <a href="co
 </p>
 
 <p>
-Use the <a href="configmain.html#illegal_macro_output_chars">illegal_macro_output_chars</a> directive to strip dangerous characters from the $OUTPUT$ and $PERFDATA$ macros before they're used in notifications, etc.  Dangerous characters can be anything that might be interpreted by the shell, thereby opening a security hole.  An example of this is the presence of backtick (`) characters in the $OUTPUT$ and/or $PERFDATA$ macros, which could allow an attacker to execute an arbitrary command as the nagios user (one good reason not to run Nagios as the root user).
+Use the <a href="configmain.html#illegal_macro_output_chars">illegal_macro_output_chars</a> directive to strip dangerous characters from the $HOSTOUTPUT$, $SERVICEOUTPUT$, $HOSTPERFDATA$, and $SERVICEPERFDATA$ macros before they're used in notifications, etc.  Dangerous characters can be anything that might be interpreted by the shell, thereby opening a security hole.  An example of this is the presence of backtick (`) characters in the $HOSTOUTPUT$, $SERVICEOUTPUT$, $HOSTPERFDATA$, and/or $SERVICEPERFDATA$ macros, which could allow an attacker to execute an arbitrary command as the nagios user (one good reason not to run Nagios as the root user).
 </p>
 
 <hr>

@@ -2,8 +2,8 @@
  *
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-10-2005
  *
  * Description:
  *
@@ -2021,7 +2021,7 @@ void write_host_popup_text(host *hst){
 		printf("Pending");
 
 	printf("</b></td></tr>");
-	printf("<tr><td class=\\\"popupText\\\">Status Information:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",temp_status->plugin_output);
+	printf("<tr><td class=\\\"popupText\\\">Status Information:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",(temp_status->plugin_output==NULL)?"":temp_status->plugin_output);
 
 	current_time=time(NULL);
 	if(temp_status->last_state_change==(time_t)0)

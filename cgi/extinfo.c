@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-02-2005
+ * Last Modified: 03-10-2005
  *
  * License:
  * 
@@ -1007,7 +1007,7 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",temp_hoststatus->plugin_output);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->plugin_output==NULL)?"":temp_hoststatus->plugin_output);
 
 		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->perf_data==NULL)?"":temp_hoststatus->perf_data);
 
@@ -1317,7 +1317,7 @@ void show_service_info(void){
 			}
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",temp_svcstatus->plugin_output);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->plugin_output==NULL)?"":temp_svcstatus->plugin_output);
 
 		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_svcstatus->perf_data==NULL)?"":temp_svcstatus->perf_data);
 

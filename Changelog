@@ -3,6 +3,15 @@ Nagios Change Log
 ###################
 
 
+2.0b3 - ??/??/2005
+------------------
+* Sample config file fixes
+* Fixed segfaults in CGIs where plugin output was NULL
+* Minor fixes to INSTALL documentation
+* Fixed segfault with mispaired servicegroup memberships
+
+
+
 2.0b2 - 02/09/2005
 ------------------
 * Fixed bug with cleaning macro contents

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 01-04-2005
+# Last Modified: 03-08-2005
 #
 ##############################################################################
 
@@ -43,14 +43,16 @@ cfg_file=@sysconfdir@/misccommands.cfg
 # config files if you wish (as done here), or keep them all in a
 # single config file.
 
-cfg_file=@sysconfdir@/contactgroups.cfg
-cfg_file=@sysconfdir@/contacts.cfg
-cfg_file=@sysconfdir@/dependencies.cfg
-cfg_file=@sysconfdir@/escalations.cfg
-cfg_file=@sysconfdir@/hostgroups.cfg
-cfg_file=@sysconfdir@/hosts.cfg
-cfg_file=@sysconfdir@/services.cfg
-cfg_file=@sysconfdir@/timeperiods.cfg
+cfg_file=@sysconfdir@/minimal.cfg
+
+#cfg_file=@sysconfdir@/contactgroups.cfg
+#cfg_file=@sysconfdir@/contacts.cfg
+#cfg_file=@sysconfdir@/dependencies.cfg
+#cfg_file=@sysconfdir@/escalations.cfg
+#cfg_file=@sysconfdir@/hostgroups.cfg
+#cfg_file=@sysconfdir@/hosts.cfg
+#cfg_file=@sysconfdir@/services.cfg
+#cfg_file=@sysconfdir@/timeperiods.cfg
 
 # Extended host/service info definitions are now stored along with
 # other object definitions:

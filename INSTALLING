@@ -19,7 +19,7 @@ Compiling The Binaries
 
 1) Run the configure script to initialize variables and create a Makefile, etc.
 
-   	./configure --prefix=PREFIX --with-cgiurl=CGIURL --with-htmurl=HTMURL --with-nagios-user=SOMEUSER --with-nagios-grp=SOMEGROUP
+   	./configure --prefix=PREFIX --with-cgiurl=CGIURL --with-htmurl=HTMURL --with-nagios-user=SOMEUSER --with-nagios-group=SOMEGROUP
 
    a) Replace PREFIX with the base directory under which Nagios should be
       installed.  Default is '/usr/local/nagios'
@@ -40,7 +40,7 @@ Compiling The Binaries
 
 
    Notes:
-	There are also --with-command-user and --with-command-grp options
+	There are also --with-command-user and --with-command-group options
         that can be specified.  These are used when installing the directory
         that will hold the external command file.  For more information on 
         external commands, read the HTML documentation.

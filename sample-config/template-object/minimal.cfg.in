@@ -3,7 +3,7 @@
 #
 # MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
 #
-# Last Modified: 12-02-2004
+# Last Modified: 03-05-2005
 #
 #
 # NOTE: This config file is intended to be used to test a Nagios installation
@@ -202,6 +202,7 @@ define host{
         notification_interval   120
         notification_period     24x7
         notification_options    d,r
+        contact_groups  admins
         }
 
 
@@ -220,7 +221,6 @@ define host{
 define hostgroup{
         hostgroup_name  test
         alias           Test Servers
-        contact_groups  admins
         members         localhost
         }
 

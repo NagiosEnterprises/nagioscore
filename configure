@@ -2104,9 +2104,9 @@ else
   nagios_user=nagios
 fi
 
-# Check whether --with-nagios_grp or --without-nagios_grp was given.
-if test "${with_nagios_grp+set}" = set; then
-  withval="$with_nagios_grp"
+# Check whether --with-nagios_group or --without-nagios_group was given.
+if test "${with_nagios_group+set}" = set; then
+  withval="$with_nagios_group"
   nagios_grp=$withval
 else
   nagios_grp=nagios
@@ -2133,9 +2133,9 @@ else
   command_user=$nagios_user
 fi
 
-# Check whether --with-command_grp or --without-command_grp was given.
-if test "${with_command_grp+set}" = set; then
-  withval="$with_command_grp"
+# Check whether --with-command_group or --without-command_group was given.
+if test "${with_command_group+set}" = set; then
+  withval="$with_command_group"
   command_grp=$withval
 else
   command_grp=$nagios_grp

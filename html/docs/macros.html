@@ -43,8 +43,112 @@ One of the features available in Nagios is the ability to use macros in command 
 </p>
 
 <p>
-Describe how macro substitution works...
+Before any commands (host and service checks, notifications, event handlers, etc.) are executed, Nagios will replace any macros it finds in the command definition with their corresponding values.
 </p>
+
+<p>
+When you use host and service macros in command definitions, they refer to values for the host or service for which the command is being run.  Let's try an example.  Assuming we are using a host definition and a <i>check_ping</i> command defined like this:
+</p>
+
+<p>
+<pre>
+define host{
+	host_name		linuxbox
+	address		192.168.1.2
+	check_command	check_ping
+	...
+	}
+	
+define command{
+	command_name    check_ping
+	command_line    /usr/local/nagios/libexec/check_ping -H $HOSTADDRESS$ -w 100.0,90% -c 200.0,60%
+	}
+</pre>
+</p>
+
+<p>
+the expanded/final command line to be executed for the host's check command would look like this:
+</p>
+
+<p>
+<pre>
+	/usr/local/nagios/libexec/check_ping -H 192.168.1.2 -w 100.0,90% -c 200.0,60%
+</pre>
+</p>
+
+<p>
+You can pass arguments to commands as well, which is quite handy if you'd like to keep your command definitions rather generic.  Arguments are specified in the object (i.e. host or service) definition, by seperating them from the command name with exclamation points (!) like so:
+</p>
+
+<p>
+<pre>
+define service{
+	host_name		linuxbox
+	service_description	PING
+	...
+	check_command	check_ping!200.0,80%!400.0,40%
+	...
+	}
+</pre>
+</p>
+
+<p>
+In the example above, the service check command has two arguments (which can be referenced with <a href="#arg">$ARGn$</a> macros).  The $ARG1$ macro will be "200.0,80%" and $ARG2$ will be "400.0,40%" (both without quotes).  Assuming we are using the host definition given earlier and a <i>check_ping</i> command defined like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name    check_ping
+	command_line    /usr/local/nagios/libexec/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$
+	}
+</pre>
+</p>
+
+<p>
+the expanded/final command line to be executed for the service's check command would look like this:
+</p>
+
+<p>
+<pre>
+	/usr/local/nagios/libexec/check_ping -H 192.168.1.2 -w 200.0,80% -c 400.0,40%
+</pre>
+</p>
+
+<p>
+<strong><u>On-Demand Macros</u></strong>
+</p>
+
+<p>
+Normally when you use host and service macros in command definitions, they refer to values for the host or service for which the command is being run.  For instance, if a host check command is being executed for a host named "linuxbox", all the host macros listed in the table below will refer to values for that host ("linuxbox").
+</p>
+
+<p>
+If you would like to reference values for another host or service in a command (for which the command is not being run), you can use what are called "on-demand" macros.  On-demand macros look like normal macros, except for the fact that they contain an identifier for the host or service from which they should get their value.  Here's the basic format for on-demand macros:
+</p>
+
+<p>
+<ul>
+<li>$HOSTMACRO:<i>host_name</i>$</li>
+<li>$SERVICEMACRO:<i>host_name</i>;<i>service_description</i>$</li>
+</ul>
+</p>
+
+<p>
+Note that the macro name is seperated from the host or service identifier by a colon (:).  For on-demand service macros, the service identifier consists of both a host name and a service description - these are seperated by a semicolon (;).
+</p>
+
+<p>
+Examples of on-demand host and service macros follow:
+</p>
+
+<p>
+<pre>
+$HOSTDOWNTIME:myhost$
+$SERVICESTATEID:novellserver;DS Database$
+</pre>
+</p>
+
 
 <p>
 <strong><u>Macro Cleansing</u></strong>
@@ -67,13 +171,6 @@ Some macros are stripped of potentially dangerous shell metacharacters before be
 </ol>
 </p>
 
-<p>
-<strong><u>On-Demand Macros</u></strong>
-</p>
-
-<p>
-Describe how on-demand macros work...
-</p>
 
 <p>
 <strong><u>Macro Validity</u></strong>

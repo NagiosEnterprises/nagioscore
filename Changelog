@@ -11,6 +11,7 @@ Nagios Change Log
 * Minor cleanups in the core
 * Makefile fixes
 * New version of snprintf() included that supports %f
+* Notification interval for escalations now defaults to non-escalated value
 
 
 1.0b5 - 08/12/2002

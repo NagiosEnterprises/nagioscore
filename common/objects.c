@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-25-2002
+ * Last Modified:   12-01-2002
  *
  * License:
  *
@@ -36,9 +36,6 @@
 #endif
 
 /**** IMPLEMENTATION-SPECIFIC HEADER FILES ****/
-#ifdef USE_XODDEFAULT
-#include "../xdata/xoddefault.h"		/* default host config data routines (text file) */
-#endif
 #ifdef USE_XODTEMPLATE                          /* template-based routines */
 #include "../xdata/xodtemplate.h"
 #endif
@@ -83,12 +80,6 @@ int read_object_config_data(char *main_config_file,int options){
 #endif
 
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
-#ifdef USE_XODDEFAULT
-	/* read in data from all text host config files (only method implemented by default) */
-	result=xoddefault_read_config_data(main_config_file,options);
-	if(result!=OK)
-		return ERROR;
-#endif
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
 	result=xodtemplate_read_config_data(main_config_file,options);

@@ -264,38 +264,14 @@ AC_SUBST(XRDH)
 
 
 dnl What object data I/O implementation should we use?
-dnl AC_ARG_WITH(mysql-objects,--with-mysql-objects enables use of MySQL database for object data,XODTYPE=mysql)
-dnl AC_ARG_WITH(pgsql-objects,--with-pgsql-objects enables use of PostgreSQL database for object data,XODTYPE=pgsql)
-AC_ARG_WITH(default-objects,--with-default-objects enables use of default object data routines,XODTYPE=default)
-AC_ARG_WITH(template-objects,--with-template-objects enables use of template-based object data routines,XODTYPE=template)
+dnl AC_ARG_WITH(default-objects,--with-default-objects enables use of default object data routines,XODTYPE=default)
+dnl AC_ARG_WITH(template-objects,--with-template-objects enables use of template-based object data routines,XODTYPE=template)
 if test $XODTYPE = template; then
 	AC_DEFINE_UNQUOTED(USE_XODTEMPLATE)
 	XODC="xodtemplate.c"
 	XODH="xodtemplate.h"
 	XODCOMMENT="Template-based (text file)"
 	echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data I/O..."
-elif test $XODTYPE = mysql; then
-	AC_DEFINE_UNQUOTED(USE_XODDB)
-	AC_DEFINE_UNQUOTED(USE_XODMYSQL)
-	USE_MYSQL=yes
-	XODC="xoddb.c"
-	XODH="xoddb.h"
-	XODCOMMENT="Database (MySQL)"
-	echo "We'll use MySQL database routines (in xdata/xoddb.*) for object data I/O..."
-elif test $XODTYPE = pgsql; then
-	AC_DEFINE_UNQUOTED(USE_XODDB)
-	AC_DEFINE_UNQUOTED(USE_XODPGSQL)
-	USE_PGSQL=yes
-	XODC="xoddb.c"
-	XODH="xoddb.h"
-	XODCOMMENT="Database (PostgreSQL)"
-	echo "We'll use PostgreSQL database routines (in xdata/xoddb.*) for object data I/O..."
-else
-	AC_DEFINE_UNQUOTED(USE_XODDEFAULT)
-	XODC="xoddefault.c"
-	XODH="xoddefault.h"
-	XODCOMMENT="Default (text file)"
-	echo "We'll use default routines (in xdata/xoddefault.*) for object data I/O..."
 fi
 AC_SUBST(XODC)
 AC_SUBST(XODH)
@@ -785,7 +761,7 @@ echo " External Data Routines:"
 echo " ------------------------"
 
 AC_MSG_RESULT([              Status data:  $XSDCOMMENT])
-AC_MSG_RESULT([              Object data:  $XODCOMMENT])
+dnl AC_MSG_RESULT([              Object data:  $XODCOMMENT])
 AC_MSG_RESULT([             Comment data:  $XCDCOMMENT])
 AC_MSG_RESULT([            Downtime data:  $XDDCOMMENT])
 AC_MSG_RESULT([           Retention data:  $XRDCOMMENT])

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2003
+ * Last Modified:   07-10-2003
  *
  * License:
  *
@@ -5093,7 +5093,7 @@ void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, 
 		if(current)
 			(*iterator)++;
 
-		for(;!hashchain[(*iterator)] && ((*iterator)<hashslots);(*iterator)++);
+		for(;((*iterator)<hashslots) && !hashchain[(*iterator)] ;(*iterator)++);
 
 		if((*iterator)<hashslots)
 			current=hashchain[(*iterator)];

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -113,6 +113,7 @@ typedef struct host_struct{
 	int     stalk_on_down;
 	int     stalk_on_unreachable;
 	int     process_performance_data;
+	int     accept_passive_host_checks;
 	int     event_handler_enabled;
 	int     retain_status_information;
 	int     retain_nonstatus_information;
@@ -402,7 +403,7 @@ int read_object_config_data(char *,int);        /* reads all external configurat
 contact *add_contact(char *,char *,char *,char *,char *,char *,int,int,int,int,int,int,int);		/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-host *add_host(char *,char *,char *,int,int,int,int,int,char *,int,char *,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-01-2002
+ * Last Modified: 12-04-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -359,10 +359,10 @@ int handle_host_state(host *,int,int);               	/* top level host state ha
 /**** Event Handler Functions ****/
 int obsessive_compulsive_service_check_processor(service *,int);	/* distributed monitoring craziness... */
 int handle_service_event(service *,int);			/* top level service event logic */
-int run_service_event_handler(service *,command *,int);		/* runs the event handler for a specific service */
+int run_service_event_handler(service *,int);			/* runs the event handler for a specific service */
 int run_global_service_event_handler(service *,int);		/* runs the global service event handler */
 int handle_host_event(host *,int,int);				/* top level host event logic */
-int run_host_event_handler(host *,command *,int,int);		/* runs the event handler for a specific host */
+int run_host_event_handler(host *,int,int);			/* runs the event handler for a specific host */
 int run_global_host_event_handler(host *,int,int);		/* runs the global host event handler */
 void update_service_state_times(service *);	     	     	/* updates service state times */
 void update_host_state_times(host *);	     	     	     	/* updates host state times */
@@ -449,15 +449,16 @@ int cmd_delete_all_comments(int,char *);		/* delete all comments associated with
 int cmd_delay_notification(int,char *);			/* delay a service or host notification */
 int cmd_schedule_service_check(int,char *,int);		/* schedule an immediate or delayed service check */
 int cmd_schedule_host_service_checks(int,char *,int);	/* schedule an immediate or delayed check of all services on a host */
-int cmd_enable_disable_service_check(int,char *);			/* enable/disable a service check */
-int cmd_enable_disable_host_service_checks(int,char *);			/* enable/disable all service checks associated with a host */
-int cmd_signal_process(int,char *);					/* schedules a program shutdown or restart */
-int cmd_enable_disable_notifications(int,char *);			/* enables/disables notifications */
-int cmd_enable_disable_service_notifications(int,char *);		/* enables/disables notifications for a service */
-int cmd_enable_disable_host_notifications(int,char *);			/* enables/disables notifications for a host */
+int cmd_enable_disable_service_check(int,char *);		/* enable/disable a service check */
+int cmd_enable_disable_host_service_checks(int,char *);		/* enable/disable all service checks associated with a host */
+int cmd_signal_process(int,char *);				/* schedules a program shutdown or restart */
+int cmd_enable_disable_notifications(int,char *);		/* enables/disables notifications */
+int cmd_enable_disable_service_notifications(int,char *);	/* enables/disables notifications for a service */
+int cmd_enable_disable_host_notifications(int,char *);		/* enables/disables notifications for a host */
 int cmd_enable_disable_and_propagate_notifications(int, char *);	/* enables/disables notifications for all hosts and services beyond a given host */
-int cmd_process_service_check_result(int,time_t,char *);		/* processes a passive service check */
-int cmd_enable_disable_host_service_notifications(int,char *);		/* enables/disables notifications for all services on a host */
+int cmd_process_service_check_result(int,time_t,char *);	/* processes a passive service check */
+int cmd_process_host_check_result(int,time_t,char *);		/* processes a passive host check */
+int cmd_enable_disable_host_service_notifications(int,char *);	/* enables/disables notifications for all services on a host */
 int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service problem */
 int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
 int cmd_start_stop_executing_service_checks(int);		/* starts or stops executing service checks */

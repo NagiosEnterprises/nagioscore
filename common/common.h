@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 12-04-2002
  *
  * License:
  *
@@ -155,6 +155,9 @@
 #define CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME            84 /* not internally implemented */
 #define CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME             85 /* not internally implemented */
 #define CMD_SCHEDULE_HOST_SVC_DOWNTIME                  86
+
+
+#define CMD_PROCESS_HOST_CHECK_RESULT		        87
 
 
 

@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-03-2002
+ * Last Modified: 12-04-2002
  *
  * License:
  *
@@ -298,6 +298,8 @@ int main(int argc, char **argv){
 				printf("# Generic host definition template\n");
 				printf("define host{\n");
 				printf("\tname\t\t\t\tgeneric-host\t; The name of this host template - referenced in other host definitions, used for template recursion/resolution\n");
+				printf("\tactive_checks_enabled\t\t1\t; Active host checks are enabled\n");
+				printf("\tpassive_checks_enabled\t\t1\t; Passive host checks are enabled/accepted\n");
 				printf("\tnotifications_enabled\t\t1\t; Host notifications are enabled\n");
 				printf("\tevent_handler_enabled\t\t1\t; Host event handler is enabled\n");
 				printf("\tflap_detection_enabled\t\t1\t; Flap detection is enabled\n");

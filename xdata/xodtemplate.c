@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-03-2002
+ * Last Modified: 12-04-2002
  *
  * Description:
  *
@@ -77,7 +77,6 @@ int xodtemplate_current_object_type=XODTEMPLATE_NONE;
 
 int xodtemplate_current_config_file=0;
 char **xodtemplate_config_files;
-
 
 
 
@@ -956,8 +955,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->event_handler=NULL;
 		new_host->notification_period=NULL;
 
-		new_host->checks_enabled=TRUE;
-		new_host->have_checks_enabled=FALSE;
+		new_host->active_checks_enabled=TRUE;
+		new_host->have_active_checks_enabled=FALSE;
+		new_host->passive_checks_enabled=TRUE;
+		new_host->have_passive_checks_enabled=FALSE;
 		new_host->max_check_attempts=-2;
 		new_host->have_max_check_attempts=FALSE;
 		new_host->event_handler_enabled=TRUE;
@@ -2139,9 +2140,13 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_host->max_check_attempts=atoi(value);
 			temp_host->have_max_check_attempts=TRUE;
 		        }
-		else if(!strcmp(variable,"checks_enabled")){
-			temp_host->checks_enabled=(atoi(value)>0)?TRUE:FALSE;
-			temp_host->have_checks_enabled=TRUE;
+		else if(!strcmp(variable,"checks_enabled") || !strcmp(variable,"active_checks_enabled")){
+			temp_host->active_checks_enabled=(atoi(value)>0)?TRUE:FALSE;
+			temp_host->have_active_checks_enabled=TRUE;
+		        }
+		else if(!strcmp(variable,"passive_checks_enabled")){
+			temp_host->passive_checks_enabled=(atoi(value)>0)?TRUE:FALSE;
+			temp_host->have_passive_checks_enabled=TRUE;
 		        }
 		else if(!strcmp(variable,"event_handler_enabled")){
 			temp_host->event_handler_enabled=(atoi(value)>0)?TRUE:FALSE;
@@ -4673,9 +4678,13 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		this_host->max_check_attempts=template_host->max_check_attempts;
 		this_host->have_max_check_attempts=TRUE;
 	        }
-	if(this_host->have_checks_enabled==FALSE && template_host->have_checks_enabled==TRUE){
-		this_host->checks_enabled=template_host->checks_enabled;
-		this_host->have_checks_enabled=TRUE;
+	if(this_host->have_active_checks_enabled==FALSE && template_host->have_active_checks_enabled==TRUE){
+		this_host->active_checks_enabled=template_host->active_checks_enabled;
+		this_host->have_active_checks_enabled=TRUE;
+	        }
+	if(this_host->have_passive_checks_enabled==FALSE && template_host->have_passive_checks_enabled==TRUE){
+		this_host->passive_checks_enabled=template_host->passive_checks_enabled;
+		this_host->have_passive_checks_enabled=TRUE;
 	        }
 	if(this_host->have_event_handler_enabled==FALSE && template_host->have_event_handler_enabled==TRUE){
 		this_host->event_handler_enabled=template_host->event_handler_enabled;
@@ -5983,7 +5992,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		return OK;
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information);
+	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information);
 
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){

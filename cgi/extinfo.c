@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-27-2002
+ * Last Modified: 12-04-2002
  *
  * License:
  * 
@@ -205,8 +205,22 @@ int main(void){
 		display_info_table(temp_buffer,TRUE,&current_authdata);
 
 		/* find the host */
-		if(display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO)
+		if(display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO){
+
 			temp_host=find_host(host_name);
+
+			/* write some Javascript helper functions */
+			if(temp_host!=NULL){
+				printf("<SCRIPT LANGUAGE=\"JavaScript\">\n<!--\n");
+				printf("function nagios_get_host_name()\n{\n");
+				printf("return \"%s\";\n",temp_host->name);
+				printf("}\n");
+				printf("function nagios_get_host_address()\n{\n");
+				printf("return \"%s\";\n",temp_host->address);
+				printf("}\n");
+				printf("//-->\n</SCRIPT>\n");
+			        }
+		        }
 
 		/* find the hostgroup */
 		else if(display_type==DISPLAY_HOSTGROUP_INFO)

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-03-2002
+ * Last Modified:   12-04-2002
  *
  * Description:
  *
@@ -163,6 +163,7 @@ int             nagios_pid=0;
 int             enable_notifications=TRUE;
 int             execute_service_checks=TRUE;
 int             accept_passive_service_checks=TRUE;
+int             accept_passive_host_checks=TRUE;
 int             enable_event_handlers=TRUE;
 int             obsess_over_services=FALSE;
 int             enable_failure_prediction=TRUE;

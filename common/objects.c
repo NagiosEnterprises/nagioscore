@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-01-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -505,7 +505,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *alias, char *address, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information){
+host *add_host(char *name, char *alias, char *address, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information){
 	host *temp_host;
 	host *new_host;
 	host *last_host;
@@ -609,6 +609,14 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	if(checks_enabled<0 || checks_enabled>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid checks_enabled value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(accept_passive_checks<0 || accept_passive_checks>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid accept_passive_checks value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -834,6 +842,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	new_host->stalk_on_down=(stalk_down>0)?TRUE:FALSE;
 	new_host->stalk_on_unreachable=(stalk_unreachable>0)?TRUE:FALSE;
 	new_host->process_performance_data=(process_perfdata>0)?TRUE:FALSE;
+	new_host->accept_passive_host_checks=(accept_passive_checks>0)?TRUE:FALSE;
 	new_host->event_handler_enabled=(event_handler_enabled>0)?TRUE:FALSE;
 	new_host->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
 	new_host->retain_status_information=(retain_status_information>0)?TRUE:FALSE;

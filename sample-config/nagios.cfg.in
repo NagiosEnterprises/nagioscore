@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-03-2002
+# Last Modified: 12-04-2002
 #
 ##############################################################################
 
@@ -60,6 +60,17 @@ cfg_file=@sysconfdir@/timeperiods.cfg
 #cfg_dir=@sysconfdir@/printers
 #cfg_dir=@sysconfdir@/switches
 #cfg_dir=@sysconfdir@/routers
+
+
+
+# OBJECT CACHE FILE
+# This option determines where object definitions are cached when
+# Nagios starts/restarts.  The CGIs read object definitions from 
+# this cache file (rather than looking at the object config files
+# directly) in order to prevent inconsistencies that can occur
+# when the config files are modified after Nagios starts.
+
+object_cache_file=@localstatedir@/objects.cache
 
 
 
@@ -450,12 +461,21 @@ execute_service_checks=1
 
 
 
-# PASSIVE CHECK ACCEPTANCE OPTION
+# PASSIVE SERVICE CHECK ACCEPTANCE OPTION
 # This determines whether or not Nagios will accept passive
 # service checks results when it initially (re)starts.
 # Values: 1 = accept passive checks, 0 = reject passive checks
 
 accept_passive_service_checks=1
+
+
+
+# PASSIVE HOST CHECK ACCEPTANCE OPTION
+# This determines whether or not Nagios will accept passive
+# host checks results when it initially (re)starts.
+# Values: 1 = accept passive checks, 0 = reject passive checks
+
+accept_passive_host_checks=1
 
 
 

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -103,6 +103,7 @@ extern int      log_rotation_method;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
+extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      enable_failure_prediction;
@@ -759,6 +760,13 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\taccept_passive_service_checks set to %s\n",(accept_passive_service_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+		else if(!strcmp(variable,"accept_passive_host_checks")){
+			strip(value);
+			accept_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\taccept_passive_host_checks set to %s\n",(accept_passive_host_checks==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
 		else if(!strcmp(variable,"inter_check_delay_method")){
 			if(!strcmp(value,"n"))
 				inter_check_delay_method=ICD_NONE;
@@ -1084,7 +1092,7 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 
-		/* ignore old variables */
+		/* ignore old/external variables */
 		else if(!strcmp(variable,"status_file"))
 			continue;
 		else if(!strcmp(variable,"comment_file"))
@@ -1100,6 +1108,8 @@ int read_main_config_file(char *main_config_file){
 		else if(strstr(input,"cfg_file=")==input || strstr(input,"cfg_dir=")==input)
 			continue;
 		else if(strstr(input,"state_retention_file=")==input)
+			continue;
+		else if(strstr(input,"object_cache_file=")==input)
 			continue;
 
 		/* we don't know what this variable is... */
@@ -1321,9 +1331,17 @@ int pre_flight_check(void){
 
 		/* check the event handler command */
 		if(temp_service->event_handler!=NULL){
-			temp_command=find_command(temp_service->event_handler,NULL);
+
+			/* check the event handler command */
+			strncpy(temp_buffer,temp_service->event_handler,sizeof(temp_buffer));
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+			/* get the command name, leave any arguments behind */
+			temp_command_name=my_strtok(temp_buffer,"!");
+
+			temp_command=find_command(temp_command_name,NULL);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_service->event_handler,temp_service->description,temp_service->host_name);
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_command_name,temp_service->description,temp_service->host_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				errors++;
@@ -1493,9 +1511,17 @@ int pre_flight_check(void){
 
 		/* check the event handler command */
 		if(temp_host->event_handler!=NULL){
-			temp_command=find_command(temp_host->event_handler,NULL);
+
+			/* check the event handler command */
+			strncpy(temp_buffer,temp_host->event_handler,sizeof(temp_buffer));
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+			/* get the command name, leave any arguments behind */
+			temp_command_name=my_strtok(temp_buffer,"!");
+
+			temp_command=find_command(temp_command_name,NULL);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_host->event_handler,temp_host->name);
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_command_name,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				errors++;
@@ -1514,7 +1540,7 @@ int pre_flight_check(void){
 
 			temp_command=find_command(temp_command_name,NULL);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_host->host_check_command,temp_host->name);
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_command_name,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				errors++;
@@ -1655,9 +1681,17 @@ int pre_flight_check(void){
 			errors++;
 		        }
 		else for(temp_commandsmember=temp_contact->service_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
-		        temp_command=find_command(temp_commandsmember->command,NULL);
+
+			/* check the host notification command */
+			strncpy(temp_buffer,temp_commandsmember->command,sizeof(temp_buffer));
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+			/* get the command name, leave any arguments behind */
+			temp_command_name=my_strtok(temp_buffer,"!");
+
+			temp_command=find_command(temp_command_name,NULL);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_commandsmember->command,temp_contact->name);
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				errors++;
@@ -1672,9 +1706,17 @@ int pre_flight_check(void){
 			errors++;
 		        }
 		else for(temp_commandsmember=temp_contact->host_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
-			temp_command=find_command(temp_commandsmember->command,NULL);
+
+			/* check the host notification command */
+			strncpy(temp_buffer,temp_commandsmember->command,sizeof(temp_buffer));
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+			/* get the command name, leave any arguments behind */
+			temp_command_name=my_strtok(temp_buffer,"!");
+
+			temp_command=find_command(temp_command_name,NULL);
 			if(temp_command==NULL){
-				sprintf(temp_buffer,"Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_commandsmember->command,temp_contact->name);
+				sprintf(temp_buffer,"Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				errors++;
 			        }
@@ -2198,9 +2240,16 @@ int pre_flight_check(void){
 		printf("Checking global event handlers...\n");
 	if(global_host_event_handler!=NULL){
 
-	        temp_command=find_command(global_host_event_handler,NULL);
+		/* check the event handler command */
+		strncpy(temp_buffer,global_host_event_handler,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+		temp_command=find_command(temp_command_name,NULL);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global host event handler command '%s' is not defined anywhere!",global_host_event_handler);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;
@@ -2208,9 +2257,16 @@ int pre_flight_check(void){
 	        }
 	if(global_service_event_handler!=NULL){
 
-	        temp_command=find_command(global_service_event_handler,NULL);
+		/* check the event handler command */
+		strncpy(temp_buffer,global_service_event_handler,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+		temp_command=find_command(temp_command_name,NULL);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global service event handler command '%s' is not defined anywhere!",global_service_event_handler);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;

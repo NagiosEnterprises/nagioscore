@@ -150,7 +150,6 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 
 /* handles changes in the state of a service */
 int handle_service_event(service *svc,int state_type){
-	command *event_command;
 	host *temp_host;
 
 #ifdef DEBUG0
@@ -188,15 +187,9 @@ int handle_service_event(service *svc,int state_type){
 	/* run the global service event handler */
 	run_global_service_event_handler(svc,state_type);
 
-	/* find the service event handler command if there is one */
-	if(svc->event_handler==NULL)
-		event_command=NULL;
-	else
-		event_command=find_command(svc->event_handler,NULL);
-
 	/* run the event handler command if there is one */
-	if(event_command!=NULL)
-		run_service_event_handler(svc,event_command,state_type);
+	if(svc->event_handler!=NULL)
+		run_service_event_handler(svc,state_type);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -230,16 +223,9 @@ int run_global_service_event_handler(service *svc,int state_type){
 	if(global_service_event_handler==NULL)
 		return ERROR;
 
-	/* find the event handler command */
-	temp_command=find_command(global_service_event_handler,NULL);
-
-	/* if there is no valid command, exit */
-	if(temp_command==NULL)
-		return ERROR;
-
-	/* get the raw command line to execute */
-	strncpy(raw_command_line,temp_command->command_line,sizeof(raw_command_line));
-	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+	/* get the raw command line */
+	get_raw_command_line(global_service_event_handler,raw_command_line,sizeof(raw_command_line));
+	strip(raw_command_line);
 
 #ifdef DEBUG3
 	printf("\tRaw global service event handler command line: %s\n",raw_command_line);
@@ -278,7 +264,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 
 
 /* runs a service event handler command */
-int run_service_event_handler(service *svc,command *cmd,int state_type){
+int run_service_event_handler(service *svc,int state_type){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -288,9 +274,9 @@ int run_service_event_handler(service *svc,command *cmd,int state_type){
 	printf("run_service_event_handler() start\n");
 #endif
 
-	/* get the raw command line to execute */
-	strncpy(raw_command_line,cmd->command_line,sizeof(raw_command_line));
-	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+	/* get the raw command line */
+	get_raw_command_line(svc->event_handler,raw_command_line,sizeof(raw_command_line));
+	strip(raw_command_line);
 
 #ifdef DEBUG3
 	printf("\tRaw service event handler command line: %s\n",raw_command_line);
@@ -335,7 +321,6 @@ int run_service_event_handler(service *svc,command *cmd,int state_type){
 
 /* handles a change in the status of a host */
 int handle_host_event(host *hst,int state,int state_type){
-	command *event_command;
 
 #ifdef DEBUG0
 	printf("handle_host_event() start\n");
@@ -373,15 +358,9 @@ int handle_host_event(host *hst,int state,int state_type){
 	/* run the global host event handler */
 	run_global_host_event_handler(hst,state,state_type);
 
-	/* find the host event handler command */
-	if(hst->event_handler==NULL)
-		event_command=NULL;
-	else
-		event_command=find_command(hst->event_handler,NULL);
-
 	/* run the event handler command if there is one */
-	if(event_command!=NULL)
-		run_host_event_handler(hst,event_command,state,state_type);
+	if(hst->event_handler!=NULL)
+		run_host_event_handler(hst,state,state_type);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -399,7 +378,6 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	command *temp_command;
 	int early_timeout=FALSE;
 
 #ifdef DEBUG0
@@ -414,16 +392,9 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 	if(global_host_event_handler==NULL)
 		return ERROR;
 
-	/* find the event handler command */
-	temp_command=find_command(global_host_event_handler,NULL);
-
-	/* if there is no valid event handler command, exit */
-	if(temp_command==NULL)
-		return ERROR;
-
-	/* get the raw command line to execute */
-	strncpy(raw_command_line,temp_command->command_line,sizeof(raw_command_line)-1);
-	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+	/* get the raw command line */
+	get_raw_command_line(global_host_event_handler,raw_command_line,sizeof(raw_command_line));
+	strip(raw_command_line);
 
 #ifdef DEBUG3
 	printf("\tRaw global host event handler command line: %s\n",raw_command_line);
@@ -461,7 +432,7 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 
 
 /* runs a host event handler command */
-int run_host_event_handler(host *hst,command *cmd,int state,int state_type){
+int run_host_event_handler(host *hst,int state,int state_type){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -471,9 +442,9 @@ int run_host_event_handler(host *hst,command *cmd,int state,int state_type){
 	printf("run_host_event_handler() start\n");
 #endif
 
-	/* get the raw command line to execute */
-	strncpy(raw_command_line,cmd->command_line,sizeof(raw_command_line)-1);
-	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+	/* get the raw command line */
+	get_raw_command_line(hst->event_handler,raw_command_line,sizeof(raw_command_line));
+	strip(raw_command_line);
 
 #ifdef DEBUG3
 	printf("\tRaw host event handler command line: %s\n",raw_command_line);

@@ -1695,7 +1695,7 @@ int run_host_check(host *hst){
 	if(hst->host_check_command==NULL){
 
 #ifdef DEBUG3
-		printf("\tNo host check command specified, so no check will be done (host assumed to be up)!\n");
+		printf("\tNo host check command specified, so no check will be done (host state assumed to be unchanged)!\n");
 #endif
 
 		return HOST_UP;

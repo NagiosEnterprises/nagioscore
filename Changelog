@@ -3,13 +3,16 @@ Nagios Change Log
 ###################
 
 
-2.0 - ??/??/????
-----------------
+2.0a1 - ??/??/????
+------------------
+* Added passive host checks
+* Event handler commands can now contain arguments
+* Contact notification commands can now contain arguments (Greg Vickers)
 * Support for multiple members directives in hostgroup definitions
 * Directory recursion support added to cfg_dir directives for object data
 * Extended info can now be specified by directories with xedtemplate_config_dir
   directive (directory recursion is supported)
-* Host check command can now contain arguments (! separator)
+* Host check command can now contain arguments (! separator) (Daniel Riek)
 * Removed support for "vanilla" command definitions (I doubt they were used)
 * Added p1_file directive to main config file to specify location
   of p1.pl (Russell Scibetti)

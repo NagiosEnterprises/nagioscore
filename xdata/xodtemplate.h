@@ -147,7 +147,8 @@ typedef struct xodtemplate_host_struct{
 	char      *parents;
 	char      *check_command;
 	int       max_check_attempts;
-	int       checks_enabled;
+	int       active_checks_enabled;
+	int       passive_checks_enabled;
 	char      *event_handler;
 	int       event_handler_enabled;
 	float     low_flap_threshold;
@@ -169,7 +170,8 @@ typedef struct xodtemplate_host_struct{
 	int       retain_nonstatus_information;
 
 	int       have_max_check_attempts;
-	int       have_checks_enabled;
+	int       have_active_checks_enabled;
+	int       have_passive_checks_enabled;
 	int       have_event_handler_enabled;
 	int       have_low_flap_threshold;
 	int       have_high_flap_threshold;

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2002
+ * Last Modified:   12-04-2002
  *
  * License:
  *
@@ -161,6 +161,7 @@ extern int      currently_running_service_checks;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
+extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      enable_failure_prediction;
@@ -2825,6 +2826,7 @@ int reset_variables(void){
 
 	enable_notifications=TRUE;
 	execute_service_checks=TRUE;
+	accept_passive_service_checks=TRUE;
 	accept_passive_service_checks=TRUE;
 	enable_event_handlers=TRUE;
 	obsess_over_services=FALSE;

@@ -47,6 +47,7 @@ extern time_t   last_command_check;
 extern int      enable_notifications;
 extern int      execute_service_checks;
 extern int      accept_passive_service_checks;
+extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      enable_failure_prediction;
@@ -217,6 +218,8 @@ void check_for_external_commands(void){
 
 		else if(!strcmp(command_id,"PROCESS_SERVICE_CHECK_RESULT"))
 			command_type=CMD_PROCESS_SERVICE_CHECK_RESULT;
+		else if(!strcmp(command_id,"PROCESS_HOST_CHECK_RESULT"))
+			command_type=CMD_PROCESS_HOST_CHECK_RESULT;
 
 		else if(!strcmp(command_id,"SAVE_STATE_INFORMATION"))
 			command_type=CMD_SAVE_STATE_INFORMATION;
@@ -447,6 +450,10 @@ void process_external_command(int cmd,time_t entry_time,char *args){
 
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
 		cmd_process_service_check_result(cmd,entry_time,args);
+		break;
+
+	case CMD_PROCESS_HOST_CHECK_RESULT:
+		cmd_process_host_check_result(cmd,entry_time,args);
 		break;
 
 	case CMD_SAVE_STATE_INFORMATION:
@@ -1201,8 +1208,8 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 	/* if this isn't a host name, mabye its a host address */
 	if(find_host(temp_ptr)==NULL){
-		host_cursor = get_host_cursor();
-		while(temp_host = get_next_host_cursor(host_cursor)) {
+		host_cursor=get_host_cursor();
+		while(temp_host=get_next_host_cursor(host_cursor)){
 			if(!strcmp(temp_ptr,temp_host->address)){
 				temp_ptr=temp_host->name;
 				break;
@@ -1285,6 +1292,192 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 #endif
 	return OK;
         }
+
+
+
+/* process passive host check result */
+/* this function is a bit more involved than for passive service checks, as we need to replicate most function performed by check_route_to_host() */
+int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
+	char *temp_ptr;
+	host *temp_host;
+	host *this_host;
+	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	int return_code;
+	time_t current_time;
+	int old_state=HOST_UP;
+	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	void *host_cursor;
+	char temp_buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("cmd_process_passive_host_check_result() start\n");
+#endif
+
+
+	/* skip this host check result if we aren't accepting passive check results */
+	if(accept_passive_host_checks==FALSE)
+		return ERROR;
+
+
+	/**************** GET THE INFO ***************/
+
+	time(&current_time);
+
+	/* get the host name */
+	temp_ptr=my_strtok(args,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+
+	/* find the host by name or address */
+	if((this_host=find_host(temp_ptr))==NULL){
+		host_cursor=get_host_cursor();
+		while(temp_host=get_next_host_cursor(host_cursor)){
+			if(!strcmp(temp_ptr,temp_host->address)){
+				this_host=temp_host;
+				break;
+			        }
+		        }
+		free_host_cursor(host_cursor);
+	        }
+
+	/* bail if we coulnd't find a matching host by name or address */
+	if(this_host==NULL){
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",temp_ptr);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+		return ERROR;
+	        }
+
+	/* get the host check return code */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+	return_code=atoi(temp_ptr);
+
+	/* make sure the return code is within bounds */
+	if(return_code<0 || return_code>2)
+		return ERROR;
+
+	/* get the plugin output */
+	temp_ptr=my_strtok(NULL,"\n");
+	if(temp_ptr==NULL)
+		return ERROR;
+	snprintf(temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"%s",temp_ptr);
+	temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+
+
+	/********* LET'S DO IT (SUBSET OF NORMAL HOST CHECK OPERATIONS) ********/
+
+	/* ignore passive host check results if we're not accepting them for this host */
+	if(this_host->accept_passive_host_checks==FALSE)
+		return ERROR;
+
+	/* set the checked flag */
+	this_host->has_been_checked=TRUE;
+
+	/* set the current attempt */
+	this_host->current_attempt=1;
+
+	/* save the old plugin output and host state for use with state stalking routines */
+	old_state=this_host->status;
+	strncpy(old_plugin_output,(this_host->plugin_output==NULL)?"":this_host->plugin_output,sizeof(old_plugin_output)-1);
+	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
+
+	/* set the last host check time */
+	this_host->last_check=check_time;
+
+	/* clear plugin output and performance data buffers */
+	strcpy(this_host->plugin_output,"");
+	strcpy(this_host->perf_data,"");
+
+	/* calculate total execution time */
+	this_host->execution_time=(int)(current_time-check_time);
+	if(this_host->execution_time<0)
+		this_host->execution_time=0;
+
+	/* check for empty plugin output */
+	if(!strcmp(temp_plugin_output,""))
+		strcpy(temp_plugin_output,"(No Information Returned From Host Check)");
+
+	/* first part of plugin output (up to pipe) is status info */
+	temp_ptr=strtok(temp_plugin_output,"|\n");
+
+	/* make sure the plugin output isn't NULL */
+	if(temp_ptr==NULL){
+		strncpy(this_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
+		this_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+	        }
+
+	else{
+
+		strip(temp_ptr);
+		if(!strcmp(temp_ptr,"")){
+			strncpy(this_host->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
+			this_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+                        }
+		else{
+			strncpy(this_host->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+			this_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+                        }
+	        }
+
+	/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
+	temp_ptr=strtok(NULL,"\n");
+
+	/* grab performance data if we found it available */
+	if(temp_ptr!=NULL){
+		strip(temp_ptr);
+		strncpy(this_host->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
+		this_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+	        }
+
+	/* replace semicolons in plugin output (but not performance data) with colons */
+	temp_ptr=this_host->plugin_output;
+	while((temp_ptr=strchr(temp_ptr,';')))
+	      *temp_ptr=':';
+
+
+	/***** PROCESS PERFORMANCE DATA *****/
+	update_host_performance_data(this_host,return_code,HARD_STATE);
+
+
+	/***** HAS A HOST STATE CHANGE OCCURRED? *****/
+	if(return_code!=old_state)
+		handle_host_state(this_host,return_code,HARD_STATE);
+
+
+	/***** UPDATE HOST STATUS *****/
+	update_host_status(this_host,FALSE);
+
+
+	/****** STALKING STUFF *****/
+	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
+	if(old_state==return_code && strcmp(old_plugin_output,this_host->plugin_output)){
+
+		if(return_code==HOST_UP && this_host->stalk_on_up==TRUE)
+			log_host_event(this_host,HOST_UP,HARD_STATE);
+
+		if(return_code==HOST_DOWN && this_host->stalk_on_down==TRUE)
+			log_host_event(this_host,HOST_DOWN,HARD_STATE);
+
+		if(return_code==HOST_UNREACHABLE && this_host->stalk_on_unreachable==TRUE)
+			log_host_event(this_host,HOST_UNREACHABLE,HARD_STATE);
+	        }
+
+
+	/***** CHECK FOR FLAPPING *****/
+	check_for_host_flapping(this_host);
+
+
+#ifdef DEBUG0
+	printf("cmd_process_passive_host_check_result() end\n");
+#endif
+
+	return OK;
+        }
+
 
 
 /* acknowledges a host or service problem */

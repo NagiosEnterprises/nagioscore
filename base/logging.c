@@ -179,7 +179,7 @@ int log_service_event(service *svc,int state_type){
 		log_options=NSLOG_SERVICE_OK;
 
 	/* find the associated host */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* grab service macros */
 	clear_volatile_macros();

@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 1.0
+ * Version: 2.0-very-pre-alpha
  * License: GPL
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   11-24-2002
+ * Last Modified:   12-01-2002
  *
  * Description:
  *
@@ -251,9 +251,7 @@ sched_info scheduling_info;
 
 extern contact	       *contact_list;
 extern contactgroup    *contactgroup_list;
-extern host	       *host_list;
 extern hostgroup       *hostgroup_list;
-extern service         *service_list;
 extern timed_event     *event_list_high;
 extern timed_event     *event_list_low;
 extern command         *command_list;
@@ -837,8 +835,12 @@ void calculate_inter_check_delay(void){
 		scheduling_info.inter_check_delay=0.0;
 		scheduling_info.check_interval_total=0L;
 
-		for(temp_service=service_list,scheduling_info.total_services=0;temp_service!=NULL;temp_service=temp_service->next,scheduling_info.total_services++)
+		scheduling_info.total_services=0;
+		move_first_service();
+		while(temp_service=get_next_service()) {
+			scheduling_info.total_services++;
 			scheduling_info.check_interval_total+=temp_service->check_interval;
+		}
 
 		if(scheduling_info.total_services==0 || scheduling_info.check_interval_total==0)
 			return;
@@ -894,10 +896,16 @@ void calculate_interleave_factor(void){
 
 
 		/* count the number of service we have */
-		for(scheduling_info.total_services=0,temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next,scheduling_info.total_services++);
+		scheduling_info.total_services=0;
+		move_first_service();
+		while(get_next_service()) {
+			scheduling_info.total_services++;
+		}
 
 		/* count the number of hosts we have */
-		for(scheduling_info.total_hosts=0,temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next,scheduling_info.total_hosts++);
+		scheduling_info.total_hosts=0;
+		for(move_first_host(); get_next_host(); scheduling_info.total_hosts++)
+			;
 
 		/* protect against a divide by zero problem - shouldn't happen, but just in case... */
 		if(scheduling_info.total_hosts==0)
@@ -962,14 +970,18 @@ void init_timing_loop(void){
 #endif
 
 	/* add all service checks as separate events (with interleaving) */
-	for(current_interleave_block=1,temp_service=service_list;temp_service!=NULL;current_interleave_block++){
+	current_interleave_block=1;
+	move_first_service();
+
+	temp_service=get_next_service();
+	while(temp_service) {
+		current_interleave_block++;
 
 #ifdef DEBUG1
 		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);
 #endif
 
-		for(interleave_block_index=0;interleave_block_index<scheduling_info.interleave_factor;interleave_block_index++,temp_service=temp_service->next){
-
+		for(interleave_block_index=0; interleave_block_index<scheduling_info.interleave_factor; interleave_block_index++, temp_service=get_next_service()) {
 			if(temp_service==NULL)
 				break;
 
@@ -1800,6 +1812,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	timed_event *temp_event;
 	service *temp_service;
 	host *temp_host;
+	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("compensate_for_system_time_change() start\n");
@@ -1855,8 +1868,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the last notification time for all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	move_first_service();
+	while(temp_service = get_next_service()) {
 		if(temp_service->last_notification==(time_t)0)
 			continue;
 
@@ -1878,10 +1891,9 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 		update_service_status(temp_service,FALSE);
 	        }
 
-
 	/* adjust the next check time for all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	move_first_service();
+	while(temp_service=get_next_service()) {
 		/* we moved back in time... */
 		if(last_time>current_time){
 
@@ -1901,8 +1913,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the last notification time for all hosts */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	host_cursor = get_host_cursor();
+	while(temp_host = get_next_host_cursor(host_cursor)) {
 		if(temp_host->last_host_notification==(time_t)0)
 			continue;
 
@@ -1923,6 +1935,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 		/* update the status data */
 		update_host_status(temp_host,FALSE);
 	        }
+	free_host_cursor(host_cursor);
 
 
 	/* adjust program start time (necessary for state stats calculations) */

@@ -76,7 +76,7 @@ int service_notification(service *svc, char *ack_data){
 #endif
 
 	/* find the host this service is associated with */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* if we couldn't find the host, return an error */
 	if(temp_host==NULL){
@@ -309,7 +309,7 @@ int check_service_notification_viability(service *svc, char *ack_data){
 	        }
 
 	/* find the host this service is associated with */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* if we couldn't find the host, return an error */
 	if(temp_host==NULL){
@@ -1161,7 +1161,7 @@ int is_valid_host_escalation_for_host_notification(host *hst,int state,hostescal
 		notification_number=hst->current_notification_number;
 
 	/* find the host this escalation entry is associated with */
-	temp_host=find_host(he->host_name,NULL);
+	temp_host=find_host(he->host_name);
 	if(temp_host==NULL || temp_host!=hst)
 		return FALSE;
 

@@ -182,9 +182,7 @@ extern int      date_format;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
-extern host		*host_list;
 extern hostgroup	*hostgroup_list;
-extern service		*service_list;
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
 extern notification     *notification_list;

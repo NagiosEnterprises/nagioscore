@@ -149,12 +149,12 @@ int unschedule_downtime(int type,int downtime_id){
 
 	/* find the host or service associated with this downtime */
 	if(temp_downtime->type==HOST_DOWNTIME){
-		hst=find_host(temp_downtime->host_name,NULL);
+		hst=find_host(temp_downtime->host_name);
 		if(hst==NULL)
 			return ERROR;
 	        }
 	else{
-		svc=find_service(temp_downtime->host_name,temp_downtime->service_description,NULL);
+		svc=find_service(temp_downtime->host_name,temp_downtime->service_description);
 		if(svc==NULL)
 			return ERROR;
 	        }
@@ -258,12 +258,12 @@ int register_downtime(int type, int downtime_id){
 
 	/* find the host or service associated with this downtime */
 	if(temp_downtime->type==HOST_DOWNTIME){
-		hst=find_host(temp_downtime->host_name,NULL);
+		hst=find_host(temp_downtime->host_name);
 		if(hst==NULL)
 			return ERROR;
 	        }
 	else{
-		svc=find_service(temp_downtime->host_name,temp_downtime->service_description,NULL);
+		svc=find_service(temp_downtime->host_name,temp_downtime->service_description);
 		if(svc==NULL)
 			return ERROR;
 	        }
@@ -330,12 +330,12 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 	/* find the host or service associated with this downtime */
 	if(temp_downtime->type==HOST_DOWNTIME){
-		hst=find_host(temp_downtime->host_name,NULL);
+		hst=find_host(temp_downtime->host_name);
 		if(hst==NULL)
 			return ERROR;
 	        }
 	else{
-		svc=find_service(temp_downtime->host_name,temp_downtime->service_description,NULL);
+		svc=find_service(temp_downtime->host_name,temp_downtime->service_description);
 		if(svc==NULL)
 			return ERROR;
 	        }
@@ -535,7 +535,7 @@ int check_pending_flex_host_downtime(host *hst,int state){
 			continue;
 
 		/* this entry matches our host! */
-		if(find_host(temp_downtime->host_name,NULL)==hst){
+		if(find_host(temp_downtime->host_name)==hst){
 			
 			/* if the time boundaries are okay, start this scheduled downtime */
 			if(temp_downtime->start_time<=current_time && current_time<=temp_downtime->end_time){
@@ -584,7 +584,7 @@ int check_pending_flex_service_downtime(service *svc){
 			continue;
 
 		/* this entry matches our service! */
-		if(find_service(temp_downtime->host_name,temp_downtime->service_description,NULL)==svc){
+		if(find_service(temp_downtime->host_name,temp_downtime->service_description)==svc){
 
 			/* if the time boundaries are okay, start this scheduled downtime */
 			if(temp_downtime->start_time<=current_time && current_time<=temp_downtime->end_time){

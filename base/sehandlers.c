@@ -79,7 +79,7 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 		return OK;
 
 	/* find the associated host */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* update service macros */
 	clear_volatile_macros();
@@ -164,7 +164,7 @@ int handle_service_event(service *svc,int state_type){
 		return OK;
 
 	/* find the host */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* update service macros */
 	clear_volatile_macros();

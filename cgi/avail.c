@@ -40,8 +40,6 @@ extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
 extern hostgroup *hostgroup_list;
-extern host *host_list;
-extern service *service_list;
 
 extern int       log_rotation_method;
 
@@ -252,6 +250,7 @@ int main(int argc, char **argv){
 	time_t t3;
 	time_t current_time;
 	struct tm *t;
+	char *firsthostpointer;
 
 	/* reset internal CGI variables */
 	reset_cgi_vars();
@@ -761,7 +760,8 @@ int main(int argc, char **argv){
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Host(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='host'>\n");
 		printf("<option value='all'>** ALL HOSTS **\n");
-		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+		move_first_host();
+		while(temp_host=get_next_host()) {
 			if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
 				printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
 		        }
@@ -786,10 +786,15 @@ int main(int argc, char **argv){
 		printf("function gethostname(hostindex){\n");
 		printf("hostnames=[\"all\"");
 
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
+		firsthostpointer = NULL;
+		move_first_service();
+		while(temp_service=get_next_service()) {
+			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE) {
+				if(!firsthostpointer)
+					firsthostpointer = temp_service->host_name;
 				printf(", \"%s\"",temp_service->host_name);
 		        }
+		}
 		
 		printf(" ]\n");
 		printf("return hostnames[hostindex];\n");
@@ -802,14 +807,15 @@ int main(int argc, char **argv){
 
 	        printf("<form method=\"get\" action=\"%s\" name='serviceform'>\n",AVAIL_CGI);
 		printf("<input type='hidden' name='get_date_parts'>\n");
-		printf("<input type='hidden' name='host' value='%s'>\n",(service_list==NULL)?"unknown":service_list->host_name);
+		printf("<input type='hidden' name='host' value='%s'>\n",(firsthostpointer==NULL)?"unknown":firsthostpointer);
 
 		printf("<table border=0 cellpadding=5>\n");
 
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Service(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
 		printf("<option value='all'>** ALL SERVICES **\n");
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+		move_first_service();
+		while(temp_service=get_next_service()) {
 			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
 				printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
 		        }
@@ -837,9 +843,9 @@ int main(int argc, char **argv){
 		if((display_type==DISPLAY_HOST_AVAIL && show_all_hosts==FALSE) || (display_type==DISPLAY_SERVICE_AVAIL && show_all_services==FALSE)){
 
 			if(display_type==DISPLAY_HOST_AVAIL && show_all_hosts==FALSE)
-				is_authorized=is_authorized_for_host(find_host(host_name,NULL),&current_authdata);
+				is_authorized=is_authorized_for_host(find_host(host_name),&current_authdata);
 			else
-				is_authorized=is_authorized_for_service(find_service(host_name,svc_description,NULL),&current_authdata);
+				is_authorized=is_authorized_for_service(find_service(host_name,svc_description),&current_authdata);
 		        }
 
 		if(is_authorized==FALSE)
@@ -2171,6 +2177,7 @@ void create_subject_list(void){
 	hostgroup *temp_hostgroup;
 	host *temp_host;
 	service *temp_service;
+	void *host_cursor;
 
 	/* we're displaying one or more hosts */
 	if(display_type==DISPLAY_HOST_AVAIL && host_name!=""){
@@ -2178,19 +2185,20 @@ void create_subject_list(void){
 		/* we're only displaying a specific host (and summaries for all services associated with it) */
 		if(show_all_hosts==FALSE){
 			add_subject(HOST_SUBJECT,host_name,NULL);
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_service->host_name,host_name))
+			if(find_all_services_by_host(host_name)) {
+				while(temp_service=get_next_service_by_host()) {
 					add_subject(SERVICE_SUBJECT,host_name,temp_service->description);
 			        }
 		        }
-
+		}
 		/* we're displaying all hosts */
 		else{
-			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
+			host_cursor = get_host_cursor();
+			while(temp_host = get_next_host_cursor(host_cursor))
 				add_subject(HOST_SUBJECT,temp_host->name,NULL);
+			free_host_cursor(host_cursor);
 		        }
 	        }
-
 	/* we're displaying a specific service */
 	else if(display_type==DISPLAY_SERVICE_AVAIL && svc_description!=""){
 
@@ -2200,28 +2208,33 @@ void create_subject_list(void){
 
 		/* we're displaying all services */
 		else{
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next)
+			move_first_service();
+			while(temp_service=get_next_service()) {
 				add_subject(SERVICE_SUBJECT,temp_service->host_name,temp_service->description);
 		        }
 	        }
+	}
 
 	/* we're displaying one or more hostgroups (the host members of the groups) */
 	else if(display_type==DISPLAY_HOSTGROUP_AVAIL && hostgroup_name!=""){
 
 		/* we're displaying all hostgroups, so use all hosts */
 		if(show_all_hostgroups==TRUE){
-			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
+			host_cursor = get_host_cursor();
+			while(temp_host = get_next_host_cursor(host_cursor))
 				add_subject(HOST_SUBJECT,temp_host->name,NULL);
+			free_host_cursor(host_cursor);
 		        }
-
 		/* we're only displaying a specific hostgroup */
 		else{
 			temp_hostgroup=find_hostgroup(hostgroup_name,NULL);
 			if(temp_hostgroup!=NULL){
-				for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+				host_cursor = get_host_cursor();
+				while(temp_host = get_next_host_cursor(host_cursor)) {
 					if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==TRUE)
 						add_subject(HOST_SUBJECT,temp_host->name,NULL);
 				        }
+				free_host_cursor(host_cursor);
 			        }
 		        }
 	        }
@@ -2240,9 +2253,9 @@ void add_subject(int subject_type, char *hn, char *sd){
 
 	/* see if the user is authorized to see data for this host or service */
 	if(subject_type==HOST_SUBJECT)
-		is_authorized=is_authorized_for_host(find_host(hn,NULL),&current_authdata);
+		is_authorized=is_authorized_for_host(find_host(hn),&current_authdata);
 	else
-		is_authorized=is_authorized_for_service(find_service(hn,sd,NULL),&current_authdata);
+		is_authorized=is_authorized_for_service(find_service(hn,sd),&current_authdata);
 	if(is_authorized==FALSE)
 		return;
 
@@ -3130,7 +3143,7 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 		if(temp_subject->type!=HOST_SUBJECT)
 			continue;
 
-		temp_host=find_host(temp_subject->host_name,NULL);
+		temp_host=find_host(temp_subject->host_name);
 		if(temp_host==NULL)
 			continue;
 
@@ -3255,7 +3268,7 @@ void display_host_availability(void){
 		if(temp_subject==NULL)
 			return;
 
-		temp_host=find_host(temp_subject->host_name,NULL);
+		temp_host=find_host(temp_subject->host_name);
 		if(temp_host==NULL)
 			return;
 
@@ -3399,7 +3412,7 @@ void display_host_availability(void){
 			if(temp_subject->type!=SERVICE_SUBJECT)
 				continue;
 
-			temp_service=find_service(temp_subject->host_name,temp_subject->service_description,NULL);
+			temp_service=find_service(temp_subject->host_name,temp_subject->service_description);
 			if(temp_service==NULL)
 				continue;
 
@@ -3490,7 +3503,7 @@ void display_host_availability(void){
 			if(temp_subject->type!=HOST_SUBJECT)
 				continue;
 			
-			temp_host=find_host(temp_subject->host_name,NULL);
+			temp_host=find_host(temp_subject->host_name);
 			if(temp_host==NULL)
 				continue;
 
@@ -3673,7 +3686,7 @@ void display_service_availability(void){
 		if(temp_subject==NULL)
 			return;
 
-		temp_service=find_service(temp_subject->host_name,temp_subject->service_description,NULL);
+		temp_service=find_service(temp_subject->host_name,temp_subject->service_description);
 		if(temp_service==NULL)
 			return;
 
@@ -3860,7 +3873,7 @@ void display_service_availability(void){
 			if(temp_subject->type!=SERVICE_SUBJECT)
 				continue;
 
-			temp_service=find_service(temp_subject->host_name,temp_subject->service_description,NULL);
+			temp_service=find_service(temp_subject->host_name,temp_subject->service_description);
 			if(temp_service==NULL)
 				continue;
 

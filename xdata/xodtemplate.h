@@ -416,6 +416,15 @@ typedef struct xodtemplate_hostlist_struct{
 
 
 
+/***** CHAINED HASH DATA STRUCTURES ******/
+
+typedef struct xodtemplate_service_cursor_struct{
+	int xodtemplate_service_iterator;
+	xodtemplate_service *current_xodtemplate_service;
+        }xodtemplate_service_cursor;
+
+
+
 /********* FUNCTION DEFINITIONS **********/
 
 int xodtemplate_read_config_data(char *,int);               /* top-level routine processes all config files */
@@ -471,6 +480,10 @@ xodtemplate_host *xodtemplate_find_real_host(char *);
 xodtemplate_service *xodtemplate_find_service(char *);
 xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *);
 xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);
+
+void *get_xodtemplate_service_cursor(void);
+xodtemplate_service *get_next_xodtemplate_service(void *v_cursor);
+void free_xodtemplate_service_cursor(void *cursor);
 
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_register_command(xodtemplate_command *);

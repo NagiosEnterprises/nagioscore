@@ -130,9 +130,6 @@ extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
 
-extern host *host_list;
-extern service *service_list;
-
 extern int     log_rotation_method;
 
 
@@ -518,12 +515,12 @@ int main(int argc, char **argv){
 
 	/* check authorization... */
 	if(display_type==DISPLAY_HOST_HISTOGRAM){
-		temp_host=find_host(host_name,NULL);
+		temp_host=find_host(host_name);
 		if(temp_host==NULL || is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			is_authorized=FALSE;
 	        }
 	else if(display_type==DISPLAY_SERVICE_HISTOGRAM){
-		temp_service=find_service(host_name,svc_description,NULL);
+		temp_service=find_service(host_name,svc_description);
 		if(temp_service==NULL || is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			is_authorized=FALSE;
 	        }
@@ -690,7 +687,8 @@ int main(int argc, char **argv){
 			printf("<td class='reportSelectItem' valing=center>\n");
 			printf("<select name='host'>\n");
 
-			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+			move_first_host();
+			while(temp_host = get_next_host()) {
 				if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
 					printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
 			        }
@@ -715,7 +713,8 @@ int main(int argc, char **argv){
 			printf("function gethostname(hostindex){\n");
 			printf("hostnames=[");
 
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			move_first_service();
+			while(temp_service = get_next_service()) {
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE){
 					if(found==TRUE)
 						printf(",");
@@ -747,7 +746,8 @@ int main(int argc, char **argv){
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
 
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			move_first_service();
+			while(temp_service=get_next_service()) {
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
 					printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
 		                }

@@ -58,8 +58,6 @@ extern int      log_passive_checks;
 
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
-extern service          *service_list;
-extern host             *host_list;
 
 extern FILE     *command_file_fp;
 
@@ -616,13 +614,13 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(host_name,svc_description,NULL);
+		temp_service=find_service(host_name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
 
 	/* else verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -709,13 +707,13 @@ int cmd_delete_all_comments(int cmd,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(host_name,svc_description,NULL);
+		temp_service=find_service(host_name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
 
 	/* else verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -757,7 +755,7 @@ int cmd_delay_notification(int cmd,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(host_name,svc_description,NULL);
+		temp_service=find_service(host_name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
@@ -765,7 +763,7 @@ int cmd_delay_notification(int cmd,char *args){
 	/* else verify that the host is valid */
 	else{
 
-		temp_host=find_host(host_name,NULL);
+		temp_host=find_host(host_name);
 		if(temp_host==NULL)
 			return ERROR;
 	        }
@@ -813,7 +811,7 @@ int cmd_schedule_service_check(int cmd,char *args, int force){
 		return ERROR;
 
 	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description,NULL);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -852,7 +850,7 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -863,12 +861,14 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	delay_time=strtoul(temp_ptr,NULL,10);
 
 	/* reschedule all services on the specified host */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	if(find_all_services_by_host(host_name)) {
+		while(temp_service=get_next_service_by_host()) {
 		/* schedule a delayed service check */
-		if(!strcmp(host_name,temp_service->host_name))
 			schedule_service_check(temp_service,delay_time,force);
 	        }
+	} else {
+		return ERROR;
+	}
 
 
 #ifdef DEBUG0
@@ -900,7 +900,7 @@ int cmd_enable_disable_service_check(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description,NULL);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -933,19 +933,20 @@ int cmd_enable_disable_host_service_checks(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
 	/* disable all services associated with this host... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		if(!strcmp(temp_service->host_name,temp_host->name)){
+	if(find_all_services_by_host(temp_host->name)) {
+		while(temp_service=get_next_service_by_host()) {
 			if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
 				enable_service_check(temp_service);
 			else
 				disable_service_check(temp_service);
 		        }
+	} else {
+		return ERROR;
 	        }
 
 #ifdef DEBUG0
@@ -1061,7 +1062,7 @@ int cmd_enable_disable_service_notifications(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description,NULL);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -1092,7 +1093,7 @@ int cmd_enable_disable_host_notifications(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1125,19 +1126,20 @@ int cmd_enable_disable_host_service_notifications(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
 	/* find all services for this host... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		if(!strcmp(temp_service->host_name,host_name)){
+	if(find_all_services_by_host(host_name)) {
+		while(temp_service=get_next_service_by_host()) {
 			if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
 				enable_service_notifications(temp_service);
 			else
 				disable_service_notifications(temp_service);
 		        }
+	} else {
+		return ERROR;
 	        }
 
 #ifdef DEBUG0
@@ -1162,7 +1164,7 @@ int cmd_enable_disable_and_propagate_notifications(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1185,6 +1187,7 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	passive_check_result *new_pcr;
 	passive_check_result *temp_pcr;
 	host *temp_host;
+	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("cmd_process_service_check_result() start\n");
@@ -1198,13 +1201,15 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	temp_ptr=my_strtok(args,";");
 
 	/* if this isn't a host name, mabye its a host address */
-	if(find_host(temp_ptr,NULL)==NULL){
-		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	if(find_host(temp_ptr)==NULL){
+		host_cursor = get_host_cursor();
+		while(temp_host = get_next_host_cursor(host_cursor)) {
 			if(!strcmp(temp_ptr,temp_host->address)){
 				temp_ptr=temp_host->name;
 				break;
 			        }
 		        }
+		free_host_cursor(host_cursor);
 	        }
 
 	if(temp_ptr==NULL){
@@ -1303,7 +1308,7 @@ int cmd_acknowledge_problem(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1316,7 +1321,7 @@ int cmd_acknowledge_problem(int cmd,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description,NULL);
+		temp_service=find_service(temp_host->name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
@@ -1366,7 +1371,7 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1379,7 +1384,7 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description,NULL);
+		temp_service=find_service(temp_host->name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
@@ -1462,7 +1467,7 @@ int cmd_enable_disable_passive_service_checks(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description,NULL);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -1497,7 +1502,7 @@ int cmd_enable_disable_service_event_handler(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1507,7 +1512,7 @@ int cmd_enable_disable_service_event_handler(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description,NULL);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -1541,7 +1546,7 @@ int cmd_enable_disable_host_event_handler(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1574,7 +1579,7 @@ int cmd_enable_disable_host_check(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1628,7 +1633,7 @@ int cmd_enable_disable_host_flap_detection(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1663,7 +1668,7 @@ int cmd_enable_disable_service_flap_detection(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1673,7 +1678,7 @@ int cmd_enable_disable_service_flap_detection(int cmd,char *args){
 		return ERROR;
 
 	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description,NULL);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -1716,7 +1721,7 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1729,7 +1734,7 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description,NULL);
+		temp_service=find_service(temp_host->name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
@@ -1838,7 +1843,7 @@ int cmd_schedule_host_service_downtime(int cmd, time_t entry_time, char *args){
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -1881,10 +1886,13 @@ int cmd_schedule_host_service_downtime(int cmd, time_t entry_time, char *args){
 		duration=(unsigned long)(end_time-start_time);
 
 	/* schedule downtime */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-		if(!strcmp(temp_service->host_name,host_name))
+	if(find_all_services_by_host(host_name)) {
+		while(temp_service=get_next_service_by_host()) {
 			schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
 	        }
+	} else {
+		return ERROR;
+	}
 
 #ifdef DEBUG0
 	printf("cmd_schedule_host_service_downtime() end\n");
@@ -2173,14 +2181,15 @@ void disable_host_notifications(host *hst){
 void enable_and_propagate_notifications(host *hst){
 	host *temp_host;
 	service *temp_service;
+	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("enable_and_propagate_notifications() start\n");
 #endif
 
 	/* check all child hosts... */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	host_cursor = get_host_cursor();
+	while(temp_host = get_next_host_cursor(host_cursor)) {
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
@@ -2190,13 +2199,15 @@ void enable_and_propagate_notifications(host *hst){
 			enable_host_notifications(temp_host);
 
 			/* enable notifications for all services on this host... */
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_host->name,temp_service->host_name))
+			if(find_all_services_by_host(temp_host->name)) {
+				while(temp_service=get_next_service_by_host()) {
 					enable_service_notifications(temp_service);
 			        }
 		        }
 
 	        }
+	}
+	free_host_cursor(host_cursor);
 
 #ifdef DEBUG0
 	printf("enable_and_propagate_notifications() end\n");
@@ -2210,14 +2221,15 @@ void enable_and_propagate_notifications(host *hst){
 void disable_and_propagate_notifications(host *hst){
 	host *temp_host;
 	service *temp_service;
+	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("disable_and_propagate_notifications() start\n");
 #endif
 
 	/* check all child hosts... */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	host_cursor = get_host_cursor();
+	while(temp_host=get_next_host_cursor(host_cursor)) {
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
@@ -2227,13 +2239,15 @@ void disable_and_propagate_notifications(host *hst){
 			disable_host_notifications(temp_host);
 
 			/* disable notifications for all services on this host... */
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				if(!strcmp(temp_host->name,temp_service->host_name))
+			if(find_all_services_by_host(temp_host->name)) {
+				while(temp_service=get_next_service_by_host()) {
 					disable_service_notifications(temp_service);
 			        }
 		        }
 
 	        }
+	}
+	free_host_cursor(host_cursor);
 
 #ifdef DEBUG0
 	printf("disable_and_propagate_notifications() end\n");

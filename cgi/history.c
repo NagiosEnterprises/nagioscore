@@ -74,8 +74,6 @@ int use_lifo=TRUE;
 int history_options=HISTORY_ALL;
 int state_options=STATE_ALL;
 
-extern host *host_list;
-
 int embedded=FALSE;
 int display_header=TRUE;
 int display_frills=TRUE;
@@ -863,13 +861,13 @@ void get_history(void){
 			if(system_message==FALSE){
 
 				if(history_type==HOST_HISTORY || history_type==HOST_FLAPPING_HISTORY || history_type==HOST_DOWNTIME_HISTORY){
-					temp_host=find_host(entry_host_name,NULL);
+					temp_host=find_host(entry_host_name);
 					if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 						display_line=FALSE;
 					
 				        }
 				else{
-					temp_service=find_service(entry_host_name,entry_service_desc,NULL);
+					temp_service=find_service(entry_host_name,entry_service_desc);
 					if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 						display_line=FALSE;
 				        }

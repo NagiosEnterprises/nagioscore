@@ -125,9 +125,9 @@ extern int      date_format;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
-extern host		*host_list;
+extern host		**host_list;
 extern hostgroup	*hostgroup_list;
-extern service		*service_list;
+extern service		**service_list;
 extern notification     *notification_list;
 extern command          *command_list;
 extern timeperiod       *timeperiod_list;
@@ -1264,22 +1264,17 @@ int pre_flight_check(void){
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 		errors++;
 	        }
-	for(temp_service=service_list,total_objects=0;temp_service!=NULL;temp_service=temp_service->next,total_objects++){
-
+	total_objects=0;
+	move_first_service();
+	while(temp_service=get_next_service()) {
+		total_objects++;
 		found=FALSE;
 
 		/* check for a valid host */
-		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-			/* we found the host! */
-			if(!strcmp(temp_service->host_name,temp_host->name)){
-				found=TRUE;
-				break;
-				}
-			}
+		temp_host = find_host(temp_service->host_name);
 
 		/* we couldn't find an associated host! */
-		if(found==FALSE){
+		if(!temp_host){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in service '%s' not defined anywhere!",temp_service->host_name,temp_service->description);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -1421,17 +1416,17 @@ int pre_flight_check(void){
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 		errors++;
 	        }
-	for(temp_host=host_list,total_objects=0;temp_host!=NULL;temp_host=temp_host->next,total_objects++){
+	total_objects=0;
+	move_first_host();
+	while(temp_host = get_next_host()) {
+		total_objects++;
 
 		found=FALSE;
 
 		/* make sure each host has at least one service associated with it */
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-			/* we found a service! */
-			if(!strcmp(temp_host->name,temp_service->host_name)){
+		if(find_all_services_by_host(temp_host->name)) {
+			if(get_next_service_by_host()) {
 				found=TRUE;
-				break;
 				}
 			}
 
@@ -1499,7 +1494,7 @@ int pre_flight_check(void){
 		/* check all parent parent host */
 		for(temp_hostsmember=temp_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-			if(find_host(temp_hostsmember->host_name,NULL)==NULL){
+			if(find_host(temp_hostsmember->host_name)==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: '%s' is not a valid parent for host '%s'!",temp_hostsmember->host_name,temp_host->name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -1549,7 +1544,7 @@ int pre_flight_check(void){
 		/* check all group members */
 		for(temp_hostgroupmember=temp_hostgroup->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
 
-			temp_host=find_host(temp_hostgroupmember->host_name,NULL);
+			temp_host=find_host(temp_hostgroupmember->host_name);
 			if(temp_host==NULL){
 				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostgroupmember->host_name,temp_hostgroup->group_name);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1760,15 +1755,14 @@ int pre_flight_check(void){
 				break;
 			}
 		if(found==FALSE){
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			move_first_service();
+			while((temp_service=get_next_service()) && !found) {
 				for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 						found=TRUE;
 						break;
 				                }
 			                 }
-				if(found==TRUE)
-					break;
 			        }
 		        }
 		if(found==FALSE){
@@ -1856,7 +1850,7 @@ int pre_flight_check(void){
 	for(temp_se=serviceescalation_list,total_objects=0;temp_se!=NULL;temp_se=temp_se->next,total_objects++){
 
 		/* find the service */
-		temp_service=find_service(temp_se->host_name,temp_se->description,NULL);
+		temp_service=find_service(temp_se->host_name,temp_se->description);
 		if(temp_service==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->description,temp_se->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1936,7 +1930,7 @@ int pre_flight_check(void){
 	for(temp_sd=servicedependency_list,total_objects=0;temp_sd!=NULL;temp_sd=temp_sd->next,total_objects++){
 
 		/* find the dependent service */
-		temp_service=find_service(temp_sd->dependent_host_name,temp_sd->dependent_service_description,NULL);
+		temp_service=find_service(temp_sd->dependent_host_name,temp_sd->dependent_service_description);
 		if(temp_service==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Dependent service specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1945,7 +1939,7 @@ int pre_flight_check(void){
 		        }
 
 		/* find the service we're depending on */
-		temp_service2=find_service(temp_sd->host_name,temp_sd->service_description,NULL);
+		temp_service2=find_service(temp_sd->host_name,temp_sd->service_description);
 		if(temp_service2==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1980,7 +1974,7 @@ int pre_flight_check(void){
 	for(temp_he=hostescalation_list,total_objects=0;temp_he!=NULL;temp_he=temp_he->next,total_objects++){
 
 		/* find the host */
-		temp_host=find_host(temp_he->host_name,NULL);
+		temp_host=find_host(temp_he->host_name);
 		if(temp_host==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host escalation for host '%s' is not defined anywhere!",temp_he->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2019,7 +2013,7 @@ int pre_flight_check(void){
 	for(temp_hd=hostdependency_list,total_objects=0;temp_hd!=NULL;temp_hd=temp_hd->next,total_objects++){
 
 		/* find the dependent host */
-		temp_host=find_host(temp_hd->dependent_host_name,NULL);
+		temp_host=find_host(temp_hd->dependent_host_name);
 		if(temp_host==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Dependent host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2028,7 +2022,7 @@ int pre_flight_check(void){
 		        }
 
 		/* find the host we're depending on */
-		temp_host2=find_host(temp_hd->host_name,NULL);
+		temp_host2=find_host(temp_hd->host_name);
 		if(temp_host2==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -2112,7 +2106,8 @@ int pre_flight_check(void){
 	/* check routes between all hosts */
 	found=FALSE;
 	result=OK;
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	move_first_host();
+	while(temp_host = get_next_host()) {
 		found=check_for_circular_path(temp_host,temp_host);
 		if(found==TRUE){
 			sprintf(temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
@@ -2218,9 +2213,9 @@ int pre_flight_check(void){
 	        }
 
 	/* count number of services associated with each host (we need this for flap detection)... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-		temp_host=find_host(temp_service->host_name,NULL);
-		if(temp_host!=NULL){
+	move_first_service();
+	while(temp_service = get_next_service()) {
+		if(temp_host=find_host(temp_service->host_name)) {
 			temp_host->total_services++;
 			temp_host->total_service_check_interval+=temp_service->check_interval;
 		        }

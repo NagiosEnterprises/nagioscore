@@ -657,12 +657,12 @@ void display_notifications(void){
 
 			/* make sure user has authorization to view this notification */
 			if(notification_type==HOST_NOTIFICATION){
-				temp_host=find_host(host_name,NULL);
+				temp_host=find_host(host_name);
 				if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 					show_entry=FALSE;
 			        }
 			else{
-				temp_service=find_service(host_name,service_name,NULL);
+				temp_service=find_service(host_name,service_name);
 				if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 					show_entry=FALSE;
 			        }

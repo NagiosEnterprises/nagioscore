@@ -481,7 +481,7 @@ int xcddb_validate_host_comments(void){
 	while((result_row=mysql_fetch_row(query_result))!=NULL){
 
 		/* find the host that this comment is associated with */
-		temp_host=find_host(result_row[1],NULL);
+		temp_host=find_host(result_row[1]);
 
 		/* if we couldn't find the host, delete this comment */
 		if(temp_host==NULL)
@@ -505,7 +505,7 @@ int xcddb_validate_host_comments(void){
 	for(tuple=0;tuple<ntuples;tuple++){
 
 		/* find the host that this comment is associated with */
-		temp_host=find_host(PQgetvalue(xcddb_pgres,tuple,1),NULL);
+		temp_host=find_host(PQgetvalue(xcddb_pgres,tuple,1));
 
 		/* if we couldn't find the host, mark this comment for deletion */
 		if(temp_host==NULL)
@@ -570,7 +570,7 @@ int xcddb_validate_service_comments(void){
 	while((result_row=mysql_fetch_row(query_result))!=NULL){
 
 		/* find the service that this comment is associated with */
-		temp_service=find_service(result_row[1],result_row[2],NULL);
+		temp_service=find_service(result_row[1],result_row[2]);
 
 		/* if we couldn't find the service, delete this comment */
 		if(temp_service==NULL)
@@ -594,7 +594,7 @@ int xcddb_validate_service_comments(void){
 	for(tuple=0;tuple<ntuples;tuple++){
 
 		/* find the service that this comment is associated with */
-		temp_service=find_service(PQgetvalue(xcddb_pgres,tuple,1),PQgetvalue(xcddb_pgres,tuple,2),NULL);
+		temp_service=find_service(PQgetvalue(xcddb_pgres,tuple,1),PQgetvalue(xcddb_pgres,tuple,2));
 
 		/* if we couldn't find the service, mark this comment for deletion */
 		if(temp_service==NULL)

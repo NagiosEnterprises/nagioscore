@@ -3,6 +3,12 @@ Nagios Change Log
 ###################
 
 
+2.0 - ??/??/????
+----------------
+* Host and services use chained hash for faster lookups (Daniel Drown)
+	###### CH may disappear from xodtemplate before release (not sure though)
+
+
 1.0 - 11/24/2002
 ----------------
 * Minor bug fixes in CGIs

@@ -65,8 +65,6 @@ extern char *normal_sound;
 extern hostgroup *hostgroup_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
-extern host *host_list;
-extern service *service_list;
 
 extern int enable_notifications;
 extern int execute_service_checks;
@@ -401,7 +399,7 @@ void analyze_status_data(void){
 	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
 
 		/* see if user is authorized to view this service */
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			continue;
 
@@ -560,7 +558,7 @@ void analyze_status_data(void){
 	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
 
 		/* see if user is authorized to view this host */
-		temp_host=find_host(temp_hoststatus->host_name,NULL);
+		temp_host=find_host(temp_hoststatus->host_name);
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			continue;
 
@@ -697,7 +695,7 @@ void find_hosts_causing_outages(void){
 		if(temp_hoststatus->status!=HOST_UP && temp_hoststatus->status!=HOST_PENDING){
 
 			/* find the host entry */
-			temp_host=find_host(temp_hoststatus->host_name,NULL);
+			temp_host=find_host(temp_hoststatus->host_name);
 
 			if(temp_host==NULL)
 				continue;
@@ -771,11 +769,12 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts){
 	int total_child_hosts_affected=0;
 	int temp_child_hosts_affected=0;
 	host *temp_host;
+	void *host_cursor;
 
 
 	/* find all child hosts of this host */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	host_cursor = get_host_cursor();
+	while(temp_host = get_next_host_cursor(host_cursor)) {
 		/* skip this host if it is not a child */
 		if(is_host_immediate_child_of_host(hst,temp_host)==FALSE)
 			continue;
@@ -786,6 +785,7 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts){
 		/* keep a running total of outage effects */
 		total_child_hosts_affected+=temp_child_hosts_affected;
 	        }
+	free_host_cursor(host_cursor);
 
 	*affected_hosts=total_child_hosts_affected+1;
 

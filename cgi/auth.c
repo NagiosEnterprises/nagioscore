@@ -238,7 +238,7 @@ int is_authorized_for_hostgroup(hostgroup *hg, authdata *authinfo){
 
 	/* see if user is authorized for any host in the hostgroup */
 	for(temp_hostgroupmember=hg->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
-		temp_host=find_host(temp_hostgroupmember->host_name,NULL);
+		temp_host=find_host(temp_hostgroupmember->host_name);
 		if(is_authorized_for_host(temp_host,authinfo)==TRUE)
 			return TRUE;
 	        }
@@ -268,7 +268,7 @@ int is_authorized_for_service(service *svc, authdata *authinfo){
 		return TRUE;
 
 	/* find the host */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 	if(temp_host==NULL)
 		return FALSE;
 
@@ -386,7 +386,7 @@ int is_authorized_for_service_commands(service *svc, authdata *authinfo){
 	if(is_authorized_for_service(svc,authinfo)==TRUE){
 
 		/* find the host */
-		temp_host=find_host(svc->host_name,NULL);
+		temp_host=find_host(svc->host_name);
 		if(temp_host==NULL)
 			return FALSE;
 

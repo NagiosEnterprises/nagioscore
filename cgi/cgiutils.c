@@ -117,8 +117,6 @@ int             default_statusmap_layout_method=0;
 int             default_statuswrl_layout_method=0;
 
 extern hostgroup       *hostgroup_list;
-extern host            *host_list;
-extern service         *service_list;
 extern contactgroup    *contactgroup_list;
 extern command         *command_list;
 extern timeperiod      *timeperiod_list;
@@ -1561,7 +1559,7 @@ void print_host_notes_url(hostextinfo *temp_hostextinfo){
 	if(temp_hostextinfo->notes_url==NULL)
 		return;
 
-	temp_host=find_host(temp_hostextinfo->host_name,NULL);
+	temp_host=find_host(temp_hostextinfo->host_name);
 	if(temp_host==NULL){
 		printf("%s",temp_hostextinfo->notes_url);
 		return;
@@ -1616,13 +1614,13 @@ void print_service_notes_url(serviceextinfo *temp_serviceextinfo){
 	if(temp_serviceextinfo->notes_url==NULL)
 		return;
 
-	temp_service=find_service(temp_serviceextinfo->host_name,temp_serviceextinfo->description,NULL);
+	temp_service=find_service(temp_serviceextinfo->host_name,temp_serviceextinfo->description);
 	if(temp_service==NULL){
 		printf("%s",temp_serviceextinfo->notes_url);
 		return;
 	        }
 
-	temp_host=find_host(temp_serviceextinfo->host_name,NULL);
+	temp_host=find_host(temp_serviceextinfo->host_name);
 
 	strncpy(input_buffer,temp_serviceextinfo->notes_url,sizeof(input_buffer)-1);
 	input_buffer[sizeof(input_buffer)-1]='\x0';

@@ -52,11 +52,6 @@ xedtemplate_serviceextinfo *xedtemplate_serviceextinfo_list=NULL;
 
 int xedtemplate_current_object_type=XEDTEMPLATE_NONE;
 
-extern host *host_list;
-
-
-
-
 
 
 /******************************************************************/
@@ -630,6 +625,7 @@ int xedtemplate_duplicate_objects(void){
 	int result=OK;
 	host *temp_host;
 	hostgroup *temp_hostgroup;
+	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("xedtemplate_duplicate_objects() start\n");
@@ -697,7 +693,8 @@ int xedtemplate_duplicate_objects(void){
 				continue;
 
 			/* find all hosts in the hostgroup */
-			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+			host_cursor = get_host_cursor();
+			while(temp_host = get_next_host_cursor(host_cursor)) {
 
 				/* is this host in the specified hostgroup? */
 				if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
@@ -734,6 +731,7 @@ int xedtemplate_duplicate_objects(void){
 					return ERROR;
 			                }
 			        }
+			free_host_cursor(host_cursor);
 		        }
 
 		/* free memory we used for hostgroup name list */
@@ -804,7 +802,8 @@ int xedtemplate_duplicate_objects(void){
 				continue;
 
 			/* find all hosts in the hostgroup */
-			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+			host_cursor = get_host_cursor();
+			while(temp_host = get_next_host_cursor(host_cursor)) {
 
 				/* is this host in the specified hostgroup? */
 				if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
@@ -841,6 +840,7 @@ int xedtemplate_duplicate_objects(void){
 					return ERROR;
 			                }
 			        }
+			free_host_cursor(host_cursor);
 		        }
 
 		/* free memory we used for hostgroup name list */

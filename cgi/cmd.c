@@ -47,7 +47,6 @@ extern int  use_authentication;
 
 extern scheduled_downtime *scheduled_downtime_list;
 extern comment *comment_list;
-extern host *host_list;
 
 
 
@@ -1140,7 +1139,7 @@ void commit_command_data(int cmd){
 		clean_comment_data(comment_data);
 
 		/* see if the user is authorized to issue a command... */
-		temp_host=find_host(host_name,NULL);
+		temp_host=find_host(host_name);
 		if(is_authorized_for_host_commands(temp_host,&current_authdata)==TRUE)
 			authorized=TRUE;
 		break;
@@ -1157,7 +1156,7 @@ void commit_command_data(int cmd){
 		clean_comment_data(comment_data);
 
 		/* see if the user is authorized to issue a command... */
-		temp_service=find_service(host_name,service_desc,NULL);
+		temp_service=find_service(host_name,service_desc);
 		if(is_authorized_for_service_commands(temp_service,&current_authdata)==TRUE)
 			authorized=TRUE;
 		break;
@@ -1180,12 +1179,12 @@ void commit_command_data(int cmd){
 
 		/* see if the user is authorized to issue a command... */
 		if(cmd==CMD_DEL_HOST_COMMENT && temp_comment!=NULL){
-			temp_host=find_host(temp_comment->host_name,NULL);
+			temp_host=find_host(temp_comment->host_name);
 			if(is_authorized_for_host_commands(temp_host,&current_authdata)==TRUE)
 				authorized=TRUE;
 		        }
 		if(cmd==CMD_DEL_SVC_COMMENT && temp_comment!=NULL){
-			temp_service=find_service(temp_comment->host_name,temp_comment->service_description,NULL);
+			temp_service=find_service(temp_comment->host_name,temp_comment->service_description);
 			if(is_authorized_for_service_commands(temp_service,&current_authdata)==TRUE)
 				authorized=TRUE;
 		        }
@@ -1213,12 +1212,12 @@ void commit_command_data(int cmd){
 
 		/* see if the user is authorized to issue a command... */
 		if(cmd==CMD_DEL_HOST_DOWNTIME && temp_downtime!=NULL){
-			temp_host=find_host(temp_downtime->host_name,NULL);
+			temp_host=find_host(temp_downtime->host_name);
 			if(is_authorized_for_host_commands(temp_host,&current_authdata)==TRUE)
 				authorized=TRUE;
 		        }
 		if(cmd==CMD_DEL_SVC_DOWNTIME && temp_downtime!=NULL){
-			temp_service=find_service(temp_downtime->host_name,temp_downtime->service_description,NULL);
+			temp_service=find_service(temp_downtime->host_name,temp_downtime->service_description);
 			if(is_authorized_for_service_commands(temp_service,&current_authdata)==TRUE)
 				authorized=TRUE;
 		        }
@@ -1255,7 +1254,7 @@ void commit_command_data(int cmd){
 			error=TRUE;
 
 		/* see if the user is authorized to issue a command... */
-		temp_service=find_service(host_name,service_desc,NULL);
+		temp_service=find_service(host_name,service_desc);
 		if(is_authorized_for_service_commands(temp_service,&current_authdata)==TRUE)
 			authorized=TRUE;
 
@@ -1333,7 +1332,7 @@ void commit_command_data(int cmd){
 			error=TRUE;
 
 		/* see if the user is authorized to issue a command... */
-		temp_host=find_host(host_name,NULL);
+		temp_host=find_host(host_name);
 		if(is_authorized_for_host_commands(temp_host,&current_authdata)==TRUE)
 			authorized=TRUE;
 
@@ -1729,8 +1728,8 @@ int commit_hostgroup_command(int cmd){
 		return ERROR;
 
 	/* find all hosts that belong to this hostgroup... */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	move_first_host();
+	while(temp_host = get_next_host()) {
 		/* skip this host if it's not part of the hostgroup */
 		if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
 			continue;

@@ -293,7 +293,7 @@ int xdddefault_validate_downtime_data(void){
 
 		/* see if the host still exists */
 		temp_buffer=my_strtok(NULL,";");
-		temp_host=find_host((temp_buffer==NULL)?"":temp_buffer,NULL);
+		temp_host=find_host((temp_buffer==NULL)?"":temp_buffer);
 		if(temp_host==NULL)
 			save=FALSE;
 
@@ -301,7 +301,7 @@ int xdddefault_validate_downtime_data(void){
 		if(downtime_type==SERVICE_DOWNTIME){
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_host!=NULL)
-				temp_service=find_service(temp_host->name,(temp_buffer==NULL)?"":temp_buffer,NULL);
+				temp_service=find_service(temp_host->name,(temp_buffer==NULL)?"":temp_buffer);
 			else
 				temp_service=NULL;
 			if(temp_service==NULL)

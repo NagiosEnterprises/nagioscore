@@ -214,7 +214,7 @@ int xpddefault_update_service_performance_data(service *svc){
 		return OK;
 
 	/* find the associated host */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* update service macros */
 	clear_volatile_macros();

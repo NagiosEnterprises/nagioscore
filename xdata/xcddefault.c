@@ -291,7 +291,7 @@ int xcddefault_validate_comment_data(void){
 
 		/* see if the host still exists */
 		temp_buffer=my_strtok(NULL,";");
-		temp_host=find_host((temp_buffer==NULL)?"":temp_buffer,NULL);
+		temp_host=find_host((temp_buffer==NULL)?"":temp_buffer);
 		if(temp_host==NULL)
 			save=FALSE;
 
@@ -299,7 +299,7 @@ int xcddefault_validate_comment_data(void){
 		if(comment_type==SERVICE_COMMENT){
 			temp_buffer=my_strtok(NULL,";");
 			if(temp_host!=NULL)
-				temp_service=find_service(temp_host->name,(temp_buffer==NULL)?"":temp_buffer,NULL);
+				temp_service=find_service(temp_host->name,(temp_buffer==NULL)?"":temp_buffer);
 			else
 				temp_service=NULL;
 			if(temp_service==NULL)

@@ -39,8 +39,6 @@ extern time_t		program_start;
 
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
-extern host *host_list;
-extern service *service_list;
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];
@@ -481,7 +479,7 @@ void find_hosts_causing_outages(void){
 		if(temp_hoststatus->status!=HOST_UP && temp_hoststatus->status!=HOST_PENDING){
 
 			/* find the host entry */
-			temp_host=find_host(temp_hoststatus->host_name,NULL);
+			temp_host=find_host(temp_hoststatus->host_name);
 
 			if(temp_host==NULL)
 				continue;
@@ -589,11 +587,12 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affect
 	int temp_child_hosts_affected=0;
 	int temp_child_services_affected=0;
 	host *temp_host;
+	void *host_cursor;
 
 
 	/* find all child hosts of this host */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	host_cursor = get_host_cursor();
+	while(temp_host = get_next_host_cursor(host_cursor)) {
 		/* skip this host if it is not a child */
 		if(is_host_immediate_child_of_host(hst,temp_host)==FALSE)
 			continue;
@@ -605,6 +604,7 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affect
 		total_child_hosts_affected+=temp_child_hosts_affected;
 		total_child_services_affected+=temp_child_services_affected;
 	        }
+	free_host_cursor(host_cursor);
 
 	*affected_hosts=total_child_hosts_affected+1;
 	*affected_services=total_child_services_affected+number_of_host_services(hst);
@@ -648,12 +648,11 @@ int number_of_host_services(host *hst){
 	service *temp_service;
 
 	/* check all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-		/* we found a service on this host */
-		if(!strcmp(hst->name,temp_service->host_name))
+	if(find_all_services_by_host(hst->name)) {
+		while(temp_service = get_next_service_by_host()) {
 			total_services++;
 	        }
+	}
 
 	return total_services;
         }

@@ -38,12 +38,10 @@ extern char   url_docs_path[MAX_FILENAME_LENGTH];
 extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 
-extern host *host_list;
 extern hostgroup *hostgroup_list;
 extern contactgroup *contactgroup_list;
 extern command *command_list;
 extern timeperiod *timeperiod_list;
-extern service *service_list;
 extern contact *contact_list;
 extern hostgroupescalation *hostgroupescalation_list;
 extern servicedependency *servicedependency_list;
@@ -440,8 +438,8 @@ void display_hosts(void){
 	printf("</TR>\n");
 
 	/* check all the hosts... */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	move_first_host();
+	while(temp_host = get_next_host()) {
 		if(odd){
 			odd=0;
 			bg_class="dataOdd";
@@ -951,8 +949,8 @@ void display_services(void){
 	printf("</TR>\n");
 
 	/* check all the services... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	move_first_service();
+	while(temp_service=get_next_service()) {
 		if(odd){
 			odd=0;
 			bg_class="dataOdd";

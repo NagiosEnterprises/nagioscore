@@ -477,7 +477,7 @@ int xdddb_validate_host_downtime(void){
 	while((result_row=mysql_fetch_row(query_result))!=NULL){
 
 		/* find the host that this entry is associated with */
-		temp_host=find_host(result_row[1],NULL);
+		temp_host=find_host(result_row[1]);
 
 		/* if we couldn't find the host, delete this downtime entry */
 		if(temp_host==NULL){
@@ -510,7 +510,7 @@ int xdddb_validate_host_downtime(void){
 	for(tuple=0;tuple<ntuples;tuple++){
 
 		/* find the host that this entry is associated with */
-		temp_host=find_host(PQgetvalue(xdddb_pgres,tuple,1),NULL);
+		temp_host=find_host(PQgetvalue(xdddb_pgres,tuple,1));
 
 		/* if we couldn't find the host, mark this entry for deletion */
 		if(temp_host==NULL){
@@ -591,7 +591,7 @@ int xdddb_validate_service_downtime(void){
 	while((result_row=mysql_fetch_row(query_result))!=NULL){
 
 		/* find the service that this entry is associated with */
-		temp_service=find_service(result_row[1],result_row[2],NULL);
+		temp_service=find_service(result_row[1],result_row[2]);
 
 		/* if we couldn't find the service, delete this entry */
 		if(temp_service==NULL){
@@ -624,7 +624,7 @@ int xdddb_validate_service_downtime(void){
 	for(tuple=0;tuple<ntuples;tuple++){
 
 		/* find the service that this entry is associated with */
-		temp_service=find_service(PQgetvalue(xdddb_pgres,tuple,1),PQgetvalue(xdddb_pgres,tuple,2),NULL);
+		temp_service=find_service(PQgetvalue(xdddb_pgres,tuple,1),PQgetvalue(xdddb_pgres,tuple,2));
 
 		/* if we couldn't find the service, delete this entry */
 		if(temp_service==NULL){

@@ -36,11 +36,9 @@ extern time_t          program_start;
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 
-extern host *host_list;
 extern hostgroup *hostgroup_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
-extern service *service_list;
 
 extern int      enable_notifications;
 extern int      execute_service_checks;
@@ -530,6 +528,7 @@ void display_quick_stats(void){
 	int services_warning=0;
 	int services_ok=0;
 	int services_pending=0;
+	void *host_cursor;
 
 
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -539,8 +538,8 @@ void display_quick_stats(void){
 	printf("</p>\n");
 
 	/* check all hosts */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	host_cursor = get_host_cursor();
+	while(temp_host = get_next_host_cursor(host_cursor)) {
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			continue;
 
@@ -557,10 +556,11 @@ void display_quick_stats(void){
 		else
 			hosts_up++;
 	        }
+	free_host_cursor(host_cursor);
 
 	/* check all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	move_first_service();
+	while(temp_service=get_next_service()) {
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			continue;
 
@@ -611,6 +611,7 @@ void display_hostgroup_overview(void){
 	hostgroup *temp_hostgroup;
 	host *temp_host;
 	hoststatus *temp_hoststatus;
+	void *host_cursor;
 
 	
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -633,8 +634,8 @@ void display_hostgroup_overview(void){
 		printf("<table columns='2' align='LL'>\n");
 
 		/* check all hosts in this hostgroup */
-		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+		host_cursor = get_host_cursor();
+		while(temp_host = get_next_host_cursor(host_cursor)) {
 			if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 				continue;
 
@@ -659,6 +660,7 @@ void display_hostgroup_overview(void){
 			printf("<go href='%s' method='post'><postfield name='host' value='%s'/></go></anchor></td>",STATUSWML_CGI,temp_host->name);
 			printf("<td>%s</td></tr>\n",temp_host->name);
 		        }
+		free_host_cursor(host_cursor);
 
 		printf("</table>\n");
 
@@ -692,6 +694,7 @@ void display_hostgroup_summary(void){
 	int services_ok=0;
 	int services_pending=0;
 	int found=0;
+	void *host_cursor;
 
 
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -725,7 +728,8 @@ void display_hostgroup_summary(void){
 		services_critical=0;
 
 		/* check all hosts in this hostgroup */
-		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+		host_cursor = get_host_cursor();
+		while(temp_host = get_next_host_cursor(host_cursor)) {
 
 			if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 				continue;
@@ -747,12 +751,9 @@ void display_hostgroup_summary(void){
 				hosts_up++;
 
 			/* check all services on this host */
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+			if(find_all_services_by_host(temp_host->name)) {
+				while(temp_service=get_next_service_by_host()) {
 				if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
-					continue;
-
-				if(strcmp(temp_service->host_name,temp_host->name))
 					continue;
 
 				temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
@@ -771,6 +772,8 @@ void display_hostgroup_summary(void){
 					services_ok++;
 			        }
 		        }
+		}
+		free_host_cursor(host_cursor);
 
 		printf("<tr><td>Hosts:</td><td>");
 		found=0;
@@ -846,7 +849,7 @@ void display_host(void){
 	printf("<b>Host '%s'</b><br/>\n",host_name);
 
 	/* find the host */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	temp_hoststatus=find_hoststatus(host_name);
 	if(temp_host==NULL || temp_hoststatus==NULL){
 
@@ -999,12 +1002,10 @@ void display_host_services(void){
 	printf("<table columns='2' align='LL'>\n");
 
 	/* check all services */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+	if(find_all_services_by_host(host_name)) {
+		while(temp_service=get_next_service_by_host()) {
 
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
-			continue;
-
-		if(strcmp(temp_service->host_name,host_name))
 			continue;
 
 		temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
@@ -1028,6 +1029,7 @@ void display_host_services(void){
 		printf("<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/></go></anchor></td>",STATUSWML_CGI,temp_service->host_name,temp_service->description);
 		printf("<td>%s</td></tr>\n",temp_service->description);
 	        }
+	}
 
 	printf("</table>\n");
 
@@ -1060,7 +1062,7 @@ void display_service(void){
 	printf("<b>Service '%s' on host '%s'</b><br/>\n",service_desc,host_name);
 
 	/* find the service */
-	temp_service=find_service(host_name,service_desc,NULL);
+	temp_service=find_service(host_name,service_desc);
 	temp_servicestatus=find_servicestatus(host_name,service_desc);
 	if(temp_service==NULL || temp_servicestatus==NULL){
 
@@ -1381,7 +1383,7 @@ void display_problems(void){
 	/* check all hosts */
 	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
 
-		temp_host=find_host(temp_hoststatus->host_name,NULL);
+		temp_host=find_host(temp_hoststatus->host_name);
 		if(temp_host==NULL)
 			continue;
 
@@ -1430,7 +1432,7 @@ void display_problems(void){
 	/* check all services */
 	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
 		
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 		if(temp_service==NULL)
 			continue;
 

@@ -32,9 +32,6 @@
 #include "nagios.h"
 #include "sretention.h"
 
-extern host           *host_list;
-extern service        *service_list;
-
 extern int            interval_length;
 
 extern int            enable_notifications;
@@ -209,7 +206,7 @@ int set_service_state_information(char *host_name, char *description, int state,
 #endif
 
 	/* find the service */
-	temp_service=find_service(host_name,description,NULL);
+	temp_service=find_service(host_name,description);
 	if(temp_service==NULL)
 		return ERROR;
 
@@ -346,7 +343,7 @@ int set_host_state_information(char *host_name, int state, char *output, unsigne
 #endif
 
 	/* find the host */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL)
 		return ERROR;
 
@@ -476,6 +473,7 @@ int get_program_state_information(int *notifications, int *service_checks, int *
 
 
 /* gets service state information */
+/* only called from xrddb_save_service_information - safe to use move_first_service/get_next_service */
 service * get_service_state_information(service *svc, char **host_name, char **service_description, int *state, char **output, unsigned long *last_check, int *check_type, unsigned long *time_ok, unsigned long *time_warning, unsigned long *time_unknown, unsigned long *time_critical, unsigned long *last_notification, int *current_notification_number, int *notifications_enabled, int *checks_enabled, int *accept_passive_checks, int *event_handler_enabled, int *problem_has_been_acknowledged, int *flap_detection_enabled, int *failure_prediction_enabled, int *process_performance_data, int *obsess_over_service, unsigned long *last_state_change){
 	service *temp_service;
 	time_t current_time;
@@ -492,17 +490,16 @@ service * get_service_state_information(service *svc, char **host_name, char **s
 #endif
 
 	/* get the service to check */
-	if(svc==NULL)
-		temp_service=service_list;
-	else
-		temp_service=svc->next;
-
+	if(svc==NULL) {
+		move_first_service();
+	}
+	temp_service = get_next_service();
 	if(temp_service==NULL)
 		return NULL;
 
 	/* skip services that haven't been checked yet */
 	while(temp_service->last_check==(time_t)0){
-		temp_service=temp_service->next;
+		temp_service=get_next_service();
 		if(temp_service==NULL)
 			return NULL;
 	        }
@@ -583,26 +580,33 @@ host * get_host_state_information(host *hst, char **host_name, int *state, char 
 	unsigned long t_up;
 	unsigned long t_down;
 	unsigned long t_unreachable;
+	static void *host_cursor = NULL;
 
 #ifdef DEBUG0
 	printf("get_host_state_information() start\n");
 #endif
 
-	/* get the host to check */
-	if(hst==NULL)
-		temp_host=host_list;
-	else
-		temp_host=hst->next;
+	/* init host cursor if we haven't already */
+	if(host_cursor==NULL)
+		host_cursor = get_host_cursor();
 
-	if(temp_host==NULL)
+	temp_host = get_next_host_cursor(host_cursor);
+	
+	if(temp_host==NULL) {
+		free_host_cursor(host_cursor);
+		host_cursor = NULL;
 		return NULL;
+	}
 
 	/* skip hosts that haven't been checked yet */
 	while(temp_host->last_check==(time_t)0){
-		temp_host=temp_host->next;
-		if(temp_host==NULL)
+		temp_host=get_next_host_cursor(host_cursor);
+		if(temp_host==NULL) {
+			free_host_cursor(host_cursor);
+			host_cursor = NULL;
 			return NULL;
 	        }
+	}
 
 	/* get the current time */
 	time(&current_time);

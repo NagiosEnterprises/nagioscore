@@ -58,8 +58,6 @@ extern int suppress_alert_window;
 extern hostgroup *hostgroup_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
-extern service *service_list;
-extern host *host_list;
 
 
 #define MAX_MESSAGE_BUFFER		4096
@@ -614,8 +612,8 @@ void show_service_status_totals(void){
 	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
 
 		/* find the host and service... */
-		temp_host=find_host(temp_servicestatus->host_name,NULL);
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+		temp_host=find_host(temp_servicestatus->host_name);
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 
 		/* make sure user has rights to see this service... */
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
@@ -804,7 +802,7 @@ void show_host_status_totals(void){
 	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
 
 		/* find the host... */
-		temp_host=find_host(temp_hoststatus->host_name,NULL);
+		temp_host=find_host(temp_hoststatus->host_name);
 
 		/* make sure user has rights to view this host */
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
@@ -1180,14 +1178,14 @@ void show_service_detail(void){
 		first_entry=FALSE;
 
 		/* find the service  */
-		temp_service=find_service(temp_status->host_name,temp_status->description,NULL);
+		temp_service=find_service(temp_status->host_name,temp_status->description);
 
 		/* if we couldn't find the service, go to the next service */
 		if(temp_service==NULL)
 			continue;
 
 		/* find the host */
-		temp_host=find_host(temp_service->host_name,NULL);
+		temp_host=find_host(temp_service->host_name);
 
 		/* make sure user has rights to see this... */
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
@@ -1681,7 +1679,7 @@ void show_host_detail(void){
 		first_entry=FALSE;
 
 		/* find the host  */
-		temp_host=find_host(temp_status->host_name,NULL);
+		temp_host=find_host(temp_status->host_name);
 
 		/* if we couldn't find the host, go to the next status entry */
 		if(temp_host==NULL)
@@ -2046,7 +2044,7 @@ void show_hostgroup_overview(hostgroup *hstgrp){
 	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
 
 		/* find the host... */
-		temp_host=find_host(temp_hoststatus->host_name,NULL);
+		temp_host=find_host(temp_hoststatus->host_name);
 
 		/* make sure this host a member of the hostgroup */
 		if(!is_host_member_of_hostgroup(hstgrp,temp_host))
@@ -2177,7 +2175,7 @@ void show_hostgroup_member_service_status_totals(char *host_name){
 		if(!strcmp(host_name,temp_servicestatus->host_name)){
 
 			/* make sure the user is authorized to see this service... */
-			temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+			temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 				continue;
 
@@ -2390,7 +2388,7 @@ void show_hostgroup_host_totals_summary(hostgroup *temp_hostgroup){
 	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
 
 		/* make sure the user is authorized to see this host... */
-		temp_host=find_host(temp_hoststatus->host_name,NULL);
+		temp_host=find_host(temp_hoststatus->host_name);
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			continue;
 
@@ -2454,12 +2452,12 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
 
 		/* make sure the user is authorized to see this service... */
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			continue;
 
 		/* find the host this service is associated with */
-		temp_host=find_host(temp_servicestatus->host_name,NULL);
+		temp_host=find_host(temp_servicestatus->host_name);
 		if(temp_host==NULL)
 			continue;
 
@@ -2635,7 +2633,6 @@ void show_hostgroup_grids(void){
         }
 
 
-
 /* displays status grid for a specific hostgroup */
 void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	char *status_bg_class="";
@@ -2660,8 +2657,8 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	printf("<TR><TH CLASS='status'>Host</TH><TH CLASS='status'>Services</a></TR>\n");
 
 	/* display info for all hosts in the hostgroup */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
+	move_first_host();
+	while(temp_host = get_next_host()) {
 		/* is this host a member of the hostgroup? */
 		if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
 			continue;
@@ -2737,21 +2734,17 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 
 		/* display all services on the host */
 		current_item=1;
-		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+		if(find_all_services_by_host(temp_host->name)) {
+			while(temp_service = get_next_service_by_host()) {
+				/* is user authorized for this service? */
+				if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+					continue;
 
 			if(current_item>max_grid_width && max_grid_width>0){
 				printf("<BR>\n");
 				current_item=1;
 			        }
 
-			/* skip services that don't belong to this host */
-			if(strcmp(temp_service->host_name,temp_host->name))
-				continue;
-
-			/* is user authorized for this service? */
-			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
-				continue;
-			
 			/* get the status of the service */
 			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
 			if(temp_servicestatus==NULL)
@@ -2776,6 +2769,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 		printf("</TD>\n");
 		printf("</TR>\n");
 	        }
+		}
 
 	printf("</TABLE>\n");
 	printf("</DIV>\n");
@@ -2783,7 +2777,6 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 
 	return;
         }
-
 
 
 

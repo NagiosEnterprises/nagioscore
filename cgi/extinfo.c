@@ -206,7 +206,7 @@ int main(void){
 
 		/* find the host */
 		if(display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO)
-			temp_host=find_host(host_name,NULL);
+			temp_host=find_host(host_name);
 
 		/* find the hostgroup */
 		else if(display_type==DISPLAY_HOSTGROUP_INFO)
@@ -793,7 +793,7 @@ void show_host_info(void){
 
 
 	/* get host info */
-	temp_host=find_host(host_name,NULL);
+	temp_host=find_host(host_name);
 
 	/* make sure the user has rights to view host information */
 	if(is_authorized_for_host(temp_host,&current_authdata)==FALSE){
@@ -1072,7 +1072,7 @@ void show_service_info(void){
 	int duration_error=FALSE;
 
 	/* find the service */
-	temp_service=find_service(host_name,service_desc,NULL);
+	temp_service=find_service(host_name,service_desc);
 
 	/* make sure the user has rights to view service information */
 	if(is_authorized_for_service(temp_service,&current_authdata)==FALSE){
@@ -1512,7 +1512,7 @@ void show_all_comments(void){
 		if(temp_comment->comment_type!=HOST_COMMENT)
 			continue;
 
-		temp_host=find_host(temp_comment->host_name,NULL);
+		temp_host=find_host(temp_comment->host_name);
 
 		/* make sure the user has rights to view host information */
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
@@ -1564,7 +1564,7 @@ void show_all_comments(void){
 		if(temp_comment->comment_type!=SERVICE_COMMENT)
 			continue;
 
-		temp_service=find_service(temp_comment->host_name,temp_comment->service_description,NULL);
+		temp_service=find_service(temp_comment->host_name,temp_comment->service_description);
 
 		/* make sure the user has rights to view service information */
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
@@ -1648,7 +1648,7 @@ void show_performance_data(void){
 	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
 
 		/* find the service */
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 		
 		/* make sure the user has rights to view service information */
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
@@ -1847,12 +1847,12 @@ void display_comments(int type){
 
 	/* find the host or service */
 	if(type==HOST_COMMENT){
-		temp_host=find_host(host_name,NULL);
+		temp_host=find_host(host_name);
 		if(temp_host==NULL)
 			return;
 	        }
 	else{
-		temp_service=find_service(host_name,service_desc,NULL);
+		temp_service=find_service(host_name,service_desc);
 		if(temp_service==NULL)
 			return;
 	        }
@@ -1979,7 +1979,7 @@ void show_all_downtime(void){
 		if(temp_downtime->type!=HOST_DOWNTIME)
 			continue;
 
-		temp_host=find_host(temp_downtime->host_name,NULL);
+		temp_host=find_host(temp_downtime->host_name);
 
 		/* make sure the user has rights to view host information */
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
@@ -2040,7 +2040,7 @@ void show_all_downtime(void){
 		if(temp_downtime->type!=SERVICE_DOWNTIME)
 			continue;
 
-		temp_service=find_service(temp_downtime->host_name,temp_downtime->service_description,NULL);
+		temp_service=find_service(temp_downtime->host_name,temp_downtime->service_description);
 
 		/* make sure the user has rights to view service information */
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)

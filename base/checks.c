@@ -68,8 +68,6 @@ extern time_t   program_start;
 
 extern timed_event       *event_list_low;
 
-extern service           *service_list;
-extern host              *host_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency    *hostdependency_list;
 
@@ -155,7 +153,7 @@ void run_service_check(service *svc){
 		svc->check_options-=CHECK_OPTION_FORCE_EXECUTION;
 
 	/* find the host associated with this service */
-	temp_host=find_host(svc->host_name,NULL);
+	temp_host=find_host(svc->host_name);
 
 	/* don't check the service if we couldn't find the associated host */
 	if(temp_host==NULL)
@@ -560,7 +558,7 @@ void reap_service_checks(void){
 			queued_svc_msg.return_code=STATE_UNKNOWN;
 
 		/* find the service */
-		temp_service=find_service(queued_svc_msg.host_name,queued_svc_msg.description,NULL);
+		temp_service=find_service(queued_svc_msg.host_name,queued_svc_msg.description);
 		if(temp_service==NULL){
 
 			snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Message queue contained results for service '%s' on host '%s'.  The service could not be found!\n",queued_svc_msg.description,queued_svc_msg.host_name);
@@ -707,7 +705,7 @@ void reap_service_checks(void){
 		        }
 
 		/* get the host that this service runs on */
-		temp_host=find_host(temp_service->host_name,NULL);
+		temp_host=find_host(temp_service->host_name);
 
 		/* if the service check was okay... */
 		if(temp_service->current_state==STATE_OK){
@@ -1178,7 +1176,7 @@ int check_service_dependencies(service *svc,int dependency_type){
 		if(!strcmp(svc->host_name,temp_dependency->dependent_host_name) && !strcmp(svc->description,temp_dependency->dependent_service_description)){
 
 			/* find the service we depend on... */
-			temp_service=find_service(temp_dependency->host_name,temp_dependency->service_description,NULL);
+			temp_service=find_service(temp_dependency->host_name,temp_dependency->service_description);
 			if(temp_service==NULL)
 				continue;
 
@@ -1229,7 +1227,7 @@ int check_host_dependencies(host *hst,int dependency_type){
 		if(!strcmp(hst->name,temp_dependency->dependent_host_name)){
 
 			/* find the host we depend on... */
-			temp_host=find_host(temp_dependency->host_name,NULL);
+			temp_host=find_host(temp_dependency->host_name);
 			if(temp_host==NULL)
 				continue;
 
@@ -1267,8 +1265,8 @@ void check_for_orphaned_services(void){
 	time(&current_time);
 
 	/* check all services... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	move_first_service();
+	while(temp_service = get_next_service()) {
 		/* skip services that are not currently executing */
 		if(temp_service->is_executing==FALSE)
 			continue;
@@ -1326,8 +1324,8 @@ void check_service_result_freshness(void){
 	time(&current_time);
 
 	/* check all services... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-
+	move_first_service();
+	while(temp_service=get_next_service()) {
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
 			continue;
@@ -1423,6 +1421,7 @@ int check_host(host *hst,int propagation_options){
 	int route_blocked=TRUE;
 	int old_state=HOST_UP;
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("check_host() start\n");
@@ -1472,7 +1471,7 @@ int check_host(host *hst,int propagation_options){
 					for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
 						/* find the parent host */
-						parent_host=find_host(temp_hostsmember->host_name,NULL);
+						parent_host=find_host(temp_hostsmember->host_name);
 
 						/* check the parent host (and propagate upwards) if its not up */
 						if(parent_host!=NULL && parent_host->status!=HOST_UP)
@@ -1484,12 +1483,13 @@ int check_host(host *hst,int propagation_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
-
+					host_cursor = get_host_cursor();
+					while(child_host = get_next_host_cursor(host_cursor)) {
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->status!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
 					        }
+					free_host_cursor(host_cursor);
 				        }
 
 				break;
@@ -1508,7 +1508,7 @@ int check_host(host *hst,int propagation_options){
 			for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
 				/* find the parent host */
-				parent_host=find_host(temp_hostsmember->host_name,NULL);
+				parent_host=find_host(temp_hostsmember->host_name);
 
 				/* if at least one parent host is up, this host is no longer unreachable - it is now down instead */
 				if(parent_host->status==HOST_UP){
@@ -1544,7 +1544,7 @@ int check_host(host *hst,int propagation_options){
 				for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
 					/* find the parent host */
-					parent_host=find_host(temp_hostsmember->host_name,NULL);
+					parent_host=find_host(temp_hostsmember->host_name);
 
 					/* check the parent host, assume its up if we can't find it, use the parent host's "old" status if we shouldn't propagate */
 					if(parent_host==NULL)
@@ -1577,12 +1577,13 @@ int check_host(host *hst,int propagation_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
-
+					host_cursor=get_host_cursor();
+					while(child_host=get_next_host_cursor(host_cursor)) {
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->status!=HOST_UP)
 						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
 					        }
+					free_host_cursor(host_cursor);
 				        }
 			        }
 

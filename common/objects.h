@@ -38,6 +38,9 @@
 
 #define MAX_STATE_HISTORY_ENTRIES		21	/* max number of old states to keep track of for flap detection */
 
+#define SERVICES_HASHSLOTS 1024
+#define HOSTS_HASHSLOTS 1024
+
 
 
 /****************** DATA STRUCTURES *******************/
@@ -358,6 +361,16 @@ typedef struct hostdependency_struct{
 
 
 
+/****************** HASH STRUCTURES ********************/
+
+typedef struct host_cursor_struct{
+	int     host_hashchain_iterator;
+	host    *current_host_pointer;
+        }host_cursor;
+
+
+
+
 
 /********************* FUNCTIONS **********************/
 
@@ -413,14 +426,23 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *)
 
 /**** Object Search Functions ****/
 timeperiod * find_timeperiod(char *,timeperiod *);						/* finds a timeperiod object */
-host * find_host(char *,host *);								/* finds a host object */
+host * find_host(char *);									/* finds a host object */
 hostgroup * find_hostgroup(char *, hostgroup *);						/* finds a hostgroup object */
 hostgroupmember *find_hostgroupmember(char *,hostgroup *,hostgroupmember *);			/* finds a hostgroup member object */
 contact * find_contact(char *, contact *);							/* finds a contact object */
 contactgroup * find_contactgroup(char *, contactgroup *);					/* finds a contactgroup object */
 contactgroupmember *find_contactgroupmember(char *,contactgroup *,contactgroupmember *);	/* finds a contactgroup member object */
 command * find_command(char *,command *);							/* finds a command object */
-service * find_service(char *,char *,service *);						/* finds a service object */
+service * find_service(char *,char *);								/* finds a service object */
+void move_first_service(void);									/* sets up the static memory area for get_next_service */
+service *get_next_service(void);								/* returns the next service, NULL at the end of the list */
+int find_all_services_by_host(char *host);							/* sets up the static memory area for get_next_service_by_host */
+service *get_next_service_by_host(void);							/* returns the next service for the host, NULL at the end of the list */
+void move_first_host(void);									/* sets up the static memory area for get_next_host */
+host *get_next_host(void);									/* returns the next host, NULL at the end of the list */
+void *get_host_cursor(void);					                                /* allocate memory for the host cursor */
+host *get_next_host_cursor(void *v_cursor);							/* return the next host, NULL at the end of the list */
+void free_host_cursor(void *cursor);								/* free allocated cursor memory */
 
 
 /**** Object Query Functions ****/
@@ -449,6 +471,13 @@ int check_for_circular_dependency(servicedependency *,servicedependency *);   /*
 
 /**** Object Cleanup Functions ****/
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
+
+
+
+/**** Hash Functions ****/
+void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next);
+int hashfunc1(const char *name1, int hashslots);
+int hashfunc2(const char *name1, const char *name2, int hashslots);
 
 #endif
 

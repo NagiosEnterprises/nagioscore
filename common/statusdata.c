@@ -82,8 +82,6 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
-extern host *host_list;
-extern service *service_list;
 #endif
 
 
@@ -115,6 +113,7 @@ int update_all_status_data(void){
 	host *temp_host;
 	service *temp_service;
 	int result=OK;
+	void *host_cursor;
 
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
@@ -133,13 +132,16 @@ int update_all_status_data(void){
 		return ERROR;
 
 	/* update all host data */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+	host_cursor = get_host_cursor();
+	while(temp_host = get_next_host_cursor(host_cursor)) {
 		if(update_host_status(temp_host,TRUE)==ERROR)
 			return ERROR;
 	                }
+	free_host_cursor(host_cursor);
 
 	/* update all service data */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+	move_first_service();
+	while(temp_service=get_next_service()) {
 		if(update_service_status(temp_service,TRUE)==ERROR)
 			return ERROR;
 	        }
@@ -251,7 +253,7 @@ int update_service_status(service *svc,int aggregated_dump){
 	time(&current_time);
 
 	/* find the host associated with this service */
-	hst=find_host(svc->host_name,NULL);
+	hst=find_host(svc->host_name);
 	if(hst==NULL)
 		return ERROR;
 

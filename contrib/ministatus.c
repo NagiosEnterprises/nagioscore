@@ -170,8 +170,8 @@ void show_service_status_totals(void){
 	for(temp_servicestatus=servicestatus_list; temp_servicestatus!=NULL; temp_servicestatus=temp_servicestatus->next){
 
 		/* find the host and service... */
-		temp_host=find_host(temp_servicestatus->host_name,NULL);
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
+		temp_host=find_host(temp_servicestatus->host_name);
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
 
 		if(temp_servicestatus->status==SERVICE_CRITICAL || temp_servicestatus->status==SERVICE_HOST_DOWN || temp_servicestatus->status==SERVICE_UNREACHABLE){
 			total_critical++;
@@ -276,7 +276,7 @@ void show_host_status_totals(void){
 	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
 
 		/* find the host... */
-		temp_host=find_host(temp_hoststatus->host_name,NULL);
+		temp_host=find_host(temp_hoststatus->host_name);
 
 		if(temp_hoststatus->status==HOST_UP)
 			total_up++;

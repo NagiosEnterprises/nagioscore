@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-01-2002
+ * Last Modified: 05-15-2002
  *
  * Description:
  *
@@ -745,6 +745,7 @@ int xodtemplate_begin_object_definition(char *input, int options){
 		
 		new_serviceescalation->template=NULL;
 		new_serviceescalation->name=NULL;
+		new_serviceescalation->hostgroup_name=NULL;
 		new_serviceescalation->host_name=NULL;
 		new_serviceescalation->service_description=NULL;
 		new_serviceescalation->contact_groups=NULL;
@@ -1614,6 +1615,16 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 			strcpy(temp_serviceescalation->name,value);
+		        }
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
+			temp_serviceescalation->hostgroup_name=(char *)malloc(strlen(value)+1);
+			if(temp_serviceescalation->hostgroup_name==NULL){
+#ifdef NSCORE
+				printf("Error: Could not allocate memory for serviceescalation hostgroup.\n");
+#endif
+				return ERROR;
+			        }
+			strcpy(temp_serviceescalation->hostgroup_name,value);
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name")){
 			temp_serviceescalation->host_name=(char *)malloc(strlen(value)+1);
@@ -2658,7 +2669,7 @@ int xodtemplate_duplicate_objects(void){
 		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
 
 			/* find the hostgroup */
-			temp_hostgroup=xodtemplate_find_hostgroup(temp_ptr);
+			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
 				printf("Error: Could not find hostgroup '%s' specified in service '%s' ('%s')\n",temp_ptr,temp_service->name,temp_service->service_description);
@@ -2787,7 +2798,7 @@ int xodtemplate_duplicate_objects(void){
 		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
 
 			/* find the hostgroup */
-			temp_hostgroup=xodtemplate_find_hostgroup(temp_ptr);
+			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
 				printf("Error: Could not find hostgroup '%s' specified in hostescalation '%s'\n",temp_ptr,temp_hostescalation->name);
@@ -2891,6 +2902,88 @@ int xodtemplate_duplicate_objects(void){
 			/* free memory we used for host name list */
 			free(host_names);
 		        }
+	        }
+
+
+	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH ONE OR MORE HOSTGROUP NAMES ******/
+	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+
+		/* skip servicee scalations with NULL hostgroup names */
+		if(temp_serviceescalation->hostgroup_name==NULL)
+			continue;
+		
+		/* allocate memory for hostgroup name list */
+		hostgroup_names=(char *)malloc(strlen(temp_serviceescalation->hostgroup_name)+1);
+		if(hostgroup_names==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for hostgroup name list in serviceescalation '%s' ('%s')\n",temp_serviceescalation->name,temp_serviceescalation->service_description);
+#endif
+			return ERROR;
+		        }
+		strcpy(hostgroup_names,temp_serviceescalation->hostgroup_name);
+
+		/* duplicate service escalation entries */
+		first_item=TRUE;
+		for(temp_ptr=strtok(hostgroup_names,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+
+			/* find the hostgroup */
+			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
+			if(temp_hostgroup==NULL){
+#ifdef NSCORE
+				printf("Error: Could not find hostgroup '%s' specified in serviceescalation '%s' ('%s')\n",temp_ptr,temp_serviceescalation->name,temp_serviceescalation->service_description);
+#endif
+				return ERROR;
+			        }
+
+			host_names=(char *)malloc(strlen(temp_hostgroup->members)+1);
+			if(host_names==NULL){
+#ifdef NSCORE
+				printf("Error: Could not allocate memory for hostgroup name list in serviceescalation '%s' ('%s')\n",temp_serviceescalation->name,temp_serviceescalation->service_description);
+#endif
+				return ERROR;
+		                }
+			strcpy(host_names,temp_hostgroup->members);
+
+			/* add a copy of the service escalation for every host in the hostgroup */
+			host_name_ptr=host_names;
+			for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
+
+				/* if this is the first duplication, see if we can use the existing entry */
+				if(first_item==TRUE){
+
+					if(temp_serviceescalation->host_name==NULL){
+						temp_serviceescalation->host_name=(char *)malloc(strlen(host_name)+1);
+						if(temp_serviceescalation->host_name==NULL){
+							free(hostgroup_names);
+							return ERROR;
+						        }
+						strcpy(temp_serviceescalation->host_name,host_name);
+					        }
+					else{
+						result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name);
+						if(result==ERROR){
+							free(hostgroup_names);
+							return ERROR;
+						        }
+					        }
+
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate service escalation definition */
+				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name);
+
+				/* exit on error */
+				if(result==ERROR){
+					free(host_name);
+					return ERROR;
+			                }
+			        }
+		        }
+
+		/* free memory we used for hostgroup name list */
+		free(hostgroup_names);
 	        }
 
 
@@ -4676,6 +4769,24 @@ xodtemplate_hostgroup *xodtemplate_find_hostgroup(char *name){
         }
 
 
+/* finds a specific hostgroup object by its REAL name, not its TEMPLATE name */
+xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *name){
+	xodtemplate_hostgroup *temp_hostgroup;
+
+	if(name==NULL)
+		return NULL;
+
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+		if(temp_hostgroup->hostgroup_name==NULL)
+			continue;
+		if(!strcmp(temp_hostgroup->hostgroup_name,name))
+			break;
+	        }
+
+	return temp_hostgroup;
+        }
+
+
 /* finds a specific servicedependency object */
 xodtemplate_servicedependency *xodtemplate_find_servicedependency(char *name){
 	xodtemplate_servicedependency *temp_servicedependency;
@@ -5692,6 +5803,7 @@ int xodtemplate_free_memory(void){
 		next_serviceescalation=this_serviceescalation->next;
 		free(this_serviceescalation->template);
 		free(this_serviceescalation->name);
+		free(this_serviceescalation->hostgroup_name);
 		free(this_serviceescalation->host_name);
 		free(this_serviceescalation->service_description);
 		free(this_serviceescalation->contact_groups);

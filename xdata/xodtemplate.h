@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-29-2002
+ * Last Modified:   05-15-2002
  *
  * License:
  *
@@ -321,8 +321,9 @@ typedef struct xodtemplate_serviceescalation_struct{
 	char      *template;
 	char      *name;
 
-	char       *host_name;
-	char       *service_description;
+	char      *hostgroup_name;
+	char      *host_name;
+	char      *service_description;
 	int       first_notification;
 	int       last_notification;
 	int       notification_interval;
@@ -419,6 +420,7 @@ xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *);
 xodtemplate_command *xodtemplate_find_command(char *);
 xodtemplate_contactgroup *xodtemplate_find_contactgroup(char *);
 xodtemplate_hostgroup *xodtemplate_find_hostgroup(char *);
+xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *);
 xodtemplate_servicedependency *xodtemplate_find_servicedependency(char *);
 xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *);
 xodtemplate_hostgroupescalation *xodtemplate_find_hostgroupescalation(char *);

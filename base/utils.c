@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2004
+ * Last Modified:   03-25-2004
  *
  * License:
  *
@@ -3018,6 +3018,7 @@ int read_svc_message(service_message *message){
 
 /* writes a service message to the message pipe */
 int write_svc_message(service_message *message){
+	struct timeval tv;
 	int write_result;
 
 #ifdef DEBUG0
@@ -3033,9 +3034,21 @@ int write_svc_message(service_message *message){
 
 		if(write_result==-1){
 
-			if(errno!=EINTR && errno!=EAGAIN)
-				break;
-		         }
+			/* pipe is full - wait a bit and retry */
+			if(errno==EAGAIN){
+				tv.tv_sec=0;
+				tv.tv_usec=250;
+				select(0,NULL,NULL,NULL,&tv);
+				continue;
+			        }
+
+			/* an interrupt occurred - retry */
+			if(errno==EINTR)
+				continue;
+
+			/* some other error occurred - bail out */
+			break;
+		        }
 		else 
 			break;
 	        }

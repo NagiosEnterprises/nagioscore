@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-07-2004
+ * Last Modified:   03-25-2004
  *
  * License:
  *
@@ -1556,6 +1556,17 @@ int pre_flight_check(void){
 	printf("pre_flight_check() start\n");
 #endif
 
+
+
+	/*****************************************/
+	/* check sanity of service message size...   */
+	/*****************************************/
+	if(sizeof(service_message)>512){
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Size of service_message struct (%d bytes) is > POSIX-guaranteed atomic write size (512 bytes).  Service checks results may get lost or mangled!",sizeof(service_message));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		warnings++;
+	        }
 
 
 	/*****************************************/

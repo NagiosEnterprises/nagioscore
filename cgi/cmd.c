@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-05-2004
+ * Last Modified: 03-25-2004
  *
  * License:
  * 
@@ -1344,6 +1344,7 @@ void commit_command_data(int cmd){
 	hostgroup *temp_hostgroup;
 	comment *temp_comment;
 	scheduled_downtime *temp_downtime;
+	servicegroup *temp_servicegroup=NULL;
 
 
 	/* get authentication information */
@@ -1630,6 +1631,35 @@ void commit_command_data(int cmd){
 			clean_comment_data(comment_author);
 			clean_comment_data(comment_data);
 		        }
+
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
+	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+
+		/* make sure we have some servicegroup name... */
+		if(!strcmp(servicegroup_name,""))
+			error=TRUE;
+
+		/* make sure we have author and comment data */
+		if((cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) && (!strcmp(comment_author,"") || !strcmp(comment_data,"")))
+			error=TRUE;
+
+		/* make sure we have start/end times for downtime */
+		if((cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time))
+			error=TRUE;
+
+		/* see if the user is authorized to issue a command... */
+
+		temp_servicegroup=find_servicegroup(servicegroup_name);
+		if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE)
+			authorized=TRUE;
 
 		break;
 

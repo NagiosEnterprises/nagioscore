@@ -2,8 +2,8 @@
  *
  * OBJECTS.H - Header file for object addition/search functions
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-25-2004
  *
  * License:
  *
@@ -34,7 +34,7 @@
 
 #define MAX_HOSTNAME_LENGTH            		64	/* max. host name length */
 #define MAX_SERVICEDESC_LENGTH			64	/* max. service description length */
-#define MAX_PLUGINOUTPUT_LENGTH			350	/* max. length of plugin output */
+#define MAX_PLUGINOUTPUT_LENGTH			348	/* max. length of plugin output */
 
 #define MAX_STATE_HISTORY_ENTRIES		21	/* max number of old states to keep track of for flap detection */
 

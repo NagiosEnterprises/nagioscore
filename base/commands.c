@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-24-2004
+ * Last Modified:   03-25-2004
  *
  * License:
  *
@@ -2109,15 +2109,17 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	persistent=(atoi(temp_ptr)>0)?TRUE:FALSE;
 
 	/* get the acknowledgement author */
-	ack_author=my_strtok(NULL,";");
-	if(ack_author==NULL)
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
 		return ERROR;
-
+	ack_author=strdup(temp_ptr);
+	
 	/* get the acknowledgement data */
-	ack_data=my_strtok(NULL,"\n");
-	if(ack_data==NULL)
+	temp_ptr=my_strtok(NULL,"\n");
+	if(temp_ptr==NULL)
 		return ERROR;
-
+	ack_data=strdup(temp_ptr);
+	
 	/* acknowledge the host problem */
 	if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)
 		acknowledge_host_problem(temp_host,ack_author,ack_data,type,notify,persistent);
@@ -2126,6 +2128,9 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	else
 		acknowledge_service_problem(temp_service,ack_author,ack_data,type,notify,persistent);
 
+	/* free memory */
+	free(ack_author);
+	free(ack_data);
 
 #ifdef DEBUG0
 	printf("cmd_acknowledge_problem() end\n");

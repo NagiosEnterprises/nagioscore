@@ -107,6 +107,7 @@ authdata current_authdata;
 typedef struct archived_state_struct{
 	time_t  time_stamp;
 	int     entry_type;
+	int     processed_state;
 	char    *state_info;
 	struct archived_state_struct *next;
         }archived_state;
@@ -2217,6 +2218,7 @@ void add_archived_state(int state_type, time_t time_stamp, char *state_info){
 	else new_as->state_info=NULL;
 
 	new_as->entry_type=state_type;
+	new_as->processed_state=state_type;
 	new_as->time_stamp=time_stamp;
 
 	/* add the new entry to the list in memory, sorted by time */

@@ -1564,23 +1564,7 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 
 		/* get the current state if applicable */
 		if(initial_assumed_state==AS_CURRENT_STATE && error==FALSE){
-			if(display_type==DISPLAY_HOST_AVAIL){
-				switch(hststatus->status){
-				case HOST_DOWN:
-					initial_assumed_state=AS_HOST_DOWN;
-					break;
-				case HOST_UNREACHABLE:
-					initial_assumed_state=AS_HOST_UNREACHABLE;
-					break;
-				case HOST_UP:
-					initial_assumed_state=AS_HOST_UP;
-					break;
-				default:
-					error=TRUE;
-					break;
-				        }
-			        }
-			else{
+			if(display_type==DISPLAY_SERVICE_AVAIL){
 				switch(svcstatus->status){
 				case SERVICE_OK:
 					initial_assumed_state=AS_SVC_OK;
@@ -1593,6 +1577,22 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 					break;
 				case SERVICE_CRITICAL:
 					initial_assumed_state=AS_SVC_CRITICAL;
+					break;
+				default:
+					error=TRUE;
+					break;
+				        }
+			        }
+			else{
+				switch(hststatus->status){
+				case HOST_DOWN:
+					initial_assumed_state=AS_HOST_DOWN;
+					break;
+				case HOST_UNREACHABLE:
+					initial_assumed_state=AS_HOST_UNREACHABLE;
+					break;
+				case HOST_UP:
+					initial_assumed_state=AS_HOST_UP;
 					break;
 				default:
 					error=TRUE;
@@ -3379,7 +3379,7 @@ void display_host_availability(void){
 
 		printf("<tr><td colspan=3></td></tr>\n");
 
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>All</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>100.000%%</td><td CLASS='dataEven'>100.000%%</td></tr>\n",total_time_string);
+		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>All</td><td class='dataEven'>Total</td><td CLASS='dataEven'>%s</td><td CLASS='dataEven'>100.000%%</td><td CLASS='dataEven'>100.000%%</td></tr>\n",total_time_string);
 		printf("</table>\n");
 		printf("</DIV>\n");
 

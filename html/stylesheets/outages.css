@@ -1,4 +1,3 @@
-<STYLE type="text/css">
 
 	.outages { font-family: arial,serif; background-color: white; color: black; font-size: small; }
 
@@ -12,6 +11,8 @@
 	.infoBoxBadProcStatus { color: red; }
 	A.homepageURL:Hover { font-family: arial,serif; color: red; }
 	
+	.itemTotalsTitle { font-family: arial,serif; font-size: x-small; text-align: center; }
+
 	.dataTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: medium; }
 	TABLE.data { font-family: arial,serif; font-size: small; background-color: white; padding: 2; }
 	TH.data { font-family: arial,serif; font-size: small; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
@@ -22,4 +23,3 @@
 	.hostDOWN { font-family: arial,serif; font-size: small; text-align: left; background-color: #F83838; font-weight: bold; }
 	.hostUNREACHABLE { font-family: arial,serif; font-size: small; text-align: left; background-color: #F83838; font-weight: bold; }
 	
-</STYLE>

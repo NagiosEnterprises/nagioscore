@@ -3,7 +3,7 @@
  * OUTAGES.C -  Nagios Network Outages CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-28-2002
+ * Last Modified: 03-18-2002
  *
  * License:
  * 
@@ -325,6 +325,7 @@ void display_network_outages(void){
 	time_t t;
 	time_t current_time;
 	char state_duration[48];
+	int total_entries=0;
 
 	/* user must be authorized for all hosts.. */
 	if(is_authorized_for_all_hosts(&current_authdata)==FALSE){
@@ -394,6 +395,8 @@ void display_network_outages(void){
 		if(temp_hoststatus->status!=HOST_DOWN && temp_hoststatus->status!=HOST_UNREACHABLE)
 			continue;
 
+		total_entries++;
+
 		if(odd==0){
 			odd=1;
 			bg_class="dataOdd";
@@ -461,13 +464,12 @@ void display_network_outages(void){
 		printf("</TR>\n");
 	        }
 
-	if(hostoutage_list==NULL || number_of_blocking_problem_hosts<=0)
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd' COLSPAN=9>There aren't any hosts that are causing network outages</TD></TR>\n");
-
 	printf("</TABLE>\n");
 
 	printf("</DIV></P>\n");
 
+	if(total_entries==0)
+		printf("<BR><DIV CLASS='itemTotalsTitle'>%d Blocking Outages Displayed</DIV>\n",total_entries);
 
 	/* free memory allocated to the host outage list */
 	free_hostoutage_list();

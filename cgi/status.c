@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-17-2002
+ * Last Modified: 03-18-2002
  *
  * License:
  * 
@@ -866,6 +866,8 @@ void show_host_status_totals(void){
 		printf("hostgroup=%s",hostgroup_name);
 		if((service_status_types!=all_service_status_types) || hostgroup_style_type==STYLE_DETAIL)
 			printf("&style=detail");
+		else if(hostgroup_style_type==STYLE_HOST_DETAIL)
+			printf("&style=hostdetail");
 	        }
 	if(service_status_types!=all_service_status_types)
 		printf("&servicestatustypes=%d",service_status_types);
@@ -880,6 +882,8 @@ void show_host_status_totals(void){
 		printf("hostgroup=%s",hostgroup_name);
 		if((service_status_types!=all_service_status_types) || hostgroup_style_type==STYLE_DETAIL)
 			printf("&style=detail");
+		else if(hostgroup_style_type==STYLE_HOST_DETAIL)
+			printf("&style=hostdetail");
 	        }
 	if(service_status_types!=all_service_status_types)
 		printf("&servicestatustypes=%d",service_status_types);
@@ -894,6 +898,8 @@ void show_host_status_totals(void){
 		printf("hostgroup=%s",hostgroup_name);
 		if((service_status_types!=all_service_status_types) || hostgroup_style_type==STYLE_DETAIL)
 			printf("&style=detail");
+		else if(hostgroup_style_type==STYLE_HOST_DETAIL)
+			printf("&style=hostdetail");
 	        }
 	if(service_status_types!=all_service_status_types)
 		printf("&servicestatustypes=%d",service_status_types);
@@ -908,6 +914,8 @@ void show_host_status_totals(void){
 		printf("hostgroup=%s",hostgroup_name);
 		if((service_status_types!=all_service_status_types) || hostgroup_style_type==STYLE_DETAIL)
 			printf("&style=detail");
+		else if(hostgroup_style_type==STYLE_HOST_DETAIL)
+			printf("&style=hostdetail");
 	        }
 	if(service_status_types!=all_service_status_types)
 		printf("&servicestatustypes=%d",service_status_types);
@@ -947,6 +955,8 @@ void show_host_status_totals(void){
 		printf("hostgroup=%s",hostgroup_name);
 		if((service_status_types!=all_service_status_types) || hostgroup_style_type==STYLE_DETAIL)
 			printf("&style=detail");
+		else if(hostgroup_style_type==STYLE_HOST_DETAIL)
+			printf("&style=hostdetail");
 	        }
 	if(service_status_types!=all_service_status_types)
 		printf("&servicestatustypes=%d",service_status_types);
@@ -961,6 +971,8 @@ void show_host_status_totals(void){
 		printf("hostgroup=%s",hostgroup_name);
 		if((service_status_types!=all_service_status_types) || hostgroup_style_type==STYLE_DETAIL)
 			printf("&style=detail");
+		else if(hostgroup_style_type==STYLE_HOST_DETAIL)
+			printf("&style=hostdetail");
 	        }
 	if(service_status_types!=all_service_status_types)
 		printf("&servicestatustypes=%d",service_status_types);
@@ -1020,6 +1032,7 @@ void show_service_detail(void){
 	int minutes;
 	int seconds;
 	int duration_error=FALSE;
+	int total_entries=0;
 
 
 	/* sort the service list if necessary */
@@ -1218,6 +1231,8 @@ void show_service_detail(void){
 					continue;
 		                }
 		        }
+
+		total_entries++;
 
 
 		if((display_type==DISPLAY_HOSTS && (show_all_hosts==TRUE || !strcmp(host_name,temp_status->host_name))) || display_type==DISPLAY_HOSTGROUPS ){
@@ -1474,6 +1489,9 @@ void show_service_detail(void){
 		        }
 	        }
 
+	else
+		printf("<BR><DIV CLASS='itemTotalsTitle'>%d Matching Service Entries Displayed</DIV>\n",total_entries);
+
 	return;
         }
 
@@ -1506,6 +1524,7 @@ void show_host_detail(void){
 	int minutes;
 	int seconds;
 	int duration_error=FALSE;
+	int total_entries=0;
 
 
 	/* sort the host list if necessary */
@@ -1657,8 +1676,9 @@ void show_host_detail(void){
 			if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
 				continue;
 	                }
+	
+		total_entries++;
 
-		
 
 		if(display_type==DISPLAY_HOSTGROUPS){
 
@@ -1809,6 +1829,9 @@ void show_host_detail(void){
 			printf("Make sure that Nagios is running and that you have specified the location of you status log correctly in the configuration files.</DIV></P>\n");
 		        }
 	        }
+
+	else
+		printf("<BR><DIV CLASS='itemTotalsTitle'>%d Matching Host Entries Displayed</DIV>\n",total_entries);
 
 	return;
         }

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2002
+ * Last Modified: 03-18-2002
  *
  * License:
  * 
@@ -916,8 +916,9 @@ void show_host_info(void){
 	printf("</TD>\n");
 
 	printf("<TD ALIGN=CENTER VALIGN=TOP>\n");
-	printf("<TABLE BORDER=0 CELLPADDING=20><TR>\n");
+	printf("<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>\n");
 
+#ifdef USE_OLDCRUD
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateStatisticsPanel'>\n");
 
 	printf("<DIV CLASS='dataTitle'>Host State Statistics</DIV>\n");
@@ -954,6 +955,7 @@ void show_host_info(void){
 	printf("</TD>\n");
 
 	printf("</TR><TR>\n");
+#endif
 
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='commandPanel'>\n");
 
@@ -1221,8 +1223,9 @@ void show_service_info(void){
 	printf("</TD>\n");
 
 	printf("<TD ALIGN=CENTER VALIGN=TOP>\n");
-	printf("<TABLE BORDER=0 CELLPADDING=20 ><TR>\n");
+	printf("<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>\n");
 
+#ifdef USE_OLDCRUD
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateStatisticsPanel'>\n");
 
 	printf("<DIV CLASS='dataTitle'>Service State Statistics</DIV>\n");
@@ -1267,6 +1270,7 @@ void show_service_info(void){
 
 	printf("</TR>\n");
 	printf("<TR>\n");
+#endif
 
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='commandPanel'>\n");
 

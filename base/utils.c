@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2002
+ * Last Modified:   03-18-2002
  *
  * License:
  *
@@ -1852,6 +1852,11 @@ int daemon_init(void){
 	val=fcntl(lockfile,F_GETFD,0);
 	val|=FD_CLOEXEC;
 	fcntl(lockfile,F_SETFD,val);
+
+        /* close stdin, sdout, stderr */
+	close(0);
+	close(1);
+	close(2);
 
 	return OK;
 	}

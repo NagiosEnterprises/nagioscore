@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2002
+ * Last Modified: 03-04-2002
  *
  * License:
  * 
@@ -360,9 +360,9 @@ int main(int argc, char **argv){
 				host_report_url("all","View Availability Report For All Hosts");
 				printf("<BR>\n");
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Event Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
-				printf("<a href='%s?host=%s'>View History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
+				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 	                        }
 			else if(display_type==DISPLAY_SERVICE_AVAIL && show_all_services==FALSE){
@@ -373,9 +373,9 @@ int main(int argc, char **argv){
 				printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedstate=%d&backtrack=%d'>View Trends For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
-				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Event Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
+				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
-				printf("service=%s'>View History This Service</A><BR>\n",url_encode(svc_description));
+				printf("service=%s'>View Alert History This Service</A><BR>\n",url_encode(svc_description));
 				printf("<A HREF='%s?host=%s&",NOTIFICATIONS_CGI,url_encode(host_name));
 				printf("service=%s'>View Notifications This Service</A><BR>\n",url_encode(svc_description));
 	                        }

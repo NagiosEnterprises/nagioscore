@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2002
+ * Last Modified:   03-04-2002
  *
  * License:
  *
@@ -50,7 +50,7 @@ int main(int argc, char **argv){
 	if(argc!=3){
 		printf("Nagios Config File Converter\n");
 		printf("Written by Ethan Galstad (nagios@nagios.org)\n");
-		printf("Last Modified: 02-28-2002\n");
+		printf("Last Modified: 03-04-2002\n");
 		printf("\n");
 		printf("Usage: %s <config file> <object type>\n",argv[0]);
 		printf("\n");
@@ -85,10 +85,7 @@ int main(int argc, char **argv){
 		printf("wherever you like.\n");
 		printf("\n");
 		printf("Please note that you can only specify one type of object at a time\n");
-		printf("on the command line.  Also, when converting hostgroup escalations,\n");
-		printf("service escalations and service dependencies, you'll need to associate\n");
-		printf("the escalation or dependency entries with the appropriate hostgroup\n");
-		printf("or service manually.\n");
+		printf("on the command line.\n");
 		printf("\n");
 		return -1;
 	        }
@@ -519,7 +516,7 @@ int main(int argc, char **argv){
 			printf("# Hostgroup '%s' escalation definition\n",temp_ptr);
 			printf("define hostgroupescalation{\n");
 
-			printf("\tname\t\t\t\thge%d\t; This name must be referenced in the 'notification_escalations'\n\t\t\t\t\t\t; member of the '%s' hostgroup definition!!\n",x,temp_ptr);
+			printf("\thostgroup_name\t\t%s\n",temp_ptr);
 
 			temp_ptr=my_strsep(&temp_ptr2,"-");
 			printf("\tfirst_notification\t\t%d\n",atoi(temp_ptr+1));
@@ -549,7 +546,8 @@ int main(int argc, char **argv){
 			host_name=my_strsep(&temp_ptr2,";");
 			service_description=my_strsep(&temp_ptr2,"]");
 
-			printf("\tname\t\t\t\tse%d\t; This name must be referenced in the 'notification_escalations'\n\t\t\t\t\t\t; member of the the definition for service '%s' on host '%s'!!\n",x,service_description,host_name);
+			printf("\thost_name\t\t%s\n",host_name);
+			printf("\tservice_description\t\t%s\n",service_description);
 
 			temp_ptr=my_strsep(&temp_ptr2,"-");
 			printf("\tfirst_notification\t\t%d\n",atoi(temp_ptr+1));
@@ -582,7 +580,7 @@ int main(int argc, char **argv){
 
 			printf("# Servicedependency definition\n");
 			printf("define servicedependency{\n");
-			/*printf("\tname\t\t\t\tsd%d\n",x);*/
+
 			printf("\thost_name\t\t\t%s\n",host_name2);
 			printf("\tservice_description\t\t%s\n",service_description2);
 			printf("\tdependent_host_name\t\t%s\n",host_name);

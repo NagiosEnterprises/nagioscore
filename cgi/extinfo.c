@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2002
+ * Last Modified: 03-04-2002
  *
  * License:
  * 
@@ -220,22 +220,29 @@ int main(void){
 			if(display_type==DISPLAY_SERVICE_INFO || display_type==DISPLAY_HOST_INFO)
 				printf("<A HREF='%s?host=%s'>View Status Detail For This Host</A><BR>\n",STATUS_CGI,url_encode(host_name));
 			if(display_type==DISPLAY_HOST_INFO){
-				printf("<A HREF='%s?host=%s'>View History For This Host</A><BR>\n",HISTORY_CGI,url_encode(host_name));
+				printf("<A HREF='%s?host=%s'>View Alert History For This Host</A><BR>\n",HISTORY_CGI,url_encode(host_name));
 #ifdef USE_TRENDS
 				printf("<A HREF='%s?host=%s'>View Trends For This Host</A><BR>\n",TRENDS_CGI,url_encode(host_name));
 #endif
-				printf("<A HREF='%s?host=%s&show_log_entries'>View Availability For This Host</A><BR>\n",AVAIL_CGI,url_encode(host_name));
+#ifdef USE_HISTOGRAM
+				printf("<A HREF='%s?host=%s'>View Alert Histogram For This Host</A><BR>\n",HISTOGRAM_CGI,url_encode(host_name));
+#endif
+				printf("<A HREF='%s?host=%s&show_log_entries'>View Availability Report For This Host</A><BR>\n",AVAIL_CGI,url_encode(host_name));
 				printf("<A HREF='%s?host=%s'>View Notifications This Host</A>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 		                }
 			else if(display_type==DISPLAY_SERVICE_INFO){
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
-				printf("service=%s'>View History For This Service</A><BR>\n",url_encode(service_desc));
+				printf("service=%s'>View Alert History For This Service</A><BR>\n",url_encode(service_desc));
 #ifdef USE_TRENDS
 				printf("<A HREF='%s?host=%s&",TRENDS_CGI,url_encode(host_name));
 				printf("service=%s'>View Trends For This Service</A><BR>\n",url_encode(service_desc));
 #endif
+#ifdef USE_HISTOGRAM
+				printf("<A HREF='%s?host=%s&",HISTOGRAM_CGI,url_encode(host_name));
+				printf("service=%s'>View Alert Histogram For This Service</A><BR>\n",url_encode(service_desc));
+#endif
 				printf("<A HREF='%s?host=%s&",AVAIL_CGI,url_encode(host_name));
-				printf("service=%s&show_log_entries'>View Availability For This Service</A><BR>\n",url_encode(service_desc));
+				printf("service=%s&show_log_entries'>View Availability Report For This Service</A><BR>\n",url_encode(service_desc));
 				printf("<A HREF='%s?host=%s&",NOTIFICATIONS_CGI,url_encode(host_name));
 				printf("service=%s'>View Notifications This Service</A>\n",url_encode(service_desc));
 		                }

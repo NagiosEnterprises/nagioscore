@@ -776,6 +776,13 @@ void reap_service_checks(void){
 			        }
 		        }
 
+
+		/**** NOTE - THIS WAS MOVED UP FROM LINE 1049 BELOW TO FIX PROBLEMS WHERE CURRENT ATTEMPT VALUE WAS ACTUALLY "LEADING" REAL VALUE ****/
+		/* increment the current attempt number if this is a soft state (service was rechecked) */
+		if(temp_service->state_type==SOFT_STATE && (temp_service->current_attempt < temp_service->max_attempts))
+			temp_service->current_attempt=temp_service->current_attempt+1;
+
+
 		/* check for a state change (either soft or hard) */
 		if(temp_service->current_state!=temp_service->last_state){
 		
@@ -1008,7 +1015,7 @@ void reap_service_checks(void){
 				        }
 			        }
 
-			 /* if we should retry the service check, do so (except it the host is down or unreachable!) */
+			/* if we should retry the service check, do so (except it the host is down or unreachable!) */
 			if(temp_service->current_attempt < temp_service->max_attempts){
 
 				/* the host is down or unreachable, so don't attempt to retry the service check */
@@ -1038,9 +1045,12 @@ void reap_service_checks(void){
 					/* run the service event handler to handle the soft state */
 					handle_service_event(temp_service,SOFT_STATE);
 
+#ifdef OLDSTUFF
 					/*** NOTE TO SELF - THIS SHOULD BE MOVED SOMEWHERE ELSE - 02/18/03 ***/
+					/*** MOVED UP TO LINE 780 ***/
 					/* increment the current attempt number */
 					temp_service->current_attempt=temp_service->current_attempt+1;
+#endif
 
 					if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
 						temp_service->next_check=(time_t)(temp_service->last_check+(temp_service->retry_interval*interval_length));

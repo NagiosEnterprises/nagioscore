@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   10-31-2004
  *
  * License:
  *
@@ -96,7 +96,14 @@ int xrddefault_grab_config_info(char *main_config_file){
 	        }
 
 	/* read in all lines from the main config file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 
@@ -341,7 +348,7 @@ int xrddefault_save_state_information(char *main_config_file){
 int xrddefault_read_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char temp_buffer2[MAX_INPUT_BUFFER];
-	char *input;
+	char *input=NULL;
 	char *temp_ptr;
 	mmapfile *thefile;
 	char *host_name=NULL;
@@ -377,7 +384,14 @@ int xrddefault_read_state_information(char *main_config_file){
 
 
 	/* read all lines in the retention file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 10-31-2004
  *
  * License:
  *
@@ -271,7 +271,14 @@ int read_cgi_config_file(char *filename){
 	if((thefile=mmap_fopen(filename))==NULL)
 		return ERROR;
 
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 
@@ -477,7 +484,14 @@ int read_main_config_file(char *filename){
 	if((thefile=mmap_fopen(filename))==NULL)
 		return ERROR;
 
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 
@@ -743,7 +757,12 @@ int read_file_into_lifo(char *filename){
 	if((thefile=mmap_fopen(filename))==NULL)
 		return LIFO_ERROR_FILE;
 
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		free(input);
+
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		lifo_result=push_lifo(input);
 

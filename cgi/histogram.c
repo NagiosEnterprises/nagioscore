@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 10-31-2004
  *
  * License:
  * 
@@ -2213,7 +2213,17 @@ void scan_log_file_for_archived_state_data(char *filename){
 	printf("Scanning log file '%s' for archived state data...\n",filename);
 #endif
 
-	for(;input=mmap_fgets(thefile);free(input),free(input2)){
+	while(1){
+
+		/* free memory */
+		free(input);
+		free(input2);
+		input=NULL;
+		input2=NULL;
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 

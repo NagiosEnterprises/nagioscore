@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-30-2004
+ * Last Modified: 10-31-2004
  *
  * Description:
  *
@@ -108,7 +108,7 @@ char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
 int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 #ifdef NSCORE
 	char config_file[MAX_FILENAME_LENGTH];
-	char *input;
+	char *input=NULL;
 	char *temp_ptr;
 #endif
 	mmapfile *thefile;
@@ -162,7 +162,14 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 	/* daemon reads all config files/dirs specified in the main config file */
 	/* read in all lines from the main config file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* get the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		/* strip input */
 		strip(input);
@@ -272,7 +279,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 /* grab config variable from main config file */
 int xodtemplate_grab_config_info(char *main_config_file){
-	char *input;
+	char *input=NULL;
 	char *temp_ptr;
 	mmapfile *thefile;
 	
@@ -289,7 +296,14 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		return ERROR;
 
 	/* read in all lines from the main config file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		/* strip input */
 		strip(input);
@@ -315,8 +329,7 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		        }
 	        }
 
-	/* free memory and close the file */
-	free(input);
+	/* close the file */
 	mmap_fclose(thefile);
 
 #ifdef NSCORE
@@ -568,7 +581,14 @@ int xodtemplate_process_config_file(char *filename, int options){
 	        }
 
 	/* read in all lines from the config file */
-	for(;input=mmap_fgets_multiline(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		current_line+=lines_read;
 

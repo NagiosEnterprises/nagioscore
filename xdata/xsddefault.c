@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   10-31-2004
  *
  * License:
  *
@@ -136,7 +136,14 @@ int xsddefault_grab_config_info(char *config_file){
 		return ERROR;
 
 	/* read in all lines from the main config file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 
@@ -157,7 +164,14 @@ int xsddefault_grab_config_info(char *config_file){
 				continue;
 
 			/* read in all lines from the main config file */
-			for(;input2=mmap_fgets(thefile2);free(input2)){
+			while(1){
+
+				/* free memory */
+				free(input2);
+
+				/* read the next line */
+				if((input2=mmap_fgets(thefile2))==NULL)
+					break;
 
 				strip(input2);
 
@@ -473,7 +487,7 @@ int xsddefault_save_status_data(void){
 
 /* read all program, host, and service status information */
 int xsddefault_read_status_data(char *config_file,int options){
-	char *input;
+	char *input=NULL;
 	mmapfile *thefile;
 	int data_type=XSDDEFAULT_NO_DATA;
 	hoststatus *temp_hoststatus=NULL;
@@ -492,7 +506,14 @@ int xsddefault_read_status_data(char *config_file,int options){
 		return ERROR;
 
 	/* read all lines in the status file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 

@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   10-31-2004
  *
  * License:
  *
@@ -85,7 +85,14 @@ int xdddefault_grab_config_info(char *config_file){
 		return ERROR;
 
 	/* read in all lines from the config file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 
@@ -106,7 +113,14 @@ int xdddefault_grab_config_info(char *config_file){
 				continue;
 
 			/* read in all lines from the main config file */
-			for(;input2=mmap_fgets(thefile2);free(input2)){
+			while(1){
+
+				/* free memory */
+				free(input2);
+
+				/* read the next line */
+				if((input=mmap_fgets(thefile2))==NULL)
+					break;
 
 				strip(input2);
 
@@ -481,7 +495,7 @@ int xdddefault_save_downtime_data(void){
 
 /* read the downtime file */
 int xdddefault_read_downtime_data(char *main_config_file){
-	char *input;
+	char *input=NULL;
 	int data_type=XDDDEFAULT_NO_DATA;
 	char *var;
 	char *val;
@@ -509,7 +523,14 @@ int xdddefault_read_downtime_data(char *main_config_file){
 	if((thefile=mmap_fopen(xdddefault_downtime_file))==NULL)
 		return ERROR;
 
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* get the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 

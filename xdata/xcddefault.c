@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   10-31-2004
  *
  * License:
  *
@@ -82,7 +82,14 @@ int xcddefault_grab_config_info(char *config_file){
 		return ERROR;
 
 	/* read in all lines from the config file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+		
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 
@@ -103,7 +110,14 @@ int xcddefault_grab_config_info(char *config_file){
 				continue;
 
 			/* read in all lines from the main config file */
-			for(;input2=mmap_fgets(thefile2);free(input2)){
+			while(1){
+
+				/* free memory */
+				free(input2);
+
+				/* read the next line */
+				if((input2=mmap_fgets(thefile2))==NULL)
+					break;
 
 				strip(input2);
 
@@ -471,7 +485,7 @@ int xcddefault_save_comment_data(void){
 
 /* read the comment file */
 int xcddefault_read_comment_data(char *main_config_file){
-	char *input;
+	char *input=NULL;
 	mmapfile *thefile;
 	int data_type=XCDDEFAULT_NO_DATA;
 	char *var;
@@ -499,7 +513,14 @@ int xcddefault_read_comment_data(char *main_config_file){
 		return ERROR;
 
 	/* read all lines in the comment file */
-	for(;input=mmap_fgets(thefile);free(input)){
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
 
 		strip(input);
 

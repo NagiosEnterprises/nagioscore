@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-13-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   07-01-2003
  *
  * License:
  *
@@ -1196,6 +1196,10 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 	/* get the host name */
 	temp_ptr=my_strtok(args,";");
+	if(temp_ptr==NULL){
+		free(new_pcr);
+		return ERROR;
+	        }
 
 	/* if this isn't a host name, mabye its a host address */
 	if(find_host(temp_ptr,NULL)==NULL){
@@ -1244,7 +1248,7 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	new_pcr->return_code=atoi(temp_ptr);
 
 	/* make sure the return code is within bounds */
-	if(new_pcr->return_code<-1 || new_pcr->return_code>2)
+	if(new_pcr->return_code<0 || new_pcr->return_code>3)
 		new_pcr->return_code=STATE_UNKNOWN;
 
 	/* get the plugin output */

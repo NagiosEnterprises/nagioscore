@@ -3,6 +3,14 @@ Nagios Change Log
 ###################
 
 
+1.2 - ??/??/2003
+----------------
+* Host stalking bug fix
+* Tac CGI bug fix
+* Embedded Perl bug fix
+* Configure script patch for Solaris (iconv library)
+* Bug fix for segfault in passive check routines
+
 
 1.1 - 06/02/2003
 ----------------

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-29-2002
+ * Last Modified: 02-28-2002
  *
  * License:
  * 
@@ -1800,6 +1800,22 @@ int commit_hostgroup_command(int cmd){
 /* write a command entry to the command file */
 int write_command_to_file(char *cmd){
 	FILE *fp;
+	struct stat statbuf;
+
+	/* bail out if the external command file doesn't exist */
+	if(stat(command_file,&statbuf)){
+
+		if(content_type==WML_CONTENT)
+			printf("<p>Error: Could not stat() external command file!</p>\n");
+		else{
+			printf("<P><DIV CLASS='errorMessage'>Error: Could not stat() command file '%s'!</DIV></P>\n",command_file);
+			printf("<P><DIV CLASS='errorDescription'>");
+			printf("The external command file may be missing, Nagios may not be running, and/or Nagios may not be checking external commands.\n");
+			printf("</DIV></P>\n");
+			}
+
+		return ERROR;
+	        }
 
  	/* open the command for writing (since this is a pipe, it will really be appended) */
 	fp=fopen(command_file,"w+");

@@ -2,7 +2,7 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 09-22-2001
+ * Last Modified: 09-24-2001
  *
  *****************************************/
 
@@ -144,7 +144,7 @@ char **getcgivars(void){
 			cgiinput=strdup(getenv("QUERY_STRING"));
 	        }
 
-	else if(!strcmp(request_method,"POST")){
+	else if(!strcmp(request_method,"POST") || !strcmp(request_method,"PUT")){
 
 		/* if CONTENT_TYPE variable is not specified, RFC-2068 says we should assume it is "application/octect-string" */
 		/* mobile (WAP) stations generate CONTENT_TYPE with charset, we we should only check first 33 chars */

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-10-2004
+ * Last Modified:   03-22-2004
  *
  * License:
  *
@@ -363,7 +363,7 @@ int check_service_notification_viability(service *svc, char *ack_data){
 
 
 	/* dont notify contacts about this service problem again if the notification interval is set to 0 */
-	if(svc->current_state!=STATE_OK && svc->no_more_notifications==TRUE){
+	if(svc->current_state==svc->last_state && svc->no_more_notifications==TRUE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't re-notify contacts about this service problem!\n");
 #endif

@@ -55,7 +55,7 @@ The decision to send out notifications is made in the service check and host che
 <p>
 <ul>
 <li>When a hard state change occurs.  More information on state types and hard state changes can be found <a href="statetypes.html">here</a>.
-<li>When a host or service remains in a hard non-OK state and the time specified by the &lt;<i>notification_interval</i>&gt; option in the host or service definition has passed since the last notification was sent out (for that specified host or service).  If you don't like the idea of recurring notifications, set the &lt;<i>notification_interval</i>&gt; value to 0 - this prevents notifications from getting sent out more than once for any given problem.
+<li>When a host or service remains in a hard non-OK state and the time specified by the &lt;<i>notification_interval</i>&gt; option in the host or service definition has passed since the last notification was sent out (for that specified host or service).  If you don't like the idea of recurring notifications, set the &lt;<i>notification_interval</i>&gt; value to 0 - this prevents notifications from getting sent out more than once for any given problem unless a state change occurs.
 </ul>
 </p>
 

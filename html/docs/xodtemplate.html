@@ -544,7 +544,7 @@ This directive is used to determine whether or not non-status information about 
 <tr>
 <td valign="top"><strong>notification_interval</strong>:</td>
 <td>
-This directive is used to define the number of "time units" to wait before re-notifying a contact that this service is <i>still</i> in a non-OK state.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this service - only one problem notification will be sent out.
+This directive is used to define the number of "time units" to wait before re-notifying a contact that this service is <i>still</i> in a non-OK state.  Unless you've changed the <a href="configmain.html#interval_length">interval_length</a> directive from the default value of 60, this number will mean minutes.  If you set this value to 0, Nagios will <i>not</i> re-notify contacts about problems for this service - only one problem notification will be sent out, unless there has been a state change.
 </td>
 </tr>
 <tr>

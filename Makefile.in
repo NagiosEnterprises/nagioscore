@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 10-25-2002
+# Last Modified: 02-26-2004
 ###############################
 
 
@@ -200,7 +200,7 @@ install-config:
 	@echo ""
 	@echo "*** Sample config file installed ***"
 	@echo ""
-	@echo "Remeber, these are *sample* config files.  You'll need to read"
+	@echo "Remember, these are *SAMPLE* config files.  You'll need to read"
 	@echo "the documentation for more information on how to actually define"
 	@echo "services, hosts, etc. to fit your particular needs."
 	@echo ""

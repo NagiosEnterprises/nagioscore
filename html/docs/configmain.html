@@ -670,7 +670,7 @@ This option determines whether or not Nagios will check the <a href="command_fil
 </p>
 
 <p>
-This is the number of "time units" to wait between external command checks. Unless you've changed the <a href="#interval_length">interval_length</a> value (as defined below) from the default value of 60, this number will mean minutes.  Each time Nagios checks for external commands it will read and process all commands present in the <a href="#command_file">command file</a> before continuing on with its other duties.  More information on external commands can be found <a href="extcommands.html">here</a>.
+This is the number of "time units" to wait between external command checks. Unless you've changed the <a href="#interval_length">interval_length</a> value (as defined below) from the default value of 60, this number will mean minutes.  Note: By setting this value to <b>-1</b>, Nagios will check for external commands as often as possible.  Each time Nagios checks for external commands it will read and process all commands present in the <a href="#command_file">command file</a> before continuing on with its other duties.  More information on external commands can be found <a href="extcommands.html">here</a>.
 </p>
 
 

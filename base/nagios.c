@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   06-16-2002
+ * Last Modified:   06-30-2002
  *
  * Description:
  *
@@ -150,6 +150,9 @@ char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;
 
 char            *ocsp_command=NULL;
+
+char            *illegal_object_chars=NULL;
+char            *illegal_output_chars=NULL;
 
 int		use_syslog=DEFAULT_USE_SYSLOG;
 int             log_notifications=DEFAULT_NOTIFICATION_LOGGING;

@@ -622,7 +622,7 @@ fi
 PKG_NAME=nagios
 PKG_VERSION="1.0b4"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="06-16-2002"
+PKG_REL_DATE="06-30-2002"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -3606,10 +3606,8 @@ echo ""
 echo " General Options:"
 echo " -------------------------"
 
-echo "$ac_t""              Nagios user:  $nagios_user" 1>&6
-echo "$ac_t""             Nagios group:  $nagios_grp" 1>&6
-echo "$ac_t""             Command user:  $command_user" 1>&6
-echo "$ac_t""            Command group:  $command_grp" 1>&6
+echo "$ac_t""        Nagios user/group:  $nagios_user,$nagios_grp" 1>&6
+echo "$ac_t""       Command user/group:  $command_user,$command_grp" 1>&6
 if test x$USEPERL = xyes; then
 if test x$PERLCACHE = xyes; then
 echo "$ac_t""            Embedded Perl:  yes, with caching" 1>&6

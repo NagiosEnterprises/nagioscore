@@ -2,8 +2,8 @@
  *
  * XPDFILE.C - File-based performance data routines
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-02-2001
+ * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -300,7 +300,7 @@ int xpdfile_update_service_performance_data(service *svc){
 #endif
 
 	/* process any macros in the raw output line */
-	process_macros(raw_output,processed_output,(int)sizeof(processed_output));
+	process_macros(raw_output,processed_output,(int)sizeof(processed_output),0);
 
 #ifdef DEBUG3
 	printf("\tProcessed service performance data output: %s\n",processed_output);
@@ -366,7 +366,7 @@ int xpdfile_update_host_performance_data(host *hst, int state, int state_type){
 #endif
 
 	/* process any macros in the raw output */
-	process_macros(raw_output,processed_output,(int)sizeof(processed_output));
+	process_macros(raw_output,processed_output,(int)sizeof(processed_output),0);
 
 #ifdef DEBUG3
 	printf("\tProcessed host performance data output: %s\n",processed_output);

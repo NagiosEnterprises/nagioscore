@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-01-2002
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -93,6 +93,9 @@ extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
 
 extern char     *ocsp_command;
+
+extern char     *illegal_object_chars;
+extern char     *illegal_output_chars;
 
 extern int      sigshutdown;
 extern int      sigrestart;
@@ -208,7 +211,7 @@ extern int errno;
 /******************************************************************/
 
 /* replace macros in notification commands with their values */
-int process_macros(char *input_buffer,char *output_buffer,int buffer_length){
+int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int options){
 	char *temp_buffer;
 	int in_macro;
 	int arg_index=0;
@@ -274,11 +277,13 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length){
 				else if(!strcmp(temp_buffer,"LASTSTATECHANGE"))
 					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]==NULL)?"":macro_date_time[MACRO_DATETIME_LASTSTATECHANGE],buffer_length-strlen(output_buffer)-1);
 
+				/* $OUTPUT macro is cleaned before insertion */
 				else if(!strcmp(temp_buffer,"OUTPUT"))
-					strncat(output_buffer,(macro_output==NULL)?"":macro_output,buffer_length-strlen(output_buffer)-1);
+					strncat(output_buffer,(macro_output==NULL)?"":clean_macro_chars(macro_output,options),buffer_length-strlen(output_buffer)-1);
 
+				/* $PERFDATA macro is cleaned before insertion */
 				else if(!strcmp(temp_buffer,"PERFDATA"))
-					strncat(output_buffer,(macro_perfdata==NULL)?"":macro_perfdata,buffer_length-strlen(output_buffer)-1);
+					strncat(output_buffer,(macro_perfdata==NULL)?"":clean_macro_chars(macro_perfdata,options),buffer_length-strlen(output_buffer)-1);
 
 				else if(!strcmp(temp_buffer,"CONTACTNAME"))
 					strncat(output_buffer,(macro_contact_name==NULL)?"":macro_contact_name,buffer_length-strlen(output_buffer)-1);
@@ -2173,22 +2178,107 @@ int close_command_file(void){
 
 /* strip newline, carriage return, and tab characters from end of a string */
 void strip(char *buffer){
-	int x;
+	register int x;
 
 	if(buffer==NULL)
 		return;
 
-	x=(int)strlen(buffer);
+	x=(int)strlen(buffer)-1;
 
-	for(;x>=1;x--){
-		if(buffer[x-1]==' ' || buffer[x-1]=='\n' || buffer[x-1]=='\r' || buffer[x-1]=='\t' || buffer[x-1]==13)
-			buffer[x-1]='\x0';
+	for(;x>=0;x--){
+		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
+			buffer[x]='\x0';
 		else
 			break;
 	        }
 
 	return;
 	}
+
+
+
+/* determines whether or not an object name (host, service, etc) contains illegal characters */
+int contains_illegal_object_chars(char *name){
+	register int x;
+	register int y;
+	register int ch;
+
+	if(name==NULL)
+		return FALSE;
+
+	x=(int)strlen(name)-1;
+
+	for(;x>=0;x--){
+
+		ch=(int)name[x];
+
+		/* illegal ASCII characters */
+		if(ch<32 || ch==127)
+			return TRUE;
+
+		/* illegal extended ASCII characters */
+		if(ch>=166)
+			return TRUE;
+
+		/* illegal user-specified characters */
+		if(illegal_object_chars!=NULL)
+			for(y=0;illegal_object_chars[y];y++)
+				if(name[x]==illegal_object_chars[y])
+					return TRUE;
+	        }
+
+	return FALSE;
+        }
+
+
+
+/* cleans illegal characters in macros before output */
+char *clean_macro_chars(char *macro,int options){
+	register int x;
+	register int y;
+	register int ch;
+
+	if(macro==NULL)
+		return "";
+
+	x=(int)strlen(macro)-1;
+
+	/* strip illegal characters out of macro */
+	if(options & STRIP_ILLEGAL_MACRO_CHARS){
+
+		for(y=0;x>=0;x--){
+
+			ch=(int)macro[x];
+
+			/* illegal ASCII characters */
+			if(ch<32 || ch==127)
+				continue;
+
+			/* illegal extended ASCII characters */
+			if(ch>=166)
+				continue;
+
+			/* illegal user-specified characters */
+			if(illegal_output_chars!=NULL)
+				for(y=0;illegal_output_chars[y];y++)
+					if(macro[x]==illegal_output_chars[y])
+						continue;
+
+			macro[y++]=macro[x];
+		        }
+
+		macro[y++]='\x0';
+	        }
+
+#ifdef ON_HOLD_FOR_NOW
+	/* escape nasty character in macro */
+	if(options & ESCAPE_MACRO_CHARS){
+	        }
+#endif
+
+	return macro;
+        }
+
 
 
 /* fix the problem with strtok() skipping empty options between tokens */	
@@ -2436,6 +2526,16 @@ void free_memory(void){
 	if(ocsp_command!=NULL){
 		free(ocsp_command);
 		ocsp_command=NULL;
+	        }
+
+	/* free illegal char strings */
+	if(illegal_object_chars!=NULL){
+		free(illegal_object_chars);
+		illegal_object_chars=NULL;
+	        }
+	if(illegal_output_chars!=NULL){
+		free(illegal_output_chars);
+		illegal_output_chars=NULL;
 	        }
 
 	/* free nagios user and group */

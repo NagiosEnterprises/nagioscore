@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-12-2002
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -48,6 +48,9 @@ extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
 
 extern char     *ocsp_command;
+
+extern char     *illegal_object_chars;
+extern char     *illegal_output_chars;
 
 extern int	use_syslog;
 extern int      log_notifications;
@@ -1012,6 +1015,18 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tdate_format set to %d\n",date_format);
 #endif
 		        }
+		else if(!strcmp(variable,"illegal_object_name_chars")){
+			illegal_object_chars=strdup(value);
+#ifdef DEBUG1
+			printf("\t\tillegal_object_name_chars set to '%s'\n",illegal_object_chars);
+#endif
+		        }
+		else if(!strcmp(variable,"illegal_macro_output_chars")){
+			illegal_output_chars=strdup(value);
+#ifdef DEBUG1
+			printf("\t\tillegal_macro_output_chars set to '%s'\n",illegal_output_chars);
+#endif
+		        }
 
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){
@@ -1370,12 +1385,12 @@ int pre_flight_check(void){
 			warnings++;
 		        }
 
-		/* see if the description contains any quotes */
-		if(strchr(temp_service->description,'\'')!=NULL || strchr(temp_service->description,'\"')!=NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: The description string for service '%s' on host '%s' contains a quotation mark and/or a single quote.  While this is allowed, it may give you some grief in the CGIs, event handlers, etc.",temp_service->description,temp_service->host_name);
+		/* check for illegal characters in service description */
+		if(contains_illegal_object_chars(temp_service->description)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			warnings++;
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
 		        }
 	        }
 
@@ -1494,12 +1509,12 @@ int pre_flight_check(void){
 			warnings++;
 		        }
 
-		/* see if the host name contains any quotes */
-		if(strchr(temp_host->name,'\'')!=NULL || strchr(temp_host->name,'\"')!=NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: The name of host '%s' contains a quotation mark and/or a single quote.  While this is allowed, it may give you some grief in the CGIs, event handlers, etc.",temp_host->name);
+		/* check for illegal characters in host name */
+		if(contains_illegal_object_chars(temp_host->name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			warnings++;
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
 		        }
 	        }
 
@@ -1555,6 +1570,14 @@ int pre_flight_check(void){
 		/* check to see if there is at least one contact group */
 		if(temp_hostgroup->contact_groups==NULL){
 			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host group '%s'  has no default contact group(s) defined!",temp_hostgroup->group_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+
+		/* check for illegal characters in hostgroup name */
+		if(contains_illegal_object_chars(temp_hostgroup->group_name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;
@@ -1685,6 +1708,14 @@ int pre_flight_check(void){
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			warnings++;
 		        }
+
+		/* check for illegal characters in contact name */
+		if(contains_illegal_object_chars(temp_contact->name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
 	        }
 
 	if(verify_config==TRUE)
@@ -1792,6 +1823,13 @@ int pre_flight_check(void){
 
 		        }
 
+		/* check for illegal characters in contactgroup name */
+		if(contains_illegal_object_chars(temp_contactgroup->group_name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
 		}
 
 	if(verify_config==TRUE)
@@ -1848,7 +1886,7 @@ int pre_flight_check(void){
 	/* check all hostgroup escalations...    */
 	/*****************************************/
 	if(verify_config==TRUE)
-		printf("Checking hostgroup escalations...\n");
+		printf("Checking host group escalations...\n");
 
 	for(temp_hge=hostgroupescalation_list,total_objects=0;temp_hge!=NULL;temp_hge=temp_hge->next,total_objects++){
 
@@ -2009,6 +2047,56 @@ int pre_flight_check(void){
 #endif
 
 
+	/*****************************************/
+	/* check all commands...                 */
+	/*****************************************/
+	if(verify_config==TRUE)
+		printf("Checking commands...\n");
+
+	for(temp_command=command_list,total_objects=0;temp_command!=NULL;temp_command=temp_command->next,total_objects++){
+
+		/* check for illegal characters in command name */
+		if(contains_illegal_object_chars(temp_command->name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+	if(verify_config==TRUE)
+		printf("\tChecked %d commands.\n",total_objects);
+
+#ifdef DEBUG1
+	printf("\tCompleted command checks\n");
+#endif
+
+
+	/*****************************************/
+	/* check all timeperiods...              */
+	/*****************************************/
+	if(verify_config==TRUE)
+		printf("Checking time periods...\n");
+
+	for(temp_timeperiod=timeperiod_list,total_objects=0;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next,total_objects++){
+
+		/* check for illegal characters in timeperiod name */
+		if(contains_illegal_object_chars(temp_timeperiod->name)==TRUE){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+	if(verify_config==TRUE)
+		printf("\tChecked %d time periods.\n",total_objects);
+
+#ifdef DEBUG1
+	printf("\tCompleted command checks\n");
+#endif
+
+
 	/********************************************/
 	/* check for circular paths between hosts   */
 	/********************************************/
@@ -2109,6 +2197,19 @@ int pre_flight_check(void){
 #ifdef DEBUG1
 	printf("\tCompleted obsessive compulsive service processor command check\n");
 #endif
+
+	/**************************************************/
+	/* check various settings...                      */
+	/**************************************************/
+	if(verify_config==TRUE)
+		printf("Checking misc settings...\n");
+
+	/* warn if user didn't specify any illegal macro output chars */
+	if(illegal_output_chars==NULL){
+		sprintf(temp_buffer,"Warning: Nothing specified for illegal_macro_output_chars variable!\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		warnings++;
+	        }
 
 	/* count number of services associated with each host (we need this for flap detection)... */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){

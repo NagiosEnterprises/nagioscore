@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-02-2002
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -511,7 +511,7 @@ int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
 #endif
 
 			/* replace macros in the command line */
-			process_macros(raw_command_line,&command_line[0],(int)sizeof(command_line));
+			process_macros(raw_command_line,&command_line[0],(int)sizeof(command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG4
 			printf("\tProcessed Command: %s\n",command_line);
@@ -1106,7 +1106,7 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 #endif
 
 			/* replace macros in the command line */
-			process_macros(raw_command_line,&command_line[0],(int)sizeof(command_line));
+			process_macros(raw_command_line,&command_line[0],(int)sizeof(command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG4
 			printf("\tProcessed Command: %s\n",command_line);

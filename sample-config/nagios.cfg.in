@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-30-2002
+# Last Modified: 06-30-2002
 #
 ##############################################################################
 
@@ -614,6 +614,27 @@ high_host_flap_threshold=20.0
 #
 
 date_format=us
+
+
+
+# ILLEGAL OBJECT NAME CHARACTERS
+# This options allows you to specify illegal characters that cannot
+# be used in host names, service descriptions, or names of other
+# object types.
+
+illegal_object_name_chars=`~!@#$%^&*|'"<>?,()=\
+
+
+
+# ILLEGAL MACRO OUTPUT CHARACTERS
+# This options allows you to specify illegal characters that are
+# stripped from macros before being used in notifications, event
+# handlers, etc.  This DOES NOT affect macros used in service or
+# host check commands.
+# The following macros are stripped: 
+# 	$OUTPUT, $PERFDATA
+
+illegal_macro_output_chars=`~!@#$^&*|'"<>?,\
 
 
 

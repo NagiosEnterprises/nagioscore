@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2002
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -237,7 +237,7 @@ int xpddefault_update_service_performance_data(service *svc){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed service performance data command line: %s\n",processed_command_line);
@@ -318,7 +318,7 @@ int xpddefault_update_host_performance_data(host *hst, int state, int state_type
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed host performance data command line: %s\n",processed_command_line);

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-29-2002
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -219,7 +219,7 @@ void run_service_check(service *svc){
 	strip(raw_command);
 
 	/* process any macros contained in the argument */
-	process_macros(raw_command,processed_command,sizeof(processed_command));
+	process_macros(raw_command,processed_command,sizeof(processed_command),0);
 	strip(processed_command);
 
 	/* save service info */
@@ -1701,7 +1701,7 @@ int run_host_check(host *hst){
 	raw_check_command[sizeof(raw_check_command)-1]='\x0';
 
 	/* process any macros in the check command */
-	process_macros(raw_check_command,&processed_check_command[0],(int)sizeof(processed_check_command));
+	process_macros(raw_check_command,&processed_check_command[0],(int)sizeof(processed_check_command),0);
 
 			
 #ifdef DEBUG3

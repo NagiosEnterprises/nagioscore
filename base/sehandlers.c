@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-05-2001
+ * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   06-30-2002
  *
  * License:
  *
@@ -116,7 +116,7 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed obsessive compulsive service processor command line: %s\n",processed_command_line);
@@ -246,7 +246,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed global service event handler command line: %s\n",processed_command_line);
@@ -297,7 +297,7 @@ int run_service_event_handler(service *svc,command *cmd,int state_type){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed service event handler command line: %s\n",processed_command_line);
@@ -430,7 +430,7 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed global host event handler command line: %s\n",processed_command_line);
@@ -480,7 +480,7 @@ int run_host_event_handler(host *hst,command *cmd,int state,int state_type){
 #endif
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line));
+	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 #ifdef DEBUG3
 	printf("\tProcessed host event handler command line: %s\n",processed_command_line);

@@ -13,6 +13,7 @@ Nagios Change Log
 * Bug fix for flex host downtime
 * Embedded perl bug fixe for arguments with spaces
 * Host escalation logic fix
+* Bug fix for PostgreSQL timestamps
 
 
 1.0b6 - 09/15/2002

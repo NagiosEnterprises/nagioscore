@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-23-2005
+ * Last Modified:   03-24-2005
  *
  * License:
  *
@@ -3579,6 +3579,7 @@ int drop_privileges(char *user, char *group){
 	gid_t gid=-1;
 	struct group *grp;
 	struct passwd *pw;
+	int result=OK;
 
 #ifdef DEBUG0
 	printf("drop_privileges() start\n");
@@ -3614,6 +3615,7 @@ int drop_privileges(char *user, char *group){
 				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not set effective GID=%d",(int)gid);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+				result=ERROR;
 			        }
 		        }
 	        }
@@ -3662,6 +3664,7 @@ int drop_privileges(char *user, char *group){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not set effective UID=%d",(int)uid);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			result=ERROR;
 		        }
 	        }
 
@@ -3673,7 +3676,7 @@ int drop_privileges(char *user, char *group){
 	printf("drop_privileges() end\n");
 #endif
 
-	return OK;
+	return result;
         }
 
 

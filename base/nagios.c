@@ -494,7 +494,15 @@ int main(int argc, char **argv){
 			result=read_main_config_file(config_file);
 
 			/* drop privileges */
-			drop_privileges(nagios_user,nagios_group);
+			if(drop_privileges(nagios_user,nagios_group)==ERROR){
+
+				snprintf(buffer,sizeof(buffer),"Failed to drop privileges.  Aborting.");
+				buffer[sizeof(buffer)-1]='\x0';
+				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE);
+
+				cleanup();
+				exit(ERROR);
+			        }
 
 #ifdef USE_EVENT_BROKER
 			/* initialize modules */

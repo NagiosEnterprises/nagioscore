@@ -2,8 +2,8 @@
  *
  * NEBMODS.C - Event Broker Module Functions
  *
- * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-19-2004
+ * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-24-2005
  *
  * License:
  *
@@ -534,6 +534,9 @@ int neb_free_callback_list(void){
 	nebcallback *temp_callback;
 	nebcallback *next_callback;
 	int x;
+
+	if(neb_callback_list==NULL)
+		return OK;
 
 	for(x=0;x<NEBCALLBACK_NUMITEMS;x++){
 

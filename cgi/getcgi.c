@@ -2,7 +2,7 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 07-28-2001
+ * Last Modified: 09-22-2001
  *
  *****************************************/
 
@@ -110,6 +110,8 @@ void unescape_cgi_input(char *input){
 char **getcgivars(void){
 	register int i;
 	char *request_method;
+	char *content_type;
+	char *content_length_string;
 	int content_length;
 	char *cgiinput;
 	char **cgivars;
@@ -146,11 +148,21 @@ char **getcgivars(void){
 
 		/* if CONTENT_TYPE variable is not specified, RFC-2068 says we should assume it is "application/octect-string" */
 		/* mobile (WAP) stations generate CONTENT_TYPE with charset, we we should only check first 33 chars */
-		if(strlen(getenv("CONTENT_TYPE")) && strncasecmp(getenv("CONTENT_TYPE"),"application/x-www-form-urlencoded",33)){
+
+		content_type=getenv("CONTENT_TYPE");
+		if(content_type==NULL)
+			content_type="";
+
+		if(strlen(content_type) && strncasecmp(content_type,"application/x-www-form-urlencoded",33)){
 			printf("getcgivars(): Unsupported Content-Type.\n");
 			exit(1);
 		        }
-		if(!(content_length=atoi(getenv("CONTENT_LENGTH")))){
+
+		content_length_string=getenv("CONTENT_LENGTH");
+		if(content_length_string==NULL)
+			content_length_string="0";
+
+		if(!(content_length=atoi(content_length_string))){
 			printf("getcgivars(): No Content-Length was sent with the POST request.\n") ;
 			exit(1);
 		        }

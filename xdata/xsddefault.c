@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-13-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -465,10 +465,8 @@ int xsddefault_save_status_data(void){
 /* read all program, host, and service status information */
 int xsddefault_read_status_data(char *config_file,int options){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char *temp_ptr;
 	FILE *fp;
 	int data_type=XSDDEFAULT_NO_DATA;
-	int x;
 	hoststatus *temp_hoststatus=NULL;
 	servicestatus *temp_servicestatus=NULL;
 	char *var;

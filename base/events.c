@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-08-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -1261,8 +1261,8 @@ int handle_timed_event(timed_event *event){
 /* adjusts scheduling of host and service checks */
 void adjust_check_scheduling(void){
 	timed_event *temp_event;
-	service *temp_service;
-	host *temp_host;
+	service *temp_service=NULL;
+	host *temp_host=NULL;
 	double projected_host_check_overhead=0.9;
 	double projected_service_check_overhead=0.1;
 	time_t current_time;
@@ -1276,14 +1276,11 @@ void adjust_check_scheduling(void){
 	double current_icd_offset=0.0;
 	double total_check_exec_time=0.0;
 	double last_check_exec_time=0.0;
-	int use_host_execution_times=TRUE;
 	int adjust_scheduling=FALSE;
 	double exec_time_factor=0.0;
 	double current_exec_time=0.0;
 	double current_exec_time_offset=0.0;
 	double new_run_time_offset=0.0;
-
-	time_t last_event_time=0L;
 
 #ifdef DEBUG0
 	printf("adjust_check_scheduling() start\n");
@@ -1476,7 +1473,6 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	timed_event *temp_event;
 	service *temp_service;
 	host *temp_host;
-	time_t run_time;
 	time_t (*timingfunc)(void);
 
 #ifdef DEBUG0

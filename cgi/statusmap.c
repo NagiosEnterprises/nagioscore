@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-19-2004
+ * Last Modified: 10-24-2004
  *
  * Description:
  *
@@ -864,7 +864,6 @@ void calculate_host_coords(void){
 	int layer_members=0;
 	int current_layer_member=0;
 	int max_drawing_width=0;
-	int x=0;
   
 
 	/******************************/
@@ -1907,8 +1906,6 @@ void draw_host_text(char *name,int x,int y){
 	hoststatus *temp_hoststatus;
 	int status_color=color_black;
 	char temp_buffer[MAX_INPUT_BUFFER];
-	int string_width=0;
-	int string_height=0;
 
 	if(use_text==FALSE)
 		return;
@@ -2634,8 +2631,6 @@ void calculate_circular_coords(void){
 	int min_y=0;
 	int have_min_x=FALSE;
 	int have_min_y=FALSE;
-	int max_y=0;
-	int have_max_y=FALSE;
 	hostextinfo *temp_hostextinfo;
 
 	/* calculate all host coords, starting with first layer */

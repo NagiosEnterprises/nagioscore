@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-20-2004
+ * Last Modified: 10-24-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -602,7 +602,7 @@ int grab_contact_macros(contact *);                  	/* updates the contact mac
 int grab_datetime_macros(void);				/* updates date/time macros */
 int grab_on_demand_macro(char *);                       /* fetches an on-demand macro */
 int grab_on_demand_host_macro(host *,char *);		/* fetches an on-demand host macro */
-int grab_on_demand_service_macros(service *,char *);    /* fetches an on-demand service macro */
+int grab_on_demand_service_macro(service *,char *);    /* fetches an on-demand service macro */
 int clear_argv_macros(void);                            /* clear all argv macros used in commands */
 int clear_volatile_macros(void);                     	/* clear all "volatile" macros that change between service/host checks */
 int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile" macros which remain relatively constant */
@@ -624,6 +624,7 @@ int cmd_delete_all_comments(int,char *);		/* delete all comments associated with
 int cmd_delay_notification(int,char *);			/* delay a service or host notification */
 int cmd_schedule_service_check(int,char *,int);		/* schedule an immediate or delayed service check */
 int cmd_schedule_check(int,char *);			/* schedule an immediate or delayed host check */
+int cmd_schedule_host_service_checks(int,char *,int);	/* schedule an immediate or delayed checks of all services on a host */
 int cmd_signal_process(int,char *);				/* schedules a program shutdown or restart */
 int cmd_process_service_check_result(int,time_t,char *);	/* processes a passive service check */
 int cmd_process_host_check_result(int,time_t,char *);		/* processes a passive host check */

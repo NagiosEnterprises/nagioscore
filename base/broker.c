@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-26-2003
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -30,6 +30,7 @@
 #include "../include/broker.h"
 #include "../include/nebcallbacks.h"
 #include "../include/nebstructs.h"
+#include "../include/nebmods.h"
 
 extern int             event_broker_options;
 
@@ -84,8 +85,6 @@ void broker_program_state(int type, int flags, int attr, struct timeval *timesta
 /* send timed event data to broker */
 void broker_timed_event(int type, int flags, int attr, timed_event *event, struct timeval *timestamp){
 	nebstruct_timed_event_data ds;
-	service *temp_service;
-	host *temp_host;
 
 	if(!(event_broker_options & BROKER_TIMED_EVENTS))
 		return;

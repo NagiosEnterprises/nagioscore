@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   03-25-2004
+ * Last Modified:   10-24-2004
  *
  * Description:
  *
@@ -555,9 +555,6 @@ int main(int argc, char **argv){
 				cleanup();
 				exit(ERROR);
 			        }
-
-			/* free extended info data - we don't need this for monitoring */
-			free_extended_data();
 
 			/* initialize embedded Perl interpreter */
 			init_embedded_perl();

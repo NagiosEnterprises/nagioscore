@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-20-2004
+ * Last Modified: 10-24-2004
  *
  * License:
  *
@@ -1291,8 +1291,8 @@ char * url_encode(char *input){
 			break;
 		        }
 
-		/* alpha-numeric characters don't get encoded */
-		else if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z')){
+		/* alpha-numeric characters and dots don't get encoded */
+		else if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z') || (char)input[x]==(char)'.'){
 			encoded_url_string[y]=input[x];
 			y++;
 		        }

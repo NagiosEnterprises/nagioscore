@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-20-2004
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -100,7 +100,7 @@ void display_comments(int);
 
 int sort_data(int,int);
 int compare_sortdata_entries(int,int,sortdata *,sortdata *);
-void free_sortdata_list();
+void free_sortdata_list(void);
 
 authdata current_authdata;
 
@@ -665,8 +665,6 @@ int process_cgivars(void){
 
 
 void show_process_info(void){
-	char state_string[MAX_INPUT_BUFFER];
-	char *state_class="";
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t current_time;
 	unsigned long run_time;
@@ -906,17 +904,6 @@ void show_host_info(void){
 	char status_age[48];
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
-	unsigned long total_monitored_time;
-	unsigned long time_up;
-	unsigned long time_down;
-	unsigned long time_unreachable;
-	float percent_time_up;
-	float percent_time_down;
-	float percent_time_unreachable;
-	char time_up_string[48];
-	char time_down_string[48];
-	char time_unreachable_string[48];
-	char total_time_string[48];
 	int days;
 	int hours;
 	int minutes;
@@ -1223,20 +1210,6 @@ void show_service_info(void){
 	servicestatus *temp_svcstatus;
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
-	float percent_time_ok;
-	float percent_time_warning;
-	float percent_time_unknown;
-	float percent_time_critical;
-	char time_ok_string[48];
-	char time_warning_string[48];
-	char time_unknown_string[48];
-	char time_critical_string[48];
-	char total_time_string[48];
-	unsigned long time_ok;
-	unsigned long time_warning;
-	unsigned long time_unknown;
-	unsigned long time_critical;
-	unsigned long total_monitored_time;
 	int days;
 	int hours;
 	int minutes;
@@ -1831,7 +1804,7 @@ void show_all_comments(void){
 		get_time_string(&temp_comment->expire_time,expire_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<tr CLASS='%s'>",bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),temp_comment->host_name);
-		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
+		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%ld</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_HOST_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
@@ -1903,8 +1876,8 @@ void show_all_comments(void){
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),temp_comment->host_name);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s",bg_class,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_comment->host_name));
 		printf("&service=%s'>%s</A></td>",url_encode(temp_comment->service_description),temp_comment->service_description);
-		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
-		printf("<td><a href='%s?cmd_typ=%d&com_id=%d'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
+		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%ld</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
+		printf("<td><a href='%s?cmd_typ=%d&com_id=%ld'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 
@@ -2660,8 +2633,8 @@ void show_all_downtime(void){
 /* shows check scheduling queue */
 void show_scheduling_queue(void){
 	sortdata *temp_sortdata;
-	servicestatus *temp_svcstatus;
-	hoststatus *temp_hststatus;
+	servicestatus *temp_svcstatus=NULL;
+	hoststatus *temp_hststatus=NULL;
 	char date_time[MAX_DATETIME_LENGTH];
 	char temp_url[MAX_INPUT_BUFFER];
 	int odd=0;

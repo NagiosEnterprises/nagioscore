@@ -157,7 +157,7 @@ distclean: clean
 	cd $(SRC_MODULE) && $(MAKE) $@
 	rm -f sample-config/*.cfg sample-config/template-object/*.cfg sample-config/default-object/*.cfg
 	rm -f daemon-init pkginfo
-	rm -f Makefile
+	rm -f Makefile subst
 
 devclean: distclean
 

@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-24-2004
  *
  * This CGI program will display various configuration information.
  *
@@ -1824,7 +1824,6 @@ void display_hostescalations(void){
 void display_hostextinfo(void){
 	hostextinfo *temp_hostextinfo;
 	int odd=0;
-	int options;
 	char *bg_class="";
 
 	/* see if user is authorized to view hostdependency information... */
@@ -1912,7 +1911,6 @@ void display_hostextinfo(void){
 void display_serviceextinfo(void){
 	serviceextinfo *temp_serviceextinfo;
 	int odd=0;
-	int options;
 	char *bg_class="";
 
 	/* see if user is authorized to view hostdependency information... */

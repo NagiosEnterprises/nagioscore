@@ -2,8 +2,8 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -210,10 +210,6 @@ int main(int argc, char **argv){
 	char start_timestring[MAX_DATETIME_LENGTH];
 	char end_timestring[MAX_DATETIME_LENGTH];
 	host *temp_host;
-	service *temp_service;
-	int is_authorized=TRUE;
-	time_t report_start_time;
-	time_t report_end_time;
 	int days, hours, minutes, seconds;
 	hostgroup *temp_hostgroup;
 	servicegroup *temp_servicegroup;
@@ -1499,7 +1495,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 	archived_event *last_event=NULL;
 	archived_event *temp_event=NULL;
 	archived_event *new_event=NULL;
-	service *temp_service;
+	service *temp_service=NULL;
 	host *temp_host;
 
 

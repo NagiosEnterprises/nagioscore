@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-20-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -2429,7 +2429,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int macro_options){
 	char temp_arg[MAX_INPUT_BUFFER];
 	char arg_buffer[MAX_INPUT_BUFFER];
-	char *temp_ptr;
 	command *temp_command;
 	int x,y;
 	int arg_index;
@@ -2776,12 +2775,11 @@ time_t get_next_log_rotation_time(void){
 		run_time=mktime(t);
 		break;
 	case LOG_ROTATION_MONTHLY:
+	default:
 		t->tm_mon++;
 		t->tm_mday=1;
 		t->tm_hour=0;
 		run_time=mktime(t);
-		break;
-	default:
 		break;
 	        }
 
@@ -4138,7 +4136,7 @@ void * service_result_worker_thread(void *arg){
 				write_offset=sizeof(service_message)-bytes_to_read;
 
 				/* try and read a (full or partial) message */
-				read_result=read(ipc_pipe[0],((void *)&message)+write_offset,bytes_to_read);
+				read_result=read(ipc_pipe[0],((char *)&message)+write_offset,bytes_to_read);
 
 				/* we had a failure in reading from the pipe... */
 				if(read_result==-1){

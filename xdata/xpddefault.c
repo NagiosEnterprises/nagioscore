@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -678,7 +678,6 @@ int xpddefault_process_host_perfdata_file(void){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	host *temp_host;
 	int early_timeout=FALSE;
 	double exectime;
 	int result=OK;
@@ -734,7 +733,6 @@ int xpddefault_process_service_perfdata_file(void){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	host *temp_host;
 	int early_timeout=FALSE;
 	double exectime;
 	int result=OK;

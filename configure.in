@@ -61,26 +61,32 @@ dnl Test for pthreads support - taken from ICU FreeBSD Port configure script
 THREADLIBS=""
 have_pthreads="no"
 
+dnl FreeBSD: Try ports/linuxthreads first - Mammad Zadeh <mammad@yahoo-inc.com>
 dnl FreeBSD -pthread check - Jonathan McDowell <noodles@earth.li>
 AC_DEFUN(AC_PTHREAD_FREEBSD,[
-	AC_MSG_CHECKING([if we need -pthread for threads])
-	AC_CACHE_VAL(ac_ldflag_pthread,[
-		ac_save_LDFLAGS="$LDFLAGS"
-		LDFLAGS="-pthread $LDFLAGS"
-		AC_TRY_LINK([
-			char pthread_create();
-			],
-			pthread_create();,
-			eval "ac_ldflag_pthread=yes",
-			eval "ac_ldflag_pthread=no"
-			),
-		THREADLIBS="$ac_save_LDFLAGS"
-		])
-	if eval "test \"`echo $ac_ldflag_pthread`\" = yes"; then
-		AC_MSG_RESULT(yes)
-	else
-		AC_MSG_RESULT(no)
-	fi
+	AC_CHECK_LIB(lthread,pthread_create,[
+		CFLAGS="-D_THREAD_SAFE -I/usr/local/include/pthread/linuxthreads -I/usr/include $CFLAGS"
+		THREADLIBS="-L/usr/local/lib -llthread -llgcc_r"
+		],[
+		AC_MSG_CHECKING([if we need -pthread for threads])
+		AC_CACHE_VAL(ac_ldflag_pthread,[
+			ac_save_LDFLAGS="$LDFLAGS"
+			LDFLAGS="-pthread $LDFLAGS"
+			AC_TRY_LINK([
+				char pthread_create();
+				],
+				pthread_create();,
+				eval "ac_ldflag_pthread=yes",
+				eval "ac_ldflag_pthread=no"
+				),
+			THREADLIBS="$ac_save_LDFLAGS"
+			])
+		if eval "test \"`echo $ac_ldflag_pthread`\" = yes"; then
+			AC_MSG_RESULT(yes)
+		else
+			AC_MSG_RESULT(no)
+		fi
+		],-L/usr/local/lib)
 	])
 
 dnl Test for HPUX cma threads first..

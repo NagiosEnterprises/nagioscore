@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-21-2003
+ * Last Modified: 10-24-2003
  *
  * License:
  * 
@@ -325,9 +325,9 @@ int main(void){
 				if(group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_GRID || group_style_type==STYLE_SUMMARY)
 					printf("<a href='%s?servicegroup=all&style=detail'>View Service Status Detail For All Service Groups</a><br>\n",STATUS_CGI);
 				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_GRID || group_style_type==STYLE_SUMMARY)
-					printf("<a href='%s?servicegroup=all&style=overview'>View Status Overview For All Service Groups</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+					printf("<a href='%s?servicegroup=all&style=overview'>View Status Overview For All Service Groups</a><br>\n",STATUS_CGI);
 				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_GRID)
-					printf("<a href='%s?servicegroup=all&style=summary'>View Status Summary For All Service Groups</a><br>\n",STATUS_CGI,url_encode(servicegroup_name));
+					printf("<a href='%s?servicegroup=all&style=summary'>View Status Summary For All Service Groups</a><br>\n",STATUS_CGI);
 				if(group_style_type==STYLE_DETAIL || group_style_type==STYLE_OVERVIEW || group_style_type==STYLE_SUMMARY)
 					printf("<a href='%s?servicegroup=all&style=grid'>View Service Status Grid For All Service Groups</a><br>\n",STATUS_CGI);
 			        }
@@ -2725,11 +2725,10 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 	servicegroupmember *temp_member2;
 	host *temp_host;
 	host *last_host;
-	service *temp_service;
 	hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
 	hostextinfo *temp_hostextinfo;
-	int odd;
+	int odd=0;
 	int current_item;
 
 
@@ -3191,7 +3190,7 @@ void show_servicegroup_hostgroup_member_service_status_totals(char *host_name,vo
 	int total_pending=0;
 	servicestatus *temp_servicestatus;
 	service *temp_service;
-	servicegroup *temp_servicegroup;
+	servicegroup *temp_servicegroup=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER];
 
 
@@ -3481,7 +3480,6 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 	int total_critical=0;
 	int total_pending=0;
 	servicestatus *temp_servicestatus;
-	service *temp_service;
 	hoststatus *temp_hoststatus;
 	host *temp_host;
 
@@ -3671,7 +3669,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
 	hostextinfo *temp_hostextinfo;
-	int odd;
+	int odd=0;
 	int current_item;
 
 

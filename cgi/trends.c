@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-19-2004
+ * Last Modified: 10-24-2004
  *
  * License:
  * 
@@ -1623,14 +1623,13 @@ void graph_all_trend_data(void){
 	time_t b;
 	time_t current_time;
 	int current_state=AS_NO_DATA;
-	int graph_end_data=TRUE;
 	int have_some_real_data=FALSE;
 	hoststatus *hststatus=NULL;
 	servicestatus *svcstatus=NULL;
 	unsigned long wobble=300;
 	int first_real_state=AS_NO_DATA;
 	time_t initial_assumed_time;
-	int initial_assumed_state;
+	int initial_assumed_state=AS_SVC_OK;
 	int error=FALSE;
 
 

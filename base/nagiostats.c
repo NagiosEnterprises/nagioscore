@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   02-12-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -153,7 +153,6 @@ void get_time_breakdown(unsigned long,int *,int *,int *,int *);
 int main(int argc, char **argv){
 	int result;
 	int error=FALSE;
-	char buffer[MAX_INPUT_BUFFER];
 	int display_license=FALSE;
 	int display_help=FALSE;
 	int c;
@@ -589,26 +588,23 @@ int read_config_file(void){
 
 int read_status_file(void){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char *temp_ptr;
 	FILE *fp;
 	int data_type=STATUS_NO_DATA;
-	int x;
 	char *var;
 	char *val;
-	int result;
 	time_t current_time;
 	unsigned long time_difference;
 
-	double execution_time;
-	double latency;
-	int check_type;
-	int current_state;
-	double state_change;
-	int is_flapping;
-	int downtime_depth;
-	time_t last_check;
-	int should_be_scheduled;
-	int has_been_checked;
+	double execution_time=0.0;
+	double latency=0.0;
+	int check_type=SERVICE_CHECK_ACTIVE;
+	int current_state=STATE_OK;
+	double state_change=0.0;
+	int is_flapping=FALSE;
+	int downtime_depth=0;
+	time_t last_check=0L;
+	int should_be_scheduled=TRUE;
+	int has_been_checked=TRUE;
 
 
 	time(&current_time);

@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -301,8 +301,6 @@ int add_servicestatus_to_hashlist(servicestatus *new_servicestatus){
 int add_host_status(hoststatus *new_hoststatus){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char date_string[MAX_DATETIME_LENGTH];
-	hoststatus *last_hoststatus=NULL;
-	hoststatus *temp_hoststatus=NULL;
 
 	/* make sure we have what we need */
 	if(new_hoststatus==NULL)
@@ -365,8 +363,6 @@ int add_host_status(hoststatus *new_hoststatus){
 int add_service_status(servicestatus *new_svcstatus){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char date_string[MAX_DATETIME_LENGTH];
-	servicestatus *last_svcstatus=NULL;
-	servicestatus *temp_svcstatus=NULL;
 
 	/* make sure we have what we need */
 	if(new_svcstatus==NULL)

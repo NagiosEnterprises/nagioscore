@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-20-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -71,11 +71,6 @@ hostdependency  **hostdependency_hashlist=NULL;
 servicedependency **servicedependency_hashlist=NULL;
 hostescalation  **hostescalation_hashlist=NULL;
 serviceescalation **serviceescalation_hashlist=NULL;
-
-static host_cursor *static_host_cursor=NULL;
-static int service_hashchain_iterator;
-static service *current_service_pointer;
-static char *services_by_host;
 
 
 
@@ -2753,7 +2748,6 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 /* add a new service to the list in memory */
 service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_ok, int stalk_warning, int stalk_unknown, int stalk_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *temp_service;
-	service *last_service;
 	service *new_service;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -3740,7 +3734,6 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 /* adds a service dependency definition */
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending){
 	servicedependency *new_servicedependency;
-	servicedependency *temp_servicedependency;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -3941,7 +3934,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 /* adds a host dependency definition */
 hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending){
 	hostdependency *new_hostdependency;
-	hostdependency *last_hostdependency;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 #endif
@@ -4729,7 +4721,6 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 /* given a timeperiod name and a starting point, find a timeperiod from the list in memory */
 timeperiod * find_timeperiod(char *name){
 	timeperiod *temp_timeperiod;
-	int result;
 
 #ifdef DEBUG0
 	printf("find_timeperiod() start\n");
@@ -4780,7 +4771,6 @@ host * find_host(char *name){
 /* find a hostgroup from the list in memory */
 hostgroup * find_hostgroup(char *name){
 	hostgroup *temp_hostgroup;
-	int result;
 
 #ifdef DEBUG0
 	printf("find_hostgroup() start\n");
@@ -4839,7 +4829,6 @@ hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp){
 /* find a servicegroup from the list in memory */
 servicegroup * find_servicegroup(char *name){
 	servicegroup *temp_servicegroup;
-	int result;
 
 #ifdef DEBUG0
 	printf("find_servicegroup() start\n");
@@ -4898,7 +4887,6 @@ servicegroupmember * find_servicegroupmember(char *host_name,char *svc_descripti
 /* find a contact from the list in memory */
 contact * find_contact(char *name){
 	contact *temp_contact;
-	int result;
 
 #ifdef DEBUG0
 	printf("find_contact() start\n");
@@ -4924,7 +4912,6 @@ contact * find_contact(char *name){
 /* find a contact group from the list in memory */
 contactgroup * find_contactgroup(char *name){
 	contactgroup *temp_contactgroup;
-	int result;
 
 #ifdef DEBUG0
 	printf("find_contactgroup() start\n");
@@ -4980,7 +4967,6 @@ contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp){
 /* given a command name, find a command from the list in memory */
 command * find_command(char *name){
 	command *temp_command;
-	int result;
 
 #ifdef DEBUG0
 	printf("find_command() start\n");

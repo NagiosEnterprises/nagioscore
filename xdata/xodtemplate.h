@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-03-2004
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -549,23 +549,24 @@ char *xodtemplate_config_file_name(int);                    /* returns the name 
 xodtemplate_contactlist *xodtemplate_expand_contacts(char *);
 int xodtemplate_expand_contacts2(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
 int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **,char *);
-int xodtemplate_free_contactlist(xodtemplate_contactlist *);
-void xodtemplate_remove_contactlist_item(xodtemplate_contactlist *,xodtemplate_contactlist **);
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
 int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
 int xodtemplate_expand_hosts(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
 int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **,xodtemplate_hostgroup *);
 int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **,char *);
-int xodtemplate_free_hostlist(xodtemplate_hostlist *);
-void xodtemplate_remove_hostlist_item(xodtemplate_hostlist *,xodtemplate_hostlist **);
 xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *);
 int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,xodtemplate_servicelist **,char *);
 int xodtemplate_expand_services(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,char *);
 int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **,xodtemplate_servicegroup *);
 int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **,char *,char *);
+#endif
+
+int xodtemplate_free_contactlist(xodtemplate_contactlist *);
+void xodtemplate_remove_contactlist_item(xodtemplate_contactlist *,xodtemplate_contactlist **);
+int xodtemplate_free_hostlist(xodtemplate_hostlist *);
+void xodtemplate_remove_hostlist_item(xodtemplate_hostlist *,xodtemplate_hostlist **);
 int xodtemplate_free_servicelist(xodtemplate_servicelist *);
 void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *,xodtemplate_servicelist **);
-#endif
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);

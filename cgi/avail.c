@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 10-24-2003
  *
  * License:
  * 
@@ -1597,7 +1597,6 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 	time_t a;
 	time_t b;
 	int current_state=AS_NO_DATA;
-	int graph_end_data=TRUE;
 	int have_some_real_data=FALSE;
 	hoststatus *hststatus=NULL;
 	servicestatus *svcstatus=NULL;

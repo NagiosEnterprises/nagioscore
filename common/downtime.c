@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-24-2004
  *
  * License:
  *
@@ -101,7 +101,7 @@ int cleanup_downtime_data(char *config_file){
 /******************************************************************/
 
 /* schedules a host or service downtime */
-int schedule_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *new_downtime_id){
+int schedule_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *new_downtime_id){
 	unsigned long downtime_id;
 
 	/* don't add old or invalid downtimes */
@@ -109,7 +109,7 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 		return ERROR;
 
 	/* add a new downtime entry */
-	add_new_downtime(type,host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
+	add_new_downtime(type,host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 
 	/* register the scheduled downtime */
 	register_downtime(type,downtime_id);
@@ -620,20 +620,20 @@ int check_for_expired_downtime(void){
 
 
 /* save a host or service downtime */
-int add_new_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
+int add_new_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 	int result;
 
 	if(type==HOST_DOWNTIME)
-		result=add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+		result=add_new_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 	else
-		result=add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+		result=add_new_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	return result;
         }
 
 
 /* saves a host downtime entry */
-int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
+int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 	int result;
 	unsigned long new_downtime_id;
 
@@ -642,10 +642,10 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result=xdddefault_add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
+	result=xdddefault_add_new_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 #ifdef USE_XDDDB
-	result=xdddb_add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
+	result=xdddb_add_new_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 
 	/* save downtime id */
@@ -654,7 +654,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_NONE,HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,new_downtime_id,NULL);
+	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_NONE,HOST_DOWNTIME,host_name,NULL,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,new_downtime_id,NULL);
 #endif
 
 	return result;
@@ -662,7 +662,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 
 /* saves a service downtime entry */
-int add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
+int add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 	int result;
 	unsigned long new_downtime_id;
 
@@ -671,10 +671,10 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result=xdddefault_add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
+	result=xdddefault_add_new_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 #ifdef USE_XDDDB
-	result=xdddb_add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
+	result=xdddb_add_new_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 
 	/* save downtime id */
@@ -683,7 +683,7 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_DOWNTIME,host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,new_downtime_id,NULL);
+	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_DOWNTIME,host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,new_downtime_id,NULL);
 #endif
 
 	return result;
@@ -820,27 +820,27 @@ int read_downtime_data(char *main_config_file){
 /******************************************************************/
 
 /* adds a host downtime entry to the list in memory */
-int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
+int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
 	int result;
 
-	result=add_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+	result=add_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	return result;
         }
 
 
 /* adds a service downtime entry to the list in memory */
-int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
+int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
 	int result;
 
-	result=add_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+	result=add_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	return result;
         }
 
 
 /* adds a host or service downtime entry to the list in memory */
-int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
+int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
 	scheduled_downtime *new_downtime=NULL;
 	scheduled_downtime *last_downtime=NULL;
 	scheduled_downtime *temp_downtime=NULL;
@@ -876,10 +876,10 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	else
 		new_downtime->author=strdup(author);
 
-	if(comment==NULL)
+	if(comment_data==NULL)
 		new_downtime->comment=NULL;
 	else
-		new_downtime->comment=strdup(comment);
+		new_downtime->comment=strdup(comment_data);
 
 	new_downtime->type=downtime_type;
 	new_downtime->entry_time=entry_time;
@@ -923,7 +923,7 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_downtime_data(NEBTYPE_DOWNTIME_LOAD,NEBFLAG_NONE,NEBATTR_NONE,downtime_type,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id,NULL);
+		broker_downtime_data(NEBTYPE_DOWNTIME_LOAD,NEBFLAG_NONE,NEBATTR_NONE,downtime_type,host_name,svc_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id,NULL);
 #endif
 #endif
 

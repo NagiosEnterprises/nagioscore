@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-03-2004
+ * Last Modified: 10-24-2004
  *
  * Description:
  *
@@ -106,9 +106,11 @@ char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
 
 /* process all config files - both core and CGIs pass in name of main config file */
 int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
+#ifdef NSCORE
 	char config_file[MAX_FILENAME_LENGTH];
 	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
 	char *temp_ptr;
+#endif
 	FILE *fp;
 	int result=OK;
 
@@ -3663,7 +3665,6 @@ int xodtemplate_duplicate_services(void){
 /* duplicates object definitions */
 int xodtemplate_duplicate_objects(void){
 	int result=OK;
-	xodtemplate_service *temp_service;
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_hostdependency *temp_hostdependency;
@@ -6580,7 +6581,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 /* recombobulates servicegroup definitions */
 /***** THIS NEEDS TO BE CALLED AFTER OBJECTS (SERVICES) ARE RESOLVED AND DUPLICATED *****/
 int xodtemplate_recombobulate_servicegroups(void){
-	xodtemplate_service *temp_service;
+	xodtemplate_service *temp_service=NULL;
 	xodtemplate_servicegroup *temp_servicegroup;
 	xodtemplate_servicelist *temp_servicelist;
 	xodtemplate_servicelist *this_servicelist;
@@ -7108,10 +7109,10 @@ xodtemplate_service *xodtemplate_find_service(char *name){
 
 
 /* finds a specific service object by its REAL name, not its TEMPLATE name */
-xodtemplate_service *xodtemplate_find_real_service(char *host, char *description){
+xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *service_description){
 	xodtemplate_service *temp_service;
 
-	if(host==NULL || description==NULL || xodtemplate_service_list==NULL)
+	if(host_name==NULL || service_description==NULL || xodtemplate_service_list==NULL)
 		return NULL;
 
 
@@ -7120,7 +7121,7 @@ xodtemplate_service *xodtemplate_find_real_service(char *host, char *description
 			continue;
 		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 			continue;
-		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))
+		if(!strcmp(host_name,temp_service->host_name) && !strcmp(service_description,temp_service->service_description))
 			break;
 	        }
 
@@ -10341,10 +10342,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 /* expands hostgroups */
 int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list, char *hostgroups){
 	char *hostgroup_names;
-	char *host_names;
-	char *host_name;
 	char *temp_ptr;
-	char *host_name_ptr;
 	xodtemplate_hostgroup *temp_hostgroup;
 	regex_t preg;
 	int found_match=TRUE;
@@ -10671,7 +10669,7 @@ int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **list, char *host_nam
 
 
 /* expands a comma-delimited list of servicegroups and/or service descriptions */
-xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *servicegroups,char *host,char *services){
+xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *servicegroups,char *host_name,char *services){
 	xodtemplate_servicelist *temp_list=NULL;
 	xodtemplate_servicelist *reject_list=NULL;
 	xodtemplate_servicelist *list_ptr=NULL;
@@ -10707,10 +10705,10 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 	        }
 
 	/* process service names */
-	if(host!=NULL && services!=NULL){
+	if(host_name!=NULL && services!=NULL){
 
 		/* expand services */
-		result=xodtemplate_expand_services(&temp_list,&reject_list,host,services);
+		result=xodtemplate_expand_services(&temp_list,&reject_list,host_name,services);
 		if(result!=OK){
 			xodtemplate_free_servicelist(temp_list);
 			xodtemplate_free_servicelist(reject_list);

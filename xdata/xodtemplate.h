@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-28-2002
+ * Last Modified:   08-19-2002
  *
  * License:
  *
@@ -312,8 +312,10 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        _config_file;
 	int        _start_line;
 
+	char       *hostgroup_name;
 	char       *host_name;
 	char       *service_description;
+	char       *dependent_hostgroup_name;
 	char       *dependent_host_name;
 	char       *dependent_service_description;
 	int        fail_notify_on_ok;
@@ -366,6 +368,8 @@ typedef struct xodtemplate_hostdependency_struct{
 	int        _config_file;
 	int        _start_line;
 
+	char      *hostgroup_name;
+	char      *dependent_hostgroup_name;
 	char      *host_name;
 	char      *dependent_host_name;
 	int       fail_notify_on_up;
@@ -421,7 +425,7 @@ char *xodtemplate_config_file_name(int);                    /* returns the name 
 
 void xodtemplate_strip(char *);
 
-xodtemplate_hostlist *xodtemplate_expand_hostgroups(char *);
+xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
 int xodtemplate_free_hostlist(xodtemplate_hostlist *);
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
@@ -437,6 +441,8 @@ int xodtemplate_duplicate_service(xodtemplate_service *,char *);
 int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *,char *);
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *,char *);
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *,char *,char *);
+int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *,char *,char *);
+int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *,char *,char *,char *,char *);
 
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);
@@ -461,6 +467,7 @@ xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *);
 xodtemplate_hostgroupescalation *xodtemplate_find_hostgroupescalation(char *);
 xodtemplate_contact *xodtemplate_find_contact(char *);
 xodtemplate_host *xodtemplate_find_host(char *);
+xodtemplate_host *xodtemplate_find_real_host(char *);
 xodtemplate_service *xodtemplate_find_service(char *);
 xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *);
 xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);

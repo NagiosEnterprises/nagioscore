@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-14-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -2312,7 +2312,7 @@ void show_all_downtime(void){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='downtime'>\n");
-	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Fixed?</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Actions</TH></TR>\n");
+	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Type</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Downtime ID</TH><TH CLASS='downtime'>Trigger ID</TH><TH CLASS='downtime'>Actions</TH></TR>\n");
 
 	/* display all the host downtime */
 	for(temp_downtime=scheduled_downtime_list,total_downtime=0;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
@@ -2347,15 +2347,22 @@ void show_all_downtime(void){
 		printf("<td CLASS='%s'>%s</td>",bg_class,date_time);
 		get_time_string(&temp_downtime->end_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<td CLASS='%s'>%s</td>",bg_class,date_time);
-		printf("<td CLASS='%s'>%s</td>",bg_class,(temp_downtime->fixed==TRUE)?"Yes":"No");
+		printf("<td CLASS='%s'>%s</td>",bg_class,(temp_downtime->fixed==TRUE)?"Fixed":"Flexible");
 		get_time_breakdown(temp_downtime->duration,&days,&hours,&minutes,&seconds);
 		printf("<td CLASS='%s'>%dd %dh %dm %ds</td>",bg_class,days,hours,minutes,seconds);
+		printf("<td CLASS='%s'>%lu</td>",bg_class,temp_downtime->downtime_id);
+		printf("<td CLASS='%s'>",bg_class);
+		if(temp_downtime->triggered_by==0)
+			printf("N/A");
+		else
+			printf("%lu",temp_downtime->triggered_by);
+		printf("</td>\n");
 		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry'></td>",COMMAND_CGI,CMD_DEL_HOST_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 
 	if(total_downtime==0)
-		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=9>There are no hosts with scheduled downtime</TD></TR>");
+		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=11>There are no hosts with scheduled downtime</TD></TR>");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
@@ -2373,7 +2380,7 @@ void show_all_downtime(void){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='downtime'>\n");
-	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Service</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Fixed?</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Actions</TH></TR>\n");
+	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Service</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Type</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Downtime ID</TH><TH CLASS='downtime'>Trigger ID</TH><TH CLASS='downtime'>Actions</TH></TR>\n");
 
 	/* display all the service downtime */
 	for(temp_downtime=scheduled_downtime_list,total_downtime=0;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
@@ -2410,15 +2417,22 @@ void show_all_downtime(void){
 		printf("<td CLASS='%s'>%s</td>",bg_class,date_time);
 		get_time_string(&temp_downtime->end_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<td CLASS='%s'>%s</td>",bg_class,date_time);
-		printf("<td CLASS='%s'>%s</td>",bg_class,(temp_downtime->fixed==TRUE)?"Yes":"No");
+		printf("<td CLASS='%s'>%s</td>",bg_class,(temp_downtime->fixed==TRUE)?"Fixed":"Flexible");
 		get_time_breakdown(temp_downtime->duration,&days,&hours,&minutes,&seconds);
 		printf("<td CLASS='%s'>%dd %dh %dm %ds</td>",bg_class,days,hours,minutes,seconds);
+		printf("<td CLASS='%s'>%lu</td>",bg_class,temp_downtime->downtime_id);
+		printf("<td CLASS='%s'>",bg_class);
+		if(temp_downtime->triggered_by==0)
+			printf("N/A");
+		else
+			printf("%lu",temp_downtime->triggered_by);
+		printf("</td>\n");
 		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry'></td>",COMMAND_CGI,CMD_DEL_SVC_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 
 	if(total_downtime==0)
-		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=10>There are no services with scheduled downtime</TD></TR>");
+		printf("<TR CLASS='downtimeOdd'><TD CLASS='downtimeOdd' COLSPAN=12>There are no services with scheduled downtime</TD></TR>");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");

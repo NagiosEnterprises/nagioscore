@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-14-2003
+ * Last Modified: 07-20-2003
  *
  * License:
  * 
@@ -77,6 +77,7 @@ char performance_data[MAX_INPUT_BUFFER]="";
 time_t start_time=0L;
 time_t end_time=0L;
 int affect_host_and_services=FALSE;
+int propagate_to_children=FALSE;
 int fixed=FALSE;
 unsigned long duration=0L;
 
@@ -448,9 +449,20 @@ int process_cgivars(void){
 		else if(!strcmp(variables[x],"ahas"))
 			affect_host_and_services=TRUE;
 
+		/* we got the option to propagate to child hosts */
+		else if(!strcmp(variables[x],"ptc"))
+			propagate_to_children=TRUE;
+
 		/* we got the option for fixed downtime */
-		else if(!strcmp(variables[x],"fixed"))
-			fixed=TRUE;
+		else if(!strcmp(variables[x],"fixed")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			fixed=(atoi(variables[x])>0)?TRUE:FALSE;
+		        }
 
 		/* we found the plugin output */
 		else if(!strcmp(variables[x],"plugin_output")){
@@ -1066,11 +1078,14 @@ void request_command_data(int cmd){
 		printf("<tr><td CLASS='optBoxRequiredItem'>End Time:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='end_time' VALUE='%s'>",buffer);
 		printf("</b></td></tr>\n");
-		printf("<tr><td CLASS='optBoxItem'>Fixed:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME='fixed' CHECKED>");
+		printf("<tr><td CLASS='optBoxItem'>Type:</td><td><b>");
+		printf("<SELECT NAME='fixed'>");
+		printf("<OPTION VALUE=1>Fixed\n");
+		printf("<OPTION VALUE=0>Flexible\n");
+		printf("</SELECT>\n");
 		printf("</b></td></tr>\n");
 
-		printf("<tr><td CLASS='optBoxItem'>Duration:</td><td>");
+		printf("<tr><td CLASS='optBoxItem'>If Flexible, Duration:</td><td>");
 		printf("<table border=0><tr>\n");
 		printf("<td align=right><INPUT TYPE='TEXT' NAME='hours' VALUE='2' SIZE=2 MAXLENGTH=2></td>\n");
 		printf("<td align=left>Hours</td>\n");
@@ -1078,6 +1093,11 @@ void request_command_data(int cmd){
 		printf("<td align=left>Minutes</td>\n");
 		printf("</tr></table>\n");
 		printf("</td></tr>\n");
+		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME){
+			printf("<tr><td CLASS='optBoxItem'>Schedule Triggered Downtime For Child Hosts Too:</td><td><b>");
+			printf("<INPUT TYPE='checkbox' NAME='ptc'>");
+			printf("</b></td></tr>\n");
+		        }
 		break;
 
 	case CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS:
@@ -1126,11 +1146,14 @@ void request_command_data(int cmd){
 		printf("<tr><td CLASS='optBoxRequiredItem'>End Time:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='end_time' VALUE='%s'>",buffer);
 		printf("</b></td></tr>\n");
-		printf("<tr><td CLASS='optBoxItem'>Fixed:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME='fixed' CHECKED>");
+		printf("<tr><td CLASS='optBoxItem'>Type:</td><td><b>");
+		printf("<SELECT NAME='fixed'>");
+		printf("<OPTION VALUE=1>Fixed\n");
+		printf("<OPTION VALUE=0>Flexible\n");
+		printf("</SELECT>\n");
 		printf("</b></td></tr>\n");
 
-		printf("<tr><td CLASS='optBoxItem'>Duration:</td><td>");
+		printf("<tr><td CLASS='optBoxItem'>If Flexible, Duration:</td><td>");
 		printf("<table border=0><tr>\n");
 		printf("<td align=right><INPUT TYPE='TEXT' NAME='hours' VALUE='2' SIZE=2 MAXLENGTH=2></td>\n");
 		printf("<td align=left>Hours</td>\n");
@@ -1735,11 +1758,14 @@ int commit_command(int cmd){
 		break;
 		
 	case CMD_SCHEDULE_HOST_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		if(propagate_to_children==TRUE)
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		else
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
 		
 	case CMD_SCHEDULE_SVC_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SVC_DOWNTIME;%s;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,host_name,service_desc,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_SVC_DOWNTIME;%s;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,host_name,service_desc,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
 		
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
@@ -1831,14 +1857,14 @@ int commit_command(int cmd){
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
 		if(affect_host_and_services==FALSE)
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		else
-			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
+			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOSTGROUP_SVC_DOWNTIME;%s;%lu;%lu;%d;0;%lu;%s;%s\n[%lu] SCHEDULE_HOSTGROUP_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data,current_time,hostgroup_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
 
 	default:
@@ -2161,7 +2187,7 @@ void show_command_help(cmd){
 		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
 		printf("If you select the <i>fixed</i> option, the downtime will be in effect between the start and end times you specify.  If you do not select the <i>fixed</i>\n");
 		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when the host goes down or becomes unreachable (sometime between the\n");
-		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
+		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed downtime.\n");
 		break;
 
 	case CMD_SCHEDULE_SVC_DOWNTIME:
@@ -2169,7 +2195,7 @@ void show_command_help(cmd){
 		printf("When the scheduled downtime expires, Nagios will send out notifications for this service as it normally would.  Scheduled downtimes are preserved\n");
 		printf("across program shutdowns and restarts.  Both the start and end times should be specified in the following format:  <b>mm/dd/yyyy hh:mm:ss</b>.\n");
 		printf("option, Nagios will treat this as \"flexible\" downtime.  Flexible downtime starts when the service enters a non-OK state (sometime between the\n");
-		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed dowtime.\n");
+		printf("start and end times you specified) and lasts as long as the duration of time you enter.  The duration fields do not apply for fixed downtime.\n");
 		break;
 
 	case CMD_ENABLE_HOST_FLAP_DETECTION:

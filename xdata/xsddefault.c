@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -82,6 +82,9 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
+
+extern host *host_list;
+extern service *service_list;
 #endif
 
 
@@ -306,8 +309,7 @@ int xsddefault_save_status_data(void){
 
 
 	/* save host status data */
-	move_first_host();
-	while((temp_host=get_next_host())!=NULL){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
@@ -355,8 +357,7 @@ int xsddefault_save_status_data(void){
 	        }
 
 	/* save service status data */
-	move_first_service();
-	while((temp_service=get_next_service())!=NULL){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		fprintf(fp,"service {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_service->host_name);

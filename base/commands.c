@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-19-2003
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -69,6 +69,9 @@ extern char     *global_service_event_handler;
 
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
+
+extern host     *host_list;
+extern service  *service_list;
 
 extern FILE     *command_file_fp;
 extern int      command_file_fd;
@@ -336,6 +339,9 @@ void check_for_external_commands(void){
 
 		else if(!strcmp(command_id,"CHANGE_MAX_HOST_CHECK_ATTEMPTS"))
 			command_type=CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS;
+
+		else if(!strcmp(command_id,"SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME"))
+			command_type=CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME;
 
 
 		/************************************/
@@ -806,6 +812,7 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
 	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
 	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
+	case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
 		cmd_schedule_downtime(cmd,entry_time,args);
 		break;
 
@@ -889,8 +896,8 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 
 	case CMD_ENABLE_HOST_SVC_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_SVC_NOTIFICATIONS:
-		if(find_all_services_by_host(host_name)){
-			while((temp_service=get_next_service_by_host())){
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			if(!strcmp(temp_service->host_name,host_name)){
 				if(cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS)
 					enable_service_notifications(temp_service);
 				else
@@ -901,8 +908,8 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 
 	case CMD_ENABLE_HOST_SVC_CHECKS:
 	case CMD_DISABLE_HOST_SVC_CHECKS:
-		if(find_all_services_by_host(temp_host->name)){
-			while((temp_service=get_next_service_by_host())){
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			if(!strcmp(temp_service->host_name,host_name)){
 				if(cmd==CMD_ENABLE_HOST_SVC_CHECKS)
 					enable_service_checks(temp_service);
 				else
@@ -1013,8 +1020,8 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args){
 		default:
 
 			/* loop through all services on the host */
-			if(find_all_services_by_host(temp_host->name)){
-				while((temp_service=get_next_service_by_host())){
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+				if(!strcmp(temp_service->host_name,temp_host->name)){
 					
 					switch(cmd){
 
@@ -1528,8 +1535,8 @@ int cmd_schedule_check(int cmd,char *args){
 	if(cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)
 		schedule_host_check(temp_host,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)?TRUE:FALSE);
 	else if(cmd==CMD_SCHEDULE_HOST_SVC_CHECKS || cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS){
-		if(find_all_services_by_host(host_name)){
-			while((temp_service=get_next_service_by_host()))
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			if(!strcmp(temp_service->host_name,host_name))
 				schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS)?TRUE:FALSE);
 		        }
 	        }
@@ -1573,15 +1580,10 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	delay_time=strtoul(temp_ptr,NULL,10);
 
 	/* reschedule all services on the specified host */
-	if(find_all_services_by_host(host_name)){
-		while((temp_service=get_next_service_by_host())){
-			
-			/* schedule a delayed service check */
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+		if(!strcmp(temp_service->host_name,host_name))
 			schedule_service_check(temp_service,delay_time,force);
-	                }
 	        }
-	else
-		return ERROR;
 
 #ifdef DEBUG0
 	printf("cmd_schedule_host_service_checks() end\n");
@@ -1654,8 +1656,7 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 
 	/* if this isn't a host name, mabye its a host address */
 	if(find_host(temp_ptr)==NULL){
-		move_first_host();
-		while((temp_host=get_next_host())){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(!strcmp(temp_ptr,temp_host->address)){
 				temp_ptr=temp_host->name;
 				break;
@@ -1773,8 +1774,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 	/* find the host by name or address */
 	if((this_host=find_host(temp_ptr))==NULL){
-		move_first_host();
-		while((temp_host=get_next_host())){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(!strcmp(temp_ptr,temp_host->address)){
 				this_host=temp_host;
 				break;
@@ -2062,6 +2062,7 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
+	host *this_host=NULL;
 	host *last_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
 	hostgroupmember *temp_hgmember=NULL;
@@ -2075,9 +2076,11 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	time_t start_time;
 	time_t end_time;
 	int fixed;
+	unsigned long triggered_by;
 	unsigned long duration;
 	char *author="";
 	char *comment="";
+	unsigned long downtime_id;
 
 #ifdef DEBUG0
 	printf("cmd_schedule_downtime() start\n");
@@ -2154,6 +2157,12 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 		return ERROR;
 	fixed=atoi(temp_ptr);
 
+	/* get the trigger id */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+	triggered_by=strtoul(temp_ptr,NULL,10);
+
 	/* get the duration */
 	temp_ptr=my_strtok(NULL,";");
 	if(temp_ptr==NULL)
@@ -2178,30 +2187,30 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	switch(cmd){
 
 	case CMD_SCHEDULE_HOST_DOWNTIME:
-		schedule_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration);
+		schedule_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 		break;
 
 	case CMD_SCHEDULE_SVC_DOWNTIME:
-		schedule_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,duration);
+		schedule_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 		break;
 
 	case CMD_SCHEDULE_HOST_SVC_DOWNTIME:
-		if(find_all_services_by_host(host_name)){
-			while((temp_service=get_next_service_by_host()))
-				schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			if(!strcmp(temp_service->host_name,host_name))
+				schedule_downtime(SERVICE_DOWNTIME,host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 	                }
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
 		for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next)
-			schedule_downtime(HOST_DOWNTIME,temp_hgmember->host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration);
+			schedule_downtime(HOST_DOWNTIME,temp_hgmember->host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 		break;
 
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
 		for(temp_hgmember=temp_hostgroup->members;temp_hgmember!=NULL;temp_hgmember=temp_hgmember->next){
-			if(find_all_services_by_host(temp_hgmember->host_name)){
-				while((temp_service=get_next_service_by_host()))
-					schedule_downtime(SERVICE_DOWNTIME,temp_service->host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,duration);
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+				if(!strcmp(temp_service->host_name,temp_hgmember->host_name))
+					schedule_downtime(SERVICE_DOWNTIME,temp_service->host_name,temp_service->description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 		                }
 		        }
 		break;
@@ -2214,14 +2223,23 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 				continue;
 			if(last_host==temp_host)
 				continue;
-			schedule_downtime(HOST_DOWNTIME,temp_sgmember->host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration);
+			schedule_downtime(HOST_DOWNTIME,temp_sgmember->host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 			last_host=temp_host;
 		        }
 		break;
 
 	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
 		for(temp_sgmember=temp_servicegroup->members;temp_sgmember!=NULL;temp_sgmember=temp_sgmember->next)
-			schedule_downtime(SERVICE_DOWNTIME,temp_sgmember->host_name,temp_sgmember->service_description,entry_time,author,comment,start_time,end_time,fixed,duration);
+			schedule_downtime(SERVICE_DOWNTIME,temp_sgmember->host_name,temp_sgmember->service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
+		break;
+
+	case CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME:
+
+		/* schedule downtime for "parent" host */
+		schedule_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
+
+		/* schedule triggered downtime for all child hosts */
+		schedule_and_propagate_triggered_downtime(temp_host,entry_time,author,comment,start_time,end_time,fixed,downtime_id,duration);
 		break;
 
 	default:
@@ -2794,8 +2812,7 @@ void enable_and_propagate_notifications(host *hst){
 #endif
 
 	/* check all child hosts... */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
@@ -2806,8 +2823,8 @@ void enable_and_propagate_notifications(host *hst){
 			enable_host_notifications(temp_host);
 
 			/* enable notifications for all services on this host... */
-			if(find_all_services_by_host(temp_host->name)){
-				while((temp_service=get_next_service_by_host()))
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+				if(!strcmp(temp_service->host_name,temp_host->name))
 					enable_service_notifications(temp_service);
 		                }
 	                }
@@ -2831,8 +2848,7 @@ void disable_and_propagate_notifications(host *hst){
 #endif
 
 	/* check all child hosts... */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
@@ -2843,8 +2859,8 @@ void disable_and_propagate_notifications(host *hst){
 			disable_host_notifications(temp_host);
 
 			/* disable notifications for all services on this host... */
-			if(find_all_services_by_host(temp_host->name)){
-				while((temp_service=get_next_service_by_host()))
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+				if(!strcmp(temp_service->host_name,temp_host->name))
 					disable_service_notifications(temp_service);
 	                        }
 	                }
@@ -2852,6 +2868,35 @@ void disable_and_propagate_notifications(host *hst){
 
 #ifdef DEBUG0
 	printf("disable_and_propagate_notifications() end\n");
+#endif
+
+	return;
+        }
+
+
+/* schedules triggered downtime for all hosts "beyond" a given host */
+void schedule_and_propagate_triggered_downtime(host *temp_host, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration){
+	host *this_host;
+
+#ifdef DEBUG0
+	printf("schedule_and_propagate_triggered_downtime() start\n");
+#endif
+
+	/* check all child hosts... */
+	for(this_host=host_list;this_host!=NULL;this_host=this_host->next){
+
+		if(is_host_immediate_child_of_host(temp_host,this_host)==TRUE){
+
+			/* recurse... */
+			schedule_and_propagate_triggered_downtime(this_host,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration);
+
+			/* schedule triggered for this host */
+			schedule_downtime(HOST_DOWNTIME,this_host->name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,NULL);
+	                }
+	        }
+
+#ifdef DEBUG0
+	printf("schedule_and_propagate_triggered_downtime() end\n");
 #endif
 
 	return;

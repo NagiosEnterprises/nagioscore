@@ -2,8 +2,8 @@
  *
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-26-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -687,8 +687,7 @@ int main(int argc, char **argv){
 			printf("<td class='reportSelectItem' valing=center>\n");
 			printf("<select name='host'>\n");
 
-			move_first_host();
-			while(temp_host = get_next_host()) {
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 				if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
 					printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
 			        }
@@ -713,8 +712,7 @@ int main(int argc, char **argv){
 			printf("function gethostname(hostindex){\n");
 			printf("hostnames=[");
 
-			move_first_service();
-			while(temp_service = get_next_service()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE){
 					if(found==TRUE)
 						printf(",");
@@ -746,8 +744,7 @@ int main(int argc, char **argv){
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
 
-			move_first_service();
-			while(temp_service=get_next_service()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
 					printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
 		                }

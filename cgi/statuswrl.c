@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-17-2003
+ * Last Modified:   07-21-2003
  *
  * Description:
  *
@@ -44,6 +44,8 @@ extern char url_images_path[MAX_FILENAME_LENGTH];
 
 extern char *statuswrl_include;
 
+extern host *host_list;
+extern service *service_list;
 extern hostextinfo *hostextinfo_list;
 
 extern int default_statuswrl_layout_method;
@@ -398,7 +400,6 @@ int host_child_depth_separation(host *parent, host *child){
 	int min_depth=0;
 	int have_min_depth=FALSE;
 	host *temp_host;
-	void *host_cursor;
 
 	if(child==NULL)
 		return -1;
@@ -409,8 +410,8 @@ int host_child_depth_separation(host *parent, host *child){
 	if(is_host_immediate_child_of_host(parent,child)==TRUE)
 		return 1;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE){
 
 			this_depth=host_child_depth_separation(temp_host,child);
@@ -421,7 +422,6 @@ int host_child_depth_separation(host *parent, host *child){
 			        }
 		        }
 	        }
-	free_host_cursor(host_cursor);
 
 	if(have_min_depth==FALSE)
 		return -1;
@@ -436,16 +436,14 @@ int number_of_host_layer_members(host *parent, int layer){
 	int current_layer;
 	int layer_members=0;
 	host *temp_host;
-	void *host_cursor;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		current_layer=host_child_depth_separation(parent,temp_host);
 
 		if(current_layer==layer)
 			layer_members++;
 	        }
-	free_host_cursor(host_cursor);
 
 	return layer_members;
         }
@@ -478,14 +476,11 @@ int max_child_host_layer_members(host *parent){
 int max_child_host_drawing_width(host *parent){
 	host *temp_host;
 	int child_width=0;
-	void *host_cursor;
 
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE)
 			child_width+=max_child_host_drawing_width(temp_host);
 	        }
-	free_host_cursor(host_cursor);
 
 	/* no children, so set width to 1 for this host */
 	if(child_width==0)
@@ -520,7 +515,6 @@ void calculate_host_coords(void){
 	int current_layer_member=0;
 	int max_drawing_width=0;
 	int x=0;
-	void *host_cursor;
   
 
 	/******************************/
@@ -547,8 +541,8 @@ void calculate_host_coords(void){
 	/*****************************/
 
 	/* add empty extended host info entries for all hosts that don't have any */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		/* find the corresponding hostextinfo definition */
 		temp_hostextinfo=find_hostextinfo(temp_host->name);
 
@@ -560,7 +554,6 @@ void calculate_host_coords(void){
 		else
 			temp_hostextinfo->z_3d=0.0;
 	        }
-	free_host_cursor(host_cursor);
 
 
 	/***** COLLAPSED TREE MODE *****/
@@ -1067,7 +1060,6 @@ void draw_host_links(void){
 	hostextinfo *parent_hostextinfo;
 	host *parent_host;
 	host *child_host;
-	void *host_cursor;
 
 	if(use_links==FALSE)
 		return;
@@ -1086,8 +1078,8 @@ void draw_host_links(void){
 			continue;
 
 		/* draw a link from this host to all of its parent hosts */
-		host_cursor = get_host_cursor();
-		while(parent_host = get_next_host_cursor(host_cursor)){
+		for(parent_host=host_list;parent_host!=NULL;parent_host=parent_host->next){
+
 			if(is_host_immediate_child_of_host(child_host,parent_host)==TRUE){
 
 				parent_hostextinfo=find_hostextinfo(parent_host->name);
@@ -1106,7 +1098,6 @@ void draw_host_links(void){
 				draw_host_link(parent_host,parent_hostextinfo->x_3d,parent_hostextinfo->y_3d,parent_hostextinfo->z_3d,child_hostextinfo->x_3d,child_hostextinfo->y_3d,child_hostextinfo->z_3d);
 			        }
 		        }
-		free_host_cursor(host_cursor);
 	        }
 
 	
@@ -1236,7 +1227,6 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 	int this_drawing_width;
 	host *temp_host;
 	hostextinfo *temp_hostextinfo;
-	void *host_cursor;
 
 	/* calculate total drawing width of parent host */
 	parent_drawing_width=max_child_host_drawing_width(parent);
@@ -1247,8 +1237,8 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 
 
 	/* calculate coords for children */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		temp_hostextinfo=find_hostextinfo(temp_host->name);
 		if(temp_hostextinfo==NULL)
 			continue;
@@ -1270,7 +1260,6 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 		        }
 
 	        }
-	free_host_cursor(host_cursor);
 
 	return;
         }
@@ -1300,7 +1289,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 	double y_coord=0.0;
 	host *temp_host;
 	hostextinfo *temp_hostextinfo;
-	void *host_cursor;
 
 
 	/* get the total number of immediate children to this host */
@@ -1321,8 +1309,8 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 
 
 	/* calculate coords for children */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		temp_hostextinfo=find_hostextinfo(temp_host->name);
 		if(temp_hostextinfo==NULL)
 			continue;
@@ -1366,7 +1354,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 			current_drawing_angle+=available_angle;
 		        }
 	        }
-	free_host_cursor(host_cursor);
 
 	return;
         }

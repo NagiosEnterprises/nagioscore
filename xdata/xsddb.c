@@ -3,7 +3,7 @@
  * XSDDB.C - Database routines for status data
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2003
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -51,6 +51,9 @@
 #include <pgsql/libpq-fe.h>
 #endif
 
+
+extern host *host_list;
+extern service *service_list;
 
 #ifdef NSCGI
 time_t program_start;
@@ -981,7 +984,6 @@ int xsddb_save_program_status(void){
 /* save host status data */
 int xsddb_save_host_status(void){
 	host *temp_host;
-	void *host_cursor;
 	char sql_statement[XSDDB_SQL_LENGTH];
 	char sql_temp[XSDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
@@ -999,8 +1001,7 @@ int xsddb_save_host_status(void){
 	time(&current_time);
 
 	/* save data for all hosts */
-	host_cursor=get_host_cursor();
-	while((temp_host=get_next_host_cursor(host_cursor))!=NULL){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* escape the host name and plugin output, as they may have quotes, etc... */
 		escaped_host_name=(char *)malloc(strlen(temp_host->name)*2+1);
@@ -1098,8 +1099,7 @@ int xsddb_save_service_status(void){
 	time(&current_time);
 
 	/* save data for all services */
-	move_first_service();
-	while((temp_service=get_next_service())!=NULL){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* escape the host name, service description, and plugin output, as they may have quotes, etc... */
 		escaped_host_name=(char *)malloc(strlen(host_name)*2+1);

@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-21-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -38,7 +38,9 @@ extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
+extern host      *host_list;
 extern hostgroup *hostgroup_list;
+extern service   *service_list;
 
 extern int       log_rotation_method;
 
@@ -759,8 +761,7 @@ int main(int argc, char **argv){
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Host(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='host'>\n");
 		printf("<option value='all'>** ALL HOSTS **\n");
-		move_first_host();
-		while(temp_host=get_next_host()) {
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
 				printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
 		        }
@@ -785,15 +786,14 @@ int main(int argc, char **argv){
 		printf("function gethostname(hostindex){\n");
 		printf("hostnames=[\"all\"");
 
-		firsthostpointer = NULL;
-		move_first_service();
-		while(temp_service=get_next_service()) {
-			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE) {
+		firsthostpointer=NULL;
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE){
 				if(!firsthostpointer)
-					firsthostpointer = temp_service->host_name;
+					firsthostpointer=temp_service->host_name;
 				printf(", \"%s\"",temp_service->host_name);
+		                }
 		        }
-		}
 		
 		printf(" ]\n");
 		printf("return hostnames[hostindex];\n");
@@ -813,8 +813,7 @@ int main(int argc, char **argv){
 		printf("<tr><td class='reportSelectSubTitle' valign=center>Service(s):</td><td align=left valign=center class='reportSelectItem'>\n");
 		printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
 		printf("<option value='all'>** ALL SERVICES **\n");
-		move_first_service();
-		while(temp_service=get_next_service()) {
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 			if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
 				printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
 		        }
@@ -2174,9 +2173,9 @@ int convert_service_state_to_archived_state(int current_status){
 /* create list of subjects to collect availability data for */
 void create_subject_list(void){
 	hostgroup *temp_hostgroup;
+	hostgroupmember *temp_member;
 	host *temp_host;
 	service *temp_service;
-	void *host_cursor;
 
 	/* we're displaying one or more hosts */
 	if(display_type==DISPLAY_HOST_AVAIL && host_name!=""){
@@ -2184,20 +2183,19 @@ void create_subject_list(void){
 		/* we're only displaying a specific host (and summaries for all services associated with it) */
 		if(show_all_hosts==FALSE){
 			add_subject(HOST_SUBJECT,host_name,NULL);
-			if(find_all_services_by_host(host_name)) {
-				while(temp_service=get_next_service_by_host()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+				if(!strcmp(temp_service->host_name,host_name))
 					add_subject(SERVICE_SUBJECT,host_name,temp_service->description);
 			        }
 		        }
-		}
+
 		/* we're displaying all hosts */
 		else{
-			host_cursor = get_host_cursor();
-			while(temp_host = get_next_host_cursor(host_cursor))
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
 				add_subject(HOST_SUBJECT,temp_host->name,NULL);
-			free_host_cursor(host_cursor);
 		        }
 	        }
+
 	/* we're displaying a specific service */
 	else if(display_type==DISPLAY_SERVICE_AVAIL && svc_description!=""){
 
@@ -2207,33 +2205,25 @@ void create_subject_list(void){
 
 		/* we're displaying all services */
 		else{
-			move_first_service();
-			while(temp_service=get_next_service()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next)
 				add_subject(SERVICE_SUBJECT,temp_service->host_name,temp_service->description);
 		        }
 	        }
-	}
 
 	/* we're displaying one or more hostgroups (the host members of the groups) */
 	else if(display_type==DISPLAY_HOSTGROUP_AVAIL && hostgroup_name!=""){
 
 		/* we're displaying all hostgroups, so use all hosts */
 		if(show_all_hostgroups==TRUE){
-			host_cursor = get_host_cursor();
-			while(temp_host = get_next_host_cursor(host_cursor))
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
 				add_subject(HOST_SUBJECT,temp_host->name,NULL);
-			free_host_cursor(host_cursor);
 		        }
 		/* we're only displaying a specific hostgroup */
 		else{
 			temp_hostgroup=find_hostgroup(hostgroup_name);
 			if(temp_hostgroup!=NULL){
-				host_cursor = get_host_cursor();
-				while(temp_host = get_next_host_cursor(host_cursor)) {
-					if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==TRUE)
-						add_subject(HOST_SUBJECT,temp_host->name,NULL);
-				        }
-				free_host_cursor(host_cursor);
+				for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next)
+					add_subject(HOST_SUBJECT,temp_member->host_name,NULL);
 			        }
 		        }
 	        }

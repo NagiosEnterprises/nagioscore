@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-21-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -46,6 +46,9 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 extern char physical_images_path[MAX_FILENAME_LENGTH];
 
 extern int     log_rotation_method;
+
+extern host *host_list;
+extern service *service_list;
 
 
 /* archived state types */
@@ -252,7 +255,6 @@ int main(int argc, char **argv){
 	time_t t3;
 	time_t current_time;
 	struct tm *t;
-	void *host_cursor;
 
 
 	/* reset internal CGI variables */
@@ -792,12 +794,10 @@ int main(int argc, char **argv){
 			printf("<td class='reportSelectItem' valing=center>\n");
 			printf("<select name='host'>\n");
 
-			host_cursor = get_host_cursor();
-			while(temp_host = get_next_host_cursor(host_cursor)) {
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 				if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
 					printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
 			        }
-			free_host_cursor(host_cursor);
 
 			printf("</select>\n");
 			printf("</td></tr>\n");
@@ -819,8 +819,7 @@ int main(int argc, char **argv){
 			printf("function gethostname(hostindex){\n");
 			printf("hostnames=[");
 
-			move_first_service();
-			while(temp_service=get_next_service()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE){
 					if(found==TRUE)
 						printf(",");
@@ -852,8 +851,7 @@ int main(int argc, char **argv){
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
 
-			move_first_service();
-			while(temp_service=get_next_service()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				if(is_authorized_for_service(temp_service,&current_authdata)==TRUE)
 					printf("<option value='%s'>%s;%s\n",temp_service->description,temp_service->host_name,temp_service->description);
 		                }

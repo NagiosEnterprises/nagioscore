@@ -2,8 +2,8 @@
  *
  * DOWNTIME.H - Header file for scheduled downtime functions
  *
- * Copyright (c) 2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-16-2001
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -41,6 +41,7 @@ typedef struct scheduled_downtime_struct{
 	time_t start_time;
 	time_t end_time;
 	int fixed;
+	unsigned long triggered_by;
 	unsigned long duration;
 	unsigned long downtime_id;
 	char *author;
@@ -60,15 +61,15 @@ typedef struct scheduled_downtime_struct{
 int initialize_downtime_data(char *);                                /* initializes scheduled downtime data */
 int cleanup_downtime_data(char *);                                   /* cleans up scheduled downtime data */
 
-int add_new_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
-int add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
-int add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
+int add_new_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long *);
+int add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long *);
+int add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long *);
 
 int delete_host_downtime(unsigned long);
 int delete_service_downtime(unsigned long);
 int delete_downtime(int,unsigned long);
 
-int schedule_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long);
+int schedule_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long *);
 int unschedule_downtime(int,unsigned long);
 
 int register_downtime(int,unsigned long);
@@ -86,10 +87,11 @@ int read_downtime_data(char *);
 #endif
 
 
-int add_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long);
-int add_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long);
-int add_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long);
+int add_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long);
+int add_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long);
+int add_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long);
 
+scheduled_downtime *find_downtime(int,unsigned long);
 scheduled_downtime *find_host_downtime(unsigned long);
 scheduled_downtime *find_service_downtime(unsigned long);
 

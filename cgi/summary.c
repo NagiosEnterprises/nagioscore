@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-11-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -38,7 +38,9 @@ extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
 extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 
+extern host *host_list;
 extern hostgroup *hostgroup_list;
+extern service *service_list;
 
 extern int       log_rotation_method;
 
@@ -211,7 +213,6 @@ int main(int argc, char **argv){
 	time_t current_time;
 	struct tm *t;
 	int x;
-	void *host_cursor;
 
 	/* reset internal CGI variables */
 	reset_cgi_vars();
@@ -596,12 +597,10 @@ int main(int argc, char **argv){
 		printf("<select name='host'>\n");
 		printf("<option value='all'>** ALL HOSTS **\n");
 
-		host_cursor = get_host_cursor();
-		while(temp_host = get_next_host_cursor(host_cursor)) {
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(is_authorized_for_host(temp_host,&current_authdata)==TRUE)
 				printf("<option value='%s'>%s\n",temp_host->name,temp_host->name);
 		        }
-		free_host_cursor(host_cursor);
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -2083,7 +2082,6 @@ void display_specific_hostgroup_alert_totals(hostgroup *grp){
 /* displays host alert totals  */
 void display_host_alert_totals(void){
 	host *temp_host;
-	void *host_cursor;
 
 	/*********************/
 	/**** HOST TOTALS ****/
@@ -2096,13 +2094,10 @@ void display_host_alert_totals(void){
 
 	if(show_all_hosts==FALSE)
 		display_specific_host_alert_totals(target_host);
-	else {
-		host_cursor = get_host_cursor();
-		while(temp_host = get_next_host_cursor(host_cursor)) {
+	else{
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
 			display_specific_host_alert_totals(temp_host);
 	        }
-		free_host_cursor(host_cursor);
-	}
 
 	printf("</DIV>\n");
 	
@@ -2266,8 +2261,7 @@ void display_service_alert_totals(void){
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<DIV ALIGN=CENTER CLASS='dataSubTitle'>Totals By Service</DIV>\n");
 
-	move_first_service();
-	while(temp_service = get_next_service())
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next)
 		display_specific_service_alert_totals(temp_service);
 
 	printf("</DIV>\n");

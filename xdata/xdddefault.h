@@ -3,7 +3,7 @@
  * XDDDEFAULT.H - Header file for default scheduled downtime data routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2003
+ * Last Modified: 07-20-2003
  *
  * License:
  *
@@ -35,8 +35,8 @@ int xdddefault_validate_downtime_data(void);
 int xdddefault_cleanup_downtime_data(char *);
 
 int xdddefault_save_downtime_data(void);
-int xdddefault_add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
-int xdddefault_add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long *);
+int xdddefault_add_new_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long *);
+int xdddefault_add_new_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long *);
 
 int xdddefault_delete_host_downtime(unsigned long);
 int xdddefault_delete_service_downtime(unsigned long);

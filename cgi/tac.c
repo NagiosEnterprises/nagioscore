@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-08-2003
+ * Last Modified: 07-21-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -62,6 +62,7 @@ extern char *host_down_sound;
 extern char *host_unreachable_sound;
 extern char *normal_sound;
 
+extern host *host_list;
 extern hostgroup *hostgroup_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
@@ -73,6 +74,7 @@ extern int enable_event_handlers;
 extern int enable_flap_detection;
 
 extern int nagios_process_state;
+
 
 
 
@@ -817,12 +819,11 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts){
 	int total_child_hosts_affected=0;
 	int temp_child_hosts_affected=0;
 	host *temp_host;
-	void *host_cursor;
 
 
 	/* find all child hosts of this host */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		/* skip this host if it is not a child */
 		if(is_host_immediate_child_of_host(hst,temp_host)==FALSE)
 			continue;
@@ -833,7 +834,6 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts){
 		/* keep a running total of outage effects */
 		total_child_hosts_affected+=temp_child_hosts_affected;
 	        }
-	free_host_cursor(host_cursor);
 
 	*affected_hosts=total_child_hosts_affected+1;
 

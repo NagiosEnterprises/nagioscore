@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-19-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  *
@@ -225,6 +225,8 @@
 #define CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS              132
 #define CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS               133
 
+#define CMD_SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME 134
+
 
 /************************ SERVICE CHECK TYPES ****************************/
 
@@ -252,8 +254,9 @@
 
 /************************* SCHEDULED DOWNTIME TYPES **********************/
 
-#define SERVICE_DOWNTIME		0	/* service downtime */
-#define HOST_DOWNTIME			1	/* host downtime */
+#define SERVICE_DOWNTIME		1	/* service downtime */
+#define HOST_DOWNTIME			2	/* host downtime */
+#define ANY_DOWNTIME                    3       /* host or service downtime */
 
 
 /************************** ACKNOWLEDGEMENT TYPES ************************/

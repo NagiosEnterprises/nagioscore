@@ -3,7 +3,7 @@
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   07-20-2003
  *
  * License:
  *
@@ -245,7 +245,26 @@ int xdddefault_validate_downtime_data(void){
 			update_file=TRUE;
 			delete_downtime(temp_downtime->type,temp_downtime->downtime_id);
 		        }
-	        }	
+	        }
+
+	/* remove triggered downtimes without valid parents */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=next_downtime){
+
+		next_downtime=temp_downtime->next;
+		save=TRUE;
+
+		if(temp_downtime->triggered_by==0)
+			continue;
+
+		if(find_host_downtime(temp_downtime->triggered_by)==NULL && find_service_downtime(temp_downtime->triggered_by)==NULL)
+			save=FALSE;
+
+		/* delete the downtime */
+		if(save==FALSE){
+			update_file=TRUE;
+			delete_downtime(temp_downtime->type,temp_downtime->downtime_id);
+		        }
+	        }
 
 	/* update downtime file */
 	if(update_file==TRUE)
@@ -279,7 +298,7 @@ int xdddefault_cleanup_downtime_data(char *main_config_file){
 /******************************************************************/
 
 /* adds a new scheduled host downtime entry */
-int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long *downtime_id){
+int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 
 	/* find the next valid downtime id */
 	do{
@@ -289,7 +308,7 @@ int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *a
   	        }while(find_host_downtime(current_downtime_id)!=NULL);
 
 	/* add downtime to list in memory */
-	add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,current_downtime_id);
+	add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,current_downtime_id);
 
 	/* update downtime file */
 	xdddefault_save_downtime_data();
@@ -304,7 +323,7 @@ int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *a
 
 
 /* adds a new scheduled service downtime entry */
-int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long *downtime_id){
+int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 
 	/* find the next valid downtime id */
 	do{
@@ -314,7 +333,7 @@ int xdddefault_add_new_service_downtime(char *host_name, char *service_descripti
   	        }while(find_service_downtime(current_downtime_id)!=NULL);
 
 	/* add downtime to list in memory */
-	add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,current_downtime_id);
+	add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,current_downtime_id);
 
 	/* update downtime file */
 	xdddefault_save_downtime_data();
@@ -417,6 +436,7 @@ int xdddefault_save_downtime_data(void){
 		fprintf(fp,"\tentry_time=%lu\n",temp_downtime->entry_time);
 		fprintf(fp,"\tstart_time=%lu\n",temp_downtime->start_time);
 		fprintf(fp,"\tend_time=%lu\n",temp_downtime->end_time);
+		fprintf(fp,"\ttriggered_by=%lu\n",temp_downtime->triggered_by);
 		fprintf(fp,"\tfixed=%d\n",temp_downtime->fixed);
 		fprintf(fp,"\tduration=%lu\n",temp_downtime->duration);
 		fprintf(fp,"\tauthor=%s\n",temp_downtime->author);
@@ -460,6 +480,7 @@ int xdddefault_read_downtime_data(char *main_config_file){
 	time_t start_time=0L;
 	time_t end_time=0L;
 	int fixed=FALSE;
+	unsigned long triggered_by=0;
 	unsigned long duration=0L;
 	char *host_name=NULL;
 	char *service_description=NULL;
@@ -505,9 +526,9 @@ int xdddefault_read_downtime_data(char *main_config_file){
 
 				/* add the downtime */
 				if(data_type==XDDDEFAULT_HOST_DATA)
-					add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+					add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 				else
-					add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+					add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 #ifdef NSCORE
 				/* must register the downtime with Nagios so it can schedule it, add comments, etc. */
 				register_downtime((data_type==XDDDEFAULT_HOST_DATA)?HOST_DOWNTIME:SERVICE_DOWNTIME,downtime_id);
@@ -536,6 +557,7 @@ int xdddefault_read_downtime_data(char *main_config_file){
 			start_time=0L;
 			end_time=0L;
 			fixed=FALSE;
+			triggered_by=0;
 			duration=0L;
 		        }
 
@@ -567,6 +589,8 @@ int xdddefault_read_downtime_data(char *main_config_file){
 					end_time=strtoul(val,NULL,10);
 				else if(!strcmp(var,"fixed"))
 					fixed=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"triggered_by"))
+					triggered_by=strtoul(val,NULL,10);
 				else if(!strcmp(var,"duration"))
 					duration=strtoul(val,NULL,10);
 				else if(!strcmp(var,"author"))

@@ -3,7 +3,7 @@
  * OUTAGES.C -  Nagios Network Outages CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -36,6 +36,8 @@
 extern int              refresh_rate;
 extern time_t		program_start;
 
+extern host *host_list;
+extern service *service_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
@@ -574,12 +576,11 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affect
 	int temp_child_hosts_affected=0;
 	int temp_child_services_affected=0;
 	host *temp_host;
-	void *host_cursor;
 
 
 	/* find all child hosts of this host */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		/* skip this host if it is not a child */
 		if(is_host_immediate_child_of_host(hst,temp_host)==FALSE)
 			continue;
@@ -591,7 +592,6 @@ void calculate_outage_effect_of_host(host *hst, int *affected_hosts, int *affect
 		total_child_hosts_affected+=temp_child_hosts_affected;
 		total_child_services_affected+=temp_child_services_affected;
 	        }
-	free_host_cursor(host_cursor);
 
 	*affected_hosts=total_child_hosts_affected+1;
 	*affected_services=total_child_services_affected+number_of_host_services(hst);
@@ -635,11 +635,11 @@ int number_of_host_services(host *hst){
 	service *temp_service;
 
 	/* check all services */
-	if(find_all_services_by_host(hst->name)) {
-		while(temp_service = get_next_service_by_host()) {
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		if(!strcmp(temp_service->host_name,hst->name))
 			total_services++;
 	        }
-	}
 
 	return total_services;
         }

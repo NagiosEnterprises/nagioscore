@@ -5024,6 +5024,8 @@ serviceextinfo * find_serviceextinfo(char *host_name, char *description){
 /******************* OBJECT TRAVERSAL FUNCTIONS *******************/
 /******************************************************************/
 
+#ifdef REMOVED_072103
+
 /* move pointer to first host in chained hash */
 void move_first_host(void){
 
@@ -5123,6 +5125,7 @@ service *get_next_service_by_host(void){
 
 	return NULL;
         }
+#endif
 
 
 void *get_next_N(void **hashchain, int hashslots, int *iterator, void *current, void *next){
@@ -5334,8 +5337,7 @@ int number_of_immediate_child_hosts(host *hst){
 	int children=0;
 	host *temp_host;
 
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
 			children++;
 		}
@@ -5349,8 +5351,7 @@ int number_of_total_child_hosts(host *hst){
 	int children=0;
 	host *temp_host;
 
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
 			children+=number_of_total_child_hosts(temp_host)+1;
 		}
@@ -5364,8 +5365,7 @@ int number_of_immediate_parent_hosts(host *hst){
 	int parents=0;
 	host *temp_host;
 
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_parent_of_host(hst,temp_host)==TRUE){
 			parents++;
 			break;
@@ -5381,8 +5381,7 @@ int number_of_total_parent_hosts(host *hst){
 	int parents=0;
 	host *temp_host;
 
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_parent_of_host(hst,temp_host)==TRUE){
 			parents+=number_of_total_parent_hosts(temp_host)+1;
 			break;
@@ -5603,8 +5602,7 @@ int check_for_circular_path(host *root_hst, host *hst){
 		return TRUE;
 
 	/* check all immediate children for a circular path */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
 			if(check_for_circular_path(root_hst,temp_host)==TRUE)
 				return TRUE;

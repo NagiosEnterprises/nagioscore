@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-14-2003
+ * Last Modified: 07-21-2003
  *
  * License:
  * 
@@ -36,7 +36,9 @@ extern time_t          program_start;
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 
+extern host *host_list;
 extern hostgroup *hostgroup_list;
+extern service *service_list;
 extern hoststatus *hoststatus_list;
 extern servicestatus *servicestatus_list;
 
@@ -528,7 +530,6 @@ void display_quick_stats(void){
 	int services_warning=0;
 	int services_ok=0;
 	int services_pending=0;
-	void *host_cursor;
 
 
 	/**** MAIN SCREEN (CARD 1) ****/
@@ -538,8 +539,8 @@ void display_quick_stats(void){
 	printf("</p>\n");
 
 	/* check all hosts */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			continue;
 
@@ -556,11 +557,10 @@ void display_quick_stats(void){
 		else
 			hosts_up++;
 	        }
-	free_host_cursor(host_cursor);
 
 	/* check all services */
-	move_first_service();
-	while(temp_service=get_next_service()) {
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			continue;
 
@@ -751,8 +751,11 @@ void display_hostgroup_summary(void){
 				hosts_up++;
 
 			/* check all services on this host */
-			if(find_all_services_by_host(temp_host->name)) {
-				while(temp_service=get_next_service_by_host()) {
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+				if(strcmp(temp_service->host_name,temp_host->name))
+					continue;
+
 				if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 					continue;
 
@@ -772,7 +775,6 @@ void display_hostgroup_summary(void){
 					services_ok++;
 			        }
 		        }
-		}
 
 		printf("<tr><td>Hosts:</td><td>");
 		found=0;
@@ -824,7 +826,7 @@ void display_hostgroup_summary(void){
 	printf("</card>\n");
 
 	return;
-        }
+        } 
 
 
 
@@ -1001,8 +1003,10 @@ void display_host_services(void){
 	printf("<table columns='2' align='LL'>\n");
 
 	/* check all services */
-	if(find_all_services_by_host(host_name)) {
-		while(temp_service=get_next_service_by_host()) {
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		if(strcmp(temp_service->host_name,host_name))
+			continue;
 
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			continue;
@@ -1028,7 +1032,6 @@ void display_host_services(void){
 		printf("<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/></go></anchor></td>",STATUSWML_CGI,temp_service->host_name,temp_service->description);
 		printf("<td>%s</td></tr>\n",temp_service->description);
 	        }
-	}
 
 	printf("</table>\n");
 

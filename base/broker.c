@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-11-2003
+ * Last Modified:   07-20-2003
  *
  * License:
  *
@@ -304,7 +304,7 @@ void broker_comment_data(int type, int flags, int attr, char *host_name, char *s
 
 
 /* send downtime data to broker */
-void broker_downtime_data(int type, int flags, int attr, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long downtime_id, struct timeval *timestamp){
+void broker_downtime_data(int type, int flags, int attr, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id, struct timeval *timestamp){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
 
@@ -314,9 +314,9 @@ void broker_downtime_data(int type, int flags, int attr, char *host_name, char *
 	tv=get_broker_timestamp(timestamp);
 
 	if((attr & NEBATTR_HOST_DOWNTIME))
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;%lu;%s;%s;%lu;%lu;%d;%lu;%lu;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,duration,downtime_id);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;%lu;%s;%s;%lu;%lu;%d;%lu;%lu;%lu;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,host_name,entry_time,author_name,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 	else
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;%s;%lu;%s;%s;%lu;%lu;%d;%lu;%lu;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,host_name,svc_description,entry_time,author_name,comment_data,start_time,end_time,fixed,duration,downtime_id);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%s;%s;%lu;%s;%s;%lu;%lu;%d;%lu;%lu;%lu;\n",tv.tv_sec,(tv.tv_usec/1000),type,flags,attr,host_name,svc_description,entry_time,author_name,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 

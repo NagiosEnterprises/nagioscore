@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-24-2003
+ * Last Modified:   07-20-2003
  *
  * License:
  *
@@ -101,7 +101,7 @@ int cleanup_downtime_data(char *config_file){
 /******************************************************************/
 
 /* schedules a host or service downtime */
-int schedule_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration){
+int schedule_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *new_downtime_id){
 	unsigned long downtime_id;
 
 	/* don't add old or invalid downtimes */
@@ -109,10 +109,14 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 		return ERROR;
 
 	/* add a new downtime entry */
-	add_new_downtime(type,host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,&downtime_id);
+	add_new_downtime(type,host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&downtime_id);
 
 	/* register the scheduled downtime */
 	register_downtime(type,downtime_id);
+
+	/* return downtime id */
+	if(new_downtime_id!=NULL)
+		*new_downtime_id=downtime_id;
 
 	return OK;
         }
@@ -132,12 +136,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 	
 
 	/* find the downtime entry in the list in memory */
-	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(temp_downtime->type!=type)
-			continue;
-		if(temp_downtime->downtime_id==downtime_id)
-			break;
-	        }
+	temp_downtime=find_downtime(type,downtime_id);
 	if(temp_downtime==NULL)
 		return ERROR;
 
@@ -209,7 +208,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 		if(temp_event->event_type!=EVENT_SCHEDULED_DOWNTIME)
 			continue;
 		event_downtime=(scheduled_downtime *)temp_event->event_data;
-		if(event_downtime->type!=type)
+		if(event_downtime->type!=temp_downtime->type)
 			continue;
 		if(event_downtime->downtime_id==downtime_id)
 			break;
@@ -218,10 +217,16 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 		remove_event(temp_event,&event_list_high);
 
 	/* delete downtime entry */
-	if(type==HOST_DOWNTIME)
+	if(temp_downtime->type==HOST_DOWNTIME)
 		delete_host_downtime(downtime_id);
 	else
 		delete_service_downtime(downtime_id);
+
+	/* unschedule all downtime entries that were triggered by this one */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+		if(temp_downtime->triggered_by==downtime_id)
+			unschedule_downtime(ANY_DOWNTIME,downtime_id);
+	        }
 
 	return OK;
         }
@@ -237,16 +242,12 @@ int register_downtime(int type, unsigned long downtime_id){
 	timed_event *new_event;
 	host *hst=NULL;
 	service *svc=NULL;
+	char *type_string="";
 	int hours;
 	int minutes;
 
 	/* find the downtime entry in memory */
-	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(temp_downtime->type!=type)
-			continue;
-		if(temp_downtime->downtime_id==downtime_id)
-			break;
-	        }
+	temp_downtime=find_downtime(type,downtime_id);
 	if(temp_downtime==NULL)
 		return ERROR;
 
@@ -267,17 +268,15 @@ int register_downtime(int type, unsigned long downtime_id){
 	get_datetime_string(&(temp_downtime->end_time),end_time_string,MAX_DATETIME_LENGTH,SHORT_DATE_TIME);
 	hours=temp_downtime->duration/3600;
 	minutes=((temp_downtime->duration-(hours*3600))/60);
+	if(temp_downtime->type==HOST_DOWNTIME)
+		type_string="host";
+	else
+		type_string="service";
 	if(temp_downtime->fixed==TRUE){
-		if(temp_downtime->type==HOST_DOWNTIME)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This host has been scheduled for downtime from %s to %s.  Notifications for the host will not be sent out during that time period.",start_time_string,end_time_string);
-		else
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This service has been scheduled for downtime from %s to %s.  Notifications for the service will not be sent out during that time period.",start_time_string,end_time_string);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"This %s has been scheduled for fixed downtime from %s to %s.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,type_string);
 	        }
 	else{
-		if(temp_downtime->type==HOST_DOWNTIME)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This host has been scheduled for downtime starting between %s and %s for a period of %d hours and %d minutes.  Notifications for the host will not be sent out during that time period.",start_time_string,end_time_string,hours,minutes);
-		else
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"This service has been scheduled for downtime starting between %s and %s for a period of %d hours and %d minutes.  Notifications for the service will not be sent out during that time period.",start_time_string,end_time_string,hours,minutes);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"This %s has been scheduled for flexible downtime starting between %s and %s and lasting for a period of %d hours and %d minutes.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,hours,minutes,type_string);
 	        }
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
@@ -291,17 +290,21 @@ int register_downtime(int type, unsigned long downtime_id){
 
 	/*** SCHEDULE DOWNTIME - FLEXIBLE (NON-FIXED) DOWNTIME IS HANDLED AT A LATER POINT ***/
 
-	/* allocate memory for a new event queue item */
-	new_event=(timed_event *)malloc(sizeof(timed_event));
-	if(new_event==NULL)
-		return ERROR;
+	/* only non-triggered downtime is scheduled... */
+	if(temp_downtime->triggered_by==0){
 
-	/* place the new event in the event queue */
-	new_event->event_type=EVENT_SCHEDULED_DOWNTIME;
-	new_event->event_data=(void *)temp_downtime;
-	new_event->run_time=temp_downtime->start_time;
-	new_event->recurring=FALSE;
-	schedule_event(new_event,&event_list_high);
+		/* allocate memory for a new event queue item */
+		new_event=(timed_event *)malloc(sizeof(timed_event));
+		if(new_event==NULL)
+			return ERROR;
+
+		/* place the new event in the event queue */
+		new_event->event_type=EVENT_SCHEDULED_DOWNTIME;
+		new_event->event_data=(void *)temp_downtime;
+		new_event->run_time=temp_downtime->start_time;
+		new_event->recurring=FALSE;
+		schedule_event(new_event,&event_list_high);
+	        }
 
 	return OK;
         }
@@ -310,6 +313,7 @@ int register_downtime(int type, unsigned long downtime_id){
 /* handles scheduled host or service downtime */
 int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
  	char buffer[MAX_INPUT_BUFFER];
+	scheduled_downtime *this_downtime;
 	timed_event *new_event;
 	host *hst=NULL;
 	service *svc=NULL;
@@ -434,6 +438,12 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			delete_host_downtime(temp_downtime->downtime_id);
 		else
 			delete_service_downtime(temp_downtime->downtime_id);
+
+		/* handle (stop) downtime that is triggered by this one */
+		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){
+			if(this_downtime->triggered_by==temp_downtime->downtime_id)
+				handle_scheduled_downtime(this_downtime);
+		        }
 	        }
 
 	/* else we are just starting the scheduled downtime */
@@ -489,6 +499,12 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			new_event->run_time=temp_downtime->end_time;
 		new_event->recurring=FALSE;
 		schedule_event(new_event,&event_list_high);
+
+		/* handle (start) downtime that is triggered by this one */
+		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){
+			if(this_downtime->triggered_by==temp_downtime->downtime_id)
+				handle_scheduled_downtime(this_downtime);
+		        }
 	        }
 	
 #ifdef DEBUG0
@@ -528,6 +544,10 @@ int check_pending_flex_host_downtime(host *hst){
 			continue;
 
 		if(temp_downtime->is_in_effect==TRUE)
+			continue;
+
+		/* triggered downtime entries should be ignored here */
+		if(temp_downtime->triggered_by!=0)
 			continue;
 
 		/* this entry matches our host! */
@@ -577,6 +597,10 @@ int check_pending_flex_service_downtime(service *svc){
 			continue;
 
 		if(temp_downtime->is_in_effect==TRUE)
+			continue;
+
+		/* triggered downtime entries should be ignored here */
+		if(temp_downtime->triggered_by!=0)
 			continue;
 
 		/* this entry matches our service! */
@@ -647,20 +671,20 @@ int check_for_expired_downtime(void){
 
 
 /* save a host or service downtime */
-int add_new_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long *downtime_id){
+int add_new_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 	int result;
 
 	if(type==HOST_DOWNTIME)
-		result=add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+		result=add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 	else
-		result=add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+		result=add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	return result;
         }
 
 
 /* saves a host downtime entry */
-int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long *downtime_id){
+int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 	int result;
 	unsigned long new_downtime_id;
 
@@ -669,10 +693,10 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result=xdddefault_add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,&new_downtime_id);
+	result=xdddefault_add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 #ifdef USE_XDDDB
-	result=xdddb_add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,duration,&new_downtime_id);
+	result=xdddb_add_new_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 
 	/* save downtime id */
@@ -681,7 +705,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration,new_downtime_id,NULL);
+	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,trigerred_by,duration,new_downtime_id,NULL);
 #endif
 
 	return result;
@@ -689,7 +713,7 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 
 
 /* saves a service downtime entry */
-int add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long *downtime_id){
+int add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 	int result;
 	unsigned long new_downtime_id;
 
@@ -698,10 +722,10 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
-	result=xdddefault_add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,&new_downtime_id);
+	result=xdddefault_add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 #ifdef USE_XDDDB
-	result=xdddb_add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,&new_downtime_id);
+	result=xdddb_add_new_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 
 	/* save downtime id */
@@ -710,7 +734,7 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_SERVICE_DOWNTIME,host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,duration,new_downtime_id,NULL);
+	broker_downtime_data(NEBTYPE_DOWNTIME_ADD,NEBFLAG_NONE,NEBATTR_SERVICE_DOWNTIME,host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,new_downtime_id,NULL);
 #endif
 
 	return result;
@@ -746,7 +770,7 @@ int delete_downtime(int type,unsigned long downtime_id){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_downtime_data(NEBTYPE_DOWNTIME_DELETE,NEBFLAG_NONE,(type==HOST_DOWNTIME)?NEBATTR_HOST_DOWNTIME:NEBATTR_SERVICE_DOWNTIME,this_downtime->host_name,this_downtime->service_description,this_downtime->entry_time,this_downtime->author,this_downtime->comment,this_downtime->start_time,this_downtime->end_time,this_downtime->fixed,this_downtime->duration,downtime_id,NULL);
+		broker_downtime_data(NEBTYPE_DOWNTIME_DELETE,NEBFLAG_NONE,(type==HOST_DOWNTIME)?NEBATTR_HOST_DOWNTIME:NEBATTR_SERVICE_DOWNTIME,this_downtime->host_name,this_downtime->service_description,this_downtime->entry_time,this_downtime->author,this_downtime->comment,this_downtime->start_time,this_downtime->end_time,this_downtime->fixed,this_downtime->trigerred_by,this_downtime->duration,downtime_id,NULL);
 #endif
 
 		if(scheduled_downtime_list==this_downtime)
@@ -841,31 +865,34 @@ int read_downtime_data(char *main_config_file){
 /******************************************************************/
 
 /* adds a host downtime entry to the list in memory */
-int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long downtime_id){
+int add_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
 	int result;
 
-	result=add_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+	result=add_downtime(HOST_DOWNTIME,host_name,NULL,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	return result;
         }
 
 
 /* adds a service downtime entry to the list in memory */
-int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long downtime_id){
+int add_service_downtime(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
 	int result;
 
-	result=add_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,duration,downtime_id);
+	result=add_downtime(SERVICE_DOWNTIME,host_name,svc_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,downtime_id);
 
 	return result;
         }
 
 
 /* adds a host or service downtime entry to the list in memory */
-int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long duration, unsigned long downtime_id){
+int add_downtime(int downtime_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long downtime_id){
 	scheduled_downtime *new_downtime=NULL;
 	scheduled_downtime *last_downtime=NULL;
 	scheduled_downtime *temp_downtime=NULL;
 
+	/* don't add triggered downtimes that don't have a valid parent */
+	if(triggered_by>0  && find_downtime(ANY_DOWNTIME,triggered_by)==NULL)
+		return ERROR;
 
 	/* allocate memory for the downtime */
 	new_downtime=(scheduled_downtime *)malloc(sizeof(scheduled_downtime));
@@ -904,6 +931,7 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	new_downtime->start_time=start_time;
 	new_downtime->end_time=end_time;
 	new_downtime->fixed=(fixed>0)?TRUE:FALSE;
+	new_downtime->triggered_by=triggered_by;
 	new_downtime->duration=duration;
 	new_downtime->downtime_id=downtime_id;
 #ifdef NSCORE
@@ -954,12 +982,12 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 /************************ SEARCH FUNCTIONS ************************/
 /******************************************************************/
 
-/* finds a specific host downtime entry */
-scheduled_downtime *find_host_downtime(unsigned long downtime_id){
+/* finds a specific downtime entry */
+scheduled_downtime *find_downtime(int type, unsigned long downtime_id){
 	scheduled_downtime *temp_downtime;
 
 	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(temp_downtime->type!=HOST_DOWNTIME)
+		if(type!=ANY_DOWNTIME && temp_downtime->type!=type)
 			continue;
 		if(temp_downtime->downtime_id==downtime_id)
 			return temp_downtime;
@@ -969,18 +997,17 @@ scheduled_downtime *find_host_downtime(unsigned long downtime_id){
         }
 
 
+/* finds a specific host downtime entry */
+scheduled_downtime *find_host_downtime(unsigned long downtime_id){
+
+	return find_downtime(HOST_DOWNTIME,downtime_id);
+        }
+
+
 /* finds a specific service downtime entry */
 scheduled_downtime *find_service_downtime(unsigned long downtime_id){
-	scheduled_downtime *temp_downtime;
 
-	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(temp_downtime->type!=SERVICE_DOWNTIME)
-			continue;
-		if(temp_downtime->downtime_id==downtime_id)
-			return temp_downtime;
-	        }
-
-	return NULL;
+	return find_downtime(SERVICE_DOWNTIME,downtime_id);
         }
 
 

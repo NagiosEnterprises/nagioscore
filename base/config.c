@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-18-2003
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -140,7 +140,9 @@ extern int      max_embedded_perl_calls;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
+extern host             *host_list;
 extern hostgroup	*hostgroup_list;
+extern service          *service_list;
 extern servicegroup     *servicegroup_list;
 extern notification     *notification_list;
 extern command          *command_list;
@@ -1490,8 +1492,7 @@ int pre_flight_check(void){
 		errors++;
 	        }
 	total_objects=0;
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		total_objects++;
 		found=FALSE;
@@ -1647,17 +1648,17 @@ int pre_flight_check(void){
 		errors++;
 	        }
 	total_objects=0;
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		total_objects++;
 		found=FALSE;
 
 		/* make sure each host has at least one service associated with it */
-		if(find_all_services_by_host(temp_host->name)) {
-			if(get_next_service_by_host()) {
+		for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			if(!strcmp(temp_service->host_name,temp_host->name)){
 				found=TRUE;
-				}
+				break;
+			        }
 			}
 
 		/* we couldn't find a service associated with this host! */
@@ -2053,24 +2054,26 @@ int pre_flight_check(void){
 		found=FALSE;
 
 		/* make sure each contactgroup is used in at least one host or service definition or escalation */
-		move_first_host();
-		while((temp_host=get_next_host()) && found==FALSE){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 				if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 					found=TRUE;
 					break;
 			                }
 		                 }
+			if(found==TRUE)
+				break;
 		        }
 		if(found==FALSE){
-			move_first_service();
-			while((temp_service=get_next_service()) && found==FALSE){
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 				for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 						found=TRUE;
 						break;
 				                }
 			                 }
+				if(found==TRUE)
+					break;
 			        }
 		        }
 		if(found==FALSE){
@@ -2436,8 +2439,7 @@ int pre_flight_check(void){
 	/* check routes between all hosts */
 	found=FALSE;
 	result=OK;
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		found=check_for_circular_path(temp_host,temp_host);
 		if(found==TRUE){
 			sprintf(temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
@@ -2625,8 +2627,7 @@ int pre_flight_check(void){
 	        }
 
 	/* count number of services associated with each host (we need this for flap detection)... */
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 		if((temp_host=find_host(temp_service->host_name))){
 			temp_host->total_services++;
 			temp_host->total_service_check_interval+=temp_service->check_interval;

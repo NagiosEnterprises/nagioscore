@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-19-2003
+ * Last Modified: 07-20-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -611,6 +611,7 @@ void enable_host_notifications(host *);			/* enables host notifications */
 void disable_host_notifications(host *);		/* disables host notifications */
 void enable_and_propagate_notifications(host *);	/* enables notifications for all hosts and services beyond a given host */
 void disable_and_propagate_notifications(host *);	/* disables notifications for all hosts and services beyond a given host */
+void schedule_and_propagate_triggered_downtime(host *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long); /* schedules triggered downtime for all hosts beyond a given host */
 void acknowledge_host_problem(host *,char *,int,int);	/* acknowledges a host problem */
 void acknowledge_service_problem(service *,char *,int,int);	/* acknowledges a service problem */
 void remove_host_acknowledgement(host *);		/* removes a host acknowledgement */
@@ -679,7 +680,7 @@ void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct t
 void broker_host_check(int,int,int,host *,int,double,struct timeval *);
 void broker_service_check(int,int,int,service *,struct timeval *);
 void broker_comment_data(int,int,int,char *,char *,time_t,char *,char *,int,int,unsigned long,struct timeval *);
-void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,struct timeval *);
+void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
 void broker_flapping_data(int,int,int,void *,double,double,struct timeval *);
 #endif
 

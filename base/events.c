@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-18-2003
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -78,6 +78,9 @@ extern int      non_parallelized_check_running;
 timed_event *event_list_low=NULL;
 timed_event *event_list_high=NULL;
 
+extern host     *host_list;
+extern service  *service_list;
+
 sched_info scheduling_info;
 
 
@@ -125,8 +128,7 @@ void init_timing_loop(void){
 	scheduling_info.average_host_inter_check_delay=0.0;
 		
 	/* get info on service checks to be scheduled */
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		schedule_check=TRUE;
 
@@ -164,8 +166,7 @@ void init_timing_loop(void){
 	        }
 
 	/* get info on host checks to be scheduled */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		schedule_check=TRUE;
 
@@ -310,15 +311,13 @@ void init_timing_loop(void){
 
 	/* add service checks as separate events (with interleaving to minimize remote load) */
 	current_interleave_block=0;
-	move_first_service();
-	temp_service=get_next_service();
-	while(temp_service!=NULL){
+	for(temp_service=service_list;temp_service!=NULL;){
 
 #ifdef DEBUG1
 		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);
 #endif
 
-		for(interleave_block_index=0;interleave_block_index<scheduling_info.service_interleave_factor && temp_service!=NULL;temp_service=get_next_service(),interleave_block_index++){
+		for(interleave_block_index=0;interleave_block_index<scheduling_info.service_interleave_factor && temp_service!=NULL;temp_service=temp_service->next,interleave_block_index++){
 
 			/* skip this service if it shouldn't be scheduled */
 			if(temp_service->should_be_scheduled==FALSE)
@@ -445,8 +444,7 @@ void init_timing_loop(void){
 
 	/* add host checks as seperate events */
 	mult_factor=0;
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* skip hosts that shouldn't be scheduled */
 		if(temp_host->should_be_scheduled==FALSE)
@@ -1357,8 +1355,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the last notification time for all services */
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		if(temp_service->last_notification==(time_t)0)
 			continue;
@@ -1382,8 +1379,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the next check time for all services */
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		if(temp_service->next_check==(time_t)0)
 			continue;
@@ -1407,8 +1403,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the last notification time for all hosts */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		if(temp_host->last_host_notification==(time_t)0)
 			continue;
@@ -1432,8 +1427,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the next check time for all hosts */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		if(temp_host->next_check==(time_t)0)
 			continue;

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-14-2003
+ * Last Modified:   07-21-2003
  *
  * License:
  *
@@ -77,6 +77,8 @@ extern int      max_embedded_perl_calls;
 
 extern timed_event       *event_list_low;
 
+extern host              *host_list;
+extern service           *service_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency    *hostdependency_list;
 
@@ -1522,8 +1524,7 @@ void check_for_orphaned_services(void){
 	time(&current_time);
 
 	/* check all services... */
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services that are not currently executing */
 		if(temp_service->is_executing==FALSE)
@@ -1582,8 +1583,7 @@ void check_service_result_freshness(void){
 	time(&current_time);
 
 	/* check all services... */
-	move_first_service();
-	while((temp_service=get_next_service())){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
@@ -1805,8 +1805,7 @@ void check_host_result_freshness(void){
 	time(&current_time);
 
 	/* check all hosts... */
-	move_first_host();
-	while((temp_host=get_next_host())){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* skip hosts we shouldn't be checking for freshness */
 		if(temp_host->check_freshness==FALSE)
@@ -1948,8 +1947,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					move_first_host();
-					while((child_host=get_next_host())){
+					for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
 
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
@@ -2054,8 +2052,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 				if(propagation_options & PROPAGATE_TO_CHILD_HOSTS){
 
 					/* check all child hosts... */
-					move_first_host();
-					while((child_host=get_next_host())){
+					for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
 
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)

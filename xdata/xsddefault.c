@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2003
+ * Last Modified:   04-21-2003
  *
  * License:
  *
@@ -328,6 +328,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
+		fprintf(fp,"\tnext_notification=%lu\n",temp_host->next_host_notification);
+		fprintf(fp,"\tno_more_notifications=%d\n",temp_host->no_more_notifications);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_host->notifications_enabled);
 		fprintf(fp,"\tproblem_has_been_acknowledged=%d\n",temp_host->problem_has_been_acknowledged);
@@ -377,6 +379,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tcheck_type=%d\n",temp_service->check_type);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_service->current_notification_number);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_service->last_notification);
+		fprintf(fp,"\tnext_notification=%lu\n",temp_service->next_notification);
+		fprintf(fp,"\tno_more_notifications=%d\n",temp_service->no_more_notifications);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_service->notifications_enabled);
 		fprintf(fp,"\tactive_checks_enabled=%d\n",temp_service->checks_enabled);
 		fprintf(fp,"\tpassive_checks_enabled=%d\n",temp_service->accept_passive_service_checks);
@@ -594,6 +598,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->last_hard_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_notification"))
 						temp_hoststatus->last_notification=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_notification"))
+						temp_hoststatus->next_notification=strtoul(val,NULL,10);
+					else if(!strcmp(var,"no_more_notifications"))
+						temp_hoststatus->no_more_notifications=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"current_notification_number"))
 						temp_hoststatus->current_notification_number=atoi(val);
 					else if(!strcmp(var,"notifications_enabled"))
@@ -677,6 +685,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->current_notification_number=atoi(val);
 					else if(!strcmp(var,"last_notification"))
 						temp_servicestatus->last_notification=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_notification"))
+						temp_servicestatus->next_notification=strtoul(val,NULL,10);
+					else if(!strcmp(var,"no_more_notifications"))
+						temp_servicestatus->no_more_notifications=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"notifications_enabled"))
 						temp_servicestatus->notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"active_checks_enabled"))

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-14-2003
+ * Last Modified:   04-21-2003
  *
  * License:
  *
@@ -333,14 +333,6 @@ int check_service_notification_viability(service *svc, int type){
 	        }
 #endif
 
-	/* don't send notifications if the host was down or unreachable at last service check */
-	if(svc->host_problem_at_last_check==TRUE){
-#ifdef DEBUG4
-		printf("\tThe host associated with this service had problems at last check, so notifications won't be sent out!\n");
-#endif
-		return ERROR;
-	        }
-
 	/* check notification dependencies */
 	if(check_service_dependencies(svc,NOTIFICATION_DEPENDENCY)==DEPENDENCIES_FAILED){
 #ifdef DEBUG4
@@ -394,6 +386,17 @@ int check_service_notification_viability(service *svc, int type){
 	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
 	if(svc->current_state==STATE_OK)
 		return OK;
+
+#ifdef REMOVED_042103
+	/* don't send notifications if the host was down or unreachable at last service check */
+	/* removed this 4/21/03 because it doesn't make much sense... */
+	if(svc->host_problem_at_last_check==TRUE){
+#ifdef DEBUG4
+		printf("\tThe host associated with this service had problems at last check, so notifications won't be sent out!\n");
+#endif
+		return ERROR;
+	        }
+#endif
 
 	/* dont notify contacts about this service problem again if the notification interval is set to 0 */
 	if(svc->no_more_notifications==TRUE){

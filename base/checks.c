@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2003
+ * Last Modified:   04-21-2003
  *
  * License:
  *
@@ -30,6 +30,8 @@
 #include "nagios.h"
 #include "broker.h"
 #include "perfdata.h"
+
+/*#define DEBUG_CHECKS*/
 
 #ifdef EMBEDDEDPERL
 #include <EXTERN.h>
@@ -790,6 +792,7 @@ void reap_service_checks(void){
 
 #ifdef DEBUG_CHECKS
 		printf("SERVICE '%s' on HOST '%s'\n",temp_service->description,temp_service->host_name);
+		printf("%s",ctime(&temp_service->last_check));
 		printf("\tST: %s  CA: %d  MA: %d  CS: %d  LS: %d  LHS: %d\n",(temp_service->state_type==SOFT_STATE)?"SOFT":"HARD",temp_service->current_attempt,temp_service->max_attempts,temp_service->current_state,temp_service->last_state,temp_service->last_hard_state);
 #endif
 
@@ -845,6 +848,7 @@ void reap_service_checks(void){
 			        }
 
 			/* do NOT reset current notification number!!! */
+			/* hard changes between non-OK states should continue to be escalated, so don't reset current notification number */
 			/*temp_service->current_notification_number=0;*/
 		        }
 
@@ -877,8 +881,16 @@ void reap_service_checks(void){
 			temp_service->problem_has_been_acknowledged=FALSE;
 			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 
+#ifdef DEBUG_CHECKS
+			printf("\tOriginally OK\n");
+#endif
+
 			/* the service check was okay, so the associated host must be up... */
 			if(temp_host->current_state!=HOST_UP){
+
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION A1\n");
+#endif
 
 				/* verify the route to the host and send out host recovery notifications */
 				verify_route_to_host(temp_host,CHECK_OPTION_NONE);
@@ -891,6 +903,10 @@ void reap_service_checks(void){
 
 			/* if a hard service recovery has occurred... */
 			if(hard_state_change==TRUE){
+
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION A2\n");
+#endif
 
 				/* set the state type macro */
 				temp_service->state_type=HARD_STATE;
@@ -908,6 +924,10 @@ void reap_service_checks(void){
 
 			/* else if a soft service recovery has occurred... */
 			else if(state_change==TRUE){
+
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION A3\n");
+#endif
 
 				/* this is a soft recovery */
 				temp_service->state_type=SOFT_STATE;
@@ -956,28 +976,52 @@ void reap_service_checks(void){
 		/* hey, something's not working quite like it should... */
 		else{
 
+#ifdef DEBUG_CHECKS
+			printf("\tOriginally PROBLEM\n");
+#endif
+
 #ifdef REMOVED_041403
 			/* reset the recovery notification flag (it may get set again though) */
 			temp_service->no_recovery_notification=FALSE;
 #endif
 			
 			/* check the route to the host if its supposed to be up right now... */
-			if(temp_host->current_state==HOST_UP)
+			if(temp_host->current_state==HOST_UP){
 				route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION B1\n");
+#endif
+			        }
 
 			/* else the host is either down or unreachable, so recheck it if necessary */
 			else{
 
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION B2a\n");
+#endif
+
 				/* we're using agressive host checking, so really do recheck the host... */
-				if(use_aggressive_host_checking==TRUE)
+				if(use_aggressive_host_checking==TRUE){
 					route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B2b\n");
+#endif
+				        }
 
 				/* the service wobbled between non-OK states, so check the host... */
-				else if(state_change==TRUE && temp_service->last_hard_state!=STATE_OK)
+				else if(state_change==TRUE && temp_service->last_hard_state!=STATE_OK){
 					route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B2c\n");
+#endif
+				        }
 
 				/* else fake the host check, but (possibly) resend host notifications to contacts... */
 				else{
+
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B2d\n");
+#endif
 
 					/* log the initial state if the user wants to and this host hasn't been checked yet */
 					if(log_initial_states==TRUE && temp_host->has_been_checked==FALSE)
@@ -1001,13 +1045,18 @@ void reap_service_checks(void){
 			/* if the host is down or unreachable ... */
 			if(route_result!=HOST_UP){
 
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION B3\n");
+#endif
+
 				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earler... */
 				if(temp_service->last_hard_state!=temp_service->current_state)
 					hard_state_change=TRUE;
 
 				/* update last state change times */
 				temp_service->last_state_change=temp_service->last_check;
-				temp_service->last_hard_state_change=temp_service->last_check;
+				if(hard_state_change==TRUE)
+					temp_service->last_hard_state_change=temp_service->last_check;
 
 				/* put service into a hard state without attempting check retries and don't send out notifications about it */
 				temp_service->host_problem_at_last_check=TRUE;
@@ -1018,6 +1067,10 @@ void reap_service_checks(void){
 
 			/* the host is up - it recovered since the last time the service was checked... */
 			else if(temp_service->host_problem_at_last_check==TRUE){
+
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION B4\n");
+#endif
 
 				/* next time the service is checked we shouldn't get into this same case... */
 				temp_service->host_problem_at_last_check=FALSE;
@@ -1036,8 +1089,16 @@ void reap_service_checks(void){
 			/* if we should retry the service check, do so (except it the host is down or unreachable!) */
 			if(temp_service->current_attempt < temp_service->max_attempts){
 
+#ifdef DEBUG_CHECKS
+				printf("\tSECTION B5a\n");
+#endif
+
 				/* the host is down or unreachable, so don't attempt to retry the service check */
 				if(route_result!=HOST_UP){
+
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B5b\n");
+#endif
 
 					/* the host is not up, so reschedule the next service check at regular interval */
 					if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
@@ -1052,6 +1113,10 @@ void reap_service_checks(void){
 
 				/* the host is up, so continue to retry the service check */
 				else{
+
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B5c\n");
+#endif
 
 					/* this is a soft state */
 					temp_service->state_type=SOFT_STATE;
@@ -1080,6 +1145,7 @@ void reap_service_checks(void){
 			else{
 
 #ifdef DEBUG_CHECKS
+				printf("\tSECTION B6a\n");
 				printf("\tMAXED OUT! HSC: %d\n",hard_state_change);
 #endif
 
@@ -1089,6 +1155,10 @@ void reap_service_checks(void){
 				/* if we've hard a hard state change... */
 				if(hard_state_change==TRUE){
 
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B6b\n");
+#endif
+
 					/* log the service problem (even if host is not up, which is new in 0.0.5) */
 					log_service_event(temp_service,HARD_STATE);
 					state_was_logged=TRUE;
@@ -1096,6 +1166,10 @@ void reap_service_checks(void){
 
 				/* else log the problem (again) if this service is flagged as being volatile */
 				else if(temp_service->is_volatile==TRUE){
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B6c\n");
+#endif
+
 					log_service_event(temp_service,HARD_STATE);
 					state_was_logged=TRUE;
 				        }
@@ -1108,8 +1182,13 @@ void reap_service_checks(void){
 				service_notification(temp_service,NOTIFICATION_NORMAL,NULL);
 
 				/* run the service event handler if we changed state from the last hard state or if this service is flagged as being volatile */
-				if(hard_state_change==TRUE || temp_service->is_volatile==TRUE)
+				if(hard_state_change==TRUE || temp_service->is_volatile==TRUE){
+#ifdef DEBUG_CHECKS
+					printf("\tSECTION B6d\n");
+#endif
+
 					handle_service_event(temp_service,HARD_STATE);
+				        }
 
 				/* save the last hard state */
 				temp_service->last_hard_state=temp_service->current_state;
@@ -1152,6 +1231,10 @@ void reap_service_checks(void){
 			if(temp_service->should_be_scheduled==TRUE)
 				schedule_service_check(temp_service,temp_service->next_check,FALSE);
 		        }
+
+#ifdef DEBUG_CHECKS
+		printf("\tDONE\n");
+#endif
 
 		/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
 		if(temp_service->state_type==HARD_STATE && state_change==FALSE && state_was_logged==FALSE && strcmp(old_plugin_output,temp_service->plugin_output)){

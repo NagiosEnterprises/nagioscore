@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-18-2003
+ * Last Modified:   04-21-2003
  *
  * License:
  *
@@ -360,6 +360,10 @@ int xrddefault_read_state_information(char *main_config_file){
 
 				if(temp_host!=NULL){
 
+					/* calculate next possible notification time */
+					if(temp_host->current_state!=HOST_UP && temp_host->last_host_notification!=(time_t)0)
+						temp_host->next_host_notification=get_next_host_notification_time(temp_host,temp_host->last_host_notification);
+
 					/* update host status */
 					update_host_status(temp_host,FALSE);
 
@@ -379,6 +383,10 @@ int xrddefault_read_state_information(char *main_config_file){
 			case XRDDEFAULT_SERVICE_DATA:
 
 				if(temp_service!=NULL){
+
+					/* calculate next possible notification time */
+					if(temp_service->current_state!=STATE_OK && temp_service->last_notification!=(time_t)0)
+						temp_service->next_notification=get_next_service_notification_time(temp_service,temp_service->last_notification);
 
 					/* update service status */
 					update_service_status(temp_service,FALSE);

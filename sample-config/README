@@ -1,0 +1,42 @@
+====================
+SAMPLE CONFIG README
+====================
+
+This directory contains *sample* configuration files for Nagios.
+You should read the HTML documentation for information on
+customizing these config files to suit your needs.
+
+A description of the sample config files and subdirectories
+contained here follows:
+
+
+
+CONTENTS:
+---------
+
+cgi.cfg           - This is a sample CGI config file
+
+nagios.cfg.in     - This is a sample main config file
+
+resource.cfg.in   - This is a sample resource config file, used
+                    for definining custom macros, storing
+                    sensitive data, etc.
+
+default-object/   - This directory contains sample object config
+                    files that can be used if Nagios and the CGIs
+                    are compiled with support for the default
+                    (old style) object data (using the
+		    --with-default-objects argument to the
+                    configure script).
+
+template-object/  - This directory contains sample object config
+                    files that can be used if Nagios and the CGIs
+                    are compiled with support for the template-based
+                    object data.
+                   
+
+template-extinfo/ - This directory contains sample extended info
+		    config files that can be used if the CGIs
+                    are compiled with support for the template-based
+                    extended info.
+                   

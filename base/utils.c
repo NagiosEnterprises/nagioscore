@@ -2236,13 +2236,14 @@ int contains_illegal_object_chars(char *name){
 char *clean_macro_chars(char *macro,int options){
 	register int x;
 	register int y;
+	register int z;
 	register int ch;
 	register int len;
 
 	if(macro==NULL)
 		return "";
 
-	len=(int)strlen(macro)-1;
+	len=(int)strlen(macro);
 
 	/* strip illegal characters out of macro */
 	if(options & STRIP_ILLEGAL_MACRO_CHARS){
@@ -2261,8 +2262,8 @@ char *clean_macro_chars(char *macro,int options){
 
 			/* illegal user-specified characters */
 			if(illegal_output_chars!=NULL)
-				for(y=0;illegal_output_chars[y];y++)
-					if(macro[x]==illegal_output_chars[y])
+				for(z=0;illegal_output_chars[z];z++)
+					if(ch==illegal_output_chars[z])
 						continue;
 
 			macro[y++]=macro[x];

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2003
+ * Last Modified:   02-13-2003
  *
  * License:
  *
@@ -1487,7 +1487,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 #endif
 
 	/***** CHECK FOR FLAPPING *****/
-	check_for_host_flapping(this_host);
+	check_for_host_flapping(this_host,TRUE);
 
 
 #ifdef DEBUG0

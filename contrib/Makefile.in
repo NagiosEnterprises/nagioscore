@@ -1,7 +1,7 @@
 ###############################
 # Makefile for contrib software
 #
-# Last Modified: 08-25-2002
+# Last Modified: 02-12-2003
 ###############################
 
 CC=@CC@
@@ -52,7 +52,10 @@ install:
 daemonchk.cgi: daemonchk.c $(CGI_O) $(CGI_H) $(COMMON_H)
 
 mini_epn: mini_epn.c
-	$(CC) $(CFLAGS) $(LDFLAGS) mini_epn.c `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
+	perl -MExtUtils::Embed -e xsinit
+	$(CC) $(CFLAGS) -c perlxsi.c  `perl -MExtUtils::Embed -e ccopts`
+	$(CC) $(CFLAGS) -c mini_epn.c `perl -MExtUtils::Embed -e ccopts`
+	$(CC) $(CFLAGS) $(LDFLAGS) perlxsi.o mini_epn.o `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
 
 ministatus: ministatus.cgi
 ministatus.cgi: ministatus.c

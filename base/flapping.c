@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-20-2001
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-13-2003
  *
  * License:
  *
@@ -48,7 +48,7 @@ extern double   high_host_flap_threshold;
 
 
 /* detects service flapping */
-void check_for_service_flapping(service *svc){
+void check_for_service_flapping(service *svc, int update_history){
 	int is_flapping=FALSE;
 	int x,y;
 	int last_state_history_value=STATE_OK;
@@ -80,13 +80,16 @@ void check_for_service_flapping(service *svc){
 	low_threshold=(svc->low_flap_threshold<=0.0)?low_service_flap_threshold:svc->low_flap_threshold;
 	high_threshold=(svc->high_flap_threshold<=0.0)?high_service_flap_threshold:svc->high_flap_threshold;
 
-	/* record the current state in the state history */
-	svc->state_history[svc->state_history_index]=svc->current_state;
+	if(update_history==TRUE){
 
-	/* increment state history index to next available slot */
-	svc->state_history_index++;
-	if(svc->state_history_index>=MAX_STATE_HISTORY_ENTRIES)
-		svc->state_history_index=0;
+		/* record the current state in the state history */
+		svc->state_history[svc->state_history_index]=svc->current_state;
+
+		/* increment state history index to next available slot */
+		svc->state_history_index++;
+		if(svc->state_history_index>=MAX_STATE_HISTORY_ENTRIES)
+			svc->state_history_index=0;
+	        }
 
 	/* calculate overall and curved percent state changes */
 	for(x=0,y=svc->state_history_index;x<MAX_STATE_HISTORY_ENTRIES;x++){
@@ -148,7 +151,7 @@ void check_for_service_flapping(service *svc){
 
 
 /* detects host flapping */
-void check_for_host_flapping(host *hst){
+void check_for_host_flapping(host *hst, int update_history){
 	int is_flapping=FALSE;
 	int x;
 	int last_state_history_value=HOST_UP;
@@ -193,18 +196,23 @@ void check_for_host_flapping(host *hst){
 			return;
 	        }
 
-	/* update the last record time */
-	hst->last_state_history_update=current_time;
-
 	/* what thresholds should we use (global or host-specific)? */
 	low_threshold=(hst->low_flap_threshold<=0.0)?low_host_flap_threshold:hst->low_flap_threshold;
 	high_threshold=(hst->high_flap_threshold<=0.0)?high_host_flap_threshold:hst->high_flap_threshold;
 
-	/* record the current state in the state history */
-	hst->state_history[hst->state_history_index]=hst->status;
-	hst->state_history_index++;
-	if(hst->state_history_index>=MAX_STATE_HISTORY_ENTRIES)
-		hst->state_history_index=0;
+	if(update_history==TRUE){
+
+		/* update the last record time */
+		hst->last_state_history_update=current_time;
+
+		/* record the current state in the state history */
+		hst->state_history[hst->state_history_index]=hst->status;
+
+		/* increment state history index to next available slot */
+		hst->state_history_index++;
+		if(hst->state_history_index>=MAX_STATE_HISTORY_ENTRIES)
+			hst->state_history_index=0;
+	        }
 
 	/* calculate overall changes in state */
 	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){

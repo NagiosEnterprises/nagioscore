@@ -1050,7 +1050,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 	/* adjust the last notification time for all services */
 	move_first_service();
-	while(temp_service = get_next_service()) {
+	while(temp_service=get_next_service()){
+
 		if(temp_service->last_notification==(time_t)0)
 			continue;
 
@@ -1074,7 +1075,8 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 	/* adjust the next check time for all services */
 	move_first_service();
-	while(temp_service=get_next_service()) {
+	while(temp_service=get_next_service()){
+
 		/* we moved back in time... */
 		if(last_time>current_time){
 
@@ -1094,8 +1096,9 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* adjust the last notification time for all hosts */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	host_cursor=get_host_cursor();
+	while(temp_host=get_next_host_cursor(host_cursor)){
+
 		if(temp_host->last_host_notification==(time_t)0)
 			continue;
 

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   01-08-2003
+ * Last Modified:   02-10-2003
  *
  * Description:
  *
@@ -100,6 +100,7 @@ char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;
 
 char            *ocsp_command=NULL;
+char            *ochp_command=NULL;
 
 char            *illegal_object_chars=NULL;
 char            *illegal_output_chars=NULL;
@@ -121,6 +122,7 @@ int             host_check_timeout=DEFAULT_HOST_CHECK_TIMEOUT;
 int             event_handler_timeout=DEFAULT_EVENT_HANDLER_TIMEOUT;
 int             notification_timeout=DEFAULT_NOTIFICATION_TIMEOUT;
 int             ocsp_timeout=DEFAULT_OCSP_TIMEOUT;
+int             ochp_timeout=DEFAULT_OCHP_TIMEOUT;
 
 double          sleep_time=DEFAULT_SLEEP_TIME;
 int             interval_length=DEFAULT_INTERVAL_LENGTH;
@@ -175,6 +177,7 @@ int             execute_host_checks=TRUE;
 int             accept_passive_host_checks=TRUE;
 int             enable_event_handlers=TRUE;
 int             obsess_over_services=FALSE;
+int             obsess_over_hosts=FALSE;
 int             enable_failure_prediction=TRUE;
 
 int             aggregate_status_updates=TRUE;

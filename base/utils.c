@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-26-2003
+ * Last Modified:   02-10-2003
  *
  * License:
  *
@@ -77,6 +77,7 @@ extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
 
 extern char     *ocsp_command;
+extern char     *ochp_command;
 
 extern char     *illegal_object_chars;
 extern char     *illegal_output_chars;
@@ -102,6 +103,7 @@ extern int      host_check_timeout;
 extern int      event_handler_timeout;
 extern int      notification_timeout;
 extern int      ocsp_timeout;
+extern int      ochp_timeout;
 
 extern int      log_initial_states;
 
@@ -146,6 +148,7 @@ extern int      execute_host_checks;
 extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
+extern int      obsess_over_hosts;
 extern int      enable_failure_prediction;
 extern int      process_performance_data;
 
@@ -2251,20 +2254,36 @@ int close_command_file(void){
 /************************ STRING FUNCTIONS ************************/
 /******************************************************************/
 
-/* strip newline, carriage return, and tab characters from end of a string */
+/* strip newline, carriage return, and tab characters from beginning and end of a string */
 void strip(char *buffer){
 	register int x;
+	register int y;
+	register int z;
 
-	if(buffer==NULL)
+	if(buffer==NULL || buffer[0]=='\x0')
 		return;
 
-	x=(int)strlen(buffer)-1;
-
-	for(;x>=0;x--){
+	/* strip end of string */
+	y=(int)strlen(buffer);
+	for(x=y-1;x>=0;x--){
 		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
 			buffer[x]='\x0';
 		else
 			break;
+	        }
+
+	/* strip beginning of string (by shifting) */
+	y=(int)strlen(buffer);
+	for(x=0;x<y;x++){
+		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
+			continue;
+		else
+			break;
+	        }
+	if(x>0){
+		for(z=x;z<y;z++)
+			buffer[z-x]=buffer[z];
+		buffer[y-x]='\x0';
 	        }
 
 	return;
@@ -3046,10 +3065,14 @@ void free_memory(void){
 	printf("\tnotification_list freed\n");
 #endif
 
-	/* free obsessive compulsive service command */
+	/* free obsessive compulsive commands */
 	if(ocsp_command!=NULL){
 		free(ocsp_command);
 		ocsp_command=NULL;
+	        }
+	if(ochp_command!=NULL){
+		free(ochp_command);
+		ochp_command=NULL;
 	        }
 
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
@@ -3183,6 +3206,7 @@ int reset_variables(void){
 	event_handler_timeout=DEFAULT_EVENT_HANDLER_TIMEOUT;
 	notification_timeout=DEFAULT_NOTIFICATION_TIMEOUT;
 	ocsp_timeout=DEFAULT_OCSP_TIMEOUT;
+	ochp_timeout=DEFAULT_OCHP_TIMEOUT;
 
 	sleep_time=DEFAULT_SLEEP_TIME;
 	interval_length=DEFAULT_INTERVAL_LENGTH;
@@ -3220,6 +3244,7 @@ int reset_variables(void){
 	accept_passive_service_checks=TRUE;
 	enable_event_handlers=TRUE;
 	obsess_over_services=FALSE;
+	obsess_over_hosts=FALSE;
 	enable_failure_prediction=TRUE;
 
 	aggregate_status_updates=TRUE;

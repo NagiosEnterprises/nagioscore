@@ -593,52 +593,36 @@ int xodtemplate_process_config_file(char *filename, int options){
 
 
 
-/* strip newline, carriage return, and tab characters from beginning and end of a string */
+/* strip whitespace from beginning and end of a string */
 void xodtemplate_strip(char *buffer){
 	register int x;
-	char ch;
-	register int a;
-	register int b;
+	register int y;
+	register int z;
 
 	if(buffer==NULL || buffer[0]=='\x0')
 		return;
 
 	/* strip end of string */
-	x=(int)strlen(buffer)-1;
-	for(;x>=0;x--){
+	y=(int)strlen(buffer);
+	for(x=y-1;x>=0;x--){
 		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
 			buffer[x]='\x0';
 		else
 			break;
 	        }
 
-	/* reverse string */
-	x=(int)strlen(buffer);
-	if(x==0)
-		return;
-	for(a=0,b=x-1;a<b;a++,b--){
-		ch=buffer[a];
-		buffer[a]=buffer[b];
-		buffer[b]=ch;
-	        }
-
-	/* strip beginning of string (now end of string) */
-	x--;
-	for(;x>=0;x--){
+	/* strip beginning of string (by shifting) */
+	y=(int)strlen(buffer);
+	for(x=0;x<y;x++){
 		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
-			buffer[x]='\x0';
+			continue;
 		else
 			break;
 	        }
-
-	/* reverse string again */
-	x=(int)strlen(buffer);
-	if(x==0)
-		return;
-	for(a=0,b=x-1;a<b;a++,b--){
-		ch=buffer[a];
-		buffer[a]=buffer[b];
-		buffer[b]=ch;
+	if(x>0){
+		for(z=x;z<y;z++)
+			buffer[z-x]=buffer[z];
+		buffer[y-x]='\x0';
 	        }
 
 	return;
@@ -1035,6 +1019,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_active_checks_enabled=FALSE;
 		new_host->passive_checks_enabled=TRUE;
 		new_host->have_passive_checks_enabled=FALSE;
+		new_host->obsess_over_host=TRUE;
+		new_host->have_obsess_over_host=FALSE;
 		new_host->max_check_attempts=-2;
 		new_host->have_max_check_attempts=FALSE;
 		new_host->event_handler_enabled=TRUE;
@@ -5031,6 +5017,10 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		this_host->passive_checks_enabled=template_host->passive_checks_enabled;
 		this_host->have_passive_checks_enabled=TRUE;
 	        }
+	if(this_host->have_obsess_over_host==FALSE && template_host->have_obsess_over_host==TRUE){
+		this_host->obsess_over_host=template_host->obsess_over_host;
+		this_host->have_obsess_over_host=TRUE;
+	        }
 	if(this_host->have_event_handler_enabled==FALSE && template_host->have_event_handler_enabled==TRUE){
 		this_host->event_handler_enabled=template_host->event_handler_enabled;
 		this_host->have_event_handler_enabled=TRUE;
@@ -6515,7 +6505,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		return OK;
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information);
+	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   02-10-2003
  *
  * License:
  *
@@ -39,6 +39,7 @@ extern int             log_host_retries;
 
 extern int             event_handler_timeout;
 extern int             ocsp_timeout;
+extern int             ochp_timeout;
 
 extern char            *macro_x[MACRO_X_COUNT];
 
@@ -46,13 +47,14 @@ extern char            *global_host_event_handler;
 extern char            *global_service_event_handler;
 
 extern char            *ocsp_command;
+extern char            *ochp_command;
 
 extern time_t          program_start;
 
 
 
 /******************************************************************/
-/******** OBSESSIVE COMPULSIVE SERVICE HANDLER FUNCTIONS **********/
+/************ OBSESSIVE COMPULSIVE  HANDLER FUNCTIONS *************/
 /******************************************************************/
 
 
@@ -136,7 +138,6 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 
 	return OK;
         }
-
 
 
 

@@ -2,8 +2,8 @@
  *
  * OBJECTS.H - Header file for object addition/search functions
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-10-200
  *
  * License:
  *
@@ -121,6 +121,7 @@ typedef struct host_struct{
 	int     retain_nonstatus_information;
 	int     failure_prediction_enabled;
 	char    *failure_prediction_options;
+	int     obsess_over_host;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     status;
@@ -414,7 +415,7 @@ int read_object_config_data(char *,int,int);        /* reads all external config
 contact *add_contact(char *,char *,char *,char *,char *,char *,int,int,int,int,int,int,int);		/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-host *add_host(char *,char *,char *,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */

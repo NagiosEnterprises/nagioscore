@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.H - Header file for default state retention routines
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-14-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-12-2003
  *
  * License:
  *
@@ -23,6 +23,12 @@
  *
  *****************************************************************************/
 
+
+#define XRDDEFAULT_NO_DATA          0
+#define XRDDEFAULT_INFO_DATA        1
+#define XRDDEFAULT_PROGRAM_DATA     2
+#define XRDDEFAULT_HOST_DATA        3
+#define XRDDEFAULT_SERVICE_DATA     4
 
 int xrddefault_grab_config_info(char *);
 int xrddefault_save_state_information(char *);        /* saves all host and service state information */

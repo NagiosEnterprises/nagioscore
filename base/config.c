@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-08-2003
+ * Last Modified:   02-10-2003
  *
  * License:
  *
@@ -49,6 +49,7 @@ extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
 
 extern char     *ocsp_command;
+extern char     *ochp_command;
 
 extern char     *illegal_object_chars;
 extern char     *illegal_output_chars;
@@ -66,6 +67,7 @@ extern int      host_check_timeout;
 extern int      event_handler_timeout;
 extern int      notification_timeout;
 extern int      ocsp_timeout;
+extern int      ochp_timeout;
 
 extern int      log_initial_states;
 
@@ -109,6 +111,7 @@ extern int      execute_host_checks;
 extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
+extern int      obsess_over_hosts;
 extern int      enable_failure_prediction;
 
 extern int      aggregate_status_updates;
@@ -382,6 +385,22 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tocsp_command set to '%s'\n",ocsp_command);
 #endif
 		        }
+		else if(!strcmp(variable,"ochp_command")){
+			if(ochp_command!=NULL)
+				free(ochp_command);
+			ochp_command=(char *)strdup(value);
+			if(ochp_command==NULL){
+				strcpy(error_message,"Could not allocate memory for obsessive compulsive host processor command");
+				error=TRUE;
+				break;
+			        }
+
+			strip(ochp_command);
+
+#ifdef DEBUG1
+			printf("\t\tochp_command set to '%s'\n",ochp_command);
+#endif
+		        }
 		else if(!strcmp(variable,"nagios_user")){
 			if(nagios_user!=NULL)
 				free(nagios_user);
@@ -613,6 +632,20 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tobsess_over_services set to %s\n",(obsess_over_services==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+		else if(!strcmp(variable,"obsess_over_hosts")){
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for obsess_over_hosts");
+				error=TRUE;
+				break;
+			        }
+
+			strip(value);
+			obsess_over_hosts=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tobsess_over_hosts set to %s\n",(obsess_over_hosts==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
 		else if(!strcmp(variable,"service_check_timeout")){
 			strip(value);
 			service_check_timeout=atoi(value);
@@ -681,6 +714,20 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tocsp_timeout set to %d\n",ocsp_timeout);
+#endif
+		        }
+		else if(!strcmp(variable,"ochp_timeout")){
+			strip(value);
+			ochp_timeout=atoi(value);
+
+			if(ochp_timeout<=0){
+				strcpy(error_message,"Illegal value for ochp_timeout");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tochp_timeout set to %d\n",ochp_timeout);
 #endif
 		        }
 		else if(!strcmp(variable,"use_agressive_host_checking") || !strcmp(variable,"use_aggressive_host_checking")){
@@ -2303,10 +2350,10 @@ int pre_flight_check(void){
 #endif
 
 	/**************************************************/
-	/* check obsessive service processor command...   */
+	/* check obsessive processor commands...          */
 	/**************************************************/
 	if(verify_config==TRUE)
-		printf("Checking obsessive compulsive service processor command...\n");
+		printf("Checking obsessive compulsive processor commands...\n");
 	if(ocsp_command!=NULL){
 	        temp_command=find_command(ocsp_command,NULL);
 		if(temp_command==NULL){
@@ -2316,9 +2363,18 @@ int pre_flight_check(void){
 			errors++;
 		        }
 	        }
+	if(ochp_command!=NULL){
+	        temp_command=find_command(ochp_command,NULL);
+		if(temp_command==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",ochp_command);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
 
 #ifdef DEBUG1
-	printf("\tCompleted obsessive compulsive service processor command check\n");
+	printf("\tCompleted obsessive compulsive processor command checks\n");
 #endif
 
 	/**************************************************/

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-05-2003
+ * Last Modified: 02-10-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,6 +108,7 @@
 #define DEFAULT_HOST_CHECK_TIMEOUT		30	/* max time in seconds to wait for host check commands to complete */
 #define DEFAULT_SERVICE_CHECK_TIMEOUT		60	/* max time in seconds to wait for service check commands to complete */
 #define DEFAULT_OCSP_TIMEOUT			15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
+#define DEFAULT_OCHP_TIMEOUT			15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
 #define DEFAULT_PERFDATA_TIMEOUT                5       /* max time in seconds to wait for performance data commands to complete */
 #define DEFAULT_TIME_CHANGE_THRESHOLD		900	/* compensate for time changes of more than 15 minutes */
 
@@ -405,8 +406,8 @@ void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts
 
 
 /**** Flap Detection Functions ****/
-void check_for_service_flapping(service *);		/* determines whether or not a service is "flapping" between states */
-void check_for_host_flapping(host *);			/* determines whether or not a host is "flapping" between states */
+void check_for_service_flapping(service *,int);		/* determines whether or not a service is "flapping" between states */
+void check_for_host_flapping(host *,int);			/* determines whether or not a host is "flapping" between states */
 void set_service_flap(service *,double,double);		/* handles a service that is flapping */
 void clear_service_flap(service *,double,double);	/* handles a service that has stopped flapping */
 void set_host_flap(host *,double,double);		/* handles a host that is flapping */
@@ -428,6 +429,7 @@ int handle_host_state(host *,int,int);               	/* top level host state ha
 
 /**** Event Handler Functions ****/
 int obsessive_compulsive_service_check_processor(service *,int);	/* distributed monitoring craziness... */
+int obsessive_compulsive_host_check_processor(host *,int);	/* distributed monitoring craziness... */
 int handle_service_event(service *,int);			/* top level service event logic */
 int run_service_event_handler(service *,int);			/* runs the event handler for a specific service */
 int run_global_service_event_handler(service *,int);		/* runs the global service event handler */

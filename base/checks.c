@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2003
+ * Last Modified:   02-13-2003
  *
  * License:
  *
@@ -63,6 +63,7 @@ extern int      non_parallelized_check_running;
 extern int      accept_passive_service_checks;
 extern int      execute_host_checks;
 extern int      obsess_over_services;
+extern int      obsess_over_hosts;
 
 extern int      check_service_freshness;
 
@@ -1131,10 +1132,10 @@ void reap_service_checks(void){
 		update_service_status(temp_service,FALSE);
 
 		/* check to see if the service is flapping */
-		check_for_service_flapping(temp_service);
+		check_for_service_flapping(temp_service,TRUE);
 
 		/* check to see if the associated host is flapping */
-		check_for_host_flapping(temp_host);
+		check_for_host_flapping(temp_host,TRUE);
 
 		/* update service performance info */
 		update_service_performance_data(temp_service);
@@ -1648,7 +1649,7 @@ int check_host(host *hst,int propagation_options){
 #endif
 
 	/* check to see if the associated host is flapping */
-	check_for_host_flapping(hst);
+	check_for_host_flapping(hst,TRUE);
 
 	/* check for external commands if we're doing so as often as possible */
 	if(command_check_interval==-1)

@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-22-2003
+ * Last Modified: 07-24-2003
  *
  * License:
  * 
@@ -190,6 +190,7 @@ int show_all_services=FALSE;
 
 int assume_initial_states=TRUE;
 int assume_state_retention=TRUE;
+int assume_states_during_notrunning=TRUE;
 int initial_assumed_host_state=AS_NO_DATA;
 int initial_assumed_service_state=AS_NO_DATA;
 
@@ -214,6 +215,8 @@ void display_specific_servicegroup_availability(servicegroup *);
 void display_host_availability(void);
 void display_service_availability(void);
 void write_log_entries(avail_subject *);
+
+void get_running_average(double *,double,int);
 
 void host_report_url(char *,char *);
 void service_report_url(char *,char *,char *);
@@ -388,7 +391,7 @@ int main(int argc, char **argv){
 			if(display_type==DISPLAY_HOST_AVAIL && show_all_hosts==FALSE){
 				host_report_url("all","View Availability Report For All Hosts");
 				printf("<BR>\n");
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedhoststate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
@@ -400,7 +403,7 @@ int main(int argc, char **argv){
 				service_report_url("null","all","View Availability Report For All Services");
 				printf("<BR>\n");
 				printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
-				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
+				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
@@ -487,22 +490,9 @@ int main(int argc, char **argv){
 			if(display_type==DISPLAY_SERVICEGROUP_AVAIL)
 				printf("<input type='hidden' name='servicegroup' value='%s'>\n",servicegroup_name);
 
-			printf("<tr><td valign=top align=left class='optBoxItem'>Assume initial states:</td><td valign=top align=left class='optBoxItem'>Assume state retention:</td></tr>\n");
-			printf("<tr>\n");
-			printf("<td valign=top align=left class='optBoxItem'>\n");
-			printf("<select name='assumeinitialstates'>\n");
-			printf("<option value=yes %s>yes\n",(assume_initial_states==TRUE)?"selected":"");
-			printf("<option value=no %s>no\n",(assume_initial_states==TRUE)?"":"selected");
-			printf("</select>\n");
-			printf("</td>\n");
-
-			printf("<td valign=top align=left class='optBoxItem'>\n");
-			printf("<select name='assumestateretention'>\n");
-			printf("<option value=yes %s>yes\n",(assume_state_retention==TRUE)?"selected":"");
-			printf("<option value=no %s>no\n",(assume_state_retention==TRUE)?"":"selected");
-			printf("</select>\n");
-			printf("</td>\n");
-			printf("</tr>\n");
+			printf("<input type='hidden' name='assumeinitialstates' value='%s'>\n",(assume_initial_states==TRUE)?"yes":"no");
+			printf("<input type='hidden' name='assumestateretention' value='%s'>\n",(assume_state_retention==TRUE)?"yes":"no");
+			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
 
 			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
 			printf("<tr>\n");
@@ -724,6 +714,14 @@ int main(int argc, char **argv){
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
+		printf("<tr><td class='reportSelectSubTitle' align=right>Assume States During Program Downtime:</td>\n");
+		printf("<td class='reportSelectItem'>\n");
+		printf("<select name='assumestatesduringnotrunning'>\n");
+		printf("<option value=yes>Yes\n");
+		printf("<option value=no>No\n");
+		printf("</select>\n");
+		printf("</td></tr>\n");
+
 		if(display_type!=DISPLAY_SERVICE_AVAIL){
 			printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed Host State:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
@@ -749,7 +747,7 @@ int main(int argc, char **argv){
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
-		printf("<tr><td class='reportSelectSubTitle' align=right>Backtracked Archives:</td>\n");
+		printf("<tr><td class='reportSelectSubTitle' align=right>Backtracked Archives (To Scan For Initial States):</td>\n");
 		printf("<td class='reportSelectItem'>\n");
 		printf("<input type='text' name='backtrack' size='2' maxlength='2' value='%d'>\n",backtrack_archives);
 		printf("</td></tr>\n");
@@ -1199,6 +1197,20 @@ int process_cgivars(void){
 				assume_initial_states=TRUE;
 			else
 				assume_initial_states=FALSE;
+		        }
+
+		/* we found the assume state during program not running option */
+		else if(!strcmp(variables[x],"assumestatesduringnotrunning")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			if(!strcmp(variables[x],"yes"))
+				assume_states_during_notrunning=TRUE;
+			else
+				assume_states_during_notrunning=FALSE;
 		        }
 
 		/* we found the initial assumed host state option */
@@ -1927,8 +1939,15 @@ void compute_subject_availability_times(int first_state,int last_state,time_t re
 		        }
 	        }
 	if(first_state==AS_PROGRAM_END){
-		subject->time_indeterminate_notrunning+=state_duration;
-		return;
+
+		/* added 7/24/03 */
+		if(assume_states_during_notrunning==TRUE){
+			first_state=subject->last_known_state;
+		        }
+		else{
+			subject->time_indeterminate_notrunning+=state_duration;
+			return;
+		        }
 	        }
 
 	/* special case if first entry was program start */
@@ -3262,6 +3281,17 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 	double percent_time_down_known=0.0;
 	double percent_time_unreachable_known=0.0;
 	double percent_time_indeterminate=0.0;
+
+	double average_percent_time_up=0.0;
+	double average_percent_time_up_known=0.0;
+	double average_percent_time_down=0.0;
+	double average_percent_time_down_known=0.0;
+	double average_percent_time_unreachable=0.0;
+	double average_percent_time_unreachable_known=0.0;
+	double average_percent_time_indeterminate=0.0;
+
+	int current_subject=0;
+
 	char *bgclass="";
 	int odd=1;
 	host *temp_host;
@@ -3293,6 +3323,8 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 
 		if(is_host_member_of_hostgroup(hg,temp_host)==FALSE)
 			continue;
+
+		current_subject++;
 
 		/* reset variables */
 		percent_time_up=0.0;
@@ -3330,7 +3362,26 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 		printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 		host_report_url(temp_subject->host_name,temp_subject->host_name);
 		printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
+
+		get_running_average(&average_percent_time_up,percent_time_up,current_subject);
+		get_running_average(&average_percent_time_up_known,percent_time_up_known,current_subject);
+		get_running_average(&average_percent_time_down,percent_time_down,current_subject);
+		get_running_average(&average_percent_time_down_known,percent_time_down_known,current_subject);
+		get_running_average(&average_percent_time_unreachable,percent_time_unreachable,current_subject);
+		get_running_average(&average_percent_time_unreachable_known,percent_time_unreachable_known,current_subject);
+		get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
                 }
+
+	/* average statistics */
+	if(odd){
+		odd=0;
+		bgclass="Odd";
+	        }
+	else{
+		odd=1;
+		bgclass="Even";
+      	        }
+	printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
 
 	printf("</table>\n");
 	printf("</DIV>\n");
@@ -3381,6 +3432,25 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 	double percent_time_warning_known=0.0;
 	double percent_time_unknown_known=0.0;
 	double percent_time_critical_known=0.0;
+
+	double average_percent_time_up=0.0;
+	double average_percent_time_up_known=0.0;
+	double average_percent_time_down=0.0;
+	double average_percent_time_down_known=0.0;
+	double average_percent_time_unreachable=0.0;
+	double average_percent_time_unreachable_known=0.0;
+	double average_percent_time_ok=0.0;
+	double average_percent_time_ok_known=0.0;
+	double average_percent_time_unknown=0.0;
+	double average_percent_time_unknown_known=0.0;
+	double average_percent_time_warning=0.0;
+	double average_percent_time_warning_known=0.0;
+	double average_percent_time_critical=0.0;
+	double average_percent_time_critical_known=0.0;
+	double average_percent_time_indeterminate=0.0;
+
+	int current_subject=0;
+
 	char *bgclass="";
 	int odd=1;
 	host *temp_host;
@@ -3414,6 +3484,8 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 
 		if(is_host_member_of_servicegroup(sg,temp_host)==FALSE)
 			continue;
+
+		current_subject++;
 
 		/* reset variables */
 		percent_time_up=0.0;
@@ -3451,7 +3523,26 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 		host_report_url(temp_subject->host_name,temp_subject->host_name);
 		printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
+
+		get_running_average(&average_percent_time_up,percent_time_up,current_subject);
+		get_running_average(&average_percent_time_up_known,percent_time_up_known,current_subject);
+		get_running_average(&average_percent_time_down,percent_time_down,current_subject);
+		get_running_average(&average_percent_time_down_known,percent_time_down_known,current_subject);
+		get_running_average(&average_percent_time_unreachable,percent_time_unreachable,current_subject);
+		get_running_average(&average_percent_time_unreachable_known,percent_time_unreachable_known,current_subject);
+		get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
                 }
+
+	/* average statistics */
+	if(odd){
+		odd=0;
+		bgclass="Odd";
+	        }
+	else{
+		odd=1;
+		bgclass="Even";
+      	        }
+	printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
 
 	printf("</table>\n");
 	printf("</DIV>\n");
@@ -3462,6 +3553,9 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='data'>\n");
 	printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>Service</TH><TH CLASS='data'>%% Time OK</TH><TH CLASS='data'>%% Time Warning</TH><TH CLASS='data'>%% Time Unknown</TH><TH CLASS='data'>%% Time Critical</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
+
+	current_subject=0;
+	average_percent_time_indeterminate=0.0;
 
 	for(temp_subject=subject_list;temp_subject!=NULL;temp_subject=temp_subject->next){
 
@@ -3474,6 +3568,8 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 
 		if(is_service_member_of_servicegroup(sg,temp_service)==FALSE)
 			continue;
+
+		current_subject++;
 
 		time_determinate=temp_subject->time_ok+temp_subject->time_warning+temp_subject->time_unknown+temp_subject->time_critical;
 		time_indeterminate=total_time-time_determinate;
@@ -3522,7 +3618,29 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 
 		strncpy(last_host,temp_subject->host_name,sizeof(last_host)-1);
 		last_host[sizeof(last_host)-1]='\x0';
+
+		get_running_average(&average_percent_time_ok,percent_time_ok,current_subject);
+		get_running_average(&average_percent_time_ok_known,percent_time_ok_known,current_subject);
+		get_running_average(&average_percent_time_unknown,percent_time_unknown,current_subject);
+		get_running_average(&average_percent_time_unknown_known,percent_time_unknown_known,current_subject);
+		get_running_average(&average_percent_time_warning,percent_time_warning,current_subject);
+		get_running_average(&average_percent_time_warning_known,percent_time_warning_known,current_subject);
+		get_running_average(&average_percent_time_critical,percent_time_critical,current_subject);
+		get_running_average(&average_percent_time_critical_known,percent_time_critical_known,current_subject);
+		get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
 	        }
+
+	/* display average stats */
+	if(odd){
+		odd=0;
+		bgclass="Odd";
+	        }
+	else{
+		odd=1;
+		bgclass="Even";
+	        }
+
+	printf("<tr CLASS='data%s'><td CLASS='data%s' colspan='2'>Average</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",bgclass,bgclass,average_percent_time_ok,average_percent_time_ok_known,average_percent_time_warning,average_percent_time_warning_known,average_percent_time_unknown,average_percent_time_unknown_known,average_percent_time_critical,average_percent_time_critical_known,bgclass,average_percent_time_indeterminate);
 
 	printf("</table>\n");
 	printf("</DIV>\n");
@@ -3589,6 +3707,25 @@ void display_host_availability(void){
 	char time_indeterminate_nodata_string[48];
 	double percent_time_indeterminate_notrunning=0.0;
 	double percent_time_indeterminate_nodata=0.0;
+
+	double average_percent_time_up=0.0;
+	double average_percent_time_up_known=0.0;
+	double average_percent_time_down=0.0;
+	double average_percent_time_down_known=0.0;
+	double average_percent_time_unreachable=0.0;
+	double average_percent_time_unreachable_known=0.0;
+	double average_percent_time_indeterminate=0.0;
+
+	double average_percent_time_ok=0.0;
+	double average_percent_time_ok_known=0.0;
+	double average_percent_time_unknown=0.0;
+	double average_percent_time_unknown_known=0.0;
+	double average_percent_time_warning=0.0;
+	double average_percent_time_warning_known=0.0;
+	double average_percent_time_critical=0.0;
+	double average_percent_time_critical_known=0.0;
+
+	int current_subject=0;
 
 	char *bgclass="";
 	int odd=1;
@@ -3756,6 +3893,8 @@ void display_host_availability(void){
 			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 				continue;
 
+			current_subject++;
+
 			if(odd){
 				odd=0;
 				bgclass="Odd";
@@ -3796,7 +3935,29 @@ void display_host_availability(void){
 			printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 			service_report_url(temp_subject->host_name,temp_subject->service_description,temp_subject->service_description);
 			printf("</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_ok,percent_time_ok_known,percent_time_warning,percent_time_warning_known,percent_time_unknown,percent_time_unknown_known,percent_time_critical,percent_time_critical_known,bgclass,percent_time_indeterminate);
+
+			get_running_average(&average_percent_time_ok,percent_time_ok,current_subject);
+			get_running_average(&average_percent_time_ok_known,percent_time_ok_known,current_subject);
+			get_running_average(&average_percent_time_unknown,percent_time_unknown,current_subject);
+			get_running_average(&average_percent_time_unknown_known,percent_time_unknown_known,current_subject);
+			get_running_average(&average_percent_time_warning,percent_time_warning,current_subject);
+			get_running_average(&average_percent_time_warning_known,percent_time_warning_known,current_subject);
+			get_running_average(&average_percent_time_critical,percent_time_critical,current_subject);
+			get_running_average(&average_percent_time_critical_known,percent_time_critical_known,current_subject);
+			get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
 	                }
+
+		/* display average stats */
+		if(odd){
+			odd=0;
+			bgclass="Odd";
+	                }
+		else{
+			odd=1;
+			bgclass="Even";
+	                }
+
+		printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",bgclass,bgclass,average_percent_time_ok,average_percent_time_ok_known,average_percent_time_warning,average_percent_time_warning_known,average_percent_time_unknown,average_percent_time_unknown_known,average_percent_time_critical,average_percent_time_critical_known,bgclass,average_percent_time_indeterminate);
 
 		printf("</table>\n");
 		printf("</DIV>\n");
@@ -3846,6 +4007,8 @@ void display_host_availability(void){
 			/* the user isn't authorized to view this host */
 			if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 				continue;
+
+			current_subject++;
 
 			time_determinate=temp_subject->time_up+temp_subject->time_down+temp_subject->time_unreachable;
 			time_indeterminate=total_time-time_determinate;
@@ -3937,7 +4100,26 @@ void display_host_availability(void){
 				/* indeterminate times */
 				printf(" %lu, %2.3f%%, %lu, %2.3f%%, %lu, %2.3f%%\n",temp_subject->time_indeterminate_notrunning,percent_time_indeterminate_notrunning,temp_subject->time_indeterminate_nodata,percent_time_indeterminate_nodata,time_indeterminate,percent_time_indeterminate);
 			        }
+
+			get_running_average(&average_percent_time_up,percent_time_up,current_subject);
+			get_running_average(&average_percent_time_up_known,percent_time_up_known,current_subject);
+			get_running_average(&average_percent_time_down,percent_time_down,current_subject);
+			get_running_average(&average_percent_time_down_known,percent_time_down_known,current_subject);
+			get_running_average(&average_percent_time_unreachable,percent_time_unreachable,current_subject);
+			get_running_average(&average_percent_time_unreachable_known,percent_time_unreachable_known,current_subject);
+			get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
 	                }
+
+		/* average statistics */
+		if(odd){
+			odd=0;
+			bgclass="Odd";
+		        }
+		else{
+			odd=1;
+			bgclass="Even";
+	      	        }
+		printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
 
 		if(output_format==HTML_OUTPUT){
 			printf("</table>\n");
@@ -3998,6 +4180,18 @@ void display_service_availability(void){
 	double percent_time_ok_unscheduled=0.0;
 	double percent_time_ok_scheduled_known=0.0;
 	double percent_time_ok_unscheduled_known=0.0;
+
+	double average_percent_time_ok=0.0;
+	double average_percent_time_ok_known=0.0;
+	double average_percent_time_unknown=0.0;
+	double average_percent_time_unknown_known=0.0;
+	double average_percent_time_warning=0.0;
+	double average_percent_time_warning_known=0.0;
+	double average_percent_time_critical=0.0;
+	double average_percent_time_critical_known=0.0;
+	double average_percent_time_indeterminate=0.0;
+
+	int current_subject=0;
 
 	char time_indeterminate_scheduled_string[48];
 	char time_indeterminate_unscheduled_string[48];
@@ -4217,6 +4411,8 @@ void display_service_availability(void){
 			if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 				continue;
 
+			current_subject++;
+
 			time_determinate=temp_subject->time_ok+temp_subject->time_warning+temp_subject->time_unknown+temp_subject->time_critical;
 			time_indeterminate=total_time-time_determinate;
 
@@ -4328,9 +4524,31 @@ void display_service_availability(void){
 
 			strncpy(last_host,temp_subject->host_name,sizeof(last_host)-1);
 			last_host[sizeof(last_host)-1]='\x0';
-		        }
+
+			get_running_average(&average_percent_time_ok,percent_time_ok,current_subject);
+			get_running_average(&average_percent_time_ok_known,percent_time_ok_known,current_subject);
+			get_running_average(&average_percent_time_unknown,percent_time_unknown,current_subject);
+			get_running_average(&average_percent_time_unknown_known,percent_time_unknown_known,current_subject);
+			get_running_average(&average_percent_time_warning,percent_time_warning,current_subject);
+			get_running_average(&average_percent_time_warning_known,percent_time_warning_known,current_subject);
+			get_running_average(&average_percent_time_critical,percent_time_critical,current_subject);
+			get_running_average(&average_percent_time_critical_known,percent_time_critical_known,current_subject);
+			get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
+                        }
 
 		if(output_format==HTML_OUTPUT){
+
+			/* average statistics */
+			if(odd){
+				odd=0;
+				bgclass="Odd";
+	                        }
+			else{
+				odd=1;
+				bgclass="Even";
+      	                        }
+			printf("<tr CLASS='data%s'><td CLASS='data%s' colspan='2'>Average</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",bgclass,bgclass,average_percent_time_ok,average_percent_time_ok_known,average_percent_time_warning,average_percent_time_warning_known,average_percent_time_unknown,average_percent_time_unknown_known,average_percent_time_critical,average_percent_time_critical_known,bgclass,average_percent_time_indeterminate);
+
 			printf("</table>\n");
 			printf("</DIV>\n");
 		        }
@@ -4350,6 +4568,7 @@ void host_report_url(char *hn, char *label){
 	printf("&backtrack=%d",backtrack_archives);
 	printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
 	printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
+	printf("&assumestatesduringnotrunning=%s",(assume_states_during_notrunning==TRUE)?"yes":"no");
 	printf("&initialassumedhoststate=%d",initial_assumed_host_state);
 	printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 	if(show_log_entries==TRUE)
@@ -4371,6 +4590,7 @@ void service_report_url(char *hn, char *sd, char *label){
 	printf("&backtrack=%d",backtrack_archives);
 	printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
 	printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
+	printf("&assumestatesduringnotrunning=%s",(assume_states_during_notrunning==TRUE)?"yes":"no");
 	printf("&initialassumedhoststate=%d",initial_assumed_host_state);
 	printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 	if(show_log_entries==TRUE)
@@ -4382,3 +4602,13 @@ void service_report_url(char *hn, char *sd, char *label){
 
 	return;
         }
+
+
+/* calculates running average */
+void get_running_average(double *running_average, double new_value, int current_item){
+
+	*running_average=(((*running_average*((double)current_item-1.0))+new_value)/(double)current_item);
+
+	return;
+        }
+

@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-22-2003
+ * Last Modified: 07-24-2003
  *
  * License:
  * 
@@ -144,6 +144,7 @@ int display_header=TRUE;
 
 int assume_initial_states=TRUE;
 int assume_state_retention=TRUE;
+int assume_states_during_notrunning=TRUE;
 
 char *host_name="";
 char *svc_description="";
@@ -378,14 +379,14 @@ int main(int argc, char **argv){
 			printf("<TR><TD CLASS='linkBox'>\n");
 
 			if(display_type==DISPLAY_HOST_TRENDS){
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedhoststate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedhoststate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_host_state,backtrack_archives);
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Host</a><BR>\n",HISTOGRAM_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Alert History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 		                }
 			else{
-				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
+				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",AVAIL_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
@@ -448,18 +449,9 @@ int main(int argc, char **argv){
 			if(display_type==DISPLAY_SERVICE_TRENDS)
 				printf("<input type='hidden' name='service' value='%s'>\n",svc_description);
 
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>Assume initial states:</td><td CLASS='optBoxItem' valign=top align=left>Assume state retention:</td></tr>\n");
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>\n");
-			printf("<select name='assumeinitialstates'>\n");
-			printf("<option value=yes %s>yes\n",(assume_initial_states==TRUE)?"selected":"");
-			printf("<option value=no %s>no\n",(assume_initial_states==TRUE)?"":"selected");
-			printf("</select>\n");
-			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
-			printf("<select name='assumestateretention'>\n");
-			printf("<option value=yes %s>yes\n",(assume_state_retention==TRUE)?"selected":"");
-			printf("<option value=no %s>no\n",(assume_state_retention==TRUE)?"":"selected");
-			printf("</select>\n");
-			printf("</td></tr>\n");
+			printf("<input type='hidden' name='assumeinitialstates' value='%s'>\n",(assume_initial_states==TRUE)?"yes":"no");
+			printf("<input type='hidden' name='assumestateretention' value='%s'>\n",(assume_state_retention==TRUE)?"yes":"no");
+			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
 
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed %s state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
 			printf("<tr><td CLASS='optBoxItem' valign=top align=left>");
@@ -986,6 +978,14 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
+			printf("<tr><td class='reportSelectSubTitle' align=right>Assume States During Program Downtime:</td>\n");
+			printf("<td class='reportSelectItem'>\n");
+			printf("<select name='assumestatesduringnotrunning'>\n");
+			printf("<option value=yes>Yes\n");
+			printf("<option value=no>No\n");
+			printf("</select>\n");
+			printf("</td></tr>\n");
+
 			printf("<tr><td class='reportSelectSubTitle' align=right>First Assumed %s State:</td>\n",(display_type==DISPLAY_HOST_TRENDS)?"Host":"Service");
 			printf("<td class='reportSelectItem'>\n");
 			if(display_type==DISPLAY_HOST_TRENDS){
@@ -1008,7 +1008,7 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td class='reportSelectSubTitle' align=right>Backtracked Archives:</td>\n");
+			printf("<tr><td class='reportSelectSubTitle' align=right>Backtracked Archives (To Scan For Initial States):</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<input type='text' name='backtrack' size='2' maxlength='2' value='%d'>\n",backtrack_archives);
 			printf("</td></tr>\n");
@@ -1270,6 +1270,20 @@ int process_cgivars(void){
 			        }
 
 			initial_assumed_service_state=atoi(variables[x]);
+		        }
+
+		/* we found the assume state during program not running option */
+		else if(!strcmp(variables[x],"assumestatesduringnotrunning")){
+			x++;
+			if(variables[x]==NULL){
+				error=TRUE;
+				break;
+			        }
+
+			if(!strcmp(variables[x],"yes"))
+				assume_states_during_notrunning=TRUE;
+			else
+				assume_states_during_notrunning=FALSE;
 		        }
 
 		/* we found the assume state retention option */
@@ -1941,8 +1955,12 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 		if(assume_initial_states==FALSE)
 			return;
 	        }
-	if(first_state==AS_PROGRAM_END)
-		return;
+	if(first_state==AS_PROGRAM_END){
+		if(assume_states_during_notrunning==TRUE)
+			first_state=last_known_state;
+		else
+			return;
+	        }
 
 	/* special case if first entry was program start */
 	if(first_state==AS_PROGRAM_START){
@@ -2123,10 +2141,11 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 		printf("href='%s?t1=%lu&t2=%lu&host=%s",TRENDS_CGI,(unsigned long)next_start_time,(unsigned long)next_end_time,url_encode(host_name));
 		if(display_type==DISPLAY_SERVICE_TRENDS)
 			printf("&service=%s",url_encode(svc_description));
-		printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"on":"off");
+		printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
 		printf("&initialassumedhoststate=%d",initial_assumed_host_state);
 		printf("&initialassumedservicestate=%d",initial_assumed_service_state);
-		printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"on":"off");
+		printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");
+		printf("&assumestatesduringnotrunning=%s",(assume_states_during_notrunning==TRUE)?"yes":"no");
 		if(backtrack_archives>0)
 			printf("&backtrack=%d",backtrack_archives);
 		printf("&zoom=%d",zoom_factor);

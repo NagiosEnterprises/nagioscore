@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2003
+ * Last Modified:   04-25-2003
  *
  * License:
  *
@@ -324,6 +324,11 @@ typedef struct serviceescalation_struct{
 	int     first_notification;
 	int     last_notification;
 	int     notification_interval;
+	char    *escalation_period;
+	int     escalate_on_recovery;
+	int     escalate_on_warning;
+	int     escalate_on_unknown;
+	int     escalate_on_critical;
 	contactgroupsmember *contact_groups;
 	struct  serviceescalation_struct *next;
         }serviceescalation;
@@ -353,6 +358,10 @@ typedef struct hostescalation_struct{
 	int     first_notification;
 	int     last_notification;
 	int     notification_interval;
+	char    *escalation_period;
+	int     escalate_on_recovery;
+	int     escalate_on_down;
+	int     escalate_on_unreachable;
 	contactgroupsmember *contact_groups;
 	struct  hostescalation_struct *next;
         }hostescalation;
@@ -455,11 +464,11 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* a
 command *add_command(char *,char *);									/* adds a command definition */
 service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
-serviceescalation *add_serviceescalation(char *,char *,int,int,int);                                    /* adds a service escalation definition */
+serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
 servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int);             /* adds a service dependency definition */
 hostdependency *add_host_dependency(char *,char *,int,int,int,int);                                     /* adds a host dependency definition */
-hostescalation *add_hostescalation(char *,int,int,int);                                                 /* adds a host escalation definition */
+hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
 hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
 serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *);                                 /* add an extended service info definition */

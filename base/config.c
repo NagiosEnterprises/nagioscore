@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-15-2003
+ * Last Modified:   04-25-2003
  *
  * License:
  *
@@ -2051,6 +2051,17 @@ int pre_flight_check(void){
 			errors++;
 		        }
 
+		/* find the timeperiod */
+		if(temp_se->escalation_period!=NULL){
+		        temp_timeperiod=find_timeperiod(temp_se->escalation_period,NULL);
+			if(temp_timeperiod==NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->escalation_period,temp_se->description,temp_se->host_name);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				errors++;
+			        }
+		        }
+
 		/* find the contact groups */
 		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			
@@ -2133,6 +2144,17 @@ int pre_flight_check(void){
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;
+		        }
+
+		/* find the timeperiod */
+		if(temp_he->escalation_period!=NULL){
+		        temp_timeperiod=find_timeperiod(temp_he->escalation_period,NULL);
+			if(temp_timeperiod==NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_he->escalation_period,temp_he->host_name);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				errors++;
+			        }
 		        }
 
 		/* find the contact groups */

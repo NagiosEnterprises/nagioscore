@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-12-2003
+ * Last Modified: 04-25-2003
  *
  * This CGI program will display various configuration information.
  *
@@ -1411,6 +1411,7 @@ void display_servicedependencies(void){
 void display_serviceescalations(void){
 	serviceescalation *temp_se;
 	contactgroupsmember *temp_contactgroupsmember;
+	int options=FALSE;
 	int odd=0;
 	char *bg_class="";
 
@@ -1439,6 +1440,8 @@ void display_serviceescalations(void){
 	printf("<TH CLASS='data'>First Notification</TH>");
 	printf("<TH CLASS='data'>Last Notification</TH>");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
+	printf("<TH CLASS='data'>Escalation Period</TH>");
+	printf("<TH CLASS='data'>Escalation Options</TH>");
 	printf("</TR>\n");
 
 	/* check all the service escalations... */
@@ -1486,6 +1489,34 @@ void display_serviceescalations(void){
 			printf("%d",temp_se->notification_interval);
 		printf("</TD>\n");
 
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_se->escalation_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_se->escalation_period),temp_se->escalation_period);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=FALSE;
+		if(temp_se->escalate_on_warning==TRUE){
+			printf("%sWarning",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(temp_se->escalate_on_unknown==TRUE){
+			printf("%sUnknown",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(temp_se->escalate_on_critical==TRUE){
+			printf("%sCritical",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(temp_se->escalate_on_recovery==TRUE){
+			printf("%sRecovery",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(options==FALSE)
+			printf("None");
+		printf("</TD>\n");
 
 		printf("</TR>\n");
 	        }
@@ -1578,6 +1609,7 @@ void display_hostdependencies(void){
 void display_hostescalations(void){
 	hostescalation *temp_he;
 	contactgroupsmember *temp_contactgroupsmember;
+	int options=FALSE;
 	int odd=0;
 	char *bg_class="";
 
@@ -1602,6 +1634,8 @@ void display_hostescalations(void){
 	printf("<TH CLASS='data'>First Notification</TH>");
 	printf("<TH CLASS='data'>Last Notification</TH>");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
+	printf("<TH CLASS='data'>Escalation Period</TH>");
+	printf("<TH CLASS='data'>Escalation Options</TH>");
 	printf("</TR>\n");
 
 	/* check all the host escalations... */
@@ -1646,6 +1680,30 @@ void display_hostescalations(void){
 			printf("%d",temp_he->notification_interval);
 		printf("</TD>\n");
 
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_he->escalation_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_he->escalation_period),temp_he->escalation_period);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=FALSE;
+		if(temp_he->escalate_on_down==TRUE){
+			printf("%sDown",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(temp_he->escalate_on_unreachable==TRUE){
+			printf("%sUnreachable",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(temp_he->escalate_on_recovery==TRUE){
+			printf("%sRecovery",(options==TRUE)?", ":"");
+			options=TRUE;
+		        }
+		if(options==FALSE)
+			printf("None");
+		printf("</TD>\n");
 
 		printf("</TR>\n");
 	        }

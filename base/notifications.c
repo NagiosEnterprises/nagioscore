@@ -632,10 +632,14 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 /* checks to see if a service escalation entry is a match for the current service notification */
 int is_valid_escalation_for_service_notification(service *svc,serviceescalation *se){
 	int notification_number;
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("is_valid_escalation_for_service_notification() start\n");
 #endif
+
+	/* get the current time */
+	time(&current_time);
 
 	/* if this is a recovery, really we check for who got notified about a previous problem */
 	if(svc->current_state==STATE_OK)
@@ -653,6 +657,20 @@ int is_valid_escalation_for_service_notification(service *svc,serviceescalation 
 
 	/* skip this escalation if it has already passed */
 	if(se->last_notification!=0 && se->last_notification < notification_number)
+		return FALSE;
+
+	/* skip this escalation if it has a timeperiod and the current time isn't valid */
+	if(se->escalation_period!=NULL && check_time_against_period(current_time,se->escalation_period)==FALSE)
+		return FALSE;
+
+	/* skip this escalation if the state options don't match */
+	if(svc->current_state==STATE_OK && se->escalate_on_recovery==FALSE)
+		return FALSE;
+	else if(svc->current_state==STATE_WARNING && se->escalate_on_warning==FALSE)
+		return FALSE;
+	else if(svc->current_state==STATE_UNKNOWN && se->escalate_on_unknown==FALSE)
+		return FALSE;
+	else if(svc->current_state==STATE_CRITICAL && se->escalate_on_critical==FALSE)
 		return FALSE;
 
 #ifdef DEBUG0
@@ -1274,10 +1292,14 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he){
 	host *temp_host;
 	int notification_number;
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("is_valid_host_escalation_for_host_notification() start\n");
 #endif
+
+	/* get the current time */
+	time(&current_time);
 
 	/* if this is a recovery, really we check for who got notified about a previous problem */
 	if(hst->current_state==HOST_UP)
@@ -1296,6 +1318,18 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 
 	/* skip this escalation if it has already passed */
 	if(he->last_notification!=0 && he->last_notification < notification_number)
+		return FALSE;
+
+	/* skip this escalation if it has a timeperiod and the current time isn't valid */
+	if(he->escalation_period!=NULL && check_time_against_period(current_time,he->escalation_period)==FALSE)
+		return FALSE;
+
+	/* skip this escalation if the state options don't match */
+	if(hst->current_state==HOST_UP && he->escalate_on_recovery==FALSE)
+		return FALSE;
+	else if(hst->current_state==HOST_DOWN && he->escalate_on_down==FALSE)
+		return FALSE;
+	else if(hst->current_state==HOST_UNREACHABLE && he->escalate_on_unreachable==FALSE)
 		return FALSE;
 
 #ifdef DEBUG0

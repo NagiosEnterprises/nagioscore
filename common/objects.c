@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2003
+ * Last Modified:   04-25-2003
  *
  * License:
  *
@@ -2801,7 +2801,7 @@ command *add_command(char *name,char *value){
 
 
 /* add a new service escalation to the list in memory */
-serviceescalation *add_serviceescalation(char *host_name,char *description,int first_notification,int last_notification, int notification_interval){
+serviceescalation *add_serviceescalation(char *host_name,char *description,int first_notification,int last_notification, int notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery){
 	serviceescalation *new_serviceescalation;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -2827,6 +2827,16 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 	if(!strcmp(host_name,"") || !strcmp(description,"")){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service escalation host name or description is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* check options */
+	if(escalate_on_warning<0 || escalate_on_warning>1 || escalate_on_unknown<0 || escalate_on_unknown>1 || escalate_on_critical<0 || escalate_on_critical>1 || escalate_on_recovery<0 || escalate_on_recovery>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid escalation options in service '%s' on host '%s' escalation\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2864,11 +2874,31 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 		free(new_serviceescalation);
 		return NULL;
 	        }
+	if(escalation_period==NULL)
+		new_serviceescalation->escalation_period=NULL;
+	else{
+		new_serviceescalation->escalation_period=strdup(escalation_period);
+		if(new_serviceescalation->escalation_period==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation period\n",description,host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(new_serviceescalation->host_name);
+			free(new_serviceescalation->description);
+			free(new_serviceescalation);
+			return NULL;
+		        }
+	        }
 
 
 	new_serviceescalation->first_notification=first_notification;
 	new_serviceescalation->last_notification=last_notification;
 	new_serviceescalation->notification_interval=(notification_interval<=0)?0:notification_interval;
+	new_serviceescalation->escalate_on_recovery=(escalate_on_recovery>0)?TRUE:FALSE;
+	new_serviceescalation->escalate_on_warning=(escalate_on_warning>0)?TRUE:FALSE;
+	new_serviceescalation->escalate_on_unknown=(escalate_on_unknown>0)?TRUE:FALSE;
+	new_serviceescalation->escalate_on_critical=(escalate_on_critical>0)?TRUE:FALSE;
 	new_serviceescalation->contact_groups=NULL;
 
 	/* add new service escalation to the head of the service escalation list (unsorted) */
@@ -3266,7 +3296,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 
 /* add a new host escalation to the list in memory */
-hostescalation *add_hostescalation(char *host_name,int first_notification,int last_notification, int notification_interval){
+hostescalation *add_hostescalation(char *host_name,int first_notification,int last_notification, int notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery){
 	hostescalation *new_hostescalation;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -3297,6 +3327,16 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		return NULL;
 	        }
 
+	/* check options */
+	if(escalate_on_down<0 || escalate_on_down>1 || escalate_on_unreachable<0 || escalate_on_unreachable>1 || escalate_on_recovery<0 || escalate_on_recovery>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid escalation options in host '%s' escalation\n",host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
 	/* allocate memory for a new host escalation entry */
 	new_hostescalation=malloc(sizeof(hostescalation));
 	if(new_hostescalation==NULL){
@@ -3317,10 +3357,28 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 		free(new_hostescalation);
 		return NULL;
 	        }
+	if(escalation_period==NULL)
+		new_hostescalation->escalation_period=NULL;
+	else{
+		new_hostescalation->escalation_period=strdup(escalation_period);
+		if(new_hostescalation->escalation_period==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' escalation period\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(new_hostescalation->host_name);
+			free(new_hostescalation);
+			return NULL;
+		        }
+	        }
 
 	new_hostescalation->first_notification=first_notification;
 	new_hostescalation->last_notification=last_notification;
 	new_hostescalation->notification_interval=(notification_interval<=0)?0:notification_interval;
+	new_hostescalation->escalate_on_recovery=(escalate_on_recovery>0)?TRUE:FALSE;
+	new_hostescalation->escalate_on_down=(escalate_on_down>0)?TRUE:FALSE;
+	new_hostescalation->escalate_on_unreachable=(escalate_on_unreachable>0)?TRUE:FALSE;
 	new_hostescalation->contact_groups=NULL;
 
 	/* add new host escalation to the head of the host escalation list (unsorted) */
@@ -4791,6 +4849,7 @@ int free_object_data(void){
 		next_serviceescalation=this_serviceescalation->next;
 		free(this_serviceescalation->host_name);
 		free(this_serviceescalation->description);
+		free(this_serviceescalation->escalation_period);
 		free(this_serviceescalation);
 		this_serviceescalation=next_serviceescalation;
 	        }
@@ -4843,6 +4902,7 @@ int free_object_data(void){
 	while(this_hostescalation!=NULL){
 		next_hostescalation=this_hostescalation->next;
 		free(this_hostescalation->host_name);
+		free(this_hostescalation->escalation_period);
 		free(this_hostescalation);
 		this_hostescalation=next_hostescalation;
 	        }

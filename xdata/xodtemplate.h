@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-12-2003
+ * Last Modified:   04-25-2003
  *
  * License:
  *
@@ -342,11 +342,17 @@ typedef struct xodtemplate_serviceescalation_struct{
 	int       first_notification;
 	int       last_notification;
 	int       notification_interval;
+	char      *escalation_period;
+	int       escalate_on_warning;
+	int       escalate_on_unknown;
+	int       escalate_on_critical;
+	int       escalate_on_recovery;
 	char      *contact_groups;
 
 	int       have_first_notification;
 	int       have_last_notification;
 	int       have_notification_interval;
+	int       have_escalation_options;
 
 	int       has_been_resolved;
 	int       register_object;
@@ -393,11 +399,16 @@ typedef struct xodtemplate_hostescalation_struct{
 	int       first_notification;
 	int       last_notification;
 	int       notification_interval;
+	char      *escalation_period;
+	int       escalate_on_down;
+	int       escalate_on_unreachable;
+	int       escalate_on_recovery;
 	char      *contact_groups;
 
 	int       have_first_notification;
 	int       have_last_notification;
 	int       have_notification_interval;
+	int       have_escalation_options;
 
 	int       has_been_resolved;
 	int       register_object;

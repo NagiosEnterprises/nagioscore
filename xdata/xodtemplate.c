@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-15-2003
+ * Last Modified: 04-25-2003
  *
  * Description:
  *
@@ -885,13 +885,19 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_serviceescalation->hostgroup_name=NULL;
 		new_serviceescalation->host_name=NULL;
 		new_serviceescalation->service_description=NULL;
+		new_serviceescalation->escalation_period=NULL;
 		new_serviceescalation->contact_groups=NULL;
 		new_serviceescalation->first_notification=-2;
 		new_serviceescalation->last_notification=-2;
 		new_serviceescalation->notification_interval=-2;
+		new_serviceescalation->escalate_on_warning=FALSE;
+		new_serviceescalation->escalate_on_unknown=FALSE;
+		new_serviceescalation->escalate_on_critical=FALSE;
+		new_serviceescalation->escalate_on_recovery=FALSE;
 		new_serviceescalation->have_first_notification=FALSE;
 		new_serviceescalation->have_last_notification=FALSE;
 		new_serviceescalation->have_notification_interval=FALSE;
+		new_serviceescalation->have_escalation_options=FALSE;
 		new_serviceescalation->has_been_resolved=FALSE;
 		new_serviceescalation->register_object=TRUE;
 		new_serviceescalation->_config_file=config_file;
@@ -1168,13 +1174,18 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostescalation->name=NULL;
 		new_hostescalation->hostgroup_name=NULL;
 		new_hostescalation->host_name=NULL;
+		new_hostescalation->escalation_period=NULL;
 		new_hostescalation->contact_groups=NULL;
 		new_hostescalation->first_notification=-2;
 		new_hostescalation->last_notification=-2;
 		new_hostescalation->notification_interval=-2;
+		new_hostescalation->escalate_on_down=FALSE;
+		new_hostescalation->escalate_on_unreachable=FALSE;
+		new_hostescalation->escalate_on_recovery=FALSE;
 		new_hostescalation->have_first_notification=FALSE;
 		new_hostescalation->have_last_notification=FALSE;
 		new_hostescalation->have_notification_interval=FALSE;
+		new_hostescalation->have_escalation_options=FALSE;
 		new_hostescalation->has_been_resolved=FALSE;
 		new_hostescalation->register_object=TRUE;
 		new_hostescalation->_config_file=config_file;
@@ -1883,6 +1894,42 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"notification_interval")){
 			temp_serviceescalation->notification_interval=atoi(value);
 			temp_serviceescalation->have_notification_interval=TRUE;
+		        }
+		else if(!strcmp(variable,"escalation_period")){
+			temp_serviceescalation->escalation_period=strdup(value);
+			if(temp_serviceescalation->escalation_period==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for serviceescalation escalation_period.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"escalation_options")){
+			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+				if(!strcmp(temp_ptr,"w") || !strcmp(temp_ptr,"warning"))
+					temp_serviceescalation->escalate_on_warning=TRUE;
+				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unknown"))
+					temp_serviceescalation->escalate_on_unknown=TRUE;
+				else if(!strcmp(temp_ptr,"c") || !strcmp(temp_ptr,"critical"))
+					temp_serviceescalation->escalate_on_critical=TRUE;
+				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
+					temp_serviceescalation->escalate_on_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_serviceescalation->escalate_on_warning=FALSE;
+					temp_serviceescalation->escalate_on_unknown=FALSE;
+					temp_serviceescalation->escalate_on_critical=FALSE;
+					temp_serviceescalation->escalate_on_recovery=FALSE;
+				        }
+				else{
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid escalation option '%s' in serviceescalation definition.\n",temp_ptr);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_serviceescalation->have_escalation_options=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_serviceescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -2774,6 +2821,39 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"notification_interval")){
 			temp_hostescalation->notification_interval=atoi(value);
 			temp_hostescalation->have_notification_interval=TRUE;
+		        }
+		else if(!strcmp(variable,"escalation_period")){
+			temp_hostescalation->escalation_period=strdup(value);
+			if(temp_hostescalation->escalation_period==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for hostescalation escalation_period.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"escalation_options")){
+			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+				if(!strcmp(temp_ptr,"d") || !strcmp(temp_ptr,"down"))
+					temp_hostescalation->escalate_on_down=TRUE;
+				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
+					temp_hostescalation->escalate_on_unreachable=TRUE;
+				else if(!strcmp(temp_ptr,"r") || !strcmp(temp_ptr,"recovery"))
+					temp_hostescalation->escalate_on_recovery=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_hostescalation->escalate_on_down=FALSE;
+					temp_hostescalation->escalate_on_unreachable=FALSE;
+					temp_hostescalation->escalate_on_recovery=FALSE;
+				        }
+				else{
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid escalation option '%s' in hostescalation definition.\n",temp_ptr);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_hostescalation->have_escalation_options=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_hostescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -4912,6 +4992,8 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 		this_serviceescalation->host_name=strdup(template_serviceescalation->host_name);
 	if(this_serviceescalation->service_description==NULL && template_serviceescalation->service_description!=NULL)
 		this_serviceescalation->service_description=strdup(template_serviceescalation->service_description);
+	if(this_serviceescalation->escalation_period==NULL && template_serviceescalation->escalation_period!=NULL)
+		this_serviceescalation->escalation_period=strdup(template_serviceescalation->escalation_period);
 	if(this_serviceescalation->contact_groups==NULL && template_serviceescalation->contact_groups!=NULL)
 		this_serviceescalation->contact_groups=strdup(template_serviceescalation->contact_groups);
 	if(this_serviceescalation->have_first_notification==FALSE && template_serviceescalation->have_first_notification==TRUE){
@@ -4925,6 +5007,13 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	if(this_serviceescalation->have_notification_interval==FALSE && template_serviceescalation->have_notification_interval==TRUE){
 		this_serviceescalation->notification_interval=template_serviceescalation->notification_interval;
 		this_serviceescalation->have_notification_interval=TRUE;
+	        }
+	if(this_serviceescalation->have_escalation_options==FALSE && template_serviceescalation->have_escalation_options==TRUE){
+		this_serviceescalation->escalate_on_warning=template_serviceescalation->escalate_on_warning;
+		this_serviceescalation->escalate_on_unknown=template_serviceescalation->escalate_on_unknown;
+		this_serviceescalation->escalate_on_critical=template_serviceescalation->escalate_on_critical;
+		this_serviceescalation->escalate_on_recovery=template_serviceescalation->escalate_on_recovery;
+		this_serviceescalation->have_escalation_options=TRUE;
 	        }
 
 #ifdef DEBUG0
@@ -5414,6 +5503,8 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	/* apply missing properties from template hostescalation... */
 	if(this_hostescalation->host_name==NULL && template_hostescalation->host_name!=NULL)
 		this_hostescalation->host_name=strdup(template_hostescalation->host_name);
+	if(this_hostescalation->escalation_period==NULL && template_hostescalation->escalation_period!=NULL)
+		this_hostescalation->escalation_period=strdup(template_hostescalation->escalation_period);
 	if(this_hostescalation->contact_groups==NULL && template_hostescalation->contact_groups!=NULL)
 		this_hostescalation->contact_groups=strdup(template_hostescalation->contact_groups);
 	if(this_hostescalation->have_first_notification==FALSE && template_hostescalation->have_first_notification==TRUE){
@@ -5427,6 +5518,12 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	if(this_hostescalation->have_notification_interval==FALSE && template_hostescalation->have_notification_interval==TRUE){
 		this_hostescalation->notification_interval=template_hostescalation->notification_interval;
 		this_hostescalation->have_notification_interval=TRUE;
+	        }
+	if(this_hostescalation->have_escalation_options==FALSE && template_hostescalation->have_escalation_options==TRUE){
+		this_hostescalation->escalate_on_down=template_hostescalation->escalate_on_down;
+		this_hostescalation->escalate_on_unreachable=template_hostescalation->escalate_on_unreachable;
+		this_hostescalation->escalate_on_recovery=template_hostescalation->escalate_on_recovery;
+		this_hostescalation->have_escalation_options=TRUE;
 	        }
 
 #ifdef DEBUG0
@@ -6469,8 +6566,16 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	if(this_serviceescalation->register_object==FALSE)
 		return OK;
 
+	/* default options if none specified */
+	if(this_serviceescalation->have_escalation_options==FALSE){
+		this_serviceescalation->escalate_on_warning=TRUE;
+		this_serviceescalation->escalate_on_unknown=TRUE;
+		this_serviceescalation->escalate_on_critical=TRUE;
+		this_serviceescalation->escalate_on_recovery=TRUE;
+	        }
+
 	/* add the serviceescalation */
-	new_serviceescalation=add_serviceescalation(this_serviceescalation->host_name,this_serviceescalation->service_description,this_serviceescalation->first_notification,this_serviceescalation->last_notification,this_serviceescalation->notification_interval);
+	new_serviceescalation=add_serviceescalation(this_serviceescalation->host_name,this_serviceescalation->service_description,this_serviceescalation->first_notification,this_serviceescalation->last_notification,this_serviceescalation->notification_interval,this_serviceescalation->escalation_period,this_serviceescalation->escalate_on_warning,this_serviceescalation->escalate_on_unknown,this_serviceescalation->escalate_on_critical,this_serviceescalation->escalate_on_recovery);
 
 	/* return with an error if we couldn't add the serviceescalation */
 	if(new_serviceescalation==NULL){
@@ -6793,8 +6898,15 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	if(this_hostescalation->register_object==FALSE)
 		return OK;
 
+	/* default options if none specified */
+	if(this_hostescalation->have_escalation_options==FALSE){
+		this_hostescalation->escalate_on_down=TRUE;
+		this_hostescalation->escalate_on_unreachable=TRUE;
+		this_hostescalation->escalate_on_recovery=TRUE;
+	        }
+
 	/* add the hostescalation */
-	new_hostescalation=add_hostescalation(this_hostescalation->host_name,this_hostescalation->first_notification,this_hostescalation->last_notification,this_hostescalation->notification_interval);
+	new_hostescalation=add_hostescalation(this_hostescalation->host_name,this_hostescalation->first_notification,this_hostescalation->last_notification,this_hostescalation->notification_interval,this_hostescalation->escalation_period,this_hostescalation->escalate_on_down,this_hostescalation->escalate_on_unreachable,this_hostescalation->escalate_on_recovery);
 
 	/* return with an error if we couldn't add the hostescalation */
 	if(new_hostescalation==NULL){
@@ -7268,6 +7380,23 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"first_notification\t%d\n",temp_serviceescalation->first_notification);
 		fprintf(fp,"last_notification\t%d\n",temp_serviceescalation->last_notification);
 		fprintf(fp,"notification_interval\t%d\n",temp_serviceescalation->notification_interval);
+		if(temp_serviceescalation->escalation_period)
+			fprintf(fp,"escalation_period\t%s\n",temp_serviceescalation->escalation_period);
+		if(temp_serviceescalation->have_escalation_options==TRUE){
+			fprintf(fp,"escalation_options\t");
+			x=0;
+			if(temp_serviceescalation->escalate_on_warning==TRUE)
+				fprintf(fp,"%sw",(x++>0)?",":"");
+			if(temp_serviceescalation->escalate_on_unknown==TRUE)
+				fprintf(fp,"%su",(x++>0)?",":"");
+			if(temp_serviceescalation->escalate_on_critical==TRUE)
+				fprintf(fp,"%sc",(x++>0)?",":"");
+			if(temp_serviceescalation->escalate_on_recovery==TRUE)
+				fprintf(fp,"%sr",(x++>0)?",":"");
+			if(x==0)
+				fprintf(fp,"n");
+			fprintf(fp,"\n");
+		        }
 		if(temp_serviceescalation->contact_groups)
 			fprintf(fp,"contact_groups\t%s\n",temp_serviceescalation->contact_groups);
 		fprintf(fp,"}\n");
@@ -7321,6 +7450,21 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"first_notification\t%d\n",temp_hostescalation->first_notification);
 		fprintf(fp,"last_notification\t%d\n",temp_hostescalation->last_notification);
 		fprintf(fp,"notification_interval\t%d\n",temp_hostescalation->notification_interval);
+		if(temp_hostescalation->escalation_period)
+			fprintf(fp,"escalation_period\t%s\n",temp_hostescalation->escalation_period);
+		if(temp_hostescalation->have_escalation_options==TRUE){
+			fprintf(fp,"escalation_options\t");
+			x=0;
+			if(temp_hostescalation->escalate_on_down==TRUE)
+				fprintf(fp,"%sd",(x++>0)?",":"");
+			if(temp_hostescalation->escalate_on_unreachable==TRUE)
+				fprintf(fp,"%su",(x++>0)?",":"");
+			if(temp_hostescalation->escalate_on_recovery==TRUE)
+				fprintf(fp,"%sr",(x++>0)?",":"");
+			if(x==0)
+				fprintf(fp,"n");
+			fprintf(fp,"\n");
+		        }
 		if(temp_hostescalation->contact_groups)
 			fprintf(fp,"contact_groups\t%s\n",temp_hostescalation->contact_groups);
 		fprintf(fp,"}\n");
@@ -7488,6 +7632,7 @@ int xodtemplate_free_memory(void){
 		free(this_serviceescalation->hostgroup_name);
 		free(this_serviceescalation->host_name);
 		free(this_serviceescalation->service_description);
+		free(this_serviceescalation->escalation_period);
 		free(this_serviceescalation->contact_groups);
 		free(this_serviceescalation);
 	        }
@@ -7577,6 +7722,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostescalation->name);
 		free(this_hostescalation->hostgroup_name);
 		free(this_hostescalation->host_name);
+		free(this_hostescalation->escalation_period);
 		free(this_hostescalation->contact_groups);
 		free(this_hostescalation);
 	        }

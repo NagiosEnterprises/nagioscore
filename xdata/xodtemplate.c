@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2004
+ * Last Modified: 08-05-2004
  *
  * Description:
  *
@@ -6778,6 +6778,8 @@ xodtemplate_contactgroup *xodtemplate_find_real_contactgroup(char *name){
 		return NULL;
 
 	for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
+		if(temp_contactgroup->register_object==FALSE)
+			continue;
 		if(temp_contactgroup->contactgroup_name==NULL)
 			continue;
 		if(!strcmp(temp_contactgroup->contactgroup_name,name))
@@ -6814,6 +6816,8 @@ xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *name){
 		return NULL;
 
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+		if(temp_hostgroup->register_object==FALSE)
+			continue;
 		if(temp_hostgroup->hostgroup_name==NULL)
 			continue;
 		if(!strcmp(temp_hostgroup->hostgroup_name,name))
@@ -6850,6 +6854,8 @@ xodtemplate_servicegroup *xodtemplate_find_real_servicegroup(char *name){
 		return NULL;
 
 	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(temp_servicegroup->register_object==FALSE)
+			continue;
 		if(temp_servicegroup->servicegroup_name==NULL)
 			continue;
 		if(!strcmp(temp_servicegroup->servicegroup_name,name))
@@ -6921,6 +6927,8 @@ xodtemplate_contact *xodtemplate_find_real_contact(char *name){
 		return NULL;
 
 	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+		if(temp_contact->register_object==FALSE)
+			continue;
 		if(temp_contact->contact_name==NULL)
 			continue;
 		if(!strcmp(temp_contact->contact_name,name))
@@ -6957,6 +6965,8 @@ xodtemplate_host *xodtemplate_find_real_host(char *name){
 		return NULL;
 
 	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+		if(temp_host->register_object==FALSE)
+			continue;
 		if(temp_host->host_name==NULL)
 			continue;
 		if(!strcmp(temp_host->host_name,name))
@@ -7063,6 +7073,8 @@ xodtemplate_service *xodtemplate_find_real_service(char *host, char *description
 
 
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+		if(temp_service->register_object==FALSE)
+			continue;
 		if(temp_service->host_name==NULL || temp_service->service_description==NULL)
 			continue;
 		if(!strcmp(host,temp_service->host_name) && !strcmp(description,temp_service->service_description))

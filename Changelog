@@ -9,6 +9,8 @@ Nagios Change Log
 * Fixed segfaults in CGIs where plugin output was NULL
 * Minor fixes to INSTALL documentation
 * Fixed segfault with mispaired servicegroup memberships
+* Added $PROCESSSTARTTIME$ macro
+* If not specified, host address and alias now default to host name
 
 
 

@@ -637,6 +637,10 @@ The tables below list all macros currently available in Nagios, along with a bri
 <td colspan='9' class='MacroType'>Misc Macros:</td>
 </tr>
 <tr>
+<td class='MacroName'><a href="#processstarttime">$PROCESSSTARTTIME$</a></td>
+<td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
+</tr>
+<tr>
 <td class='MacroName'><a href="#adminemail">$ADMINEMAIL$</a></td>
 <td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td><td class="MacroYes">Yes</td>
 </tr>
@@ -1267,6 +1271,12 @@ The tables below list all macros currently available in Nagios, along with a bri
 </tr>
 
 <tr>
+<a name="processstarttime"></a>
+<td class="MacroName">$PROCESSSTARTTIME$</td>
+<td class="MacroDescription">Time stamp in time_t format (seconds since the UNIX epoch) indicating when the Nagios process was last (re)started.  You can determine the number of seconds that Nagios has been running (since it was last restarted) by subtracting $PROCESSSTARTTIME$ from <a href="#timet">$TIMET$</a>.</td>
+</tr>
+
+<tr>
 <a name="adminemail"></a>
 <td class="MacroName">$ADMINEMAIL$</td>
 <td class="MacroDescription">Global administrative email address.  This value is taken from the <a href="configmain.html#admin_email">admin_email</a> directive.</td>
@@ -1287,7 +1297,7 @@ The tables below list all macros currently available in Nagios, along with a bri
 <tr>
 <a name="user"></a>
 <td class="MacroName">$USERn$</td>
-<td class="MacroDescription">The <i>n</i>th user-definable macro. User macros can be defined in one or more <a href="configmain.html#resource_file">resource files</a>. Nagios supports up to thrity-two user macros ($USER1$ through $USER32$).</td>
+<td class="MacroDescription">The <i>n</i>th user-definable macro. User macros can be defined in one or more <a href="configmain.html#resource_file">resource files</a>. Nagios supports up to 32 user macros ($USER1$ through $USER32$).</td>
 </tr>
 
 </table>

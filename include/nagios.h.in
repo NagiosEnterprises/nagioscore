@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-19-2004
+ * Last Modified: 03-11-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@
 
 #define MACRO_ENV_VAR_PREFIX			"NAGIOS_"
 
-#define MACRO_X_COUNT				96	/* size of macro_x[] array */
+#define MACRO_X_COUNT				97	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -150,6 +150,7 @@
 #define MACRO_TOTALSERVICESUNKNOWNUNHANDLED	93
 #define MACRO_TOTALSERVICEPROBLEMS		94
 #define MACRO_TOTALSERVICEPROBLEMSUNHANDLED	95
+#define MACRO_PROCESSSTARTTIME			96
 
 
 

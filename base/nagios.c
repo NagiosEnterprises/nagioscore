@@ -477,8 +477,15 @@ int main(int argc, char **argv){
 			/* reset program variables */
 			reset_variables();
 
-			/* get program (re)start time */
+			/* get program (re)start time and save as macro */
 			program_start=time(NULL);
+			if(macro_x[MACRO_PROCESSSTARTTIME]!=NULL)
+				free(macro_x[MACRO_PROCESSSTARTTIME]);
+			macro_x[MACRO_PROCESSSTARTTIME]=(char *)malloc(MAX_DATETIME_LENGTH);
+			if(macro_x[MACRO_PROCESSSTARTTIME]!=NULL){
+				snprintf(macro_x[MACRO_PROCESSSTARTTIME],MAX_DATETIME_LENGTH,"%lu",(unsigned long)program_start);
+				macro_x[MACRO_PROCESSSTARTTIME][MAX_DATETIME_LENGTH-1]='\x0';
+			        }
 
 			/* get PID */
 			nagios_pid=(int)getpid();

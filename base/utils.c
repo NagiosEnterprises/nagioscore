@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-08-2005
+ * Last Modified:   03-11-2005
  *
  * License:
  *
@@ -2170,6 +2170,7 @@ int clear_volatile_macros(void){
 		case MACRO_COMMANDFILE:
 		case MACRO_HOSTPERFDATAFILE:
 		case MACRO_SERVICEPERFDATAFILE:
+		case MACRO_PROCESSSTARTTIME:
 			break;
 		default:
 			if(macro_x[x]!=NULL){
@@ -2236,6 +2237,7 @@ int clear_nonvolatile_macros(void){
 		case MACRO_COMMANDFILE:
 		case MACRO_HOSTPERFDATAFILE:
 		case MACRO_SERVICEPERFDATAFILE:
+		case MACRO_PROCESSSTARTTIME:
 			if(macro_x[x]!=NULL){
 				free(macro_x[x]);
 				macro_x[x]=NULL;
@@ -2363,6 +2365,7 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_TOTALSERVICESUNKNOWNUNHANDLED,"TOTALSERVICESUNKNOWNUNHANDLED");
 	add_macrox_name(MACRO_TOTALSERVICEPROBLEMS,"TOTALSERVICEPROBLEMS");
 	add_macrox_name(MACRO_TOTALSERVICEPROBLEMSUNHANDLED,"TOTALSERVICEPROBLEMSUNHANDLED");
+	add_macrox_name(MACRO_PROCESSSTARTTIME,"PROCESSSTARTTIME");
 
 #ifdef DEBUG0
 	printf("init_macrox_names() end\n");

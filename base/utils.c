@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-15-2003
  *
  * License:
  *
@@ -70,7 +70,6 @@ extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
 extern char	*p1_file;
-extern char     *event_broker_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -3936,7 +3935,6 @@ int reset_variables(void){
 	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);
 	p1_file=(char *)strdup(DEFAULT_P1_FILE);
 	log_archive_path=(char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
-	event_broker_file=(char *)strdup(DEFAULT_EVENT_BROKER_FILE);
 
 	nagios_user=(char *)strdup(DEFAULT_NAGIOS_USER);
 	nagios_group=(char *)strdup(DEFAULT_NAGIOS_GROUP);

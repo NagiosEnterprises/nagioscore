@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-18-2003
  *
  * Description:
  *
@@ -46,6 +46,8 @@
 #include "../include/sretention.h"
 #include "../include/perfdata.h"
 #include "../include/broker.h"
+#include "../include/nebmods.h"
+#include "../include/nebmodules.h"
 
 
 char		*config_file=NULL;
@@ -56,8 +58,6 @@ char            *lock_file=NULL;
 char            *log_archive_path=NULL;
 char            *p1_file=NULL;    /**** EMBEDDED PERL ****/
 char            *auth_file=NULL;  /**** EMBEDDED PERL INTERPRETER AUTH FILE ****/
-char            *event_broker_file=NULL;
-
 char            *nagios_user=NULL;
 char            *nagios_group=NULL;
 
@@ -198,7 +198,6 @@ service_message svc_msg;
 
 circular_buffer  external_command_buffer;
 circular_buffer  service_result_buffer;
-circular_buffer  event_broker_buffer;
 pthread_t worker_threads[TOTAL_WORKER_THREADS];
 
 
@@ -478,8 +477,10 @@ int main(int argc, char **argv){
 			result=read_all_config_data(config_file);
 
 #ifdef USE_EVENT_BROKER
-			/* initialize event broker worker thread */
-			init_event_broker_worker_thread();
+			/* load modules */
+			neb_init_modules();
+			neb_init_callback_list();
+			neb_load_all_modules();
 
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
@@ -507,7 +508,6 @@ int main(int argc, char **argv){
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-				shutdown_event_broker_worker_thread();
 #endif
 				cleanup();
 				exit(ERROR);
@@ -536,7 +536,6 @@ int main(int argc, char **argv){
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-				shutdown_event_broker_worker_thread();
 #endif
 				cleanup();
 				exit(ERROR);
@@ -576,17 +575,10 @@ int main(int argc, char **argv){
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-				shutdown_event_broker_worker_thread();
 #endif
 				cleanup();
 				exit(ERROR);
 		                }
-
-
-#ifdef USE_EVENT_BROKER
-			/* start the event broker */
-			start_event_broker_worker_thread();
-#endif
 
 		        /* initialize status data */
 			initialize_status_data(config_file);
@@ -623,7 +615,6 @@ int main(int argc, char **argv){
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-				shutdown_event_broker_worker_thread();
 #endif
 				cleanup();
 				exit(ERROR);
@@ -643,7 +634,6 @@ int main(int argc, char **argv){
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-				shutdown_event_broker_worker_thread();
 #endif
 				cleanup();
 				exit(ERROR);
@@ -693,6 +683,14 @@ int main(int argc, char **argv){
 			/* cleanup worker threads */
 			shutdown_service_result_worker_thread();
 
+#ifdef USE_EVENT_BROKER
+			/* unload modules */
+			neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD,(sigshutdown==TRUE)?NEBMODULE_NEB_SHUTDOWN:NEBMODULE_NEB_RESTART);
+			neb_free_module_list();
+			neb_free_callback_list();
+			neb_deinit_modules();
+#endif
+
 			/* shutdown stuff... */
 			if(sigshutdown==TRUE){
 
@@ -705,11 +703,6 @@ int main(int argc, char **argv){
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
  			        }
-
-#ifdef USE_EVENT_BROKER
-			/* cleanup event broker */
-			shutdown_event_broker_worker_thread();
-#endif
 
 			/* clean up after ourselves */
 			cleanup();

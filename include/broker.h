@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-09-2003
+ * Last Modified:   08-15-2003
  *
  * License:
  *
@@ -26,8 +26,13 @@
 #ifndef _BROKER_H
 #define _BROKER_H
 
+#include "config.h"
+#include "nagios.h"
+
 
 /****** EVENT TYPES ************************/
+
+#define NEBTYPE_NONE                          0
 
 #define NEBTYPE_HELLO                         1
 #define NEBTYPE_GOODBYE                       2
@@ -38,7 +43,7 @@
 #define NEBTYPE_PROCESS_RESTART               102
 #define NEBTYPE_PROCESS_SHUTDOWN              103
 
-#define NEBTYPE_TIMEDEVENT_ADD                201
+#define NEBTYPE_TIMEDEVENT_ADD                200
 #define NEBTYPE_TIMEDEVENT_REMOVE             201
 #define NEBTYPE_TIMEDEVENT_EXECUTE            202
 #define NEBTYPE_TIMEDEVENT_DELAY              203
@@ -126,5 +131,23 @@
 #define NEBATTR_DOWNTIME_STOP_CANCELLED       8
 
 #define NEBATTR_EARLY_COMMAND_TIMEOUT         512
+
+
+/****** EVENT BROKER FUNCTIONS *************/
+
+#ifdef USE_EVENT_BROKER
+struct timeval get_broker_timestamp(struct timeval *);
+void broker_program_state(int,int,int,struct timeval *);
+void broker_timed_event(int,int,int,timed_event *event,void *,struct timeval *);
+void broker_log_data(int,int,int,char *,unsigned long,struct timeval *);
+void broker_event_handler(int,int,int,void *,int,int,double,int,int,struct timeval *);
+void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
+void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct timeval *);
+void broker_host_check(int,int,int,host *,int,double,struct timeval *);
+void broker_service_check(int,int,int,service *,struct timeval *);
+void broker_comment_data(int,int,int,char *,char *,time_t,char *,char *,int,int,unsigned long,struct timeval *);
+void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
+void broker_flapping_data(int,int,int,void *,double,double,struct timeval *);
+#endif
 
 #endif

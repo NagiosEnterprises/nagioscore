@@ -11,7 +11,7 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 PKG_NAME=nagios
 PKG_VERSION="2.0-very-pre-alpha"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="02-18-2003"
+PKG_REL_DATE="08-18-2003"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -621,8 +621,8 @@ AC_ARG_ENABLE(DEBUGALL,--enable-DEBUGALL shows all debugging messages,[
 	])
 
 
-USE_EVENTBROKER=no
-AC_ARG_ENABLE(event-broker,--enable-event-broker enables integration with Nagios Event Broker,USE_EVENTBROKER=yes)
+USE_EVENTBROKER=yes
+AC_ARG_ENABLE(event-broker,--enable-event-broker enables integration of event broker routines,USE_EVENTBROKER=$withval,USE_EVENTBROKER=yes)
 
 BROKER_LDFLAGS=""
 BROKERLIBS="";
@@ -712,6 +712,10 @@ if test x$USE_EVENTBROKER = xyes; then
 
 
 	AC_DEFINE_UNQUOTED(USE_EVENT_BROKER)
+	BROKER_O="broker.o nebmods.o"
+	AC_SUBST(BROKER_O)
+	BROKER_H="../include/broker.h ../include/nebmods.h ../include/nebmodules.h ../include/nebcallbacks.h ../include/neberrors.h"
+	AC_SUBST(BROKER_H)
 fi
 
 
@@ -814,7 +818,7 @@ AC_SUBST(INITDIR)
 AC_SUBST(INSTALLPERLSTUFF)
 
 AC_PATH_PROG(PERL,perl)
-AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile include/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
+AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile include/Makefile xdata/Makefile daemon-init html/index.html html/side.html)
 
 
 perl subst include/locations.h
@@ -861,6 +865,11 @@ AC_MSG_RESULT([            Embedded Perl:  yes, without caching])
 fi
 else
 AC_MSG_RESULT([            Embedded Perl:  no])
+fi
+if test x$USE_EVENTBROKER = xyes; then
+AC_MSG_RESULT([             Event Broker:  yes])
+else
+AC_MSG_RESULT([             Event Broker:  no])
 fi
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
 AC_MSG_RESULT([                Lock file:  $lockfile])

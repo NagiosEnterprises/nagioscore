@@ -1,0 +1,48 @@
+###################################
+# Makefile for NEB examples
+#
+# Last Modified: 08-15-2003
+###################################
+
+
+# Source code directories
+SRC_INCLUDE=../include
+
+CC=@CC@
+CFLAGS=@CFLAGS@ @DEFS@ @MOD_CFLAGS@
+LDFLAGS=@LDFLAGS@ @MOD_LDFLAGS@
+LIBS=@LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+BINDIR=@bindir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+STRIP=@STRIP@
+
+CP=@CP@
+
+all:	helloworld.o
+
+mod1.o: mod1.c
+	$(CC) $(CFLAGS) -o mod1.o mod1.c $(LDFLAGS) $(LIBS)
+
+mod2.o: mod2.c
+	$(CC) $(CFLAGS) -o mod2.o mod2.c $(LDFLAGS) $(LIBS)
+
+helloworld.o: helloworld.c
+	$(CC) $(CFLAGS) -o helloworld.o helloworld.c $(LDFLAGS) $(LIBS)
+
+clean:
+	rm -f helloworld.o
+	rm -f core *.o
+	rm -f *~
+
+distclean: clean
+	rm -f Makefile
+
+devclean: distclean
+
+install:
+

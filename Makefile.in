@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 04-09-2003
+# Last Modified: 08-15-2003
 ###############################
 
 
@@ -9,6 +9,7 @@
 SRC_BASE=@srcdir@/base
 SRC_CGI=@srcdir@/cgi
 SRC_HTM=@srcdir@/html
+SRC_MODULE=@srcdir@/module
 SRC_INCLUDE=@srcdir@/include
 SRC_COMMON=@srcdir@/common
 SRC_XDATA=@srcdir@/xdata
@@ -45,7 +46,7 @@ CP=@CP@
 
 none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
-		@echo "   nagios cgis contrib"
+		@echo "   nagios cgis contrib modules"
 		@echo "   clean"
 		@echo "   install install-base install-cgis install-html install-config install-init install-commandmode fullinstall"
 #		@echo "   uninstall"
@@ -56,6 +57,7 @@ all:
 	cd $(SRC_BASE) && $(MAKE)
 	cd $(SRC_CGI) && $(MAKE)
 	cd $(SRC_HTM) && $(MAKE)
+	cd $(SRC_MODULE) && $(MAKE)
 
 	@echo ""
 	@echo "*** Compile finished ***"
@@ -128,6 +130,9 @@ html:
 contrib:
 	cd $(SRC_CONTRIB) && $(MAKE)
 
+modules:
+	cd $(SRC_MODULE) && $(MAKE)
+
 clean:
 	cd $(SRC_BASE) && $(MAKE) $@
 	cd $(SRC_CGI) && $(MAKE) $@
@@ -136,6 +141,7 @@ clean:
 	cd $(SRC_HTM) && $(MAKE) $@
 	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
+	cd $(SRC_MODULE) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ */*~
 	rm -f config.log config.status config.cache
@@ -148,7 +154,7 @@ distclean: clean
 	cd $(SRC_HTM) && $(MAKE) $@
 	cd $(SRC_INCLUDE) && $(MAKE) $@
 	cd $(SRC_CONTRIB) && $(MAKE) $@
-	rm -f $(SRC_COMMON)/config.h $(SRC_COMMON)/locations.h $(SRC_COMMON)/snprintf.h 
+	cd $(SRC_MODULE) && $(MAKE) $@
 	rm -f sample-config/*.cfg sample-config/template-object/*.cfg sample-config/default-object/*.cfg
 	rm -f daemon-init pkginfo
 	rm -f Makefile

@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-14-2003
+ * Last Modified:   08-18-2003
  *
  * License:
  *
@@ -282,14 +282,14 @@ int main(int argc, char **argv){
 
 	/* read main config file */
 	result=read_config_file();
-	if(result==ERROR){
+	if(result==ERROR && mrtg_mode==FALSE){
 		printf("Error processing config file '%s'\n",main_config_file);
 		return ERROR;
 	        }
 
 	/* read the status file */
 	result=read_status_file();
-	if(result==ERROR){
+	if(result==ERROR && mrtg_mode==FALSE){
 		printf("Error reading status file '%s'\n",status_file);
 		return ERROR;
 	        }

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-18-2003
  *
  * License:
  *
@@ -604,7 +604,7 @@ int add_hostescalation_to_hashlist(hostescalation *new_hostescalation){
 	for(temp_hostescalation=hostescalation_hashlist[hashslot];temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,new_hostescalation->host_name)<0;temp_hostescalation=temp_hostescalation->nexthash)
 		lastpointer=temp_hostescalation;
 
-	if(!temp_hostescalation || (compare_hashdata1(temp_hostescalation->host_name,new_hostescalation->host_name)!=0)){
+	if(!temp_hostescalation){
 		if(lastpointer)
 			lastpointer->nexthash=new_hostescalation;
 		else
@@ -643,7 +643,7 @@ int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
 	for(temp_serviceescalation=serviceescalation_hashlist[hashslot];temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)<0;temp_serviceescalation=temp_serviceescalation->nexthash)
 		lastpointer=temp_serviceescalation;
 
-	if(!temp_serviceescalation || (compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)!=0)){
+	if(!temp_serviceescalation){
 		if(lastpointer)
 			lastpointer->nexthash=new_serviceescalation;
 		else
@@ -3239,7 +3239,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	/* add new service to service chained hash list */
 	if(!add_service_to_hashlist(new_service)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add new service '%s' on host '%s' (out of memory?)\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service list to add new service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 
@@ -3625,7 +3625,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 	/* add new serviceescalation to serviceescalation chained hash list */
 	if(!add_serviceescalation_to_hashlist(new_serviceescalation)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceescalation list to add service '%s' on host '%s' escalation\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceescalation list to add escalation for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3871,7 +3871,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	/* add new servicedependency to servicedependency chained hash list */
 	if(!add_servicedependency_to_hashlist(new_servicedependency)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicedependency list to add service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicedependency list to add dependency for service '%s' on host '%s'\n",dependent_service_description,dependent_host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -4020,7 +4020,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	/* add new hostdependency to hostdependency chained hash list */
 	if(!add_hostdependency_to_hashlist(new_hostdependency)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostdependency list to add host '%s' dependency\n",dependent_host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostdependency list to add dependency for host '%s'\n",dependent_host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -4154,7 +4154,7 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	/* add new hostescalation to hostescalation chained hash list */
 	if(!add_hostescalation_to_hashlist(new_hostescalation)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostescalation list to add host '%s' escalation\n",host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostescalation list to add escalation for host '%s'\n",host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -4449,7 +4449,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 	/* add new hostextinfo to hostextinfo chained hash list */
 	if(!add_hostextinfo_to_hashlist(new_hostextinfo)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostextinfo list to add host '%s' extended info.\n",host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostextinfo list to add extended info for host '%s'.\n",host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -4632,7 +4632,7 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 	/* add new serviceextinfo to serviceextinfo chained hash list */
 	if(!add_serviceextinfo_to_hashlist(new_serviceextinfo)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceextinfo list to add service '%s' on host '%s' extended info.\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceextinfo list to add extended info for service '%s' on host '%s'.\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif

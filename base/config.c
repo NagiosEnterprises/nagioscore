@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-15-2003
  *
  * License:
  *
@@ -27,6 +27,8 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/nagios.h"
+#include "../include/nebmods.h"
+#include "../include/nebmodules.h"
 
 
 extern char	*log_file;
@@ -36,7 +38,6 @@ extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
 extern char	*p1_file;
-extern char     *event_broker_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -210,6 +211,8 @@ int read_main_config_file(char *main_config_file){
 	int current_line=0;
 	int error=FALSE;
 	int command_check_interval_is_seconds=FALSE;
+	char *modptr;
+	char *argptr;
 
 #ifdef DEBUG0
 	printf("read_main_config_file() start\n");
@@ -1212,22 +1215,6 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tp1_file set to '%s'\n",p1_file);
 #endif
 			}
-		else if(!strcmp(variable,"event_broker_file")){
-			if(strlen(value)>MAX_FILENAME_LENGTH-1){
-				strcpy(error_message,"Event broker file is too long");
-				error=TRUE;
-				break;
-				}
-
-			if(event_broker_file!=NULL)
-				free(event_broker_file);
-			event_broker_file=(char *)strdup(value);
-			strip(event_broker_file);
-
-#ifdef DEBUG1
-			printf("\t\tevent_broker_file set to '%s'\n",event_broker_file);
-#endif
-			}
 		else if(!strcmp(variable,"event_broker_options")){
 			strip(value);
 			event_broker_options=atoi(value);
@@ -1247,6 +1234,13 @@ int read_main_config_file(char *main_config_file){
 			illegal_output_chars=strdup(value);
 #ifdef DEBUG1
 			printf("\t\tillegal_macro_output_chars set to '%s'\n",illegal_output_chars);
+#endif
+		        }
+		else if(!strcmp(variable,"nebmodule")){
+			modptr=strtok(value," \n");
+			argptr=strtok(NULL,"\n");
+#ifdef USE_EVENT_BROKER
+                        neb_add_module(modptr,argptr,TRUE);
 #endif
 		        }
 

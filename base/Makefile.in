@@ -60,6 +60,8 @@ BASEEXTRALIBS=@BASEEXTRALIBS@
 
 # Generated automatically from configure script
 SNPRINTF_O=@SNPRINTF_O@
+BROKER_O=@BROKER_O@
+BROKER_H=@BROKER_H@
 
 # Object data
 #ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
@@ -104,8 +106,8 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=broker.o checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
-OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS)
+OBJS=$(BROKER_O) checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
+OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS) $(BROKER_H)
 
 all: nagios nagiostats
 

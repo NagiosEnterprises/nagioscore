@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-25-2004
+ * Last Modified: 10-30-2004
  *
  * License:
  * 
@@ -508,9 +508,10 @@ void document_header(int use_stylesheet){
 	printf("Extended Information\n");
 	printf("</title>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>",url_stylesheets_path,EXTINFO_CSS);
-
+	        }
 	printf("</head>\n");
 
 	printf("<body CLASS='extinfo'>\n");

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 09-02-2004
+# Last Modified: 10-30-2004
 #
 ##############################################################################
 
@@ -552,14 +552,14 @@ interval_length=60
 
 
 
-# AGRESSIVE HOST CHECKING OPTION
-# If you don't want to turn on agressive host checking features, set
+# AGGRESSIVE HOST CHECKING OPTION
+# If you don't want to turn on aggressive host checking features, set
 # this value to 0 (the default).  Otherwise set this value to 1 to
-# enable the agressive check option.  Read the docs for more info
-# on what agressive host check is or check out the source code in
+# enable the aggressive check option.  Read the docs for more info
+# on what aggressive host check is or check out the source code in
 # base/checks.c
 
-use_agressive_host_checking=0
+use_aggressive_host_checking=0
 
 
 

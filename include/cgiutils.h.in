@@ -64,6 +64,8 @@
 
 /**************************** SYLE SHEET NAMES ******************************/
 
+#define COMMON_CSS		"common.css"
+
 #define SHOWLOG_CSS		"showlog.css"
 #define STATUS_CSS		"status.css"
 #define STATUSMAP_CSS		"statusmap.css"
@@ -222,6 +224,8 @@
 #define NOTIFICATION_HOST_RECOVERY	256
 #define NOTIFICATION_SERVICE_ACK	512
 #define NOTIFICATION_HOST_ACK		1024
+#define NOTIFICATION_SERVICE_FLAP	2048
+#define NOTIFICATION_HOST_FLAP		4096
 
 
 /********************** HOST AND SERVICE ALERT TYPES **********************/

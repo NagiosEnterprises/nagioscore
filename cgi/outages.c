@@ -2,8 +2,8 @@
  *
  * OUTAGES.C -  Nagios Network Outages CGI
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 10-30-2004
  *
  * License:
  * 
@@ -230,8 +230,10 @@ void document_header(int use_stylesheet){
 	printf("Network Outages\n");
 	printf("</title>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>",url_stylesheets_path,OUTAGES_CSS);
+	        }
 
 	printf("</head>\n");
 

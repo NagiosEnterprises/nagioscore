@@ -1072,8 +1072,10 @@ void document_header(int use_stylesheet){
 	printf("Nagios Availability\n");
 	printf("</title>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,AVAIL_CSS);
+	        }
 	
 	printf("</head>\n");
 

@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-05-2004
+ * Last Modified: 10-30-2004
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -334,8 +334,10 @@ void document_header(int use_stylesheet){
 	printf("Nagios Tactical Monitoring Overview\n");
 	printf("</TITLE>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,TAC_CSS);
+	        }
 
 	printf("</HEAD>\n");
 	printf("<BODY CLASS='tac' marginwidth=2 marginheight=2 topmargin=0 leftmargin=0 rightmargin=0>\n");

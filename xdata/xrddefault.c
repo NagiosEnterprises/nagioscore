@@ -57,6 +57,8 @@ extern int            obsess_over_hosts;
 extern int            enable_flap_detection;
 extern int            enable_failure_prediction;
 extern int            process_performance_data;
+extern int            check_service_freshness;
+extern int            check_host_freshness;
 
 extern int            use_retained_program_state;
 extern int            use_retained_scheduling_info;
@@ -200,6 +202,8 @@ int xrddefault_save_state_information(char *main_config_file){
 	fprintf(fp,"\tenable_event_handlers=%d\n",enable_event_handlers);
 	fprintf(fp,"\tobsess_over_services=%d\n",obsess_over_services);
 	fprintf(fp,"\tobsess_over_hosts=%d\n",obsess_over_hosts);
+	fprintf(fp,"\tcheck_service_freshness=%d\n",check_service_freshness);
+	fprintf(fp,"\tcheck_host_freshness=%d\n",check_host_freshness);
 	fprintf(fp,"\tenable_flap_detection=%d\n",enable_flap_detection);
 	fprintf(fp,"\tenable_failure_prediction=%d\n",enable_failure_prediction);
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
@@ -532,6 +536,14 @@ int xrddefault_read_state_information(char *main_config_file){
 					else if(!strcmp(var,"obsess_over_hosts")){
 						if(modified_host_process_attributes & MODATTR_OBSESSIVE_HANDLER_ENABLED)
 							obsess_over_hosts=(atoi(val)>0)?TRUE:FALSE;
+					        }
+					else if(!strcmp(var,"check_service_freshness")){
+						if(modified_service_process_attributes & MODATTR_FRESHNESS_CHECKS_ENABLED)
+							check_service_freshness=(atoi(val)>0)?TRUE:FALSE;
+					        }
+					else if(!strcmp(var,"check_host_freshness")){
+						if(modified_host_process_attributes & MODATTR_FRESHNESS_CHECKS_ENABLED)
+							check_host_freshness=(atoi(val)>0)?TRUE:FALSE;
 					        }
 					else if(!strcmp(var,"enable_flap_detection")){
 						if(modified_host_process_attributes & MODATTR_FLAP_DETECTION_ENABLED)

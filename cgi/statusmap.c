@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Last Modified: 10-30-2004
  *
  * Description:
  *
@@ -330,8 +330,10 @@ void document_header(int use_stylesheet){
 		printf("Network Map\n");
 		printf("</title>\n");
 
-		if(use_stylesheet==TRUE)
+		if(use_stylesheet==TRUE){
+			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,STATUSMAP_CSS);
+		        }
 
 		/* write JavaScript code for popup window */
 		write_popup_code();

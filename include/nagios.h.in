@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-29-2004
+ * Last Modified: 10-30-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -189,7 +189,7 @@
 #define DEFAULT_LOG_EXTERNAL_COMMANDS		1	/* log external commands */
 #define DEFAULT_LOG_PASSIVE_CHECKS		1	/* log passive service checks */
 
-#define DEFAULT_AGGRESSIVE_HOST_CHECKING	1	/* use "aggressive" host checking */
+#define DEFAULT_AGGRESSIVE_HOST_CHECKING	0	/* don't use "aggressive" host checking */
 #define DEFAULT_CHECK_EXTERNAL_COMMANDS		0 	/* don't check for external commands */
 #define DEFAULT_CHECK_ORPHANED_SERVICES		0	/* don't check for orphaned services */
 #define DEFAULT_ENABLE_FLAP_DETECTION           0       /* don't enable flap detection */
@@ -708,6 +708,10 @@ void start_obsessing_over_service_checks(void);		/* start obsessing about servic
 void stop_obsessing_over_service_checks(void);		/* stop obsessing about service check results */
 void start_obsessing_over_host_checks(void);		/* start obsessing about host check results */
 void stop_obsessing_over_host_checks(void);		/* stop obsessing about host check results */
+void enable_service_freshness_checks(void);		/* enable service freshness checks */
+void disable_service_freshness_checks(void);		/* disable service freshness checks */
+void enable_host_freshness_checks(void);		/* enable host freshness checks */
+void disable_host_freshness_checks(void);		/* disable host freshness checks */
 void process_passive_service_checks(void);              /* processes passive service check results */
 void enable_all_failure_prediction(void);               /* enables failure prediction on a program-wide basis */
 void disable_all_failure_prediction(void);              /* disables failure prediction on a program-wide basis */

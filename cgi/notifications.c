@@ -236,11 +236,13 @@ int main(void){
 		printf("<option value=%d %s>Service unknown\n",NOTIFICATION_SERVICE_UNKNOWN,(notification_options==NOTIFICATION_SERVICE_UNKNOWN)?"selected":"");
 		printf("<option value=%d %s>Service critical\n",NOTIFICATION_SERVICE_CRITICAL,(notification_options==NOTIFICATION_SERVICE_CRITICAL)?"selected":"");
 		printf("<option value=%d %s>Service recovery\n",NOTIFICATION_SERVICE_RECOVERY,(notification_options==NOTIFICATION_SERVICE_RECOVERY)?"selected":"");
+		printf("<option value=%d %s>Service flapping\n",NOTIFICATION_SERVICE_FLAP,(notification_options==NOTIFICATION_SERVICE_FLAP)?"selected":"");
 		if(query_type!=FIND_SERVICE){
 			printf("<option value=%d %s>Host acknowledgements\n",NOTIFICATION_HOST_ACK,(notification_options==NOTIFICATION_HOST_ACK)?"selected":"");
 			printf("<option value=%d %s>Host down\n",NOTIFICATION_HOST_DOWN,(notification_options==NOTIFICATION_HOST_DOWN)?"selected":"");
 			printf("<option value=%d %s>Host unreachable\n",NOTIFICATION_HOST_UNREACHABLE,(notification_options==NOTIFICATION_HOST_UNREACHABLE)?"selected":"");
 			printf("<option value=%d %s>Host recovery\n",NOTIFICATION_HOST_RECOVERY,(notification_options==NOTIFICATION_HOST_RECOVERY)?"selected":"");
+			printf("<option value=%d %s>Host flapping\n",NOTIFICATION_HOST_FLAP,(notification_options==NOTIFICATION_HOST_FLAP)?"selected":"");
 	                }
 		printf("</select></td>\n");
 		printf("</tr>\n");
@@ -310,9 +312,11 @@ void document_header(int use_stylesheet){
 	printf("Alert Notifications\n");
 	printf("</title>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,NOTIFICATIONS_CSS);
-
+	        }
+	
 	printf("</head>\n");
 
 	printf("<body CLASS='notifications'>\n");
@@ -582,6 +586,16 @@ void display_notifications(void){
 					notification_detail_type=NOTIFICATION_SERVICE_ACK;
 					strcpy(alert_level_class,"ACKNOWLEDGEMENT");
 				        }
+				else if(strstr(alert_level,"FLAPPINGSTART (")){
+					strcpy(alert_level,"FLAPPING START");
+					notification_detail_type=NOTIFICATION_SERVICE_FLAP;
+					strcpy(alert_level_class,"UNKNOWN");
+				        }
+				else if(strstr(alert_level,"FLAPPINGSTOP (")){
+					strcpy(alert_level,"FLAPPING STOP");
+					notification_detail_type=NOTIFICATION_SERVICE_FLAP;
+					strcpy(alert_level_class,"UNKNOWN");
+				        }
 				else{
 					strcpy(alert_level,"UNKNOWN");
 					notification_detail_type=NOTIFICATION_SERVICE_UNKNOWN;
@@ -609,6 +623,16 @@ void display_notifications(void){
 				else if(strstr(alert_level,"ACKNOWLEDGEMENT (")){
 					strcpy(alert_level_class,"HOSTACKNOWLEDGEMENT");
 					notification_detail_type=NOTIFICATION_HOST_ACK;
+				        }
+				else if(strstr(alert_level,"FLAPPINGSTART (")){
+					strcpy(alert_level,"FLAPPING START");
+					strcpy(alert_level_class,"UNKNOWN");
+					notification_detail_type=NOTIFICATION_HOST_FLAP;
+				        }
+				else if(strstr(alert_level,"FLAPPINGSTOP (")){
+					strcpy(alert_level,"FLAPPING STOP");
+					strcpy(alert_level_class,"UNKNOWN");
+					notification_detail_type=NOTIFICATION_HOST_FLAP;
 				        }
 			        }
 

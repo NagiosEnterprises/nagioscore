@@ -58,6 +58,8 @@ int accept_passive_host_checks;
 int enable_event_handlers;
 int obsess_over_services;
 int obsess_over_hosts;
+int check_service_freshness;
+int check_host_freshness;
 int enable_flap_detection;
 int enable_failure_prediction;
 int process_performance_data;
@@ -78,6 +80,8 @@ extern int accept_passive_host_checks;
 extern int enable_event_handlers;
 extern int obsess_over_services;
 extern int obsess_over_hosts;
+extern int check_service_freshness;
+extern int check_host_freshness;
 extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
@@ -323,6 +327,8 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tenable_event_handlers=%d\n",enable_event_handlers);
 	fprintf(fp,"\tobsess_over_services=%d\n",obsess_over_services);
 	fprintf(fp,"\tobsess_over_hosts=%d\n",obsess_over_hosts);
+	fprintf(fp,"\tcheck_service_freshness=%d\n",check_host_freshness);
+	fprintf(fp,"\tcheck_host_freshness=%d\n",check_host_freshness);
 	fprintf(fp,"\tenable_flap_detection=%d\n",enable_flap_detection);
 	fprintf(fp,"\tenable_failure_prediction=%d\n",enable_failure_prediction);
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
@@ -584,6 +590,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 				else if(!strcmp(var,"obsess_over_services"))
 					obsess_over_services=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"obsess_over_hosts"))
+					obsess_over_hosts=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"check_service_freshness"))
+					check_service_freshness=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"check_host_freshness"))
 					obsess_over_hosts=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"enable_flap_detection"))
 					enable_flap_detection=(atoi(val)>0)?TRUE:FALSE;

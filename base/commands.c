@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Last Modified:   10-30-2004
  *
  * License:
  *
@@ -55,6 +55,8 @@ extern int      accept_passive_host_checks;
 extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      obsess_over_hosts;
+extern int      check_service_freshness;
+extern int      check_host_freshness;
 extern int      enable_failure_prediction;
 extern int      process_performance_data;
 
@@ -259,6 +261,16 @@ void check_for_external_commands(void){
 			command_type=CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER;
 		else if(!strcmp(command_id,"CHANGE_GLOBAL_SVC_EVENT_HANDLER"))
 			command_type=CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER;
+
+		else if(!strcmp(command_id,"ENABLE_SERVICE_FRESHNESS_CHECKS"))
+			command_type=CMD_ENABLE_SERVICE_FRESHNESS_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_SERVICE_FRESHNESS_CHECKS"))
+			command_type=CMD_DISABLE_SERVICE_FRESHNESS_CHECKS;
+
+		else if(!strcmp(command_id,"ENABLE_HOST_FRESHNESS_CHECKS"))
+			command_type=CMD_ENABLE_HOST_FRESHNESS_CHECKS;
+		else if(!strcmp(command_id,"DISABLE_HOST_FRESHNESS_CHECKS"))
+			command_type=CMD_DISABLE_HOST_FRESHNESS_CHECKS;
 
 
 		/*******************************/
@@ -665,6 +677,22 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 
 	case CMD_DISABLE_FLAP_DETECTION:
 		disable_flap_detection_routines();
+		break;
+
+	case CMD_ENABLE_SERVICE_FRESHNESS_CHECKS:
+		enable_service_freshness_checks();
+		break;
+	
+	case CMD_DISABLE_SERVICE_FRESHNESS_CHECKS:
+		disable_service_freshness_checks();
+		break;
+	
+	case CMD_ENABLE_HOST_FRESHNESS_CHECKS:
+		enable_host_freshness_checks();
+		break;
+	
+	case CMD_DISABLE_HOST_FRESHNESS_CHECKS:
+		disable_host_freshness_checks();
 		break;
 	
 	case CMD_ENABLE_FAILURE_PREDICTION:
@@ -3904,6 +3932,102 @@ void stop_obsessing_over_host_checks(void){
 	return;
         }
 
+
+
+/* enables service freshness checking */
+void enable_service_freshness_checks(void){
+
+#ifdef DEBUG0
+	printf("enable_service_freshness_checks() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+
+	/* set the freshness check flag */
+	check_service_freshness=TRUE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("enable_service_freshness_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+/* disables service freshness checking */
+void disable_service_freshness_checks(void){
+
+#ifdef DEBUG0
+	printf("disable_service_freshness_checks() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+
+	/* set the freshness check flag */
+	check_service_freshness=FALSE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("disable_service_freshness_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+/* enables host freshness checking */
+void enable_host_freshness_checks(void){
+
+#ifdef DEBUG0
+	printf("enable_host_freshness_checks() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+
+	/* set the freshness check flag */
+	check_host_freshness=TRUE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("enable_host_freshness_checks() end\n");
+#endif
+
+	return;
+        }
+
+
+/* disables host freshness checking */
+void disable_host_freshness_checks(void){
+
+#ifdef DEBUG0
+	printf("disable_host_freshness_checks() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+
+	/* set the freshness check flag */
+	check_host_freshness=FALSE;
+
+	/* update the status log with the program info */
+	update_program_status(FALSE);
+
+#ifdef DEBUG0
+	printf("disable_host_freshness_checks() end\n");
+#endif
+
+	return;
+        }
 
 
 /* enable failure prediction on a program-wide basis */

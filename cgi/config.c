@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-24-2004
+ * Last Modified: 10-30-2004
  *
  * This CGI program will display various configuration information.
  *
@@ -321,8 +321,10 @@ void document_header(int use_stylesheet){
 	printf("Configuration\n");
 	printf("</title>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,CONFIG_CSS);
+	        }
 
 	printf("</head>\n");
 

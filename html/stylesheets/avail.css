@@ -1,68 +1,68 @@
 
-	.avail { font-family: arial,serif; background-color: white; color: black; font-size: 10pt; }
+.avail { font-family: arial,serif;  background-color: white;  color: black;  font-size: 10pt; }
 
-	.errorMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: 12pt; }
-	.errorDescription { font-family: arial,serif;  text-align: center; font-weight: bold; font-size: 12pt; }
-	.warningMessage { font-family: arial,serif; text-align: center; color: red; font-weight: bold; font-size: 10pt; }
+.errorMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
+.errorDescription { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.warningMessage { font-family: arial,serif;  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
 
-	.infoBox { font-family: arial,serif; font-size: 8pt; background-color: #C4C2C2; padding: 2; }
-	.infoBoxTitle { font-family: arial,serif; font-size: 10pt; font-weight: bold; }
-	.infoBoxBadProcStatus {font-family: arial,serif;  color: red; }
-	A.homepageURL:Hover { font-family: arial,serif; color: red; }
-	
-	.linkBox { font-family: arial,serif; font-size: 8pt; background-color: #DBDBDB; padding: 1; }
+.infoBox { font-family: arial,serif;  font-size: 8pt;  background-color: #C4C2C2;  padding: 2; }
+.infoBoxTitle { font-family: arial,serif;  font-size: 10pt;  font-weight: bold; }
+.infoBoxBadProcStatus { font-family: arial,serif;  color: red; }
+A.homepageURL: Hover { font-family: arial,serif;  color: red; }
 
-	.reportRange {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: 10pt; }
-	.reportDuration {font-family: arial,serif;  text-align: center; font-size: 8pt; }
-	.reportTime {font-family: arial,serif;  text-align: center; font-size: 8pt; }
+.linkBox { font-family: arial,serif;  font-size: 8pt;  background-color: #DBDBDB;  padding: 1; }
 
-	.dataTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: 12pt; }
+.reportRange { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
+.reportDuration { font-family: arial,serif;  text-align: center;  font-size: 8pt; }
+.reportTime { font-family: arial,serif;  text-align: center;  font-size: 8pt; }
 
-	TABLE.data { font-family: arial,serif; font-size: 10pt; background-color: white; padding: 2; }
-	TH.data { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: left; background-color:  #999797; color: #DCE5C1; }
-	.dataOdd { font-family: arial,serif;  font-size: 10pt; background-color: #DBDBDB; }
-	.dataEven { font-family: arial,serif;  font-size: 10pt; background-color: #C4C2C2; }
+.dataTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
-	.optionBoxTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: 10pt; }
-	.optionBox { font-family: arial,serif; font-size: 10pt; background-color: #EEEEF4; padding: 2; }
+TABLE.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  padding: 2; }
+TH.data { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
+.dataOdd { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; }
+.dataEven { font-family: arial,serif;  font-size: 10pt;  background-color: #C4C2C2; }
 
-	.hostUP { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #33FF00; font-weight: bold; }
-	.hostDOWN { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #F83838; font-weight: bold; }
-	.hostUNREACHABLE { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #F83838; font-weight: bold; }
-	
-	.serviceOK { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #33FF00; font-weight: bold; }
-	.serviceWARNING { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #FFFF00; font-weight: bold; }
-	.serviceUNKNOWN { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #FF9900; font-weight: bold; }
-	.serviceCRITICAL { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #F83838; font-weight: bold; }
+.optionBoxTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 10pt; }
+.optionBox { font-family: arial,serif;  font-size: 10pt;  background-color: #EEEEF4;  padding: 2; }
 
-	.optBox { font-family: arial narrow,serif; font-size: 10pt; font-weight: bold; }
-	.optBoxItem { font-family: arial,serif; font-size: 8pt; font-weight: bold; color: red; }
+.hostUP { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.hostDOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.hostUNREACHABLE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
 
-	.helpfulHint {font-family: arial,serif;  text-align: left; font-size: 8pt; font-style: italic; text-align: center; }
+.serviceOK { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.serviceWARNING { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FFFF00;  font-weight: bold; }
+.serviceUNKNOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FF9900;  font-weight: bold; }
+.serviceCRITICAL { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
 
-	.dateSelectTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: 12pt; }
-	.dateSelectSubTitle {font-family: arial,serif;  text-align: left; font-weight: bold; font-size: 10pt; }
-	.dateSelectItem {font-family: arial,serif;  text-align: left; font-size: 8pt; }
+.optBox { font-family: arial narrow,serif;  font-size: 10pt;  font-weight: bold; }
+.optBoxItem { font-family: arial,serif;  font-size: 8pt;  font-weight: bold;  color: red; }
 
-	.reportSelectTip {font-family: arial,serif; text-align: left; font-size: 8pt; font-style: italic; }
-	.reportSelectTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: 12pt; }
-	.reportSelectSubTitle {font-family: arial,serif; text-align: right; font-size: 10pt; }
-	.reportSelectItem {font-family: arial,serif;  text-align: left; font-size: 8pt; }
+.helpfulHint { font-family: arial,serif;  text-align: left;  font-size: 8pt;  font-style: italic;  text-align: center; }
 
-	TABLE.logEntries { font-family: arial,serif; font-size: 8pt; background-color: white; padding: 3; }
-	TH.logEntries { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
-	.logEntriesEven { font-family: arial,serif; font-size: 8pt; background-color: white; text-align: left; background-color: #C4C2C2; color: black; }
-	.logEntriesOdd { font-family: arial,serif; font-size: 8pt; background-color: white; text-align: left; background-color: #DBDBDB; color: black; }
+.dateSelectTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.dateSelectSubTitle { font-family: arial,serif;  text-align: left;  font-weight: bold;  font-size: 10pt; }
+.dateSelectItem { font-family: arial,serif;  text-align: left;  font-size: 8pt; }
 
-	.logEntriesINDETERMINATE { font-family: arial,serif; font-size: 8pt; background-color: #ACACAC; }
+.reportSelectTip { font-family: arial,serif;  text-align: left;  font-size: 8pt;  font-style: italic; }
+.reportSelectTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
+.reportSelectSubTitle { font-family: arial,serif;  text-align: right;  font-size: 10pt; }
+.reportSelectItem { font-family: arial,serif;  text-align: left;  font-size: 8pt; }
 
-	.logEntriesOK { font-family: arial,serif; font-size: 8pt; background-color: #33FF00; }
-	.logEntriesUNKNOWN { font-family: arial,serif; font-size: 8pt; background-color: #FF9900; }
-	.logEntriesWARNING { font-family: arial,serif; font-size: 8pt; background-color: #FFFF00; }
-	.logEntriesCRITICAL { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
-	.logEntriesUP { font-family: arial,serif; font-size: 8pt; background-color: #33FF00; }
-	.logEntriesDOWN { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
-	.logEntriesUNREACHABLE { font-family: arial,serif; font-size: 8pt; background-color: #F83838; }
+TABLE.logEntries { font-family: arial,serif;  font-size: 8pt;  background-color: white;  padding: 3; }
+TH.logEntries { font-family: arial,serif;  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
+.logEntriesEven { font-family: arial,serif;  font-size: 8pt;  background-color: white;  text-align: left;  background-color: #C4C2C2;  color: black; }
+.logEntriesOdd { font-family: arial,serif;  font-size: 8pt;  background-color: white;  text-align: left;  background-color: #DBDBDB;  color: black; }
+
+.logEntriesINDETERMINATE { font-family: arial,serif;  font-size: 8pt;  background-color: #ACACAC; }
+
+.logEntriesOK { font-family: arial,serif;  font-size: 8pt;  background-color: #33FF00; }
+.logEntriesUNKNOWN { font-family: arial,serif;  font-size: 8pt;  background-color: #FF9900; }
+.logEntriesWARNING { font-family: arial,serif;  font-size: 8pt;  background-color: #FFFF00; }
+.logEntriesCRITICAL { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
+.logEntriesUP { font-family: arial,serif;  font-size: 8pt;  background-color: #33FF00; }
+.logEntriesDOWN { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
+.logEntriesUNREACHABLE { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838; }
 
 
 

@@ -456,7 +456,7 @@ This is a comma-delimited list of names of <i>authenticated users</i> who can is
 </p>
 
 <p>
-This option allows you to specify an image to be used as a background in the <a href="cgis.html#statusmap_cgi">statusmap CGI</a>.  It is assumed that the image resides in the HTML images path (i.e. /usr/local/nagios/share/images). This path is automatically determined by appending "/images" to the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note: The image file can be in GIF, JPEG, PNG, or GD2 format.  However, GD2 format (preferably in uncompressed format) is recommended, as it will reduce the CPU load when the CGI generates the map image.
+This option allows you to specify an image to be used as a background in the <a href="cgis.html#statusmap_cgi">statusmap CGI</a> if you use the user-supplied coordinates layout method.  The background image is not be available in any other layout methods.  It is assumed that the image resides in the HTML images path (i.e. /usr/local/nagios/share/images). This path is automatically determined by appending "/images" to the path specified by the <a href="#physical_html_path">physical_html_path</a> directive.  Note: The image file can be in GIF, JPEG, PNG, or GD2 format.  However, GD2 format (preferably in uncompressed format) is recommended, as it will reduce the CPU load when the CGI generates the map image.
 </p>
 
 

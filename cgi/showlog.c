@@ -196,8 +196,10 @@ void document_header(int use_stylesheet){
 	printf("Nagios Log File\n");
 	printf("</TITLE>\n");
 
-	if(use_stylesheet==TRUE)
+	if(use_stylesheet==TRUE){
+		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,SHOWLOG_CSS);
+	}
 
 	printf("</HEAD>\n");
 	printf("<BODY CLASS='showlog'>\n");

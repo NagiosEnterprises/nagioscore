@@ -1104,9 +1104,11 @@ void document_header(int use_stylesheet){
 		printf("Nagios Trends\n");
 		printf("</title>\n");
 
-		if(use_stylesheet==TRUE)
+		if(use_stylesheet==TRUE){
+			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,TRENDS_CSS);
-	
+		        }
+		
 		/* write JavaScript code for popup window */
 		if(display_type!=DISPLAY_NO_TRENDS)
 			write_popup_code();

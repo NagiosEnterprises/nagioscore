@@ -1001,8 +1001,10 @@ void document_header(int use_stylesheet){
 		printf("Nagios Histogram\n");
 		printf("</title>\n");
 
-		if(use_stylesheet==TRUE)
+		if(use_stylesheet==TRUE){
+			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,COMMON_CSS);
 			printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n",url_stylesheets_path,HISTOGRAM_CSS);
+		        }
 	
 		printf("</head>\n");
 

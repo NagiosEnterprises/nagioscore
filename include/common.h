@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-20-2004
+ * Last Modified: 10-30-2004
  *
  * License:
  *
@@ -232,6 +232,12 @@
 
 #define CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME        137
 
+#define CMD_ENABLE_SERVICE_FRESHNESS_CHECKS             138
+#define CMD_DISABLE_SERVICE_FRESHNESS_CHECKS            139
+
+#define CMD_ENABLE_HOST_FRESHNESS_CHECKS                140
+#define CMD_DISABLE_HOST_FRESHNESS_CHECKS               141
+
 
 
 /************************ SERVICE CHECK TYPES ****************************/
@@ -365,5 +371,7 @@
 #define MODATTR_NORMAL_CHECK_INTERVAL           1024
 #define MODATTR_RETRY_CHECK_INTERVAL            2048
 #define MODATTR_MAX_CHECK_ATTEMPTS              4096
+#define MODATTR_FRESHNESS_CHECKS_ENABLED        8192
+
 
 	

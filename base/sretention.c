@@ -2,8 +2,8 @@
  *
  * SRETENTION.C - State retention routines for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-16-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -185,7 +185,7 @@ int set_program_state_information(int notifications, int service_checks, int pas
 
 
 /* sets initial service state information */
-int set_service_state_information(char *host_name, char *description, int state, char *output, unsigned long last_check, int check_type, unsigned long time_ok, unsigned long time_warning, unsigned long time_unknown, unsigned long time_critical, unsigned long last_notification, int current_notification_number, int notifications_enabled, int checks_enabled, int accept_passive_checks, int event_handler_enabled, int problem_has_been_acknowledged, int flap_detection_enabled, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, unsigned long last_state_change){
+int set_service_state_information(char *host_name, char *description, int state, char *output, unsigned long last_check, int check_type, unsigned long last_notification, int current_notification_number, int notifications_enabled, int checks_enabled, int accept_passive_checks, int event_handler_enabled, int problem_has_been_acknowledged, int flap_detection_enabled, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, unsigned long last_state_change){
 	service *temp_service;
 	time_t current_time;
 	int x;
@@ -318,7 +318,7 @@ int set_service_state_information(char *host_name, char *description, int state,
 
 
 /* sets initial host state information */
-int set_host_state_information(char *host_name, int state, char *output, unsigned long last_check, int checks_enabled, unsigned long time_up, unsigned long time_down, unsigned long time_unreachable, unsigned long last_notification, int current_notification_number, int notifications_enabled, int event_handler_enabled, int problem_has_been_acknowledged, int flap_detection_enabled, int failure_prediction_enabled, int process_performance_data, unsigned long last_state_change){
+int set_host_state_information(char *host_name, int state, char *output, unsigned long last_check, int checks_enabled, unsigned long last_notification, int current_notification_number, int notifications_enabled, int event_handler_enabled, int problem_has_been_acknowledged, int flap_detection_enabled, int failure_prediction_enabled, int process_performance_data, unsigned long last_state_change){
 	host *temp_host;
 	int x;
 
@@ -453,15 +453,9 @@ int get_program_state_information(int *notifications, int *service_checks, int *
 
 
 /* gets service state information */
-/* only called from xrddb_save_service_information - safe to use move_first_service/get_next_service */
-service * get_service_state_information(service *svc, char **host_name, char **service_description, int *state, char **output, unsigned long *last_check, int *check_type, unsigned long *time_ok, unsigned long *time_warning, unsigned long *time_unknown, unsigned long *time_critical, unsigned long *last_notification, int *current_notification_number, int *notifications_enabled, int *checks_enabled, int *accept_passive_checks, int *event_handler_enabled, int *problem_has_been_acknowledged, int *flap_detection_enabled, int *failure_prediction_enabled, int *process_performance_data, int *obsess_over_service, unsigned long *last_state_change){
+service * get_service_state_information(service *svc, char **host_name, char **service_description, int *state, char **output, unsigned long *last_check, int *check_type, unsigned long *last_notification, int *current_notification_number, int *notifications_enabled, int *checks_enabled, int *accept_passive_checks, int *event_handler_enabled, int *problem_has_been_acknowledged, int *flap_detection_enabled, int *failure_prediction_enabled, int *process_performance_data, int *obsess_over_service, unsigned long *last_state_change){
 	service *temp_service;
 	time_t current_time;
-	unsigned long time_difference;
-	unsigned long t_ok;
-	unsigned long t_warning;
-	unsigned long t_unknown;
-	unsigned long t_critical;
 	int service_state;
 	char *plugin_output;
 
@@ -470,10 +464,9 @@ service * get_service_state_information(service *svc, char **host_name, char **s
 #endif
 
 	/* get the service to check */
-	if(svc==NULL) {
+	if(svc==NULL)
 		move_first_service();
-	}
-	temp_service = get_next_service();
+	temp_service=get_next_service();
 	if(temp_service==NULL)
 		return NULL;
 
@@ -487,11 +480,6 @@ service * get_service_state_information(service *svc, char **host_name, char **s
 	/* get the current time */
 	time(&current_time);
 
-	t_ok=0;
-	t_warning=0;
-	t_unknown=0;
-	t_critical=0;
-
 	if(temp_service->state_type==SOFT_STATE){
 		service_state=temp_service->last_hard_state;
 		plugin_output="No data yet (service was in a soft problem state during state retention)";
@@ -501,34 +489,12 @@ service * get_service_state_information(service *svc, char **host_name, char **s
 		plugin_output=temp_service->plugin_output;
 	        }
 
-	/* if this is NOT the first time we've had a service check/state change... */
-	if(temp_service->has_been_checked==TRUE && temp_service->last_state_change!=(time_t)0){
-
-		if(temp_service->last_state_change<program_start)
-			time_difference=(unsigned long)(program_start>current_time)?0:(current_time-program_start);
-		else
-			time_difference=(unsigned long)(temp_service->last_state_change>current_time)?0:(current_time-temp_service->last_state_change);
-
-		if(service_state==STATE_WARNING)
-			t_warning+=time_difference;
-		else if(service_state==STATE_UNKNOWN)
-			t_unknown+=time_difference;
-		else if(service_state==STATE_CRITICAL)
-			t_critical+=time_difference;
-		else
-			t_ok+=time_difference;
-	        }
-
 	*host_name=temp_service->host_name;
 	*service_description=temp_service->description;
 	*state=service_state;
 	*output=plugin_output;
 	*last_check=(unsigned long)temp_service->last_check;
 	*check_type=temp_service->check_type;
-	*time_ok=t_ok;
-	*time_warning=t_warning;
-	*time_unknown=t_unknown;
-	*time_critical=t_critical;
 	*current_notification_number=temp_service->current_notification_number;
 	*last_notification=(unsigned long)temp_service->last_notification;
 	*notifications_enabled=temp_service->notifications_enabled;
@@ -553,14 +519,10 @@ service * get_service_state_information(service *svc, char **host_name, char **s
 
 
 /* gets host state information */
-host * get_host_state_information(host *hst, char **host_name, int *state, char **output, unsigned long *last_check, int *checks_enabled, unsigned long *time_up, unsigned long *time_down, unsigned long *time_unreachable, unsigned long *last_notification, int *current_notification_number, int *notifications_enabled, int *event_handler_enabled, int *problem_has_been_acknowledged, int *flap_detection_enabled, int *failure_prediction_enabled, int *process_performance_data, unsigned long *last_state_change){
+host * get_host_state_information(host *hst, char **host_name, int *state, char **output, unsigned long *last_check, int *checks_enabled, unsigned long *last_notification, int *current_notification_number, int *notifications_enabled, int *event_handler_enabled, int *problem_has_been_acknowledged, int *flap_detection_enabled, int *failure_prediction_enabled, int *process_performance_data, unsigned long *last_state_change){
 	host *temp_host;
 	time_t current_time;
-	unsigned long time_difference;
-	unsigned long t_up;
-	unsigned long t_down;
-	unsigned long t_unreachable;
-	static void *host_cursor = NULL;
+	static void *host_cursor=NULL;
 
 #ifdef DEBUG0
 	printf("get_host_state_information() start\n");
@@ -568,56 +530,33 @@ host * get_host_state_information(host *hst, char **host_name, int *state, char 
 
 	/* init host cursor if we haven't already */
 	if(host_cursor==NULL)
-		host_cursor = get_host_cursor();
+		host_cursor=get_host_cursor();
 
-	temp_host = get_next_host_cursor(host_cursor);
+	temp_host=get_next_host_cursor(host_cursor);
 	
-	if(temp_host==NULL) {
+	if(temp_host==NULL){
 		free_host_cursor(host_cursor);
-		host_cursor = NULL;
+		host_cursor=NULL;
 		return NULL;
-	}
+	        }
 
 	/* skip hosts that haven't been checked yet */
 	while(temp_host->last_check==(time_t)0){
 		temp_host=get_next_host_cursor(host_cursor);
-		if(temp_host==NULL) {
+		if(temp_host==NULL){
 			free_host_cursor(host_cursor);
-			host_cursor = NULL;
+			host_cursor=NULL;
 			return NULL;
+	                }
 	        }
-	}
 
 	/* get the current time */
 	time(&current_time);
-
-	t_up=0;
-	t_down=0;
-	t_unreachable=0;
-
-	/* if this is NOT the first time we've had a host check/state change... */
-	if(temp_host->has_been_checked==TRUE && temp_host->last_state_change!=0L){
-
-		if(temp_host->last_state_change<program_start)
-			time_difference=(unsigned long)(program_start>current_time)?0:(current_time-program_start);
-		else
-			time_difference=(unsigned long)(temp_host->last_state_change>current_time)?0:(current_time-temp_host->last_state_change);
-
-		if(temp_host->status==HOST_DOWN)
-			t_down+=time_difference;
-		else if(temp_host->status==HOST_UNREACHABLE)
-			t_unreachable+=time_difference;
-		else
-			t_up+=time_difference;
-	        }
 
 	*host_name=temp_host->name;
 	*state=temp_host->status;
 	*output=temp_host->plugin_output;
 	*last_check=(unsigned long)temp_host->last_check;
-	*time_up=t_up;
-	*time_down=t_down;
-	*time_unreachable=t_unreachable;
 	*last_notification=(unsigned long)temp_host->last_host_notification;
 	*current_notification_number=temp_host->current_notification_number;
 	*notifications_enabled=temp_host->notifications_enabled;

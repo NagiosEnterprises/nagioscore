@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-11-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -471,6 +471,11 @@ xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *);
 void *get_xodtemplate_service_cursor(void);
 xodtemplate_service *get_next_xodtemplate_service(void *v_cursor);
 void free_xodtemplate_service_cursor(void *cursor);
+int xodtemplate_rename_service(xodtemplate_service *,const char *);
+int compare_xodtemplate_service(xodtemplate_service *,const char *);
+int xodtemplate_service_comes_after(xodtemplate_service *, const char *);
+int xodtemplate_add_service_allocated(xodtemplate_service *);
+int xodtemplate_remove_pointer(xodtemplate_service *);
 
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_register_command(xodtemplate_command *);

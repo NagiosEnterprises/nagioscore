@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-15-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -26,7 +26,7 @@
 #include "../common/config.h"
 #include "../common/common.h"
 #include "../common/downtime.h"
-
+#include "../common/statusdata.h"
 #include "nagios.h"
 #include "broker.h"
 
@@ -120,10 +120,10 @@ void calculate_inter_check_delay(void){
 
 		scheduling_info.total_services=0;
 		move_first_service();
-		while(temp_service=get_next_service()) {
+		while(temp_service=get_next_service()){
 			scheduling_info.total_services++;
 			scheduling_info.check_interval_total+=temp_service->check_interval;
-		}
+		        }
 
 		if(scheduling_info.total_services==0 || scheduling_info.check_interval_total==0)
 			return;
@@ -159,8 +159,6 @@ void calculate_inter_check_delay(void){
 
 /* calculate the interleave factor for spreading out service checks */
 void calculate_interleave_factor(void){
-	host *temp_host=NULL;
-	service *temp_service=NULL;
 
 #ifdef DEBUG0
 	printf("calculate_interleave_factor() start\n");
@@ -182,13 +180,13 @@ void calculate_interleave_factor(void){
 		/* count the number of service we have */
 		scheduling_info.total_services=0;
 		move_first_service();
-		while(get_next_service()) {
+		while(get_next_service()){
 			scheduling_info.total_services++;
-		}
+		        }
 
 		/* count the number of hosts we have */
 		scheduling_info.total_hosts=0;
-		for(move_first_host(); get_next_host(); scheduling_info.total_hosts++)
+		for(move_first_host();get_next_host();scheduling_info.total_hosts++)
 			;
 
 		/* protect against a divide by zero problem - shouldn't happen, but just in case... */
@@ -579,7 +577,10 @@ void schedule_event(timed_event *event,timed_event **event_list){
 		        }
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,event,NULL,NULL);
+#endif
 
 #ifdef DEBUG0
 	printf("schedule_event() end\n");
@@ -598,7 +599,10 @@ void remove_event(timed_event *event,timed_event **event_list){
 	printf("remove_event() start\n");
 #endif
 
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL,NULL);
+#endif
 
 	if(*event_list==NULL)
 		return;
@@ -782,7 +786,12 @@ int event_execution_loop(void){
 
 			/* wait a second so we don't hog the CPU... */
 			else{
+#ifdef USE_EVENT_BROKER
+#ifdef INSANE_BROKERING
+				/* send event data to broker */
 				broker_timed_event(NEBTYPE_TIMEDEVENT_DELAY,NEBFLAG_NONE,NEBATTR_NONE,temp_event,NULL,NULL);
+#endif
+#endif
 				sleep((unsigned int)sleep_time);
 			        }
 		        }
@@ -795,7 +804,12 @@ int event_execution_loop(void){
 				check_for_external_commands();
 
 			/* wait a second so we don't hog the CPU... */
+#ifdef USE_EVENT_BROKER
+#ifdef INSANE_BROKERING
+			/* send event data to broker */
 			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP,NEBFLAG_NONE,NEBATTR_NONE,NULL,(void *)&sleep_time,NULL);
+#endif
+#endif
 			delay.tv_sec=(time_t)sleep_time;
 			delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
 			nanosleep(&delay,NULL);
@@ -820,7 +834,10 @@ int handle_timed_event(timed_event *event){
 	printf("handle_timed_event() start\n");
 #endif
 
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL,NULL);
+#endif
 
 #ifdef DEBUG3
 	printf("*** Event Details ***\n");

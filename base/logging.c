@@ -2,8 +2,8 @@
  *
  * LOGGING.C - Log file functions for use with Nagios
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-16-2001
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -28,6 +28,7 @@
 #include "../common/statusdata.h"
 #include "nagios.h"
 #include "broker.h"
+
 
 extern char	*log_file;
 extern char     *temp_file;
@@ -117,7 +118,10 @@ int write_to_log(char *buffer, unsigned long data_type){
 
 	fclose(fp);
 
-	broker_logged_data(NEBTYPE_LOGDATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,NULL);
+#ifdef USE_EVENT_BROKER
+	/* send data to the event broker */
+	broker_log_data(NEBTYPE_LOG_DATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,NULL);
+#endif
 
 #ifdef DEBUG0
 	printf("write_to_log() end\n");
@@ -309,6 +313,10 @@ int rotate_log_file(time_t rotation_time){
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
 
+#ifdef USE_EVENT_BROKER
+	/* send data to the event broker */
+	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,NULL);
+#endif
 
 #ifdef DEBUG3
 	printf("\tRotated main log file to '%s'\n",log_archive);

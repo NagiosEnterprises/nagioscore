@@ -1,4 +1,9 @@
 dnl Process this -*-m4-*- file with autoconf to produce a configure script.
+
+dnl Disable caching
+define([AC_CACHE_LOAD],)
+define([AC_CACHE_SAVE],)
+
 AC_INIT(base/nagios.c)
 AC_CONFIG_HEADER(common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
@@ -22,7 +27,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(ctype.h dirent.h errno.h fcntl.h getopt.h grp.h limits.h math.h pthread.h pwd.h signal.h strings.h string.h syslog.h unistd.h uio.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/stat.h sys/timeb.h sys/ipc.h sys/msg.h)
+AC_CHECK_HEADERS(ctype.h dirent.h errno.h fcntl.h getopt.h grp.h limits.h math.h pthread.h pthreads.h pwd.h signal.h strings.h string.h syslog.h unistd.h uio.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/stat.h sys/timeb.h sys/ipc.h sys/msg.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -46,6 +51,75 @@ AC_TRY_COMPILE([#include <stdlib.h>
 [AC_DEFINE(SOCKET_SIZE_TYPE, size_t) AC_MSG_RESULT(size_t)],
 [AC_DEFINE(SOCKET_SIZE_TYPE, int) AC_MSG_RESULT(int)])
 
+
+dnl Test for pthreads support - taken from ICU FreeBSD Port configure script
+THREADLIBS=""
+have_pthreads="no"
+
+dnl FreeBSD -pthread check - Jonathan McDowell <noodles@earth.li>
+AC_DEFUN(AC_PTHREAD_FREEBSD,[
+	AC_MSG_CHECKING([if we need -pthread for threads])
+	AC_CACHE_VAL(ac_ldflag_pthread,[
+		ac_save_LDFLAGS="$LDFLAGS"
+		LDFLAGS="-pthread $LDFLAGS"
+		AC_TRY_LINK([
+			char pthread_create();
+			],
+			pthread_create();,
+			eval "ac_ldflag_pthread=yes",
+			eval "ac_ldflag_pthread=no"
+			),
+		THREADLIBS="$ac_save_LDFLAGS"
+		])
+	if eval "test \"`echo $ac_ldflag_pthread`\" = yes"; then
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+	fi
+	])
+
+dnl Test for HPUX cma threads first..
+AC_CHECK_LIB(cma,pthread_create,
+	THREADLIBS="$THREADLIBS -lpthread"
+	])
+if test $ac_cv_lib_cma_pthread_create = yes; then
+	have_pthreads="yes"
+fi
+
+dnl special pthread handling 
+dnl AIX uses pthreads instead of pthread, and HP/UX uses cma
+dnl FreeBSD users -pthread
+AC_CHECK_LIB(pthread,pthread_create,[
+	THREADLIBS="$THREADLIBS -lpthread"
+	])
+if test $ac_cv_lib_pthread_pthread_create = yes; then
+	have_pthreads="yes"
+else
+	dnl For HP 11
+	AC_CHECK_LIB(pthread,pthread_mutex_init,[
+		THREADLIBS="$THREADLIBS -lpthread"
+		])
+	if test $ac_cv_lib_pthread_pthread_mutex_init = yes; then
+		have_pthreads="yes"
+	fi
+fi
+
+dnl AIX uses pthreads instead of pthread
+if test $have_pthreads = "no"; then
+	AC_CHECK_LIB(pthreads,pthread_create,[
+		THREADLIBS="$THREADLIBS -lpthreads"
+		])
+	if test $ac_cv_lib_pthreads_pthread_create = yes; then
+		have_pthreads="yes"
+	fi
+fi
+
+dnl all other thread tests fail, try BSD's -pthread
+if test $have_pthreads = "no"; then
+	AC_PTHREAD_FREEBSD
+fi
+
+AC_SUBST(THREADLIBS)
 
 
 
@@ -554,6 +628,8 @@ AC_ARG_ENABLE(DEBUG2,--enable-DEBUG2 shows warning messages,AC_DEFINE_UNQUOTED(D
 AC_ARG_ENABLE(DEBUG3,--enable-DEBUG3 shows scheduled events (service and host checks... etc),AC_DEFINE_UNQUOTED(DEBUG3))
 AC_ARG_ENABLE(DEBUG4,--enable-DEBUG4 shows service and host notifications,AC_DEFINE_UNQUOTED(DEBUG4))
 AC_ARG_ENABLE(DEBUG5,--enable-DEBUG5 shows SQL queries,AC_DEFINE_UNQUOTED(DEBUG5))
+
+AC_ARG_ENABLE(event-broker,--enable-event-broker enables integration with Nagios Event Broker,AC_DEFINE_UNQUOTED(USE_EVENT_BROKER))
 
 USEPERL=no;
 INSTALLPERLSTUFF=no;

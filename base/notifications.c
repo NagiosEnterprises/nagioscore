@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-10-2002
+ * Last Modified:   12-18-2002
  *
  * License:
  *
@@ -468,6 +468,7 @@ int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
 	char command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
+	double exectime;
 
 #ifdef DEBUG0
 	printf("notify_contact_of_service() start\n");
@@ -522,7 +523,7 @@ int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
 			        }
 
 			/* run the command */
-			my_system(command_line,notification_timeout,&early_timeout,NULL,0);
+			my_system(command_line,notification_timeout,&early_timeout,&exectime,NULL,0);
 
 			/* check to see if the notification command timed out */
 			if(early_timeout==TRUE){
@@ -1059,7 +1060,8 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char command_line[MAX_INPUT_BUFFER];
-	int early_timeout;
+	int early_timeout=FALSE;
+	double exectime;
 
 
 #ifdef DEBUG0
@@ -1116,7 +1118,7 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 			        }
 
 			/* run the command */
-			my_system(command_line,notification_timeout,&early_timeout,NULL,0);
+			my_system(command_line,notification_timeout,&early_timeout,&exectime,NULL,0);
 
 			/* check to see if the notification timed out */
 			if(early_timeout==TRUE){

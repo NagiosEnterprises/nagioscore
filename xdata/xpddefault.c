@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-30-2002
+ * Last Modified:   12-18-2002
  *
  * License:
  *
@@ -203,6 +203,7 @@ int xpddefault_update_service_performance_data(service *svc){
 	command *temp_command;
 	host *temp_host;
 	int early_timeout=FALSE;
+	double exectime;
 	int result=OK;
 
 #ifdef DEBUG0
@@ -244,7 +245,7 @@ int xpddefault_update_service_performance_data(service *svc){
 #endif
 
 	/* run the command */
-	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -268,6 +269,7 @@ int xpddefault_update_host_performance_data(host *hst, int state, int state_type
 	char temp_buffer[MAX_INPUT_BUFFER];
 	command *temp_command;
 	int early_timeout=FALSE;
+	double exectime;
 	int result=OK;
 
 #ifdef DEBUG0
@@ -325,7 +327,7 @@ int xpddefault_update_host_performance_data(host *hst, int state, int state_type
 #endif
 
 	/* run the command */
-	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){

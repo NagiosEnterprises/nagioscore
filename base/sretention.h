@@ -2,8 +2,8 @@
  *
  * SRETENTION.H - Header for state retention routines
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-29-2001
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -28,10 +28,10 @@ int save_state_information(char *,int);            /* saves all host and state i
 int read_initial_state_information(char *);        /* reads in initial host and state information */
 
 
-int set_service_state_information(char *,char *,int,char *,unsigned long,int,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long,int,int,int,int,int,int,int,int,int,int,unsigned long);
-int set_host_state_information(char *,int,char *,unsigned long,int,unsigned long,unsigned long,unsigned long,unsigned long,int,int,int,int,int,int,int,unsigned long);
+int set_service_state_information(char *,char *,int,char *,unsigned long,int,unsigned long,int,int,int,int,int,int,int,int,int,int,unsigned long);
+int set_host_state_information(char *,int,char *,unsigned long,int,unsigned long,int,int,int,int,int,int,int,unsigned long);
 int set_program_state_information(int,int,int,int,int,int,int,int);
 
-service * get_service_state_information(service *,char **,char **,int *,char **,unsigned long *,int *,unsigned long *,unsigned long *,unsigned long *,unsigned long *,unsigned long *,int *,int *,int *,int *,int *,int *,int *,int *,int *,int *,unsigned long *);
-host * get_host_state_information(host *,char **,int *,char **,unsigned long *,int *,unsigned long *,unsigned long *,unsigned long *,unsigned long *,int *,int *,int *,int *,int *,int *,int *,unsigned long *);
+service * get_service_state_information(service *,char **,char **,int *,char **,unsigned long *,int *,unsigned long *,int *,int *,int *,int *,int *,int *,int *,int *,int *,int *,unsigned long *);
+host * get_host_state_information(host *,char **,int *,char **,unsigned long *,int *,unsigned long *,int *,int *,int *,int *,int *,int *,int *,unsigned long *);
 int get_program_state_information(int *,int *,int *,int *,int *,int *,int *,int *);

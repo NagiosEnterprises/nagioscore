@@ -5,10 +5,10 @@
  * Program: Nagios
  * Version: 2.0-very-pre-alpha
  * License: GPL
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-15-2002
+ * Last Modified:   01-01-2003
  *
  * Description:
  *
@@ -296,7 +296,7 @@ int main(int argc, char **argv){
 
 	if(daemon_mode==FALSE){
 		printf("\nNagios %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)\n");
+		printf("Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -502,10 +502,13 @@ int main(int argc, char **argv){
 			/* read in the configuration files (main config file and all object config files) */
 			result=read_all_config_data(config_file);
 
+#ifdef USE_EVENT_BROKER
 			/* initialize event broker worker thread */
 			init_event_broker_worker_thread();
 
+			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
 			snprintf(buffer,sizeof(buffer),"Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
@@ -523,8 +526,11 @@ int main(int argc, char **argv){
 				if(sigrestart==TRUE)
 					close_command_file();
 
+#ifdef USE_EVENT_BROKER
+				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
 				shutdown_event_broker_worker_thread();
+#endif
 				cleanup();
 				exit(ERROR);
 		                }
@@ -546,8 +552,11 @@ int main(int argc, char **argv){
 				if(sigrestart==TRUE)
 					close_command_file();
 
+#ifdef USE_EVENT_BROKER
+				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
 				shutdown_event_broker_worker_thread();
+#endif
 				cleanup();
 				exit(ERROR);
 			        }
@@ -583,8 +592,11 @@ int main(int argc, char **argv){
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
 
+#ifdef USE_EVENT_BROKER
+				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
 				shutdown_event_broker_worker_thread();
+#endif
 				cleanup();
 				exit(ERROR);
 		                }
@@ -623,8 +635,11 @@ int main(int argc, char **argv){
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
 
+#ifdef USE_EVENT_BROKER
+				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
 				shutdown_event_broker_worker_thread();
+#endif
 				cleanup();
 				exit(ERROR);
 			        }
@@ -640,8 +655,11 @@ int main(int argc, char **argv){
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
 
+#ifdef USE_EVENT_BROKER
+				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
 				shutdown_event_broker_worker_thread();
+#endif
 				cleanup();
 				exit(ERROR);
 		                }
@@ -653,10 +671,13 @@ int main(int argc, char **argv){
 			/* (doesn't return until a restart or shutdown signal is encountered) */
 			event_execution_loop();
 
+#ifdef USE_EVENT_BROKER
+			/* send program data to broker */
 			if(sigshutdown==TRUE)
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_USER_INITIATED,NEBATTR_SHUTDOWN_NORMAL,NULL);
 			else if(sigrestart==TRUE)
 				broker_program_state(NEBTYPE_PROCESS_RESTART,NEBFLAG_USER_INITIATED,NEBATTR_RESTART_NORMAL,NULL);
+#endif
 
 			/* save service and host state information */
 			save_state_information(config_file,FALSE);
@@ -686,7 +707,9 @@ int main(int argc, char **argv){
 
 			/* cleanup worker threads */
 			shutdown_service_result_worker_thread();
+#ifdef USE_EVENT_BROKER
 			shutdown_event_broker_worker_thread();
+#endif
 
 			/* clean up after ourselves */
 			cleanup();

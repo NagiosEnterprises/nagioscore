@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-09-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -26,8 +26,11 @@
 #include "../common/config.h"
 #include "../common/common.h"
 #include "../common/comments.h"
+#include "../common/downtime.h"
 #include "../common/statusdata.h"
+#include "perfdata.h"
 #include "sretention.h"
+#include "broker.h"
 #include "nagios.h"
 
 extern char     *config_file;
@@ -1478,6 +1481,10 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 			log_host_event(this_host,HOST_UNREACHABLE,HARD_STATE);
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_PASSIVE,this_host,return_code,0.0,NULL);
+#endif
 
 	/***** CHECK FOR FLAPPING *****/
 	check_for_host_flapping(this_host);

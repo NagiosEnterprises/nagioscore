@@ -33,24 +33,37 @@
 #define NEBTYPE_GOODBYE                       2
 #define NEBTYPE_INFO                          3
 
-#define NEBTYPE_PROCESS_START                 4
-#define NEBTYPE_PROCESS_DAEMON                5
-#define NEBTYPE_PROCESS_RESTART               6
-#define NEBTYPE_PROCESS_SHUTDOWN              7
+#define NEBTYPE_PROCESS_START                 10
+#define NEBTYPE_PROCESS_DAEMON                11
+#define NEBTYPE_PROCESS_RESTART               12
+#define NEBTYPE_PROCESS_SHUTDOWN              13
 
-#define NEBTYPE_TIMEDEVENT_ADD                8
-#define NEBTYPE_TIMEDEVENT_REMOVE             9
-#define NEBTYPE_TIMEDEVENT_EXECUTE            10
-#define NEBTYPE_TIMEDEVENT_DELAY              11
-#define NEBTYPE_TIMEDEVENT_SKIP               12
-#define NEBTYPE_TIMEDEVENT_SLEEP              13
+#define NEBTYPE_TIMEDEVENT_ADD                20
+#define NEBTYPE_TIMEDEVENT_REMOVE             21
+#define NEBTYPE_TIMEDEVENT_EXECUTE            22
+#define NEBTYPE_TIMEDEVENT_DELAY              23
+#define NEBTYPE_TIMEDEVENT_SKIP               24
+#define NEBTYPE_TIMEDEVENT_SLEEP              25
 
-#define NEBTYPE_LOGDATA                       14
+#define NEBTYPE_LOG_DATA                      30
+#define NEBTYPE_LOG_ROTATION                  31
 
-#define NEBTYPE_NOTIFICATION_HOST             15
-#define NEBTYPE_NOTIFICATION_SERVICE          16
-#define NEBTYPE_NOTIFICATION_HOST_CONTACT     17
-#define NEBTYPE_NOTIFICATION_SERVICE_CONTACT  18
+#define NEBTYPE_SYSTEM_COMMAND                40
+
+#define NEBTYPE_EVENTHANDLER_HOST             50
+#define NEBTYPE_EVENTHANDLER_GLOBAL_HOST      51
+#define NEBTYPE_EVENTHANDLER_SERVICE          52
+#define NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE   53
+
+#define NEBTYPE_NOTIFICATION_HOST             60
+#define NEBTYPE_NOTIFICATION_SERVICE          61
+#define NEBTYPE_NOTIFICATION_CONTACT          62
+
+#define NEBTYPE_SERVICECHECK_INITIATE         70
+#define NEBTYPE_SERVICECHECK_PROCESSED        71
+#define NEBTYPE_HOSTCHECK_INITIATE            75        /* a check of the route to the host has been initiated */
+#define NEBTYPE_HOSTCHECK_RAW                 76        /* the "raw" result of a host check */
+#define NEBTYPE_HOSTCHECK_PROCESSED           77        /* the processed/final result of a host check */
 
 
 
@@ -77,5 +90,12 @@
 #define NEBATTR_RESTART_NORMAL                4
 #define NEBATTR_RESTART_ABNORMAL              8
 
+#define NEBATTR_HOSTCHECK_ACTIVE              1
+#define NEBATTR_HOSTCHECK_PASSIVE             2
+
+#define NEBATTR_SERVICECHECK_ACTIVE           1
+#define NEBATTR_SERVICECHECK_PASSIVE          2
+
+#define NEBATTR_EARLY_COMMAND_TIMEOUT         512
 
 #endif

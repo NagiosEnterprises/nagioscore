@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-07-2002
+ * Last Modified: 01-01-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,9 @@
 
 #define DEFAULT_NAGIOS_USER nagios
 #define DEFAULT_NAGIOS_GROUP nagios
+
+/* Event broker integration */
+#undef USE_EVENT_BROKER
 
 /* Experimental performance tweaks - use with caution */
 #undef USE_MEMORY_PERFORMANCE_TWEAKS

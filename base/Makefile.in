@@ -12,7 +12,7 @@ SRC_XDATA=../xdata
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
 #CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
-LDFLAGS=@LDFLAGS@ @LIBS@
+LDFLAGS=@LDFLAGS@ @LIBS@ @THREADLIBS@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -30,7 +30,6 @@ CGIURL=@cgiurl@
 HTMURL=@htmurl@
 
 MATHLIBS=-lm
-THREADLIBS=-lpthread
 PERLLIBS=@PERLLIBS@
 
 CP=@CP@

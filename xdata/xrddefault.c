@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-14-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -106,7 +106,6 @@ int xrddefault_grab_config_info(char *main_config_file){
 
 int xrddefault_save_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char *temp_ptr;
 	time_t current_time;
 	int result=OK;
 	FILE *fp;
@@ -116,13 +115,6 @@ int xrddefault_save_state_information(char *main_config_file){
 	char *service_description;
 	char *plugin_output;
 	int state;
-	unsigned long time_ok;
-	unsigned long time_warning;
-	unsigned long time_unknown;
-	unsigned long time_critical;
-	unsigned long time_up;
-	unsigned long time_down;
-	unsigned long time_unreachable;
 	unsigned long last_notification;
 	unsigned long last_check;
 	int check_type;
@@ -187,9 +179,9 @@ int xrddefault_save_state_information(char *main_config_file){
 
 	/* save host state information */
 	temp_host=NULL;
-	while((temp_host=get_host_state_information(temp_host,&host_name,&state,&plugin_output,&last_check,&checks_enabled,&time_up,&time_down,&time_unreachable,&last_notification,&current_notification_number,&notifications_enabled,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&last_state_change))!=NULL){
+	while((temp_host=get_host_state_information(temp_host,&host_name,&state,&plugin_output,&last_check,&checks_enabled,&last_notification,&current_notification_number,&notifications_enabled,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&last_state_change))!=NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"HOST: %s;%d;%lu;%d;%lu;%lu;%lu;%lu;%d;%d;%d;%d;%d;%d;%d;%lu;%s\n",host_name,state,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,plugin_output);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"HOST: %s;%d;%lu;%d;;%lu;%d;%d;%d;%d;%d;%d;%d;%lu;%s\n",host_name,state,last_check,checks_enabled,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change,plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
 		fputs(temp_buffer,fp);
@@ -197,9 +189,9 @@ int xrddefault_save_state_information(char *main_config_file){
 
 	/* save service state information */
 	temp_service=NULL;
-	while((temp_service=get_service_state_information(temp_service,&host_name,&service_description,&state,&plugin_output,&last_check,&check_type,&time_ok,&time_warning,&time_unknown,&time_critical,&last_notification,&current_notification_number,&notifications_enabled,&checks_enabled,&accept_passive_checks,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&obsess_over_service,&last_state_change))!=NULL){
+	while((temp_service=get_service_state_information(temp_service,&host_name,&service_description,&state,&plugin_output,&last_check,&check_type,&last_notification,&current_notification_number,&notifications_enabled,&checks_enabled,&accept_passive_checks,&event_handler_enabled,&problem_has_been_acknowledged,&flap_detection_enabled,&failure_prediction_enabled,&process_performance_data,&obsess_over_service,&last_state_change))!=NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"SERVICE: %s;%s;%d;%lu;%d;%lu;%lu;%lu;%lu;%lu;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lu;%s\n",host_name,service_description,state,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,plugin_output);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"SERVICE: %s;%s;%d;%lu;%d;%lu;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lu;%s\n",host_name,service_description,state,last_check,check_type,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change,plugin_output);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 
 		fputs(temp_buffer,fp);
@@ -233,13 +225,6 @@ int xrddefault_read_state_information(char *main_config_file){
 	char *service_description;
 	char *plugin_output;
 	int state;
-	unsigned long time_ok;
-	unsigned long time_warning;
-	unsigned long time_unknown;
-	unsigned long time_critical;
-	unsigned long time_up;
-	unsigned long time_down;
-	unsigned long time_unreachable;
 	unsigned long last_notification;
 	unsigned long last_check;
 	int check_type;
@@ -390,27 +375,6 @@ int xrddefault_read_state_information(char *main_config_file){
 			temp_ptr=strtok(NULL,";");
 			if(temp_ptr==NULL)
 				continue;
-			time_up=strtoul(temp_ptr,NULL,10);
-			if(state==HOST_UP)
-				time_up+=(current_time-time_created);
-
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
-			time_down=strtoul(temp_ptr,NULL,10);
-			if(state==HOST_DOWN)
-				time_down+=(current_time-time_created);
-
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
-			time_unreachable=strtoul(temp_ptr,NULL,10);
-			if(state==HOST_UNREACHABLE)
-				time_unreachable+=(current_time-time_created);
-
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
 			last_notification=strtoul(temp_ptr,NULL,10);
 
 			temp_ptr=strtok(NULL,";");
@@ -459,7 +423,7 @@ int xrddefault_read_state_information(char *main_config_file){
 			plugin_output=temp_ptr;
 
 			/* set the host state */
-			result=set_host_state_information(host_name,state,plugin_output,last_check,checks_enabled,time_up,time_down,time_unreachable,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change);
+			result=set_host_state_information(host_name,state,plugin_output,last_check,checks_enabled,last_notification,current_notification_number,notifications_enabled,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,last_state_change);
 		        }
 
 		/* this is a service entry */
@@ -496,34 +460,6 @@ int xrddefault_read_state_information(char *main_config_file){
 				continue;
 			check_type=atoi(temp_ptr);
 			
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
-			time_ok=strtoul(temp_ptr,NULL,10);
-			if(state==STATE_OK)
-				time_ok+=(current_time-time_created);
-
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
-			time_warning=strtoul(temp_ptr,NULL,10);
-			if(state==STATE_WARNING)
-				time_warning+=(current_time-time_created);
-
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
-			time_unknown=strtoul(temp_ptr,NULL,10);
-			if(state==STATE_UNKNOWN)
-				time_unknown+=(current_time-time_created);
-
-			temp_ptr=strtok(NULL,";");
-			if(temp_ptr==NULL)
-				continue;
-			time_critical=strtoul(temp_ptr,NULL,10);
-			if(state==STATE_CRITICAL)
-				time_critical+=(current_time-time_created);
-
 			temp_ptr=strtok(NULL,";");
 			if(temp_ptr==NULL)
 				continue;
@@ -590,7 +526,7 @@ int xrddefault_read_state_information(char *main_config_file){
 			plugin_output=temp_ptr;
 
 			/* set the service state */
-			result=set_service_state_information(host_name,service_description,state,plugin_output,last_check,check_type,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change);
+			result=set_service_state_information(host_name,service_description,state,plugin_output,last_check,check_type,last_notification,current_notification_number,notifications_enabled,checks_enabled,accept_passive_checks,event_handler_enabled,problem_has_been_acknowledged,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,last_state_change);
 		        }
 	        }
 

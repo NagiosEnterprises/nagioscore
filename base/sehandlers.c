@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -28,6 +28,7 @@
 #include "../common/statusdata.h"
 #include "../common/downtime.h"
 #include "nagios.h"
+#include "broker.h"
 
 
 extern int             enable_event_handlers;
@@ -63,6 +64,7 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 	command *temp_command;
 	host *temp_host;
 	int early_timeout=FALSE;
+	double exectime;
 
 #ifdef DEBUG0
 	printf("obsessive_compulsive_service_check_processor() start\n");
@@ -119,7 +121,7 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 #endif
 
 	/* run the command */
-	my_system(processed_command_line,ocsp_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,ocsp_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
@@ -204,8 +206,9 @@ int run_global_service_event_handler(service *svc,int state_type){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	command *temp_command;
 	int early_timeout=FALSE;
+	double exectime;
+	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
 	printf("run_global_service_event_handler() start\n");
@@ -244,14 +247,20 @@ int run_global_service_event_handler(service *svc,int state_type){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Global service event handler command '%s' timed out after %d seconds\n",global_service_event_handler,event_handler_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		attr+=NEBATTR_EARLY_COMMAND_TIMEOUT;
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,NULL);
+#endif
 
 #ifdef DEBUG0
 	printf("run_global_service_event_handler() end\n");
@@ -268,6 +277,8 @@ int run_service_event_handler(service *svc,int state_type){
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
+	double exectime;
+	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
 	printf("run_service_event_handler() start\n");
@@ -298,14 +309,21 @@ int run_service_event_handler(service *svc,int state_type){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service event handler command '%s' timed out after %d seconds\n",svc->event_handler,event_handler_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		attr+=NEBATTR_EARLY_COMMAND_TIMEOUT;
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
+	broker_event_handler(NEBTYPE_EVENTHANDLER_SERVICE,NEBFLAG_NONE,attr,(void *)svc,svc->current_state,state_type,exectime,NULL);
+#endif
+
 #ifdef DEBUG0
 	printf("run_service_event_handler() end\n");
 #endif
@@ -382,6 +400,8 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
+	double exectime;
+	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
 	printf("run_global_host_event_handler() start\n");
@@ -420,14 +440,20 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Global host event handler command '%s' timed out after %d seconds\n",global_host_event_handler,event_handler_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		attr+=NEBATTR_EARLY_COMMAND_TIMEOUT;
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_HOST,NEBFLAG_NONE,attr,(void *)hst,state,state_type,exectime,NULL);
+#endif
 
 #ifdef DEBUG0
 	printf("run_global_host_event_handler() end\n");
@@ -443,6 +469,8 @@ int run_host_event_handler(host *hst,int state,int state_type){
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
+	double exectime;
+	int attr=NEBATTR_NONE;
 
 #ifdef DEBUG0
 	printf("run_host_event_handler() start\n");
@@ -473,14 +501,21 @@ int run_host_event_handler(host *hst,int state,int state_type){
 	        }
 
 	/* run the command */
-	my_system(processed_command_line,event_handler_timeout,&early_timeout,NULL,0);
+	my_system(processed_command_line,event_handler_timeout,&early_timeout,&exectime,NULL,0);
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host event handler command '%s' timed out after %d seconds\n",hst->event_handler,event_handler_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		attr+=NEBATTR_EARLY_COMMAND_TIMEOUT;
 	        }
+
+#ifdef USE_EVENT_BROKER
+	/* send event data to broker */
+	broker_event_handler(NEBTYPE_EVENTHANDLER_HOST,NEBFLAG_NONE,attr,(void *)hst,state,state_type,exectime,NULL);
+#endif
+
 #ifdef DEBUG0
 	printf("run_host_event_handler() end\n");
 #endif

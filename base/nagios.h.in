@@ -215,23 +215,21 @@
 /*************** EVENT BROKER OPTIONS *****************/
 
 #define BROKER_NOTHING                  0
-#define BROKER_EVERYTHING		32767
+#define BROKER_EVERYTHING	 	8191
 
 #define BROKER_PROGRAM_STATE            1
 #define BROKER_TIMED_EVENTS             2
 #define BROKER_SERVICE_CHECKS           4
 #define BROKER_HOST_CHECKS              8
-#define BROKER_SERVICE_NOTIFICATIONS    16
-#define BROKER_HOST_NOTIFICATIONS       32
-#define BROKER_SERVICE_EVENT_HANDLERS   64
-#define BROKER_HOST_EVENT_HANDLERS      128
-#define BROKER_LOGGED_DATA              256
-#define BROKER_SERVICE_FLAPPING         512
-#define BROKER_HOST_FLAPPING            1024
-#define BROKER_SERVICE_COMMENTS         2048
-#define BROKER_HOST_COMMENTS		4096
-#define BROKER_SERVICE_DOWNTIME		8192
-#define BROKER_HOST_DOWNTIME		16384
+#define BROKER_EVENT_HANDLERS   	16
+#define BROKER_LOGGED_DATA              32
+#define BROKER_NOTIFICATIONS    	64
+#define BROKER_FLAPPING   	        128
+#define BROKER_COMMENTS         	256
+#define BROKER_DOWNTIME			512
+#define BROKER_SYSTEM_COMMANDS          1024
+#define BROKER_RETENTION_DATA           2048
+#define BROKER_CONFIG_DATA              4096
 
 
 
@@ -402,7 +400,7 @@ int check_service_dependencies(service *,int);          /* checks service depend
 int check_host_dependencies(host *,int);                /* checks host dependencies */
 void check_for_orphaned_services(void);			/* checks for orphaned services */
 void check_service_result_freshness(void);              /* checks the "freshness" of service check results */
-int my_system(char *,int,int *,char *,int);            	/* executes a command via popen(), but also protects against timeouts */
+int my_system(char *,int,int *,double *,char *,int);            	/* executes a command via popen(), but also protects against timeouts */
 void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */
 
 
@@ -592,12 +590,9 @@ void enable_passive_host_checks(host *);	        /* enables passive host checks 
 void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
 
 int init_service_result_worker_thread(void);
-int init_event_broker_worker_thread(void);
 int shutdown_service_result_worker_thread(void);
-int shutdown_event_broker_worker_thread(void);
 void * service_result_worker_thread(void *);
 void * cleanup_service_result_worker_thread(void *);
-void * cleanup_event_broker_worker_thread(void *);
 
 int init_command_file_worker_thread(void);
 int shutdown_command_file_worker_thread(void);
@@ -606,13 +601,20 @@ void * cleanup_command_file_worker_thread(void *);
 
 
 /**** Event Broker Functions ****/
+#ifdef USE_EVENT_BROKER
+int init_event_broker_worker_thread(void);
+int shutdown_event_broker_worker_thread(void);
+void * cleanup_event_broker_worker_thread(void *);
 int send_event_data_to_broker(char *);
 void * event_broker_worker_thread(void *);
-
 void broker_program_state(int,int,int,struct timeb *);
 void broker_timed_event(int,int,int,timed_event *event,void *,struct timeb *);
-void broker_logged_data(int,int,int,char *,unsigned long,struct timeb*);
-
+void broker_log_data(int,int,int,char *,unsigned long,struct timeb *);
+void broker_event_handler(int,int,int,void *,int,int,double,struct timeb *);
+void broker_system_command(int,int,int,int,double,int,char *,char *,struct timeb *);
+void broker_host_check(int,int,int,host *,int,double,struct timeb *);
+void broker_service_check(int,int,int,service *,struct timeb *);
+#endif
 
 #endif
 

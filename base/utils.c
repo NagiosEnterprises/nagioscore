@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-17-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -939,7 +939,7 @@ int clear_nonvolatile_macros(void){
 
 
 /* executes a system command - used for service checks and notifications */
-int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_length){
+int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *output,int output_length){
         pid_t pid;
 	int status;
 	int result;
@@ -947,8 +947,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 	int fd[2];
 	FILE *fp=NULL;
 	int bytes_read=0;
-	time_t start_time,end_time;
-
+	struct timeb start_time,end_time;
+	int attr=NEBATTR_NONE;
 #ifdef EMBEDDEDPERL
 	char fname[1024];
 	char tmpfname[32];
@@ -1022,7 +1022,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 	fcntl(fd[1],F_SETFL,O_NONBLOCK);
 
 	/* get the command start time */
-	time(&start_time);
+	ftime(&start_time);
 
 	/* fork */
 	pid=fork();
@@ -1197,7 +1197,10 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 		waitpid(pid,&status,0);
 
 		/* get the end time for running the command */
-		time(&end_time);
+		ftime(&end_time);
+
+		/* return execution time in milliseconds */
+		*exectime=(double)((double)(end_time.time-start_time.time)+(double)((end_time.millitm-start_time.millitm)/1000.0));
 
 		/* get the exit code returned from the program */
 		result=WEXITSTATUS(status);
@@ -1218,26 +1221,35 @@ int my_system(char *cmd,int timeout,int *early_timeout,char *output,int output_l
 			result=STATE_UNKNOWN;
 
 		/* try and read the results from the command output (retry if we encountered a signal) */
+		do{
+			bytes_read=read(fd[0],buffer,sizeof(buffer)-1);
+	                }while(bytes_read==-1 && errno==EINTR);
+		buffer[sizeof(buffer)-1]='\x0';
 		if(output!=NULL){
-			do{
-				bytes_read=read(fd[0],output,output_length-1);
-		                }while(bytes_read==-1 && errno==EINTR);
+			strncpy(output,buffer,output_length);
+			output[output_length-1]='\x0';
 		        }
 
 		if(bytes_read==-1 && output!=NULL)
 			strcpy(output,"");
 
 		/* if there was a critical return code and no output AND the command time exceeded the timeout thresholds, assume a timeout */
-		if(result==STATE_CRITICAL && bytes_read==-1 && (end_time-start_time)>=timeout){
+		if(result==STATE_CRITICAL && bytes_read==-1 && (end_time.time-start_time.time)>=timeout){
 
 			/* set the early timeout flag */
 			*early_timeout=TRUE;
+			attr+=NEBATTR_EARLY_COMMAND_TIMEOUT;
 
 			/* try to kill the command that timed out by sending termination signal to child process group */
 			kill((pid_t)(-pid),SIGTERM);
 			sleep(1);
 			kill((pid_t)(-pid),SIGKILL);
 		        }
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND,NEBFLAG_NONE,attr,timeout,*exectime,result,cmd,buffer,NULL);
+#endif
 
 		/* close the pipe for reading */
 		close(fd[0]);
@@ -1905,7 +1917,10 @@ int daemon_init(void){
 	open("/dev/null",O_WRONLY);
 	open("/dev/null",O_WRONLY);
 
-	broker_program_state(NEBTYPE_PROCESS_DAEMON,NEBFLAG_NONE,NEBATTR_NONE,time(NULL));
+#ifdef USE_EVENT_BROKER
+	/* send program data to broker */
+	broker_program_state(NEBTYPE_PROCESS_DAEMON,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
 
 	return OK;
 	}
@@ -2557,6 +2572,7 @@ int reinit_embedded_perl(void){
 /* initializes service result worker thread */
 int init_service_result_worker_thread(void){
 	int result;
+	sigset_t newmask;
 
 	/* initialize circular buffer */
 	service_result_buffer.head=0;
@@ -2570,44 +2586,18 @@ int init_service_result_worker_thread(void){
 	/* initialize mutex */
 	pthread_mutex_init(&service_result_buffer.buffer_lock,NULL);
 
+	/* new thread should block all signals */
+	sigfillset(&newmask);
+	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
+
 	/* create worker thread */
 	result=pthread_create(&worker_threads[SERVICE_WORKER_THREAD],NULL,service_result_worker_thread,NULL);
 
+	/* main thread should unblock all signals */
+	pthread_sigmask(SIG_UNBLOCK,&newmask,NULL);
+
 #ifdef DEBUG1
 	printf("SERVICE CHECK THREAD: %lu\n",(unsigned long)worker_threads[SERVICE_WORKER_THREAD]);
-#endif
-
-	if(result)
-		return ERROR;
-
-	return OK;
-        }
-
-
-/* initializes event broker worker thread */
-int init_event_broker_worker_thread(void){
-	int result;
-
-	if(event_broker_options==BROKER_NOTHING)
-		return OK;
-
-	/* initialize circular buffer */
-	event_broker_buffer.head=0;
-	event_broker_buffer.tail=0;
-	event_broker_buffer.items=0;
-	event_broker_buffer.overflow=0L;
-	event_broker_buffer.buffer=(void **)malloc(EVENT_BUFFER_SLOTS*sizeof(char **));
-	if(event_broker_buffer.buffer==NULL)
-		return ERROR;
-
-	/* initialize mutex */
-	pthread_mutex_init(&event_broker_buffer.buffer_lock,NULL);
-
-	/* create worker thread */
-	result=pthread_create(&worker_threads[EVENT_WORKER_THREAD],NULL,event_broker_worker_thread,NULL);
-
-#ifdef DEBUG1
-	printf("EVENT BROKER THREAD: %lu\n",(unsigned long)worker_threads[EVENT_WORKER_THREAD]);
 #endif
 
 	if(result)
@@ -2630,22 +2620,6 @@ int shutdown_service_result_worker_thread(void){
         }
 
 
-/* shutdown event broker worker thread */
-int shutdown_event_broker_worker_thread(void){
-
-	if(event_broker_options==BROKER_NOTHING)
-		return OK;
-
-	/* tell the worker thread to exit */
-	pthread_cancel(worker_threads[EVENT_WORKER_THREAD]);
-
-	/* wait for the worker thread to exit */
-	pthread_join(worker_threads[EVENT_WORKER_THREAD],NULL);
-
-	return OK;
-        }
-
-
 /* clean up resources used by service result worker thread */
 void * cleanup_service_result_worker_thread(void *arg){
 	int x;
@@ -2662,6 +2636,7 @@ void * cleanup_service_result_worker_thread(void *arg){
 /* initializes command file worker thread */
 int init_command_file_worker_thread(void){
 	int result;
+	sigset_t newmask;
 
 	/* initialize circular buffer */
 	external_command_buffer.head=0;
@@ -2675,8 +2650,15 @@ int init_command_file_worker_thread(void){
 	/* initialize mutex */
 	pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
 
+	/* new thread should block all signals */
+	sigfillset(&newmask);
+	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
+
 	/* create worker thread */
 	result=pthread_create(&worker_threads[COMMAND_WORKER_THREAD],NULL,command_file_worker_thread,NULL);
+
+	/* main thread should unblock all signals */
+	pthread_sigmask(SIG_UNBLOCK,&newmask,NULL);
 
 #ifdef DEBUG1
 	printf("COMMAND FILE THREAD: %lu\n",(unsigned long)worker_threads[COMMAND_WORKER_THREAD]);
@@ -2717,21 +2699,15 @@ void * cleanup_command_file_worker_thread(void *arg){
 
 /* service worker thread - artificially increases buffer of IPC pipe */
 void * service_result_worker_thread(void *arg){
-	char input_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
 #ifdef DOESNT_WORK
 	int retval;
 	fd_set readfs;
 #endif
-	sigset_t newmask;
 	int read_result;
 	int bytes_to_read;
 	int write_offset;
 	service_message *message;
-
-	/* this thread should block all signals */
-	sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_service_result_worker_thread,NULL);
@@ -2774,7 +2750,7 @@ void * service_result_worker_thread(void *arg){
 			/* allocate memory for the message */
 			message=(service_message *)malloc(sizeof(service_message));
 			if(message==NULL)
-				return;
+				return NULL;
 
 			/* clear the message buffer */
 			bzero((void *)message,sizeof(service_message));
@@ -2855,12 +2831,10 @@ void * command_file_worker_thread(void *arg){
 #ifdef DOESNT_WORK
 	int retval;
 	fd_set readfs;
+	fd_set writefs;
+	fd_set errfs;
 #endif
-	sigset_t newmask;
 
-	/* this thread should block all signals */
-	sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
@@ -2872,6 +2846,10 @@ void * command_file_worker_thread(void *arg){
 #ifdef DOESNT_WORK
 	FD_ZERO(&readfs);
 	FD_SET(command_file_fd,&readfs);
+	FD_ZERO(&writefs);
+	FD_SET(command_file_fd,&writefs);
+	FD_ZERO(&errfs);
+	FD_SET(command_file_fd,&errfs);
 #endif
 
 	while(1){
@@ -2884,9 +2862,16 @@ void * command_file_worker_thread(void *arg){
 		tv.tv_usec=500000;
 		select(0,NULL,NULL,NULL,&tv);
 
+		/* I can't seem to get this working (blocked or non-blocked) - retval is always 0 */
 #ifdef DOESNT_WORK
-		/* I can't seem to get this working (blocked or non-blocked) */
-		retval=select(command_file_fd+1,&readfs,NULL,NULL,&tv);
+		retval=select(command_file_fd+1,&readfs,&writefs,&errfs,&tv);
+		printf("RETVAL: %d\n",retval);
+		if(FD_ISSET(command_file_fd,&readfs))
+			printf("  READ IS TRUE\n");
+		if(FD_ISSET(command_file_fd,&writefs))
+			printf("  WRITE IS TRUE\n");
+		if(FD_ISSET(command_file_fd,&errfs))
+			printf("  ERROR IS TRUE\n");
 		if(retval<=0)
 			continue;
 #endif

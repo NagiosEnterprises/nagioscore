@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -28,6 +28,7 @@
 #include "../common/statusdata.h"
 #include "../common/downtime.h"
 #include "nagios.h"
+#include "broker.h"
 #include "perfdata.h"
 
 #ifdef EMBEDDEDPERL
@@ -206,6 +207,11 @@ void run_service_check(service *svc){
 
 #ifdef DEBUG3
 	printf("\tChecking service '%s' on host '%s'...\n",svc->description,svc->host_name);
+#endif
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,NULL);
 #endif
 
 	/* increment number of parallel service checks currently out there... */
@@ -1115,6 +1121,11 @@ void reap_service_checks(void){
 				log_service_event(temp_service,HARD_STATE);
 		        }
 
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,(temp_service->check_type==SERVICE_CHECK_ACTIVE)?NEBATTR_SERVICECHECK_ACTIVE:NEBATTR_SERVICECHECK_PASSIVE,temp_service,NULL);
+#endif
+
 		/* set the checked flag */
 		temp_service->has_been_checked=TRUE;
 
@@ -1266,7 +1277,8 @@ void check_for_orphaned_services(void){
 
 	/* check all services... */
 	move_first_service();
-	while(temp_service = get_next_service()) {
+	while(temp_service=get_next_service()){
+
 		/* skip services that are not currently executing */
 		if(temp_service->is_executing==FALSE)
 			continue;
@@ -1325,7 +1337,8 @@ void check_service_result_freshness(void){
 
 	/* check all services... */
 	move_first_service();
-	while(temp_service=get_next_service()) {
+	while(temp_service=get_next_service()){
+
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
 			continue;
@@ -1362,7 +1375,7 @@ void check_service_result_freshness(void){
 		if(expiration_time<current_time){
 
 			/* log a warning */
-			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds (threshold=%lu seconds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
+			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
@@ -1395,6 +1408,11 @@ int verify_route_to_host(host *hst){
 
 #ifdef DEBUG0
 	printf("verify_route_to_host() start\n");
+#endif
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,hst->status,0.0,NULL);
 #endif
 
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
@@ -1626,6 +1644,10 @@ int check_host(host *hst,int propagation_options){
 			log_host_event(hst,HOST_UNREACHABLE,HARD_STATE);
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,return_result,0.0,NULL);
+#endif
 
 	/* check to see if the associated host is flapping */
 	check_for_host_flapping(hst);
@@ -1633,7 +1655,6 @@ int check_host(host *hst,int propagation_options){
 	/* check for external commands if we're doing so as often as possible */
 	if(command_check_interval==-1)
 		check_for_external_commands();
-
 
 #ifdef DEBUG3
 	printf("\tHost Check Result: Host '%s' is ",hst->name);
@@ -1667,6 +1688,7 @@ int run_host_check(host *hst){
 	time_t finish_time;
 	char *temp_ptr;
 	int early_timeout=FALSE;
+	double exectime;
 	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH];
 		
 
@@ -1727,7 +1749,7 @@ int run_host_check(host *hst){
 	strcpy(hst->perf_data,"");
 
 	/* run the host check command */
-	result=my_system(processed_check_command,host_check_timeout,&early_timeout,temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1);
+	result=my_system(processed_check_command,host_check_timeout,&early_timeout,&exectime,temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1);
 
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
@@ -1796,6 +1818,11 @@ int run_host_check(host *hst){
 		return_result=HOST_UP;
 	else
 		return_result=HOST_DOWN;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW,NEBFLAG_NONE,NEBATTR_HOSTCHECK_ACTIVE,hst,return_result,exectime,NULL);
+#endif
 
 #ifdef DEBUG3
 	printf("\tHost Check Result: Host '%s' is ",hst->name);

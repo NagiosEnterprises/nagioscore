@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Changed default name of status, comment, downtime, and retention files
 * Removed DB support for extended data and retention data
 * Multiple service descriptions can be used in both service dependency
   and service escalation definitions

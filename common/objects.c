@@ -2,8 +2,8 @@
  *
  * OBJECTS.C - Object addition and search functions for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-01-2003
  *
  * License:
  *
@@ -507,7 +507,6 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 host *add_host(char *name, char *alias, char *address, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information){
 	host *temp_host;
 	host *new_host;
-	host *last_host;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int x;
@@ -1902,7 +1901,6 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_ok, int stalk_warning, int stalk_unknown, int stalk_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *temp_service;
 	service *new_service;
-	service *last_service;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int x;
@@ -3838,7 +3836,6 @@ int is_contact_for_host(host *hst, contact *cntct){
 int is_escalated_contact_for_host(host *hst, contact *cntct){
 	contactgroupsmember *temp_contactgroupsmember;
 	contactgroup *temp_contactgroup;
-	hostgroup *temp_hostgroup;
 	hostescalation *temp_hostescalation;
 
 	/* search all host escalations */

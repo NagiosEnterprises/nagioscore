@@ -93,7 +93,7 @@ resource_file=@sysconfdir@/resource.cfg
 # The contentsof the status file are deleted every time Nagios
 #  restarts.
 
-status_file=@localstatedir@/status.log
+status_file=@localstatedir@/status.dat
 
 
 
@@ -160,7 +160,7 @@ command_file=@localstatedir@/rw/nagios.cmd
 # This is the file that Nagios will use for storing host and service
 # comments.
 
-comment_file=@localstatedir@/comment.log
+comment_file=@localstatedir@/comments.dat
 
 
 
@@ -168,7 +168,7 @@ comment_file=@localstatedir@/comment.log
 # This is the file that Nagios will use for storing host and service
 # downtime data.
 
-downtime_file=@localstatedir@/downtime.log
+downtime_file=@localstatedir@/downtime.dat
 
 
 
@@ -420,7 +420,7 @@ retain_state_information=1
 # This file is used only if the preserve_state_information
 # variable is set to 1.
 
-state_retention_file=@localstatedir@/status.sav
+state_retention_file=@localstatedir@/retention.dat
 
 
 

@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-10-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-01-2003
  *
  * Description:
  *
@@ -384,7 +384,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 	FILE *fp;
 	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
 	register in_definition=FALSE;
-	char *temp_ptr;
 	register current_line=0;
 	int result=OK;
 	register int x;
@@ -582,7 +581,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
 void xodtemplate_strip(char *buffer){
 	register int x;
-	register int y;
 	char ch;
 	register int a;
 	register int b;
@@ -1238,9 +1236,6 @@ int xodtemplate_add_object_property(char *input, int options){
 	xodtemplate_hostescalation *temp_hostescalation;
 	register int x;
 	register int y;
-#ifdef NSCORE
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-#endif
 
 #ifdef DEBUG0
 	printf("xodtemplate_add_object_property() start\n");
@@ -2674,8 +2669,6 @@ int xodtemplate_end_object_definition(int options){
 int xodtemplate_duplicate_objects(void){
 	int result=OK;
 	xodtemplate_service *temp_service;
-	xodtemplate_host *temp_host;
-	xodtemplate_hostgroup *temp_hostgroup;
 	xodtemplate_hostescalation *temp_hostescalation;
 	xodtemplate_serviceescalation *temp_serviceescalation;
 	xodtemplate_hostdependency *temp_hostdependency;
@@ -2686,10 +2679,6 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_servicelist *this_servicelist;
 	xodtemplate_hostlist *master_hostlist;
 	xodtemplate_hostlist *dependent_hostlist;
-	char *host_names;
-	char *hostgroup_names;
-	char *temp_ptr;
-	char *host_name_ptr;
 	char *host_name;
 	int first_item;
 	int keep;
@@ -2709,8 +2698,8 @@ int xodtemplate_duplicate_objects(void){
 
 
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
-	xod_svc_cursor = get_xodtemplate_service_cursor();
-	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)) {
+	xod_svc_cursor=get_xodtemplate_service_cursor();
+	while(temp_service=get_next_xodtemplate_service(xod_svc_cursor)){
 
 		/* skip services we don't need to duplicate */
 		keep=FALSE;

@@ -424,6 +424,13 @@ host *get_next_host(void);									/* returns the next host, NULL at the end of 
 void *get_host_cursor(void);					                                /* allocate memory for the host cursor */
 host *get_next_host_cursor(void *v_cursor);							/* return the next host, NULL at the end of the list */
 void free_host_cursor(void *cursor);								/* free allocated cursor memory */
+int compare_host(host *,const char *);
+int host_comes_after(host *,const char *);
+int add_host_allocated(host *);
+int compare_service(service *,const char *,const char *);
+int service_comes_after(service *,const char *,const char *);
+int add_service_allocated(service *);
+
 
 
 /**** Object Query Functions ****/

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-27-2003
+ * Last Modified: 09-04-2003
  *
  * Description:
  *
@@ -124,7 +124,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 		return ERROR;
 	        }
 
-	/* reinitialize variables */
+	/* initialize variables */
 	xodtemplate_timeperiod_list=NULL;
 	xodtemplate_command_list=NULL;
 	xodtemplate_contactgroup_list=NULL;
@@ -1287,7 +1287,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostextinfo->_config_file=config_file;
 		new_hostextinfo->_start_line=start_line;
 
-		/* add new timeperiod to head of list in memory */
+		/* add new extended host info to head of list in memory */
 		new_hostextinfo->next=xodtemplate_hostextinfo_list;
 		xodtemplate_hostextinfo_list=new_hostextinfo;
 
@@ -1321,7 +1321,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_serviceextinfo->_config_file=config_file;
 		new_serviceextinfo->_start_line=start_line;
 
-		/* add new timeperiod to head of list in memory */
+		/* add new extended service info to head of list in memory */
 		new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
 		xodtemplate_serviceextinfo_list=new_serviceextinfo;
 
@@ -3406,7 +3406,7 @@ int xodtemplate_duplicate_services(void){
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_service->hostgroup_name,temp_service->host_name);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3497,7 +3497,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostescalation->hostgroup_name,temp_hostescalation->host_name);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in host escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3548,7 +3548,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceescalation->hostgroup_name,temp_serviceescalation->host_name);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3600,7 +3600,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,temp_serviceescalation->host_name,temp_serviceescalation->service_description);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3653,7 +3653,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_serviceescalation->servicegroup_name,NULL,NULL);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand servicegroups specified in service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand servicegroups specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3664,12 +3664,8 @@ int xodtemplate_duplicate_objects(void){
 		first_item=TRUE;
 		for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
 
-			printf("ITEM: '%s'/'%s'\n",this_servicelist->host_name,this_servicelist->service_description);
-
 			/* if this is the first duplication, use the existing entry if possible */
 			if(first_item==TRUE && temp_serviceescalation->host_name==NULL && temp_serviceescalation->service_description==NULL){
-
-				printf("REUSING FIRST ITEM\n");
 
 				free(temp_serviceescalation->host_name);
 				temp_serviceescalation->host_name=strdup(this_servicelist->host_name);
@@ -3710,7 +3706,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->hostgroup_name,temp_hostdependency->host_name);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3721,7 +3717,7 @@ int xodtemplate_duplicate_objects(void){
 		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->dependent_hostgroup_name,temp_hostdependency->dependent_host_name);
 		if(dependent_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand dependent hostgroups and/or hosts specified in host dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand dependent hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3769,7 +3765,7 @@ int xodtemplate_duplicate_objects(void){
 		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->hostgroup_name,temp_servicedependency->host_name);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3780,7 +3776,7 @@ int xodtemplate_duplicate_objects(void){
 		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_host_name);
 		if(dependent_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand dependent hostgroups and/or hosts specified in service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand dependent hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3829,7 +3825,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->servicegroup_name,temp_servicedependency->host_name,temp_servicedependency->service_description);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3881,7 +3877,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->dependent_servicegroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3932,7 +3928,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostextinfo->hostgroup_name,temp_hostextinfo->host_name);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3982,7 +3978,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5082,7 +5078,7 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	template_timeperiod=xodtemplate_find_timeperiod(this_timeperiod->template);
 	if(template_timeperiod==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in timeperiod definition could not be not found (config file '%s', line %d)\n",this_timeperiod->template,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in timeperiod definition could not be not found (config file '%s', starting on line %d)\n",this_timeperiod->template,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5138,7 +5134,7 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 	template_command=xodtemplate_find_command(this_command->template);
 	if(template_command==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in command definition could not be not found (config file '%s', line %d)\n",this_command->template,xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in command definition could not be not found (config file '%s', starting on line %d)\n",this_command->template,xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5189,7 +5185,7 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 	template_contactgroup=xodtemplate_find_contactgroup(this_contactgroup->template);
 	if(template_contactgroup==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contactgroup definition could not be not found (config file '%s', line %d)\n",this_contactgroup->template,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contactgroup definition could not be not found (config file '%s', starting on line %d)\n",this_contactgroup->template,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5242,7 +5238,7 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	template_hostgroup=xodtemplate_find_hostgroup(this_hostgroup->template);
 	if(template_hostgroup==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in hostgroup definition could not be not found (config file '%s', line %d)\n",this_hostgroup->template,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in hostgroup definition could not be not found (config file '%s', starting on line %d)\n",this_hostgroup->template,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5295,7 +5291,7 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 	template_servicegroup=xodtemplate_find_servicegroup(this_servicegroup->template);
 	if(template_servicegroup==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', line %d)\n",this_servicegroup->template,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', starting on line %d)\n",this_servicegroup->template,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5346,7 +5342,7 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 	template_servicedependency=xodtemplate_find_servicedependency(this_servicedependency->template);
 	if(template_servicedependency==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service dependency definition could not be not found (config file '%s', line %d)\n",this_servicedependency->template,xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service dependency definition could not be not found (config file '%s', starting on line %d)\n",this_servicedependency->template,xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5425,7 +5421,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	template_serviceescalation=xodtemplate_find_serviceescalation(this_serviceescalation->template);
 	if(template_serviceescalation==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service escalation definition could not be not found (config file '%s', line %d)\n",this_serviceescalation->template,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service escalation definition could not be not found (config file '%s', starting on line %d)\n",this_serviceescalation->template,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5503,7 +5499,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	template_contact=xodtemplate_find_contact(this_contact->template);
 	if(template_contact==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contact definition could not be not found (config file '%s', line %d)\n",this_contact->template,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contact definition could not be not found (config file '%s', starting on line %d)\n",this_contact->template,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5584,7 +5580,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 	template_host=xodtemplate_find_host(this_host->template);
 	if(template_host==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host definition could not be not found (config file '%s', line %d)\n",this_host->template,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host definition could not be not found (config file '%s', starting on line %d)\n",this_host->template,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5733,7 +5729,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 	template_service=xodtemplate_find_service(this_service->template);
 	if(template_service==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service definition could not be not found (config file '%s', line %d)\n",this_service->template,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service definition could not be not found (config file '%s', starting on line %d)\n",this_service->template,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5893,7 +5889,7 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 	template_hostdependency=xodtemplate_find_hostdependency(this_hostdependency->template);
 	if(template_hostdependency==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host dependency definition could not be not found (config file '%s', line %d)\n",this_hostdependency->template,xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host dependency definition could not be not found (config file '%s', starting on line %d)\n",this_hostdependency->template,xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -5956,7 +5952,7 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	template_hostescalation=xodtemplate_find_hostescalation(this_hostescalation->template);
 	if(template_hostescalation==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host escalation definition could not be not found (config file '%s', line %d)\n",this_hostescalation->template,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host escalation definition could not be not found (config file '%s', starting on line %d)\n",this_hostescalation->template,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6026,7 +6022,7 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	template_hostextinfo=xodtemplate_find_hostextinfo(this_hostextinfo->template);
 	if(template_hostextinfo==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', line %d)\n",this_hostextinfo->template,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', starting on line %d)\n",this_hostextinfo->template,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6103,7 +6099,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	template_serviceextinfo=xodtemplate_find_serviceextinfo(this_serviceextinfo->template);
 	if(template_serviceextinfo==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', line %d)\n",this_serviceextinfo->template,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', starting on line %d)\n",this_serviceextinfo->template,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6179,7 +6175,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 		/* add all members to the host group */
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member hosts specified in hostgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member hosts specified in hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6225,7 +6221,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
 			if(temp_hostgroup==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find hostgroup '%s' specified in host '%s' definition (config file '%s', line %d)\n",temp_ptr,temp_host->host_name,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find hostgroup '%s' specified in host '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_host->host_name,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6315,7 +6311,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 				/* add all members to the service group */
 				if(temp_servicelist==NULL){
 #ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member services specified in servicegroup (config file '%s', line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member services specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6384,7 +6380,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
 			if(temp_servicegroup==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find servicegroup '%s' specified in service '%s' on host '%s' definition (config file '%s', line %d)\n",temp_ptr,temp_service->host_name,temp_service->service_description,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find servicegroup '%s' specified in service '%s' on host '%s' definition (config file '%s', starting on line %d)\n",temp_ptr,temp_service->host_name,temp_service->service_description,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6910,7 +6906,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	/* return with an error if we couldn't add the timeperiod */
 	if(new_timeperiod==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register timeperiod (config file '%s', line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register timeperiod (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6930,7 +6926,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			range_buffer=my_strsep(&range_ptr,"-");
 			if(range_buffer==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No start time delimiter) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No start time delimiter) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6941,7 +6937,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No start time hours) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No start time hours) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6951,7 +6947,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No start time minutes) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No start time minutes) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6965,7 +6961,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			range_buffer=my_strsep(&range_ptr,"-");
 			if(range_buffer==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No end time delimiter) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No end time delimiter) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6976,7 +6972,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No end time hours) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No end time hours) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -6987,7 +6983,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			time_buffer=my_strsep(&time_ptr,":");
 			if(time_buffer==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No end time minutes) (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (No end time minutes) (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7002,7 +6998,7 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 			new_timerange=add_timerange_to_timeperiod(new_timeperiod,day,range_start_time,range_end_time);
 			if(new_timerange==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (config file '%s', line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add timerange for day %d to timeperiod (config file '%s', starting on line %d)\n",day,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7042,7 +7038,7 @@ int xodtemplate_register_command(xodtemplate_command *this_command){
 	/* return with an error if we couldn't add the command */
 	if(new_command==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register command (config file '%s', line %d)\n",xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register command (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7081,7 +7077,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	/* return with an error if we couldn't add the contactgroup */
 	if(new_contactgroup==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register contactgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register contactgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7091,7 +7087,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	/* add all members to the contact group */
 	if(this_contactgroup->members==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup has no members (config file '%s', line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7102,7 +7098,7 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		new_contactgroupmember=add_contact_to_contactgroup(new_contactgroup,contact_name);
 		if(new_contactgroupmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contact '%s' to contactgroup (config file '%s', line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contact '%s' to contactgroup (config file '%s', starting on line %d)\n",contact_name,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7142,7 +7138,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	/* return with an error if we couldn't add the hostgroup */
 	if(new_hostgroup==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register hostgroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7155,7 +7151,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,host_name);
 		if(new_hostgroupmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host '%s' to hostgroup (config file '%s', line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host '%s' to hostgroup (config file '%s', starting on line %d)\n",host_name,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7196,7 +7192,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	/* return with an error if we couldn't add the servicegroup */
 	if(new_servicegroup==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register servicegroup (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7209,7 +7205,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		svc_description=strtok(NULL,",");
 		if(svc_description==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Missing service name in servicegroup definition (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Missing service name in servicegroup definition (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7220,7 +7216,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		new_servicegroupmember=add_service_to_servicegroup(new_servicegroup,host_name,svc_description);
 		if(new_servicegroupmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add service '%s' on host '%s' to servicegroup (config file '%s', line %d)\n",svc_description,host_name,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add service '%s' on host '%s' to servicegroup (config file '%s', starting on line %d)\n",svc_description,host_name,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7260,7 +7256,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service execution dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service execution dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7274,7 +7270,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service notification dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service notification dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7322,7 +7318,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* return with an error if we couldn't add the serviceescalation */
 	if(new_serviceescalation==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7332,7 +7328,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 	/* add the contact groups */
 	if(this_serviceescalation->contact_groups==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service escalation has no contact groups (config file '%s', line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service escalation has no contact groups (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7342,7 +7338,7 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 		new_contactgroupsmember=add_contactgroup_to_serviceescalation(new_serviceescalation,contact_group);
 		if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to service escalation (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to service escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7382,7 +7378,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 	/* return with an error if we couldn't add the contact */
 	if(new_contact==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register contact (config file '%s', line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register contact (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7396,7 +7392,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 			new_commandsmember=add_host_notification_command_to_contact(new_contact,command_name);
 			if(new_commandsmember==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host notification command '%s' to contact (config file '%s', line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add host notification command '%s' to contact (config file '%s', starting on line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7412,7 +7408,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 			new_commandsmember=add_service_notification_command_to_contact(new_contact,command_name);
 			if(new_commandsmember==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add service notification command '%s' to contact (config file '%s', line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add service notification command '%s' to contact (config file '%s', starting on line %d)\n",command_name,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7455,7 +7451,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host (config file '%s', line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7470,7 +7466,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			new_hostsmember=add_parent_host_to_host(new_host,parent_host);
 			if(new_hostsmember==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add parent host '%s' to host (config file '%s', line %d)\n",parent_host,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add parent host '%s' to host (config file '%s', starting on line %d)\n",parent_host,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7488,7 +7484,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 			new_contactgroupsmember=add_contactgroup_to_host(new_host,contact_group);
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to host (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to host (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7529,7 +7525,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service (config file '%s', line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7548,7 +7544,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 			/* stop adding contact groups if we ran into an error */
 			if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contact group '%s' to service (config file '%s', line %d)\n",contactgroup_name,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contact group '%s' to service (config file '%s', starting on line %d)\n",contactgroup_name,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7590,7 +7586,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host execution dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host execution dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7606,7 +7602,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host notification dependency (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host notification dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7653,7 +7649,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	/* return with an error if we couldn't add the hostescalation */
 	if(new_hostescalation==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host escalation (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7663,7 +7659,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 	/* add the contact groups */
 	if(this_hostescalation->contact_groups==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host escalation has no contact groups (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host escalation has no contact groups (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7673,7 +7669,7 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 		new_contactgroupsmember=add_contactgroup_to_hostescalation(new_hostescalation,contact_group);
 		if(new_contactgroupsmember==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to host escalation (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to host escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7711,7 +7707,7 @@ int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	/* return with an error if we couldn't add the definition */
 	if(new_hostextinfo==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host extended information (config file '%s', line %d)\n",xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register host extended information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -7748,7 +7744,7 @@ int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_service
 	/* return with an error if we couldn't add the definition */
 	if(new_serviceextinfo==NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service extended information (config file '%s', line %d)\n",xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register service extended information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -8915,51 +8911,89 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups,c
 
 /* expands a comma-delimited list of servicegroups and/or service descriptions */
 xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *servicegroups,char *host,char *services){
-	xodtemplate_servicelist *temp_list;
-	xodtemplate_servicelist *new_list;
-	xodtemplate_servicelist *tempsg_list;
-	xodtemplate_service *temp_service;
-	xodtemplate_servicegroup  *temp_servicegroup;
-	char *service_names;
-	char *servicegroup_names;
-	char *group_members;
-	char *member_name;
-	char *member_ptr;
-	char *temp_ptr;
-#ifdef USE_REGEXP_MATCHING
-	regex_t preg;
-	regex_t preg2;
-	int found_match;
-#endif
-#ifdef NSCORE
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-#endif
+	xodtemplate_servicelist *temp_list=NULL;
+	int result;
 
 #ifdef DEBUG0
 	printf("xodtemplate_expand_servicegroups_and_services() start\n");
 #endif
 
-	temp_list=NULL;
-
 	/* process list of servicegroups... */
 	if(servicegroups!=NULL){
 
-		/* allocate memory for servicegroup name list */
-		servicegroup_names=strdup(servicegroups);
-		if(servicegroup_names==NULL)
-			return temp_list;
+		/* expand services */
+		result=xodtemplate_expand_servicegroups(&temp_list,servicegroups);
+		if(result!=OK){
+			xodtemplate_free_servicelist(temp_list);
+			return NULL;
+		        }
+	        }
 
-		for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+	/* process service names */
+	if(host!=NULL && services!=NULL){
 
-			/* strip trailing spaces */
-			strip(temp_ptr);
+		/* expand services */
+		result=xodtemplate_expand_services(&temp_list,host,services);
+		if(result!=OK){
+			xodtemplate_free_servicelist(temp_list);
+			return NULL;
+		        }
+	        }
 
-#ifdef USE_REGEXP_MATCHING
+#ifdef DEBUG0
+	printf("xodtemplate_expand_servicegroups_and_services() end\n");
+#endif
+
+	return temp_list;
+        }
+
+
+/* expands servicegroups */
+int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, char *servicegroups){
+	xodtemplate_servicegroup  *temp_servicegroup;
+	regex_t preg;
+	char *servicegroup_names;
+	char *group_members;
+	char *member_name;
+	char *host_name;
+	char *member_ptr;
+	char *temp_ptr;
+	int use_regexp=FALSE;
+	int use_regexp_matches=FALSE;
+	int use_true_regexp_matching=FALSE;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_expand_servicegroups() start\n");
+#endif
+
+	if(list==NULL || servicegroups==NULL)
+		return ERROR;
+
+	/* should we use regular expression matching? */
+	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(servicegroups,"*") || strstr(servicegroups,"?")))
+		use_regexp=TRUE;
+
+	/* allocate memory for servicegroup name list */
+	servicegroup_names=strdup(servicegroups);
+	if(servicegroup_names==NULL)
+		return ERROR;
+
+	/* expand each servicegroup */
+	for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+		
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
 
 			/* compile regular expression */
 			if(regcomp(&preg,temp_ptr,0)){
 				free(servicegroup_names);
-				return NULL;
+				return ERROR;
 		                }
 			
 			/* test match against all servicegroup names */
@@ -8975,122 +9009,130 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 
 			/* free memory allocated to compiled regexp */
 			regfree(&preg);
-	
-#else
+		        }
+		
+		/* use standard matching... */
+		else{
 
 			/* find the servicegroup */
 			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
+		        }
 
-#endif
-
-			if(temp_servicegroup==NULL){
+		/* we didn't find a matching servicegroup */
+		if(temp_servicegroup==NULL){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any servicegroup matching '%s'\n",temp_ptr);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find any servicegroup matching '%s'\n",temp_ptr);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-				free(servicegroup_names);
-				return NULL;
-		                }
+			free(servicegroup_names);
+			return ERROR;
+		        }
 
-			/* skip servicegroups with no defined members */
-			if(temp_servicegroup->members==NULL)
-				continue;
+		/* skip servicegroups with no defined members */
+		if(temp_servicegroup->members==NULL)
+			continue;
 
-			/* save a copy of the members */
-			group_members=strdup(temp_servicegroup->members);
-			if(group_members==NULL){
-				free(servicegroup_names);
-				return temp_list;
-	                        }
+		/* save a copy of the members */
+		group_members=strdup(temp_servicegroup->members);
+		if(group_members==NULL){
+			free(servicegroup_names);
+			return ERROR;
+		        }
 
-			/* process all services that belong to the servicegroup */
-			tempsg_list=NULL;
-			member_ptr=group_members;
-			for(member_name=my_strsep(&member_ptr,",");member_name!=NULL;member_name=my_strsep(&member_ptr,",")){
+		/* process all services that belong to the servicegroup */
+		/* NOTE: members of the service group have already have been expanded by now, so we don't need to do it here */
+		member_ptr=group_members;
+		host_name=NULL;
+		for(member_name=my_strsep(&member_ptr,",");member_name!=NULL;member_name=my_strsep(&member_ptr,",")){
 
-				/* strip trailing spaces from member name */
-				strip(member_name);
+			/* strip trailing spaces from member name */
+			strip(member_name);
 
-				/* host part */
-				if(tempsg_list==NULL){
-
-					/* allocate memory for a new list item */
-					tempsg_list=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
-					if(tempsg_list==NULL){
-						free(group_members);
-						free(servicegroup_names);
-						return temp_list;
-			                        }
-
-					/* save the host name */ 
-					tempsg_list->host_name=strdup(member_name);
-					if(tempsg_list->host_name==NULL){
-						free(group_members);
-						free(servicegroup_names);
-						return temp_list;
-			                        }
+			/* host name */
+			if(host_name==NULL){
+				host_name=strdup(member_name);
+				if(host_name==NULL){
+					free(servicegroup_names);
+					return ERROR;
 				        }
+			        }
 
-				/* service part */
-				else{
+			/* service description */
+			else{
+				
+				/* add service to the list */
+				xodtemplate_add_service_to_servicelist(list,host_name,member_name);
 
-					/* save the service description */
-					tempsg_list->service_description=strdup(member_name);
-					if(tempsg_list->service_description==NULL){
-						free(group_members);
-						free(servicegroup_names);
-						return temp_list;
-			                        }
-
-					/* skip this service if its already in the list */
-					for(new_list=temp_list;new_list;new_list=new_list->next)
-						if(!strcmp(tempsg_list->host_name,new_list->host_name) && !strcmp(tempsg_list->service_description,new_list->service_description))
-							break;
-					if(new_list!=NULL){
-						tempsg_list=NULL;
-						continue;
-					        }
-
-					/* add new item to head of list */
-					tempsg_list->next=temp_list;
-					temp_list=tempsg_list;
-
-					/* reset new item pointer */
-					tempsg_list=NULL;
-				        }
-		                }
-
-			free(group_members);
-	                }
-
-		free(servicegroup_names);
+				free(host_name);
+				host_name=NULL;
+			        }
+		        }
 	        }
 
+	/* free memory */
+	free(servicegroup_names);
 
-	/* process hosts/services */
-	if(host!=NULL && services!=NULL){
+#ifdef DEBUG0
+	printf("xodtemplate_expand_servicegroups() end\n");
+#endif
 
-		/* allocate memory for service name list */
-		service_names=strdup(services);
-		if(service_names==NULL)
-			return NULL;
+	return OK;
+        }
 
-#ifdef USE_REGEXP_MATCHING
 
-		/* compile regular expression for host name */
-		if(regcomp(&preg2,host,0))
-			return NULL;
+/* expands services (host name is not expanded) */
+int xodtemplate_expand_services(xodtemplate_servicelist **list, char *host_name, char *services){
+	char *service_names;
+	char *temp_ptr;
+	xodtemplate_service *temp_service;
+	regex_t preg;
+	regex_t preg2;
+	int found_match=FALSE;
+	int use_regexp=FALSE;
+	int use_regexp_matches=FALSE;
+	int use_true_regexp_matching=FALSE;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
 
-		for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+#ifdef DEBUG0
+	printf("xodtemplate_expand_services() start\n");
+#endif
 
-			/* strip trailing spaces */
-			strip(temp_ptr);
+	if(list==NULL || host_name==NULL || services==NULL)
+		return ERROR;
+
+	/* should we use regular expression matching? */
+	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(services,"*") || strstr(services,"?")))
+		use_regexp=TRUE;
+
+	/* compile regular expression for host name */
+	if(use_regexp==TRUE){
+		if(regcomp(&preg2,host_name,0))
+			return ERROR;
+	        }
+
+	service_names=strdup(services);
+	if(service_names==NULL){
+		if(use_regexp==TRUE)
+			regfree(&preg2);
+		return ERROR;
+	        }
+
+	/* expand each service description */
+	for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
 
 			/* compile regular expression for service description */
 			if(regcomp(&preg,temp_ptr,0)){
 				free(service_names);
-				return NULL;
+				return ERROR;
 	                        }
 
 			/* test match against all services */
@@ -9110,149 +9152,110 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 				else
 					found_match=TRUE;
 
-				/* skip this service if its already in the list */
-				for(new_list=temp_list;new_list;new_list=new_list->next)
-					if(!strcmp(new_list->service_description,temp_ptr))
-						break;
-				if(new_list)
-					continue;
+				/* add service to the list */
+				xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
+			        }
 
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
-				if(new_list==NULL){
-					free(service_names);
-					return temp_list;
-			                }
-
-				/* save the host name */
-				new_list->host_name=strdup(host);
-
-				/* save the service description */
-				new_list->service_description=strdup(temp_service->service_description);
-				if(new_list->service_description==NULL){
-					free(service_names);
-					return temp_list;
-                                        }
-
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-		                }
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
 
 			/* we didn't find a match */
 			if(found_match==FALSE){
 #ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find a service matching host name '%s' and description '%s'\n",host,temp_ptr);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find a service matching host name '%s' and description '%s'\n",host_name,temp_ptr);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
-				regfree(&preg);
+				regfree(&preg2);
 				free(service_names);
-				return NULL;
+				return ERROR;
 		                }
+		        }
 
-			/* free memory allocated to compiled regexp */
-			regfree(&preg);
-	                }
-
-		/* free memory allocated to compiled regexp */
-		regfree(&preg2);
-#else
-
-		/* return list of all services on the host */
-		if(!strcmp(service_names,"*")){
-
-			for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
-
-				if(temp_service->host_name==NULL || temp_service->service_description==NULL)
-					continue;
-
-				if(strcmp(temp_service->host_name,host))
-					continue;
-
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
-				if(new_list==NULL){
-					free(service_names);
-					return temp_list;
-		                        }
-
-				/* save the host name */
-				new_list->host_name=strdup(host);
-
-				/* save the service name */
-				new_list->service_description=strdup(temp_service->service_description);
-				if(new_list->service_description==NULL){
-					free(service_names);
-					return temp_list;
-                                        }
-
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-	                        }
-                        }
-
-		/* else lookup individual services */
+		/* use standard matching... */
 		else{
 
-			for(temp_ptr=strtok(service_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+			/* return a list of all services on the host */
+			if(!strcmp(temp_ptr,"*")){
 
-				/* strip trailing spaces */
-				strip(temp_ptr);
-			
+				for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+					if(temp_service->host_name==NULL || temp_service->service_description==NULL)
+						continue;
+
+					if(strcmp(temp_service->host_name,host_name))
+						continue;
+
+					/* add service to the list */
+					xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
+				        }
+			        }
+
+			/* else this is just a single service... */
+			else{
+
 				/* find the service */
-				temp_service=xodtemplate_find_real_service(host,temp_ptr);
+				temp_service=xodtemplate_find_real_service(host_name,temp_ptr);
 				if(temp_service==NULL){
 #ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find service '%s' on host '%s'\n",temp_ptr,host);
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find service '%s' on host '%s'\n",temp_ptr,host_name);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 					free(service_names);
-					return NULL;
-			                }
+					return ERROR;
+				        }
 
-				/* skip this service if its already in the list */
-				for(new_list=temp_list;new_list;new_list=new_list->next)
-					if(!strcmp(new_list->service_description,temp_ptr))
-						break;
-				if(new_list)
-					continue;
-
-				/* allocate memory for a new list item */
-				new_list=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
-				if(new_list==NULL){
-					free(service_names);
-					return temp_list;
-			                }
-
-				/* save the host name */
-				new_list->host_name=strdup(host);
-
-				/* save the service description */
-				new_list->service_description=strdup(temp_service->service_description);
-				if(new_list->service_description==NULL){
-					free(service_names);
-					return temp_list;
-                                        }
-
-				/* add new item to head of list */
-				new_list->next=temp_list;
-				temp_list=new_list;
-		                }
-
+				/* add service to the list */
+				xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
+			        }
 		        }
-#endif
-
-		free(service_names);
 	        }
 
+	if(use_regexp==TRUE)
+		regfree(&preg2);
+
 #ifdef DEBUG0
-	printf("xodtemplate_expand_servicegroups_and_services() end\n");
+	printf("xodtemplate_expand_services() end\n");
 #endif
 
-	return temp_list;
+	return OK;
+        }
+
+
+/* adds a service entry to the list of expanded services */
+int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **list, char *host_name, char *description){
+	xodtemplate_servicelist *temp_item;
+	xodtemplate_servicelist *new_item;
+
+	if(list==NULL || host_name==NULL || description==NULL)
+		return ERROR;
+
+	/* skip this service if its already in the list */
+	for(temp_item=*list;temp_item;temp_item=temp_item->next)
+		if(!strcmp(temp_item->host_name,host_name) && !strcmp(temp_item->service_description,description))
+			break;
+	if(temp_item)
+		return OK;
+
+	/* allocate memory for a new list item */
+	new_item=(xodtemplate_servicelist *)malloc(sizeof(xodtemplate_servicelist));
+	if(new_item==NULL)
+		return ERROR;
+
+	/* save the host name and service description */
+	new_item->host_name=strdup(host_name);
+	new_item->service_description=strdup(description);
+	if(new_item->host_name==NULL || new_item->service_description==NULL){
+		free(new_item);
+		return ERROR;
+	        }
+
+	/* add new item to head of list */
+	new_item->next=*list;
+	*list=new_item;
+
+	return OK;
         }
 
 

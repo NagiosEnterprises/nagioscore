@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-17-2003
+ * Last Modified:   09-04-2003
  *
  * License:
  *
@@ -535,8 +535,11 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
-xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *);
 int xodtemplate_free_hostlist(xodtemplate_hostlist *);
+xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *);
+int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,char *);
+int xodtemplate_expand_services(xodtemplate_servicelist **,char *,char *);
+int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **,char *,char *);
 int xodtemplate_free_servicelist(xodtemplate_servicelist *);
 #endif
 
@@ -552,6 +555,7 @@ int xodtemplate_duplicate_objects(void);
 int xodtemplate_duplicate_services(void);
 
 int xodtemplate_resolve_objects(void);
+
 int xodtemplate_cache_objects(char *);
 
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
@@ -600,15 +604,6 @@ xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *);
 xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *);
 #endif
 
-void *get_xodtemplate_service_cursor(void);
-xodtemplate_service *get_next_xodtemplate_service(void *v_cursor);
-void free_xodtemplate_service_cursor(void *cursor);
-int xodtemplate_rename_service(xodtemplate_service *,const char *);
-int compare_xodtemplate_service(xodtemplate_service *,const char *);
-int xodtemplate_service_comes_after(xodtemplate_service *, const char *);
-int xodtemplate_add_service_allocated(xodtemplate_service *);
-int xodtemplate_remove_pointer(xodtemplate_service *);
-
 int xodtemplate_register_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_register_command(xodtemplate_command *);
 int xodtemplate_register_contactgroup(xodtemplate_contactgroup *);
@@ -623,7 +618,6 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *);
 int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *);
 int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *);
-
 
 #endif
 

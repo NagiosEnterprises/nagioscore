@@ -3,7 +3,7 @@
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
  * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-19-2003
+ * Last Modified: 08-26-2003
  *
  * License:
  *
@@ -165,6 +165,9 @@ typedef struct nebstruct_comment_struct{
 	char            *comment_data;
 	int             persistent;
 	int             source;
+	int             entry_type;
+	int             expires;
+	time_t          expire_time;
 	unsigned long   comment_id;
         }nebstruct_comment_data;
 
@@ -203,6 +206,54 @@ typedef struct nebstruct_flapping_struct{
 	double          threshold;
 	unsigned long   comment_id;
         }nebstruct_flapping_data;
+
+
+/* program status structure */
+typedef struct nebstruct_program_status_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	time_t          program_start;
+	int             pid;
+	int             daemon_mode;
+	time_t          last_command_check;
+	time_t          last_log_rotation;
+	int             notifications_enabled;
+	int             active_service_checks_enabled;
+	int             passive_service_checks_enabled;
+	int             active_host_checks_enabled;
+	int             passive_host_checks_enabled;
+	int             event_handlers_enabled;
+	int             flap_detection_enabled;
+	int             failure_prediction_enabled;
+	int             process_performance_data;
+	int             obsess_over_hosts;
+	int             obsess_over_services;
+        }nebstruct_program_status_data;
+
+
+/* host status structure */
+typedef struct nebstruct_host_status_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	void            *object_ptr;
+        }nebstruct_host_status_data;
+
+
+/* service status structure */
+typedef struct nebstruct_service_status_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	void            *object_ptr;
+        }nebstruct_service_status_data;
 
 
 #endif

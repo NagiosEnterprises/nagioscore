@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -288,7 +288,7 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 	/* add a non-persistent comment to the service */
 	snprintf(buffer,sizeof(buffer)-1,"Notifications for this service are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	add_new_service_comment(svc->host_name,svc->description,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,&(svc->flapping_comment_id));
+	add_new_service_comment(FLAPPING_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,&(svc->flapping_comment_id));
 
 	/* set the flapping indicator */
 	svc->is_flapping=TRUE;
@@ -305,7 +305,7 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 		svc->check_flapping_recovery_notification=FALSE;
 
 	/* send a notification */
-	service_notification(svc,NOTIFICATION_FLAPPINGSTART,NULL);
+	service_notification(svc,NOTIFICATION_FLAPPINGSTART,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("set_service_flap() end\n");
@@ -343,13 +343,13 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 
 	/* should we send a recovery notification? */
 	if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
-		service_notification(svc,NOTIFICATION_NORMAL,NULL);
+		service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL);
 
 	/* clear the recovery notification flag */
 	svc->check_flapping_recovery_notification=FALSE;
 
 	/* send a notification */
-	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL);
+	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("clear_service_flap() end\n");
@@ -375,7 +375,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 	/* add a non-persistent comment to the host */
 	snprintf(buffer,sizeof(buffer)-1,"Notifications for this host are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the host state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
-	add_new_host_comment(hst->name,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,&(hst->flapping_comment_id));
+	add_new_host_comment(FLAPPING_COMMENT,hst->name,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,&(hst->flapping_comment_id));
 
 	/* set the flapping indicator */
 	hst->is_flapping=TRUE;
@@ -392,7 +392,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 		hst->check_flapping_recovery_notification=FALSE;
 
 	/* send a notification */
-	host_notification(hst,NOTIFICATION_FLAPPINGSTART,NULL);
+	host_notification(hst,NOTIFICATION_FLAPPINGSTART,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("set_host_flap() end\n");
@@ -430,13 +430,13 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 
 	/* should we send a recovery notification? */
 	if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
-		host_notification(hst,NOTIFICATION_NORMAL,NULL);
+		host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification=FALSE;
 
 	/* send a notification */
-	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL);
+	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("clear_host_flap() end\n");

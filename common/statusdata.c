@@ -32,6 +32,7 @@
 
 #ifdef NSCORE
 #include "../include/nagios.h"
+#include "../include/broker.h"
 #endif
 #ifdef NSCGI
 #include "../include/cgiutils.h"
@@ -122,9 +123,14 @@ int cleanup_status_data(char *config_file,int delete_status_data){
 /* updates program status info */
 int update_program_status(int aggregated_dump){
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_program_status(NEBTYPE_PROGRAMSTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
+
 	/* currently a noop if aggregated updates is TRUE */
 
-	/* update all status data if we're not aggregating updates*/
+	/* update all status data if we're not aggregating updates */
 	if(aggregate_status_updates==FALSE)
 		update_all_status_data();
 
@@ -136,9 +142,14 @@ int update_program_status(int aggregated_dump){
 /* updates host status info */
 int update_host_status(host *hst,int aggregated_dump){
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_host_status(NEBTYPE_HOSTSTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,NULL);
+#endif
+
 	/* currently a noop if aggregated updates is TRUE */
 
-	/* update all status data if we're not aggregating updates*/
+	/* update all status data if we're not aggregating updates */
 	if(aggregate_status_updates==FALSE)
 		update_all_status_data();
 
@@ -150,9 +161,14 @@ int update_host_status(host *hst,int aggregated_dump){
 /* updates service status info */
 int update_service_status(service *svc,int aggregated_dump){
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_service_status(NEBTYPE_SERVICESTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,NULL);
+#endif
+
 	/* currently a noop if aggregated updates is TRUE */
 
-	/* update all status data if we're not aggregating updates*/
+	/* update all status data if we're not aggregating updates */
 	if(aggregate_status_updates==FALSE)
 		update_all_status_data();
 

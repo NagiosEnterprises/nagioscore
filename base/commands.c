@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -1342,7 +1342,7 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 		return ERROR;
 
 	/* add the comment */
-	result=add_new_comment((cmd==CMD_ADD_HOST_COMMENT)?HOST_COMMENT:SERVICE_COMMENT,host_name,svc_description,entry_time,user,comment,persistent,COMMENTSOURCE_EXTERNAL,NULL);
+	result=add_new_comment((cmd==CMD_ADD_HOST_COMMENT)?HOST_COMMENT:SERVICE_COMMENT,USER_COMMENT,host_name,svc_description,entry_time,user,comment,persistent,COMMENTSOURCE_EXTERNAL,FALSE,(time_t)0,NULL);
 
 	if(result<0)
 		return ERROR;
@@ -1931,10 +1931,12 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	host *temp_host=NULL;
 	char *host_name="";
 	char *svc_description="";
+	char *ack_author;
 	char *ack_data;
 	char *temp_ptr;
 	int type=ACKNOWLEDGEMENT_NORMAL;
 	int notify=TRUE;
+	int persistent=TRUE;
 
 #ifdef DEBUG0
 	printf("cmd_acknowledge_problem() start\n");
@@ -1976,6 +1978,17 @@ int cmd_acknowledge_problem(int cmd,char *args){
 		return ERROR;
 	notify=(atoi(temp_ptr)>0)?TRUE:FALSE;
 
+	/* get the persistent option */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+	persistent=(atoi(temp_ptr)>0)?TRUE:FALSE;
+
+	/* get the acknowledgement author */
+	ack_author=my_strtok(NULL,";");
+	if(ack_author==NULL)
+		return ERROR;
+
 	/* get the acknowledgement data */
 	ack_data=my_strtok(NULL,"\n");
 	if(ack_data==NULL)
@@ -1983,11 +1996,11 @@ int cmd_acknowledge_problem(int cmd,char *args){
 
 	/* acknowledge the host problem */
 	if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)
-		acknowledge_host_problem(temp_host,ack_data,type,notify);
+		acknowledge_host_problem(temp_host,ack_author,ack_data,type,notify,persistent);
 
 	/* acknowledge the service problem */
 	else
-		acknowledge_service_problem(temp_service,ack_data,type,notify);
+		acknowledge_service_problem(temp_service,ack_author,ack_data,type,notify,persistent);
 
 
 #ifdef DEBUG0
@@ -2895,7 +2908,8 @@ void schedule_and_propagate_triggered_downtime(host *temp_host, time_t entry_tim
 
 
 /* acknowledges a host problem */
-void acknowledge_host_problem(host *hst, char *ack_data, int type, int notify){
+void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent){
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("acknowledge_host_problem() start\n");
@@ -2903,7 +2917,7 @@ void acknowledge_host_problem(host *hst, char *ack_data, int type, int notify){
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_data);
+		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data);
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged=TRUE;
@@ -2914,6 +2928,10 @@ void acknowledge_host_problem(host *hst, char *ack_data, int type, int notify){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
+	/* add a comment for the acknowledgement */
+	time(&current_time);
+	add_new_host_comment(ACKNOWLEDGEMENT_COMMENT,hst->name,current_time,ack_author,ack_data,persistent,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,NULL);
+
 #ifdef DEBUG0
 	printf("acknowledge_host_problem() end\n");
 #endif
@@ -2923,7 +2941,8 @@ void acknowledge_host_problem(host *hst, char *ack_data, int type, int notify){
 
 
 /* acknowledges a service problem */
-void acknowledge_service_problem(service *svc, char *ack_data, int type, int notify){
+void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent){
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("acknowledge_service_problem() start\n");
@@ -2931,7 +2950,7 @@ void acknowledge_service_problem(service *svc, char *ack_data, int type, int not
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
-		service_notification(svc,NOTIFICATION_ACKNOWLEDGEMENT,ack_data);
+		service_notification(svc,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data);
 
 	/* set the acknowledgement flag */
 	svc->problem_has_been_acknowledged=TRUE;
@@ -2941,6 +2960,10 @@ void acknowledge_service_problem(service *svc, char *ack_data, int type, int not
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
+
+	/* add a comment for the acknowledgement */
+	time(&current_time);
+	add_new_service_comment(ACKNOWLEDGEMENT_COMMENT,svc->host_name,svc->description,current_time,ack_author,ack_data,persistent,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,NULL);
 
 #ifdef DEBUG0
 	printf("acknowledge_service_problem() end\n");

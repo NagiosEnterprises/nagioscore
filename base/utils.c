@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-27-2003
  *
  * License:
  *
@@ -358,6 +358,12 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 					clean_macro=TRUE;
 				        }
 
+				else if(!strcmp(temp_buffer,"HOSTACKAUTHOR"))
+					selected_macro=macro_x[MACRO_HOSTACKAUTHOR];
+
+				else if(!strcmp(temp_buffer,"HOSTACKCOMMENT"))
+					selected_macro=macro_x[MACRO_HOSTACKCOMMENT];
+
 				else if(!strcmp(temp_buffer,"HOSTSTATE"))
 					selected_macro=macro_x[MACRO_HOSTSTATE];
 
@@ -431,6 +437,12 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 					selected_macro=macro_x[MACRO_SERVICEPERFDATA];
 					clean_macro=TRUE;
 				        }
+
+				else if(!strcmp(temp_buffer,"SERVICEACKAUTHOR"))
+					selected_macro=macro_x[MACRO_SERVICEACKAUTHOR];
+
+				else if(!strcmp(temp_buffer,"SERVICEACKCOMMENT"))
+					selected_macro=macro_x[MACRO_SERVICEACKCOMMENT];
 
 				else if(!strcmp(temp_buffer,"SERVICESTATETYPE"))
 					selected_macro=macro_x[MACRO_SERVICESTATETYPE];

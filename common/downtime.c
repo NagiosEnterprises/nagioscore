@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -276,16 +276,16 @@ int register_downtime(int type, unsigned long downtime_id){
 
 	/* add a non-persistent comment to the host or service regarding the scheduled outage */
 	if(temp_downtime->type==SERVICE_DOWNTIME)
-		add_new_comment(SERVICE_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",temp_buffer,0,COMMENTSOURCE_INTERNAL,&(temp_downtime->comment_id));
+		add_new_comment(SERVICE_COMMENT,DOWNTIME_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",temp_buffer,0,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,&(temp_downtime->comment_id));
 	else
-		add_new_comment(HOST_COMMENT,hst->name,NULL,time(NULL),"(Nagios Process)",temp_buffer,0,COMMENTSOURCE_INTERNAL,&(temp_downtime->comment_id));
+		add_new_comment(HOST_COMMENT,DOWNTIME_COMMENT,hst->name,NULL,time(NULL),"(Nagios Process)",temp_buffer,0,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,&(temp_downtime->comment_id));
 
 
 	/*** SCHEDULE DOWNTIME - FLEXIBLE (NON-FIXED) DOWNTIME IS HANDLED AT A LATER POINT ***/
 
 	/* only non-triggered downtime is scheduled... */
 	if(temp_downtime->triggered_by==0)
-		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,TRUE,0,NULL,FALSE,(void *)temp_downtime,NULL);
+		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,(void *)temp_downtime,NULL);
 
 	return OK;
         }
@@ -340,7 +340,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 				/*** SINCE THE FLEX DOWNTIME MAY NEVER START, WE HAVE TO PROVIDE A WAY OF EXPIRING UNUSED DOWNTIME... ***/
 
-				schedule_new_event(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),TRUE,0,NULL,FALSE,NULL,NULL);
+				schedule_new_event(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),FALSE,0,NULL,FALSE,NULL,NULL);
 
 				return OK;
 			        }
@@ -455,7 +455,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			event_time=(time_t)((unsigned long)time(NULL)+temp_downtime->duration);
 		else
 			event_time=temp_downtime->end_time;
-		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,TRUE,0,NULL,FALSE,(void *)temp_downtime,NULL);
+		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,(void *)temp_downtime,NULL);
 
 		/* handle (start) downtime that is triggered by this one */
 		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){
@@ -775,7 +775,7 @@ int delete_service_downtime(unsigned long downtime_id){
 	int result;
 
 	/* delete the downtime from memory */
-	delete_downtime(HOST_DOWNTIME,downtime_id);
+	delete_downtime(SERVICE_DOWNTIME,downtime_id);
 	
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT

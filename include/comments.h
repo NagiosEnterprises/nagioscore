@@ -3,7 +3,7 @@
  * COMMENTS.H - Header file for comment functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-16-2003
+ * Last Modified:   08-27-2003
  *
  * License:
  *
@@ -32,9 +32,25 @@
 #include "objects.h"
 
 
+/**************************** COMMENT SOURCES ******************************/
+
 #define COMMENTSOURCE_INTERNAL  0
 #define COMMENTSOURCE_EXTERNAL  1
 
+
+
+/***************************** COMMENT TYPES *******************************/
+
+#define HOST_COMMENT			1
+#define SERVICE_COMMENT			2
+
+
+/****************************** ENTRY TYPES ********************************/
+
+#define USER_COMMENT                    1
+#define DOWNTIME_COMMENT                2
+#define FLAPPING_COMMENT                3
+#define ACKNOWLEDGEMENT_COMMENT         4
 
 
 /*************************** CHAINED HASH LIMITS ***************************/
@@ -49,10 +65,13 @@
 /* COMMENT structure */
 typedef struct comment_struct{
 	int 	comment_type;
+	int     entry_type;
 	unsigned long comment_id;
 	int     source;
 	int     persistent;
 	time_t 	entry_time;
+	int     expires;
+	time_t  expire_time;
 	char 	*host_name;
 	char 	*service_description;
 	char 	*author;
@@ -65,9 +84,9 @@ typedef struct comment_struct{
 #ifdef NSCORE
 int initialize_comment_data(char *);                                /* initializes comment data */
 int cleanup_comment_data(char *);                                   /* cleans up comment data */
-int add_new_comment(int,char *,char *,time_t,char *,char *,int,int,unsigned long *);       /* adds a new host or service comment */
-int add_new_host_comment(char *,time_t,char *,char *,int,int,unsigned long *);             /* adds a new host comment */
-int add_new_service_comment(char *,char *,time_t,char *,char *,int,int,unsigned long *);   /* adds a new ervice comment */
+int add_new_comment(int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long *);       /* adds a new host or service comment */
+int add_new_host_comment(int,char *,time_t,char *,char *,int,int,int,time_t,unsigned long *);             /* adds a new host comment */
+int add_new_service_comment(int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long *);   /* adds a new service comment */
 int delete_comment(int,unsigned long);                              /* deletes a host or service comment */
 int delete_host_comment(unsigned long);                             /* deletes a host comment */
 int delete_service_comment(unsigned long);                          /* deletes a service comment */
@@ -88,9 +107,9 @@ int number_of_service_comments(char *, char *);		              /* returns the nu
 
 int read_comment_data(char *);                                            /* reads all host and service comments */
 
-int add_comment(int,char *,char *,time_t,char *,char *,unsigned long,int,int);      /* adds a comment (host or service) */
-int add_host_comment(char *,time_t,char *,char *,unsigned long,int,int);            /* adds a host comment */
-int add_service_comment(char *,char *,time_t,char *,char *,unsigned long,int,int);  /* adds a service comment */
+int add_comment(int,int,char *,char *,time_t,char *,char *,unsigned long,int,int,time_t,int);      /* adds a comment (host or service) */
+int add_host_comment(int,char *,time_t,char *,char *,unsigned long,int,int,time_t,int);            /* adds a host comment */
+int add_service_comment(int,char *,char *,time_t,char *,char *,unsigned long,int,int,time_t,int);  /* adds a service comment */
 
 int add_comment_to_hashlist(comment *);
 

@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2003
+ * Last Modified: 08-26-2003
  *
  * License:
  *
@@ -244,12 +244,6 @@
 
 #define SOFT_STATE			0	
 #define HARD_STATE			1
-
-
-/**************************** COMMENT TYPES ******************************/
-
-#define HOST_COMMENT			1
-#define SERVICE_COMMENT			2
 
 
 /************************* SCHEDULED DOWNTIME TYPES **********************/

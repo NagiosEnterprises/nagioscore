@@ -2,8 +2,8 @@
  *
  * XCDDEFAULT.H - Header file for default comment data routines
  *
- * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2002
+ * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -34,8 +34,8 @@ int xcddefault_create_comment_file(void);
 int xcddefault_validate_comment_data(void);
 int xcddefault_cleanup_comment_data(char *);
 int xcddefault_save_comment_data(void);
-int xcddefault_add_new_host_comment(char *,time_t,char *,char *,int,int,unsigned long *);
-int xcddefault_add_new_service_comment(char *,char *,time_t,char *,char *,int,int,unsigned long *);
+int xcddefault_add_new_host_comment(int,char *,time_t,char *,char *,int,int,int,time_t,unsigned long *);
+int xcddefault_add_new_service_comment(int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long *);
 int xcddefault_delete_host_comment(unsigned long);
 int xcddefault_delete_service_comment(unsigned long);
 int xcddefault_delete_all_host_comments(char *);

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -644,7 +644,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts about the recovery or problem if its a "hard" state */
 		if(hst->state_type==HARD_STATE)
-			host_notification(hst,NOTIFICATION_NORMAL,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
 
 		/* handle the host state change */
 		handle_host_event(hst);
@@ -662,7 +662,7 @@ int handle_host_state(host *hst){
 
 		/* notify contacts if host is still down or unreachable */
 		if(hst->current_state!=HOST_UP && hst->state_type==HARD_STATE)
-			host_notification(hst,NOTIFICATION_NORMAL,NULL);
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
 
 		/* if we're in a soft state and we should log host retries, do so now... */
 		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)

@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 08-26-2003
  *
  * License:
  * 
@@ -1605,6 +1605,8 @@ void show_all_comments(void){
 	comment *temp_comment;
 	host *temp_host;
 	service *temp_service;
+	char *comment_type;
+	char expire_time[MAX_DATETIME_LENGTH];
 
 
 	/* read in all comments */
@@ -1624,7 +1626,7 @@ void show_all_comments(void){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Source</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* display all the host comments */
 	for(temp_comment=comment_list,total_comments=0;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1649,16 +1651,34 @@ void show_all_comments(void){
 			bg_class="commentEven";
 		        }
 
+		switch(temp_comment->entry_type){
+		case USER_COMMENT:
+			comment_type="User";
+			break;
+		case DOWNTIME_COMMENT:
+			comment_type="Scheduled Downtime";
+			break;
+		case FLAPPING_COMMENT:
+			comment_type="Flap Detection";
+			break;
+		case ACKNOWLEDGEMENT_COMMENT:
+			comment_type="Acknowledgement";
+			break;
+		default:
+			comment_type="?";
+		        }
+
 		get_time_string(&temp_comment->entry_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+		get_time_string(&temp_comment->expire_time,expire_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<tr CLASS='%s'>",bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),temp_comment->host_name);
-		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
+		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_HOST_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
 
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=8>There are no host comments</TD></TR>");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=9>There are no host comments</TD></TR>");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
@@ -1676,7 +1696,7 @@ void show_all_comments(void){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Source</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* display all the service comments */
 	for(temp_comment=comment_list,total_comments=0;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1701,12 +1721,30 @@ void show_all_comments(void){
 			bg_class="commentEven";
 		        }
 
+		switch(temp_comment->entry_type){
+		case USER_COMMENT:
+			comment_type="User";
+			break;
+		case DOWNTIME_COMMENT:
+			comment_type="Scheduled Downtime";
+			break;
+		case FLAPPING_COMMENT:
+			comment_type="Flap Detection";
+			break;
+		case ACKNOWLEDGEMENT_COMMENT:
+			comment_type="Acknowledgement";
+			break;
+		default:
+			comment_type="?";
+		        }
+
 		get_time_string(&temp_comment->entry_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+		get_time_string(&temp_comment->expire_time,expire_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<tr CLASS='%s'>",bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),temp_comment->host_name);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s",bg_class,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_comment->host_name));
 		printf("&service=%s'>%s</A></td>",url_encode(temp_comment->service_description),temp_comment->service_description);
-		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
+		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%d'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }
@@ -2184,6 +2222,8 @@ void display_comments(int type){
 	int odd=1;
 	char date_time[MAX_DATETIME_LENGTH];
 	comment *temp_comment;
+	char *comment_type;
+	char expire_time[MAX_DATETIME_LENGTH];
 
 
 	/* find the host or service */
@@ -2229,7 +2269,7 @@ void display_comments(int type){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Source</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* read in all comments */
 	read_comment_data(get_cgi_config_location());
@@ -2256,9 +2296,27 @@ void display_comments(int type){
 				bg_class="commentEven";
 			        }
 
+			switch(temp_comment->entry_type){
+			case USER_COMMENT:
+				comment_type="User";
+				break;
+			case DOWNTIME_COMMENT:
+				comment_type="Scheduled Downtime";
+				break;
+			case FLAPPING_COMMENT:
+				comment_type="Flap Detection";
+				break;
+			case ACKNOWLEDGEMENT_COMMENT:
+				comment_type="Acknowledgement";
+				break;
+			default:
+				comment_type="?";
+			        }
+
 			get_time_string(&temp_comment->entry_time,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+			get_time_string(&temp_comment->expire_time,expire_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 			printf("<tr CLASS='%s'>",bg_class);
-			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%lu</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
+			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%lu</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
 			printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",COMMAND_CGI,(type==HOST_COMMENT)?CMD_DEL_HOST_COMMENT:CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 			printf("</tr>\n");
 
@@ -2268,7 +2326,7 @@ void display_comments(int type){
 
 	/* see if this host or service has any comments associated with it */
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?8:9,(type==HOST_COMMENT)?"host":"service");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?9:10,(type==HOST_COMMENT)?"host":"service");
 
 	printf("</TABLE>\n");
 

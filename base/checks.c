@@ -943,7 +943,7 @@ void reap_service_checks(void){
 				state_was_logged=TRUE;
 
 				/* notify contacts about the service recovery */
-				service_notification(temp_service,NOTIFICATION_NORMAL,NULL);
+				service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL);
 
 				/* run the service event handler to handle the hard state change */
 				handle_service_event(temp_service,HARD_STATE);
@@ -1067,7 +1067,7 @@ void reap_service_checks(void){
 					route_result=temp_host->current_state;
 
 				        /* possibly re-send host notifications... */
-					host_notification(temp_host,NOTIFICATION_NORMAL,NULL);
+					host_notification(temp_host,NOTIFICATION_NORMAL,NULL,NULL);
 				        }
 			        }
 
@@ -1208,7 +1208,7 @@ void reap_service_checks(void){
 					check_pending_flex_service_downtime(temp_service);
 
 				/* (re)send notifications out about this service problem if the host is up (and was at last check also) and the dependencies were okay... */
-				service_notification(temp_service,NOTIFICATION_NORMAL,NULL);
+				service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL);
 
 				/* run the service event handler if we changed state from the last hard state or if this service is flagged as being volatile */
 				if(hard_state_change==TRUE || temp_service->is_volatile==TRUE){

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 07-18-2003
+# Last Modified: 08-26-2003
 #
 ##############################################################################
 
@@ -195,21 +195,29 @@ temp_file=@localstatedir@/nagios.tmp
 
 
 
-# EVENT BROKER FILE (SOCKET)
-# This is the socket that Nagios will use for sending event data to
-# the external event broker daemon.
-
-event_broker_file=@localstatedir@/broker.socket
-
-
-
 # EVENT BROKER OPTIONS
 # Controls what (if any) data gets sent to the event broker.
 # Values:  0      = Broker nothing
 #         -1      = Broker everything
 #         <other> = See documentation
 
-event_broker_options=0
+event_broker_options=-1
+
+
+
+# EVENT BROKER MODULE(S)
+# This directive is used to specify an event broker module that should
+# by loaded by Nagios at startup.  Use multiple directives if you want
+# to load more than one module.  Arguments that should be passed to
+# the module at startup are seperated from the module path by a space.
+#
+# Example:
+#
+#   nebmodule=<modulepath> [moduleargs]
+
+#broker_module=/somewhere/module1.o
+#broker_module=/somewhere/module2.o arg1 arg2=3 debug=0
+
 
 
 

@@ -3,7 +3,7 @@
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -278,7 +278,7 @@ int xcddefault_cleanup_comment_data(char *main_config_file){
 
 
 /* adds a new host comment */
-int xcddefault_add_new_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
+int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 
 	/* find the next valid comment id */
 	do{
@@ -288,7 +288,7 @@ int xcddefault_add_new_host_comment(char *host_name, time_t entry_time, char *au
   	        }while(find_host_comment(current_comment_id)!=NULL);
 
 	/* add comment to list in memory */
-	add_host_comment(host_name,entry_time,author_name,comment_data,current_comment_id,persistent,source);
+	add_host_comment(entry_type,host_name,entry_time,author_name,comment_data,current_comment_id,persistent,expires,expire_time,source);
 
 	/* update comment file */
 	xcddefault_save_comment_data();
@@ -302,7 +302,7 @@ int xcddefault_add_new_host_comment(char *host_name, time_t entry_time, char *au
 
 
 /* adds a new service comment */
-int xcddefault_add_new_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
+int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 
 	/* find the next valid comment id */
 	do{
@@ -312,7 +312,7 @@ int xcddefault_add_new_service_comment(char *host_name, char *svc_description, t
   	        }while(find_service_comment(current_comment_id)!=NULL);
 
 	/* add comment to list in memory */
-	add_service_comment(host_name,svc_description,entry_time,author_name,comment_data,current_comment_id,persistent,source);
+	add_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,current_comment_id,persistent,expires,expire_time,source);
 
 	/* update comment file */
 	xcddefault_save_comment_data();
@@ -421,10 +421,13 @@ int xcddefault_save_comment_data(void){
 		fprintf(fp,"\thost_name=%s\n",temp_comment->host_name);
 		if(temp_comment->comment_type==SERVICE_COMMENT)
 			fprintf(fp,"\tservice_description=%s\n",temp_comment->service_description);
+		fprintf(fp,"\tentry_type=%d\n",temp_comment->entry_type);
 		fprintf(fp,"\tcomment_id=%lu\n",temp_comment->comment_id);
 		fprintf(fp,"\tsource=%d\n",temp_comment->source);
 		fprintf(fp,"\tpersistent=%d\n",temp_comment->persistent);
 		fprintf(fp,"\tentry_time=%lu\n",temp_comment->entry_time);
+		fprintf(fp,"\texpires=%d\n",temp_comment->expires);
+		fprintf(fp,"\texpire_time=%lu\n",temp_comment->expire_time);
 		fprintf(fp,"\tauthor=%s\n",temp_comment->author);
 		fprintf(fp,"\tcomment_data=%s\n",temp_comment->comment_data);
 		fprintf(fp,"\t}\n\n");
@@ -463,6 +466,9 @@ int xcddefault_read_comment_data(char *main_config_file){
 	int result;
 	unsigned long comment_id=0;
 	int persistent=FALSE;
+	int expires=FALSE;
+	time_t expire_time=0L;
+	int entry_type=USER_COMMENT;
 	int source=COMMENTSOURCE_INTERNAL;
 	time_t entry_time=0L;
 	char *host_name=NULL;
@@ -505,7 +511,7 @@ int xcddefault_read_comment_data(char *main_config_file){
 
 			case XCDDEFAULT_HOST_DATA:
 			case XCDDEFAULT_SERVICE_DATA:
-				add_comment((data_type==XCDDEFAULT_HOST_DATA)?HOST_COMMENT:SERVICE_COMMENT,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,source);
+				add_comment((data_type==XCDDEFAULT_HOST_DATA)?HOST_COMMENT:SERVICE_COMMENT,entry_type,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
 				break;
 
 			default:
@@ -525,10 +531,13 @@ int xcddefault_read_comment_data(char *main_config_file){
 			service_description=NULL;
 			author=NULL;
 			comment_data=NULL;
+			entry_type=USER_COMMENT;
 			comment_id=0;
 			source=COMMENTSOURCE_INTERNAL;
 			persistent=FALSE;
 			entry_time=0L;
+			expires=FALSE;
+			expire_time=0L;
 		        }
 
 		else if(data_type!=XCDDEFAULT_NO_DATA){
@@ -549,6 +558,8 @@ int xcddefault_read_comment_data(char *main_config_file){
 					host_name=strdup(val);
 				else if(!strcmp(var,"service_description"))
 					service_description=strdup(val);
+				else if(!strcmp(var,"entry_type"))
+					entry_type=atoi(val);
 				else if(!strcmp(var,"comment_id"))
 					comment_id=strtoul(val,NULL,10);
 				else if(!strcmp(var,"source"))
@@ -557,6 +568,10 @@ int xcddefault_read_comment_data(char *main_config_file){
 					persistent=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"entry_time"))
 					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"expires"))
+					expires=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"expire_time"))
+					expire_time=strtoul(val,NULL,10);
 				else if(!strcmp(var,"author"))
 					author=strdup(val);
 				else if(!strcmp(var,"comment_data"))

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-27-2003
  *
  * License:
  *
@@ -309,7 +309,7 @@ void init_timing_loop(void){
 
 	/******** SCHEDULE SERVICE CHECKS  ********/
 
-	/* add service checks as separate events (with interleaving to minimize remote load) */
+	/* determine check times for service checks (with interleaving to minimize remote load) */
 	current_interleave_block=0;
 	for(temp_service=service_list;temp_service!=NULL;){
 
@@ -357,12 +357,20 @@ void init_timing_loop(void){
 				scheduling_info.first_service_check=temp_service->next_check;
 			if(temp_service->next_check > scheduling_info.last_service_check)
 				scheduling_info.last_service_check=temp_service->next_check;
-
-			/* create a new service check event */
-			schedule_new_event(EVENT_SERVICE_CHECK,FALSE,temp_service->next_check,FALSE,0,NULL,TRUE,(void *)temp_service,NULL);
 		        }
 
 		current_interleave_block++;
+	        }
+
+	/* add scheduled host checks to event queue */
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		/* skip services that shouldn't be scheduled */
+		if(temp_service->should_be_scheduled==FALSE)
+			continue;
+
+		/* create a new service check event */
+		schedule_new_event(EVENT_SERVICE_CHECK,FALSE,temp_service->next_check,FALSE,0,NULL,TRUE,(void *)temp_service,NULL);
 	        }
 
 
@@ -431,7 +439,7 @@ void init_timing_loop(void){
 
 	/******** SCHEDULE HOST CHECKS  ********/
 
-	/* add host checks as seperate events */
+	/* determine check times for host checks */
 	mult_factor=0;
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
@@ -470,12 +478,20 @@ void init_timing_loop(void){
 		if(temp_host->next_check > scheduling_info.last_host_check)
 			scheduling_info.last_host_check=temp_host->next_check;
 
-		/* schedule a new host check event */
-		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL);
-
 		mult_factor++;
 	        }
 	
+	/* add scheduled host checks to event queue */
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* skip hosts that shouldn't be scheduled */
+		if(temp_host->should_be_scheduled==FALSE)
+			continue;
+
+		/* schedule a new host check event */
+		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL);
+	        }
+
 
 	/******** SCHEDULE MISC EVENTS ********/
 

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-24-2003
+ * Last Modified: 08-27-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				49	/* size of macro_x[] array */
+#define MACRO_X_COUNT				53	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -100,6 +100,10 @@
 #define MACRO_HOSTGROUPALIAS			46
 #define MACRO_SERVICEGROUPNAME			47
 #define MACRO_SERVICEGROUPALIAS			48
+#define MACRO_HOSTACKAUTHOR                     49
+#define MACRO_HOSTACKCOMMENT                    50
+#define MACRO_SERVICEACKAUTHOR                  51
+#define MACRO_SERVICEACKCOMMENT                 52
 
 
 
@@ -199,7 +203,7 @@
 #define HOST_UNREACHABLE		2	
 
 
-/********************** LOGGING TYPES *****************/
+/******************* STATE LOGGING TYPES **************/
 
 #define INITIAL_STATES                  1
 #define CURRENT_STATES                  2
@@ -270,7 +274,7 @@
 #define BROKER_DOWNTIME_DATA		512
 #define BROKER_SYSTEM_COMMANDS          1024	/* DONE */
 #define BROKER_OCP_DATA                 2048	/* DONE */
-#define BROKER_STATUS_DATA              4096
+#define BROKER_STATUS_DATA              4096    /* DONE */
 
 
 
@@ -501,13 +505,13 @@ int run_global_host_event_handler(host *);			/* runs the global host event handl
 int check_service_notification_viability(service *,int);		/* checks viability of notifying all contacts about a service */
 int is_valid_escalation_for_service_notification(service *,serviceescalation *);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);		/* checks if a service notification should be escalated */
-int service_notification(service *,int,char *);                        	/* notify all contacts about a service (problem or recovery) */
+int service_notification(service *,int,char *,char *);                        	/* notify all contacts about a service (problem or recovery) */
 int check_contact_service_notification_viability(contact *,service *,int);	/* checks viability of notifying a contact about a service */ 
 int notify_contact_of_service(contact *,service *,int);        		/* notify a single contact about a service */
 int check_host_notification_viability(host *,int);			/* checks viability of notifying all contacts about a host */
 int is_valid_host_escalation_for_host_notification(host *,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *);			/* checks if a host notification should be escalated */
-int host_notification(host *,int,char *);                           	/* notify all contacts about a host (problem or recovery) */
+int host_notification(host *,int,char *,char *);                           	/* notify all contacts about a host (problem or recovery) */
 int check_contact_host_notification_viability(contact *,host *,int);	/* checks viability of notifying a contact about a host */ 
 int notify_contact_of_host(contact *,host *,int);            	/* notify a single contact about a host */
 int create_notification_list_from_host(host *);             	/* given a host, create list of contacts to be notified (remove duplicates) */
@@ -623,8 +627,8 @@ void disable_host_notifications(host *);		/* disables host notifications */
 void enable_and_propagate_notifications(host *);	/* enables notifications for all hosts and services beyond a given host */
 void disable_and_propagate_notifications(host *);	/* disables notifications for all hosts and services beyond a given host */
 void schedule_and_propagate_triggered_downtime(host *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long); /* schedules triggered downtime for all hosts beyond a given host */
-void acknowledge_host_problem(host *,char *,int,int);	/* acknowledges a host problem */
-void acknowledge_service_problem(service *,char *,int,int);	/* acknowledges a service problem */
+void acknowledge_host_problem(host *,char *,char *,int,int,int);	/* acknowledges a host problem */
+void acknowledge_service_problem(service *,char *,char *,int,int,int);	/* acknowledges a service problem */
 void remove_host_acknowledgement(host *);		/* removes a host acknowledgement */
 void remove_service_acknowledgement(service *);		/* removes a service acknowledgement */
 void start_executing_service_checks(void);		/* starts executing service checks */

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   08-27-2003
  *
  * License:
  *
@@ -53,7 +53,7 @@ extern char            *generic_summary;
 
 
 /* notify contacts about a service problem or recovery */
-int service_notification(service *svc, int type, char *data){
+int service_notification(service *svc, int type, char *ack_author, char *ack_data){
 	host *temp_host;
 	notification *temp_notification;
 	time_t current_time;
@@ -115,14 +115,20 @@ int service_notification(service *svc, int type, char *data){
 		grab_host_macros(temp_host);
 		grab_service_macros(svc);
 
-		/* if this is an aknowledgement, modify the $OUTPUT$ macro to have it contain the comment that was entered by the user */
+		/* if this is an aknowledgement, get the acknowledement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
-			if(macro_x[MACRO_SERVICEOUTPUT]!=NULL)
-				free(macro_x[MACRO_SERVICEOUTPUT]);
-			if(data==NULL)
-				macro_x[MACRO_SERVICEOUTPUT]=NULL;
+			if(macro_x[MACRO_SERVICEACKAUTHOR]!=NULL)
+				free(macro_x[MACRO_SERVICEACKAUTHOR]);
+			if(ack_author==NULL)
+				macro_x[MACRO_SERVICEACKAUTHOR]=NULL;
 			else
-				macro_x[MACRO_SERVICEOUTPUT]=strdup(data);
+				macro_x[MACRO_SERVICEACKAUTHOR]=strdup(ack_author);
+			if(macro_x[MACRO_SERVICEACKCOMMENT]!=NULL)
+				free(macro_x[MACRO_SERVICEACKCOMMENT]);
+			if(ack_data==NULL)
+				macro_x[MACRO_SERVICEACKCOMMENT]=NULL;
+			else
+				macro_x[MACRO_SERVICEACKCOMMENT]=strdup(ack_data);
 	                }
 
 		/* set the notification type macro */
@@ -601,7 +607,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 			if(log_notifications==TRUE){
 				switch(type){
 				case NOTIFICATION_ACKNOWLEDGEMENT:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_SERVICEACKAUTHOR],macro_x[MACRO_SERVICEACKCOMMENT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTART:
 					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
@@ -787,7 +793,7 @@ int create_notification_list_from_service(service *svc){
 
 
 /* notify all contacts for a host that the entire host is down or up */
-int host_notification(host *hst, int type, char *data){
+int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 	notification *temp_notification;
 	time_t current_time;
 	int result=OK;
@@ -835,14 +841,20 @@ int host_notification(host *hst, int type, char *data){
 		clear_volatile_macros();
 		grab_host_macros(hst);
 
-		/* if this is an aknowledgement, modify the $OUTPUT$ macro to contain the comment that the user entered */
+		/* if this is an aknowledgement, get the acknowledement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
-			if(macro_x[MACRO_HOSTOUTPUT]!=NULL)
-				free(macro_x[MACRO_HOSTOUTPUT]);
-			if(data==NULL)
-				macro_x[MACRO_HOSTOUTPUT]=NULL;
+			if(macro_x[MACRO_HOSTACKAUTHOR]!=NULL)
+				free(macro_x[MACRO_HOSTACKAUTHOR]);
+			if(ack_author==NULL)
+				macro_x[MACRO_HOSTACKAUTHOR]=NULL;
 			else
-				macro_x[MACRO_HOSTOUTPUT]=strdup(data);
+				macro_x[MACRO_HOSTACKAUTHOR]=strdup(ack_author);
+			if(macro_x[MACRO_HOSTACKCOMMENT]!=NULL)
+				free(macro_x[MACRO_HOSTACKCOMMENT]);
+			if(ack_data==NULL)
+				macro_x[MACRO_HOSTACKCOMMENT]=NULL;
+			else
+				macro_x[MACRO_HOSTACKCOMMENT]=strdup(ack_data);
 	                }
 
 		/* set the notification type macro */
@@ -1260,7 +1272,7 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 			if(log_notifications==TRUE){
 				switch(type){
 				case NOTIFICATION_ACKNOWLEDGEMENT:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_HOSTACKAUTHOR],macro_x[MACRO_HOSTACKCOMMENT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTART:
 					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);

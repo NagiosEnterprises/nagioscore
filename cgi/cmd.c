@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 08-26-2003
  *
  * License:
  * 
@@ -1693,11 +1693,11 @@ int commit_command(int cmd){
 		break;
 		
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_HOST_COMMENT;%s;%d;%s;ACKNOWLEDGEMENT: %s\n[%lu] ACKNOWLEDGE_HOST_PROBLEM;%s;%d;%d;%s\n",current_time,host_name,(persistent_comment==TRUE)?1:0,comment_author,comment_data,current_time,host_name,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ACKNOWLEDGE_HOST_PROBLEM;%s;%d;%d;%d;%s;%s\n",current_time,host_name,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,(persistent_comment==TRUE)?1:0,comment_author,comment_data);
 		break;
 		
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ADD_SVC_COMMENT;%s;%s;%d;%s;ACKNOWLEDGEMENT: %s\n[%lu] ACKNOWLEDGE_SVC_PROBLEM;%s;%s;%d;%d;%s\n",current_time,host_name,service_desc,(persistent_comment==TRUE)?1:0,comment_author,comment_data,current_time,host_name,service_desc,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,comment_data);
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] ACKNOWLEDGE_SVC_PROBLEM;%s;%s;%d;%d;%d;%s;%s\n",current_time,host_name,service_desc,(sticky_ack==TRUE)?ACKNOWLEDGEMENT_STICKY:ACKNOWLEDGEMENT_NORMAL,(send_notification==TRUE)?1:0,(persistent_comment==TRUE)?1:0,comment_author,comment_data);
 		break;
 
 	case CMD_START_EXECUTING_SVC_CHECKS:

@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -32,6 +32,24 @@
 #include "../include/nebstructs.h"
 
 extern int             event_broker_options;
+
+extern time_t program_start;
+extern int nagios_pid;
+extern int daemon_mode;
+extern time_t last_command_check;
+extern time_t last_log_rotation;
+extern int enable_notifications;
+extern int execute_service_checks;
+extern int accept_passive_service_checks;
+extern int execute_host_checks;
+extern int accept_passive_host_checks;
+extern int enable_event_handlers;
+extern int obsess_over_services;
+extern int obsess_over_hosts;
+extern int enable_flap_detection;
+extern int enable_failure_prediction;
+extern int process_performance_data;
+extern int aggregate_status_updates;
 
 
 #ifdef USE_EVENT_BROKER
@@ -273,7 +291,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, double la
 
 
 /* send comment data to broker */
-void broker_comment_data(int type, int flags, int attr, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long comment_id, struct timeval *timestamp){
+void broker_comment_data(int type, int flags, int attr, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp){
 	nebstruct_comment_data ds;
 
 	if(!(event_broker_options & BROKER_COMMENT_DATA))
@@ -285,6 +303,7 @@ void broker_comment_data(int type, int flags, int attr, char *host_name, char *s
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
+	ds.entry_type=entry_type;
 	ds.host_name=host_name;
 	ds.service_description=svc_description;
 	ds.entry_time=entry_time;
@@ -292,6 +311,8 @@ void broker_comment_data(int type, int flags, int attr, char *host_name, char *s
 	ds.comment_data=comment_data;
 	ds.persistent=persistent;
 	ds.source=source;
+	ds.expires=expires;
+	ds.expire_time=expire_time;
 	ds.comment_id=comment_id;
 
 	/* make callbacks */
@@ -373,6 +394,91 @@ void broker_flapping_data(int type, int flags, int attr, void *data, double perc
 
 	return;
         }
+
+
+
+/* sends program status updates to broker */
+void broker_program_status(int type, int flags, int attr, struct timeval *timestamp){
+	nebstruct_program_status_data ds;
+
+	if(!(event_broker_options & BROKER_STATUS_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.program_start=program_start;
+	ds.pid=nagios_pid;
+	ds.daemon_mode=daemon_mode;
+	ds.last_command_check=last_command_check;
+	ds.last_log_rotation=last_log_rotation;
+	ds.notifications_enabled=enable_notifications;
+	ds.active_service_checks_enabled=execute_service_checks;
+	ds.passive_service_checks_enabled=accept_passive_service_checks;
+	ds.active_host_checks_enabled=execute_host_checks;
+	ds.passive_host_checks_enabled=accept_passive_host_checks;
+	ds.event_handlers_enabled=enable_event_handlers;
+	ds.flap_detection_enabled=enable_flap_detection;
+	ds.failure_prediction_enabled=enable_failure_prediction;
+	ds.process_performance_data=process_performance_data;
+	ds.obsess_over_hosts=obsess_over_hosts;
+	ds.obsess_over_services=obsess_over_services;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_PROGRAM_STATUS_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+
+/* sends host status updates to broker */
+void broker_host_status(int type, int flags, int attr, host *hst, struct timeval *timestamp){
+	nebstruct_host_status_data ds;
+
+	if(!(event_broker_options & BROKER_STATUS_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.object_ptr=(void *)hst;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_HOST_STATUS_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+
+/* sends service status updates to broker */
+void broker_service_status(int type, int flags, int attr, service *svc, struct timeval *timestamp){
+	nebstruct_service_status_data ds;
+
+	if(!(event_broker_options & BROKER_STATUS_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.object_ptr=(void *)svc;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_SERVICE_STATUS_DATA,(void *)&ds);
+
+	return;
+        }
+
 
 
 

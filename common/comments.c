@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -99,29 +99,36 @@ int cleanup_comment_data(char *config_file){
 
 
 /* adds a new host or service comment */
-int add_new_comment(int type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
+int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 	int result;
+	unsigned long new_comment_id;
 
 	if(type==HOST_COMMENT)
-		result=add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,comment_id);
+		result=add_new_host_comment(entry_type,host_name,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 	else
-		result=add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,comment_id);
+		result=add_new_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
+
+	/* add an event to expire comment data if necessary... */
+
+	/* save comment id */
+	if(comment_id!=NULL)
+		*comment_id=new_comment_id;
 
 	return result;
         }
 
 
 /* adds a new host comment */
-int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
+int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 	int result;
 	unsigned long new_comment_id;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
-	result=xcddefault_add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
+	result=xcddefault_add_new_host_comment(entry_type,host_name,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 #endif
 #ifdef USE_XCDDB
-	result=xcddb_add_new_host_comment(host_name,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
+	result=xcddb_add_new_host_comment(entry_type,host_name,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 #endif
 
 	/* save comment id */
@@ -130,7 +137,7 @@ int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, 
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_comment_data(NEBTYPE_COMMENT_ADD,NEBFLAG_NONE,NEBATTR_HOST_COMMENT,host_name,NULL,entry_time,author_name,comment_data,persistent,source,new_comment_id,NULL);
+	broker_comment_data(NEBTYPE_COMMENT_ADD,NEBFLAG_NONE,NEBATTR_HOST_COMMENT,entry_type,host_name,NULL,entry_time,author_name,comment_data,persistent,source,expires,expire_time,new_comment_id,NULL);
 #endif
 
 	return result;
@@ -138,16 +145,16 @@ int add_new_host_comment(char *host_name, time_t entry_time, char *author_name, 
 
 
 /* adds a new service comment */
-int add_new_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, unsigned long *comment_id){
+int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 	int result;
 	unsigned long new_comment_id;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
-	result=xcddefault_add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
+	result=xcddefault_add_new_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 #endif
 #ifdef USE_XCDDB
-	result=xcddb_add_new_service_comment(host_name,svc_description,entry_time,author_name,comment_data,persistent,source,&new_comment_id);
+	result=xcddb_add_new_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 #endif
 
 	/* save comment id */
@@ -156,7 +163,7 @@ int add_new_service_comment(char *host_name, char *svc_description, time_t entry
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_comment_data(NEBTYPE_COMMENT_ADD,NEBFLAG_NONE,NEBATTR_SERVICE_COMMENT,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,new_comment_id,NULL);
+	broker_comment_data(NEBTYPE_COMMENT_ADD,NEBFLAG_NONE,NEBATTR_SERVICE_COMMENT,entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,new_comment_id,NULL);
 #endif
 
 	return result;
@@ -195,21 +202,22 @@ int delete_comment(int type, unsigned long comment_id){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_comment_data(NEBTYPE_COMMENT_DELETE,NEBFLAG_NONE,(type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,this_comment->host_name,this_comment->service_description,this_comment->entry_time,this_comment->author,this_comment->comment_data,this_comment->persistent,this_comment->source,comment_id,NULL);
+		broker_comment_data(NEBTYPE_COMMENT_DELETE,NEBFLAG_NONE,(type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,this_comment->entry_type,this_comment->host_name,this_comment->service_description,this_comment->entry_time,this_comment->author,this_comment->comment_data,this_comment->persistent,this_comment->source,this_comment->expires,this_comment->expire_time,comment_id,NULL);
 #endif
 
 		/* first remove from chained hash list */
 		hashslot=hashfunc1(this_comment->host_name,COMMENT_HASHSLOTS);
 		last_hash=NULL;
 		for(this_hash=comment_hashlist[hashslot];this_hash;this_hash=this_hash->nexthash){
-			if(this_hash==this_comment)
+			if(this_hash==this_comment){
+				if(last_hash)
+					last_hash->nexthash=this_hash->nexthash;
+				else
+					comment_hashlist[hashslot]=NULL;
 				break;
+			        }
 			last_hash=this_hash;
 		        }
-		if(last_hash)
-			last_hash->nexthash=this_hash->nexthash;
-		else
-			comment_hashlist[hashslot]=NULL;
 
 		/* then removed from linked list */
 		if(comment_list==this_comment)
@@ -415,10 +423,10 @@ int add_comment_to_hashlist(comment *new_comment){
 
 
 /* adds a host comment to the list in memory */
-int add_host_comment(char *host_name, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int source){
+int add_host_comment(int entry_type, char *host_name, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source){
 	int result;
 
-	result=add_comment(HOST_COMMENT,host_name,NULL,entry_time,author,comment_data,comment_id,persistent,source);
+	result=add_comment(HOST_COMMENT,entry_type,host_name,NULL,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
 
 	return result;
         }
@@ -426,10 +434,10 @@ int add_host_comment(char *host_name, time_t entry_time, char *author, char *com
 
 
 /* adds a service comment to the list in memory */
-int add_service_comment(char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int source){
+int add_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source){
 	int result;
 
-	result=add_comment(SERVICE_COMMENT,host_name,svc_description,entry_time,author,comment_data,comment_id,persistent,source);
+	result=add_comment(SERVICE_COMMENT,entry_type,host_name,svc_description,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
 
 	return result;
         }
@@ -437,7 +445,7 @@ int add_service_comment(char *host_name, char *svc_description, time_t entry_tim
 
 
 /* adds a comment to the list in memory */
-int add_comment(int comment_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int source){
+int add_comment(int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source){
 	comment *new_comment=NULL;
 	comment *last_comment=NULL;
 	comment *temp_comment=NULL;
@@ -488,10 +496,13 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 	        }
 
 	new_comment->comment_type=comment_type;
+	new_comment->entry_type=entry_type;
 	new_comment->source=source;
 	new_comment->entry_time=entry_time;
 	new_comment->comment_id=comment_id;
-	new_comment->persistent=(persistent>0)?TRUE:FALSE;
+	new_comment->persistent=(persistent==TRUE)?TRUE:FALSE;
+	new_comment->expires=(expires==TRUE)?TRUE:FALSE;
+	new_comment->expire_time=expire_time;
 
 	new_comment->next=NULL;
 	new_comment->nexthash=NULL;
@@ -526,7 +537,7 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_comment_data(NEBTYPE_COMMENT_LOAD,NEBFLAG_NONE,(comment_type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,host_name,svc_description,entry_time,author,comment_data,persistent,source,comment_id,NULL);
+	broker_comment_data(NEBTYPE_COMMENT_LOAD,NEBFLAG_NONE,(comment_type==HOST_COMMENT)?NEBATTR_HOST_COMMENT:NEBATTR_SERVICE_COMMENT,entry_type,host_name,svc_description,entry_time,author,comment_data,persistent,source,expires,entry_time,comment_id,NULL);
 #endif
 #endif
 

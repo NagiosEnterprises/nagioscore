@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-23-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -1231,7 +1231,7 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tillegal_macro_output_chars set to '%s'\n",illegal_output_chars);
 #endif
 		        }
-		else if(!strcmp(variable,"nebmodule")){
+		else if(!strcmp(variable,"broker_module")){
 			modptr=strtok(value," \n");
 			argptr=strtok(NULL,"\n");
 #ifdef USE_EVENT_BROKER

@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2003
+ * Last Modified:   08-26-2003
  *
  * License:
  *
@@ -85,6 +85,10 @@
 #define NEBTYPE_DOWNTIME_START                1103
 #define NEBTYPE_DOWNTIME_STOP                 1104
 
+#define NEBTYPE_PROGRAMSTATUS_UPDATE          1200
+#define NEBTYPE_HOSTSTATUS_UPDATE             1201
+#define NEBTYPE_SERVICESTATUS_UPDATE          1202
+
 
 
 /****** EVENT FLAGS ************************/
@@ -144,9 +148,12 @@ void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *)
 void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct timeval *);
 void broker_host_check(int,int,int,host *,int,int,double,double,int,int,int,char *,char *,char *,struct timeval *);
 void broker_service_check(int,int,int,service *,double,double,int,int,int,char *,struct timeval *);
-void broker_comment_data(int,int,int,char *,char *,time_t,char *,char *,int,int,unsigned long,struct timeval *);
+void broker_comment_data(int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
 void broker_downtime_data(int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
 void broker_flapping_data(int,int,int,void *,double,double,struct timeval *);
+void broker_program_status(int,int,int,struct timeval *);
+void broker_host_status(int,int,int,host *,struct timeval *);
+void broker_service_status(int,int,int,service *,struct timeval *);
 #endif
 
 #endif

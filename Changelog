@@ -12,6 +12,7 @@ Nagios Change Log
 * Spec file updates
 * Bug fix for flex host downtime
 * Embedded perl bug fixe for arguments with spaces
+* Host escalation logic fix
 
 
 1.0b6 - 09/15/2002

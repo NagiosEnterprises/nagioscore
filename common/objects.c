@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-20-2002
+ * Last Modified:   10-25-2002
  *
  * License:
  *
@@ -3749,6 +3749,10 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 
 	/* search all host escalations */
 	for(temp_hostescalation=hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+
+		/* skip this host escalation if it's not for us */
+		if(strcmp(temp_hostescalation->host_name,hst->name))
+			continue;
 
 		/* search all the contact groups in this escalation... */
 		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){

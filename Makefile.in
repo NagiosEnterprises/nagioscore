@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 08-25-2002
+# Last Modified: 10-25-2002
 ###############################
 
 
@@ -81,14 +81,31 @@ all:
 	@echo "       object configuration files, as they determine what/how"
 	@echo "       things get monitored!"
 	@echo ""
-	@echo "*** NOTE ***"
+	@echo ""
+	@echo "*** Support Notes *******************************************"
 	@echo ""
 	@echo "If you have questions about configuring or running Nagios,"
 	@echo "please make sure that you:"
-	@echo "       - Look at the sample config files"
-	@echo "       - Read the HTML documentation"
-	@echo "       - Read the FAQs online at http://www.nagios.org/faqs"
-	@echo "*BEFORE* you post a question to one of the mailing lists."
+	@echo ""
+	@echo "     - Look at the sample config files"
+	@echo "     - Read the HTML documentation"
+	@echo "     - Read the FAQs online at http://www.nagios.org/faqs"
+	@echo ""
+	@echo "before you post a question to one of the mailing lists."
+	@echo "Also make sure to include pertinent information that could"
+	@echo "help others help you.  This might include:"
+	@echo ""
+	@echo "     - What version of Nagios you are using"
+	@echo "     - What version of the plugins you are using"
+	@echo "     - Relevant snippets from your config files"
+	@echo "     - Relevant error messages from the Nagios log file"
+	@echo ""
+	@echo "For those of you who are interested in contract support or"
+	@echo "consulting services for Nagios, please visit:"
+	@echo ""
+	@echo "       http://www.nagios.org/contractsupport"
+	@echo ""
+	@echo "*************************************************************"
 	@echo ""
 	@echo "Enjoy."
 	@echo ""

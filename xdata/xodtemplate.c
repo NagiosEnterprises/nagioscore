@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-11-2004
+ * Last Modified: 08-02-2004
  *
  * Description:
  *
@@ -73,7 +73,6 @@
 extern int use_regexp_matches;
 extern int use_true_regexp_matching;
 #endif
-
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
 xodtemplate_command *xodtemplate_command_list=NULL;
@@ -553,7 +552,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 	        }
 
 	/* read in all lines from the config file */
-	while(my_fgets(&input,65536,fp,TRUE,&lines_read)){
+	while(my_fgets(&input,MAX_XODTEMPLATE_INPUT_BUFFER,fp,TRUE,&lines_read)){
 
 		current_line+=lines_read;
 
@@ -4156,7 +4155,7 @@ int xodtemplate_duplicate_objects(void){
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif

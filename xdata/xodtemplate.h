@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2004
+ * Last Modified:   08-02-2004
  *
  * License:
  *
@@ -31,7 +31,7 @@
 
 /*********** GENERAL DEFINITIONS ************/
 
-#define MAX_XODTEMPLATE_INPUT_BUFFER    8196
+#define MAX_XODTEMPLATE_INPUT_BUFFER    65535
 
 #define MAX_XODTEMPLATE_CONTACT_ADDRESSES 6
 

@@ -265,7 +265,7 @@ cd ..
 cd ..
 
 # install headers for development package
-install -m 0644 common/locations.h ${RPM_BUILD_ROOT}%{_prefix}/include/nagios
+install -m 0644 include/locations.h ${RPM_BUILD_ROOT}%{_prefix}/include/nagios
 
 # install httpd configuration in RH80-style httpd config subdir
 cp contrib/htaccess.sample ${RPM_BUILD_ROOT}/etc/httpd/conf.d/nagios.conf
@@ -294,6 +294,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(755,root,root)
 /etc/init.d/nagios
 %{_prefix}/sbin/nagios
+%{_prefix}/sbin/nagiostats
 %if %{EMBPERL}
 %{_prefix}/sbin/p1.pl
 %endif
@@ -313,7 +314,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/log/nagios/archives
 %defattr(2775,%{nsusr},%{nsgrp})
 %dir /var/spool/nagios
-%doc Changelog INSTALLING LICENSE README UPGRADING pkg/rpm/nagios.logrotate
+%doc Changelog INSTALLING LICENSE README UPGRADING
 
 
 %files www

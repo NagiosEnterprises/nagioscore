@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Time-Saving Tricks For Template-Based Object Definitions</title>
+
+<STYLE type="text/css">
+<!--
+        .PageTitle { font-family: arial,serif; font-size: large; }
+        .Default { font-family: arial,serif; font-size: small; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<h2 class="PageTitle">Time-Saving Tricks For Template-Based Object Definitions</h2>
+or...<br>
+<b>"How To Preserve Your Sanity"</b>
+</div>
+</p>
+<hr>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+This documentation attempts to explain how you can exploit the (somewhat) hidden features <a href="xodtemplate.html">template-based object definitions</a> to save your sanity.  How so, you ask?  Several types of objects allow you to specify multiple host names and/or hostgroup names in definitions, allowing you to "copy" the object defintion to multiple hosts or services.  I'll cover each type of object that supports these features seperately.  For starters, the object types which support this time-saving feature are as follows:
+</p>
+
+<p>
+<ul>
+<li><a href="xodtemplate.html#service">Services</a>
+<li><a href="xodtemplate.html#serviceescalation">Service escalations</a>
+<li><a href="xodtemplate.html#hostescalation">Host escalations</a>
+<li><a href="xodtemplate.html#hostgroupescalation">Hostgroup escalations</a>
+</ul>
+</p>
+
+<p>
+Object types that are not listed above do not support the features I'm about to describe.  Host and service dependency definitions may support them in the future, but not yet.
+</p>
+
+<p>
+<strong><u>Services</u></strong>
+</p>
+
+<p>
+Multiple <i>host_name</i> and/or <i>hostgroup_name</i> members...
+</p>
+
+
+<p>
+<strong><u>Service Escalations</u></strong>
+</p>
+
+<p>
+Multiple <i>host_name</i> and/or <i>hostgroup_name</i> members.  Description can be wildcard (*) - in this case, escalation gets applied to all services in specified hosts/hostgroups...
+</p>
+
+
+<p>
+<strong><u>Host Escalations</u></strong>
+</p>
+
+<p>
+Multiple <i>host_name</i> and/or <i>hostgroup_name</i> members...
+</p>
+
+
+<p>
+<strong><u>Hostgroup Escalations</u></strong>
+</p>
+
+<p>
+Multiple <i>hostgroup_name</i> members...
+</p>
+
+
+
+<hr>
+
+</body>
+</html>

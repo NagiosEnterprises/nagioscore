@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-15-2002
+ * Last Modified: 05-21-2002
  *
  * Description:
  *
@@ -1672,7 +1672,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_serviceescalation->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
 #ifdef NSCORE
-			printf("Error: Invalid servicedeescalation object directive '%s'.\n",variable);
+			printf("Error: Invalid serviceescalation object directive '%s'.\n",variable);
 #endif
 			return ERROR;
 		        }
@@ -2890,7 +2890,7 @@ int xodtemplate_duplicate_objects(void){
 				        }
 
 				/* duplicate serviceescalation definition */
-				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,temp_ptr);
+				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,temp_ptr,NULL);
 
 				/* exit on error */
 				if(result==ERROR){
@@ -2960,7 +2960,7 @@ int xodtemplate_duplicate_objects(void){
 						strcpy(temp_serviceescalation->host_name,host_name);
 					        }
 					else{
-						result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name);
+						result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name,NULL);
 						if(result==ERROR){
 							free(hostgroup_names);
 							return ERROR;
@@ -2972,7 +2972,7 @@ int xodtemplate_duplicate_objects(void){
 				        }
 
 				/* duplicate service escalation definition */
-				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name);
+				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,host_name,NULL);
 
 				/* exit on error */
 				if(result==ERROR){
@@ -2984,6 +2984,48 @@ int xodtemplate_duplicate_objects(void){
 
 		/* free memory we used for hostgroup name list */
 		free(hostgroup_names);
+	        }
+
+
+	/****** DUPLICATE SERVICE ESCALATION DEFINITIONS WITH WILDCARD DESCRIPTIONS ******/
+	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+
+		/* skip serviceescalations with NULL descriptions */
+		if(temp_serviceescalation->service_description==NULL)
+			continue;
+
+		/* this serviceescalation definition has a wildcard description - duplicate it to all services on the host */
+		if(!strcmp(temp_serviceescalation->service_description,"*")){
+			
+			/* duplicate serviceescalation entries */
+			first_item=TRUE;
+
+			for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+				/* skip services not associated with the host in question */
+				if(temp_service->host_name==NULL)
+					continue;
+				if(strcmp(temp_service->host_name,temp_serviceescalation->host_name))
+					continue;
+
+				/* existing definition gets first service description */
+				if(first_item==TRUE){
+					free(temp_serviceescalation->service_description);
+					temp_serviceescalation->service_description=(char *)malloc(strlen(temp_service->service_description)+1);
+					if(temp_serviceescalation->service_description!=NULL)
+						strcpy(temp_serviceescalation->service_description,temp_service->service_description);
+					first_item=FALSE;
+					continue;
+				        }
+
+				/* duplicate serviceescalation definition */
+				result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,NULL,temp_service->service_description);
+
+				/* exit on error */
+				if(result==ERROR)
+					return ERROR;
+			        }
+		        }
 	        }
 
 
@@ -3501,8 +3543,8 @@ int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *t
 
 
 
-/* duplicates a service escalation definition (with a new host name) */
-int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_serviceescalation, char *host_name){
+/* duplicates a service escalation definition (with a new host name and/or service description) */
+int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_serviceescalation, char *host_name, char *svc_description){
 	xodtemplate_serviceescalation *new_serviceescalation;
 
 #ifdef DEBUG0
@@ -3537,7 +3579,7 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	
 
 	/* allocate memory for and copy string members of serviceescalation definition */
-	if(temp_serviceescalation->host_name!=NULL){
+	if(host_name!=NULL){
 		new_serviceescalation->host_name=(char *)malloc(strlen(host_name)+1);
 		if(new_serviceescalation->host_name==NULL){
 #ifdef NSCORE
@@ -3547,6 +3589,17 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 			return ERROR;
 		        }
 		strcpy(new_serviceescalation->host_name,host_name);
+	        } 
+	else if(temp_serviceescalation->host_name!=NULL){
+		new_serviceescalation->host_name=(char *)malloc(strlen(temp_serviceescalation->host_name)+1);
+		if(new_serviceescalation->host_name==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+#endif
+			free(new_serviceescalation);
+			return ERROR;
+		        }
+		strcpy(new_serviceescalation->host_name,temp_serviceescalation->host_name);
 	        } 
 	if(temp_serviceescalation->template!=NULL){
 		new_serviceescalation->template=(char *)malloc(strlen(temp_serviceescalation->template)+1);
@@ -3573,7 +3626,21 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		        }
 		strcpy(new_serviceescalation->name,temp_serviceescalation->name);
 	        } 
-	if(temp_serviceescalation->service_description!=NULL){
+	if(svc_description!=NULL){
+		new_serviceescalation->service_description=(char *)malloc(strlen(svc_description)+1);
+		if(new_serviceescalation->service_description==NULL){
+#ifdef NSCORE
+			printf("Error: Could not allocate memory for duplicate definition of '%s'.\n",temp_serviceescalation->host_name);
+#endif
+			free(new_serviceescalation->host_name);
+			free(new_serviceescalation->template);
+			free(new_serviceescalation->name);
+			free(new_serviceescalation);
+			return ERROR;
+		        }
+		strcpy(new_serviceescalation->service_description,svc_description);
+	        } 
+	else if(temp_serviceescalation->service_description!=NULL){
 		new_serviceescalation->service_description=(char *)malloc(strlen(temp_serviceescalation->service_description)+1);
 		if(new_serviceescalation->service_description==NULL){
 #ifdef NSCORE

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-15-2002
+ * Last Modified:   05-21-2002
  *
  * License:
  *
@@ -401,7 +401,7 @@ int xodtemplate_free_memory(void);
 int xodtemplate_duplicate_service(xodtemplate_service *,char *);
 int xodtemplate_duplicate_hostgroupescalation(xodtemplate_hostgroupescalation *,char *);
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *,char *);
-int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *,char *);
+int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *,char *,char *);
 
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *);
 int xodtemplate_resolve_command(xodtemplate_command *);

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-03-2003
+ * Last Modified:   04-07-2003
  *
  * License:
  *
@@ -42,11 +42,11 @@
 #endif
   
 
+host            *host_list=NULL;
+service         *service_list=NULL;
 contact		*contact_list=NULL;
 contactgroup	*contactgroup_list=NULL;
-host		**host_list=NULL;
 hostgroup	*hostgroup_list=NULL;
-service		**service_list=NULL;
 command         *command_list=NULL;
 timeperiod      *timeperiod_list=NULL;
 serviceescalation       *serviceescalation_list=NULL;
@@ -56,6 +56,8 @@ hostescalation  *hostescalation_list=NULL;
 hostextinfo     *hostextinfo_list=NULL;
 serviceextinfo  *serviceextinfo_list=NULL;
 
+host		**host_hashlist=NULL;
+service		**service_hashlist=NULL;
 
 static host_cursor *static_host_cursor=NULL;
 static int service_hashchain_iterator;
@@ -96,7 +98,7 @@ int read_object_config_data(char *main_config_file,int options,int cache){
 
 
 /******************************************************************/
-/********************** HASH FUNCTIONS ****************************/
+/****************** CHAINED HASH FUNCTIONS ************************/
 /******************************************************************/
 
 /* host hash function */
@@ -148,33 +150,34 @@ int host_comes_after(host *testhost,const char *host_name){
 
 int add_host_allocated(host *new_host){
 	host *temphost, *lastpointer;
-	int hashslot=hashfunc1(new_host->name,HOSTS_HASHSLOTS);
+	int hashslot;
 
 	/* initialize hash list */
-	if(host_list==NULL){
+	if(host_hashlist==NULL){
 		int i;
 
-		host_list=(host **)malloc(sizeof(host *)*HOSTS_HASHSLOTS);
-		if(host_list==NULL)
+		host_hashlist=(host **)malloc(sizeof(host *)*HOSTS_HASHSLOTS);
+		if(host_hashlist==NULL)
 			return 0;
 		
 		for(i=0;i<HOSTS_HASHSLOTS;i++)
-			host_list[i]=NULL;
+			host_hashlist[i]=NULL;
 	        }
 
 	if(!new_host)
 		return 0;
 
+	hashslot=hashfunc1(new_host->name,HOSTS_HASHSLOTS);
 	lastpointer=NULL;
-	for(temphost=host_list[hashslot];temphost && host_comes_after(temphost,new_host->name);temphost=temphost->next)
+	for(temphost=host_hashlist[hashslot];temphost && host_comes_after(temphost,new_host->name);temphost=temphost->nexthash)
 		lastpointer=temphost;
 
 	if(!temphost || (compare_host(temphost,new_host->name)!=0)){
 		if(lastpointer)
-			lastpointer->next=new_host;
+			lastpointer->nexthash=new_host;
 		else
-			host_list[hashslot]=new_host;
-		new_host->next=temphost;
+			host_hashlist[hashslot]=new_host;
+		new_host->nexthash=temphost;
 
 		return 1;
 	        }
@@ -206,33 +209,35 @@ int service_comes_after(service *testsvc,const char *host_name,const char *servi
 
 int add_service_allocated(service *new_service){
 	service *tempsvc, *lastpointer;
-	int hashslot=hashfunc2(new_service->host_name,new_service->description,SERVICES_HASHSLOTS);
+	int hashslot;
 
 	/* initialize hash list */
-	if(service_list==NULL){
+	if(service_hashlist==NULL){
 		int i;
 
-		service_list=(service **)malloc(sizeof(service *)*SERVICES_HASHSLOTS);
-		if(service_list==NULL)
+		service_hashlist=(service **)malloc(sizeof(service *)*SERVICES_HASHSLOTS);
+		if(service_hashlist==NULL)
 			return 0;
 		
 		for(i=0;i< SERVICES_HASHSLOTS;i++)
-			service_list[i]=NULL;
+			service_hashlist[i]=NULL;
 	        }
 
 	if(!new_service)
 		return 0;
 
+	hashslot=hashfunc2(new_service->host_name,new_service->description,SERVICES_HASHSLOTS);
 	lastpointer=NULL;
-	for(tempsvc=service_list[hashslot];tempsvc && service_comes_after(tempsvc,new_service->host_name,new_service->description);tempsvc=tempsvc->next)
+	for(tempsvc=service_hashlist[hashslot];tempsvc && service_comes_after(tempsvc,new_service->host_name,new_service->description);tempsvc=tempsvc->nexthash)
 		lastpointer=tempsvc;
 
 	if(!tempsvc || (compare_service(tempsvc,new_service->host_name,new_service->description)!=0)){
 		if(lastpointer)
-			lastpointer->next=new_service;
+			lastpointer->nexthash=new_service;
 		else
-			service_list[hashslot]=new_service;
-		new_service->next=tempsvc;
+			service_hashlist[hashslot]=new_service;
+		new_service->nexthash=tempsvc;
+
 
 		return 1;
 	        }
@@ -296,7 +301,7 @@ host *get_next_host_cursor(void *v_cursor){
 	if(!cursor)
 		return NULL;
 
-	cursor->current_host_pointer=get_next_N((void **)host_list,HOSTS_HASHSLOTS,&(cursor->host_hashchain_iterator),cursor->current_host_pointer,(cursor->current_host_pointer?cursor->current_host_pointer->next:NULL));
+	cursor->current_host_pointer=get_next_N((void **)host_hashlist,HOSTS_HASHSLOTS,&(cursor->host_hashchain_iterator),cursor->current_host_pointer,(cursor->current_host_pointer?cursor->current_host_pointer->nexthash:NULL));
 
 	return cursor->current_host_pointer;
         }
@@ -500,6 +505,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 /* add a new host definition */
 host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host;
+	host *last_host;
 	host *new_host;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -971,7 +977,10 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 
 #endif
 
-	/* add new host to host list, sorted by host name */
+	new_host->next=NULL;
+	new_host->nexthash=NULL;
+
+	/* add new host to host chained has list */
 	if(!add_host_allocated(new_host)){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host list to add host '%s'\n",name);
@@ -996,7 +1005,30 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 		free(new_host->name);
 		free(new_host);
 		return NULL;
-	}
+	        }
+
+	/* add new host to host list, sorted by host name */
+	last_host=host_list;
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+		if(strcmp(new_host->name,temp_host->name)<0){
+			new_host->next=temp_host;
+			if(temp_host==host_list)
+				host_list=new_host;
+			else
+				last_host->next=new_host;
+			break;
+		        }
+		else
+			last_host=temp_host;
+	        }
+	if(host_list==NULL){
+		new_host->next=NULL;
+		host_list=new_host;
+	        }
+	else if(temp_host==NULL){
+		new_host->next=NULL;
+		last_host->next=new_host;
+	        }
 
 #ifdef DEBUG1
 	printf("\tHost Name:                %s\n",new_host->name);
@@ -1967,6 +1999,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 /* add a new service to the list in memory */
 service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_ok, int stalk_warning, int stalk_unknown, int stalk_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *temp_service;
+	service *last_service;
 	service *new_service;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -2456,7 +2489,11 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	strcpy(new_service->perf_data,"");
 
 #endif
-	/* add new service to service list, sorted by host name then service description */
+
+	new_service->next=NULL;
+	new_service->nexthash=NULL;
+
+	/* add new service to service chained hash list */
 	if(!add_service_allocated(new_service)){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add new service '%s' on host '%s' (out of memory?)\n",description,host_name);
@@ -2484,6 +2521,40 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		return NULL;
 	        }
 		
+	/* add new service to service list, sorted by host name then service description */
+	last_service=service_list;
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+		if(strcmp(new_service->host_name,temp_service->host_name)<0){
+			new_service->next=temp_service;
+			if(temp_service==service_list)
+				service_list=new_service;
+			else
+				last_service->next=new_service;
+			break;
+		        }
+
+		else if(strcmp(new_service->host_name,temp_service->host_name)==0 && strcmp(new_service->description,temp_service->description)<0){
+			new_service->next=temp_service;
+			if(temp_service==service_list)
+				service_list=new_service;
+			else
+				last_service->next=new_service;
+			break;
+		        }
+
+		else
+			last_service=temp_service;
+	        }
+	if(service_list==NULL){
+		new_service->next=NULL;
+		service_list=new_service;
+	        }
+	else if(temp_service==NULL){
+		new_service->next=NULL;
+		last_service->next=new_service;
+	        }
+
 #ifdef DEBUG1
 	printf("\tHost:                     %s\n",new_service->host_name);
 	printf("\tDescription:              %s\n",new_service->description);
@@ -3633,10 +3704,10 @@ timeperiod * find_timeperiod(char *name,timeperiod *period){
 host * find_host(char *name){
 	host *iptr;
 
-	if(name==NULL || host_list==NULL)
+	if(name==NULL || host_hashlist==NULL)
 		return NULL;
 
-	for(iptr=host_list[hashfunc1(name,HOSTS_HASHSLOTS)];iptr && host_comes_after(iptr,name);iptr=iptr->next);
+	for(iptr=host_hashlist[hashfunc1(name,HOSTS_HASHSLOTS)];iptr && host_comes_after(iptr,name);iptr=iptr->nexthash);
 
 	if(iptr && (compare_host(iptr,name)==0))
 		return iptr;
@@ -3901,10 +3972,10 @@ command * find_command(char *name,command *cmd){
 service * find_service(char *host_name,char *svc_desc){
 	service *iptr;
 
-	if(host_name==NULL || svc_desc==NULL || service_list==NULL)
+	if(host_name==NULL || svc_desc==NULL || service_hashlist==NULL)
 		return NULL;
 
-	for(iptr=service_list[hashfunc2(host_name,svc_desc,SERVICES_HASHSLOTS)];iptr && service_comes_after(iptr,host_name,svc_desc);iptr=iptr->next);
+	for(iptr=service_hashlist[hashfunc2(host_name,svc_desc,SERVICES_HASHSLOTS)];iptr && service_comes_after(iptr,host_name,svc_desc);iptr=iptr->nexthash);
 
 	if(iptr && (compare_service(iptr,host_name,svc_desc)==0))
 		return iptr;
@@ -3980,7 +4051,7 @@ void move_first_service(void){
  */
 service * get_next_service(void){
 
-	current_service_pointer=get_next_N((void **)service_list,SERVICES_HASHSLOTS,&service_hashchain_iterator,current_service_pointer,(current_service_pointer?current_service_pointer->next:NULL));
+	current_service_pointer=get_next_N((void **)service_hashlist,SERVICES_HASHSLOTS,&service_hashchain_iterator,current_service_pointer,(current_service_pointer?current_service_pointer->nexthash:NULL));
 
 	return current_service_pointer;
         }
@@ -4473,13 +4544,13 @@ int free_object_data(void){
 #endif
 
 	/* free memory for the host list (chained hash) */
-	if(host_list){
+	if(host_hashlist){
 		for(i=0;i<HOSTS_HASHSLOTS;i++){
 
-			this_host=host_list[i];
+			this_host=host_hashlist[i];
 			while(this_host!=NULL){
 
-				next_host=this_host->next;
+				next_host=this_host->nexthash;
 
 				/* free memory for parent hosts */
 				this_hostsmember=this_host->parent_hosts;
@@ -4517,9 +4588,12 @@ int free_object_data(void){
 		        }
 
 		/* reset the host pointer */
-		free(host_list);
-		host_list=NULL;
+		free(host_hashlist);
+		host_hashlist=NULL;
 	        }
+
+	/* reset host list pointer */
+	host_list=NULL;
 
 #ifdef DEBUG1
 	printf("\thost_list freed\n");
@@ -4620,13 +4694,13 @@ int free_object_data(void){
 #endif
 
 	/* free memory for the service list (chained hash) */
-	if(service_list){
+	if(service_hashlist){
 		for(i=0;i<SERVICES_HASHSLOTS;i++){
 
-			this_service=service_list[i];
+			this_service=service_hashlist[i];
 			while(this_service!=NULL){
 
-				next_service=this_service->next;
+				next_service=this_service->nexthash;
 
 				/* free memory for contact groups */
 				this_contactgroupsmember=this_service->contact_groups;
@@ -4654,9 +4728,12 @@ int free_object_data(void){
 		        }
 
 		/* reset the service pointer */
-		free(service_list);
-		service_list=NULL;
+		free(service_hashlist);
+		service_hashlist=NULL;
 	        }
+
+	/* reset service list pointer */
+	service_list=NULL;
 
 #ifdef DEBUG1
 	printf("\tservice_list freed\n");

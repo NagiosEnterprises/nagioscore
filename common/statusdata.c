@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-24-2003
+ * Last Modified:   04-06-2003
  *
  * License:
  *
@@ -47,11 +47,13 @@
 #endif
 
 
+#ifdef NSCORE
+extern int      aggregate_status_updates;
+#endif
 
 #ifdef NSCGI
 hoststatus      *hoststatus_list=NULL;
 servicestatus   *servicestatus_list=NULL;
-
 #endif
 
 
@@ -117,7 +119,11 @@ int cleanup_status_data(char *config_file,int delete_status_data){
 /* updates program status info */
 int update_program_status(int aggregated_dump){
 
-	/* currently a noop */
+	/* currently a noop if aggregated updates is TRUE */
+
+	/* update all status data if we're not aggregating updates*/
+	if(aggregate_status_updates==FALSE)
+		update_all_status_data();
 
 	return OK;
         }
@@ -127,7 +133,11 @@ int update_program_status(int aggregated_dump){
 /* updates host status info */
 int update_host_status(host *hst,int aggregated_dump){
 
-	/* currently a noop */
+	/* currently a noop if aggregated updates is TRUE */
+
+	/* update all status data if we're not aggregating updates*/
+	if(aggregate_status_updates==FALSE)
+		update_all_status_data();
 
 	return OK;
         }
@@ -137,7 +147,11 @@ int update_host_status(host *hst,int aggregated_dump){
 /* updates service status info */
 int update_service_status(service *svc,int aggregated_dump){
 
-	/* currently a noop */
+	/* currently a noop if aggregated updates is TRUE */
+
+	/* update all status data if we're not aggregating updates*/
+	if(aggregate_status_updates==FALSE)
+		update_all_status_data();
 
 	return OK;
         }

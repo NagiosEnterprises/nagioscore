@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-31-2003
+ * Last Modified:   04-06-2003
  *
  * License:
  *
@@ -2385,12 +2385,31 @@ int cmd_start_stop_obsessing_over_host(int cmd, char *args){
 
 /* temporarily disables a service check */
 void disable_service_check(service *svc){
+	timed_event *temp_event;
 
 #ifdef DEBUG0
 	printf("disable_service_check() start\n");
 #endif
+
+	/* checks are already disabled */
+	if(svc->checks_enabled==FALSE)
+		return;
+
 	/* disable the service check... */
 	svc->checks_enabled=FALSE;
+	svc->should_be_scheduled=FALSE;
+
+	/* remove scheduled checks of this service from the event queue */
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data)
+			break;
+	        }
+
+	/* we found a check event to remove */
+	if(temp_event!=NULL){
+		remove_event(temp_event,&event_list_low);
+		free(temp_event);
+	        }
 
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
@@ -2406,13 +2425,37 @@ void disable_service_check(service *svc){
 
 /* enables a service check */
 void enable_service_check(service *svc){
+	time_t preferred_time;
+	time_t next_valid_time;
 
 #ifdef DEBUG0
 	printf("enable_service_check() start\n");
 #endif
 
+	/* checks are already enabled */
+	if(svc->checks_enabled==TRUE)
+		return;
+
 	/* enable the service check... */
 	svc->checks_enabled=TRUE;
+	svc->should_be_scheduled=TRUE;
+
+	/* services with no check intervals don't get checked */
+	if(svc->check_interval==0)
+		svc->should_be_scheduled=FALSE;
+
+	/* schedule a check for right now (or as soon as possible) */
+	time(&preferred_time);
+	if(check_time_against_period(preferred_time,svc->check_period)==ERROR){
+		get_next_valid_time(preferred_time,&next_valid_time,svc->check_period);
+		svc->next_check=next_valid_time;
+	        }
+	else
+		svc->next_check=preferred_time;
+
+	/* schedule a check if we should */
+	if(svc->should_be_scheduled==TRUE)
+		schedule_service_check(svc,svc->next_check,FALSE);
 
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
@@ -2424,192 +2467,6 @@ void enable_service_check(service *svc){
 	return;
         }
 
-
-
-/* schedules an immediate or delayed service check */
-void schedule_service_check(service *svc,time_t check_time,int forced){
-	timed_event *temp_event;
-	timed_event *new_event;
-	int found=FALSE;
-	char temp_buffer[MAX_INPUT_BUFFER];
-	int use_original_event=TRUE;
-
-#ifdef DEBUG0
-	printf("schedule_service_check() start\n");
-#endif
-
-	/* allocate memory for a new event item */
-	new_event=(timed_event *)malloc(sizeof(timed_event));
-	if(new_event==NULL){
-
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Could not reschedule check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-
-		return;
-	        }
-
-	/* see if there are any other scheduled checks of this service in the queue */
-	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
-
-		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data){
-			found=TRUE;
-			break;
-		        }
-	        }
-
-	/* we found another service check event for this service in the queue - what should we do? */
-	if(found==TRUE && temp_event!=NULL){
-
-		/* use the originally scheduled check unless we decide otherwise */
-		use_original_event=TRUE;
-
-		/* the original event is a forced check... */
-		if(svc->check_options & CHECK_OPTION_FORCE_EXECUTION){
-			
-			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
-			if(forced==TRUE && check_time < svc->next_check)
-				use_original_event=FALSE;
-		        }
-
-		/* the original event is not a forced check... */
-		else{
-
-			/* the new event is a forced check, so use it instead */
-			if(forced==TRUE)
-				use_original_event=FALSE;
-
-			/* the new event is not forced either and its execution time is earlier than the original, so use it instead */
-			else if(check_time < svc->next_check)
-				use_original_event=FALSE;
-		        }
-
-		/* the originally queued event won the battle, so keep it and exit */
-		if(use_original_event==TRUE){
-			free(new_event);
-			return;
-		        }
-
-		remove_event(temp_event,&event_list_low);
-		free(temp_event);
-	        }
-
-	/* set the next service check time */
-	svc->next_check=check_time;
-
-	/* set the force service check option */
-	if(forced==TRUE)
-		svc->check_options|=CHECK_OPTION_FORCE_EXECUTION;
-
-	/* place the new event in the event queue */
-	new_event->event_type=EVENT_SERVICE_CHECK;
-	new_event->event_data=(void *)svc;
-	new_event->run_time=svc->next_check;
-	new_event->recurring=FALSE;
-	schedule_event(new_event,&event_list_low);
-
-	/* update the status log */
-	update_service_status(svc,FALSE);
-
-#ifdef DEBUG0
-	printf("schedule_service_check() end\n");
-#endif
-
-	return;
-        }
-
-
-/* schedules an immediate or delayed host check */
-void schedule_host_check(host *hst,time_t check_time,int forced){
-	timed_event *temp_event;
-	timed_event *new_event;
-	int found=FALSE;
-	char temp_buffer[MAX_INPUT_BUFFER];
-	int use_original_event=TRUE;
-
-#ifdef DEBUG0
-	printf("schedule_host_check() start\n");
-#endif
-
-	/* allocate memory for a new event item */
-	new_event=(timed_event *)malloc(sizeof(timed_event));
-	if(new_event==NULL){
-
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Could not reschedule check of host '%s'!\n",hst->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-
-		return;
-	        }
-
-	/* see if there are any other scheduled checks of this host in the queue */
-	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
-
-		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
-			found=TRUE;
-			break;
-		        }
-	        }
-
-	/* we found another host check event for this host in the queue - what should we do? */
-	if(found==TRUE && temp_event!=NULL){
-
-		/* use the originally scheduled check unless we decide otherwise */
-		use_original_event=TRUE;
-
-		/* the original event is a forced check... */
-		if(hst->check_options & CHECK_OPTION_FORCE_EXECUTION){
-			
-			/* the new event is also forced and its execution time is earlier than the original, so use it instead */
-			if(forced==TRUE && check_time < hst->next_check)
-				use_original_event=FALSE;
-		        }
-
-		/* the original event is not a forced check... */
-		else{
-
-			/* the new event is a forced check, so use it instead */
-			if(forced==TRUE)
-				use_original_event=FALSE;
-
-			/* the new event is not forced either and its execution time is earlier than the original, so use it instead */
-			else if(check_time < hst->next_check)
-				use_original_event=FALSE;
-		        }
-
-		/* the originally queued event won the battle, so keep it and exit */
-		if(use_original_event==TRUE){
-			free(new_event);
-			return;
-		        }
-
-		remove_event(temp_event,&event_list_low);
-		free(temp_event);
-	        }
-
-	/* set the next host check time */
-	hst->next_check=check_time;
-
-	/* set the force service check option */
-	if(forced==TRUE)
-		hst->check_options|=CHECK_OPTION_FORCE_EXECUTION;
-
-	/* place the new event in the event queue */
-	new_event->event_type=EVENT_HOST_CHECK;
-	new_event->event_data=(void *)hst;
-	new_event->run_time=hst->next_check;
-	new_event->recurring=FALSE;
-	schedule_event(new_event,&event_list_low);
-
-	/* update the status log */
-	update_host_status(hst,FALSE);
-
-#ifdef DEBUG0
-	printf("schedule_host_check() end\n");
-#endif
-
-	return;
-        }
 
 
 /* enable notifications on a program-wide basis */
@@ -2750,15 +2607,14 @@ void disable_host_notifications(host *hst){
 void enable_and_propagate_notifications(host *hst){
 	host *temp_host;
 	service *temp_service;
-	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("enable_and_propagate_notifications() start\n");
 #endif
 
 	/* check all child hosts... */
-	host_cursor = get_host_cursor();
-	while(temp_host = get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while(temp_host=get_next_host()){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
@@ -2768,15 +2624,13 @@ void enable_and_propagate_notifications(host *hst){
 			enable_host_notifications(temp_host);
 
 			/* enable notifications for all services on this host... */
-			if(find_all_services_by_host(temp_host->name)) {
-				while(temp_service=get_next_service_by_host()) {
+			if(find_all_services_by_host(temp_host->name)){
+				while(temp_service=get_next_service_by_host())
 					enable_service_notifications(temp_service);
-			        }
-		        }
+		                }
 
+	                }
 	        }
-	}
-	free_host_cursor(host_cursor);
 
 #ifdef DEBUG0
 	printf("enable_and_propagate_notifications() end\n");
@@ -2790,15 +2644,14 @@ void enable_and_propagate_notifications(host *hst){
 void disable_and_propagate_notifications(host *hst){
 	host *temp_host;
 	service *temp_service;
-	void *host_cursor;
 
 #ifdef DEBUG0
 	printf("disable_and_propagate_notifications() start\n");
 #endif
 
 	/* check all child hosts... */
-	host_cursor = get_host_cursor();
-	while(temp_host=get_next_host_cursor(host_cursor)) {
+	move_first_host();
+	while(temp_host=get_next_host()){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE){
 
 			/* recurse... */
@@ -2809,14 +2662,12 @@ void disable_and_propagate_notifications(host *hst){
 
 			/* disable notifications for all services on this host... */
 			if(find_all_services_by_host(temp_host->name)){
-				while(temp_service=get_next_service_by_host()){
+				while(temp_service=get_next_service_by_host())
 					disable_service_notifications(temp_service);
-			                }
 		                }
 
 	                }
 	        }
-	free_host_cursor(host_cursor);
 
 #ifdef DEBUG0
 	printf("disable_and_propagate_notifications() end\n");
@@ -3348,42 +3199,84 @@ void disable_host_event_handler(host *hst){
         }
 
 
-/* enables checks of a particular host */
-void enable_host_check(host *hst){
-
-#ifdef DEBUG0
-	printf("enable_host_check() start\n");
-#endif
-
-	/* set the host check flag */
-	hst->checks_enabled=TRUE;
-
-	/* update the status log with the host info */
-	update_host_status(hst,FALSE);
-
-#ifdef DEBUG0
-	printf("enable_host_check() end\n");
-#endif
-
-	return;
-        }
-
-
 /* disables checks of a particular host */
 void disable_host_check(host *hst){
+	timed_event *temp_event;
 
 #ifdef DEBUG0
 	printf("disable_host_check() start\n");
 #endif
 
+	/* checks are already disabled */
+	if(hst->checks_enabled==FALSE)
+		return;
+
 	/* set the host check flag */
 	hst->checks_enabled=FALSE;
+	hst->should_be_scheduled=FALSE;
+
+	/* remove scheduled checks of this host from the event queue */
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data)
+			break;
+	        }
+
+	/* we found a check event to remove */
+	if(temp_event!=NULL){
+		remove_event(temp_event,&event_list_low);
+		free(temp_event);
+	        }
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
 #ifdef DEBUG0
 	printf("disable_host_check() end\n");
+#endif
+
+	return;
+        }
+
+
+/* enables checks of a particular host */
+void enable_host_check(host *hst){
+	time_t preferred_time;
+	time_t next_valid_time;
+
+#ifdef DEBUG0
+	printf("enable_host_check() start\n");
+#endif
+
+	/* checks are already enabled */
+	if(hst->checks_enabled==TRUE)
+		return;
+
+	/* set the host check flag */
+	hst->checks_enabled=TRUE;
+	hst->should_be_scheduled=TRUE;
+
+	/* hosts with no check intervals don't get checked */
+	if(hst->check_interval==0)
+		hst->should_be_scheduled=FALSE;
+
+	/* schedule a check for right now (or as soon as possible) */
+	time(&preferred_time);
+	if(check_time_against_period(preferred_time,hst->check_period)==ERROR){
+		get_next_valid_time(preferred_time,&next_valid_time,hst->check_period);
+		hst->next_check=next_valid_time;
+	        }
+	else
+		hst->next_check=preferred_time;
+
+	/* schedule a check if we should */
+	if(hst->should_be_scheduled==TRUE)
+		schedule_host_check(hst,hst->next_check,FALSE);
+
+	/* update the status log with the host info */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("enable_host_check() end\n");
 #endif
 
 	return;

@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 04-05-2003
  *
  * This CGI program will display various configuration information.
  *
@@ -39,6 +39,8 @@ extern char   url_images_path[MAX_FILENAME_LENGTH];
 extern char   url_logo_images_path[MAX_FILENAME_LENGTH];
 extern char   url_stylesheets_path[MAX_FILENAME_LENGTH];
 
+extern host *host_list;
+extern service *service_list;
 extern hostgroup *hostgroup_list;
 extern contactgroup *contactgroup_list;
 extern command *command_list;
@@ -454,8 +456,8 @@ void display_hosts(void){
 	printf("</TR>\n");
 
 	/* check all the hosts... */
-	move_first_host();
-	while(temp_host=get_next_host()){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
 		if(odd){
 			odd=0;
 			bg_class="dataOdd";
@@ -903,7 +905,6 @@ void display_contactgroups(void){
 
 
 void display_services(void){
-	host *temp_host;
 	service *temp_service;
 	contactgroupsmember *temp_contactgroupsmember;
 	char command_line[MAX_INPUT_BUFFER];
@@ -965,192 +966,185 @@ void display_services(void){
 	printf("</TR>\n");
 
 	/* check all the services... */
-	move_first_host();
-	while(temp_host=get_next_host()){
-	
-		find_all_services_by_host(temp_host->name);
-		while(temp_service=get_next_service_by_host()){
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
-			if(odd){
-				odd=0;
-				bg_class="dataOdd";
-		                }
-			else{
-				odd=1;
-				bg_class="dataEven";
-		                }
+		if(odd){
+			odd=0;
+			bg_class="dataOdd";
+	                }
+		else{
+			odd=1;
+			bg_class="dataEven";
+	                }
 
-			printf("<TR CLASS='%s'>\n",bg_class);
+		printf("<TR CLASS='%s'>\n",bg_class);
 
-			printf("<TD CLASS='%s'><A NAME='%s;",bg_class,url_encode(temp_service->host_name));
-			printf("%s'></A>",url_encode(temp_service->description));
-			printf("<A HREF='%s?type=hosts#%s'>%s</A></TD>\n",CONFIG_CGI,url_encode(temp_service->host_name),temp_service->host_name);
+		printf("<TD CLASS='%s'><A NAME='%s;",bg_class,url_encode(temp_service->host_name));
+		printf("%s'></A>",url_encode(temp_service->description));
+		printf("<A HREF='%s?type=hosts#%s'>%s</A></TD>\n",CONFIG_CGI,url_encode(temp_service->host_name),temp_service->host_name);
 		
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_service->description);
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_service->description);
+		
+		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_service->max_attempts);
+
+		get_interval_time_string(temp_service->check_interval,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+		get_interval_time_string(temp_service->retry_interval,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+
+		strncpy(command_line,temp_service->service_check_command,sizeof(command_line));
+		command_line[sizeof(command_line)-1]='\x0';
+		command_name=strtok(command_line,"!");
+
+		printf("<TD CLASS='%s'><A HREF='%s?type=commands#%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),temp_service->service_check_command);
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_service->check_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->check_period),temp_service->check_period);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->parallelize==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->is_volatile==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->obsess_over_service==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->checks_enabled==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->accept_passive_service_checks==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->check_freshness==TRUE)?"Yes":"No");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_service->freshness_threshold==0)
+			printf("Auto-determined value\n");
+		else
+			printf("%d seconds\n",temp_service->freshness_threshold);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			if(temp_contactgroupsmember!=temp_service->contact_groups)
+				printf(", ");
+
+			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+	                }
+		if(temp_service->contact_groups==NULL)
+			printf("&nbsp;");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		printf("%s\n",(temp_service->notifications_enabled==TRUE)?"Yes":"No");
+		printf("</TD>\n");
+
+		get_interval_time_string(temp_service->notification_interval,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->notification_interval==0)?"<i>No Re-notification</i>":time_string);
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=0;
+		if(temp_service->notify_on_unknown==TRUE){
+			options=1;
+			printf("Unknown");
+	                }
+		if(temp_service->notify_on_warning==TRUE){
+			printf("%sWarning",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->notify_on_critical==TRUE){
+			printf("%sCritical",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->notify_on_recovery==TRUE){
+			printf("%sRecovery",(options)?", ":"");
+			options=1;
+	                }
+		if(!options)
+			printf("None");
+		printf("</TD>\n");
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_service->notification_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->notification_period),temp_service->notification_period);
+		printf("</TD>\n");
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_service->event_handler==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=commands#%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->event_handler),temp_service->event_handler);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		printf("%s\n",(temp_service->event_handler_enabled==TRUE)?"Yes":"No");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=0;
+		if(temp_service->stalk_on_ok==TRUE){
+			options=1;
+			printf("Ok");
+	                }
+		if(temp_service->stalk_on_warning==TRUE){
+			printf("%sWarning",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->stalk_on_unknown==TRUE){
+			printf("%sUnknown",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->stalk_on_critical==TRUE){
+			printf("%sCritical",(options)?", ":"");
+			options=1;
+	                }
+		if(options==0)
+			printf("None");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		printf("%s\n",(temp_service->flap_detection_enabled==TRUE)?"Yes":"No");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_service->low_flap_threshold==0.0)
+			printf("Program-wide value\n");
+		else
+			printf("%3.1f%%\n",temp_service->low_flap_threshold);
+		printf("</TD>\n");
 			
-			printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_service->max_attempts);
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_service->high_flap_threshold==0.0)
+			printf("Program-wide value\n");
+		else
+			printf("%3.1f%%\n",temp_service->high_flap_threshold);
+		printf("</TD>\n");
 
-			get_interval_time_string(temp_service->check_interval,time_string,sizeof(time_string));
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
-			get_interval_time_string(temp_service->retry_interval,time_string,sizeof(time_string));
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+		printf("<TD CLASS='%s'>",bg_class);
+		printf("%s\n",(temp_service->process_performance_data==TRUE)?"Yes":"No");
+		printf("</TD>\n");
 
-			strncpy(command_line,temp_service->service_check_command,sizeof(command_line));
-			command_line[sizeof(command_line)-1]='\x0';
-			command_name=strtok(command_line,"!");
-			printf("<TD CLASS='%s'><A HREF='%s?type=commands#%s'>%s</A></TD>\n",bg_class,CONFIG_CGI,url_encode(command_name),temp_service->service_check_command);
+		printf("<TD CLASS='%s'>",bg_class);
+		printf("%s\n",(temp_service->failure_prediction_enabled==TRUE)?"Yes":"No");
+		printf("</TD>\n");
 
-			printf("<TD CLASS='%s'>",bg_class);
-			if(temp_service->check_period==NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->check_period),temp_service->check_period);
-			printf("</TD>\n");
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->failure_prediction_options==NULL)?"&nbsp;":temp_service->failure_prediction_options);
 
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->parallelize==TRUE)?"Yes":"No");
-
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->is_volatile==TRUE)?"Yes":"No");
-
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->obsess_over_service==TRUE)?"Yes":"No");
-
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->checks_enabled==TRUE)?"Yes":"No");
-
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->accept_passive_service_checks==TRUE)?"Yes":"No");
-
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->check_freshness==TRUE)?"Yes":"No");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			if(temp_service->freshness_threshold==0)
-				printf("Auto-determined value\n");
-			else
-				printf("%d seconds\n",temp_service->freshness_threshold);
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-				if(temp_contactgroupsmember!=temp_service->contact_groups)
-					printf(", ");
-
-				printf("<A HREF='%s?type=contactgroups#%s'>%s</A>",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
-		                }
-			if(temp_service->contact_groups==NULL)
-				printf("&nbsp;");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			printf("%s\n",(temp_service->notifications_enabled==TRUE)?"Yes":"No");
-			printf("</TD>\n");
-
-			get_interval_time_string(temp_service->notification_interval,time_string,sizeof(time_string));
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->notification_interval==0)?"<i>No Re-notification</i>":time_string);
-
-			printf("<TD CLASS='%s'>",bg_class);
-			options=0;
-			if(temp_service->notify_on_unknown==TRUE){
-				options=1;
-				printf("Unknown");
-		                }
-			if(temp_service->notify_on_warning==TRUE){
-				printf("%sWarning",(options)?", ":"");
-				options=1;
-		                }
-			if(temp_service->notify_on_critical==TRUE){
-				printf("%sCritical",(options)?", ":"");
-				options=1;
-		                }
-			if(temp_service->notify_on_recovery==TRUE){
-				printf("%sRecovery",(options)?", ":"");
-				options=1;
-		                }
-			if(!options)
-				printf("None");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			if(temp_service->notification_period==NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->notification_period),temp_service->notification_period);
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			if(temp_service->event_handler==NULL)
-				printf("&nbsp;");
-			else
-				printf("<A HREF='%s?type=commands#%s'>%s</A>",CONFIG_CGI,url_encode(temp_service->event_handler),temp_service->event_handler);
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			printf("%s\n",(temp_service->event_handler_enabled==TRUE)?"Yes":"No");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			options=0;
-			if(temp_service->stalk_on_ok==TRUE){
-				options=1;
-				printf("Ok");
-		                }
-			if(temp_service->stalk_on_warning==TRUE){
-				printf("%sWarning",(options)?", ":"");
-				options=1;
-		                }
-			if(temp_service->stalk_on_unknown==TRUE){
-				printf("%sUnknown",(options)?", ":"");
-				options=1;
-		                }
-			if(temp_service->stalk_on_critical==TRUE){
-				printf("%sCritical",(options)?", ":"");
-				options=1;
-		                }
-			if(options==0)
-				printf("None");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			printf("%s\n",(temp_service->flap_detection_enabled==TRUE)?"Yes":"No");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			if(temp_service->low_flap_threshold==0.0)
-				printf("Program-wide value\n");
-			else
-				printf("%3.1f%%\n",temp_service->low_flap_threshold);
-			printf("</TD>\n");
-			
-			printf("<TD CLASS='%s'>",bg_class);
-			if(temp_service->high_flap_threshold==0.0)
-				printf("Program-wide value\n");
-			else
-				printf("%3.1f%%\n",temp_service->high_flap_threshold);
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			printf("%s\n",(temp_service->process_performance_data==TRUE)?"Yes":"No");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>",bg_class);
-			printf("%s\n",(temp_service->failure_prediction_enabled==TRUE)?"Yes":"No");
-			printf("</TD>\n");
-
-			printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->failure_prediction_options==NULL)?"&nbsp;":temp_service->failure_prediction_options);
-
-			printf("<TD CLASS='%s'>",bg_class);
-			options=0;
-			if(temp_service->retain_status_information==TRUE){
-				options=1;
-				printf("Status Information");
-		                }
-			if(temp_service->retain_nonstatus_information==TRUE){
-				printf("%sNon-Status Information",(options==1)?", ":"");
-				options=1;
-		                }
-			if(options==0)
-				printf("None");
-			printf("</TD>\n");
-			
-			printf("</TR>\n");
-		        }
+		printf("<TD CLASS='%s'>",bg_class);
+		options=0;
+		if(temp_service->retain_status_information==TRUE){
+			options=1;
+			printf("Status Information");
+	                }
+		if(temp_service->retain_nonstatus_information==TRUE){
+			printf("%sNon-Status Information",(options==1)?", ":"");
+			options=1;
+	                }
+		if(options==0)
+			printf("None");
+		printf("</TD>\n");
+		
+		printf("</TR>\n");
 	        }
 
 	printf("</TABLE>\n");

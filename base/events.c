@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-02-2003
+ * Last Modified:   04-06-2003
  *
  * License:
  *
@@ -132,6 +132,10 @@ void init_timing_loop(void){
 		if(temp_service->check_interval==0)
 			schedule_check=FALSE;
 
+		/* active checks are disabled */
+		if(temp_service->checks_enabled==FALSE)
+			schedule_check=FALSE;
+
 		/* are there any valid times this service can be checked? */
 		is_valid_time=check_time_against_period(current_time,temp_service->check_period);
 		if(is_valid_time==ERROR){
@@ -165,6 +169,10 @@ void init_timing_loop(void){
 
 		/* host has no check interval */
 		if(temp_host->check_interval==0)
+			schedule_check=FALSE;
+
+		/* active checks are disabled */
+		if(temp_host->checks_enabled==FALSE)
 			schedule_check=FALSE;
 
 		/* are there any valid times this host can be checked? */
@@ -582,6 +590,8 @@ void init_timing_loop(void){
 /* displays service check scheduling information */
 void display_scheduling_info(void){
 	float minimum_concurrent_checks;
+	float max_reaper_interval;
+	int suggestions=0;
 
 	printf("Projected scheduling information for host and service\n");
 	printf("checks is listed below.  This information assumes that\n");
@@ -590,6 +600,7 @@ void display_scheduling_info(void){
 
 	printf("HOST SCHEDULING INFORMATION\n");
 	printf("---------------------------\n");
+	printf("Total hosts:                     %d\n",scheduling_info.total_hosts);
 	printf("Total scheduled hosts:           %d\n",scheduling_info.total_scheduled_hosts);
 
 	printf("Host inter-check delay method:   ");
@@ -613,9 +624,8 @@ void display_scheduling_info(void){
 	printf("-------------------------------\n");
 	printf("Total services:                     %d\n",scheduling_info.total_services);
 	printf("Total scheduled services:           %d\n",scheduling_info.total_scheduled_services);
-	printf("Total hosts:                        %d\n",scheduling_info.total_hosts);
 
-	printf("Service Inter-check delay method:   ");
+	printf("Service inter-check delay method:   ");
 	if(service_inter_check_delay_method==ICD_NONE)
 		printf("NONE\n");
 	else if(service_inter_check_delay_method==ICD_DUMB)
@@ -641,17 +651,49 @@ void display_scheduling_info(void){
 	printf("CHECK PROCESSING INFORMATION\n");
 	printf("----------------------------\n");
 	printf("Service check reaper interval:      %d sec\n",service_check_reaper_interval);
-	printf("Max concurrent service checks:      %d\n",max_parallel_service_checks);
+	printf("Max concurrent service checks:      ");
+	if(max_parallel_service_checks==0)
+		printf("Unlimited\n");
+	else
+		printf("%d\n",max_parallel_service_checks);
 	printf("\n\n");
 
 	printf("PERFORMANCE SUGGESTIONS\n");
 	printf("-----------------------\n");
 
-	/* assume a 100% service check burst for max concurrent checks */
+	/* check sanity of host inter-check delay */
+	if(scheduling_info.host_inter_check_delay<=10.0 && scheduling_info.total_scheduled_hosts>0){
+		printf("* Host checks might be scheduled too closely together - consider increasing 'check_interval' option for your hosts\n");
+		suggestions++;
+	        }
+
+	/* assume a 100% (2x) service check burst for max concurrent checks */
 	if(scheduling_info.service_inter_check_delay==0.0)
 		minimum_concurrent_checks=ceil(service_check_reaper_interval*2.0);
 	minimum_concurrent_checks=ceil((service_check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
-	printf("Minimum value for 'max_concurrent_checks':   %d\n",(int)minimum_concurrent_checks);
+	if(((int)minimum_concurrent_checks > max_parallel_service_checks) && max_parallel_service_checks!=0){
+		printf("* Value for 'max_concurrent_checks' option should >= %d\n",(int)minimum_concurrent_checks);
+		suggestions++;
+	        }
+
+	/* assume a 100% (2x) service check burst for service check reaper */
+	max_reaper_interval=floor((double)SERVICE_BUFFER_SLOTS/scheduling_info.service_inter_check_delay);
+	if(max_reaper_interval<2.0)
+		max_reaper_interval=2.0;
+	if(max_reaper_interval>30.0)
+		max_reaper_interval=30.0;
+	if((int)max_reaper_interval<service_check_reaper_interval){
+		printf("* Value for 'service_reaper_frequency' should be <= %d seconds\n",(int)max_reaper_interval);
+		suggestions++;
+	        }
+	if(service_check_reaper_interval<2){
+		printf("* Value for 'service_reaper_frequency' should be >= 2 seconds\n");
+		suggestions++;
+	        }
+
+	if(suggestions==0)
+		printf("I have no suggestions - things look okay.\n");
+
 	printf("\n");
 
 	return;

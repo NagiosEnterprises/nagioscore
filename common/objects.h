@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-03-2003
+ * Last Modified:   04-05-2003
  *
  * License:
  *
@@ -40,8 +40,12 @@
 
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
-#define SERVICES_HASHSLOTS 1024
-#define HOSTS_HASHSLOTS 1024
+#define SERVICES_HASHSLOTS                      5
+#define HOSTS_HASHSLOTS                         5
+/*
+#define SERVICES_HASHSLOTS                      1024
+#define HOSTS_HASHSLOTS                         1024
+*/
 
 
 
@@ -165,6 +169,7 @@ typedef struct host_struct{
 	unsigned long total_service_check_interval;
 #endif
 	struct  host_struct *next;
+	struct  host_struct *nexthash;
         }host;
 
 
@@ -293,6 +298,7 @@ typedef struct service_struct{
 	double  percent_state_change;
 #endif
 	struct service_struct *next;
+	struct service_struct *nexthash;
 	}service;
 
 

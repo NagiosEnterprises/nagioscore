@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2003
+ * Last Modified:   04-05-2003
  *
  * License:
  *
@@ -136,9 +136,7 @@ extern int      max_embedded_perl_calls;
 
 extern contact		*contact_list;
 extern contactgroup	*contactgroup_list;
-extern host		**host_list;
 extern hostgroup	*hostgroup_list;
-extern service		**service_list;
 extern notification     *notification_list;
 extern command          *command_list;
 extern timeperiod       *timeperiod_list;
@@ -149,6 +147,8 @@ extern hostescalation   *hostescalation_list;
 extern hostextinfo      *hostextinfo_list;
 extern serviceextinfo   *serviceextinfo_list;
 
+extern host		**host_hashlist;
+extern service		**service_hashlist;
 
 
 
@@ -1419,7 +1419,7 @@ int pre_flight_check(void){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking services...\n");
-	if(service_list==NULL){
+	if(service_hashlist==NULL){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no services defined!");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -1433,7 +1433,7 @@ int pre_flight_check(void){
 		found=FALSE;
 
 		/* check for a valid host */
-		temp_host = find_host(temp_service->host_name);
+		temp_host=find_host(temp_service->host_name);
 
 		/* we couldn't find an associated host! */
 		if(!temp_host){
@@ -1576,7 +1576,7 @@ int pre_flight_check(void){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking hosts...\n");
-	if(host_list==NULL){
+	if(host_hashlist==NULL){
 		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no hosts defined!");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -1951,7 +1951,7 @@ int pre_flight_check(void){
 
 		/* make sure each contactgroup is used in at least one host or service definition or escalation */
 		move_first_host();
-		while((temp_host=get_next_host()) && found==FALSE) {
+		while((temp_host=get_next_host()) && found==FALSE){
 			for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 				if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 					found=TRUE;
@@ -1961,7 +1961,7 @@ int pre_flight_check(void){
 		        }
 		if(found==FALSE){
 			move_first_service();
-			while((temp_service=get_next_service()) && found==FALSE) {
+			while((temp_service=get_next_service()) && found==FALSE){
 				for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 						found=TRUE;

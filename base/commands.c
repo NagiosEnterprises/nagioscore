@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-13-2002
+ * Last Modified:   12-03-2002
  *
  * License:
  *
@@ -30,11 +30,10 @@
 #include "sretention.h"
 #include "nagios.h"
 
-extern char     config_file[MAX_FILENAME_LENGTH];
-extern char	log_file[MAX_FILENAME_LENGTH];
-extern char     command_file[MAX_FILENAME_LENGTH];
-extern char     temp_file[MAX_FILENAME_LENGTH];
-extern char     comment_file[MAX_FILENAME_LENGTH];
+extern char     *config_file;
+extern char	*log_file;
+extern char     *command_file;
+extern char     *temp_file;
 
 extern int      sigshutdown;
 extern int      sigrestart;

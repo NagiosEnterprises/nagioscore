@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-01-2002
+ * Last Modified:   12-03-2002
  *
  * Description:
  *
@@ -51,14 +51,14 @@
 #include <getopt.h>
 #endif
 
-char		config_file[MAX_FILENAME_LENGTH]="";
-char		log_file[MAX_FILENAME_LENGTH]="";
-char            command_file[MAX_FILENAME_LENGTH]="";
-char            temp_file[MAX_FILENAME_LENGTH]="";
-char            comment_file[MAX_FILENAME_LENGTH]="";
-char            lock_file[MAX_FILENAME_LENGTH]="";
-char            log_archive_path[MAX_FILENAME_LENGTH]="";
-char            auth_file[MAX_FILENAME_LENGTH]="";  /**** EMBEDDED PERL INTERPRETER AUTH FILE ****/
+char		*config_file=NULL;
+char		*log_file=NULL;
+char            *command_file=NULL;
+char            *temp_file=NULL;
+char            *lock_file=NULL;
+char            *log_archive_path=NULL;
+char            *p1_file=NULL;    /**** EMBEDDED PERL ****/
+char            *auth_file=NULL;  /**** EMBEDDED PERL INTERPRETER AUTH FILE ****/
 
 char            *nagios_user=NULL;
 char            *nagios_group=NULL;
@@ -362,8 +362,11 @@ int main(int argc, char **argv){
 
 
 	/* config file is last argument specified */
-	strncpy(config_file,argv[optind],sizeof(config_file));
-	config_file[sizeof(config_file)-1]='\x0';
+	config_file=(char *)strdup(argv[optind]);
+	if(config_file==NULL){
+		printf("Error allocating memory.\n");
+		exit(ERROR);
+	        }
 
 	/* make sure the config file uses an absolute path */
 	if(config_file[0]!='/'){
@@ -372,17 +375,23 @@ int main(int argc, char **argv){
 		strncpy(buffer,config_file,sizeof(buffer));
 		buffer[sizeof(buffer)-1]='\x0';
 
+		/* reallocate a larger chunk of memory */
+		config_file=(char *)realloc(config_file,MAX_FILENAME_LENGTH);
+		if(config_file==NULL){
+			printf("Error allocating memory.\n");
+			exit(ERROR);
+		        }
+
 		/* get absolute path of current working directory */
-		strcpy(config_file,"");
-		getcwd(config_file,sizeof(config_file));
+		getcwd(config_file,MAX_FILENAME_LENGTH);
 
 		/* append a forward slash */
-		strncat(config_file,"/",sizeof(config_file)-2);
-		config_file[sizeof(config_file)-1]='\x0';
+		strncat(config_file,"/",MAX_FILENAME_LENGTH-2);
+		config_file[MAX_FILENAME_LENGTH-1]='\x0';
 
 		/* append the config file to the path */
-		strncat(config_file,buffer,sizeof(config_file)-strlen(config_file)-1);
-		config_file[sizeof(config_file)-1]='\x0';
+		strncat(config_file,buffer,MAX_FILENAME_LENGTH-strlen(config_file)-1);
+		config_file[MAX_FILENAME_LENGTH-1]='\x0';
 	        }
 
 
@@ -394,7 +403,7 @@ int main(int argc, char **argv){
 
 		printf("Reading configuration data...\n\n");
 
-		/* read in the configuration files (main config file and all host config files) */
+		/* read in the configuration files (main config file, resource and object config files) */
 		result=read_all_config_data(config_file);
 
 		/* there was a problem reading the config files */
@@ -405,7 +414,7 @@ int main(int argc, char **argv){
 				printf("\n***> The name of the main configuration file looks suspicious...\n");
 				printf("\n");
 				printf("     Make sure you are specifying the name of the MAIN configuration file on\n");
-				printf("     the command line and not the name of the host configuration file.  The\n");
+				printf("     the command line and not the name of another configuration file.  The\n");
 				printf("     main configuration file is typically '/usr/local/nagios/etc/nagios.cfg'\n");
 	                        }
 
@@ -546,15 +555,17 @@ int main(int argc, char **argv){
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE);
 
+				/* close and delete the external command file if we were restarting */
+				if(sigrestart==TRUE)
+					close_command_file();
+
 				cleanup();
+
 				exit(ERROR);
 		                }
 
-			/* initialize embedded Perl interpreter unless we're restarting - in this case its already been initialized */
-#ifdef EMBEDDEDPERL
-			if(sigrestart==FALSE)
-				init_embedded_perl();
-#endif
+			/* initialize embedded Perl interpreter */
+			init_embedded_perl();
 
 			/* run the pre-flight check to make sure everything looks okay*/
 			result=pre_flight_check();
@@ -566,11 +577,11 @@ int main(int argc, char **argv){
 				buffer[sizeof(buffer)-1]='\x0';
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR ,TRUE);
 
-				cleanup();
-
 				/* close and delete the external command file if we were restarting */
 				if(sigrestart==TRUE)
 					close_command_file();
+
+				cleanup();
 
 				exit(ERROR);
 			        }
@@ -683,6 +694,9 @@ int main(int argc, char **argv){
 			if(sigrestart==FALSE)
 				close_command_file();
 
+			/* cleanup embedded perl interpreter */
+			deinit_embedded_perl();
+
 			/* clean up after ourselves */
 			cleanup();
 
@@ -696,8 +710,8 @@ int main(int argc, char **argv){
 		if(daemon_mode==TRUE)
 			unlink(lock_file);
 
-		/* cleanup embedded perl */
-		deinit_embedded_perl();
+		/* free misc memory */
+		free(config_file);
 
 		/* log a shutdown message */
 		snprintf(buffer,sizeof(buffer),"Successfully shutdown... (PID=%d)\n",(int)getpid());

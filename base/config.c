@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-03-2002
+ * Last Modified:   12-03-2002
  *
  * License:
  *
@@ -29,13 +29,13 @@
 #include "nagios.h"
 
 
-extern char	log_file[MAX_FILENAME_LENGTH];
-extern char     command_file[MAX_FILENAME_LENGTH];
-extern char     temp_file[MAX_FILENAME_LENGTH];
-extern char     comment_file[MAX_FILENAME_LENGTH];
-extern char     lock_file[MAX_FILENAME_LENGTH];
-extern char     log_archive_path[MAX_FILENAME_LENGTH];
-extern char     auth_file[MAX_FILENAME_LENGTH];
+extern char	*log_file;
+extern char     *command_file;
+extern char     *temp_file;
+extern char     *lock_file;
+extern char	*log_archive_path;
+extern char     *auth_file;
+extern char	*p1_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -263,8 +263,9 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			strncpy(log_file,value,sizeof(log_file));
-			log_file[sizeof(log_file)-1]='\x0';
+			if(log_file!=NULL)
+				free(log_file);
+			log_file=(char *)strdup(value);
 			strip(log_file);
 
 #ifdef DEBUG1
@@ -278,8 +279,9 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			strncpy(command_file,value,sizeof(command_file));
-			command_file[sizeof(command_file)-1]='\x0';
+			if(command_file!=NULL)
+				free(command_file);
+			command_file=(char *)strdup(value);
 			strip(command_file);
 
 #ifdef DEBUG1
@@ -293,8 +295,9 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			strncpy(temp_file,value,sizeof(temp_file));
-			temp_file[sizeof(temp_file)-1]='\x0';
+			if(temp_file!=NULL)
+				free(temp_file);
+			temp_file=(char *)strdup(value);
 			strip(temp_file);
 
 #ifdef DEBUG1
@@ -308,8 +311,9 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			strncpy(lock_file,value,sizeof(lock_file));
-			lock_file[sizeof(lock_file)-1]='\x0';
+			if(lock_file!=NULL)
+				free(lock_file);
+			lock_file=(char *)strdup(value);
 			strip(lock_file);
 
 #ifdef DEBUG1
@@ -317,14 +321,14 @@ int read_main_config_file(char *main_config_file){
 #endif
 			}
 		else if(!strcmp(variable,"global_host_event_handler")){
-			global_host_event_handler=(char *)malloc(strlen(value)+1);
+			if(global_host_event_handler!=NULL)
+				free(global_host_event_handler);
+			global_host_event_handler=(char *)strdup(value);
 			if(global_host_event_handler==NULL){
 				strcpy(error_message,"Could not allocate memory for global host event handler");
 				error=TRUE;
 				break;
 			        }
-
-			strcpy(global_host_event_handler,value);
 			strip(global_host_event_handler);
 
 #ifdef DEBUG1
@@ -332,14 +336,15 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"global_service_event_handler")){
-			global_service_event_handler=(char *)malloc(strlen(value)+1);
+			if(global_service_event_handler!=NULL)
+				free(global_service_event_handler);
+			global_service_event_handler=(char *)strdup(value);
 			if(global_service_event_handler==NULL){
 				strcpy(error_message,"Could not allocate memory for global service event handler");
 				error=TRUE;
 				break;
 			        }
 
-			strcpy(global_service_event_handler,value);
 			strip(global_service_event_handler);
 
 #ifdef DEBUG1
@@ -347,14 +352,15 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"ocsp_command")){
-			ocsp_command=(char *)malloc(strlen(value)+1);
+			if(ocsp_command!=NULL)
+				free(ocsp_command);
+			ocsp_command=(char *)strdup(value);
 			if(ocsp_command==NULL){
 				strcpy(error_message,"Could not allocate memory for obsessive compulsive service processor command");
 				error=TRUE;
 				break;
 			        }
 
-			strcpy(ocsp_command,value);
 			strip(ocsp_command);
 
 #ifdef DEBUG1
@@ -364,14 +370,13 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"nagios_user")){
 			if(nagios_user!=NULL)
 				free(nagios_user);
-			nagios_user=(char *)malloc(strlen(value)+1);
+			nagios_user=(char *)strdup(value);
 			if(nagios_user==NULL){
 				strcpy(error_message,"Could not allocate memory for nagios user");
 				error=TRUE;
 				break;
 			        }
 
-			strcpy(nagios_user,value);
 			strip(nagios_user);
 
 #ifdef DEBUG1
@@ -381,14 +386,13 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"nagios_group")){
 			if(nagios_group!=NULL)
 				free(nagios_group);
-			nagios_group=(char *)malloc(strlen(value)+1);
+			nagios_group=(char *)strdup(value);
 			if(nagios_group==NULL){
 				strcpy(error_message,"Could not allocate memory for nagios group");
 				error=TRUE;
 				break;
 			        }
 
-			strcpy(nagios_group,value);
 			strip(nagios_group);
 
 #ifdef DEBUG1
@@ -396,14 +400,15 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"admin_email")){
-			macro_admin_email=(char *)malloc(strlen(value)+1);
+			if(macro_admin_email!=NULL)
+				free(macro_admin_email);
+			macro_admin_email=(char *)strdup(value);
 			if(macro_admin_email==NULL){
 				strcpy(error_message,"Could not allocate memory for admin email address");
 				error=TRUE;
 				break;
 			        }
 
-			strcpy(macro_admin_email,value);
 			strip(macro_admin_email);
 
 #ifdef DEBUG1
@@ -411,14 +416,15 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"admin_pager")){
-			macro_admin_pager=(char *)malloc(strlen(value)+1);
+			if(macro_admin_pager!=NULL)
+				free(macro_admin_pager);
+			macro_admin_pager=(char *)strdup(value);
 			if(macro_admin_pager==NULL){
 				strcpy(error_message,"Could not allocate memory for admin pager");
 				error=TRUE;
 				break;
 			        }
 
-			strcpy(macro_admin_pager,value);
 			strip(macro_admin_pager);
 
 #ifdef DEBUG1
@@ -718,8 +724,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			strncpy(log_archive_path,value,sizeof(log_archive_path));
-			log_archive_path[sizeof(log_archive_path)-1]='\x0';
+			log_archive_path=(char *)strdup(value);
 			strip(log_archive_path);
 
 #ifdef DEBUG1
@@ -1033,6 +1038,22 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tmax_embedded_perl_calls set to %d\n",max_embedded_perl_calls);
 #endif
 		        }
+		else if(!strcmp(variable,"p1_file")){
+			if(strlen(value)>MAX_FILENAME_LENGTH-1){
+				strcpy(error_message,"P1 file is too long");
+				error=TRUE;
+				break;
+				}
+
+			if(p1_file!=NULL)
+				free(p1_file);
+			p1_file=(char *)strdup(value);
+			strip(p1_file);
+
+#ifdef DEBUG1
+			printf("\t\tp1_file set to '%s'\n",p1_file);
+#endif
+			}
 		else if(!strcmp(variable,"illegal_object_name_chars")){
 			illegal_object_chars=strdup(value);
 #ifdef DEBUG1
@@ -1054,8 +1075,9 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 
-			strncpy(auth_file,value,sizeof(auth_file));
-			auth_file[sizeof(auth_file)-1]='\x0';
+			if(auth_file!=NULL)
+				free(auth_file);
+			auth_file=(char *)strdup(value);
 			strip(auth_file);
 #ifdef DEBUG1
 			printf("\t\tauth_file set to '%s'\n",auth_file);

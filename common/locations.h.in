@@ -2,7 +2,7 @@
  *
  * Nagios Locations Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-14-2002
+ * Last Modified: 12-03-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,12 +27,12 @@
 #define DEFAULT_DOWNTIME_FILE			"@localstatedir@/downtime.log"
 #define DEFAULT_RETENTION_FILE			"@localstatedir@/status.sav"
 #define DEFAULT_COMMAND_FILE			"@localstatedir@/rw/nagios.cmd"
+#define DEFAULT_CONFIG_FILE			"@sysconfdir@/nagios.cfg"
 #define DEFAULT_PHYSICAL_HTML_PATH		"@datadir@"
 #define DEFAULT_URL_HTML_PATH			"@htmurl@"
 #define DEFAULT_PHYSICAL_CGIBIN_PATH		"@sbindir@"
 #define DEFAULT_URL_CGIBIN_PATH			"@cgiurl@"
 #define DEFAULT_CGI_CONFIG_FILE			"@sysconfdir@/cgi.cfg"
 #define DEFAULT_LOCK_FILE			"@lockfile@"
-
-/* used by embedded perl interpreter (Stephen Davies) */
-#define P1LOC					"@bindir@/p1.pl"
+#define DEFAULT_P1_FILE				"@bindir@/p1.pl"	/**** EMBEDDED PERL ****/
+#define DEFAULT_AUTH_FILE			""			/**** EMBEDDED PERL - IS THIS USED? ****/

@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0 - ??/??/????
 ----------------
+* Added p1_file directive to main config file to specify location
+  of p1.pl (Russell Scibetti)
 * Added option to reload embedded Perl interpreter after X calls
   during runtime - useful if you notice embedded Perl leaking memory
 * Removed older object config support

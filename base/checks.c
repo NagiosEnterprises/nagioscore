@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-14-2002
+ * Last Modified:   12-03-2002
  *
  * License:
  *
@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #endif
 
-extern char     temp_file[MAX_FILENAME_LENGTH];
+extern char     *temp_file;
 
 extern int      interval_length;
 

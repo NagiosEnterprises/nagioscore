@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-17-2002
+ * Last Modified:   12-03-2002
  *
  * License:
  *
@@ -55,12 +55,14 @@ char            *my_strtok_buffer=NULL;
 char            *original_my_strtok_buffer=NULL;
 
 
-extern char	config_file[MAX_FILENAME_LENGTH];
-extern char	log_file[MAX_FILENAME_LENGTH];
-extern char     command_file[MAX_FILENAME_LENGTH];
-extern char     temp_file[MAX_FILENAME_LENGTH];
-extern char     lock_file[MAX_FILENAME_LENGTH];
-extern char	log_archive_path[MAX_FILENAME_LENGTH];
+extern char	*config_file;
+extern char	*log_file;
+extern char     *command_file;
+extern char     *temp_file;
+extern char     *lock_file;
+extern char	*log_archive_path;
+extern char     *auth_file;
+extern char	*p1_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -2512,9 +2514,11 @@ int my_rename(char *source, char *dest){
 /* initializes embedded perl interpreter */
 int init_embedded_perl(void){
 #ifdef EMBEDDEDPERL
-	char *embedding[] = { "", P1LOC };
+	char *embedding[] = { "", "" };
 	int exitstatus = 0;
 	char buffer[MAX_INPUT_BUFFER];
+
+	embedding[1]=p1_file;
 
 	embedded_perl_calls=0;
 	use_embedded_perl=TRUE;
@@ -2700,6 +2704,36 @@ void free_memory(void){
 		nagios_group=NULL;
 	        }
 
+	/* free file/path variables */
+	if(log_file!=NULL){
+		free(log_file);
+		log_file=NULL;
+	        }
+	if(temp_file!=NULL){
+		free(temp_file);
+		temp_file=NULL;
+	        }
+	if(command_file!=NULL){
+		free(command_file);
+		command_file=NULL;
+	        }
+	if(lock_file!=NULL){
+		free(lock_file);
+		lock_file=NULL;
+	        }
+	if(auth_file!=NULL){
+		free(auth_file);
+		auth_file=NULL;
+	        }
+	if(p1_file!=NULL){
+		free(p1_file);
+		p1_file=NULL;
+	        }
+	if(log_archive_path!=NULL){
+		free(log_archive_path);
+		log_archive_path=NULL;
+	        }
+
 #ifdef DEBUG0
 	printf("free_memory() end\n");
 #endif
@@ -2743,25 +2777,16 @@ int reset_variables(void){
 	printf("reset_variables() start\n");
 #endif
 
-	strncpy(log_file,DEFAULT_LOG_FILE,sizeof(log_file));
-	log_file[sizeof(log_file)-1]='\x0';
-	strncpy(temp_file,DEFAULT_TEMP_FILE,sizeof(temp_file));
-	temp_file[sizeof(temp_file)-1]='\x0';
-	strncpy(command_file,DEFAULT_COMMAND_FILE,sizeof(command_file));
-	command_file[sizeof(command_file)-1]='\x0';
-	if(sigrestart==FALSE){
-		strncpy(lock_file,DEFAULT_LOCK_FILE,sizeof(lock_file));
-		lock_file[sizeof(lock_file)-1]='\x0';
-	        }
-	strncpy(log_archive_path,DEFAULT_LOG_ARCHIVE_PATH,sizeof(log_archive_path));
-	log_archive_path[sizeof(log_archive_path)-1]='\x0';
+	log_file=(char *)strdup(DEFAULT_LOG_FILE);
+	temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
+	command_file=(char *)strdup(DEFAULT_COMMAND_FILE);
+	lock_file=(char *)strdup(DEFAULT_LOCK_FILE);
+	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);
+	p1_file=(char *)strdup(DEFAULT_P1_FILE);
+	log_archive_path=(char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
 
-	nagios_user=(char *)malloc(strlen(DEFAULT_NAGIOS_USER)+1);
-	if(nagios_user!=NULL)
-		strcpy(nagios_user,DEFAULT_NAGIOS_USER);
-	nagios_group=(char *)malloc(strlen(DEFAULT_NAGIOS_GROUP)+1);
-	if(nagios_group!=NULL)
-		strcpy(nagios_group,DEFAULT_NAGIOS_GROUP);
+	nagios_user=(char *)strdup(DEFAULT_NAGIOS_USER);
+	nagios_group=(char *)strdup(DEFAULT_NAGIOS_GROUP);
 
 	use_syslog=DEFAULT_USE_SYSLOG;
 	log_service_retries=DEFAULT_LOG_SERVICE_RETRIES;

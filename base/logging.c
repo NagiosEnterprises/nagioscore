@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2001
+ * Last Modified:   12-03-2001
  *
  * License:
  *
@@ -28,9 +28,9 @@
 #include "../common/statusdata.h"
 #include "nagios.h"
 
-extern char	log_file[MAX_FILENAME_LENGTH];
-extern char     temp_file[MAX_FILENAME_LENGTH];
-extern char	log_archive_path[MAX_FILENAME_LENGTH];
+extern char	*log_file;
+extern char     *temp_file;
+extern char	*log_archive_path;
 
 extern char     *macro_current_service_attempt;
 extern char	*macro_service_state;

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-01-2002
+# Last Modified: 12-03-2002
 #
 ##############################################################################
 
@@ -629,10 +629,19 @@ date_format=us
 # embedded Perl interpreter will never be reinitialized.  Any
 # value > 0 is the number of times the embedded Perl interpreter
 # is used (i.e. a Perl plugin is executed) before it is
-# reinitialized during runtime.  If you don't compile Nagios with
-# embedded Perl support, this option obviously won't matter to you.
+# reinitialized during runtime.  If you didn't compile Nagios with
+# embedded Perl support, this option has no effect.
 
 max_embedded_perl_calls=0
+
+
+
+# P1.PL FILE LOCATION
+# This value determines where the p1.pl perl script (used by the
+# embedded Perl interpreter) is located.  If you didn't compile
+# Nagios with embedded Perl support, this option has no effect.
+
+p1_file=@bindir@/p1.pl
 
 
 

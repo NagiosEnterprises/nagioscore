@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-09-2003
+ * Last Modified: 06-11-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -254,7 +254,7 @@
 /*************** EVENT BROKER OPTIONS *****************/
 
 #define BROKER_NOTHING                  0
-#define BROKER_EVERYTHING	 	32767
+#define BROKER_EVERYTHING	 	8191
 
 #define BROKER_PROGRAM_STATE            1	/* DONE */
 #define BROKER_TIMED_EVENTS             2	/* DONE */
@@ -267,10 +267,8 @@
 #define BROKER_COMMENT_DATA         	256	/* DONE */
 #define BROKER_DOWNTIME_DATA		512
 #define BROKER_SYSTEM_COMMANDS          1024	/* DONE */
-#define BROKER_RETENTION_DATA           2048
-#define BROKER_CONFIG_DATA              4096
-#define BROKER_OCP_DATA                 8192	/* DONE */
-#define BROKER_STATUS_DATA              16384
+#define BROKER_OCP_DATA                 2048	/* DONE */
+#define BROKER_STATUS_DATA              4096
 
 
 
@@ -556,6 +554,9 @@ int grab_service_macros(service *);                  	/* updates the service mac
 int grab_host_macros(host *);                        	/* updates the host macro data */
 int grab_contact_macros(contact *);                  	/* updates the contact macro data */
 int grab_datetime_macros(void);				/* updates date/time macros */
+int grab_on_demand_macro(char *);                       /* fetches an on-demand macro */
+int grab_on_demand_host_macro(host *,char *);		/* fetches an on-demand host macro */
+int grab_on_demand_service_macros(service *,char *);    /* fetches an on-demand service macro */
 int clear_argv_macros(void);                            /* clear all argv macros used in commands */
 int clear_volatile_macros(void);                     	/* clear all "volatile" macros that change between service/host checks */
 int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile" macros which remain relatively constant */

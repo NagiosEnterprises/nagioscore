@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   06-05-2003
+ * Last Modified:   06-11-2003
  *
  * Description:
  *
@@ -69,6 +69,7 @@ char            *macro_x[MACRO_X_COUNT];
 char            *macro_argv[MAX_COMMAND_ARGUMENTS];
 char            *macro_user[MAX_USER_MACROS];
 char            *macro_contactaddress[MAX_CONTACT_ADDRESSES];
+char            *macro_ondemand;
 
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;

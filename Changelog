@@ -5,6 +5,8 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Host dependencies are now checked before service notifications are sent out
+* Added on-demand host/service macros (i.e. $VARIABLE:host:service$)
 * Added notes directive to extended host/service definitions
 * Added inheritable flag to host and service dependencies
 * Added servicegroups

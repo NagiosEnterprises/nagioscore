@@ -331,7 +331,7 @@ This directive is used to specify the short name of the <a href="#timeperiod">ti
 </td>
 </tr>
 <tr>
-<td valign="top"><strong>notifications_options</strong>:</td>
+<td valign="top"><strong>notification_options</strong>:</td>
 <td>
 This directive is used to determine when notifications for the host should be sent out.  Valid options are a combination of one or more of the following: <b>d</b> = send notifications on a DOWN state, <b>u</b> = send notifications on an UNREACHABLE state, <b>r</b> = send notifications on recoveries (OK state), and <b>f</b> = send notifications when the host starts and stops <a href="flapping.html">flapping</a>.  If you specify <b>n</b> (none) as an option, no host notifications will be sent out.  Example: If you specify <b>d,r</b> in this field, notifications will only be sent out when the host goes DOWN and when it recovers from a DOWN state.
 </td>

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-05-2004
+ * Last Modified:   08-10-2004
  *
  * License:
  *
@@ -421,6 +421,9 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				else if(!strcmp(temp_buffer,"HOSTPERCENTCHANGE"))
 					selected_macro=macro_x[MACRO_HOSTPERCENTCHANGE];
 
+				else if(!strcmp(temp_buffer,"HOSTCHECKCOMMAND"))
+					selected_macro=macro_x[MACRO_HOSTCHECKCOMMAND];
+
 				else if(!strcmp(temp_buffer,"HOSTGROUPNAME"))
 					selected_macro=macro_x[MACRO_HOSTGROUPNAME];
 
@@ -504,6 +507,9 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 				else if(!strcmp(temp_buffer,"SERVICEPERCENTCHANGE"))
 					selected_macro=macro_x[MACRO_SERVICEPERCENTCHANGE];
+
+				else if(!strcmp(temp_buffer,"SERVICECHECKCOMMAND"))
+					selected_macro=macro_x[MACRO_SERVICECHECKCOMMAND];
 
 				else if(!strcmp(temp_buffer,"SERVICEGROUPNAME"))
 					selected_macro=macro_x[MACRO_SERVICEGROUPNAME];
@@ -669,6 +675,14 @@ int grab_service_macros(service *svc){
 		macro_x[MACRO_SERVICEPERFDATA]=NULL;
 	else
 		macro_x[MACRO_SERVICEPERFDATA]=strdup(svc->perf_data);
+
+	/* get the service check command */
+	if(macro_x[MACRO_SERVICECHECKCOMMAND]!=NULL)
+		free(macro_x[MACRO_SERVICECHECKCOMMAND]);
+	if(svc->service_check_command==NULL)
+		macro_x[MACRO_SERVICECHECKCOMMAND]=NULL;
+	else
+		macro_x[MACRO_SERVICECHECKCOMMAND]=strdup(svc->service_check_command);
 
 	/* grab the service state type macro (this is usually overridden later on) */
 	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
@@ -851,6 +865,7 @@ int grab_service_macros(service *svc){
 
 	strip(macro_x[MACRO_SERVICEOUTPUT]);
 	strip(macro_x[MACRO_SERVICEPERFDATA]);
+	strip(macro_x[MACRO_SERVICECHECKCOMMAND]);
 
 #ifdef DEBUG0
 	printf("grab_service_macros() end\n");
@@ -932,6 +947,14 @@ int grab_host_macros(host *hst){
 		macro_x[MACRO_HOSTPERFDATA]=NULL;
 	else
 		macro_x[MACRO_HOSTPERFDATA]=strdup(hst->perf_data);
+
+	/* get the host check command */
+	if(macro_x[MACRO_HOSTCHECKCOMMAND]!=NULL)
+		free(macro_x[MACRO_HOSTCHECKCOMMAND]);
+	if(hst->host_check_command==NULL)
+		macro_x[MACRO_HOSTCHECKCOMMAND]=NULL;
+	else
+		macro_x[MACRO_HOSTCHECKCOMMAND]=strdup(hst->host_check_command);
 
 	/* get the host current attempt */
 	if(macro_x[MACRO_HOSTATTEMPT]!=NULL)
@@ -1074,6 +1097,7 @@ int grab_host_macros(host *hst){
 
 	strip(macro_x[MACRO_HOSTOUTPUT]);
 	strip(macro_x[MACRO_HOSTPERFDATA]);
+	strip(macro_x[MACRO_HOSTCHECKCOMMAND]);
 
 #ifdef DEBUG0
 	printf("grab_host_macros() end\n");

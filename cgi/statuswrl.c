@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Last Modified:   08-10-2004
  *
  * Description:
  *
@@ -40,6 +40,7 @@
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];
 extern char url_images_path[MAX_FILENAME_LENGTH];
+extern char url_logo_images_path[MAX_FILENAME_LENGTH];
 
 extern char *statuswrl_include;
 
@@ -88,7 +89,6 @@ void calculate_balanced_tree_coords(host *,int,int);
 void calculate_circular_coords(void);
 void calculate_circular_layer_coords(host *,double,double,int,int);
 
-char url_logo_images_path[MAX_FILENAME_LENGTH];
 
 authdata current_authdata;
 

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2004
+ * Last Modified: 08-10-2004
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				60	/* size of macro_x[] array */
+#define MACRO_X_COUNT				62	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -111,6 +111,8 @@
 #define MACRO_LASTHOSTUP                        57
 #define MACRO_LASTHOSTDOWN                      58
 #define MACRO_LASTHOSTUNREACHABLE               59
+#define MACRO_SERVICECHECKCOMMAND		60
+#define MACRO_HOSTCHECKCOMMAND			61
 
 
 

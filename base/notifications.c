@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-22-2004
+ * Last Modified:   08-10-2004
  *
  * License:
  *
@@ -180,27 +180,34 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		/* free memory allocated to the notification list */
 		free_notification_list();
 
-		/* adjust last/next notification time and notificiation flags if we notified someone */
-		if(type==NOTIFICATION_NORMAL && contacts_notified>0){
+		if(type==NOTIFICATION_NORMAL){
 
-			/* calculate the next acceptable re-notification time */
-			svc->next_notification=get_next_service_notification_time(svc,current_time);
+			/* adjust last/next notification time and notificiation flags if we notified someone */
+			if(contacts_notified>0){
+
+				/* calculate the next acceptable re-notification time */
+				svc->next_notification=get_next_service_notification_time(svc,current_time);
 
 #ifdef DEBUG4
-			printf("\tCurrent Time: %s",ctime(&current_time));
-			printf("\tNext acceptable notification time: %s",ctime(&svc->next_notification));
+				printf("\tCurrent Time: %s",ctime(&current_time));
+				printf("\tNext acceptable notification time: %s",ctime(&svc->next_notification));
 #endif
 
-			/* update the last notification time for this service (this is needed for rescheduling later notifications) */
-			svc->last_notification=current_time;
+				/* update the last notification time for this service (this is needed for rescheduling later notifications) */
+				svc->last_notification=current_time;
 
-			/* update notifications flags */
-			if(svc->current_state==STATE_UNKNOWN)
-				svc->notified_on_unknown=TRUE;
-			else if(svc->current_state==STATE_WARNING)
-				svc->notified_on_warning=TRUE;
-			else if(svc->current_state==STATE_CRITICAL)
-				svc->notified_on_critical=TRUE;
+				/* update notifications flags */
+				if(svc->current_state==STATE_UNKNOWN)
+					svc->notified_on_unknown=TRUE;
+				else if(svc->current_state==STATE_WARNING)
+					svc->notified_on_warning=TRUE;
+				else if(svc->current_state==STATE_CRITICAL)
+					svc->notified_on_critical=TRUE;
+			        }
+
+			/* we didn't end up notifying anyone, so adjust current notification number */
+			else
+				svc->current_notification_number--;
 		        }
 #ifdef DEBUG4
 		printf("\tAPPROPRIATE CONTACTS HAVE BEEN NOTIFIED\n");
@@ -917,25 +924,32 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		/* free memory allocated to the notification list */
 		free_notification_list();
 
-		/* adjust last/next notification time and notification flags if we notified someone */
-		if(type==NOTIFICATION_NORMAL && contacts_notified>0){
+		if(type==NOTIFICATION_NORMAL){
 
-			/* calculate the next acceptable re-notification time */
-			hst->next_host_notification=get_next_host_notification_time(hst,current_time);
+			/* adjust last/next notification time and notification flags if we notified someone */
+			if(contacts_notified>0){
+
+				/* calculate the next acceptable re-notification time */
+				hst->next_host_notification=get_next_host_notification_time(hst,current_time);
 
 #ifdef DEBUG4
-			printf("\tCurrent Time: %s",ctime(&current_time));
-			printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
+				printf("\tCurrent Time: %s",ctime(&current_time));
+				printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
 #endif
 
-			/* update the last notification time for this host (this is needed for scheduling the next problem notification) */
-			hst->last_host_notification=current_time;
+				/* update the last notification time for this host (this is needed for scheduling the next problem notification) */
+				hst->last_host_notification=current_time;
 
-			/* update notifications flags */
-			if(hst->current_state==HOST_DOWN)
-				hst->notified_on_down=TRUE;
-			else if(hst->current_state==HOST_UNREACHABLE)
-				hst->notified_on_unreachable=TRUE;
+				/* update notifications flags */
+				if(hst->current_state==HOST_DOWN)
+					hst->notified_on_down=TRUE;
+				else if(hst->current_state==HOST_UNREACHABLE)
+					hst->notified_on_unreachable=TRUE;
+			        }
+
+			/* we didn't end up notifying anyone, so adjust current notification number */
+			else
+				hst->current_notification_number--;
 		        }
 
 #ifdef DEBUG4

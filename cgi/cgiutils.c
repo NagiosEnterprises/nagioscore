@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-10-2004
+ * Last Modified: 08-10-2004
  *
  * License:
  *
@@ -71,15 +71,14 @@ extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      enable_failure_prediction;
 extern int      process_performance_data;
-
-time_t          last_command_check=0L;
+extern time_t   last_command_check;
+extern time_t   last_log_rotation;
 
 int             check_external_commands=0;
 
 int             date_format=DATE_FORMAT_US;
 
 int             log_rotation_method=LOG_ROTATION_NONE;
-time_t          last_log_rotation=0L;
 
 time_t          this_scheduled_log_rotation=0L;
 time_t          last_scheduled_log_rotation=0L;

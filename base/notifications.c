@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-10-2004
+ * Last Modified:   10-20-2004
  *
  * License:
  *
@@ -579,8 +579,8 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 	commandsmember *temp_commandsmember;
 	char command_name[MAX_INPUT_BUFFER];
 	char *command_name_ptr=NULL;
-	char raw_command[MAX_INPUT_BUFFER];
-	char processed_command[MAX_INPUT_BUFFER];
+	char raw_command[MAX_COMMAND_BUFFER];
+	char processed_command[MAX_COMMAND_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
@@ -1261,8 +1261,8 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 	char command_name[MAX_INPUT_BUFFER];
 	char *command_name_ptr;
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char raw_command[MAX_INPUT_BUFFER];
-	char processed_command[MAX_INPUT_BUFFER];
+	char raw_command[MAX_COMMAND_BUFFER];
+	char processed_command[MAX_COMMAND_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;

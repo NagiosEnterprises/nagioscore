@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2003
+ * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-20-2004
  *
  * License:
  *
@@ -62,8 +62,8 @@ extern time_t          program_start;
 
 /* handles service check results in an obsessive compulsive manner... */
 int obsessive_compulsive_service_check_processor(service *svc){
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char processed_command_line[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER];
+	char processed_command_line[MAX_COMMAND_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	host *temp_host;
 	int early_timeout=FALSE;
@@ -128,8 +128,8 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 /* handles host check results in an obsessive compulsive manner... */
 int obsessive_compulsive_host_check_processor(host *hst){
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char processed_command_line[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER];
+	char processed_command_line[MAX_COMMAND_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
@@ -236,8 +236,8 @@ int handle_service_event(service *svc){
 
 /* runs the global service event handler */
 int run_global_service_event_handler(service *svc){
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char processed_command_line[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER];
+	char processed_command_line[MAX_COMMAND_BUFFER];
 	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
@@ -307,8 +307,8 @@ int run_global_service_event_handler(service *svc){
 
 /* runs a service event handler command */
 int run_service_event_handler(service *svc){
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char processed_command_line[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER];
+	char processed_command_line[MAX_COMMAND_BUFFER];
 	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
@@ -415,8 +415,8 @@ int handle_host_event(host *hst){
 
 /* runs the global host event handler */
 int run_global_host_event_handler(host *hst){
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char processed_command_line[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER];
+	char processed_command_line[MAX_COMMAND_BUFFER];
 	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
@@ -485,8 +485,8 @@ int run_global_host_event_handler(host *hst){
 
 /* runs a host event handler command */
 int run_host_event_handler(host *hst){
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char processed_command_line[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER];
+	char processed_command_line[MAX_COMMAND_BUFFER];
 	char command_output[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;

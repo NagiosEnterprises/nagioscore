@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-19-2004
+ * Last Modified: 10-20-2004
  *
  * License:
  * 
@@ -307,7 +307,7 @@ int main(void){
 				                if(!strcmp(temp_member->host_name,temp_host->name)) {
 							if (found==TRUE)
 								printf(", ");	
-							printf("%s",temp_hostgroup->group_name);
+							printf("<A HREF='%s?hostgroup=%s&style=overview'>%s</A>",STATUS_CGI,url_encode(temp_hostgroup->group_name),temp_hostgroup->group_name);
 							found=TRUE;
 							}
 						
@@ -324,7 +324,7 @@ int main(void){
 			if(display_type==DISPLAY_SERVICE_INFO){
 				printf("<DIV CLASS='data'>Service</DIV><DIV CLASS='dataTitle'>%s</DIV><DIV CLASS='data'>On Host</DIV>\n",service_desc);
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_host->alias);
-				printf("<DIV CLASS='dataTitle'>(%s)</DIV><BR>\n",temp_host->name);
+				printf("<DIV CLASS='dataTitle'>(<A HREF='%s?type=%d&host=%s'>%s</a>)</DIV><BR>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name),temp_host->name);
 				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
 				}
 			if(display_type==DISPLAY_HOSTGROUP_INFO){

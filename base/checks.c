@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2004
+ * Last Modified:   10-20-2004
  *
  * License:
  *
@@ -99,8 +99,8 @@ extern int      embedded_perl_calls;
 
 /* forks a child process to run a service check, but does not wait for the service check result */
 void run_service_check(service *svc){
-	char raw_command[MAX_INPUT_BUFFER];
-	char processed_command[MAX_INPUT_BUFFER];
+	char raw_command[MAX_COMMAND_BUFFER];
+	char processed_command[MAX_COMMAND_BUFFER];
 	char plugin_output[MAX_PLUGINOUTPUT_LENGTH];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int check_service=TRUE;
@@ -2241,8 +2241,8 @@ int check_host(host *hst, int propagation_options, int check_options){
 int run_host_check(host *hst, int check_options){
 	int result=STATE_OK;
 	int return_result=HOST_UP;
-	char processed_command[MAX_INPUT_BUFFER];
-	char raw_command[MAX_INPUT_BUFFER];
+	char processed_command[MAX_COMMAND_BUFFER];
+	char raw_command[MAX_COMMAND_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	time_t start_time;

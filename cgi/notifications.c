@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2002
+ * Last Modified: 03-08-2002
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -137,14 +137,15 @@ int main(void){
 		printf("<td align=left valign=top width=33%%>\n");
 	
 		if(query_type==FIND_SERVICE)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Notifications For Service <i>%s</i> On Host <I>%s</I>",query_svc_description,query_host_name);
-		else{
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service Notifications");
+		else if(query_type==FIND_HOST){
 			if(find_all==TRUE)
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Notifications For All %s",(query_type==FIND_HOST)?"Hosts":"Contacts");
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Notifications");
 			else
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Notifications For %s <I>%s</I>",(query_type==FIND_HOST)?"Host":"Contact",(query_type==FIND_HOST)?query_host_name:query_contact_name);
-	                }
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host Notifications");
+		        }
+		else
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Contact Notifications");
 		display_info_table(temp_buffer,FALSE,&current_authdata);
 
 		if(query_type==FIND_HOST || query_type==FIND_SERVICE){
@@ -175,6 +176,25 @@ int main(void){
 
 		/* middle column of top row */
 		printf("<td align=center valign=top width=33%%>\n");
+
+		printf("<DIV ALIGN=CENTER CLASS='dataTitle'>\n");
+		if(query_type==FIND_SERVICE)
+			printf("Service '%s' On Host '%s'",query_svc_description,query_host_name);
+		else if(query_type==FIND_HOST){
+			if(find_all==TRUE)
+				printf("All Hosts and Services");
+			else
+				printf("Host '%s'",query_host_name);
+		        }
+		else{
+			if(find_all==TRUE)
+				printf("All Contacts");
+			else
+				printf("Contact '%s'",query_contact_name);
+		        }
+		printf("</DIV>\n");
+		printf("<BR>\n");
+
 		if(query_type==FIND_SERVICE){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s?%shost=%s&",NOTIFICATIONS_CGI,(use_lifo==FALSE)?"oldestfirst&":"",url_encode(query_host_name));
 			snprintf(temp_buffer2,sizeof(temp_buffer2)-1,"service=%s&type=%d&",url_encode(query_svc_description),notification_options);
@@ -184,6 +204,7 @@ int main(void){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s?%s%s=%s&type=%d&",NOTIFICATIONS_CGI,(use_lifo==FALSE)?"oldestfirst&":"",(query_type==FIND_HOST)?"host":"contact",(query_type==FIND_HOST)?url_encode(query_host_name):url_encode(query_contact_name),notification_options);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		display_nav_table(temp_buffer,log_archive);
+
 		printf("</td>\n");
 
 

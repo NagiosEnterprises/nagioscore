@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-07-2002
+ * Last Modified: 03-08-2002
  *
  * License:
  *
@@ -1471,8 +1471,8 @@ void display_nav_table(char *url,int archive){
 		        }
 		printf("</td>\n");
 
+		printf("<td width=15></td>\n");
 		if(archive!=0){
-			printf("<td width=15></td>\n");
 
 			printf("<td align=center valign=center CLASS='navBoxItem'>\n");
 			if(archive==1){
@@ -1485,6 +1485,8 @@ void display_nav_table(char *url,int archive){
 			        }
 			printf("</td>\n");
 		        }
+		else
+			printf("<td><img src='%s%s' border=0 width=75 height=1></td>\n",url_images_path,EMPTY_ICON);
 
 		printf("</tr>\n");
 

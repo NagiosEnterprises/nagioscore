@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2002
+ * Last Modified: 03-08-2002
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -141,13 +141,11 @@ int main(void){
 		printf("<td align=left valign=top width=33%%>\n");
 
 		if(display_type==DISPLAY_SERVICES)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s For Service <I>%s</I> On Host <I>%s</I>",(log_rotation_method==LOG_ROTATION_NONE || log_archive==0)?"Current Alert History":"Archived Alert History",svc_description,host_name);
-		else{
-			if(show_all_hosts==TRUE)
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s For All Hosts",(log_rotation_method==LOG_ROTATION_NONE || log_archive==0)?"Current Alert History":"Archived Alert History");
-			else
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s For All Host <I>%s</I>",(log_rotation_method==LOG_ROTATION_NONE || log_archive==0)?"Current Alert History":"Archived Alert History",host_name);
-	                }
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service Alert History");
+		else if(show_all_hosts==TRUE)
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Alert History");
+		else
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host Alert History");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		display_info_table(temp_buffer,FALSE,&current_authdata);
 
@@ -175,8 +173,20 @@ int main(void){
 
 		printf("</td>\n");
 
+
 		/* middle column of top row */
 		printf("<td align=center valign=top width=33%%>\n");
+
+		printf("<DIV ALIGN=CENTER CLASS='dataTitle'>\n");
+		if(display_type==DISPLAY_SERVICES)
+			printf("Service '%s' On Host '%s'",svc_description,host_name);
+		else if(show_all_hosts==TRUE)
+			printf("All Hosts and Services");
+		else
+			printf("Host '%s'",host_name);
+		printf("</DIV>\n");
+		printf("<BR>\n");
+
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s?%shost=%s&type=%d&statetype=%d&",HISTORY_CGI,(use_lifo==FALSE)?"oldestfirst&":"",url_encode(host_name),history_options,state_options);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		if(display_type==DISPLAY_SERVICES){
@@ -186,7 +196,9 @@ int main(void){
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	                }
 		display_nav_table(temp_buffer,log_archive);
+
 		printf("</td>\n");
+
 
 		/* right hand column of top row */
 		printf("<td align=right valign=top width=33%%>\n");
@@ -838,6 +850,8 @@ void get_history(void){
 					else
 						display_line=FALSE;
 				        }
+				else
+					display_line=FALSE;
 			        }
 
 

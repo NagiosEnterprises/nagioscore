@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2002  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2002
+ * Last Modified: 03-08-2002
  *
  * License:
  * 
@@ -136,6 +136,7 @@
 #define DOWN_ARROW_ICON			"down.gif"
 #define FLAPPING_ICON			"flapping.gif"
 #define SCHEDULED_DOWNTIME_ICON		"downtime.gif"
+#define EMPTY_ICON			"empty.gif"
 
 #define ACTIVE_ICON			"active.gif"
 #define ACTIVE_ICON_ALT                 "Active Mode"

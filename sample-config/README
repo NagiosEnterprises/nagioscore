@@ -1,6 +1,6 @@
-====================
-SAMPLE CONFIG README
-====================
+=========================
+SAMPLE CONFIG FILE README
+=========================
 
 This directory contains *sample* configuration files for Nagios.
 You should read the HTML documentation for information on
@@ -18,13 +18,15 @@ cgi.cfg           - This is a sample CGI config file
 
 nagios.cfg        - This is a sample main config file
 
-resource.cfg      - This is a sample resource config file, used
-                    for definining custom macros, storing
-                    sensitive data, etc.
+resource.cfg      - This is a sample resource config file, used for definining
+		    custom macros, storing sensitive data, etc.
 
-template-object/  - This directory contains sample object config
-                    files.   A minimalistic config file called
-		    minimal.cfg is a barebones example of a config
- 		    file that might be easy for new users to
-		    understand.
+httpd.conf        - This file contains sample snippets that you'll need to
+		    include in your Apache web server config file if you want
+		    to use the web interface.
+
+template-object/  - This directory contains sample object config files.  You'll
+		    need to define object config files like these before you can
+		    actually start to monitor anything.
+
                    

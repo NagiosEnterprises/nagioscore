@@ -32,11 +32,18 @@ In these instructions I will assume that you are running the <a href="http://www
 </p>
 
 <p>
+<strong><u>Sample Configuration</u></strong>
+</p>
+<p>
+A sample Apache config file snippet is created when you run the configure script - you can find the sample config file (named <i>httpd.conf</i>) in the <i>sample-config/</i> subdirectory of the Nagios distribution.  You will need to add the contents of this file to your Apache configuration files before you can access the Nagios web interface.  The instruction found below detail how to manually add the appropriate configuration entries to Apache.
+</p>
+
+<p>
 <strong><u>Configure Script Alias For The CGIs</u></strong>
 </p>
 
 <p>
-You'll need to create an alias for the CGIs as well.  The default installation expects to find them accessible at <b>http://yourmachine/nagios/cgi-bin/</b>, although this can be changed using the <b>--with-cgiurl</b> option in the configure script.  Anyway, add something like the following to your web server configuration file (i.e. <b>httpd.conf</b>) (changing it to match any directory differences on your system)...
+First you'll need to create an alias for the CGIs.  The default installation expects to find them accessible at <b>http://yourmachine/nagios/cgi-bin/</b>, although this can be changed using the <b>--with-cgiurl</b> option in the configure script.  Anyway, add something like the following to your web server configuration file (i.e. <b>httpd.conf</b>) (changing it to match any directory differences on your system)...
 </p>
 
 <pre>
@@ -67,11 +74,7 @@ ScriptAlias /nagios/cgi-bin /usr/local/nagios/sbin
 </p>
 
 <p>
-In order to make the HTML files accessible via the web server, you'll have to edit your Apache configuration file as follows...
-</p>
-
-<p>
-Add the following to your web server configuration file (i.e. <b>httpd.conf</b>) as follows:
+Next you'll need to make the HTML files accessible via the web server.  Add the following entries to your web server configuration file (i.e. <b>httpd.conf</b>):
 </p>
 
 <pre>

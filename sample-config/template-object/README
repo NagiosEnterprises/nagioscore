@@ -1,6 +1,6 @@
-====================
-SAMPLE CONFIG README
-====================
+================================
+SAMPLE OBJECT CONFIG FILE README
+================================
 
 This directory contains sample object definition config files for
 use with the TEMPLATE-BASED object configuration file format.  This is
@@ -12,26 +12,31 @@ config files.
 
 Please note that you can keep all of your object definitions in a
 single file if you wish.  You may also split them up into multiple
-config files, as is done here (for clarity).  Read the HTML docs
-for information on how to include multiple object config files.
+config files, as is done here.  Read the HTML docs for information
+on how to include multiple object config files.
 
 
-NOTE:
 
-A minimalistic config file called minimal.cfg provides a barebones
-example of a config file that might be easy for new users to
-understand.  It contains all types of definitions you need to get
-started (hosts, hostgroups, services, command, contacts, etc...)
+FILE DESCRIPTIONS:
+------------------
 
+  minimal.cfg		- This is a minimalistic object config file that
+			  should be easier for new users to understand.
+			  It contains all types of object definitions you
+			  need to get started (hosts, services, etc..)
 
-NOTE:
+  bigger.cfg            - A larger object config file than the minimalistic
+			  one provided above.  This file shows more detail
+			  one how you can configure objects, etc.  The two
+			  command configuration files (described below) are
+			  necessary to complete the definitions found in this
+			  file.
 
-Sample command definitions have been split into two separate files:
+  misccommands.cfg 	- This file contains sample notification commands, 
+			  performance data commands, etc.
 
-  misccommands.cfg 	- This file contains sample notification
-			  commands, performance data commands, etc.
+  checkcommands.cfg	- This file contains sample command definitions for
+			  host and service checks.  These definitions are 
+			  highly volatile, as plugin arguments can change 
+			  between plugin releases!
 
-  checkcommands.cfg	- This file contains sample command
-			  definitions for host and service checks.
-			  These definitions are highly volatile, as
-			  plugin arguments can change between releases!

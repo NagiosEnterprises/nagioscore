@@ -5,16 +5,462 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 09-17-2002
+# Last Modified: 10-28-2004
 #
 ################################################################################
+
+
+
+################################################################################
+# TIMEPERIOD DEFINITIONS
+################################################################################
+
+# '24x7' timeperiod definition
+define timeperiod{
+	timeperiod_name	24x7
+	alias		24 Hours A Day, 7 Days A Week
+	sunday		00:00-24:00
+	monday		00:00-24:00
+	tuesday		00:00-24:00
+	wednesday	00:00-24:00
+	thursday	00:00-24:00
+	friday		00:00-24:00
+	saturday	00:00-24:00
+	}
+
+
+# 'workhours' timeperiod definition
+define timeperiod{
+	timeperiod_name	workhours
+	alias		"Normal" Working Hours
+	monday		09:00-17:00
+	tuesday		09:00-17:00
+	wednesday	09:00-17:00
+	thursday	09:00-17:00
+	friday		09:00-17:00
+	}
+
+
+# 'nonworkhours' timeperiod definition
+define timeperiod{
+	timeperiod_name	nonworkhours
+	alias		Non-Work Hours
+	sunday		00:00-24:00
+	monday		00:00-09:00,17:00-24:00
+	tuesday		00:00-09:00,17:00-24:00
+	wednesday	00:00-09:00,17:00-24:00
+	thursday	00:00-09:00,17:00-24:00
+	friday		00:00-09:00,17:00-24:00
+	saturday	00:00-24:00
+	}
+
+
+# 'none' timeperiod definition
+define timeperiod{
+	timeperiod_name	none
+	alias		No Time Is A Good Time
+	}
+
+
+
+################################################################################
+# CONTACT DEFINITIONS
+################################################################################
+
+# '@nagios_user@' contact definition
+define contact{
+	contact_name			@nagios_user@
+	alias				Nagios Admin
+	service_notification_period	24x7
+	host_notification_period	24x7
+	service_notification_options	w,u,c,r
+	host_notification_options	d,u,r
+	service_notification_commands	notify-by-email,notify-by-epager
+	host_notification_commands	host-notify-by-email,host-notify-by-epager
+	email				@nagios_user@-admin@localhost.localdomain
+	pager				page@nagios_user@-admin@localhost.localdomain
+	}
+
+
+# 'jdoe' contact definition
+define contact{
+	contact_name			jdoe
+	alias				John Doe
+	service_notification_period	workhours
+	host_notification_period	workhours
+	service_notification_options	c,r
+	host_notification_options	d,r
+	service_notification_commands	notify-by-email
+	host_notification_commands	host-notify-by-email
+	email				jdoe@localhost.localdomain
+	}
+
+
+
+################################################################################
+# CONTACT GROUP DEFINITIONS
+################################################################################
+
+# 'novell-admins' contact group definition
+define contactgroup{
+	contactgroup_name	novell-admins
+	alias			Novell Administrators
+	members			@nagios_user@
+	}
+
+
+# 'nt-admins' contact group definition
+define contactgroup{
+	contactgroup_name	nt-admins
+	alias			NT Administrators
+	members			@nagios_user@,jdoe
+	}
+
+
+# 'linux-admins' contact group definition
+define contactgroup{
+	contactgroup_name	linux-admins
+	alias			Linux Administrators
+	members			@nagios_user@
+	}
+
+
+# 'switch-admins' contact group definition
+define contactgroup{
+	contactgroup_name	switch-admins
+	alias			Etherswitch Administrators
+	members			@nagios_user@
+	}
+
+
+# 'router-admins' contact group definition
+define contactgroup{
+	contactgroup_name	router-admins
+	alias			Router Technicians
+	members			@nagios_user@
+	}
+
+
+# 'printer-admins' contact group definition
+define contactgroup{
+	contactgroup_name	printer-admins
+	alias			Printer Administrators
+	members			@nagios_user@,jdoe
+	}
+
+
+
+################################################################################
+# HOST DEFINITIONS
+################################################################################
+
+# Generic host definition template
+define host{
+	name				generic-host	; The name of this host template - referenced in other host definitions, used for template recursion/resolution
+	notifications_enabled		1	; Host notifications are enabled
+	event_handler_enabled		1	; Host event handler is enabled
+	flap_detection_enabled		1	; Flap detection is enabled
+	process_perf_data		1	; Process performance data
+	retain_status_information	1	; Retain status information across program restarts
+	retain_nonstatus_information	1	; Retain non-status information across program restarts
+
+	register			0	; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
+	}
+
+# 'novell1' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		novell1
+	alias			Novell Server #1
+	address			192.168.1.2
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	120
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		novell-admins
+	}
+
+
+# 'novell2' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		novell2
+	alias			Novell Server #2
+	address			192.168.1.3
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	120
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		novell-admins
+	}
+
+
+# 'nt1' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		nt1
+	alias			NT Server #1
+	address			192.168.1.4
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	120
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		nt-admins
+	}
+
+
+# 'nt2' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		nt2
+	alias			NT Server #2
+	address			192.168.1.5
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	120
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		nt-admins
+	}
+
+
+# 'linux1' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		linux1
+	alias			Linux Server #1
+	address			192.169.1.6
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	480
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		linux-admins
+	}
+
+
+# 'linux2' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		linux2
+	alias			Linux Server #2
+	address			192.168.0.2
+	parents			router1
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	480
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		linux-admins
+	}
+
+
+# 'switch1' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		switch1
+	alias			Switch #1
+	address			192.168.1.230
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	60
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		switch-admins
+	}
+
+
+# 'switch2' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		switch2
+	alias			Switch #2
+	address			192.168.1.231
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	60
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		switch-admins
+	}
+
+
+# 'switch3' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		switch3
+	alias			Switch #3
+	address			192.168.1.232
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	60
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		switch-admins
+	}
+
+
+# 'switch4' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		switch4
+	alias			Switch #4
+	address			192.168.1.233
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	60
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		switch-admins
+	}
+
+
+# 'switch5' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		switch5
+	alias			Switch #5
+	address			192.168.1.234
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	60
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		switch-admins
+	}
+
+
+# 'router1' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		router1
+	alias			Router #1
+	address			192.168.1.254
+	check_command		check-host-alive
+	max_check_attempts	20
+	notification_interval	60
+	notification_period	24x7
+	notification_options	d,u,r
+	contact_groups		router-admins
+	}
+
+
+# 'printer1' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		printer1
+	alias			Printer #1
+	address			192.168.1.100
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	480
+	notification_period	workhours
+	contact_groups		printer-admins
+	}
+
+
+# 'printer2' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		printer2
+	alias			Printer #2
+	address			192.168.1.101
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	480
+	notification_period	workhours
+	contact_groups		printer-admins
+	}
+
+
+# 'printer3' host definition
+define host{
+	use			generic-host		; Name of host template to use
+
+	host_name		printer3
+	alias			Printer #3
+	address			192.168.1.102
+	check_command		check-host-alive
+	max_check_attempts	10
+	notification_interval	480
+	notification_period	workhours
+	contact_groups		printer-admins
+	}
+
+
+
+################################################################################
+# HOST GROUP DEFINITIONS
+################################################################################
+
+# 'novell-servers' host group definition
+define hostgroup{
+	hostgroup_name	novell-servers
+	alias		Novell Servers
+	members		novell1,novell2
+	}
+
+
+# 'nt-servers' host group definition
+define hostgroup{
+	hostgroup_name	nt-servers
+	alias		NT Servers
+	members		nt1,nt2
+	}
+
+
+# 'linux-boxes' host group definition
+define hostgroup{
+	hostgroup_name	linux-boxes
+	alias		Linux Servers
+	members		linux1,linux2
+	}
+
+
+# 'switches' host group definition
+define hostgroup{
+	hostgroup_name	switches
+	alias		Switches
+	members		switch1,switch2,switch3,switch4,switch5
+	}
+
+
+# 'routers' host group definition
+define hostgroup{
+	hostgroup_name	routers
+	alias		Routers
+	members		router1
+	}
+
+
+# 'printers' host group definition
+define hostgroup{
+	hostgroup_name	printers
+	alias		Printers
+	members		printer1,printer2,printer3
+	}
+
 
 
 ################################################################################
 # SERVICE DEFINITIONS
-#
-# SYNTAX:
-#
 ################################################################################
 
 # Generic service definition template
@@ -752,6 +1198,90 @@ define service{
 	notification_period		workhours
 	notification_options		c,r
 	check_command			check_ping!100.0,20%!500.0,60%
+	}
+
+
+
+################################################################################
+# SERVICE DEPENDENCY DEFINITIONS
+################################################################################
+
+# Servicedependency definition
+define servicedependency{
+	host_name			nt1
+	service_description		IIS Process
+	dependent_host_name		nt1
+	dependent_service_description	Website #1
+	execution_failure_criteria	n	; These are the criteria for which check execution will be supressed
+	notification_failure_criteria	w,u,c	; These are the criteria for which notifications will be supressed
+	}
+
+
+# Servicedependency definition
+define servicedependency{
+	host_name			nt1
+	service_description		IIS Process
+	dependent_host_name		nt1
+	dependent_service_description	Website #2
+	execution_failure_criteria	w,u,c	; These are the criteria for which check execution will be supressed
+	notification_failure_criteria	w,u,c	; These are the criteria for which notifications will be supressed
+	}
+
+
+
+################################################################################
+# HOST DEPENDENCY DEFINITIONS
+################################################################################
+
+
+
+# Hostdependency definition
+define hostdependency{
+	host_name			nt1
+	dependent_host_name		nt2
+	notification_failure_criteria	d	; These are the criteria for which notifications will be supressed
+	}
+
+
+
+################################################################################
+# SERVICE ESCALATION DEFINITIONS
+################################################################################
+
+# Serviceescalation definition
+define serviceescalation{
+	host_name		linux1
+	service_description		PING
+	first_notification		2
+	last_notification		6
+	contact_groups			linux-admins,novell-admins
+	notification_interval		0
+	}
+
+
+# Serviceescalation definition
+define serviceescalation{
+	host_name		linux1
+	service_description		Current Users
+	first_notification		5
+	last_notification		0
+	contact_groups			linux-admins,novell-admins
+	notification_interval		0
+	}
+
+
+
+################################################################################
+# HOST ESCALATION DEFINITIONS
+################################################################################
+
+# Host 'nt1' escalation definition
+define hostescalation{
+	host_name			nt1
+	first_notification		2
+	last_notification		5
+	contact_groups			novell-admins,nt-admins
+	notification_interval		10
 	}
 
 

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -40,8 +40,9 @@ extern int      sigrestart;
 
 extern double   sleep_time;
 extern int      interval_length;
-extern int      inter_check_delay_method;
-extern int      interleave_factor_method;
+extern int      service_inter_check_delay_method;
+extern int      host_inter_check_delay_method;
+extern int      service_interleave_factor_method;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
@@ -65,6 +66,7 @@ extern int      log_rotation_method;
 extern int      service_check_timeout;
 
 extern int      execute_service_checks;
+extern int      execute_host_checks;
 
 extern int      time_change_threshold;
 
@@ -82,27 +84,28 @@ sched_info scheduling_info;
 /******************************************************************/
 
 
-/* calculate the inter check delay to use when initially scheduling service checks */
+/* calculate the inter check delays to use when initially scheduling service and host checks */
 void calculate_inter_check_delay(void){
 	service *temp_service;
+	host *temp_host;
 
 #ifdef DEBUG0
 	printf("calculate_inter_check_delay() start\n");
 #endif
 
-	/* how should we determine the inter-check delay to use? */
-	switch(inter_check_delay_method){
+	/* how should we determine the service inter-check delay to use? */
+	switch(service_inter_check_delay_method){
 
 	case ICD_NONE:
 
 		/* don't spread checks out - useful for testing parallelization code */
-		scheduling_info.inter_check_delay=0.0;
+		scheduling_info.service_inter_check_delay=0.0;
 		break;
 
 	case ICD_DUMB:
 
 		/* be dumb and just schedule checks 1 second apart */
-		scheduling_info.inter_check_delay=1.0;
+		scheduling_info.service_inter_check_delay=1.0;
 		break;
 		
 	case ICD_USER:
@@ -115,36 +118,105 @@ void calculate_inter_check_delay(void){
 
 		/* be smart and calculate the best delay to use to minimize CPU load... */
 
-		scheduling_info.inter_check_delay=0.0;
-		scheduling_info.check_interval_total=0L;
+		scheduling_info.service_inter_check_delay=0.0;
+		scheduling_info.service_check_interval_total=0L;
 
 		scheduling_info.total_services=0;
 		move_first_service();
 		while(temp_service=get_next_service()){
 			scheduling_info.total_services++;
-			scheduling_info.check_interval_total+=temp_service->check_interval;
+			scheduling_info.service_check_interval_total+=temp_service->check_interval;
 		        }
 
-		if(scheduling_info.total_services==0 || scheduling_info.check_interval_total==0)
-			return;
+		if(scheduling_info.total_services>0 && scheduling_info.service_check_interval_total>0){
 
-		/* adjust the check interval total to correspond to the interval length */
-		scheduling_info.check_interval_total=(scheduling_info.check_interval_total*interval_length);
+			/* adjust the check interval total to correspond to the interval length */
+			scheduling_info.service_check_interval_total=(scheduling_info.service_check_interval_total*interval_length);
 
-		/* calculate the average check interval for services */
-		scheduling_info.average_check_interval=(double)((double)scheduling_info.check_interval_total/(double)scheduling_info.total_services);
+			/* calculate the average check interval for services */
+			scheduling_info.average_service_check_interval=(double)((double)scheduling_info.service_check_interval_total/(double)scheduling_info.total_services);
 
-		/* calculate the average inter check delay (in seconds) needed to evenly space the service checks out */
-		scheduling_info.average_inter_check_delay=(double)(scheduling_info.average_check_interval/(double)scheduling_info.total_services);
+			/* calculate the average inter check delay (in seconds) needed to evenly space the service checks out */
+			scheduling_info.average_service_inter_check_delay=(double)(scheduling_info.average_service_check_interval/(double)scheduling_info.total_services);
 
-		/* set the global inter check delay value */
-		scheduling_info.inter_check_delay=scheduling_info.average_inter_check_delay;
+			/* set the global inter check delay value */
+			scheduling_info.service_inter_check_delay=scheduling_info.average_service_inter_check_delay;
+		        }
+		else{
+			scheduling_info.average_service_check_interval=0.0;
+			scheduling_info.service_inter_check_delay=0.0;
+		        }
 
 #ifdef DEBUG1
-		printf("\tTotal service checks:    %d\n",scheduling_info.total_services);
-		printf("\tCheck interval total:    %lu\n",scheduling_info.check_interval_total);
-		printf("\tAverage check interval:  %0.2f sec\n",scheduling_info.average_check_interval);
-		printf("\tInter-check delay:       %0.2f sec\n",scheduling_info.inter_check_delay);
+			printf("\tTotal service checks:            %d\n",scheduling_info.total_services);
+			printf("\tService check interval total:    %lu\n",scheduling_info.service_check_interval_total);
+			printf("\tAverage service check interval:  %0.2f sec\n",scheduling_info.average_service_check_interval);
+			printf("\tService inter-check delay:       %0.2f sec\n",scheduling_info.service_inter_check_delay);
+#endif
+	        }
+
+
+	/* how should we determine the host inter-check delay to use? */
+	switch(host_inter_check_delay_method){
+
+	case ICD_NONE:
+
+		/* don't spread checks out */
+		scheduling_info.host_inter_check_delay=0.0;
+		break;
+
+	case ICD_DUMB:
+
+		/* be dumb and just schedule checks 1 second apart */
+		scheduling_info.host_inter_check_delay=1.0;
+		break;
+		
+	case ICD_USER:
+
+		/* the user specified a delay, so don't try to calculate one */
+		break;
+
+	case ICD_SMART:
+	default:
+
+		/* be smart and calculate the best delay to use to minimize CPU load... */
+
+		scheduling_info.host_inter_check_delay=0.0;
+		scheduling_info.host_check_interval_total=0L;
+
+		scheduling_info.total_hosts=0;
+		move_first_host();
+		while(temp_host=get_next_host()){
+			if(temp_host->check_interval==0)
+				continue;
+			scheduling_info.total_scheduled_hosts++;
+			scheduling_info.host_check_interval_total+=temp_host->check_interval;
+		        }
+
+		if(scheduling_info.total_hosts>0 && scheduling_info.host_check_interval_total>0){
+
+			/* adjust the check interval total to correspond to the interval length */
+			scheduling_info.host_check_interval_total=(scheduling_info.host_check_interval_total*interval_length);
+
+			/* calculate the average check interval for hosts */
+			scheduling_info.average_host_check_interval=(double)((double)scheduling_info.host_check_interval_total/(double)scheduling_info.total_scheduled_hosts);
+
+			/* calculate the average inter check delay (in seconds) needed to evenly space the host checks out */
+			scheduling_info.average_host_inter_check_delay=(double)(scheduling_info.average_host_check_interval/(double)scheduling_info.total_scheduled_hosts);
+
+			/* set the global inter check delay value */
+			scheduling_info.host_inter_check_delay=scheduling_info.average_host_inter_check_delay;
+		        }
+		else{
+			scheduling_info.average_host_inter_check_delay=0.0;
+			scheduling_info.host_inter_check_delay=0.0;
+		        }
+
+#ifdef DEBUG1
+		printf("\tTotal scheduled host checks:  %d\n",scheduling_info.total_scheduled_hosts);
+		printf("\tHost check interval total:    %lu\n",scheduling_info.host_check_interval_total);
+		printf("\tAverage host check interval:  %0.2f sec\n",scheduling_info.average_host_check_interval);
+		printf("\tHost inter-check delay:       %0.2f sec\n",scheduling_info.host_inter_check_delay);
 #endif
 	        }
 
@@ -165,7 +237,7 @@ void calculate_interleave_factor(void){
 #endif
 
 	/* how should we determine the interleave factor? */
-	switch(interleave_factor_method){
+	switch(service_interleave_factor_method){
 
 	case ILF_USER:
 
@@ -194,16 +266,16 @@ void calculate_interleave_factor(void){
 			scheduling_info.total_hosts=1;
 
 		scheduling_info.average_services_per_host=(double)((double)scheduling_info.total_services/(double)scheduling_info.total_hosts);
-		scheduling_info.interleave_factor=(int)(ceil(scheduling_info.average_services_per_host));
+		scheduling_info.service_interleave_factor=(int)(ceil(scheduling_info.average_services_per_host));
 
 		/* temporary hack for Alpha systems, not sure why calculation results in a 0... */
-		if(scheduling_info.interleave_factor==0)
-			scheduling_info.interleave_factor=(int)(scheduling_info.total_services/scheduling_info.total_hosts);
+		if(scheduling_info.service_interleave_factor==0)
+			scheduling_info.service_interleave_factor=(int)(scheduling_info.total_services/scheduling_info.total_hosts);
 
 #ifdef DEBUG1
 		printf("\tTotal service checks:    %d\n",scheduling_info.total_services);
 		printf("\tTotal hosts:             %d\n",scheduling_info.total_hosts);
-		printf("\tInterleave factor:       %d\n",scheduling_info.interleave_factor);
+		printf("\tService Interleave factor:    %d\n",scheduling_info.service_interleave_factor);
 #endif
 	        }
 
@@ -218,6 +290,8 @@ void calculate_interleave_factor(void){
 
 /* initialize the event timing loop before we start monitoring */
 void init_timing_loop(void){
+	host *temp_host;
+	void *host_cursor;
 	service *temp_service;
 	time_t current_time;
 	timed_event *new_event;
@@ -237,34 +311,33 @@ void init_timing_loop(void){
 	time(&current_time);
 
 	/* calculate number of interleave blocks */
-	if(scheduling_info.interleave_factor==0)
+	if(scheduling_info.service_interleave_factor==0)
 		total_interleave_blocks=scheduling_info.total_services;
 	else
-		total_interleave_blocks=(int)ceil((double)scheduling_info.total_services/(double)scheduling_info.interleave_factor);
+		total_interleave_blocks=(int)ceil((double)scheduling_info.total_services/(double)scheduling_info.service_interleave_factor);
 
 	scheduling_info.first_service_check=(time_t)0L;
 	scheduling_info.last_service_check=(time_t)0L;
 
 #ifdef DEBUG1
 	printf("Total services: %d\n",scheduling_info.total_services);
-	printf("Interleave factor: %d\n",scheduling_info.interleave_factor);
-	printf("Total interleave blocks: %d\n",total_interleave_blocks);
-	printf("Inter-check delay: %2.1f\n",scheduling_info.inter_check_delay);
+	printf("Service Interleave factor: %d\n",scheduling_info.service_interleave_factor);
+	printf("Total service interleave blocks: %d\n",total_interleave_blocks);
+	printf("Service inter-check delay: %2.1f\n",scheduling_info.service_inter_check_delay);
 #endif
 
 	/* add all service checks as separate events (with interleaving) */
 	current_interleave_block=1;
 	move_first_service();
+	while(temp_service=get_next_service()){
 
-	temp_service=get_next_service();
-	while(temp_service) {
 		current_interleave_block++;
 
 #ifdef DEBUG1
 		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);
 #endif
 
-		for(interleave_block_index=0; interleave_block_index<scheduling_info.interleave_factor; interleave_block_index++, temp_service=get_next_service()) {
+		for(interleave_block_index=0; interleave_block_index<scheduling_info.service_interleave_factor; interleave_block_index++, temp_service=get_next_service()) {
 			if(temp_service==NULL)
 				break;
 
@@ -276,7 +349,7 @@ void init_timing_loop(void){
 #endif
 
 			/* set the next check time for the service */
-			temp_service->next_check=(time_t)(current_time+(mult_factor*scheduling_info.inter_check_delay));
+			temp_service->next_check=(time_t)(current_time+(mult_factor*scheduling_info.service_inter_check_delay));
 
 			/* make sure the service can actually be scheduled */
 			is_valid_time=check_time_against_period(temp_service->next_check,temp_service->check_period);
@@ -321,6 +394,63 @@ void init_timing_loop(void){
 		        }
 
 	        }
+
+	/* add all host checks as seperate events */
+	scheduling_info.first_host_check=(time_t)0L;
+	scheduling_info.last_host_check=(time_t)0L;
+	mult_factor=0;
+	move_first_host();
+	while(temp_host=get_next_host()){
+
+		if(temp_host->check_interval==0)
+			continue;
+
+		mult_factor++;
+
+		/* calculate first host check */
+		temp_host->next_check=(time_t)(current_time+(mult_factor*scheduling_info.service_inter_check_delay));
+
+		/* make sure the host can actually be scheduled at this time */
+		is_valid_time=check_time_against_period(temp_host->next_check,temp_host->check_period);
+		if(is_valid_time==ERROR){
+
+			/* the initial time didn't work out, so try and find a next valid time for running the check */
+			get_next_valid_time(temp_host->next_check,&next_valid_time,temp_host->check_period);
+
+			/* whoa!  we couldn't find a next valid time, so don't schedule the check at all */
+			if(temp_host->next_check==next_valid_time)
+				temp_host->should_be_scheduled=FALSE;
+		        }
+
+#ifdef DEBUG1
+		printf("\t\tHost '%s'\n",temp_host->name);
+		if(temp_host->should_be_scheduled==TRUE)
+			printf("\t\tNext Check: %lu --> %s",(unsigned long)temp_host->next_check,ctime(&temp_host->next_check));
+		else
+			printf("\t\tHost check should *not* be scheduled!\n");
+#endif
+
+		if(temp_host->should_be_scheduled==TRUE){
+
+			if(scheduling_info.first_host_check==(time_t)0 || (temp_host->next_check<scheduling_info.first_host_check))
+				scheduling_info.first_host_check=temp_host->next_check;
+			if(temp_host->next_check > scheduling_info.last_host_check)
+				scheduling_info.last_host_check=temp_host->next_check;
+
+			new_event=malloc(sizeof(timed_event));
+			if(new_event!=NULL){
+				new_event->event_type=EVENT_SERVICE_REAPER;
+				new_event->event_data=(void *)temp_host;
+				new_event->run_time=temp_host->next_check;
+
+				/* host checks really are recurring, but are rescheduled manually */
+				new_event->recurring=FALSE;
+
+				schedule_event(new_event,&event_list_low);
+			        }
+		        }
+	        }
+	
 
 	/* add a service check reaper event */
 	new_event=malloc(sizeof(timed_event));
@@ -421,34 +551,59 @@ void init_timing_loop(void){
 void display_scheduling_info(void){
 	float minimum_concurrent_checks;
 
-	printf("\n\tSERVICE SCHEDULING INFORMATION\n");
+	printf("\n\tHOST SCHEDULING INFORMATION\n");
 	printf("\t-------------------------------\n");
-	printf("\tTotal services:             %d\n",scheduling_info.total_services);
-	printf("\tTotal hosts:                %d\n",scheduling_info.total_hosts);
+	printf("\tTotal scheduled hosts:                    %d\n",scheduling_info.total_scheduled_hosts);
 	printf("\n");
 
-	printf("\tCommand check interval:     %d sec\n",command_check_interval);
-	printf("\tCheck reaper interval:      %d sec\n",service_check_reaper_interval);
-	printf("\n");
-
-	printf("\tInter-check delay method:   ");
-	if(inter_check_delay_method==ICD_NONE)
+	printf("\tHost Inter-check delay method:   ");
+	if(host_inter_check_delay_method==ICD_NONE)
 		printf("NONE\n");
-	else if(inter_check_delay_method==ICD_DUMB)
+	else if(host_inter_check_delay_method==ICD_DUMB)
 		printf("DUMB\n");
-	else if(inter_check_delay_method==ICD_SMART){
+	else if(host_inter_check_delay_method==ICD_SMART){
 		printf("SMART\n");
-		printf("\tAverage check interval:     %2.3f sec\n",scheduling_info.average_check_interval);
+		printf("\tAverage host check interval:     %.2f sec\n",scheduling_info.average_host_check_interval);
 	        }
 	else
 		printf("USER-SUPPLIED VALUE\n");
-	printf("\tInter-check delay:          %2.3f sec\n",scheduling_info.inter_check_delay);
+	printf("\tHost inter-check delay:          %.2f sec\n",scheduling_info.host_inter_check_delay);
 	printf("\n");
 
-	printf("\tInterleave factor method:   %s\n",(interleave_factor_method==ILF_USER)?"USER-SUPPLIED VALUE":"SMART");
-	if(interleave_factor_method==ILF_SMART)
-		printf("\tAverage services per host:  %2.3f\n",scheduling_info.average_services_per_host);
-	printf("\tService interleave factor:  %d\n",scheduling_info.interleave_factor);
+	printf("\tInitial host check scheduling info:\n");
+	printf("\t--------------------------------------\n");
+	printf("\tFirst scheduled check:      %s",ctime(&scheduling_info.first_host_check));
+	printf("\tLast scheduled check:       %s",ctime(&scheduling_info.last_host_check));
+	printf("\n");
+
+	printf("\n\tSERVICE SCHEDULING INFORMATION\n");
+	printf("\t-------------------------------\n");
+	printf("\tTotal services:                 %d\n",scheduling_info.total_services);
+	printf("\tTotal hosts:                    %d\n",scheduling_info.total_hosts);
+	printf("\n");
+
+	printf("\tCommand check interval:         %d sec\n",command_check_interval);
+	printf("\tService check reaper interval:  %d sec\n",service_check_reaper_interval);
+	printf("\n");
+
+	printf("\tService Inter-check delay method:   ");
+	if(service_inter_check_delay_method==ICD_NONE)
+		printf("NONE\n");
+	else if(service_inter_check_delay_method==ICD_DUMB)
+		printf("DUMB\n");
+	else if(service_inter_check_delay_method==ICD_SMART){
+		printf("SMART\n");
+		printf("\tAverage service check interval:     %.2f sec\n",scheduling_info.average_service_check_interval);
+	        }
+	else
+		printf("USER-SUPPLIED VALUE\n");
+	printf("\tInter-check delay:          %.2f sec\n",scheduling_info.service_inter_check_delay);
+	printf("\n");
+
+	printf("\tInterleave factor method:   %s\n",(service_interleave_factor_method==ILF_USER)?"USER-SUPPLIED VALUE":"SMART");
+	if(service_interleave_factor_method==ILF_SMART)
+		printf("\tAverage services per host:  %.2f\n",scheduling_info.average_services_per_host);
+	printf("\tService interleave factor:  %d\n",scheduling_info.service_interleave_factor);
 	printf("\n");
 
 	printf("\tInitial service check scheduling info:\n");
@@ -459,7 +614,7 @@ void display_scheduling_info(void){
 	printf("\tRough guidelines for max_concurrent_checks value:\n");
 	printf("\t-------------------------------------------------\n");
 
-	minimum_concurrent_checks=ceil((float)service_check_reaper_interval/scheduling_info.inter_check_delay);
+	minimum_concurrent_checks=ceil((float)service_check_reaper_interval/scheduling_info.service_inter_check_delay);
 
 	printf("\tAbsolute minimum value:     %d\n",(int)minimum_concurrent_checks);
 	printf("\tRecommend value:            %d\n",(int)(minimum_concurrent_checks*3.0));
@@ -489,6 +644,7 @@ void display_scheduling_info(void){
 void schedule_event(timed_event *event,timed_event **event_list){
 	timed_event *temp_event;
 	timed_event *first_event;
+	host *temp_host;
 	service *temp_service;
 	time_t run_time;
 
@@ -500,6 +656,12 @@ void schedule_event(timed_event *event,timed_event **event_list){
 	if(event->event_type==EVENT_SERVICE_CHECK){
 		temp_service=(service *)event->event_data;
 		event->run_time=temp_service->next_check;
+	        }
+
+	/* if this event is a host check... */
+	else if(event->event_type==EVENT_HOST_CHECK){
+		temp_host=(host *)event->event_data;
+		event->run_time=temp_host->next_check;
 	        }
 
 	/* if this is an external command check event ... */
@@ -636,6 +798,7 @@ int event_execution_loop(void){
 	time_t last_time;
 	time_t current_time;
 	int run_event=TRUE;
+	host *temp_host;
 	service *temp_service;
 	struct timespec delay;
 
@@ -765,7 +928,32 @@ int event_execution_loop(void){
 				        }
 			        }
 
-			/* run the event except if it is a service check and we already are maxed out on number or parallel service checks... */
+			/* run a few checks before executing ahost check... */
+			if(event_list_low->event_type==EVENT_HOST_CHECK){
+
+				temp_host=(host *)event_list_low->event_data;
+
+				/* update host check latency */
+				temp_host->latency=(unsigned long)(current_time-event_list_low->run_time);
+
+				/* don't run a host check if we're not supposed to right now */
+				if(execute_host_checks==FALSE && !(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)){
+#ifdef DEBUG3
+					printf("\tWe're not executing host checks right now...\n");
+#endif
+
+					/* remove the host check from the event queue and reschedule it for a later time */
+					temp_event=event_list_low;
+					event_list_low=event_list_low->next;
+					temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
+					schedule_event(temp_event,&event_list_low);
+					update_host_status(temp_host,FALSE);
+
+					run_event=FALSE;
+				        }
+			        }
+
+			/* run the event except... */
 			if(run_event==TRUE){
 
 				/* remove the first event from the timing loop */
@@ -827,6 +1015,7 @@ int event_execution_loop(void){
 
 /* handles a timed event */
 int handle_timed_event(timed_event *event){
+	host *temp_host;
 	service *temp_service;
 	char temp_buffer[MAX_INPUT_BUFFER];
 
@@ -848,6 +1037,12 @@ int handle_timed_event(timed_event *event){
 		temp_service=(service *)event->event_data;
 		printf("\t\tService Description: %s\n",temp_service->description);
 		printf("\t\tAssociated Host:     %s\n",temp_service->host_name);
+	        }
+
+	else if(event->event_type==EVENT_HOST_CHECK){
+		printf("(host check)\n");
+		temp_host=(host *)event->event_data;
+		printf("\t\tHost:     %s\n",temp_host->name);
 	        }
 
 	else if(event->event_type==EVENT_COMMAND_CHECK)
@@ -892,9 +1087,15 @@ int handle_timed_event(timed_event *event){
 	case EVENT_SERVICE_CHECK:
 
 		/* run  a service check */
-		temp_service=(service *)event->event_data;
 		run_service_check(temp_service);
 
+		break;
+
+	case EVENT_HOST_CHECK:
+
+		/* run a host check */
+		run_scheduled_host_check(temp_host);
+	
 		break;
 
 	case EVENT_COMMAND_CHECK:
@@ -1077,6 +1278,9 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	move_first_service();
 	while(temp_service=get_next_service()){
 
+		if(temp_service->next_check==(time_t)0)
+			continue;
+
 		/* we moved back in time... */
 		if(last_time>current_time){
 
@@ -1121,6 +1325,30 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 	free_host_cursor(host_cursor);
 
+	/* adjust the next check time for all hosts */
+	host_cursor=get_host_cursor();
+	while(temp_host=get_next_host_cursor(host_cursor)){
+
+		if(temp_host->next_check==(time_t)0)
+			continue;
+
+		/* we moved back in time... */
+		if(last_time>current_time){
+
+			/* we can't precede the UNIX epoch */
+			if(time_difference>(unsigned long)temp_host->next_check)
+				temp_host->next_check=(time_t)0;
+			else
+				temp_host->next_check=(time_t)(temp_host->next_check-(time_t)time_difference);
+		        }
+
+		/* we moved into the future... */
+		else
+			temp_host->next_check=(time_t)(temp_host->next_check+(time_t)time_difference);
+
+		/* update the status data */
+		update_host_status(temp_host,FALSE);
+	        }
 
 	/* adjust program start time (necessary for state stats calculations) */
 	/* we moved back in time... */

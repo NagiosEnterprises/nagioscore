@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -315,13 +315,16 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
+		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.2f\n",temp_host->execution_time);
+		fprintf(fp,"\tcheck_latency=%lu\n",temp_host->latency);
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
 		fprintf(fp,"\tcheck_type=%d\n",temp_host->check_type);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
+		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
@@ -557,8 +560,12 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->host_name=strdup(val);
 					else if(!strcmp(var,"has_been_checked"))
 						temp_hoststatus->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
+					else if(!strcmp(var,"should_be_scheduled"))
+						temp_hoststatus->should_be_scheduled=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"check_execution_time"))
 						temp_hoststatus->execution_time=strtod(val,NULL);
+					else if(!strcmp(var,"check_latency"))
+						temp_hoststatus->latency=strtoul(val,NULL,10);
 					else if(!strcmp(var,"current_state"))
 						temp_hoststatus->status=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"last_hard_state"))
@@ -573,6 +580,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->max_attempts=atoi(val);
 					else if(!strcmp(var,"last_check"))
 						temp_hoststatus->last_check=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_check"))
+						temp_hoststatus->next_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"check_type"))
 						temp_hoststatus->check_type=atoi(val);
 					else if(!strcmp(var,"current_attempt"))

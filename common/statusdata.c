@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -87,7 +87,7 @@ int update_all_status_data(void){
 	result=xsddefault_save_status_data();
 #endif
 #ifdef USE_XSDDB
-	result=xsddb_sate_status_data();
+	result=xsddb_save_status_data();
 #endif
 
 	if(result!=OK)
@@ -207,7 +207,14 @@ int add_host_status(hoststatus *new_hoststatus){
 		if(new_hoststatus->last_check==0L){
 			new_hoststatus->status=HOST_PENDING;
 			free(new_hoststatus->plugin_output);
-			new_hoststatus->plugin_output=strdup("Host has not been checked yet");
+			if(new_hoststatus->should_be_scheduled==TRUE){
+				get_time_string(&new_hoststatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host check scheduled for %s",date_string);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				new_hoststatus->plugin_output=strdup(temp_buffer);
+			        }
+			else
+				new_hoststatus->plugin_output=strdup("Host has not been checked yet");
 		        }
 	        }
 

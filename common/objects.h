@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -99,6 +99,7 @@ typedef struct host_struct{
 	char    *address;
         hostsmember *parent_hosts;
 	char    *host_check_command;
+	int     check_interval;
 	int     max_attempts;
 	char    *event_handler;
 	contactgroupsmember *contact_groups;
@@ -107,6 +108,7 @@ typedef struct host_struct{
 	int	notify_on_unreachable;
 	int     notify_on_recovery;
 	char	*notification_period;
+	char    *check_period;
 	int     flap_detection_enabled;
 	double  low_flap_threshold;
 	double  high_flap_threshold;
@@ -132,10 +134,14 @@ typedef struct host_struct{
 	char    *perf_data;
         int     state_type;
 	int     current_attempt;
+	unsigned long latency;
 	double  execution_time;
+	int     check_options;
 	int     notifications_enabled;
 	time_t  last_host_notification;
 	time_t  next_host_notification;
+	time_t  next_check;
+	int     should_be_scheduled;
 	time_t  last_check;
 	time_t	last_state_change;
 	int     has_been_checked;
@@ -419,7 +425,7 @@ int read_object_config_data(char *,int,int);        /* reads all external config
 contact *add_contact(char *,char *,char *,char *,char *,char *,int,int,int,int,int,int,int);		/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-host *add_host(char *,char *,char *,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */

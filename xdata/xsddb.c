@@ -3,7 +3,7 @@
  * XSDDB.C - Database routines for status data
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-04-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -49,6 +49,46 @@
 
 #ifdef USE_XSDPGSQL
 #include <pgsql/libpq-fe.h>
+#endif
+
+
+#ifdef NSCGI
+time_t program_start;
+int daemon_mode;
+time_t last_command_check;
+time_t last_log_rotation;
+int enable_notifications;
+int execute_service_checks;
+int accept_passive_service_checks;
+int execute_host_checks;
+int accept_passive_host_checks;
+int enable_event_handlers;
+int obsess_over_services;
+int obsess_over_hosts;
+int enable_flap_detection;
+int enable_failure_prediction;
+int process_performance_data;
+int nagios_pid;
+#endif
+
+#ifdef NSCORE
+extern time_t program_start;
+extern int nagios_pid;
+extern int daemon_mode;
+extern time_t last_command_check;
+extern time_t last_log_rotation;
+extern int enable_notifications;
+extern int execute_service_checks;
+extern int accept_passive_service_checks;
+extern int execute_host_checks;
+extern int accept_passive_host_checks;
+extern int enable_event_handlers;
+extern int obsess_over_services;
+extern int obsess_over_hosts;
+extern int enable_flap_detection;
+extern int enable_failure_prediction;
+extern int process_performance_data;
+extern int aggregate_status_updates;
 #endif
 
 
@@ -750,14 +790,14 @@ int xsddb_cleanup_status_data(char *main_config_file, int delete_status_data){
 
 
 
-/* starts an aggregated dump of the status data */
-int xsddb_begin_aggregated_dump(void){
+/* save all status data */
+int xsddb_save_status_data(void){
 	char sql_statement[XSDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	int result=OK;
 
 #ifdef DEBUG0
-	printf("xsddb_begin_aggregated_dump() start\n");
+	printf("xsddb_save_status_data() start\n");
 #endif
 
 	/* try and reconnect to the MySQL server if necessary... */
@@ -833,28 +873,20 @@ int xsddb_begin_aggregated_dump(void){
 		return ERROR;
 	        }
 
-#ifdef DEBUG0
-	printf("xsddb_begin_aggregated_dump() end\n");
-#endif
-
-	return OK;
-        }
+	/***** SAVE PROGRAM STATUS *****/
+	if(result==OK)
+		result=xsddb_save_program_status();
 
 
+	/***** SAVE HOST STATUS *****/
+	if(result==OK)
+		result=xsddb_save_host_status();
 
-/* finishes an aggregated dump of the status data */
-int xsddb_end_aggregated_dump(void){
-	char sql_statement[XSDDB_SQL_LENGTH];
 
-#ifdef DEBUG0
-	printf("xsddb_end_aggregated_dump() start\n");
-#endif
+	/***** SAVE SERVICE STATUS *****/
+	if(result==OK)
+		result=xsddb_save_service_status();
 
-	/* try and reconnect to the database server if necessary... */
-	if(xsddb_connection_error==TRUE){
-		if(xsddb_reconnect()==ERROR)
-			return ERROR;
-	        }
 
 #ifdef USE_XSDMYSQL
 	/* unlock tables */
@@ -863,24 +895,29 @@ int xsddb_end_aggregated_dump(void){
 	xsddb_query(sql_statement);
 #endif
 
+	/***** ROLLBACK ON ERROR *****/
+	if(result==ERORR)
+		xsddb_rollback_transaction();
+
 	/***** COMMIT TRANSACTION *****/
-	xsddb_commit_transaction();
+	else
+		xsddb_commit_transaction();
 
 	/* optimize status data tables */
 	xsddb_optimize_tables();
 
 #ifdef DEBUG0
-	printf("xsddb_end_aggregated_dump() end\n");
+	printf("xsddb_save status data() end\n");
 #endif
 
 	return OK;
         }
 
 
-
-/* updates program status data */
-int xsddb_update_program_status(time_t _program_start, int _nagios_pid, int _daemon_mode, time_t _last_command_check, time_t _last_log_rotation, int _enable_notifications, int _execute_service_checks, int _accept_passive_service_checks, int _enable_event_handlers, int _obsess_over_services, int _enable_flap_detection, int _enable_failure_prediction, int _process_performance_data, int aggregated_dump){
+/* save program status data */
+int xsddb_save_program_status(void){
 	char sql_statement[XSDDB_SQL_LENGTH];
+	char sql_temp[XSDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	int result;
@@ -889,40 +926,24 @@ int xsddb_update_program_status(time_t _program_start, int _nagios_pid, int _dae
 	printf("xsddb_update_program_status() start\n");
 #endif
 
-	if(xsddb_init==ERROR)
-		return ERROR;
-
-	/* try and reconnect to the database server if necessary... */
-	if(xsddb_connection_error==TRUE){
-		if(xsddb_reconnect()==ERROR)
-			return ERROR;
-	        }
-
 	/* get current time */
 	time(&current_time);
 
 	/* construct the SQL statement */
-	
-	/* we're doing an aggregated dump, so we use INSERTs... */
-	if(aggregated_dump==TRUE){
-#ifdef USE_XSDMYSQL
-		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (last_update,program_start,nagios_pid,daemon_mode,last_command_check,last_log_rotation,enable_notifications,execute_service_checks,accept_passive_service_checks,enable_event_handlers,obsess_over_services,enable_flap_detection,enable_failure_prediction,process_performance_data) VALUES (FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%d',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%d','%d','%d','%d','%d','%d','%d')",XSDDB_PROGRAMSTATUS_TABLE,(unsigned long)current_time,(unsigned long)_program_start,_nagios_pid,_daemon_mode,(unsigned long)_last_command_check,(unsigned long)_last_log_rotation,_enable_notifications,_execute_service_checks,_accept_passive_service_checks,_enable_event_handlers,_obsess_over_services,_enable_flap_detection,_enable_failure_prediction,_process_performance_data);
-#endif
-#ifdef USE_XSDPGSQL
-		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (last_update,program_start,nagios_pid,daemon_mode,last_command_check,last_log_rotation,enable_notifications,execute_service_checks,accept_passive_service_checks,enable_event_handlers,obsess_over_services,enable_flap_detection,enable_failure_prediction,process_performance_data) VALUES (%lu::abstime::timestamp,%lu::abstime::timestamp,'%d','%d',%lu::abstime::timestamp,%lu::abstime::timestamp,'%d','%d','%d','%d','%d','%d','%d','%d')",XSDDB_PROGRAMSTATUS_TABLE,(unsigned long)current_time,(unsigned long)_program_start,_nagios_pid,_daemon_mode,(unsigned long)_last_command_check,(unsigned long)_last_log_rotation,_enable_notifications,_execute_service_checks,_accept_passive_service_checks,_enable_event_handlers,_obsess_over_services,_enable_flap_detection,_enable_failure_prediction,_process_performance_data);
-#endif
-	        }
 
-	/* else normal operation so UPDATE the already existing record... */
-	else{
-#ifdef USE_XSDMYSQL
-		snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET last_update=FROM_UNIXTIME(%lu),program_start=FROM_UNIXTIME(%lu),nagios_pid='%d',daemon_mode='%d',last_command_check=FROM_UNIXTIME(%lu),last_log_rotation=FROM_UNIXTIME(%lu),enable_notifications='%d',execute_service_checks='%d',accept_passive_service_checks='%d',enable_event_handlers='%d',obsess_over_services='%d',enable_flap_detection='%d',enable_failure_prediction='%d',process_performance_data='%d'",XSDDB_PROGRAMSTATUS_TABLE,(unsigned long)current_time,(unsigned long)_program_start,_nagios_pid,_daemon_mode,(unsigned long)_last_command_check,(unsigned long)_last_log_rotation,_enable_notifications,_execute_service_checks,_accept_passive_service_checks,_enable_event_handlers,_obsess_over_services,_enable_flap_detection,_enable_failure_prediction,_process_performance_data);
-#endif
-#ifdef USE_XSDPGSQL
-		snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET last_update=%lu::abstime::timestamp,program_start=%lu::abstime::timestamp,nagios_pid='%d',daemon_mode='%d',last_command_check=%lu::abstime::timestamp,last_log_rotation=%lu::abstime::timestamp,enable_notifications='%d',execute_service_checks='%d',accept_passive_service_checks='%d',enable_event_handlers='%d',obsess_over_services='%d',enable_flap_detection='%d',enable_failure_prediction='%d',process_performance_data='%d'",XSDDB_PROGRAMSTATUS_TABLE,(unsigned long)current_time,(unsigned long)_program_start,_nagios_pid,_daemon_mode,(unsigned long)_last_command_check,(unsigned long)_last_log_rotation,_enable_notifications,_execute_service_checks,_accept_passive_service_checks,_enable_event_handlers,_obsess_over_services,_enable_flap_detection,_enable_failure_prediction,_process_performance_data);
-#endif
-	        }
+	snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s SET nagios_pid='%d',daemon_mode='%d',enable_notifications='%d',enable_active_service_checks='%d',enable_passive_service_checks='%d',enable_active_host_checks'%d',enable_passive_host_checks='%d',enable_event_handlers='%d',obsess_over_services='%d',obsess_over_hosts='%d',enable_flap_detection='%d',enable_failure_prediction='%d',process_performance_data='%d'",XSDDB_PROGRAMSTATUS_TABLE);
+	sql_statement[sizeof(sql_statement)-1]='\x0';
 
+#ifdef USE_XSDMYSQL
+	snprintf(sql_temp,sizeof(sql_temp)-1,",last_update=FROM_UNIXTIME(%lu),program_start=FROM_UNIXTIME(%lu),last_command_check=FROM_UNIXTIME(%lu),last_log_rotation=FROM_UNIXTIME(%lu)",last_update,program_start,last_command_check,last_log_rotation);
+#endif
+
+#ifdef USE_XSDPGSQL
+	snprintf(sql_temp,sizeof(sql_temp)-1,",last_update=%lu::abstime::timestamp,program_start=%lu::abstime::timestamp,last_command_check=%lu::abstime::timestamp,last_log_rotation=%lu::abstime::timestamp",last_update,program_start,last_command_check,last_log_rotation);
+#endif
+	sql_temp[sizeof(sql_temp)-1]='\x0';
+
+	strncat(sql_statement,sql_temp,sizeof(sql_statement)-strlen(sql_temp));
 	sql_statement[sizeof(sql_statement)-1]='\x0';
 
 	/* insert the new host status record or update the existing one... */
@@ -932,11 +953,7 @@ int xsddb_update_program_status(time_t _program_start, int _nagios_pid, int _dae
 	/* there was an error... */
 	if(result==ERROR){
 
-		/***** ROLLBACK TRANSACTION *****/
-		if(aggregated_dump==TRUE)
-			xsddb_rollback_transaction();
-
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not insert/update status record for program in table '%s' of database '%s'\n",XSDDB_PROGRAMSTATUS_TABLE,xsddb_database);
+		snprintf(buffer,sizeof(buffer)-1,"Error: Could not insert status record for program in table '%s' of database '%s'\n",XSDDB_PROGRAMSTATUS_TABLE,xsddb_database);
 		buffer[sizeof(buffer)-1]='\x0';
 		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
 
@@ -953,7 +970,7 @@ int xsddb_update_program_status(time_t _program_start, int _nagios_pid, int _dae
 	        }
 
 #ifdef DEBUG0
-	printf("xsddb_update_program_status() start\n");
+	printf("xsddb_save_program_status() start\n");
 #endif
 
 	return OK;
@@ -961,118 +978,97 @@ int xsddb_update_program_status(time_t _program_start, int _nagios_pid, int _dae
 
 
 
-/* updates host status data */
-int xsddb_update_host_status(char *host_name, char *status, time_t last_update, time_t last_check, time_t last_state_change, int problem_has_been_acknowledged, unsigned long time_up, unsigned long time_down, unsigned long time_unreachable, time_t last_notification, int current_notification_number, int notifications_enabled, int event_handler_enabled, int checks_enabled, int flap_detection_enabled, int is_flapping, double percent_state_change, int scheduled_downtime_depth, int failure_prediction_enabled, int process_performance_data, char *plugin_output, int aggregated_dump){
+/* save host status data */
+int xsddb_save_host_status(void){
+	host *temp_host;
+	void *host_cursor;
 	char sql_statement[XSDDB_SQL_LENGTH];
+	char sql_temp[XSDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	char *escaped_host_name;
 	char *escaped_plugin_output;
+	char *escaped_performance_data;
+	time_t current_time;
 	int result;
 
 #ifdef DEBUG0
-	printf("xsddb_update_host_status() start\n");
+	printf("xsddb_save_host_status() start\n");
 #endif
 
-	if(xsddb_init==ERROR)
-		return ERROR;
+	/* get current time */
+	time(&current_time);
 
-	/* try and reconnect to the database server if necessary... */
-	if(xsddb_connection_error==TRUE){
-		if(xsddb_reconnect()==ERROR)
-			return ERROR;
-	        }
+	/* save data for all hosts */
+	host_cursor=get_host_cursor();
+	while((temp_host=get_next_host_cursor(host_cursor))!=NULL){
 
-	/* escape the host name and plugin output, as they may have quotes, etc... */
-	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
-	xsddb_escape_string(escaped_host_name,host_name);
-	escaped_plugin_output=(char *)malloc(strlen(plugin_output)*2+1);
-	xsddb_escape_string(escaped_plugin_output,plugin_output);
+		/* escape the host name and plugin output, as they may have quotes, etc... */
+		escaped_host_name=(char *)malloc(strlen(temp_host->name)*2+1);
+		xsddb_escape_string(escaped_host_name,temp_host->name);
+		
+		if(temp_host->plugin_output==NULL)
+			escaped_plugin_output=strdup("");
+		else{
+			escaped_plugin_output=(char *)malloc(strlen(temp_host->plugin_output)*2+1);
+			xsddb_escape_string(escaped_plugin_output,temp_host->plugin_output);
+		        }
+		if(temp_host->perf_data==NULL)
+			escaped_performance_data=strdup("");
+		else{
+			escaped_performance_data=(char *)malloc(strlen(temp_host->perf_data)*2+1);
+			xsddb_escape_string(escaped_performance_data,temp_host->perf_data);
+		        }
 
-	/* construct the SQL statement */
+		/* construct the SQL statement */
 	
-	/* we're doing an aggregated dump, so we use INSERTs... */
-	if(aggregated_dump==TRUE){
+		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s SET host_name='%s',has_been_checked='%d',check_execution_time='%.2f',current_state='%d',last_hard_state='%d',check_type='%d',plugin_output='%s',performance_data='%s',current_attempt='%d',max_attempts='%d',state_type='%d',current_notification_number='%d',notifications_enabled='%d',problem_has_been_acknowledged='%d',active_checks_enabled='%d',passive_checks_enabled='%d',event_handler_enabled='%d',flap_detection_enabled='%d',failure_prediction_enabled='%d',process_performance_data='%d',obsess_over_host='%d',is_flapping='%d',percent_state_change='%.2f',scheduled_downtime_depth='%d'",XSDDB_HOSTSTATUS_TABLE,escaped_host_name,temp_host->has_been_checked,temp_host->execution_time,temp_host->current_state,temp_host->last_hard_state,temp_host->check_type,escaped_plugin_output,escaped_performance_data,temp_host->current_attempt,temp_host->max_attempts,temp_host->state_type,temp_host->current_notification_number,temp_host->notifications_enabled,temp_host->problem_has_been_acknowledged,temp_host->checks_enabled,temp_host->accept_passive_host_checks,temp_host->event_handler_enabled,temp_host->failure_prediction_enabled,temp_host->process_performance_data,temp_host->obsess_over_host,temp_host->is_flapping,temp_host->percent_state_change,temp_host->scheduled_downtime_depth);
+		sql_statement[sizeof(sql_statement)-1]='\x0';
 
-		/* the host has not been checked yet... */
-		if(last_check==(time_t)0){
 #ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,host_status,last_update,last_check,last_state_change,problem_acknowledged,time_up,time_down,time_unreachable,last_notification,current_notification,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,plugin_output) VALUES ('%s','PENDING',FROM_UNIXTIME(%lu),FROM_UNIXTIME(0),FROM_UNIXTIME(0),'0','0','0','0',FROM_UNIXTIME(0),'0','%d','%d','%d','%d','0','0.0','%d','%d','%d','(Not enough data to determine host status yet)')",XSDDB_HOSTSTATUS_TABLE,escaped_host_name,(unsigned long)last_update,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data);
+		snprintf(sql_temp,sizeof(sql_temp)-1,",last_update=FROM_UNIXTIME(%lu),last_check=FROM_UNIXTIME(%lu),last_state_change=FROM_UNIXTIME(%lu),last_notification=FROM_UNIXTIME(%lu)",current_time,temp_host->last_check,temp_host->last_state_change,temp_host->last_host_notification);
 #endif
+
 #ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,host_status,last_update,last_check,last_state_change,problem_acknowledged,time_up,time_down,time_unreachable,last_notification,current_notification,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,plugin_output) VALUES ('%s','PENDING',%lu::abstime::timestamp,0::abstime::timestamp,0::abstime::timestamp,'0','0','0','0',0::abstime::timestamp,'0','%d','%d','%d','%d','0','0.0','%d','%d','%d','(Not enough data to determine host status yet)')",XSDDB_HOSTSTATUS_TABLE,escaped_host_name,(unsigned long)last_update,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data);
+		snprintf(sql_temp,sizeof(sql_temp)-1,",last_update=%lu::abstime::timestamp,last_check=%lu::abstime::timestamp,last_state_change=%lu::abstime::timestamp,last_notification=%lu::abstime::timestamp",current_time,temp_host->last_check,temp_host->last_state_change,temp_host->last_host_notification);
 #endif
-		        }
+		sql_temp[sizeof(sql_temp)-1]='\x0';
 
-		/* the host has been checked... */
-		else{
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,host_status,last_update,last_check,last_state_change,problem_acknowledged,time_up,time_down,time_unreachable,last_notification,current_notification,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,plugin_output) VALUES ('%s','%s',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%lu','%lu','%lu',FROM_UNIXTIME(%lu),'%d','%d','%d','%d','%d','%d','%f','%d','%d','%d','%s')",XSDDB_HOSTSTATUS_TABLE,escaped_host_name,status,(unsigned long)last_update,(unsigned long)last_check,(unsigned long)last_state_change,problem_has_been_acknowledged,time_up,time_down,time_unreachable,(unsigned long)last_notification,current_notification_number,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,escaped_plugin_output);
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,host_status,last_update,last_check,last_state_change,problem_acknowledged,time_up,time_down,time_unreachable,last_notification,current_notification,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,plugin_output) VALUES ('%s','%s',%lu::abstime::timestamp,%lu::abstime::timestamp,%lu::abstime::timestamp,'%d','%lu','%lu','%lu',%lu::abstime::timestamp,'%d','%d','%d','%d','%d','%d','%f','%d','%d','%d','%s')",XSDDB_HOSTSTATUS_TABLE,escaped_host_name,status,(unsigned long)last_update,(unsigned long)last_check,(unsigned long)last_state_change,problem_has_been_acknowledged,time_up,time_down,time_unreachable,(unsigned long)last_notification,current_notification_number,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,escaped_plugin_output);
-#endif
-		        }
-	        }
+		strncat(sql_statement,sql_temp,sizeof(sql_statement)-strlen(sql_temp));
+		sql_statement[sizeof(sql_statement)-1]='\x0';
+	
+		/* free memory for the escaped strings */
+		free(escaped_host_name);
+		free(escaped_plugin_output);
+		free(escaped_performance_data);
 
-	/* else normal operation so UPDATE the already existing record... */
-	else{
+		sql_statement[sizeof(sql_statement)-1]='\x0';
 
-		/* the host has not been checked yet... */
-		if(last_check==(time_t)0){
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET host_status='PENDING',last_update=FROM_UNIXTIME(%lu),notifications_enabled='%d',event_handler_enabled='%d',checks_enabled='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',plugin_output='(Not enough data to determine host status yet)' WHERE host_name='%s'",XSDDB_HOSTSTATUS_TABLE,(unsigned long)last_update,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,escaped_host_name);
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET host_status='PENDING',last_update=%lu::abstime::timestamp,notifications_enabled='%d',event_handler_enabled='%d',checks_enabled='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',plugin_output='(Not enough data to determine host status yet)' WHERE host_name='%s'",XSDDB_HOSTSTATUS_TABLE,(unsigned long)last_update,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,escaped_host_name);
-#endif
-		        }
+		/* insert the new host status record or update the existing one... */
+		result=xsddb_query(sql_statement);
+		xsddb_free_query_memory();
 
-		/* the host has been checked... */
-		else{
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET host_status='%s',last_update=FROM_UNIXTIME(%lu),last_check=FROM_UNIXTIME(%lu),last_state_change=FROM_UNIXTIME(%lu),problem_acknowledged='%d',time_up='%lu',time_down='%lu',time_unreachable='%lu',last_notification=FROM_UNIXTIME(%lu),current_notification='%d',notifications_enabled='%d',event_handler_enabled='%d',checks_enabled='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',plugin_output='%s' WHERE host_name='%s'",XSDDB_HOSTSTATUS_TABLE,status,(unsigned long)last_update,(unsigned long)last_check,(unsigned long)last_state_change,problem_has_been_acknowledged,time_up,time_down,time_unreachable,(unsigned long)last_notification,current_notification_number,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,(last_check==(time_t)0)?"(Not enough data to determine host status yet)":escaped_plugin_output,escaped_host_name);
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET host_status='%s',last_update=%lu::abstime::timestamp,last_check=%lu::abstime::timestamp,last_state_change=%lu::abstime::timestamp,problem_acknowledged='%d',time_up='%lu',time_down='%lu',time_unreachable='%lu',last_notification=%lu::abstime::timestamp,current_notification='%d',notifications_enabled='%d',event_handler_enabled='%d',checks_enabled='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',plugin_output='%s' WHERE host_name='%s'",XSDDB_HOSTSTATUS_TABLE,status,(unsigned long)last_update,(unsigned long)last_check,(unsigned long)last_state_change,problem_has_been_acknowledged,time_up,time_down,time_unreachable,(unsigned long)last_notification,current_notification_number,notifications_enabled,event_handler_enabled,checks_enabled,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,(last_check==(time_t)0)?"(Not enough data to determine host status yet)":escaped_plugin_output,escaped_host_name);
-#endif
-		        }
-	        }
+		/* there was an error... */
+		if(result==ERROR){
 
-	/* free memory for the escaped strings */
-	free(escaped_host_name);
-	free(escaped_plugin_output);
-
-	sql_statement[sizeof(sql_statement)-1]='\x0';
-
-	/* insert the new host status record or update the existing one... */
-	result=xsddb_query(sql_statement);
-	xsddb_free_query_memory();
-
-	/* there was an error... */
-	if(result==ERROR){
-
-		/***** ROLLBACK TRANSACTION *****/
-		if(aggregated_dump==TRUE)
-			xsddb_rollback_transaction();
-
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not insert/update status record for host '%s' in table '%s' of database '%s'\n",host_name,XSDDB_HOSTSTATUS_TABLE,xsddb_database);
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			snprintf(buffer,sizeof(buffer)-1,"Error: Could not insert status record for host '%s' in table '%s' of database '%s'\n",host_name,XSDDB_HOSTSTATUS_TABLE,xsddb_database);
+			buffer[sizeof(buffer)-1]='\x0';
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
 
 #ifdef DEBUG1
-		snprintf(buffer,sizeof(buffer)-1,"The offending SQL statement follows: %s\n",sql_statement);
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			snprintf(buffer,sizeof(buffer)-1,"The offending SQL statement follows: %s\n",sql_statement);
+			buffer[sizeof(buffer)-1]='\x0';
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
 #endif
 
-		/* check the database connection */
-		xsddb_check_connection();
+			/* check the database connection */
+			xsddb_check_connection();
 
-		return ERROR;
+			return ERROR;
+		        }
 	        }
 
 #ifdef DEBUG0
-	printf("xsddb_update_host_status() end\n");
+	printf("xsddb_save_host_status() end\n");
 #endif
 
 	return OK;
@@ -1081,151 +1077,98 @@ int xsddb_update_host_status(char *host_name, char *status, time_t last_update, 
 
 
 /* updates service status data */
-int xsddb_update_service_status(char *host_name, char *description, char *status, time_t last_update, int current_attempt, int max_attempts, int state_type, time_t last_check, time_t next_check, int should_be_scheduled, int check_type, int checks_enabled, int accept_passive_service_checks, int event_handler_enabled, time_t last_state_change, int problem_has_been_acknowledged, char *last_hard_state, unsigned long time_ok, unsigned long time_warning, unsigned long time_unknown, unsigned long time_critical, time_t last_notification, int current_notification_number, int notifications_enabled, int latency, int execution_time, int flap_detection_enabled, int is_flapping, double percent_state_change, int scheduled_downtime_depth, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, char *plugin_output, int aggregated_dump){
+int xsddb_save_service_status(void){
+	service *temp_service;
 	char sql_statement[XSDDB_SQL_LENGTH];
+	char sql_temp[XSDDB_SQL_LENGTH];
 	char buffer[MAX_INPUT_BUFFER];
 	char *escaped_host_name;
 	char *escaped_description;
 	char *escaped_plugin_output;
+	char *escaped_performance_data;
 	time_t current_time;
 	int result;
 
 #ifdef DEBUG0
-	printf("xsddb_update_service_status() start\n");
+	printf("xsddb_save_service_status() start\n");
 #endif
 
-	if(xsddb_init==ERROR)
-		return ERROR;
-
-	/* try and reconnect to the database server if necessary... */
-	if(xsddb_connection_error==TRUE){
-		if(xsddb_reconnect()==ERROR)
-			return ERROR;
-	        }
 
 	/* get current time */
 	time(&current_time);
 
-	if(should_be_scheduled==FALSE)
-		next_check=(time_t)0L;
+	/* save data for all services */
+	move_first_service();
+	while((temp_service=get_next_service())!=NULL){
 
-	/* escape the host name, service description, and plugin output, as they may have quotes, etc... */
-	escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
-	xsddb_escape_string(escaped_host_name,host_name);
-	escaped_description=(char *)malloc(strlen(description)*2+1);
-	xsddb_escape_string(escaped_description,description);
-	escaped_plugin_output=(char *)malloc(strlen(plugin_output)*2+1);
-	xsddb_escape_string(escaped_plugin_output,plugin_output);
+		/* escape the host name, service description, and plugin output, as they may have quotes, etc... */
+		escaped_host_name=(char *)malloc(strlen(host_name)*2+1);
+		xsddb_escape_string(escaped_host_name,host_name);
+		escaped_description=(char *)malloc(strlen(description)*2+1);
+		xsddb_escape_string(escaped_description,description);
 
-	/* construct the SQL statement */
+		if(temp_service->plugin_output==NULL)
+			escaped_plugin_output=strdup("");
+		else{
+			escaped_plugin_output=(char *)malloc(strlen(temp_host->plugin_output)*2+1);
+			xsddb_escape_string(escaped_plugin_output,temp_host->plugin_output);
+		        }
+		if(temp_service->perf_data==NULL)
+			escaped_performance_data=strdup("");
+		else{
+			escaped_performance_data=(char *)malloc(strlen(temp_host->perf_data)*2+1);
+			xsddb_escape_string(escaped_performance_data,temp_host->perf_data);
+		        }
+
+		/* construct the SQL statement */
 	
-	/* we're doing an aggregated dump, so we use INSERTs... */
-	if(aggregated_dump==TRUE){
+		snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s SET host_name='%s',service_description='%s',has_been_checked='%d',should_be_scheduled='%d',check_execution_time='%.2f',check_latency='%d',current_state='%d',last_hard_state='%d',current_attempt='%d',max_attempts='%s',state_type='%d',plugin_output='%s',performance_data='%s',check_type='%d',current_notification_number='%d',notifications_enabled='%d',active_checks_enabled='%d',passive_checks_enabled='%d',event_handler_enabled='%d',problem_has_been_acknowledged='%d',flap_detection_enabled='%d',failure_prediction_enabled='%d',process_performrance_data='%d',obsess_over_service='%d',is_flapping='%s',percent_state_change='%.2f',scheduled_downtime_depth='%d'",XSDDB_SERVICESTATUS_TABLE,escaped_host_name,escaped_description,temp_service->has_been_checked,temp_service->should_be_scheduled,temp_service->execution_time,temp_service->latency,temp_service->current_state,temp_service->last_hard_state,temp_service->current_attempt,temp_service->max_attempts,temp_service->state_type,escaped_plugin_output,escaped_performance_data,temp_service->check_type,temp_service->current_notification_number,temp_service->notifications_enabled,temp_service->checks_enabled,temp_service->accept_passive_service_checks,temp_service->event_handler_enabled,temp_service->problem_has_been_acknowledged,temp_service->flap_detection_enabled,temp_service->failure_prediction_enabled,temp_service->process_performance_data,temp_service->obsess_over_service,temp_service->is_flapping,temp_service->scheduled_downtime_depth);
+		sql_statement[sizeof(sql_statement)-1]='\x0';
 
-		if(should_be_scheduled==TRUE){
-			snprintf(buffer,sizeof(buffer)-1,"Service check scheduled for %s",ctime(&next_check));
+#ifdef USE_XSDMYSQL
+		snprintf(sql_temp,sizeof(sql_temp)-1,",last_update=FROM_UNIXTIME(%lu),last_check=FROM_UNIXTIME(%lu),next_check=FROM_UNIXTIME(%lu),last_state_change=FROM_UNIXTIME(%lu),last_notification=FROM_UNIXTIME(%lu)",current_time,temp_service->last_check,temp_service->next_check,temp_service->last_state_change,temp_service->last_notification);
+#endif
+
+#ifdef USE_XSDPGSQL
+		snprintf(sql_temp,sizeof(sql_temp)-1,",last_update=%lu::abstime::timestamp,last_check=%lu::abstime::timestamp,next_check=%lu::abstime::timestamp,last_state_change=%lu::abstime::timestamp,last_notification=%lu::abstime::timestamp",current_time,temp_service->last_check,temp_service->next_check,temp_service->last_state_change,temp_service->last_notification);
+#endif
+		sql_temp[sizeof(sql_temp)-1]='\x0';
+
+		strncat(sql_statement,sql_temp,sizeof(sql_statement)-strlen(sql_temp));
+		sql_statement[sizeof(sql_statement)-1]='\x0';
+
+		/* free memory for the escaped strings */
+		free(escaped_host_name);
+		free(escaped_description);
+		free(escaped_plugin_output);
+		free(escaped_performance_data);
+
+		/* insert the new host status record or update the existing one... */
+		result=xsddb_query(sql_statement);
+		xsddb_free_query_memory();
+
+		/* there was an error... */
+		if(result==ERROR){
+
+			snprintf(buffer,sizeof(buffer)-1,"Error: Could not insert status record for service '%s' on host '%s' in table '%s' of database '%s'\n",description,host_name,XSDDB_SERVICESTATUS_TABLE,xsddb_database);
 			buffer[sizeof(buffer)-1]='\x0';
-			buffer[strlen(buffer)-1]='\x0';
-			}
-		else{
-			snprintf(buffer,sizeof(buffer)-1,"Service check is not scheduled for execution...");
-			buffer[sizeof(buffer)-1]='\x0';
-		        }
-
-		/* the service has not been checked yet... */
-		if(last_check==(time_t)0){
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,service_status,last_update,current_attempt,max_attempts,state_type,last_check,next_check,should_be_scheduled,check_type,checks_enabled,accept_passive_checks,event_handler_enabled,last_state_change,problem_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,plugin_output) VALUES ('%s','%s','PENDING',FROM_UNIXTIME(%lu),'0','%d','%s',FROM_UNIXTIME(0),FROM_UNIXTIME(%lu),'%d','%s','%d','%d','%d',FROM_UNIXTIME(%lu),'%d','%s','%lu','%lu','%lu','%lu',FROM_UNIXTIME(%lu),'%d','%d','%d','%d','%d','0','0.0','%d','%d','%d','%d','%s')",XSDDB_SERVICESTATUS_TABLE,escaped_host_name,escaped_description,(unsigned long)last_update,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,buffer); 
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,service_status,last_update,current_attempt,max_attempts,state_type,last_check,next_check,should_be_scheduled,check_type,checks_enabled,accept_passive_checks,event_handler_enabled,last_state_change,problem_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,plugin_output) VALUES ('%s','%s','PENDING',%lu::abstime::timestamp,'0','%d','%s',0::abstime::timestamp,%lu::abstime::timestamp,'%d','%s','%d','%d','%d',%lu::abstime::timestamp,'%d','%s','%lu','%lu','%lu','%lu',%lu::abstime::timestamp,'%d','%d','%d','%d','%d','0','0.0','%d','%d','%d','%d','%s')",XSDDB_SERVICESTATUS_TABLE,escaped_host_name,escaped_description,(unsigned long)last_update,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,buffer); 
-#endif
-		        }
-
-
-		/* the service has been checked... */
-		else{
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,service_status,last_update,current_attempt,max_attempts,state_type,last_check,next_check,should_be_scheduled,check_type,checks_enabled,accept_passive_checks,event_handler_enabled,last_state_change,problem_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,plugin_output) VALUES ('%s','%s','%s',FROM_UNIXTIME(%lu),'%d','%d','%s',FROM_UNIXTIME(%lu),FROM_UNIXTIME(%lu),'%d','%s','%d','%d','%d',FROM_UNIXTIME(%lu),'%d','%s','%lu','%lu','%lu','%lu',FROM_UNIXTIME(%lu),'%d','%d','%d','%d','%d','%d','%f','%d','%d','%d','%d','%s')",XSDDB_SERVICESTATUS_TABLE,escaped_host_name,escaped_description,status,(unsigned long)last_update,current_attempt,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)last_check,(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,escaped_plugin_output);
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"INSERT INTO %s (host_name,service_description,service_status,last_update,current_attempt,max_attempts,state_type,last_check,next_check,should_be_scheduled,check_type,checks_enabled,accept_passive_checks,event_handler_enabled,last_state_change,problem_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,last_notification,current_notification,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,plugin_output) VALUES ('%s','%s','%s',%lu::abstime::timestamp,'%d','%d','%s',%lu::abstime::timestamp,%lu::abstime::timestamp,'%d','%s','%d','%d','%d',%lu::abstime::timestamp,'%d','%s','%lu','%lu','%lu','%lu',%lu::abstime::timestamp,'%d','%d','%d','%d','%d','%d','%f','%d','%d','%d','%d','%s')",XSDDB_SERVICESTATUS_TABLE,escaped_host_name,escaped_description,status,(unsigned long)last_update,current_attempt,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)last_check,(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,escaped_plugin_output);
-#endif
-		        }
-
-		}
-
-
-	/* else normal operation, so UPDATE the already existing record... */
-	else{
-
-		/* the service has not been checked yet... */
-		if(last_check==(time_t)0){
-
-			if(should_be_scheduled==TRUE){
-				snprintf(buffer,sizeof(buffer)-1,"Service check scheduled for %s",ctime(&next_check));
-				buffer[strlen(buffer)-1]='\x0';
-			        }
-			else{
-				snprintf(buffer,sizeof(buffer)-1,"Service check is not scheduled for execution...");
-				buffer[sizeof(buffer)-1]='\x0';
-		                }
-
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET service_status='PENDING',last_update=FROM_UNIXTIME(%lu),current_attempt='%d',max_attempts='%d',state_type='%s',last_check=FROM_UNIXTIME(%lu),next_check=FROM_UNIXTIME(%lu),should_be_scheduled='%d',check_type='%s',checks_enabled='%d',accept_passive_checks='%d',event_handler_enabled='%d',last_state_change=FROM_UNIXTIME(%lu),problem_acknowledged='%d',last_hard_state='%s',time_ok='%lu',time_warning='%lu',time_unknown='%lu',time_critical='%lu',last_notification=FROM_UNIXTIME(%lu),current_notification='%d',notifications_enabled='%d',latency='%d',execution_time='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',obsess_over_service='%d',plugin_output='%s' WHERE host_name='%s' AND service_description='%s'",XSDDB_SERVICESTATUS_TABLE,(unsigned long)last_update,current_attempt,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)last_check,(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,buffer,escaped_host_name,escaped_description);
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET service_status='PENDING',last_update=%lu::abstime::timestamp,current_attempt='%d',max_attempts='%d',state_type='%s',last_check=%lu::abstime::timestamp,next_check=%lu::abstime::timestamp,should_be_scheduled='%d',check_type='%s',checks_enabled='%d',accept_passive_checks='%d',event_handler_enabled='%d',last_state_change=%lu::abstime::timestamp,problem_acknowledged='%d',last_hard_state='%s',time_ok='%lu',time_warning='%lu',time_unknown='%lu',time_critical='%lu',last_notification=%lu::abstime::timestamp,current_notification='%d',notifications_enabled='%d',latency='%d',execution_time='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',obsess_over_service='%d',plugin_output='%s' WHERE host_name='%s' AND service_description='%s'",XSDDB_SERVICESTATUS_TABLE,(unsigned long)last_update,current_attempt,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)last_check,(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,buffer,escaped_host_name,escaped_description);
-#endif
-		        }
-
-		/* the service has been checked... */
-		else{
-#ifdef USE_XSDMYSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET service_status='%s',last_update=FROM_UNIXTIME(%lu),current_attempt='%d',max_attempts='%d',state_type='%s',last_check=FROM_UNIXTIME(%lu),next_check=FROM_UNIXTIME(%lu),should_be_scheduled='%d',check_type='%s',checks_enabled='%d',accept_passive_checks='%d',event_handler_enabled='%d',last_state_change=FROM_UNIXTIME(%lu),problem_acknowledged='%d',last_hard_state='%s',time_ok='%lu',time_warning='%lu',time_unknown='%lu',time_critical='%lu',last_notification=FROM_UNIXTIME(%lu),current_notification='%d',notifications_enabled='%d',latency='%d',execution_time='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',obsess_over_service='%d',plugin_output='%s' WHERE host_name='%s' AND service_description='%s'",XSDDB_SERVICESTATUS_TABLE,status,(unsigned long)last_update,current_attempt,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)last_check,(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,escaped_plugin_output,escaped_host_name,escaped_description);
-#endif
-#ifdef USE_XSDPGSQL
-			snprintf(sql_statement,sizeof(sql_statement)-1,"UPDATE %s SET service_status='%s',last_update=%lu::abstime::timestamp,current_attempt='%d',max_attempts='%d',state_type='%s',last_check=%lu::abstime::timestamp,next_check=%lu::abstime::timestamp,should_be_scheduled='%d',check_type='%s',checks_enabled='%d',accept_passive_checks='%d',event_handler_enabled='%d',last_state_change=%lu::abstime::timestamp,problem_acknowledged='%d',last_hard_state='%s',time_ok='%lu',time_warning='%lu',time_unknown='%lu',time_critical='%lu',last_notification=%lu::abstime::timestamp,current_notification='%d',notifications_enabled='%d',latency='%d',execution_time='%d',flap_detection_enabled='%d',is_flapping='%d',percent_state_change='%f',scheduled_downtime_depth='%d',failure_prediction_enabled='%d',process_performance_data='%d',obsess_over_service='%d',plugin_output='%s' WHERE host_name='%s' AND service_description='%s'",XSDDB_SERVICESTATUS_TABLE,status,(unsigned long)last_update,current_attempt,max_attempts,(state_type==HARD_STATE)?"HARD":"SOFT",(unsigned long)last_check,(unsigned long)next_check,should_be_scheduled,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_warning,time_unknown,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,escaped_plugin_output,escaped_host_name,escaped_description);
-#endif
-		        }
-	        }
-
-	/* free memory for the escaped strings */
-	free(escaped_host_name);
-	free(escaped_description);
-	free(escaped_plugin_output);
-
-	sql_statement[sizeof(sql_statement)-1]='\x0';
-
-	/* insert the new host status record or update the existing one... */
-	result=xsddb_query(sql_statement);
-	xsddb_free_query_memory();
-
-	/* there was an error... */
-	if(result==ERROR){
-
-		/***** ROLLBACK TRANSACTION *****/
-		if(aggregated_dump==TRUE)
-			xsddb_rollback_transaction();
-
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not insert/update status record for service '%s' on host '%s' in table '%s' of database '%s'\n",description,host_name,XSDDB_SERVICESTATUS_TABLE,xsddb_database);
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
 
 #ifdef DEBUG1
-		snprintf(buffer,sizeof(buffer)-1,"The offending SQL statement follows: %s\n",sql_statement);
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			snprintf(buffer,sizeof(buffer)-1,"The offending SQL statement follows: %s\n",sql_statement);
+			buffer[sizeof(buffer)-1]='\x0';
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
 #endif
 
-		/* check the database connection */
-		xsddb_check_connection();
+			/* check the database connection */
+			xsddb_check_connection();
 
-		return ERROR;
+			return ERROR;
+		        }
 	        }
 
 #ifdef DEBUG0
-	printf("xsddb_update_service_status() end\n");
+	printf("xsddb_save_service_status() end\n");
 #endif
 
 	return OK;

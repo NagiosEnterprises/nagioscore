@@ -737,7 +737,7 @@ void reap_service_checks(void){
 
 				/* really check the host status if we're using agressive host checking */
 				if(use_aggressive_host_checking==TRUE)
-					verify_route_to_host(temp_host);
+					verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
 				/* else let's just assume the host is up... */
 				else{
@@ -855,7 +855,7 @@ void reap_service_checks(void){
 			if(temp_host->current_state!=HOST_UP){
 
 				/* verify the route to the host and send out host recovery notifications */
-				verify_route_to_host(temp_host);
+				verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
 				/* set the host problem flag (i.e. don't notify about recoveries for this service) */
 				temp_service->host_problem_at_last_check=TRUE;
@@ -931,18 +931,18 @@ void reap_service_checks(void){
 			
 			/* check the route to the host if its supposed to be up right now... */
 			if(temp_host->current_state==HOST_UP)
-				route_result=verify_route_to_host(temp_host);
+				route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
 			/* else the host is either down or unreachable, so recheck it if necessary */
 			else{
 
 				/* we're using agressive host checking, so really do recheck the host... */
 				if(use_aggressive_host_checking==TRUE)
-					route_result=verify_route_to_host(temp_host);
+					route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
 				/* the service wobbled between non-OK states, so check the host... */
 				else if(state_change==TRUE && temp_service->last_hard_state!=STATE_OK)
-					route_result=verify_route_to_host(temp_host);
+					route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
 
 				/* else fake the host check, but (possibly) resend host notifications to contacts... */
 				else{
@@ -1424,8 +1424,9 @@ void check_service_result_freshness(void){
 /******************************************************************/
 
 
+/*** ON-DEMAND HOST CHECKS USE THIS FUNCTION ***/
 /* check to see if we can reach the host */
-int verify_route_to_host(host *hst){
+int verify_route_to_host(host *hst, int check_options){
 	int result;
 
 #ifdef DEBUG0
@@ -1433,7 +1434,7 @@ int verify_route_to_host(host *hst){
 #endif
 
 	/* check route to the host (propagate problems and recoveries both up and down the tree) */
-	result=check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS);
+	result=check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS,check_options);
 
 #ifdef DEBUG0
 	printf("verify_route_to_host() end\n");
@@ -1444,8 +1445,28 @@ int verify_route_to_host(host *hst){
 
 
 
+/*** SCHEDULED HOST CHECKS USE THIS FUNCTION ***/
+/* run a scheduled host check */
+int run_scheduled_host_check(host *hst){
+
+#ifdef DEBUG0
+	printf("run_scheduled_host_check() start\n");
+#endif
+
+	/* check route to the host (propagate problems and recoveries both up and down the tree) */
+	check_host(hst,PROPAGATE_TO_PARENT_HOSTS | PROPAGATE_TO_CHILD_HOSTS,hst->check_options);
+
+#ifdef DEBUG0
+	printf("run_scheduled_host_check() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
 /* see if the remote host is alive at all */
-int check_host(host *hst,int propagation_options){
+int check_host(host *hst, int propagation_options, int check_options){
 	int result=HOST_UP;
 	int parent_result=HOST_UP;
 	host *parent_host=NULL;
@@ -1501,7 +1522,7 @@ int check_host(host *hst,int propagation_options){
 		for(hst->current_attempt=1;hst->current_attempt<=max_check_attempts;hst->current_attempt++){
 			
 			/* check the host */
-			result=run_host_check(hst);
+			result=run_host_check(hst,check_options);
 
 			/* the host recovered from a hard problem... */
 			if(result==HOST_UP){
@@ -1525,7 +1546,7 @@ int check_host(host *hst,int propagation_options){
 
 						/* check the parent host (and propagate upwards) if its not up */
 						if(parent_host!=NULL && parent_host->current_state!=HOST_UP)
-							check_host(parent_host,PROPAGATE_TO_PARENT_HOSTS);
+							check_host(parent_host,PROPAGATE_TO_PARENT_HOSTS,check_options);
 					        }
 				        }
 
@@ -1538,7 +1559,7 @@ int check_host(host *hst,int propagation_options){
 
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
-						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
+						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS,check_options);
 					        }
 
 					free_host_cursor(host_cursor);
@@ -1588,7 +1609,7 @@ int check_host(host *hst,int propagation_options){
 		for(hst->current_attempt=1;hst->current_attempt<=hst->max_attempts;hst->current_attempt++){
 
 			/* run the host check */
-			result=run_host_check(hst);
+			result=run_host_check(hst,check_options);
 
 			/* update state type */
 			if(result==HOST_UP)
@@ -1611,7 +1632,7 @@ int check_host(host *hst,int propagation_options){
 					if(parent_host==NULL)
 						parent_result=HOST_UP;
 					else if(propagation_options & PROPAGATE_TO_PARENT_HOSTS)
-						parent_result=check_host(parent_host,PROPAGATE_TO_PARENT_HOSTS);
+						parent_result=check_host(parent_host,PROPAGATE_TO_PARENT_HOSTS,check_options);
 					else
 						parent_result=parent_host->current_state;
 
@@ -1646,7 +1667,7 @@ int check_host(host *hst,int propagation_options){
 
 						/* if this is a child of the host, check it if it is not marked as UP */
 						if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP)
-						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS);
+						        check_host(child_host,PROPAGATE_TO_CHILD_HOSTS,check_options);
 					        }
 
 					free_host_cursor(host_cursor);
@@ -1747,7 +1768,7 @@ int check_host(host *hst,int propagation_options){
 
 
 /* run an "alive" check on a host */
-int run_host_check(host *hst){
+int run_host_check(host *hst, int check_options){
 	int result=STATE_OK;
 	int return_result=HOST_UP;
 	char processed_check_command[MAX_INPUT_BUFFER];

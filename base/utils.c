@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -109,8 +109,9 @@ extern int      log_initial_states;
 
 extern double   sleep_time;
 extern int      interval_length;
-extern int      inter_check_delay_method;
-extern int      interleave_factor_method;
+extern int      service_inter_check_delay_method;
+extern int      host_inter_check_delay_method;
+extern int      service_interleave_factor_method;
 
 extern int      command_check_interval;
 extern int      service_check_reaper_interval;
@@ -416,8 +417,11 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 				else if(!strcmp(temp_buffer,"SERVICEEXECUTIONTIME"))
 					selected_macro=macro_x[MACRO_SERVICEEXECUTIONTIME];
 
-				else if(!strcmp(temp_buffer,"SERVICELATENCY"))
-					selected_macro=macro_x[MACRO_SERVICELATENCY];
+				else if(!strcmp(temp_buffer,"HOSTLATENCY"))
+					selected_macro=macro_x[MACRO_HOSTLATENCY];
+
+				else if(!strcmp(temp_buffer,"HOSTLATENCY"))
+					selected_macro=macro_x[MACRO_HOSTLATENCY];
 
 				else if(!strcmp(temp_buffer,"HOSTDURATION"))
 					selected_macro=macro_x[MACRO_HOSTDURATION];
@@ -797,6 +801,15 @@ int grab_host_macros(host *hst){
 	if(macro_x[MACRO_HOSTEXECUTIONTIME]!=NULL){
 		snprintf(macro_x[MACRO_HOSTEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lf",hst->execution_time);
 		macro_x[MACRO_HOSTEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the latency macro */
+	if(macro_x[MACRO_HOSTLATENCY]!=NULL)
+		free(macro_x[MACRO_HOSTLATENCY]);
+	macro_x[MACRO_HOSTLATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
+	if(macro_x[MACRO_HOSTLATENCY]!=NULL){
+		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH-1,"%lu",hst->latency);
+		macro_x[MACRO_HOSTLATENCY][MAX_LATENCY_LENGTH-1]='\x0';
 	        }
 
 	/* get the last check time macro */
@@ -3330,8 +3343,9 @@ int reset_variables(void){
 
 	sleep_time=DEFAULT_SLEEP_TIME;
 	interval_length=DEFAULT_INTERVAL_LENGTH;
-	inter_check_delay_method=ICD_SMART;
-	interleave_factor_method=ILF_SMART;
+	service_inter_check_delay_method=ICD_SMART;
+	host_inter_check_delay_method=ICD_SMART;
+	service_interleave_factor_method=ILF_SMART;
 
 	use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
 

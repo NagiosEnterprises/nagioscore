@@ -77,8 +77,9 @@ extern int      test_scheduling;
 
 extern double   sleep_time;
 extern int      interval_length;
-extern int      inter_check_delay_method;
-extern int      interleave_factor_method;
+extern int      service_inter_check_delay_method;
+extern int      host_inter_check_delay_method;
+extern int      service_interleave_factor_method;
 
 extern sched_info scheduling_info;
 
@@ -835,34 +836,54 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\taccept_passive_host_checks set to %s\n",(accept_passive_host_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
-		else if(!strcmp(variable,"inter_check_delay_method")){
+		else if(!strcmp(variable,"service_inter_check_delay_method")){
 			if(!strcmp(value,"n"))
-				inter_check_delay_method=ICD_NONE;
+				service_inter_check_delay_method=ICD_NONE;
 			else if(!strcmp(value,"d"))
-				inter_check_delay_method=ICD_DUMB;
+				service_inter_check_delay_method=ICD_DUMB;
 			else if(!strcmp(value,"s"))
-				inter_check_delay_method=ICD_SMART;
+				service_inter_check_delay_method=ICD_SMART;
 			else{
-				inter_check_delay_method=ICD_USER;
-				scheduling_info.inter_check_delay=strtod(value,NULL);
-				if(scheduling_info.inter_check_delay<=0.0){
-					strcpy(error_message,"Illegal value for inter_check_delay_method");
+				service_inter_check_delay_method=ICD_USER;
+				scheduling_info.service_inter_check_delay=strtod(value,NULL);
+				if(scheduling_info.service_inter_check_delay<=0.0){
+					strcpy(error_message,"Illegal value for service_inter_check_delay_method");
 					error=TRUE;
 					break;
 				        }
 			        }
 #ifdef DEBUG1
-			printf("\t\tinter_check_delay_method set to %d\n",inter_check_delay_method);
+			printf("\t\tservice_inter_check_delay_method set to %d\n",service_inter_check_delay_method);
+#endif
+		        }
+		else if(!strcmp(variable,"host_inter_check_delay_method")){
+			if(!strcmp(value,"n"))
+				host_inter_check_delay_method=ICD_NONE;
+			else if(!strcmp(value,"d"))
+				host_inter_check_delay_method=ICD_DUMB;
+			else if(!strcmp(value,"s"))
+				host_inter_check_delay_method=ICD_SMART;
+			else{
+				host_inter_check_delay_method=ICD_USER;
+				scheduling_info.host_inter_check_delay=strtod(value,NULL);
+				if(scheduling_info.host_inter_check_delay<=0.0){
+					strcpy(error_message,"Illegal value for host_inter_check_delay_method");
+					error=TRUE;
+					break;
+				        }
+			        }
+#ifdef DEBUG1
+			printf("\t\thost_inter_check_delay_method set to %d\n",host_inter_check_delay_method);
 #endif
 		        }
 		else if(!strcmp(variable,"service_interleave_factor")){
 			if(!strcmp(value,"s"))
-				interleave_factor_method=ILF_SMART;
+				service_interleave_factor_method=ILF_SMART;
 			else{
-				interleave_factor_method=ILF_USER;
-				scheduling_info.interleave_factor=atoi(value);
-				if(scheduling_info.interleave_factor<1)
-					scheduling_info.interleave_factor=1;
+				service_interleave_factor_method=ILF_USER;
+				scheduling_info.service_interleave_factor=atoi(value);
+				if(scheduling_info.service_interleave_factor<1)
+					scheduling_info.service_interleave_factor=1;
 			        }
 		        }
 		else if(!strcmp(variable,"max_concurrent_checks")){
@@ -1407,7 +1428,8 @@ int pre_flight_check(void){
 	        }
 	total_objects=0;
 	move_first_service();
-	while(temp_service=get_next_service()) {
+	while(temp_service=get_next_service()){
+
 		total_objects++;
 		found=FALSE;
 
@@ -1563,9 +1585,9 @@ int pre_flight_check(void){
 	        }
 	total_objects=0;
 	move_first_host();
-	while(temp_host = get_next_host()) {
-		total_objects++;
+	while(temp_host=get_next_host()){
 
+		total_objects++;
 		found=FALSE;
 
 		/* make sure each host has at least one service associated with it */
@@ -1638,6 +1660,17 @@ int pre_flight_check(void){
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				errors++;
 		                }
+		        }
+
+		/* check host check timeperiod */
+		if(temp_host->check_period!=NULL){
+		        temp_timeperiod=find_timeperiod(temp_host->check_period,NULL);
+			if(temp_timeperiod==NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Check period '%s' specified for host '%s' is not defined anywhere!",temp_host->check_period,temp_host->name);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				errors++;
+			        }
 		        }
 
 		/* check all contact groups */

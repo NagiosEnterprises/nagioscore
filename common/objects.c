@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -498,7 +498,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *alias, char *address, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host;
 	host *new_host;
 #ifdef NSCORE
@@ -565,6 +565,16 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 #endif
 		return NULL;
 	        }
+
+	if(check_interval<0){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid check_interval value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
 	if(notification_interval<0){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification_interval value for host '%s'\n",name);
@@ -747,6 +757,23 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 		free(new_host);
 		return NULL;
 	        }
+	if(check_period!=NULL && strcmp(check_period,"")){
+		new_host->check_period=strdup(check_period);
+		if(new_host->check_period==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' check period\n",name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(new_host->address);
+			free(new_host->alias);
+			free(new_host->name);
+			free(new_host);
+			return NULL;
+		        }
+	        }
+	else
+		new_host->check_period=NULL;
 	if(notification_period!=NULL && strcmp(notification_period,"")){
 		new_host->notification_period=strdup(notification_period);
 		if(new_host->notification_period==NULL){
@@ -755,6 +782,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
+			free(new_host->check_period);
 			free(new_host->address);
 			free(new_host->alias);
 			free(new_host->name);
@@ -774,6 +802,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 #endif
 			if(new_host->notification_period!=NULL)
 				free(new_host->notification_period);
+			free(new_host->check_period);
 			free(new_host->address);
 			free(new_host->alias);
 			free(new_host->name);
@@ -795,6 +824,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 				free(new_host->host_check_command);
 			if(new_host->notification_period!=NULL)
 				free(new_host->notification_period);
+			free(new_host->check_period);
 			free(new_host->address);
 			free(new_host->alias);
 			free(new_host->name);
@@ -818,6 +848,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 				free(new_host->host_check_command);
 			if(new_host->notification_period!=NULL)
 				free(new_host->notification_period);
+			free(new_host->check_period);
 			free(new_host->address);
 			free(new_host->alias);
 			free(new_host->name);
@@ -832,6 +863,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	new_host->parent_hosts=NULL;
 	new_host->max_attempts=max_attempts;
 	new_host->contact_groups=NULL;
+	new_host->check_interval=check_interval;
 	new_host->notification_interval=notification_interval;
 	new_host->notify_on_recovery=(notify_up>0)?TRUE:FALSE;
 	new_host->notify_on_down=(notify_down>0)?TRUE:FALSE;
@@ -857,10 +889,13 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	new_host->check_type=HOST_CHECK_ACTIVE;
 	new_host->last_host_notification=(time_t)0;
 	new_host->next_host_notification=(time_t)0;
+	new_host->next_check=(time_t)0;
+	new_host->should_be_scheduled=TRUE;
 	new_host->last_check=(time_t)0;
 	new_host->current_attempt=1;
 	new_host->state_type=HARD_STATE;
 	new_host->execution_time=0.0;
+	new_host->latency=0L;
 	new_host->last_state_change=(time_t)0;
 	new_host->has_been_checked=FALSE;
 	new_host->problem_has_been_acknowledged=FALSE;
@@ -872,6 +907,7 @@ host *add_host(char *name, char *alias, char *address, int max_attempts, int not
 	new_host->checks_enabled=(checks_enabled>0)?TRUE:FALSE;
 	new_host->notifications_enabled=(notifications_enabled>0)?TRUE:FALSE;
 	new_host->scheduled_downtime_depth=0;
+	new_host->check_options=CHECK_OPTION_NONE;
 	new_host->pending_flex_downtime=0;
 	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
 		new_host->state_history[x]=STATE_OK;

@@ -2,8 +2,8 @@
  *
  * XSDDB.H - Header file for database status data routines
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-22-2001
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -23,9 +23,9 @@
  *
  *****************************************************************************/
 
-#define XSDDB_PROGRAMSTATUS_TABLE	"programstatus"
-#define XSDDB_HOSTSTATUS_TABLE	        "hoststatus"
-#define XSDDB_SERVICESTATUS_TABLE	"servicestatus"
+#define XSDDB_PROGRAMSTATUS_TABLE	"nagios_programstatus"
+#define XSDDB_HOSTSTATUS_TABLE	        "nagios_hoststatus"
+#define XSDDB_SERVICESTATUS_TABLE	"nagios_servicestatus"
 
 #define XSDDB_BUFFER_LENGTH		1024
 #define XSDDB_SQL_LENGTH		2048			/* buffer length for SQL queries */
@@ -34,11 +34,12 @@
 #ifdef NSCORE
 int xsddb_initialize_status_data(char *);
 int xsddb_cleanup_status_data(char *,int);
-int xsddb_begin_aggregated_dump(void);
-int xsddb_end_aggregated_dump(void);
-int xsddb_update_program_status(time_t,int,int,time_t,time_t,int,int,int,int,int,int,int,int,int);
-int xsddb_update_host_status(char *,char *,time_t,time_t,time_t,int,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,char *,int);
-int xsddb_update_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,int,char *,int);
+
+int xsddb_save_status_data(void);
+int xsddb_save_program_status(void);
+int xsddb_save_host_status(void);
+int xsddb_save_service_status(void);
+
 int xsddb_check_connection(void);
 int xsddb_reconnect(void);
 int xsddb_begin_transaction(void);

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-17-2003
+ * Last Modified: 02-20-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
 
-#define MACRO_X_COUNT				46	/* size of macro_x[] array */
+#define MACRO_X_COUNT				47	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -84,19 +84,20 @@
 #define MACRO_NOTIFICATIONNUMBER		30
 #define MACRO_HOSTEXECUTIONTIME			31
 #define MACRO_SERVICEEXECUTIONTIME		32
-#define MACRO_SERVICELATENCY			33
-#define MACRO_HOSTDURATION			34
-#define MACRO_SERVICEDURATION			35
-#define MACRO_HOSTDURATIONSEC			36
-#define MACRO_SERVICEDURATIONSEC		37
-#define MACRO_HOSTDOWNTIME			38
-#define MACRO_SERVICEDOWNTIME			39
-#define MACRO_HOSTSTATETYPE			40
-#define MACRO_SERVICESTATETYPE			41
-#define MACRO_HOSTPERCENTCHANGE			42
-#define MACRO_SERVICEPERCENTCHANGE		43
-#define MACRO_HOSTGROUPNAME			44
-#define MACRO_HOSTGROUPALIAS			45
+#define MACRO_HOSTLATENCY                       33
+#define MACRO_SERVICELATENCY			34
+#define MACRO_HOSTDURATION			35
+#define MACRO_SERVICEDURATION			36
+#define MACRO_HOSTDURATIONSEC			37
+#define MACRO_SERVICEDURATIONSEC		38
+#define MACRO_HOSTDOWNTIME			39
+#define MACRO_SERVICEDOWNTIME			40
+#define MACRO_HOSTSTATETYPE			41
+#define MACRO_SERVICESTATETYPE			42
+#define MACRO_HOSTPERCENTCHANGE			43
+#define MACRO_SERVICEPERCENTCHANGE		44
+#define MACRO_HOSTGROUPNAME			45
+#define MACRO_HOSTGROUPALIAS			46
 
 
 
@@ -214,7 +215,7 @@
 
 /******************* EVENT TYPES **********************/
 
-#define EVENT_SERVICE_CHECK		0	/* service check */
+#define EVENT_SERVICE_CHECK		0	/* active service check */
 #define EVENT_COMMAND_CHECK		1	/* external command check */
 #define EVENT_LOG_ROTATION		2	/* log file rotation */
 #define EVENT_PROGRAM_SHUTDOWN		3	/* program shutdown */
@@ -226,6 +227,7 @@
 #define EVENT_SCHEDULED_DOWNTIME	9	/* scheduled host or service downtime */
 #define EVENT_FRESHNESS_CHECK           10      /* checks service result "freshness" */
 #define EVENT_EXPIRE_DOWNTIME		11      /* checks for (and removes) expired scheduled downtime */
+#define EVENT_HOST_CHECK                12      /* active host check */
 
 
 
@@ -320,14 +322,21 @@ typedef struct service_message_struct{
 typedef struct sched_info_struct{
 	int total_services;
 	int total_hosts;
+	int total_scheduled_hosts;
 	double average_services_per_host;
-	unsigned long check_interval_total;
-	double average_check_interval;
-	double average_inter_check_delay;
-	double inter_check_delay;
-	int interleave_factor;
+	unsigned long service_check_interval_total;
+	unsigned long host_check_interval_total;
+	double average_service_check_interval;
+	double average_host_check_interval;
+	double average_service_inter_check_delay;
+	double average_host_inter_check_delay;
+	double service_inter_check_delay;
+	double host_inter_check_delay;
+	int service_interleave_factor;
 	time_t first_service_check;
 	time_t last_service_check;
+	time_t first_host_check;
+	time_t last_host_check;
         }sched_info;
 
 
@@ -437,9 +446,10 @@ void disable_service_flap_detection(service *);		/* disables flap detection for 
 
 
 /**** Route/Host Check Functions ****/
-int verify_route_to_host(host *);                    	/* checks if a host is up, down, or unreachable */
-int check_host(host *,int);                            	/* checks if a host is up or down */
-int run_host_check(host *);                             /* runs a host check */
+int verify_route_to_host(host *,int);                   /* on-demand check of whether a host is up, down, or unreachable */
+int run_scheduled_host_check(host *);			/* runs a scheduled host check */
+int check_host(host *,int,int);                         /* checks if a host is up or down */
+int run_host_check(host *,int);                 	/* runs a host check */
 int handle_host_state(host *);               		/* top level host state handler */
 
 

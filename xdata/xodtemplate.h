@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-14-2003
+ * Last Modified:   02-20-2003
  *
  * License:
  *
@@ -148,6 +148,8 @@ typedef struct xodtemplate_host_struct{
 	char      *parents;
 	char      *hostgroups;
 	char      *check_command;
+	char      *check_period;
+	int       check_interval;
 	int       max_check_attempts;
 	int       active_checks_enabled;
 	int       passive_checks_enabled;
@@ -173,6 +175,7 @@ typedef struct xodtemplate_host_struct{
 	int       retain_status_information;
 	int       retain_nonstatus_information;
 
+	int       have_check_interval;
 	int       have_max_check_attempts;
 	int       have_active_checks_enabled;
 	int       have_passive_checks_enabled;

@@ -323,7 +323,7 @@ log_passive_service_checks=1
 
 
 
-# INTER-CHECK DELAY METHOD
+# SERVICE INTER-CHECK DELAY METHOD
 # This is the method that Nagios should use when initially
 # "spreading out" service checks when it starts monitoring.  The
 # default is to use smart delay calculation, which will try to
@@ -337,7 +337,7 @@ log_passive_service_checks=1
 #	s	= Use "smart" inter-check delay calculation
 #       x.xx    = Use an inter-check delay of x.xx seconds
 
-inter_check_delay_method=s
+service_inter_check_delay_method=s
 
 
 
@@ -354,6 +354,23 @@ inter_check_delay_method=s
 #                 number greater than or equal to 1.
 
 service_interleave_factor=s
+
+
+
+# HOST INTER-CHECK DELAY METHOD
+# This is the method that Nagios should use when initially
+# "spreading out" host checks when it starts monitoring.  The
+# default is to use smart delay calculation, which will try to
+# space all host checks out evenly to minimize CPU load.
+# Using the dumb setting will cause all checks to be scheduled
+# at the same time (with no delay between them)!
+#	n	= None - don't use any delay between checks
+#	d	= Use a "dumb" delay of 1 second between checks
+#	s	= Use "smart" inter-check delay calculation
+#       x.xx    = Use an inter-check delay of x.xx seconds
+
+host_inter_check_delay_method=s
+
 
 
 

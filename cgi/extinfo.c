@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2003
+ * Last Modified: 02-20-2003
  *
  * License:
  * 
@@ -925,6 +925,9 @@ void show_host_info(void){
 		status_age[sizeof(status_age)-1]='\x0';
 		printf("<TR><TD CLASS='dataVar'>Status Data Age:</td><td CLASS='dataVal'>%s</td></tr>\n",status_age);
 
+		get_time_string(&temp_hoststatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+		printf("<TR><TD CLASS='dataVar'>Next Scheduled Active Check:&nbsp;&nbsp;</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_hoststatus->checks_enabled && temp_hoststatus->next_check!=(time_t)0 && temp_hoststatus->should_be_scheduled==TRUE)?date_time:"N/A");
+
 		printf("<TR><TD CLASS='dataVar'>Check Duration:</td><td CLASS='dataVal'>%.3f seconds</td></tr>\n",temp_hoststatus->execution_time);
 
 		get_time_string(&temp_hoststatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
@@ -1229,7 +1232,7 @@ void show_service_info(void){
 		printf("<TR><TD CLASS='dataVar'>Status Data Age:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",status_age);
 
 		get_time_string(&temp_svcstatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TR><TD CLASS='dataVar'>Next Scheduled Active Check:&nbsp;&nbsp;</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->checks_enabled && temp_svcstatus->next_check!=(time_t)0)?date_time:"N/A");
+		printf("<TR><TD CLASS='dataVar'>Next Scheduled Active Check:&nbsp;&nbsp;</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->checks_enabled && temp_svcstatus->next_check!=(time_t)0 && temp_svcstatus->should_be_scheduled==TRUE)?date_time:"N/A");
 
 		printf("<TR><TD CLASS='dataVar'>Latency:</TD><TD CLASS='dataVal'>");
 		if(temp_svcstatus->check_type==SERVICE_CHECK_ACTIVE)

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-18-2003
+ * Last Modified:   02-20-2003
  *
  * Description:
  *
@@ -126,8 +126,9 @@ int             ochp_timeout=DEFAULT_OCHP_TIMEOUT;
 
 double          sleep_time=DEFAULT_SLEEP_TIME;
 int             interval_length=DEFAULT_INTERVAL_LENGTH;
-int             inter_check_delay_method=ICD_SMART;
-int             interleave_factor_method=ILF_SMART;
+int             service_inter_check_delay_method=ICD_SMART;
+int             host_inter_check_delay_method=ICD_SMART;
+int             service_interleave_factor_method=ILF_SMART;
 
 int             command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 int             service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
@@ -337,15 +338,15 @@ int main(int argc, char **argv){
 		printf("       verification/sanity check.  Always make sure you verify your\n");
 		printf("       config data before (re)starting Nagios.\n");
 		printf("\n");
-		printf("  -s   Shows projected/recommended service check scheduling information\n");
-		printf("       based on the current data in the configuration files.\n");
+		printf("  -s   Shows projected/recommended check scheduling information based\n");
+		printf("       on the current data in the configuration files.\n");
 		printf("\n");
 		printf("  -d   Starts Nagios in daemon mode (instead of as a foreground process).\n");
 		printf("       This is the recommended way of starting Nagios for normal operation.\n");
 		printf("\n");
-		printf("Visit the Nagios website at http://www.nagios.org for information on known\n");
-		printf("bugs, new releases, online documentation, and information on subscribing to\n");
-		printf("the mailing lists.\n");
+		printf("Visit the Nagios website at http://www.nagios.org for bug fixes, new\n");
+		printf("releases, online documentation, FAQs, information on subscribing to\n");
+		printf("the mailing lists, and commercial and contract support for Nagios.\n");
 		printf("\n");
 
 		exit(ERROR);

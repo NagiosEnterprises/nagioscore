@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 12-07-2002
+# Last Modified: 12-13-2002
 ############################
 
 
@@ -86,7 +86,7 @@ DDATAHDRS=$(SRC_COMMON)/downtime.h $(SRC_XDATA)/$(XDDH)
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=checks.o config.o commands.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
+OBJS=broker.o checks.o config.o commands.o events.o flapping.o logging.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O)
 
 nagios: nagios.c $(OBJS) nagios.h $(SRC_COMMON)/locations.h
 	$(CC) $(CFLAGS) $(LDFLAGS) nagios.c $(OBJS) $(PERLLIBS) $(MATHLIBS) $(THREADLIBS) -o $@

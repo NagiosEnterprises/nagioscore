@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-09-2002
+ * Last Modified:   12-13-2002
  *
  * License:
  *
@@ -842,9 +842,6 @@ void reap_service_checks(void){
 				/* set the state type macro */
 				temp_service->state_type=HARD_STATE;
 
-				/* update service state times and last state change time */
-				update_service_state_times(temp_service);
-
 				/* log the service recovery */
 				log_service_event(temp_service,HARD_STATE);
 				state_was_logged=TRUE;
@@ -861,9 +858,6 @@ void reap_service_checks(void){
 
 				/* this is a soft recovery */
 				temp_service->state_type=SOFT_STATE;
-
-				/* update service state times and last state change time */
-				update_service_state_times(temp_service);
 
 				/* log the soft recovery */
 				log_service_event(temp_service,SOFT_STATE);
@@ -954,10 +948,6 @@ void reap_service_checks(void){
 				if(temp_service->last_hard_state!=temp_service->current_state)
 					hard_state_change=TRUE;
 
-				/* update service state times if necessary and last state change time */
-				if(hard_state_change==TRUE)
-					update_service_state_times(temp_service);
-
 				/* put service into a hard state without attempting check retries and don't send out notifications about it */
 				temp_service->host_problem_at_last_check=TRUE;
 				temp_service->state_type=HARD_STATE;
@@ -1023,10 +1013,6 @@ void reap_service_checks(void){
 					/* this is a soft state */
 					temp_service->state_type=SOFT_STATE;
 
-				        /* update service state times if necessary and last state change time */
-					if(state_change==TRUE)
-						update_service_state_times(temp_service);
-
 					/* log the service check retry */
 					log_service_event(temp_service,SOFT_STATE);
 					state_was_logged=TRUE;
@@ -1059,9 +1045,6 @@ void reap_service_checks(void){
 
 				/* if we've hard a hard state change... */
 				if(hard_state_change==TRUE){
-
-					/* update service state times and last state change time */
-					update_service_state_times(temp_service);
 
 					/* log the service problem (even if host is not up, which is new in 0.0.5) */
 					log_service_event(temp_service,HARD_STATE);

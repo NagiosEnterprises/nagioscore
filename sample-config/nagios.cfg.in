@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-04-2002
+# Last Modified: 12-16-2002
 #
 ##############################################################################
 
@@ -190,6 +190,26 @@ temp_file=@localstatedir@/nagios.tmp
 
 
 
+
+# EVENT BROKER FILE
+# This is the file that Nagios will use for sending event data to
+# the external event broker daemon.
+
+event_broker_file=@localstatedir@/neb.log
+
+
+
+
+# EVENT BROKER OPTIONS
+# Controls what (if any data) gets sent to the event broker.
+# Values: 0     = Broker nothing
+#         -1    = Broker everything
+
+event_broker_options=0
+
+
+
+
 # LOG ROTATION METHOD
 # This is the log rotation method that Nagios should use to rotate
 # the main log file. Values are as follows..
@@ -354,10 +374,10 @@ service_reaper_frequency=10
 
 # SLEEP TIME
 # This is the number of seconds to sleep between checking for system
-# events and service checks that need to be run.  I would recommend
-# *not* changing this from its default value of 1 second.
+# events and service checks that need to be run.  I would not
+# recommend setting this value below 0.1 unless you have nice hardware.
 
-sleep_time=1
+sleep_time=0.5
 
 
 

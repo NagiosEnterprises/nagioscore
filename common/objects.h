@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-10-2002
+ * Last Modified:   12-13-2002
  *
  * License:
  *
@@ -134,9 +134,6 @@ typedef struct host_struct{
 	time_t  last_check;
 	time_t	last_state_change;
 	int     has_been_checked;
-	unsigned long	time_up;
-	unsigned long	time_down;
-	unsigned long	time_unreachable;
 	int     has_been_down;
 	int     has_been_unreachable;
 	int     current_notification_number;
@@ -264,10 +261,6 @@ typedef struct service_struct{
 	time_t	last_state_change;
 	int     has_been_checked;
 	int     is_being_freshened;
-	unsigned long	time_ok;
-	unsigned long	time_unknown;
-	unsigned long	time_warning;
-	unsigned long	time_critical;
 	int     has_been_unknown;
 	int     has_been_warning;
 	int     has_been_critical;

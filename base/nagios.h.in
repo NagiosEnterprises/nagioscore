@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-09-2002
+ * Last Modified: 12-13-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@
 
 #define DEFAULT_INTER_CHECK_DELAY		5.0	/* seconds between initial service check scheduling */
 #define DEFAULT_INTERLEAVE_FACTOR      		1       /* default interleave to use when scheduling checks */
-#define DEFAULT_SLEEP_TIME      		1      	/* seconds between event run checks */
+#define DEFAULT_SLEEP_TIME      		0.5    	/* seconds between event run checks */
 #define DEFAULT_INTERVAL_LENGTH 		60     	/* seconds per interval unit for check scheduling */
 #define DEFAULT_RETRY_INTERVAL  		30	/* services are retried in 30 seconds if they're not OK */
 #define DEFAULT_COMMAND_CHECK_INTERVAL		-1	/* interval to check for external commands (default = as often as possible) */
@@ -202,15 +202,37 @@
 #define EVENT_LOG_ROTATION		2	/* log file rotation */
 #define EVENT_PROGRAM_SHUTDOWN		3	/* program shutdown */
 #define EVENT_PROGRAM_RESTART		4	/* program restart */
-#define EVENT_ENABLE_NOTIFICATIONS	5	/* enable notifications */
-#define EVENT_DISABLE_NOTIFICATIONS	6	/* disable notifications */
-#define EVENT_SERVICE_REAPER		7	/* reaps results from service checks */
-#define EVENT_ORPHAN_CHECK		8	/* checks for orphaned service checks */
-#define EVENT_RETENTION_SAVE		9	/* save (dump) retention data */
-#define EVENT_STATUS_SAVE		10	/* save (dump) status data */
-#define EVENT_SCHEDULED_DOWNTIME	11	/* scheduled host or service downtime */
-#define EVENT_FRESHNESS_CHECK           12      /* checks service result "freshness" */
-#define EVENT_EXPIRE_DOWNTIME		13      /* checks for (and removes) expired scheduled downtime */
+#define EVENT_SERVICE_REAPER		5	/* reaps results from service checks */
+#define EVENT_ORPHAN_CHECK		6	/* checks for orphaned service checks */
+#define EVENT_RETENTION_SAVE		7	/* save (dump) retention data */
+#define EVENT_STATUS_SAVE		8	/* save (dump) status data */
+#define EVENT_SCHEDULED_DOWNTIME	9	/* scheduled host or service downtime */
+#define EVENT_FRESHNESS_CHECK           10      /* checks service result "freshness" */
+#define EVENT_EXPIRE_DOWNTIME		11      /* checks for (and removes) expired scheduled downtime */
+
+
+
+/*************** EVENT BROKER OPTIONS *****************/
+
+#define BROKER_NOTHING                  0
+#define BROKER_EVERYTHING		32767
+
+#define BROKER_PROGRAM_STATE            1
+#define BROKER_TIMED_EVENTS             2
+#define BROKER_SERVICE_CHECKS           4
+#define BROKER_HOST_CHECKS              8
+#define BROKER_SERVICE_NOTIFICATIONS    16
+#define BROKER_HOST_NOTIFICATIONS       32
+#define BROKER_SERVICE_EVENT_HANDLERS   64
+#define BROKER_HOST_EVENT_HANDLERS      128
+#define BROKER_LOGGED_DATA              256
+#define BROKER_SERVICE_FLAPPING         512
+#define BROKER_HOST_FLAPPING            1024
+#define BROKER_SERVICE_COMMENTS         2048
+#define BROKER_HOST_COMMENTS		4096
+#define BROKER_SERVICE_DOWNTIME		8192
+#define BROKER_HOST_DOWNTIME		16384
+
 
 
 /******* INTER-CHECK DELAY CALCULATION TYPES **********/
@@ -331,13 +353,14 @@ typedef struct circular_buffer_struct{
 /* slots in circular buffers */
 #define COMMAND_BUFFER_SLOTS              512
 #define SERVICE_BUFFER_SLOTS		  512
+#define EVENT_BUFFER_SLOTS		  1536
 
 /* worker threads */
 #define TOTAL_WORKER_THREADS              3
 
 #define COMMAND_WORKER_THREAD		  0
 #define SERVICE_WORKER_THREAD  		  1
-#define BROKER_WORKER_THREAD		  2
+#define EVENT_WORKER_THREAD		  2
 
 
 /******************** FUNCTIONS **********************/
@@ -358,7 +381,6 @@ void reset_sighandler(void);                         	/* reset signals to defaul
 int daemon_init(void);				     	/* switches to daemon mode */
 int drop_privileges(char *,char *);			/* drops priveleges before startup */
 void display_scheduling_info(void);			/* displays service check scheduling information */
-void display_xdata_modules(void);			/* displays which external data modules are compiled in */
 
 
 /**** IPC Functions ****/
@@ -413,8 +435,6 @@ int run_global_service_event_handler(service *,int);		/* runs the global service
 int handle_host_event(host *,int,int);				/* top level host event logic */
 int run_host_event_handler(host *,int,int);			/* runs the event handler for a specific host */
 int run_global_host_event_handler(host *,int,int);		/* runs the global host event handler */
-void update_service_state_times(service *);	     	     	/* updates service state times */
-void update_host_state_times(host *);	     	     	     	/* updates host state times */
 
 
 /**** Notification Functions ****/
@@ -570,14 +590,28 @@ void stop_accepting_passive_host_checks(void);		/* stops accepting passive host 
 void enable_passive_host_checks(host *);	        /* enables passive host checks for a particular host */
 void disable_passive_host_checks(host *);         	/* disables passive host checks for a particular host */
 
-int init_worker_threads(void);
-int cleanup_worker_threads(void);
+int init_service_result_worker_thread(void);
+int init_event_broker_worker_thread(void);
+int shutdown_service_result_worker_thread(void);
+int shutdown_event_broker_worker_thread(void);
 void * service_result_worker_thread(void *);
 void * cleanup_service_result_worker_thread(void *);
+void * cleanup_event_broker_worker_thread(void *);
 
 int init_command_file_worker_thread(void);
+int shutdown_command_file_worker_thread(void);
 void * command_file_worker_thread(void *);
 void * cleanup_command_file_worker_thread(void *);
+
+
+/**** Event Broker Functions ****/
+int send_event_data_to_broker(char *);
+void * event_broker_worker_thread(void *);
+
+void broker_program_state(int,int,int,struct timeb *);
+void broker_timed_event(int,int,int,timed_event *event,void *,struct timeb *);
+void broker_logged_data(int,int,int,char *,unsigned long,struct timeb*);
+
 
 #endif
 

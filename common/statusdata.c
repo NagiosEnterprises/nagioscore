@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-19-2002
+ * Last Modified:   12-13-2002
  *
  * License:
  *
@@ -227,10 +227,10 @@ int update_host_status(host *hst,int aggregated_dump){
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
-	result=xsddefault_update_host_status(hst->name,status_string,current_time,hst->last_check,hst->last_state_change,hst->problem_has_been_acknowledged,hst->time_up,hst->time_down,hst->time_unreachable,hst->last_host_notification,hst->current_notification_number,hst->notifications_enabled,hst->event_handler_enabled,hst->checks_enabled,hst->flap_detection_enabled,hst->is_flapping,hst->percent_state_change,hst->scheduled_downtime_depth,hst->failure_prediction_enabled,hst->process_performance_data,hst->plugin_output,aggregated_dump);
+	result=xsddefault_update_host_status(hst->name,status_string,current_time,hst->last_check,hst->last_state_change,hst->problem_has_been_acknowledged,0,0,0,hst->last_host_notification,hst->current_notification_number,hst->notifications_enabled,hst->event_handler_enabled,hst->checks_enabled,hst->flap_detection_enabled,hst->is_flapping,hst->percent_state_change,hst->scheduled_downtime_depth,hst->failure_prediction_enabled,hst->process_performance_data,hst->plugin_output,aggregated_dump);
 #endif
 #ifdef USE_XSDDB
-	result=xsddb_update_host_status(hst->name,status_string,current_time,hst->last_check,hst->last_state_change,hst->problem_has_been_acknowledged,hst->time_up,hst->time_down,hst->time_unreachable,hst->last_host_notification,hst->current_notification_number,hst->notifications_enabled,hst->event_handler_enabled,hst->checks_enabled,hst->flap_detection_enabled,hst->is_flapping,hst->percent_state_change,hst->scheduled_downtime_depth,hst->failure_prediction_enabled,hst->process_performance_data,hst->plugin_output,aggregated_dump);
+	result=xsddb_update_host_status(hst->name,status_string,current_time,hst->last_check,hst->last_state_change,hst->problem_has_been_acknowledged,0,0,0,hst->last_host_notification,hst->current_notification_number,hst->notifications_enabled,hst->event_handler_enabled,hst->checks_enabled,hst->flap_detection_enabled,hst->is_flapping,hst->percent_state_change,hst->scheduled_downtime_depth,hst->failure_prediction_enabled,hst->process_performance_data,hst->plugin_output,aggregated_dump);
 #endif
 
 	return result;
@@ -299,10 +299,10 @@ int update_service_status(service *svc,int aggregated_dump){
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
-	result=xsddefault_update_service_status(svc->host_name,svc->description,status_string,current_time,svc->current_attempt,svc->max_attempts,svc->state_type,svc->last_check,svc->next_check,svc->should_be_scheduled,svc->check_type,svc->checks_enabled,svc->accept_passive_service_checks,svc->event_handler_enabled,svc->last_state_change,svc->problem_has_been_acknowledged,last_hard_state_string,svc->time_ok,svc->time_warning,svc->time_unknown,svc->time_critical,svc->last_notification,svc->current_notification_number,svc->notifications_enabled,svc->latency,svc->execution_time,svc->flap_detection_enabled,svc->is_flapping,svc->percent_state_change,svc->scheduled_downtime_depth,svc->failure_prediction_enabled,svc->process_performance_data,svc->obsess_over_service,svc->plugin_output,aggregated_dump);
+	result=xsddefault_update_service_status(svc->host_name,svc->description,status_string,current_time,svc->current_attempt,svc->max_attempts,svc->state_type,svc->last_check,svc->next_check,svc->should_be_scheduled,svc->check_type,svc->checks_enabled,svc->accept_passive_service_checks,svc->event_handler_enabled,svc->last_state_change,svc->problem_has_been_acknowledged,last_hard_state_string,0,0,0,0,svc->last_notification,svc->current_notification_number,svc->notifications_enabled,svc->latency,svc->execution_time,svc->flap_detection_enabled,svc->is_flapping,svc->percent_state_change,svc->scheduled_downtime_depth,svc->failure_prediction_enabled,svc->process_performance_data,svc->obsess_over_service,svc->plugin_output,aggregated_dump);
 #endif
 #ifdef USE_XSDDB
-	result=xsddb_update_service_status(svc->host_name,svc->description,status_string,current_time,svc->current_attempt,svc->max_attempts,svc->state_type,svc->last_check,svc->next_check,svc->should_be_scheduled,svc->check_type,svc->checks_enabled,svc->accept_passive_service_checks,svc->event_handler_enabled,svc->last_state_change,svc->problem_has_been_acknowledged,last_hard_state_string,svc->time_ok,svc->time_warning,svc->time_unknown,svc->time_critical,svc->last_notification,svc->current_notification_number,svc->notifications_enabled,svc->latency,svc->execution_time,svc->flap_detection_enabled,svc->is_flapping,svc->percent_state_change,svc->scheduled_downtime_depth,svc->failure_prediction_enabled,svc->process_performance_data,svc->obsess_over_service,svc->plugin_output,aggregated_dump);
+	result=xsddb_update_service_status(svc->host_name,svc->description,status_string,current_time,svc->current_attempt,svc->max_attempts,svc->state_type,svc->last_check,svc->next_check,svc->should_be_scheduled,svc->check_type,svc->checks_enabled,svc->accept_passive_service_checks,svc->event_handler_enabled,svc->last_state_change,svc->problem_has_been_acknowledged,last_hard_state_string,0,0,0,0,svc->last_notification,svc->current_notification_number,svc->notifications_enabled,svc->latency,svc->execution_time,svc->flap_detection_enabled,svc->is_flapping,svc->percent_state_change,svc->scheduled_downtime_depth,svc->failure_prediction_enabled,svc->process_performance_data,svc->obsess_over_service,svc->plugin_output,aggregated_dump);
 #endif
 
 

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-10-2002
+ * Last Modified:   12-15-2002
  *
  * License:
  *
@@ -36,6 +36,7 @@ extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
 extern char	*p1_file;
+extern char     *event_broker_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -72,7 +73,7 @@ extern int      daemon_mode;
 extern int      verify_config;
 extern int      test_scheduling;
 
-extern int      sleep_time;
+extern double   sleep_time;
 extern int      interval_length;
 extern int      inter_check_delay_method;
 extern int      interleave_factor_method;
@@ -114,6 +115,8 @@ extern int      aggregate_status_updates;
 extern int      status_update_interval;
 
 extern int      time_change_threshold;
+
+extern int      event_broker_options;
 
 extern int      process_performance_data;
 
@@ -840,15 +843,14 @@ int read_main_config_file(char *main_config_file){
 		        }
 		else if(!strcmp(variable,"sleep_time")){
 			strip(value);
-			sleep_time=atoi(value);
-			if(sleep_time<1){
+			sleep_time=atof(value);
+			if(sleep_time<=0.0){
 				strcpy(error_message,"Illegal value for sleep_time");
 				error=TRUE;
 				break;
 			        }
-
 #ifdef DEBUG1
-			printf("\t\tsleep_time set to %d\n",sleep_time);
+			printf("\t\tsleep_time set to %f\n",sleep_time);
 #endif
 		        }
 		else if(!strcmp(variable,"interval_length")){
@@ -1077,6 +1079,31 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tp1_file set to '%s'\n",p1_file);
 #endif
 			}
+		else if(!strcmp(variable,"event_broker_file")){
+			if(strlen(value)>MAX_FILENAME_LENGTH-1){
+				strcpy(error_message,"Event broker file is too long");
+				error=TRUE;
+				break;
+				}
+
+			if(event_broker_file!=NULL)
+				free(event_broker_file);
+			event_broker_file=(char *)strdup(value);
+			strip(event_broker_file);
+
+#ifdef DEBUG1
+			printf("\t\tevent_broker_file set to '%s'\n",event_broker_file);
+#endif
+			}
+		else if(!strcmp(variable,"event_broker_options")){
+			strip(value);
+			event_broker_options=atoi(value);
+			if(event_broker_options<0)
+				event_broker_options=BROKER_EVERYTHING;
+#ifdef DEBUG1
+			printf("\t\tevent_broker_options set to %d\n",event_broker_options);
+#endif
+		        }
 		else if(!strcmp(variable,"illegal_object_name_chars")){
 			illegal_object_chars=strdup(value);
 #ifdef DEBUG1

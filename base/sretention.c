@@ -262,11 +262,6 @@ int set_service_state_information(char *host_name, char *description, int state,
 		temp_service->host_problem_at_last_check=FALSE;
 		temp_service->no_recovery_notification=FALSE;
 
-		temp_service->time_ok=time_ok;
-		temp_service->time_warning=time_warning;
-		temp_service->time_unknown=time_unknown;
-		temp_service->time_critical=time_critical;
-
 		if(temp_service->current_state==STATE_OK)
 			temp_service->last_notification=(time_t)0;
 		else
@@ -374,10 +369,6 @@ int set_host_state_information(char *host_name, int state, char *output, unsigne
 			temp_host->current_attempt=1;
 		else
 			temp_host->current_attempt=temp_host->max_attempts;
-
-		temp_host->time_up=time_up;
-		temp_host->time_down=time_down;
-		temp_host->time_unreachable=time_unreachable;
 
 		temp_host->last_state_change=(time_t)last_state_change;
 		temp_host->last_check=(time_t)last_check;
@@ -507,10 +498,10 @@ service * get_service_state_information(service *svc, char **host_name, char **s
 	/* get the current time */
 	time(&current_time);
 
-	t_ok=temp_service->time_ok;
-	t_warning=temp_service->time_warning;
-	t_unknown=temp_service->time_unknown;
-	t_critical=temp_service->time_critical;
+	t_ok=0;
+	t_warning=0;
+	t_unknown=0;
+	t_critical=0;
 
 	if(temp_service->state_type==SOFT_STATE){
 		service_state=temp_service->last_hard_state;
@@ -611,9 +602,9 @@ host * get_host_state_information(host *hst, char **host_name, int *state, char 
 	/* get the current time */
 	time(&current_time);
 
-	t_up=temp_host->time_up;
-	t_down=temp_host->time_down;
-	t_unreachable=temp_host->time_unreachable;
+	t_up=0;
+	t_down=0;
+	t_unreachable=0;
 
 	/* if this is NOT the first time we've had a host check/state change... */
 	if(temp_host->has_been_checked==TRUE && temp_host->last_state_change!=0L){

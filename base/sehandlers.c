@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-06-2002
+ * Last Modified:   12-13-2002
  *
  * License:
  *
@@ -492,60 +492,6 @@ int run_host_event_handler(host *hst,int state,int state_type){
 
 
 /******************************************************************/
-/**************** SERVICE STATE HANDLER FUNCTIONS *****************/
-/******************************************************************/
-
-
-/* updates service state times */
-void update_service_state_times(service *svc){
-	unsigned long time_difference;
-	time_t current_time;
-
-#ifdef DEBUG0
-	printf("update_service_state_times() start\n");
-#endif
-
-	/* calculate the time since the last service state change */
-	time(&current_time);
-
-	/* if this is NOT the first time we've had a service check/state change.. */
-	if(svc->has_been_checked==TRUE){
-
-		if(svc->last_state_change<program_start)
-			time_difference=(unsigned long)current_time-program_start;
-		else
-			time_difference=(unsigned long)current_time-svc->last_state_change;
-
-		/* use last hard state... */
-		if(svc->last_hard_state==STATE_UNKNOWN)
-			svc->time_unknown+=time_difference;
-		else if(svc->last_hard_state==STATE_WARNING)
-			svc->time_warning+=time_difference;
-		else if(svc->last_hard_state==STATE_CRITICAL)
-			svc->time_critical+=time_difference;
-		else
-			svc->time_ok+=time_difference;
-	        }
-
-
-	/* update the last service state change time */
-	svc->last_state_change=current_time;
-
-	/* update status log with service information */
-	update_service_status(svc,FALSE);
-
-
-#ifdef DEBUG0
-	printf("update_service_state_times() end\n");
-#endif
-	
-	return;
-        }
-
-
-
-
-/******************************************************************/
 /****************** HOST STATE HANDLER FUNCTIONS ******************/
 /******************************************************************/
 
@@ -580,10 +526,6 @@ int handle_host_state(host *hst,int state,int state_type){
 			else if(state==HOST_UNREACHABLE)
 				hst->has_been_unreachable=TRUE;
 		        }
-
-		/* update the host state times */
-		if(state_type==HARD_STATE)
-			update_host_state_times(hst);
 
 		/* the host just recovered, so reset the current host attempt number */
 		if(state==HOST_UP)
@@ -643,48 +585,4 @@ int handle_host_state(host *hst,int state,int state_type){
 	return OK;
         }
 
-
-
-
-/* updates host state times */
-void update_host_state_times(host *hst){
-	unsigned long time_difference;
-	time_t current_time;
-
-#ifdef DEBUG0
-	printf("update_host_state_times() start\n");
-#endif
-
-	/* get the current time */
-	time(&current_time);
-
-	/* if this is NOT the first time we've had a host check/state change... */
-	if(hst->has_been_checked==TRUE){
-
-		if(hst->last_state_change<program_start)
-			time_difference=(unsigned long)current_time-program_start;
-		else
-			time_difference=(unsigned long)current_time-hst->last_state_change;
-
-		if(hst->status==HOST_DOWN)
-			hst->time_down+=time_difference;
-		else if(hst->status==HOST_UNREACHABLE)
-			hst->time_unreachable+=time_difference;
-		else
-			hst->time_up+=time_difference;
-	        }
-
-	/* update the last host state change time */
-	hst->last_state_change=current_time;
-
-	/* update status log with host information */
-	update_host_status(hst,FALSE);
-
-
-#ifdef DEBUG0
-	printf("update_host_state_times() end\n");
-#endif
-	
-	return;
-        }
 

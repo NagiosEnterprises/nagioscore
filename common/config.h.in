@@ -189,6 +189,11 @@
 # endif
 #endif
 
+#undef HAVE_SYS_TIMEB_H
+#if HAVE_SYS_TIMEB_H
+#include <sys/timeb.h>
+#endif
+
 #undef HAVE_SYS_IPC_H
 #ifdef HAVE_SYS_IPC_H
 #include <sys/ipc.h>

@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-06-2001
+ * Last Modified:   12-16-2001
  *
  * License:
  *
@@ -27,6 +27,7 @@
 #include "../common/common.h"
 #include "../common/statusdata.h"
 #include "nagios.h"
+#include "broker.h"
 
 extern char	*log_file;
 extern char     *temp_file;
@@ -115,6 +116,8 @@ int write_to_log(char *buffer, unsigned long data_type){
 	fprintf(fp,"[%lu] %s\n",t,buffer);
 
 	fclose(fp);
+
+	broker_logged_data(NEBTYPE_LOGDATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,NULL);
 
 #ifdef DEBUG0
 	printf("write_to_log() end\n");

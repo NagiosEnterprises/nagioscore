@@ -1039,43 +1039,17 @@ int cmd_signal_process(int cmd, char *args){
 
 
 int cmd_enable_disable_notifications(int cmd, char *args){
-	timed_event *new_event=NULL;
-	time_t scheduled_time;
-	char *temp_ptr;
 
 #ifdef DEBUG0
 	printf("cmd_enable_disable_notifications() start\n");
 #endif
 
-	/* get the time to schedule the event */
-	temp_ptr=my_strtok(args,"\n");
-	if(temp_ptr==NULL)
-		scheduled_time=0L;
+	/* scheduled time is now ignored... */
+
+	if(cmd==CMD_ENABLE_NOTIFICATIONS)
+		enable_all_notifications();
 	else
-		scheduled_time=strtoul(temp_ptr,NULL,10);
-
-	/* no need to schedule a future change, just do it now */
-	if(scheduled_time==0L){
-		if(cmd==CMD_ENABLE_NOTIFICATIONS)
-			enable_all_notifications();
-		else
-			disable_all_notifications();
-	        }
-
-	/* else add a scheduled notification change */
-	else{
-
-		new_event=malloc(sizeof(timed_event));
-		if(new_event!=NULL){
-			new_event->event_type=(cmd==CMD_ENABLE_NOTIFICATIONS)?EVENT_ENABLE_NOTIFICATIONS:EVENT_DISABLE_NOTIFICATIONS;
-			new_event->event_data=(void *)NULL;
-			new_event->run_time=scheduled_time;
-			new_event->recurring=FALSE;
-			schedule_event(new_event,&event_list_high);
-	                }
-		else
-			return ERROR;
-	        }
+		disable_all_notifications();
 
 #ifdef DEBUG0
 	printf("cmd_enable_disable_notifications() end\n");

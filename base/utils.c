@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-09-2002
+ * Last Modified:   12-15-2002
  *
  * License:
  *
@@ -28,6 +28,9 @@
 #include "../common/objects.h"
 #include "../common/statusdata.h"
 
+#include "nagios.h"
+#include "broker.h"
+
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
@@ -39,8 +42,6 @@
 #ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
- 
-#include "nagios.h"
 
 #ifdef EMBEDDEDPERL
 #include <EXTERN.h>
@@ -63,6 +64,7 @@ extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
 extern char	*p1_file;
+extern char     *event_broker_file;
 
 extern char     *nagios_user;
 extern char     *nagios_group;
@@ -103,7 +105,7 @@ extern int      ocsp_timeout;
 
 extern int      log_initial_states;
 
-extern int      sleep_time;
+extern double   sleep_time;
 extern int      interval_length;
 extern int      inter_check_delay_method;
 extern int      interleave_factor_method;
@@ -152,6 +154,8 @@ extern int      status_update_interval;
 
 extern int      time_change_threshold;
 
+extern int      event_broker_options;
+
 extern int      process_performance_data;
 
 extern int      enable_flap_detection;
@@ -193,6 +197,7 @@ extern service_message svc_msg;
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
 extern circular_buffer service_result_buffer;
+extern circular_buffer event_broker_buffer;
 
 extern int errno;
 
@@ -1900,6 +1905,8 @@ int daemon_init(void){
 	open("/dev/null",O_WRONLY);
 	open("/dev/null",O_WRONLY);
 
+	broker_program_state(NEBTYPE_PROCESS_DAEMON,NEBFLAG_NONE,NEBATTR_NONE,time(NULL));
+
 	return OK;
 	}
 
@@ -2194,11 +2201,8 @@ int close_command_file(void){
 	/* reset our flag */
 	command_file_created=FALSE;
 
-	/* tell the worker thread to exit */
-	pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
-
-	/* wait for the worker thread to exit */
-	pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
+	/* shutdown the worker thread */
+	shutdown_command_file_worker_thread();
 
 	/* close the command file */
 	fclose(command_file_fp);
@@ -2550,15 +2554,9 @@ int reinit_embedded_perl(void){
 /************************ THREAD FUNCTIONS ************************/
 /******************************************************************/
 
-/* initializes worker threads */
-int init_worker_threads(void){
+/* initializes service result worker thread */
+int init_service_result_worker_thread(void){
 	int result;
-#ifdef DOESNT_WORK
-	sigset_t newmask, oldmask;
-#endif
-
-
-	/**** SERVICE CHECK WORKER THREAD ****/
 
 	/* initialize circular buffer */
 	service_result_buffer.head=0;
@@ -2571,12 +2569,6 @@ int init_worker_threads(void){
 	/* initialize mutex */
 	pthread_mutex_init(&service_result_buffer.buffer_lock,NULL);
 
-#ifdef DOESNT_WORK
-	/* worker thread should ignore signals */
-	sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
-#endif
-	
 	/* create worker thread */
 	result=pthread_create(&worker_threads[SERVICE_WORKER_THREAD],NULL,service_result_worker_thread,NULL);
 
@@ -2584,28 +2576,69 @@ int init_worker_threads(void){
 	printf("SERVICE CHECK THREAD: %lu\n",(unsigned long)worker_threads[SERVICE_WORKER_THREAD]);
 #endif
 
-#ifdef DOESNT_WORK
-	/* restore signal catching in main thread */
-	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
-#endif
-
 	if(result)
 		return ERROR;
-
-	/**** EVENT BROKER WORKER THREAD */
 
 	return OK;
         }
 
 
-/* cleans up worker threads */
-int cleanup_worker_threads(void){
+/* initializes event broker worker thread */
+int init_event_broker_worker_thread(void){
+	int result;
 
-	/* tell the worker threads to exit */
+	if(event_broker_options==BROKER_NOTHING)
+		return OK;
+
+	/* initialize circular buffer */
+	event_broker_buffer.head=0;
+	event_broker_buffer.tail=0;
+	event_broker_buffer.items=0;
+	event_broker_buffer.buffer=(void **)malloc(EVENT_BUFFER_SLOTS*sizeof(char **));
+	if(event_broker_buffer.buffer==NULL)
+		return ERROR;
+
+	/* initialize mutex */
+	pthread_mutex_init(&event_broker_buffer.buffer_lock,NULL);
+
+	/* create worker thread */
+	result=pthread_create(&worker_threads[EVENT_WORKER_THREAD],NULL,event_broker_worker_thread,NULL);
+
+#ifdef DEBUG1
+	printf("EVENT BROKER THREAD: %lu\n",(unsigned long)worker_threads[EVENT_WORKER_THREAD]);
+#endif
+
+	if(result)
+		return ERROR;
+
+	return OK;
+        }
+
+
+/* shutdown the service result worker thread */
+int shutdown_service_result_worker_thread(void){
+
+	/* tell the worker thread to exit */
 	pthread_cancel(worker_threads[SERVICE_WORKER_THREAD]);
 
-	/* wait for the worker threads to exit */
+	/* wait for the worker thread to exit */
 	pthread_join(worker_threads[SERVICE_WORKER_THREAD],NULL);
+
+	return OK;
+        }
+
+
+/* shutdown event broker worker thread */
+int shutdown_event_broker_worker_thread(void){
+
+	if(event_broker_options==BROKER_NOTHING)
+		return OK;
+
+	/* tell the worker thread to exit */
+	pthread_cancel(worker_threads[EVENT_WORKER_THREAD]);
+
+	/* wait for the worker thread to exit */
+	pthread_join(worker_threads[EVENT_WORKER_THREAD],NULL);
 
 	return OK;
         }
@@ -2627,9 +2660,6 @@ void * cleanup_service_result_worker_thread(void *arg){
 /* initializes command file worker thread */
 int init_command_file_worker_thread(void){
 	int result;
-#ifdef DOESNT_WORK
-	sigset_t newmask, oldmask;
-#endif
 
 	/* initialize circular buffer */
 	external_command_buffer.head=0;
@@ -2642,12 +2672,6 @@ int init_command_file_worker_thread(void){
 	/* initialize mutex */
 	pthread_mutex_init(&external_command_buffer.buffer_lock,NULL);
 
-#ifdef DOESNT_WORK
-	/* worker thread should ignore signals */
-	sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK,&newmask,&oldmask);
-#endif
-	
 	/* create worker thread */
 	result=pthread_create(&worker_threads[COMMAND_WORKER_THREAD],NULL,command_file_worker_thread,NULL);
 
@@ -2655,13 +2679,21 @@ int init_command_file_worker_thread(void){
 	printf("COMMAND FILE THREAD: %lu\n",(unsigned long)worker_threads[COMMAND_WORKER_THREAD]);
 #endif
 
-#ifdef DOESNT_WORK
-	/* restore signal catching in main thread */
-	pthread_sigmask(SIG_UNBLOCK,&oldmask,NULL);
-#endif
-
 	if(result)
 		return ERROR;
+
+	return OK;
+        }
+
+
+/* shutdown command file worker thread */
+int shutdown_command_file_worker_thread(void){
+
+	/* tell the worker thread to exit */
+	pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
+
+	/* wait for the worker thread to exit */
+	pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
 
 	return OK;
         }
@@ -3116,6 +3148,7 @@ int reset_variables(void){
 	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);
 	p1_file=(char *)strdup(DEFAULT_P1_FILE);
 	log_archive_path=(char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
+	event_broker_file=(char *)strdup(DEFAULT_EVENT_BROKER_FILE);
 
 	nagios_user=(char *)strdup(DEFAULT_NAGIOS_USER);
 	nagios_group=(char *)strdup(DEFAULT_NAGIOS_GROUP);
@@ -3180,6 +3213,8 @@ int reset_variables(void){
 
 	aggregate_status_updates=TRUE;
 	status_update_interval=DEFAULT_STATUS_UPDATE_INTERVAL;
+
+	event_broker_options=BROKER_NOTHING;
 
 	time_change_threshold=DEFAULT_TIME_CHANGE_THRESHOLD;
 

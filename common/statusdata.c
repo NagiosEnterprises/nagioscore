@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-06-2003
+ * Last Modified:   06-15-2003
  *
  * License:
  *
@@ -54,6 +54,9 @@ extern int      aggregate_status_updates;
 #ifdef NSCGI
 hoststatus      *hoststatus_list=NULL;
 servicestatus   *servicestatus_list=NULL;
+
+hoststatus      **hoststatus_hashlist=NULL;
+servicestatus   **servicestatus_hashlist=NULL;
 #endif
 
 
@@ -187,6 +190,91 @@ int read_status_data(char *config_file,int options){
 
 
 /******************************************************************/
+/****************** CHAINED HASH FUNCTIONS ************************/
+/******************************************************************/
+
+/* adds hoststatus to hash list in memory */
+int add_hoststatus_to_hashlist(hoststatus *new_hoststatus){
+	hoststatus *temp_hoststatus, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(hoststatus_hashlist==NULL){
+		int i;
+
+		hoststatus_hashlist=(hoststatus **)malloc(sizeof(hoststatus *)*HOSTSTATUS_HASHSLOTS);
+		if(hoststatus_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<HOSTSTATUS_HASHSLOTS;i++)
+			hoststatus_hashlist[i]=NULL;
+	        }
+
+	if(!new_hoststatus)
+		return 0;
+
+	hashslot=hashfunc1(new_hoststatus->host_name,HOSTSTATUS_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_hoststatus=hoststatus_hashlist[hashslot];temp_hoststatus && compare_hashdata1(temp_hoststatus->host_name,new_hoststatus->host_name)<0;temp_hoststatus=temp_hoststatus->nexthash)
+		lastpointer=temp_hoststatus;
+
+	if(!temp_hoststatus || (compare_hashdata1(temp_hoststatus->host_name,new_hoststatus->host_name)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_hoststatus;
+		else
+			hoststatus_hashlist[hashslot]=new_hoststatus;
+		new_hoststatus->nexthash=temp_hoststatus;
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+int add_servicestatus_to_hashlist(servicestatus *new_servicestatus){
+	servicestatus *temp_servicestatus, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(servicestatus_hashlist==NULL){
+		int i;
+
+		servicestatus_hashlist=(servicestatus **)malloc(sizeof(servicestatus *)*SERVICESTATUS_HASHSLOTS);
+		if(servicestatus_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i< SERVICESTATUS_HASHSLOTS;i++)
+			servicestatus_hashlist[i]=NULL;
+	        }
+
+	if(!new_servicestatus)
+		return 0;
+
+	hashslot=hashfunc2(new_servicestatus->host_name,new_servicestatus->description,SERVICESTATUS_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_servicestatus=servicestatus_hashlist[hashslot];temp_servicestatus && compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,new_servicestatus->host_name,new_servicestatus->description)<0;temp_servicestatus=temp_servicestatus->nexthash)
+		lastpointer=temp_servicestatus;
+
+	if(!temp_servicestatus || (compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,new_servicestatus->host_name,new_servicestatus->description)!=0)){
+		if(lastpointer)
+			lastpointer->nexthash=new_servicestatus;
+		else
+			servicestatus_hashlist[hashslot]=new_servicestatus;
+		new_servicestatus->nexthash=temp_servicestatus;
+
+
+		return 1;
+	        }
+
+	/* else already exists */
+	return 0;
+        }
+
+
+
+/******************************************************************/
 /********************** ADDITION FUNCTIONS ************************/
 /******************************************************************/
 
@@ -233,6 +321,13 @@ int add_host_status(hoststatus *new_hoststatus){
 				new_hoststatus->plugin_output=strdup("Host has not been checked yet");
 		        }
 	        }
+
+	new_hoststatus->next=NULL;
+	new_hoststatus->nexthash=NULL;
+
+	/* add new hoststatus to hoststatus chained hash list */
+	if(!add_hoststatus_to_hashlist(new_hoststatus))
+		return ERROR;
 
 	/* add new host status to list, sorted by host name */
 	last_hoststatus=hoststatus_list;
@@ -308,6 +403,13 @@ int add_service_status(servicestatus *new_svcstatus){
 				new_svcstatus->plugin_output=strdup("Service is not scheduled to be checked...");
 		        }
 	        }
+
+	new_svcstatus->next=NULL;
+	new_svcstatus->nexthash=NULL;
+
+	/* add new servicestatus to servicestatus chained hash list */
+	if(!add_servicestatus_to_hashlist(new_svcstatus))
+		return ERROR;
 
 	/* add new service status to list, sorted by host name then description */
 	last_svcstatus=servicestatus_list;
@@ -401,10 +503,13 @@ void free_status_data(void){
 hoststatus *find_hoststatus(char *host_name){
 	hoststatus *temp_hoststatus;
 
-	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
-		if(!strcmp(temp_hoststatus->host_name,host_name))
-			return temp_hoststatus;
-	        }
+	if(host_name==NULL || hoststatus_hashlist==NULL)
+		return NULL;
+
+	for(temp_hoststatus=hoststatus_hashlist[hashfunc1(host_name,HOSTSTATUS_HASHSLOTS)];temp_hoststatus && compare_hashdata1(temp_hoststatus->host_name,host_name)<0;temp_hoststatus=temp_hoststatus->nexthash);
+
+	if(temp_hoststatus && (compare_hashdata1(temp_hoststatus->host_name,host_name)==0))
+		return temp_hoststatus;
 
 	return NULL;
         }
@@ -414,10 +519,13 @@ hoststatus *find_hoststatus(char *host_name){
 servicestatus *find_servicestatus(char *host_name,char *svc_desc){
 	servicestatus *temp_servicestatus;
 
-	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
-		if(!strcmp(temp_servicestatus->host_name,host_name) && !strcmp(temp_servicestatus->description,svc_desc))
-			return temp_servicestatus;
-	        }
+	if(host_name==NULL || svc_desc==NULL || servicestatus_hashlist==NULL)
+		return NULL;
+
+	for(temp_servicestatus=servicestatus_hashlist[hashfunc2(host_name,svc_desc,SERVICESTATUS_HASHSLOTS)];temp_servicestatus && compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,host_name,svc_desc)<0;temp_servicestatus=temp_servicestatus->nexthash);
+
+	if(temp_servicestatus && (compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,host_name,svc_desc)==0))
+		return temp_servicestatus;
 
 	return NULL;
         }

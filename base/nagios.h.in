@@ -527,6 +527,13 @@ int reset_variables(void);                           	/* reset all global variab
 void free_notification_list(void);		     	/* frees all memory allocated to the notification list */
 
 
+/**** Hash Functions ****/
+int hashfunc1(const char *name1, int hashslots);
+int hashfunc2(const char *name1, const char *name2, int hashslots);
+int compare_hashdata1(const char *,const char *);
+int compare_hashdata2(const char *,const char *,const char *,const char *);
+
+
 /**** Miscellaneous Functions ****/
 void sighandler(int);                                	/* handles signals */
 void service_check_sighandler(int);                     /* handles timeouts when executing service checks */

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2003
+ * Last Modified:   06-15-2003
  *
  * License:
  *
@@ -3161,6 +3161,66 @@ char *my_strsep (char **stringp, const char *delim){
 	return begin;
 	}
 
+
+
+/******************************************************************/
+/************************* HASH FUNCTIONS *************************/
+/******************************************************************/
+
+/* single hash function */
+int hashfunc1(const char *name1,int hashslots){
+	unsigned int i,result;
+
+	result=0;
+
+	if(name1)
+		for(i=0;i<strlen(name1);i++)
+			result+=name1[i];
+
+	result=result%hashslots;
+
+	return result;
+        }
+
+
+/* dual hash function */
+int hashfunc2(const char *name1,const char *name2,int hashslots){
+	unsigned int i,result;
+
+	result=0;
+	if(name1)
+		for(i=0;i<strlen(name1);i++)
+			result+=name1[i];
+
+	if(name2)
+		for(i=0;i<strlen(name2);i++)
+			result+=name2[i];
+
+	result=result%hashslots;
+
+	return result;
+        }
+
+
+/* single hash data comparison */
+int compare_hashdata1(const char *val1, const char *val2){
+	
+	return strcmp(val1,val2);
+        }
+
+
+/* dual hash data comparison */
+int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
+	int result;
+
+	result=strcmp(val1a,val2a);
+	if(result>0)
+		return 1;
+	else if(result<0)
+		return -1;
+	else
+		return strcmp(val1b,val2b);
+        }
 
 
 

@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2003  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-28-2003
+ * Last Modified: 06-15-2003
  *
  * License:
  * 
@@ -406,6 +406,10 @@ int read_main_config_file(char *);
 int read_all_object_configuration_data(char *,int);
 int read_all_status_data(char *,int);
 
+int hashfunc1(const char *name1, int hashslots);
+int hashfunc2(const char *name1, const char *name2, int hashslots);
+int compare_hashdata1(const char *,const char *);
+int compare_hashdata2(const char *,const char *,const char *,const char *);
 
 void strip(char *);                                		/* strips newlines, carriage returns, and spaces from end of buffer */
 void sanitize_plugin_output(char *);                            /* strips HTML and bad characters from plugin output */

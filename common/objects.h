@@ -527,6 +527,22 @@ hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,char *,in
 serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *);                          /* add an extended service info definition */
 
 
+/**** Object Hash Functions ****/
+int add_host_to_hashlist(host *);
+int add_service_to_hashlist(service *);
+int add_command_to_hashlist(command *);
+int add_timeperiod_to_hashlist(timeperiod *);
+int add_contact_to_hashlist(contact *);
+int add_contactgroup_to_hashlist(contactgroup *);
+int add_hostgroup_to_hashlist(hostgroup *);
+int add_servicegroup_to_hashlist(servicegroup *);
+int add_hostdependency_to_hashlist(hostdependency *);
+int add_servicedependency_to_hashlist(servicedependency *);
+int add_hostescalation_to_hashlist(hostescalation *);
+int add_serviceescalation_to_hashlist(serviceescalation *);
+int add_hostextinfo_to_hashlist(hostextinfo *);
+int add_serviceextinfo_to_hashlist(serviceextinfo *);
+
 
 /**** Object Search Functions ****/
 timeperiod * find_timeperiod(char *);						                /* finds a timeperiod object */
@@ -540,7 +556,6 @@ command * find_command(char *);							                /* finds a command object 
 service * find_service(char *,char *);								/* finds a service object */
 hostextinfo *find_hostextinfo(char *);				                                /* find an extended host info object */
 serviceextinfo *find_serviceextinfo(char *,char *);                                             /* find an extended service info object */
-
 
 
 /**** Object Traversal Functions ****/
@@ -563,29 +578,6 @@ hostdependency *get_first_hostdependency_by_dependent_host(char *);
 hostdependency *get_next_hostdependency_by_dependent_host(char *,hostdependency *);
 servicedependency *get_first_servicedependency_by_dependent_service(char *,char *);
 servicedependency *get_next_servicedependency_by_dependent_service(char *,char *,servicedependency *);
-
-
-
-/**** Hash Functions ****/
-int hashfunc1(const char *name1, int hashslots);
-int hashfunc2(const char *name1, const char *name2, int hashslots);
-int compare_hashdata1(const char *,const char *);
-int compare_hashdata2(const char *,const char *,const char *,const char *);
-
-int add_host_to_hashlist(host *);
-int add_service_to_hashlist(service *);
-int add_command_to_hashlist(command *);
-int add_timeperiod_to_hashlist(timeperiod *);
-int add_contact_to_hashlist(contact *);
-int add_contactgroup_to_hashlist(contactgroup *);
-int add_hostgroup_to_hashlist(hostgroup *);
-int add_servicegroup_to_hashlist(servicegroup *);
-int add_hostdependency_to_hashlist(hostdependency *);
-int add_servicedependency_to_hashlist(servicedependency *);
-int add_hostescalation_to_hashlist(hostescalation *);
-int add_serviceescalation_to_hashlist(serviceescalation *);
-int add_hostextinfo_to_hashlist(hostextinfo *);
-int add_serviceextinfo_to_hashlist(serviceextinfo *);
 
 
 

@@ -3,7 +3,7 @@
  * STATUSDATA.H - Header for external status data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2003
+ * Last Modified:   06-15-2003
  *
  * License:
  *
@@ -38,6 +38,13 @@
 #define READ_SERVICE_STATUS	4
 
 #define READ_ALL_STATUS_DATA    READ_PROGRAM_STATUS | READ_HOST_STATUS | READ_SERVICE_STATUS
+
+
+
+/*************************** CHAINED HASH LIMITS ***************************/
+
+#define SERVICESTATUS_HASHSLOTS      1024
+#define HOSTSTATUS_HASHSLOTS         1024
 
 
 /**************************** DATA STRUCTURES ******************************/
@@ -81,6 +88,7 @@ typedef struct hoststatus_struct{
 	int     process_performance_data;
 	int     obsess_over_host;
 	struct  hoststatus_struct *next;
+	struct  hoststatus_struct *nexthash;
         }hoststatus;
 
 
@@ -123,6 +131,7 @@ typedef struct servicestatus_struct{
 	int     process_performance_data;
 	int     obsess_over_service;
 	struct  servicestatus_struct *next;
+	struct  servicestatus_struct *nexthash;
         }servicestatus;
 
 
@@ -150,10 +159,15 @@ typedef struct servicestatus_struct{
 int read_status_data(char *,int);                       /* reads all status data */
 int add_host_status(hoststatus *);                      /* adds a host status entry to the list in memory */
 int add_service_status(servicestatus *);                /* adds a service status entry to the list in memory */
-void free_status_data(void);                            /* free all memory allocated to status data */
+
+int add_hoststatus_to_hashlist(hoststatus *);
+int add_servicestatus_to_hashlist(servicestatus *);
+
 servicestatus *find_servicestatus(char *,char *);       /* finds status information for a specific service */
 hoststatus *find_hoststatus(char *);                    /* finds status information for a specific host */
 int get_servicestatus_count(char *,int);		/* gets total number of services of a certain type for a specific host */
+
+void free_status_data(void);                            /* free all memory allocated to status data */
 #endif
 
 #ifdef NSCORE

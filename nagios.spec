@@ -261,7 +261,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/log/nagios
 %dir /var/log/nagios/archives
 
-%defattr(775,%{nsusr},%{cmdgrp})
+%defattr(2775,%{nsusr},%{cmdgrp})
 %dir /var/spool/nagios
 
 %doc Changelog INSTALL LICENSE README UPGRADING htaccess.sample

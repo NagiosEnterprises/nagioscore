@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-12-2003
+ * Last Modified: 04-15-2003
  *
  * Description:
  *
@@ -3708,6 +3708,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->notify_on_warning=temp_service->notify_on_warning;
 	new_service->notify_on_critical=temp_service->notify_on_critical;
 	new_service->notify_on_recovery=temp_service->notify_on_recovery;
+	new_service->notify_on_flapping=temp_service->notify_on_flapping;
 	new_service->have_notification_options=temp_service->have_notification_options;
 	new_service->notifications_enabled=temp_service->notifications_enabled;
 	new_service->have_notifications_enabled=temp_service->have_notifications_enabled;
@@ -7037,6 +7038,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"%sc",(x++>0)?",":"");
 		if(temp_contact->notify_on_service_recovery==TRUE)
 			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(temp_contact->notify_on_service_flapping==TRUE)
+			fprintf(fp,"%sf",(x++>0)?",":"");
 		if(x==0)
 			fprintf(fp,"n");
 		fprintf(fp,"\n");
@@ -7048,6 +7051,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"%su",(x++>0)?",":"");
 		if(temp_contact->notify_on_host_recovery==TRUE)
 			fprintf(fp,"%sr",(x++>0)?",":"");
+		if(temp_contact->notify_on_host_flapping==TRUE)
+			fprintf(fp,"%sf",(x++>0)?",":"");
 		if(x==0)
 			fprintf(fp,"n");
 		fprintf(fp,"\n");

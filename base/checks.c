@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-13-2003
+ * Last Modified:   04-15-2003
  *
  * License:
  *
@@ -1951,10 +1951,9 @@ int check_host(host *hst, int propagation_options, int check_options){
 int run_host_check(host *hst, int check_options){
 	int result=STATE_OK;
 	int return_result=HOST_UP;
-	char processed_check_command[MAX_INPUT_BUFFER];
-	char raw_check_command[MAX_INPUT_BUFFER];
+	char processed_command[MAX_INPUT_BUFFER];
+	char raw_command[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	command *temp_command;
 	time_t current_time;
 	time_t start_time;
 	char *temp_ptr;
@@ -1995,19 +1994,6 @@ int run_host_check(host *hst, int check_options){
 		return HOST_UP;
 	        }
 
-	/* find the command we use to check the host */
-	temp_command=find_command(hst->host_check_command,NULL);
-
-	/* if we couldn't find the command, return with an error */
-	if(temp_command==NULL){
-
-#ifdef DEBUG3
-		printf("\tCouldn't find the host check command!\n");
-#endif
-
-		return HOST_UP;
-	        }
-
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
@@ -2017,16 +2003,17 @@ int run_host_check(host *hst, int check_options){
 	hst->last_check=start_time;
 
 	/* get the raw command line */
-	strncpy(raw_check_command,temp_command->command_line,sizeof(raw_check_command));
-	raw_check_command[sizeof(raw_check_command)-1]='\x0';
+	get_raw_command_line(hst->host_check_command,raw_command,sizeof(raw_command));
+	strip(raw_command);
 
-	/* process any macros in the check command */
-	process_macros(raw_check_command,&processed_check_command[0],(int)sizeof(processed_check_command),0);
+	/* process any macros contained in the argument */
+	process_macros(raw_command,processed_command,sizeof(processed_command),0);
+	strip(processed_command);
 
 			
 #ifdef DEBUG3
-	printf("\t\tRaw Command: %s\n",hst->host_check_command);
-	printf("\t\tProcessed Command: %s\n",processed_check_command);
+	printf("\t\tRaw Command: %s\n",raw_command);
+	printf("\t\tProcessed Command: %s\n",processed_command);
 #endif
 
 	/* clear plugin output and performance data buffers */
@@ -2034,7 +2021,7 @@ int run_host_check(host *hst, int check_options){
 	strcpy(hst->perf_data,"");
 
 	/* run the host check command */
-	result=my_system(processed_check_command,host_check_timeout,&early_timeout,&exectime,temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1);
+	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1);
 
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
@@ -2043,7 +2030,7 @@ int run_host_check(host *hst, int check_options){
 		hst->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
 
 		/* log the timeout */
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",hst->host_check_command,hst->name,host_check_timeout);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 	        }

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-15-2003
  *
  * License:
  *
@@ -2387,18 +2387,32 @@ int pre_flight_check(void){
 	if(verify_config==TRUE)
 		printf("Checking obsessive compulsive processor commands...\n");
 	if(ocsp_command!=NULL){
-	        temp_command=find_command(ocsp_command,NULL);
+
+		strncpy(temp_buffer,ocsp_command,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+	        temp_command=find_command(temp_command_name,NULL);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",ocsp_command);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;
 		        }
 	        }
 	if(ochp_command!=NULL){
-	        temp_command=find_command(ochp_command,NULL);
+
+		strncpy(temp_buffer,ochp_command,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+	        temp_command=find_command(temp_command_name,NULL);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",ochp_command);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;

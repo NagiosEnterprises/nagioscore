@@ -542,9 +542,10 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 /* notify a specific contact about a service problem or recovery */
 int notify_contact_of_service(contact *cntct, service *svc, int type){
 	commandsmember *temp_commandsmember;
-	char temp_command_line[MAX_INPUT_BUFFER];
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char command_line[MAX_INPUT_BUFFER];
+	char command_name[MAX_INPUT_BUFFER];
+	char *command_name_ptr=NULL;
+	char raw_command[MAX_INPUT_BUFFER];
+	char processed_command[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
@@ -564,39 +565,41 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 	/* process all the notification commands this user has */
 	for(temp_commandsmember=cntct->service_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
 
+		/* get the command name */
+		strncpy(command_name,temp_commandsmember->command,sizeof(command_name));
+		command_name[sizeof(command_name)-1]='\x0';
+		command_name_ptr=strtok(command_name,"!");
+
 		/* get the raw command line */
-		strncpy(temp_command_line,temp_commandsmember->command,sizeof(temp_command_line)-1);
-		temp_command_line[sizeof(temp_command_line)-1]='\x0';
-		get_raw_command_line(temp_command_line,&raw_command_line[0],(int)sizeof(raw_command_line));
+		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command));
+		strip(raw_command);
+
+		/* process any macros contained in the argument */
+		process_macros(raw_command,processed_command,sizeof(processed_command),0);
+		strip(processed_command);
 
 		/* run the notification command */
-		if(strcmp(raw_command_line,"")){
+		if(strcmp(processed_command,"")){
 
 #ifdef DEBUG4
-			printf("\tRaw Command:       %s\n",raw_command_line);
-#endif
-
-			/* replace macros in the command line */
-			process_macros(raw_command_line,&command_line[0],(int)sizeof(command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
-
-#ifdef DEBUG4
-			printf("\tProcessed Command: %s\n",command_line);
+			printf("\tRaw Command:       %s\n",raw_command);
+			printf("\tProcessed Command: %s\n",processed_command);
 #endif
 
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
 				switch(type){
 				case NOTIFICATION_ACKNOWLEDGEMENT:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTART:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTOP:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				default:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_SERVICEOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				        }
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -604,11 +607,11 @@ int notify_contact_of_service(contact *cntct, service *svc, int type){
 			        }
 
 			/* run the command */
-			my_system(command_line,notification_timeout,&early_timeout,&exectime,NULL,0);
+			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
 
 			/* check to see if the notification command timed out */
 			if(early_timeout==TRUE){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,temp_commandsmember->command,DEFAULT_NOTIFICATION_TIMEOUT);
+				snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
 			        }
@@ -1178,10 +1181,11 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 /* notify a specific contact that an entire host is down or up */
 int notify_contact_of_host(contact *cntct,host *hst, int type){
 	commandsmember *temp_commandsmember;
-	char temp_command_line[MAX_INPUT_BUFFER];
+	char command_name[MAX_INPUT_BUFFER];
+	char *command_name_ptr;
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char raw_command_line[MAX_INPUT_BUFFER];
-	char command_line[MAX_INPUT_BUFFER];
+	char raw_command[MAX_INPUT_BUFFER];
+	char processed_command[MAX_INPUT_BUFFER];
 	int early_timeout=FALSE;
 	double exectime;
 
@@ -1201,40 +1205,41 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 	/* process all the notification commands this user has */
 	for(temp_commandsmember=cntct->host_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
 
+		/* get the command name */
+		strncpy(command_name,temp_commandsmember->command,sizeof(command_name));
+		command_name[sizeof(command_name)-1]='\x0';
+		command_name_ptr=strtok(command_name,"!");
+
 		/* get the raw command line */
-		strncpy(temp_command_line,temp_commandsmember->command,sizeof(temp_command_line)-1);
-		temp_command_line[sizeof(temp_command_line)-1]='\x0';
-		get_raw_command_line(temp_command_line,&raw_command_line[0],(int)sizeof(raw_command_line));
+		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command));
+		strip(raw_command);
+
+		/* process any macros contained in the argument */
+		process_macros(raw_command,processed_command,sizeof(processed_command),0);
+		strip(processed_command);
 
 		/* run the notification command */
-		if(strcmp(raw_command_line,"")){
+		if(strcmp(processed_command,"")){
 
 
 #ifdef DEBUG4
-			printf("\tRaw Command:       %s\n",raw_command_line);
-#endif
-
-			/* replace macros in the command line */
-			process_macros(raw_command_line,&command_line[0],(int)sizeof(command_line),STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
-
-#ifdef DEBUG4
-			printf("\tProcessed Command: %s\n",command_line);
+			printf("\tRaw Command:       %s\n",raw_command);
+			printf("\tProcessed Command: %s\n",processed_command);
 #endif
 
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
 				switch(type){
 				case NOTIFICATION_ACKNOWLEDGEMENT:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTART:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTOP:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
-					break;
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);					break;
 				default:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_HOSTOUTPUT]);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				        }
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
@@ -1242,11 +1247,11 @@ int notify_contact_of_host(contact *cntct,host *hst, int type){
 			        }
 
 			/* run the command */
-			my_system(command_line,notification_timeout,&early_timeout,&exectime,NULL,0);
+			my_system(processed_command,notification_timeout,&early_timeout,&exectime,NULL,0);
 
 			/* check to see if the notification timed out */
 			if(early_timeout==TRUE){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n",cntct->name,temp_commandsmember->command,DEFAULT_NOTIFICATION_TIMEOUT);
+				snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
 			        }

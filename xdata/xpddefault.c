@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-18-2003
+ * Last Modified:   04-15-2003
  *
  * License:
  *
@@ -57,6 +57,8 @@ char                   *xpddefault_service_perfdata_command=NULL;
 /* initializes performance data */
 int xpddefault_initialize_performance_data(char *config_file){
 	char buffer[MAX_INPUT_BUFFER];
+	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_command_name;
 
 	/* default values */
 	xpddefault_perfdata_timeout=DEFAULT_PERFDATA_TIMEOUT;
@@ -68,8 +70,15 @@ int xpddefault_initialize_performance_data(char *config_file){
 
 	/* verify that performance data commands are valid */
 	if(xpddefault_host_perfdata_command!=NULL){
-		if(find_command(xpddefault_host_perfdata_command,NULL)==NULL){
-			snprintf(buffer,sizeof(buffer),"Warning: Host performance command '%s' was not found - host performance data will not be processed!\n",xpddefault_host_perfdata_command);
+
+		strncpy(temp_buffer,xpddefault_host_perfdata_command,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+		if(find_command(temp_command_name,NULL)==NULL){
+			snprintf(buffer,sizeof(buffer),"Warning: Host performance command '%s' was not found - host performance data will not be processed!\n",temp_command_name);
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			free(xpddefault_host_perfdata_command);
@@ -77,8 +86,15 @@ int xpddefault_initialize_performance_data(char *config_file){
 		        }
 	        }
 	if(xpddefault_service_perfdata_command!=NULL){
-		if(find_command(xpddefault_service_perfdata_command,NULL)==NULL){
-			snprintf(buffer,sizeof(buffer),"Warning: Service performance command '%s' was not found - service performance data will not be processed!\n",xpddefault_service_perfdata_command);
+
+		strncpy(temp_buffer,xpddefault_service_perfdata_command,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+		if(find_command(temp_command_name,NULL)==NULL){
+			snprintf(buffer,sizeof(buffer),"Warning: Service performance command '%s' was not found - service performance data will not be processed!\n",temp_command_name);
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			free(xpddefault_service_perfdata_command);
@@ -200,7 +216,6 @@ int xpddefault_update_service_performance_data(service *svc){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	command *temp_command;
 	host *temp_host;
 	int early_timeout=FALSE;
 	double exectime;
@@ -222,16 +237,9 @@ int xpddefault_update_service_performance_data(service *svc){
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
 
-	/* find the service performance data command */
-	temp_command=find_command(xpddefault_service_perfdata_command,NULL);
-
-	/* if there is no valid command, exit */
-	if(temp_command==NULL)
-		return ERROR;
-
-	/* get the raw command line to execute */
-	strncpy(raw_command_line,temp_command->command_line,sizeof(raw_command_line));
-	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+	/* get the raw command line */
+	get_raw_command_line(xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line));
+	strip(raw_command_line);
 
 #ifdef DEBUG3
 	printf("\tRaw service performance data command line: %s\n",raw_command_line);
@@ -249,7 +257,7 @@ int xpddefault_update_service_performance_data(service *svc){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service performance data command '%s' for service '%s' on host '%s' timed out after %d seconds\n",xpddefault_service_perfdata_command,svc->description,svc->host_name,xpddefault_perfdata_timeout);
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service performance data command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command_line,svc->description,svc->host_name,xpddefault_perfdata_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 	        }
@@ -267,7 +275,6 @@ int xpddefault_update_host_performance_data(host *hst){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
-	command *temp_command;
 	int early_timeout=FALSE;
 	double exectime;
 	int result=OK;
@@ -284,16 +291,9 @@ int xpddefault_update_host_performance_data(host *hst){
 	clear_volatile_macros();
 	grab_host_macros(hst);
 
-	/* find the host performance data command */
-	temp_command=find_command(xpddefault_host_perfdata_command,NULL);
-
-	/* if there is no valid command, exit */
-	if(temp_command==NULL)
-		return ERROR;
-
-	/* get the raw command line to execute */
-	strncpy(raw_command_line,temp_command->command_line,sizeof(raw_command_line));
-	raw_command_line[sizeof(raw_command_line)-1]='\x0';
+	/* get the raw command line */
+	get_raw_command_line(xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line));
+	strip(raw_command_line);
 
 #ifdef DEBUG3
 	printf("\tRaw host performance data command line: %s\n",raw_command_line);
@@ -311,7 +311,7 @@ int xpddefault_update_host_performance_data(host *hst){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host performance data command '%s' for host '%s' timed out after %d seconds\n",xpddefault_host_perfdata_command,hst->name,xpddefault_perfdata_timeout);
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host performance data command '%s' for host '%s' timed out after %d seconds\n",processed_command_line,hst->name,xpddefault_perfdata_timeout);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 	        }

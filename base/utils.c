@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-15-2003
  *
  * License:
  *
@@ -420,8 +420,8 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 				else if(!strcmp(temp_buffer,"SERVICEEXECUTIONTIME"))
 					selected_macro=macro_x[MACRO_SERVICEEXECUTIONTIME];
 
-				else if(!strcmp(temp_buffer,"HOSTLATENCY"))
-					selected_macro=macro_x[MACRO_HOSTLATENCY];
+				else if(!strcmp(temp_buffer,"SERVICELATENCY"))
+					selected_macro=macro_x[MACRO_SERVICELATENCY];
 
 				else if(!strcmp(temp_buffer,"HOSTLATENCY"))
 					selected_macro=macro_x[MACRO_HOSTLATENCY];

@@ -2165,7 +2165,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	        }
 	if(notify_flapping<0 || notify_flapping>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_flapping value for service '%s' on host '%s'\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_flapping value '%d' for service '%s' on host '%s'\n",notify_flapping,description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif

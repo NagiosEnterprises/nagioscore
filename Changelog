@@ -20,6 +20,7 @@ Nagios Change Log
 * Documentation fixes and updates
 * Additional MRTG output options in nagiostats utility
 * Fixed bug in macro processing where commands longer than 1K in length were sometimes being truncated
+* Fixed bug in initialization of servicedependency definitions
 
 
 

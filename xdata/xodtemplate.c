@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2005
+ * Last Modified: 03-24-2005
  *
  * Description:
  *
@@ -2129,7 +2129,6 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_servicedependency->fail_execute_on_unknown=FALSE;
 					temp_servicedependency->fail_execute_on_warning=FALSE;
 					temp_servicedependency->fail_execute_on_critical=FALSE;
-					temp_servicedependency->fail_execute_on_critical=TRUE;
 				        }
 				else{
 #ifdef NSCORE

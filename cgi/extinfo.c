@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2005
+ * Last Modified: 03-23-2005
  *
  * License:
  * 
@@ -309,24 +309,16 @@ int main(void){
 				printf("<DIV CLASS='dataTitle'>(%s)</DIV><BR>\n",temp_host->name);
 				printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
 				for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-					hostgroupmember *temp_member=temp_hostgroup->members;
-				        while(temp_member!=NULL){
-
-				                /* we found a match */
-				                if(!strcmp(temp_member->host_name,temp_host->name)) {
-							if (found==TRUE)
-								printf(", ");	
-							printf("<A HREF='%s?hostgroup=%s&style=overview'>%s</A>",STATUS_CGI,url_encode(temp_hostgroup->group_name),temp_hostgroup->group_name);
-							found=TRUE;
-							}
-						
-				                temp_member=temp_member->next;
-			                	}		
+					if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==TRUE){
+						if(found==TRUE)
+							printf(", ");	
+						printf("<A HREF='%s?hostgroup=%s&style=overview'>%s</A>",STATUS_CGI,url_encode(temp_hostgroup->group_name),temp_hostgroup->group_name);
+						found=TRUE;
+						}
 					}
 			
-				if(found==FALSE) {
-						printf("No hostgroups");
-					}
+				if(found==FALSE)
+					printf("No hostgroups");
 				printf("</DIV><BR>\n");
 				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
 			        }
@@ -336,24 +328,16 @@ int main(void){
 				printf("<DIV CLASS='dataTitle'>(<A HREF='%s?type=%d&host=%s'>%s</a>)</DIV><BR>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name),temp_host->name);
                                 printf("<DIV CLASS='data'>Member of</DIV><DIV CLASS='dataTitle'>");
                                 for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-                                        servicegroupmember *temp_member=temp_servicegroup->members;
-                                        while(temp_member!=NULL){
-
-                                                /* we found a match */
-                                                if(!strcmp(temp_member->host_name,temp_host->name)) {
-                                                        if (found==TRUE)
-                                                                printf(", ");
-                                                        printf("<A HREF='%s?servicegroup=%s&style=overview'>%s</A>",STATUS_CGI,url_encode(temp_servicegroup->group_name),temp_servicegroup->group_name);
-                                                        found=TRUE;
-                                                        }
-
-                                                temp_member=temp_member->next;
-                                                }
+					if(is_service_member_of_servicegroup(temp_servicegroup,temp_service)==TRUE){
+						if(found==TRUE)
+							printf(", ");
+						printf("<A HREF='%s?servicegroup=%s&style=overview'>%s</A>",STATUS_CGI,url_encode(temp_servicegroup->group_name),temp_servicegroup->group_name);
+						found=TRUE;
+					        }
                                         }
 
-                                if(found==FALSE) {
-                                                printf("No servicegroups.");
-                                        }
+                                if(found==FALSE)
+					printf("No servicegroups.");
                                 printf("</DIV><BR>\n");
 
 				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
@@ -1914,7 +1898,7 @@ void show_all_comments(void){
 	        }
 
 	if(total_comments==0)
-		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=9>There are no service comments</TD></TR>");
+		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=10>There are no service comments</TD></TR>");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-19-2003
+ * Last Modified:   07-18-2003
  *
  * License:
  *
@@ -103,6 +103,8 @@ extern int      soft_state_dependencies;
 extern int      retain_state_information;
 extern int      retention_update_interval;
 extern int      use_retained_program_state;
+extern int      use_retained_scheduling_info;
+extern int      retention_scheduling_horizon;
 
 extern int      log_rotation_method;
 
@@ -619,6 +621,35 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tuse_retained_program_state set to %s\n",(use_retained_program_state==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+		else if(!strcmp(variable,"use_retained_scheduling_info")){
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for use_retained_scheduling_info");
+				error=TRUE;
+				break;
+			        }
+
+			strip(value);
+			use_retained_scheduling_info=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tuse_retained_scheduling_info set to %s\n",(use_retained_scheduling_info==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+		else if(!strcmp(variable,"retention_scheduling_horizon")){
+
+			strip(value);
+			retention_scheduling_horizon=atoi(value);
+
+			if(retention_scheduling_horizon<=0){
+				strcpy(error_message,"Illegal value for retention_scheduling_horizon");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tretention_scheduling_horizon set to %d\n",retention_scheduling_horizon);
 #endif
 		        }
 		else if(!strcmp(variable,"obsess_over_services")){

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-18-2003
+ * Last Modified:   07-18-2003
  *
  * License:
  *
@@ -324,6 +324,10 @@ void init_timing_loop(void){
 			if(temp_service->should_be_scheduled==FALSE)
 				continue;
 
+			/* skip services that are already scheduled (from retention data) */
+			if(temp_service->next_check!=(time_t)0)
+				continue;
+
 			mult_factor=current_interleave_block+(interleave_block_index*total_interleave_blocks);
 
 #ifdef DEBUG1
@@ -446,6 +450,10 @@ void init_timing_loop(void){
 
 		/* skip hosts that shouldn't be scheduled */
 		if(temp_host->should_be_scheduled==FALSE)
+			continue;
+
+		/* skip hosts that are already scheduled (from retention data) */
+		if(temp_host->next_check!=(time_t)0)
 			continue;
 
 #ifdef DEBUG1

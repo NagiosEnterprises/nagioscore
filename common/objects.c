@@ -1316,6 +1316,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->percent_state_change=0.0;
 	new_host->total_services=0;
 	new_host->total_service_check_interval=0L;
+	new_host->modified_attributes=MODATTR_NONE;
 
 	/* allocate new plugin output buffer */
 	new_host->plugin_output=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
@@ -3183,6 +3184,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->is_flapping=FALSE;
 	new_service->flapping_comment_id=0;
 	new_service->percent_state_change=0.0;
+	new_service->modified_attributes=MODATTR_NONE;
 
 	/* allocate new plugin output buffer */
 	new_service->plugin_output=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);

@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-12-2003
+ * Last Modified: 07-14-2003
  *
  * License:
  * 
@@ -606,12 +606,8 @@ void request_command_data(int cmd){
 		printf("delay a %s notification",(cmd==CMD_DELAY_HOST_NOTIFICATION)?"host":"service");
 		break;
 
-	case CMD_DELAY_SVC_CHECK:
-		printf("re-schedule the next check of a service");
-		break;
-
-	case CMD_IMMEDIATE_SVC_CHECK:
-		printf("schedule an immediate service check");
+	case CMD_SCHEDULE_SVC_CHECK:
+		printf("schedule a service check");
 		break;
 
 	case CMD_ENABLE_SVC_CHECK:
@@ -634,12 +630,8 @@ void request_command_data(int cmd){
 		printf("%s active checks of all services on a host",(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"enable":"disable");
 		break;
 
-	case CMD_DELAY_HOST_SVC_CHECKS:
-		printf("delay all active service checks for a host");
-		break;
-
-	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
-		printf("schedule an immediate check of all services for a host");
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
+		printf("schedule a check of all services for a host");
 		break;
 
 	case CMD_DEL_ALL_HOST_COMMENTS:
@@ -800,12 +792,8 @@ void request_command_data(int cmd){
 		printf("%s obsessing over host checks",(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"start":"stop");
 		break;
 
-	case CMD_DELAY_HOST_CHECK:
-		printf("re-schedule the next check of a host");
-		break;
-
-	case CMD_IMMEDIATE_HOST_CHECK:
-		printf("schedule an immediate host check");
+	case CMD_SCHEDULE_HOST_CHECK:
+		printf("schedule a host check");
 		break;
 
 	case CMD_START_OBSESSING_OVER_SVC:
@@ -919,37 +907,24 @@ void request_command_data(int cmd){
 		printf("</b></td></tr>\n");
 		break;
 
-	case CMD_IMMEDIATE_SVC_CHECK:
-	case CMD_DELAY_SVC_CHECK:
+	case CMD_SCHEDULE_SVC_CHECK:
+	case CMD_SCHEDULE_HOST_CHECK:
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
 		printf("</b></td></tr>\n");
-		printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
-		if(cmd!=CMD_IMMEDIATE_SVC_CHECK){
-			time(&t);
-			time_to_string(&t,buffer,sizeof(buffer)-1);
-			printf("<tr><td CLASS='optBoxRequiredItem'>Check Time:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='start_time' VALUE='%s'>",buffer);
+		if(cmd==CMD_SCHEDULE_SVC_CHECK){
+			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
 			printf("</b></td></tr>\n");
 		        }
-		printf("<tr><td CLASS='optBoxItem'>Force Check:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME='force_check' CHECKED>");
+		time(&t);
+		time_to_string(&t,buffer,sizeof(buffer)-1);
+		printf("<tr><td CLASS='optBoxRequiredItem'>Check Time:</td><td><b>");
+		printf("<INPUT TYPE='TEXT' NAME='start_time' VALUE='%s'>",buffer);
 		printf("</b></td></tr>\n");
-		break;
-
-	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
-	case CMD_DELAY_HOST_SVC_CHECKS:
-		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
-		printf("</b></td></tr>\n");
-		if(cmd!=CMD_IMMEDIATE_HOST_SVC_CHECKS){
-			printf("<tr><td CLASS='optBoxRequiredItem'>Check Delay (minutes from now):</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='sched_dly' VALUE='%d'>",schedule_delay);
-			printf("</b></td></tr>\n");
-		        }
 		printf("<tr><td CLASS='optBoxItem'>Force Check:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME='force_check'>");
+		printf("<INPUT TYPE='checkbox' NAME=x'force_check' CHECKED>");
 		printf("</b></td></tr>\n");
 		break;
 
@@ -1170,23 +1145,6 @@ void request_command_data(int cmd){
 		        }
 		break;
 
-	case CMD_IMMEDIATE_HOST_CHECK:
-	case CMD_DELAY_HOST_CHECK:
-		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
-		printf("</b></td></tr>\n");
-		if(cmd!=CMD_IMMEDIATE_HOST_CHECK){
-			time(&t);
-			time_to_string(&t,buffer,sizeof(buffer)-1);
-			printf("<tr><td CLASS='optBoxRequiredItem'>Check Time:</td><td><b>");
-			printf("<INPUT TYPE='TEXT' NAME='start_time' VALUE='%s'>",buffer);
-			printf("</b></td></tr>\n");
-		        }
-		printf("<tr><td CLASS='optBoxItem'>Force Check:</td><td><b>");
-		printf("<INPUT TYPE='checkbox' NAME=x'force_check' CHECKED>");
-		printf("</b></td></tr>\n");
-		break;
-
 	default:
 		printf("<tr><td CLASS='optBoxItem'>This should not be happening... :-(</td><td></td></tr>\n");
 	        }
@@ -1336,8 +1294,7 @@ void commit_command_data(int cmd){
 
 		break;
 		
-	case CMD_DELAY_SVC_CHECK:
-	case CMD_IMMEDIATE_SVC_CHECK:
+	case CMD_SCHEDULE_SVC_CHECK:
 	case CMD_ENABLE_SVC_CHECK:
 	case CMD_DISABLE_SVC_CHECK:
 	case CMD_DEL_ALL_SVC_COMMENTS:
@@ -1384,7 +1341,7 @@ void commit_command_data(int cmd){
 		        }
 
 		/* make sure we have check time (if necessary) */
-		if((cmd==CMD_DELAY_SVC_CHECK || cmd==CMD_IMMEDIATE_SVC_CHECK) && start_time==(time_t)0)
+		if(cmd==CMD_SCHEDULE_SVC_CHECK && start_time==(time_t)0)
 			error=TRUE;
 
 		/* make sure we have start/end times for downtime (if necessary) */
@@ -1426,8 +1383,7 @@ void commit_command_data(int cmd){
 	case CMD_ENABLE_HOST_SVC_CHECKS:
 	case CMD_DISABLE_HOST_SVC_CHECKS:
 	case CMD_DEL_ALL_HOST_COMMENTS:
-	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
-	case CMD_DELAY_HOST_SVC_CHECKS:
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
 	case CMD_ENABLE_HOST_NOTIFICATIONS:
 	case CMD_DISABLE_HOST_NOTIFICATIONS:
 	case CMD_ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST:
@@ -1446,8 +1402,7 @@ void commit_command_data(int cmd){
 	case CMD_PROCESS_HOST_CHECK_RESULT:
 	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
 	case CMD_DISABLE_PASSIVE_HOST_CHECKS:
-	case CMD_DELAY_HOST_CHECK:
-	case CMD_IMMEDIATE_HOST_CHECK:
+	case CMD_SCHEDULE_HOST_CHECK:
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
 
@@ -1479,7 +1434,7 @@ void commit_command_data(int cmd){
 			error=TRUE;
 
 		/* make sure we have check time (if necessary) */
-		if((cmd==CMD_DELAY_HOST_CHECK || cmd==CMD_IMMEDIATE_HOST_CHECK) && start_time==(time_t)0)
+		if((cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_HOST_SVC_CHECKS)&& start_time==(time_t)0)
 			error=TRUE;
 
 		/* make sure we have passive check info (if necessary) */
@@ -1650,9 +1605,8 @@ int commit_command(int cmd){
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] DELAY_SVC_NOTIFICATION;%s;%s;%lu\n",current_time,host_name,service_desc,notification_time);
 		break;
 
-	case CMD_IMMEDIATE_SVC_CHECK:
-	case CMD_DELAY_SVC_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sSVC_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,service_desc,(cmd==CMD_IMMEDIATE_SVC_CHECK)?current_time:start_time);
+	case CMD_SCHEDULE_SVC_CHECK:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sSVC_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,service_desc,start_time);
 		break;
 
 	case CMD_ENABLE_SVC_CHECK:
@@ -1681,9 +1635,8 @@ int commit_command(int cmd){
 			snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_HOST_SVC_CHECKS;%s\n[%lu] %s_HOST_CHECK;%s\n",current_time,(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"ENABLE":"DISABLE",host_name,current_time,(cmd==CMD_ENABLE_HOST_SVC_CHECKS)?"ENABLE":"DISABLE",host_name);
 		break;
 		
-	case CMD_DELAY_HOST_SVC_CHECKS:
-	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_SVC_CHECKS;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,(cmd==CMD_IMMEDIATE_HOST_SVC_CHECKS)?current_time:scheduled_time);
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_SVC_CHECKS;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,scheduled_time);
 		break;
 
 	case CMD_DEL_ALL_HOST_COMMENTS:
@@ -1839,9 +1792,8 @@ int commit_command(int cmd){
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] %s_OBSESSING_OVER_HOST_CHECKS;\n",current_time,(cmd==CMD_START_OBSESSING_OVER_HOST_CHECKS)?"START":"STOP");
 		break;
 
-	case CMD_IMMEDIATE_HOST_CHECK:
-	case CMD_DELAY_HOST_CHECK:
-		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,(cmd==CMD_IMMEDIATE_HOST_CHECK)?current_time:start_time);
+	case CMD_SCHEDULE_HOST_CHECK:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_%sHOST_CHECK;%s;%s;%lu\n",current_time,(force_check==TRUE)?"FORCED_":"",host_name,start_time);
 		break;
 
 	case CMD_START_OBSESSING_OVER_SVC:
@@ -2009,14 +1961,8 @@ void show_command_help(cmd){
 		printf("the service changes state before the next notification is scheduled to be sent out.  This command has no effect if the service is currently in an OK state.\n");
 		break;
 
-	case CMD_DELAY_SVC_CHECK:
-		printf("This command is used to re-schedule the next check of a particular service.  Nagios will re-queue the service to be checked at the time you specify.\n");
-		printf("If you select the <i>force check</i> option, Nagios will force a check of the service regardless of both what time the scheduled check occurs and whether or not checks are enabled for the service.\n");
-		break;
-
-	case CMD_IMMEDIATE_SVC_CHECK:
-		printf("This command will schedule an immediate check of the specified service.  Note that the check is <i>scheduled</i> immediately, not necessary executed immediately.  If Nagios\n");
-		printf("has fallen behind in its scheduling queue, it will check services that were queued prior to this one.\n");
+	case CMD_SCHEDULE_SVC_CHECK:
+		printf("This command is used to schedule the next check of a particular service.  Nagios will re-queue the service to be checked at the time you specify.\n");
 		printf("If you select the <i>force check</i> option, Nagios will force a check of the service regardless of both what time the scheduled check occurs and whether or not checks are enabled for the service.\n");
 		break;
 
@@ -2055,17 +2001,8 @@ void show_command_help(cmd){
 		printf("Note that disabling service checks may not necessarily prevent notifications from being sent out about the host which those services are associated with.  This <i>does not</i> disable checks of the host unless you check the 'Disable for host too' option.\n");
 		break;
 		
-	case CMD_DELAY_HOST_SVC_CHECKS:
-		printf("This command is used to delay the next scheduled check of all services on the specified host.  Nagios will re-queue the services and will not not check them again until the number\n");
-		printf("of minutes you specified with the <b><i>check delay</i></b> option has elapsed from the time the command is committed.  Specifying a value of 0 for the delay value\n");
-		printf("is equivalent to scheduling an immediate check of all the services.\n");
-		printf("If you select the <i>force check</i> option, Nagios will force a check of all services on the host regardless of both what time the scheduled checks occur and whether or not checks are enabled for those services.\n");
-		break;
-
-	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
-		printf("This command will schedule an immediate check of all service on the specified host.  Note that the checks are <i>scheduled</i> immediately, not necessary executed immediately.  If Nagios\n");
-		printf("has fallen behind in its scheduling queue, it will check services that were queued prior to these services.\n");
-		printf("If you select the <i>force check</i> option, Nagios will force a check of all services on the host regardless of both what time the scheduled checks occur and whether or not checks are enabled for those services.\n");
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
+		printf("This command is used to scheduled the next check of all services on the specified host.  If you select the <i>force check</i> option, Nagios will force a check of all services on the host regardless of both what time the scheduled checks occur and whether or not checks are enabled for those services.\n");
 		break;
 
 	case CMD_DEL_ALL_HOST_COMMENTS:
@@ -2362,14 +2299,8 @@ void show_command_help(cmd){
 		printf("This command is used to stop Nagios from obsessing over host checks.\n");
 		break;
 
-	case CMD_DELAY_HOST_CHECK:
-		printf("This command is used to re-schedule the next check of a particular host.  Nagios will re-queue the host to be checked at the time you specify.\n");
-		printf("If you select the <i>force check</i> option, Nagios will force a check of the host regardless of both what time the scheduled check occurs and whether or not checks are enabled for the host.\n");
-		break;
-
-	case CMD_IMMEDIATE_HOST_CHECK:
-		printf("This command will schedule an immediate check of the specified host.  Note that the check is <i>scheduled</i> immediately, not necessary executed immediately.  If Nagios\n");
-		printf("has fallen behind in its scheduling queue, it will check hosts that were queued prior to this one.\n");
+	case CMD_SCHEDULE_HOST_CHECK:
+		printf("This command is used to schedule the next check of a particular host.  Nagios will re-queue the host to be checked at the time you specify.\n");
 		printf("If you select the <i>force check</i> option, Nagios will force a check of the host regardless of both what time the scheduled check occurs and whether or not checks are enabled for the host.\n");
 		break;
 

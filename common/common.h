@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-13-2003
+ * Last Modified: 07-16-2003
  *
  * License:
  *
@@ -38,8 +38,8 @@
 
 #define CMD_ENABLE_SVC_CHECK		5
 #define CMD_DISABLE_SVC_CHECK		6
-#define CMD_DELAY_SVC_CHECK		7
-#define CMD_IMMEDIATE_SVC_CHECK		8
+
+#define CMD_SCHEDULE_SVC_CHECK		7
 
 #define CMD_DELAY_SVC_NOTIFICATION	9
 
@@ -54,8 +54,7 @@
 #define CMD_ENABLE_HOST_SVC_CHECKS              15
 #define CMD_DISABLE_HOST_SVC_CHECKS             16
 
-#define CMD_DELAY_HOST_SVC_CHECKS               17
-#define CMD_IMMEDIATE_HOST_SVC_CHECKS           18
+#define CMD_SCHEDULE_HOST_SVC_CHECKS            17
 
 #define CMD_DELAY_HOST_SVC_NOTIFICATIONS        19  /* currently unimplemented */
 
@@ -106,8 +105,8 @@
 #define CMD_REMOVE_HOST_ACKNOWLEDGEMENT			51
 #define CMD_REMOVE_SVC_ACKNOWLEDGEMENT			52
 
-#define CMD_FORCE_DELAY_HOST_SVC_CHECKS                 53
-#define CMD_FORCE_DELAY_SVC_CHECK                       54
+#define CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS             53
+#define CMD_SCHEDULE_FORCED_SVC_CHECK                   54
 
 #define CMD_SCHEDULE_HOST_DOWNTIME                      55
 #define CMD_SCHEDULE_SVC_DOWNTIME                       56
@@ -171,9 +170,8 @@
 #define CMD_START_OBSESSING_OVER_HOST_CHECKS		94
 #define CMD_STOP_OBSESSING_OVER_HOST_CHECKS		95
 
-#define CMD_DELAY_HOST_CHECK		                96
-#define CMD_IMMEDIATE_HOST_CHECK		        97
-#define CMD_FORCE_DELAY_HOST_CHECK                      98
+#define CMD_SCHEDULE_HOST_CHECK		                96
+#define CMD_SCHEDULE_FORCED_HOST_CHECK                  98
 
 #define CMD_START_OBSESSING_OVER_SVC		        99
 #define CMD_STOP_OBSESSING_OVER_SVC		        100
@@ -330,3 +328,16 @@
 
 #define MAX_DATETIME_LENGTH			48
 
+
+/************************* MODIFIED ATTRIBUTES **************************/
+
+#define MODATTR_NONE                            0
+#define MODATTR_NOTIFICATIONS_ENABLED           1
+#define MODATTR_ACTIVE_CHECKS_ENABLED           2
+#define MODATTR_PASSIVE_CHECKS_ENABLED          4
+#define MODATTR_EVENT_HANDLER_ENABLED           8
+#define MODATTR_FLAP_DETECTION_ENABLED          16
+#define MODATTR_FAILURE_PREDICTION_ENABLED      32
+#define MODATTR_PERFORMANCE_DATA_ENABLED        64
+#define MODATTR_OBSESSIVE_HANDLER_ENABLED       128
+	

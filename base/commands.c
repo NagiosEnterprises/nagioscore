@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-12-2003
+ * Last Modified:   07-17-2003
  *
  * License:
  *
@@ -60,6 +60,9 @@ extern int      process_performance_data;
 
 extern int      log_external_commands;
 extern int      log_passive_checks;
+
+extern unsigned long    modified_host_process_attributes;
+extern unsigned long    modified_service_process_attributes;
 
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
@@ -274,9 +277,9 @@ void check_for_external_commands(void){
 			command_type=CMD_DISABLE_PASSIVE_HOST_CHECKS;
 
 		else if(!strcmp(command_id,"SCHEDULE_HOST_SVC_CHECKS"))
-			command_type=CMD_DELAY_HOST_SVC_CHECKS;
+			command_type=CMD_SCHEDULE_HOST_SVC_CHECKS;
 		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_SVC_CHECKS"))
-			command_type=CMD_FORCE_DELAY_HOST_SVC_CHECKS;
+			command_type=CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS;
 
 		else if(!strcmp(command_id,"ACKNOWLEDGE_HOST_PROBLEM"))
 			command_type=CMD_ACKNOWLEDGE_HOST_PROBLEM;
@@ -294,9 +297,9 @@ void check_for_external_commands(void){
 			command_type=CMD_DISABLE_HOST_CHECK;
 
 		else if(!strcmp(command_id,"SCHEDULE_HOST_CHECK"))
-			command_type=CMD_DELAY_HOST_CHECK;
+			command_type=CMD_SCHEDULE_HOST_CHECK;
 		else if(!strcmp(command_id,"SCHEDULE_FORCED_HOST_CHECK"))
-			command_type=CMD_FORCE_DELAY_HOST_CHECK;
+			command_type=CMD_SCHEDULE_FORCED_HOST_CHECK;
 
 		else if(!strcmp(command_id,"SCHEDULE_HOST_DOWNTIME"))
 			command_type=CMD_SCHEDULE_HOST_DOWNTIME;
@@ -368,9 +371,9 @@ void check_for_external_commands(void){
 			command_type=CMD_DEL_ALL_SVC_COMMENTS;
 
 		else if(!strcmp(command_id,"SCHEDULE_SVC_CHECK"))
-			command_type=CMD_DELAY_SVC_CHECK;
+			command_type=CMD_SCHEDULE_SVC_CHECK;
 		else if(!strcmp(command_id,"SCHEDULE_FORCED_SVC_CHECK"))
-			command_type=CMD_FORCE_DELAY_SVC_CHECK;
+			command_type=CMD_SCHEDULE_FORCED_SVC_CHECK;
 
 		else if(!strcmp(command_id,"ENABLE_SVC_CHECK"))
 			command_type=CMD_ENABLE_SVC_CHECK;
@@ -731,16 +734,14 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 		cmd_delay_notification(cmd,args);
 		break;
 
-	case CMD_DELAY_SVC_CHECK:
-	case CMD_FORCE_DELAY_SVC_CHECK:
-	case CMD_IMMEDIATE_SVC_CHECK:
-		cmd_schedule_service_check(cmd,args,(cmd==CMD_FORCE_DELAY_SVC_CHECK)?TRUE:FALSE);
+	case CMD_SCHEDULE_SVC_CHECK:
+	case CMD_SCHEDULE_FORCED_SVC_CHECK:
+		cmd_schedule_check(cmd,args);
 		break;
 
-	case CMD_DELAY_HOST_SVC_CHECKS:
-	case CMD_FORCE_DELAY_HOST_SVC_CHECKS:
-	case CMD_IMMEDIATE_HOST_SVC_CHECKS:
-		cmd_schedule_host_service_checks(cmd,args,(cmd==CMD_FORCE_DELAY_HOST_SVC_CHECKS)?TRUE:FALSE);
+	case CMD_SCHEDULE_HOST_SVC_CHECKS:
+	case CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS:
+		cmd_schedule_check(cmd,args);
 		break;
 
 	case CMD_DEL_ALL_HOST_COMMENTS:
@@ -785,10 +786,9 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_CANCEL_PENDING_HOST_SVC_DOWNTIME:
 		break;
 
-	case CMD_DELAY_HOST_CHECK:
-	case CMD_FORCE_DELAY_HOST_CHECK:
-	case CMD_IMMEDIATE_HOST_CHECK:
-		cmd_schedule_host_check(cmd,args,(cmd==CMD_FORCE_DELAY_HOST_CHECK)?TRUE:FALSE);
+	case CMD_SCHEDULE_HOST_CHECK:
+	case CMD_SCHEDULE_FORCED_HOST_CHECK:
+		cmd_schedule_check(cmd,args);
 		break;
 
 	default:
@@ -1091,6 +1091,7 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 	servicegroup *temp_servicegroup;
 	servicegroupmember *temp_member;
 	host *temp_host;
+	host *last_host;
 	service *temp_service;
 
 	/* get the servicegroup name */
@@ -1103,6 +1104,111 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 	if(temp_servicegroup==NULL)
 		return ERROR;
 
+	switch(cmd){
+
+	case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+
+		/* loop through all servicegroup members */
+		for(temp_member=temp_servicegroup->members;temp_member!=NULL;temp_member=temp_member->next){
+
+			temp_service=find_service(temp_member->host_name,temp_member->service_description);
+			if(temp_service==NULL)
+				continue;
+
+			switch(cmd){
+
+			case CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+				enable_service_notifications(temp_service);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS:
+				disable_service_notifications(temp_service);
+				break;
+
+			case CMD_ENABLE_SERVICEGROUP_SVC_CHECKS:
+				enable_service_checks(temp_service);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_SVC_CHECKS:
+				disable_service_checks(temp_service);
+				break;
+
+			case CMD_ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+				enable_passive_service_checks(temp_service);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS:
+				disable_passive_service_checks(temp_service);
+				break;
+
+			default:
+				break;
+			        }
+		        }
+
+		break;
+
+	case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
+	case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+	case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+
+		/* loop through all hosts that have services belonging to the servicegroup */
+		last_host=NULL;
+		for(temp_member=temp_servicegroup->members;temp_member!=NULL;temp_member=temp_member->next){
+
+			temp_host=find_host(temp_member->host_name);
+			if(temp_host==NULL)
+				continue;
+
+			if(temp_host==last_host)
+				continue;
+
+			switch(cmd){
+
+			case CMD_ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+				enable_host_notifications(temp_host);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS:
+				disable_host_notifications(temp_host);
+				break;
+
+			case CMD_ENABLE_SERVICEGROUP_HOST_CHECKS:
+				enable_host_checks(temp_host);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_HOST_CHECKS:
+				disable_host_checks(temp_host);
+				break;
+
+			case CMD_ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+				enable_passive_host_checks(temp_host);
+				break;
+
+			case CMD_DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS:
+				disable_passive_host_checks(temp_host);
+				break;
+
+			default:
+				break;
+			        }
+
+			last_host=temp_host;
+		        }
+
+		break;
+
+	default:
+		break;
+	        }
 
 	return OK;
         }
@@ -1321,16 +1427,17 @@ int cmd_delay_notification(int cmd,char *args){
 
 
 
-/* schedules a service check at a particular time */
-int cmd_schedule_service_check(int cmd,char *args, int force){
+/* schedules a host check at a particular time */
+int cmd_schedule_check(int cmd,char *args){
 	char *temp_ptr;
+	host *temp_host=NULL;
 	service *temp_service=NULL;
 	char *host_name="";
 	char *svc_description="";
 	time_t delay_time=0L;
 
 #ifdef DEBUG0
-	printf("cmd_schedule_service_check() start\n");
+	printf("cmd_schedule_check() start\n");
 #endif
 
 	/* get the host name */
@@ -1338,53 +1445,26 @@ int cmd_schedule_service_check(int cmd,char *args, int force){
 	if(host_name==NULL)
 		return ERROR;
 
-	/* get the service description */
-	svc_description=my_strtok(NULL,";");
-	if(svc_description==NULL)
-		return ERROR;
+	if(cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_FORCED_HOST_CHECK || cmd==CMD_SCHEDULE_HOST_SVC_CHECKS || cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS){
 
-	/* verify that the service is valid */
-	temp_service=find_service(host_name,svc_description);
-	if(temp_service==NULL)
-		return ERROR;
+		/* verify that the host is valid */
+		temp_host=find_host(host_name);
+		if(temp_host==NULL)
+			return ERROR;
+	        }
+	
+	else{
 
-	/* get the next check time */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
-		return ERROR;
-	delay_time=strtoul(temp_ptr,NULL,10);
+		/* get the service description */
+		svc_description=my_strtok(NULL,";");
+		if(svc_description==NULL)
+			return ERROR;
 
-	/* schedule a delayed service check */
-	schedule_service_check(temp_service,delay_time,force);
-
-#ifdef DEBUG0
-	printf("cmd_schedule_service_check() end\n");
-#endif
-	return OK;
-        }
-
-
-
-/* schedules a host check at a particular time */
-int cmd_schedule_host_check(int cmd,char *args, int force){
-	char *temp_ptr;
-	host *temp_host=NULL;
-	char *host_name="";
-	time_t delay_time=0L;
-
-#ifdef DEBUG0
-	printf("cmd_schedule_host_check() start\n");
-#endif
-
-	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
-		return ERROR;
-
-	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
-		return ERROR;
+		/* verify that the service is valid */
+		temp_service=find_service(host_name,svc_description);
+		if(temp_service==NULL)
+			return ERROR;
+	        }
 
 	/* get the next check time */
 	temp_ptr=my_strtok(NULL,"\n");
@@ -1392,11 +1472,20 @@ int cmd_schedule_host_check(int cmd,char *args, int force){
 		return ERROR;
 	delay_time=strtoul(temp_ptr,NULL,10);
 
-	/* schedule a delayed host check */
-	schedule_host_check(temp_host,delay_time,force);
+	/* schedule the check */
+	if(cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)
+		schedule_host_check(temp_host,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_CHECK)?TRUE:FALSE);
+	else if(cmd==CMD_SCHEDULE_HOST_SVC_CHECKS || cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS){
+		if(find_all_services_by_host(host_name)){
+			while((temp_service=get_next_service_by_host()))
+				schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS)?TRUE:FALSE);
+		        }
+	        }
+	else
+		schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_SVC_CHECK)?TRUE:FALSE);
 
 #ifdef DEBUG0
-	printf("cmd_schedule_host_check() end\n");
+	printf("cmd_schedule_check() end\n");
 #endif
 	return OK;
         }
@@ -2137,6 +2226,9 @@ void disable_service_checks(service *svc){
 	printf("disable_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
+
 	/* checks are already disabled */
 	if(svc->checks_enabled==FALSE)
 		return;
@@ -2177,6 +2269,9 @@ void enable_service_checks(service *svc){
 #ifdef DEBUG0
 	printf("enable_service_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already enabled */
 	if(svc->checks_enabled==TRUE)
@@ -2222,6 +2317,10 @@ void enable_all_notifications(void){
 	printf("enable_all_notifications() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	modified_service_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
 	/* bail out if we're already set... */
 	if(enable_notifications==TRUE)
 		return;
@@ -2246,6 +2345,10 @@ void disable_all_notifications(void){
 #ifdef DEBUG0
 	printf("disable_all_notifications() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	modified_service_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* bail out if we're already set... */
 	if(enable_notifications==FALSE)
@@ -2272,6 +2375,9 @@ void enable_service_notifications(service *svc){
 	printf("enable_service_notifications() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
 	/* enable the service notifications... */
 	svc->notifications_enabled=TRUE;
 
@@ -2292,6 +2398,9 @@ void disable_service_notifications(service *svc){
 #ifdef DEBUG0
 	printf("disable_service_notifications() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* disable the service notifications... */
 	svc->notifications_enabled=FALSE;
@@ -2314,6 +2423,9 @@ void enable_host_notifications(host *hst){
 	printf("enable_host_notifications() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
 	/* enable the host notifications... */
 	hst->notifications_enabled=TRUE;
 
@@ -2334,6 +2446,9 @@ void disable_host_notifications(host *hst){
 #ifdef DEBUG0
 	printf("disable_host_notifications() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* disable the host notifications... */
 	hst->notifications_enabled=FALSE;
@@ -2528,6 +2643,9 @@ void start_executing_service_checks(void){
 	printf("start_executing_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
+
 	/* bail out if we're already executing services */
 	if(execute_service_checks==TRUE)
 		return;
@@ -2555,6 +2673,9 @@ void stop_executing_service_checks(void){
 	printf("stop_executing_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
+
 	/* bail out if we're already not executing services */
 	if(execute_service_checks==FALSE)
 		return;
@@ -2580,6 +2701,9 @@ void start_accepting_passive_service_checks(void){
 #ifdef DEBUG0
 	printf("start_accepting_passive_service_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already accepting passive services */
 	if(accept_passive_service_checks==TRUE)
@@ -2607,6 +2731,9 @@ void stop_accepting_passive_service_checks(void){
 	printf("stop_accepting_passive_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+
 	/* bail out if we're already not accepting passive services */
 	if(accept_passive_service_checks==FALSE)
 		return;
@@ -2633,6 +2760,9 @@ void enable_passive_service_checks(service *svc){
 	printf("enable_passive_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+
 	/* set the passive check flag */
 	svc->accept_passive_service_checks=TRUE;
 
@@ -2655,6 +2785,9 @@ void disable_passive_service_checks(service *svc){
 	printf("disable_passive_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+
 	/* set the passive check flag */
 	svc->accept_passive_service_checks=FALSE;
 
@@ -2676,6 +2809,9 @@ void start_executing_host_checks(void){
 #ifdef DEBUG0
 	printf("start_executing_host_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already executing hosts */
 	if(execute_host_checks==TRUE)
@@ -2704,6 +2840,9 @@ void stop_executing_host_checks(void){
 	printf("stop_executing_host_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
+
 	/* bail out if we're already not executing hosts */
 	if(execute_host_checks==FALSE)
 		return;
@@ -2729,6 +2868,9 @@ void start_accepting_passive_host_checks(void){
 #ifdef DEBUG0
 	printf("start_accepting_passive_host_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 	/* bail out if we're already accepting passive hosts */
 	if(accept_passive_host_checks==TRUE)
@@ -2756,6 +2898,9 @@ void stop_accepting_passive_host_checks(void){
 	printf("stop_accepting_passive_host_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+
 	/* bail out if we're already not accepting passive hosts */
 	if(accept_passive_host_checks==FALSE)
 		return;
@@ -2782,6 +2927,9 @@ void enable_passive_host_checks(host *hst){
 	printf("enable_passive_host_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+
 	/* set the passive check flag */
 	hst->accept_passive_host_checks=TRUE;
 
@@ -2804,6 +2952,9 @@ void disable_passive_host_checks(host *hst){
 	printf("disable_passive_host_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+
 	/* set the passive check flag */
 	hst->accept_passive_host_checks=FALSE;
 
@@ -2824,6 +2975,10 @@ void start_using_event_handlers(void){
 #ifdef DEBUG0
 	printf("start_using_event_handlers() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	modified_service_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* set the event handler flag */
 	enable_event_handlers=TRUE;
@@ -2846,6 +3001,10 @@ void stop_using_event_handlers(void){
 	printf("stop_using_event_handlers() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	modified_service_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+
 	/* set the event handler flag */
 	enable_event_handlers=FALSE;
 
@@ -2866,6 +3025,9 @@ void enable_service_event_handler(service *svc){
 #ifdef DEBUG0
 	printf("enable_service_event_handler() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* set the event handler flag */
 	svc->event_handler_enabled=TRUE;
@@ -2889,6 +3051,9 @@ void disable_service_event_handler(service *svc){
 	printf("disable_service_event_handler() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+
 	/* set the event handler flag */
 	svc->event_handler_enabled=FALSE;
 
@@ -2909,6 +3074,9 @@ void enable_host_event_handler(host *hst){
 #ifdef DEBUG0
 	printf("enable_host_event_handler() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
 
 	/* set the event handler flag */
 	hst->event_handler_enabled=TRUE;
@@ -2931,6 +3099,9 @@ void disable_host_event_handler(host *hst){
 	printf("disable_host_event_handler() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+
 	/* set the event handler flag */
 	hst->event_handler_enabled=FALSE;
 
@@ -2952,6 +3123,9 @@ void disable_host_checks(host *hst){
 #ifdef DEBUG0
 	printf("disable_host_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already disabled */
 	if(hst->checks_enabled==FALSE)
@@ -2992,6 +3166,9 @@ void enable_host_checks(host *hst){
 #ifdef DEBUG0
 	printf("enable_host_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 	/* checks are already enabled */
 	if(hst->checks_enabled==TRUE)
@@ -3037,6 +3214,9 @@ void start_obsessing_over_service_checks(void){
         printf("start_obsessing_over_service_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+
 	/* set the service obsession flag */
 	obsess_over_services=TRUE;
 
@@ -3058,6 +3238,9 @@ void stop_obsessing_over_service_checks(void){
 #ifdef DEBUG0
         printf("stop_obsessing_over_service_checks() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* set the service obsession flag */
 	obsess_over_services=FALSE;
@@ -3081,6 +3264,9 @@ void start_obsessing_over_host_checks(void){
         printf("start_obsessing_over_host_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+
 	/* set the host obsession flag */
 	obsess_over_hosts=TRUE;
 
@@ -3103,6 +3289,9 @@ void stop_obsessing_over_host_checks(void){
         printf("stop_obsessing_over_host_checks() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+
 	/* set the host obsession flag */
 	obsess_over_hosts=FALSE;
 
@@ -3124,6 +3313,10 @@ void enable_all_failure_prediction(void){
 #ifdef DEBUG0
 	printf("enable_all_failure_prediction() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
+	modified_service_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
 
 	/* bail out if we're already set... */
 	if(enable_failure_prediction==TRUE)
@@ -3149,6 +3342,10 @@ void disable_all_failure_prediction(void){
 	printf("disable_all_failure_prediction() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
+	modified_service_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
+
 	/* bail out if we're already set... */
 	if(enable_failure_prediction==FALSE)
 		return;
@@ -3172,6 +3369,10 @@ void enable_performance_data(void){
 #ifdef DEBUG0
 	printf("enable_performance_data() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
+	modified_service_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
 
 	/* bail out if we're already set... */
 	if(process_performance_data==TRUE)
@@ -3197,6 +3398,10 @@ void disable_performance_data(void){
 	printf("disable_performance_data() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
+	modified_service_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
+
 	/* bail out if we're already set... */
 	if(process_performance_data==FALSE)
 		return;
@@ -3221,6 +3426,9 @@ void start_obsessing_over_service(service *svc){
 	printf("start_obsessing_over_service() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+
 	/* set the obsess over service flag */
 	svc->obsess_over_service=TRUE;
 
@@ -3241,6 +3449,9 @@ void stop_obsessing_over_service(service *svc){
 #ifdef DEBUG0
 	printf("stop_obsessing_over_service() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* set the obsess over service flag */
 	svc->obsess_over_service=FALSE;
@@ -3263,6 +3474,9 @@ void start_obsessing_over_host(host *hst){
 	printf("start_obsessing_over_host() start\n");
 #endif
 
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+
 	/* set the obsess over host flag */
 	hst->obsess_over_host=TRUE;
 
@@ -3283,6 +3497,9 @@ void stop_obsessing_over_host(host *hst){
 #ifdef DEBUG0
 	printf("stop_obsessing_over_host() start\n");
 #endif
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 	/* set the obsess over host flag */
 	hst->obsess_over_host=FALSE;

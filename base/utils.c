@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-15-2003
+ * Last Modified:   07-18-2003
  *
  * License:
  *
@@ -138,6 +138,10 @@ extern int      soft_state_dependencies;
 extern int      retain_state_information;
 extern int      retention_update_interval;
 extern int      use_retained_program_state;
+extern int      use_retained_scheduling_info;
+extern int      retention_scheduling_horizon;
+extern unsigned long modified_host_process_attributes;
+extern unsigned long modified_service_process_attributes;
 
 extern int      log_rotation_method;
 
@@ -3971,6 +3975,10 @@ int reset_variables(void){
 	retain_state_information=FALSE;
 	retention_update_interval=DEFAULT_RETENTION_UPDATE_INTERVAL;
 	use_retained_program_state=TRUE;
+	use_retained_scheduling_info=FALSE;
+	retention_scheduling_horizon=DEFAULT_RETENTION_SCHEDULING_HORIZON;
+	modified_host_process_attributes=MODATTR_NONE;
+	modified_service_process_attributes=MODATTR_NONE;
 
 	command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 	service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;

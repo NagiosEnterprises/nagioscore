@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-18-2003
+# Last Modified: 07-18-2003
 #
 ##############################################################################
 
@@ -462,7 +462,18 @@ retention_update_interval=60
 # information, set this value to 1.  If not, set this value
 # to 0.
 
-use_retained_program_state=0
+use_retained_program_state=1
+
+
+
+# USE RETAINED SCHEDULING INFO
+# This setting determines whether or not Nagios will retain
+# the scheduling info (next check time) for hosts and services
+# based on the values saved in the retention file.  If you
+# If you want to use retained scheduling info, set this
+# value to 1.  If not, set this value to 0.
+
+use_retained_scheduling_info=0
 
 
 

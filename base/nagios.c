@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   06-11-2003
+ * Last Modified:   07-18-2003
  *
  * Description:
  *
@@ -128,6 +128,10 @@ int             soft_state_dependencies=FALSE;
 int             retain_state_information=FALSE;
 int             retention_update_interval=DEFAULT_RETENTION_UPDATE_INTERVAL;
 int             use_retained_program_state=TRUE;
+int             use_retained_scheduling_info=FALSE;
+int             retention_scheduling_horizon=DEFAULT_RETENTION_SCHEDULING_HORIZON;
+unsigned long   modified_host_process_attributes=MODATTR_NONE;
+unsigned long   modified_service_process_attributes=MODATTR_NONE;
 
 int             log_rotation_method=LOG_ROTATION_NONE;
 
@@ -588,9 +592,6 @@ int main(int argc, char **argv){
 			start_event_broker_worker_thread();
 #endif
 
-		        /* initialize the event timing loop */
-			init_timing_loop();
-
 		        /* initialize status data */
 			initialize_status_data(config_file);
 
@@ -605,6 +606,9 @@ int main(int argc, char **argv){
 
 			/* read initial service and host state information  */
 			read_initial_state_information(config_file);
+
+		        /* initialize the event timing loop */
+			init_timing_loop();
 
 			/* update all status data (with retained information) */
 			update_all_status_data();

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-17-2003
+ * Last Modified:   07-16-2003
  *
  * License:
  *
@@ -186,6 +186,7 @@ typedef struct host_struct{
 	double  percent_state_change;
 	int     total_services;
 	unsigned long total_service_check_interval;
+	unsigned long modified_attributes;
 #endif
 	struct  host_struct *next;
 	struct  host_struct *nexthash;
@@ -340,6 +341,7 @@ typedef struct service_struct{
 	int     is_flapping;
 	unsigned long flapping_comment_id;
 	double  percent_state_change;
+	unsigned long modified_attributes;
 #endif
 	struct service_struct *next;
 	struct service_struct *nexthash;

@@ -3,7 +3,7 @@
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-11-2003
+ * Last Modified: 07-14-2003
  *
  * License:
  * 
@@ -1155,7 +1155,7 @@ void display_service(void){
 		printf("<b><anchor title='Enable Checks'>Enable Checks<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n",COMMAND_CGI,host_name,service_desc,CMD_ENABLE_SVC_CHECK,CMDMODE_COMMIT);
 	else{
 		printf("<b><anchor title='Disable Checks'>Disable Checks<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n",COMMAND_CGI,host_name,service_desc,CMD_DISABLE_SVC_CHECK,CMDMODE_COMMIT);
-		printf("<b><anchor title='Schedule Immediate Check'>Schedule Immediate Check<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n",COMMAND_CGI,host_name,service_desc,CMD_IMMEDIATE_SVC_CHECK,CMDMODE_COMMIT);
+		printf("<b><anchor title='Schedule Immediate Check'>Schedule Immediate Check<go href='%s' method='post'><postfield name='host' value='%s'/><postfield name='service' value='%s'/><postfield name='cmd_typ' value='%d'/><postfield name='cmd_mod' value='%d'/><postfield name='content' value='wml'/></go></anchor></b><br/>\n",COMMAND_CGI,host_name,service_desc,CMD_SCHEDULE_SVC_CHECK,CMDMODE_COMMIT);
 	        }
 
 	if(temp_servicestatus->notifications_enabled==FALSE)

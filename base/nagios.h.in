@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-12-2003
+ * Last Modified: 07-14-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,6 +119,7 @@
 #define DEFAULT_MAX_REAPER_TIME                 30      /* maximum number of seconds to spend reaping service checks before we break out for a while */
 #define DEFAULT_MAX_PARALLEL_SERVICE_CHECKS 	0	/* maximum number of service checks we can have running at any given time (0=unlimited) */
 #define DEFAULT_RETENTION_UPDATE_INTERVAL	60	/* minutes between auto-save of retention data */
+#define DEFAULT_RETENTION_SCHEDULING_HORIZON    900     /* max seconds between program restarts that we will preserve scheduling information */
 #define DEFAULT_STATUS_UPDATE_INTERVAL		60	/* seconds between aggregated status data updates */
 #define DEFAULT_FRESHNESS_CHECK_INTERVAL        60      /* seconds between service result freshness checks */
 
@@ -584,8 +585,7 @@ int cmd_delete_comment(int,char *);			/* delete a service or host comment */
 int cmd_delete_all_comments(int,char *);		/* delete all comments associated with a host or service */
 int cmd_delay_notification(int,char *);			/* delay a service or host notification */
 int cmd_schedule_service_check(int,char *,int);		/* schedule an immediate or delayed service check */
-int cmd_schedule_host_check(int,char *,int);		/* schedule an immediate or delayed host check */
-int cmd_schedule_host_service_checks(int,char *,int);	/* schedule an immediate or delayed check of all services on a host */
+int cmd_schedule_check(int,char *);			/* schedule an immediate or delayed host check */
 int cmd_signal_process(int,char *);				/* schedules a program shutdown or restart */
 int cmd_process_service_check_result(int,time_t,char *);	/* processes a passive service check */
 int cmd_process_host_check_result(int,time_t,char *);		/* processes a passive host check */

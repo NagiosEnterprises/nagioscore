@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-09-2002
  *
  * License:
  * 
@@ -1451,7 +1451,7 @@ void commit_command_data(int cmd){
 				printf("<p>Your command was submitted sucessfully...</p>\n");
 			else{
 				printf("<P><DIV CLASS='infoMessage'>Your command request was successfully submitted to Nagios for processing.<BR><BR>\n");
-				printf("Note: It may take a white before the command is actually processed.<BR><BR>\n");
+				printf("Note: It may take a while before the command is actually processed.<BR><BR>\n");
 				printf("<A HREF='javascript:window.history.go(-2)'>Done</A></DIV></P>");
 			        }
 		        }

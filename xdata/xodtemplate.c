@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-23-2004
+ * Last Modified: 03-24-2004
  *
  * Description:
  *
@@ -6493,6 +6493,8 @@ int xodtemplate_recombobulate_servicegroups(void){
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 					free(member_names);
+					free(host_name);
+					free(service_description);
 					return ERROR;
 				        }
 
@@ -6527,13 +6529,20 @@ int xodtemplate_recombobulate_servicegroups(void){
 				host_name=NULL;
 				service_description=NULL;
 			        }
-
-			/* in case there isn't a matching service description... */
-			free(host_name);
-			host_name=NULL;
 		        }
 
 		free(member_names);
+
+		/* error if there were an odd number of items specified (unmatched host/service pair) */
+		if(host_name!=NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup members must be specified in <host_name>,<service_description> pairs (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(host_name);
+			return ERROR;
+		        }
 	        }
 
 
@@ -9334,20 +9343,36 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 		/* use standard matching... */
 		else{
 
-			/* this hostgroup should be excluded (rejected) */
-			if(temp_ptr[0]=='!'){
-				reject_item=TRUE;
-				temp_ptr++;
-			        }
-
-			/* find the hostgroup */
-			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
-			if(temp_hostgroup!=NULL){
+			/* return a list of all hostgroups */
+			if(!strcmp(temp_ptr,"*")){
 
 				found_match=TRUE;
 
-				/* add hostgroup members to proper list */
-				xodtemplate_add_hostgroup_members_to_hostlist((reject_item==TRUE)?reject_list:list,temp_hostgroup);
+				for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){	
+
+					/* add hostgroup to list */
+					xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
+				        }
+			        }
+
+			/* else this is just a single hostgroup... */
+			else{
+			
+				/* this hostgroup should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+			        	}
+
+				/* find the hostgroup */
+				temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
+				if(temp_hostgroup!=NULL){
+
+					found_match=TRUE;
+
+					/* add hostgroup members to proper list */
+					xodtemplate_add_hostgroup_members_to_hostlist((reject_item==TRUE)?reject_list:list,temp_hostgroup);
+				        }
 			        }
 		        }
 
@@ -9717,20 +9742,36 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 		/* use standard matching... */
 		else{
 
-			/* this servicegroup should be excluded (rejected) */
-			if(temp_ptr[0]=='!'){
-				reject_item=TRUE;
-				temp_ptr++;
-		                }
-
-			/* find the servicegroup */
-			temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
-			if(temp_servicegroup!=NULL){
+			/* return a list of all servicegroups */
+			if(!strcmp(temp_ptr,"*")){
 
 				found_match=TRUE;
 
-				/* add servicegroup members to list */
-				xodtemplate_add_servicegroup_members_to_servicelist((reject_item==TRUE)?reject_list:list,temp_servicegroup);
+				for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){	
+
+					/* add servicegroup to list */
+					xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
+				        }
+			        }
+
+			/* else this is just a single servicegroup... */
+			else{
+			
+				/* this servicegroup should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+		                        }
+
+				/* find the servicegroup */
+				temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
+				if(temp_servicegroup!=NULL){
+
+					found_match=TRUE;
+
+					/* add servicegroup members to list */
+					xodtemplate_add_servicegroup_members_to_servicelist((reject_item==TRUE)?reject_list:list,temp_servicegroup);
+				        }
 			        }
 		        }
 

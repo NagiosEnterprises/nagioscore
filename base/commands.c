@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-05-2004
+ * Last Modified:   03-24-2004
  *
  * License:
  *
@@ -2565,7 +2565,7 @@ int cmd_change_check_interval(int cmd,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description);
+		temp_service=find_service(host_name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }
@@ -2698,7 +2698,7 @@ int cmd_change_max_attempts(int cmd,char *args){
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description);
+		temp_service=find_service(host_name,svc_description);
 		if(temp_service==NULL)
 			return ERROR;
 	        }

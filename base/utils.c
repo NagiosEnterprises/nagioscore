@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-13-2003
+ * Last Modified:   09-14-2003
  *
  * License:
  *
@@ -3730,6 +3730,7 @@ void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
 	int buffer_items;
+	int result;
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
@@ -3763,22 +3764,20 @@ void * command_file_worker_thread(void *arg){
 			/* clear EOF condition from prior run (FreeBSD fix) */
 			clearerr(command_file_fp);
 
+			/* read and process the next command in the file */
 			while(fgets(input_buffer,(int)(sizeof(input_buffer)-1),command_file_fp)!=NULL){
 
-				/* obtain a lock for writing to the buffer */
-				pthread_mutex_lock(&external_command_buffer.buffer_lock);
+				/* submit the external command for processing (retry if buffer is full) */
+				while((result=submit_external_command(input_buffer,&buffer_items))==ERROR && buffer_items==COMMAND_BUFFER_SLOTS){
 
-				/* save the line in the buffer */
-				((char **)external_command_buffer.buffer)[external_command_buffer.head]=strdup(input_buffer);
+					/* wait a bit */
+					tv.tv_sec=0;
+					tv.tv_usec=250000;
+					select(0,NULL,NULL,NULL,&tv);
 
-				/* increment the head counter and items */
-				external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
-				external_command_buffer.items++;
-
-				buffer_items=external_command_buffer.items;
-
-				/* release lock on buffer */
-				pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+					/* should we shutdown? */
+					pthread_testcancel();
+				        }
 
 				/* bail if the circular buffer is full */
 				if(buffer_items==COMMAND_BUFFER_SLOTS)
@@ -3799,6 +3798,82 @@ void * command_file_worker_thread(void *arg){
 	pthread_cleanup_pop(0);
 
 	return NULL;
+        }
+
+
+
+/* submits an external command for processing */
+int submit_external_command(char *cmd, int *buffer_items){
+	int result=OK;
+
+	if(cmd==NULL || external_command_buffer.buffer==NULL){
+		if(buffer_items!=NULL)
+			*buffer_items=-1;
+		return ERROR;
+	        }
+
+	/* obtain a lock for writing to the buffer */
+	pthread_mutex_lock(&external_command_buffer.buffer_lock);
+
+	if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
+
+		/* save the line in the buffer */
+		((char **)external_command_buffer.buffer)[external_command_buffer.head]=strdup(cmd);
+
+		/* increment the head counter and items */
+		external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
+		external_command_buffer.items++;
+	        }
+
+	/* buffer was full */
+	else
+		result=ERROR;
+
+	/* return number of items now in buffer */
+	if(buffer_items!=NULL)
+		*buffer_items=external_command_buffer.items;
+
+	/* release lock on buffer */
+	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+
+	return result;
+        }
+
+
+
+/* submits a raw external command (without timestamp) for processing */
+int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
+	char *newcmd=NULL;
+	int length=0;
+	int result=OK;
+	time_t timestamp;
+
+	if(cmd==NULL)
+		return ERROR;
+
+	/* allocate memory for the command string */
+	length=strlen(cmd)+16;
+	newcmd=(char *)malloc(length);
+	if(newcmd==NULL)
+		return ERROR;
+
+	/* get the time */
+	if(ts!=NULL)
+		timestamp=*ts;
+	else
+		time(&timestamp);
+
+	/* create the command string */
+	snprintf(newcmd,length-1,"[%lu] %s",(unsigned long)timestamp,cmd);
+	newcmd[length-1]='\x0';
+
+	/* submit the command */
+	result=submit_external_command(newcmd,buffer_items);
+
+	/* free allocated memory */
+	free(newcmd);
+
+	return result;
         }
 
 

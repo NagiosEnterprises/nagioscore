@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-13-2003
+ * Last Modified: 09-14-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -401,9 +401,8 @@ typedef struct circular_buffer_struct{
 
 
 /* slots in circular buffers */
-#define COMMAND_BUFFER_SLOTS              512
-#define SERVICE_BUFFER_SLOTS		  512
-#define EVENT_BUFFER_SLOTS		  2048
+#define COMMAND_BUFFER_SLOTS              1024
+#define SERVICE_BUFFER_SLOTS		  1024
 
 /* worker threads */
 #define TOTAL_WORKER_THREADS              2
@@ -666,6 +665,8 @@ int shutdown_command_file_worker_thread(void);
 void * command_file_worker_thread(void *);
 void cleanup_command_file_worker_thread(void *);
 
+int submit_external_command(char *,int *);
+int submit_raw_external_command(char *,time_t *,int *);
 
 #endif
 

@@ -728,6 +728,8 @@ void start_obsessing_over_service(service *);		/* start obsessing about specific
 void stop_obsessing_over_service(service *);		/* stop obsessing about specific service check results */
 void start_obsessing_over_host(host *);			/* start obsessing about specific host check results */
 void stop_obsessing_over_host(host *);			/* stop obsessing about specific host check results */
+void set_host_notification_number(host *,int);		/* sets current notification number for a specific host */
+void set_service_notification_number(service *,int);	/* sets current notification number for a specific service */
 
 int init_service_result_worker_thread(void);
 int shutdown_service_result_worker_thread(void);

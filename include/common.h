@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-02-2005
+ * Last Modified: 03-11-2005
  *
  * License:
  *
@@ -237,6 +237,9 @@
 
 #define CMD_ENABLE_HOST_FRESHNESS_CHECKS                140
 #define CMD_DISABLE_HOST_FRESHNESS_CHECKS               141
+
+#define CMD_SET_HOST_NOTIFICATION_NUMBER                142
+#define CMD_SET_SVC_NOTIFICATION_NUMBER                 143
 
 
 

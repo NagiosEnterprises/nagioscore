@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-06-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-11-2005
  *
  * License:
  *
@@ -374,6 +374,9 @@ void check_for_external_commands(void){
 		else if(!strcmp(command_id,"SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME"))
 			command_type=CMD_SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME;
 
+		else if(!strcmp(command_id,"SET_HOST_NOTIFICATION_NUMBER"))
+			command_type=CMD_SET_HOST_NOTIFICATION_NUMBER;
+
 
 		/************************************/
 		/**** HOSTGROUP-RELATED COMMANDS ****/
@@ -490,6 +493,9 @@ void check_for_external_commands(void){
 
 		else if(!strcmp(command_id,"CHANGE_MAX_SVC_CHECK_ATTEMPTS"))
 			command_type=CMD_CHANGE_MAX_SVC_CHECK_ATTEMPTS;
+
+		else if(!strcmp(command_id,"SET_SVC_NOTIFICATION_NUMBER"))
+			command_type=CMD_SET_SVC_NOTIFICATION_NUMBER;
 
 
 		/***************************************/
@@ -734,6 +740,7 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_DISABLE_HOST_EVENT_HANDLER:
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
+	case CMD_SET_HOST_NOTIFICATION_NUMBER:
 		process_host_command(cmd,entry_time,args);
 		break;
 
@@ -774,6 +781,7 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 	case CMD_DISABLE_SVC_EVENT_HANDLER:
 	case CMD_START_OBSESSING_OVER_SVC:
 	case CMD_STOP_OBSESSING_OVER_SVC:
+	case CMD_SET_SVC_NOTIFICATION_NUMBER:
 		process_service_command(cmd,entry_time,args);
 		break;
 
@@ -911,9 +919,11 @@ void process_external_command(int cmd, time_t entry_time, char *args){
 
 /* processes an external host command */
 int process_host_command(int cmd, time_t entry_time, char *args){
-	char *host_name;
-	host *temp_host;
+	char *host_name=NULL;
+	host *temp_host=NULL;
 	service *temp_service;
+	char *str=NULL;
+	int intval;
 
 	/* get the host name */
 	host_name=my_strtok(args,";");
@@ -1013,6 +1023,13 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 		stop_obsessing_over_host(temp_host);
 		break;
 
+	case CMD_SET_HOST_NOTIFICATION_NUMBER:
+		if((str=my_strtok(NULL,";"))){
+			intval=atoi(str);
+			set_host_notification_number(temp_host,intval);
+		        }
+		break;
+
 	default:
 		break;
 	        }
@@ -1023,11 +1040,11 @@ int process_host_command(int cmd, time_t entry_time, char *args){
 
 /* processes an external hostgroup command */
 int process_hostgroup_command(int cmd, time_t entry_time, char *args){
-	char *hostgroup_name;
-	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_member;
-	host *temp_host;
-	service *temp_service;
+	char *hostgroup_name=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	hostgroupmember *temp_member=NULL;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 
 	/* get the hostgroup name */
 	hostgroup_name=my_strtok(args,";");
@@ -1122,9 +1139,11 @@ int process_hostgroup_command(int cmd, time_t entry_time, char *args){
 
 /* processes an external service command */
 int process_service_command(int cmd, time_t entry_time, char *args){
-	char *host_name;
-	char *svc_description;
-	service *temp_service;
+	char *host_name=NULL;
+	char *svc_description=NULL;
+	service *temp_service=NULL;
+	char *str=NULL;
+	int intval;
 
 	/* get the host name */
 	host_name=my_strtok(args,";");
@@ -1191,6 +1210,13 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 		stop_obsessing_over_service(temp_service);
 		break;
 
+	case CMD_SET_SVC_NOTIFICATION_NUMBER:
+		if((str=my_strtok(NULL,";"))){
+			intval=atoi(str);
+			set_service_notification_number(temp_service,intval);
+		        }
+		break;
+
 	default:
 		break;
 	        }
@@ -1201,12 +1227,12 @@ int process_service_command(int cmd, time_t entry_time, char *args){
 
 /* processes an external servicegroup command */
 int process_servicegroup_command(int cmd, time_t entry_time, char *args){
-	char *servicegroup_name;
-	servicegroup *temp_servicegroup;
-	servicegroupmember *temp_member;
-	host *temp_host;
-	host *last_host;
-	service *temp_service;
+	char *servicegroup_name=NULL;
+	servicegroup *temp_servicegroup=NULL;
+	servicegroupmember *temp_member=NULL;
+	host *temp_host=NULL;
+	host *last_host=NULL;
+	service *temp_service=NULL;
 
 	/* get the servicegroup name */
 	servicegroup_name=my_strtok(args,";");
@@ -4230,6 +4256,48 @@ void stop_obsessing_over_host(host *hst){
 
 #ifdef DEBUG0
 	printf("stop_obsessing_over_host() end\n");
+#endif
+
+	return;
+        }
+
+
+/* sets the current notification number for a specific host */
+void set_host_notification_number(host *hst, int num){
+
+#ifdef DEBUG0
+	printf("set_host_notification_number() start\n");
+#endif
+
+	/* set the notification number */
+	hst->current_notification_number=num;
+
+	/* update the status log with the host info */
+	update_host_status(hst,FALSE);
+
+#ifdef DEBUG0
+	printf("set_host_notification_number() end\n");
+#endif
+
+	return;
+        }
+
+
+/* sets the current notification number for a specific service */
+void set_service_notification_number(service *svc, int num){
+
+#ifdef DEBUG0
+	printf("set_service_notification_number() start\n");
+#endif
+
+	/* set the notification number */
+	svc->current_notification_number=num;
+
+	/* update the status log with the service info */
+	update_service_status(svc,FALSE);
+
+#ifdef DEBUG0
+	printf("set_service_notification_number() end\n");
 #endif
 
 	return;

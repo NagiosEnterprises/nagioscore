@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-02-2004
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -96,6 +96,12 @@ int xpddefault_initialize_performance_data(char *config_file){
 	/* grab config info from main config file */
 	xpddefault_grab_config_info(config_file);
 
+	/* make sure we have some templates defined */
+	if(xpddefault_host_perfdata_file_template==NULL)
+		xpddefault_host_perfdata_file_template=strdup(DEFAULT_HOST_PERFDATA_FILE_TEMPLATE);
+	if(xpddefault_service_perfdata_file_template==NULL)
+		xpddefault_service_perfdata_file_template=strdup(DEFAULT_SERVICE_PERFDATA_FILE_TEMPLATE);
+
 	/* process special chars in templates */
 	xpddefault_preprocess_file_templates(xpddefault_host_perfdata_file_template);
 	xpddefault_preprocess_file_templates(xpddefault_service_perfdata_file_template);
@@ -179,16 +185,22 @@ int xpddefault_initialize_performance_data(char *config_file){
 		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,xpddefault_process_service_perfdata_file,NULL);
 
 	/* save the host perf data file macro */
-	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL)
+	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL){
 		free(macro_x[MACRO_HOSTPERFDATAFILE]);
-	macro_x[MACRO_HOSTPERFDATAFILE]=(char *)strdup(xpddefault_host_perfdata_file);
+		macro_x[MACRO_HOSTPERFDATAFILE]=NULL;
+	        }
+	if(xpddefault_host_perfdata_file!=NULL)
+		macro_x[MACRO_HOSTPERFDATAFILE]=(char *)strdup(xpddefault_host_perfdata_file);
 	if(macro_x[MACRO_HOSTPERFDATAFILE]!=NULL)
 		strip(macro_x[MACRO_HOSTPERFDATAFILE]);
 
 	/* save the service perf data file macro */
-	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL)
+	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL){
 		free(macro_x[MACRO_SERVICEPERFDATAFILE]);
-	macro_x[MACRO_SERVICEPERFDATAFILE]=(char *)strdup(xpddefault_service_perfdata_file);
+		macro_x[MACRO_SERVICEPERFDATAFILE]=NULL;
+	        }
+	if(xpddefault_service_perfdata_file!=NULL)
+		macro_x[MACRO_SERVICEPERFDATAFILE]=(char *)strdup(xpddefault_service_perfdata_file);
 	if(macro_x[MACRO_SERVICEPERFDATAFILE]!=NULL)
 		strip(macro_x[MACRO_SERVICEPERFDATAFILE]);
 
@@ -207,8 +219,12 @@ int xpddefault_grab_config_info(char *config_file){
 
 	/* open the config file for reading */
 	fp=fopen(config_file,"r");
-	if(fp==NULL)
+	if(fp==NULL){
+		snprintf(input_buffer,sizeof(input_buffer)-1,"Error: Could not open main config file '%s' for reading performance variables!\n",config_file);
+		input_buffer[sizeof(input_buffer)-1]='\x0';
+		write_to_logs_and_console(input_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		return ERROR;
+	        }
 
 	/* read in all lines from the config file */
 	for(fgets(input_buffer,sizeof(input_buffer)-1,fp);!feof(fp);fgets(input_buffer,sizeof(input_buffer)-1,fp)){
@@ -584,7 +600,7 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	int result=OK;
 
 	/* we don't have a file to write to*/
-	if(xpddefault_service_perfdata_fp==NULL)
+	if(xpddefault_service_perfdata_fp==NULL || xpddefault_service_perfdata_file_template==NULL)
 		return OK;
 
 	/* find the associated host */
@@ -626,7 +642,7 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	int result=OK;
 
 	/* we don't have a host perfdata file */
-	if(xpddefault_host_perfdata_fp==NULL)
+	if(xpddefault_host_perfdata_fp==NULL || xpddefault_host_perfdata_file_template==NULL)
 		return OK;
 
 	/* update host macros */

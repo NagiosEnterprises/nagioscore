@@ -2,8 +2,8 @@
  *
  * BROKER.H - Event broker includes for Nagios
  *
- * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -149,8 +149,8 @@ void broker_log_data(int,int,int,char *,unsigned long,struct timeval *);
 void broker_event_handler(int,int,int,void *,int,int,double,int,int,int,char *,char *,struct timeval *);
 void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
 void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct timeval *);
-void broker_host_check(int,int,int,host *,int,int,int,double,double,int,int,int,char *,char *,char *,struct timeval *);
-void broker_service_check(int,int,int,service *,int,double,double,int,int,int,char *,struct timeval *);
+void broker_host_check(int,int,int,host *,int,int,int,struct timeval,struct timeval,double,double,int,int,int,char *,char *,char *,struct timeval *);
+void broker_service_check(int,int,int,service *,int,struct timeval,struct timeval,double,double,int,int,int,char *,struct timeval *);
 void broker_comment_data(int,int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
 void broker_downtime_data(int,int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
 void broker_flapping_data(int,int,int,int,void *,double,double,struct timeval *);

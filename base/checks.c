@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-12-2004
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -253,7 +253,7 @@ void run_service_check(service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,svc->latency,0.0,0,FALSE,0,processed_command,NULL);
+	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,start_time,svc->latency,0.0,0,FALSE,0,processed_command,NULL);
 #endif
 
 #ifdef EMBEDDEDPERL
@@ -1309,7 +1309,7 @@ void reap_service_checks(void){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_svc_msg.early_timeout,queued_svc_msg.return_code,NULL,NULL);
+		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,queued_svc_msg.start_time,queued_svc_msg.finish_time,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_svc_msg.early_timeout,queued_svc_msg.return_code,NULL,NULL);
 #endif
 
 		/* set the checked flag */
@@ -1926,16 +1926,20 @@ int check_host(host *hst, int propagation_options, int check_options){
 	int max_check_attempts=1;
 	int route_blocked=TRUE;
 	int old_state=HOST_UP;
+	struct timeval start_time;
+	struct timeval end_time;
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 
 #ifdef DEBUG0
 	printf("check_host() start\n");
 #endif
 
+	/* high resolution time for broker */
+	gettimeofday(&start_time,NULL);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,start_time,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL);
 #endif
 
 	/* make sure we return the original host state unless it changes... */
@@ -2198,9 +2202,12 @@ int check_host(host *hst, int propagation_options, int check_options){
 			log_host_event(hst);
 	        }
 
+	/* high resolution time for broker */
+	gettimeofday(&end_time,NULL);
+
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,hst->latency,hst->execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->latency,hst->execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->perf_data,NULL);
 #endif
 
 	/* check to see if the associated host is flapping */
@@ -2239,6 +2246,8 @@ int run_host_check(host *hst, int check_options){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	time_t current_time;
 	time_t start_time;
+	struct timeval start_time_hires;
+	struct timeval end_time_hires;
 	char *temp_ptr;
 	int early_timeout=FALSE;
 	double exectime;
@@ -2280,6 +2289,9 @@ int run_host_check(host *hst, int check_options){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+
+	/* high resolution start time for event broker */
+	gettimeofday(&start_time_hires,NULL);
 
 	/* get the last host check time */
 	time(&start_time);
@@ -2376,9 +2388,12 @@ int run_host_check(host *hst, int check_options){
 	else
 		return_result=HOST_DOWN;
 
+	/* high resolution end time for event broker */
+	gettimeofday(&end_time_hires,NULL);
+
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,hst->latency,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->latency,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->perf_data,NULL);
 #endif
 
 #ifdef DEBUG3

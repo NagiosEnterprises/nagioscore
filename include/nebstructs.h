@@ -2,8 +2,8 @@
  *
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
- * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-28-2003
+ * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 09-30-2004
  *
  * License:
  *
@@ -120,6 +120,8 @@ typedef struct nebstruct_host_check_struct{
 	int             state;
 	int             timeout;
 	char            *command_line;
+	struct timeval  start_time;
+	struct timeval  end_time;
 	int             early_timeout;
 	double          execution_time;
 	double          latency;
@@ -145,6 +147,8 @@ typedef struct nebstruct_service_check_struct{
 	int             state;
 	int             timeout;
 	char            *command_line;
+	struct timeval  start_time;
+	struct timeval  end_time;
 	int             early_timeout;
 	double          execution_time;
 	double          latency;

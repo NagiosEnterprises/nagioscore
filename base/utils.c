@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-02-2004
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -2717,7 +2717,7 @@ time_t get_next_log_rotation_time(void){
 		run_time-=3600;
 
 #ifdef DEBUG1
-	printf("\tNext Log Rotation Time: %s",ctime(run_time));
+	printf("\tNext Log Rotation Time: %s",ctime(&run_time));
 #endif
 
 #ifdef DEBUG0

@@ -214,7 +214,7 @@ void broker_event_handler(int type, int flags, int attr, void *data, int state, 
 
 
 /* send host check data to broker */
-void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, char *perfdata, struct timeval *timestamp){
+void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, char *perfdata, struct timeval *timestamp){
 	nebstruct_host_check_data ds;
 
 	if(!(event_broker_options & BROKER_HOST_CHECKS))
@@ -237,6 +237,8 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 	ds.state_type=state_type;
 	ds.timeout=timeout;
 	ds.command_line=cmd;
+	ds.start_time=start_time;
+	ds.end_time=end_time;
 	ds.early_timeout=early_timeout;
 	ds.execution_time=exectime;
 	ds.latency=latency;
@@ -253,7 +255,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 
 
 /* send service check data to broker */
-void broker_service_check(int type, int flags, int attr, service *svc, int check_type, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, struct timeval *timestamp){
+void broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmd, struct timeval *timestamp){
 	nebstruct_service_check_data ds;
 
 	if(!(event_broker_options & BROKER_SERVICE_CHECKS))
@@ -277,6 +279,8 @@ void broker_service_check(int type, int flags, int attr, service *svc, int check
 	ds.state_type=svc->state_type;
 	ds.timeout=timeout;
 	ds.command_line=cmd;
+	ds.start_time=start_time;
+	ds.end_time=end_time;
 	ds.early_timeout=early_timeout;
 	ds.execution_time=exectime;
 	ds.latency=latency;

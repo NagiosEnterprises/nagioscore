@@ -2,8 +2,8 @@
  *
  * STATUSDATA.C - External status data for Nagios CGIs
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-10-2003
+ * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -54,7 +54,9 @@ extern int      aggregate_status_updates;
 
 #ifdef NSCGI
 hoststatus      *hoststatus_list=NULL;
+hoststatus      *hoststatus_list_tail=NULL;
 servicestatus   *servicestatus_list=NULL;
+servicestatus   *servicestatus_list_tail=NULL;
 
 hoststatus      **hoststatus_hashlist=NULL;
 servicestatus   **servicestatus_hashlist=NULL;
@@ -345,29 +347,15 @@ int add_host_status(hoststatus *new_hoststatus){
 	if(!add_hoststatus_to_hashlist(new_hoststatus))
 		return ERROR;
 
-	/* add new host status to list, sorted by host name */
-	last_hoststatus=hoststatus_list;
-	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
-		if(strcmp(new_hoststatus->host_name,temp_hoststatus->host_name)<0){
-			new_hoststatus->next=temp_hoststatus;
-			if(temp_hoststatus==hoststatus_list)
-				hoststatus_list=new_hoststatus;
-			else
-				last_hoststatus->next=new_hoststatus;
-			break;
-		        }
-		else
-			last_hoststatus=temp_hoststatus;
-	        }
+	/* object cache file is already sorted, so just add new items to end of list */
 	if(hoststatus_list==NULL){
-		new_hoststatus->next=NULL;
 		hoststatus_list=new_hoststatus;
+		hoststatus_list_tail=new_hoststatus;
 	        }
-	else if(temp_hoststatus==NULL){
-		new_hoststatus->next=NULL;
-		last_hoststatus->next=new_hoststatus;
+	else{
+		hoststatus_list_tail->next=new_hoststatus;
+		hoststatus_list_tail=new_hoststatus;
 	        }
-
 
 	return OK;
         }
@@ -427,40 +415,15 @@ int add_service_status(servicestatus *new_svcstatus){
 	if(!add_servicestatus_to_hashlist(new_svcstatus))
 		return ERROR;
 
-	/* add new service status to list, sorted by host name then description */
-	last_svcstatus=servicestatus_list;
-	for(temp_svcstatus=servicestatus_list;temp_svcstatus!=NULL;temp_svcstatus=temp_svcstatus->next){
-
-		if(strcmp(new_svcstatus->host_name,temp_svcstatus->host_name)<0){
-			new_svcstatus->next=temp_svcstatus;
-			if(temp_svcstatus==servicestatus_list)
-				servicestatus_list=new_svcstatus;
-			else
-				last_svcstatus->next=new_svcstatus;
-			break;
-		        }
-
-		else if(strcmp(new_svcstatus->host_name,temp_svcstatus->host_name)==0 && strcmp(new_svcstatus->description,temp_svcstatus->description)<0){
-			new_svcstatus->next=temp_svcstatus;
-			if(temp_svcstatus==servicestatus_list)
-				servicestatus_list=new_svcstatus;
-			else
-				last_svcstatus->next=new_svcstatus;
-			break;
-		        }
-
-		else
-			last_svcstatus=temp_svcstatus;
-	        }
+	/* object cache file is already sorted, so just add new items to end of list */
 	if(servicestatus_list==NULL){
-		new_svcstatus->next=NULL;
 		servicestatus_list=new_svcstatus;
+		servicestatus_list_tail=new_svcstatus;
 	        }
-	else if(temp_svcstatus==NULL){
-		new_svcstatus->next=NULL;
-		last_svcstatus->next=new_svcstatus;
+	else{
+		servicestatus_list_tail->next=new_svcstatus;
+		servicestatus_list_tail=new_svcstatus;
 	        }
-
 
 	return OK;
         }

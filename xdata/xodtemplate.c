@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-13-2004
+ * Last Modified: 09-30-2004
  *
  * Description:
  *
@@ -241,6 +241,9 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 		result=xodtemplate_recombobulate_servicegroups();
 	if(result==OK)
 		result=xodtemplate_duplicate_objects();
+
+	/* TODO - SORT OBJECTS BEFORE CACHING - THIS WILL SAVE CGI TIME LATER */
+	/* MOVE SORT FUNCTIONALITY FROM OBJECTS.C TO HERE, JUST ADD OBJECTS TO HEAD OR TAIL OF LIST IN OBJECTS.C */
 
 	/* cache object definitions */
 	if(result==OK && cache==TRUE)

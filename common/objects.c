@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-12-2004
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -3341,7 +3341,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		free(new_service);
 		return NULL;
 	        }
-		
+
 	/* add new service to service list, sorted by host name then service description */
 	last_service=service_list;
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){

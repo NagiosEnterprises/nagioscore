@@ -3,7 +3,7 @@
  * XPDDEFAULT.H - Include file for default performance data routines
  *
  * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-02-2004
+ * Last Modified:   09-30-2004
  *
  * License:
  *
@@ -24,6 +24,11 @@
  *****************************************************************************/
 
 #include "../include/objects.h"
+
+
+#define DEFAULT_HOST_PERFDATA_FILE_TEMPLATE "[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$"
+#define DEFAULT_SERVICE_PERFDATA_FILE_TEMPLATE "[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$"
+
 
 
 int xpddefault_initialize_performance_data(char *);

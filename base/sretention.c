@@ -3,7 +3,7 @@
  * SRETENTION.C - State retention routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-14-2002
+ * Last Modified:   06-16-2002
  *
  * License:
  *
@@ -241,7 +241,7 @@ int set_service_state_information(char *host_name, char *description, int state,
 		time(&current_time);
 
 		/* set state information */
-		temp_service->check_type=(check_type>0)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
+		temp_service->check_type=(check_type==0)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
 		temp_service->current_state=state;
 		temp_service->last_state=state;
 		temp_service->last_hard_state=state;

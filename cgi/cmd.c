@@ -718,8 +718,9 @@ void request_command_data(int cmd){
 		printf("schedule downtime for a particular %s",(cmd==CMD_SCHEDULE_HOST_DOWNTIME)?"host":"service");
 		break;
 
+	case CMD_PROCESS_HOST_CHECK_RESULT:
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
-		printf("submit a passive check result for a particular service");
+		printf("submit a passive check result for a particular %s",(cmd==CMD_PROCESS_HOST_CHECK_RESULT)?"host":"service");
 		break;
 
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
@@ -971,19 +972,29 @@ void request_command_data(int cmd){
 		printf("<tr><td CLASS='optBoxItem' colspan=2>There are no options for this command.<br>Click the 'Commit' button to submit the command.</td></tr>");
 		break;
 		
+	case CMD_PROCESS_HOST_CHECK_RESULT:
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
 		printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>",host_name);
 		printf("</b></td></tr>\n");
-		printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
-		printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
-		printf("</b></td></tr>\n");
+		if(cmd==CMD_PROCESS_SERVICE_CHECK_RESULT){
+			printf("<tr><td CLASS='optBoxRequiredItem'>Service:</td><td><b>");
+			printf("<INPUT TYPE='TEXT' NAME='service' VALUE='%s'>",service_desc);
+			printf("</b></td></tr>\n");
+		        }
 		printf("<tr><td CLASS='optBoxRequiredItem'>Check Result:</td><td><b>");
 		printf("<SELECT NAME='plugin_state'>");
-		printf("<OPTION VALUE=%d SELECTED>OK\n",STATE_OK);
-		printf("<OPTION VALUE=%d>WARNING\n",STATE_WARNING);
-		printf("<OPTION VALUE=%d>UNKNOWN\n",STATE_UNKNOWN);
-		printf("<OPTION VALUE=%d>CRITICAL\n",STATE_CRITICAL);
+		if(cmd==CMD_PROCESS_SERVICE_CHECK_RESULT){
+			printf("<OPTION VALUE=%d SELECTED>OK\n",STATE_OK);
+			printf("<OPTION VALUE=%d>WARNING\n",STATE_WARNING);
+			printf("<OPTION VALUE=%d>UNKNOWN\n",STATE_UNKNOWN);
+			printf("<OPTION VALUE=%d>CRITICAL\n",STATE_CRITICAL);
+		        }
+		else{
+			printf("<OPTION VALUE=0 SELECTED>UP\n");
+			printf("<OPTION VALUE=1>DOWN\n");
+			printf("<OPTION VALUE=2>UNREACHABLE\n");
+		        }
 		printf("</SELECT>\n");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Check Output:</td><td><b>");
@@ -1343,6 +1354,7 @@ void commit_command_data(int cmd){
 	case CMD_DELAY_HOST_NOTIFICATION:
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
 	case CMD_DISABLE_HOST_FLAP_DETECTION:
+	case CMD_PROCESS_HOST_CHECK_RESULT:
 
 		/* make sure we have some host name... */
 		if(!strcmp(host_name,""))
@@ -1369,6 +1381,10 @@ void commit_command_data(int cmd){
 
 		/* make sure we have start/end times for downtime (if necessary) */
 		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time))
+			error=TRUE;
+
+		/* make sure we have passive check info (if necessary) */
+		if(cmd==CMD_PROCESS_HOST_CHECK_RESULT && !strcmp(plugin_output,""))
 			error=TRUE;
 
 		break;
@@ -1662,6 +1678,10 @@ int commit_command(int cmd){
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] PROCESS_SERVICE_CHECK_RESULT;%s;%s;%d;%s|%s\n",current_time,host_name,service_desc,plugin_state,plugin_output,performance_data);
 		break;
 		
+	case CMD_PROCESS_HOST_CHECK_RESULT:
+		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] PROCESS_HOST_CHECK_RESULT;%s;%d;%s|%s\n",current_time,host_name,plugin_state,plugin_output,performance_data);
+		break;
+		
 	case CMD_SCHEDULE_HOST_DOWNTIME:
 		snprintf(command_buffer,sizeof(command_buffer)-1,"[%lu] SCHEDULE_HOST_DOWNTIME;%s;%lu;%lu;%d;%lu;%s;%s\n",current_time,host_name,start_time,end_time,(fixed==TRUE)?1:0,duration,comment_author,comment_data);
 		break;
@@ -1935,14 +1955,11 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_ENABLE_SVC_CHECK:
-		printf("This command is used to re-enable a service check that has been disabled.  Once a service check is enabled, Nagios will begin to monitor the service as usual.  If the service\n");
-		printf("has recovered from a problem that was detected before the check was disabled, contacts might be notified of the recovery.\n");
+		printf("This command is used to enable active checks of a service.\n");
 		break;
 		
 	case CMD_DISABLE_SVC_CHECK:
-		printf("This command is used to disable a service check.  When a service is disabled Nagios will not monitor the service.  Doing this will prevent any notifications being sent out for\n");
-		printf("the specified service while it is disabled.  In order to have Nagios check the service in the future you will have to re-enable the service.\n");
-		printf("Note that disabling service checks may not necessarily prevent notifications from being sent out about the host which those services are associated with.\n");
+		printf("This command is used to disable active checks of a service.\n");
 		break;
 		
 	case CMD_DISABLE_NOTIFICATIONS:
@@ -1963,11 +1980,11 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_ENABLE_HOST_SVC_CHECKS:
-		printf("This command is used to enable all service checks associated with the specified host.  This <i>does not</i> enable checks of the host unless you check the 'Enable for host too' option.\n");
+		printf("This command is used to enable active checks of all services associated with the specified host.  This <i>does not</i> enable checks of the host unless you check the 'Enable for host too' option.\n");
 		break;
 		
 	case CMD_DISABLE_HOST_SVC_CHECKS:
-		printf("This command is used to disable all service checks associated with the specified host.  When a service is disabled Nagios will not monitor the service.  Doing this will prevent any notifications being sent out for\n");
+		printf("This command is used to disable active checks of all services associated with the specified host.  When a service is disabled Nagios will not monitor the service.  Doing this will prevent any notifications being sent out for\n");
 		printf("the specified service while it is disabled.  In order to have Nagios check the service in the future you will have to re-enable the service.\n");
 		printf("Note that disabling service checks may not necessarily prevent notifications from being sent out about the host which those services are associated with.  This <i>does not</i> disable checks of the host unless you check the 'Disable for host too' option.\n");
 		break;
@@ -2049,11 +2066,11 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_START_EXECUTING_SVC_CHECKS:
-		printf("This command is used to resume execution of service checks on a program-wide basis.  Individual services which are disabled will still not be checked.\n");
+		printf("This command is used to resume execution of active service checks on a program-wide basis.  Individual services which are disabled will still not be checked.\n");
 		break;
 
 	case CMD_STOP_EXECUTING_SVC_CHECKS:
-		printf("This command is used to temporarily stop Nagios from executing any service checks.  This will have the side effect of preventing any notifications from being sent out (for any and all services and hosts).\n");
+		printf("This command is used to temporarily stop Nagios from actively executing any service checks.  This will have the side effect of preventing any notifications from being sent out (for any and all services and hosts).\n");
 		printf("Service checks will not be executed again until you issue a command to resume service check execution.\n");
 		break;
 
@@ -2098,11 +2115,11 @@ void show_command_help(cmd){
 		break;
 
 	case CMD_ENABLE_HOST_CHECK:
-		printf("This command is used to enable checks of this host.\n");
+		printf("This command is used to enable active checks of this host.\n");
 		break;
 
 	case CMD_DISABLE_HOST_CHECK:
-		printf("This command is used to temporarily prevent Nagios from checking the status of a particular host.  If Nagios needs to check the status of this host, it will assume that it is in the same state that it was in before checks were disabled.\n");
+		printf("This command is used to temporarily prevent Nagios from actively checking the status of a particular host.  If Nagios needs to check the status of this host, it will assume that it is in the same state that it was in before checks were disabled.\n");
 		break;
 
 	case CMD_START_OBSESSING_OVER_SVC_CHECKS:
@@ -2127,6 +2144,10 @@ void show_command_help(cmd){
 
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:
 		printf("This command is used to submit a passive check result for a particular service.  It is particularly useful for resetting security-related services to OK states once they have been dealt with.\n");
+		break;
+
+	case CMD_PROCESS_HOST_CHECK_RESULT:
+		printf("This command is used to submit a passive check result for a particular host.\n");
 		break;
 
 	case CMD_SCHEDULE_HOST_DOWNTIME:

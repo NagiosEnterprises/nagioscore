@@ -897,8 +897,12 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",temp_hoststatus->plugin_output);
 
+		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->perf_data==NULL)?"":temp_hoststatus->perf_data);
+
+		printf("<TR><TD CLASS='dataVar'>Last Check Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_hoststatus->check_type==HOST_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
+
 		get_time_string(&temp_hoststatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TR><TD CLASS='dataVar'>Last Status Check:</td><td CLASS='dataVal'>%s</td></tr>\n",date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Check Time:</td><td CLASS='dataVal'>%s</td></tr>\n",date_time);
 
 		current_time=time(NULL);
 		t=0;
@@ -1191,6 +1195,8 @@ void show_service_info(void){
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
 		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",temp_svcstatus->plugin_output);
+
+		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_svcstatus->perf_data==NULL)?"":temp_svcstatus->perf_data);
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d</TD></TR>\n",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
 

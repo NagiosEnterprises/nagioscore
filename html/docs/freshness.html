@@ -54,7 +54,7 @@ Assuming you're using the template-based object configuration file(s), you need 
 <p>
 <ul>
 <li>The <b>check_freshness</b> option in the service definition should be set to 1.  This enables "freshness" checking for the service.
-<li>The <b>freshness_threshold</b> option in the service definition should be set to a value (usually in seconds, unless you changed the <a href="configmain.html#interval_length">interval_length</a> directive) which reflects how "fresh" the results for the service should be.
+<li>The <b>freshness_threshold</b> option in the service definition should be set to a value (in seconds) which reflects how "fresh" the results for the service should be.
 <li>The <b>check_command</b> option in the service definition should reflect valid command that should be used to actively check the service when it is detected as being "stale".
 </ul>
 </p>
@@ -64,7 +64,7 @@ Assuming you're using the template-based object configuration file(s), you need 
 </p>
 
 <p>
-Nagios periodically checks the "freshness" of the results for all services that have freshness checking enabled.  The <i>freshness_threshold</i> option in each service definition is used to determine how "fresh" the results for each service should be.  For example, if you set the <i>freshness_threshold</i> option to 5 for one of your services and your <a href="configmain.html#interval_length">interval_length</a> directive is set to 60 seconds, Nagios will consider that service to be "stale" if its results are older than 5 minutes.  If you do not specify a value for the <i>freshness_threshold</i> option (or you set it to zero), Nagios will automatically calculate a "freshness" threshold to use by looking at either the <i>normal_check_interval</i> or <i>retry_check_interval</i> options (depending on what <a href="statetypes.html">type of state</a> the service is currently in).
+Nagios periodically checks the "freshness" of the results for all services that have freshness checking enabled.  The <i>freshness_threshold</i> option in each service definition is used to determine how "fresh" the results for each service should be.  For example, if you set the <i>freshness_threshold</i> option to 60 for one of your services, Nagios will consider that service to be "stale" if its results are older than 60 seconds (1 minute).  If you do not specify a value for the <i>freshness_threshold</i> option (or you set it to zero), Nagios will automatically calculate a "freshness" threshold to use by looking at either the <i>normal_check_interval</i> or <i>retry_check_interval</i> options (depending on what <a href="statetypes.html">type of state</a> the service is currently in).
 </p>
 
 <p>

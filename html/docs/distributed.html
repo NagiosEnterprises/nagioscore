@@ -258,13 +258,13 @@ So how do you do this?  On the central monitoring server you need to configure s
 <p>
 <ul>
 <li>The <i>check_freshness</i> option in the service definitions should be set to 1.  This enables "freshness" checking for the services.
-<li>The <i>freshness_threshold</i> option in the service definitions should be set to a value which reflects how "fresh" the results for the services (provided by the distributed servers) should be.
+<li>The <i>freshness_threshold</i> option in the service definitions should be set to a value (in seconds) which reflects how "fresh" the results for the services (provided by the distributed servers) should be.
 <li>The <i>check_command</i> option in the service definitions should reflect valid commands that can be used to actively check the service from the central monitoring server.
 </ul>
 </p>
 
 <p>
-Nagios periodically checks the "freshness" of the results for all services that have freshness checking enabled.  The <i>freshness_threshold</i> option in each service definition is used to determine how "fresh" the results for each service should be.  For example, if you set this value to 5 for one of your services and your <a href="configmain.html#interval_length">interval_length</a> directive is set to 60 seconds, Nagios will consider the service results to be "stale" if they're older than 5 minutes.  If you do not specify a value for the <i>freshness_threshold</i> option, Nagios will automatically calculate a "freshness" threshold by looking at either the <i>normal_check_interval</i> or <i>retry_check_interval</i> options (depending on what <a href="statetypes.html">type of state</a> the service is in).  If the service results are found to be "stale", Nagios will run the service check command specified by the <i>check_command</i> option in the service definition, thereby actively checking the service.
+Nagios periodically checks the "freshness" of the results for all services that have freshness checking enabled.  The <i>freshness_threshold</i> option in each service definition is used to determine how "fresh" the results for each service should be.  For example, if you set this value to 300 for one of your services, Nagios will consider the service results to be "stale" if they're older than 5 minutes (300 seconds).  If you do not specify a value for the <i>freshness_threshold</i> option, Nagios will automatically calculate a "freshness" threshold by looking at either the <i>normal_check_interval</i> or <i>retry_check_interval</i> options (depending on what <a href="statetypes.html">type of state</a> the service is in).  If the service results are found to be "stale", Nagios will run the service check command specified by the <i>check_command</i> option in the service definition, thereby actively checking the service.
 </p>
 
 <p>

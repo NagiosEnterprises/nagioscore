@@ -1507,27 +1507,24 @@ void display_nav_table(char *url,int archive){
 
 
 
-/* prints the additional notes url for a host (with macros substituted) */
-void print_host_notes_url(hostextinfo *temp_hostextinfo){
+/* prints the additional notes or action url for a host (with macros substituted) */
+void print_extra_host_url(char *host_name, char *url){
 	char input_buffer[MAX_INPUT_BUFFER]="";
 	char output_buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer;
 	int in_macro=FALSE;
 	host *temp_host;
 
-	if(temp_hostextinfo==NULL)
+	if(host_name==NULL || url==NULL)
 		return;
 
-	if(temp_hostextinfo->notes_url==NULL)
-		return;
-
-	temp_host=find_host(temp_hostextinfo->host_name);
+	temp_host=find_host(host_name);
 	if(temp_host==NULL){
-		printf("%s",temp_hostextinfo->notes_url);
+		printf("%s",url);
 		return;
 	        }
 
-	strncpy(input_buffer,temp_hostextinfo->notes_url,sizeof(input_buffer)-1);
+	strncpy(input_buffer,url,sizeof(input_buffer)-1);
 	output_buffer[sizeof(input_buffer)-1]='\x0';
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
@@ -1561,8 +1558,8 @@ void print_host_notes_url(hostextinfo *temp_hostextinfo){
 
 
 
-/* prints the additional notes url for a service (with macros substituted) */
-void print_service_notes_url(serviceextinfo *temp_serviceextinfo){
+/* prints the additional notes or action url for a service (with macros substituted) */
+void print_extra_service_url(char *host_name, char *svc_description, char *url){
 	char input_buffer[MAX_INPUT_BUFFER]="";
 	char output_buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer;
@@ -1570,21 +1567,18 @@ void print_service_notes_url(serviceextinfo *temp_serviceextinfo){
 	service *temp_service;
 	host *temp_host;
 
-	if(temp_serviceextinfo==NULL)
+	if(host_name==NULL || svc_description==NULL || url==NULL)
 		return;
 
-	if(temp_serviceextinfo->notes_url==NULL)
-		return;
-
-	temp_service=find_service(temp_serviceextinfo->host_name,temp_serviceextinfo->description);
+	temp_service=find_service(host_name,svc_description);
 	if(temp_service==NULL){
-		printf("%s",temp_serviceextinfo->notes_url);
+		printf("%s",url);
 		return;
 	        }
 
-	temp_host=find_host(temp_serviceextinfo->host_name);
+	temp_host=find_host(host_name);
 
-	strncpy(input_buffer,temp_serviceextinfo->notes_url,sizeof(input_buffer)-1);
+	strncpy(input_buffer,url,sizeof(input_buffer)-1);
 	input_buffer[sizeof(input_buffer)-1]='\x0';
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-15-2003
+ * Last Modified:   06-17-2003
  *
  * License:
  *
@@ -3097,7 +3097,8 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->current_state=STATE_OK;
 	new_service->last_state=STATE_OK;
 	new_service->last_hard_state=STATE_OK;
-	new_service->state_type=SOFT_STATE;
+	/* inital state type changed from SOFT_STATE on 6/17/03 - shouldn't this have been HARD_STATE all along? */
+	new_service->state_type=HARD_STATE;
 	new_service->host_problem_at_last_check=FALSE;
 #ifdef REMOVED_041403
 	new_service->no_recovery_notification=FALSE;
@@ -3150,7 +3151,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		free(new_service);
 		return NULL;
 	        }
-	strcpy(new_service->plugin_output,"");
+	strcpy(new_service->plugin_output,"(Service assumed to be ok)");
 
 	/* allocate new performance data buffer */
 	new_service->perf_data=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
@@ -4197,7 +4198,7 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 
 /* adds an extended host info structure to the list in memory */
-hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, char *icon_image, char *vrml_image, char *statusmap_image, char *icon_image_alt, int x_2d, int y_2d, double x_3d, double y_3d, double z_3d, int have_2d_coords, int have_3d_coords){
+hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, char *action_url, char *icon_image, char *vrml_image, char *statusmap_image, char *icon_image_alt, int x_2d, int y_2d, double x_3d, double y_3d, double z_3d, int have_2d_coords, int have_3d_coords){
 	hostextinfo *new_hostextinfo;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -4272,11 +4273,30 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 		        }
 	        }
 
+	if(action_url==NULL || !strcmp(action_url,""))
+		new_hostextinfo->action_url=NULL;
+	else{
+		new_hostextinfo->action_url=strdup(action_url);
+		if(new_hostextinfo->action_url==NULL){
+			free(new_hostextinfo->notes_url);
+			free(new_hostextinfo->notes);
+			free(new_hostextinfo->host_name);
+			free(new_hostextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
 	if(icon_image==NULL || !strcmp(icon_image,""))
 		new_hostextinfo->icon_image=NULL;
 	else{
 		new_hostextinfo->icon_image=strdup(icon_image);
 		if(new_hostextinfo->icon_image==NULL){
+			free(new_hostextinfo->action_url);
 			free(new_hostextinfo->notes_url);
 			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
@@ -4296,6 +4316,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 		new_hostextinfo->vrml_image=strdup(vrml_image);
 		if(new_hostextinfo->vrml_image==NULL){
 			free(new_hostextinfo->icon_image);
+			free(new_hostextinfo->action_url);
 			free(new_hostextinfo->notes_url);
 			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
@@ -4317,6 +4338,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 		if(new_hostextinfo->statusmap_image==NULL){
 			free(new_hostextinfo->vrml_image);
 			free(new_hostextinfo->icon_image);
+			free(new_hostextinfo->action_url);
 			free(new_hostextinfo->notes_url);
 			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
@@ -4339,6 +4361,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 			free(new_hostextinfo->statusmap_image);
 			free(new_hostextinfo->vrml_image);
 			free(new_hostextinfo->icon_image);
+			free(new_hostextinfo->action_url);
 			free(new_hostextinfo->notes_url);
 			free(new_hostextinfo->notes);
 			free(new_hostextinfo->host_name);
@@ -4379,6 +4402,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 		free(new_hostextinfo->vrml_image);
 		free(new_hostextinfo->icon_image);
 		free(new_hostextinfo->icon_image_alt);
+		free(new_hostextinfo->action_url);
 		free(new_hostextinfo->notes_url);
 		free(new_hostextinfo->notes);
 		free(new_hostextinfo->host_name);
@@ -4399,7 +4423,7 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 
 
 /* adds an extended service info structure to the list in memory */
-serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *notes, char *notes_url, char *icon_image, char *icon_image_alt){
+serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt){
 	serviceextinfo *new_serviceextinfo;
 #ifdef NSCORE
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -4488,6 +4512,25 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 		        }
 	        }
 
+	if(action_url==NULL || !strcmp(action_url,""))
+		new_serviceextinfo->action_url=NULL;
+	else{
+		new_serviceextinfo->action_url=strdup(action_url);
+		if(new_serviceextinfo->action_url==NULL){
+			free(new_serviceextinfo->notes_url);
+			free(new_serviceextinfo->notes);
+			free(new_serviceextinfo->description);
+			free(new_serviceextinfo->host_name);
+			free(new_serviceextinfo);
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return NULL;
+		        }
+	        }
+
 	if(icon_image==NULL || !strcmp(icon_image,""))
 		new_serviceextinfo->icon_image=NULL;
 	else{
@@ -4495,6 +4538,7 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 		if(new_serviceextinfo->icon_image==NULL){
 			free(new_serviceextinfo->notes);
 			free(new_serviceextinfo->notes_url);
+			free(new_serviceextinfo->action_url);
 			free(new_serviceextinfo->description);
 			free(new_serviceextinfo->host_name);
 			free(new_serviceextinfo);
@@ -4515,6 +4559,7 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 			free(new_serviceextinfo->icon_image);
 			free(new_serviceextinfo->notes);
 			free(new_serviceextinfo->notes_url);
+			free(new_serviceextinfo->action_url);
 			free(new_serviceextinfo->description);
 			free(new_serviceextinfo->host_name);
 			free(new_serviceextinfo);
@@ -4540,6 +4585,7 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 		free(new_serviceextinfo->icon_image_alt);
 		free(new_serviceextinfo->notes_url);
 		free(new_serviceextinfo->notes);
+		free(new_serviceextinfo->action_url);
 		free(new_serviceextinfo->description);
 		free(new_serviceextinfo->host_name);
 		free(new_serviceextinfo);
@@ -6006,6 +6052,7 @@ int free_extended_data(void){
 		free(this_hostextinfo->host_name);
 		free(this_hostextinfo->notes);
 		free(this_hostextinfo->notes_url);
+		free(this_hostextinfo->action_url);
 		free(this_hostextinfo->icon_image);
 		free(this_hostextinfo->vrml_image);
 		free(this_hostextinfo->statusmap_image);
@@ -6026,6 +6073,7 @@ int free_extended_data(void){
 		free(this_serviceextinfo->description);
 		free(this_serviceextinfo->notes);
 		free(this_serviceextinfo->notes_url);
+		free(this_serviceextinfo->action_url);
 		free(this_serviceextinfo->icon_image);
 		free(this_serviceextinfo);
 	        }

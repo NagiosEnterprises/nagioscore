@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-13-2003
+ * Last Modified: 06-17-2003
  *
  * License:
  * 
@@ -324,20 +324,44 @@ int main(void){
 		printf("<td align=right valign=bottom width=33%%>\n");
 
 		if(display_type==DISPLAY_HOST_INFO){
-			if(temp_hostextinfo!=NULL && temp_hostextinfo->notes_url!=NULL && strcmp(temp_hostextinfo->notes_url,"")){
-				printf("<A HREF='");
-				print_host_notes_url(temp_hostextinfo);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Host'></A>\n",url_images_path,NOTES_ICON);
-				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>There Are Additional<BR>Notes For This Host...</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+			if(temp_hostextinfo!=NULL){
+				printf("<TABLE BORDER='0'>\n");
+				if(temp_hostextinfo->action_url!=NULL && strcmp(temp_hostextinfo->action_url,"")){
+					printf("<TR><TD ALIGN='right'>\n");
+					printf("<A HREF='");
+					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
+					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Host'></A>\n",url_images_path,ACTION_ICON);
+					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+					printf("</TD></TR>\n");
+				        }
+				if(temp_hostextinfo->notes_url!=NULL && strcmp(temp_hostextinfo->notes_url,"")){
+					printf("<TR><TD ALIGN='right'>\n");
+					printf("<A HREF='");
+					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
+					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Host'></A>\n",url_images_path,NOTES_ICON);
+					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+					printf("</TD></TR>\n");
+				        }
+				printf("</TABLE>\n");
 		                }
 	                }
 
 		else if(display_type==DISPLAY_SERVICE_INFO){
-			if(temp_serviceextinfo!=NULL && temp_serviceextinfo->notes_url!=NULL && strcmp(temp_serviceextinfo->notes_url,"")){
-				printf("<A HREF='");
-				print_service_notes_url(temp_serviceextinfo);
-				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Service'></A>\n",url_images_path,NOTES_ICON);
-				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>There Are Additional<BR>Notes For This Service...</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+			if(temp_serviceextinfo!=NULL){
+				printf("<TABLE BORDER='0'>\n");
+				if(temp_serviceextinfo->action_url!=NULL && strcmp(temp_serviceextinfo->action_url,"")){
+					printf("<A HREF='");
+					print_extra_service_url(temp_serviceextinfo->host_name,temp_serviceextinfo->description,temp_serviceextinfo->action_url);
+					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Service'></A>\n",url_images_path,ACTION_ICON);
+					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+				        }
+				if(temp_serviceextinfo->notes_url!=NULL && strcmp(temp_serviceextinfo->notes_url,"")){
+					printf("<A HREF='");
+					print_extra_service_url(temp_serviceextinfo->host_name,temp_serviceextinfo->description,temp_serviceextinfo->notes_url);
+					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Service'></A>\n",url_images_path,NOTES_ICON);
+					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+				        }
+				printf("</TABLE>\n");
 		                }
 	                }
 
@@ -2213,14 +2237,14 @@ void display_comments(int type){
 	read_comment_data(get_cgi_config_location());
 
 	/* check all the comments to see if they apply to this host or service */
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
 
 		display_comment=FALSE;
 
-		if(type==HOST_COMMENT && temp_comment->comment_type==HOST_COMMENT && !strcmp(temp_comment->host_name,host_name))
+		if(type==HOST_COMMENT && temp_comment->comment_type==HOST_COMMENT)
 			display_comment=TRUE;
 
-		else if(type==SERVICE_COMMENT && temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->host_name,host_name) && !strcmp(temp_comment->service_description,service_desc))
+		else if(type==SERVICE_COMMENT && temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->service_description,service_desc))
 			display_comment=TRUE;
 
 		if(display_comment==TRUE){
@@ -2239,14 +2263,12 @@ void display_comments(int type){
 			printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%lu</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
 			printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment'></td>",COMMAND_CGI,(type==HOST_COMMENT)?CMD_DEL_HOST_COMMENT:CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 			printf("</tr>\n");
+
+			total_comments++;
 			}
 	        }
 
 	/* see if this host or service has any comments associated with it */
-	if(type==HOST_COMMENT)
-		total_comments=number_of_host_comments(temp_host->name);
-	else
-		total_comments=number_of_service_comments(temp_service->host_name,temp_service->description);
 	if(total_comments==0)
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN='%d'>This %s has no comments associated with it</TD></TR>",(type==HOST_COMMENT)?8:9,(type==HOST_COMMENT)?"host":"service");
 

@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-13-2003
+ * Last Modified: 06-17-2003
  *
  * Description:
  *
@@ -896,7 +896,7 @@ void calculate_host_coords(void){
 
 		/* none was found, so add a blank one */
 		if(temp_hostextinfo==NULL)
-			add_hostextinfo(temp_host->name,NULL,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
+			add_hostextinfo(temp_host->name,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
 	        }
 
 

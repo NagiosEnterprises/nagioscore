@@ -3,7 +3,7 @@
  * COMMENTS.H - Header file for comment functions
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2003
+ * Last Modified:   06-16-2003
  *
  * License:
  *
@@ -36,6 +36,16 @@
 #define COMMENTSOURCE_EXTERNAL  1
 
 
+
+/*************************** CHAINED HASH LIMITS ***************************/
+
+#define COMMENT_HASHSLOTS      1024
+
+
+
+/**************************** DATA STRUCTURES ******************************/
+
+
 /* COMMENT structure */
 typedef struct comment_struct{
 	int 	comment_type;
@@ -48,6 +58,7 @@ typedef struct comment_struct{
 	char 	*author;
 	char 	*comment_data;
 	struct 	comment_struct *next;
+	struct 	comment_struct *nexthash;
         }comment;
 
 
@@ -68,13 +79,21 @@ int delete_all_service_comments(char *,char *);                     /* deletes a
 comment *find_comment(unsigned long,int);                             /* finds a specific comment */
 comment *find_service_comment(unsigned long);                         /* finds a specific service comment */
 comment *find_host_comment(unsigned long);                            /* finds a specific host comment */
+
+comment *get_first_comment_by_host(char *);
+comment *get_next_comment_by_host(char *,comment *);
+
 int number_of_host_comments(char *);			              /* returns the number of comments associated with a particular host */
 int number_of_service_comments(char *, char *);		              /* returns the number of comments associated with a particular service */
 
 int read_comment_data(char *);                                            /* reads all host and service comments */
+
 int add_comment(int,char *,char *,time_t,char *,char *,unsigned long,int,int);      /* adds a comment (host or service) */
 int add_host_comment(char *,time_t,char *,char *,unsigned long,int,int);            /* adds a host comment */
 int add_service_comment(char *,char *,time_t,char *,char *,unsigned long,int,int);  /* adds a service comment */
+
+int add_comment_to_hashlist(comment *);
+
 void free_comment_data(void);                                             /* frees memory allocated to the comment list */
 
 #endif

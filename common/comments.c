@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-09-2003
+ * Last Modified:   06-16-2003
  *
  * License:
  *
@@ -48,6 +48,7 @@
 
 
 comment     *comment_list=NULL;
+comment     **comment_hashlist=NULL;
 
 
 
@@ -358,6 +359,47 @@ int read_comment_data(char *main_config_file){
 
 
 /******************************************************************/
+/****************** CHAINED HASH FUNCTIONS ************************/
+/******************************************************************/
+
+/* adds comment to hash list in memory */
+int add_comment_to_hashlist(comment *new_comment){
+	comment *temp_comment, *lastpointer;
+	int hashslot;
+
+	/* initialize hash list */
+	if(comment_hashlist==NULL){
+		int i;
+
+		comment_hashlist=(comment **)malloc(sizeof(comment *)*COMMENT_HASHSLOTS);
+		if(comment_hashlist==NULL)
+			return 0;
+		
+		for(i=0;i<COMMENT_HASHSLOTS;i++)
+			comment_hashlist[i]=NULL;
+	        }
+
+	if(!new_comment)
+		return 0;
+
+	hashslot=hashfunc1(new_comment->host_name,COMMENT_HASHSLOTS);
+	lastpointer=NULL;
+	for(temp_comment=comment_hashlist[hashslot];temp_comment && compare_hashdata1(temp_comment->host_name,new_comment->host_name)<0;temp_comment=temp_comment->nexthash)
+		lastpointer=temp_comment;
+
+	/* multiples are allowed */
+	if(lastpointer)
+		lastpointer->nexthash=new_comment;
+	else
+		comment_hashlist[hashslot]=new_comment;
+	new_comment->nexthash=temp_comment;
+
+	return 1;
+        }
+
+
+
+/******************************************************************/
 /******************** ADDITION FUNCTIONS **************************/
 /******************************************************************/
 
@@ -441,6 +483,12 @@ int add_comment(int comment_type, char *host_name, char *svc_description, time_t
 	new_comment->comment_id=comment_id;
 	new_comment->persistent=(persistent>0)?TRUE:FALSE;
 
+	new_comment->next=NULL;
+	new_comment->nexthash=NULL;
+
+	/* add comment to hash list */
+	if(!add_comment_to_hashlist(new_comment))
+		return ERROR;
 
 	/* add new comment to comment list, sorted by comment id */
 	last_comment=comment_list;
@@ -518,8 +566,8 @@ int number_of_host_comments(char *host_name){
 	if(host_name==NULL)
 		return 0;
 
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
-		if(temp_comment->comment_type==HOST_COMMENT && !strcmp(temp_comment->host_name,host_name))
+	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
+		if(temp_comment->comment_type==HOST_COMMENT)
 			total_comments++;
 	        }
 
@@ -535,14 +583,50 @@ int number_of_service_comments(char *host_name, char *svc_description){
 	if(host_name==NULL || svc_description==NULL)
 		return 0;
 
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
-		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->host_name,host_name) && !strcmp(temp_comment->service_description,svc_description))
+	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
+		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->service_description,svc_description))
 			total_comments++;
 	        }
 
 	return total_comments;
         }
 
+
+
+/******************************************************************/
+/********************* TRAVERSAL FUNCTIONS ************************/
+/******************************************************************/
+
+comment *get_first_comment_by_host(char *host_name){
+
+	return get_next_comment_by_host(host_name,NULL);
+        }
+
+
+comment *get_next_comment_by_host(char *host_name, comment *start){
+	comment *temp_comment;
+
+	if(host_name==NULL || comment_hashlist==NULL)
+		return NULL;
+
+	if(start==NULL)
+		temp_comment=comment_hashlist[hashfunc1(host_name,COMMENT_HASHSLOTS)];
+	else
+		temp_comment=start->nexthash;
+
+	for(;temp_comment && compare_hashdata1(temp_comment->host_name,host_name)<0;temp_comment=temp_comment->nexthash);
+
+	if(temp_comment && compare_hashdata1(temp_comment->host_name,host_name)==0)
+		return temp_comment;
+
+	return NULL;
+        }
+
+
+
+/******************************************************************/
+/********************** SEARCH FUNCTIONS **************************/
+/******************************************************************/
 
 /* find a service comment by id */
 comment *find_service_comment(unsigned long comment_id){

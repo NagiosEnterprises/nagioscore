@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-03-2005
+ * Last Modified:   02-08-2005
  *
  * License:
  *
@@ -290,8 +290,16 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					if(macro_x_names[x]==NULL)
 						continue;
 					if(!strcmp(temp_buffer,macro_x_names[x])){
+
 						selected_macro=macro_x[x];
 						found_macro_x=TRUE;
+						
+						/* host/service output/perfdata macros get cleaned */
+						if(x>=16 && x<=19){
+							clean_macro=TRUE;
+							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+						        }
+
 						break;
 						}
 				        }
@@ -302,14 +310,28 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 				/* on-demand host macros */
 				else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
+
 					grab_on_demand_macro(temp_buffer);
 					selected_macro=macro_ondemand;
+
+					/* output/perfdata macros get cleaned */
+					if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"HOSTPERFDATA:")){
+						clean_macro=TRUE;
+						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+					        }
 				        }
 
 				/* on-demand service macros */
 				else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
+
 					grab_on_demand_macro(temp_buffer);
 					selected_macro=macro_ondemand;
+
+					/* output/perfdata macros get cleaned */
+					if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
+						clean_macro=TRUE;
+						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+					        }
 				        }
 
 				/* argv macros */
@@ -367,7 +389,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 						selected_macro=get_url_encoded_string(selected_macro);
 				
 					/* some macros are cleaned... */
-					if(clean_macro==TRUE)
+					if(clean_macro==TRUE || ((options & STRIP_ILLEGAL_MACRO_CHARS) || (options & ESCAPE_MACRO_CHARS)))
 						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
 
 					/* others are not cleaned */
@@ -2409,8 +2431,16 @@ int set_macrox_environment_vars(int set){
 #endif
 
 	/* set each of the macrox environment variables */
-	for(x=0;x<MACRO_X_COUNT;x++)
-		set_macro_environment_var(macro_x_names[x],macro_x[x],set);
+	for(x=0;x<MACRO_X_COUNT;x++){
+
+		/* host/service output/perfdata macros get cleaned */
+		if(x>=16 && x<=19)
+			set_macro_environment_var(macro_x_names[x],clean_macro_chars(macro_x[x],STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
+
+		/* others don't */
+		else
+			set_macro_environment_var(macro_x_names[x],macro_x[x],set);
+	        }
 
 #ifdef DEBUG0
 	printf("set_macrox_environment_vars() end\n");

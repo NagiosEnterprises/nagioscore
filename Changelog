@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0b2 - ??/??/????
 ------------------
+* Fixed bug with cleaning macro contents
 * Minor doc updates and fixes
 * Init script mods
 * Fixed bug in macro routines

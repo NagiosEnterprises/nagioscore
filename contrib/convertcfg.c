@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-10-2002
+ * Last Modified: 04-21-2002
  *
  * License:
  *
@@ -50,7 +50,7 @@ int main(int argc, char **argv){
 	if(argc!=3){
 		printf("Nagios Config File Converter\n");
 		printf("Written by Ethan Galstad (nagios@nagios.org)\n");
-		printf("Last Modified: 03-10-2002\n");
+		printf("Last Modified: 04-21-2002\n");
 		printf("\n");
 		printf("Usage: %s <config file> <object type>\n",argv[0]);
 		printf("\n");
@@ -197,8 +197,8 @@ int main(int argc, char **argv){
 			notify_warning=atoi(temp_ptr);
 
 			option=0;
+			printf("\tservice_notification_options\t");
 			if(notify_recovery==1 || notify_critical==1 || notify_warning==1){
-				printf("\tservice_notification_options\t");
 				if(notify_warning==1){
 					printf("w,u");
 					option=1;
@@ -214,8 +214,10 @@ int main(int argc, char **argv){
 						printf(",");
 					printf("r");
 				        }
-				printf("\n");
 			        }
+			else
+				printf("n");
+			printf("\n");
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
 			notify_recovery=atoi(temp_ptr);
@@ -225,8 +227,8 @@ int main(int argc, char **argv){
 			notify_unreachable=atoi(temp_ptr);
 
 			option=0;
+			printf("\thost_notification_options\t");
 			if(notify_recovery==1 || notify_down==1 || notify_unreachable==1){
-				printf("\thost_notification_options\t");
 				if(notify_down==1){
 					printf("d");
 					option=1;
@@ -242,8 +244,10 @@ int main(int argc, char **argv){
 						printf(",");
 					printf("r");
 				        }
-				printf("\n");
 			        }
+			else
+				printf("n");
+			printf("\n");
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
 			if(temp_ptr!=NULL && strcmp(temp_ptr,""))
@@ -348,8 +352,8 @@ int main(int argc, char **argv){
 			notify_unreachable=atoi(temp_ptr);
 
 			option=0;
+			printf("\tnotification_options\t");
 			if(notify_recovery==1 || notify_down==1 || notify_unreachable==1){
-				printf("\tnotification_options\t");
 				if(notify_down==1){
 					printf("d");
 					option=1;
@@ -365,8 +369,10 @@ int main(int argc, char **argv){
 						printf(",");
 					printf("r");
 				        }
-				printf("\n");
 			        }
+			else
+				printf("n");
+			printf("\n");
 
 			temp_ptr=my_strsep(&temp_ptr2,";\r\n");
 			if(temp_ptr!=NULL && strcmp(temp_ptr,""))
@@ -473,8 +479,8 @@ int main(int argc, char **argv){
 			notify_warning=atoi(temp_ptr);
 
 			option=0;
+			printf("\tnotification_options\t\t");
 			if(notify_recovery==1 || notify_critical==1 || notify_warning==1){
-				printf("\tnotification_options\t\t");
 				if(notify_warning==1){
 					printf("w,u");
 					option=1;
@@ -490,8 +496,10 @@ int main(int argc, char **argv){
 						printf(",");
 					printf("r");
 				        }
-				printf("\n");
 			        }
+			else
+				printf("n");
+			printf("\n");
 
 			temp_ptr=my_strsep(&temp_ptr2,";");
 			if(temp_ptr!=NULL && strcmp(temp_ptr,""))

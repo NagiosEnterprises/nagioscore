@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-05-2003
  *
  * License:
  *
@@ -1408,9 +1408,9 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	strcpy(this_host->perf_data,"");
 
 	/* calculate total execution time */
-	this_host->execution_time=(int)(current_time-check_time);
-	if(this_host->execution_time<0)
-		this_host->execution_time=0;
+	this_host->execution_time=(double)(current_time-check_time);
+	if(this_host->execution_time<0.0)
+		this_host->execution_time=0.0;
 
 	/* check for empty plugin output */
 	if(!strcmp(temp_plugin_output,""))
@@ -3246,11 +3246,15 @@ void process_passive_service_checks(void){
 	passive_check_result *temp_pcr;
 	passive_check_result *this_pcr;
 	passive_check_result *next_pcr;
+	struct timeb end_time;
 
 
 #ifdef DEBUG0
 	printf("process_passive_service_checks() start\n");
 #endif
+
+	/* get the "end" time of the check */
+	ftime(&end_time);
 
 	/* fork... */
 	pid=fork();
@@ -3293,8 +3297,9 @@ void process_passive_service_checks(void){
 				svc_msg.parallelized=FALSE;
 				svc_msg.exited_ok=TRUE;
 				svc_msg.check_type=SERVICE_CHECK_PASSIVE;
-				svc_msg.check_time=temp_pcr->check_time;
-				svc_msg.finish_time=time(NULL);
+				svc_msg.start_time.time=temp_pcr->check_time;
+				svc_msg.start_time.millitm=0;
+				svc_msg.finish_time=end_time;
 
 				/* write the service check results... */
 				write_svc_message(&svc_msg);

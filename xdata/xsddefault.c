@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2001
+ * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2003
  *
  * License:
  *
@@ -423,7 +423,7 @@ int xsddefault_update_host_status(char *host_name, char *status, time_t last_upd
 
 
 /* updates service status data */
-int xsddefault_update_service_status(char *host_name, char *description, char *status, time_t last_update, int current_attempt, int max_attempts, int state_type, time_t last_check, time_t next_check, int should_be_scheduled, int check_type, int checks_enabled, int accept_passive_service_checks, int event_handler_enabled, time_t last_state_change, int problem_has_been_acknowledged, char *last_hard_state, unsigned long time_ok, unsigned long time_warning, unsigned long time_unknown, unsigned long time_critical, time_t last_notification, int current_notification_number, int notifications_enabled, int latency, int execution_time, int flap_detection_enabled, int is_flapping, double percent_state_change, int scheduled_downtime_depth, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, char *plugin_output, int aggregated_dump){
+int xsddefault_update_service_status(char *host_name, char *description, char *status, time_t last_update, int current_attempt, int max_attempts, int state_type, time_t last_check, time_t next_check, int should_be_scheduled, int check_type, int checks_enabled, int accept_passive_service_checks, int event_handler_enabled, time_t last_state_change, int problem_has_been_acknowledged, char *last_hard_state, unsigned long time_ok, unsigned long time_warning, unsigned long time_unknown, unsigned long time_critical, time_t last_notification, int current_notification_number, int notifications_enabled, int latency, double execution_time, int flap_detection_enabled, int is_flapping, double percent_state_change, int scheduled_downtime_depth, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, char *plugin_output, int aggregated_dump){
 	FILE *fpin,*fpout;
 	char input_buffer[MAX_INPUT_BUFFER];
 	char service_string[MAX_INPUT_BUFFER];
@@ -439,10 +439,10 @@ int xsddefault_update_service_status(char *host_name, char *description, char *s
 
 	/* create the new service status string */
 	if(last_check==(time_t)0)
-		snprintf(new_service_string,sizeof(new_service_string)-1,"[%lu] SERVICE;%s;%s;PENDING;0/%d;HARD;0;%lu;ACTIVE;%d;%d;%d;0;0;OK;0;0;0;0;0;0;%d;%d;%d;%d;0;0.0;0;%d;%d;%d;%s%s",(unsigned long)last_update,host_name,description,max_attempts,(should_be_scheduled==TRUE)?(unsigned long)next_check:0L,checks_enabled,accept_passive_service_checks,event_handler_enabled,notifications_enabled,latency,execution_time,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,(should_be_scheduled==TRUE)?"Service check scheduled for ":"Service check is not scheduled for execution...\n",(should_be_scheduled==TRUE)?ctime(&next_check):"");
+		snprintf(new_service_string,sizeof(new_service_string)-1,"[%lu] SERVICE;%s;%s;PENDING;0/%d;HARD;0;%lu;ACTIVE;%d;%d;%d;0;0;OK;0;0;0;0;0;0;%d;%d;%lf;%d;0;0.0;0;%d;%d;%d;%s%s",(unsigned long)last_update,host_name,description,max_attempts,(should_be_scheduled==TRUE)?(unsigned long)next_check:0L,checks_enabled,accept_passive_service_checks,event_handler_enabled,notifications_enabled,latency,execution_time,flap_detection_enabled,failure_prediction_enabled,process_performance_data,obsess_over_service,(should_be_scheduled==TRUE)?"Service check scheduled for ":"Service check is not scheduled for execution...\n",(should_be_scheduled==TRUE)?ctime(&next_check):"");
 
 	else
-		snprintf(new_service_string,sizeof(new_service_string)-1,"[%lu] SERVICE;%s;%s;%s;%d/%d;%s;%lu;%lu;%s;%d;%d;%d;%lu;%d;%s;%lu;%lu;%lu;%lu;%lu;%d;%d;%d;%d;%d;%d;%3.2f;%d;%d;%d;%d;%s\n",(unsigned long)last_update,host_name,description,status,(state_type==SOFT_STATE)?current_attempt-1:current_attempt,max_attempts,(state_type==SOFT_STATE)?"SOFT":"HARD",(unsigned long)last_check,(should_be_scheduled==TRUE)?(unsigned long)next_check:0L,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_unknown,time_warning,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,plugin_output);
+		snprintf(new_service_string,sizeof(new_service_string)-1,"[%lu] SERVICE;%s;%s;%s;%d/%d;%s;%lu;%lu;%s;%d;%d;%d;%lu;%d;%s;%lu;%lu;%lu;%lu;%lu;%d;%d;%d;%lf;%d;%d;%3.2f;%d;%d;%d;%d;%s\n",(unsigned long)last_update,host_name,description,status,(state_type==SOFT_STATE)?current_attempt-1:current_attempt,max_attempts,(state_type==SOFT_STATE)?"SOFT":"HARD",(unsigned long)last_check,(should_be_scheduled==TRUE)?(unsigned long)next_check:0L,(check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE",checks_enabled,accept_passive_service_checks,event_handler_enabled,(unsigned long)last_state_change,problem_has_been_acknowledged,last_hard_state,time_ok,time_unknown,time_warning,time_critical,(unsigned long)last_notification,current_notification_number,notifications_enabled,latency,execution_time,flap_detection_enabled,is_flapping,percent_state_change,scheduled_downtime_depth,failure_prediction_enabled,process_performance_data,obsess_over_service,plugin_output);
 
 	new_service_string[sizeof(new_service_string)-1]='\x0';
 
@@ -920,7 +920,7 @@ int xsddefault_add_service_status(char *input_buffer){
 	int current_notification_number;
 	int notifications_enabled;
 	int latency;
-	int execution_time;
+	double execution_time;
 	int flap_detection_enabled;
 	int is_flapping;
 	double percent_state_change;
@@ -1151,7 +1151,7 @@ int xsddefault_add_service_status(char *input_buffer){
 		free(description);
 		return ERROR;
 	        }
-	execution_time=atoi(temp_buffer);
+	execution_time=atof(temp_buffer);
 
 	/* get the flap detection enabled option */
 	temp_buffer=my_strtok(NULL,";");

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-05-2003
  *
  * License:
  *
@@ -97,6 +97,7 @@ void run_service_check(service *svc){
 	char plugin_output[MAX_PLUGINOUTPUT_LENGTH];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int check_service=TRUE;
+	struct timeb start_time,end_time;
 	time_t current_time;
 	time_t preferred_time=0L;
 	time_t next_valid_time;
@@ -237,14 +238,17 @@ void run_service_check(service *svc){
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
 	strip(processed_command);
 
+	/* get the command start time */
+	ftime(&start_time);
+
 	/* save service info */
 	strncpy(svc_msg.host_name,svc->host_name,sizeof(svc_msg.host_name)-1);
 	svc_msg.host_name[sizeof(svc_msg.host_name)-1]='\x0';
 	strncpy(svc_msg.description,svc->description,sizeof(svc_msg.description)-1);
 	svc_msg.description[sizeof(svc_msg.description)-1]='\x0';
 	svc_msg.parallelized=svc->parallelize;
-	svc_msg.check_time=current_time;
-	svc_msg.finish_time=current_time;
+	svc_msg.start_time=start_time;
+	svc_msg.finish_time=start_time;
 
 #ifdef EMBEDDEDPERL
 	strncpy(fname,processed_command,strcspn(processed_command," "));
@@ -378,31 +382,28 @@ void run_service_check(service *svc){
 				/* reset the alarm */
 				alarm(0);
 
+				/* get the check finish time */
+				ftime(&end_time);
+
+				/* record check result info */
+				strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
+				svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
+				svc_msg.return_code=pclose_result;
+				svc_msg.exited_ok=TRUE;
+				svc_msg.check_type=SERVICE_CHECK_ACTIVE;
+				svc_msg.finish_time=end_time;
+
 				/* test for execution error */
 				if(pclose_result==-2){
+					pclose_result=STATE_UNKNOWN;
 					strncpy(svc_msg.output,"(Error returned by call to perl script)",sizeof(svc_msg.output)-1);
 					svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
 					svc_msg.return_code=STATE_CRITICAL;
 					svc_msg.exited_ok=FALSE;
-					svc_msg.finish_time=time(NULL);
-					write_svc_message(&svc_msg);
-
-					/* close write end of IPC pipe */
-					close(ipc_pipe[1]);
-
-					_exit(STATE_UNKNOWN);
 			 	        }
 
-				/* else write plugin check results to message queue */
-				else{
-					strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
-					svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-					svc_msg.return_code=pclose_result;
-					svc_msg.exited_ok=TRUE;
-					svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-					svc_msg.finish_time=time(NULL);
-					write_svc_message(&svc_msg);
-				        }
+				/* write check results to message queue */
+				write_svc_message(&svc_msg);
 
 				/* close write end of IPC pipe */
 				close(ipc_pipe[1]);
@@ -434,31 +435,28 @@ void run_service_check(service *svc){
 			/* reset the alarm */
 			alarm(0);
 
+			/* get the check finish time */
+			ftime(&end_time);
+
+			/* record check result info */
+			strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
+			svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
+			svc_msg.return_code=pclose_result;
+			svc_msg.exited_ok=TRUE;
+			svc_msg.check_type=SERVICE_CHECK_ACTIVE;
+			svc_msg.finish_time=end_time;
+
 			/* test for execution error */
 			if(pclose_result==-1){
+				pclose_result=STATE_UNKNOWN;
 				strncpy(svc_msg.output,"(Error returned by call to pclose() function)",sizeof(svc_msg.output)-1);
 				svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
 				svc_msg.return_code=STATE_CRITICAL;
 				svc_msg.exited_ok=FALSE;
-				svc_msg.finish_time=time(NULL);
-				write_svc_message(&svc_msg);
-
-				/* close write end of IPC pipe */
-				close(ipc_pipe[1]);
-
-				_exit(STATE_UNKNOWN);
 			        }
 
-			/* else write plugin check results to message queue */
-			else{
-				strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
-				svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-				svc_msg.return_code=(int)WEXITSTATUS(pclose_result);
-				svc_msg.exited_ok=TRUE;
-				svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-				svc_msg.finish_time=time(NULL);
-				write_svc_message(&svc_msg);
-			        }
+			/* write check result to message queue */
+			write_svc_message(&svc_msg);
 
 			/* close write end of IPC pipe */
 			close(ipc_pipe[1]);
@@ -592,10 +590,10 @@ void reap_service_checks(void){
 		        }
 
 		/* update the execution time for this check */
-		if(queued_svc_msg.check_time>current_time || queued_svc_msg.finish_time>current_time || (queued_svc_msg.finish_time<queued_svc_msg.check_time))
-			temp_service->execution_time=0;
+		if(queued_svc_msg.start_time.time>current_time || queued_svc_msg.finish_time.time>current_time || (queued_svc_msg.finish_time.time<queued_svc_msg.start_time.time))
+			temp_service->execution_time=0.0;
 		else
-			temp_service->execution_time=(int)(queued_svc_msg.finish_time-queued_svc_msg.check_time);
+			temp_service->execution_time=(double)((double)(queued_svc_msg.finish_time.time-queued_svc_msg.start_time.time)+(double)((queued_svc_msg.finish_time.millitm-queued_svc_msg.start_time.millitm)/1000.0));
 
 		/* clear the freshening flag (it would have been set if this service was determined to be stale) */
 		temp_service->is_being_freshened=FALSE;
@@ -626,7 +624,7 @@ void reap_service_checks(void){
 			temp_service->is_executing=FALSE;
 
 		/* get the last check time */
-		temp_service->last_check=queued_svc_msg.check_time;
+		temp_service->last_check=queued_svc_msg.start_time.time;
 
 		/* was this check passive or active? */
 		temp_service->check_type=(queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
@@ -1685,7 +1683,6 @@ int run_host_check(host *hst){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	command *temp_command;
 	time_t start_time;
-	time_t finish_time;
 	char *temp_ptr;
 	int early_timeout=FALSE;
 	double exectime;
@@ -1764,8 +1761,7 @@ int run_host_check(host *hst){
 	        }
 
 	/* calculate total execution time */
-	time(&finish_time);
-	hst->execution_time=(int)(finish_time-start_time);
+	hst->execution_time=exectime;
 
 	/* check for empty plugin output */
 	if(!strcmp(temp_plugin_output,""))

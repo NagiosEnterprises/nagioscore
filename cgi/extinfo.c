@@ -2,8 +2,8 @@
  *
  * EXTINFO.C -  Nagios Extended Information CGI
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-04-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-05-2003
  *
  * License:
  * 
@@ -1190,7 +1190,7 @@ void show_service_info(void){
 			printf("N/A");
 		printf("</TD></TR>\n");
 
-		printf("<TR><TD CLASS='dataVar'>Check Duration:</TD><TD CLASS='dataVal'>%s%d second%s</TD></TR>\n",(temp_svcstatus->execution_time==0)?"&lt; ":"",(temp_svcstatus->execution_time==0)?1:temp_svcstatus->execution_time,(temp_svcstatus->execution_time>1)?"s":"");
+		printf("<TR><TD CLASS='dataVar'>Check Duration:</TD><TD CLASS='dataVal'>%lf seconds</TD></TR>\n",temp_svcstatus->execution_time);
 
 		get_time_string(&temp_svcstatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 		printf("<TR><TD CLASS='dataVar'>Last State Change:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->last_state_change==(time_t)0)?"N/A":date_time);
@@ -1621,9 +1621,9 @@ void show_performance_data(void){
 	servicestatus *temp_servicestatus=NULL;
 	int total_active_checks=0;
 	int total_passive_checks=0;
-	int min_execution_time=0;
-	int max_execution_time=0;
-	unsigned long total_execution_time=0L;
+	double min_execution_time=0.0;
+	double max_execution_time=0.0;
+	double total_execution_time=0.0;
 	int have_min_execution_time=FALSE;
 	int have_max_execution_time=FALSE;
 	int min_latency=0;
@@ -1784,7 +1784,7 @@ void show_performance_data(void){
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr class='data'><th class='data'>Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
-	printf("<tr><td class='dataVar'>Check Execution Time:&nbsp;&nbsp;</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_execution_time==0)?"&lt; ":"",(min_execution_time==0)?1:min_execution_time,(max_execution_time==0)?"&lt; ":"",(max_execution_time==0)?1:max_execution_time,(double)((double)total_execution_time/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>Check Execution Time:&nbsp;&nbsp;</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.2f sec</td><td class='dataVal'>%.3f sec</td></tr>\n",min_execution_time,max_execution_time,(double)((double)total_execution_time/(double)total_active_checks));
 	printf("<tr><td class='dataVar'>Check Latency:</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%s%d sec</td><td class='dataVal'>%.3f sec</td></tr>\n",(min_latency==0)?"&lt; ":"",(min_latency==0)?1:min_latency,(max_latency==0)?"&lt; ":"",(max_latency==0)?1:max_latency,(double)((double)total_latency/(double)total_active_checks));
 	printf("<tr><td class='dataVar'>Percent State Change:</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td><td class='dataVal'>%.2f%%</td></tr>\n",min_percent_change_a,max_percent_change_a,(double)((double)total_percent_change_a/(double)total_active_checks));
 

@@ -517,7 +517,7 @@ int grab_service_macros(service *svc){
 		free(macro_x[MACRO_EXECUTIONTIME]);
 	macro_x[MACRO_EXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 	if(macro_x[MACRO_EXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_EXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lu",svc->execution_time);
+		snprintf(macro_x[MACRO_EXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lf",svc->execution_time);
 		macro_x[MACRO_EXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
@@ -696,7 +696,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_EXECUTIONTIME]);
 	macro_x[MACRO_EXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
 	if(macro_x[MACRO_EXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_EXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lu",hst->execution_time);
+		snprintf(macro_x[MACRO_EXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lf",hst->execution_time);
 		macro_x[MACRO_EXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
@@ -1738,6 +1738,10 @@ void sighandler(int sig){
 
 /* handle timeouts when executing service checks */
 void service_check_sighandler(int sig){
+	struct timeb end_time;
+
+	/* get the current time */
+	ftime(&end_time);
 
 	/* write plugin check results to message queue */
 	strncpy(svc_msg.output,"(Service Check Timed Out)",sizeof(svc_msg.output)-1);
@@ -1745,7 +1749,7 @@ void service_check_sighandler(int sig){
 	svc_msg.return_code=STATE_CRITICAL;
 	svc_msg.exited_ok=TRUE;
 	svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-	svc_msg.finish_time=time(NULL);
+	svc_msg.finish_time=end_time;
 	write_svc_message(&svc_msg);
 
 	/* close write end of IPC pipe */

@@ -2,8 +2,8 @@
  *
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
- * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-07-2002
+ * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-05-2003
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -113,9 +113,9 @@ int total_services=0;
 int total_active_checks=0;
 int total_passive_checks=0;
 
-int min_execution_time=-1;
-int max_execution_time=-1;
-unsigned long total_execution_time=0L;
+double min_execution_time=-1.0;
+double max_execution_time=-1.0;
+double total_execution_time=0.0;
 double average_execution_time=-1.0;
 int min_latency=-1;
 int max_latency=-1;
@@ -537,9 +537,9 @@ void analyze_status_data(void){
 			if(max_latency==-1 || temp_servicestatus->latency>max_latency)
 				max_latency=temp_servicestatus->latency;
 
-			if(min_execution_time==-1 || temp_servicestatus->execution_time<min_execution_time)
+			if(min_execution_time==-1.0 || temp_servicestatus->execution_time<min_execution_time)
 				min_execution_time=temp_servicestatus->execution_time;
-			if(max_execution_time==-1 || temp_servicestatus->execution_time>max_execution_time)
+			if(max_execution_time==-1.0 || temp_servicestatus->execution_time>max_execution_time)
 				max_execution_time=temp_servicestatus->execution_time;
 
 			total_latency+=temp_servicestatus->latency;
@@ -667,7 +667,7 @@ void analyze_status_data(void){
 		average_latency=((double)total_latency/(double)total_active_checks);
 
 	/* calculate execution time */
-	if(total_execution_time==0L)
+	if(total_execution_time==0.0)
 		average_execution_time=0.0;
 	else
 		average_execution_time=((double)total_execution_time/(double)total_active_checks);
@@ -873,7 +873,7 @@ void display_tac_overview(void){
 	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Check Execution Time:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
-	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%2d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_execution_time,max_execution_time,average_execution_time);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%.2f / %.2f / %.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_execution_time,max_execution_time,average_execution_time);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Check Latency:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);

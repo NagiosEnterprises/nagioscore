@@ -2,8 +2,8 @@
  *
  * STATUSDATA.C - External status data for Nagios CGIs
  *
- * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2002
+ * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2003
  *
  * License:
  *
@@ -538,7 +538,7 @@ int add_host_status(char *host_name,char *status_string,time_t last_update,time_
 
 
 /* adds a service status entry to the list in memory */
-int add_service_status(char *host_name,char *svc_description,char *status_string,time_t last_update,int current_attempt,int max_attempts,int state_type,time_t last_check,time_t next_check,int check_type,int checks_enabled,int accept_passive_checks,int event_handler_enabled,time_t last_state_change,int problem_has_been_acknowledged,char *last_hard_state_string,unsigned long time_ok,unsigned long time_warning,unsigned long time_unknown,unsigned long time_critical,time_t last_notification,int current_notification_number,int notifications_enabled, int latency, int execution_time, int flap_detection_enabled, int is_flapping, double percent_state_change, int scheduled_downtime_depth, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, char *plugin_output){
+int add_service_status(char *host_name,char *svc_description,char *status_string,time_t last_update,int current_attempt,int max_attempts,int state_type,time_t last_check,time_t next_check,int check_type,int checks_enabled,int accept_passive_checks,int event_handler_enabled,time_t last_state_change,int problem_has_been_acknowledged,char *last_hard_state_string,unsigned long time_ok,unsigned long time_warning,unsigned long time_unknown,unsigned long time_critical,time_t last_notification,int current_notification_number,int notifications_enabled, int latency, double execution_time, int flap_detection_enabled, int is_flapping, double percent_state_change, int scheduled_downtime_depth, int failure_prediction_enabled, int process_performance_data, int obsess_over_service, char *plugin_output){
 	servicestatus *new_svcstatus=NULL;
 	servicestatus *last_svcstatus=NULL;
 	servicestatus *temp_svcstatus=NULL;

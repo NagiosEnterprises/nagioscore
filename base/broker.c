@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-01-2003
+ * Last Modified:   01-05-2003
  *
  * License:
  *
@@ -309,7 +309,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, struct ti
 	if(type==NEBTYPE_SERVICECHECK_INITIATE)
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%lu;%s;%s;\n",(unsigned long)tb.time,tb.millitm,type,flags,attr,svc->latency,svc->host_name,svc->description);
 	else
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lu;%d;%d;%s;%s;%s;%s;\n",(unsigned long)tb.time,tb.millitm,type,flags,attr,svc->current_state,svc->state_type,svc->execution_time,svc->current_attempt,svc->max_attempts,svc->host_name,svc->description,svc->plugin_output,svc->perf_data);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"[%lu.%d] %d;%d;%d;%d;%d;%lf;%d;%d;%s;%s;%s;%s;\n",(unsigned long)tb.time,tb.millitm,type,flags,attr,svc->current_state,svc->state_type,svc->execution_time,svc->current_attempt,svc->max_attempts,svc->host_name,svc->description,svc->plugin_output,svc->perf_data);
 
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-04-2003
+ * Last Modified: 01-07-2003
  *
  * Description:
  *
@@ -138,6 +138,8 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 	        }
 
 #ifdef NSCORE
+
+	/**** NOTE TO SELF: THIS IS A HORRIBLE HACKISH WAY TO CACHE THE DATA - FIX IT IN 3.0 WHEN WEB INTERFACE IS REWRITTEN! ****/
 
 	/* open the cache file for writing */
 	if(options & CACHE_OBJECT_DATA)

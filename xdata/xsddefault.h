@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.H - Header file for default status data routines
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-22-2001
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-05-2003
  *
  * License:
  *
@@ -30,7 +30,7 @@ int xsddefault_begin_aggregated_dump(void);
 int xsddefault_end_aggregated_dump(void);
 int xsddefault_update_program_status(time_t,int,int,time_t,time_t,int,int,int,int,int,int,int,int,int);
 int xsddefault_update_host_status(char *,char *,time_t,time_t,time_t,int,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,char *,int);
-int xsddefault_update_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,int,char *,int);
+int xsddefault_update_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,double,int,int,double,int,int,int,int,char *,int);
 #endif
 
 #ifdef NSCGI

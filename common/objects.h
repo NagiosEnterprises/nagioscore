@@ -127,7 +127,7 @@ typedef struct host_struct{
 	char	*plugin_output;
 	char    *perf_data;
 	int     current_attempt;
-	unsigned long execution_time;
+	double  execution_time;
 	int     notifications_enabled;
 	time_t  last_host_notification;
 	time_t  next_host_notification;
@@ -141,7 +141,6 @@ typedef struct host_struct{
 	int     check_flapping_recovery_notification;
 	int     scheduled_downtime_depth;
 	int     pending_flex_downtime;
-
 	int     state_history[MAX_STATE_HISTORY_ENTRIES];    /* flap detection */
 	int     state_history_index;
 	time_t  last_state_history_update;
@@ -266,12 +265,11 @@ typedef struct service_struct{
 	int     has_been_critical;
 	int     current_notification_number;
 	unsigned long latency;
-	unsigned long execution_time;
+	double  execution_time;
 	int     is_executing;
 	int     check_options;
 	int     scheduled_downtime_depth;
 	int     pending_flex_downtime;
-
 	int     state_history[MAX_STATE_HISTORY_ENTRIES];    /* flap detection */
 	int     state_history_index;
 	int     is_flapping;

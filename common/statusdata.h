@@ -100,7 +100,7 @@ typedef struct servicestatus_struct{
 	int     is_flapping;
 	double  percent_state_change;
 	int     latency;
-	int     execution_time;
+	double  execution_time;
 	int     scheduled_downtime_depth;
 	int     failure_prediction_enabled;
 	int     process_performance_data;
@@ -135,7 +135,7 @@ typedef struct servicestatus_struct{
 int read_status_data(char *,int);                       /* reads all status data */
 int add_program_status(time_t,int,int,time_t,time_t,int,int,int,int,int,int,int,int);
 int add_host_status(char *,char *,time_t,time_t,time_t,int,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,char *);
-int add_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,int,int,int,double,int,int,int,int,char *);
+int add_service_status(char *,char *,char *,time_t,int,int,int,time_t,time_t,int,int,int,int,time_t,int,char *,unsigned long,unsigned long,unsigned long,unsigned long,time_t,int,int,int,double,int,int,double,int,int,int,int,char *);
 void free_status_data(void);                            /* free all memory allocated to status data */
 servicestatus *find_servicestatus(char *,char *);       /* finds status information for a specific service */
 hoststatus *find_hoststatus(char *);                    /* finds status information for a specific host */

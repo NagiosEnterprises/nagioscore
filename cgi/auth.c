@@ -3,7 +3,7 @@
  * AUTH.C - Authorization utilities for Nagios CGIs
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-06-2002
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -76,7 +76,7 @@ int get_authentication_information(authdata *authinfo){
 		needed_options|=READ_HOSTGROUPESCALATIONS;
 	if(hostescalations_have_been_read==FALSE)
 		needed_options|=READ_HOSTESCALATIONS;
-	if(needed_options)
+	if(needed_options>0)
 		read_all_object_configuration_data(main_config_file,needed_options);
 
 	/* initial values... */

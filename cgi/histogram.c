@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-28-2002
+ * Last Modified: 04-20-2002
  *
  * License:
  * 
@@ -60,17 +60,17 @@
 #define DISPLAY_NO_HISTOGRAM    	2
 
 /* input types */
-#define GET_INPUT_NONE          0
-#define GET_INPUT_TARGET_TYPE   1
-#define GET_INPUT_HOST_TARGET   2
-#define GET_INPUT_SERVICE_TARGET 3
-#define GET_INPUT_OPTIONS       4
+#define GET_INPUT_NONE                  0
+#define GET_INPUT_TARGET_TYPE           1
+#define GET_INPUT_HOST_TARGET           2
+#define GET_INPUT_SERVICE_TARGET        3
+#define GET_INPUT_OPTIONS               4
 
 /* breakdown types */
-#define BREAKDOWN_MONTHLY        0
-#define BREAKDOWN_DAY_OF_MONTH       1
-#define BREAKDOWN_DAY_OF_WEEK        2
-#define BREAKDOWN_HOURLY         3
+#define BREAKDOWN_MONTHLY       0
+#define BREAKDOWN_DAY_OF_MONTH  1
+#define BREAKDOWN_DAY_OF_WEEK   2
+#define BREAKDOWN_HOURLY        3
 
 /* modes */
 #define CREATE_HTML		0
@@ -280,7 +280,7 @@ int main(int argc, char **argv){
 	        }
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTGROUPS|READ_CONTACTS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		if(mode==CREATE_HTML){
 			document_header(FALSE);
@@ -291,7 +291,7 @@ int main(int argc, char **argv){
                 }
 
 	/* read all status data */
-	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_PROGRAM_STATUS|READ_HOST_STATUS|READ_SERVICE_STATUS);
+	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_ALL_STATUS_DATA);
 	if(result==ERROR){
 		if(mode==CREATE_HTML){
 			document_header(FALSE);

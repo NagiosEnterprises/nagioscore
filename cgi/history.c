@@ -3,7 +3,7 @@
  * HISTORY.C - Nagios History CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-08-2002
+ * Last Modified: 04-20-2002
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -115,7 +115,7 @@ int main(void){
 	        }
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTGROUPS|READ_CONTACTS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(FALSE);
 		object_data_error();

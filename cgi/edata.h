@@ -2,8 +2,8 @@
  *
  * EDATA.H - Header for etended object data routines
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2001
+ * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -29,6 +29,8 @@
 
 #define READ_EXTENDED_HOST_INFO     1
 #define READ_EXTENDED_SERVICE_INFO  2
+
+#define READ_ALL_EXTENDED_DATA      READ_EXTENDED_HOST_INFO | READ_EXTENDED_SERVICE_INFO
 
 
 /* EXTENDED HOST INFO structure */

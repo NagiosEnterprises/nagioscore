@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2002
+ * Last Modified: 04-20-2002
  *
  * License:
  * 
@@ -311,7 +311,7 @@ int main(int argc, char **argv){
 	get_authentication_information(&current_authdata);
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTGROUPS|READ_CONTACTS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		if(mode==CREATE_HTML){
 			document_header(FALSE);
@@ -322,7 +322,7 @@ int main(int argc, char **argv){
                 }
 
 	/* read all status data */
-	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_PROGRAM_STATUS|READ_HOST_STATUS|READ_SERVICE_STATUS);
+	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_ALL_STATUS_DATA);
 	if(result==ERROR){
 		if(mode==CREATE_HTML){
 			document_header(FALSE);

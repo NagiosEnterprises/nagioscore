@@ -2,8 +2,8 @@
  *
  * EDATA.C - External extended object config data for Nagios CGIs
  *
- * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2001
+ * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -50,6 +50,9 @@
 hostextinfo     *hostextinfo_list=NULL;
 serviceextinfo  *serviceextinfo_list=NULL;
 
+int extended_host_info_has_been_read=FALSE;
+int extended_service_info_has_been_read=FALSE;
+
 
 
 
@@ -61,6 +64,16 @@ serviceextinfo  *serviceextinfo_list=NULL;
 /* reads in all extended data */
 int read_extended_object_config_data(char *config_file, int options){
 	int result;
+
+	/* don't duplicate things we've already read in */
+	if(extended_host_info_has_been_read==TRUE && (options & READ_EXTENDED_HOST_INFO))
+		options-=READ_EXTENDED_HOST_INFO;
+	if(extended_service_info_has_been_read==TRUE && (options & READ_EXTENDED_SERVICE_INFO))
+		options-=READ_EXTENDED_SERVICE_INFO;
+
+	/* bail out if we've already read what we need */
+	if(options<=0)
+		return OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XEDDEFAULT
@@ -78,6 +91,12 @@ int read_extended_object_config_data(char *config_file, int options){
 	if(result!=OK)
 		return ERROR;
 #endif
+
+	/* mark what items we've read in... */
+	if(options & READ_EXTENDED_HOST_INFO)
+		extended_host_info_has_been_read=TRUE;
+	if(options & READ_EXTENDED_SERVICE_INFO)
+		extended_service_info_has_been_read=TRUE;
 
 	return OK;
         }

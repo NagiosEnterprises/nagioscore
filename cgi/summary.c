@@ -3,7 +3,7 @@
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
  * Copyright (c) 2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-18-2002
+ * Last Modified: 04-20-2002
  *
  * License:
  * 
@@ -237,7 +237,7 @@ int main(int argc, char **argv){
 	        }
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTGROUPS|READ_CONTACTS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(FALSE);
 		object_data_error();

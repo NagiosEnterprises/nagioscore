@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-06-2002
+ * Last Modified: 04-20-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -123,7 +123,7 @@ int main(void){
 	        }
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTGROUPS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(FALSE);
 		object_data_error();

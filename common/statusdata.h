@@ -2,8 +2,8 @@
  *
  * STATUSDATA.H - Header for external status data routines
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-19-2001
+ * Copyright (c) 2000-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   04-20-2002
  *
  * License:
  *
@@ -36,6 +36,8 @@
 #define READ_PROGRAM_STATUS	1
 #define READ_HOST_STATUS	2
 #define READ_SERVICE_STATUS	4
+
+#define READ_ALL_STATUS_DATA    READ_PROGRAM_STATUS | READ_HOST_STATUS | READ_SERVICE_STATUS
 
 
 /**************************** DATA STRUCTURES ******************************/

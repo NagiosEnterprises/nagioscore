@@ -532,6 +532,10 @@ int read_all_object_configuration_data(char *config_file,int options){
 	if(hostescalations_have_been_read==TRUE && (options & READ_HOSTESCALATIONS))
 		options-=READ_HOSTESCALATIONS;
 
+	/* bail out if we've already read what we need */
+	if(options<=0)
+		return OK;
+
 	/* read in all external config data of the desired type(s) */
 	read_object_config_data(config_file,options);
 
@@ -576,6 +580,10 @@ int read_all_status_data(char *config_file,int options){
 		options-=READ_HOST_STATUS;
 	if(service_status_has_been_read==TRUE && (options & READ_SERVICE_STATUS))
 		options-=READ_SERVICE_STATUS;
+
+	/* bail out if we've already read what we need */
+	if(options<=0)
+		return OK;
 
 	/* read in all external status data */
 	result=read_status_data(config_file,options);

@@ -36,8 +36,8 @@
 
 	TABLE.comment { font-family: arial,serif; font-size: 10pt; background-color: white; padding: 2; }
 	TH.comment { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
-	.commentOdd { font-family: arial,serif;  font-size: 10pt; background-color: #DBDBDB; }
-	.commentEven { font-family: arial,serif;  font-size: 10pt; background-color: #C4C2C2; }
+	.commentOdd { font-family: arial,serif;  font-size: 9pt; background-color: #DBDBDB; }
+	.commentEven { font-family: arial,serif;  font-size: 9pt; background-color: #C4C2C2; }
 	DIV.comment, A.comment { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: center; }
 
 	.downtimeTitle { font-family: arial,serif;  text-align: center; font-weight: bold; font-size: 12pt; }
@@ -46,8 +46,8 @@
 
 	TABLE.downtime { font-family: arial,serif; font-size: 10pt; background-color: white; padding: 2; }
 	TH.downtime { font-family: arial,serif; font-size: 10pt; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
-	.downtimeOdd { font-family: arial,serif;  font-size: 10pt; background-color: #DBDBDB; }
-	.downtimeEven { font-family: arial,serif;  font-size: 10pt; background-color: #C4C2C2; }
+	.downtimeOdd { font-family: arial,serif;  font-size: 9pt; background-color: #DBDBDB; }
+	.downtimeEven { font-family: arial,serif;  font-size: 9pt; background-color: #C4C2C2; }
 
 	.notificationsENABLED { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #33FF00; font-weight: bold; }
 	.notificationsDISABLED { font-family: arial,serif; font-size: 10pt; text-align: left; background-color: #F83838; font-weight: bold; }

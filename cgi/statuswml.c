@@ -2,8 +2,8 @@
  *
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
- * Copyright (c) 2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-14-2001
+ * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-20-2002
  *
  * License:
  * 
@@ -124,7 +124,7 @@ int main(void){
 	        }
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTGROUPS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		printf("<P>Error: Could not read some or all object configuration data!</P>\n");
 		document_footer();
@@ -132,7 +132,7 @@ int main(void){
                 }
 
 	/* read all status data */
-	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_PROGRAM_STATUS|READ_HOST_STATUS|READ_SERVICE_STATUS);
+	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_ALL_STATUS_DATA);
 	if(result==ERROR){
 		printf("<P>Error: Could not read host and service status information!</P>\n");
 		document_footer();

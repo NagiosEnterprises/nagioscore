@@ -3,7 +3,7 @@
  * SHOWLOG.C - Nagios Log File CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2002
+ * Last Modified: 04-20-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -89,7 +89,7 @@ int main(void){
 	        }
 
 	/* read all object configuration data */
-	result=read_all_object_configuration_data(main_config_file,READ_HOSTGROUPS|READ_CONTACTS|READ_CONTACTGROUPS|READ_HOSTS|READ_SERVICES);
+	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(FALSE);
 		object_data_error();

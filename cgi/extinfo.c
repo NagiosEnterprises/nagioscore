@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-20-2002
+ * Last Modified: 04-10-2002
  *
  * License:
  * 
@@ -1476,44 +1476,6 @@ void show_service_info(void){
 
 void show_hostgroup_info(void){
 	hostgroup *temp_hostgroup;
-	service *temp_service=NULL;
-	host *temp_host=NULL;
-	servicestatus *temp_servicestatus=NULL;
-	int total_active_checks=0;
-	int total_passive_checks=0;
-	int min_execution_time=0;
-	int max_execution_time=0;
-	unsigned long total_execution_time=0L;
-	int have_min_execution_time=FALSE;
-	int have_max_execution_time=FALSE;
-	int min_latency=0;
-	int max_latency=0;
-	unsigned long total_latency=0L;
-	int have_min_latency=FALSE;
-	int have_max_latency=FALSE;
-	double min_percent_change_a=0.0;
-	double max_percent_change_a=0.0;
-	double total_percent_change_a=0.0;
-	int have_min_percent_change_a=FALSE;
-	int have_max_percent_change_a=FALSE;
-	double min_percent_change_b=0.0;
-	double max_percent_change_b=0.0;
-	double total_percent_change_b=0.0;
-	int have_min_percent_change_b=FALSE;
-	int have_max_percent_change_b=FALSE;
-	int active_checks_1min=0;
-	int active_checks_5min=0;
-	int active_checks_15min=0;
-	int active_checks_1hour=0;
-	int active_checks_start=0;
-	int active_checks_ever=0;
-	int passive_checks_1min=0;
-	int passive_checks_5min=0;
-	int passive_checks_15min=0;
-	int passive_checks_1hour=0;
-	int passive_checks_start=0;
-	int passive_checks_ever=0;
-	time_t current_time;
 
 
 	/* get host info */
@@ -1536,106 +1498,6 @@ void show_hostgroup_info(void){
 		}
 
 
-
-	time(&current_time);
-
-	/* check all services */
-	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
-
-		/* find the host */
-		temp_host=find_host(temp_servicestatus->host_name,NULL);
-		if(temp_host==NULL)
-			continue;
-
-		/* is the host in this hostgroup? */
-		if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
-			continue;
-
-		/* find the service */
-		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description,NULL);
-		
-		/* make sure the user has rights to view service information */
-		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
-			continue;
-
-		/* is this an active or passive check? */
-		if(temp_servicestatus->check_type==SERVICE_CHECK_ACTIVE){
-
-			total_active_checks++;
-
-			total_execution_time+=temp_servicestatus->execution_time;
-			if(have_min_execution_time==FALSE || temp_servicestatus->execution_time<min_execution_time){
-				have_min_execution_time=TRUE;
-				min_execution_time=temp_servicestatus->execution_time;
-			        }
-			if(have_max_execution_time==FALSE || temp_servicestatus->execution_time>max_execution_time){
-				have_max_execution_time=TRUE;
-				max_execution_time=temp_servicestatus->execution_time;
-			        }
-
-			total_percent_change_a+=temp_servicestatus->percent_state_change;
-			if(have_min_percent_change_a==FALSE || temp_servicestatus->percent_state_change<min_percent_change_a){
-				have_min_percent_change_a=TRUE;
-				min_percent_change_a=temp_servicestatus->percent_state_change;
-			        }
-			if(have_max_percent_change_a==FALSE || temp_servicestatus->percent_state_change>max_percent_change_a){
-				have_max_percent_change_a=TRUE;
-				max_percent_change_a=temp_servicestatus->percent_state_change;
-			        }
-
-			total_latency+=temp_servicestatus->latency;
-			if(have_min_latency==FALSE || temp_servicestatus->latency<min_latency){
-				have_min_latency=TRUE;
-				min_latency=temp_servicestatus->latency;
-			        }
-			if(have_max_latency==FALSE || temp_servicestatus->latency>max_latency){
-				have_max_latency=TRUE;
-				max_latency=temp_servicestatus->latency;
-			        }
-
-			if(temp_servicestatus->last_check>=(current_time-60))
-				active_checks_1min++;
-			if(temp_servicestatus->last_check>=(current_time-300))
-				active_checks_5min++;
-			if(temp_servicestatus->last_check>=(current_time-900))
-				active_checks_15min++;
-			if(temp_servicestatus->last_check>=(current_time-3600))
-				active_checks_1hour++;
-			if(temp_servicestatus->last_check>=program_start)
-				active_checks_start++;
-			if(temp_servicestatus->last_check!=(time_t)0)
-				active_checks_ever++;
-		        }
-
-		else{
-			total_passive_checks++;
-
-			total_percent_change_b+=temp_servicestatus->percent_state_change;
-			if(have_min_percent_change_b==FALSE || temp_servicestatus->percent_state_change<min_percent_change_b){
-				have_min_percent_change_b=TRUE;
-				min_percent_change_b=temp_servicestatus->percent_state_change;
-			        }
-			if(have_max_percent_change_b==FALSE || temp_servicestatus->percent_state_change>max_percent_change_b){
-				have_max_percent_change_b=TRUE;
-				max_percent_change_b=temp_servicestatus->percent_state_change;
-			        }
-
-			if(temp_servicestatus->last_check>=(current_time-60))
-				passive_checks_1min++;
-			if(temp_servicestatus->last_check>=(current_time-300))
-				passive_checks_5min++;
-			if(temp_servicestatus->last_check>=(current_time-900))
-				passive_checks_15min++;
-			if(temp_servicestatus->last_check>=(current_time-3600))
-				passive_checks_1hour++;
-			if(temp_servicestatus->last_check>=program_start)
-				passive_checks_start++;
-			if(temp_servicestatus->last_check!=(time_t)0)
-				passive_checks_ever++;
-		        }
-	        }
-
-
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 WIDTH=100%%>\n");
 	printf("<TR>\n");
@@ -1643,37 +1505,6 @@ void show_hostgroup_info(void){
 
 	/* top left panel */
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateInfoPanel'>\n");
-
-	printf("<div class='dataTitle'>Active Service Checks (<A HREF='%s?hostgroup=%s&style=detail&serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_ACTIVE_CHECK,total_active_checks);
-
-	/* if no checks, fake it, so no divide by zero problem */
-	if(total_active_checks==0)
-		total_active_checks=1;
-
-	printf("<table border=0 cellpadding=10>\n");
-	printf("<tr><td valign=top>\n");
-
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
-	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 1 minute</td><td class='dataOdd'>%d (%.1f%%)</td>",active_checks_1min,(double)(((double)active_checks_1min*100.0)/(double)total_active_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 5 minutes</td><td class='dataEven'>%d (%.1f%%)</td>",active_checks_5min,(double)(((double)active_checks_5min*100.0)/(double)total_active_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 15 minutes</td><td class='dataOdd'>%d (%.1f%%)</td>",active_checks_15min,(double)(((double)active_checks_15min*100.0)/(double)total_active_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 1 hour</td><td class='dataEven'>%d (%.1f%%)</td>",active_checks_1hour,(double)(((double)active_checks_1hour*100.0)/(double)total_active_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>Since program start</td><td class='dataOdd'>%d (%.1f%%)</td>",active_checks_start,(double)(((double)active_checks_start*100.0)/(double)total_active_checks));
-	printf("</table>\n");
-
-	printf("</td><td valign=top>\n");
-
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
-	printf("<tr class='data'><th class='data'>Check Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>Execution Time</td><td class='dataOdd'>%s%d sec</td><td class='dataOdd'>%s%d sec</td><td class='dataOdd'>%.3f sec</td></tr>\n",(min_execution_time==0)?"&lt; ":"",(min_execution_time==0)?1:min_execution_time,(max_execution_time==0)?"&lt; ":"",(max_execution_time==0)?1:max_execution_time,(double)((double)total_execution_time/(double)total_active_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>Latency</td><td class='dataEven'>%s%d sec</td><td class='dataEven'>%s%d sec</td><td class='dataEven'>%.3f sec</td></tr>\n",(min_latency==0)?"&lt; ":"",(min_latency==0)?1:min_latency,(max_latency==0)?"&lt; ":"",(max_latency==0)?1:max_latency,(double)((double)total_latency/(double)total_active_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>%% State Change</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td></tr>\n",min_percent_change_a,max_percent_change_a,(double)((double)total_percent_change_a/(double)total_active_checks));
-	printf("</table>\n");
-
-	printf("</td></tr>\n");
-	printf("</table>\n");
-
 
 	/* right top panel */
 	printf("</TD><TD ALIGN=CENTER VALIGN=TOP CLASS='stateInfoPanel' ROWSPAN=2>\n");
@@ -1718,35 +1549,6 @@ void show_hostgroup_info(void){
 
 	/* left bottom panel */
 	printf("<TD ALIGN=CENTER VALIGN=TOP CLASS='stateInfoPanel'>\n");
-
-	printf("<div class='dataTitle'>Passive Service Checks (<A HREF='%s?hostgroup=%s&style=detail&serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_PASSIVE_CHECK,total_passive_checks);
-
-
-	/* if no checks, fake it, so no divide by zero problem */
-	if(total_passive_checks==0)
-		total_passive_checks=1;
-
-	printf("<table border=0 cellpadding=10>\n");
-	printf("<tr><td valign=top>\n");
-
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
-	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 1 minute</td><td class='dataOdd'>%d (%.1f%%)</td>",passive_checks_1min,(double)(((double)passive_checks_1min*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 5 minutes</td><td class='dataEven'>%d (%.1f%%)</td>",passive_checks_5min,(double)(((double)passive_checks_5min*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>&lt;= 15 minutes</td><td class='dataOdd'>%d (%.1f%%)</td>",passive_checks_15min,(double)(((double)passive_checks_15min*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataEven'><td class='dataEven'>&lt;= 1 hour</td><td class='dataEven'>%d (%.1f%%)</td>",passive_checks_1hour,(double)(((double)passive_checks_1hour*100.0)/(double)total_passive_checks));
-	printf("<tr class='dataOdd'><td class='dataOdd'>Since program start</td><td class='dataOdd'>%d (%.1f%%)</td>",passive_checks_start,(double)(((double)passive_checks_start*100.0)/(double)total_passive_checks));
-	printf("</table>\n");
-
-	printf("</td><td valign=top>\n");
-
-	printf("<table border=1 cellspacing=0 cellpadding=5>\n");
-	printf("<tr class='data'><th class='data'>Check Metric</th><th class='data'>Min.</th><th class='data'>Max.</th><th class='data'>Average</th></tr>\n");
-	printf("<tr class='dataOdd'><td class='dataOdd'>%% State Change</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td><td class='dataOdd'>%.2f%%</td></tr>\n",min_percent_change_b,max_percent_change_b,(double)((double)total_percent_change_b/(double)total_passive_checks));
-	printf("</table>\n");
-
-	printf("</td></tr>\n");
-	printf("</table>\n");
 
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
@@ -2021,24 +1823,30 @@ void show_performance_data(void){
 
 	printf("<div align=center>\n");
 
-	printf("<div class='dataTitle'>Active Service Checks<BR>(<A HREF='%s?serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,SERVICE_ACTIVE_CHECK,total_active_checks);
+
+	printf("<DIV CLASS='dataTitle'>Program-Wide Performance Information</DIV>\n");
+
+	printf("<table border=0 cellpadding=10>\n");
+
+	/***** ACTIVE CHECKS *****/
+
+	printf("<tr>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Active Checks:</div></td>\n");
+	printf("<td valign=top>\n");
 
 	/* fake this so we don't divide by zero for just showing the table */
 	if(total_active_checks==0)
 		total_active_checks=1;
-
-	printf("<table border=0 cellpadding=15>\n");
-	printf("<tr><td valign=top>\n");
 
 	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
-	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)",active_checks_1min,(double)(((double)active_checks_1min*100.0)/(double)total_active_checks));
-	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_5min,(double)(((double)active_checks_5min*100.0)/(double)total_active_checks));
-	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_15min,(double)(((double)active_checks_15min*100.0)/(double)total_active_checks));
-	printf("<tr><td class='dataVar'>&lt;= 1 hour:</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_1hour,(double)(((double)active_checks_1hour*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_checks_1min,(double)(((double)active_checks_1min*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_checks_5min,(double)(((double)active_checks_5min*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_checks_15min,(double)(((double)active_checks_15min*100.0)/(double)total_active_checks));
+	printf("<tr><td class='dataVar'>&lt;= 1 hour:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_checks_1hour,(double)(((double)active_checks_1hour*100.0)/(double)total_active_checks));
 	printf("<tr><td class='dataVar'>Since program start:&nbsp;&nbsp;</td><td class='dataVal'>%d (%.1f%%)</td>",active_checks_start,(double)(((double)active_checks_start*100.0)/(double)total_active_checks));
 
 	printf("</TABLE>\n");
@@ -2060,30 +1868,32 @@ void show_performance_data(void){
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
 
-	printf("</td></tr>\n");
-	printf("</table>\n");
-	
-	printf("<br><br>\n");
-	printf("<div class='dataTitle'>Passive Service Checks<BR>(<A HREF='%s?serviceprops=%d'>%d total</A>)</div>\n",STATUS_CGI,SERVICE_PASSIVE_CHECK,total_passive_checks);
 
+	printf("</td>\n");
+	printf("</tr>\n");
+
+
+	/***** PASSIVE CHECKS *****/
+
+	printf("<tr>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Passive Checks:</div></td>\n");
+	printf("<td valign=top>\n");
+	
 
 	/* fake this so we don't divide by zero for just showing the table */
 	if(total_passive_checks==0)
 		total_passive_checks=1;
-
-	printf("<table border=0 cellpadding=15>\n");
-	printf("<tr><td valign=top>\n");
 
 	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
-	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_1min,(double)(((double)passive_checks_1min*100.0)/(double)total_passive_checks));
-	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_5min,(double)(((double)passive_checks_5min*100.0)/(double)total_passive_checks));
-	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_15min,(double)(((double)passive_checks_15min*100.0)/(double)total_passive_checks));
-	printf("<tr><td class='dataVar'>&lt;= 1 hour:</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_1hour,(double)(((double)passive_checks_1hour*100.0)/(double)total_passive_checks));
-	printf("<tr><td class='dataVar'>Since program start:&nbsp;&nbsp;</td><td class='dataVal'>%d (%.1f%%)</td>",passive_checks_start,(double)(((double)passive_checks_start*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_checks_1min,(double)(((double)passive_checks_1min*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_checks_5min,(double)(((double)passive_checks_5min*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_checks_15min,(double)(((double)passive_checks_15min*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>&lt;= 1 hour:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_checks_1hour,(double)(((double)passive_checks_1hour*100.0)/(double)total_passive_checks));
+	printf("<tr><td class='dataVar'>Since program start:&nbsp;&nbsp;</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_checks_start,(double)(((double)passive_checks_start*100.0)/(double)total_passive_checks));
 
 	printf("</TABLE>\n");
 	printf("</TD></TR>\n");
@@ -2102,7 +1912,8 @@ void show_performance_data(void){
 	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
 
-	printf("</td></tr>\n");
+	printf("</td>\n");
+	printf("</tr>\n");
 	printf("</table>\n");
 
 

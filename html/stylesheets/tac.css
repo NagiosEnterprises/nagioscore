@@ -22,7 +22,7 @@
 	.perfTitle { text-align: left; font-family: arial; font-weight: bold; font-size: small; background-color:  #999797; color: black; text-decoration: none; }
 	.perfBox { text-align: left; font-family: arial; font-weight: bold; font-size: x-small; background-color: #C4C2C2; color: white; }
 	.perfItem { text-align: left; font-family: arial; font-weight: bold; font-size: small; background-color: #C4C2C2; color: black; text-decoration: none; }
-	.perfValue { text-align: left; font-family: arial; font-size: small; background-color: #C4C2C2; color: black; }
+	.perfValue { text-align: left; font-family: arial; font-size: small; background-color: #C4C2C2; color: black; text-decoration: none; }
 
 	.featureTitle { text-align: left; font-family: arial; font-weight: bold; font-size: small; background-color:  #999797; color: black; }
 	.featureHeader { text-align: center; font-family: arial; font-weight: bold; font-size: small; background-color: #C4C2C2; color: black; }

@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 1.0a7
+ * Version: 1.0b1
  * License: GPL
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   03-12-2002
+ * Last Modified:   04-10-2002
  *
  * Description:
  *
@@ -398,16 +398,17 @@ int main(int argc, char **argv){
 		printf("\n");
 		printf("Options:\n");
 		printf("\n");
-		printf("  -v   Verifies all data in the configuration files, but doesn't start\n");
-		printf("       monitoring anything.  Always verify you configuration before\n");
-		printf("       (re)starting Nagios.\n");
+		printf("  -v   Reads all data in the configuration files and performs a basic\n");
+		printf("       verification/sanity check.  Always make sure you verify your\n");
+		printf("       config data before (re)starting Nagios.\n");
 		printf("\n");
-		printf("  -s   Displays service check scheduling information.\n");
+		printf("  -s   Shows projected/recommended service check scheduling information.\n");
 		printf("\n");
 		printf("  -c   When used in conjunction with the -s option, this option will cause\n");
 		printf("       the status data to be updated with scheduling information.  It is\n");
 		printf("       not recommended that you use this option while Nagios is running, as\n");
 		printf("       the information in the status log will be temporarily overwritten.\n");
+		printf("       Provided as an aid to help you understand initial check scheduling.\n");
 		printf("\n");
 		printf("  -d   Starts Nagios in daemon mode (instead of as a foreground process).\n");
 		printf("       This is the recommended way of starting Nagios for normal operation.\n");
@@ -554,7 +555,7 @@ int main(int argc, char **argv){
 	        /* create status data (leave it around for later inspection) */
 		if(create_status_data==TRUE){
 
-			printf("Updating status data with scheduling information...\n");
+			printf("Updating status log with initial check scheduling information...\n");
 
 			printf("\tInitializing status data...\n");
 			result=initialize_status_data(config_file);
@@ -571,7 +572,7 @@ int main(int argc, char **argv){
 			if(result==ERROR)
 				printf("\t\tWarning: An error occurred while attempting to clean up the status data!\n");
 
-			printf("Status data has been updated with scheduling information.\n\n");
+			printf("Status log has been created successfully.\n\n");
 		        }
 	        }
 
@@ -1142,7 +1143,6 @@ void display_scheduling_info(void){
 		printf("DUMB\n");
 	else if(inter_check_delay_method==ICD_SMART){
 		printf("SMART\n");
-		printf("\tService check interval sum: %lu sec\n",scheduling_info.check_interval_total);
 		printf("\tAverage check interval:     %2.3f sec\n",scheduling_info.average_check_interval);
 	        }
 	else
@@ -1158,8 +1158,8 @@ void display_scheduling_info(void){
 
 	printf("\tInitial service check scheduling info:\n");
 	printf("\t--------------------------------------\n");
-	printf("\tFirst scheduled check:      %lu --> %s",(unsigned long)scheduling_info.first_service_check,ctime(&scheduling_info.first_service_check));
-	printf("\tLast scheduled check:       %lu --> %s",(unsigned long)scheduling_info.last_service_check,ctime(&scheduling_info.last_service_check));
+	printf("\tFirst scheduled check:      %lu -> %s",(unsigned long)scheduling_info.first_service_check,ctime(&scheduling_info.first_service_check));
+	printf("\tLast scheduled check:       %lu -> %s",(unsigned long)scheduling_info.last_service_check,ctime(&scheduling_info.last_service_check));
 	printf("\n");
 	printf("\tRough guidelines for max_concurrent_checks value:\n");
 	printf("\t-------------------------------------------------\n");
@@ -1169,14 +1169,21 @@ void display_scheduling_info(void){
 	printf("\tAbsolute minimum value:     %d\n",(int)minimum_concurrent_checks);
 	printf("\tRecommend value:            %d\n",(int)(minimum_concurrent_checks*3.0));
 	printf("\n");
-	printf("\tNote: The recommendations for the max_concurrent_checks value\n");
-	printf("\t      assume that the average execution time for service\n");
-	printf("\t      checks is less than the service check reaper interval.\n");
-	printf("\t      The minimum value also reflects best case scenarios\n");
-	printf("\t      where there are no problems on your network.  You will\n");
-	printf("\t      have to tweak this value as necessary after testing.\n");
-	printf("\t      High latency values for checks are often indicative of\n");
-	printf("\t      the max_concurrent_check value being set too low.\n");
+	printf("\tNotes:\n");
+	printf("\tThe recommendations for the max_concurrent_checks value\n");
+	printf("\tassume that the average execution time for service\n");
+	printf("\tchecks is less than the service check reaper interval.\n");
+	printf("\tThe minimum value also reflects best case scenarios\n");
+	printf("\twhere there are no problems on your network.  You will\n");
+	printf("\thave to tweak this value as necessary after testing.\n");
+	printf("\tHigh latency values for checks are often indicative of\n");
+	printf("\tthe max_concurrent_checks value being set too low and/or\n");
+	printf("\tthe service_reaper_frequency being set too high.\n");
+	printf("\tIt is important to note that the values displayed above\n");
+	printf("\tdo not reflect current performance information for any\n");
+	printf("\tNagios process that may currently be running.  They are\n");
+	printf("\tprovided solely to project expected and recommended\n");
+	printf("\tvalues based on the current data in the config files.\n");
 	printf("\n");
 
 	return;

@@ -3,7 +3,7 @@
  * TAC.C - Nagios Tactical Monitoring Overview CGI
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2002
+ * Last Modified: 04-10-2002
  *
  * This CGI program will display the contents of the Nagios
  * log file.
@@ -857,19 +857,19 @@ void display_tac_overview(void){
 	printf("<table border=0 cellspacing=4 cellspadding=0>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Check Execution Time:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
-	printf("<td valign=top class='perfValue' nowrap>%2d / %d / %2.3f sec</td>\n",min_execution_time,max_execution_time,average_execution_time);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%2d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_execution_time,max_execution_time,average_execution_time);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?type=%d' class='perfItem'>Check Latency:</a></td>",EXTINFO_CGI,DISPLAY_PERFORMANCE);
-	printf("<td valign=top class='perfValue' nowrap>%d / %d / %2.3f sec</td>\n",min_latency,max_latency,average_latency);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?type=%d' class='perfValue'>%d / %d / %2.3f sec</a></td>\n",EXTINFO_CGI,DISPLAY_PERFORMANCE,min_latency,max_latency,average_latency);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Active Checks:</a></td>",STATUS_CGI,SERVICE_ACTIVE_CHECK);
-	printf("<td valign=top class='perfValue' nowrap>%d</td>\n",total_active_checks);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?host=all&serviceprops=%d' class='perfValue'>%d</a></td>\n",STATUS_CGI,SERVICE_ACTIVE_CHECK,total_active_checks);
 	printf("</tr>\n");
 	printf("<tr>\n");
 	printf("<td align=left valign=center class='perfItem'><a href='%s?host=all&serviceprops=%d' class='perfItem'># Passive Checks:</a></td>",STATUS_CGI,SERVICE_PASSIVE_CHECK);
-	printf("<td valign=top class='perfValue' nowrap>%d</td>\n",total_passive_checks);
+	printf("<td valign=top class='perfValue' nowrap><a href='%s?host=all&serviceprops=%d' class='perfValue'>%d</a></td>\n",STATUS_CGI,SERVICE_PASSIVE_CHECK,total_passive_checks);
 	printf("</tr>\n");
 	printf("</table>\n");
 	printf("</td>\n");

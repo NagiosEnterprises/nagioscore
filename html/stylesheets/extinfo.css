@@ -15,15 +15,12 @@
 	DIV.dataTitle {font-family: arial,serif;  text-align: center; font-weight: bold; font-size: medium; }
 	DIV.data {font-family: arial,serif;  text-align: center; font-size: medium; }
 
+	DIV.perfTypeTitle {font-family: arial,serif;  text-align: right; font-weight: bold; font-size: small; }
+
 	TABLE.data { font-family: arial,serif; font-size: small; background-color: white; padding: 2; }
 	TH.data { font-family: arial,serif; font-size: small; background-color: white; text-align: left; background-color: #999797; color: #DCE5C1; }
 	.dataOdd { font-family: arial,serif;  font-size: small; background-color: #DBDBDB; }
 	.dataEven { font-family: arial,serif;  font-size: small; background-color: #C4C2C2; }
-
-	.stateInfoTable1 { font-family: arial,serif;  font-size: small; background-color: #DBDBDB; }
-	.stateInfoTable2 { font-family: arial,serif;  font-size: small; background-color: #C4C2C2; }
-	.dataVar { font-family: arial,serif;  font-size: small; }
-	.dataVal { font-family: arial,serif;  font-size: small; }
 
 	.optionBoxTitle { font-family: arial,serif; text-align: center; font-weight: bold; font-size: small; }
 	.optionBox { font-family: arial,serif; font-size: small; background-color: #DBDBDB; padding: 2; }
@@ -89,8 +86,14 @@
 
 	.commandPanel {font-family: arial,serif;  background-color: white; }
 	.commentPanel {font-family: arial,serif;  background-color: white; }
+
 	.stateInfoPanel {font-family: arial,serif;  background-color: white; }
 	.stateStatisticsPanel {font-family: arial,serif;  background-color: white; }
+	.stateInfoTable1 { font-family: arial,serif;  font-size: small; background-color: #DBDBDB; }
+	.stateInfoTable2 { font-family: arial,serif;  font-size: small; background-color: #C4C2C2; }
+
+	.dataVar { font-family: arial,serif;  font-size: small; }
+	.dataVal { font-family: arial,serif;  font-size: small; }
 
 	.queueTitle { font-family: arial,serif;  text-align: center; font-weight: bold; font-size: medium; }
 
@@ -100,7 +103,5 @@
 	.queueEven { font-family: arial,serif;  font-size: small; background-color: #C4C2C2; }
 	.queueENABLED { font-family: arial,serif;  font-size: small; background-color: #33FF00; }
 	.queueDISABLED { font-family: arial,serif;  font-size: small; background-color: #F83838; }
-
-
 
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-05-2002
+ * Last Modified: 12-06-2002
  *
  * Description:
  *
@@ -41,6 +41,7 @@
 #include "../common/config.h"
 #include "../common/common.h"
 #include "../common/objects.h"
+#include "../common/locations.h"
 
 /**** CORE OR CGI SPECIFIC HEADER FILES ****/
 
@@ -77,6 +78,11 @@ int xodtemplate_current_object_type=XODTEMPLATE_NONE;
 int xodtemplate_current_config_file=0;
 char **xodtemplate_config_files;
 
+char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
+
+#ifdef NSCORE
+FILE *xodtemplate_cache_fp=NULL;
+#endif
 
 
 
@@ -97,6 +103,9 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 	printf("xodtemplate_read_config_data() start\n");
 #endif
 
+	/* get variables from main config file */
+	xodtemplate_grab_config_info(main_config_file);
+	
 	/* open the main config file for reading (we need to find all the config files to read) */
 	fp=fopen(main_config_file,"r");
 	if(fp==NULL){
@@ -128,6 +137,15 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 		return ERROR;
 	        }
 
+#ifdef NSCORE
+
+	/* open the cache file for writing */
+	if(options & CACHE_OBJECT_DATA)
+		xodtemplate_cache_fp=fopen(xodtemplate_cache_file,"w");
+	if(xodtemplate_cache_fp!=NULL)
+		fputs("###########################\n# OBJECT CACHE FILE\n# DO NOT MODIFY THIS FILE!!\n###########################\n\n",xodtemplate_cache_fp);
+
+	/* daemon reads all config files/dirs specified in the main config file */
 	/* read in all lines from the main config file */
 	for(fgets(input,sizeof(input)-1,fp);!feof(fp);fgets(input,sizeof(input)-1,fp)){
 
@@ -187,6 +205,16 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 
 	fclose(fp);
 
+	/* close the cache file */
+	if(xodtemplate_cache_fp!=NULL)
+		fclose(xodtemplate_cache_fp);
+#endif
+
+#ifdef NSCGI
+	/* CGIs process only one file - the cached objects file */
+	result=xodtemplate_process_config_file(xodtemplate_cache_file,options);
+#endif
+
 	/* resolve objects definitions */
 	if(result==OK)
 		result=xodtemplate_resolve_objects();
@@ -208,6 +236,63 @@ int xodtemplate_read_config_data(char *main_config_file,int options){
 
 	return result;
 	}
+
+
+
+/* grab config variable from main config file */
+int xodtemplate_grab_config_info(char *main_config_file){
+	char input[MAX_XODTEMPLATE_INPUT_BUFFER];
+	char *temp_ptr;
+	FILE *fp;
+	
+#ifdef DEBUGO
+	printf("xodtemplate_grab_config_info() start\n");
+#endif
+
+	/* default location of cached object file */
+	snprintf(xodtemplate_cache_file,sizeof(xodtemplate_cache_file)-1,"%s",DEFAULT_OBJECT_CACHE_FILE);
+	xodtemplate_cache_file[sizeof(xodtemplate_cache_file)-1]='\x0';
+
+	/* open the main config file for reading */
+	fp=fopen(main_config_file,"r");
+	if(fp==NULL)
+		return ERROR;
+
+	/* read in all lines from the main config file */
+	for(fgets(input,sizeof(input)-1,fp);!feof(fp);fgets(input,sizeof(input)-1,fp)){
+
+		/* skip blank lines and comments */
+		if(input[0]=='#' || input[0]==';' || input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
+			continue;
+
+		/* strip input */
+		xodtemplate_strip(input);
+
+		temp_ptr=strtok(input,"=");
+		if(temp_ptr==NULL)
+			continue;
+
+		/* cached object file definition (overrides default location) */
+		if(strstr(temp_ptr,"object_cache_file")==temp_ptr){
+
+			/* get the config file name */
+			temp_ptr=strtok(NULL,"\n");
+			if(temp_ptr==NULL)
+				continue;
+
+			strncpy(xodtemplate_cache_file,temp_ptr,sizeof(xodtemplate_cache_file)-1);
+			xodtemplate_cache_file[sizeof(xodtemplate_cache_file)-1]='\x0';
+		        }
+	        }
+
+	fclose(fp);
+
+
+#ifdef DEBUGO
+	printf("xodtemplate_grab_config_info() end\n");
+#endif
+	return OK;
+        }
 
 
 
@@ -360,8 +445,14 @@ int xodtemplate_process_config_file(char *filename, int options){
 		if(input[0]=='\x0')
 			continue;
 
+#ifdef NSCORE
+		/* write this line to the cache file */
+		if(xodtemplate_cache_fp!=NULL)
+			fprintf(xodtemplate_cache_fp,"%s\n",input);
+#endif
+
 		/* this is the start of an object definition */
-		else if(strstr(input,"define")==input){
+		if(strstr(input,"define")==input){
 
 			/* get the type of object we're defining... */
 			for(x=6;input[x]!='\x0';x++)

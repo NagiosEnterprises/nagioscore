@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2002
+ * Last Modified:   12-06-2002
  *
  * License:
  *
@@ -70,6 +70,7 @@ extern int      log_initial_states;
 
 extern int      daemon_mode;
 extern int      verify_config;
+extern int      test_scheduling;
 
 extern int      sleep_time;
 extern int      interval_length;
@@ -151,6 +152,7 @@ extern hostescalation   *hostescalation_list;
 /* read all configuration data */
 int read_all_config_data(char *main_config_file){
 	int result=OK;
+	int options;
 
 #ifdef DEBUG0
 	printf("read_all_config_data() start\n");
@@ -161,8 +163,14 @@ int read_all_config_data(char *main_config_file){
 	if(result!=OK)
 		return ERROR;
 
+	options=READ_TIMEPERIODS|READ_HOSTS|READ_HOSTGROUPS|READ_CONTACTS|READ_CONTACTGROUPS|READ_SERVICES|READ_COMMANDS|READ_SERVICEESCALATIONS|READ_HOSTGROUPESCALATIONS|READ_SERVICEDEPENDENCIES|READ_HOSTDEPENDENCIES|READ_HOSTESCALATIONS;
+
+	/* cache object definitions if we're up and running */
+	if(verify_config==FALSE && test_scheduling==FALSE)
+		options+=CACHE_OBJECT_DATA;
+
 	/* read in all host configuration data from external sources */
-	result=read_object_config_data(main_config_file,READ_TIMEPERIODS|READ_HOSTS|READ_HOSTGROUPS|READ_CONTACTS|READ_CONTACTGROUPS|READ_SERVICES|READ_COMMANDS|READ_SERVICEESCALATIONS|READ_HOSTGROUPESCALATIONS|READ_SERVICEDEPENDENCIES|READ_HOSTDEPENDENCIES|READ_HOSTESCALATIONS);
+	result=read_object_config_data(main_config_file,options);
 	if(result!=OK)
 		return ERROR;
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2002
+ * Last Modified:   12-06-2002
  *
  * License:
  *
@@ -407,6 +407,7 @@ typedef struct xodtemplate_service_cursor_struct{
 /********* FUNCTION DEFINITIONS **********/
 
 int xodtemplate_read_config_data(char *,int);               /* top-level routine processes all config files */
+int xodtemplate_grab_config_info(char *);                   /* grabs variables from main config file */
 int xodtemplate_process_config_file(char *,int);            /* process data in a specific config file */
 int xodtemplate_process_config_dir(char *,int);             /* process all files in a specific config directory */
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */

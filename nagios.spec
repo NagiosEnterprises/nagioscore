@@ -143,25 +143,27 @@ if [ $1 = 0 ]; then
 	/bin/grep '^%{cmdgrp}:' /etc/group > /dev/null 2>&1 && /usr/sbin/groupdel %{cmdgrp} || %nnmmsg "Group %{cmdgrp} could not be deleted."
 fi
  
-%post www
 
+%post www
 # If apache is installed, and we can find the apache user, set a shell var
 wwwusr=`awk '/^[ \t]*User[ \t]+[a-zA-Z0-9]+/ {print $2}' /etc/httpd/conf/*.conf`
 if [ "z" == "z$wwwusr" ]; then # otherwise, use the default
 	wwwusr=%{wwwusr}
 fi
- 
-# if
+# if apache user is not in cmdgrp, add it
 if /usr/bin/id -Gn $wwwusr 2>/dev/null | /bin/grep -q %{cmdgrp} > /dev/null 2>&1 ; then
 	: # $wwwusr (default: apache) is already in nagiocmd group
 else
+	# first find apache primary group
 	pgrp=`/usr/bin/id -gn $wwwusr 2>/dev/null`
+	# filter apache primary group from secondary groups
 	sgrps=`/usr/bin/id -Gn $wwwusr 2>/dev/null | /bin/sed "s/^$pgrp //;s/ $pgrp //;s/^$pgrp$//;s/ /,/g;"`
 	if [ "z" == "z$sgrps" ] ; then
 		sgrps=%{nsgrp}
 	else
 		sgrps=$sgrps,%{cmdgrp}
 	fi
+	# modify apache user, adding it to cmdgrp
 	/usr/sbin/usermod -G $sgrps $wwwusr >/dev/null 2>&1
 	%nnmmsg "User $wwwusr added to group %{cmdgrp} so sending commands to Nagios from the command CGI is possible."
 fi
@@ -190,8 +192,6 @@ CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" \
 	--with-lockfile=/var/run/nagios.pid \
 	--with-nagios-user=%{nsusr} \
 	--with-nagios-grp=%{nsgrp} \
-	--with-command-user=%{cmdusr} \
-	--with-command-grp=%{cmdgrp} \
 	--prefix=%{_prefix} \
 	--exec-prefix=%{_prefix}/sbin \
 	--bindir=%{_prefix}/sbin \
@@ -310,7 +310,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(755,%{nsusr},%{nsgrp})
 %dir /var/log/nagios
 %dir /var/log/nagios/archives
-%defattr(2775,%{nsusr},%{cmdgrp})
+%defattr(2775,%{nsusr},%{nsgrp})
 %dir /var/spool/nagios
 %doc Changelog INSTALLING LICENSE README UPGRADING pkg/rpm/nagios.logrotate
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2003
+ * Last Modified: 02-10-2003
  *
  * Description:
  *
@@ -12,9 +12,10 @@
  *
  *    1) Read
  *    2) Resolve
- *    3) Replicate
- *    4) Register
- *    5) Cleanup
+ *    3) Recombobulate
+ *    4) Replicate
+ *    5) Register
+ *    6) Release
  *
  *
  * License:
@@ -117,7 +118,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 		return ERROR;
 	        }
 
-	/* initialize object definition lists to NULL - CGIs core dump w/o this (why?) */
+	/* reinitialize variables */
 	xodtemplate_timeperiod_list=NULL;
 	xodtemplate_command_list=NULL;
 	xodtemplate_contactgroup_list=NULL;
@@ -129,8 +130,14 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	xodtemplate_service_list=NULL;
 	xodtemplate_hostdependency_list=NULL;
 	xodtemplate_hostescalation_list=NULL;
+	xodtemplate_hostextinfo_list=NULL;
+	xodtemplate_serviceextinfo_list=NULL;
+
+	xodtemplate_current_object=NULL;
+	xodtemplate_current_object_type=XODTEMPLATE_NONE;
 
 	/* allocate memory for 256 config files (increased dynamically) */
+	xodtemplate_current_config_file=0;
 	xodtemplate_config_files=(char **)malloc(256*sizeof(char **));
 	if(fp==NULL){
 #ifdef DEBUG1
@@ -222,6 +229,10 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	/* resolve objects definitions */
 	if(result==OK)
 		result=xodtemplate_resolve_objects();
+
+	/* recombobulate object definitions */
+	if(result==OK)
+		result=xodtemplate_recombobulate_objects();
 
 	/* duplicate object definitions */
 	if(result==OK)
@@ -1014,6 +1025,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->alias=NULL;
 		new_host->address=NULL;
 		new_host->parents=NULL;
+		new_host->hostgroups=NULL;
 		new_host->check_command=NULL;
 		new_host->event_handler=NULL;
 		new_host->contact_groups=NULL;
@@ -2162,6 +2174,15 @@ int xodtemplate_add_object_property(char *input, int options){
 			if(temp_host->parents==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host parents.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"hostgroups")){
+			temp_host->hostgroups=strdup(value);
+			if(temp_host->hostgroups==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for host hostgroups.\n");
 #endif
 				return ERROR;
 			        }
@@ -4986,6 +5007,8 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		this_host->address=strdup(template_host->address);
 	if(this_host->parents==NULL && template_host->parents!=NULL)
 		this_host->parents=strdup(template_host->parents);
+	if(this_host->hostgroups==NULL && template_host->hostgroups!=NULL)
+		this_host->hostgroups=strdup(template_host->hostgroups);
 	if(this_host->check_command==NULL && template_host->check_command!=NULL)
 		this_host->check_command=strdup(template_host->check_command);
 	if(this_host->event_handler==NULL && template_host->event_handler!=NULL)
@@ -5479,6 +5502,79 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	return OK;
         }
 
+
+
+
+
+/******************************************************************/
+/*************** OBJECT RECOMBOBULATION FUNCTIONS *****************/
+/******************************************************************/
+
+
+/* recombobulates object definitions */
+int xodtemplate_recombobulate_objects(void){
+	int result=OK;
+	xodtemplate_host *temp_host;
+	xodtemplate_hostgroup *temp_hostgroup;
+	char *hostgroup_names;
+	char *temp_ptr;
+	char *new_members;
+#ifdef NSCORE
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_recombobulate_objects() start\n");
+#endif
+
+	/* process all hosts that have hostgroup directives */
+	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* skip hosts without hostgroup directives or host names */
+		if(temp_host->hostgroups==NULL || temp_host->host_name==NULL)
+			continue;
+
+		/* process the list of hostgroups */
+		hostgroup_names=strdup(temp_host->hostgroups);
+		if(hostgroup_names==NULL)
+			continue;
+		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+			/* strip trailing spaces */
+			xodtemplate_strip(temp_ptr);
+			
+			/* find the hostgroup */
+			temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
+			if(temp_hostgroup==NULL){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not find hostgroup '%s' specified in host '%s' definition (config file '%s', line %d)\n",temp_ptr,temp_host->host_name,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(hostgroup_names);
+				return ERROR;
+			        }
+
+			/* add this list to the hostgroup members directive */
+			if(temp_hostgroup->members==NULL)
+				temp_hostgroup->members=strdup(temp_ptr);
+			else{
+				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(temp_host->host_name)+2);
+				if(new_members!=NULL){
+					temp_hostgroup->members=new_members;
+					strcat(temp_hostgroup->members,",");
+					strcat(temp_hostgroup->members,temp_host->host_name);
+				        }
+			        }
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("xodtemplate_recombobulate_objects() end\n");
+#endif
+
+	return OK;
+        }
 
 
 
@@ -6851,6 +6947,7 @@ int xodtemplate_free_memory(void){
 		free(this_host->alias);
 		free(this_host->address);
 		free(this_host->parents);
+		free(this_host->hostgroups);
 		free(this_host->check_command);
 		free(this_host->event_handler);
 		free(this_host->contact_groups);
@@ -6924,6 +7021,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostextinfo->statusmap_image);
 		free(this_hostextinfo);
 	        }
+	xodtemplate_hostextinfo_list=NULL;
 
 	/* free memory allocated to serviceextinfo list */
 	for(this_serviceextinfo=xodtemplate_serviceextinfo_list;this_serviceextinfo!=NULL;this_serviceextinfo=next_serviceextinfo){
@@ -6938,6 +7036,7 @@ int xodtemplate_free_memory(void){
 		free(this_serviceextinfo->icon_image_alt);
 		free(this_serviceextinfo);
 	        }
+	xodtemplate_serviceextinfo_list=NULL;
 
 	/* free memory for the config file names */
 	for(x=0;x<xodtemplate_current_config_file;x++)

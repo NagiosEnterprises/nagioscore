@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-15-2003
+ * Last Modified:   02-10-2003
  *
  * License:
  *
@@ -146,6 +146,7 @@ typedef struct xodtemplate_host_struct{
 	char      *alias;
 	char      *address;
 	char      *parents;
+	char      *hostgroups;
 	char      *check_command;
 	int       max_check_attempts;
 	int       active_checks_enabled;
@@ -482,6 +483,7 @@ int xodtemplate_end_object_definition(int);
 
 int xodtemplate_duplicate_objects(void);
 int xodtemplate_resolve_objects(void);
+int xodtemplate_recombobulate_objects(void);
 int xodtemplate_register_objects(void);
 int xodtemplate_free_memory(void);
 

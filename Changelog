@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Added hostgroups directive to host definitions
 * Extended host/service info definitions are now stored in standard object
   config files
 * Added regexp matching in object config files (with --enable-regexp-matching

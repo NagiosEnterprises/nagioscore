@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-15-2003
+ * Last Modified:   04-17-2003
  *
  * License:
  *
@@ -834,11 +834,21 @@ void reap_service_checks(void){
 			/*temp_service->current_notification_number=0;*/
 		        }
 
-		/* initialize the last state change times if necessary */
+		/* initialize the last host and service state change times if necessary */
 		if(temp_service->last_state_change==(time_t)0)
 			temp_service->last_state_change=temp_service->last_check;
+		if(temp_service->last_hard_state_change==(time_t)0)
+			temp_service->last_hard_state_change=temp_service->last_check;
 		if(temp_host->last_state_change==(time_t)0)
 			temp_host->last_state_change=temp_service->last_check;
+		if(temp_host->last_hard_state_change==(time_t)0)
+			temp_host->last_hard_state_change=temp_service->last_check;
+
+		/* update last service state change times */
+		if(state_change==TRUE)
+			temp_service->last_state_change=temp_service->last_check;
+		if(hard_state_change==TRUE)
+			temp_service->last_hard_state_change=temp_service->last_check;
 
 
 
@@ -980,6 +990,10 @@ void reap_service_checks(void){
 				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earler... */
 				if(temp_service->last_hard_state!=temp_service->current_state)
 					hard_state_change=TRUE;
+
+				/* update last state change times */
+				temp_service->last_state_change=temp_service->last_check;
+				temp_service->last_hard_state_change=temp_service->last_check;
 
 				/* put service into a hard state without attempting check retries and don't send out notifications about it */
 				temp_service->host_problem_at_last_check=TRUE;

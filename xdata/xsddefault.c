@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2003
+ * Last Modified:   04-17-2003
  *
  * License:
  *
@@ -326,6 +326,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
+		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_host->notifications_enabled);
@@ -368,6 +369,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
+		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_service->last_hard_state_change);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_service->plugin_output==NULL)?"":temp_service->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
@@ -588,6 +590,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->state_type=atoi(val);
 					else if(!strcmp(var,"last_state_change"))
 						temp_hoststatus->last_state_change=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_hard_state_change"))
+						temp_hoststatus->last_hard_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_notification"))
 						temp_hoststatus->last_notification=strtoul(val,NULL,10);
 					else if(!strcmp(var,"current_notification_number"))
@@ -657,6 +661,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->state_type=atoi(val);
 					else if(!strcmp(var,"last_state_change"))
 						temp_servicestatus->last_state_change=strtoul(val,NULL,10);
+					else if(!strcmp(var,"last_hard_state_change"))
+						temp_servicestatus->last_hard_state_change=strtoul(val,NULL,10);
 					else if(!strcmp(var,"plugin_output"))
 						temp_servicestatus->plugin_output=strdup(val);
 					else if(!strcmp(var,"performance_data"))

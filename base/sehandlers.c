@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-15-2003
+ * Last Modified:   04-17-2003
  *
  * License:
  *
@@ -581,10 +581,14 @@ int run_host_event_handler(host *hst){
 /* top level host state handler - occurs after every host check (soft/hard and active/passive) */
 int handle_host_state(host *hst){
 	int state_change=FALSE;
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("handle_host_state() start\n");
 #endif
+
+	/* get current time */
+	time(&current_time);
 
 	/* obsess over this host check */
 	obsessive_compulsive_host_check_processor(hst);
@@ -598,6 +602,11 @@ int handle_host_state(host *hst){
 
 	/* if the host state has changed... */
 	if(state_change==TRUE){
+
+		/* update last state change times */
+		hst->last_state_change=current_time;
+		if(hst->state_type==HARD_STATE)
+			hst->last_hard_state_change=current_time;
 
 		/* reset the acknowledgement flag if necessary */
 		if(hst->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){

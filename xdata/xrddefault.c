@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-13-2003
+ * Last Modified:   04-17-2003
  *
  * License:
  *
@@ -204,6 +204,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
+		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
 		fprintf(fp,"\tnotified_on_down=%d\n",temp_host->notified_on_down);
 		fprintf(fp,"\tnotified_on_unreachable=%d\n",temp_host->notified_on_unreachable);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
@@ -245,6 +246,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
+		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_service->last_hard_state_change);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_service->plugin_output==NULL)?"":temp_service->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
@@ -365,6 +367,10 @@ int xrddefault_read_state_information(char *main_config_file){
 					check_for_host_flapping(temp_host,FALSE);
 				        }
 
+				/* handle new vars added */
+				if(temp_host->last_hard_state_change==(time_t)0)
+					temp_host->last_hard_state_change=temp_host->last_state_change;
+
 				free(host_name);
 				host_name=NULL;
 				temp_host=NULL;
@@ -380,6 +386,10 @@ int xrddefault_read_state_information(char *main_config_file){
 					/* check for flapping */
 					check_for_service_flapping(temp_service,FALSE);
 				        }
+
+				/* handle new vars added */
+				if(temp_service->last_hard_state_change==(time_t)0)
+					temp_service->last_hard_state_change=temp_service->last_state_change;
 
 				free(host_name);
 				host_name=NULL;
@@ -469,6 +479,8 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_host->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))
 							temp_host->last_state_change=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_hard_state_change"))
+							temp_host->last_hard_state_change=strtoul(val,NULL,10);
 						else if(!strcmp(var,"notified_on_down"))
 							temp_host->notified_on_down=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"notified_on_unreachable"))
@@ -538,6 +550,8 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_service->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))
 							temp_service->last_state_change=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_hard_state_change"))
+							temp_service->last_hard_state_change=strtoul(val,NULL,10);
 						else if(!strcmp(var,"plugin_output")){
 							strncpy(temp_service->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
 							temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';

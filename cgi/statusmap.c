@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Last Modified: 11-22-2003
  *
  * Description:
  *
@@ -2311,8 +2311,13 @@ void write_popup_code(void){
 	printf("table += \"<tr><td bgcolor='%s' class='popupText'>\" + text + \"</td></tr>\";\n",background_color);
 	printf("table += \"</table></td></tr></table>\"\n");
 	printf("document.popup.innerHTML = table;\n");
+	printf("document.popup.style.left = document.body.scrollLeft + %d;\n",x_offset);
+	printf("document.popup.style.top = document.body.scrollTop + %d;\n",y_offset);
+	/*
 	printf("document.popup.style.left = (document.all ? eventObj.x : eventObj.layerX) + %d;\n",x_offset);
 	printf("document.popup.style.top  = (document.all ? eventObj.y : eventObj.layerY) + %d;\n",y_offset);
+	*/
+
 	printf("document.popup.style.visibility = \"visible\";\n");
 	printf("} \n");
  

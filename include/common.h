@@ -22,8 +22,8 @@
  ************************************************************************/
 
 
-#define PROGRAM_VERSION "2.0-very-pre-alpha"
-#define PROGRAM_MODIFICATION_DATE "08-18-2003"
+#define PROGRAM_VERSION "2.0a1"
+#define PROGRAM_MODIFICATION_DATE "11-18-2003"
 
 
 /***************************** COMMANDS *********************************/

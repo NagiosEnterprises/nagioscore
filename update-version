@@ -5,10 +5,10 @@ LONGDATE=`date "+%B %d, %Y"`
 SHORTDATE=`date "+%m-%d-%Y"`
 
 # Current version number
-CURRENTVERSION=2.0-very-pre-alpha
+CURRENTVERSION=2.0a1
 
 # Last date
-LASTDATE=08-18-2003
+LASTDATE=11-18-2003
 
 if [ "x$1" = "x" ]
 then

@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2003
+ * Last Modified:   11-22-2003
  *
  * License:
  *
@@ -650,7 +650,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"state_history")){
 						temp_ptr=val;
 						for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-							temp_hoststatus->state_history[x]=atoi(strsep(&temp_ptr,","));
+							temp_hoststatus->state_history[x]=atoi(my_strsep(&temp_ptr,","));
 						temp_hoststatus->state_history_index=0;
 					        }
 					*/
@@ -743,7 +743,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"state_history")){
 						temp_ptr=val;
 						for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-							temp_servicestatus->state_history[x]=atoi(strsep(&temp_ptr,","));
+							temp_servicestatus->state_history[x]=atoi(my_strsep(&temp_ptr,","));
 						temp_servicestatus->state_history_index=0;
 					        }
 					*/

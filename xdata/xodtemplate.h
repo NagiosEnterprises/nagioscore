@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-06-2002
+ * Last Modified:   12-10-2002
  *
  * License:
  *
@@ -154,6 +154,7 @@ typedef struct xodtemplate_host_struct{
 	float     low_flap_threshold;
 	float     high_flap_threshold;
 	int       flap_detection_enabled;
+	char      *contact_groups;
 	int       notify_on_down;
 	int       notify_on_unreachable;
 	int       notify_on_recovery;
@@ -201,7 +202,6 @@ typedef struct xodtemplate_hostgroup_struct{
 	char      *hostgroup_name;
 	char      *alias;
 	char      *members;
-	char      *contact_groups;
 
 	int       has_been_resolved;
 	int       register_object;

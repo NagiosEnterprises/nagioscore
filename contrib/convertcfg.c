@@ -3,7 +3,7 @@
  * CONVERTCFG.C - Config File Convertor
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-04-2002
+ * Last Modified: 12-10-2002
  *
  * License:
  *
@@ -398,7 +398,7 @@ int main(int argc, char **argv){
 			printf("\talias\t\t%s\n",temp_ptr+1);
 
 			temp_ptr=strtok(NULL,";");
-			printf("\tcontact_groups\t%s\n",temp_ptr);
+			/*printf("\tcontact_groups\t%s\n",temp_ptr);*/
 
 			temp_ptr=strtok(NULL,"\n");
 

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-06-2002
+ * Last Modified:   12-10-2002
  *
  * License:
  *
@@ -1561,6 +1561,26 @@ int pre_flight_check(void){
 		                }
 		        }
 
+		/* check all contact groups */
+		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+
+			if(temp_contactgroup==NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				errors++;
+			        }
+			}
+		/* check to see if there is at least one contact group */
+		if(temp_host->contact_groups==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s'  has no default contact group(s) defined!",temp_host->name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+
 		/* check notification timeperiod */
 		if(temp_host->notification_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_host->notification_period,NULL);
@@ -1633,28 +1653,6 @@ int pre_flight_check(void){
 				errors++;
 			        }
 
-		        }
-
-		found=FALSE;
-
-		/* check all contact groups */
-		for(temp_contactgroupsmember=temp_hostgroup->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
-
-			if(temp_contactgroup==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in host group '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_hostgroup->group_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				errors++;
-			        }
-			}
-		/* check to see if there is at least one contact group */
-		if(temp_hostgroup->contact_groups==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host group '%s'  has no default contact group(s) defined!",temp_hostgroup->group_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			errors++;
 		        }
 
 		/* check for illegal characters in hostgroup name */
@@ -1840,20 +1838,19 @@ int pre_flight_check(void){
 
 		found=FALSE;
 
-		/* make sure each contactgroup is used in at least one hostgroup or service definition or escalation */
-		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-			for(temp_contactgroupsmember=temp_hostgroup->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+		/* make sure each contactgroup is used in at least one host or service definition or escalation */
+		move_first_host();
+		while((temp_host=get_next_host()) && found==FALSE) {
+			for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 				if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 					found=TRUE;
 					break;
-				        }
-			        }
-			if(found==TRUE)
-				break;
-			}
+			                }
+		                 }
+		        }
 		if(found==FALSE){
 			move_first_service();
-			while((temp_service=get_next_service()) && !found) {
+			while((temp_service=get_next_service()) && found==FALSE) {
 				for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
 						found=TRUE;

@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-05-2002
+ * Last Modified: 12-10-2002
  *
  * This CGI program will display various configuration information.
  *
@@ -387,6 +387,7 @@ int process_cgivars(void){
 void display_hosts(void){
 	host *temp_host;
 	hostsmember *temp_hostsmember;
+	contactgroupsmember *temp_contactgroupsmember;
 	int options=0;
 	int odd=0;
 	char time_string[16];
@@ -408,6 +409,7 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Alias/Description</TH>");
 	printf("<TH CLASS='data'>Address</TH>");
 	printf("<TH CLASS='data'>Parent Hosts</TH>");
+	printf("<TH CLASS='data'>Default Contact Groups</TH>");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
 	printf("<TH CLASS='data'>Notification Options</TH>");
 	printf("<TH CLASS='data'>Notification Period</TH>");
@@ -454,6 +456,18 @@ void display_hosts(void){
 		        }
 		if(temp_host->parent_hosts==NULL)
 			printf("&nbsp;");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+
+		/* find all the contact groups for this hostp... */
+		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+			if(temp_contactgroupsmember!=temp_host->contact_groups)
+				printf(", ");
+
+			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+		        }
 		printf("</TD>\n");
 
 		get_interval_time_string(temp_host->notification_interval,time_string,sizeof(time_string));
@@ -582,7 +596,6 @@ void display_hosts(void){
 
 void display_hostgroups(void){
 	hostgroup *temp_hostgroup;
-	contactgroupsmember *temp_contactgroupsmember;
 	hostgroupmember *temp_hostgroupmember;
 	int odd=0;
 	char *bg_class="";
@@ -602,7 +615,6 @@ void display_hostgroups(void){
 	printf("<TR>\n");
 	printf("<TH CLASS='data'>Group Name</TH>");
 	printf("<TH CLASS='data'>Description</TH>");
-	printf("<TH CLASS='data'>Default Contact Groups</TH>");
 	printf("<TH CLASS='data'>Host Members</TH>");
 	printf("</TR>\n");
 
@@ -623,17 +635,6 @@ void display_hostgroups(void){
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,temp_hostgroup->group_name);
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,temp_hostgroup->alias);
-		printf("<TD CLASS='%s'>",bg_class);
-
-		/* find all the contact groups for this hostgroup... */
-		for(temp_contactgroupsmember=temp_hostgroup->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			if(temp_contactgroupsmember!=temp_hostgroup->contact_groups)
-				printf(", ");
-
-			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
-		        }
-		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
 

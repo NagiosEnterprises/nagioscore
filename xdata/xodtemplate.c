@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-06-2002
+ * Last Modified: 12-10-2002
  *
  * Description:
  *
@@ -847,7 +847,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostgroup->hostgroup_name=NULL;
 		new_hostgroup->alias=NULL;
 		new_hostgroup->members=NULL;
-		new_hostgroup->contact_groups=NULL;
 		new_hostgroup->has_been_resolved=FALSE;
 		new_hostgroup->register_object=TRUE;
 		new_hostgroup->_config_file=config_file;
@@ -1001,6 +1000,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->parents=NULL;
 		new_host->check_command=NULL;
 		new_host->event_handler=NULL;
+		new_host->contact_groups=NULL;
 		new_host->notification_period=NULL;
 
 		new_host->active_checks_enabled=TRUE;
@@ -1591,15 +1591,6 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 		        }
-		else if(!strcmp(variable,"contact_groups")){
-			temp_hostgroup->contact_groups=strdup(value);
-			if(temp_hostgroup->contact_groups==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroup contact_groups.\n");
-#endif
-				return ERROR;
-			        }
-		        }
 		else if(!strcmp(variable,"register"))
 			temp_hostgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
@@ -2073,6 +2064,15 @@ int xodtemplate_add_object_property(char *input, int options){
 			if(temp_host->parents==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host parents.\n");
+#endif
+				return ERROR;
+			        }
+		        }
+		else if(!strcmp(variable,"contact_groups")){
+			temp_host->contact_groups=strdup(value);
+			if(temp_host->contact_groups==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not allocate memory for host contact_groups.\n");
 #endif
 				return ERROR;
 			        }
@@ -4163,8 +4163,6 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		this_hostgroup->alias=strdup(template_hostgroup->alias);
 	if(this_hostgroup->members==NULL && template_hostgroup->members!=NULL)
 		this_hostgroup->members=strdup(template_hostgroup->members);
-	if(this_hostgroup->contact_groups==NULL && template_hostgroup->contact_groups!=NULL)
-		this_hostgroup->contact_groups=strdup(template_hostgroup->contact_groups);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_hostgroup() end\n");
@@ -4434,6 +4432,8 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		this_host->check_command=strdup(template_host->check_command);
 	if(this_host->event_handler==NULL && template_host->event_handler!=NULL)
 		this_host->event_handler=strdup(template_host->event_handler);
+	if(this_host->contact_groups==NULL && template_host->contact_groups!=NULL)
+		this_host->contact_groups=strdup(template_host->contact_groups);
 	if(this_host->notification_period==NULL && template_host->notification_period!=NULL)
 		this_host->notification_period=strdup(template_host->notification_period);
 	if(this_host->failure_prediction_options==NULL && template_host->failure_prediction_options!=NULL)
@@ -5389,10 +5389,8 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	hostgroup *new_hostgroup;
 	hostgroupmember *new_hostgroupmember;
-	contactgroupsmember *new_contactgroupsmember;
 	xodtemplate_hostlist *this_hostlist;
 	xodtemplate_hostlist *temp_hostlist;
-	char *contact_group;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5443,22 +5441,6 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	        }
 	xodtemplate_free_hostlist(temp_hostlist);
 	
-
-	/* add all contact groups to the host group */
-	if(this_hostgroup->contact_groups!=NULL){
-
-		for(contact_group=strtok(this_hostgroup->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
-			new_contactgroupsmember=add_contactgroup_to_hostgroup(new_hostgroup,contact_group);
-			if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to hostgroup (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-				return ERROR;
-			        }
-	                }
-	        }
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_hostgroup() end\n");
@@ -5659,6 +5641,8 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	host *new_host;
 	char *parent_host;
 	hostsmember *new_hostsmember;
+	contactgroupsmember *new_contactgroupsmember;
+	char *contact_group;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5698,6 +5682,22 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 				return ERROR;
 			        }
 		        }
+	        }
+
+	/* add all contact groups to the host group */
+	if(this_host->contact_groups!=NULL){
+
+		for(contact_group=strtok(this_host->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
+			new_contactgroupsmember=add_contactgroup_to_host(new_host,contact_group);
+			if(new_contactgroupsmember==NULL){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not add contactgroup '%s' to host (config file '%s', line %d)\n",contact_group,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				return ERROR;
+			        }
+	                }
 	        }
 
 
@@ -5946,7 +5946,6 @@ int xodtemplate_free_memory(void){
 		free(this_hostgroup->hostgroup_name);
 		free(this_hostgroup->alias);
 		free(this_hostgroup->members);
-		free(this_hostgroup->contact_groups);
 		free(this_hostgroup);
 	        }
 
@@ -6003,6 +6002,7 @@ int xodtemplate_free_memory(void){
 		free(this_host->parents);
 		free(this_host->check_command);
 		free(this_host->event_handler);
+		free(this_host->contact_groups);
 		free(this_host->notification_period);
 		free(this_host->failure_prediction_options);
 		free(this_host);

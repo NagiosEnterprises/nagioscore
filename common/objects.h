@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2002
+ * Last Modified:   12-10-2002
  *
  * License:
  *
@@ -101,6 +101,7 @@ typedef struct host_struct{
 	char    *host_check_command;
 	int     max_attempts;
 	char    *event_handler;
+	contactgroupsmember *contact_groups;
 	int     notification_interval;
 	int	notify_on_down;
 	int	notify_on_unreachable;
@@ -168,7 +169,6 @@ typedef struct hostgroupmember_struct{
 typedef struct hostgroup_struct{
 	char 	*group_name;
 	char    *alias;
-	contactgroupsmember *contact_groups;
 	hostgroupmember *members;
 	struct	hostgroup_struct *next;
 	}hostgroup;
@@ -394,11 +394,11 @@ commandsmember *add_service_notification_command_to_contact(contact *,char *);		
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 host *add_host(char *,char *,char *,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
+contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
 hostgroup *add_hostgroup(char *,char *);								/* adds a hostgroup definition */
 hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
-contactgroupsmember *add_contactgroup_to_hostgroup(hostgroup *,char *);					/* adds a contactgroup to a hostgroup definition */
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group defintion */
 command *add_command(char *,char *);									/* adds a command definition */

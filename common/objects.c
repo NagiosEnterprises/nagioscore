@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2002
+ * Last Modified:   12-10-2002
  *
  * License:
  *
@@ -1055,6 +1055,72 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
         }
 
 
+/* add a new contactgroup to a host */
+contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
+	contactgroupsmember *new_contactgroupsmember;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUG0
+	printf("add_contactgroup_to_host() start\n");
+#endif
+
+	/* make sure we have the data we need */
+	if(hst==NULL || group_name==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host or contactgroup member is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	strip(group_name);
+
+	if(!strcmp(group_name,"")){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host '%s' contactgroup member is NULL\n",hst->name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for a new member */
+	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
+	if(new_contactgroupsmember==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' contactgroup member '%s'\n",hst->name,group_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	new_contactgroupsmember->group_name=strdup(group_name);
+	if(new_contactgroupsmember->group_name==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' contactgroup member '%s' name\n",hst->name,group_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_contactgroupsmember);
+		return NULL;
+	        }
+
+	
+	/* add the new member to the head of the member list */
+	new_contactgroupsmember->next=hst->contact_groups;
+	hst->contact_groups=new_contactgroupsmember;;
+
+#ifdef DEBUG0
+	printf("add_host_to_host() end\n");
+#endif
+
+	return new_contactgroupsmember;
+        }
+
+
 /* add a new host group to the list in memory */
 hostgroup *add_hostgroup(char *name,char *alias){
 	hostgroup *temp_hostgroup;
@@ -1133,7 +1199,6 @@ hostgroup *add_hostgroup(char *name,char *alias){
 		return NULL;
 	        }
 
-	new_hostgroup->contact_groups=NULL;
 	new_hostgroup->members=NULL;
 
 	/* add new hostgroup to hostgroup list, sorted by hostgroup name */
@@ -1235,72 +1300,6 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *grp, char *host_name){
 #endif
 
 	return new_hostgroupmember;
-        }
-
-
-/* add a new contactgroup to a host group */
-contactgroupsmember *add_contactgroup_to_hostgroup(hostgroup *grp, char *group_name){
-	contactgroupsmember *new_contactgroupsmember;
-#ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_hostgroup() start\n");
-#endif
-
-	/* make sure we have the data we need */
-	if(grp==NULL || group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup or contactgroup member is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup '%s' contactgroup member is NULL\n",grp->group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* allocate memory for a new member */
-	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
-	if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' contactgroup member '%s'\n",grp->group_name,group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	new_contactgroupsmember->group_name=strdup(group_name);
-	if(new_contactgroupsmember->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' contactgroup member '%s' name\n",grp->group_name,group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		free(new_contactgroupsmember);
-		return NULL;
-	        }
-
-	
-	/* add the new member to the head of the member list */
-	new_contactgroupsmember->next=grp->contact_groups;
-	grp->contact_groups=new_contactgroupsmember;;
-
-#ifdef DEBUG0
-	printf("add_host_to_hostgroup() end\n");
-#endif
-
-	return new_contactgroupsmember;
         }
 
 
@@ -3794,23 +3793,19 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
         }
 
 
-/*  tests wether a contact is a member of a particular hostgroup */
+/*  tests wether a contact is a member of a particular hostgroup - used only by the CGIs */
 int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
-	contactgroupsmember *temp_contactgroupsmember;
-	contactgroup *temp_contactgroup;
+	hostgroupmember *temp_hostgroupmember;
+	host *temp_host;
 
 	if(group==NULL || cntct==NULL)
 		return FALSE;
 
-	/* search all contact groups of this hostgroup */
-	for(temp_contactgroupsmember=group->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-		/* find the contact group */
-		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
-		if(temp_contactgroup==NULL)
+	for(temp_hostgroupmember=group->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
+		temp_host=find_host(temp_hostgroupmember->host_name);
+		if(temp_host==NULL)
 			continue;
-
-		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
+		if(is_contact_for_host(temp_host,cntct)==TRUE)
 			return TRUE;
 	        }
 
@@ -3821,19 +3816,22 @@ int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
 
 /*  tests whether a contact is a contact for a particular host */
 int is_contact_for_host(host *hst, contact *cntct){
-	hostgroup *temp_hostgroup;
-
+	contactgroupsmember *temp_contactgroupsmember;
+	contactgroup *temp_contactgroup;
+	
 	if(hst==NULL || cntct==NULL){
 		return FALSE;
 	        }
 
-	/* check all host groups that the host is in */
-	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-		
-		if(is_host_member_of_hostgroup(temp_hostgroup,hst)==FALSE)
+	/* search all contact groups of this host */
+	for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+
+		/* find the contact group */
+		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name,NULL);
+		if(temp_contactgroup==NULL)
 			continue;
 
-		if(is_contact_for_hostgroup(temp_hostgroup,cntct)==TRUE)
+		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
 			return TRUE;
 	        }
 
@@ -4095,6 +4093,15 @@ int free_object_data(void){
 					this_hostsmember=next_hostsmember;
 				        }
 
+				/* free memory for contact groups */
+				this_contactgroupsmember=this_host->contact_groups;
+				while(this_contactgroupsmember!=NULL){
+					next_contactgroupsmember=this_contactgroupsmember->next;
+					free(this_contactgroupsmember->group_name);
+					free(this_contactgroupsmember);
+					this_contactgroupsmember=next_contactgroupsmember;
+				        }
+
 				next_host=this_host->next;
 				free(this_host->name);
 				free(this_host->alias);
@@ -4125,15 +4132,6 @@ int free_object_data(void){
 	/* free memory for the host group list */
 	this_hostgroup=hostgroup_list;
 	while(this_hostgroup!=NULL){
-
-		/* free memory for contact groups */
-		this_contactgroupsmember=this_hostgroup->contact_groups;
-		while(this_contactgroupsmember!=NULL){
-			next_contactgroupsmember=this_contactgroupsmember->next;
-			free(this_contactgroupsmember->group_name);
-			free(this_contactgroupsmember);
-			this_contactgroupsmember=next_contactgroupsmember;
-		        }
 
 		/* free memory for the group members */
 		this_hostgroupmember=this_hostgroup->members;

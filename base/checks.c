@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2003
+ * Last Modified:   10-15-2003
  *
  * License:
  *
@@ -825,7 +825,7 @@ void reap_service_checks(void){
 #ifdef REMOVED_042903
 			/* log the initial state if the user wants */
 			if(temp_service->has_been_checked==FALSE && log_initial_states==TRUE){
-				log_service_event(temp_service,HARD_STATE);
+				log_service_event(temp_service);
 				state_was_logged=TRUE;
 			        }
 #endif
@@ -959,14 +959,14 @@ void reap_service_checks(void){
 				temp_service->state_type=HARD_STATE;
 
 				/* log the service recovery */
-				log_service_event(temp_service,HARD_STATE);
+				log_service_event(temp_service);
 				state_was_logged=TRUE;
 
 				/* notify contacts about the service recovery */
 				service_notification(temp_service,NOTIFICATION_NORMAL,NULL,NULL);
 
 				/* run the service event handler to handle the hard state change */
-				handle_service_event(temp_service,HARD_STATE);
+				handle_service_event(temp_service);
 			        }
 
 			/* else if a soft service recovery has occurred... */
@@ -980,18 +980,18 @@ void reap_service_checks(void){
 				temp_service->state_type=SOFT_STATE;
 
 				/* log the soft recovery */
-				log_service_event(temp_service,SOFT_STATE);
+				log_service_event(temp_service);
 				state_was_logged=TRUE;
 
 				/* run the service event handler to handle the soft state change */
-				handle_service_event(temp_service,SOFT_STATE);
+				handle_service_event(temp_service);
 		                }
 
 			/* else no service state change has occured... */
 
 			/* should we obsessive over service checks? */
 			if(obsess_over_services==TRUE)
-				obsessive_compulsive_service_check_processor(temp_service,temp_service->state_type);
+				obsessive_compulsive_service_check_processor(temp_service);
 
 			/* reset all service variables because its okay now... */
 			temp_service->host_problem_at_last_check=FALSE;
@@ -1155,7 +1155,7 @@ void reap_service_checks(void){
 
 					/* log the problem as a hard state if the host just went down */
 					if(hard_state_change==TRUE){
-						log_service_event(temp_service,HARD_STATE);
+						log_service_event(temp_service);
 						state_was_logged=TRUE;
 					        }
 				        }
@@ -1171,11 +1171,11 @@ void reap_service_checks(void){
 					temp_service->state_type=SOFT_STATE;
 
 					/* log the service check retry */
-					log_service_event(temp_service,SOFT_STATE);
+					log_service_event(temp_service);
 					state_was_logged=TRUE;
 
 					/* run the service event handler to handle the soft state */
-					handle_service_event(temp_service,SOFT_STATE);
+					handle_service_event(temp_service);
 
 #ifdef REMOVED_021803
 					/*** NOTE TO SELF - THIS SHOULD BE MOVED SOMEWHERE ELSE - 02/18/03 ***/
@@ -1209,7 +1209,7 @@ void reap_service_checks(void){
 #endif
 
 					/* log the service problem (even if host is not up, which is new in 0.0.5) */
-					log_service_event(temp_service,HARD_STATE);
+					log_service_event(temp_service);
 					state_was_logged=TRUE;
 				        }
 
@@ -1219,7 +1219,7 @@ void reap_service_checks(void){
 					printf("\tSECTION B6c\n");
 #endif
 
-					log_service_event(temp_service,HARD_STATE);
+					log_service_event(temp_service);
 					state_was_logged=TRUE;
 				        }
 
@@ -1236,7 +1236,7 @@ void reap_service_checks(void){
 					printf("\tSECTION B6d\n");
 #endif
 
-					handle_service_event(temp_service,HARD_STATE);
+					handle_service_event(temp_service);
 				        }
 
 				/* save the last hard state */
@@ -1250,7 +1250,7 @@ void reap_service_checks(void){
 
 			/* should we obsessive over service checks? */
 			if(obsess_over_services==TRUE)
-				obsessive_compulsive_service_check_processor(temp_service,temp_service->state_type);
+				obsessive_compulsive_service_check_processor(temp_service);
 		        }
 
 		/* reschedule the next service check ONLY for active checks */
@@ -1289,16 +1289,16 @@ void reap_service_checks(void){
 		if(temp_service->state_type==HARD_STATE && state_change==FALSE && state_was_logged==FALSE && strcmp(old_plugin_output,temp_service->plugin_output)){
 
 			if((temp_service->current_state==STATE_OK && temp_service->stalk_on_ok==TRUE))
-				log_service_event(temp_service,HARD_STATE);
+				log_service_event(temp_service);
 			
 			else if((temp_service->current_state==STATE_WARNING && temp_service->stalk_on_warning==TRUE))
-				log_service_event(temp_service,HARD_STATE);
+				log_service_event(temp_service);
 			
 			else if((temp_service->current_state==STATE_UNKNOWN && temp_service->stalk_on_unknown==TRUE))
-				log_service_event(temp_service,HARD_STATE);
+				log_service_event(temp_service);
 			
 			else if((temp_service->current_state==STATE_CRITICAL && temp_service->stalk_on_critical==TRUE))
-				log_service_event(temp_service,HARD_STATE);
+				log_service_event(temp_service);
 		        }
 
 #ifdef USE_EVENT_BROKER

@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Last Modified:   10-15-2003
  *
  * License:
  *
@@ -202,7 +202,7 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 
 
 /* write a service problem/recovery to the nagios log file */
-int log_service_event(service *svc,int state_type){
+int log_service_event(service *svc){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	unsigned long log_options;
 	host *temp_host;
@@ -212,7 +212,7 @@ int log_service_event(service *svc,int state_type){
 #endif
 
 	/* don't log soft errors if the user doesn't want to */
-	if(state_type==SOFT_STATE && !log_service_retries)
+	if(svc->state_type==SOFT_STATE && !log_service_retries)
 		return OK;
 
 	/* get the log options */
@@ -233,7 +233,7 @@ int log_service_event(service *svc,int state_type){
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],(state_type==SOFT_STATE)?"SOFT":"HARD",macro_x[MACRO_SERVICEATTEMPT],svc->plugin_output);
+	snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->plugin_output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	write_to_all_logs(temp_buffer,log_options);
 

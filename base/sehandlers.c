@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2003
+ * Last Modified:   10-15-2003
  *
  * License:
  *
@@ -61,7 +61,7 @@ extern time_t          program_start;
 
 
 /* handles service check results in an obsessive compulsive manner... */
-int obsessive_compulsive_service_check_processor(service *svc,int state_type){
+int obsessive_compulsive_service_check_processor(service *svc){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char temp_buffer[MAX_INPUT_BUFFER];
@@ -90,20 +90,6 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
-
-	/* grab the service state type macro */
-	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
-		free(macro_x[MACRO_SERVICESTATETYPE]);
-	macro_x[MACRO_SERVICESTATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_SERVICESTATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
-
-	/* grab the current service check number macro */
-	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
-		free(macro_x[MACRO_SERVICEATTEMPT]);
-	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
-		sprintf(macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
 
 	/* get the raw command line */
 	get_raw_command_line(ocsp_command,raw_command_line,sizeof(raw_command_line));
@@ -206,7 +192,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 
 /* handles changes in the state of a service */
-int handle_service_event(service *svc,int state_type){
+int handle_service_event(service *svc){
 	host *temp_host;
 
 #ifdef DEBUG0
@@ -227,26 +213,12 @@ int handle_service_event(service *svc,int state_type){
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
 
-	/* grab the service state type macro */
-	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
-		free(macro_x[MACRO_SERVICESTATETYPE]);
-	macro_x[MACRO_SERVICESTATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_SERVICESTATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
-
-	/* grab the current service check number macro */
-	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
-		free(macro_x[MACRO_SERVICEATTEMPT]);
-	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
-		sprintf(macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
-
 	/* run the global service event handler */
-	run_global_service_event_handler(svc,state_type);
+	run_global_service_event_handler(svc);
 
 	/* run the event handler command if there is one */
 	if(svc->event_handler!=NULL)
-		run_service_event_handler(svc,state_type);
+		run_service_event_handler(svc);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -261,7 +233,7 @@ int handle_service_event(service *svc,int state_type){
 
 
 /* runs the global service event handler */
-int run_global_service_event_handler(service *svc,int state_type){
+int run_global_service_event_handler(service *svc){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char command_output[MAX_INPUT_BUFFER];
@@ -318,7 +290,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE,NEBFLAG_NONE,NEBATTR_NONE,(void *)svc,svc->current_state,state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_GLOBAL_SERVICE,NEBFLAG_NONE,NEBATTR_NONE,(void *)svc,svc->current_state,svc->state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -331,7 +303,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 
 
 /* runs a service event handler command */
-int run_service_event_handler(service *svc,int state_type){
+int run_service_event_handler(service *svc){
 	char raw_command_line[MAX_INPUT_BUFFER];
 	char processed_command_line[MAX_INPUT_BUFFER];
 	char command_output[MAX_INPUT_BUFFER];
@@ -384,7 +356,7 @@ int run_service_event_handler(service *svc,int state_type){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
-	broker_event_handler(NEBTYPE_EVENTHANDLER_SERVICE,NEBFLAG_NONE,NEBATTR_NONE,(void *)svc,svc->current_state,state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
+	broker_event_handler(NEBTYPE_EVENTHANDLER_SERVICE,NEBFLAG_NONE,NEBATTR_NONE,(void *)svc,svc->current_state,svc->state_type,exectime,event_handler_timeout,early_timeout,result,processed_command_line,command_output,NULL);
 #endif
 
 #ifdef DEBUG0

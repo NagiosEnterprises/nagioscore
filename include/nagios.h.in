@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-12-2003
+ * Last Modified: 10-15-2003
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -487,11 +487,11 @@ int handle_host_state(host *);               		/* top level host state handler *
 
 
 /**** Event Handler Functions ****/
-int obsessive_compulsive_service_check_processor(service *,int);	/* distributed monitoring craziness... */
+int obsessive_compulsive_service_check_processor(service *);	/* distributed monitoring craziness... */
 int obsessive_compulsive_host_check_processor(host *);		/* distributed monitoring craziness... */
-int handle_service_event(service *,int);			/* top level service event logic */
-int run_service_event_handler(service *,int);			/* runs the event handler for a specific service */
-int run_global_service_event_handler(service *,int);		/* runs the global service event handler */
+int handle_service_event(service *);				/* top level service event logic */
+int run_service_event_handler(service *);			/* runs the event handler for a specific service */
+int run_global_service_event_handler(service *);		/* runs the global service event handler */
 int handle_host_event(host *);					/* top level host event logic */
 int run_host_event_handler(host *);				/* runs the event handler for a specific host */
 int run_global_host_event_handler(host *);			/* runs the global host event handler */
@@ -524,7 +524,7 @@ int write_to_console(char *);                           /* writes a string to sc
 int write_to_all_logs(char *,unsigned long);            /* writes a string to main log file and syslog facility */
 int write_to_log(char *,unsigned long);                	/* write a string to the main log file */
 int write_to_syslog(char *,unsigned long);             	/* write a string to the syslog facility */
-int log_service_event(service *,int);			/* logs a service event */
+int log_service_event(service *);			/* logs a service event */
 int log_host_event(host *);				/* logs a host event */
 int log_host_states(int);	                        /* logs initial/current host states */
 int log_service_states(int);                            /* logs initial/current service states */

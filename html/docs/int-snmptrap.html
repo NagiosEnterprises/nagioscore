@@ -104,7 +104,7 @@ On my Linux SNMP management host (<b>firestorm</b>), I installed the <a href="ht
 </p>
 
 <p>
-In order to have the <i>snmptrapd</i> daemon route ArcServe SNMP traps to our NetSaint host, we've got to define a traphandler in the <i>/etc/snmp/snmptrapd.conf</i> file.  In my setup, the config file looked something like this:
+In order to have the <i>snmptrapd</i> daemon route ArcServe SNMP traps to our Nagios host, we've got to define a traphandler in the <i>/etc/snmp/snmptrapd.conf</i> file.  In my setup, the config file looked something like this:
 </p>
 
 <p>
@@ -153,7 +153,7 @@ This example assumes that you have a <i>/usr/local/nagios/libexec/eventhandlers/
 	# First line passed from snmptrapd is FQDN of host that sent the trap
      read host
 
-    # Given a FQDN, get the short name of the host as it is setup in NetSaint
+    # Given a FQDN, get the short name of the host as it is setup in Nagios
     hostname="unknown"
     case $host in
         novellserver.mylocaldomain.com)

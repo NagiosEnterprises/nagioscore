@@ -39,7 +39,7 @@ Before I can explain how the service check parallelization works, you first have
 </p>
 
 <p>
-Service checks are one type of event that get scheduled in Nagios's event queue.  When it comes time for a service check to be executed, Nagios will kick off another process (using a call to fork()) to go out and run the service check (i.e. a plugin of some sort).  Nagios does <i>not</i>, however, wait for the service check to finish!  Instead, Nagios will immediately go back to servicing other events that reside in the event queue...
+Service checks are one type of event that get scheduled in Nagios' event queue.  When it comes time for a service check to be executed, Nagios will kick off another process (using a call to fork()) to go out and run the service check (i.e. a plugin of some sort).  Nagios does <i>not</i>, however, wait for the service check to finish!  Instead, Nagios will immediately go back to servicing other events that reside in the event queue...
 </p>
 
 <p>
@@ -47,7 +47,7 @@ So what happens when the service check finishes executing?  Well, the process th
 </p>
 
 <p>
-In order for Nagios to actually do any monitoring, it much process the results of service checks that have finished executing.  This is done via a service check "reaper" process.  Service "reapers" are another type of event that get scheduled in Nagios's event queue.  The frequency of these "reaper" events is determined by the <a href="configmain.html#service_reaper_frequency">service_reaper_frequency</a> option in the main configuration file.  When a "reaper" event is executed, it will check for any messages that contain the result of service checks that have finished executing.  These service check results are then handled by the core service monitoring logic.  From there Nagios determines whether or not hosts should be checked, notifications should be sent out, etc.  When the service check results have been processed, Nagios will reschedule the next check of the service and place it in the event queue for later execution.  That completes the service check/monitoring cycle!
+In order for Nagios to actually do any monitoring, it much process the results of service checks that have finished executing.  This is done via a service check "reaper" process.  Service "reapers" are another type of event that get scheduled in Nagios' event queue.  The frequency of these "reaper" events is determined by the <a href="configmain.html#service_reaper_frequency">service_reaper_frequency</a> option in the main configuration file.  When a "reaper" event is executed, it will check for any messages that contain the result of service checks that have finished executing.  These service check results are then handled by the core service monitoring logic.  From there Nagios determines whether or not hosts should be checked, notifications should be sent out, etc.  When the service check results have been processed, Nagios will reschedule the next check of the service and place it in the event queue for later execution.  That completes the service check/monitoring cycle!
 </p>
 
 <p>

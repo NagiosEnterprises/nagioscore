@@ -1466,7 +1466,7 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 </tr>
 </table>
 </p>
-This option determines whether or not Nagios will try and detect hosts and services that are "flapping".  Flapping occurs when a host or service changes between states too frequently, resulting in a barrage of notifications being sent out.  When Nagios detects that a host or service is flapping, it will temporarily supress notifications for that host/service until it stops flapping.  Flap detection is very experimental at this point, so use this feature with caution!  More information on how flap detection and handling works can be found <a href="flapping.html">here</a>.     Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.
+This option determines whether or not Nagios will try and detect hosts and services that are "flapping".  Flapping occurs when a host or service changes between states too frequently, resulting in a barrage of notifications being sent out.  When Nagios detects that a host or service is flapping, it will temporarily suppress notifications for that host/service until it stops flapping.  Flap detection is very experimental at this point, so use this feature with caution!  More information on how flap detection and handling works can be found <a href="flapping.html">here</a>.     Note: If you have <a href="#retain_state_information">state retention</a> enabled, Nagios will ignore this setting when it (re)starts and use the last known setting for this option (as stored in the <a href="#state_retention_file">state retention file</a>), <i>unless</i> you disable the <a href="#use_retained_program_state">use_retained_program_state</a> option.  If you want to change this option when state retention is active (and the <a href="#use_retained_program_state">use_retained_program_state</a> is enabled), you'll have to use the appropriate <a href="extcommands.html">external command</a> or change it via the web interface.
 </p>
 <p>
 <ul>
@@ -1687,7 +1687,7 @@ There is often widespread confusion as to what this option really does.  It is m
 This is the maximum number of seconds that Nagios will allow <a href="eventhandlers.html">event handlers</a> to be run.  If an event handler exceeds this time limit it will be killed and a warning will be logged.
 </p>
 <p>
-There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off commands which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each event handler command normally finishes executing within this time limit.  If an event handler runs longer than this limit, NetSaint will kill it off thinking it is a runaway processes.
+There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off commands which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each event handler command normally finishes executing within this time limit.  If an event handler runs longer than this limit, Nagios will kill it off thinking it is a runaway processes.
 </p>
 
 
@@ -1715,7 +1715,7 @@ There is often widespread confusion as to what this option really does.  It is m
 This is the maximum number of seconds that Nagios will allow notification commands to be run.  If a notification command exceeds this time limit it will be killed and a warning will be logged.
 </p>
 <p>
-There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off commands which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each notification command finishes executing within this time limit.  If a notification command runs longer than this limit, NetSaint will kill it off thinking it is a runaway processes.
+There is often widespread confusion as to what this option really does.  It is meant to be used as a last ditch mechanism to kill off commands which are misbehaving and not exiting in a timely manner.  It should be set to something high (like 60 seconds or more), so that each notification command finishes executing within this time limit.  If a notification command runs longer than this limit, Nagios will kill it off thinking it is a runaway processes.
 </p>
 
 

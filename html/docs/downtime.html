@@ -27,7 +27,7 @@
 </p>
 
 <p>
-Nagios allows you to schedule periods of planned downtime for hosts and service that you're monitoring.  This is useful in the event that you actually know you're going to be taking a server down for an upgrade, etc.  When a host a service is in a period of scheduled downtime, notifications for that host or service will be supressed.
+Nagios allows you to schedule periods of planned downtime for hosts and service that you're monitoring.  This is useful in the event that you actually know you're going to be taking a server down for an upgrade, etc.  When a host a service is in a period of scheduled downtime, notifications for that host or service will be suppressed.
 </p>
 
 <p>
@@ -79,7 +79,7 @@ There are two types of scheduled downtime - "fixed" and "flexible".  When you sc
 </p>
 
 <p>
-When a host or service is in a period of scheduled downtime, Nagios will not allow notifications to be sent out for the host or service.  Supression of notifications is accomplished by adding an additional filter to the <a href="notifications.html">notification logic</a>.  You will <i>not</i> see an icon in the CGIs indicating that notifications for that host/service are disabled.  When the scheduled downtime has passed, Nagios will allow notifications to be sent out for the host or service as it normally would.
+When a host or service is in a period of scheduled downtime, Nagios will not allow notifications to be sent out for the host or service.  suppression of notifications is accomplished by adding an additional filter to the <a href="notifications.html">notification logic</a>.  You will <i>not</i> see an icon in the CGIs indicating that notifications for that host/service are disabled.  When the scheduled downtime has passed, Nagios will allow notifications to be sent out for the host or service as it normally would.
 </p>
 
 <p>
@@ -105,7 +105,7 @@ Let's take the following scenario:
 </p>
 
 <p>
-If you schedule overlapping periods of downtime for a host or service (in this case the periods were 7:40pm-9:30pm and 9:20pm-1:30am), Nagios will wait until the last period of scheduled downtime is over before it allows notifications to be sent out for that host or service.  In this example notifications would be supressed for host A until 1:30am Tuesday morning.
+If you schedule overlapping periods of downtime for a host or service (in this case the periods were 7:40pm-9:30pm and 9:20pm-1:30am), Nagios will wait until the last period of scheduled downtime is over before it allows notifications to be sent out for that host or service.  In this example notifications would be suppressed for host A until 1:30am Tuesday morning.
 </p>
 
 <hr>

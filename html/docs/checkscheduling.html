@@ -181,7 +181,7 @@ In order to prevent Nagios from consuming all of your CPU resources, you can res
 </p>
 
 <p>
-The good thing about this setting is that you can regulate Nagios's CPU usage.  The down side is that service checks may fall behind if this value is set too low.  When it comes time to execute a service check, Nagios will make sure that no more than <i>x</i> service checks are either being executed or waiting to have their results processed (where <i>x</i> is the number of checks you specified for the <i>max_concurrent_checks</i> option).  If that limit has been reached, Nagios will postpone the execution of any pending checks until some of the previous checks have completed.  So how does one determine a reasonable value for the <i>max_concurrent_checks</i> option?
+The good thing about this setting is that you can regulate Nagios' CPU usage.  The down side is that service checks may fall behind if this value is set too low.  When it comes time to execute a service check, Nagios will make sure that no more than <i>x</i> service checks are either being executed or waiting to have their results processed (where <i>x</i> is the number of checks you specified for the <i>max_concurrent_checks</i> option).  If that limit has been reached, Nagios will postpone the execution of any pending checks until some of the previous checks have completed.  So how does one determine a reasonable value for the <i>max_concurrent_checks</i> option?
 </p>
 
 <p>
@@ -315,7 +315,7 @@ The results of the service check are not processed immediately after the check i
 </p>
 
 <p>
-At the time that the service reaper event processes the service check results, it will reschedule the next service check and place it into Nagios's event queue.  We'll assume that the service check resulted in an OK status, so the next check at time <b>E</b> is scheduled after the originally scheduled check time by a length of time specified by the <i>check_interval</i> option.  Note that the service is <i>not</i> rescheduled based off the time that it was actually executed!  There is one exception to this (isn't there always?) - if the time that the service check is actually executed (point <b>B</b>) occurs after the next service check time (point <b>E</b>), Nagios will compensate by adjusting the next check time.  This is done to ensure that Nagios doesn't go nuts trying to keep up with service checks if it comes under heavy load.  Besides, what's the point of scheduling something in the past...?
+At the time that the service reaper event processes the service check results, it will reschedule the next service check and place it into Nagios' event queue.  We'll assume that the service check resulted in an OK status, so the next check at time <b>E</b> is scheduled after the originally scheduled check time by a length of time specified by the <i>check_interval</i> option.  Note that the service is <i>not</i> rescheduled based off the time that it was actually executed!  There is one exception to this (isn't there always?) - if the time that the service check is actually executed (point <b>B</b>) occurs after the next service check time (point <b>E</b>), Nagios will compensate by adjusting the next check time.  This is done to ensure that Nagios doesn't go nuts trying to keep up with service checks if it comes under heavy load.  Besides, what's the point of scheduling something in the past...?
 </p>
 
 <p>

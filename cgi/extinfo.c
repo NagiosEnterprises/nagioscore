@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-18-2002
+ * Last Modified: 03-20-2002
  *
  * License:
  * 
@@ -587,66 +587,73 @@ void show_process_info(void){
 	printf("<DIV ALIGN=CENTER>\n");
 
 	printf("<TABLE BORDER=0 CELLPADDING=20>\n");
-	printf("<TR><TD>\n");
+	printf("<TR><TD VALIGN=TOP>\n");
 
-	printf("<DIV CLASS='dataTitle'>Program Information</DIV>\n");
+	printf("<DIV CLASS='dataTitle'>Process Information</DIV>\n");
 
-	printf("<TABLE BORDER=0 CLASS='data'>\n");
-
-	printf("<TR><TH CLASS='data'>Variable</TH><TH CLASS='data'>Value</TH></TR>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable2'>\n");
+	printf("<TABLE BORDER=0>\n");
 
 	/* program start time */
-	get_time_string(&program_start,date_time,(int)sizeof(date_time),LONG_DATE_TIME);
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Program Start Time</TD><TD CLASS='dataOdd'>%s</TD></TR>\n",date_time);
+	get_time_string(&program_start,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+	printf("<TR><TD CLASS='dataVar'>Program Start Time:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",date_time);
 
 	/* total running time */
 	time(&current_time);
 	run_time=(unsigned long)(current_time-program_start);
 	get_time_breakdown(run_time,&days,&hours,&minutes,&seconds);
-	sprintf(run_time_string,"%d days %d hrs %d min %d sec",days,hours,minutes,seconds);
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Total Running Time</TD><TD CLASS='dataEven'>%s</TD></TR>\n",run_time_string);
-
-	/* PID */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Nagios PID</TD><TD CLASS='dataOdd'>%d</TD></TR>\n",nagios_pid);
-
-	/* notifications enabled */
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Notifications Enabled?</TD><TD CLASS='dataEven'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(enable_notifications==TRUE)?"ENABLED":"DISABLED",(enable_notifications==TRUE)?"YES":"NO");
-
-	/* service check execution enabled */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Service Checks Being Executed?</TD><TD CLASS='dataOdd'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(execute_service_checks==TRUE)?"ENABLED":"DISABLED",(execute_service_checks==TRUE)?"YES":"NO");
-
-	/* passive service check acceptance */
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Passive Service Checks Being Accepted?</TD><TD CLASS='dataEven'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(accept_passive_service_checks==TRUE)?"YES":"NO");
-
-	/* event handlers enabled */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Event Handlers Enabled?</TD><TD CLASS='dataOdd'>%s</TD></TR>\n",(enable_event_handlers==TRUE)?"Yes":"No");
-
-	/* obsessing over services */
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Obsessing Over Services?</TD><TD CLASS='dataEven'>%s</TD></TR>\n",(obsess_over_services==TRUE)?"Yes":"No");
-
-	/* flap detection enabled */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Flap Detection Enabled?</TD><TD CLASS='dataOdd'>%s</TD></TR>\n",(enable_flap_detection==TRUE)?"Yes":"No");
-
-	/* failure prediction enabled */
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Failure Prediction Enabled?</TD><TD CLASS='dataEven'>%s</TD></TR>\n",(enable_failure_prediction==TRUE)?"Yes":"No");
-
-	/* process performance data */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Performance Data Being Processed?</TD><TD CLASS='dataOdd'>%s</TD></TR>\n",(process_performance_data==TRUE)?"Yes":"No");
-
-	/* daemon mode */
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Running As A Daemon?</TD><TD CLASS='dataEven'>%s</TD></TR>\n",(daemon_mode==TRUE)?"Yes":"No");
+	sprintf(run_time_string,"%dd %dh %dm %ds",days,hours,minutes,seconds);
+	printf("<TR><TD CLASS='dataVar'>Total Running Time:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",run_time_string);
 
 	/* last external check */
-	get_time_string(&last_command_check,date_time,(int)sizeof(date_time),LONG_DATE_TIME);
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Last External Command Check</TD><TD CLASS='dataOdd'>%s</TD></TR>\n",(last_command_check==(time_t)0)?"N/A":date_time);
+	get_time_string(&last_command_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+	printf("<TR><TD CLASS='dataVar'>Last External Command Check:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(last_command_check==(time_t)0)?"N/A":date_time);
 
 	/* last log file rotation */
-	get_time_string(&last_log_rotation,date_time,(int)sizeof(date_time),LONG_DATE_TIME);
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Last Log File Rotation</TD><TD CLASS='dataEven'>%s</TD></TR>\n",(last_log_rotation==(time_t)0)?"N/A":date_time);
+	get_time_string(&last_log_rotation,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+	printf("<TR><TD CLASS='dataVar'>Last Log File Rotation:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(last_log_rotation==(time_t)0)?"N/A":date_time);
+
+	/* PID */
+	printf("<TR><TD CLASS='dataVar'>Nagios PID</TD><TD CLASS='dataval'>%d</TD></TR>\n",nagios_pid);
+
+	/* notifications enabled */
+	printf("<TR><TD CLASS='dataVar'>Notifications Enabled?</TD><TD CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(enable_notifications==TRUE)?"ENABLED":"DISABLED",(enable_notifications==TRUE)?"YES":"NO");
+
+	/* service check execution enabled */
+	printf("<TR><TD CLASS='dataVar'>Service Checks Being Executed?</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(execute_service_checks==TRUE)?"ENABLED":"DISABLED",(execute_service_checks==TRUE)?"YES":"NO");
+
+	/* passive service check acceptance */
+	printf("<TR><TD CLASS='dataVar'>Passive Service Checks Being Accepted?</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(accept_passive_service_checks==TRUE)?"YES":"NO");
+
+	/* event handlers enabled */
+	printf("<TR><TD CLASS='dataVar'>Event Handlers Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(enable_event_handlers==TRUE)?"Yes":"No");
+
+	/* obsessing over services */
+	printf("<TR><TD CLASS='dataVar'>Obsessing Over Services?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(obsess_over_services==TRUE)?"Yes":"No");
+
+	/* flap detection enabled */
+	printf("<TR><TD CLASS='dataVar'>Flap Detection Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(enable_flap_detection==TRUE)?"Yes":"No");
+
+#ifdef PREDICT_FAILURES
+	/* failure prediction enabled */
+	printf("<TR><TD CLASS='dataVar'>Failure Prediction Enabled?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(enable_failure_prediction==TRUE)?"Yes":"No");
+#endif
+
+	/* process performance data */
+	printf("<TR><TD CLASS='dataVar'>Performance Data Being Processed?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(process_performance_data==TRUE)?"Yes":"No");
+
+#ifdef USE_OLDCRUD
+	/* daemon mode */
+	printf("<TR><TD CLASS='dataVar'>Running As A Daemon?</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(daemon_mode==TRUE)?"Yes":"No");
+#endif
 
 	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
 
-	printf("</TD><TD>\n");
+
+	printf("</TD><TD VALIGN=TOP>\n");
 
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<DIV CLASS='commandTitle'>Process Commands</DIV>\n");
@@ -688,10 +695,12 @@ void show_process_info(void){
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Flap Detection'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable flap detection</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_FLAP_DETECTION);
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Flap Detection'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable flap detection</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_FLAP_DETECTION);
+#ifdef PREDICT_FAILURES
 		if(enable_failure_prediction==TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Failure Prediction'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable failure prediction</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_FAILURE_PREDICTION);
 		else
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Enable Failure Prediction'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Enable failure prediction</a></td></tr>\n",url_images_path,ENABLED_ICON,COMMAND_CGI,CMD_ENABLE_FAILURE_PREDICTION);
+#endif
 		if(process_performance_data==TRUE)
 			printf("<TR CLASS='command'><TD><img src='%s%s' border=0 ALT='Disable Performance Data'></td><td CLASS='command'><a href='%s?cmd_typ=%d'>Disable performance data</a></td></tr>\n",url_images_path,DISABLED_ICON,COMMAND_CGI,CMD_DISABLE_PERFORMANCE_DATA);
 		else
@@ -718,11 +727,11 @@ void show_process_info(void){
 	printf("<P>");
 	printf("<DIV ALIGN=CENTER>\n");
 
-	printf("<DIV CLASS='dataTitle'>Process State Information</DIV>\n");
+	printf("<DIV CLASS='dataTitle'>Process Status Information</DIV>\n");
 
-	printf("<TABLE BORDER=0 CLASS='data'>\n");
-
-	printf("<TR><TH CLASS='data'>Variable</TH><TH CLASS='data'>Value</TH></TR>\n");
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable2'>\n");
+	printf("<TABLE BORDER=0>\n");
 
 	if(nagios_process_state==STATE_OK){
 		strcpy(state_string,"OK");
@@ -741,16 +750,14 @@ void show_process_info(void){
 		state_class="processUNKNOWN";
 		}
 
-
-	/* process check command */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Process Check Command</TD><TD CLASS='dataOdd'>%s&nbsp;</TD></TR>\n",nagios_check_command);
-
 	/* process state */
-	printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Process Status</TD><TD CLASS='dataEven'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",state_class,state_string);
+	printf("<TR><TD CLASS='dataVar'>Process Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",state_class,state_string);
 
 	/* process check command result */
-	printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Check Command Output</TD><TD CLASS='dataOdd'>%s&nbsp;</TD></TR>\n",nagios_process_info);
+	printf("<TR><TD CLASS='dataVar'>Check Command Output:&nbsp;</TD><TD CLASS='dataVal'>%s&nbsp;</TD></TR>\n",nagios_process_info);
 
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
 	printf("</TABLE>\n");
 
 	printf("</DIV>\n");
@@ -767,6 +774,7 @@ void show_host_info(void){
 	host *temp_host;
 	char date_time[MAX_DATETIME_LENGTH];
 	char state_duration[48];
+	char status_age[48];
 	char state_string[MAX_INPUT_BUFFER];
 	char *bg_class="";
 	unsigned long total_monitored_time;
@@ -829,6 +837,14 @@ void show_host_info(void){
 
 	else{
 
+		printf("<TABLE BORDER=0 CLASS='data'>\n");
+
+		printf("<TR><TD>\n");
+
+		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+		printf("<TR><TD class='stateInfoTable1'>\n");
+		printf("<TABLE BORDER=0>\n");
+
 		if(temp_hoststatus->status==HOST_UP){
 			strcpy(state_string,"UP");
 			bg_class="hostUP";
@@ -842,22 +858,33 @@ void show_host_info(void){
 			bg_class="hostUNREACHABLE";
 		        }
 
-		printf("<TABLE BORDER=0 CLASS='data'>\n");
-		printf("<TR><TH CLASS='data'>Variable</TH><TH CLASS='data'>Value</TH></TR>\n");
+		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Host Status</td><td CLASS='dataEven'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
-
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Status Information</td><td CLASS='dataOdd'>%s</td></tr>\n",temp_hoststatus->information);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",temp_hoststatus->information);
 
 		get_time_string(&temp_hoststatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Last Status Check</td><td CLASS='dataEven'>%s</td></tr>\n",date_time);
-
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Host Checks Enabled?</TD><TD CLASS='dataOdd'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->checks_enabled==TRUE)?"YES":"NO");
-
-		get_time_string(&temp_hoststatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Last State Change</td><td CLASS='dataEven'>%s</td></tr>\n",(temp_hoststatus->last_state_change==(time_t)0)?"N/A":date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Status Check:</td><td CLASS='dataVal'>%s</td></tr>\n",date_time);
 
 		current_time=time(NULL);
+		t=0;
+		duration_error=FALSE;
+		if(temp_hoststatus->last_check>current_time)
+			duration_error=TRUE;
+		else
+			t=current_time-temp_hoststatus->last_check;
+		get_time_breakdown((unsigned long)t,&days,&hours,&minutes,&seconds);
+		if(duration_error==TRUE)
+			snprintf(status_age,sizeof(status_age)-1,"???");
+		else if(temp_hoststatus->last_check==(time_t)0)
+			snprintf(status_age,sizeof(status_age)-1,"N/A");
+		else
+			snprintf(status_age,sizeof(status_age)-1,"%2dd %2dh %2dm %2ds",days,hours,minutes,seconds);
+		status_age[sizeof(status_age)-1]='\x0';
+		printf("<TR><TD CLASS='dataVar'>Status Data Age:</td><td CLASS='dataVal'>%s</td></tr>\n",status_age);
+
+		get_time_string(&temp_hoststatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
+		printf("<TR><TD CLASS='dataVar'>Last State Change:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->last_state_change==(time_t)0)?"N/A":date_time);
+
 		t=0;
 		duration_error=FALSE;
 		if(temp_hoststatus->last_state_change==(time_t)0){
@@ -878,38 +905,56 @@ void show_host_info(void){
 		else
 			snprintf(state_duration,sizeof(state_duration)-1,"%2dd %2dh %2dm %2ds%s",days,hours,minutes,seconds,(temp_hoststatus->last_state_change==(time_t)0)?"+":"");
 		state_duration[sizeof(state_duration)-1]='\x0';
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Current State Duration</td><td CLASS='dataOdd'>%s</td></tr>\n",state_duration);
+		printf("<TR><TD CLASS='dataVar'>Current State Duration:</td><td CLASS='dataVal'>%s</td></tr>\n",state_duration);
 
 		get_time_string(&temp_hoststatus->last_notification,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Last Host Notification</td><td CLASS='dataEven'>%s</td></tr>\n",(temp_hoststatus->last_notification==(time_t)0)?"N/A":date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Host Notification:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->last_notification==(time_t)0)?"N/A":date_time);
 
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Current Notification Number</td><td CLASS='dataOdd'>&nbsp;&nbsp;%d&nbsp;&nbsp;</td></tr>\n",temp_hoststatus->current_notification_number);
+		printf("<TR><TD CLASS='dataVar'>Current Notification Number:&nbsp;&nbsp;</td><td CLASS='dataVal'>%d&nbsp;&nbsp;</td></tr>\n",temp_hoststatus->current_notification_number);
 
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Host Notifications Enabled?</td><td CLASS='dataEven'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->notifications_enabled)?"YES":"NO");
-
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Event Handler Enabled?</td><td CLASS='dataOdd'><DIV CLASS='eventhandlers%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->event_handler_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->event_handler_enabled)?"YES":"NO");
-
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Flap Detection Enabled?</td><td CLASS='dataEven'><DIV CLASS='flapdetection%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->flap_detection_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->flap_detection_enabled==TRUE)?"YES":"NO");
-
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Is This Host Flapping?</td><td CLASS='dataOdd'>");
+		printf("<TR><TD CLASS='dataVar'>Is This Host Flapping?</td><td CLASS='dataVal'>");
 		if(temp_hoststatus->flap_detection_enabled==FALSE || enable_flap_detection==FALSE)
 			printf("N/A");
 		else
 			printf("<DIV CLASS='%sflapping'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>",(temp_hoststatus->is_flapping==TRUE)?"":"not",(temp_hoststatus->is_flapping==TRUE)?"YES":"NO");
 		printf("</td></tr>\n");
 
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Percent State Change</td><td CLASS='dataEven'>");
+		printf("<TR'><TD CLASS='dataVar'>Percent State Change:</td><td CLASS='dataVal'>");
 		if(temp_hoststatus->flap_detection_enabled==FALSE || enable_flap_detection==FALSE)
 			printf("N/A");
 		else
 			printf("%3.2f%%",temp_hoststatus->percent_state_change);
 		printf("</td></tr>\n");
 
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>In Scheduled Downtime?</td><td CLASS='dataOdd'><DIV CLASS='downtime%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->scheduled_downtime_depth>0)?"ACTIVE":"INACTIVE",(temp_hoststatus->scheduled_downtime_depth>0)?"YES":"NO");
+		printf("<TR><TD CLASS='dataVar'>In Scheduled Downtime?</td><td CLASS='dataVal'><DIV CLASS='downtime%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->scheduled_downtime_depth>0)?"ACTIVE":"INACTIVE",(temp_hoststatus->scheduled_downtime_depth>0)?"YES":"NO");
 
 		get_time_string(&temp_hoststatus->last_update,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Last Update</td><td CLASS='dataEven'>%s</td></tr>\n",(temp_hoststatus->last_update==(time_t)0)?"N/A":date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Update:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->last_update==(time_t)0)?"N/A":date_time);
 
+		printf("</TABLE>\n");
+		printf("</TD></TR>\n");
+		printf("</TABLE>\n");
+
+		printf("</TD></TR>\n");
+		printf("<TR><TD>\n");
+
+		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+		printf("<TR><TD class='stateInfoTable2'>\n");
+		printf("<TABLE BORDER=0>\n");
+
+		printf("<TR><TD CLASS='dataVar'>Host Checks Enabled?</TD><TD CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_hoststatus->checks_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->checks_enabled==TRUE)?"YES":"NO");
+
+		printf("<TR><TD CLASS='dataVar'>Host Notifications Enabled?</td><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->notifications_enabled)?"YES":"NO");
+
+		printf("<TR><TD CLASS='dataVar'>Event Handler Enabled?</td><td CLASS='dataVal'><DIV CLASS='eventhandlers%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->event_handler_enabled)?"ENABLED":"DISABLED",(temp_hoststatus->event_handler_enabled)?"YES":"NO");
+
+		printf("<TR><TD CLASS='dataVar'>Flap Detection Enabled?</td><td CLASS='dataVal'><DIV CLASS='flapdetection%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_hoststatus->flap_detection_enabled==TRUE)?"ENABLED":"DISABLED",(temp_hoststatus->flap_detection_enabled==TRUE)?"YES":"NO");
+
+		printf("</TABLE>\n");
+		printf("</TD></TR>\n");
+		printf("</TABLE>\n");
+
+		printf("</TD></TR>\n");
 		printf("</TABLE>\n");
 	        }
 
@@ -1045,6 +1090,7 @@ void show_host_info(void){
 void show_service_info(void){
 	service *temp_service;
 	char date_time[MAX_DATETIME_LENGTH];
+	char status_age[48];
 	char state_duration[48];
 	servicestatus *temp_svcstatus;
 	char state_string[MAX_INPUT_BUFFER];
@@ -1112,7 +1158,13 @@ void show_service_info(void){
 	else{
 
 		printf("<TABLE BORDER=0 CLASS='data'>\n");
-		printf("<tr><TH CLASS='data'>Variable</th><TH CLASS='data'>Value</th></tr>\n");
+
+		printf("<TR><TD>\n");
+
+		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+		printf("<TR><TD class='stateInfoTable1'>\n");
+		printf("<TABLE BORDER=0>\n");
+
 
 		if(temp_svcstatus->status==SERVICE_OK || temp_svcstatus->status==SERVICE_RECOVERY){
 			strcpy(state_string,"OK");
@@ -1130,39 +1182,51 @@ void show_service_info(void){
 			strcpy(state_string,"UNKNOWN");
 			bg_class="serviceUNKNOWN";
 			}
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>Current Status</td><td CLASS='dataEven'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
+		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Status Information</td><td CLASS='dataOdd'>%s</td></tr>\n",temp_svcstatus->information);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",temp_svcstatus->information);
 
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>Current Attempt</td><td CLASS='dataEven'>%d/%d</td></tr>\n",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
+		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d</TD></TR>\n",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
 
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>State Type</td><td CLASS='dataOdd'>%s</td></tr>\n",(temp_svcstatus->state_type==HARD_STATE)?"HARD":"SOFT");
+		printf("<TR><TD CLASS='dataVar'>State Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->state_type==HARD_STATE)?"HARD":"SOFT");
 
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>Last Check Type</td><td CLASS='dataEven'>%s</td></tr>\n",(temp_svcstatus->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
+		printf("<TR><TD CLASS='dataVar'>Last Check Type:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
 
 		get_time_string(&temp_svcstatus->last_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<tr CLASS='dataOdd'><TD CLASS='dataOdd'>Last Check Time</td><td CLASS='dataOdd'>%s</td></tr>\n",date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Check Time:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",date_time);
+
+		current_time=time(NULL);
+		t=0;
+		duration_error=FALSE;
+		if(temp_svcstatus->last_check>current_time)
+			duration_error=TRUE;
+		else
+			t=current_time-temp_svcstatus->last_check;
+		get_time_breakdown((unsigned long)t,&days,&hours,&minutes,&seconds);
+		if(duration_error==TRUE)
+			snprintf(status_age,sizeof(status_age)-1,"???");
+		else if(temp_svcstatus->last_check==(time_t)0)
+			snprintf(status_age,sizeof(status_age)-1,"N/A");
+		else
+			snprintf(status_age,sizeof(status_age)-1,"%2dd %2dh %2dm %2ds",days,hours,minutes,seconds);
+		status_age[sizeof(status_age)-1]='\x0';
+		printf("<TR><TD CLASS='dataVar'>Status Data Age:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",status_age);
 
 		get_time_string(&temp_svcstatus->next_check,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>Next Scheduled Active Check</td><td CLASS='dataEven'>%s</td></tr>\n",(temp_svcstatus->checks_enabled && temp_svcstatus->next_check!=(time_t)0)?date_time:"N/A");
+		printf("<TR><TD CLASS='dataVar'>Next Scheduled Active Check:&nbsp;&nbsp;</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->checks_enabled && temp_svcstatus->next_check!=(time_t)0)?date_time:"N/A");
 
-		printf("<tr CLASS='dataOdd'><TD CLASS='dataOdd'>Latency</td><td CLASS='dataOdd'>");
+		printf("<TR><TD CLASS='dataVar'>Latency:</TD><TD CLASS='dataVal'>");
 		if(temp_svcstatus->check_type==SERVICE_CHECK_ACTIVE)
 			printf("%s%d second%s",(temp_svcstatus->latency==0)?"&lt; ":"",(temp_svcstatus->latency==0)?1:temp_svcstatus->latency,(temp_svcstatus->latency>1)?"s":"");
 		else
 			printf("N/A");
-		printf("</td></tr>\n");
+		printf("</TD></TR>\n");
 
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>Check Duration</td><td CLASS='dataEven'>%s%d second%s</td></tr>\n",(temp_svcstatus->execution_time==0)?"&lt; ":"",(temp_svcstatus->execution_time==0)?1:temp_svcstatus->execution_time,(temp_svcstatus->execution_time>1)?"s":"");
-
-		printf("<tr CLASS='dataOdd'><TD CLASS='dataOdd'>Service Checks Enabled?</td><td CLASS='dataOdd'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_svcstatus->checks_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled)?"YES":"NO");
-
-		printf("<tr CLASS='dataEven'><TD CLASS='dataEven'>Passive Checks Being Accepted?</td><td CLASS='dataEven'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_svcstatus->accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->accept_passive_service_checks)?"YES":"NO");
+		printf("<TR><TD CLASS='dataVar'>Check Duration:</TD><TD CLASS='dataVal'>%s%d second%s</TD></TR>\n",(temp_svcstatus->execution_time==0)?"&lt; ":"",(temp_svcstatus->execution_time==0)?1:temp_svcstatus->execution_time,(temp_svcstatus->execution_time>1)?"s":"");
 
 		get_time_string(&temp_svcstatus->last_state_change,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Last State Change</td><td CLASS='dataOdd'>%s</td></tr>\n",(temp_svcstatus->last_state_change==(time_t)0)?"N/A":date_time);
+		printf("<TR><TD CLASS='dataVar'>Last State Change:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->last_state_change==(time_t)0)?"N/A":date_time);
 
-		current_time=time(NULL);
 		t=0;
 		duration_error=FALSE;
 		if(temp_svcstatus->last_state_change==(time_t)0){
@@ -1183,40 +1247,62 @@ void show_service_info(void){
 		else
 			snprintf(state_duration,sizeof(state_duration)-1,"%2dd %2dh %2dm %2ds%s",days,hours,minutes,seconds,(temp_svcstatus->last_state_change==(time_t)0)?"+":"");
 		state_duration[sizeof(state_duration)-1]='\x0';
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Current State Duration</td><td CLASS='dataEven'>%s</td></tr>\n",state_duration);
+		printf("<TR><TD CLASS='dataVar'>Current State Duration:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",state_duration);
 
 		get_time_string(&temp_svcstatus->last_notification,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Last Service Notification</td><td CLASS='dataOdd'>%s</td></tr>\n",(temp_svcstatus->last_notification==(time_t)0)?"N/A":date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Service Notification:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->last_notification==(time_t)0)?"N/A":date_time);
 
 		get_time_string(&temp_svcstatus->last_notification,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<tr CLASS='dataEven'><td CLASS='dataEven'>Current Notification Number</td><td CLASS='dataEven'>%d</td></tr>\n",temp_svcstatus->current_notification_number);
+		printf("<TR><TD CLASS='dataVar'>Current Notification Number:</TD><TD CLASS='dataVal'>%d</TD></TR>\n",temp_svcstatus->current_notification_number);
 
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Service Notifications Enabled?</td><td CLASS='dataOdd'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_svcstatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->notifications_enabled)?"YES":"NO");
-
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Event Handler Enabled?</td><td CLASS='dataEven'><DIV CLASS='eventhandlers%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_svcstatus->event_handler_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->event_handler_enabled)?"YES":"NO");
-
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Flap Detection Enabled?</td><td CLASS='dataOdd'><DIV CLASS='flapdetection%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_svcstatus->flap_detection_enabled==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->flap_detection_enabled==TRUE)?"YES":"NO");
-
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>Is This Service Flapping?</td><td CLASS='dataEven'>");
+		printf("<TR><TD CLASS='dataVar'>Is This Service Flapping?</TD><TD CLASS='dataVal'>");
 		if(temp_svcstatus->flap_detection_enabled==FALSE || enable_flap_detection==FALSE)
 			printf("N/A");
 		else
 			printf("<DIV CLASS='%sflapping'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV>",(temp_svcstatus->is_flapping==TRUE)?"":"not",(temp_svcstatus->is_flapping==TRUE)?"YES":"NO");
-		printf("</td></tr>\n");
+		printf("</TD></TR>\n");
 
-		printf("<TR CLASS='dataOdd'><TD CLASS='dataOdd'>Percent State Change</td><td CLASS='dataOdd'>");
+		printf("<TR><TD CLASS='dataVar'>Percent State Change:</TD><TD CLASS='dataVal'>");
 		if(temp_svcstatus->flap_detection_enabled==FALSE || enable_flap_detection==FALSE)
 			printf("N/A");
 		else
 			printf("%3.2f%%",temp_svcstatus->percent_state_change);
-		printf("</td></tr>\n");
+		printf("</TD></TR>\n");
 
-		printf("<TR CLASS='dataEven'><TD CLASS='dataEven'>In Scheduled Downtime?</td><td CLASS='dataEven'><DIV CLASS='downtime%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",(temp_svcstatus->scheduled_downtime_depth>0)?"ACTIVE":"INACTIVE",(temp_svcstatus->scheduled_downtime_depth>0)?"YES":"NO");
+		printf("<TR><TD CLASS='dataVar'>In Scheduled Downtime?</TD><TD CLASS='dataVal'><DIV CLASS='downtime%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->scheduled_downtime_depth>0)?"ACTIVE":"INACTIVE",(temp_svcstatus->scheduled_downtime_depth>0)?"YES":"NO");
 
 		get_time_string(&temp_svcstatus->last_update,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
-		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Last Update</td><td CLASS='dataOdd'>%s</td></tr>\n",(temp_svcstatus->last_update==(time_t)0)?"N/A":date_time);
+		printf("<TR><TD CLASS='dataVar'>Last Update:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->last_update==(time_t)0)?"N/A":date_time);
 
-		printf("</table>\n");
+
+		printf("</TABLE>\n");
+		printf("</TD></TR>\n");
+		printf("</TABLE>\n");
+
+		printf("</TD></TR>\n");
+		printf("<TR><TD>\n");
+
+		printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+		printf("<TR><TD class='stateInfoTable2'>\n");
+		printf("<TABLE BORDER=0>\n");
+
+		printf("<TR><TD CLASS='dataVar'>Service Checks Enabled?</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->checks_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->checks_enabled)?"YES":"NO");
+
+		printf("<TR><TD CLASS='dataVar'>Passive Checks Being Accepted?</TD><td CLASS='dataVal'><DIV CLASS='checks%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->accept_passive_service_checks==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->accept_passive_service_checks)?"YES":"NO");
+
+		printf("<TR><td CLASS='dataVar'>Service Notifications Enabled?</TD><td CLASS='dataVal'><DIV CLASS='notifications%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->notifications_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->notifications_enabled)?"YES":"NO");
+
+		printf("<TR><TD CLASS='dataVar'>Event Handler Enabled?</TD><td CLASS='dataVal'><DIV CLASS='eventhandlers%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->event_handler_enabled)?"ENABLED":"DISABLED",(temp_svcstatus->event_handler_enabled)?"YES":"NO");
+
+		printf("<TR><TD CLASS='dataVar'>Flap Detection Enabled?</TD><td CLASS='dataVal'><DIV CLASS='flapdetection%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",(temp_svcstatus->flap_detection_enabled==TRUE)?"ENABLED":"DISABLED",(temp_svcstatus->flap_detection_enabled==TRUE)?"YES":"NO");
+
+
+		printf("</TABLE>\n");
+		printf("</TD></TR>\n");
+		printf("</TABLE>\n");
+
+		printf("</TD></TR>\n");
+		printf("</TABLE>\n");
                 }
 	
 

@@ -167,7 +167,7 @@ This example assumes that you have a <i>/usr/local/nagios/libexec/eventhandlers/
     # Get severity level (OK, WARNING, UNKNOWN, or CRITICAL) and plugin output based on trape type
     state=-1
     output="No output"
-    case $1 in
+    case "$1" in
 
         # failed to format tape - critical
         11)

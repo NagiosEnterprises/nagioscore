@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-08-2002
+ * Last Modified: 03-20-2002
  *
  * License:
  *
@@ -1183,7 +1183,7 @@ int get_nagios_process_info(void){
 	/* if there is no check command defined, we don't know what's going on - assume its okay */
 	if(!strcmp(nagios_check_command,"")){
 		process_state=STATE_OK;
-		strcpy(nagios_process_info,"No process check command has been defined in your CGI configuration file.  Nagios process is assumed to be running.");
+		strcpy(nagios_process_info,"No process check command has been defined in your CGI configuration file.<BR>Nagios process is assumed to be running properly.");
 	        }
 
 	/* else run the check... */

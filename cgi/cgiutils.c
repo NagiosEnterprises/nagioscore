@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2004
+ * Last Modified: 11-04-2004
  *
  * License:
  *
@@ -750,7 +750,7 @@ int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, c
 
 /* reads contents of file into the lifo struct */
 int read_file_into_lifo(char *filename){
-	char *input;
+	char *input=NULL;
 	mmapfile *thefile;
 	int lifo_result;
 

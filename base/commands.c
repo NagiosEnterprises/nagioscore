@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-30-2004
+ * Last Modified:   11-04-2004
  *
  * License:
  *
@@ -121,16 +121,17 @@ void check_for_external_commands(void){
 	passive_check_result_list=NULL;
 	passive_check_result_list_tail=NULL;
 
-	/* get number of items the buffer */
-	pthread_mutex_lock(&external_command_buffer.buffer_lock);
-	buffer_items=external_command_buffer.items;
-	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
-
 	/* process all commands found in the buffer */
-	while(buffer_items>0){
+	while(1){
 
 		/* get a lock on the buffer */
 		pthread_mutex_lock(&external_command_buffer.buffer_lock);
+
+		/* if no items present, bail out */
+		if(external_command_buffer.items<=0){
+			pthread_mutex_unlock(&external_command_buffer.buffer_lock);
+			break;
+		        }
 
 		if(external_command_buffer.buffer[external_command_buffer.tail]){
 			strncpy(buffer,((char **)external_command_buffer.buffer)[external_command_buffer.tail],sizeof(buffer)-1);
@@ -145,8 +146,6 @@ void check_for_external_commands(void){
 		/* adjust tail counter and number of items */
 		external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
 		external_command_buffer.items--;
-
-		buffer_items=external_command_buffer.items;
 
 		/* release the lock on the buffer */
 		pthread_mutex_unlock(&external_command_buffer.buffer_lock);

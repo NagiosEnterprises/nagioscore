@@ -3,7 +3,7 @@
  * XCDDB.H - Include file for database routines for comment data
  *
  * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-14-2001
+ * Last Modified:   06-20-2001
  *
  * License:
  *

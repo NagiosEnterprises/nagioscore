@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-18-2003
+ * Last Modified:   06-20-2003
  *
  * License:
  *
@@ -272,18 +272,12 @@ int delete_all_comments(int type, char *host_name, char *svc_description){
 int delete_all_host_comments(char *host_name){
 	int result;
 	comment *temp_comment;
-	comment *next_comment;
 
 	if(host_name==NULL)
 		return ERROR;
 	
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=next_comment){
-		next_comment=temp_comment;
-		if(temp_comment->comment_type!=HOST_COMMENT)
-			continue;
-		if(temp_comment->host_name==NULL)
-			continue;
-		if(!strcmp(temp_comment->host_name,host_name))
+	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
+		if(temp_comment->comment_type==HOST_COMMENT)
 			delete_comment(HOST_COMMENT,temp_comment->comment_id);
 	        }
 
@@ -303,18 +297,12 @@ int delete_all_host_comments(char *host_name){
 int delete_all_service_comments(char *host_name, char *svc_description){
 	int result;
 	comment *temp_comment;
-	comment *next_comment;
 
 	if(host_name==NULL || svc_description==NULL)
 		return ERROR;
 	
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=next_comment){
-		next_comment=temp_comment;
-		if(temp_comment->comment_type!=SERVICE_COMMENT)
-			continue;
-		if(temp_comment->host_name==NULL || temp_comment->service_description==NULL)
-			continue;
-		if(!strcmp(temp_comment->host_name,host_name) && !strcmp(temp_comment->service_description,svc_description))
+	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
+		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->service_description,svc_description))
 			delete_comment(SERVICE_COMMENT,temp_comment->comment_id);
 	        }
 

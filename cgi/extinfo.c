@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-17-2003
+ * Last Modified: 06-20-2003
  *
  * License:
  * 
@@ -1678,7 +1678,7 @@ void show_all_comments(void){
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Source</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
 	/* display all the service comments */
 	for(temp_comment=comment_list,total_comments=0;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1708,7 +1708,7 @@ void show_all_comments(void){
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),temp_comment->host_name);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s",bg_class,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_comment->host_name));
 		printf("&service=%s'>%s</A></td>",url_encode(temp_comment->service_description),temp_comment->service_description);
-		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No");
+		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%d</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,(temp_comment->source==COMMENTSOURCE_INTERNAL)?"Internal":"External");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%d'><img src='%s%s' border=0 ALT='Delete This Comment'></td>",COMMAND_CGI,CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
 		printf("</tr>\n");
 	        }

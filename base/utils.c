@@ -51,6 +51,11 @@ static PerlInterpreter *my_perl;
 #include <fcntl.h>
 /* In perl.h (or friends) there is a macro that defines sighandler as Perl_sighandler, so we must #undef it so we can use our sighandler() function */
 #undef sighandler
+/* and we don't need perl's reentrant versions */
+#undef localtime
+#undef getpwnam
+#undef getgrnam
+#undef strerror
 #endif
 
 char            *my_strtok_buffer=NULL;
@@ -220,6 +225,8 @@ extern int errno;
 #include <perl.h>
 static PerlInterpreter *my_perl;
 #include <fcntl.h>
+#undef ctime   /* don't need perl's threaded version */
+#undef printf   /* can't use perl's printf until initialized */
 
 /* include PERL xs_init code for module and C library support */
 
@@ -247,16 +254,22 @@ extern "C" {
 #    define EXTERN_C extern
 #  endif
 #endif
- 
-EXTERN_C void xs_init _((void));
 
-EXTERN_C void boot_DynaLoader _((CV* cv));
-
-EXTERN_C void xs_init(void){
-	char *file = __FILE__;
 #ifdef THREADEDPERL
-	dTHX;
+EXTERN_C void xs_init _((pTHX));
+EXTERN_C void boot_DynaLoader _((pTHX_ CV* cv));
+#else
+EXTERN_C void xs_init _((void));
+EXTERN_C void boot_DynaLoader _((CV* cv));
 #endif
+
+#ifdef THREADEDPERL
+EXTERN_C void xs_init(pTHX)
+#else
+EXTERN_C void xs_init(void)
+#endif
+{
+	char *file = __FILE__;
 	dXSUB_SYS;
 	/* DynaLoader is a special case */
 	newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);

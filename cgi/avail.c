@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-13-2003
+ * Last Modified: 06-21-2003
  *
  * License:
  * 
@@ -2596,8 +2596,8 @@ void scan_log_file_for_archived_state_data(char *filename){
 
 		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL){
 
-			/* normal host alerts */
-			if(strstr(input_buffer,"HOST ALERT:")){
+			/* normal host alerts and initial/current states */
+			if(strstr(input_buffer,"HOST ALERT:") || strstr(input_buffer,"INITIAL HOST STATE:") || strstr(input_buffer,"CURRENT HOST STATE:")){
 
 				strcpy(input_buffer2,input_buffer);
 
@@ -2663,8 +2663,8 @@ void scan_log_file_for_archived_state_data(char *filename){
 
 		if(display_type==DISPLAY_SERVICE_AVAIL || display_type==DISPLAY_HOST_AVAIL){
 
-			/* normal service alerts */
-			if(strstr(input_buffer,"SERVICE ALERT:")){
+			/* normal service alerts and initial/current states */
+			if(strstr(input_buffer,"SERVICE ALERT:") || strstr(input_buffer,"INITIAL SERVICE STATE:") || strstr(input_buffer,"CURRENT SERVICE STATE:")){
 
 				strcpy(input_buffer2,input_buffer);
 

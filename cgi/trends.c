@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-14-2003
+ * Last Modified: 06-21-2003
  *
  * License:
  * 
@@ -2368,7 +2368,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 			add_archived_state(AS_PROGRAM_END,time_stamp,"Abnormal program termination");
 
 		if(display_type==DISPLAY_HOST_TRENDS){
-			if(strstr(input_buffer,"HOST ALERT:")){
+			if(strstr(input_buffer,"HOST ALERT:") || strstr(input_buffer,"INITIAL HOST STATE:") || strstr(input_buffer,"CURRENT HOST STATE:")){
 
 				strcpy(input_buffer2,input_buffer);
 
@@ -2403,7 +2403,7 @@ void scan_log_file_for_archived_state_data(char *filename){
 			        }
 		        }
 		if(display_type==DISPLAY_SERVICE_TRENDS){
-			if(strstr(input_buffer,"SERVICE ALERT:")){
+			if(strstr(input_buffer,"SERVICE ALERT:") || strstr(input_buffer,"INITIAL SERVICE STATE:") || strstr(input_buffer,"CURRENT SERVICE STATE:")){
 
 				strcpy(input_buffer2,input_buffer);
 

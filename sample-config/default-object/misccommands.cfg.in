@@ -1,0 +1,79 @@
+################################################################################
+# Sample object config file for Nagios @VERSION@
+#
+# Read the documentation for more information on this configuration file.  I've
+# provided some comments here, but things may not be so clear without further
+# explanation, so make sure to read the HTML documentation!
+# 
+# Last Modified: 03-07-2002
+#
+################################################################################
+
+
+################################################################################
+# COMMAND DEFINITIONS
+#
+# SYNTAX:
+# command[<command_name>]=<command_line>
+#
+# <command_name> = A short name used to identify the command
+# <command_line> = The actual command line.  The command line doesn't have to be
+#                  surrounded in quotes, but may contain quotes as needed within
+#                  the command line.  Take care to use single quotes at the
+#                  outer edges of commands or you will have command line
+#                  expansion problems when the command is executed by the shell.
+#                  Any valid shell command can be used.  Multiple commands can
+#                  be separated with semicolons, piping is allowed.  The 
+#                  command line can contain macros, but not are macros are valid
+#                  at all time (notifications, service checks, etc).  See the
+#                  HTML documentaion for more informationon on using macros in
+#                  commands.
+#                  
+# Note: Service check, service notification, host check, host notification,
+#       service event handler, and host event handler functions are all defined
+#       here.
+################################################################################
+
+
+# NOTE: Sample command definitions for plugins have been moved out to a separate
+#       config file to make it easier to upgrade the definitions as new plugins 
+#       are released and command line arguments change.  The command definitions
+#       for plugins can be found in commands.cfg
+
+
+# Note: 'printf' is specified by POSIX (IEEE 1003.2) section 4.50, so
+# is prefrred to echo
+#
+# I have not been able to verify that printf is in /usr/bin for all
+# systems, but I think I read that once as well (kbd).
+#
+# Under Linux the 'echo -e' option to echo enables processing of
+# newline sequences in the output, and thus will also work.  Iin
+# severely damaged systems, /bin may be available when /usr/bin is
+# not, but you would be running nagios then anyway, right?
+
+# Service notification command - send email with problem summary
+
+command[notify-by-email]=/usr/bin/printf '***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $DATETIME$\n\nAdditional Info:\n\n$OUTPUT$' | @MAIL_PROG@ -s '** $NOTIFICATIONTYPE$ alert - $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **' $CONTACTEMAIL$
+
+# Service notification command - send email to alphanumeric pager gateway
+#       The notify-by-epager command assumes that each contact has a pager email gateway, and
+#       that the address has been entered into the appropriate contact field instead of an
+#       actual pager number. (i.e. 'pagejoe@nowhere.com' routes mail to Joe's alphanumeric pager)
+
+command[notify-by-epager]=/usr/bin/printf "Service: $SERVICEDESC$\nHost: $HOSTNAME$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\nInfo: $OUTPUT$\nDate: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$' $CONTACTPAGER$
+
+# Host notification commands (one for email, one for alphanumeric pager with email gateway)
+
+command[host-notify-by-email]=/usr/bin/printf "***** Nagios @VERSION@ *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $OUTPUT$\n\nDate/Time: $DATETIME$\n" | @MAIL_PROG@ -s 'Host $HOSTSTATE$ alert for $HOSTNAME$!' $CONTACTEMAIL$
+
+command[host-notify-by-epager]=/usr/bin/printf "Host '$HOSTALIAS$' is $HOSTSTATE$\nInfo: $OUTPUT$\nTime: $DATETIME$" | @MAIL_PROG@ -s '$NOTIFICATIONTYPE$ alert - Host $HOSTNAME$ is $HOSTSTATE$' $CONTACTPAGER$
+
+
+# Sample performance data command - these simply append performance data to a
+# temporary text file for later processing by an external applications
+
+command[process-host-perfdata]=/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$OUTPUT$\t$PERFDATA$" >> /tmp/host-perfdata
+
+command[process-service-perfdata]=/usr/bin/printf "$LASTCHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$STATETYPE$\t$EXECUTIONTIME$\t$LATENCY$\t$OUTPUT$\t$PERFDATA$" >> /tmp/service-perfdata
+

@@ -3633,12 +3633,23 @@ perl subst test-template.cfg
 perl subst common/locations.h
 perl subst base/nagios.h
 
+echo ""
+echo "Creating sample config files in sample-config/ ..."
+
 perl subst sample-config/nagios.cfg
 perl subst sample-config/cgi.cfg
 perl subst sample-config/resource.cfg
 
 perl subst sample-config/default-object/hosts.cfg
-perl subst sample-config/default-object/commands.cfg
+perl subst sample-config/default-object/hostgroups.cfg
+perl subst sample-config/default-object/services.cfg
+perl subst sample-config/default-object/contacts.cfg
+perl subst sample-config/default-object/contactgroups.cfg
+perl subst sample-config/default-object/timeperiods.cfg
+perl subst sample-config/default-object/escalations.cfg
+perl subst sample-config/default-object/dependencies.cfg
+perl subst sample-config/default-object/checkcommands.cfg
+perl subst sample-config/default-object/misccommands.cfg
 
 perl subst sample-config/template-object/checkcommands.cfg
 perl subst sample-config/template-object/misccommands.cfg

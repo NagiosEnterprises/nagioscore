@@ -1,0 +1,143 @@
+################################################################################
+# Sample object config file for Nagios @VERSION@
+#
+# Read the documentation for more information on this configuration file.  I've
+# provided some comments here, but things may not be so clear without further
+# explanation, so make sure to read the HTML documentation!
+# 
+# Last Modified: 03-07-2002
+#
+################################################################################
+
+
+################################################################################
+# SERVICE DEFINITIONS
+#
+# SYNTAX:
+# service[<host>]=<description>;<volatile>;<check_period>;<max_attempts>;
+#                 <check_interval>;<retry_interval>;<notification_group>;
+#                 <notification_interval>;<notification_period>;<notify_recovery>;
+#                 <notify_critical>;<notify_warning>;<event_hander>;<check_command>
+#
+# <host>                  = The short name of the host (as defined above) that
+#                           this service is running on
+# <description>           = A description for this service (i.e 'My Website')
+# <volatile>              = Specifies whether this service is volatile or not.
+#                           See the HTML documentation for more information on
+#                           what volatile services are and how they work.  Most
+#                           service are *not* volatile.
+#                           1 = volatile, 0 = not volatile
+# <check_period>          = The short name of the timeperiod (as defined above)
+#                           that determines when this service may be checked
+# <max_attempts>          = Number of times to retry the service check before
+#                           reporting that it is at a warning or critical level
+# <check_interval>        = Number of minutes to wait between regular checks
+#                           of the service
+# <retry_interval>        = Number of minutes to wait between retry of the
+#                           service
+# <notification_group>    = The short name of the contact group (as defined
+#                           above) that should be notified of problems with 
+#                           this service.
+# <notification_interval> = Number of minutes to wait before *re-notifying*
+#                           a contact that the service is *still* at a warning
+#                           or critical level (after we notify them about the
+#                           problem immediately)
+# <notification_period>   = The short name of the timeperiod (as defined above)
+#                           that determines when notifications about this
+#                           service may be sent out
+# <notify_recovery>       = Notify contacts when this service recovers?
+#                           1 = yes, 0 = no
+# <notify_critical>       = Notify contacts when service is at a critical level?
+#                           1 = yes, 0 = no
+# <notify_warning>        = Notify contacts when service is at a warning level?
+#                           1 = yes, 0 = no
+# <event_handler>         = A command that should be executed whenever a change
+#                           is detected in the status of the service.  If you do
+#		            not want to use an event handler, leave this option
+#                           blank.
+# <check_command>         = The command used to check the status of the service.
+#                           This can be in one of three formats (described
+#                           below)
+#
+# Note: Commands can be in on of three formats...
+#
+#       1. The short name of a command defined above (this is the simplest form)
+#
+#		Example: <command_name>
+#
+#       2. The short name of a command defined above, with arguments delimited
+#          with bang (!) characters.  If this format is used, the command must
+#          be defined with $ARGx$ macros in order to actually use the arguments
+#          that are passed to it (read the doc for more information on this)
+#
+#		Example: <command_name>!<arg1>!<arg2>!...!<argx>
+#
+#	3. An actual command line enclosed in quotation marks.  The outside
+#          quotation marks are stripped off before the command is exected.
+#          Macros can be used in this "raw" command format, but are still 
+#          limited to only the macros which are valid during service check
+#          (read the documentation for more information)
+#
+#		Example: "./check_ping $HOSTADDRESS$ 40 80 5.0 100.0"
+################################################################################
+
+# Note: The service definitions below do not have event handlers defined
+
+# Novell Server #1
+service[novell1]=SMTP;0;24x7;3;3;1;novell-admins;120;24x7;1;1;1;;check_smtp
+service[novell1]=FTP;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_ftp
+service[novell1]=POP3;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_pop
+service[novell1]=PING;0;24x7;3;5;1;novell-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# Novell Server #2
+service[novell2]=SMTP;0;24x7;3;3;1;novell-admins;120;24x7;1;1;1;;check_smtp
+service[novell2]=FTP;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_ftp
+service[novell2]=POP3;0;24x7;3;5;1;novell-admins;120;24x7;1;1;1;;check_pop
+service[novell2]=PING;0;24x7;3;5;1;novell-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# NT Server #1
+#	Important, so notify every two hours if problems persist
+service[nt1]=PING;0;24x7;3;5;1;nt-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[nt1]=FTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_ftp
+service[nt1]=HTTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_http
+
+# NT Server #2
+#	Important, so notify every two hours if problems persist
+service[nt2]=PING;0;24x7;3;5;1;nt-admins;120;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[nt2]=FTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_ftp
+service[nt2]=HTTP;0;24x7;3;5;1;nt-admins;120;24x7;1;1;1;;check_http
+
+# Linux Server #1
+service[linux1]=PING;0;24x7;3;5;1;linux-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[linux1]=HTTP;0;24x7;3;2;1;linux-admins;240;24x7;1;1;1;;check_http
+service[linux1]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150
+service[linux1]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200
+service[linux1]=/dev/hda1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hda1
+service[linux1]=/dev/hdb2 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hdb2
+
+# Linux Server #2
+service[linux2]=PING;0;24x7;3;5;1;linux-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[linux2]=HTTP;0;24x7;3;2;1;linux-admins;240;24x7;1;1;1;;check_http
+service[linux2]=Current Users;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_users!75!150
+service[linux2]=Total Processes;0;24x7;3;5;2;linux-admins;240;24x7;1;1;1;;check_local_procs!150!200
+service[linux2]=/dev/hda1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hda1
+service[linux2]=/dev/hdb1 Free Space;0;24x7;3;5;1;linux-admins;120;24x7;1;1;1;;check_local_disk!20%!10%!/dev/hdb1
+
+# Switches
+service[switch1]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch2]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch3]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch4]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[switch5]=PING;0;24x7;3;5;1;switch-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# Routers
+service[router1]=PING;0;24x7;3;5;1;router-admins;240;24x7;1;1;0;;check_ping!100.0,20%!500.0,60%
+
+# Printers
+service[printer1]=Printer Status;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_hpjd
+service[printer1]=PING;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[printer2]=Printer Status;0;workhours;4;5;1;printer-admins;960;workhours;0;0;0;;check_hpjd
+service[printer2]=PING;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_ping!100.0,20%!500.0,60%
+service[printer3]=Printer Status;0;workhours;4;5;1;printer-admins;960;workhours;0;0;0;;check_hpjd
+service[printer3]=PING;0;workhours;4;5;1;printer-admins;960;workhours;1;1;0;;check_ping!100.0,20%!500.0,60%
+

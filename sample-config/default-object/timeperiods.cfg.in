@@ -1,0 +1,67 @@
+################################################################################
+# Sample object config file for Nagios @VERSION@
+#
+# Read the documentation for more information on this configuration file.  I've
+# provided some comments here, but things may not be so clear without further
+# explanation, so make sure to read the HTML documentation!
+# 
+# Last Modified: 03-07-2002
+#
+################################################################################
+
+################################################################################
+# TIME PERIOD DEFINITIONS
+#
+# SYNTAX:
+# timeperiod[<timeperiod_name>]=<timeperiod_alias>;<sun_timeranges>;
+#                               <mon_timeranges>;<tue_timeranges>;
+#                               <wed_timeranges>;<thu_timeranges>;
+#                               <fri_timeranges>;<sat_timeranges>
+#
+# <timeperiod_name>             = A short name used to identify the time period
+# <timeperiod_alias>		= A longer name and/or description of the time 
+#                                 period
+# <xx_timeranges>               = Time ranges during the day.  Ranges are in the
+#                                 following format (based on a 24 hour clock)
+#				  and represent intervals of time (with a start 
+#                                 and end time).  Multiple time ranges per day
+#                                 should be separated with commas.
+#
+#      Example: 09:00-17:00  (9:00am to 5:00pm)
+#      Example: 00:00-8:00,17:00-24:00  (12:00am to 8:00am AND 5:00pm-12:00am)
+#
+#      A NULL value for a particular day indicates that no times are valid 
+#      during that particular day of the week.
+#
+################################################################################
+
+#  timeperiod_name = "24x7"
+#  timeperiod_alias = "Hours A Days, 7 Days A Week"
+#  timeranges = 12:00am to 12:00pm (repeat 7 times to represent everyday)
+
+timeperiod[24x7]=24 Hours A Day, 7 Days A Week;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00;00:00-24:00
+
+#  timeperiod_name = "workhours"
+#  timeperiod_alias = ""Normal" Working Hours"
+#  timeranges = 9:00am to 5:00pm (Notice the extra semicolon after the aliasname
+#               and the extra semicolon at the end (representing an off time for 
+#               Sunday and Saturday)
+
+timeperiod[workhours]="Normal" Working Hours;;09:00-17:00;09:00-17:00;09:00-17:00;09:00-17:00;09:00-17:00;
+
+#  timeperiod_name = "nonworkhours"
+#  timeperiod_alias = "Non-Work Hours"
+#  timeranges = 12:00am to 12:00pm Sunday
+#               12:00am to 9:00am and 5:00pm to 12:00am weekday
+#               (Notice the above time is repeated 5 times to represent
+#               Monday to Friday)
+#               12:00am to 12:00pm Saturday
+
+timeperiod[nonworkhours]=Non-Work Hours;00:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-09:00,17:00-24:00;00:00-24:00
+
+#  timeperiod_name = "none"
+#  timeperiod_alias = "No Time Is A Good Time"
+#  timeranges = none
+
+timeperiod[none]=No Time Is A Good Time;;;;;;;
+

@@ -1,0 +1,25 @@
+====================
+SAMPLE CONFIG README
+====================
+
+Sample config files have a .cfg extension.  Ignore any files with
+a .in extension, as they are templates used to generate the sample
+config files.
+
+Please note that you can keep all of your object definitions in a
+single file if you wish.  You may also split them up into multiple
+config files, as is done here (for clarity).  Read the HTML docs
+for information on how to include multiple object config files.
+
+
+Note:
+
+Sample command definitions have been split into two sepearate files:
+
+  misccommands.cfg 	- This file contains sample notification
+			  commands, performance data commands, etc.
+
+  checkcommands.cfg	- This file contains sample command
+			  definitions for host and service checks.
+			  These definitions are highly volatile, as
+			  plugin arguments can change between releases!

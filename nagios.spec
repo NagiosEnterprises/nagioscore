@@ -147,17 +147,17 @@ cd contrib; make INSTALL=install INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR=${RPM_BU
 
 %postun
 if [ $1 = 0 ]; then
-   if [ `egrep "^%{nsusr}:" /etc/passwd | wc -l` = 1 ]; then
+   if [ `getent passwd %{nsusr} | wc -l` = 1 ]; then
       /usr/sbin/userdel %{nsusr}
    fi
-   if [ `egrep "^%{nsgrp}:" /etc/group | wc -l` = 1 ]; then
+   if [ `getent group %{nsgrp} | wc -l` = 1 ]; then
       /usr/sbin/groupdel %{nsgrp}
    fi
 fi
 
 
 %pre
-if [ `egrep "^%{nsusr}:" /etc/passwd | wc -l` = 0 ]; then
+if [ `getent passwd %{nsusr} | wc -l` = 0 ]; then
 	/usr/sbin/useradd -d /var/log/nagios -s /bin/sh -c "%{nsusr}" %{nsusr}
 fi
 initscript=`find /etc/ -name nagios -type f`

@@ -4,8 +4,10 @@ Nagios Change Log
 
 1.0b4 - 06/??/2002
 ------------------
-- Address field in host definitions is now optional in template-based
+* Address field in host definitions is now optional in template-based
   config format.  Defaults to host name if not specified.
+* Changed method of checking for user/group in RPM spec file
+* Bug fixes in template-based object code
 
 
 1.0b3 - 06/09/2002

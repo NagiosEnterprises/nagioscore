@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-10-2002
+ * Last Modified: 06-13-2002
  *
  * Description:
  *
@@ -6181,7 +6181,10 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups(char *hostgroups){
 
 		/* process all hosts that belong to the hostgroup */
 		host_name_ptr=host_names;
-		for(host_name=my_strsep(&host_name_ptr,", ");host_name!=NULL;host_name=my_strsep(&host_name_ptr,", ")){
+		for(host_name=my_strsep(&host_name_ptr,",");host_name!=NULL;host_name=my_strsep(&host_name_ptr,",")){
+
+			/* strip trailing spaces from host name */
+			xodtemplate_strip(host_name);
 
 			/* skip this host if its already in the list */
 			for(new_list=temp_list;new_list!=NULL;new_list=new_list->next){

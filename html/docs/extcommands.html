@@ -110,213 +110,219 @@ This is a description of the some of the external commands which have been imple
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ADD_HOST_COMMENT</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt;</font></td>
-<td valign=top><font size=-1>This command is used to associate a comment with the specified host.  The <i>author</i> argument generally contains the name of the person who entered the comment.  The actual comment should not contain any semi-colons.  The persistent flag determines whether or not the comment will survive program restarts (1=save comment across program restarts, 0=delete comment on restart).</font></td>
+<td valign=top>ADD_HOST_COMMENT</td>
+<td valign=top>&lt;host_name&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt;</td>
+<td valign=top>This command is used to associate a comment with the specified host.  The <i>author</i> argument generally contains the name of the person who entered the comment.  The actual comment should not contain any semi-colons.  The persistent flag determines whether or not the comment will survive program restarts (1=save comment across program restarts, 0=delete comment on restart).</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ADD_SVC_COMMENT</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt;</font></td>
-<td valign=top><font size=-1>This command is used to associate a comment with the specified host.  Note that both the host name and service description are required.  The <i>author</i> argument generally contains the name of the person who entered the comment.  The actual comment should not contain any semi-colons.  The persistent flag determines whether or not the comment will survive program restarts (1=save comment across program restarts, 0=delete comment on restart).</font></td>
+<td valign=top>ADD_SVC_COMMENT</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt;</td>
+<td valign=top>This command is used to associate a comment with the specified host.  Note that both the host name and service description are required.  The <i>author</i> argument generally contains the name of the person who entered the comment.  The actual comment should not contain any semi-colons.  The persistent flag determines whether or not the comment will survive program restarts (1=save comment across program restarts, 0=delete comment on restart).</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DEL_HOST_COMMENT</font></td>
-<td valign=top><font size=-1>&lt;comment_id&gt;</font></td>
-<td valign=top><font size=-1>This is used to delete a comment having a ID matching <i>comment_id</i> for the specified host.</font></td>
+<td valign=top>DEL_HOST_COMMENT</td>
+<td valign=top>&lt;comment_id&gt;</td>
+<td valign=top>This is used to delete a comment having a ID matching <i>comment_id</i> for the specified host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DEL_ALL_HOST_COMMENTS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This is used to delete all comments associated with the specified host.</font></td>
+<td valign=top>DEL_ALL_HOST_COMMENTS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This is used to delete all comments associated with the specified host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DEL_SVC_COMMENT</font></td>
-<td valign=top><font size=-1>&lt;comment_id&gt;</font></td>
-<td valign=top><font size=-1>This is used to delete a comment having a ID matching <i>comment_id</i> for the specified service.</font></td>
+<td valign=top>DEL_SVC_COMMENT</td>
+<td valign=top>&lt;comment_id&gt;</td>
+<td valign=top>This is used to delete a comment having a ID matching <i>comment_id</i> for the specified service.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DEL_ALL_SVC_COMMENTS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This is used to delete all comments associated with the specified service.  Note that both the host name and service description are required.</font></td>
+<td valign=top>DEL_ALL_SVC_COMMENTS</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This is used to delete all comments associated with the specified service.  Note that both the host name and service description are required.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DELAY_HOST_NOTIFICATION</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;next_notification_time&gt;</font></td>
-<td valign=top><font size=-1>This will delay the next notification about this host until the time specified by the <i>next_notification_time</i> argument.  This will have no effect if the host state changes before the next notification is scheduled to be sent out.</font></td>
+<td valign=top>DELAY_HOST_NOTIFICATION</td>
+<td valign=top>&lt;host_name&gt;;&lt;next_notification_time&gt;</td>
+<td valign=top>This will delay the next notification about this host until the time specified by the <i>next_notification_time</i> argument.  This will have no effect if the host state changes before the next notification is scheduled to be sent out.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DELAY_SVC_NOTIFICATION</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;;&lt;next_notification_time&gt;</font></td>
-<td valign=top><font size=-1>This will delay the next notification about this service until the time specified by the <i>next_notification_time</i> argument.  Note that both the host name and service description are required.  This will have no effect if the service state changes before the next notification is scheduled to be sent out.  This <i>does not</i> delay notifications about the host.</font></td>
+<td valign=top>DELAY_SVC_NOTIFICATION</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;;&lt;next_notification_time&gt;</td>
+<td valign=top>This will delay the next notification about this service until the time specified by the <i>next_notification_time</i> argument.  Note that both the host name and service description are required.  This will have no effect if the service state changes before the next notification is scheduled to be sent out.  This <i>does not</i> delay notifications about the host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>SCHEDULE_SVC_CHECK</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;;&lt;next_check_time&gt;</font></td>
-<td valign=top><font size=-1>This will reschedule the next check of the specified service for the time specified by the <i>next_check_time</i> argument.  Note that both the host name and service description are required.</font></td>
+<td valign=top>SCHEDULE_SVC_CHECK</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;;&lt;next_check_time&gt;</td>
+<td valign=top>This will reschedule the next check of the specified service for the time specified by the <i>next_check_time</i> argument.  Note that both the host name and service description are required.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>SCHEDULE_HOST_SVC_CHECKS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;&lt;next_check_time&gt;</font></td>
-<td valign=top><font size=-1>This will reschedule the next check of all services on the specified host for the time specified by the <i>next_check_time</i> argument.</font></td>
+<td valign=top>SCHEDULE_HOST_SVC_CHECKS</td>
+<td valign=top>&lt;host_name&gt;&lt;next_check_time&gt;</td>
+<td valign=top>This will reschedule the next check of all services on the specified host for the time specified by the <i>next_check_time</i> argument.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_SVC_CHECK</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This will re-enable checks of the specified service.  Note that both the host name and service description are required.</font></td>
+<td valign=top>ENABLE_SVC_CHECK</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This will re-enable checks of the specified service.  Note that both the host name and service description are required.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_SVC_CHECK</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This will temporarily disable checks of the specified service.  Service checks are automatically re-enabled when Nagios restarts.  Issuing this command will have the side effect of temporarily preventing notifications from being sent out for the service.  It <i>does not</i> prevent notifications about the host from being sent out.</font></td>
+<td valign=top>DISABLE_SVC_CHECK</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This will temporarily disable checks of the specified service.  Service checks are automatically re-enabled when Nagios restarts.  Issuing this command will have the side effect of temporarily preventing notifications from being sent out for the service.  It <i>does not</i> prevent notifications about the host from being sent out.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_SVC_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This is used to re-enable notifications for the specified service.  Note that both the host name and service description are required.</font></td>
+<td valign=top>ENABLE_SVC_NOTIFICATIONS</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This is used to re-enable notifications for the specified service.  Note that both the host name and service description are required.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_SVC_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This is used to temporarily disable notifications from being sent out about the specified service.  Notifications are automatically re-enabled when Nagios restarts.  Note that both the host name and service description are required.  This <i>does not</i> disable notifications for the host.</font></td>
+<td valign=top>DISABLE_SVC_NOTIFICATIONS</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This is used to temporarily disable notifications from being sent out about the specified service.  Notifications are automatically re-enabled when Nagios restarts.  Note that both the host name and service description are required.  This <i>does not</i> disable notifications for the host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_HOST_SVC_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This is used to re-enable notifications for all services on the specified host.  This <i>does not</i> enable notifications for the host.</font></td>
+<td valign=top>ENABLE_HOST_SVC_NOTIFICATIONS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This is used to re-enable notifications for all services on the specified host.  This <i>does not</i> enable notifications for the host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_HOST_SVC_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This is used to temporarily disable notifications for all services on the specified host.  This <i>does not</i> disable notifications for the host.</font></td>
+<td valign=top>DISABLE_HOST_SVC_NOTIFICATIONS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This is used to temporarily disable notifications for all services on the specified host.  This <i>does not</i> disable notifications for the host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_HOST_SVC_CHECKS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This will re-enable checks of all services on the specified host.  If one or more services were in a non-OK state when they were disabled, contacts may receive notifications if the service(s) recover after the checks are re-enabled.</font></td>
+<td valign=top>ENABLE_HOST_SVC_CHECKS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This will re-enable checks of all services on the specified host.  If one or more services were in a non-OK state when they were disabled, contacts may receive notifications if the service(s) recover after the checks are re-enabled.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_HOST_SVC_CHECKS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This will temporarily disable checks of all services on the specified host.  Service checks are automatically re-enabled when Nagios restarts.  Issuing this command will have the side effect of temporarily preventing notifications from being sent out for any of the affected services.  It <i>does not</i> prevent notifications about the host from being sent out.</font></td>
+<td valign=top>DISABLE_HOST_SVC_CHECKS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This will temporarily disable checks of all services on the specified host.  Service checks are automatically re-enabled when Nagios restarts.  Issuing this command will have the side effect of temporarily preventing notifications from being sent out for any of the affected services.  It <i>does not</i> prevent notifications about the host from being sent out.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_HOST_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This will temporarily disable notifications for this host.  Note that this <i>does not</i> enable notifications for the services associated with this host.</font></td>
+<td valign=top>ENABLE_HOST_NOTIFICATIONS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This will temporarily disable notifications for this host.  Note that this <i>does not</i> enable notifications for the services associated with this host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_HOST_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This will temporarily disable notifications for this host.  Notifications are automatically re-enabled when Nagios restarts.  Note that this <i>does not</i> disable notifications for the services associated with this host.</font></td>
+<td valign=top>DISABLE_HOST_NOTIFICATIONS</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This will temporarily disable notifications for this host.  Notifications are automatically re-enabled when Nagios restarts.  Note that this <i>does not</i> disable notifications for the services associated with this host.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This will enable notifications for all hosts and services "beyond" the host specified by the <i>host_name</i> argument (from the view of Nagios).  This command is most often used in conjunction with <a href="redundancy.html">redundant monitoring</a> hosts.</font></td>
+<td valign=top>ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This will enable notifications for all hosts and services "beyond" the host specified by the <i>host_name</i> argument (from the view of Nagios).  This command is most often used in conjunction with <a href="redundancy.html">redundant monitoring</a> hosts.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;</font></td>
-<td valign=top><font size=-1>This will temporarily disable notifications for all hosts and services "beyond" the host specified by the <i>host_name</i> argument (from the view of Nagios).  Notifications are automatically re-enabled when Nagios restarts.  This command is most often used in conjunction with <a href="redundancy.html">redundant monitoring</a> hosts.</font></td>
+<td valign=top>DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST</td>
+<td valign=top>&lt;host_name&gt;</td>
+<td valign=top>This will temporarily disable notifications for all hosts and services "beyond" the host specified by the <i>host_name</i> argument (from the view of Nagios).  Notifications are automatically re-enabled when Nagios restarts.  This command is most often used in conjunction with <a href="redundancy.html">redundant monitoring</a> hosts.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;execution_time&gt;</font></td>
-<td valign=top><font size=-1>This will enable host and service notifications on a program-wide basis at the time specified by the <i>execution time</i> argument.</font></td>
+<td valign=top>ENABLE_NOTIFICATIONS</td>
+<td valign=top>&lt;execution_time&gt;</td>
+<td valign=top>This will enable host and service notifications on a program-wide basis at the time specified by the <i>execution time</i> argument.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_NOTIFICATIONS</font></td>
-<td valign=top><font size=-1>&lt;execution_time&gt;</font></td>
-<td valign=top><font size=-1>This will disable host and service notifications on a program-wide basis at the time specified by the <i>execution time</i> argument.</font></td>
+<td valign=top>DISABLE_NOTIFICATIONS</td>
+<td valign=top>&lt;execution_time&gt;</td>
+<td valign=top>This will disable host and service notifications on a program-wide basis at the time specified by the <i>execution time</i> argument.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>SHUTDOWN_PROGRAM</font></td>
-<td valign=top><font size=-1>&lt;execution_time&gt;</font></td>
-<td valign=top><font size=-1>This will cause Nagios to shutdown at the time specified by the <i>execution_time</i> argument.  Note: Nagios cannot be restarted via the web interface once it has been shutdown.</font></td>
+<td valign=top>SHUTDOWN_PROGRAM</td>
+<td valign=top>&lt;execution_time&gt;</td>
+<td valign=top>This will cause Nagios to shutdown at the time specified by the <i>execution_time</i> argument.  Note: Nagios cannot be restarted via the web interface once it has been shutdown.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>RESTART_PROGRAM</font></td>
-<td valign=top><font size=-1>&lt;execution_time&gt;</font></td>
-<td valign=top><font size=-1>This will cause Nagios to flush all configuration state information, re-read all the config files, and restart monitoring at the time specified by the <i>execution_time</i> argument</font></td>
+<td valign=top>RESTART_PROGRAM</td>
+<td valign=top>&lt;execution_time&gt;</td>
+<td valign=top>This will cause Nagios to flush all configuration state information, re-read all the config files, and restart monitoring at the time specified by the <i>execution_time</i> argument</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>PROCESS_SERVICE_CHECK_RESULT</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;;&lt;return_code&gt;;&lt;plugin_output&gt;</font></td>
-<td valign=top><font size=-1>This command is used to submit check results for a particular service to Nagios.  These "passive" checks are acted upon in the same manner as normal "active" checks.  More information on passive service checks can be found <a href="passivechecks.html">here</a>.</font></td>
+<td valign=top>PROCESS_SERVICE_CHECK_RESULT</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;;&lt;return_code&gt;;&lt;plugin_output&gt;</td>
+<td valign=top>This command is used to submit check results for a particular service to Nagios.  These "passive" checks are acted upon in the same manner as normal "active" checks.  More information on passive service checks can be found <a href="passivechecks.html">here</a>.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>SAVE_STATE_INFORMATION</font></td>
-<td valign=top><font size=-1>&lt;execution_time&gt;</font></td>
-<td valign=top><font size=-1>This will force Nagios to dump current state information for all services and hosts to the file specified by the <a href="configmain.html#state_retention_file">state_retention_file</a> variable.  You must enable the <a href="configmain.html#retain_state_information">retain_state_information</a> option for this to work</font>.</td>
+<td valign=top>PROCESS_HOST_CHECK_RESULT</td>
+<td valign=top>&lt;host_name&gt;;&lt;host_status&gt;;&lt;plugin_output&gt;</td>
+<td valign=top>This command is used to submit check results for a particular host to Nagios.  These "passive" checks are acted upon in a similiar manner as normal "active" checks.  However, there are some important limitations with passive host checks that you should be aware of.  More information on passive host checks can be found <a href="passivechecks.html">here</a>.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>READ_STATE_INFORMATION</font></td>
-<td valign=top><font size=-1>&lt;execution_time&gt;</font></td>
-<td valign=top><font size=-1>This will force Nagios to read previously saved state information for all services and hosts from the file specified by the <a href="configmain.html#state_retention_file">state_retention_file</a> variable.  You must enable the <a href="configmain.html#retain_state_information">retain_state_information</a> option for this to work</font>.</td>
+<td valign=top>SAVE_STATE_INFORMATION</td>
+<td valign=top>&lt;execution_time&gt;</td>
+<td valign=top>This will force Nagios to dump current state information for all services and hosts to the file specified by the <a href="configmain.html#state_retention_file">state_retention_file</a> variable.  You must enable the <a href="configmain.html#retain_state_information">retain_state_information</a> option for this to work.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>START_EXECUTING_SVC_CHECKS</font></td>
-<td valign=top><font size=-1></font></td>
-<td valign=top><font size=-1>This is used to resume the execution of service checks.  The execution of service checks may have been stopped at an earlier time by either receiving a <i>STOP_EXECUTING_SVC_CHECKS</i> command, or by setting the <a href="configmain.html#execute_service_checks">execute_service_checks</a> option in the main config file to 0.  Most often used when implementing <a href="redundancy.html">redundant monitoring hosts</a>.</td>
+<td valign=top>READ_STATE_INFORMATION</td>
+<td valign=top>&lt;execution_time&gt;</td>
+<td valign=top>This will force Nagios to read previously saved state information for all services and hosts from the file specified by the <a href="configmain.html#state_retention_file">state_retention_file</a> variable.  You must enable the <a href="configmain.html#retain_state_information">retain_state_information</a> option for this to work.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>STOP_EXECUTING_SVC_CHECKS</font></td>
-<td valign=top><font size=-1></font></td>
-<td valign=top><font size=-1>This is used to stop the execution of service checks.  When service checks are not being executed, Nagios will keep requeuing checks for a later time, but will not actually execute any checks.  This essentially puts Nagios into a "sleep" mode, as far as monitoring is concerned.  Most often used when implementing <a href="redundancy.html">redundant monitoring hosts</a>.</td>
+<td valign=top>START_EXECUTING_SVC_CHECKS</td>
+<td valign=top></td>
+<td valign=top>This is used to resume the execution of service checks.  The execution of service checks may have been stopped at an earlier time by either receiving a <i>STOP_EXECUTING_SVC_CHECKS</i> command, or by setting the <a href="configmain.html#execute_service_checks">execute_service_checks</a> option in the main config file to 0.  Most often used when implementing <a href="redundancy.html">redundant monitoring hosts</a>.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>START_ACCEPTING_PASSIVE_SVC_CHECKS</font></td>
-<td valign=top><font size=-1></font></td>
-<td valign=top><font size=-1>This is used to resume the acceptance of <a href="passivechecks.html">passive service checks</a> for all services.  The acceptance of passive service checks may have been stopped at an earlier time by either receiving a <i>STOP_ACCEPTING_PASSIVE_SVC_CHECKS</i> command, or by setting the <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> option in the main config file to 0.  If passive checks have been disabled for specific services using the <i>DISABLE_PASSIVE_SVC_CHECKS</i> command, passive checks will <i>not</i> be accepted for those services, but will for all others.</td>
+<td valign=top>STOP_EXECUTING_SVC_CHECKS</td>
+<td valign=top></td>
+<td valign=top>This is used to stop the execution of service checks.  When service checks are not being executed, Nagios will keep requeuing checks for a later time, but will not actually execute any checks.  This essentially puts Nagios into a "sleep" mode, as far as monitoring is concerned.  Most often used when implementing <a href="redundancy.html">redundant monitoring hosts</a>.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>STOP_ACCEPTING_PASSIVE_SVC_CHECKS</font></td>
-<td valign=top><font size=-1></font></td>
-<td valign=top><font size=-1>This is used to disable the acceptance of <a href="passivechecks.html">passive service checks</a> for all services. </td>
+<td valign=top>START_ACCEPTING_PASSIVE_SVC_CHECKS</td>
+<td valign=top></td>
+<td valign=top>This is used to resume the acceptance of <a href="passivechecks.html">passive service checks</a> for all services.  The acceptance of passive service checks may have been stopped at an earlier time by either receiving a <i>STOP_ACCEPTING_PASSIVE_SVC_CHECKS</i> command, or by setting the <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> option in the main config file to 0.  If passive checks have been disabled for specific services using the <i>DISABLE_PASSIVE_SVC_CHECKS</i> command, passive checks will <i>not</i> be accepted for those services, but will for all others.</td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>ENABLE_PASSIVE_SVC_CHECKS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This is used to resume the acceptance of <a href="passivechecks.html">passive service checks</a> for a specific service.  The acceptance of passive checks may have been disabled for a service at an earlier time by receiving a <i>DISABLE_PASSIVE_SVC_CHECKS</i> command.  If passive checks have been disabled for all services either by using the <i>STOP_ACCEPTING_PASSIVE_SVC_CHECKS</i> command or by setting the <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> option in the main config file to 0, passive checks will <i>not</i> be accepted for this service.</td>
+<td valign=top>STOP_ACCEPTING_PASSIVE_SVC_CHECKS</td>
+<td valign=top></td>
+<td valign=top>This is used to disable the acceptance of <a href="passivechecks.html">passive service checks</a> for all services. </td>
 </tr>
 
 <tr>
-<td valign=top><font size=-1>DISABLE_PASSIVE_SVC_CHECKS</font></td>
-<td valign=top><font size=-1>&lt;host_name&gt;;&lt;service_description&gt;</font></td>
-<td valign=top><font size=-1>This is used to disable the acceptance of <a href="passivechecks.html">passive service checks</a> for a specific service.</td>
+<td valign=top>ENABLE_PASSIVE_SVC_CHECKS</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This is used to resume the acceptance of <a href="passivechecks.html">passive service checks</a> for a specific service.  The acceptance of passive checks may have been disabled for a service at an earlier time by receiving a <i>DISABLE_PASSIVE_SVC_CHECKS</i> command.  If passive checks have been disabled for all services either by using the <i>STOP_ACCEPTING_PASSIVE_SVC_CHECKS</i> command or by setting the <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> option in the main config file to 0, passive checks will <i>not</i> be accepted for this service.</td>
+</tr>
+
+<tr>
+<td valign=top>DISABLE_PASSIVE_SVC_CHECKS</td>
+<td valign=top>&lt;host_name&gt;;&lt;service_description&gt;</td>
+<td valign=top>This is used to disable the acceptance of <a href="passivechecks.html">passive service checks</a> for a specific service.</td>
 </tr>
 
 </table>

@@ -202,7 +202,7 @@ In the example above, <b>Service F</b> would have failed notification dependenci
 </p>
 
 <p>
-As mentioned before, service dependencies are <i>not</i> inherited.  In the example above you can see that Service F is dependent on Service E.  However, it does not automatically inherit Service E's dependencies on Service B and Service C.  In order to make Service F dependent on Service C we had to add another service dependency definition.  There is no dependency definition for Service B, so Service F is <i>not</i> dependent on Service B.
+As mentioned before, service dependencies are <i>not</i> inherited by default.  In the example above you can see that Service F is dependent on Service E.  However, it does not automatically inherit Service E's dependencies on Service B and Service C.  In order to make Service F dependent on Service C we had to add another service dependency definition.  There is no dependency definition for Service B, so Service F is <i>not</i> dependent on Service B.
 </p>
 
 <p>
@@ -246,6 +246,10 @@ Dependencies can have multiple levels of inheritence.  If the dependency definit
 
 <p>
 As you'd probably expect, host dependencies work in a similiar fashion to service dependencies.  The big difference is that they're for hosts, not services.  Another difference is that host dependencies only work for suppressing host notifications, not host checks.
+</p>
+
+<p>
+<strong>BEWARE!</strong>  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="xodtemplate.html#host">host</a> definitions) for most cases, rather than host dependencies.
 </p>
 
 <p>

@@ -106,6 +106,9 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#host_inter_check_delay_method">Host inter-check delay method</a><br>
 <a href="#max_host_check_spread">Maximum host check spread</a><br>
 <a href="#interval_length">Timing interval length</a><br>
+<a href="#auto_reschedule_checks">Auto-rescheduling option</a><br>
+<a href="#auto_rescheduling_interval">Auto-rescheduling interval</a><br>
+<a href="#auto_rescheduling_window">Auto-rescheduling window</a><br>
 <br>
 <a href="#use_agressive_host_checking">Agressive host checking option</a><br>
 <br>
@@ -1634,6 +1637,91 @@ This is the number of seconds per "unit interval" used for timing in the schedul
 </p>
 <p>
 <strong>Important:</strong>  The default value for this is set to 60, which means that a "unit value" of 1 in the host configuration file will mean 60 seconds (1 minute).  I have not really tested other values for this variable, so proceed at your own risk if you decide to do so!
+</p>
+
+
+<p>
+<a name="auto_reschedule_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Auto-Rescheduling Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>auto_reschedule_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>auto_reschedule_checks=1</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether or not Nagios will attempt to automatically reschedule active host and service checks to
+ "smooth" them out over time.  This can help to balance the load on the monitoring server, as it will attempt to keep the time between consecutive checks consistent, at the expense of executing checks on a more rigid schedule.
+</p>
+<p>
+<strong>WARNING:</strong>  THIS IS AN EXPERIMENTAL FEATURE AND MAY BE REMOVED IN FUTURE VERSIONS.  ENABLING THIS OPTION CAN DEGRADE PERFORMANCE - RATHER THAN INCREASE IT - IF USED IMPROPERLY!
+</p>
+
+
+<p>
+<a name="auto_rescheduling_interval"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Auto-Rescheduling Interval</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>auto_rescheduling_interval=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>auto_rescheduling_interval=30</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines how often (in seconds) Nagios will attempt to automatically reschedule checks.  This option only has an effect if the <a href="#auto_reschedule_checks">auto_reschedule_checks</a> option is enabled.  Default is 30 seconds.
+</p>
+<p>
+<strong>WARNING:</strong>  THIS IS AN EXPERIMENTAL FEATURE AND MAY BE REMOVED IN FUTURE VERSIONS.  ENABLING THE AUTO-RESCHEDULING OPTION CAN DEGRADE PERFORMANCE - RATHER THAN INCREASE IT - IF USED IMPROPERLY!
+</p>
+
+
+<p>
+<a name="auto_rescheduling_window"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Auto-Rescheduling Window</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>auto_rescheduling_window=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>auto_rescheduling_window=180</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines the "window" of time (in seconds) that Nagios will look at when automatically rescheduling checks. Only host and service checks that occur in the next X seconds (determined by this variable) will be rescheduled.  This option only has an effect if the <a href="#auto_reschedule_checks">auto_reschedule_checks</a> option is enabled.  Default is 180 seconds (3 minutes).
+</p>
+<p>
+<strong>WARNING:</strong>  THIS IS AN EXPERIMENTAL FEATURE AND MAY BE REMOVED IN FUTURE VERSIONS.  ENABLING THE AUTO-RESCHEDULING OPTION CAN DEGRADE PERFORMANCE - RATHER THAN INCREASE IT - IF USED IMPROPERLY!
 </p>
 
 

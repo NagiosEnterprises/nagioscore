@@ -327,7 +327,23 @@ Since host checks usually compromise a small part of monitoring activity (they a
 </p>
 
 <p>
-There are ways to obtain host checks passively, but implementing them is beyond the scope of what I care to write about at this time.  :-)
+Passive host checks are available (read <a href="passivechecks.html">here</a>), so you could use them in your distributed monitoring setup, but they suffer from a few problems.  The biggest problem is that Nagios does not translate passive host check problem states (DOWN and UNREACHABLE) when they are processed.  This means that if your monitoring servers have a different parent/child host structure (and they will, if you monitoring servers are in different locations), the central monitoring server will have an inaccurate view of host states.
+</p>
+
+<p>
+If you do want to send passive host checks to a central server in your distributed monitoring setup, make sure:
+</p>
+
+<p>
+<ul>
+<li>The central server has <a href="configmain.html#accept_passive_host_checks">passive host checks</a> enabled (required)
+<li>The distributed server is configured to <a href="configmain.html#obsess_over_hosts">obsess over hosts</a>.
+<li>The distributed server has an <a href="configmain.html#ochp_command">ochp command</a> defined.
+</ul>
+</p>
+
+<p>
+The ochp command, which is used for processing host check results, works in a similiar manner to the ocsp command, which is used for processing service check results (see documentation above).  In order to make sure passive host check results are up to date, you'll want to enable <a href="freshness.html">freshness checking</a> for hosts (similiar to what is described above for services).
 </p>
 
 <hr>

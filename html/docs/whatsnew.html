@@ -27,10 +27,6 @@
 <font color='red'><strong>Important:</strong></font> Make sure you read through the documentation (especially the <a href="faqs.html">FAQs</a>) before sending a question to the mailing lists.
 </p>
 
-<p>
-<font color='red'><strong>WARNING:</strong></font> Nagios 2.0 is currently in heavy development and is at present not useable for production environments.  Most changes made since 1.0 have not been documented!
-</p>
-
 
 <a name="changelog"></a>
 <p>
@@ -38,11 +34,26 @@
 </p>
 
 <p>
-The change log for Nagios can be found online at <a href="http://www.nagios.org">http://www.nagios.org</a> or in the <b>Changelog</b> file in the root directory of the source code distribution.
+The change log for Nagios can be found online at <a href="http://www.nagios.org/changelog.php">http://www.nagios.org/changelog.php</a> or in the <b>Changelog</b> file in the root directory of the source code distribution.
 </p>
 
 <p>
-<strong><u>Changes</u></strong>
+<strong><u>Known Issues</u></strong>
+</p>
+
+<p>
+There are a few known issues with the Nagios 2.0 code at the moment.  Hopefully some of these will be fixed before 2.0 is released as stable...
+</p>
+
+<p>
+<ol>
+<li><b>FreeBSD and threads</b>.  On FreeBSD there's a native user-level implementation of threads called 'pthread' and there's also an optional ports collection 'linuxthreads' that uses kernel hooks.  Some folks from Yahoo! have reported that using the pthread library causes Nagios to pause under heavy I/O load, causing some service check results to be lost.  Switching to linuxthreads seems to help this problem, but not fix it. The lock happens in liblthread's __pthread_acquire() - it can't ever acquire the spinlock. It happens when the main thread forks to execute an active check. On the second fork to create the grandchild, the grandchild is created by fork, but never returns from liblthread's fork wrapper, because it's stuck in __pthread_acquire().  Maybe some FreeBSD users can help out with this problem.</li>
+
+</ol>
+</p>
+
+<p>
+<strong><u>Changes and New Features</u></strong>
 </p>
 
 <p>
@@ -50,18 +61,13 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <strong>DOCUMENTATION TODO:</strong>
 ** CHECK SCHEDULING: scheduled host checks, initial check spreads
 ** HOST CHECK OPTIMIZATION: check_cluster, add $HOSTSERVICESTATEIDS$ macro...
-** DISTRIBUTED MONITORING: passive host checks, OCHP, host freshness checking
-- Dependency inheritance
-- Event broker
-- Passive host checks
-- Config file options to initial spread of host and service checks
 </pre>
 </p>
 
 <p>
 <ol>
 
-<li><b>Macro Changes</b> - <a href="macros.html">Macros</a> have undergone a major overhaul.  Will will have to update most of your command definitions to match the new macros.  Also, "on-demand" host and service macros have been added.  See the <a href="macros.html">documentation on macros</a> for more information.<br>
+<li><b>Macro Changes</b> - <a href="macros.html">Macros</a> have undergone a major overhaul.  You will have to update most of your command definitions to match the new macros.  Most macros are now available as environment variables.  Also, "on-demand" host and service macros have been added.  See the <a href="macros.html">documentation on macros</a> for more information.<br>
 <br>
 <li><b>Hostgroup Changes</b>
 	<ul>
@@ -98,7 +104,6 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <br>
 <li><b>Embedded Perl Changes</b>
 	<ul>
-	<li><b>Max calls before reload option</b> - You can now specify the maximum number of times the embedded Perl interpreter can be called before it is reloaded.  This may help with handling memory leaks several people have reported.  This option is controlled by the <a href="configmain.html#max_embedded_perl_calls">max_embedded_perl_calls</a> directive.
 	<li><b>p1.pl location</b> - You can now specify the location of the embedded Perl "helper" file (p1.pl) using the <a href="configmain.html#p1_file">p1_file</a> directive.
 	</ul>
 <br>
@@ -119,6 +124,8 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org"
 <li><b>Adaptive Monitoring</b> - You can now change certain attributes relating to host and service checks (check command, check interval, max check attempts etc.) during runtime by submitting the appropriate external commands.  This kind of adaptive monitoring will probably not be of much use to the majority of users out there, but it does provide a way for doing some neat stuff.  More information on adaptive monitoring can be found <a href="adaptive.html">here</a>.<br>
 <br>
 <li><b>Native DB Support Dropped</b> - Native support for storing various types of data (status, retention, comment, downtime, etc.) in MySQL and PostgreSQL has been dropped.  Stop whining.  I expect someone will develop an alternative using the new event broker sometime in the near future.  Besides, DB support was not well implemented and dropping native DB support will make things easier for newbies to understand (one less thing to figure out).<br>
+<br>
+<li><b>Event Broker API</b> - An API has been created to allow individual developers to create addons that integrate with the core Nagios daemon.  Documentation on the event broker API will be created as the 2.x code matures and will be available on the Nagios website.<br>
 <br>
 <li><b>Misc Changes</b>
 	<ul>

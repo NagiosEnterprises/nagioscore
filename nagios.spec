@@ -26,6 +26,14 @@ Prefix: /etc/nagios
 Prefix: /var/log/nagios
 Prefix: /var/spool/nagios
 Requires: gd > 1.8
+Requires: libjpeg
+Requires: libpng
+Requires: textutils
+Requires: gawk
+Requires: chkconfig
+Requires: initscripts
+Requires: shadow-utils
+Requires: grep
 
 %description
 Nagios is a program that will monitor hosts and services on your
@@ -276,9 +284,12 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Jun 14 2002 Ethan Galstad <nagios@nagios.org) (1.0b4)
+- Modified requirements to work when installed using KickStart (Jeff Frost)
+- Changed method used for checking for user/group existence (Jeff Frost)
+
 * Tue May 15 2002 Ethan Galstad <nagios@nagios.org) (1.0b1)
-- Updated to work with new sample config files (template-based)
-- Bugs were pointed out by Darren Gamble
+- Updated to work with new sample template-based config files (Darren Gamble)
 
 * Sun Feb 17 2002 Ole Gjerde <gjerde@ignus.com> (1.0a4)
 - Fixed spec file to work with Nagios

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-16-2002
+ * Last Modified:   12-06-2002
  *
  * License:
  *
@@ -39,11 +39,7 @@ extern int             log_host_retries;
 extern int             event_handler_timeout;
 extern int             ocsp_timeout;
 
-extern char            *macro_current_service_attempt;
-extern char            *macro_current_host_attempt;
-extern char            *macro_host_state;
-extern char	       *macro_service_state;
-extern char            *macro_state_type;
+extern char            *macro_x[MACRO_X_COUNT];
 
 extern char            *global_host_event_handler;
 extern char            *global_service_event_handler;
@@ -87,18 +83,18 @@ int obsessive_compulsive_service_check_processor(service *svc,int state_type){
 	grab_service_macros(svc);
 
 	/* grab the service state type macro */
-	if(macro_state_type!=NULL)
-		free(macro_state_type);
-	macro_state_type=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_state_type!=NULL)
-		strcpy(macro_state_type,(state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		free(macro_x[MACRO_STATETYPE]);
+	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* grab the current service check number macro */
-	if(macro_current_service_attempt!=NULL)
-		free(macro_current_service_attempt);
-	macro_current_service_attempt=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_current_service_attempt!=NULL)
-		sprintf(macro_current_service_attempt,"%d",svc->current_attempt);
+	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
+		free(macro_x[MACRO_SERVICEATTEMPT]);
+	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
+	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
+		sprintf(macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
 
 	/* find the service processor command */
 	temp_command=find_command(ocsp_command,NULL);
@@ -171,18 +167,18 @@ int handle_service_event(service *svc,int state_type){
 	grab_service_macros(svc);
 
 	/* grab the service state type macro */
-	if(macro_state_type!=NULL)
-		free(macro_state_type);
-	macro_state_type=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_state_type!=NULL)
-		strcpy(macro_state_type,(state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		free(macro_x[MACRO_STATETYPE]);
+	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* grab the current service check number macro */
-	if(macro_current_service_attempt!=NULL)
-		free(macro_current_service_attempt);
-	macro_current_service_attempt=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_current_service_attempt!=NULL)
-		sprintf(macro_current_service_attempt,"%d",svc->current_attempt);
+	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
+		free(macro_x[MACRO_SERVICEATTEMPT]);
+	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
+	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
+		sprintf(macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
 
 	/* run the global service event handler */
 	run_global_service_event_handler(svc,state_type);
@@ -223,6 +219,9 @@ int run_global_service_event_handler(service *svc,int state_type){
 	if(global_service_event_handler==NULL)
 		return ERROR;
 
+	/* clear command macros */
+	clear_argv_macros();
+
 	/* get the raw command line */
 	get_raw_command_line(global_service_event_handler,raw_command_line,sizeof(raw_command_line));
 	strip(raw_command_line);
@@ -239,7 +238,7 @@ int run_global_service_event_handler(service *svc,int state_type){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_service_state,macro_state_type,macro_current_service_attempt,global_service_event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -274,6 +273,9 @@ int run_service_event_handler(service *svc,int state_type){
 	printf("run_service_event_handler() start\n");
 #endif
 
+	/* clear command macros */
+	clear_argv_macros();
+
 	/* get the raw command line */
 	get_raw_command_line(svc->event_handler,raw_command_line,sizeof(raw_command_line));
 	strip(raw_command_line);
@@ -290,7 +292,7 @@ int run_service_event_handler(service *svc,int state_type){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_service_state,macro_state_type,macro_current_service_attempt,svc->event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -333,26 +335,27 @@ int handle_host_event(host *hst,int state,int state_type){
 		return OK;
 
 	/* update host macros */
+	clear_volatile_macros();
 	grab_host_macros(hst);
 
 	/* grab the host state type macro */
-	if(macro_state_type!=NULL)
-		free(macro_state_type);
-	macro_state_type=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_state_type!=NULL)
-		strcpy(macro_state_type,(state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		free(macro_x[MACRO_STATETYPE]);
+	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* make sure the host state macro is correct */
-	if(macro_host_state!=NULL)
-		free(macro_host_state);
-	macro_host_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_host_state!=NULL){
+	if(macro_x[MACRO_HOSTSTATE]!=NULL)
+		free(macro_x[MACRO_HOSTSTATE]);
+	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
+	if(macro_x[MACRO_HOSTSTATE]!=NULL){
 		if(state==HOST_DOWN)
-			strcpy(macro_host_state,"DOWN");
+			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
 		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_host_state,"UNREACHABLE");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
 		else
-			strcpy(macro_host_state,"UP");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
 	        }
 
 	/* run the global host event handler */
@@ -392,6 +395,9 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 	if(global_host_event_handler==NULL)
 		return ERROR;
 
+	/* clear command macros */
+	clear_argv_macros();
+
 	/* get the raw command line */
 	get_raw_command_line(global_host_event_handler,raw_command_line,sizeof(raw_command_line));
 	strip(raw_command_line);
@@ -408,7 +414,7 @@ int run_global_host_event_handler(host *hst,int state,int state_type){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_host_state,macro_state_type,macro_current_host_attempt,global_host_event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }
@@ -442,6 +448,9 @@ int run_host_event_handler(host *hst,int state,int state_type){
 	printf("run_host_event_handler() start\n");
 #endif
 
+	/* clear command macros */
+	clear_argv_macros();
+
 	/* get the raw command line */
 	get_raw_command_line(hst->event_handler,raw_command_line,sizeof(raw_command_line));
 	strip(raw_command_line);
@@ -458,7 +467,7 @@ int run_host_event_handler(host *hst,int state,int state_type){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_host_state,macro_state_type,macro_current_host_attempt,hst->event_handler);
+		snprintf(temp_buffer,sizeof(temp_buffer),"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER,FALSE);
 	        }

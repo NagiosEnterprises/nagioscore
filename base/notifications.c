@@ -41,11 +41,7 @@ extern int             enable_notifications;
 
 extern int             notification_timeout;
 
-extern char            *macro_host_state;
-extern char            *macro_service_state;
-extern char            *macro_output;
-extern char            *macro_notification_type;
-extern char            *macro_notification_number;
+extern char            *macro_x[MACRO_X_COUNT];
 
 extern char            *generic_summary;
 
@@ -119,33 +115,31 @@ int service_notification(service *svc, char *ack_data){
 
 	/* if this is an aknowledgement, modify the $OUTPUT$ macro to have it contain the comment that was entered by the user */
 	if(ack_data!=NULL){
-		if(macro_output!=NULL)
-			free(macro_output);
-		macro_output=(char *)malloc(strlen(ack_data)+1);
-		if(macro_output!=NULL)
-			strcpy(macro_output,ack_data);
+		if(macro_x[MACRO_OUTPUT]!=NULL)
+			free(macro_x[MACRO_OUTPUT]);
+		macro_x[MACRO_OUTPUT]=strdup(ack_data);
 	        }
 
 	/* set the notification type macro */
-	if(macro_notification_type!=NULL)
-		free(macro_notification_type);
-	macro_notification_type=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
-	if(macro_notification_type!=NULL){
+	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
+		free(macro_x[MACRO_NOTIFICATIONTYPE]);
+	macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
+	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
 		if(ack_data!=NULL)
-			strcpy(macro_notification_type,"ACKNOWLEDGEMENT");
+			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
 		else if(svc->current_state==STATE_OK)
-			strcpy(macro_notification_type,"RECOVERY");
+			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
 		else
-			strcpy(macro_notification_type,"PROBLEM");
+			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
 	        }
 
 	/* set the notification number macro */
-	if(macro_notification_number!=NULL)
-		free(macro_notification_number);
-	macro_notification_number=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-	if(macro_notification_number!=NULL){
-		snprintf(macro_notification_number,MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
-		macro_notification_number[MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
+		free(macro_x[MACRO_NOTIFICATIONNUMBER]);
+	macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
+		snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
+		macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
 	        }
 
 	/* create the contact notification list for this service */
@@ -520,9 +514,9 @@ int notify_contact_of_service(contact *cntct,service *svc,char *ack_data){
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
 				if(ack_data==NULL)
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_service_state,temp_command_line,macro_output);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
 				else
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_service_state,temp_command_line,macro_output);
+					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION,FALSE);
 			        }
@@ -728,47 +722,45 @@ int host_notification(host *hst,int state, char *ack_data){
 	grab_host_macros(hst);
 
 	/* make sure the host state macro is correct */
-	if(macro_host_state!=NULL)
-		free(macro_host_state);
-	macro_host_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_host_state!=NULL){
+	if(macro_x[MACRO_HOSTSTATE]!=NULL)
+		free(macro_x[MACRO_HOSTSTATE]);
+	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
+	if(macro_x[MACRO_HOSTSTATE]!=NULL){
 		if(state==HOST_DOWN)
-			strcpy(macro_host_state,"DOWN");
+			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
 		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_host_state,"UNREACHABLE");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
 		else
-			strcpy(macro_host_state,"UP");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
 	        }
 
 	/* if this is an aknowledgement, modify the $OUTPUT$ macro to contain the comment that the user entered */
 	if(ack_data!=NULL){
-		if(macro_output!=NULL)
-			free(macro_output);
-		macro_output=(char *)malloc(strlen(ack_data)+1);
-		if(macro_output!=NULL)
-			strcpy(macro_output,ack_data);
+		if(macro_x[MACRO_OUTPUT]!=NULL)
+			free(macro_x[MACRO_OUTPUT]);
+		macro_x[MACRO_OUTPUT]=strdup(ack_data);
 	        }
 
 	/* set the notification type macro */
-	if(macro_notification_type!=NULL)
-		free(macro_notification_type);
-	macro_notification_type=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
-	if(macro_notification_type!=NULL){
+	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
+		free(macro_x[MACRO_NOTIFICATIONTYPE]);
+	macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
+	if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
 		if(ack_data!=NULL)
-			strcpy(macro_notification_type,"ACKNOWLEDGEMENT");
+			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
 		else if(state==HOST_UP)
-			strcpy(macro_notification_type,"RECOVERY");
+			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
 		else
-			strcpy(macro_notification_type,"PROBLEM");
+			strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
 	        }
 
 	/* set the notification number macro */
-	if(macro_notification_number!=NULL)
-		free(macro_notification_number);
-	macro_notification_number=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-	if(macro_notification_number!=NULL){
-		snprintf(macro_notification_number,MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
-		macro_notification_number[MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
+		free(macro_x[MACRO_NOTIFICATIONNUMBER]);
+	macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+	if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
+		snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
+		macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
 	        }
 
 	/* create the contact notification list for this host */
@@ -1116,9 +1108,9 @@ int notify_contact_of_host(contact *cntct,host *hst,int state, char *ack_data){
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
 				if(ack_data==NULL)
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_host_state,temp_command_line,macro_output);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
 				else
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_host_state,temp_command_line,macro_output);
+					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],temp_command_line,macro_x[MACRO_OUTPUT]);
 				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION,FALSE);
 			        }

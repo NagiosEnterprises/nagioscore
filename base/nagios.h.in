@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-05-2002
+ * Last Modified: 12-06-2002
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,45 @@
 #define MAX_ATTEMPT_LENGTH			8
 #define MAX_EXECUTIONTIME_LENGTH		10
 #define MAX_LATENCY_LENGTH			10
+#define MAX_DURATION_LENGTH			9
+#define MAX_DOWNTIME_LENGTH			3
+
+#define MACRO_X_COUNT				32	/* size of macro_x[] array */
+
+#define MACRO_HOSTNAME				0
+#define MACRO_HOSTALIAS				1
+#define MACRO_HOSTADDRESS			2
+#define MACRO_SERVICEDESC			3
+#define MACRO_SERVICESTATE			4
+#define MACRO_SERVICEATTEMPT			5
+#define MACRO_LONGDATETIME			6
+#define MACRO_SHORTDATETIME			7
+#define MACRO_DATE				8
+#define MACRO_TIME				9
+#define MACRO_TIMET				10
+#define MACRO_LASTCHECK				11
+#define MACRO_LASTSTATECHANGE			12
+#define MACRO_OUTPUT				13
+#define MACRO_PERFDATA				14
+#define MACRO_CONTACTNAME			15
+#define MACRO_CONTACTALIAS			16
+#define MACRO_CONTACTEMAIL			17
+#define MACRO_CONTACTPAGER			18
+#define MACRO_ADMINEMAIL			19
+#define MACRO_ADMINPAGER			20
+#define MACRO_HOSTSTATE				21
+#define MACRO_HOSTATTEMPT			22
+#define MACRO_NOTIFICATIONTYPE			23
+#define MACRO_NOTIFICATIONNUMBER		24
+#define MACRO_EXECUTIONTIME			25
+#define MACRO_LATENCY				26
+#define MACRO_DURATION				27
+#define MACRO_DURATIONSEC			28
+#define MACRO_HOSTDOWNTIME			29
+#define MACRO_SERVICEDOWNTIME			30
+#define MACRO_STATETYPE				31
+
+
 
 #define DEFAULT_LOG_LEVEL			1	/* log all events to main log file */
 #define DEFAULT_USE_SYSLOG			1	/* log events to syslog? 1=yes, 0=no */
@@ -199,17 +238,6 @@
 
 #define ACTIVE_DOWNTIME                 0       /* active downtime - currently in effect */
 #define PENDING_DOWNTIME                1       /* pending downtime - scheduled for the future */
-
-
-/************** DATE/TIME MACRO TYPES *****************/
-
-#define MACRO_DATETIME_LONGDATE		0
-#define MACRO_DATETIME_SHORTDATE	1
-#define MACRO_DATETIME_DATE		2
-#define MACRO_DATETIME_TIME		3
-#define MACRO_DATETIME_TIMET		4
-#define MACRO_DATETIME_LASTCHECK	5  	/* time_t format */
-#define MACRO_DATETIME_LASTSTATECHANGE	6	/* time_t format */
 
 
 /************* MACRO CLEANING OPTIONS *****************/
@@ -432,6 +460,7 @@ int grab_service_macros(service *);                  	/* updates the service mac
 int grab_host_macros(host *);                        	/* updates the host macro data */
 int grab_contact_macros(contact *);                  	/* updates the contact macro data */
 int grab_datetime_macros(void);				/* updates date/time macros */
+int clear_argv_macros(void);                            /* clear all argv macros used in commands */
 int clear_volatile_macros(void);                     	/* clear all "volatile" macros that change between service/host checks */
 int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile" macros which remain relatively constant */
 

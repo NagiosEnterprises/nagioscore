@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-04-2002
+ * Last Modified:   12-05-2002
  *
  * Description:
  *
@@ -85,6 +85,12 @@ char            *macro_notification_type=NULL;
 char            *macro_notification_number=NULL;
 char            *macro_execution_time=NULL;
 char            *macro_latency=NULL;
+char            *macro_status_duration=NULL;
+char            *macro_status_duration_seconds=NULL;
+char            *macro_host_downtime_depth=NULL;
+char            *macro_service_downtime_depth=NULL;
+
+char            *macro_x[MACRO_X_COUNT];
 char            *macro_argv[MAX_COMMAND_ARGUMENTS];
 char            *macro_user[MAX_USER_MACROS];
 

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-04-2002
+ * Last Modified:   12-06-2002
  *
  * License:
  *
@@ -67,28 +67,7 @@ extern char	*p1_file;
 extern char     *nagios_user;
 extern char     *nagios_group;
 
-extern char     *macro_contact_name;
-extern char     *macro_contact_alias;
-extern char	*macro_host_name;
-extern char	*macro_host_alias;
-extern char	*macro_host_address;
-extern char	*macro_service_description;
-extern char	*macro_service_state;
-extern char	*macro_date_time[7];
-extern char	*macro_output;
-extern char	*macro_perfdata;
-extern char     *macro_contact_email;
-extern char     *macro_contact_pager;
-extern char     *macro_admin_email;
-extern char     *macro_admin_pager;
-extern char     *macro_host_state;
-extern char     *macro_state_type;
-extern char     *macro_execution_time;
-extern char     *macro_latency;
-extern char     *macro_current_service_attempt;
-extern char     *macro_current_host_attempt;
-extern char     *macro_notification_type;
-extern char     *macro_notification_number;
+extern char     *macro_x[MACRO_X_COUNT];
 extern char     *macro_argv[MAX_COMMAND_ARGUMENTS];
 extern char     *macro_user[MAX_USER_MACROS];
 
@@ -286,6 +265,7 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 	int in_macro;
 	int arg_index=0;
 	int user_index=0;
+	char *selected_macro=NULL;
 
 #ifdef DEBUG0
 	printf("process_macros() start\n");
@@ -296,6 +276,8 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 	in_macro=FALSE;
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
+
+		selected_macro=NULL;
 
 		if(in_macro==FALSE){
 			if(strlen(output_buffer)+strlen(temp_buffer)<buffer_length-1){
@@ -309,108 +291,116 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 			if(strlen(output_buffer)+strlen(temp_buffer)<buffer_length-1){
 
 				if(!strcmp(temp_buffer,"HOSTNAME"))
-					strncat(output_buffer,(macro_host_name==NULL)?"":macro_host_name,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_HOSTNAME];
 
 				else if(!strcmp(temp_buffer,"HOSTALIAS"))
-					strncat(output_buffer,(macro_host_alias==NULL)?"":macro_host_alias,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_HOSTALIAS];
 
 				else if(!strcmp(temp_buffer,"HOSTADDRESS"))
-					strncat(output_buffer,(macro_host_address==NULL)?"":macro_host_address,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_HOSTADDRESS];
 
 				else if(!strcmp(temp_buffer,"SERVICEDESC"))
-					strncat(output_buffer,(macro_service_description==NULL)?"":macro_service_description,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_SERVICEDESC];
 
 				else if(!strcmp(temp_buffer,"SERVICESTATE"))
-					strncat(output_buffer,(macro_service_state==NULL)?"":macro_service_state,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_SERVICESTATE];
 
 				else if(!strcmp(temp_buffer,"SERVICEATTEMPT"))
-					strncat(output_buffer,(macro_current_service_attempt==NULL)?"":macro_current_service_attempt,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_SERVICEATTEMPT];
 
 				else if(!strcmp(temp_buffer,"DATETIME") || !strcmp(temp_buffer,"LONGDATETIME"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_LONGDATE]==NULL)?"":macro_date_time[MACRO_DATETIME_LONGDATE],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_LONGDATETIME];
 
 				else if(!strcmp(temp_buffer,"SHORTDATETIME"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_SHORTDATE]==NULL)?"":macro_date_time[MACRO_DATETIME_SHORTDATE],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_SHORTDATETIME];
 
 				else if(!strcmp(temp_buffer,"DATE"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_DATE]==NULL)?"":macro_date_time[MACRO_DATETIME_DATE],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_DATE];
 
 				else if(!strcmp(temp_buffer,"TIME"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_TIME]==NULL)?"":macro_date_time[MACRO_DATETIME_TIME],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_TIME];
 
 				else if(!strcmp(temp_buffer,"TIMET"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_TIMET]==NULL)?"":macro_date_time[MACRO_DATETIME_TIMET],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_TIMET];
 
 				else if(!strcmp(temp_buffer,"LASTCHECK"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_LASTCHECK]==NULL)?"":macro_date_time[MACRO_DATETIME_LASTCHECK],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_LASTCHECK];
 
 				else if(!strcmp(temp_buffer,"LASTSTATECHANGE"))
-					strncat(output_buffer,(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]==NULL)?"":macro_date_time[MACRO_DATETIME_LASTSTATECHANGE],buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_LASTSTATECHANGE];
 
-				/* $OUTPUT macro is cleaned before insertion */
 				else if(!strcmp(temp_buffer,"OUTPUT"))
-					strncat(output_buffer,(macro_output==NULL)?"":clean_macro_chars(macro_output,options),buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_OUTPUT];
 
-				/* $PERFDATA macro is cleaned before insertion */
 				else if(!strcmp(temp_buffer,"PERFDATA"))
-					strncat(output_buffer,(macro_perfdata==NULL)?"":clean_macro_chars(macro_perfdata,options),buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_PERFDATA];
 
 				else if(!strcmp(temp_buffer,"CONTACTNAME"))
-					strncat(output_buffer,(macro_contact_name==NULL)?"":macro_contact_name,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_CONTACTNAME];
 
 				else if(!strcmp(temp_buffer,"CONTACTALIAS"))
-					strncat(output_buffer,(macro_contact_alias==NULL)?"":macro_contact_alias,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_CONTACTALIAS];
 
 				else if(!strcmp(temp_buffer,"CONTACTEMAIL"))
-					strncat(output_buffer,(macro_contact_email==NULL)?"":macro_contact_email,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_CONTACTEMAIL];
 
 				else if(!strcmp(temp_buffer,"CONTACTPAGER"))
-					strncat(output_buffer,(macro_contact_pager==NULL)?"":macro_contact_pager,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_CONTACTPAGER];
 
 				else if(!strcmp(temp_buffer,"ADMINEMAIL"))
-					strncat(output_buffer,(macro_admin_email==NULL)?"":macro_admin_email,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_ADMINEMAIL];
 
 				else if(!strcmp(temp_buffer,"ADMINPAGER"))
-					strncat(output_buffer,(macro_admin_pager==NULL)?"":macro_admin_pager,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_ADMINPAGER];
 
 				else if(!strcmp(temp_buffer,"HOSTSTATE"))
-					strncat(output_buffer,(macro_host_state==NULL)?"":macro_host_state,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_HOSTSTATE];
 
 				else if(!strcmp(temp_buffer,"HOSTATTEMPT"))
-					strncat(output_buffer,(macro_current_host_attempt==NULL)?"":macro_current_host_attempt,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_HOSTATTEMPT];
 
 				else if(!strcmp(temp_buffer,"STATETYPE"))
-					strncat(output_buffer,(macro_state_type==NULL)?"":macro_state_type,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_STATETYPE];
 
 				else if(!strcmp(temp_buffer,"NOTIFICATIONTYPE"))
-					strncat(output_buffer,(macro_notification_type==NULL)?"":macro_notification_type,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_NOTIFICATIONTYPE];
 
 				else if(!strcmp(temp_buffer,"NOTIFICATIONNUMBER"))
-					strncat(output_buffer,(macro_notification_number==NULL)?"":macro_notification_number,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_NOTIFICATIONNUMBER];
 
 				else if(!strcmp(temp_buffer,"EXECUTIONTIME"))
-					strncat(output_buffer,(macro_execution_time==NULL)?"":macro_execution_time,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_EXECUTIONTIME];
 
 				else if(!strcmp(temp_buffer,"LATENCY"))
-					strncat(output_buffer,(macro_latency==NULL)?"":macro_latency,buffer_length-strlen(output_buffer)-1);
+					selected_macro=macro_x[MACRO_LATENCY];
 
+				else if(!strcmp(temp_buffer,"DURATION"))
+					selected_macro=macro_x[MACRO_DURATION];
+
+				else if(!strcmp(temp_buffer,"DURATIONSEC"))
+					selected_macro=macro_x[MACRO_DURATIONSEC];
+
+				else if(!strcmp(temp_buffer,"HOSTDOWNTIME"))
+					selected_macro=macro_x[MACRO_HOSTDOWNTIME];
+
+				else if(!strcmp(temp_buffer,"SERVICEDOWNTIME"))
+					selected_macro=macro_x[MACRO_SERVICEDOWNTIME];
 
 				else if(strstr(temp_buffer,"ARG")==temp_buffer){
 					arg_index=atoi(temp_buffer+3);
 					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
-						strncat(output_buffer,(macro_argv[arg_index-1]==NULL)?"":macro_argv[arg_index-1],buffer_length-strlen(output_buffer)-1);
+						selected_macro=macro_argv[arg_index-1];
 				        }
 
 				else if(strstr(temp_buffer,"USER")==temp_buffer){
 					user_index=atoi(temp_buffer+4);
 					if(user_index>=1 && user_index<=MAX_USER_MACROS)
-						strncat(output_buffer,(macro_user[user_index-1]==NULL)?"":macro_user[user_index-1],buffer_length-strlen(output_buffer)-1);
+						selected_macro=macro_user[user_index-1];
 				        }
 			
 				/* an escaped $ is done by specifying two $$ next to each other */
 				else if(!strcmp(temp_buffer,"")){
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
-					output_buffer[buffer_length-1]='\x0';
 				        }
 				
 				/* a non-macro, just some user-defined string between two $s */
@@ -420,6 +410,19 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 					strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
 					output_buffer[buffer_length-1]='\x0';
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
+				        }
+
+				
+				/* insert macro */
+				if(selected_macro!=NULL){
+
+					/* $OUTPUT$ and $PERFDATA$ macros are cleaned */
+					if(selected_macro==macro_x[MACRO_OUTPUT] || selected_macro==macro_x[MACRO_PERFDATA])
+						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
+
+					/* normal macros as not cleaned */
+					else
+						strncat(output_buffer,(selected_macro==NULL)?"":clean_macro_chars(selected_macro,options),buffer_length-strlen(output_buffer)-1);
 				        }
 
 				output_buffer[buffer_length-1]='\x0';
@@ -439,112 +442,138 @@ int process_macros(char *input_buffer,char *output_buffer,int buffer_length,int 
 
 /* grab macros that are specific to a particular service */
 int grab_service_macros(service *svc){
+	time_t current_time;
+	unsigned long duration;
+	int hours;
+	int minutes;
+	int seconds;
 	
 #ifdef DEBUG0
 	printf("grab_service_macros() start\n");
 #endif
 
 	/* get the service description */
-	if(macro_service_description!=NULL)
-		free(macro_service_description);
-	macro_service_description=(char *)malloc(strlen(svc->description)+1);
-	if(macro_service_description!=NULL)
-		strcpy(macro_service_description,svc->description);
+	if(macro_x[MACRO_SERVICEDESC]!=NULL)
+		free(macro_x[MACRO_SERVICEDESC]);
+	macro_x[MACRO_SERVICEDESC]=strdup(svc->description);
 
 	/* get the plugin output */
-	if(macro_output!=NULL)
-		free(macro_output);
+	if(macro_x[MACRO_OUTPUT]!=NULL)
+		free(macro_x[MACRO_OUTPUT]);
 	if(svc->plugin_output==NULL)
-		macro_output=NULL;
+		macro_x[MACRO_OUTPUT]=NULL;
 	else
-		macro_output=(char *)malloc(strlen(svc->plugin_output)+1);
-	if(macro_output!=NULL)
-		strcpy(macro_output,svc->plugin_output);
+		macro_x[MACRO_OUTPUT]=strdup(svc->plugin_output);
 
 	/* get the performance data */
-	if(macro_perfdata!=NULL)
-		free(macro_perfdata);
+	if(macro_x[MACRO_PERFDATA]!=NULL)
+		free(macro_x[MACRO_PERFDATA]);
 	if(svc->perf_data==NULL)
-		macro_perfdata=NULL;
+		macro_x[MACRO_PERFDATA]=NULL;
 	else
-		macro_perfdata=(char *)malloc(strlen(svc->perf_data)+1);
-	if(macro_perfdata!=NULL)
-		strcpy(macro_perfdata,svc->perf_data);
+		macro_x[MACRO_PERFDATA]=strdup(svc->perf_data);
 
 	/* grab the service state type macro (this is usually overridden later on) */
-	if(macro_state_type!=NULL)
-		free(macro_state_type);
-	macro_state_type=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_state_type!=NULL)
-		strcpy(macro_state_type,(svc->state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		free(macro_x[MACRO_STATETYPE]);
+	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_STATETYPE],(svc->state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* get the service state */
-	if(macro_service_state!=NULL)
-		free(macro_service_state);
-	macro_service_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_service_state!=NULL){
+	if(macro_x[MACRO_SERVICESTATE]!=NULL)
+		free(macro_x[MACRO_SERVICESTATE]);
+	macro_x[MACRO_SERVICESTATE]=(char *)malloc(MAX_STATE_LENGTH);
+	if(macro_x[MACRO_SERVICESTATE]!=NULL){
 		if(svc->current_state==STATE_OK)
-			strcpy(macro_service_state,"OK");
+			strcpy(macro_x[MACRO_SERVICESTATE],"OK");
 		else if(svc->current_state==STATE_WARNING)
-			strcpy(macro_service_state,"WARNING");
+			strcpy(macro_x[MACRO_SERVICESTATE],"WARNING");
 		else if(svc->current_state==STATE_CRITICAL)
-			strcpy(macro_service_state,"CRITICAL");
+			strcpy(macro_x[MACRO_SERVICESTATE],"CRITICAL");
 		else
-			strcpy(macro_service_state,"UNKNOWN");
+			strcpy(macro_x[MACRO_SERVICESTATE],"UNKNOWN");
 	        }
 
 	/* get the current service check attempt macro */
-	if(macro_current_service_attempt!=NULL)
-		free(macro_current_service_attempt);
-	macro_current_service_attempt=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_current_service_attempt!=NULL){
-		snprintf(macro_current_service_attempt,MAX_ATTEMPT_LENGTH-1,"%d",svc->current_attempt);
-		macro_current_service_attempt[MAX_ATTEMPT_LENGTH-1]='\x0';
+	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
+		free(macro_x[MACRO_SERVICEATTEMPT]);
+	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
+	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL){
+		snprintf(macro_x[MACRO_SERVICEATTEMPT],MAX_ATTEMPT_LENGTH-1,"%d",svc->current_attempt);
+		macro_x[MACRO_SERVICEATTEMPT][MAX_ATTEMPT_LENGTH-1]='\x0';
 	        }
 
 	/* get the execution time macro */
-	if(macro_execution_time!=NULL)
-		free(macro_execution_time);
-	macro_execution_time=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
-	if(macro_execution_time!=NULL){
-		snprintf(macro_execution_time,MAX_EXECUTIONTIME_LENGTH-1,"%lu",svc->execution_time);
-		macro_execution_time[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
+	if(macro_x[MACRO_EXECUTIONTIME]!=NULL)
+		free(macro_x[MACRO_EXECUTIONTIME]);
+	macro_x[MACRO_EXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
+	if(macro_x[MACRO_EXECUTIONTIME]!=NULL){
+		snprintf(macro_x[MACRO_EXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lu",svc->execution_time);
+		macro_x[MACRO_EXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
 	        }
 
 	/* get the latency macro */
-	if(macro_latency!=NULL)
-		free(macro_latency);
-	macro_latency=(char *)malloc(MAX_LATENCY_LENGTH);
-	if(macro_latency!=NULL){
-		snprintf(macro_latency,MAX_LATENCY_LENGTH-1,"%lu",svc->latency);
-		macro_latency[MAX_LATENCY_LENGTH-1]='\x0';
+	if(macro_x[MACRO_LATENCY]!=NULL)
+		free(macro_x[MACRO_LATENCY]);
+	macro_x[MACRO_LATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
+	if(macro_x[MACRO_LATENCY]!=NULL){
+		snprintf(macro_x[MACRO_LATENCY],MAX_LATENCY_LENGTH-1,"%lu",svc->latency);
+		macro_x[MACRO_LATENCY][MAX_LATENCY_LENGTH-1]='\x0';
+	        }
+
+	/* get the last state change time macro */
+	if(macro_x[MACRO_LASTSTATECHANGE]!=NULL)
+		free(macro_x[MACRO_LASTSTATECHANGE]);
+	macro_x[MACRO_LASTSTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTSTATECHANGE]!=NULL){
+		snprintf(macro_x[MACRO_LASTSTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_state_change);
+		macro_x[MACRO_LASTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the service downtime depth */
+	if(macro_x[MACRO_SERVICEDOWNTIME]!=NULL)
+		free(macro_x[MACRO_SERVICEDOWNTIME]);
+	macro_x[MACRO_SERVICEDOWNTIME]=(char *)malloc(MAX_DOWNTIME_LENGTH);
+	if(macro_x[MACRO_SERVICEDOWNTIME]!=NULL){
+		snprintf(macro_x[MACRO_SERVICEDOWNTIME],MAX_DOWNTIME_LENGTH-1,"%d",svc->scheduled_downtime_depth);
+		macro_x[MACRO_SERVICEDOWNTIME][MAX_DOWNTIME_LENGTH-1]='\x0';
+	        }
+
+	time(&current_time);
+	duration=(unsigned long)(current_time-svc->last_state_change);
+
+	/* get the state duration in seconds */
+	if(macro_x[MACRO_DURATIONSEC]!=NULL)
+		free(macro_x[MACRO_DURATIONSEC]);
+	macro_x[MACRO_DURATIONSEC]=(char *)malloc(MAX_DURATION_LENGTH);
+	if(macro_x[MACRO_DURATIONSEC]!=NULL){
+		snprintf(macro_x[MACRO_DURATIONSEC],MAX_DURATION_LENGTH-1,"%lu",duration);
+		macro_x[MACRO_DURATIONSEC][MAX_DURATION_LENGTH-1]='\x0';
+	        }
+
+	/* get the state duration */
+	if(macro_x[MACRO_DURATION]!=NULL)
+		free(macro_x[MACRO_DURATION]);
+	macro_x[MACRO_DURATION]=(char *)malloc(MAX_DURATION_LENGTH);
+	if(macro_x[MACRO_DURATION]!=NULL){
+		hours=duration/3600;
+		duration-=(hours*3600);
+		minutes=duration/60;
+		duration-=(minutes*60);
+		seconds=duration;
+		snprintf(macro_x[MACRO_DURATION],MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
+		macro_x[MACRO_DURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
 	/* get the date/time macros */
 	grab_datetime_macros();
 
-	/* get the last check time macro */
-	if(macro_date_time[MACRO_DATETIME_LASTCHECK]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_LASTCHECK]);
-	macro_date_time[MACRO_DATETIME_LASTCHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_LASTCHECK]!=NULL){
-		snprintf(macro_date_time[MACRO_DATETIME_LASTCHECK],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_check);
-		macro_date_time[MACRO_DATETIME_LASTCHECK][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
-
-	/* get the last state change time macro */
-	if(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]);
-	macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]!=NULL){
-		snprintf(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)svc->last_state_change);
-		macro_date_time[MACRO_DATETIME_LASTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
-
-	strip(macro_service_description);
-	strip(macro_output);
-	strip(macro_service_state);
-	strip(macro_current_service_attempt);
+	strip(macro_x[MACRO_SERVICEDESC]);
+	strip(macro_x[MACRO_OUTPUT]);
+	strip(macro_x[MACRO_PERFDATA]);
+	strip(macro_x[MACRO_SERVICESTATE]);
+	strip(macro_x[MACRO_SERVICEATTEMPT]);
 
 #ifdef DEBUG0
 	printf("grab_service_macros() end\n");
@@ -556,110 +585,132 @@ int grab_service_macros(service *svc){
 
 /* grab macros that are specific to a particular host */
 int grab_host_macros(host *hst){
+	time_t current_time;
+	unsigned long duration;
+	int hours;
+	int minutes;
+	int seconds;
 
 #ifdef DEBUG0
 	printf("grab_host_macros() start\n");
 #endif
 
 	/* get the host name */
-	if(macro_host_name!=NULL)
-		free(macro_host_name);
-	macro_host_name=(char *)malloc(strlen(hst->name)+1);
-	if(macro_host_name!=NULL)
-		strcpy(macro_host_name,hst->name);
+	if(macro_x[MACRO_HOSTNAME]!=NULL)
+		free(macro_x[MACRO_HOSTNAME]);
+	macro_x[MACRO_HOSTNAME]=strdup(hst->name);
 	
 	/* get the host alias */
-	if(macro_host_alias!=NULL)
-		free(macro_host_alias);
-	macro_host_alias=(char *)malloc(strlen(hst->alias)+1);
-	if(macro_host_alias!=NULL)
-		strcpy(macro_host_alias,hst->alias);
+	if(macro_x[MACRO_HOSTALIAS]!=NULL)
+		free(macro_x[MACRO_HOSTALIAS]);
+	macro_x[MACRO_HOSTALIAS]=strdup(hst->alias);
 
 	/* get the host address */
-	if(macro_host_address!=NULL)
-		free(macro_host_address);
-	macro_host_address=(char *)malloc(strlen(hst->address)+1);
-	if(macro_host_address!=NULL)
-		strcpy(macro_host_address,hst->address);
+	if(macro_x[MACRO_HOSTADDRESS]!=NULL)
+		free(macro_x[MACRO_HOSTADDRESS]);
+	macro_x[MACRO_HOSTADDRESS]=strdup(hst->address);
 
 	/* get the host state */
-	if(macro_host_state!=NULL)
-		free(macro_host_state);
-	macro_host_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_host_state!=NULL){
+	if(macro_x[MACRO_HOSTSTATE]!=NULL)
+		free(macro_x[MACRO_HOSTSTATE]);
+	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
+	if(macro_x[MACRO_HOSTSTATE]!=NULL){
 		if(hst->status==HOST_DOWN)
-			strcpy(macro_host_state,"DOWN");
+			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
 		else if(hst->status==HOST_UNREACHABLE)
-			strcpy(macro_host_state,"UNREACHABLE");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
 		else
-			strcpy(macro_host_state,"UP");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
 	        }
 
 	/* get the plugin output */
-	if(macro_output!=NULL)
-		free(macro_output);
+	if(macro_x[MACRO_OUTPUT]!=NULL)
+		free(macro_x[MACRO_OUTPUT]);
 	if(hst->plugin_output==NULL)
-		macro_output=NULL;
+		macro_x[MACRO_OUTPUT]=NULL;
 	else
-		macro_output=(char *)malloc(strlen(hst->plugin_output)+1);
-	if(macro_output!=NULL)
-		strcpy(macro_output,hst->plugin_output);
+		macro_x[MACRO_OUTPUT]=strdup(hst->plugin_output);
 
 	/* get the performance data */
-	if(macro_perfdata!=NULL)
-		free(macro_perfdata);
+	if(macro_x[MACRO_PERFDATA]!=NULL)
+		free(macro_x[MACRO_PERFDATA]);
 	if(hst->perf_data==NULL)
-		macro_perfdata=NULL;
+		macro_x[MACRO_PERFDATA]=NULL;
 	else
-		macro_perfdata=(char *)malloc(strlen(hst->perf_data)+1);
-	if(macro_perfdata!=NULL)
-		strcpy(macro_perfdata,hst->perf_data);
+		macro_x[MACRO_PERFDATA]=strdup(hst->perf_data);
 
 	/* get the host current attempt */
-	if(macro_current_host_attempt!=NULL)
-		free(macro_current_host_attempt);
-	macro_current_host_attempt=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_current_host_attempt!=NULL){
-		snprintf(macro_current_host_attempt,MAX_ATTEMPT_LENGTH-1,"%d",hst->current_attempt);
-		macro_current_host_attempt[MAX_ATTEMPT_LENGTH-1]='\x0';
+	if(macro_x[MACRO_HOSTATTEMPT]!=NULL)
+		free(macro_x[MACRO_HOSTATTEMPT]);
+	macro_x[MACRO_HOSTATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
+	if(macro_x[MACRO_HOSTATTEMPT]!=NULL){
+		snprintf(macro_x[MACRO_HOSTATTEMPT],MAX_ATTEMPT_LENGTH-1,"%d",hst->current_attempt);
+		macro_x[MACRO_HOSTATTEMPT][MAX_ATTEMPT_LENGTH-1]='\x0';
+	        }
+
+	/* get the host downtime depth */
+	if(macro_x[MACRO_HOSTDOWNTIME]!=NULL)
+		free(macro_x[MACRO_HOSTDOWNTIME]);
+	macro_x[MACRO_HOSTDOWNTIME]=(char *)malloc(MAX_DOWNTIME_LENGTH);
+	if(macro_x[MACRO_HOSTDOWNTIME]!=NULL){
+		snprintf(macro_x[MACRO_HOSTDOWNTIME],MAX_DOWNTIME_LENGTH-1,"%d",hst->scheduled_downtime_depth);
+		macro_x[MACRO_HOSTDOWNTIME][MAX_DOWNTIME_LENGTH-1]='\x0';
+	        }
+
+	time(&current_time);
+	duration=(unsigned long)(current_time-hst->last_state_change);
+
+	/* get the state duration in seconds */
+	if(macro_x[MACRO_DURATIONSEC]!=NULL)
+		free(macro_x[MACRO_DURATIONSEC]);
+	macro_x[MACRO_DURATIONSEC]=(char *)malloc(MAX_DURATION_LENGTH);
+	if(macro_x[MACRO_DURATIONSEC]!=NULL){
+		snprintf(macro_x[MACRO_DURATIONSEC],MAX_DURATION_LENGTH-1,"%lu",duration);
+		macro_x[MACRO_DURATIONSEC][MAX_DURATION_LENGTH-1]='\x0';
+	        }
+
+	/* get the state duration */
+	if(macro_x[MACRO_DURATION]!=NULL)
+		free(macro_x[MACRO_DURATION]);
+	macro_x[MACRO_DURATION]=(char *)malloc(MAX_DURATION_LENGTH);
+	if(macro_x[MACRO_DURATION]!=NULL){
+		hours=duration/3600;
+		duration-=(hours*3600);
+		minutes=duration/60;
+		duration-=(minutes*60);
+		seconds=duration;
+		snprintf(macro_x[MACRO_DURATION],MAX_DURATION_LENGTH-1,"%dh %dm %ds",hours,minutes,seconds);
+		macro_x[MACRO_DURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
 	/* get the execution time macro */
-	if(macro_execution_time!=NULL)
-		free(macro_execution_time);
-	macro_execution_time=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
-	if(macro_execution_time!=NULL){
-		snprintf(macro_execution_time,MAX_EXECUTIONTIME_LENGTH-1,"%lu",hst->execution_time);
-		macro_execution_time[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
+	if(macro_x[MACRO_EXECUTIONTIME]!=NULL)
+		free(macro_x[MACRO_EXECUTIONTIME]);
+	macro_x[MACRO_EXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
+	if(macro_x[MACRO_EXECUTIONTIME]!=NULL){
+		snprintf(macro_x[MACRO_EXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH-1,"%lu",hst->execution_time);
+		macro_x[MACRO_EXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the last state change time macro */
+	if(macro_x[MACRO_LASTSTATECHANGE]!=NULL)
+		free(macro_x[MACRO_LASTSTATECHANGE]);
+	macro_x[MACRO_LASTSTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LASTSTATECHANGE]!=NULL){
+		snprintf(macro_x[MACRO_LASTSTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
+		macro_x[MACRO_LASTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
 	/* get the date/time macros */
 	grab_datetime_macros();
 
-	/* get the last check time macro */
-	if(macro_date_time[MACRO_DATETIME_LASTCHECK]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_LASTCHECK]);
-	macro_date_time[MACRO_DATETIME_LASTCHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_LASTCHECK]!=NULL){
-		snprintf(macro_date_time[MACRO_DATETIME_LASTCHECK],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_check);
-		macro_date_time[MACRO_DATETIME_LASTCHECK][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
-
-	/* get the last state change time macro */
-	if(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]);
-	macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]!=NULL){
-		snprintf(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)hst->last_state_change);
-		macro_date_time[MACRO_DATETIME_LASTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
-
-	strip(macro_host_name);
-	strip(macro_host_alias);
-	strip(macro_host_address);
-	strip(macro_host_state);
-	strip(macro_output);
-	strip(macro_current_host_attempt);
+	strip(macro_x[MACRO_HOSTNAME]);
+	strip(macro_x[MACRO_HOSTALIAS]);
+	strip(macro_x[MACRO_HOSTADDRESS]);
+	strip(macro_x[MACRO_HOSTSTATE]);
+	strip(macro_x[MACRO_OUTPUT]);
+	strip(macro_x[MACRO_PERFDATA]);
+	strip(macro_x[MACRO_HOSTATTEMPT]);
 
 #ifdef DEBUG0
 	printf("grab_host_macros() end\n");
@@ -677,46 +728,38 @@ int grab_contact_macros(contact *cntct){
 #endif
 
 	/* get the name */
-	if(macro_contact_name!=NULL)
-		free(macro_contact_name);
-	macro_contact_name=(char *)malloc(strlen(cntct->name)+1);
-	if(macro_contact_name!=NULL)
-		strcpy(macro_contact_name,cntct->name);
+	if(macro_x[MACRO_CONTACTNAME]!=NULL)
+		free(macro_x[MACRO_CONTACTNAME]);
+	macro_x[MACRO_CONTACTNAME]=strdup(cntct->name);
 
 	/* get the alias */
-	if(macro_contact_alias!=NULL)
-		free(macro_contact_alias);
-	macro_contact_alias=(char *)malloc(strlen(cntct->alias)+1);
-	if(macro_contact_alias!=NULL)
-		strcpy(macro_contact_alias,cntct->alias);
+	if(macro_x[MACRO_CONTACTALIAS]!=NULL)
+		free(macro_x[MACRO_CONTACTALIAS]);
+	macro_x[MACRO_CONTACTALIAS]=strdup(cntct->alias);
 
 	/* get the email address */
-	if(macro_contact_email!=NULL)
-		free(macro_contact_email);
+	if(macro_x[MACRO_CONTACTEMAIL]!=NULL)
+		free(macro_x[MACRO_CONTACTEMAIL]);
 	if(cntct->email==NULL)
-		macro_contact_email=NULL;
+		macro_x[MACRO_CONTACTEMAIL]=NULL;
 	else
-		macro_contact_email=(char *)malloc(strlen(cntct->email)+1);
-	if(macro_contact_email!=NULL)
-		strcpy(macro_contact_email,cntct->email);
+		macro_x[MACRO_CONTACTEMAIL]=strdup(cntct->email);
 
 	/* get the pager number */
-	if(macro_contact_pager!=NULL)
-		free(macro_contact_pager);
+	if(macro_x[MACRO_CONTACTPAGER]!=NULL)
+		free(macro_x[MACRO_CONTACTPAGER]);
 	if(cntct->pager==NULL)
-		macro_contact_pager=NULL;
+		macro_x[MACRO_CONTACTPAGER]=NULL;
 	else
-		macro_contact_pager=(char *)malloc(strlen(cntct->pager)+1);
-	if(macro_contact_pager!=NULL)
-		strcpy(macro_contact_pager,cntct->pager);
+		macro_x[MACRO_CONTACTPAGER]=strdup(cntct->pager);
 
 	/* get the date/time macros */
 	grab_datetime_macros();
 
-	strip(macro_contact_name);
-	strip(macro_contact_alias);
-	strip(macro_contact_email);
-	strip(macro_contact_pager);
+	strip(macro_x[MACRO_CONTACTNAME]);
+	strip(macro_x[MACRO_CONTACTALIAS]);
+	strip(macro_x[MACRO_CONTACTEMAIL]);
+	strip(macro_x[MACRO_CONTACTPAGER]);
 
 #ifdef DEBUG0
 	printf("grab_contact_macros() end\n");
@@ -738,50 +781,71 @@ int grab_datetime_macros(void){
 	time(&t);
 
 	/* get the current date/time (long format macro) */
-	if(macro_date_time[MACRO_DATETIME_LONGDATE]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_LONGDATE]);
-	macro_date_time[MACRO_DATETIME_LONGDATE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_LONGDATE]!=NULL)
-		get_datetime_string(&t,macro_date_time[MACRO_DATETIME_LONGDATE],MAX_DATETIME_LENGTH,LONG_DATE_TIME);
+	if(macro_x[MACRO_LONGDATETIME]==NULL)
+		macro_x[MACRO_LONGDATETIME]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_LONGDATETIME]!=NULL)
+		get_datetime_string(&t,macro_x[MACRO_LONGDATETIME],MAX_DATETIME_LENGTH,LONG_DATE_TIME);
 
 	/* get the current date/time (short format macro) */
-	if(macro_date_time[MACRO_DATETIME_SHORTDATE]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_SHORTDATE]);
-	macro_date_time[MACRO_DATETIME_SHORTDATE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_SHORTDATE]!=NULL)
-		get_datetime_string(&t,macro_date_time[MACRO_DATETIME_SHORTDATE],MAX_DATETIME_LENGTH,SHORT_DATE_TIME);
+	if(macro_x[MACRO_SHORTDATETIME]==NULL)
+		macro_x[MACRO_SHORTDATETIME]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_SHORTDATETIME]!=NULL)
+		get_datetime_string(&t,macro_x[MACRO_SHORTDATETIME],MAX_DATETIME_LENGTH,SHORT_DATE_TIME);
 
 	/* get the short format date macro */
-	if(macro_date_time[MACRO_DATETIME_DATE]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_DATE]);
-	macro_date_time[MACRO_DATETIME_DATE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_DATE]!=NULL)
-		get_datetime_string(&t,macro_date_time[MACRO_DATETIME_DATE],MAX_DATETIME_LENGTH,SHORT_DATE);
+	if(macro_x[MACRO_DATE]==NULL)
+		macro_x[MACRO_DATE]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_DATE]!=NULL)
+		get_datetime_string(&t,macro_x[MACRO_DATE],MAX_DATETIME_LENGTH,SHORT_DATE);
 
 	/* get the short format time macro */
-	if(macro_date_time[MACRO_DATETIME_TIME]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_TIME]);
-	macro_date_time[MACRO_DATETIME_TIME]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_TIME]!=NULL)
-		get_datetime_string(&t,macro_date_time[MACRO_DATETIME_TIME],MAX_DATETIME_LENGTH,SHORT_TIME);
+	if(macro_x[MACRO_TIME]==NULL)
+		macro_x[MACRO_TIME]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_TIME]!=NULL)
+		get_datetime_string(&t,macro_x[MACRO_TIME],MAX_DATETIME_LENGTH,SHORT_TIME);
 
 	/* get the time_t format time macro */
-	if(macro_date_time[MACRO_DATETIME_TIMET]!=NULL)
-		free(macro_date_time[MACRO_DATETIME_TIMET]);
-	macro_date_time[MACRO_DATETIME_TIMET]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_date_time[MACRO_DATETIME_TIMET]!=NULL){
-		snprintf(macro_date_time[MACRO_DATETIME_TIMET],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)t);
-		macro_date_time[MACRO_DATETIME_TIMET][MAX_DATETIME_LENGTH-1]='\x0';
+	if(macro_x[MACRO_TIMET]==NULL)
+		macro_x[MACRO_TIMET]=(char *)malloc(MAX_DATETIME_LENGTH);
+	if(macro_x[MACRO_TIMET]!=NULL){
+		snprintf(macro_x[MACRO_TIMET],MAX_DATETIME_LENGTH-1,"%lu",(unsigned long)t);
+		macro_x[MACRO_TIMET][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
-	strip(macro_date_time[MACRO_DATETIME_LONGDATE]);
-	strip(macro_date_time[MACRO_DATETIME_SHORTDATE]);
-	strip(macro_date_time[MACRO_DATETIME_DATE]);
-	strip(macro_date_time[MACRO_DATETIME_TIME]);
-	strip(macro_date_time[MACRO_DATETIME_TIMET]);
+	strip(macro_x[MACRO_LONGDATETIME]);
+	strip(macro_x[MACRO_SHORTDATETIME]);
+	strip(macro_x[MACRO_DATE]);
+	strip(macro_x[MACRO_TIME]);
+	strip(macro_x[MACRO_TIMET]);
 
 #ifdef DEBUG0
 	printf("grab_datetime_macros() end\n");
+#endif
+
+	return OK;
+        }
+
+
+
+/* clear argv macros - used in commands */
+int clear_argv_macros(void){
+	int x;
+
+
+#ifdef DEBUG0
+	printf("clear_argv_macros() start\n");
+#endif
+
+	/* command argument macros */
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+		if(macro_argv[x]!=NULL){
+			free(macro_argv[x]);
+			macro_argv[x]=NULL;
+		        }
+	        }
+
+#ifdef DEBUG0
+	printf("clear_argv_macros() end\n");
 #endif
 
 	return OK;
@@ -797,118 +861,18 @@ int clear_volatile_macros(void){
 	printf("clear_volatile_macros() start\n");
 #endif
 
-	/* plugin output macros */
-	if(macro_output!=NULL){
-		free(macro_output);
-		macro_output=NULL;
-	        }
-	if(macro_perfdata!=NULL){
-		free(macro_perfdata);
-		macro_perfdata=NULL;
-	        }
-
-	/* contact macros */
-	if(macro_contact_name!=NULL){
-		free(macro_contact_name);
-		macro_contact_name=NULL;
-	        }
-	if(macro_contact_alias!=NULL){
-		free(macro_contact_alias);
-		macro_contact_alias=NULL;
-	        }
-	if(macro_contact_email!=NULL){
-		free(macro_contact_email);
-		macro_contact_email=NULL;
-	        }
-	if(macro_contact_pager!=NULL){
-		free(macro_contact_pager);
-		macro_contact_pager=NULL;
-	        }
-
-	/* host macros */
-	if(macro_host_name!=NULL){
-		free(macro_host_name);
-		macro_host_name=NULL;
-	        }
-	if(macro_host_alias!=NULL){
-		free(macro_host_alias);
-		macro_host_alias=NULL;
-	        }
-	if(macro_host_address!=NULL){
-		free(macro_host_address);
-		macro_host_address=NULL;
-	        }
-	if(macro_host_state!=NULL){
-		free(macro_host_state);
-		macro_host_state=NULL;
-	        }
-	if(macro_current_host_attempt!=NULL){
-		free(macro_current_host_attempt);
-		macro_current_host_attempt=NULL;
-	        }
-
-	/* service macros */
-	if(macro_service_description!=NULL){
-		free(macro_service_description);
-		macro_service_description=NULL;
-	        }
-	if(macro_service_state!=NULL){
-		free(macro_service_state);
-		macro_service_state=NULL;
-	        }
-	if(macro_current_service_attempt!=NULL){
-		free(macro_current_service_attempt);
-		macro_current_service_attempt=NULL;
-                }
-
-	/* miscellaneous macros */
-	if(macro_state_type!=NULL){
-		free(macro_state_type);
-		macro_state_type=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_LONGDATE]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_LONGDATE]);
-		macro_date_time[MACRO_DATETIME_LONGDATE]=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_SHORTDATE]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_SHORTDATE]);
-		macro_date_time[MACRO_DATETIME_SHORTDATE]=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_DATE]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_DATE]);
-		macro_date_time[MACRO_DATETIME_DATE]=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_TIME]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_TIME]);
-		macro_date_time[MACRO_DATETIME_TIME]=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_TIMET]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_TIMET]);
-		macro_date_time[MACRO_DATETIME_TIMET]=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_LASTCHECK]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_LASTCHECK]);
-		macro_date_time[MACRO_DATETIME_LASTCHECK]=NULL;
-	        }
-	if(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]!=NULL){
-		free(macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]);
-		macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]=NULL;
-	        }
-	if(macro_notification_type!=NULL){
-		free(macro_notification_type);
-		macro_notification_type=NULL;
-	        }
-	if(macro_notification_number!=NULL){
-		free(macro_notification_number);
-		macro_notification_number=NULL;
-	        }
-	if(macro_execution_time!=NULL){
-		free(macro_execution_time);
-		macro_execution_time=NULL;
-	        }
-	if(macro_latency!=NULL){
-		free(macro_latency);
-		macro_latency=NULL;
+	for(x=0;x<MACRO_X_COUNT;x++){
+		switch(x){
+		case MACRO_ADMINEMAIL:
+		case MACRO_ADMINPAGER:
+			break;
+		default:
+			if(macro_x[x]!=NULL){
+				free(macro_x[x]);
+				macro_x[x]=NULL;
+			        }
+			break;
+		        }
 	        }
 
 	/* command argument macros */
@@ -934,24 +898,22 @@ int clear_nonvolatile_macros(void){
 #ifdef DEBUG0
 	printf("clear_nonvolatile_macros() start\n");
 #endif
-
-	/* admin email and pager */
-	if(macro_admin_email!=NULL){
-		free(macro_admin_email);
-		macro_admin_email=NULL;
-	        }
-	if(macro_admin_pager!=NULL){
-		free(macro_admin_pager);
-		macro_admin_pager=NULL;
-	        }
-
-	/* user macros */
-	for(x=0;x<MAX_USER_MACROS;x++){
-		if(macro_user[x]!=NULL){
-			free(macro_user[x]);
-			macro_user[x]=NULL;
+	
+	for(x=0;x<MACRO_X_COUNT;x++){
+		switch(x){
+		case MACRO_ADMINEMAIL:
+		case MACRO_ADMINPAGER:
+			if(macro_x[x]!=NULL){
+				free(macro_x[x]);
+				macro_x[x]=NULL;
+			        }
+			break;
+		default:
+			break;
 		        }
 	        }
+
+	clear_argv_macros();
 
 #ifdef DEBUG0
 	printf("clear_nonvolatile_macros() end\n");
@@ -2599,6 +2561,7 @@ void cleanup(void){
 void free_memory(void){
 	timed_event *this_event=NULL;
 	timed_event *next_event=NULL;
+	int x;
 
 #ifdef DEBUG0
 	printf("free_memory() start\n");
@@ -2671,6 +2634,13 @@ void free_memory(void){
 		free(ocsp_command);
 		ocsp_command=NULL;
 	        }
+
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
+		macro_argv[x]=NULL;
+
+	for(x=0;x<MAX_USER_MACROS;x++)
+		macro_user[x]=NULL;
+	
 
 	/* free illegal char strings */
 	if(illegal_object_chars!=NULL){
@@ -2851,34 +2821,8 @@ int reset_variables(void){
 
 	max_embedded_perl_calls=DEFAULT_MAX_EMBEDDED_PERL_CALLS;
 
-	macro_contact_name=NULL;
-	macro_contact_alias=NULL;
-	macro_host_name=NULL;
-	macro_host_alias=NULL;
-	macro_host_address=NULL;
-	macro_service_description=NULL;
-	macro_service_state=NULL;
-	macro_output=NULL;
-	macro_perfdata=NULL;
-	macro_contact_email=NULL;
-	macro_contact_pager=NULL;
-	macro_admin_email=NULL;
-	macro_admin_pager=NULL;
-	macro_host_state=NULL;
-	macro_state_type=NULL;
-	macro_current_service_attempt=NULL;
-	macro_current_host_attempt=NULL;
-	macro_notification_type=NULL;
-	macro_execution_time=NULL;
-	macro_latency=NULL;
-
-	macro_date_time[MACRO_DATETIME_LONGDATE]=NULL;
-	macro_date_time[MACRO_DATETIME_SHORTDATE]=NULL;
-	macro_date_time[MACRO_DATETIME_DATE]=NULL;
-	macro_date_time[MACRO_DATETIME_TIME]=NULL;
-	macro_date_time[MACRO_DATETIME_TIMET]=NULL;
-	macro_date_time[MACRO_DATETIME_LASTCHECK]=NULL;
-	macro_date_time[MACRO_DATETIME_LASTSTATECHANGE]=NULL;
+	for(x=0;x<=MACRO_X_COUNT;x++)
+		macro_x[x]=NULL;
 
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
 		macro_argv[x]=NULL;

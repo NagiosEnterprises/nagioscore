@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-03-2001
+ * Last Modified:   12-06-2001
  *
  * License:
  *
@@ -32,11 +32,7 @@ extern char	*log_file;
 extern char     *temp_file;
 extern char	*log_archive_path;
 
-extern char     *macro_current_service_attempt;
-extern char	*macro_service_state;
-extern char     *macro_current_host_attempt;
-extern char     *macro_host_state;
-extern char     *macro_state_type;
+extern char     *macro_x[MACRO_X_COUNT];
 
 extern int	use_syslog;
 extern int      log_service_retries;
@@ -186,7 +182,7 @@ int log_service_event(service *svc,int state_type){
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_service_state,(state_type==SOFT_STATE)?"SOFT":"HARD",macro_current_service_attempt,svc->plugin_output);
+	snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],(state_type==SOFT_STATE)?"SOFT":"HARD",macro_x[MACRO_SERVICEATTEMPT],svc->plugin_output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	write_to_logs_and_console(temp_buffer,log_options,FALSE);
 
@@ -213,23 +209,23 @@ int log_host_event(host *hst, int state, int state_type){
 	grab_host_macros(hst);
 
 	/* get the host state type macro */
-	if(macro_state_type!=NULL)
-		free(macro_state_type);
-	macro_state_type=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_state_type!=NULL)
-		strcpy(macro_state_type,(state_type==HARD_STATE)?"HARD":"SOFT");
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		free(macro_x[MACRO_STATETYPE]);
+	macro_x[MACRO_STATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
+	if(macro_x[MACRO_STATETYPE]!=NULL)
+		strcpy(macro_x[MACRO_STATETYPE],(state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* make sure the host state macro is correct */
-	if(macro_host_state!=NULL)
-		free(macro_host_state);
-	macro_host_state=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_host_state!=NULL){
+	if(macro_x[MACRO_HOSTSTATE]!=NULL)
+		free(macro_x[MACRO_HOSTSTATE]);
+	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
+	if(macro_x[MACRO_HOSTSTATE]!=NULL){
 		if(state==HOST_DOWN)
-			strcpy(macro_host_state,"DOWN");
+			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
 		else if(state==HOST_UNREACHABLE)
-			strcpy(macro_host_state,"UNREACHABLE");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
 		else
-			strcpy(macro_host_state,"UP");
+			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
 	        }
 
 	/* get the log options */
@@ -241,7 +237,7 @@ int log_host_event(host *hst, int state, int state_type){
 		log_options=NSLOG_HOST_UP;
 
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_host_state,macro_state_type,macro_current_host_attempt,hst->plugin_output);
+	snprintf(temp_buffer,sizeof(temp_buffer),"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_STATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->plugin_output);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	write_to_logs_and_console(temp_buffer,log_options,FALSE);
 

@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0a1 - ??/??/????
 ------------------
+* Added DURATION, DURATIONSEC, HOSTDOWNTIME, and SERVICEDOWNTIME macros
 * Removed hostgroup escalations
 * Added passive host checks
 * Event handler commands can now contain arguments

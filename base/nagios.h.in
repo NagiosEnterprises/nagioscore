@@ -466,6 +466,7 @@ int write_to_syslog(char *,unsigned long);             	/* write a string to the
 int log_service_event(service *,int);			/* logs a service event */
 int log_host_event(host *,int);				/* logs a host event */
 int rotate_log_file(time_t);			     	/* rotates the main log file */
+int write_log_file_info(void);	 			/* records log file/version info */
 
 
 /**** Cleanup Functions ****/

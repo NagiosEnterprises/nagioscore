@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-14-2003
+ * Last Modified: 02-16-2003
  *
  * License:
  *
@@ -23,7 +23,7 @@
 
 
 #define PROGRAM_VERSION "2.0-very-pre-alpha"
-#define PROGRAM_MODIFICATION_DATE "12-01-2002"
+#define PROGRAM_MODIFICATION_DATE "02-16-2003"
 
 
 /***************************** COMMANDS *********************************/
@@ -220,6 +220,12 @@
 #define LOG_ROTATION_DAILY      2
 #define LOG_ROTATION_WEEKLY     3
 #define LOG_ROTATION_MONTHLY    4
+
+
+/***************************** LOG VERSIONS ******************************/
+
+#define LOG_VERSION_1           "1.0"
+#define LOG_VERSION_2           "2.0"
 
 
 /************************* GENERAL DEFINITIONS  **************************/

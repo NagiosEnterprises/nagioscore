@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-15-2003
+ * Last Modified:   02-16-2003
  *
  * Description:
  *
@@ -517,6 +517,9 @@ int main(int argc, char **argv){
 			snprintf(buffer,sizeof(buffer),"Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
 			buffer[sizeof(buffer)-1]='\x0';
 			write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
+
+			/* write log version/info */
+			write_log_file_info();
 
 			/* there was a problem reading the config files */
 			if(result!=OK){

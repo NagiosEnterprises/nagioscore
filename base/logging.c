@@ -306,6 +306,9 @@ int rotate_log_file(time_t rotation_time){
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
 
+	/* record log file version format */
+	write_log_file_info();
+
 #ifdef USE_EVENT_BROKER
 	/* send data to the event broker */
 	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,NULL);
@@ -317,6 +320,27 @@ int rotate_log_file(time_t rotation_time){
 
 #ifdef DEBUG0
 	printf("rotate_log_file() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* record log file version/info */
+int write_log_file_info(void){
+	char temp_buffer[MAX_INPUT_BUFFER];
+
+#ifdef DEBUG0
+	printf("write_log_file_info() start\n");
+#endif
+
+	/* write log version */
+	snprintf(temp_buffer,sizeof(temp_buffer),"LOG VERSION: %s\n",LOG_VERSION_2);
+	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,FALSE);
+
+#ifdef DEBUG0
+	printf("write_log_file_info() end\n");
 #endif
 
 	return OK;

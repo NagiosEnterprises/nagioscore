@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-14-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   07-03-2003
  *
  * License:
  *
@@ -547,12 +547,12 @@ int xrddefault_read_state_information(char *main_config_file){
 			temp_ptr=strtok(NULL,";");
 			if(temp_ptr==NULL)
 				continue;
-			event_handler_enabled=atoi(temp_ptr);
+			accept_passive_checks=atoi(temp_ptr);
 
 			temp_ptr=strtok(NULL,";");
 			if(temp_ptr==NULL)
 				continue;
-			accept_passive_checks=atoi(temp_ptr);
+			event_handler_enabled=atoi(temp_ptr);
 
 			temp_ptr=strtok(NULL,";");
 			if(temp_ptr==NULL)

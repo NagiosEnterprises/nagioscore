@@ -5,6 +5,7 @@ Nagios Change Log
 
 2.0 - ??/??/????
 ----------------
+* Support for multiple members directives in hostgroup definitions
 * Directory recursion support added to cfg_dir directives for object data
 * Extended info can now be specified by directories with xedtemplate_config_dir
   directive (directory recursion is supported)

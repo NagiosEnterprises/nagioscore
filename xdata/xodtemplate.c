@@ -1531,7 +1531,15 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"members")){
-			temp_hostgroup->members=strdup(value);
+			if(temp_hostgroup->members==NULL)
+				temp_hostgroup->members=strdup(value);
+			else{
+				temp_hostgroup->members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(value)+2);
+				if(temp_hostgroup->members!=NULL){
+					strcat(temp_hostgroup->members,",");
+					strcat(temp_hostgroup->members,value);
+				        }
+			        }
 			if(temp_hostgroup->members==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostgroup members.\n");

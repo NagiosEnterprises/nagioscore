@@ -487,9 +487,6 @@ int main(int argc, char **argv){
 	/* else start to monitor things... */
 	else{
 
-		/* free extended info data - we don't need this for monitoring */
-		free_extended_data();
-
 		/* keep monitoring things until we get a shutdown command */
 		do{
 
@@ -537,6 +534,9 @@ int main(int argc, char **argv){
 				cleanup();
 				exit(ERROR);
 		                }
+
+			/* free extended info data - we don't need this for monitoring */
+			free_extended_data();
 
 			/* initialize embedded Perl interpreter */
 			init_embedded_perl();

@@ -1248,9 +1248,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostextinfo->z_3d=0.0;
 		new_hostextinfo->have_2d_coords=FALSE;
 		new_hostextinfo->have_3d_coords=FALSE;
-
 		new_hostextinfo->has_been_resolved=FALSE;
 		new_hostextinfo->register_object=TRUE;
+		new_hostextinfo->_config_file=config_file;
+		new_hostextinfo->_start_line=start_line;
 
 		/* add new timeperiod to head of list in memory */
 		new_hostextinfo->next=xodtemplate_hostextinfo_list;
@@ -1279,9 +1280,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_serviceextinfo->notes_url=NULL;
 		new_serviceextinfo->icon_image=NULL;
 		new_serviceextinfo->icon_image_alt=NULL;
-
 		new_serviceextinfo->has_been_resolved=FALSE;
 		new_serviceextinfo->register_object=TRUE;
+		new_serviceextinfo->_config_file=config_file;
+		new_serviceextinfo->_start_line=start_line;
 
 		/* add new timeperiod to head of list in memory */
 		new_serviceextinfo->next=xodtemplate_serviceextinfo_list;

@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2002 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-15-2002
+ * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-08-2003
  *
  * License:
  *
@@ -143,6 +143,8 @@ extern serviceescalation *serviceescalation_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency   *hostdependency_list;
 extern hostescalation   *hostescalation_list;
+extern hostextinfo      *hostextinfo_list;
+extern serviceextinfo   *serviceextinfo_list;
 
 
 
@@ -166,7 +168,7 @@ int read_all_config_data(char *main_config_file){
 	if(result!=OK)
 		return ERROR;
 
-	options=READ_TIMEPERIODS|READ_HOSTS|READ_HOSTGROUPS|READ_CONTACTS|READ_CONTACTGROUPS|READ_SERVICES|READ_COMMANDS|READ_SERVICEESCALATIONS|READ_HOSTGROUPESCALATIONS|READ_SERVICEDEPENDENCIES|READ_HOSTDEPENDENCIES|READ_HOSTESCALATIONS;
+	options=READ_TIMEPERIODS|READ_HOSTS|READ_HOSTGROUPS|READ_CONTACTS|READ_CONTACTGROUPS|READ_SERVICES|READ_COMMANDS|READ_SERVICEESCALATIONS|READ_HOSTGROUPESCALATIONS|READ_SERVICEDEPENDENCIES|READ_HOSTDEPENDENCIES|READ_HOSTESCALATIONS|READ_HOSTEXTINFO|READ_SERVICEEXTINFO;
 
 	/* cache object definitions if we're up and running */
 	if(verify_config==FALSE && test_scheduling==FALSE)
@@ -1328,6 +1330,8 @@ int pre_flight_check(void){
 	servicedependency *temp_sd;
 	servicedependency *temp_sd2;
 	hostdependency *temp_hd;
+	hostextinfo *temp_hostextinfo;
+	serviceextinfo *temp_serviceextinfo;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char *temp_command_name="";
 	int found;
@@ -2163,6 +2167,40 @@ int pre_flight_check(void){
 
 #ifdef DEBUG1
 	printf("\tCompleted command checks\n");
+#endif
+
+
+	/*****************************************/
+	/* check extended host information...    */
+	/*****************************************/
+	if(verify_config==TRUE)
+		printf("Checking extended host info definitions...\n");
+
+	for(temp_hostextinfo=hostextinfo_list,total_objects=0;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next,total_objects++){
+	        }
+
+	if(verify_config==TRUE)
+		printf("\tChecked %d extended host info definitions.\n",total_objects);
+
+#ifdef DEBUG1
+	printf("\tCompleted extended host info checks\n");
+#endif
+
+
+	/*****************************************/
+	/* check extended service information... */
+	/*****************************************/
+	if(verify_config==TRUE)
+		printf("Checking extended service info definitions...\n");
+
+	for(temp_serviceextinfo=serviceextinfo_list,total_objects=0;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next,total_objects++){
+	        }
+
+	if(verify_config==TRUE)
+		printf("\tChecked %d extended service info definitions.\n",total_objects);
+
+#ifdef DEBUG1
+	printf("\tCompleted extended service info checks\n");
 #endif
 
 

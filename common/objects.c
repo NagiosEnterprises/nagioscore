@@ -3391,7 +3391,7 @@ hostextinfo * add_hostextinfo(char *host_name,char *notes_url, char *icon_image,
 #ifdef DEBUG0
 	printf("add_hostextinfo() start\n");
 #endif
-	return OK;
+	return new_hostextinfo;
         }
 	
 
@@ -3513,7 +3513,7 @@ serviceextinfo * add_serviceextinfo(char *host_name,char *description, char *not
 	printf("add_serviceextinfo() end\n");
 #endif
 
-	return OK;
+	return new_serviceextinfo;
         }
 	
 

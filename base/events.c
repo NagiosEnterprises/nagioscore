@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-24-2003
+ * Last Modified:   02-26-2003
  *
  * License:
  *
@@ -571,7 +571,6 @@ void init_timing_loop(void){
 /* displays service check scheduling information */
 void display_scheduling_info(void){
 	float minimum_concurrent_checks;
-	float recommended_reaper_interval;
 
 	printf("Projected scheduling information for host and service\n");
 	printf("checks is listed below.  This information assumes that\n");
@@ -636,14 +635,10 @@ void display_scheduling_info(void){
 	printf("PERFORMANCE SUGGESTIONS\n");
 	printf("-----------------------\n");
 
-	/* assume 4K pipe buffer, with a 100% service check burst (twice as many as average) */
-	recommended_reaper_interval=((scheduling_info.service_inter_check_delay/2.0)*8);
-	printf("Maximum value for 'service_reaper_interval': %d sec\n",(int)recommended_reaper_interval);
-
-	/* assume another 100% service check burst for max concurrent checks */
+	/* assume a 100% service check burst for max concurrent checks */
 	if(scheduling_info.service_inter_check_delay==0.0)
-		minimum_concurrent_checks=ceil(recommended_reaper_interval*2.0);
-	minimum_concurrent_checks=ceil((recommended_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
+		minimum_concurrent_checks=ceil(service_check_reaper_interval*2.0);
+	minimum_concurrent_checks=ceil((service_check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
 	printf("Minimum value for 'max_concurrent_checks':   %d\n",(int)minimum_concurrent_checks);
 	printf("\n");
 

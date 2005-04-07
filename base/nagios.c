@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-03-2005
+ * Last Modified:   04-05-2005
  *
  * Description:
  *
@@ -429,6 +429,9 @@ int main(int argc, char **argv){
 
 		/* clean up after ourselves */
 		cleanup();
+
+		/* free config_file */
+		free(config_file);
 
 		/* exit */
 		exit(result);

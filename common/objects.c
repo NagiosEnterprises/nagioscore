@@ -2,8 +2,8 @@
  *
  * OBJECTS.C - Object addition and search functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-30-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-05-2005
  *
  * License:
  *
@@ -5743,6 +5743,7 @@ int free_object_data(void){
 		free(this_host->plugin_output);
 		free(this_host->perf_data);
 #endif
+		free(this_host->check_period);
 		free(this_host->host_check_command);
 		free(this_host->event_handler);
 		free(this_host->failure_prediction_options);
@@ -5827,6 +5828,8 @@ int free_object_data(void){
 		this_commandsmember=this_contact->host_notification_commands;
 		while(this_commandsmember!=NULL){
 			next_commandsmember=this_commandsmember->next;
+			if(this_commandsmember->command!=NULL)
+				free(this_commandsmember->command);
 			free(this_commandsmember);
 			this_commandsmember=next_commandsmember;
 		        }
@@ -5835,6 +5838,8 @@ int free_object_data(void){
 		this_commandsmember=this_contact->service_notification_commands;
 		while(this_commandsmember!=NULL){
 			next_commandsmember=this_commandsmember->next;
+			if(this_commandsmember->command!=NULL)
+				free(this_commandsmember->command);
 			free(this_commandsmember);
 			this_commandsmember=next_commandsmember;
 		        }

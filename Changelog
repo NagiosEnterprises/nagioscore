@@ -3,6 +3,12 @@ Nagios Change Log
 ###################
 
 
+2.0b4 - ??/??/2005
+------------------
+* Memory leak fixes
+
+
+
 2.0b3 - 04/03/2005
 ------------------
 * Sample config file fixes

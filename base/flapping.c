@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-28-2003
+ * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   04-17-2005
  *
  * License:
  *
@@ -281,12 +281,12 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 #endif
 
 	/* log a notice - this one is parsed by the history CGI */
-	snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;STARTED; Service appears to have started flapping (%2.1f%% change > %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,high_threshold);
+	snprintf(buffer,sizeof(buffer)-1,"SERVICE FLAPPING ALERT: %s;%s;STARTED; Service appears to have started flapping (%2.1f%% change >= %2.1f%% threshold)\n",svc->host_name,svc->description,percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
 	write_to_all_logs(buffer,NSLOG_RUNTIME_WARNING);
 
 	/* add a non-persistent comment to the service */
-	snprintf(buffer,sizeof(buffer)-1,"Notifications for this service are being supressed because it was detected as having been flapping between different states (%2.1f%% change > %2.1f%% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
+	snprintf(buffer,sizeof(buffer)-1,"Notifications for this service are being supressed because it was detected as having been flapping between different states (%2.1f%% change >= %2.1f%% threshold).  When the service state stabilizes and the flapping stops, notifications will be re-enabled.",percent_change,high_threshold);
 	buffer[sizeof(buffer)-1]='\x0';
 	add_new_service_comment(FLAPPING_COMMENT,svc->host_name,svc->description,time(NULL),"(Nagios Process)",buffer,0,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,&(svc->flapping_comment_id));
 

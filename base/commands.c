@@ -3184,6 +3184,10 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 	printf("acknowledge_host_problem() start\n");
 #endif
 
+	/* cannot acknowledge a non-existent problem */
+	if(hst->current_state==HOST_UP)
+		return;
+
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
 		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data);
@@ -3216,6 +3220,10 @@ void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data,
 #ifdef DEBUG0
 	printf("acknowledge_service_problem() start\n");
 #endif
+
+	/* cannot acknowledge a non-existent problem */
+	if(svc->current_state==STATE_OK)
+		return;
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)

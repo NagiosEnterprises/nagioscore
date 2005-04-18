@@ -6,6 +6,9 @@ Nagios Change Log
 2.0b4 - ??/??/2005
 ------------------
 * Memory leak fixes
+* Fixed log message error at start of flapping
+* Fixed segfault with invalid servicegroups in service definitions
+* Non-existent problems can no longer be acknowledged
 
 
 

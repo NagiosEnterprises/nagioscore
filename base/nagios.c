@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-05-2005
+ * Last Modified:   04-30-2005
  *
  * Description:
  *
@@ -575,7 +575,11 @@ int main(int argc, char **argv){
 			        }
 
 			/* initialize embedded Perl interpreter */
-			init_embedded_perl();
+#ifdef EMBEDDEDPERL
+			init_embedded_perl(env);
+#else
+			init_embedded_perl(NULL);
+#endif
 
 		        /* handle signals (interrupts) */
 			setup_sighandler();

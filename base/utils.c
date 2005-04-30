@@ -2557,9 +2557,11 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	int bytes_read=0;
 	struct timeval start_time,end_time;
 #ifdef EMBEDDEDPERL
-	char fname[1024];
+	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
 	int isperl;
+	SV *plugin_hndlr_cr;
+	STRLEN n_a ;
 #ifdef aTHX
 	dTHX;
 #endif
@@ -2608,9 +2610,52 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			args[3]=cmd+strlen(fname)+1;
 
 		/* call our perl interpreter to compile and optionally cache the compiled script. */
-		if(use_embedded_perl==TRUE)
-			perl_call_argv("Embed::Persistent::eval_file", G_DISCARD | G_EVAL, args);
-	        }
+
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP); 
+
+		XPUSHs(sv_2mortal(newSVpv(args[0],0)));
+		XPUSHs(sv_2mortal(newSVpv(args[1],0)));
+		XPUSHs(sv_2mortal(newSVpv(args[2],0)));
+		XPUSHs(sv_2mortal(newSVpv(args[3],0)));
+
+		PUTBACK;
+
+		call_pv("Embed::Persistent::eval_file", G_EVAL);
+
+		SPAGAIN;
+
+		if ( SvTRUE(ERRSV) ) {
+							/*
+							 * XXXX need pipe open to send the compilation failure message back to Nag ?
+							 */
+			POPs ;
+
+			snprintf(buffer,sizeof(buffer)-1,"%s", SvPVX(ERRSV));
+			buffer[sizeof(buffer)-1]='\x0';
+			strip(buffer);
+
+#ifdef DEBUG1
+			printf("embedded perl failed to  compile %s, compile error %s\n",fname,buffer);
+#endif
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+			return STATE_UNKNOWN;
+
+			}
+		else{
+			plugin_hndlr_cr=newSVsv(POPs);
+#ifdef DEBUG1
+			printf("embedded perl successfully compiled  %s and returned plugin handler (Perl subroutine code ref)\n",fname);
+#endif
+
+			PUTBACK ;
+			FREETMPS ;
+			LEAVE ;
+
+			}
+		}
 #endif 
 
 	/* create a pipe */
@@ -2676,50 +2721,39 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 #ifdef EMBEDDEDPERL
 		if(isperl){
 
-			SV *perl_out_sv ;
 			char *perl_output ;
 			int count ;
 
-			/* execute our previously compiled script - from perl_call_argv("Embed::Persistent::eval_file",..) */
+			/* execute our previously compiled script - by call_pv("Embed::Persistent::eval_file",..) */
 			ENTER;
 			SAVETMPS;
 			PUSHMARK(SP);
+
 			XPUSHs(sv_2mortal(newSVpv(args[0],0)));
 			XPUSHs(sv_2mortal(newSVpv(args[1],0)));
-			XPUSHs(sv_2mortal(newSVpv(args[2],0)));
+			XPUSHs(plugin_hndlr_cr);
 			XPUSHs(sv_2mortal(newSVpv(args[3],0)));
+
 			PUTBACK;
-			count = perl_call_pv("Embed::Persistent::run_package", G_EVAL | G_ARRAY);
+
+			count=call_pv("Embed::Persistent::run_package", G_ARRAY);
 			/* count is a debug hook. It should always be two (2), because the persistence framework tries to return two (2) args */
+
 			SPAGAIN;
-			perl_out_sv = POPs;
-			perl_output = SvPOK(perl_out_sv) && (SvCUR(perl_out_sv) > 0) ? savepv(SvPVX(perl_out_sv))
-										     : savepv("(No output!)\n") ;
+
+			perl_output=POPpx ;
+			strip(perl_output);
 			strncpy(buffer, perl_output, sizeof(buffer));
 			buffer[sizeof(buffer)-1]='\x0';
-			/* The Perl scalar corresponding to pclose_result could contain string or integer.
-			   It is better to let POPi do the dirty work (SvPVOK or SvIOK could be true).
-			*/
-			status = POPi ;
+			status=POPi ;
 
 			PUTBACK;
 			FREETMPS;
 			LEAVE;                                    
 
-			/* check return status  */
-			if(SvTRUE(ERRSV)){
 #ifdef DEBUG0
-				printf("embedded perl ran command %s with error\n",fname);
+			printf("embedded perl ran command %s with output %d, %s\n",fname, status, buffer);
 #endif
-				status=-2;
-			        }
-			strip(buffer);
-
-			/* report the command status */
-			if(status==-2)
-				result=STATE_CRITICAL;
-			else
-				result=status;
 
 			/* write the output back to the parent process */
 			write(fd[1],buffer,strlen(buffer)+1);
@@ -2730,7 +2764,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			/* reset the alarm */
 			alarm(0);
 
-			_exit(result);
+			_exit(status);
 		        }
 
 		/* Not a perl command. Use popen... */
@@ -4472,7 +4506,7 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 /******************************************************************/
 
 /* initializes embedded perl interpreter */
-int init_embedded_perl(void){
+int init_embedded_perl(char **env){
 #ifdef EMBEDDEDPERL
 	char *embedding[] = { "", "" };
 	int exitstatus = 0;
@@ -4481,6 +4515,8 @@ int init_embedded_perl(void){
 	embedding[1]=p1_file;
 
 	use_embedded_perl=TRUE;
+
+	PERL_SYS_INIT3(2,embedding,&env);
 
 	if((my_perl=perl_alloc())==NULL){
 		use_embedded_perl=FALSE;
@@ -4491,7 +4527,7 @@ int init_embedded_perl(void){
                 }
 
 	perl_construct(my_perl);
-	exitstatus=perl_parse(my_perl,xs_init,2,embedding,NULL);
+	exitstatus=perl_parse(my_perl,xs_init,2,embedding,env);
 	if(!exitstatus)
 		exitstatus=perl_run(my_perl);
 
@@ -4507,6 +4543,7 @@ int deinit_embedded_perl(void){
 	PL_perl_destruct_level=0;
 	perl_destruct(my_perl);
 	perl_free(my_perl);
+	PERL_SYS_TERM();
 
 #endif
 	return OK;

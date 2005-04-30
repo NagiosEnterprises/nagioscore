@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2005
+ * Last Modified: 04-30-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -621,7 +621,7 @@ int check_time_against_period(time_t,char *);		/* check to see if a specific tim
 void get_next_valid_time(time_t, time_t *,char *);	/* get the next valid time in a time period */
 void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for use in output */
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
-int init_embedded_perl(void);	 			/* initialized embedded perl interpreter */
+int init_embedded_perl(char **);			/* initialized embedded perl interpreter */
 int deinit_embedded_perl(void);				/* cleans up embedded perl */
 
 

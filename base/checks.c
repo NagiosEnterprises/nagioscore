@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-17-2005
+ * Last Modified:   04-30-2005
  *
  * License:
  *
@@ -113,7 +113,10 @@ void run_service_check(service *svc){
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
+	char *perl_plugin_output ;
 	int isperl;
+	SV *plugin_hndlr_cr;
+	STRLEN n_a ;
 #ifdef aTHX
 	dTHX;
 #endif
@@ -271,7 +274,6 @@ void run_service_check(service *svc){
 
 		isperl = TRUE;
 		args[0] = fname;
-		/* args[2] no longer required because Perl plugin output is returned from perl_call_pv("Embed::Persistent::run_package" ..) */
 		args[2] = "";
 
 		if(strchr(processed_command,' ')==NULL)
@@ -279,11 +281,76 @@ void run_service_check(service *svc){
 		else
 			args[3]=processed_command+strlen(fname)+1;
 
+		ENTER; 
+		SAVETMPS;
+		PUSHMARK(SP);
+		XPUSHs(sv_2mortal(newSVpv(args[0],0)));
+		XPUSHs(sv_2mortal(newSVpv(args[1],0)));
+		XPUSHs(sv_2mortal(newSVpv(args[2],0)));
+		XPUSHs(sv_2mortal(newSVpv(args[3],0)));
+		PUTBACK;
+
 		/* call our perl interpreter to compile and optionally cache the command */
-		if(use_embedded_perl==TRUE)
-			perl_call_argv("Embed::Persistent::eval_file", G_DISCARD | G_EVAL, args);
-	        }
+
+		call_pv("Embed::Persistent::eval_file", G_SCALAR | G_EVAL);
+
+		SPAGAIN ;
+
+		if ( SvTRUE(ERRSV) ) {
+
+			/*
+			 * if SvTRUE(ERRSV)
+			 * 	write failure to IPC pipe
+			 *	return
+			 */
+
+			/* remove the top element of the Perl stack (undef) */
+			(void) POPs ;
+
+			pclose_result=STATE_UNKNOWN;
+			perl_plugin_output=SvPVX(ERRSV);
+			strip(perl_plugin_output);
+
+#ifdef DEBUG1
+			printf("embedded perl failed to compile %s, compile error %s - skipping plugin\n",fname,perl_plugin_output);
 #endif
+
+			/* get the check finish time */
+			gettimeofday(&end_time,NULL);
+
+			/* record check result info */
+			strncpy(svc_msg.output,perl_plugin_output,sizeof(svc_msg.output)-1);
+			svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
+			svc_msg.return_code=pclose_result;
+			svc_msg.exited_ok=TRUE;
+			svc_msg.check_type=SERVICE_CHECK_ACTIVE;
+			svc_msg.finish_time=end_time;
+			svc_msg.early_timeout=FALSE;
+
+			/* write check results to message queue */
+			write_svc_message(&svc_msg);
+
+			return ;
+
+			}
+		else{
+
+			plugin_hndlr_cr=newSVsv(POPs);
+
+#ifdef DEBUG1
+			printf("embedded perl successfully compiled %s and returned code ref to plugin handler\n",fname);
+#endif
+
+			PUTBACK ;
+			FREETMPS ;
+			LEAVE ;
+
+
+			}
+		}
+#endif
+
+	/* plugin is a C plugin or a Perl plugin _without_ compilation errors */
 
 	/* fork a child process */
 	pid=fork();
@@ -330,45 +397,38 @@ void run_service_check(service *svc){
 #ifdef EMBEDDEDPERL
 			if(isperl){
 
-				SV *plugin_out_sv ;
-				char *perl_plugin_output ;
 				int count ;
 
-				/* execute our previously compiled script - from perl_call_argv("Embed::Persistent::eval_file",..) */
+				/* execute our previously compiled script - from call_pv("Embed::Persistent::eval_file",..) */
+				/* NB. args[2] is _now_ a code ref (to the Perl subroutine corresp to the plugin) returned by eval_file() */
+
 				ENTER; 
 				SAVETMPS;
 				PUSHMARK(SP);
+
 				XPUSHs(sv_2mortal(newSVpv(args[0],0)));
 				XPUSHs(sv_2mortal(newSVpv(args[1],0)));
-				XPUSHs(sv_2mortal(newSVpv(args[2],0)));
+				XPUSHs(plugin_hndlr_cr);
 				XPUSHs(sv_2mortal(newSVpv(args[3],0)));
+
 				PUTBACK;
-				count = perl_call_pv("Embed::Persistent::run_package", G_EVAL | G_ARRAY);
+
+				count=call_pv("Embed::Persistent::run_package", G_ARRAY);
+
 				SPAGAIN;
-				plugin_out_sv = POPs;
-				perl_plugin_output = SvPOK(plugin_out_sv) && (SvCUR(plugin_out_sv) > 0) ? savepv(SvPVX(plugin_out_sv))
-													: savepv("(No output!)\n") ;
+
+				perl_plugin_output=POPpx;
+				strip(perl_plugin_output);
 				strncpy(plugin_output, perl_plugin_output, sizeof(plugin_output));
-				/* The Perl scalar corresponding to pclose_result could contain string or integer.
-				   It is better to let POPi do the dirty work (SvPVOK or SvIOK could be true).
-				 */
-				pclose_result = POPi ;
+				perl_plugin_output[sizeof(perl_plugin_output)-1]='\x0';
+				pclose_result=POPi;
+
 				PUTBACK;
 				FREETMPS;
 				LEAVE;
 
-				/* check return status  */
-				if(SvTRUE(ERRSV)){
-					pclose_result=-2;
 #ifdef DEBUG1
-					printf("embedded perl ran %s with error %s\n",fname,SvPV(ERRSV,PL_na));
-#endif
-			                }
-
-				strip(plugin_output);
-
-#ifdef DEBUG1
-				printf("embedded perl plugin output was %d,%s\n",pclose_result, plugin_output);
+				printf("embedded perl ran %s, plugin output was %d, %s\n",fname, pclose_result, plugin_output);
 #endif
 
 				/* reset the alarm */
@@ -385,16 +445,6 @@ void run_service_check(service *svc){
 				svc_msg.check_type=SERVICE_CHECK_ACTIVE;
 				svc_msg.finish_time=end_time;
 				svc_msg.early_timeout=FALSE;
-
-				/* test for execution error */
-				if(pclose_result==-2){
-					pclose_result=STATE_UNKNOWN;
-					strncpy(svc_msg.output,"(Error returned by call to perl script)",sizeof(svc_msg.output)-1);
-					svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-					svc_msg.return_code=STATE_CRITICAL;
-					svc_msg.exited_ok=FALSE;
-					svc_msg.early_timeout=FALSE;
-			 	        }
 
 				/* write check results to message queue */
 				write_svc_message(&svc_msg);

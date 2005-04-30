@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-23-2005
+ * Last Modified: 04-30-2005
  *
  * License:
  *
@@ -307,8 +307,17 @@
 #define	OK				0
 #define ERROR				-2	/* value was changed from -1 so as to not interfere with STATUS_UNKNOWN plugin result */
 
+
+#ifndef TRUE
 #define TRUE				1
+#elif (TRUE!=1)
+#define TRUE				1
+#endif
+#ifndef FALSE
 #define FALSE				0
+#elif (FALSE!=0)
+#define FALSE				0
+#endif
 
 
 /****************** HOST CONFIG FILE READING OPTIONS ********************/

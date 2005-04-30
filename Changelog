@@ -9,6 +9,7 @@ Nagios Change Log
 * Fixed log message error at start of flapping
 * Fixed segfault with invalid servicegroups in service definitions
 * Non-existent problems can no longer be acknowledged
+* Privileges will now only attempted be dropped if started as root user
 
 
 

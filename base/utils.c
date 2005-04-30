@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-05-2005
+ * Last Modified:   04-30-2005
  *
  * License:
  *
@@ -221,7 +221,10 @@ extern circular_buffer external_command_buffer;
 extern circular_buffer service_result_buffer;
 extern circular_buffer event_broker_buffer;
 
+/* from GNU defines errno as a macro, since it's a per-thread variable */
+#ifndef errno
 extern int errno;
+#endif
 
 
 
@@ -2377,10 +2380,10 @@ int init_macrox_names(void){
 
 
 /* saves the name of a macro */
-int add_macrox_name(int index, char *name){
+int add_macrox_name(int i, char *name){
 
 	/* dup the macro name */
-	macro_x_names[index]=strdup(name);
+	macro_x_names[i]=strdup(name);
 
 	return OK;
         }
@@ -3129,7 +3132,12 @@ void get_datetime_string(time_t *raw_time,char *buffer,int buffer_length, int ty
 	int year;
 	char *weekdays[7]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	char *months[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"};
-	char *tzone="";
+
+#ifdef HAVE_TM_ZONE
+# define tzone tm_ptr->tm_zone
+#else
+# define tzone (tm_ptr->tm_isdst)?tzname[1]:tzname[0]
+#endif
 
 	if(raw_time==NULL)
 		time(&t);
@@ -3144,12 +3152,6 @@ void get_datetime_string(time_t *raw_time,char *buffer,int buffer_length, int ty
 	month=tm_ptr->tm_mon+1;
 	day=tm_ptr->tm_mday;
 	year=tm_ptr->tm_year+1900;
-
-#ifdef HAVE_TM_ZONE
-	tzone=(char *)tm_ptr->tm_zone;
-#else
-	tzone=(tm_ptr->tm_isdst)?tzname[1]:tzname[0];
-#endif
 
 	/* ctime() style date/time */
 	if(type==LONG_DATE_TIME)
@@ -3180,6 +3182,9 @@ void get_datetime_string(time_t *raw_time,char *buffer,int buffer_length, int ty
 		snprintf(buffer,buffer_length,"%02d:%02d:%02d",hour,minute,second);
 
 	buffer[buffer_length-1]='\x0';
+
+	/* don't mess up other functions that might want to call a variable 'tzone' */
+#undef tzone
 
 	return;
         }
@@ -3589,6 +3594,10 @@ int drop_privileges(char *user, char *group){
 	printf("Original UID/GID: %d/%d\n",(int)getuid(),(int)getgid());
 #endif
 
+	/* only drop privileges if we're running as root, so we don't interfere with being debugged while running as some random user */
+	if(getuid()!=0)
+		return OK;
+
 	/* set effective group ID */
 	if(group!=NULL){
 		
@@ -3701,7 +3710,7 @@ int read_svc_message(service_message *message){
 		return -1;
 
 	/* clear the message buffer */
-	bzero((void *)message,sizeof(service_message));
+	memset((void *)message,0,sizeof(service_message));
 
 	/* get a lock on the buffer */
 	pthread_mutex_lock(&service_result_buffer.buffer_lock);
@@ -4077,10 +4086,10 @@ char *my_strtok(char *buffer,char *tokens){
 	if(sequence_head[0]=='\x0')
 		return NULL;
 	
-	token_position=index(my_strtok_buffer,tokens[0]);
+	token_position=strchr(my_strtok_buffer,tokens[0]);
 
 	if(token_position==NULL){
-		my_strtok_buffer=index(my_strtok_buffer,'\x0');
+		my_strtok_buffer=strchr(my_strtok_buffer,'\x0');
 		return sequence_head;
 	        }
 
@@ -4384,7 +4393,7 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 
 	/* find the end of the string (or buffer) */
 	for(x=temp_mmapfile->current_position;x<temp_mmapfile->file_size;x++){
-		if(*(char *)(temp_mmapfile->mmap_buf+x)=='\n'){
+		if(*(char *)((char *)temp_mmapfile->mmap_buf+x)=='\n'){
 			x++;
 			break;
 			}
@@ -4398,7 +4407,7 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 		return NULL;
 
 	/* copy string to newly allocated memory and terminate the string */
-	memcpy(buf,(char *)(temp_mmapfile->mmap_buf+temp_mmapfile->current_position),len);
+	memcpy(buf,(char *)((char *)temp_mmapfile->mmap_buf+temp_mmapfile->current_position),len);
 	buf[len]='\x0';
 
 	/* update the current position */
@@ -4673,8 +4682,33 @@ void * service_result_worker_thread(void *arg){
 		pollval=poll(&pfd,1,500);
 
 		/* loop if no data */
-		if(pollval<=0)
+		if(pollval==0)
 			continue;
+
+		/* check for errors */
+		if(pollval==-1){
+
+			switch(errno){
+			case EBADF:
+				write_to_log("service_result_worker_thread(): poll(): EBADF",logging_options,NULL);
+				break;
+			case ENOMEM:
+				write_to_log("service_result_worker_thread(): poll(): ENOMEM",logging_options,NULL);
+				break;
+			case EFAULT:
+				write_to_log("service_result_worker_thread(): poll(): EFAULT",logging_options,NULL);
+				break;
+			case EINTR:
+				/* this should never happen */
+				write_to_log("service_result_worker_thread(): poll(): EINTR (impossible)",logging_options,NULL);
+				break;
+			default:
+				write_to_log("service_result_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);
+				break;
+			        }
+
+			continue;
+		        }
 
 		/* should we shutdown? */
 		pthread_testcancel();
@@ -4688,7 +4722,7 @@ void * service_result_worker_thread(void *arg){
 		if(buffer_items<SERVICE_BUFFER_SLOTS){
 
 			/* clear the message buffer */
-			bzero((void *)&message,sizeof(service_message));
+			memset((void *)&message,0,sizeof(service_message));
 
 			/* initialize the number of bytes to read */
 			bytes_to_read=sizeof(service_message);

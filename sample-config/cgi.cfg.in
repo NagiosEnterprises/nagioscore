@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 10-08-2003
+# Last Modified: 05-05-2005
 #
 #################################################################
 
@@ -62,7 +62,7 @@ show_context_help=0
 # have to be tweaked a bit, as different versions of the plugin
 # use different command line arguments/syntaxes.
 
-#nagios_check_command=@libexecdir@/check_nagios @localstatedir@/status.log 5 '@bindir@/nagios'
+#nagios_check_command=@libexecdir@/check_nagios @localstatedir@/status.dat 5 '@bindir@/nagios'
 
 
 

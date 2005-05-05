@@ -11,6 +11,7 @@ Nagios Change Log
 * Non-existent problems can no longer be acknowledged
 * Privileges will now only attempted be dropped if started as root user
 * Embedded Perl fixes (to reduce memory leaks)
+* Sample CGI config file fixes
 
 
 

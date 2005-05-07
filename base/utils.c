@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-30-2005
+ * Last Modified:   05-07-2005
  *
  * License:
  *
@@ -473,6 +473,13 @@ int grab_service_macros(service *svc){
 	else
 		macro_x[MACRO_SERVICECHECKCOMMAND]=strdup(svc->service_check_command);
 
+	/* grab the service check type */
+	if(macro_x[MACRO_SERVICECHECKTYPE]!=NULL)
+		free(macro_x[MACRO_SERVICECHECKTYPE]);
+	macro_x[MACRO_SERVICECHECKTYPE]=(char *)malloc(MAX_CHECKTYPE_LENGTH);
+	if(macro_x[MACRO_SERVICECHECKTYPE]!=NULL)
+		strcpy(macro_x[MACRO_SERVICECHECKTYPE],(svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+
 	/* grab the service state type macro (this is usually overridden later on) */
 	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
 		free(macro_x[MACRO_SERVICESTATETYPE]);
@@ -758,6 +765,13 @@ int grab_host_macros(host *hst){
 		snprintf(macro_x[MACRO_HOSTSTATEID],MAX_STATEID_LENGTH,"%d",hst->current_state);
 		macro_x[MACRO_HOSTSTATEID][MAX_STATEID_LENGTH-1]='\x0';
 	        }
+
+	/* grab the host check type */
+	if(macro_x[MACRO_HOSTCHECKTYPE]!=NULL)
+		free(macro_x[MACRO_HOSTCHECKTYPE]);
+	macro_x[MACRO_HOSTCHECKTYPE]=(char *)malloc(MAX_CHECKTYPE_LENGTH);
+	if(macro_x[MACRO_HOSTCHECKTYPE]!=NULL)
+		strcpy(macro_x[MACRO_HOSTCHECKTYPE],(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
 
 	/* get the host state type macro */
 	if(macro_x[MACRO_HOSTSTATETYPE]!=NULL)
@@ -1240,6 +1254,13 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		        }
 	        }
 
+	/* grab the host check type */
+	else if(!strcmp(macro,"HOSTCHECKTYPE")){
+		macro_ondemand=(char *)malloc(MAX_CHECKTYPE_LENGTH);
+		if(macro_ondemand!=NULL)
+			strcpy(macro_ondemand,(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+		}
+
 	/* get the host state type macro */
 	else if(!strcmp(macro,"HOSTSTATETYPE")){
 		macro_ondemand=(char *)malloc(MAX_STATETYPE_LENGTH);
@@ -1497,6 +1518,13 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			strip(macro_ondemand);
 		        }
 	        }
+
+	/* grab the servuce check type */
+	else if(!strcmp(macro,"SERVICECHECKTYPE")){
+		macro_ondemand=(char *)malloc(MAX_CHECKTYPE_LENGTH);
+		if(macro_ondemand!=NULL)
+			strcpy(macro_ondemand,(svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+		}
 
 	/* grab the service state type macro (this is usually overridden later on) */
 	else if(!strcmp(macro,"SERVICESTATETYPE")){
@@ -2370,6 +2398,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_TOTALSERVICEPROBLEMS,"TOTALSERVICEPROBLEMS");
 	add_macrox_name(MACRO_TOTALSERVICEPROBLEMSUNHANDLED,"TOTALSERVICEPROBLEMSUNHANDLED");
 	add_macrox_name(MACRO_PROCESSSTARTTIME,"PROCESSSTARTTIME");
+	add_macrox_name(MACRO_HOSTCHECKTYPE,"HOSTCHECKTYPE");
+	add_macrox_name(MACRO_SERVICECHECKTYPE,"SERVICECHECKTYPE");
 
 #ifdef DEBUG0
 	printf("init_macrox_names() end\n");

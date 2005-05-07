@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-30-2005
+ * Last Modified: 05-07-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 #define MAX_STATE_LENGTH			32	/* length definitions used in macros */
 #define MAX_STATETYPE_LENGTH			24
+#define MAX_CHECKTYPE_LENGTH         		8
 #define MAX_NOTIFICATIONTYPE_LENGTH		32
 #define MAX_NOTIFICATIONNUMBER_LENGTH		8
 #define MAX_ATTEMPT_LENGTH			8
@@ -52,7 +53,7 @@
 
 #define MACRO_ENV_VAR_PREFIX			"NAGIOS_"
 
-#define MACRO_X_COUNT				97	/* size of macro_x[] array */
+#define MACRO_X_COUNT				99	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -151,6 +152,8 @@
 #define MACRO_TOTALSERVICEPROBLEMS		94
 #define MACRO_TOTALSERVICEPROBLEMSUNHANDLED	95
 #define MACRO_PROCESSSTARTTIME			96
+#define MACRO_HOSTCHECKTYPE			97
+#define MACRO_SERVICECHECKTYPE			98
 
 
 

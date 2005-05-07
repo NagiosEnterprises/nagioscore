@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-04-2005
+ * Last Modified:   05-07-2005
  *
  * License:
  *
@@ -363,9 +363,9 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_host->execution_time);
 		fprintf(fp,"\tcheck_latency=%.3f\n",temp_host->latency);
+		fprintf(fp,"\tcheck_type=%d\n",temp_host->check_type);
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
-		fprintf(fp,"\tcheck_type=%d\n",temp_host->check_type);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
@@ -418,6 +418,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_service->should_be_scheduled);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_service->execution_time);
 		fprintf(fp,"\tcheck_latency=%.3f\n",temp_service->latency);
+		fprintf(fp,"\tcheck_type=%d\n",temp_service->check_type);
 		fprintf(fp,"\tcurrent_state=%d\n",temp_service->current_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
@@ -433,7 +434,6 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_service->next_check);
-		fprintf(fp,"\tcheck_type=%d\n",temp_service->check_type);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_service->current_notification_number);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_service->last_notification);
 		fprintf(fp,"\tnext_notification=%lu\n",temp_service->next_notification);
@@ -637,6 +637,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->execution_time=strtod(val,NULL);
 					else if(!strcmp(var,"check_latency"))
 						temp_hoststatus->latency=strtod(val,NULL);
+					else if(!strcmp(var,"check_type"))
+						temp_hoststatus->check_type=atoi(val);
 					else if(!strcmp(var,"current_state"))
 						temp_hoststatus->status=atoi(val);
 					else if(!strcmp(var,"last_hard_state"))
@@ -653,8 +655,6 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->last_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_check"))
 						temp_hoststatus->next_check=strtoul(val,NULL,10);
-					else if(!strcmp(var,"check_type"))
-						temp_hoststatus->check_type=atoi(val);
 					else if(!strcmp(var,"current_attempt"))
 						temp_hoststatus->current_attempt=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"state_type"))
@@ -731,6 +731,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->execution_time=strtod(val,NULL);
 					else if(!strcmp(var,"check_latency"))
 						temp_servicestatus->latency=strtod(val,NULL);
+					else if(!strcmp(var,"check_type"))
+						temp_servicestatus->check_type=atoi(val);
 					else if(!strcmp(var,"current_state"))
 						temp_servicestatus->status=atoi(val);
 					else if(!strcmp(var,"last_hard_state"))
@@ -761,8 +763,6 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->last_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_check"))
 						temp_servicestatus->next_check=strtoul(val,NULL,10);
-					else if(!strcmp(var,"check_type"))
-						temp_servicestatus->check_type=atoi(val);
 					else if(!strcmp(var,"current_notification_number"))
 						temp_servicestatus->current_notification_number=atoi(val);
 					else if(!strcmp(var,"last_notification"))

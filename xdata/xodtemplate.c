@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-17-2005
+ * Last Modified: 04-14-2005
  *
  * Description:
  *
@@ -283,7 +283,7 @@ int xodtemplate_grab_config_info(char *main_config_file){
 	char *temp_ptr;
 	mmapfile *thefile;
 	
-#ifdef DEBUGO
+#ifdef DEBUG0
 	printf("xodtemplate_grab_config_info() start\n");
 #endif
 
@@ -341,7 +341,7 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		strip(macro_x[MACRO_OBJECTCACHEFILE]);
 #endif
 
-#ifdef DEBUGO
+#ifdef DEBUG0
 	printf("xodtemplate_grab_config_info() end\n");
 #endif
 	return OK;
@@ -3664,7 +3664,7 @@ int xodtemplate_duplicate_services(void){
 		xodtemplate_free_hostlist(temp_hostlist);
 	        }
 
- #ifdef DEBUG0
+#ifdef DEBUG0
 	printf("xodtemplate_duplicate_services() end\n");
 #endif
 

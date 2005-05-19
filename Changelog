@@ -13,6 +13,7 @@ Nagios Change Log
 * Embedded Perl fixes (to reduce memory leaks)
 * Sample CGI config file fixes
 * Added $HOSTCHECKTYPE$ and $SERVICECHECKTYPE$ macros
+* Fixed bugs in $LASTHOSTCHECK$ macro (and corresponding on-demand macro)
 
 
 

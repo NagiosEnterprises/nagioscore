@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2005
+ * Last Modified:   05-19-2005
  *
  * License:
  *
@@ -882,7 +882,7 @@ int grab_host_macros(host *hst){
 		free(macro_x[MACRO_LASTHOSTCHECK]);
 	macro_x[MACRO_LASTHOSTCHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
 	if(macro_x[MACRO_LASTHOSTCHECK]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTCHECK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
+		snprintf(macro_x[MACRO_LASTHOSTCHECK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_check);
 		macro_x[MACRO_LASTHOSTCHECK][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
@@ -1362,7 +1362,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTCHECK")){
 		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
 		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
+			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_check);
 			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
 		        }
 	        }

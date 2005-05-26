@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2005
+ * Last Modified:   05-25-2005
  *
  * License:
  *
@@ -341,7 +341,7 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tenable_event_handlers=%d\n",enable_event_handlers);
 	fprintf(fp,"\tobsess_over_services=%d\n",obsess_over_services);
 	fprintf(fp,"\tobsess_over_hosts=%d\n",obsess_over_hosts);
-	fprintf(fp,"\tcheck_service_freshness=%d\n",check_host_freshness);
+	fprintf(fp,"\tcheck_service_freshness=%d\n",check_service_freshness);
 	fprintf(fp,"\tcheck_host_freshness=%d\n",check_host_freshness);
 	fprintf(fp,"\tenable_flap_detection=%d\n",enable_flap_detection);
 	fprintf(fp,"\tenable_failure_prediction=%d\n",enable_failure_prediction);
@@ -615,7 +615,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				else if(!strcmp(var,"check_service_freshness"))
 					check_service_freshness=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"check_host_freshness"))
-					obsess_over_hosts=(atoi(val)>0)?TRUE:FALSE;
+					check_host_freshness=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"enable_flap_detection"))
 					enable_flap_detection=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"enable_failure_prediction"))

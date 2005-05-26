@@ -42,8 +42,8 @@ AC_TYPE_SIGNAL
 AC_TYPE_GETGROUPS
 
 dnl Checks for library functions.
-AC_CHECK_LIB(nsl,main,SOCKETLIBS="$SOCKETLIBS -lnsl")
-AC_CHECK_LIB(socket,socket,SOCKETLIBS="$SOCKETLIBS -lsocket")
+dnl AC_CHECK_LIB(nsl,main,SOCKETLIBS="$SOCKETLIBS -lnsl")
+dnl AC_CHECK_LIB(socket,socket,SOCKETLIBS="$SOCKETLIBS -lsocket")
 AC_SUBST(SOCKETLIBS)
 AC_CHECK_FUNCS(initgroups setenv strdup strstr strtoul unsetenv)
 

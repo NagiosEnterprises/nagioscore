@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-14-2005
+ * Last Modified: 05-25-2005
  *
  * Description:
  *
@@ -1637,10 +1637,11 @@ int xodtemplate_add_object_property(char *input, int options){
 	        }
 
 
-
+#ifdef REMOVED_05252005
 	/* truncate if necessary */
 	if(strlen(input)>MAX_XODTEMPLATE_INPUT_BUFFER)
 		input[MAX_XODTEMPLATE_INPUT_BUFFER-1]='\x0';
+#endif
 
 	/* get variable name */
 	for(x=0,y=0;input[x]!='\x0';x++){

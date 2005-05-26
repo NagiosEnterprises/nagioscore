@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-30-2005
+ * Last Modified:   05-25-2005
  *
  * Description:
  *
@@ -575,11 +575,13 @@ int main(int argc, char **argv){
 			        }
 
 			/* initialize embedded Perl interpreter */
+			if(sigrestart==FALSE){
 #ifdef EMBEDDEDPERL
-			init_embedded_perl(env);
+				init_embedded_perl(env);
 #else
-			init_embedded_perl(NULL);
+				init_embedded_perl(NULL);
 #endif
+			        }
 
 		        /* handle signals (interrupts) */
 			setup_sighandler();
@@ -721,7 +723,8 @@ int main(int argc, char **argv){
 				close_command_file();
 
 			/* cleanup embedded perl interpreter */
-			deinit_embedded_perl();
+			if(sigrestart==FALSE)
+				deinit_embedded_perl();
 
 			/* cleanup worker threads */
 			shutdown_service_result_worker_thread();

@@ -14,6 +14,7 @@ Nagios Change Log
 * Sample CGI config file fixes
 * Added $HOSTCHECKTYPE$ and $SERVICECHECKTYPE$ macros
 * Fixed bugs in $LASTHOSTCHECK$ macro (and corresponding on-demand macro)
+* Fixed bugs in status data routines
 
 
 

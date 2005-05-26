@@ -2,8 +2,8 @@
  *
  * SUMMARY.C -  Nagios Alert Summary CGI
  *
- * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-31-2004
+ * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 05-22-2005
  *
  * License:
  * 
@@ -427,11 +427,9 @@ int main(int argc, char **argv){
 		else{
 			printf("<table border=0>\n");
 
-#ifdef CONTEXT_HELP
 			printf("<tr><td></td><td align=right valign=bottom>\n");
 			display_context_help(CONTEXTHELP_SUMMARY_MENU);
 			printf("</td></tr>\n");
-#endif
 
 			printf("</table>\n");
 		        }

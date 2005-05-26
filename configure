@@ -1231,7 +1231,7 @@ EOF
 
 fi
 
-for ac_hdr in arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h limits.h math.h netdb.h netinet/in.h pthread.h pthreads.h pwd.h regex.h signal.h socket.h strings.h string.h syslog.h unistd.h uio.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h
+for ac_hdr in arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h limits.h math.h netdb.h netinet/in.h pthread.h pthreads.h pwd.h regex.h signal.h socket.h string.h strings.h sys/mman.h sys/types.h sys/time.h sys/resource.h sys/wait.h sys/socket.h sys/stat.h sys/timeb.h sys/un.h sys/ipc.h sys/msg.h sys/poll.h syslog.h uio.h unistd.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6

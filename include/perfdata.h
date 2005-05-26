@@ -2,8 +2,8 @@
  *
  * PERFDATA.H - Include file for performance data routines
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-22-2005
  *
  * License:
  *
@@ -26,7 +26,7 @@
 #ifndef _PERFDATA_H
 #define _PERFDATA_H
 
-#include "../include/objects.h"
+#include "objects.h"
 
 int initialize_performance_data(char *);	                /* initializes performance data */
 int cleanup_performance_data(char *);                           /* cleans up performance data */

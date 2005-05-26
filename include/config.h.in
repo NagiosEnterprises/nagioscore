@@ -19,13 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************/
 
-#ifdef NSCORE
-# define _REENTRANT
-# define _THREAD_SAFE
-#endif
 
-#include <stdio.h>
-#include <stdlib.h>
+/***** NAGIOS STUFF *****/
 
 #define DEFAULT_NAGIOS_USER nagios
 #define DEFAULT_NAGIOS_GROUP nagios
@@ -33,10 +28,18 @@
 /* Event broker integration */
 #undef USE_EVENT_BROKER
 
-/* Experimental performance tweaks - use with caution */
-#undef USE_MEMORY_PERFORMANCE_TWEAKS
+/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contributed by Stephen Davies) */
+#undef EMBEDDEDPERL
+#undef THREADEDPERL
+/* 0 = cache, 1 = do not cache */
+#define DO_CLEAN		"1"
 
-/* Be very verbose during program debugging... */
+/* commands used by CGIs */
+#undef TRACEROUTE_COMMAND
+#undef PING_COMMAND
+#undef PING_PACKETS_FIRST
+
+/* Debugging options */
 /* function entry and exit */
 #undef DEBUG0
 /* general info messages */
@@ -47,44 +50,20 @@
 #undef DEBUG3
 /* service and host notifications */
 #undef DEBUG4
-/* SQL queries */
+/* SQL queries (defunct) */
 #undef DEBUG5
 
-/* "Dummy" install - no, I don't mean stupid people... */
-#undef DUMMY_INSTALL
-
-/* Context-sensitive web help (requires Nagios Admin Kit) */
-#undef CONTEXT_HELP
-
-/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contributed by Stephen Davies) */
-#undef EMBEDDEDPERL
-#undef THREADEDPERL
-/* 0 = cache, 1 = do not cache */
-#define DO_CLEAN		"1"
-
-#undef TRACEROUTE_COMMAND
-#undef PING_COMMAND
-#undef PING_PACKETS_FIRST
-
-/* Status data I/O implementations... */
+/* I/O implementations */
 #undef USE_XSDDEFAULT
-
-/* Comment data I/O implementations... */
 #undef USE_XCDDEFAULT
-
-/* Retention data I/O implementations... */
 #undef USE_XRDDEFAULT
-
-/* Object data I/O implementations... */
 #undef USE_XODTEMPLATE
-
-/* Performance data I/O implementations... */
 #undef USE_XPDDEFAULT
-#undef USE_XPDFILE
-
-/* Downtime data I/O implementations... */
 #undef USE_XDDDEFAULT
 
+
+
+/***** FUNCTION DEFINITIONS *****/
 
 #undef HAVE_SETENV
 #undef HAVE_UNSETENV
@@ -95,30 +74,61 @@
 #undef HAVE_INITGROUPS
 #undef HAVE_GETLOADAVG
 
+
+
+/***** MISC DEFINITIONS *****/
+
 #undef STDC_HEADERS
-#undef HAVE_SYSLOG_H
-#undef HAVE_SYS_LOADAVG_H
-#undef HAVE_SYS_SYSCTL_H
-#undef HAVE_LINUX_SYSCTL_H
-#undef HAVE_LIMITS_H
-#undef HAVE_SYS_RESOURCE_H
-#undef HAVE_GETOPT_H
-#undef HAVE_PWD_H
-#undef HAVE_GRP_H
 #undef HAVE_TM_ZONE
 #undef HAVE_TZNAME
-
 #undef USE_PROC
-
 #define SOCKET_SIZE_TYPE ""
 #define GETGROUPS_T ""
 #define RETSIGTYPE ""
 
+#ifndef RTLD_GLOBAL
+#define RTLD_GLOBAL 0
+#endif
+
+#ifndef RTLD_NOW
+#define RTLD_NOW 0
+#endif
+
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
+
+
+
+/***** HEADER FILES *****/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#undef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+
+#undef HAVE_PWD_H
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+ 
+#undef HAVE_GRP_H
+#ifdef HAVE_GRP_H
+#include <grp.h>
+#endif
+
 #undef HAVE_STRINGS_H
-#undef HAVE_STRING_H
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+
+#undef HAVE_STRING_H
 #ifdef HAVE_STRINGS_H
 #include <string.h>
 #endif
@@ -163,13 +173,6 @@
 #include <sys/wait.h>
 #endif
 
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-
 #undef HAVE_ERRNO_H
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
@@ -179,14 +182,14 @@
 #undef TIME_WITH_SYS_TIME
 #undef HAVE_SYS_TIME_H
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
 #else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
 #endif
 
 #undef HAVE_SYS_TIMEB_H
@@ -263,6 +266,7 @@
 #include <sys/poll.h>
 #endif
 
+#undef HAVE_GETOPT_H
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -272,11 +276,9 @@
 #include <linux/module.h>
 #endif
 
-#undef HAVE_LTDL_H
-#undef HAVE_DLFCN_H
-#undef USE_LTDL
-
 /* configure script should allow user to override ltdl choice, but this will do for now... */
+#undef USE_LTDL
+#undef HAVE_LTDL_H
 #ifdef HAVE_LTDL_H
 #define USE_LTDL
 #endif
@@ -284,15 +286,10 @@
 #ifdef USE_LTDL
 #include <ltdl.h>
 #else
+#undef HAVE_DLFCN_H
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #endif
-
-#ifndef RTLD_GLOBAL
-#define RTLD_GLOBAL 0
-#endif
-
-#ifndef RTLD_NOW
-#define RTLD_NOW 0
 #endif
 
 #endif

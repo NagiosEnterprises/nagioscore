@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-19-2005
+ * Last Modified:   05-22-2005
  *
  * License:
  *
@@ -33,17 +33,6 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
-
-#ifdef HAVE_PWD_H
-#include <pwd.h>
-#endif
- 
-#ifdef HAVE_GRP_H
-#include <grp.h>
-#endif
 
 #ifdef EMBEDDEDPERL
 #include "../include/epn_nagios.h"

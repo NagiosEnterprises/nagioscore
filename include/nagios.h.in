@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-07-2005
+ * Last Modified: 05-21-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,10 @@
 #ifndef _NAGIOS_H
 #define _NAGIOS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "../include/locations.h"
-#include "../include/common.h"
-#include "../include/config.h"
-#include "../include/objects.h"
-
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
+#include "config.h"
+#include "common.h"
+#include "locations.h"
+#include "objects.h"
 
 
 #define MAX_COMMAND_ARGUMENTS			32	/* maximum number of $ARGx$ macros */
@@ -760,5 +754,6 @@ int set_all_macro_environment_vars(int);
 int set_macrox_environment_vars(int);
 int set_argv_macro_environment_vars(int);
 int set_macro_environment_var(char *,char *,int);
+
 #endif
 

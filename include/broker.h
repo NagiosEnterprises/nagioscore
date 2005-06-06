@@ -2,8 +2,8 @@
  *
  * BROKER.H - Event broker includes for Nagios
  *
- * Copyright (c) 2002-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-02-2004
+ * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   06-04-2005
  *
  * License:
  *
@@ -34,7 +34,7 @@
 /*************** EVENT BROKER OPTIONS *****************/
 
 #define BROKER_NOTHING                  0
-#define BROKER_EVERYTHING	 	8191
+#define BROKER_EVERYTHING	 	32767
 
 #define BROKER_PROGRAM_STATE            1	/* DONE */
 #define BROKER_TIMED_EVENTS             2	/* DONE */
@@ -42,13 +42,15 @@
 #define BROKER_HOST_CHECKS              8	/* DONE */
 #define BROKER_EVENT_HANDLERS   	16	/* DONE */
 #define BROKER_LOGGED_DATA              32	/* DONE */
-#define BROKER_NOTIFICATIONS    	64
+#define BROKER_NOTIFICATIONS    	64      /* DONE */
 #define BROKER_FLAPPING_DATA   	        128	/* DONE */
 #define BROKER_COMMENT_DATA         	256	/* DONE */
-#define BROKER_DOWNTIME_DATA		512
+#define BROKER_DOWNTIME_DATA		512     /* DONE */
 #define BROKER_SYSTEM_COMMANDS          1024	/* DONE */
 #define BROKER_OCP_DATA                 2048	/* DONE */
 #define BROKER_STATUS_DATA              4096    /* DONE */
+#define BROKER_ADAPTIVE_DATA            8192    /* DONE */
+#define BROKER_EXTERNALCOMMAND_DATA     16384   /* DONE */
 
 
 
@@ -111,6 +113,12 @@
 #define NEBTYPE_HOSTSTATUS_UPDATE             1201
 #define NEBTYPE_SERVICESTATUS_UPDATE          1202
 
+#define NEBTYPE_ADAPTIVEPROGRAM_UPDATE        1300
+#define NEBTYPE_ADAPTIVEHOST_UPDATE           1301
+#define NEBTYPE_ADAPTIVESERVICE_UPDATE        1302
+
+#define NEBTYPE_EXTERNALCOMMAND_START         1400
+
 
 
 /****** EVENT FLAGS ************************/
@@ -154,11 +162,15 @@ void broker_host_check(int,int,int,host *,int,int,int,struct timeval,struct time
 void broker_service_check(int,int,int,service *,int,struct timeval,struct timeval,double,double,int,int,int,char *,struct timeval *);
 void broker_comment_data(int,int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
 void broker_downtime_data(int,int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
-void broker_flapping_data(int,int,int,int,void *,double,double,struct timeval *);
+void broker_flapping_data(int,int,int,int,void *,double,double,double,struct timeval *);
 void broker_program_status(int,int,int,struct timeval *);
 void broker_host_status(int,int,int,host *,struct timeval *);
 void broker_service_status(int,int,int,service *,struct timeval *);
 void broker_notification_data(int,int,int,int,int,void *,char *,char *,int,struct timeval *);
+void broker_adaptive_program_data(int,int,int,int,unsigned long,unsigned long,unsigned long,unsigned long,char *,char *,struct timeval *);
+void broker_adaptive_host_data(int,int,int,host *,int,unsigned long,unsigned long,struct timeval *);
+void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsigned long,struct timeval *);
+void broker_external_command(int,int,int,int,time_t,char *,char *,struct timeval *);
 #endif
 
 #endif

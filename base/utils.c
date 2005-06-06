@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-22-2005
+ * Last Modified:   06-01-2005
  *
  * License:
  *
@@ -5058,9 +5058,9 @@ void cleanup(void){
 #ifdef USE_EVENT_BROKER
 	/* unload modules */
 	if(test_scheduling==FALSE && verify_config==FALSE){
+		neb_free_callback_list();
 		neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD,(sigshutdown==TRUE)?NEBMODULE_NEB_SHUTDOWN:NEBMODULE_NEB_RESTART);
 		neb_free_module_list();
-		neb_free_callback_list();
 		neb_deinit_modules();
 	        }
 #endif

@@ -2,8 +2,8 @@
  *
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
- * Copyright (c) 2003-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-30-2004
+ * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 06-04-2005
  *
  * License:
  *
@@ -213,7 +213,8 @@ typedef struct nebstruct_flapping_struct{
 	char            *host_name;
 	char            *service_description;
 	double          percent_change;
-	double          threshold;
+	double          high_threshold;
+	double          low_threshold;
 	unsigned long   comment_id;
         }nebstruct_flapping_data;
 
@@ -283,6 +284,66 @@ typedef struct nebstruct_notification_struct{
 	char            *ack_data;
 	int             contacts_notified;
         }nebstruct_notification_data;
+
+
+/* adaptive program data structure */
+typedef struct nebstruct_adaptive_program_data_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	int             command_type;
+	unsigned long   modified_host_attribute;
+	unsigned long   modified_host_attributes;
+	unsigned long   modified_service_attribute;
+	unsigned long   modified_service_attributes;
+	char            *global_host_event_handler;
+	char            *global_service_event_handler;
+        }nebstruct_adaptive_program_data;
+
+
+/* adaptive host data structure */
+typedef struct nebstruct_adaptive_host_data_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	int             command_type;
+	unsigned long   modified_attribute;
+	unsigned long   modified_attributes;
+	void            *object_ptr;
+        }nebstruct_adaptive_host_data;
+
+
+/* adaptive service data structure */
+typedef struct nebstruct_adaptive_service_data_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	int             command_type;
+	unsigned long   modified_attribute;
+	unsigned long   modified_attributes;
+	void            *object_ptr;
+        }nebstruct_adaptive_service_data;
+
+
+/* external command data structure */
+typedef struct nebstruct_external_command_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	int             command_type;
+	time_t          entry_time;
+	char            *command_string;
+	char            *command_args;
+        }nebstruct_external_command_data;
+
 
 
 #endif

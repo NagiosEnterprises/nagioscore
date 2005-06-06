@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-05-2005
+ * Last Modified: 05-26-2005
  *
  * License:
  *
@@ -6101,7 +6101,7 @@ int free_extended_data(void){
 
 
 #ifdef DEBUG0
-	printf("free_extended_data() start\n");
+	printf("free_extended_data() end\n");
 #endif
 
 	return OK;

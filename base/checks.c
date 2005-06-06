@@ -1672,6 +1672,12 @@ void check_service_result_freshness(void){
 	printf("check_service_result_freshness() start\n");
 #endif
 
+#undef TEST_FRESHNESS
+
+#ifdef TEST_FRESHNESS
+	printf("CHECKFRESHNESS 1\n");
+#endif
+
 	/* bail out if we're not supposed to be checking freshness */
 	if(check_service_freshness==FALSE)
 		return;
@@ -1679,8 +1685,17 @@ void check_service_result_freshness(void){
 	/* get the current time */
 	time(&current_time);
 
+#ifdef TEST_FRESHNESS
+	printf("CHECKFRESHNESS 2: %lu\n",(unsigned long)current_time);
+#endif
+
 	/* check all services... */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+
+#ifdef TEST_FRESHNESS
+		if(!strcmp(temp_service->description,"Freshness Check Test"))
+			printf("Checking: %s/%s\n",temp_service->host_name,temp_service->description);
+#endif
 
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
@@ -1702,6 +1717,10 @@ void check_service_result_freshness(void){
 		if(check_time_against_period(current_time,temp_service->check_period)==ERROR)
 			continue;
 
+#ifdef TEST_FRESHNESS
+		printf("CHECKFRESHNESS 3\n");
+#endif
+
 		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
 		if(temp_service->freshness_threshold==0){
 			if(temp_service->state_type==HARD_STATE || temp_service->current_state==STATE_OK)
@@ -1712,14 +1731,23 @@ void check_service_result_freshness(void){
 		else
 			freshness_threshold=temp_service->freshness_threshold;
 
-		/* calculate expiration time */
-#ifdef REMOVED_032604
-		if(temp_service->has_been_checked==FALSE)
+#ifdef TEST_FRESHNESS
+		printf("THRESHOLD: SVC=%d, USE=%d\n",temp_service->freshness_threshold,freshness_threshold);
 #endif
+
+		/* calculate expiration time */
 		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check)
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
+
+#ifdef TEST_FRESHNESS
+		printf("HASBEENCHECKED: %d\n",temp_service->has_been_checked);
+		printf("PROGRAM START:  %lu\n",(unsigned long)program_start);
+		printf("LAST CHECK:     %lu\n",(unsigned long)temp_service->last_check);
+		printf("CURRENT TIME:   %lu\n",(unsigned long)current_time);
+		printf("EXPIRE TIME:    %lu\n",(unsigned long)expiration_time);
+#endif
 
 		/* the results for the last check of this service are stale */
 		if(expiration_time<current_time){

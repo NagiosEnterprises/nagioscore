@@ -137,11 +137,11 @@ void check_for_service_flapping(service *svc, int update_history){
 
 	/* did the service just start flapping? */
 	if(is_flapping==TRUE && svc->is_flapping==FALSE)
-		set_service_flap(svc,curved_percent_change,high_threshold);
+		set_service_flap(svc,curved_percent_change,high_threshold,low_threshold);
 
 	/* did the service just stop flapping? */
 	else if(is_flapping==FALSE && svc->is_flapping==TRUE)
-		clear_service_flap(svc,curved_percent_change,low_threshold);
+		clear_service_flap(svc,curved_percent_change,high_threshold,low_threshold);
 
 #ifdef DEBUG0
 	printf("check_for_service_flapping() end\n");
@@ -253,11 +253,11 @@ void check_for_host_flapping(host *hst, int update_history){
 
 	/* did the host just start flapping? */
 	if(is_flapping==TRUE && hst->is_flapping==FALSE)
-		set_host_flap(hst,curved_percent_change,high_threshold);
+		set_host_flap(hst,curved_percent_change,high_threshold,low_threshold);
 
 	/* did the host just stop flapping? */
 	else if(is_flapping==FALSE && hst->is_flapping==TRUE)
-		clear_host_flap(hst,curved_percent_change,low_threshold);
+		clear_host_flap(hst,curved_percent_change,high_threshold,low_threshold);
 
 #ifdef DEBUG0
 	printf("check_for_host_flapping() end\n");
@@ -273,7 +273,7 @@ void check_for_host_flapping(host *hst, int update_history){
 
 
 /* handles a service that is flapping */
-void set_service_flap(service *svc, double percent_change, double high_threshold){
+void set_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold){
 	char buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -295,7 +295,7 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_flapping_data(NEBTYPE_FLAPPING_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_FLAPPING,svc,percent_change,high_threshold,NULL);
+	broker_flapping_data(NEBTYPE_FLAPPING_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_FLAPPING,svc,percent_change,high_threshold,low_threshold,NULL);
 #endif
 
 	/* see if we should check to send a recovery notification out when flapping stops */
@@ -316,7 +316,7 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 
 
 /* handles a service that has stopped flapping */
-void clear_service_flap(service *svc, double percent_change, double low_threshold){
+void clear_service_flap(service *svc, double percent_change, double high_threshold, double low_threshold){
 	char buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -338,7 +338,7 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,SERVICE_FLAPPING,svc,percent_change,low_threshold,NULL);
+	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,SERVICE_FLAPPING,svc,percent_change,high_threshold,low_threshold,NULL);
 #endif
 
 	/* should we send a recovery notification? */
@@ -360,7 +360,7 @@ void clear_service_flap(service *svc, double percent_change, double low_threshol
 
 
 /* handles a host that is flapping */
-void set_host_flap(host *hst, double percent_change, double high_threshold){
+void set_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold){
 	char buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -382,7 +382,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_flapping_data(NEBTYPE_FLAPPING_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_FLAPPING,hst,percent_change,high_threshold,NULL);
+	broker_flapping_data(NEBTYPE_FLAPPING_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_FLAPPING,hst,percent_change,high_threshold,low_threshold,NULL);
 #endif
 
 	/* see if we should check to send a recovery notification out when flapping stops */
@@ -403,7 +403,7 @@ void set_host_flap(host *hst, double percent_change, double high_threshold){
 
 
 /* handles a host that has stopped flapping */
-void clear_host_flap(host *hst, double percent_change, double low_threshold){
+void clear_host_flap(host *hst, double percent_change, double high_threshold, double low_threshold){
 	char buffer[MAX_INPUT_BUFFER];
 
 #ifdef DEBUG0
@@ -425,7 +425,7 @@ void clear_host_flap(host *hst, double percent_change, double low_threshold){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,HOST_FLAPPING,hst,percent_change,low_threshold,NULL);
+	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,HOST_FLAPPING,hst,percent_change,high_threshold,low_threshold,NULL);
 #endif
 
 	/* should we send a recovery notification? */
@@ -561,7 +561,7 @@ void disable_host_flap_detection(host *hst){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,HOST_FLAPPING,hst,hst->percent_state_change,0.0,NULL);
+		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,HOST_FLAPPING,hst,hst->percent_state_change,0.0,0.0,NULL);
 #endif
 	        }
 
@@ -645,7 +645,7 @@ void disable_service_flap_detection(service *svc){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,SERVICE_FLAPPING,svc,svc->percent_state_change,0.0,NULL);
+		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,SERVICE_FLAPPING,svc,svc->percent_state_change,0.0,0.0,NULL);
 #endif
 	        }
 

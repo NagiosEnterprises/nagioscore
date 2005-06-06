@@ -2,8 +2,8 @@
  *
  * BROKER.C - Event broker routines for Nagios
  *
- * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   06-05-2005
  *
  * License:
  *
@@ -364,7 +364,7 @@ void broker_downtime_data(int type, int flags, int attr, int downtime_type, char
 
 
 /* send flapping data to broker */
-void broker_flapping_data(int type, int flags, int attr, int flapping_type, void *data, double percent_change, double threshold, struct timeval *timestamp){
+void broker_flapping_data(int type, int flags, int attr, int flapping_type, void *data, double percent_change, double high_threshold, double low_threshold, struct timeval *timestamp){
 	nebstruct_flapping_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -395,10 +395,11 @@ void broker_flapping_data(int type, int flags, int attr, int flapping_type, void
 		ds.comment_id=temp_host->flapping_comment_id;
 	        }
 	ds.percent_change=percent_change;
-	ds.threshold=threshold;
+	ds.high_threshold=high_threshold;
+	ds.low_threshold=low_threshold;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_DOWNTIME_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_FLAPPING_DATA,(void *)&ds);
 
 	return;
         }
@@ -529,6 +530,110 @@ void broker_notification_data(int type, int flags, int attr, int notification_ty
 
 	return;
         }
+
+
+/* sends adaptive programs updates to broker */
+void broker_adaptive_program_data(int type, int flags, int attr, int command_type, unsigned long modhattr, unsigned long modhattrs, unsigned long modsattr, unsigned long modsattrs, char *gheh, char *gseh, struct timeval *timestamp){
+	nebstruct_adaptive_program_data ds;
+
+	if(!(event_broker_options & BROKER_ADAPTIVE_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.command_type=command_type;
+	ds.modified_host_attribute=modhattr;
+	ds.modified_host_attributes=modhattrs;
+	ds.modified_service_attribute=modsattr;
+	ds.modified_service_attributes=modsattrs;
+	ds.global_host_event_handler=gheh;
+	ds.global_service_event_handler=gseh;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_PROGRAM_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+/* sends adaptive host updates to broker */
+void broker_adaptive_host_data(int type, int flags, int attr, host *hst, int command_type, unsigned long modattr, unsigned long modattrs, struct timeval *timestamp){
+	nebstruct_adaptive_host_data ds;
+
+	if(!(event_broker_options & BROKER_ADAPTIVE_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.command_type=command_type;
+	ds.modified_attribute=modattr;
+	ds.modified_attributes=modattrs;
+	ds.object_ptr=(void *)hst;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_HOST_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+/* sends adaptive service updates to broker */
+void broker_adaptive_service_data(int type, int flags, int attr, service *svc, int command_type, unsigned long modattr, unsigned long modattrs, struct timeval *timestamp){
+	nebstruct_adaptive_service_data ds;
+
+	if(!(event_broker_options & BROKER_ADAPTIVE_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.command_type=command_type;
+	ds.modified_attribute=modattr;
+	ds.modified_attributes=modattrs;
+	ds.object_ptr=(void *)svc;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_SERVICE_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+/* sends external commands to broker */
+void broker_external_command(int type, int flags, int attr, int command_type, time_t entry_time, char *command_string, char *command_args, struct timeval *timestamp){
+	nebstruct_external_command_data ds;
+
+	if(!(event_broker_options & BROKER_EXTERNALCOMMAND_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.command_type=command_type;
+	ds.entry_time=entry_time;
+	ds.command_string=command_string;
+	ds.command_args=command_args;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_EXTERNAL_COMMAND_DATA,(void *)&ds);
+
+	return;
+        }
+
 
 
 /******************************************************************/

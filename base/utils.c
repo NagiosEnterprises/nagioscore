@@ -3324,6 +3324,7 @@ void setup_sighandler(void){
 	setbuf(stderr,(char *)NULL);
 
 	/* initialize signal handling */
+	signal(SIGPIPE,SIG_IGN);
 	signal(SIGQUIT,sighandler);
 	signal(SIGTERM,sighandler);
 	signal(SIGHUP,sighandler);
@@ -3352,6 +3353,7 @@ void reset_sighandler(void){
 	signal(SIGTERM,SIG_DFL);
 	signal(SIGHUP,SIG_DFL);
 	signal(SIGSEGV,SIG_DFL);
+	signal(SIGPIPE,SIG_DFL);
 
 #ifdef DEBUG0
 	printf("reset_sighandler() end\n");

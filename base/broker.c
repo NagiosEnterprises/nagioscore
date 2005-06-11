@@ -51,6 +51,10 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
+extern unsigned long modified_host_process_attributes;
+extern unsigned long modified_service_process_attributes;
+extern char *global_host_event_handler;
+extern char *global_service_event_handler;
 
 
 #ifdef USE_EVENT_BROKER
@@ -435,6 +439,10 @@ void broker_program_status(int type, int flags, int attr, struct timeval *timest
 	ds.process_performance_data=process_performance_data;
 	ds.obsess_over_hosts=obsess_over_hosts;
 	ds.obsess_over_services=obsess_over_services;
+	ds.modified_host_attributes=modified_host_process_attributes;
+	ds.modified_service_attributes=modified_service_process_attributes;
+	ds.global_host_event_handler=global_host_event_handler;
+	ds.global_service_event_handler=global_service_event_handler;
 
 	/* make callbacks */
 	neb_make_callbacks(NEBCALLBACK_PROGRAM_STATUS_DATA,(void *)&ds);

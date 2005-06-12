@@ -2,8 +2,8 @@
  *
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   06-11-2005
  *
  * Description:
  *
@@ -181,7 +181,6 @@ int main(int argc, char **argv){
 
 	/* free all allocated memory */
 	free_memory();
-	free_extended_data();
 
 	return OK;
         }

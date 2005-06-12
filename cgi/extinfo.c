@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-23-2005
+ * Last Modified: 06-11-2005
  *
  * License:
  * 
@@ -478,7 +478,6 @@ int main(void){
 
 	/* free all allocated memory */
 	free_memory();
-	free_extended_data();
 	free_comment_data();
 	free_downtime_data();
 

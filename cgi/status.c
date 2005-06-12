@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2005
+ * Last Modified: 06-11-2005
  *
  * License:
  * 
@@ -466,7 +466,6 @@ int main(void){
 
 	/* free all allocated memory */
 	free_memory();
-	free_extended_data();
 	free_comment_data();
 
 	/* free memory allocated to the sort lists */

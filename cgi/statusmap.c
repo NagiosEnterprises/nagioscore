@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2005
+ * Last Modified: 06-11-2005
  *
  * Description:
  *
@@ -293,7 +293,6 @@ int main(int argc, char **argv){
 
 	/* free all allocated memory */
 	free_memory();
-	free_extended_data();
 	free_layer_list();
 
 	return OK;

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-26-2005
+ * Last Modified: 06-12-2005
  *
  * License:
  *
@@ -873,7 +873,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 	if(day<0 || day>6){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Day %d is not value for timeperiod '%s'\n",day,period->name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Day %d is not valid for timeperiod '%s'\n",day,period->name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -881,7 +881,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 	        }
 	if(start_time<0 || start_time>86400){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Start time %lu on day %d is not value for timeperiod '%s'\n",start_time,day,period->name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Start time %lu on day %d is not valid for timeperiod '%s'\n",start_time,day,period->name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif

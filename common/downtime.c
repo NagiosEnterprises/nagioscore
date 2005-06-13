@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 06-12-2005
  *
  * License:
  *
@@ -69,9 +69,6 @@ int initialize_downtime_data(char *config_file){
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_initialize_downtime_data(config_file);
 #endif
-#ifdef USE_XDDDB
-	result=xdddb_initialize_downtime_data(config_file);
-#endif
 
 	return result;
         }
@@ -84,9 +81,6 @@ int cleanup_downtime_data(char *config_file){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_cleanup_downtime_data(config_file);
-#endif
-#ifdef USE_XDDDB
-	result=xdddb_cleanup_downtime_data(config_file);
 #endif
 
 	/* free memory allocated to downtime data */
@@ -644,9 +638,6 @@ int add_new_host_downtime(char *host_name, time_t entry_time, char *author, char
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_add_new_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
-#ifdef USE_XDDDB
-	result=xdddb_add_new_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
-#endif
 
 	/* save downtime id */
 	if(downtime_id!=NULL)
@@ -672,9 +663,6 @@ int add_new_service_downtime(char *host_name, char *service_description, time_t 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_add_new_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
-#endif
-#ifdef USE_XDDDB
-	result=xdddb_add_new_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,&new_downtime_id);
 #endif
 
 	/* save downtime id */
@@ -760,9 +748,6 @@ int delete_host_downtime(unsigned long downtime_id){
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_delete_host_downtime(downtime_id);
 #endif
-#ifdef USE_XDDDB
-	result=xdddb_delete_host_downtime(downtime_id,FALSE);
-#endif
 
 	return result;
         }
@@ -778,9 +763,6 @@ int delete_service_downtime(unsigned long downtime_id){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_delete_service_downtime(downtime_id);
-#endif
-#ifdef USE_XDDDB
-	result=xdddb_delete_service_downtime(downtime_id,FALSE);
 #endif
 
 	return result;
@@ -803,9 +785,6 @@ int read_downtime_data(char *main_config_file){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XDDDEFAULT
 	result=xdddefault_read_downtime_data(main_config_file);
-#endif
-#ifdef USE_XDDDB
-	result=xdddb_read_downtime_data(main_config_file);
 #endif
 
 	return result;

@@ -2,8 +2,8 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 06-12-2005
  *
  * License:
  *
@@ -32,9 +32,6 @@
 
 #ifdef USE_XCDDEFAULT
 #include "../xdata/xcddefault.h"
-#endif
-#ifdef USE_XCDDB
-#include "../xdata/xcddb.h"
 #endif
 
 #ifdef NSCORE
@@ -68,9 +65,6 @@ int initialize_comment_data(char *config_file){
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_initialize_comment_data(config_file);
 #endif
-#ifdef USE_XCDDB
-	result=xcddb_initialize_comment_data(config_file);
-#endif
 
 	return result;
         }
@@ -83,9 +77,6 @@ int cleanup_comment_data(char *config_file){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_cleanup_comment_data(config_file);
-#endif
-#ifdef USE_XCDDB
-	result=xcddb_cleanup_comment_data(config_file);
 #endif
 
 	return result;
@@ -127,9 +118,6 @@ int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, cha
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_add_new_host_comment(entry_type,host_name,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 #endif
-#ifdef USE_XCDDB
-	result=xcddb_add_new_host_comment(entry_type,host_name,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
-#endif
 
 	/* save comment id */
 	if(comment_id!=NULL)
@@ -152,9 +140,6 @@ int add_new_service_comment(int entry_type, char *host_name, char *svc_descripti
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_add_new_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
-#endif
-#ifdef USE_XCDDB
-	result=xcddb_add_new_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 #endif
 
 	/* save comment id */
@@ -252,9 +237,6 @@ int delete_host_comment(unsigned long comment_id){
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_delete_host_comment(comment_id);
 #endif
-#ifdef USE_XCDDB
-	result=xcddb_delete_host_comment(comment_id,FALSE);
-#endif
 
 	return result;
         }
@@ -271,9 +253,6 @@ int delete_service_comment(unsigned long comment_id){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_delete_service_comment(comment_id);
-#endif
-#ifdef USE_XCDDB
-	result=xcddb_delete_service_comment(comment_id,FALSE);
 #endif
 
 	return result;
@@ -311,9 +290,6 @@ int delete_all_host_comments(char *host_name){
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_delete_all_host_comments(host_name);
 #endif
-#ifdef USE_XCDDB
-	result=xcddb_delete_all_host_comments(host_name);
-#endif
 
 	return result;
         }
@@ -336,9 +312,6 @@ int delete_all_service_comments(char *host_name, char *svc_description){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_delete_all_service_comments(host_name,svc_description);
-#endif
-#ifdef USE_XCDDB
-	result=xcddb_delete_all_service_comments(host_name,svc_description);
 #endif
 
 	return result;
@@ -363,9 +336,6 @@ int read_comment_data(char *main_config_file){
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
 	result=xcddefault_read_comment_data(main_config_file);
-#endif
-#ifdef USE_XCDDB
-	result=xcddb_read_comment_data(main_config_file);
 #endif
 
 	return result;

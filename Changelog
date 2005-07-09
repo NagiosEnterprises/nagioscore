@@ -15,6 +15,7 @@ Nagios Change Log
 * Added $HOSTCHECKTYPE$ and $SERVICECHECKTYPE$ macros
 * Fixed bugs in $LASTHOSTCHECK$ macro (and corresponding on-demand macro)
 * Fixed bugs in status data routines
+* Fixed bug with NULL hostgroup and servicegroup membership
 
 
 

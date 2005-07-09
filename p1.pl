@@ -1,16 +1,5 @@
  package Embed::Persistent;
 
-# $Id$
-
-# $Log$
-# Revision 2.2  2005/04/27 04:21:58  anwsmh
-# Change embedding API to have p1.pl functions either return or use a code reference (to the
-# compiled plugin, transformed into a subroutine).
-#
-# This p1.pl can only be used with the new (modified calling conventions) Nagios. The two
-# leak far less memory than formerly.
-#
-
 # p1.pl for Nagios 2.0
 
 use strict ;
@@ -217,8 +206,11 @@ EOSUB
 								# This guarantees that the plugin will not be run.
 	if ($@) {
 								# Report error line number wrt to original plugin text (7 lines added by eval_file).
+								# Error text looks like
+								# 'Use of uninitialized ..' at (eval 23) line 186, <DATA> line 218
+								# The error line number is 'line 186'
 		chomp($@) ;
-		$@ =~ s/(\d+)\.$/($1 - 7)/e ;
+		$@ =~ s/line (\d+)[\.,]/'line ' . ($1 - 7) . ','/e ;
 
 		print LH qq($ts eval_file: syntax error in $filename: "$@".\n) 
 			if DEBUG_LEVEL & LEAVE_MSG ;
@@ -232,6 +224,9 @@ EOSUB
 
 			print PH qq($ts eval_file: transformed plugin "$filename" to ==>\n$_\n) ;
 		}
+
+		$@ = substr($@, 0, 256)
+			if length($@) > 256 ;
 
 		$Cache{$filename}[PLUGIN_ERROR] = $@ ;
 								# If the compilation fails, leave nothing behind that may affect subsequent
@@ -249,8 +244,7 @@ EOSUB
 		if ( (DEBUG_LEVEL & CACHE_DUMP) && (++$Current_Run % Cache_Dump_Interval == 0) ) ;
 
 	no strict 'refs' ;
-	$Cache{$filename}[PLUGIN_HNDLR] ||= *{ $package . '::hndlr' }{CODE} ;
-	return $Cache{$filename}[PLUGIN_HNDLR] ;
+	return $Cache{$filename}[PLUGIN_HNDLR] = *{ $package . '::hndlr' }{CODE} ;
 
 }
 
@@ -282,7 +276,7 @@ sub run_package {
 	
 								chomp ;
 								# Report error line number wrt to original plugin text (7 lines added by eval_file).
-								s/(\d+)\.$/($1 - 7)/e ;
+								s/line (\d+)[\.,]/'line ' . ($1 - 7) . ','/e ;
 								print STDOUT qq(**ePN $filename: "$_".\n) ;
 							} ;
 	
@@ -386,6 +380,8 @@ The default is to log nothing and to use S<<path_to_Nagios>/var/epn_stderr.log> 
 Nagios is a program to monitor service availability by scheduling 'plugins' - discrete programs
 that check a service (by for example simulating a users interaction with a web server using WWW::Mechanize)  and output a line of
 text (the summary of the service state) for those responsible for the service, and exit with a coded value to relay the same information to Nagios.
+
+Each plugin is run in a new child process forked by Nagios.
 
 Plugins, like CGIs, can be coded in Perl. The persistence framework embeds a Perl interpreter in Nagios to
 
@@ -585,20 +581,22 @@ This argument is only used by run_package(); it is returned by eval_file().
 =item Embed::Persistent::eval_file( plugin_filename, DO_CLEAN, "", plugin_arguments )
 
 E<10>
-Returns a Perl code reference (an SV containing a hard reference to a subroutine) to the subroutine that
-has been produced and compiled by eval_file.
+Returns B<either> a Perl code reference (an SV containing a hard reference to a subroutine) to the subroutine that
+has been produced and compiled by eval_file, B<or> raises an exception (by calling die) and setting the value of B<ERRSV> or
+B<$@> (if called from Perl).
 
 
-eval_file() transforms the plugin to a subroutine in a package, compiles the string containing the
+eval_file() transforms the plugin to a subroutine in a package, by compiling the string containing the
 transformed plugin, and caches the plugin file modification time (to avoid recompiling it), 
-any errors returned by the compilation, and the parsed plugin arguments.
+the parsed plugin arguments. and either the  error trapped when the plugin is compiled or a code reference to the 
+compiled subroutine representing the plugin.
 
 eval_file() caches these values in the cache named B<%Cache>. The plugin file name is the key to an array containing
 the values illustrated above.
 
+If the plugin file has not been modified, eval_file returns the cached plugin error B<or> the code ref to the plugin subroutine.
 
-If the plugin has been modified or has not been compiled before (vi), the plugin is compiled into a subroutine
-in a new package by
+Otherwise, the plugin is compiled into a subroutine in a new package by
 
 =over 4
 

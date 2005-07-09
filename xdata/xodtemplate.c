@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-25-2005
+ * Last Modified: 06-24-2005
  *
  * Description:
  *
@@ -7544,6 +7544,14 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	        }
 
 	/* add all members to hostgroup */
+	if(this_hostgroup->members==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
 	for(host_name=strtok(this_hostgroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
 		new_hostgroupmember=add_host_to_hostgroup(new_hostgroup,host_name);
@@ -7598,6 +7606,14 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	        }
 
 	/* add all members to servicegroup */
+	if(this_servicegroup->members==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup has no members (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return ERROR;
+	        }
 	for(host_name=strtok(this_servicegroup->members,",");host_name!=NULL;host_name=strtok(NULL,",")){
 		strip(host_name);
 		svc_description=strtok(NULL,",");
@@ -7608,7 +7624,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 			return ERROR;
-		        }
+	                }
 		strip(svc_description);
 
 		new_servicegroupmember=add_service_to_servicegroup(new_servicegroup,host_name,svc_description);

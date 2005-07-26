@@ -409,7 +409,6 @@ void broker_flapping_data(int type, int flags, int attr, int flapping_type, void
         }
 
 
-
 /* sends program status updates to broker */
 void broker_program_status(int type, int flags, int attr, struct timeval *timestamp){
 	nebstruct_program_status_data ds;
@@ -641,6 +640,47 @@ void broker_external_command(int type, int flags, int attr, int command_type, ti
 
 	return;
         }
+
+
+/* brokers aggregated status dumps */
+void broker_aggregated_status_data(int type, int flags, int attr, struct timeval *timestamp){
+	nebstruct_aggregated_status_data ds;
+
+	if(!(event_broker_options & BROKER_STATUS_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_AGGREGATED_STATUS_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+/* brokers retention data */
+void broker_retention_data(int type, int flags, int attr, struct timeval *timestamp){
+	nebstruct_retention_data ds;
+
+	if(!(event_broker_options & BROKER_RETENTION_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_RETENTION_DATA,(void *)&ds);
+
+	return;
+        }
+
 
 
 

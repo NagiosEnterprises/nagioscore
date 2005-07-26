@@ -2,8 +2,8 @@
  *
  * NEBMODS.H - Include file for event broker modules
  *
- * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   7-24-2005
  *
  * License:
  *
@@ -37,6 +37,7 @@
 /* NEB module callback list struct */
 typedef struct nebcallback_struct{
 	void            *callback_func;
+	void            *module_handle;
 	int             priority;
 	struct nebcallback_struct *next;
         }nebcallback;

@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-12-2005
+ * Last Modified:   07-25-2005
  *
  * License:
  *
@@ -84,9 +84,19 @@ int initialize_status_data(char *config_file){
 int update_all_status_data(void){
 	int result;
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_STARTDUMP,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
+
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
 	result=xsddefault_save_status_data();
+#endif
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_ENDDUMP,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 #endif
 
 	if(result!=OK)

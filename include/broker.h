@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-04-2005
+ * Last Modified:   07-25-2005
  *
  * License:
  *
@@ -34,7 +34,7 @@
 /*************** EVENT BROKER OPTIONS *****************/
 
 #define BROKER_NOTHING                  0
-#define BROKER_EVERYTHING	 	32767
+#define BROKER_EVERYTHING	 	65535
 
 #define BROKER_PROGRAM_STATE            1	/* DONE */
 #define BROKER_TIMED_EVENTS             2	/* DONE */
@@ -51,6 +51,7 @@
 #define BROKER_STATUS_DATA              4096    /* DONE */
 #define BROKER_ADAPTIVE_DATA            8192    /* DONE */
 #define BROKER_EXTERNALCOMMAND_DATA     16384   /* DONE */
+#define BROKER_RETENTION_DATA           32768   /* DONE */
 
 
 
@@ -119,6 +120,14 @@
 
 #define NEBTYPE_EXTERNALCOMMAND_START         1400
 
+#define NEBTYPE_AGGREGATEDSTATUS_STARTDUMP    1500
+#define NEBTYPE_AGGREGATEDSTATUS_ENDDUMP      1501
+
+#define NEBTYPE_RETENTIONDATA_STARTLOAD       1600
+#define NEBTYPE_RETENTIONDATA_ENDLOAD         1601
+#define NEBTYPE_RETENTIONDATA_STARTSAVE       1602
+#define NEBTYPE_RETENTIONDATA_ENDSAVE         1603
+
 
 
 /****** EVENT FLAGS ************************/
@@ -171,6 +180,8 @@ void broker_adaptive_program_data(int,int,int,int,unsigned long,unsigned long,un
 void broker_adaptive_host_data(int,int,int,host *,int,unsigned long,unsigned long,struct timeval *);
 void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsigned long,struct timeval *);
 void broker_external_command(int,int,int,int,time_t,char *,char *,struct timeval *);
+void broker_aggregated_status_data(int,int,int,struct timeval *);
+void broker_retention_data(int,int,int,struct timeval *);
 #endif
 
 #endif

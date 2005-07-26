@@ -3,7 +3,7 @@
  * NEBCALLBACKS.H - Include file for event broker modules
  *
  * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-04-2005
+ * Last Modified:   07-25-2005
  *
  * License:
  *
@@ -27,12 +27,13 @@
 #define _NEBCALLBACKS_H
 
 #include "config.h"
+#include "nebmodules.h"
 
 
 
 /***** CALLBACK TYPES *****/
 
-#define NEBCALLBACK_NUMITEMS               25    /* total number of callback types we have */
+#define NEBCALLBACK_NUMITEMS               27    /* total number of callback types we have */
 
 #define NEBCALLBACK_RESERVED0              0     /* reserved for future use */
 #define NEBCALLBACK_RESERVED1              1
@@ -61,11 +62,13 @@
 #define NEBCALLBACK_ADAPTIVE_HOST_DATA     22
 #define NEBCALLBACK_ADAPTIVE_SERVICE_DATA  23
 #define NEBCALLBACK_EXTERNAL_COMMAND_DATA  24
+#define NEBCALLBACK_AGGREGATED_STATUS_DATA 25
+#define NEBCALLBACK_RETENTION_DATA         26
 
 
 /***** CALLBACK FUNCTIONS *****/
 
-int neb_register_callback(int callback_type, int priority, int (*callback_func)(int,void *));
+int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *));
 int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *));
 
 #endif

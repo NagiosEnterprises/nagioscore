@@ -3,7 +3,7 @@
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-04-2005
+ * Last Modified: 07-25-2005
  *
  * License:
  *
@@ -347,6 +347,26 @@ typedef struct nebstruct_external_command_struct{
 	char            *command_string;
 	char            *command_args;
         }nebstruct_external_command_data;
+
+
+/* aggregated status data structure */
+typedef struct nebstruct_aggregated_status_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+        }nebstruct_aggregated_status_data;
+
+
+/* retention data structure */
+typedef struct nebstruct_retention_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+        }nebstruct_retention_data;
 
 
 

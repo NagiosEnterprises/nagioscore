@@ -2,8 +2,8 @@
  *
  * NEBERRORS.H - Event broker errors
  *
- * Copyright (c) 2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-14-2003
+ * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   07-24-2005
  *
  * License:
  *
@@ -49,6 +49,8 @@
 #define NEBERROR_NOCALLBACKLIST     201     /* callback list not initialized */
 #define NEBERROR_CALLBACKBOUNDS     202     /* callback type was out of bounds */
 #define NEBERROR_CALLBACKNOTFOUND   203     /* the callback could not be found */
+#define NEBERROR_NOMODULEHANDLE     204     /* no module handle specified */
+#define NEBERROR_BADMODULEHANDLE    205     /* bad module handle */
 
 
 

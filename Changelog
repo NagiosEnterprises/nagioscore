@@ -17,6 +17,7 @@ Nagios Change Log
 * Fixed bugs in status data routines
 * Fixed bug with NULL hostgroup and servicegroup membership
 * Minor change to event broker API to prevent segfaults from unloaded modules
+* Fixed bug with config directory recursion being broken
 
 
 

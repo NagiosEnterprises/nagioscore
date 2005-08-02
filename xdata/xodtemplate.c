@@ -419,7 +419,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		if(dirfile->d_type==DT_UNKNOWN || dirfile->d_type==DT_DIR || dirfile->d_type==DT_LNK){
 
 			if(dirfile->d_type==DT_UNKNOWN){
-				x=stat(config_file,&stat_buf);
+				x=stat(dirfile->d_name,&stat_buf);
 				if(x!=0){
 					if(!S_ISDIR(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
 						continue;

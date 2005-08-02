@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-2.0b4 - ??/??/2005
+2.0b4 - 08/02/2005
 ------------------
 * Memory leak fixes
 * Fixed log message error at start of flapping
@@ -16,8 +16,10 @@ Nagios Change Log
 * Fixed bugs in $LASTHOSTCHECK$ macro (and corresponding on-demand macro)
 * Fixed bugs in status data routines
 * Fixed bug with NULL hostgroup and servicegroup membership
-* Minor change to event broker API to prevent segfaults from unloaded modules
 * Fixed bug with config directory recursion being broken
+* Fixed bug with processing directives in non-registered object definitions
+* Minor change to event broker API to prevent segfaults from unloaded modules
+* Updated sample helloworld NEB module to show how to register callback routines
 
 
 

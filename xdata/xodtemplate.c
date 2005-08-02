@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-24-2005
+ * Last Modified: 08-02-2005
  *
  * Description:
  *
@@ -3622,6 +3622,10 @@ int xodtemplate_duplicate_services(void){
 		if(temp_service->hostgroup_name==NULL && temp_service->host_name==NULL)
 			continue;
 
+		/* skip services that shouldn't be registered */
+		if(temp_service->register_object==FALSE)
+			continue;
+
 		/* get list of hosts */
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_service->hostgroup_name,temp_service->host_name);
 		if(temp_hostlist==NULL){
@@ -6511,6 +6515,10 @@ int xodtemplate_recombobulate_hostgroups(void){
 		if(temp_hostgroup->members==NULL)
 			continue;
 
+		/* skip hostgroups that shouldn't be registered */
+		if(temp_hostgroup->register_object==FALSE)
+			continue;
+
 		/* get list of hosts in the hostgroup */
 		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,temp_hostgroup->members);
 
@@ -6548,6 +6556,10 @@ int xodtemplate_recombobulate_hostgroups(void){
 
 		/* skip hosts without hostgroup directives or host names */
 		if(temp_host->hostgroups==NULL || temp_host->host_name==NULL)
+			continue;
+
+		/* skip hosts that shouldn't be registered */
+		if(temp_host->register_object==FALSE)
 			continue;
 
 		/* process the list of hostgroups */
@@ -6622,6 +6634,10 @@ int xodtemplate_recombobulate_servicegroups(void){
 	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup;temp_servicegroup=temp_servicegroup->next){
 
 		if(temp_servicegroup->members==NULL)
+			continue;
+
+		/* skip servicegroups that shouldn't be registered */
+		if(temp_servicegroup->register_object==FALSE)
 			continue;
 
 		member_names=temp_servicegroup->members;
@@ -6716,6 +6732,10 @@ int xodtemplate_recombobulate_servicegroups(void){
 
 		/* skip services without servicegroup directives or service names */
 		if(temp_service->servicegroups==NULL || temp_service->host_name==NULL || temp_service->service_description==NULL)
+			continue;
+
+		/* skip services that shouldn't be registered */
+		if(temp_service->register_object==FALSE)
 			continue;
 
 		/* process the list of servicegroups */

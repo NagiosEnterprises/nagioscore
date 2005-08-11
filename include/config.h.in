@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-15-2004
+ * Last Modified: 08-10-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,6 +108,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* needed for the time_t structures we use later... */
+/* this include must come before sys/resource.h or we can have problems on some OSes */
+#undef TIME_WITH_SYS_TIME
+#undef HAVE_SYS_TIME_H
+#if TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+
 #undef HAVE_SYS_RESOURCE_H
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -176,20 +191,6 @@
 #undef HAVE_ERRNO_H
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
-
-/* needed for the time_t structures we use later... */
-#undef TIME_WITH_SYS_TIME
-#undef HAVE_SYS_TIME_H
-#if TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
 #endif
 
 #undef HAVE_SYS_TIMEB_H

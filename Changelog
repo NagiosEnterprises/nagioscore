@@ -3,6 +3,14 @@ Nagios Change Log
 ###################
 
 
+2.0RC1 - ??/??/2005
+-------------------
+* Typo fix in availability CGI
+* Minor changes to sample config files
+* Fixed order of include files in config.h for clean compile on OpenBSD 3.6
+
+
+
 2.0b4 - 08/02/2005
 ------------------
 * Memory leak fixes

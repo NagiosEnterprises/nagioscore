@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-17-2005
+ * Last Modified: 08-10-2005
  *
  * License:
  * 
@@ -4015,7 +4015,7 @@ void display_host_availability(void){
 
 		/* down times */
 		printf("<tr CLASS='dataOdd'><td CLASS='hostDOWN' rowspan=3>DOWN</td>");
-		printf("<td CLASS='dataOdd'>Unscheduled</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>%2.3f%%</td><td class='dataOdd'>%2.3f%%</td></tr>\n",time_down_unscheduled_string,percent_time_down,percent_time_down_known);
+		printf("<td CLASS='dataOdd'>Unscheduled</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>%2.3f%%</td><td class='dataOdd'>%2.3f%%</td></tr>\n",time_down_unscheduled_string,percent_time_down_unscheduled,percent_time_down_down_known);
 		printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Scheduled</td><td CLASS='dataOdd'>%s</td><td CLASS='dataOdd'>%2.3f%%</td><td class='dataOdd'>%2.3f%%</td></tr>\n",time_down_scheduled_string,percent_time_down_scheduled,percent_time_down_scheduled_known);
 		printf("<tr CLASS='hostDOWN'><td CLASS='hostDOWN'>Total</td><td CLASS='hostDOWN'>%s</td><td CLASS='hostDOWN'>%2.3f%%</td><td class='hostDOWN'>%2.3f%%</td></tr>\n",time_down_string,percent_time_down,percent_time_down_known);
 

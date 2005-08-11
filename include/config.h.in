@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-10-2005
+ * Last Modified: 08-11-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,14 +93,6 @@
 #ifndef RTLD_NOW
 #define RTLD_NOW 0
 #endif
-
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-
 
 
 /***** HEADER FILES *****/
@@ -292,5 +284,17 @@
 #include <dlfcn.h>
 #endif
 #endif
+
+
+/***** MARO DEFINITIONS *****/
+
+/* this needs to come after all system include files, so we don't accidentally attempt to redefine it */
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
+
 
 #endif

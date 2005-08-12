@@ -3,7 +3,7 @@
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-11-2005
+ * Last Modified: 08-12-2005
  *
  * Description:
  *
@@ -769,7 +769,7 @@ void display_page_header(void){
 		printf("</td></tr>\n");
 
 		printf("<tr><td CLASS='optBoxItem'>\n");
-		printf("Supress popups:<br>\n");
+		printf("Suppress popups:<br>\n");
 		printf("<input type='checkbox' name='nopopups' %s>\n",(display_popups==FALSE)?"CHECKED":"");
 		printf("</td><td CLASS='optBoxItem'>\n");
 		printf("<input type='submit' value='Update'>\n");

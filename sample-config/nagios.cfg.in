@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-08-2005
+# Last Modified: 08-12-2005
 #
 ##############################################################################
 
@@ -820,7 +820,7 @@ status_update_interval=15
 # and detect hosts and services that are "flapping".  
 # Flapping occurs when a host or service changes between
 # states too frequently.  When Nagios detects that a 
-# host or service is flapping, it will temporarily supress
+# host or service is flapping, it will temporarily suppress
 # notifications for that host/service until it stops
 # flapping.  Flap detection is very experimental, so read
 # the HTML documentation before enabling this feature!

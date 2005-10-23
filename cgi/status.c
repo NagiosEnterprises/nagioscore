@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-11-2005
+ * Last Modified: 08-22-2005
  *
  * License:
  * 
@@ -2363,7 +2363,7 @@ void show_servicegroup_summaries(void){
 	printf("<table border=1 CLASS='status'>\n");
 
 	printf("<TR>\n");
-	printf("<TH CLASS='status'>Host Group</TH><TH CLASS='status'>Host Status Totals</TH><TH CLASS='status'>Service Status Totals</TH>\n");
+	printf("<TH CLASS='status'>Service Group</TH><TH CLASS='status'>Host Status Totals</TH><TH CLASS='status'>Service Status Totals</TH>\n");
 	printf("</TR>\n");
 
 	/* display status summary for all servicegroups */

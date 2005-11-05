@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-17-2005
+ * Last Modified: 11-05-2005
  *
  * License:
  * 
@@ -393,7 +393,7 @@ int main(int argc, char **argv){
 			else{
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&includesoftstates=%s&assumestateretention=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(include_soft_states==TRUE)?"yes":"no",(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",AVAIL_CGI,url_encode(host_name));
-				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&includesoftstates=%s&assumeinitialstates=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(include_soft_states==TRUE)?"yes":"no",(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
+				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&includesoftstates=%s&assumeinitialstates=%s&assumestatesduringnotrunning=%s&initialassumedservicestate=%d&backtrack=%d&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(include_soft_states==TRUE)?"yes":"no",(assume_state_retention==TRUE)?"yes":"no",(assume_initial_states==TRUE)?"yes":"no",(assume_states_during_notrunning==TRUE)?"yes":"no",initial_assumed_service_state,backtrack_archives);
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
@@ -730,6 +730,7 @@ int main(int argc, char **argv){
 			printf("<DIV ALIGN=CENTER>\n");
 			printf("<IMG SRC='%s?createimage&t1=%lu&t2=%lu",TRENDS_CGI,(unsigned long)t1,(unsigned long)t2);
 			printf("&assumeinitialstates=%s",(assume_initial_states==TRUE)?"yes":"no");
+			printf("&assumestatesduringnotrunning=%s",(assume_states_during_notrunning==TRUE)?"yes":"no");
 			printf("&initialassumedhoststate=%d",initial_assumed_host_state);
 			printf("&initialassumedservicestate=%d",initial_assumed_service_state);
 			printf("&assumestateretention=%s",(assume_state_retention==TRUE)?"yes":"no");

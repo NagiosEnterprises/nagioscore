@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-12-2005
+ * Last Modified: 11-05-2005
  *
  * License:
  *
@@ -2405,8 +2405,8 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 #ifdef DEBUG1
 	printf("\tContact Name:                  %s\n",new_contact->name);
 	printf("\tContact Alias:                 %s\n",new_contact->alias);
-	printf("\tContact Email Address:         %s\n",new_contact->email);
-	printf("\tContact Pager Address/Number:  %s\n",new_contact->pager);
+	printf("\tContact Email Address:         %s\n",(new_contact->email==NULL)?"":new_contact->email);
+	printf("\tContact Pager Address/Number:  %s\n",(new_contact->pager==NULL)?"":new_contact->pager);
 	printf("\tSvc Notification Time Period:  %s\n",new_contact->service_notification_period);
 	printf("\tHost Notification Time Period: %s\n",new_contact->host_notification_period);
 #endif

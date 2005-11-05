@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-10-2005
+ * Last Modified:   11-05-2005
  *
  * License:
  *
@@ -322,7 +322,7 @@ void init_timing_loop(void){
 		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);
 #endif
 
-		for(interleave_block_index=0;interleave_block_index<scheduling_info.service_interleave_factor && temp_service!=NULL;temp_service=temp_service->next,interleave_block_index++){
+		for(interleave_block_index=0;interleave_block_index<scheduling_info.service_interleave_factor && temp_service!=NULL;temp_service=temp_service->next){
 
 			/* skip this service if it shouldn't be scheduled */
 			if(temp_service->should_be_scheduled==FALSE)
@@ -331,6 +331,10 @@ void init_timing_loop(void){
 			/* skip services that are already scheduled (from retention data) */
 			if(temp_service->next_check!=(time_t)0)
 				continue;
+
+			/* interleave block index should only be increased when we find a schedulable service */
+			/* moved from for() loop 11/05/05 EG */
+			interleave_block_index++;
 
 			mult_factor=current_interleave_block+(interleave_block_index*total_interleave_blocks);
 
@@ -367,7 +371,7 @@ void init_timing_loop(void){
 		current_interleave_block++;
 	        }
 
-	/* add scheduled host checks to event queue */
+	/* add scheduled service checks to event queue */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services that shouldn't be scheduled */

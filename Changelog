@@ -8,6 +8,9 @@ Nagios Change Log
 * Typo fix in availability CGI
 * Minor changes to sample config files
 * Fixed order of include files in config.h for clean compile on OpenBSD 3.6
+* Minor fixes in availability and trends CGIs for assumed states during program downtime
+* Fixed bug with initial scheduling of active service checks in configs with a large number of passive-only checks
+* A few other misc minor fixes
 
 
 

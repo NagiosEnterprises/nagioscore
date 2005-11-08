@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-02-2005
+ * Last Modified: 11-08-2005
  *
  * Description:
  *
@@ -351,13 +351,12 @@ int xodtemplate_grab_config_info(char *main_config_file){
 
 /* process all files in a specific config directory */
 int xodtemplate_process_config_dir(char *dirname, int options){
-	char config_file[MAX_FILENAME_LENGTH];
+	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp;
 	struct dirent *dirfile;
 	int result=OK;
 	int x;
 	char link_buffer[MAX_FILENAME_LENGTH];
-	char file_name_buffer[MAX_FILENAME_LENGTH];
 	char linked_to_buffer[MAX_FILENAME_LENGTH];
 	struct stat stat_buf;
 	ssize_t readlink_count;
@@ -383,19 +382,19 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	/* process all files in the directory... */
 	while((dirfile=readdir(dirp))!=NULL){
 
+		/* create /path/to/file */
+		snprintf(file,sizeof(file),"%s/%s",dirname,dirfile->d_name);
+		file[sizeof(file)-1]='\x0';
+
 		/* process this if it's a config file... */
 		x=strlen(dirfile->d_name);
 		if(x>4 && !strcmp(dirfile->d_name+(x-4),".cfg")){
 
-			/* create the full path to the config file */
-			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
-			config_file[sizeof(config_file)-1]='\x0';
-
 #ifdef _DIRENT_HAVE_D_TYPE
 			/* only process normal files and symlinks */
 			if(dirfile->d_type==DT_UNKNOWN){
-				x=stat(config_file,&stat_buf);
-				if(x!=0){
+				x=stat(file,&stat_buf);
+				if(x==0){
 					if(!S_ISREG(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
 						continue;
 				        }
@@ -407,7 +406,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 #endif
 
 			/* process the config file */
-			result=xodtemplate_process_config_file(config_file,options);
+			result=xodtemplate_process_config_file(file,options);
 
 			/* break out if we encountered an error */
 			if(result==ERROR)
@@ -419,8 +418,8 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		if(dirfile->d_type==DT_UNKNOWN || dirfile->d_type==DT_DIR || dirfile->d_type==DT_LNK){
 
 			if(dirfile->d_type==DT_UNKNOWN){
-				x=stat(dirfile->d_name,&stat_buf);
-				if(x!=0){
+				x=stat(file,&stat_buf);
+				if(x==0){
 					if(!S_ISDIR(stat_buf.st_mode) && !S_ISLNK(stat_buf.st_mode))
 						continue;
 				        }
@@ -436,16 +435,12 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 			if(dirfile->d_type==DT_LNK || (dirfile->d_type==DT_UNKNOWN && S_ISLNK(stat_buf.st_mode))){
 
-				/* copy full path info to link buffer */
-				snprintf(file_name_buffer,sizeof(file_name_buffer)-1,"%s/%s",dirname,dirfile->d_name);
-				file_name_buffer[sizeof(file_name_buffer)-1]='\x0';
-
-				readlink_count=readlink(file_name_buffer,link_buffer,MAX_FILENAME_LENGTH);
+				readlink_count=readlink(file,link_buffer,MAX_FILENAME_LENGTH);
 
 				/* Handle special case with maxxed out buffer */
 				if(readlink_count==MAX_FILENAME_LENGTH){
 #ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot follow symlink '%s' - Too big!\n",file_name_buffer);
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot follow symlink '%s' - Too big!\n",file);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -455,7 +450,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 				/* Check if reading symlink failed */
 				if(readlink_count==-1){
 #ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot read symlink '%s': %s!\n",file_name_buffer, strerror(errno));
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot read symlink '%s': %s!\n",file, strerror(errno));
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -489,7 +484,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 					/* non-existent symlink - bomb out */
 					if(errno==ENOENT){
 #ifdef NSCORE
-						snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: symlink '%s' points to non-existent '%s'!\n",file_name_buffer,link_buffer);
+						snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: symlink '%s' points to non-existent '%s'!\n",file,link_buffer);
 						temp_buffer[sizeof(temp_buffer)-1]='\x0';
 						write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -497,7 +492,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 					        }
 
 #ifdef NSCORE
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot stat symlinked from '%s' to %s!\n",file_name_buffer,link_buffer);
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot stat symlinked from '%s' to %s!\n",file,link_buffer);
 					temp_buffer[sizeof(temp_buffer)-1]='\x0';
 					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -512,12 +507,8 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 				/* Otherwise, we may proceed! */
 			        }
 
-			/* create the full path to the config directory */
-			snprintf(config_file,sizeof(config_file)-1,"%s/%s",dirname,dirfile->d_name);
-			config_file[sizeof(config_file)-1]='\x0';
-
 			/* process the config directory */
-			result=xodtemplate_process_config_dir(config_file,options);
+			result=xodtemplate_process_config_dir(file,options);
 
 			/* break out if we encountered an error */
 			if(result==ERROR)

@@ -14,6 +14,7 @@ Nagios Change Log
 * Host name search in web interface is now case-insensitive
 * Fixed bug in times reported by nagiostats utility
 * Nagios now drops privileges before reading config files for config verification and scheduling info tests
+* Fixed bug where non-config files would occassionally be processed with config directory recursion
 * A few other misc minor fixes
 
 

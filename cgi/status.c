@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-22-2005
+ * Last Modified: 11-08-2005
  *
  * License:
  * 
@@ -251,7 +251,7 @@ int main(void){
 				for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 					if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 						continue;
-					if(strstr(temp_host->name,host_name)==temp_host->name){
+					if((strstr(temp_host->name,host_name)==temp_host->name) || !strncasecmp(temp_host->name,host_name,strlen(host_name))){
 						free(host_name);
 						host_name=strdup(temp_host->name);
 						break;

@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-05-2005
+ * Last Modified:   11-08-2005
  *
  * License:
  *
@@ -990,6 +990,7 @@ int event_execution_loop(void){
 						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->retry_interval*interval_length));
 					else
 						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->check_interval*interval_length));
+					temp_event->run_time=temp_service->next_check;
 					reschedule_event(temp_event,&event_list_low);
 					update_service_status(temp_service,FALSE);
 
@@ -1040,6 +1041,7 @@ int event_execution_loop(void){
 					temp_event=event_list_low;
 					event_list_low=event_list_low->next;
 					temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
+					temp_event->run_time=temp_host->next_check;
 					reschedule_event(temp_event,&event_list_low);
 					update_host_status(temp_host,FALSE);
 

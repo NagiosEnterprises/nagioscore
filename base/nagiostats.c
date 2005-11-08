@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   08-02-2005
+ * Last Modified:   11-08-2005
  *
  * License:
  *
@@ -519,12 +519,12 @@ int display_stats(void){
 	printf("----------------------------------------------------\n");
 	printf("Status File:                          %s\n",status_file);
 	time_difference=(current_time-status_creation_date);
-	get_time_breakdown(time_difference,&days,&minutes,&hours,&seconds);
+	get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
 	printf("Status File Age:                      %dd %dh %dm %ds\n",days,hours,minutes,seconds);
 	printf("Status File Version:                  %s\n",status_version);
 	printf("\n");
 	time_difference=(current_time-program_start);
-	get_time_breakdown(time_difference,&days,&minutes,&hours,&seconds);
+	get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
 	printf("Program Running Time:                 %dd %dh %dm %ds\n",days,hours,minutes,seconds);
 	printf("\n");
 	printf("Total Services:                       %d\n",status_service_entries);

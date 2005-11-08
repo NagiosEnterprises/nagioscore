@@ -10,6 +10,9 @@ Nagios Change Log
 * Fixed order of include files in config.h for clean compile on OpenBSD 3.6
 * Minor fixes in availability and trends CGIs for assumed states during program downtime
 * Fixed bug with initial scheduling of active service checks in configs with a large number of passive-only checks
+* Fixed bugs with scheduling active host and service checks when active checks were disabled globally
+* Host name search in web interface is now case-insensitive
+* Fixed bug in times reported by nagiostats utility
 * A few other misc minor fixes
 
 

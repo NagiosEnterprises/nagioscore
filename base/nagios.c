@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   08-02-2005
+ * Last Modified:   11-08-2005
  *
  * Description:
  *
@@ -380,8 +380,15 @@ int main(int argc, char **argv){
 		printf("Reading configuration data...\n\n");
 
 		/* read in the configuration files (main config file, resource and object config files) */
-		if((result=read_main_config_file(config_file))==OK)
-			result=read_all_object_data(config_file);
+		if((result=read_main_config_file(config_file))==OK){
+
+			/* drop privileges */
+			if((result=drop_privileges(nagios_user,nagios_group))==ERROR)
+				printf("Failed to drop privileges.  Aborting.");
+			else
+				/* read object config files */
+				result=read_all_object_data(config_file);
+		        }
 
 		/* there was a problem reading the config files */
 		if(result!=OK){
@@ -445,8 +452,15 @@ int main(int argc, char **argv){
 		reset_variables();
 
 		/* read in the configuration files (main config file and all host config files) */
-		if((result=read_main_config_file(config_file))==OK)
-			result=read_all_object_data(config_file);
+		if((result=read_main_config_file(config_file))==OK){
+
+			/* drop privileges */
+			if((result=drop_privileges(nagios_user,nagios_group))==ERROR)
+				printf("Failed to drop privileges.  Aborting.");
+			else
+				/* read object config files */
+				result=read_all_object_data(config_file);
+		        }
 		if(result!=OK)
 			printf("***> One or more problems was encountered while reading configuration data...\n");
 

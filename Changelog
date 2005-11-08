@@ -13,6 +13,7 @@ Nagios Change Log
 * Fixed bugs with scheduling active host and service checks when active checks were disabled globally
 * Host name search in web interface is now case-insensitive
 * Fixed bug in times reported by nagiostats utility
+* Nagios now drops privileges before reading config files for config verification and scheduling info tests
 * A few other misc minor fixes
 
 

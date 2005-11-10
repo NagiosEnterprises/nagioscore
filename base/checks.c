@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-30-2005
+ * Last Modified:   11-10-2005
  *
  * License:
  *
@@ -1672,9 +1672,10 @@ void check_service_result_freshness(void){
 	printf("check_service_result_freshness() start\n");
 #endif
 
-#undef TEST_FRESHNESS
+#define TEST_FRESHNESS 1
 
 #ifdef TEST_FRESHNESS
+	printf("\n======FRESHNESS START======\n");
 	printf("CHECKFRESHNESS 1\n");
 #endif
 
@@ -1736,7 +1737,8 @@ void check_service_result_freshness(void){
 #endif
 
 		/* calculate expiration time */
-		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check)
+		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
+		if(temp_service->has_been_checked==FALSE || (temp_service->checks_enabled==TRUE && program_start>temp_service->last_check))
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
@@ -1764,6 +1766,10 @@ void check_service_result_freshness(void){
 			schedule_service_check(temp_service,current_time,TRUE);
 		        }
 	        }
+
+#ifdef TEST_FRESHNESS
+	printf("\n======FRESHNESS END======\n");
+#endif
 
 #ifdef DEBUG0
 	printf("check_service_result_freshness() end\n");
@@ -1962,7 +1968,8 @@ void check_host_result_freshness(void){
 			freshness_threshold=temp_host->freshness_threshold;
 
 		/* calculate expiration time */
-		if(temp_host->has_been_checked==FALSE)
+		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
+		if(temp_host->has_been_checked==FALSE || (temp_host->checks_enabled==TRUE && (program_start>temp_host->last_check)))
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_host->last_check+freshness_threshold);

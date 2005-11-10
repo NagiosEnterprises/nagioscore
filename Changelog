@@ -15,6 +15,8 @@ Nagios Change Log
 * Fixed bug in times reported by nagiostats utility
 * Nagios now drops privileges before reading config files for config verification and scheduling info tests
 * Fixed bug where non-config files would occassionally be processed with config directory recursion
+* Improvements to init script when stopping Nagios
+* Minor changes to improve host and service freshness checking
 * A few other misc minor fixes
 
 

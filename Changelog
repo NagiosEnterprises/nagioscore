@@ -3,8 +3,8 @@ Nagios Change Log
 ###################
 
 
-2.0RC1 - ??/??/2005
--------------------
+2.0b5 - ??/??/2005
+------------------
 * Typo fix in availability CGI
 * Minor changes to sample config files
 * Fixed order of include files in config.h for clean compile on OpenBSD 3.6
@@ -17,6 +17,7 @@ Nagios Change Log
 * Fixed bug where non-config files would occassionally be processed with config directory recursion
 * Improvements to init script when stopping Nagios
 * Minor changes to improve host and service freshness checking
+* Fixed bug with event handlers and logging during soft host recoveries
 * A few other misc minor fixes
 
 

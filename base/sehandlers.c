@@ -582,7 +582,7 @@ int handle_host_state(host *hst){
 	        }
 
 	/* has the host state changed? */
-	if(hst->last_state!=hst->current_state)
+	if(hst->last_state!=hst->current_state || (hst->current_state==HOST_UP && hst->state_type==SOFT_STATE))
 		state_change=TRUE;
 
 	/* if the host state has changed... */
@@ -611,8 +611,11 @@ int handle_host_state(host *hst){
 		hst->no_more_notifications=FALSE;
 
 		/* the host just recovered, so reset the current host attempt */
+		/* 11/11/05 EG - moved below */
+		/*
 		if(hst->current_state==HOST_UP)
 			hst->current_attempt=1;
+		*/
 
 		/* write the host state change to the main log file */
 		if(hst->state_type==HARD_STATE || (hst->state_type==SOFT_STATE && log_host_retries==TRUE))
@@ -628,6 +631,10 @@ int handle_host_state(host *hst){
 
 		/* handle the host state change */
 		handle_host_event(hst);
+
+		/* the host just recovered, so reset the current host attempt */
+		if(hst->current_state==HOST_UP)
+			hst->current_attempt=1;
 
 		/* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
 		if(hst->current_state==HOST_UP){

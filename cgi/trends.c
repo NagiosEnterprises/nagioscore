@@ -3,7 +3,7 @@
  * TRENDS.C -  Nagios State Trends CGI
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2005
+ * Last Modified: 11-14-2005
  *
  * License:
  * 
@@ -2745,40 +2745,40 @@ void draw_time_breakdowns(void){
 
 		get_time_breakdown_string(total_time,time_up,"Up",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+5,(unsigned char *)temp_buffer,color_darkgreen);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*2),drawing_y_offset+5,"Up",color_darkgreen);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*2),drawing_y_offset+5,(unsigned char *)"Up",color_darkgreen);
 
 		get_time_breakdown_string(total_time,time_down,"Down",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+25,(unsigned char *)temp_buffer,color_red);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*4),drawing_y_offset+25,"Down",color_red);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*4),drawing_y_offset+25,(unsigned char *)"Down",color_red);
 
 		get_time_breakdown_string(total_time,time_unreachable,"Unreachable",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+45,(unsigned char *)temp_buffer,color_darkred);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*11),drawing_y_offset+45,"Unreachable",color_darkred);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*11),drawing_y_offset+45,(unsigned char *)"Unreachable",color_darkred);
 
 		get_time_breakdown_string(total_time,time_indeterminate,"Indeterminate",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+65,(unsigned char *)temp_buffer,color_black);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*13),drawing_y_offset+65,"Indeterminate",color_black);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*13),drawing_y_offset+65,(unsigned char *)"Indeterminate",color_black);
 	        }
 	else{
 		get_time_breakdown_string(total_time,time_ok,"Ok",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+5,(unsigned char *)temp_buffer,color_darkgreen);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*2),drawing_y_offset+5,"Ok",color_darkgreen);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*2),drawing_y_offset+5,(unsigned char *)"Ok",color_darkgreen);
 
 		get_time_breakdown_string(total_time,time_warning,"Warning",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+25,(unsigned char *)temp_buffer,color_yellow);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*7),drawing_y_offset+25,"Warning",color_yellow);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*7),drawing_y_offset+25,(unsigned char *)"Warning",color_yellow);
 
 		get_time_breakdown_string(total_time,time_unknown,"Unknown",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+45,(unsigned char *)temp_buffer,color_orange);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*7),drawing_y_offset+45,"Unknown",color_orange);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*7),drawing_y_offset+45,(unsigned char *)"Unknown",color_orange);
 
 		get_time_breakdown_string(total_time,time_critical,"Critical",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+65,(unsigned char *)temp_buffer,color_red);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*8),drawing_y_offset+65,"Critical",color_red);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*8),drawing_y_offset+65,(unsigned char *)"Critical",color_red);
 
 		get_time_breakdown_string(total_time,time_indeterminate,"Indeterminate",&temp_buffer[0],sizeof(temp_buffer));
 		gdImageString(trends_image,gdFontSmall,drawing_x_offset+drawing_width+20,drawing_y_offset+85,(unsigned char *)temp_buffer,color_black);
-		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*13),drawing_y_offset+85,"Indeterminate",color_black);
+		gdImageString(trends_image,gdFontSmall,drawing_x_offset-10-(gdFontSmall->w*13),drawing_y_offset+85,(unsigned char *)"Indeterminate",color_black);
 	        }
 
 	return;

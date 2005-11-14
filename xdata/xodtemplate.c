@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-08-2005
+ * Last Modified: 11-14-2005
  *
  * Description:
  *
@@ -62,7 +62,6 @@
 #ifdef NSCGI
 #include "../include/cgiutils.h"
 #endif
-
 
 /**** DATA INPUT-SPECIFIC HEADER FILES ****/
 
@@ -236,6 +235,7 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 #endif
 
 #ifdef NSCORE
+
 	/* resolve objects definitions */
 	if(result==OK)
 		result=xodtemplate_resolve_objects();
@@ -1686,6 +1686,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_timeperiod(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for timeperiod '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_timeperiod->_config_file),temp_timeperiod->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_timeperiod->name=strdup(value);
 			if(temp_timeperiod->name==NULL){
 #ifdef DEBUG1
@@ -1763,6 +1773,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_command(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for command '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_command->_config_file),temp_command->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_command->name=strdup(value);
 			if(temp_command->name==NULL){
 #ifdef DEBUG1
@@ -1816,6 +1836,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_contactgroup(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for contactgroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_contactgroup->_config_file),temp_contactgroup->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_contactgroup->name=strdup(value);
 			if(temp_contactgroup->name==NULL){
 #ifdef DEBUG1
@@ -1878,6 +1908,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_hostgroup(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for hostgroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_hostgroup->name=strdup(value);
 			if(temp_hostgroup->name==NULL){
 #ifdef DEBUG1
@@ -1949,6 +1989,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_servicegroup(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for servicegroup '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_servicegroup->name=strdup(value);
 			if(temp_servicegroup->name==NULL){
 #ifdef DEBUG1
@@ -2020,6 +2070,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_servicedependency(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for service dependency '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_servicedependency->name=strdup(value);
 			if(temp_servicedependency->name==NULL){
 #ifdef DEBUG1
@@ -2191,6 +2251,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_serviceescalation(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for service escalation '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_serviceescalation->name=strdup(value);
 			if(temp_serviceescalation->name==NULL){
 #ifdef DEBUG1
@@ -2320,6 +2390,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_contact(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for contact '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_contact->_config_file),temp_contact->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_contact->name=strdup(value);
 			if(temp_contact->name==NULL){
 #ifdef DEBUG1
@@ -2528,6 +2608,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_host(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for host '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_host->name=strdup(value);
 			if(temp_host->name==NULL){
 #ifdef DEBUG1
@@ -2781,6 +2871,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_service(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for service '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_service->name=strdup(value);
 			if(temp_service->name==NULL){
 #ifdef DEBUG1
@@ -3043,6 +3143,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_hostdependency(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for host dependency '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_hostdependency->name=strdup(value);
 			if(temp_hostdependency->name==NULL){
 #ifdef DEBUG1
@@ -3173,6 +3283,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_hostescalation(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for host escalation '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_hostescalation->name=strdup(value);
 			if(temp_hostescalation->name==NULL){
 #ifdef DEBUG1
@@ -3280,6 +3400,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_hostextinfo(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for extended host info '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_hostextinfo->_config_file),temp_hostextinfo->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_hostextinfo->name=strdup(value);
 			if(temp_hostextinfo->name==NULL){
 #ifdef DEBUG1
@@ -3453,6 +3583,16 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"name")){
+
+#ifdef NSCORE
+			/* check for duplicates */
+			if(xodtemplate_find_serviceextinfo(value)!=NULL){
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Duplicate definition found for extended service info '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			        }
+#endif
+
 			temp_serviceextinfo->name=strdup(value);
 			if(temp_serviceextinfo->name==NULL){
 #ifdef DEBUG1
@@ -3577,8 +3717,6 @@ int xodtemplate_end_object_definition(int options){
 
 	return result;
         }
-
-
 
 
 
@@ -7888,6 +8026,10 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 
 	/* add the host definition */
 	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+
+#ifdef TEST_DEBUG
+	printf("HOST: %s, MAXATTEMPTS: %d, NOTINVERVAL: %d \n",this_host->host_name,this_host->max_check_attempts,this_host->notification_interval);
+#endif
 
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){

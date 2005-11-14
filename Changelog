@@ -18,6 +18,7 @@ Nagios Change Log
 * Improvements to init script when stopping Nagios
 * Minor changes to improve host and service freshness checking
 * Fixed bug with event handlers and logging during soft host recoveries
+* Added check for duplicate object names that could adversely affect template resolution
 * A few other misc minor fixes
 
 

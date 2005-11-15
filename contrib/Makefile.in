@@ -1,7 +1,7 @@
 ###############################
 # Makefile for contrib software
 #
-# Last Modified: 10-29-2004
+# Last Modified: 11-14-2004
 ###############################
 
 CC=@CC@
@@ -20,7 +20,7 @@ CGIDIR=@sbindir@
 BINDIR=@bindir@
 
 CGIS=traceroute.cgi
-UTILS=mini_epn convertcfg
+UTILS=mini_epn new_mini_epn convertcfg
 ALL=$(CGIS) $(UTILS)
 
 
@@ -35,7 +35,7 @@ COMMON_H=$(SRC_COMMON)/config.h $(SRC_COMMON)/common.h $(SRC_COMMON)/locations.h
 all: $(ALL)
 
 clean:
-	rm -f convertcfg daemonchk.cgi mini_epn core *.o
+	rm -f convertcfg daemonchk.cgi mini_epn new_mini_epn core *.o
 	rm -f */*/*~
 	rm -f */*~
 	rm -f *~
@@ -63,6 +63,12 @@ mini_epn: mini_epn.c
 	$(CC) $(CFLAGS) -c perlxsi.c  `perl -MExtUtils::Embed -e ccopts`
 	$(CC) $(CFLAGS) -c mini_epn.c `perl -MExtUtils::Embed -e ccopts`
 	$(CC) $(CFLAGS) $(LDFLAGS) perlxsi.o mini_epn.o `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
+
+new_mini_epn: new_mini_epn.c
+	perl -MExtUtils::Embed -e xsinit
+	$(CC) $(CFLAGS) -c perlxsi.c  `perl -MExtUtils::Embed -e ccopts`
+	$(CC) $(CFLAGS) -c new_mini_epn.c `perl -MExtUtils::Embed -e ccopts`
+	$(CC) $(CFLAGS) $(LDFLAGS) perlxsi.o new_mini_epn.o `perl -MExtUtils::Embed -e ccopts -e ldopts` -o $@
 
 ##############################################################################
 # dependencies

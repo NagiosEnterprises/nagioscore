@@ -19,6 +19,7 @@ Nagios Change Log
 * Minor changes to improve host and service freshness checking
 * Fixed bug with event handlers and logging during soft host recoveries
 * Added check for duplicate object names that could adversely affect template resolution
+* Updated mini EPN (embedded Perl) test modules
 * A few other misc minor fixes
 
 

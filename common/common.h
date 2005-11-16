@@ -23,7 +23,7 @@
 
 
 #define PROGRAM_VERSION "1.3"
-#define PROGRAM_MODIFICATION_DATE "10-24-2004"
+#define PROGRAM_MODIFICATION_DATE "11-16-2005"
 
 
 /***************************** COMMANDS *********************************/

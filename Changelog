@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-1.3 - ??/??/2005
+1.3 - 11/16/2005
 ----------------
 * Notification bug fix for volatile services
 * Embedded Perl bug fix in mini_epn
@@ -15,6 +15,7 @@ Nagios Change Log
 * URL encoding bug fix
 * Bug fix in time change compensation code
 * Bug fix for segfault in CGIs where plugin output was NULL
+* Fixed log message error at start of flapping
 
 
 1.2 - 02/02/2004

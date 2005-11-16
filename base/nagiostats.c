@@ -7,14 +7,13 @@
  * License: GPL
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   11-14-2005
+ * Last Modified:   11-16-2005
  *
  * License:
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -223,9 +222,8 @@ int main(int argc, char **argv){
 	if(display_license==TRUE){
 
 		printf("This program is free software; you can redistribute it and/or modify\n");
-		printf("it under the terms of the GNU General Public License as published by\n");
-		printf("the Free Software Foundation; either version 2 of the License, or\n");
-		printf("(at your option) any later version.\n\n");
+		printf("it under the terms of the GNU General Public License version 2 as\n");
+		printf("published by the Free Software Foundation.\n\n");
 		printf("This program is distributed in the hope that it will be useful,\n");
 		printf("but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
 		printf("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");

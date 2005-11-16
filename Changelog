@@ -3,6 +3,12 @@ Nagios Change Log
 ###################
 
 
+2.0b6 - ??/??/2005
+------------------
+* Changed license to specifically state GPL version 2
+
+
+
 2.0b5 - 11/14/2005
 ------------------
 * Typo fix in availability CGI

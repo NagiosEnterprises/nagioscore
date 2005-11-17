@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-1.3 - 11/16/2005
+1.3 - 11/17/2005
 ----------------
 * Notification bug fix for volatile services
 * Embedded Perl bug fix in mini_epn

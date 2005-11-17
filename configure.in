@@ -4,7 +4,7 @@ AC_CONFIG_HEADER(common/config.h common/snprintf.h base/nagios.h cgi/cgiutils.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
-PKG_VERSION="newdate"
+PKG_VERSION="1.3"
 PKG_HOME_URL="http://www.nagios.org/"
 PKG_REL_DATE="11-17-2005"
 

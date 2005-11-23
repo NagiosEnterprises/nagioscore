@@ -1,6 +1,6 @@
 %define name nagios
 %define version 2.0b5
-%define release 1
+%define release 1.fc4.test
 %define nsusr nagios
 %define nsgrp nagios
 %define cmdgrp nagiocmd
@@ -215,11 +215,11 @@ CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" \
 make all
 
 # make sample configs
-cd sample-config
-F=`mktemp temp.XXXXXX`
-sed -e 's=/var/log/nagios/rw/=/var/spool/nagios/=;s=@sysconfdir@/resource.cfg=@sysconfdir@/private/resource.cfg=' nagios.cfg > ${F}
-mv ${F} nagios.cfg
-cd ..
+###cd sample-config
+###F=`mktemp temp.XXXXXX`
+###sed -e 's=/var/log/nagios/rw/=/var/spool/nagios/=;s=@sysconfdir@/resource.cfg=@sysconfdir@/private/resource.cfg=' nagios.cfg > ${F}
+###mv ${F} nagios.cfg
+###cd ..
 
 # make daemonchk.cgi and event handlers
 cd contrib
@@ -243,7 +243,7 @@ install -d -m 0755 ${RPM_BUILD_ROOT}/etc/init.d
 install -d -m 0755 ${RPM_BUILD_ROOT}/etc/logrotate.d
 install -d -m 0755 ${RPM_BUILD_ROOT}/etc/httpd/conf.d
 install -d -m 0755 ${RPM_BUILD_ROOT}/etc/nagios
-install -d -m 0755 ${RPM_BUILD_ROOT}/etc/nagios/private
+### install -d -m 0755 ${RPM_BUILD_ROOT}/etc/nagios/private
 make DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" install
 make DESTDIR=${RPM_BUILD_ROOT} INSTALL_OPTS="" COMMAND_OPTS="" INIT_OPTS="" install-daemoninit
 
@@ -252,9 +252,9 @@ cd sample-config
 for f in {nagios,cgi}.cfg ; do
   [ -f $f ] && install -c -m 664 $f ${RPM_BUILD_ROOT}/etc/nagios/${f}
 done
-mkdir -p ${RPM_BUILD_ROOT}/etc/nagios/private
+###mkdir -p ${RPM_BUILD_ROOT}/etc/nagios/private
 for f in resource.cfg ; do
-  [ -f $f ] && install -c -m 664 $f ${RPM_BUILD_ROOT}/etc/nagios/private/${f}
+  [ -f $f ] && install -c -m 664 $f ${RPM_BUILD_ROOT}/etc/nagios/${f}
 done
 cd template-object
 for f in {hosts,hostgroups,services,contacts,contactgroups,dependencies,escalations,timeperiods,checkcommands,misccommands,minimal}.cfg
@@ -299,6 +299,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/sbin/p1.pl
 %endif
 %{_prefix}/sbin/mini_epn
+%{_prefix}/sbin/new_mini_epn
 %dir %{_prefix}/lib/nagios/eventhandlers
 %{_prefix}/lib/nagios/eventhandlers/*
 %{_sbindir}/convertcfg
@@ -306,9 +307,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root)
 %config(noreplace) /etc/nagios/*.cfg
 %defattr(750,root,%{nsgrp})
-%dir /etc/nagios/private
+###%dir /etc/nagios/private
 %defattr(640,root,%{nsgrp})
-%config(noreplace) /etc/nagios/private/resource.cfg
+### %config(noreplace) /etc/nagios/private/resource.cfg
 %defattr(755,%{nsusr},%{nsgrp})
 %dir /var/log/nagios
 %dir /var/log/nagios/archives
@@ -334,6 +335,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Nov 22 2005 Andreas Kasenides <ank {at} cs.ucy.ac.cy>
+- packaged %{_prefix}/sbin/new_mini_epn
+- moved resource.cfg in /etc/nagios
+
 * Thu Dec 30 2004 Rui Miguel Silva Seabra <rms@sibs.pt>
 - FIX spec (wrong tag for License, and update to current state of compile)
 

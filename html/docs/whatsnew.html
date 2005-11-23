@@ -134,6 +134,7 @@ There are a few known issues with the Nagios 2.0 code at the moment.  Hopefully 
 	<li><b>"Sticky" acknowledgements</b> - You can now designate host and service acknowledgements as being "sticky" or not.  Sticky acknowledgements suppress notifications until a host or service fully recovers to an UP or OK state.  Non-sticky acknowledgements only suppress notifications until a host or service changes state.
 	<li><b>Changed in checking clusters</b> - The way you monitor service and host "clusters" has now changed and is more reliable than before.  This is due to the incorporation of on-demand macros and a new plugin (check_cluster2).  Read more about checking clusters <a href="clusters.html">here</a>.
 	<li><b>Regular expression matching</b> - Regular expression matching of various object directives can be enabled using the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> and <a href="configmain.html#use_true_regexp_matching">use_true_regexp_matching</a> variables.  Information on how and where regular expression matching can be used can be found in the <a href="templatetricks.html">template tips and tricks</a> documentation.
+	<li><b>Service pseudo-states</b> - Support for some redundant service pseudo-states have been removed from the status CGI.  This will affect any hardcoded URLs which use the  servicestatustypes=X parameter for the CGI. Check include/statusdata.h for the new list of service states that you can use.
 	</ul>
 <br>
 </ol>

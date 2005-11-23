@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 08-12-2005
+# Last Modified: 11-23-2005
 #
 ##############################################################################
 
@@ -97,7 +97,7 @@ resource_file=@sysconfdir@/resource.cfg
 # STATUS FILE
 # This is where the current status of all monitored services and
 # hosts is stored.  Its contents are read and processed by the CGIs.
-# The contentsof the status file are deleted every time Nagios
+# The contents of the status file are deleted every time Nagios
 #  restarts.
 
 status_file=@localstatedir@/status.dat
@@ -215,7 +215,7 @@ event_broker_options=-1
 #
 # Example:
 #
-#   nebmodule=<modulepath> [moduleargs]
+#   broker_module=<modulepath> [moduleargs]
 
 #broker_module=/somewhere/module1.o
 #broker_module=/somewhere/module2.o arg1 arg2=3 debug=0
@@ -310,7 +310,7 @@ log_external_commands=1
 
 # PASSIVE CHECKS LOGGING OPTION
 # If you don't want Nagios to log passive host and service checks, set
-# this value to 0.  If passive service checks should be logged, set
+# this value to 0.  If passive checks should be logged, set
 # this value to 1.
 
 log_passive_checks=1

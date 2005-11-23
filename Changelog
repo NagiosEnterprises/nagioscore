@@ -6,6 +6,10 @@ Nagios Change Log
 2.0b6 - ??/??/2005
 ------------------
 * Changed license to specifically state GPL version 2
+* Minor fixes to sample nagios.cfg config file
+* Fix for non-US date formats in command CGI
+* Spec file updates
+* Doc updates
 
 
 
@@ -144,6 +148,46 @@ Nagios Change Log
 * Host and services use chained hash for faster lookups (Daniel Drown)
 * Added support for config file line continuations using \ character
 * Added check auto-rescheduling option
+
+
+1.3 - 11/17/2005
+----------------
+* Notification bug fix for volatile services
+* Embedded Perl bug fix in mini_epn
+* Minor bug fix in trends CGI
+* Bug with in retention of program state
+* Bug fix in PostgreSQL code
+* Fixed auto-increment fields in MySQL table creation script
+* Added service name filter to status CGI
+* URL encoding bug fix
+* Bug fix in time change compensation code
+* Bug fix for segfault in CGIs where plugin output was NULL
+* Fixed log message error at start of flapping
+
+
+1.2 - 02/02/2004
+----------------
+* Host stalking bug fix
+* Embedded Perl bug fix
+* Configure script patch for Solaris (iconv library)
+* Bug fix for segfault in passive check routines
+* Bug fix in service retention logic
+* Bug fix in retention logic affecting passive service checks and
+  event handlers (program-wide basis)
+* Segfault fix in debug mode
+* Fix for popup window in statusmap CGI
+* CGI bug fixes (tac, statusmap, histogram, trends)
+* HTML fixes
+* Notification logic fix
+* Fix for race condition when closing command file
+
+
+1.1 - 06/02/2003
+----------------
+* File descriptor leak in file-based performance routines
+* Timestamp fix for PostgreSQL 7.3
+* Minor bug fixes to cmd and history CGIs
+* Minor documentation fixes
 
 
 1.0 - 11/24/2002

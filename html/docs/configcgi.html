@@ -58,8 +58,6 @@ By default, Nagios expects the CGI configuration file to be named <b>cgi.cfg</b>
 <a href="#physical_html_path">Physical HTML path</a><br>
 <a href="#url_html_path">URL HTML path</a><br>
 <br>
-<a href="#nagios_check_command">Nagios process check command</a><br>
-<br>
 <a href="#use_authentication">Authentication usage</a><br>
 <a href="#default_user_name">Default user name</a><br>
 <a href="#authorized_for_system_information">System/process information access</a><br>
@@ -162,32 +160,6 @@ If, when accessing Nagios via a web browser, you point to an URL like <b>http://
 should be <i>/nagios</i>.  Basically, its the path portion of the URL that is used to access the Nagios HTML pages.
 </p>
 
-
-<p>
-<a name="nagios_check_command"></a>
-<table border="0" width="100%" class="Default">
-<tr>
-<td bgcolor="#cbcbcb"><strong>Nagios Process Check Command</strong></td>
-</tr>
-</table>
-</p>
-
-<p>
-<table border="0" class="Default">
-<tr>
-<td valign=top>Format:</td>
-<td><strong>nagios_check_command=&lt;command_line&gt;</strong></td>
-</tr>
-<tr>
-<td valign=top>Example:</td>
-<td><font color="red"><strong>nagios_check_command=/usr/local/nagios/libexec/check_nagios /usr/local/nagios/var/status.log 5 '/usr/local/nagios/bin/nagios -d /usr/local/nagios/etc/nagios.cfg'</strong></font></td>
-</tr>
-</table>
-</p>
-
-<p>
-This is an <i>optional</i> command that the CGIs can use to check the status of the Nagios process.  This provides the CGIs (as well as yourself) with some idea of whether or not Nagios is still running.  If you do not specify a command to be run, the CGIs will assume that the Nagios process is running.   If you do define a process check command, it should follow the same guidelines that are required of standard plugins.  If the command returns a non-OK status, the CGIs will think the Nagios process is not running and will refuse to allow you to commit any commands via the <a href="cgis.html#cmd_cgi">command CGI</a>.
-</p>
 
 <p>
 <a name="use_authentication"></a>

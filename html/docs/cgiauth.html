@@ -25,7 +25,7 @@
 <strong><u>Notes</u></strong>
 </p>
 <p>
-Throughout these instructions I will be assuming that you are running the <a href="http://www.apache.org">Apache</a> web server on your machine.  If you are running some other web server, you will have to make some adjustments.
+Throughout these instructions I will be assuming that you are running the <a href="http://httpd.apache.org/">Apache</a> web server on your machine.  If you are running some other web server, you will have to make some adjustments.
 </p>
 
 <p>
@@ -37,7 +37,7 @@ Throughout these instructions I will be using the following terms, so you should
 </p>
 <p>
 <ul>
-<li>An <i>authenticated user</i> is an someone who has authenticated to the web server with a username and password and has been granted access to the CGIs by the web server
+<li>An <i>authenticated user</i> is an someone who has authenticated to the web server with a username and password and has been granted access to the Nagios web interface.
 <li>An <i>authenticated contact</i> is an authenticated user whose username matches the short name of a contact definition in your <a href="configobject.html">object configuration file(s)</a>.
 </ul>
 </p>
@@ -46,65 +46,11 @@ Throughout these instructions I will be using the following terms, so you should
 <strong><u>Index</u></strong>
 </p>
 <p>
-<a href="#config_web_server">Configuring web server authentication</a><br>
 <a href="#config_web_users">Setting up authenticated users</a><br>
 <a href="#enable_cgi_auth">Enabling authentication/authorization functionality in the CGIs</a><br>
 <a href="#default_rights">Default permissions to CGI information</a><br>
 <a href="#additional_rights">Granting additional permissions to CGI information</a><br>
 <a href="#secure_web_servers">Authentication on secure web servers</a><br>
-</p>
-
-<p>
-<a name="config_web_server"></a>
-<strong><u>Configuring Web Server Authentication</u></strong>
-</p>
-
-<p>
-The first step to configuring your web server for authentication is to make sure the web server configuration file (i.e. <b>httpd.conf</b>) file contains an '<b>AllowOverride AuthConfig</b>' statement in it for the Nagios CGI-BIN directory.  If it doesn't, you'll have to add something similiar to the following to your web server configuration file.  Note that you will have to restart the web server in order for this change to take effect.
-</p>
-
-<p>
-<font color="red"><strong>
-<pre>
-&lt;Directory /usr/local/nagios/sbin&gt;
-AllowOverride AuthConfig
-order allow,deny
-allow from all
-Options ExecCGI
-&lt;/Directory&gt;
-</pre>
-</strong></font>
-</p>
-
-<p>
-If you also want to require authentication for access the HTML pages for Nagios, add something similiar to the following in the web server configuration file as well.
-</p>
-
-<p>
-<font color="red"><strong>
-<pre>
-&lt;Directory /usr/local/nagios/share&gt;
-AllowOverride AuthConfig
-order allow,deny
-allow from all
-&lt;/Directory&gt;
-</pre>
-</strong></font>
-</p>
-
-<p>
-The second step is to create a file named <b>.htaccess</b> in the root your CGI directory (and optionally also you HTML directory) for Nagios (usually /usr/local/nagios/sbin and /usr/local/nagios/share, respectively).  The file(s) should have contents similiar to the following...
-</p>
-
-<p>
-<font color="red"><strong>
-<pre>
-AuthName "Nagios Access"
-AuthType Basic
-AuthUserFile /usr/local/nagios/etc/htpasswd.users
-require valid-user
-</pre>
-</strong></font>
 </p>
 
 
@@ -114,7 +60,11 @@ require valid-user
 </p>
 
 <p>
-Now that you've configured the web server to require authentication for access to the CGIs, you'll need to configure users who can access the CGIs. This is done by using the <b>htpasswd</b> command supplied with Apache.
+If you haven't done so already, you'll need to add the appropriate entries to your web server config file to enable basic authentication for the CGI and HTML portions of the Nagios web interface.  Instructions for doing so can be found <a href="installweb.html">here</a>.
+</p>
+
+<p>
+Now that you've configured your web server to require authentication for the Nagios web interface, you'll need to specify who has access.  This is done by using the <b>htpasswd</b> command supplied with Apache.
 </p>
 <p>
 Running the following command will create a new file called <i>htpasswd.users</i> in the <i>/usr/local/nagios/etc</i> directory. It will also create an username/password entry for <i>nagiosadmin</i>.  You will be asked to provide a password that will be used when <i>nagiosadmin</i> authenticates to the web server.
@@ -133,7 +83,7 @@ Continue adding more users until you've created an account for everyone you want
 </p>
 
 <p>
-Okay, so you're done with the first part of what needs to be done.  If you point your web browser to your Nagios CGIs you should be asked for a username and password. If you have problems getting user authentication to work at this point, read your webserver documentation for more info.
+Okay, so you're done with the first part of what needs to be done.  At this point you should be prompted for a username and password if you point your web browser to the Nagios web interface.  If you have problems getting user authentication to work at this point, read your webserver documentation for more info.
 </p>
 
 
@@ -276,7 +226,6 @@ It is important to note that by default <b>no one</b> is authorized for the foll
 <li>Viewing Nagios process information via the <a href="cgis.html#extinfo_cgi">extended information CGI</a>
 <li>Issuing Nagios process commands via the <a href="cgis.html#cmd_cgi">command CGI</a>
 <li>Viewing host group, contact, contact group, time period, and command definitions via the <a href="cgis.html#config_cgi">configuration CGI</a>
-<li>
 </ul>
 </p>
 

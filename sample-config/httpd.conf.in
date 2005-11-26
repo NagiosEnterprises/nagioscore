@@ -1,5 +1,5 @@
 # SAMPLE CONFIG SNIPPETS FOR APACHE WEB SERVER
-# Last Modified: 10-29-2004
+# Last Modified: 11-26-2005
 #
 # This file contains examples of entries that need
 # to be incorporated into your Apache web server
@@ -7,26 +7,36 @@
 # needed to fit your system.
 
 ScriptAlias @cgiurl@ "@sbindir@"
+
 <Directory "@sbindir@">
-#   SSLRequireSSL
+#  SSLRequireSSL
    Options ExecCGI
-   AllowOverride AuthConfig
+   AllowOverride None
    Order allow,deny
    Allow from all
-#   Order deny,allow
-#   Deny from all
-#   Allow from 127.0.0.1
+#  Order deny,allow
+#  Deny from all
+#  Allow from 127.0.0.1
+   AuthName "Nagios Access"
+   AuthType Basic
+   AuthUserFile @sysconfdir@/htpasswd.users
+   Require valid-user
 </Directory>
 
 Alias @htmurl@ "@datadir@"
+
 <Directory "@datadir@">
-#   SSLRequireSSL
+#  SSLRequireSSL
    Options None
-   AllowOverride AuthConfig
+   AllowOverride None
    Order allow,deny
    Allow from all
-#   Order deny,allow
-#   Deny from all
-#   Allow from 127.0.0.1
+#  Order deny,allow
+#  Deny from all
+#  Allow from 127.0.0.1
+   AuthName "Nagios Access"
+   AuthType Basic
+   AuthUserFile @sysconfdir@/htpasswd.users
+   Require valid-user
 </Directory>
 

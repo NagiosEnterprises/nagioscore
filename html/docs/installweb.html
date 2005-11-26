@@ -35,68 +35,55 @@ In these instructions I will assume that you are running the <a href="http://www
 <strong><u>Sample Configuration</u></strong>
 </p>
 <p>
-A sample Apache config file snippet is created when you run the configure script - you can find the sample config file (named <i>httpd.conf</i>) in the <i>sample-config/</i> subdirectory of the Nagios distribution.  You will need to add the contents of this file to your Apache configuration files before you can access the Nagios web interface.  The instruction found below detail how to manually add the appropriate configuration entries to Apache.
+A sample Apache config file snippet is created when you run the configure script - you can find the sample config file (named <i>httpd.conf</i>) in the <i>sample-config/</i> subdirectory of the Nagios distribution.  You will need to add the contents of this file to your Apache configuration files before you can access the Nagios web interface.  The instructions found below detail how to manually add the appropriate configuration entries to Apache.
 </p>
 
 <p>
-<strong><u>Configure Script Alias For The CGIs</u></strong>
+<strong><u>Configure Aliases and Directory Options For The Web Interface</u></strong>
 </p>
 
 <p>
-First you'll need to create an alias for the CGIs.  The default installation expects to find them accessible at <b>http://yourmachine/nagios/cgi-bin/</b>, although this can be changed using the <b>--with-cgiurl</b> option in the configure script.  Anyway, add something like the following to your web server configuration file (i.e. <b>httpd.conf</b>) (changing it to match any directory differences on your system)...
+First you'll need to create appropriate entries for the Nagios web interface (HTML and CGIs) in your web server config file. Add the following snippet to your web server configuration file (i.e. <b>httpd.conf</b>), changing it to match any directory differences on your system.
 </p>
 
-<pre>
 <strong>
 <font color="red">
+<pre>
 ScriptAlias /nagios/cgi-bin /usr/local/nagios/sbin
+
 &lt;Directory "/usr/local/nagios/sbin"&gt;
-    AllowOverride AuthConfig
     Options ExecCGI
+    AllowOverride None
     Order allow,deny
     Allow from all
+    AuthName "Nagios Access"
+    AuthType Basic
+    AuthUserFile /usr/local/nagios/etc/htpasswd.users
+    Require valid-user
 &lt;/Directory&gt;
+
+Alias /nagios /usr/local/nagios/share
+
+&lt;Directory "/usr/local/nagios/share"&gt;
+    Options None
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+    AuthName "Nagios Access"
+    AuthType Basic
+    AuthUserFile /usr/local/nagios/etc/htpasswd.users
+    Require valid-user
+&lt;/Directory&gt;
+</pre>
 </font>
 </strong>
-</pre>
 
 <p>
-<strong>Important!</strong>  The Script-Alias line above must come before the Alias line below. Otherwise Apache will parse the lines differently. 
+<strong>Note:</strong>  The default Nagios installation expects to find the HTML files and CGIs at <b>http://yourmachine/nagios/</b> and <b>http://yourmachine/nagios/cgi-bin/</b>, respectively.  These locations can be changed using the <b>--with-htmurl</b> and <b>--with-cgiurl</b> options in the configure script.
 </p>
 
 <p>
 <strong>Important!</strong>  If you are installing Nagios on a multi-user system, you may want use <a href="http://cgiwrap.unixtools.org/">CGIWrap</a> to provide additional security between the CGIs and the <a href="commandfile.html">external command file</a>.  If you decide to use CGIWrap, the ScriptAlias you'll end up using will most likely be different from that mentioned above.  More information on doing this can be found <a href="security.html">here</a>.
-</p>
-
-<p>
-<a name="web"></a>
-<strong><u>Configure Alias For The HTML Files</u></strong>
-</p>
-
-<p>
-Next you'll need to make the HTML files accessible via the web server.  Add the following entries to your web server configuration file (i.e. <b>httpd.conf</b>):
-</p>
-
-<pre>
-<strong>
-<font color="red">
-Alias /nagios /usr/local/nagios/share
-&lt;Directory "/usr/local/nagios/share"&gt;
-    Options None
-    AllowOverride AuthConfig
-    Order allow,deny
-    Allow from all
-&lt;/Directory&gt;
-</font>
-</strong>
-</pre>
-
-<p>
-This will allow you to use an URL like <b>http://yourmachine/nagios/</b> to view the HTML web interface and documentation.  The alias should be the same value that you entered for the <b>--with-htmurl</b> argument to the configure script (default is <i>/nagios/</i>).
-</p>
-
-<p>
-<strong>Important!</strong>  The Alias directive you just added for the HTML files must come <i>after</i> the ScriptAlias directive for the CGIs.  If it doesn't, you'll get a 404 error when attempting to access the CGIs.
 </p>
 
 <p>
@@ -116,19 +103,19 @@ Once you've finished editing the Apache configuration file, you'll need to resta
 </p>
 
 <p>
+<strong><u>Configure Web Authentication</u></strong>
+</p>
+
+<p>
+Once you have installed the web interface properly, you'll need to specify who can access the Nagios web interface.  Follow <a href="cgiauth.html">these instructions</a> to do this.
+</p>
+
+<p>
 <strong><u>Verify Your Changes</u></strong>
 </p>
 
 <p>
 Don't forget to check and see if the changes you made to Apache work.  You should be able to point your web browser at <b>http://yourmachine/nagios/</b> and get the web interface for Nagios.  The CGIs may not display any information, but this will be remedied once you configure everything and start Nagios.
-</p>
-
-<p>
-<strong><u>Configuring Web Authentication</u></strong>
-</p>
-
-<p>
-Once you have configured the web interface properly, you'll need to enable web server authentication for accessing the CGIs and configure user authorization information.  Details on doing this can be found <a href="cgiauth.html">here</a>.
 </p>
 
 <hr>

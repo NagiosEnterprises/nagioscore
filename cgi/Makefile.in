@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 10-24-2004
+# Last Modified: 11-25-2005
 ###############################
 
 
@@ -183,7 +183,7 @@ histogram.cgi: histogram.c $(CGIDEPS)
 clean:
 	rm -f $(CGIS)
 	rm -f *.o core gmon.out
-	rm -f *~
+	rm -f *~ *.*~
 
 distclean: clean
 	rm -f Makefile cgiutils.h

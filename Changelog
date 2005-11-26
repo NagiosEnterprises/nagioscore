@@ -11,6 +11,7 @@ Nagios Change Log
 * Spec file updates
 * Include file modifications for C++ event broker modules
 * Minor event broker changes (addition of timed event "sleep" data)
+* Added some sanity checks during write of status data for full partitions
 * Doc updates
 
 

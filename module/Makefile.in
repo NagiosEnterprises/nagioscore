@@ -37,7 +37,7 @@ helloworld.o: helloworld.c
 clean:
 	rm -f helloworld.o
 	rm -f core *.o
-	rm -f *~
+	rm -f *~ *.*~
 
 distclean: clean
 	rm -f Makefile

@@ -26,6 +26,9 @@
 #include "locations.h"
 #include "objects.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
 
 #define MAX_COMMAND_ARGUMENTS			32	/* maximum number of $ARGx$ macros */
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
@@ -310,6 +313,7 @@
 #define EVENT_HOST_CHECK                12      /* active host check */
 #define EVENT_HFRESHNESS_CHECK          13      /* checks host result "freshness" */
 #define EVENT_RESCHEDULE_CHECKS		14      /* adjust scheduling of host and service checks */
+#define EVENT_SLEEP                     98      /* asynchronous sleep event that occurs when event queues are empty */
 #define EVENT_USER_FUNCTION             99      /* USER-defined function (modules) */
 
 
@@ -754,5 +758,8 @@ int set_macrox_environment_vars(int);
 int set_argv_macro_environment_vars(int);
 int set_macro_environment_var(char *,char *,int);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

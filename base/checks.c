@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-11-2005
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -137,6 +137,17 @@ void run_service_check(service *svc){
 		preferred_time=current_time+(svc->check_interval*interval_length);
                 }
 
+	/* if the service check should not be checked on a regular interval... */
+	if(svc->check_interval==0){
+
+		/* don't check the service if we're not forcing it through */
+		if(!(svc->check_options & CHECK_OPTION_FORCE_EXECUTION))
+			check_service=FALSE;
+
+		/* don't reschedule the service check */
+		svc->should_be_scheduled=FALSE;
+                }
+
 	/* make sure this is a valid time to check the service */
 	if(check_time_against_period((unsigned long)current_time,svc->check_period)==ERROR){
 
@@ -176,23 +187,27 @@ void run_service_check(service *svc){
 	/* if we shouldn't check the service, just reschedule it and leave... */
 	if(check_service==FALSE){
 
-		/* make sure we rescheduled the next service check at a valid time */
-		get_next_valid_time(preferred_time,&next_valid_time,svc->check_period);
+		/* only attempt to (re)schedule checks that should get checked... */
+		if(svc->should_be_scheduled==TRUE){
 
-		/* the service could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
-		if(time_is_valid==FALSE && next_valid_time==preferred_time){
+			/* make sure we rescheduled the next service check at a valid time */
+			get_next_valid_time(preferred_time,&next_valid_time,svc->check_period);
 
-			svc->next_check=(time_t)(next_valid_time+(60*60*24*365));
-			svc->should_be_scheduled=FALSE;
+			/* the service could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
+			if(time_is_valid==FALSE && next_valid_time==preferred_time){
+
+				svc->next_check=(time_t)(next_valid_time+(60*60*24*365));
+				svc->should_be_scheduled=FALSE;
 #ifdef DEBUG1
-			printf("Warning: Could not find any valid times to reschedule a check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
+				printf("Warning: Could not find any valid times to reschedule a check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
 #endif
-		        }
+		                }
 
-		/* this service could be rescheduled... */
-		else{
-			svc->next_check=next_valid_time;
-			svc->should_be_scheduled=TRUE;
+			/* this service could be rescheduled... */
+			else{
+				svc->next_check=next_valid_time;
+				svc->should_be_scheduled=TRUE;
+			        }
 		        }
 
 		/* update the status log with the current service */
@@ -1671,7 +1686,6 @@ void check_service_result_freshness(void){
 	printf("check_service_result_freshness() start\n");
 #endif
 
-#define TEST_FRESHNESS 1
 
 #ifdef TEST_FRESHNESS
 	printf("\n======FRESHNESS START======\n");
@@ -1715,6 +1729,11 @@ void check_service_result_freshness(void){
 
 		/* see if the time is right... */
 		if(check_time_against_period(current_time,temp_service->check_period)==ERROR)
+			continue;
+
+		/* EXCEPTION */
+		/* don't check freshness of services without regular check intervals if we're using auto-freshness threshold */
+		if(temp_service->check_interval==0 && temp_service->freshness_threshold==0)
 			continue;
 
 #ifdef TEST_FRESHNESS

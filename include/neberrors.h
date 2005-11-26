@@ -3,7 +3,7 @@
  * NEBERRORS.H - Event broker errors
  *
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-24-2005
+ * Last Modified:   11-25-2005
  *
  * License:
  *

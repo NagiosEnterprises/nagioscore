@@ -2,8 +2,8 @@
  *
  * OBJECTS.H - Header file for object addition/search functions
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 11-25-2005
  *
  * License:
  *
@@ -29,7 +29,9 @@
 #include "config.h"
 #include "common.h"
 
-
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 #define MAX_HOSTNAME_LENGTH            		64	/* max. host name length */
 #define MAX_SERVICEDESC_LENGTH			64	/* max. service description length */
@@ -625,6 +627,8 @@ int check_for_circular_hostdependency(hostdependency *,hostdependency *,int);   
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
 int free_extended_data(void);                           /* frees memory allocated to the extended host/service information */
 
-
+#ifdef __cplusplus
+  }
 #endif
 
+#endif

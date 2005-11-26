@@ -1,8 +1,8 @@
 /************************************************************************
  *
  * CGIUTILS.H - Header file for common CGI functions
- * Copyright (c) 1999-2004  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2005  Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 11-25-2005
  *
  * License:
  * 
@@ -26,6 +26,9 @@
 #include "objects.h"
 #include "cgiauth.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
 
 #undef USE_STATUSMAP		/* should we compile and use the statusmap CGI? */
 #undef USE_STATUSWRL 		/* should we compile and use the statuswrl CGI? */
@@ -495,6 +498,10 @@ mmapfile *mmap_fopen(char *);					/* open a file read-only using mmap() */
 int mmap_fclose(mmapfile *);
 char *mmap_fgets(mmapfile *);
 char *mmap_fgets_multiline(mmapfile *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

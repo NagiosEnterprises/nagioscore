@@ -2,8 +2,7 @@
  *
  * COMMENTS.H - Header file for comment functions
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-27-2003
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -30,6 +29,10 @@
 #include "common.h"
 #include "objects.h"
 
+
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 /**************************** COMMENT SOURCES ******************************/
 
@@ -114,11 +117,8 @@ int add_comment_to_hashlist(comment *);
 
 void free_comment_data(void);                                             /* frees memory allocated to the comment list */
 
+#ifdef __cplusplus
+  }
 #endif
 
-
-
-
-
-
-
+#endif

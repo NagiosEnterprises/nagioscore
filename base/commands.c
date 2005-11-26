@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-04-2005
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -2738,7 +2738,7 @@ int cmd_change_check_interval(int cmd,char *args){
 		temp_service->modified_attributes|=attr;
 
 		/* schedule a service check if previous interval was 0 (checks were not regularly scheduled) */
-		if(old_interval==0 && temp_service->checks_enabled==TRUE){
+		if(old_interval==0 && temp_service->checks_enabled==TRUE && temp_service->check_interval!=0){
 
 			/* set the service check flag */
 			temp_service->should_be_scheduled=TRUE;

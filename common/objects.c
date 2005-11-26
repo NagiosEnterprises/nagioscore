@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-23-2005
+ * Last Modified: 11-25-2005
  *
  * License:
  *
@@ -2859,7 +2859,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		return NULL;
 	        }
 
-	if(max_attempts<=0 || check_interval<=0 || retry_interval<=0 || notification_interval<0){
+	if(max_attempts<=0 || check_interval<0 || retry_interval<=0 || notification_interval<0){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';

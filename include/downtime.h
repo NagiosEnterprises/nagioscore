@@ -2,8 +2,8 @@
  *
  * DOWNTIME.H - Header file for scheduled downtime functions
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-21-2003
+ * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -30,6 +30,9 @@
 #include "common.h"
 #include "objects.h"
 
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 /* SCHEDULED_DOWNTIME_ENTRY structure */
 typedef struct scheduled_downtime_struct{
@@ -96,12 +99,8 @@ scheduled_downtime *find_service_downtime(unsigned long);
 
 void free_downtime_data(void);                                       /* frees memory allocated to scheduled downtime list */
 
-
+#ifdef __cplusplus
+  }
 #endif
 
-
-
-
-
-
-
+#endif

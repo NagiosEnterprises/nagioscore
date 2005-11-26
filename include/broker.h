@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-25-2005
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -28,7 +28,9 @@
 #include "config.h"
 #include "nagios.h"
 
-
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 /*************** EVENT BROKER OPTIONS *****************/
 
@@ -73,7 +75,7 @@
 #define NEBTYPE_TIMEDEVENT_EXECUTE            202
 #define NEBTYPE_TIMEDEVENT_DELAY              203   /* NOT IMPLEMENTED */
 #define NEBTYPE_TIMEDEVENT_SKIP               204   /* NOT IMPLEMENTED */
-#define NEBTYPE_TIMEDEVENT_SLEEP              205   /* NOT IMPLEMENTED */
+#define NEBTYPE_TIMEDEVENT_SLEEP              205
 
 #define NEBTYPE_LOG_DATA                      300
 #define NEBTYPE_LOG_ROTATION                  301
@@ -181,6 +183,11 @@ void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsign
 void broker_external_command(int,int,int,int,time_t,char *,char *,struct timeval *);
 void broker_aggregated_status_data(int,int,int,struct timeval *);
 void broker_retention_data(int,int,int,struct timeval *);
+#endif
+
+
+#ifdef __cplusplus
+  }
 #endif
 
 #endif

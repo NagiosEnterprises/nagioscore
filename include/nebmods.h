@@ -3,7 +3,7 @@
  * NEBMODS.H - Include file for event broker modules
  *
  * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   7-24-2005
+ * Last Modified:  11-25-2005
  *
  * License:
  *
@@ -29,6 +29,9 @@
 #include "nebcallbacks.h"
 #include "nebmodules.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
 
 
 /***** MODULE STRUCTURES *****/
@@ -60,6 +63,8 @@ int neb_init_callback_list(void);
 int neb_free_callback_list(void);
 int neb_make_callbacks(int,void *);
 
+#ifdef __cplusplus
+}
 #endif
 
-
+#endif

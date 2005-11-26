@@ -9,6 +9,8 @@ Nagios Change Log
 * Minor fixes to sample nagios.cfg config file
 * Fix for non-US date formats in command CGI
 * Spec file updates
+* Include file modifications for C++ event broker modules
+* Minor event broker changes (addition of timed event "sleep" data)
 * Doc updates
 
 

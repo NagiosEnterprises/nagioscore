@@ -3,7 +3,7 @@
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-25-2005
+ * Last Modified: 11-25-2005
  *
  * License:
  *
@@ -29,7 +29,9 @@
 #include "objects.h"
 #include "nagios.h"
 
-
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 /****** STRUCTURES *************************/
 
@@ -368,5 +370,8 @@ typedef struct nebstruct_retention_struct{
         }nebstruct_retention_data;
 
 
+#ifdef __cplusplus
+  }
+#endif
 
 #endif

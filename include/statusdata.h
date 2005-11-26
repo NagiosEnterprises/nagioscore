@@ -2,8 +2,8 @@
  *
  * STATUSDATA.H - Header for external status data routines
  *
- * Copyright (c) 2000-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-16-2003
+ * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -29,6 +29,9 @@
 #include "objects.h"
 #endif
 
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 #ifdef NSCGI
 
@@ -185,6 +188,8 @@ int update_host_status(host *,int);                     /* updates host status d
 int update_service_status(service *,int);               /* updates service status data */
 #endif
 
-
+#ifdef __cplusplus
+  }
 #endif
 
+#endif

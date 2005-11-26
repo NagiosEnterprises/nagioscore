@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-08-2005
+ * Last Modified:   11-25-2005
  *
  * License:
  *
@@ -885,6 +885,7 @@ void remove_event(timed_event *event,timed_event **event_list){
 /* this is the main event handler loop */
 int event_execution_loop(void){
 	timed_event *temp_event;
+	timed_event sleep_event;
 	time_t last_time;
 	time_t current_time;
 	int run_event=TRUE;
@@ -898,6 +899,16 @@ int event_execution_loop(void){
 #endif
 
 	time(&last_time);
+
+	/* initialize fake "sleep" event */
+	sleep_event.event_type=EVENT_SLEEP;
+	sleep_event.run_time=last_time;
+	sleep_event.recurring=FALSE;
+	sleep_event.event_interval=0L;
+	sleep_event.compensate_for_time_change=FALSE;
+	sleep_event.timing_func=FALSE;
+	sleep_event.event_data=FALSE;
+	sleep_event.event_args=FALSE;
 
 	while(1){
 
@@ -1021,7 +1032,7 @@ int event_execution_loop(void){
 				        }
 			        }
 
-			/* run a few checks before executing ahost check... */
+			/* run a few checks before executing a host check... */
 			if(event_list_low->event_type==EVENT_HOST_CHECK){
 
 				temp_host=(host *)event_list_low->event_data;
@@ -1076,17 +1087,29 @@ int event_execution_loop(void){
 		        }
 
 		/* we don't have anything to do at this moment in time... */
-		else{
+		else if((event_list_high==NULL || (current_time<event_list_high->run_time)) && (event_list_low==NULL || (current_time<event_list_low->run_time))){
 
 			/* check for external commands if we're supposed to check as often as possible */
 			if(command_check_interval==-1)
 				check_for_external_commands();
 
-			/* wait a while so we don't hog the CPU... */
+			/* set time to sleep so we don't hog the CPU... */
 			delay.tv_sec=(time_t)sleep_time;
 			delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
+
+#ifdef USE_EVENT_BROKER
+			/* populate fake "sleep" event */
+			sleep_event.run_time=current_time;
+			sleep_event.event_data=(void *)&delay;
+
+			/* send event data to broker */
+			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP,NEBFLAG_NONE,NEBATTR_NONE,&sleep_event,NULL);
+#endif
+
+			/* wait a while so we don't hog the CPU... */
 			nanosleep(&delay,NULL);
 		        }
+
 	        }
 
 #ifdef DEBUG0

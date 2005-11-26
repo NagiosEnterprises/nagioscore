@@ -3,7 +3,7 @@
  * NEBMODULES.H - Include file for event broker modules
  *
  * Copyright (c) 2002-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-10-2003
+ * Last Modified:   11-25-2003
  *
  * License:
  *
@@ -25,6 +25,9 @@
 #ifndef _NEBMODULES_H
 #define _NEBMODULES_H
 
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 /***** MODULE VERSION INFORMATION *****/
 
@@ -92,6 +95,8 @@ typedef struct nebmodule_struct{
 /***** MODULE FUNCTIONS *****/
 int neb_set_module_info(void *,int,char *);
 
-
+#ifdef __cplusplus
+  }
 #endif
 
+#endif

@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-2.0b6 - ??/??/2005
+2.0b6 - 11/30/2005
 ------------------
 * Changed license to specifically state GPL version 2
 * Minor fixes to sample nagios.cfg config file

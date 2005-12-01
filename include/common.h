@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-25-2005
+ * Last Modified: 12-01-2005
  *
  * License:
  *
@@ -28,8 +28,12 @@
 
 /* daemon is thread safe */
 #ifdef NSCORE
+#ifndef _REENTRANT
 #define _REENTRANT
+#endif
+#ifndef _THREAD_SAFE
 #define _THREAD_SAFE
+#endif
 #endif
 
 /* Experimental performance tweaks - use with caution */

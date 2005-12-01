@@ -2,8 +2,8 @@
  *
  * STATUSWML.C -  Nagios Status CGI for WAP-enabled devices
  *
- * Copyright (c) 2001-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-14-2003
+ * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 12-01-2005
  *
  * License:
  * 
@@ -1396,8 +1396,6 @@ void display_problems(void){
 		if(display_type==DISPLAY_UNHANDLED_PROBLEMS){
 			if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
 				continue;
-			if(temp_hoststatus->checks_enabled==FALSE)
-				continue;
 			if(temp_hoststatus->notifications_enabled==FALSE)
 				continue;
 			if(temp_hoststatus->scheduled_downtime_depth>0)
@@ -1444,8 +1442,6 @@ void display_problems(void){
 
 		if(display_type==DISPLAY_UNHANDLED_PROBLEMS){
 			if(temp_servicestatus->problem_has_been_acknowledged==TRUE)
-				continue;
-			if(temp_servicestatus->checks_enabled==FALSE)
 				continue;
 			if(temp_servicestatus->notifications_enabled==FALSE)
 				continue;

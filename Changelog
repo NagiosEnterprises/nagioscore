@@ -3,6 +3,14 @@ Nagios Change Log
 ###################
 
 
+2.0rc1 - 12/??/2005
+-------------------
+* Minor bug fix to statuswml CGI
+* Minor spec file updates
+* Minor include file fix to remove duplicate _REENTRANT definitions affecting embedded Perl
+
+
+
 2.0b6 - 11/30/2005
 ------------------
 * Changed license to specifically state GPL version 2

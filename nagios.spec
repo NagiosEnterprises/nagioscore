@@ -192,7 +192,7 @@ CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" \
 	--with-htmurl=/nagios \
 	--with-lockfile=/var/run/nagios.pid \
 	--with-nagios-user=%{nsusr} \
-	--with-nagios-grp=%{nsgrp} \
+	--with-nagios-group=%{nsgrp} \
 	--prefix=%{_prefix} \
 	--exec-prefix=%{_prefix}/sbin \
 	--bindir=%{_prefix}/sbin \

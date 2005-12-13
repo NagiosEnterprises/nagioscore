@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2001 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-29-2001
+ * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   12-12-2005
  *
  * License:
  *
@@ -208,16 +208,26 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 /* start aggregated dump */
 int xsddefault_begin_aggregated_dump(void){
 	char buffer[MAX_INPUT_BUFFER];
+	char temp_buffer[MAX_INPUT_BUFFER];
 
 	/* open a safe temp file for output */
 	snprintf(xsddefault_aggregate_temp_file,sizeof(xsddefault_aggregate_temp_file)-1,"%sXXXXXX",xsddefault_temp_file);
 	xsddefault_aggregate_temp_file[sizeof(xsddefault_aggregate_temp_file)-1]='\x0';
-	if((xsddefault_aggregate_fd=mkstemp(xsddefault_aggregate_temp_file))==-1)
+	if((xsddefault_aggregate_fd=mkstemp(xsddefault_aggregate_temp_file))==-1){
+		/* log an error */
+		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to create temp file for writing status data!\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		return ERROR;
+	        }
 	xsddefault_aggregate_fp=fdopen(xsddefault_aggregate_fd,"w");
 	if(xsddefault_aggregate_fp==NULL){
 		close(xsddefault_aggregate_fd);
 		unlink(xsddefault_aggregate_temp_file);
+		/* log an error */
+		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to open temp file '%s' for writing status data!\n",xsddefault_aggregate_temp_file);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		return ERROR;
 	        }
 
@@ -232,6 +242,7 @@ int xsddefault_begin_aggregated_dump(void){
 
 /* finish aggregated dump */
 int xsddefault_end_aggregated_dump(void){
+	char temp_buffer[MAX_INPUT_BUFFER];
 
 	/* reset file permissions */
 	fchmod(xsddefault_aggregate_fd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
@@ -241,8 +252,13 @@ int xsddefault_end_aggregated_dump(void){
 	close(xsddefault_aggregate_fd);
 
 	/* move the temp file to the status log (overwrite the old status log) */
-	if(my_rename(xsddefault_aggregate_temp_file,xsddefault_status_log))
+	if(my_rename(xsddefault_aggregate_temp_file,xsddefault_status_log)){
+		/* log an error */
+		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		return ERROR;
+	        }
 
 	return OK;
         }

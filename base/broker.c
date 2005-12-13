@@ -115,7 +115,7 @@ void broker_timed_event(int type, int flags, int attr, timed_event *event, struc
 
 
 /* send log data to broker */
-void broker_log_data(int type, int flags, int attr, char *data, unsigned long data_type, struct timeval *timestamp){
+void broker_log_data(int type, int flags, int attr, char *data, unsigned long data_type, time_t entry_time, struct timeval *timestamp){
 	nebstruct_log_data ds;
 
 	if(!(event_broker_options & BROKER_LOGGED_DATA))
@@ -127,6 +127,7 @@ void broker_log_data(int type, int flags, int attr, char *data, unsigned long da
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
+	ds.entry_time=entry_time;
 	ds.data_type=data_type;
 	ds.data=data;
 

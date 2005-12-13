@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-25-2005
+ * Last Modified:   12-08-2005
  *
  * License:
  *
@@ -164,7 +164,7 @@
 struct timeval get_broker_timestamp(struct timeval *);
 void broker_program_state(int,int,int,struct timeval *);
 void broker_timed_event(int,int,int,timed_event *event,struct timeval *);
-void broker_log_data(int,int,int,char *,unsigned long,struct timeval *);
+void broker_log_data(int,int,int,char *,unsigned long,time_t,struct timeval *);
 void broker_event_handler(int,int,int,void *,int,int,double,int,int,int,char *,char *,struct timeval *);
 void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
 void broker_system_command(int,int,int,double,int,int,int,char *,char *,struct timeval *);

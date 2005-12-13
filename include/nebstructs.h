@@ -3,7 +3,7 @@
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-25-2005
+ * Last Modified: 12-08-2005
  *
  * License:
  *
@@ -65,6 +65,7 @@ typedef struct nebstruct_log_struct{
 	int             attr;
 	struct timeval  timestamp;
 
+	time_t          entry_time;
 	int             data_type;
 	char            *data;
         }nebstruct_log_data;

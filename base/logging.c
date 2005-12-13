@@ -2,8 +2,8 @@
  *
  * LOGGING.C - Log file functions for use with Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-05-2004
+ * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   12-12-2005
  *
  * License:
  *
@@ -195,7 +195,7 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to the event broker */
-	broker_log_data(NEBTYPE_LOG_DATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,NULL);
+	broker_log_data(NEBTYPE_LOG_DATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,log_time,NULL);
 #endif
 
 #ifdef DEBUG0
@@ -429,8 +429,11 @@ int rotate_log_file(time_t rotation_time){
 	        }
 
 #ifdef USE_EVENT_BROKER
+	/* REMOVED - log rotation events are already handled by NEBTYPE_TIMEDEVENT_EXECUTE... */
 	/* send data to the event broker */
-	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,NULL);
+        /*
+	broker_log_data(NEBTYPE_LOG_ROTATION,NEBFLAG_NONE,NEBATTR_NONE,log_archive,log_rotation_method,0,NULL);
+	*/
 #endif
 
 	/* record the log rotation after it has been done... */

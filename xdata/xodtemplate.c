@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-14-2005
+ * Last Modified: 12-12-2005
  *
  * Description:
  *
@@ -5882,6 +5882,8 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 		if(this_contact->address[x]==NULL && template_contact->address[x]!=NULL)
 			this_contact->address[x]=strdup(template_contact->address[x]);
 	        }
+	if(this_contact->contactgroups==NULL && template_contact->contactgroups!=NULL)
+		this_contact->contactgroups=strdup(template_contact->contactgroups);
 	if(this_contact->host_notification_period==NULL && template_contact->host_notification_period!=NULL)
 		this_contact->host_notification_period=strdup(template_contact->host_notification_period);
 	if(this_contact->service_notification_period==NULL && template_contact->service_notification_period!=NULL)

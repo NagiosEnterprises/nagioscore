@@ -8,6 +8,8 @@ Nagios Change Log
 * Minor bug fix to statuswml CGI
 * Minor spec file updates
 * Minor include file fix to remove duplicate _REENTRANT definitions affecting embedded Perl
+* Minor change to log timestamps for NEB modules
+* Bug fix in template resolution of contactgroups variable in contact definitions
 
 
 

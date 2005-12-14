@@ -110,7 +110,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#auto_rescheduling_interval">Auto-rescheduling interval</a><br>
 <a href="#auto_rescheduling_window">Auto-rescheduling window</a><br>
 <br>
-<a href="#use_agressive_host_checking">Agressive host checking option</a><br>
+<a href="#use_aggressive_host_checking">Aggressive host checking option</a><br>
 <br>
 <a href="#enable_flap_detection">Flap detection option</a><br>
 <a href="#low_service_flap_threshold">Low service flap threshold</a><br>
@@ -1739,9 +1739,10 @@ This option determines the "window" of time (in seconds) that Nagios will look a
 
 <p>
 <a name="use_agressive_host_checking"></a>
+<a name="use_aggressive_host_checking"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Agressive Host Checking Option</strong></td>
+<td bgcolor="#cbcbcb"><strong>Aggressive Host Checking Option</strong></td>
 </tr>
 </table>
 </p>
@@ -1750,11 +1751,11 @@ This option determines the "window" of time (in seconds) that Nagios will look a
 <table border="0" class="Default">
 <tr>
 <td>Format:</td>
-<td><strong>use_agressive_host_checking=&lt;0/1&gt;</strong></td>
+<td><strong>use_aggressive_host_checking=&lt;0/1&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>use_agressive_host_checking=0</strong></font></td>
+<td><font color="red"><strong>use_aggressive_host_checking=0</strong></font></td>
 </tr>
 </table>
 </p>
@@ -1762,8 +1763,8 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 </p>
 <p>
 <ul>
-<li>0 = Don't use agressive host checking (default)
-<li>1 = Use agressive host checking
+<li>0 = Don't use aggressive host checking (default)
+<li>1 = Use aggressive host checking
 </ul>
 </p>
 

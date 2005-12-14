@@ -10,6 +10,7 @@ Nagios Change Log
 * Minor include file fix to remove duplicate _REENTRANT definitions affecting embedded Perl
 * Minor change to log timestamps for NEB modules
 * Bug fix in template resolution of contactgroups variable in contact definitions
+* Minor documentation updates
 
 
 

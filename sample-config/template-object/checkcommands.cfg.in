@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 06-09-2002
+# Last Modified: 12-15-2005
 #
 ################################################################################
 
@@ -47,6 +47,90 @@
 ################################################################################
 
 
+# 'check_dns' command definition
+define command{
+        command_name    check_dns
+        command_line    $USER1$/check_dns -H www.yahoo.com -s $HOSTADDRESS$
+        }
+
+
+# 'check_ftp' command definition
+define command{
+        command_name    check_ftp
+        command_line    $USER1$/check_ftp -H $HOSTADDRESS$
+        }
+
+
+# 'check_hpjd' command definition
+define command{
+        command_name    check_hpjd
+        command_line    $USER1$/check_hpjd -H $HOSTADDRESS$ -C public
+        }
+
+
+# 'check_http' command definition
+define command{
+        command_name    check_http
+        command_line    $USER1$/check_http -H $HOSTADDRESS$
+        }
+
+
+# 'check_local_disk' command definition
+define command{
+        command_name    check_local_disk
+        command_line    $USER1$/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
+        }
+
+
+# 'check_local_load' command definition
+define command{
+        command_name    check_local_load
+        command_line    $USER1$/check_load -w $ARG1$ -c $ARG2$
+        }
+
+
+# 'check_local_procs' command definition
+define command{
+        command_name    check_local_procs
+        command_line    $USER1$/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$
+        }
+
+
+# 'check_local_users' command definition
+define command{
+        command_name    check_local_users
+        command_line    $USER1$/check_users -w $ARG1$ -c $ARG2$
+        }
+
+
+# 'check_nntp' command definition
+define command{
+        command_name    check_nntp
+        command_line    $USER1$/check_nntp -H $HOSTADDRESS$
+        }
+
+
+# 'check_ping' command definition
+define command{
+        command_name    check_ping
+        command_line    $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
+        }
+
+
+# 'check_pop' command definition
+define command{
+        command_name    check_pop
+        command_line    $USER1$/check_pop -H $HOSTADDRESS$
+        }
+
+
+# 'check_smtp' command definition
+define command{
+        command_name    check_smtp
+        command_line    $USER1$/check_smtp -H $HOSTADDRESS$
+        }
+
+
 # 'check_tcp' command definition
 define command{
 	command_name	check_tcp
@@ -54,101 +138,17 @@ define command{
 	}
 
 
+# 'check_telnet' command definition
+define command{
+        command_name    check_telnet
+        command_line    $USER1$/check_tcp -H $HOSTADDRESS$ -p 23
+        }
+
+
 # 'check_udp' command definition
 define command{
 	command_name	check_udp
 	command_line	$USER1$/check_udp -H $HOSTADDRESS$ -p $ARG1$
-	}
-
-
-# 'check_ftp' command definition
-define command{
-	command_name	check_ftp
-	command_line	$USER1$/check_ftp -H $HOSTADDRESS$
-	}
-
-
-# 'check_pop' command definition
-define command{
-	command_name	check_pop
-	command_line	$USER1$/check_pop -H $HOSTADDRESS$
-	}
-
-
-# 'check_smtp' command definition
-define command{
-	command_name	check_smtp
-	command_line	$USER1$/check_smtp -H $HOSTADDRESS$
-	}
-
-
-# 'check_nntp' command definition
-define command{
-	command_name	check_nntp
-	command_line	$USER1$/check_nntp -H $HOSTADDRESS$
-	}
-
-
-# 'check_http' command definition
-define command{
-	command_name	check_http
-	command_line	$USER1$/check_http -H $HOSTADDRESS$
-	}
-
-
-# 'check_telnet' command definition
-define command{
-	command_name	check_telnet
-	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p 23
-	}
-
-
-# 'check_ping' command definition
-define command{
-	command_name	check_ping
-	command_line	$USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
-	}
-
-
-# 'check_dns' command definition
-define command{
-	command_name	check_dns
-	command_line	$USER1$/check_dns -H www.yahoo.com -s $HOSTADDRESS$
-	}
-
-
-# 'check_hpjd' command definition
-define command{
-	command_name	check_hpjd
-	command_line	$USER1$/check_hpjd -H $HOSTADDRESS$ -C public
-	}
-
-
-# 'check_local_disk' command definition
-define command{
-	command_name	check_local_disk
-	command_line	$USER1$/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
-	}
-
-
-# 'check_local_users' command definition
-define command{
-	command_name	check_local_users
-	command_line	$USER1$/check_users -w $ARG1$ -c $ARG2$
-	}
-
-
-# 'check_local_procs' command definition
-define command{
-	command_name	check_local_procs
-	command_line	$USER1$/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$
-	}
-
-
-# 'check_local_load' command definition
-define command{
-	command_name	check_local_load
-	command_line	$USER1$/check_load -w $ARG1$ -c $ARG2$
 	}
 
 

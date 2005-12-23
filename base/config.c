@@ -2376,7 +2376,7 @@ int pre_flight_check(void){
 		/* find the dependent service */
 		temp_service=find_service(temp_sd->dependent_host_name,temp_sd->dependent_service_description);
 		if(temp_service==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Dependent service specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Dependent service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name,temp_sd->service_description,temp_sd->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;
@@ -2385,7 +2385,7 @@ int pre_flight_check(void){
 		/* find the service we're depending on */
 		temp_service2=find_service(temp_sd->host_name,temp_sd->service_description);
 		if(temp_service2==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->service_description,temp_sd->host_name,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			errors++;

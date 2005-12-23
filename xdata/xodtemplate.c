@@ -10354,6 +10354,10 @@ int xodtemplate_expand_contacts2(xodtemplate_contactlist **list, xodtemplate_con
 
 				found_match=TRUE;
 
+				/* dont' add contacts that shouldn't be registered */
+				if(temp_contact->register_object==FALSE)
+					continue;
+
 				/* add contact to list */
 				xodtemplate_add_contact_to_contactlist(list,temp_contact->contact_name);
 		                } 
@@ -10373,6 +10377,10 @@ int xodtemplate_expand_contacts2(xodtemplate_contactlist **list, xodtemplate_con
 				for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
 
 					if(temp_contact->contact_name==NULL)
+						continue;
+
+					/* dont' add contacts that shouldn't be registered */
+					if(temp_contact->register_object==FALSE)
 						continue;
 
 					/* add contact to list */
@@ -10593,6 +10601,10 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 
 				found_match=TRUE;
 
+				/* dont' add hostgroups that shouldn't be registered */
+				if(temp_hostgroup->register_object==FALSE)
+					continue;
+
 				/* add hostgroup members to list */
 				xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
 		                } 
@@ -10610,6 +10622,10 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 				found_match=TRUE;
 
 				for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){	
+
+					/* dont' add hostgroups that shouldn't be registered */
+					if(temp_hostgroup->register_object==FALSE)
+						continue;
 
 					/* add hostgroup to list */
 					xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
@@ -10720,6 +10736,10 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist *
 
 				found_match=TRUE;
 
+				/* dont' add hosts that shouldn't be registered */
+				if(temp_host->register_object==FALSE)
+					continue;
+
 				/* add host to list */
 				xodtemplate_add_host_to_hostlist(list,temp_host->host_name);
 		                } 
@@ -10739,6 +10759,10 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist *
 				for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 					if(temp_host->host_name==NULL)
+						continue;
+
+					/* dont' add hosts that shouldn't be registered */
+					if(temp_host->register_object==FALSE)
 						continue;
 
 					/* add host to list */
@@ -10992,6 +11016,10 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 
 				found_match=TRUE;
 
+				/* dont' add servicegroups that shouldn't be registered */
+				if(temp_servicegroup->register_object==FALSE)
+					continue;
+
 				/* add servicegroup members to list */
 				xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
 			        }
@@ -11009,6 +11037,10 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 				found_match=TRUE;
 
 				for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){	
+
+					/* dont' add servicegroups that shouldn't be registered */
+					if(temp_servicegroup->register_object==FALSE)
+						continue;
 
 					/* add servicegroup to list */
 					xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
@@ -11156,6 +11188,10 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 
 				found_match=TRUE;
 
+				/* dont' add services that shouldn't be registered */
+				if(temp_service->register_object==FALSE)
+					continue;
+
 				/* add service to the list */
 				xodtemplate_add_service_to_servicelist(list,host_name,temp_service->service_description);
 			        }
@@ -11178,6 +11214,10 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 						continue;
 
 					if(strcmp(temp_service->host_name,host_name))
+						continue;
+
+					/* dont' add services that shouldn't be registered */
+					if(temp_service->register_object==FALSE)
 						continue;
 
 					/* add service to the list */

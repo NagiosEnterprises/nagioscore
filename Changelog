@@ -16,6 +16,7 @@ Nagios Change Log
 * Bug fix in template resolution of contactgroups variable in contact definitions
 * Fixed bug with comments not expiring (for some reason this was not previously implemented!)
 * Minor embedded Perl changes
+* Fixed bug with non-registered objects in wildcard/regex templates
 * Minor documentation updates
 
 

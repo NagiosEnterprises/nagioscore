@@ -5,11 +5,17 @@ Nagios Change Log
 
 2.0rc1 - 12/??/2005
 -------------------
+* Event broker modifications:
+	- Minor change to log timestamps
+	- Changes to notification, check, event handler, and system command callbacks
+	- Addition of acknowledgement callbacks
+	- Addition of state change callbacks
 * Minor bug fix to statuswml CGI
 * Minor spec file updates
 * Minor include file fix to remove duplicate _REENTRANT definitions affecting embedded Perl
-* Minor change to log timestamps for NEB modules
 * Bug fix in template resolution of contactgroups variable in contact definitions
+* Fixed bug with comments not expiring (for some reason this was not previously implemented!)
+* Minor embedded Perl changes
 * Minor documentation updates
 
 

@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-25-2005
+ * Last Modified:   12-14-2005
  *
  * License:
  *
@@ -45,6 +45,9 @@ extern int      check_external_commands;
 extern int      ipc_pipe[2];
 
 extern time_t   last_command_check;
+extern time_t   last_command_status_update;
+
+extern int      command_check_interval;
 
 extern int      enable_notifications;
 extern int      execute_service_checks;
@@ -99,6 +102,7 @@ void check_for_external_commands(void){
 	time_t entry_time;
 	int command_type=CMD_NONE;
 	char *temp_ptr;
+	int update_status=FALSE;
 
 #ifdef DEBUG0
 	printf("check_for_external_commands() start\n");
@@ -113,7 +117,15 @@ void check_for_external_commands(void){
 	last_command_check=time(NULL);
 
 	/* update the status log with new program information */
-	update_program_status(FALSE);
+	/* go easy on the frequency of this if we're checking often - only update program status every 10 seconds.... */
+	if(last_command_check<(last_command_status_update+10))
+		update_status=FALSE;
+	else
+		update_status=TRUE;
+	if(update_status==TRUE){
+		last_command_status_update=last_command_check;
+		update_program_status(FALSE);
+	        }
 
 	/* reset passive check result list pointers */
 	passive_check_result_list=NULL;
@@ -566,6 +578,12 @@ void check_for_external_commands(void){
 
 		/* process the command if its not a passive check */
 		process_external_command(command_type,entry_time,args);
+
+#ifdef USE_EVENT_BROKER
+		/* send data to event broker */
+		broker_external_command(NEBTYPE_EXTERNALCOMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,command_type,entry_time,command_id,args,NULL);
+#endif
+
 	        }
 
 	/**** PROCESS ALL PASSIVE SERVICE CHECK RESULTS AT ONE TIME ****/
@@ -2085,7 +2103,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_PASSIVE,temp_host->current_state,temp_host->state_type,tv,tv,0.0,temp_host->execution_time,0,FALSE,return_code,NULL,temp_host->plugin_output,temp_host->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_PASSIVE,temp_host->current_state,temp_host->state_type,tv,tv,NULL,0.0,temp_host->execution_time,0,FALSE,return_code,NULL,temp_host->plugin_output,temp_host->perf_data,NULL);
 #endif
 
 	/***** CHECK FOR FLAPPING *****/
@@ -3274,6 +3292,11 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 	if(hst->current_state==HOST_UP)
 		return;
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_acknowledgement_data(NEBTYPE_ACKNOWLEDGEMENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,HOST_ACKNOWLEDGEMENT,(void *)hst,ack_author,ack_data,type,notify,persistent,NULL);
+#endif
+
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)
 		host_notification(hst,NOTIFICATION_ACKNOWLEDGEMENT,ack_author,ack_data);
@@ -3310,6 +3333,11 @@ void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data,
 	/* cannot acknowledge a non-existent problem */
 	if(svc->current_state==STATE_OK)
 		return;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_acknowledgement_data(NEBTYPE_ACKNOWLEDGEMENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_ACKNOWLEDGEMENT,(void *)svc,ack_author,ack_data,type,notify,persistent,NULL);
+#endif
 
 	/* send out an acknowledgement notification */
 	if(notify==TRUE)

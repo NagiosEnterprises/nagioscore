@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-25-2005
+ * Last Modified:   12-20-2005
  *
  * License:
  *
@@ -500,6 +500,11 @@ void init_timing_loop(void){
 		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL);
 	        }
 
+	printf("FSC: %lu\n",scheduling_info.first_service_check);
+	printf("LSC: %lu\n",scheduling_info.last_service_check);
+	printf("FHC: %lu\n",scheduling_info.first_host_check);
+	printf("LHC: %lu\n",scheduling_info.last_host_check);
+
 
 	/******** SCHEDULE MISC EVENTS ********/
 
@@ -994,8 +999,12 @@ int event_execution_loop(void){
 #endif
 
 					/* remove the service check from the event queue and reschedule it for a later time */
+					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
+					remove_event(temp_event,&event_list_low);
+					/*
 					temp_event=event_list_low;
 					event_list_low=event_list_low->next;
+					*/
 					if(temp_service->state_type==SOFT_STATE && temp_service->current_state!=STATE_OK)
 						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->retry_interval*interval_length));
 					else
@@ -1048,8 +1057,12 @@ int event_execution_loop(void){
 #endif
 
 					/* remove the host check from the event queue and reschedule it for a later time */
+					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
+					remove_event(temp_event,&event_list_low);
+					/*
 					temp_event=event_list_low;
 					event_list_low=event_list_low->next;
+					*/
 					temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
 					temp_event->run_time=temp_host->next_check;
 					reschedule_event(temp_event,&event_list_low);
@@ -1296,6 +1309,15 @@ int handle_timed_event(timed_event *event){
 
 		/* adjust scheduling of host and service checks */
 		adjust_check_scheduling();
+		break;
+
+	case EVENT_EXPIRE_COMMENT:
+#ifdef DEBUG3
+		printf("(expire comment)\n");
+#endif
+
+		/* check for expired comment */
+		check_for_expired_comment((unsigned long)event->event_data);
 		break;
 
 	case EVENT_USER_FUNCTION:

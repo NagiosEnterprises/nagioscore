@@ -134,7 +134,7 @@ extern int      status_update_interval;
 
 extern int      time_change_threshold;
 
-extern int      event_broker_options;
+extern unsigned long event_broker_options;
 
 extern int      process_performance_data;
 
@@ -1345,9 +1345,10 @@ int read_main_config_file(char *main_config_file){
 			}
 		else if(!strcmp(variable,"event_broker_options")){
 			strip(value);
-			event_broker_options=atoi(value);
-			if(event_broker_options<0)
+			if(!strcmp(value,"-1"))
 				event_broker_options=BROKER_EVERYTHING;
+			else
+				event_broker_options=strtoul(value,NULL,0);
 #ifdef DEBUG1
 			printf("\t\tevent_broker_options set to %d\n",event_broker_options);
 #endif

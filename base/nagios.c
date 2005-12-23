@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2005 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   11-30-2005
+ * Last Modified:   12-14-2005
  *
  * Description:
  *
@@ -123,6 +123,7 @@ int             auto_reschedule_checks=DEFAULT_AUTO_RESCHEDULE_CHECKS;
 int             auto_rescheduling_window=DEFAULT_AUTO_RESCHEDULING_WINDOW;
 
 time_t          last_command_check=0L;
+time_t          last_command_status_update=0L;
 time_t          last_log_rotation=0L;
 
 int             use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
@@ -172,7 +173,7 @@ int             status_update_interval=DEFAULT_STATUS_UPDATE_INTERVAL;
 
 int             time_change_threshold=DEFAULT_TIME_CHANGE_THRESHOLD;
 
-int             event_broker_options=BROKER_NOTHING;
+unsigned long   event_broker_options=BROKER_NOTHING;
 
 int             process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
 
@@ -699,12 +700,18 @@ int main(int argc, char **argv){
 			/* reset the restart flag */
 			sigrestart=FALSE;
 
+#ifdef USE_EVENT_BROKER
+			/* send program data to broker */
+			broker_program_state(NEBTYPE_PROCESS_EVENTLOOPSTART,NEBFLAG_NONE,NEBATTR_NONE,NULL);
+#endif
+
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */
 			event_execution_loop();
 
 #ifdef USE_EVENT_BROKER
 			/* send program data to broker */
+			broker_program_state(NEBTYPE_PROCESS_EVENTLOOPEND,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 			if(sigshutdown==TRUE)
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_USER_INITIATED,NEBATTR_SHUTDOWN_NORMAL,NULL);
 			else if(sigrestart==TRUE)

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-21-2005
+ * Last Modified: 12-16-2005
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -296,6 +296,20 @@ extern "C" {
 #define NOTIFICATION_FLAPPINGSTOP       3
 
 
+/**************** EVENT HANDLER TYPES *****************/
+
+#define HOST_EVENTHANDLER               0
+#define SERVICE_EVENTHANDLER            1
+#define GLOBAL_HOST_EVENTHANDLER        2
+#define GLOBAL_SERVICE_EVENTHANDLER     3
+
+
+/***************** STATE CHANGE TYPES *****************/
+
+#define HOST_STATECHANGE                0
+#define SERVICE_STATECHANGE             1
+
+
 /******************* EVENT TYPES **********************/
 
 #define EVENT_SERVICE_CHECK		0	/* active service check */
@@ -313,6 +327,7 @@ extern "C" {
 #define EVENT_HOST_CHECK                12      /* active host check */
 #define EVENT_HFRESHNESS_CHECK          13      /* checks host result "freshness" */
 #define EVENT_RESCHEDULE_CHECKS		14      /* adjust scheduling of host and service checks */
+#define EVENT_EXPIRE_COMMENT            15      /* removes expired comments */
 #define EVENT_SLEEP                     98      /* asynchronous sleep event that occurs when event queues are empty */
 #define EVENT_USER_FUNCTION             99      /* USER-defined function (modules) */
 
@@ -561,15 +576,15 @@ int is_valid_escalation_for_service_notification(service *,serviceescalation *);
 int should_service_notification_be_escalated(service *);		/* checks if a service notification should be escalated */
 int service_notification(service *,int,char *,char *);                        	/* notify all contacts about a service (problem or recovery) */
 int check_contact_service_notification_viability(contact *,service *,int);	/* checks viability of notifying a contact about a service */ 
-int notify_contact_of_service(contact *,service *,int);        		/* notify a single contact about a service */
+int notify_contact_of_service(contact *,service *,int,char *,char *,int);  		/* notify a single contact about a service */
 int check_host_notification_viability(host *,int);			/* checks viability of notifying all contacts about a host */
 int is_valid_host_escalation_for_host_notification(host *,hostescalation *);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *);			/* checks if a host notification should be escalated */
 int host_notification(host *,int,char *,char *);                           	/* notify all contacts about a host (problem or recovery) */
 int check_contact_host_notification_viability(contact *,host *,int);	/* checks viability of notifying a contact about a host */ 
-int notify_contact_of_host(contact *,host *,int);            	/* notify a single contact about a host */
-int create_notification_list_from_host(host *);             	/* given a host, create list of contacts to be notified (remove duplicates) */
-int create_notification_list_from_service(service *);        	/* given a service, create list of contacts to be notified (remove duplicates) */
+int notify_contact_of_host(contact *,host *,int,char *,char *,int);            	/* notify a single contact about a host */
+int create_notification_list_from_host(host *,int *);         	/* given a host, create list of contacts to be notified (remove duplicates) */
+int create_notification_list_from_service(service *,int *);    	/* given a service, create list of contacts to be notified (remove duplicates) */
 int add_notification(contact *);				/* adds a notification instance */
 notification * find_notification(char *);			/* finds a notification object */
 time_t get_next_host_notification_time(host *,time_t);		/* calculates nex acceptable re-notification time for a host */

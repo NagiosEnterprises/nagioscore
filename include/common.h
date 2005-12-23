@@ -285,6 +285,9 @@
 
 /************************** ACKNOWLEDGEMENT TYPES ************************/
 
+#define HOST_ACKNOWLEDGEMENT            0
+#define SERVICE_ACKNOWLEDGEMENT         1
+
 #define ACKNOWLEDGEMENT_NONE            0
 #define ACKNOWLEDGEMENT_NORMAL          1
 #define ACKNOWLEDGEMENT_STICKY          2

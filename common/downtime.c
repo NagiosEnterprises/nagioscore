@@ -900,8 +900,8 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 
 #ifdef NSCORE
 #ifdef USE_EVENT_BROKER
-		/* send data to event broker */
-		broker_downtime_data(NEBTYPE_DOWNTIME_LOAD,NEBFLAG_NONE,NEBATTR_NONE,downtime_type,host_name,svc_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id,NULL);
+	/* send data to event broker */
+	broker_downtime_data(NEBTYPE_DOWNTIME_LOAD,NEBFLAG_NONE,NEBATTR_NONE,downtime_type,host_name,svc_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id,NULL);
 #endif
 #endif
 

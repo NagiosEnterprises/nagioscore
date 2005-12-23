@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-12-2005
+ * Last Modified: 12-15-2005
  *
  * License:
  *
@@ -99,6 +99,8 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 		result=add_new_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
 
 	/* add an event to expire comment data if necessary... */
+	if(expires==TRUE)
+		schedule_new_event(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,(void *)new_comment_id,NULL);
 
 	/* save comment id */
 	if(comment_id!=NULL)
@@ -221,6 +223,14 @@ int delete_comment(int type, unsigned long comment_id){
 	else
 		result=ERROR;
 	
+	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
+#ifdef USE_XCDDEFAULT
+	if(type==HOST_COMMENT)
+		result=xcddefault_delete_host_comment(comment_id);
+	else
+		result=xcddefault_delete_service_comment(comment_id);
+#endif
+
 	return result;
         }
 
@@ -232,11 +242,6 @@ int delete_host_comment(unsigned long comment_id){
 	/* delete the comment from memory */
 	delete_comment(HOST_COMMENT,comment_id);
 	
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result=xcddefault_delete_host_comment(comment_id);
-#endif
-
 	return result;
         }
 
@@ -249,11 +254,6 @@ int delete_service_comment(unsigned long comment_id){
 	/* delete the comment from memory */
 	delete_comment(SERVICE_COMMENT,comment_id);
 	
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result=xcddefault_delete_service_comment(comment_id);
-#endif
-
 	return result;
         }
 
@@ -317,6 +317,22 @@ int delete_all_service_comments(char *host_name, char *svc_description){
         }
 
 
+/* checks for an expired comment (and removes it) */
+int check_for_expired_comment(unsigned long comment_id){
+	comment *temp_comment;
+
+	/* check all comments */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+
+		/* delete the now expired comment */
+		if(temp_comment->comment_id==comment_id && temp_comment->expires==TRUE && temp_comment->expire_time<time(NULL)){
+			delete_comment(temp_comment->comment_type,comment_id);
+			break;
+		        }
+	        }
+
+	return OK;
+        }
 
 
 #endif

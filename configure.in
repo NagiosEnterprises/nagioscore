@@ -447,6 +447,12 @@ AC_ARG_ENABLE(DEBUGALL,--enable-DEBUGALL shows all debugging messages,[
 	])
 
 
+USE_NANOSLEEP=yes
+AC_ARG_ENABLE(nanosleep,--enable-nanosleep enables use of nanosleep (instead sleep) in event timing,USE_NANOSLEEP=$enableval,USE_NANOSLEEP=yes)
+if test x$USE_NANOSLEEP = xyes; then
+	AC_DEFINE_UNQUOTED(USE_NANOSLEEP)
+fi
+
 USE_EVENTBROKER=yes
 AC_ARG_ENABLE(event-broker,--enable-event-broker enables integration of event broker routines,USE_EVENTBROKER=$enableval,USE_EVENTBROKER=yes)
 

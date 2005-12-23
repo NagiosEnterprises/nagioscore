@@ -17,6 +17,7 @@ Nagios Change Log
 * Fixed bug with comments not expiring (for some reason this was not previously implemented!)
 * Minor embedded Perl changes
 * Fixed bug with non-registered objects in wildcard/regex templates
+* Added configure script option to disable use of nanosleep() in event queue
 * Minor documentation updates
 
 

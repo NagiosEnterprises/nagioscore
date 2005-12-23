@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-20-2005
+ * Last Modified:   12-23-2005
  *
  * License:
  *
@@ -1093,9 +1093,17 @@ int event_execution_loop(void){
 
 			/* wait a while so we don't hog the CPU... */
 			else{
+#ifdef USE_NANOSLEEP
 				delay.tv_sec=(time_t)sleep_time;
 				delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
 				nanosleep(&delay,NULL);
+#else
+				delay.tv_sec=(time_t)sleep_time;
+				if(delay.tv_sec==0L)
+					delay.tv_sec=1;
+				delay.tv_nsec=0L;
+				sleep((unsigned int)delay.tv_sec);
+#endif
 			        }
 		        }
 
@@ -1107,8 +1115,15 @@ int event_execution_loop(void){
 				check_for_external_commands();
 
 			/* set time to sleep so we don't hog the CPU... */
+#ifdef USE_NANOSLEEP
 			delay.tv_sec=(time_t)sleep_time;
 			delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
+#else
+			delay.tv_sec=(time_t)sleep_time;
+			if(delay.tv_sec==0L)
+				delay.tv_sec=1;
+			delay.tv_nsec=0L;
+#endif
 
 #ifdef USE_EVENT_BROKER
 			/* populate fake "sleep" event */
@@ -1120,7 +1135,11 @@ int event_execution_loop(void){
 #endif
 
 			/* wait a while so we don't hog the CPU... */
+#ifdef USE_NANOSLEEP
 			nanosleep(&delay,NULL);
+#else
+			sleep((unsigned int)delay.tv_sec);
+#endif
 		        }
 
 	        }

@@ -854,6 +854,7 @@ Optional Features:
 --enable-DEBUG4 shows service and host notifications
 --enable-DEBUG5 shows SQL queries
 --enable-DEBUGALL shows all debugging messages
+--enable-nanosleep enables use of nanosleep (instead sleep) in event timing
 --enable-event-broker enables integration of event broker routines
 --enable-embedded-perl will enable embedded Perl interpreter
 --enable-cygwin enables building under the CYGWIN environment
@@ -5588,6 +5589,21 @@ _ACEOF
 
 fi;
 
+
+USE_NANOSLEEP=yes
+# Check whether --enable-nanosleep or --disable-nanosleep was given.
+if test "${enable_nanosleep+set}" = set; then
+  enableval="$enable_nanosleep"
+  USE_NANOSLEEP=$enableval
+else
+  USE_NANOSLEEP=yes
+fi;
+if test x$USE_NANOSLEEP = xyes; then
+	cat >>confdefs.h <<_ACEOF
+#define USE_NANOSLEEP 1
+_ACEOF
+
+fi
 
 USE_EVENTBROKER=yes
 # Check whether --enable-event-broker or --disable-event-broker was given.

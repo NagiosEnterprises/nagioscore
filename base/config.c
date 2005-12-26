@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-14-2005
+ * Last Modified:   12-26-2005
  *
  * License:
  *
@@ -2614,6 +2614,11 @@ int pre_flight_check(void){
 	found=FALSE;
 	result=OK;
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+
+		/* clear checked flag for all hosts */
+		for(temp_host2=host_list;temp_host2!=NULL;temp_host2=temp_host2->next)
+			temp_host2->circular_path_checked=FALSE;
+
 		found=check_for_circular_path(temp_host,temp_host);
 		if(found==TRUE){
 			sprintf(temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
@@ -2641,7 +2646,7 @@ int pre_flight_check(void){
 
 		/* clear checked flag for all dependencies */
 		for(temp_sd2=servicedependency_list;temp_sd2!=NULL;temp_sd2=temp_sd2->next)
-			temp_sd2->has_been_checked=FALSE;
+			temp_sd2->circular_path_checked=FALSE;
 
 		found=check_for_circular_servicedependency(temp_sd,temp_sd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
@@ -2656,7 +2661,7 @@ int pre_flight_check(void){
 
 		/* clear checked flag for all dependencies */
 		for(temp_sd2=servicedependency_list;temp_sd2!=NULL;temp_sd2=temp_sd2->next)
-			temp_sd2->has_been_checked=FALSE;
+			temp_sd2->circular_path_checked=FALSE;
 
 		found=check_for_circular_servicedependency(temp_sd,temp_sd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
@@ -2671,7 +2676,7 @@ int pre_flight_check(void){
 
 		/* clear checked flag for all dependencies */
 		for(temp_hd2=hostdependency_list;temp_hd2!=NULL;temp_hd2=temp_hd2->next)
-			temp_hd2->has_been_checked=FALSE;
+			temp_hd2->circular_path_checked=FALSE;
 
 		found=check_for_circular_hostdependency(temp_hd,temp_hd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
@@ -2686,7 +2691,7 @@ int pre_flight_check(void){
 
 		/* clear checked flag for all dependencies */
 		for(temp_hd2=hostdependency_list;temp_hd2!=NULL;temp_hd2=temp_hd2->next)
-			temp_hd2->has_been_checked=FALSE;
+			temp_hd2->circular_path_checked=FALSE;
 
 		found=check_for_circular_hostdependency(temp_hd,temp_hd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){

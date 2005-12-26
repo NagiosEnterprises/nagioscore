@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-25-2005
+ * Last Modified: 12-23-2005
  *
  * License:
  *
@@ -191,6 +191,8 @@ typedef struct host_struct{
 	int     total_services;
 	unsigned long total_service_check_interval;
 	unsigned long modified_attributes;
+	int     circular_path_checked;
+	int     contains_circular_path;
 #endif
 	struct  host_struct *next;
 	struct  host_struct *nexthash;
@@ -397,7 +399,8 @@ typedef struct servicedependency_struct{
 	int     fail_on_critical;
 	int     fail_on_pending;
 #ifdef NSCORE
-	int     has_been_checked;
+	int     circular_path_checked;
+	int     contains_circular_path;
 #endif
 	struct servicedependency_struct *next;
 	struct servicedependency_struct *nexthash;
@@ -431,7 +434,8 @@ typedef struct hostdependency_struct{
 	int     fail_on_unreachable;
 	int     fail_on_pending;
 #ifdef NSCORE
-	int     has_been_checked;
+	int     circular_path_checked;
+	int     contains_circular_path;
 #endif
 	struct hostdependency_struct *next;
 	struct hostdependency_struct *nexthash;

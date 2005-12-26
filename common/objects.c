@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-25-2005
+ * Last Modified: 12-26-2005
  *
  * License:
  *
@@ -1376,6 +1376,8 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->total_services=0;
 	new_host->total_service_check_interval=0L;
 	new_host->modified_attributes=MODATTR_NONE;
+	new_host->circular_path_checked=FALSE;
+	new_host->contains_circular_path=FALSE;
 
 	/* allocate new plugin output buffer */
 	new_host->plugin_output=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
@@ -3885,7 +3887,8 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_pending=(fail_on_pending==1)?TRUE:FALSE;
 
 #ifdef NSCORE
-	new_servicedependency->has_been_checked=FALSE;
+	new_servicedependency->circular_path_checked=FALSE;
+	new_servicedependency->contains_circular_path=FALSE;
 #endif
 
 	new_servicedependency->next=NULL;
@@ -4037,6 +4040,11 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_down=(fail_on_down==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_unreachable=(fail_on_unreachable==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_pending=(fail_on_pending==1)?TRUE:FALSE;
+
+#ifdef NSCORE
+	new_hostdependency->circular_path_checked=FALSE;
+	new_hostdependency->contains_circular_path=FALSE;
+#endif
 
 	new_hostdependency->next=NULL;
 	new_hostdependency->nexthash=NULL;
@@ -5522,9 +5530,24 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 int check_for_circular_path(host *root_hst, host *hst){
 	host *temp_host;
 
-	/* check this hosts' parents to see if a circular path exists */
-	if(is_host_immediate_parent_of_host(root_hst,hst)==TRUE)
+	/* don't go into a loop, don't bother checking anymore if we know this host already has a loop */
+	if(root_hst->contains_circular_path==TRUE)
 		return TRUE;
+
+	/* host has already been checked - there is a path somewhere, but it may not be for this particular host... */
+	/* this should speed up detection for some loops */
+	if(hst->circular_path_checked==TRUE)
+		return FALSE;
+
+	/* set the check flag so we don't get into an infinite loop */
+	hst->circular_path_checked=TRUE;
+
+	/* check this hosts' parents to see if a circular path exists */
+	if(is_host_immediate_parent_of_host(root_hst,hst)==TRUE){
+		root_hst->contains_circular_path=TRUE;
+		hst->contains_circular_path=TRUE;
+		return TRUE;
+	        }
 
 	/* check all immediate children for a circular path */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -5548,18 +5571,25 @@ int check_for_circular_servicedependency(servicedependency *root_dep, servicedep
 	if(root_dep->dependency_type!=dependency_type || dep->dependency_type!=dependency_type)
 		return FALSE;
 
-	/* dependency has already been checked */
-	/* changed to return TRUE - this should speed up detection for some loops (although they are not necessary loops for the root dep) - EG 05/29/03 */
-	if(dep->has_been_checked==TRUE)
+	/* don't go into a loop, don't bother checking anymore if we know this dependency already has a loop */
+	if(root_dep->contains_circular_path==TRUE)
 		return TRUE;
 
+	/* dependency has already been checked - there is a path somewhere, but it may not be for this particular dep... */
+	/* this should speed up detection for some loops */
+	if(dep->circular_path_checked==TRUE)
+		return FALSE;
+
 	/* set the check flag so we don't get into an infinite loop */
-	dep->has_been_checked=TRUE;
+	dep->circular_path_checked=TRUE;
 
 	/* is this service dependent on the root service? */
 	if(dep!=root_dep){
-		if(!strcmp(root_dep->dependent_host_name,dep->host_name) && !strcmp(root_dep->dependent_service_description,dep->service_description))
+		if(!strcmp(root_dep->dependent_host_name,dep->host_name) && !strcmp(root_dep->dependent_service_description,dep->service_description)){
+			root_dep->contains_circular_path=TRUE;
+			dep->contains_circular_path=TRUE;
 			return TRUE;
+		        }
 	        }
 
 	/* notification dependencies are ok at this point as long as they don't inherit */
@@ -5592,18 +5622,25 @@ int check_for_circular_hostdependency(hostdependency *root_dep, hostdependency *
 	if(root_dep->dependency_type!=dependency_type || dep->dependency_type!=dependency_type)
 		return FALSE;
 
-	/* dependency has already been checked */
-	/* changed to return TRUE - this should speed up detection for some loops (although they are not necessary loops for the root dep) - EG 05/29/03 */
-	if(dep->has_been_checked==TRUE)
+	/* don't go into a loop, don't bother checking anymore if we know this dependency already has a loop */
+	if(root_dep->contains_circular_path==TRUE)
 		return TRUE;
 
+	/* dependency has already been checked - there is a path somewhere, but it may not be for this particular dep... */
+	/* this should speed up detection for some loops */
+	if(dep->circular_path_checked==TRUE)
+		return FALSE;
+
 	/* set the check flag so we don't get into an infinite loop */
-	dep->has_been_checked=TRUE;
+	dep->circular_path_checked=TRUE;
 
 	/* is this host dependent on the root host? */
 	if(dep!=root_dep){
-		if(!strcmp(root_dep->dependent_host_name,dep->host_name))
+		if(!strcmp(root_dep->dependent_host_name,dep->host_name)){
+			root_dep->contains_circular_path=TRUE;
+			dep->contains_circular_path=TRUE;
 			return TRUE;
+		        }
 	        }
 
 	/* notification dependencies are ok at this point as long as they don't inherit */

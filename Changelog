@@ -18,6 +18,7 @@ Nagios Change Log
 * Minor embedded Perl changes
 * Fixed bug with non-registered objects in wildcard/regex templates
 * Added configure script option to disable use of nanosleep() in event queue
+* Improvements to circular path/dependency checks to prevent segfaults
 * Minor documentation updates
 
 

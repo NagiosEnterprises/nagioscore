@@ -72,6 +72,10 @@ hostescalation  **hostescalation_hashlist=NULL;
 serviceescalation **serviceescalation_hashlist=NULL;
 
 
+#ifdef NSCORE
+int __nagios_object_structure_version=CURRENT_OBJECT_STRUCTURE_VERSION;
+#endif
+
 
 
 /******************************************************************/

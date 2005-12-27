@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-23-2005
+ * Last Modified: 12-27-2005
  *
  * License:
  *
@@ -33,6 +33,16 @@
   extern "C" {
 #endif
 
+
+
+/*************** CURRENT OBJECT REVISION **************/
+
+#define CURRENT_OBJECT_STRUCTURE_VERSION        2
+
+
+
+/***************** OBJECT SIZE LIMITS *****************/
+
 #define MAX_HOSTNAME_LENGTH            		64	/* max. host name length */
 #define MAX_SERVICEDESC_LENGTH			64	/* max. service description length */
 #define MAX_PLUGINOUTPUT_LENGTH			348	/* max. length of plugin output */
@@ -40,6 +50,7 @@
 #define MAX_STATE_HISTORY_ENTRIES		21	/* max number of old states to keep track of for flap detection */
 
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
+
 
 
 /***************** CHAINED HASH LIMITS ****************/

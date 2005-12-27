@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-2.0rc1 - 12/??/2005
+2.0rc1 - 12/27/2005
 -------------------
 * Event broker modifications:
 	- Minor change to log timestamps

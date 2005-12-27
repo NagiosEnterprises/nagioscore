@@ -500,11 +500,6 @@ void init_timing_loop(void){
 		schedule_new_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,(void *)temp_host,NULL);
 	        }
 
-	printf("FSC: %lu\n",scheduling_info.first_service_check);
-	printf("LSC: %lu\n",scheduling_info.last_service_check);
-	printf("FHC: %lu\n",scheduling_info.first_host_check);
-	printf("LHC: %lu\n",scheduling_info.last_host_check);
-
 
 	/******** SCHEDULE MISC EVENTS ********/
 

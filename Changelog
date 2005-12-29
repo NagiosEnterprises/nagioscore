@@ -3,6 +3,12 @@ Nagios Change Log
 ###################
 
 
+2.0rc2 - ??/??/2006
+-------------------
+* Fix for initialization of embedded Perl interpreter
+
+
+
 2.0rc1 - 12/27/2005
 -------------------
 * Event broker modifications:

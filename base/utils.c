@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-16-2005
+ * Last Modified:   12-29-2005
  *
  * License:
  *
@@ -4546,7 +4546,7 @@ int init_embedded_perl(char **env){
 
 	use_embedded_perl=TRUE;
 
-	PERL_SYS_INIT3(&argc,embedding,&env);
+	PERL_SYS_INIT3(&argc,&embedding,&env);
 
 	if((my_perl=perl_alloc())==NULL){
 		use_embedded_perl=FALSE;

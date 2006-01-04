@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-16-2005
+ * Last Modified: 01-02-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -758,6 +758,9 @@ void cleanup_command_file_worker_thread(void *);
 
 int submit_external_command(char *,int *);
 int submit_raw_external_command(char *,time_t *,int *);
+
+char *get_program_version(void);
+char *get_program_modification_date(void);
 
 mmapfile *mmap_fopen(char *);				/* open a file read-only via mmap() */
 int mmap_fclose(mmapfile *);

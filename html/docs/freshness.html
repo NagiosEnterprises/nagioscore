@@ -60,6 +60,8 @@ So how do you go about enabling freshness checking for a particular service?  Yo
 <li>The <b>check_freshness</b> option in the service definition should be set to 1.  This enables "freshness" checking for the service.
 <li>The <b>freshness_threshold</b> option in the service definition should be set to a value (in seconds) which reflects how "fresh" the results for the service should be.
 <li>The <b>check_command</b> option in the service definition should reflect valid command that should be used to actively check the service when it is detected as being "stale".
+<li>The <b>normal_check_interval</b> option in the service definition needs to be greater than zero (0) if the <b>freshness_threshold</b> option is setup to zero (0).
+<li>The <b>check_period</b> option in the service definitions needs to be set to a valid timeperiod.  The times allowed by the specified timeperiod determine when freshness checks can be performed for the service.
 </ul>
 </p>
 

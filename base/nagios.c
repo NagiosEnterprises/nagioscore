@@ -5,10 +5,10 @@
  * Program: Nagios
  * Version: 2.0rc1
  * License: GPL
- * Copyright (c) 1999-2005 Ethan Galstad (http://www.nagios.org)
+ * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   12-27-2005
+ * Last Modified:   01-02-2006
  *
  * Description:
  *
@@ -284,7 +284,7 @@ int main(int argc, char **argv){
 
 	if(daemon_mode==FALSE){
 		printf("\nNagios %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 1999-2005 Ethan Galstad (http://www.nagios.org)\n");
+		printf("Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }

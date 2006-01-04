@@ -42,7 +42,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 </p>
 
 <p>
-There are a few known issues with the Nagios 2.0 code at the moment.  Hopefully some of these will be fixed before 2.0 is released as stable...
+There is a known issue that can affect Nagios 2.0 on FreeBSD systems.  Hopefully this problem can be fixed in a 2.x release...
 </p>
 
 <p>
@@ -135,6 +135,7 @@ There are a few known issues with the Nagios 2.0 code at the moment.  Hopefully 
 	<li><b>Changed in checking clusters</b> - The way you monitor service and host "clusters" has now changed and is more reliable than before.  This is due to the incorporation of on-demand macros and a new plugin (check_cluster2).  Read more about checking clusters <a href="clusters.html">here</a>.
 	<li><b>Regular expression matching</b> - Regular expression matching of various object directives can be enabled using the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> and <a href="configmain.html#use_true_regexp_matching">use_true_regexp_matching</a> variables.  Information on how and where regular expression matching can be used can be found in the <a href="templatetricks.html">template tips and tricks</a> documentation.
 	<li><b>Service pseudo-states</b> - Support for some redundant service pseudo-states have been removed from the status CGI.  This will affect any hardcoded URLs which use the  servicestatustypes=X parameter for the CGI. Check include/statusdata.h for the new list of service states that you can use.
+	<li><b>Freshness check changes</b> - The freshness check logic has been changed slightly.  Freshness checks will not occur if the current time is not valid for the host or service <i>check_timeperiod</i>.  Also, freshness checks will no longer occur if both the host or service <i>check_interval</i> and <i>freshness_threshold</i> variables are set to zero (0).
 	</ul>
 <br>
 </ol>

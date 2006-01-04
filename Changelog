@@ -6,6 +6,7 @@ Nagios Change Log
 2.0rc2 - ??/??/2006
 -------------------
 * Fix for initialization of embedded Perl interpreter
+* Minor documentation updates
 
 
 

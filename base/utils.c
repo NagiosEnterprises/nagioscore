@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-29-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-02-2006
  *
  * License:
  *
@@ -5052,6 +5052,24 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 	return result;
         }
 
+
+
+/******************************************************************/
+/************************* MISC FUNCTIONS *************************/
+/******************************************************************/
+
+/* returns Nagios version */
+char *get_program_version(void){
+
+	return (char *)PROGRAM_VERSION;
+        }
+
+
+/* returns Nagios modification date */
+char *get_program_modification_date(void){
+
+	return (char *)PROGRAM_MODIFICATION_DATE;
+        }
 
 
 

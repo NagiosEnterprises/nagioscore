@@ -3,7 +3,7 @@ Nagios Change Log
 ###################
 
 
-2.0rc2 - ??/??/2006
+2.0rc2 - 01/10/2006
 -------------------
 * Fix for initialization of embedded Perl interpreter
 * Fix for potential duplicate membership entry bug in (host/service/contact)groups

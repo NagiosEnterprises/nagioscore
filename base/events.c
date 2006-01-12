@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-23-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-12-2006
  *
  * License:
  *
@@ -995,9 +995,9 @@ int event_execution_loop(void){
 
 					/* remove the service check from the event queue and reschedule it for a later time */
 					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
+					temp_event=event_list_low;
 					remove_event(temp_event,&event_list_low);
 					/*
-					temp_event=event_list_low;
 					event_list_low=event_list_low->next;
 					*/
 					if(temp_service->state_type==SOFT_STATE && temp_service->current_state!=STATE_OK)
@@ -1053,9 +1053,9 @@ int event_execution_loop(void){
 
 					/* remove the host check from the event queue and reschedule it for a later time */
 					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
+					temp_event=event_list_low;
 					remove_event(temp_event,&event_list_low);
 					/*
-					temp_event=event_list_low;
 					event_list_low=event_list_low->next;
 					*/
 					temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));

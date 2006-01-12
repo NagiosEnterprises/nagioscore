@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-07-2006
+ * Last Modified: 01-12-2006
  *
  * Description:
  *
@@ -1535,8 +1535,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 /* adds a property to an object definition */
 int xodtemplate_add_object_property(char *input, int options){
 	int result=OK;
-	char variable[MAX_XODTEMPLATE_INPUT_BUFFER];
-	char value[MAX_XODTEMPLATE_INPUT_BUFFER];
+	char *variable=NULL;
+	char *value=NULL;
 	char *temp_ptr;
 	xodtemplate_timeperiod *temp_timeperiod;
 	xodtemplate_command *temp_command;
@@ -1554,6 +1554,7 @@ int xodtemplate_add_object_property(char *input, int options){
 	xodtemplate_serviceextinfo *temp_serviceextinfo;
 	register int x;
 	register int y;
+	register int len;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -1626,32 +1627,37 @@ int xodtemplate_add_object_property(char *input, int options){
 		break;
 	        }
 
-
-#ifdef REMOVED_05252005
-	/* truncate if necessary */
-	if(strlen(input)>MAX_XODTEMPLATE_INPUT_BUFFER)
-		input[MAX_XODTEMPLATE_INPUT_BUFFER-1]='\x0';
-#endif
+	/* allocate memory */
+	len=strlen(input);
+	if((variable=(char *)malloc(len+1))==NULL)
+		return ERROR;
+	if((value=(char *)malloc(len+1))==NULL){
+		free(variable);
+		return ERROR;
+	        }
 
 	/* get variable name */
+	strcpy(variable,input);
 	for(x=0,y=0;input[x]!='\x0';x++){
 		if(input[x]==' ' || input[x]=='\t')
 			break;
-		else
-			variable[y++]=input[x];
+		y++;
 	        }
 	variable[y]='\x0';
 			
 	/* get variable value */
-	if(x>=strlen(input)){
+	/* skip leading whitespace */
+	for(;input[x]!='\x0';x++){
+		if(input[x]!=' ' && input[x]!='\t')
+			break;
+	        }
+	if(x>=len){
 #ifdef DEBUG1
 		printf("Error: NULL variable value in object definition.\n");
 #endif
 		return ERROR;
 	        }
-	for(y=0;input[x]!='\x0';x++)
-		value[y++]=input[x];
-	value[y]='\x0';
+	strcpy(value,input+x);
 
 	/*
 	printf("RAW VARIABLE: '%s'\n",variable);
@@ -3689,6 +3695,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		return ERROR;
 		break;
 	        }
+
+	/* free memory */
+	free(variable);
+	free(value);
 
 #ifdef DEBUG0
 	printf("xodtemplate_add_object_property() end\n");

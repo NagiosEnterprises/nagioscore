@@ -3,6 +3,12 @@ Nagios Change Log
 ###################
 
 
+2.0 - 0?/??/2006
+----------------
+* Fix for segfault in timed event queue
+* Removed length limitations for object vars/vals
+
+
 2.0rc2 - 01/10/2006
 -------------------
 * Fix for initialization of embedded Perl interpreter

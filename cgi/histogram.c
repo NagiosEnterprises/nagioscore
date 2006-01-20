@@ -2,8 +2,8 @@
  *
  * HISTOGRAM.C -  Nagios Alert Histogram CGI
  *
- * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-14-2004
+ * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-20-2006
  *
  * License:
  * 
@@ -341,14 +341,18 @@ int main(int argc, char **argv){
 			printf("<TR><TD CLASS='linkBox'>\n");
 
 			if(display_type==DISPLAY_HOST_HISTOGRAM){
+#ifdef USE_TRENDS
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Trends For This Host</a><BR>\n",TRENDS_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
+#endif
 				printf("<a href='%s?host=%s&t1=%lu&t2=%lu&assumestateretention=%s&show_log_entries'>View Availability Report For This Host</a><BR>\n",AVAIL_CGI,url_encode(host_name),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s'>View Status Detail For This Host</a><BR>\n",STATUS_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View History For This Host</a><BR>\n",HISTORY_CGI,url_encode(host_name));
 				printf("<a href='%s?host=%s'>View Notifications For This Host</a><BR>\n",NOTIFICATIONS_CGI,url_encode(host_name));
 		                }
 			else{
+#ifdef USE_TRENDS
 				printf("<a href='%s?host=%s",TRENDS_CGI,url_encode(host_name));
+#endif
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Trends For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
 				printf("<a href='%s?host=%s",AVAIL_CGI,url_encode(host_name));
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s&show_log_entries'>View Availability Report For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");

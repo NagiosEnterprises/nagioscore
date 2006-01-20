@@ -1,8 +1,8 @@
 /************************************************************************
  *
  * CGIUTILS.H - Header file for common CGI functions
- * Copyright (c) 1999-2005  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-25-2005
+ * Copyright (c) 1999-2006  Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-20-2006
  *
  * License:
  * 
@@ -30,10 +30,14 @@
 extern "C" { 
 #endif
 
-#undef USE_STATUSMAP		/* should we compile and use the statusmap CGI? */
-#undef USE_STATUSWRL 		/* should we compile and use the statuswrl CGI? */
-#undef USE_TRENDS		/* should we compile and use the trends CGI? */
-#undef USE_HISTOGRAM            /* should we compile and use the histogram CGI? */
+/* should we compile and use the statusmap CGI? */
+#undef USE_STATUSMAP
+/* should we compile and use the statuswrl CGI? */
+#undef USE_STATUSWRL
+/* should we compile and use the trends CGI? */
+#undef USE_TRENDS
+/* should we compile and use the histogram CGI? */
+#undef USE_HISTOGRAM
 
 
 /**************************** CGI REFRESH RATE ******************************/

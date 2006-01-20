@@ -2,8 +2,8 @@
  *
  * STATUS.C -  Nagios Status CGI
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-08-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-20-2006
  *
  * License:
  * 
@@ -2875,9 +2875,9 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 
 		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);
 
-
+#ifdef USE_STATUSMAP
 		printf("<A HREF='%s?host=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'></A>",STATUSMAP_CGI,url_encode(temp_host->name),url_images_path,STATUSMAP_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Locate Host On Map","Locate Host On Map");
-
+#endif
 		printf("</TD>\n");
 		printf("</TR>\n");
 
@@ -3170,9 +3170,9 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 		        }
 	        }
 	printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(hststatus->host_name),url_images_path,STATUS_DETAIL_ICON);
-
+#ifdef USE_STATUSMAP
 	printf("<A HREF='%s?host=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'></A>",STATUSMAP_CGI,url_encode(hststatus->host_name),url_images_path,STATUSMAP_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Locate Host On Map","Locate Host On Map");
-
+#endif
 	printf("</TD>");
 
 	printf("</TR>\n");
@@ -3814,9 +3814,9 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 		        }
 
 		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);
-
+#ifdef USE_STATUSMAP
 		printf("<A HREF='%s?host=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'></A>",STATUSMAP_CGI,url_encode(temp_host->name),url_images_path,STATUSMAP_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Locate Host On Map","Locate Host On Map");
-
+#endif
 		printf("</TD>\n");
 
 		printf("</TR>\n");

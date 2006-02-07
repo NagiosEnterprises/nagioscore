@@ -3,11 +3,12 @@ Nagios Change Log
 ###################
 
 
-2.0 - 0?/??/2006
+2.0 - 02/07/2006
 ----------------
 * Fix for segfault in timed event queue
 * Removed length limitations for object vars/vals
 * Updated config.sub and config.guess to versions from automake-1.9
+* Doc updates
 
 
 2.0rc2 - 01/10/2006

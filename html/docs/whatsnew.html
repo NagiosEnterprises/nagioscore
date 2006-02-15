@@ -17,7 +17,7 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">What's New in Version 2.0</h2>
+<h2 class="PageTitle">What's New in Version 3.0</h2>
 </div>
 </p>
 
@@ -38,18 +38,11 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 </p>
 
 <p>
-<strong><u>Known Issues</u></strong>
+<font color='red'><strong><u>WARNING!</u></strong></font>
 </p>
 
 <p>
-There is a known issue that can affect Nagios 2.0 on FreeBSD systems.  Hopefully this problem can be fixed in a 2.x release...
-</p>
-
-<p>
-<ol>
-<li><b>FreeBSD and threads</b>.  On FreeBSD there's a native user-level implementation of threads called 'pthread' and there's also an optional ports collection 'linuxthreads' that uses kernel hooks.  Some folks from Yahoo! have reported that using the pthread library causes Nagios to pause under heavy I/O load, causing some service check results to be lost.  Switching to linuxthreads seems to help this problem, but not fix it. The lock happens in liblthread's __pthread_acquire() - it can't ever acquire the spinlock. It happens when the main thread forks to execute an active check. On the second fork to create the grandchild, the grandchild is created by fork, but never returns from liblthread's fork wrapper, because it's stuck in __pthread_acquire().  Maybe some FreeBSD users can help out with this problem.</li>
-
-</ol>
+Nagios 3.0 is in a very pre-alpha state and will be for some time to come.  If you're using the latest Nagios 3.x development code from CVS, expect to find lots of bugs and undocumented featured.  You have been warned. :-)
 </p>
 
 <p>
@@ -59,84 +52,7 @@ There is a known issue that can affect Nagios 2.0 on FreeBSD systems.  Hopefully
 <p>
 <ol>
 
-<li><b>Macro Changes</b> - <a href="macros.html">Macros</a> have undergone a major overhaul.  You will have to update most of your command definitions to match the new macros.  Most macros are now available as environment variables.  Also, "on-demand" host and service macros have been added.  See the <a href="macros.html">documentation on macros</a> for more information.<br>
-<br>
-<li><b>Hostgroup Changes</b>
-	<ul>
-	<li><b>Hostgroup escalations removed</b> - Hostgroup escalations have been removed.  Their functionality can be duplicated by using the <i>hostgroup_name</i> directive in <a href="xodtemplate.html#hostgroup">hostgroup definitions</a>.
-	<li><b>Member directive changes</b> - Hostgroup <a href="xodtemplate.html#hostgroup">definitions</a> can now contain multiple <i>members</i> directives, which should make editing the config files easier when you have a lot of member hosts.  Alternatively, you may use the <i>hostgroups</i> directive in <a href="xodtemplate.html#host">host definitions</a> to specify what hostgroup(s) a particular host is a member of.
-	<li><b>Contact group changes</b> - The <i>contact_groups</i> directive has been moved from hostgroup definitions to <a href="xodtemplate.html#host">host definitions</a>.  This was done in order to maintain consistency with the way service contacts are specified.  Make sure to update your config files!
-	<li><b>Authorization changes</b> - Authorization for access to hostgroups in the CGIs has been changed.  You must now be authorized for all hosts that are members of the hostgroup in order to be authorized for the hostgroup.
-	</ul>
-<br>
-<li><b>Host Changes</b>
-	<ul>
-	<li><b>Host freshness checking</b> - Freshness checking has been added for host checks.  This is controlled by the <a href="configmain.html#check_host_freshness">check_host_freshness</a> option, along with the <i>check_freshness</i> directive in <a href="xodtemplate.html#host">host definitions</a>.
-	<li><b>OCHP Command</b> - Host checks can now be obsessed over, just as services can be.  The <a href="configmain.html#ochp_command">OCHP command</a> is run for all hosts that have the <i>obsess_over_host</i> directive enabled in their <a href="xodtemplate.html#host">host definition</a>.
-	</ul>
-<br>
-<li><b>Host Check Changes</b>
-	<ul>
-	<li><b>Regularly scheduled checks</b> - You can now schedule regular checks of hosts by using the <i>check_interval</i> directive in <a href="xodtemplate.html#host">host definitions</a>.  <strong>NOTE:</strong>  Listen up! You should use regularly scheduled host checks rather sparingly.   They are not necessary for normal operation (on-demand checks are already performed when necessary) and can <a href="tuning.html">negatively affect performance</a> if used improperly.  You've been warned.
-	<li><b>Passive host checks</b> - Passive host checks are now supported if you've enabled them with the <a href="configmain.html#accept_passive_host_checks">accept_passive_host_checks</a> option in the main config file and the <i>accept_passive_host_checks</i> directive in the <a href="xodtemplate.html#host">host definition</a>.  <a href="passivechecks.html">Passive host checks</a> can make setting up <a href="redundancy.html">redundant</a> or <a href="distributed.html">distributed</a> monitoring environments easier.  <strong>NOTE:</strong> There are some problems with passive host checks that you should be aware of - read more about them <a href="passivechecks.html">here</a>.
-	</ul>
-<br>
-<li><b>Retention Changes</b>
-	<ul>
-	<li><b>Retention of scheduling information</b> - Host and service check scheduling information (next check times) can now be retained across program restarts using the <a href="configmain.html#use_retained_scheduling_info">use_retained_scheduling_info</a> directive.
-	<li><b>Smarter retention</b> - Values of various host and service directives that can be retained across program restarts are now only retained if they are changed during runtime by an <a href="extcommands.html">external command</a>.  This should make things less confusing to people when they try and modify host and service directive values and then restart Nagios, expecting to see some changes.
-	<li><b>More stuff retained</b> - More information is now retained across program restarts, including <a href="flapping.html">flap detection</a> history.  Hoorah!
-	</ul>
-<br>
-<li><b>Extended Info Changes</b>
-	<ul>
-	<li><b>New location</b> - Extended <a href="xodtemplate.html#hostextinfo">host info</a> and <a href="xodtemplate.html#serviceextinfo">service info</a> definitions are now stored in object config files along with host definitions, etc.  As a result, extended info definitions are now parsed and validated by the Nagios daemon before startup.
-	<li><b>New directives</b> - Extended <a href="xodtemplate.html#hostextinfo">host info</a> and <a href="xodtemplate.html#serviceextinfo">service info</a> definitions now have two new directives: <i>notes</i> and <i>action_url</i>.
-	</ul>
-<br>
-<li><b>Embedded Perl Changes</b>
-	<ul>
-	<li><b>p1.pl location</b> - You can now specify the location of the embedded Perl "helper" file (p1.pl) using the <a href="configmain.html#p1_file">p1_file</a> directive.
-	</ul>
-<br>
-<li><b>Notification Changes</b>
-	<ul>
-	<li><b>Flapping notifications</b> - Notifications are now sent out when <a href="flapping.html">flapping</a> starts and stops for hosts and services.  This feature can be controlled using the <i>f</i> option in the <i>notification_options</i> for <a href="xodtemplate.html#contact">contacts</a>, <a href="xodtemplate.html#host">hosts</a> and <a href="xodtemplate.html#service">services</a>.
-	<li><b>Better logic</b> - Notification logic has been improved a bit.  This should prevent recovery notifications getting sent out when no problem notification was sent out to begin with.
-	<li><b>Service notifications</b> - Before service notifications are sent out, notification <a href="xodtemplate.html#hostdependency">dependencies</a> for the host are now checked.  If host notifications are not deemed to be viable, notifications for the service will not be sent out either.
-	<li><b>Escalation options</b> - Time period and state options have been added to <a href="xodtemplate.html#hostescalation">host</a> and <a href="xodtemplate.html#serviceescalation">service</a> escalations.  This gives you more control in determining when escalations can be used.  More information on escalations can be found <a href="escalations.html">here</a>.
-	</ul>
-<br>
-<li><b>Service Groups Added</b> - <a href="xodtemplate.html#servicegroup">Service groups</a> have now been added.  They allow you to group services together for display purposes in the CGIs and <a href="templatetricks.html">can be referenced</a> in service dependency and service escalation definitions to make configuration a bit easier.<br>
-<br>
-<li><b>Triggered Downtime Added</b> - Support for what's called "triggered" downtime has been added for host and service downtime.  Triggered downtime allows you to define downtime that should start at the same time another downtime starts (very useful for scheduling downtime for child hosts when the parent host is scheduled for flexible downtime).  More information on triggered downtime can be found <a href="downtime.html">here</a>.<br>
-<br>
-<li><b>New Stats Utility</b> - A new utility called 'nagiostats' is now included in the Nagios distribution.  Its a command-line utility that allows you to view current statistics for a running Nagios process.  It can also produce data compatible with MRTG, so you can graph statistical information.  More information on how to use the utility can be found <a href="nagiostats.html">here</a>.<br>
-<br>
-<li><b>Adaptive Monitoring</b> - You can now change certain attributes relating to host and service checks (check command, check interval, max check attempts etc.) during runtime by submitting the appropriate external commands.  This kind of adaptive monitoring will probably not be of much use to the majority of users out there, but it does provide a way for doing some neat stuff.  More information on adaptive monitoring can be found <a href="adaptive.html">here</a>.<br>
-<br>
-<li><b>Performance Data Changes</b> - The methods for processing performance data have changed slightly.  You can now process performance data by executing external commands and/or writing to files without recompiling Nagios.  Read the documentation on <a href="perfdata.html">performance data</a> for more information.<br>
-<br>
-<li><b>Native DB Support Dropped</b> - Native support for storing various types of data (status, retention, comment, downtime, etc.) in MySQL and PostgreSQL has been dropped.  Stop whining.  I expect someone will develop an alternative using the new event broker sometime in the near future.  Besides, DB support was not well implemented and dropping native DB support will make things easier for newbies to understand (one less thing to figure out).<br>
-<br>
-<li><b>Event Broker API</b> - An API has been created to allow individual developers to create addons that integrate with the core Nagios daemon.  Documentation on the event broker API will be created as the 2.x code matures and will be available on the Nagios website.<br>
-<br>
-<li><b>Misc Changes</b>
-	<ul>
-	<li><b>All commands can contain arguments</b> - All command types (host checks, notifications, performance data processors, event handlers, etc.) can contain arguments (seperated from the command name by <b>!</b> characters).  Arguments are substituted in the command line using <b>$ARGx</b> <a href="macros.html">macros</a>.
-	<li><b>Config directory recursion</b> - Nagios now recursively processes all config files found in subdirectories of the directories specified by the <a href="configmain.html#cfg_dir">cfg_dir directive</a>.
-	<li><b>Old config file support dropped</b> - Support for older (non-template) style object and extended info config files has been dropped.
-	<li><b>Faster searches</b> - Objects are now stored in a chained hash in order to speed searches.  This should greatly improve the performance of the CGIs.
-	<li><b>Worker threads</b> - A few worker threads have been added in order to artificially buffer data for the <a href="configmain.html#command_file">external command file</a> and the internal pipe used to process service check results.  This should substantially increase performance in larger setups.
-	<li><b>Logging changes</b> - Initial host and service states are now logged a bit differently.  Also, the initial states of all hosts and services are logged immediately after all <a href="configmain.html#log_rotation_method">log rotations</a>.  This should help with all those "undetermined time" problems in the availability and trends CGIs.
-	<li><b>Cached object config file</b> - An <a href="configmain.html#object_cache_file">object cache file</a> is now created by Nagios at startup.  It should help speed up the CGIs a bit and allow you to edit you object config files while Nagios is running without affecting the CGI output.
-	<li><b>Initial check limits</b> - You can now specify timeframes in which the initial checks of all hosts and services should be performed after Nagios start.  These timeframes are controlled by the <a href="configmain.html#max_host_check_spread">max_host_check_spread</a> and <a href="configmain.html#max_service_check_spread">max_service_check_spread</a> variables.
-	<li><b>"Sticky" acknowledgements</b> - You can now designate host and service acknowledgements as being "sticky" or not.  Sticky acknowledgements suppress notifications until a host or service fully recovers to an UP or OK state.  Non-sticky acknowledgements only suppress notifications until a host or service changes state.
-	<li><b>Changed in checking clusters</b> - The way you monitor service and host "clusters" has now changed and is more reliable than before.  This is due to the incorporation of on-demand macros and a new plugin (check_cluster2).  Read more about checking clusters <a href="clusters.html">here</a>.
-	<li><b>Regular expression matching</b> - Regular expression matching of various object directives can be enabled using the <a href="configmain.html#use_regexp_matching">use_regexp_matching</a> and <a href="configmain.html#use_true_regexp_matching">use_true_regexp_matching</a> variables.  Information on how and where regular expression matching can be used can be found in the <a href="templatetricks.html">template tips and tricks</a> documentation.
-	<li><b>Service pseudo-states</b> - Support for some redundant service pseudo-states have been removed from the status CGI.  This will affect any hardcoded URLs which use the  servicestatustypes=X parameter for the CGI. Check include/statusdata.h for the new list of service states that you can use.
-	<li><b>Freshness check changes</b> - The freshness check logic has been changed slightly.  Freshness checks will not occur if the current time is not valid for the host or service <i>check_timeperiod</i>.  Also, freshness checks will no longer occur if both the host or service <i>check_interval</i> and <i>freshness_threshold</i> variables are set to zero (0).
-	</ul>
+<li><b>Notification Changes</b> - Something....<br>
 <br>
 </ol>
 </p>

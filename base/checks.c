@@ -1759,7 +1759,7 @@ void check_service_result_freshness(void){
 		/* calculate expiration time */
 		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
 		/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
-		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check))
+		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check)
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);

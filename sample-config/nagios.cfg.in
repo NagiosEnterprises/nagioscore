@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 11-23-2005
+# Last Modified: 02-17-2006
 #
 ##############################################################################
 
@@ -78,6 +78,22 @@ cfg_file=@sysconfdir@/minimal.cfg
 # when the config files are modified after Nagios starts.
 
 object_cache_file=@localstatedir@/objects.cache
+
+
+
+# PRE-CACHED OBJECT FILE
+# This options determines the location of the precached object file.
+# If you run Nagios with the -p command line option, it will preprocess
+# your object configuration file(s) and write the cached config to this
+# file.  You can then start Nagios with the -u option to have it read
+# object definitions from this precached file, rather than the standard
+# object configuration files (see the cfg_file and cfg_dir options above).
+# Using a precached object file can speed up the time needed to (re)start 
+# the Nagios process if you've got a large and/or complex configuration.
+# Read the documentation section on optimizing Nagios to find our more
+# about how this feature works.
+
+precached_object_file=@localstatedir@/objects.precache
 
 
 

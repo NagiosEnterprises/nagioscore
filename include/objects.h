@@ -2,8 +2,8 @@
  *
  * OBJECTS.H - Header file for object addition/search functions
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-27-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-21-2006
  *
  * License:
  *
@@ -37,18 +37,13 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        2
+#define CURRENT_OBJECT_STRUCTURE_VERSION        9999    /* set to 3 once Nagios 3.x development stabilizes... */
 
 
 
 /***************** OBJECT SIZE LIMITS *****************/
 
-#define MAX_HOSTNAME_LENGTH            		64	/* max. host name length */
-#define MAX_SERVICEDESC_LENGTH			64	/* max. service description length */
-#define MAX_PLUGINOUTPUT_LENGTH			348	/* max. length of plugin output */
-
 #define MAX_STATE_HISTORY_ENTRIES		21	/* max number of old states to keep track of for flap detection */
-
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
 
@@ -136,6 +131,7 @@ typedef struct host_struct{
 	char    *event_handler;
 	contactgroupsmember *contact_groups;
 	int     notification_interval;
+	int     first_notification_delay;
 	int	notify_on_down;
 	int	notify_on_unreachable;
 	int     notify_on_recovery;
@@ -145,6 +141,9 @@ typedef struct host_struct{
 	int     flap_detection_enabled;
 	double  low_flap_threshold;
 	double  high_flap_threshold;
+	int     flap_detection_on_up;
+	int     flap_detection_on_down;
+	int     flap_detection_on_unreachable;
 	int     stalk_on_up;
 	int     stalk_on_down;
 	int     stalk_on_unreachable;
@@ -167,6 +166,7 @@ typedef struct host_struct{
 	int     last_state;
 	int     last_hard_state;
 	char	*plugin_output;
+	char    *long_plugin_output;
 	char    *perf_data;
         int     state_type;
 	int     current_attempt;
@@ -290,6 +290,7 @@ typedef struct service_struct{
 	int     parallelize;
 	contactgroupsmember *contact_groups;
 	int	notification_interval;
+	int     first_notification_delay;
 	int     notify_on_unknown;
 	int	notify_on_warning;
 	int	notify_on_critical;
@@ -305,6 +306,10 @@ typedef struct service_struct{
 	int     flap_detection_enabled;
 	double  low_flap_threshold;
 	double  high_flap_threshold;
+	int     flap_detection_on_ok;
+	int     flap_detection_on_warning;
+	int     flap_detection_on_unknown;
+	int     flap_detection_on_critical;
 	int     process_performance_data;
 	int     check_freshness;
 	int     freshness_threshold;
@@ -321,14 +326,12 @@ typedef struct service_struct{
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     host_problem_at_last_check;
-#ifdef REMOVED_041403
-	int     no_recovery_notification;
-#endif
 	int     check_type;
 	int	current_state;
 	int	last_state;
 	int	last_hard_state;
 	char	*plugin_output;
+	char    *long_plugin_output;
 	char    *perf_data;
         int     state_type;
 	time_t	next_check;
@@ -526,13 +529,13 @@ typedef struct host_cursor_struct{
 
 
 /**** Top-level input functions ****/
-int read_object_config_data(char *,int,int);        /* reads all external configuration data of specific types */
+int read_object_config_data(char *,int,int,int);        /* reads all external configuration data of specific types */
 
 /**** Object Creation Functions ****/
 contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
@@ -544,7 +547,7 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);  
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
 command *add_command(char *,char *);									/* adds a command definition */
-service *add_service(char *,char *,char *,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
+service *add_service(char *,char *,char *,int,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */

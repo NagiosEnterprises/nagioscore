@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-20-2006
  *
  * License:
  *
@@ -78,7 +78,10 @@ extern int      daemon_mode;
 extern int      daemon_dumps_core;
 
 extern int      verify_config;
+extern int      verify_object_relationships;
+extern int      verify_circular_paths;
 extern int      test_scheduling;
+extern int      precache_objects;
 
 extern double   sleep_time;
 extern int      interval_length;
@@ -178,6 +181,7 @@ int read_all_object_data(char *main_config_file){
 	int result=OK;
 	int options;
 	int cache=FALSE;
+	int precache=FALSE;
 
 #ifdef DEBUG0
 	printf("read_all_config_data() start\n");
@@ -189,8 +193,12 @@ int read_all_object_data(char *main_config_file){
 	if(verify_config==FALSE && test_scheduling==FALSE)
 		cache=TRUE;
 
+	/* precache object definitions */
+	if(precache_objects==TRUE && (verify_config==TRUE || test_scheduling==TRUE))
+		precache=TRUE;
+
 	/* read in all host configuration data from external sources */
-	result=read_object_config_data(main_config_file,options,cache);
+	result=read_object_config_data(main_config_file,options,cache,precache);
 	if(result!=OK)
 		return ERROR;
 
@@ -1437,6 +1445,8 @@ int read_main_config_file(char *main_config_file){
 			continue;
 		else if(strstr(input,"object_cache_file=")==input)
 			continue;
+		else if(strstr(input,"precached_object_file=")==input)
+			continue;
 
 		/* we don't know what this variable is... */
 		else{
@@ -1603,8 +1613,193 @@ int read_resource_file(char *resource_file){
 /**************** CONFIG VERIFICATION FUNCTIONS *****************/
 /****************************************************************/
 
-/* do a pre-flight check to make sure object relationships make sense */
+/* do a pre-flight check to make sure object relationships, etc. make sense */
 int pre_flight_check(void){
+	char temp_buffer[MAX_INPUT_BUFFER];
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	command *temp_command=NULL;
+	char *temp_command_name="";
+	int warnings=0;
+	int errors=0;
+	struct timeval tv[4];
+	double runtime[4];
+
+#ifdef DEBUG0
+	printf("pre_flight_check() start\n");
+#endif
+
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[0],NULL);
+
+	/********************************************/
+	/* check object relationships               */
+	/********************************************/
+	pre_flight_object_check(&warnings,&errors);
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[1],NULL);
+
+ 
+	/********************************************/
+	/* check for circular paths between hosts   */
+	/********************************************/
+	pre_flight_circular_check(&warnings,&errors);
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[2],NULL);
+
+ 
+	/********************************************/
+	/* check global event handler commands...   */
+	/********************************************/
+	if(verify_config==TRUE)
+		printf("Checking global event handlers...\n");
+	if(global_host_event_handler!=NULL){
+
+		/* check the event handler command */
+		strncpy(temp_buffer,global_host_event_handler,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+		temp_command=find_command(temp_command_name);
+		if(temp_command==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+	if(global_service_event_handler!=NULL){
+
+		/* check the event handler command */
+		strncpy(temp_buffer,global_service_event_handler,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+		temp_command=find_command(temp_command_name);
+		if(temp_command==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+#ifdef DEBUG1
+	printf("\tCompleted global event handler command checks\n");
+#endif
+
+	/**************************************************/
+	/* check obsessive processor commands...          */
+	/**************************************************/
+	if(verify_config==TRUE)
+		printf("Checking obsessive compulsive processor commands...\n");
+	if(ocsp_command!=NULL){
+
+		strncpy(temp_buffer,ocsp_command,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+	        temp_command=find_command(temp_command_name);
+		if(temp_command==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+	if(ochp_command!=NULL){
+
+		strncpy(temp_buffer,ochp_command,sizeof(temp_buffer));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+
+		/* get the command name, leave any arguments behind */
+		temp_command_name=my_strtok(temp_buffer,"!");
+
+	        temp_command=find_command(temp_command_name);
+		if(temp_command==NULL){
+			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			errors++;
+		        }
+	        }
+
+#ifdef DEBUG1
+	printf("\tCompleted obsessive compulsive processor command checks\n");
+#endif
+
+	/**************************************************/
+	/* check various settings...                      */
+	/**************************************************/
+	if(verify_config==TRUE)
+		printf("Checking misc settings...\n");
+
+	/* warn if user didn't specify any illegal macro output chars */
+	if(illegal_output_chars==NULL){
+		sprintf(temp_buffer,"Warning: Nothing specified for illegal_macro_output_chars variable!\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		warnings++;
+	        }
+
+	/* count number of services associated with each host (we need this for flap detection)... */
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+		if((temp_host=find_host(temp_service->host_name))){
+			temp_host->total_services++;
+			temp_host->total_service_check_interval+=temp_service->check_interval;
+		        }
+	        }
+
+	if(verify_config==TRUE){
+		printf("\n");
+		printf("Total Warnings: %d\n",warnings);
+		printf("Total Errors:   %d\n",errors);
+	        }
+
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[3],NULL);
+
+	if(test_scheduling==TRUE){
+
+		if(verify_object_relationships==TRUE)
+			runtime[0]=(double)((double)(tv[1].tv_sec-tv[0].tv_sec)+(double)((tv[1].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
+		else
+			runtime[0]=0.0;
+		if(verify_circular_paths==TRUE)
+			runtime[1]=(double)((double)(tv[2].tv_sec-tv[1].tv_sec)+(double)((tv[2].tv_usec-tv[1].tv_usec)/1000.0)/1000.0);
+		else
+			runtime[1]=0.0;
+		runtime[2]=(double)((double)(tv[3].tv_sec-tv[2].tv_sec)+(double)((tv[3].tv_usec-tv[2].tv_usec)/1000.0)/1000.0);
+		runtime[3]=runtime[0]+runtime[1]+runtime[2];
+
+		printf("Timing information on configuration verification is listed below.\n\n");
+
+		printf("CONFIG VERIFICATION TIMES\n");
+		printf("----------------------------------\n");
+		printf("Object Relationships: %.6lf sec\n",runtime[0]);
+		printf("Circular Paths:       %.6lf sec\n",runtime[1]);
+		printf("Misc:                 %.6lf sec\n",runtime[2]);
+		printf("                      ============\n");
+		printf("TOTAL:                %.6lf sec\n",runtime[3]);
+		printf("\n\n");
+	        }
+
+#ifdef DEBUG0
+	printf("pre_flight_check() end\n");
+#endif
+
+	return (errors>0)?ERROR:OK;
+	}
+
+
+
+/* do a pre-flight check to make sure object relationships make sense */
+int pre_flight_object_check(int *w, int *e){
 	contact *temp_contact=NULL;
 	commandsmember *temp_commandsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
@@ -1624,34 +1819,24 @@ int pre_flight_check(void){
 	serviceescalation *temp_se=NULL;
 	hostescalation *temp_he=NULL;
 	servicedependency *temp_sd=NULL;
-	servicedependency *temp_sd2=NULL;
 	hostdependency *temp_hd=NULL;
-	hostdependency *temp_hd2=NULL;
 	hostextinfo *temp_hostextinfo=NULL;
 	serviceextinfo *temp_serviceextinfo=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char *temp_command_name="";
-	int found;
-	int result=OK;
+	int found=FALSE;
 	int total_objects=0;
 	int warnings=0;
 	int errors=0;
 
 #ifdef DEBUG0
-	printf("pre_flight_check() start\n");
+	printf("pre_flight_object_check() start\n");
 #endif
 
 
-
-	/*****************************************/
-	/* check sanity of service message size...   */
-	/*****************************************/
-	if(sizeof(service_message)>512){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Size of service_message struct (%d bytes) is > POSIX-guaranteed atomic write size (512 bytes).  Service checks results may get lost or mangled!",sizeof(service_message));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-		warnings++;
-	        }
+	/* bail out if we aren't supposed to verify object relationships */
+	if(verify_object_relationships==FALSE)
+		return OK;
 
 
 	/*****************************************/
@@ -2603,6 +2788,41 @@ int pre_flight_check(void){
 	printf("\tCompleted extended service info checks\n");
 #endif
 
+       /* update warning and error count */
+	*w+=warnings;
+	*e+=errors;
+ 
+#ifdef DEBUG0
+	printf("pre_flight_object_check() end\n");
+#endif
+
+	return (errors>0)?ERROR:OK;
+	}
+
+
+/* check for circular paths and dependencies */
+int pre_flight_circular_check(int *w, int *e){
+	host *temp_host=NULL;
+	host *temp_host2=NULL;
+	servicedependency *temp_sd=NULL;
+	servicedependency *temp_sd2=NULL;
+	hostdependency *temp_hd=NULL;
+	hostdependency *temp_hd2=NULL;
+	char temp_buffer[MAX_INPUT_BUFFER];
+	int found=FALSE;
+	int result=OK;
+	int warnings=0;
+	int errors=0;
+
+#ifdef DEBUG0
+	printf("pre_flight_circular_check() start\n");
+#endif
+
+
+	/* bail out if we aren't supposed to verify circular paths */
+	if(verify_circular_paths==FALSE)
+		return OK;
+
 
 	/********************************************/
 	/* check for circular paths between hosts   */
@@ -2705,120 +2925,10 @@ int pre_flight_check(void){
 	printf("\tCompleted circular host and service dependency checks\n");
 #endif
 
+        /* update warning and error count */
+	*w+=warnings;
+	*e+=errors;
  
-	/********************************************/
-	/* check global event handler commands...   */
-	/********************************************/
-	if(verify_config==TRUE)
-		printf("Checking global event handlers...\n");
-	if(global_host_event_handler!=NULL){
-
-		/* check the event handler command */
-		strncpy(temp_buffer,global_host_event_handler,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
-
-		temp_command=find_command(temp_command_name);
-		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			errors++;
-		        }
-	        }
-	if(global_service_event_handler!=NULL){
-
-		/* check the event handler command */
-		strncpy(temp_buffer,global_service_event_handler,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
-
-		temp_command=find_command(temp_command_name);
-		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			errors++;
-		        }
-	        }
-
-#ifdef DEBUG1
-	printf("\tCompleted global event handler command checks\n");
-#endif
-
-	/**************************************************/
-	/* check obsessive processor commands...          */
-	/**************************************************/
-	if(verify_config==TRUE)
-		printf("Checking obsessive compulsive processor commands...\n");
-	if(ocsp_command!=NULL){
-
-		strncpy(temp_buffer,ocsp_command,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
-
-	        temp_command=find_command(temp_command_name);
-		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			errors++;
-		        }
-	        }
-	if(ochp_command!=NULL){
-
-		strncpy(temp_buffer,ochp_command,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-
-		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
-
-	        temp_command=find_command(temp_command_name);
-		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			errors++;
-		        }
-	        }
-
-#ifdef DEBUG1
-	printf("\tCompleted obsessive compulsive processor command checks\n");
-#endif
-
-	/**************************************************/
-	/* check various settings...                      */
-	/**************************************************/
-	if(verify_config==TRUE)
-		printf("Checking misc settings...\n");
-
-	/* warn if user didn't specify any illegal macro output chars */
-	if(illegal_output_chars==NULL){
-		sprintf(temp_buffer,"Warning: Nothing specified for illegal_macro_output_chars variable!\n");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-		warnings++;
-	        }
-
-	/* count number of services associated with each host (we need this for flap detection)... */
-	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-		if((temp_host=find_host(temp_service->host_name))){
-			temp_host->total_services++;
-			temp_host->total_service_check_interval+=temp_service->check_interval;
-		        }
-	        }
-
-	if(verify_config==TRUE){
-		printf("\n");
-		printf("Total Warnings: %d\n",warnings);
-		printf("Total Errors:   %d\n",errors);
-	        }
-
 #ifdef DEBUG0
 	printf("pre_flight_check() end\n");
 #endif

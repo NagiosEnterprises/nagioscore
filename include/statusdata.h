@@ -56,6 +56,7 @@
 typedef struct hoststatus_struct{
 	char    *host_name;
 	char    *plugin_output;
+	char    *long_plugin_output;
 	char    *perf_data;
 	int     status;
 	time_t  last_update;
@@ -102,6 +103,7 @@ typedef struct servicestatus_struct{
 	char    *host_name;
 	char    *description;
 	char    *plugin_output;
+	char    *long_plugin_output;
 	char    *perf_data;
 	int     max_attempts;
 	int     current_attempt;

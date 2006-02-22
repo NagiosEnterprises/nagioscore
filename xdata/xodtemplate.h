@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
- * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-24-2004
+ * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-19-2006
  *
  * License:
  *
@@ -30,7 +30,9 @@
 
 /*********** GENERAL DEFINITIONS ************/
 
-#define MAX_XODTEMPLATE_INPUT_BUFFER    65535
+#define XODTEMPLATE_NULL                "null"
+
+#define MAX_XODTEMPLATE_INPUT_BUFFER    1024
 
 #define MAX_XODTEMPLATE_CONTACT_ADDRESSES 6
 
@@ -97,7 +99,7 @@ typedef struct xodtemplate_contact_struct{
 
 	char      *contact_name;
 	char      *alias;
-	char      *contactgroups;
+	char      *contact_groups;
 	char      *email;
 	char      *pager;
 	char      *address[MAX_XODTEMPLATE_CONTACT_ADDRESSES];
@@ -114,6 +116,15 @@ typedef struct xodtemplate_contact_struct{
 	int       notify_on_service_critical;
 	int       notify_on_service_recovery;
 	int       notify_on_service_flapping;
+
+	int       have_contact_groups;
+	int       have_email;
+	int       have_pager;
+	int       have_address[MAX_XODTEMPLATE_CONTACT_ADDRESSES];
+	int       have_host_notification_period;
+	int       have_host_notification_commands;
+	int       have_service_notification_period;
+	int       have_service_notification_commands;
 
 	int       have_host_notification_options;
 	int       have_service_notification_options;
@@ -152,7 +163,7 @@ typedef struct xodtemplate_host_struct{
 	char      *alias;
 	char      *address;
 	char      *parents;
-	char      *hostgroups;
+	char      *host_groups;
 	char      *check_command;
 	char      *check_period;
 	int       check_interval;
@@ -167,6 +178,9 @@ typedef struct xodtemplate_host_struct{
 	float     low_flap_threshold;
 	float     high_flap_threshold;
 	int       flap_detection_enabled;
+	int       flap_detection_on_up;
+	int       flap_detection_on_down;
+	int       flap_detection_on_unreachable;
 	char      *contact_groups;
 	int       notify_on_down;
 	int       notify_on_unreachable;
@@ -175,6 +189,7 @@ typedef struct xodtemplate_host_struct{
 	int       notifications_enabled;
 	char      *notification_period;
 	int       notification_interval;
+	int       first_notification_delay;
 	int       stalk_on_up;
 	int       stalk_on_down;
 	int       stalk_on_unreachable;
@@ -183,6 +198,15 @@ typedef struct xodtemplate_host_struct{
 	char      *failure_prediction_options;
 	int       retain_status_information;
 	int       retain_nonstatus_information;
+
+	int       have_parents;
+	int       have_host_groups;
+	int       have_check_command;
+	int       have_check_period;
+	int       have_event_handler;
+	int       have_contact_groups;
+	int       have_notification_period;
+	int       have_failure_prediction_options;
 
 	int       have_check_interval;
 	int       have_max_check_attempts;
@@ -195,9 +219,11 @@ typedef struct xodtemplate_host_struct{
 	int       have_low_flap_threshold;
 	int       have_high_flap_threshold;
 	int       have_flap_detection_enabled;
+	int       have_flap_detection_options;
 	int       have_notification_options;
 	int       have_notifications_enabled;
 	int       have_notification_interval;
+	int       have_first_notification_delay;
 	int       have_stalking_options;
 	int       have_process_perf_data;
 	int       have_failure_prediction_enabled;
@@ -234,10 +260,10 @@ typedef struct xodtemplate_service_struct{
 	int        _config_file;
 	int        _start_line;
 
-	char       *hostgroup_name;
 	char       *host_name;
 	char       *service_description;
-	char       *servicegroups;
+	char       *hostgroup_name;
+	char       *service_groups;
 	char       *check_command;
 	int        max_check_attempts;
         int        normal_check_interval;
@@ -255,6 +281,10 @@ typedef struct xodtemplate_service_struct{
 	double     low_flap_threshold;
 	double     high_flap_threshold;
 	int        flap_detection_enabled;
+	int        flap_detection_on_ok;
+	int        flap_detection_on_warning;
+	int        flap_detection_on_unknown;
+	int        flap_detection_on_critical;
 	int        notify_on_unknown;
 	int        notify_on_warning;
 	int        notify_on_critical;
@@ -263,6 +293,7 @@ typedef struct xodtemplate_service_struct{
 	int        notifications_enabled;
 	char       *notification_period;
 	int        notification_interval;
+	int        first_notification_delay;
 	char       *contact_groups;
 	int        stalk_on_ok;
 	int        stalk_on_unknown;
@@ -273,6 +304,17 @@ typedef struct xodtemplate_service_struct{
 	char       *failure_prediction_options;
 	int        retain_status_information;
 	int        retain_nonstatus_information;
+
+	int        have_host_name;
+	int        have_service_description;
+	int        have_hostgroup_name;
+	int        have_service_groups;
+	int        have_check_command;
+	int        have_check_period;
+	int        have_event_handler;
+	int        have_notification_period;
+	int        have_contact_groups;
+	int        have_failure_prediction_options;
 
 	int        have_max_check_attempts;
 	int        have_normal_check_interval;
@@ -288,10 +330,12 @@ typedef struct xodtemplate_service_struct{
 	int        have_low_flap_threshold;
 	int        have_high_flap_threshold;
 	int        have_flap_detection_enabled;
+	int        have_flap_detection_options;
 	int        have_notification_options;
 	int        have_notifications_enabled;
 	int        have_notification_dependencies;
 	int        have_notification_interval;
+	int        have_first_notification_delay;
 	int        have_stalking_options;
 	int        have_process_perf_data;
 	int        have_failure_prediction_enabled;
@@ -328,14 +372,14 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        _config_file;
 	int        _start_line;
 
-	char       *servicegroup_name;
-	char       *hostgroup_name;
 	char       *host_name;
 	char       *service_description;
-	char       *dependent_servicegroup_name;
-	char       *dependent_hostgroup_name;
 	char       *dependent_host_name;
 	char       *dependent_service_description;
+	char       *servicegroup_name;
+	char       *hostgroup_name;
+	char       *dependent_servicegroup_name;
+	char       *dependent_hostgroup_name;
 	int        inherits_parent;
 	int        fail_notify_on_ok;
 	int        fail_notify_on_unknown;
@@ -347,6 +391,15 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        fail_execute_on_warning;
 	int        fail_execute_on_critical;
 	int        fail_execute_on_pending;
+
+	int        have_host_name;
+	int        have_service_description;
+	int        have_dependent_host_name;
+	int        have_dependent_service_description;
+	int        have_servicegroup_name;
+	int        have_hostgroup_name;
+	int        have_dependent_servicegroup_name;
+	int        have_dependent_hostgroup_name;
 
 	int        have_inherits_parent;
 	int        have_notification_dependency_options;
@@ -365,10 +418,10 @@ typedef struct xodtemplate_serviceescalation_struct{
 	int        _config_file;
 	int        _start_line;
 
-	char      *servicegroup_name;
-	char      *hostgroup_name;
 	char      *host_name;
 	char      *service_description;
+	char      *servicegroup_name;
+	char      *hostgroup_name;
 	int       first_notification;
 	int       last_notification;
 	int       notification_interval;
@@ -378,6 +431,13 @@ typedef struct xodtemplate_serviceescalation_struct{
 	int       escalate_on_critical;
 	int       escalate_on_recovery;
 	char      *contact_groups;
+
+	int       have_host_name;
+	int       have_service_description;
+	int       have_servicegroup_name;
+	int       have_hostgroup_name;
+	int       have_escalation_period;
+	int       have_contact_groups;
 
 	int       have_first_notification;
 	int       have_last_notification;
@@ -397,10 +457,10 @@ typedef struct xodtemplate_hostdependency_struct{
 	int        _config_file;
 	int        _start_line;
 
-	char      *hostgroup_name;
-	char      *dependent_hostgroup_name;
 	char      *host_name;
 	char      *dependent_host_name;
+	char      *hostgroup_name;
+	char      *dependent_hostgroup_name;
 	int       inherits_parent;
 	int       fail_notify_on_up;
 	int       fail_notify_on_down;
@@ -410,6 +470,11 @@ typedef struct xodtemplate_hostdependency_struct{
 	int       fail_execute_on_down;
 	int       fail_execute_on_unreachable;
 	int       fail_execute_on_pending;
+
+	int       have_host_name;
+	int       have_dependent_host_name;
+	int       have_hostgroup_name;
+	int       have_dependent_hostgroup_name;
 
 	int       have_inherits_parent;
 	int       have_notification_dependency_options;
@@ -428,8 +493,8 @@ typedef struct xodtemplate_hostescalation_struct{
 	int        _config_file;
 	int        _start_line;
 
-	char      *hostgroup_name;
 	char      *host_name;
+	char      *hostgroup_name;
 	int       first_notification;
 	int       last_notification;
 	int       notification_interval;
@@ -438,6 +503,11 @@ typedef struct xodtemplate_hostescalation_struct{
 	int       escalate_on_unreachable;
 	int       escalate_on_recovery;
 	char      *contact_groups;
+
+	int       have_host_name;
+	int       have_hostgroup_name;
+	int       have_escalation_period;
+	int       have_contact_groups;
 
 	int       have_first_notification;
 	int       have_last_notification;
@@ -471,6 +541,16 @@ typedef struct xodtemplate_hostextinfo_struct{
 	double     x_3d;
 	double     y_3d;
 	double     z_3d;
+
+	int        have_host_name;
+	int        have_hostgroup_name;
+	int        have_notes;
+	int        have_notes_url;
+	int        have_action_url;
+	int        have_icon_image;
+	int        have_icon_image_alt;
+	int        have_vrml_image;
+	int        have_statusmap_image;
 	
 	int        have_2d_coords;
 	int        have_3d_coords;
@@ -496,6 +576,15 @@ typedef struct xodtemplate_serviceextinfo_struct{
 	char       *action_url;
 	char       *icon_image;
 	char       *icon_image_alt;
+
+	int        have_host_name;
+	int        have_hostgroup_name;
+	int        have_service_description;
+	int        have_notes;
+	int        have_notes_url;
+	int        have_action_url;
+	int        have_icon_image;
+	int        have_icon_image_alt;
 
 	int        has_been_resolved;
 	int        register_object;
@@ -537,7 +626,7 @@ typedef struct xodtemplate_service_cursor_struct{
 
 /********* FUNCTION DEFINITIONS **********/
 
-int xodtemplate_read_config_data(char *,int,int);           /* top-level routine processes all config files */
+int xodtemplate_read_config_data(char *,int,int,int);       /* top-level routine processes all config files */
 int xodtemplate_grab_config_info(char *);                   /* grabs variables from main config file */
 int xodtemplate_process_config_file(char *,int);            /* process data in a specific config file */
 int xodtemplate_process_config_dir(char *,int);             /* process all files in a specific config directory */

@@ -2,8 +2,8 @@
  *
  * HISTORY.C - Nagios History CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-02-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-21-2006
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -497,14 +497,14 @@ void get_history(void){
 	int display_line=FALSE;
 	time_t t;
 	char date_time[MAX_DATETIME_LENGTH];
-	char *temp_buffer;
+	char *temp_buffer=NULL;
 	int history_type=SERVICE_HISTORY;
 	int history_detail_type=HISTORY_SERVICE_CRITICAL;
-	char entry_host_name[MAX_HOSTNAME_LENGTH];
-	char entry_service_desc[MAX_SERVICEDESC_LENGTH];
-	host *temp_host;
-	service *temp_service;
-	int result;
+	char *entry_host_name=NULL;
+	char *entry_service_desc=NULL;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	int result=0;
 
 	char last_message_date[MAX_INPUT_BUFFER]="";
 	char current_message_date[MAX_INPUT_BUFFER]="";
@@ -565,11 +565,15 @@ void get_history(void){
 			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			if(temp_buffer)
+				entry_host_name=strdup(temp_buffer+1);
+			else
+				entry_host_name=NULL;
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-			entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+			if(temp_buffer)
+				entry_service_desc=strdup(temp_buffer);
+			else
+				entry_service_desc=NULL;
 
 			if(strstr(input,";CRITICAL;")){
 				strncpy(image,CRITICAL_ICON,sizeof(image));
@@ -605,11 +609,15 @@ void get_history(void){
 			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			if(temp_buffer)
+				entry_host_name=strdup(temp_buffer+1);
+			else
+				entry_host_name=NULL;
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-			entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+			if(temp_buffer)
+				entry_service_desc=strdup(temp_buffer);
+			else
+				entry_service_desc=NULL;
 
 			strncpy(image,FLAPPING_ICON,sizeof(image));
 
@@ -633,11 +641,15 @@ void get_history(void){
 			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			if(temp_buffer)
+				entry_host_name=strdup(temp_buffer+1);
+			else
+				entry_host_name=NULL;
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-			entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+			if(temp_buffer)
+				entry_service_desc=strdup(temp_buffer);
+			else
+				entry_service_desc=NULL;
 
 			strncpy(image,SCHEDULED_DOWNTIME_ICON,sizeof(image));
 
@@ -658,8 +670,10 @@ void get_history(void){
 			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			if(temp_buffer)
+				entry_host_name=strdup(temp_buffer+1);
+			else
+				entry_host_name=NULL;
 
 			if(strstr(input,";DOWN;")){
 				strncpy(image,HOST_DOWN_ICON,sizeof(image));
@@ -690,8 +704,10 @@ void get_history(void){
 			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			if(temp_buffer)
+				entry_host_name=strdup(temp_buffer+1);
+			else
+				entry_host_name=NULL;
 
 			strncpy(image,FLAPPING_ICON,sizeof(image));
 
@@ -715,8 +731,10 @@ void get_history(void){
 			temp_buffer=my_strtok(input_buffer2,"]");
 			temp_buffer=my_strtok(NULL,":");
 			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			if(temp_buffer)
+				entry_host_name=strdup(temp_buffer+1);
+			else
+				entry_host_name=NULL;
 
 			strncpy(image,SCHEDULED_DOWNTIME_ICON,sizeof(image));
 
@@ -906,6 +924,11 @@ void get_history(void){
 			        }
 		        }
 
+		/* free memory */
+		free(entry_host_name);
+		entry_host_name=NULL;
+		free(entry_service_desc);
+		entry_service_desc=NULL;
                 }
 
 	printf("</P>\n");

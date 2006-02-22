@@ -2,8 +2,8 @@
  *
  * OBJECTS.C - Object addition and search functions for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-26-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-21-2006
  *
  * License:
  *
@@ -84,7 +84,7 @@ int __nagios_object_structure_version=CURRENT_OBJECT_STRUCTURE_VERSION;
 
 
 /* read all host configuration data from external source */
-int read_object_config_data(char *main_config_file,int options,int cache){
+int read_object_config_data(char *main_config_file, int options, int cache, int precache){
 	int result=OK;
 
 #ifdef DEBUG0
@@ -94,7 +94,7 @@ int read_object_config_data(char *main_config_file,int options,int cache){
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
-	result=xodtemplate_read_config_data(main_config_file,options,cache);
+	result=xodtemplate_read_config_data(main_config_file,options,cache,precache);
 	if(result!=OK)
 		return ERROR;
 #endif
@@ -135,12 +135,12 @@ int add_host_to_hashlist(host *new_host){
 	if(!new_host)
 		return 0;
 
-	hashslot=hashfunc1(new_host->name,HOST_HASHSLOTS);
+	hashslot=hashfunc(new_host->name,NULL,HOST_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_host=host_hashlist[hashslot];temp_host && compare_hashdata1(temp_host->name,new_host->name)<0;temp_host=temp_host->nexthash)
+	for(temp_host=host_hashlist[hashslot];temp_host && compare_hashdata(temp_host->name,NULL,new_host->name,NULL)<0;temp_host=temp_host->nexthash)
 		lastpointer=temp_host;
 
-	if(!temp_host || (compare_hashdata1(temp_host->name,new_host->name)!=0)){
+	if(!temp_host || (compare_hashdata(temp_host->name,NULL,new_host->name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_host;
 		else
@@ -182,12 +182,12 @@ int add_service_to_hashlist(service *new_service){
 	if(!new_service)
 		return 0;
 
-	hashslot=hashfunc2(new_service->host_name,new_service->description,SERVICE_HASHSLOTS);
+	hashslot=hashfunc(new_service->host_name,new_service->description,SERVICE_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_service=service_hashlist[hashslot];temp_service && compare_hashdata2(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)<0;temp_service=temp_service->nexthash)
+	for(temp_service=service_hashlist[hashslot];temp_service && compare_hashdata(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)<0;temp_service=temp_service->nexthash)
 		lastpointer=temp_service;
 
-	if(!temp_service || (compare_hashdata2(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)!=0)){
+	if(!temp_service || (compare_hashdata(temp_service->host_name,temp_service->description,new_service->host_name,new_service->description)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_service;
 		else
@@ -230,12 +230,12 @@ int add_command_to_hashlist(command *new_command){
 	if(!new_command)
 		return 0;
 
-	hashslot=hashfunc1(new_command->name,COMMAND_HASHSLOTS);
+	hashslot=hashfunc(new_command->name,NULL,COMMAND_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_command=command_hashlist[hashslot];temp_command && compare_hashdata1(temp_command->name,new_command->name)<0;temp_command=temp_command->nexthash)
+	for(temp_command=command_hashlist[hashslot];temp_command && compare_hashdata(temp_command->name,NULL,new_command->name,NULL)<0;temp_command=temp_command->nexthash)
 		lastpointer=temp_command;
 
-	if(!temp_command || (compare_hashdata1(temp_command->name,new_command->name)!=0)){
+	if(!temp_command || (compare_hashdata(temp_command->name,NULL,new_command->name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_command;
 		else
@@ -277,12 +277,12 @@ int add_timeperiod_to_hashlist(timeperiod *new_timeperiod){
 	if(!new_timeperiod)
 		return 0;
 
-	hashslot=hashfunc1(new_timeperiod->name,TIMEPERIOD_HASHSLOTS);
+	hashslot=hashfunc(new_timeperiod->name,NULL,TIMEPERIOD_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_timeperiod=timeperiod_hashlist[hashslot];temp_timeperiod && compare_hashdata1(temp_timeperiod->name,new_timeperiod->name)<0;temp_timeperiod=temp_timeperiod->nexthash)
+	for(temp_timeperiod=timeperiod_hashlist[hashslot];temp_timeperiod && compare_hashdata(temp_timeperiod->name,NULL,new_timeperiod->name,NULL)<0;temp_timeperiod=temp_timeperiod->nexthash)
 		lastpointer=temp_timeperiod;
 
-	if(!temp_timeperiod || (compare_hashdata1(temp_timeperiod->name,new_timeperiod->name)!=0)){
+	if(!temp_timeperiod || (compare_hashdata(temp_timeperiod->name,NULL,new_timeperiod->name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_timeperiod;
 		else
@@ -324,12 +324,12 @@ int add_contact_to_hashlist(contact *new_contact){
 	if(!new_contact)
 		return 0;
 
-	hashslot=hashfunc1(new_contact->name,CONTACT_HASHSLOTS);
+	hashslot=hashfunc(new_contact->name,NULL,CONTACT_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_contact=contact_hashlist[hashslot];temp_contact && compare_hashdata1(temp_contact->name,new_contact->name)<0;temp_contact=temp_contact->nexthash)
+	for(temp_contact=contact_hashlist[hashslot];temp_contact && compare_hashdata(temp_contact->name,NULL,new_contact->name,NULL)<0;temp_contact=temp_contact->nexthash)
 		lastpointer=temp_contact;
 
-	if(!temp_contact || (compare_hashdata1(temp_contact->name,new_contact->name)!=0)){
+	if(!temp_contact || (compare_hashdata(temp_contact->name,NULL,new_contact->name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_contact;
 		else
@@ -371,12 +371,12 @@ int add_contactgroup_to_hashlist(contactgroup *new_contactgroup){
 	if(!new_contactgroup)
 		return 0;
 
-	hashslot=hashfunc1(new_contactgroup->group_name,CONTACTGROUP_HASHSLOTS);
+	hashslot=hashfunc(new_contactgroup->group_name,NULL,CONTACTGROUP_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_contactgroup=contactgroup_hashlist[hashslot];temp_contactgroup && compare_hashdata1(temp_contactgroup->group_name,new_contactgroup->group_name)<0;temp_contactgroup=temp_contactgroup->nexthash)
+	for(temp_contactgroup=contactgroup_hashlist[hashslot];temp_contactgroup && compare_hashdata(temp_contactgroup->group_name,NULL,new_contactgroup->group_name,NULL)<0;temp_contactgroup=temp_contactgroup->nexthash)
 		lastpointer=temp_contactgroup;
 
-	if(!temp_contactgroup || (compare_hashdata1(temp_contactgroup->group_name,new_contactgroup->group_name)!=0)){
+	if(!temp_contactgroup || (compare_hashdata(temp_contactgroup->group_name,NULL,new_contactgroup->group_name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_contactgroup;
 		else
@@ -418,12 +418,12 @@ int add_hostgroup_to_hashlist(hostgroup *new_hostgroup){
 	if(!new_hostgroup)
 		return 0;
 
-	hashslot=hashfunc1(new_hostgroup->group_name,HOSTGROUP_HASHSLOTS);
+	hashslot=hashfunc(new_hostgroup->group_name,NULL,HOSTGROUP_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_hostgroup=hostgroup_hashlist[hashslot];temp_hostgroup && compare_hashdata1(temp_hostgroup->group_name,new_hostgroup->group_name)<0;temp_hostgroup=temp_hostgroup->nexthash)
+	for(temp_hostgroup=hostgroup_hashlist[hashslot];temp_hostgroup && compare_hashdata(temp_hostgroup->group_name,NULL,new_hostgroup->group_name,NULL)<0;temp_hostgroup=temp_hostgroup->nexthash)
 		lastpointer=temp_hostgroup;
 
-	if(!temp_hostgroup || (compare_hashdata1(temp_hostgroup->group_name,new_hostgroup->group_name)!=0)){
+	if(!temp_hostgroup || (compare_hashdata(temp_hostgroup->group_name,NULL,new_hostgroup->group_name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_hostgroup;
 		else
@@ -465,12 +465,12 @@ int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
 	if(!new_servicegroup)
 		return 0;
 
-	hashslot=hashfunc1(new_servicegroup->group_name,SERVICEGROUP_HASHSLOTS);
+	hashslot=hashfunc(new_servicegroup->group_name,NULL,SERVICEGROUP_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_servicegroup=servicegroup_hashlist[hashslot];temp_servicegroup && compare_hashdata1(temp_servicegroup->group_name,new_servicegroup->group_name)<0;temp_servicegroup=temp_servicegroup->nexthash)
+	for(temp_servicegroup=servicegroup_hashlist[hashslot];temp_servicegroup && compare_hashdata(temp_servicegroup->group_name,NULL,new_servicegroup->group_name,NULL)<0;temp_servicegroup=temp_servicegroup->nexthash)
 		lastpointer=temp_servicegroup;
 
-	if(!temp_servicegroup || (compare_hashdata1(temp_servicegroup->group_name,new_servicegroup->group_name)!=0)){
+	if(!temp_servicegroup || (compare_hashdata(temp_servicegroup->group_name,NULL,new_servicegroup->group_name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_servicegroup;
 		else
@@ -513,12 +513,12 @@ int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
 	if(!new_hostextinfo)
 		return 0;
 
-	hashslot=hashfunc1(new_hostextinfo->host_name,HOSTEXTINFO_HASHSLOTS);
+	hashslot=hashfunc(new_hostextinfo->host_name,NULL,HOSTEXTINFO_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_hostextinfo=hostextinfo_hashlist[hashslot];temp_hostextinfo && compare_hashdata1(temp_hostextinfo->host_name,new_hostextinfo->host_name)<0;temp_hostextinfo=temp_hostextinfo->nexthash)
+	for(temp_hostextinfo=hostextinfo_hashlist[hashslot];temp_hostextinfo && compare_hashdata(temp_hostextinfo->host_name,NULL,new_hostextinfo->host_name,NULL)<0;temp_hostextinfo=temp_hostextinfo->nexthash)
 		lastpointer=temp_hostextinfo;
 
-	if(!temp_hostextinfo || (compare_hashdata1(temp_hostextinfo->host_name,new_hostextinfo->host_name)!=0)){
+	if(!temp_hostextinfo || (compare_hashdata(temp_hostextinfo->host_name,NULL,new_hostextinfo->host_name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_hostextinfo;
 		else
@@ -560,12 +560,12 @@ int add_serviceextinfo_to_hashlist(serviceextinfo *new_serviceextinfo){
 	if(!new_serviceextinfo)
 		return 0;
 
-	hashslot=hashfunc2(new_serviceextinfo->host_name,new_serviceextinfo->description,SERVICEEXTINFO_HASHSLOTS);
+	hashslot=hashfunc(new_serviceextinfo->host_name,new_serviceextinfo->description,SERVICEEXTINFO_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_serviceextinfo=serviceextinfo_hashlist[hashslot];temp_serviceextinfo && compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash)
+	for(temp_serviceextinfo=serviceextinfo_hashlist[hashslot];temp_serviceextinfo && compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash)
 		lastpointer=temp_serviceextinfo;
 
-	if(!temp_serviceextinfo || (compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)!=0)){
+	if(!temp_serviceextinfo || (compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_serviceextinfo;
 		else
@@ -606,9 +606,9 @@ int add_hostdependency_to_hashlist(hostdependency *new_hostdependency){
 	if(!new_hostdependency)
 		return 0;
 
-	hashslot=hashfunc1(new_hostdependency->dependent_host_name,HOSTDEPENDENCY_HASHSLOTS);
+	hashslot=hashfunc(new_hostdependency->dependent_host_name,NULL,HOSTDEPENDENCY_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_hostdependency=hostdependency_hashlist[hashslot];temp_hostdependency && compare_hashdata1(temp_hostdependency->dependent_host_name,new_hostdependency->dependent_host_name)<0;temp_hostdependency=temp_hostdependency->nexthash)
+	for(temp_hostdependency=hostdependency_hashlist[hashslot];temp_hostdependency && compare_hashdata(temp_hostdependency->dependent_host_name,NULL,new_hostdependency->dependent_host_name,NULL)<0;temp_hostdependency=temp_hostdependency->nexthash)
 		lastpointer=temp_hostdependency;
 
 	/* duplicates are allowed */
@@ -641,9 +641,9 @@ int add_servicedependency_to_hashlist(servicedependency *new_servicedependency){
 	if(!new_servicedependency)
 		return 0;
 
-	hashslot=hashfunc2(new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description,SERVICEDEPENDENCY_HASHSLOTS);
+	hashslot=hashfunc(new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description,SERVICEDEPENDENCY_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_servicedependency=servicedependency_hashlist[hashslot];temp_servicedependency && compare_hashdata2(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description)<0;temp_servicedependency=temp_servicedependency->nexthash)
+	for(temp_servicedependency=servicedependency_hashlist[hashslot];temp_servicedependency && compare_hashdata(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,new_servicedependency->dependent_host_name,new_servicedependency->dependent_service_description)<0;temp_servicedependency=temp_servicedependency->nexthash)
 		lastpointer=temp_servicedependency;
 
 	/* duplicates are allowed */
@@ -677,9 +677,9 @@ int add_hostescalation_to_hashlist(hostescalation *new_hostescalation){
 	if(!new_hostescalation)
 		return 0;
 
-	hashslot=hashfunc1(new_hostescalation->host_name,HOSTESCALATION_HASHSLOTS);
+	hashslot=hashfunc(new_hostescalation->host_name,NULL,HOSTESCALATION_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_hostescalation=hostescalation_hashlist[hashslot];temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,new_hostescalation->host_name)<0;temp_hostescalation=temp_hostescalation->nexthash)
+	for(temp_hostescalation=hostescalation_hashlist[hashslot];temp_hostescalation && compare_hashdata(temp_hostescalation->host_name,NULL,new_hostescalation->host_name,NULL)<0;temp_hostescalation=temp_hostescalation->nexthash)
 		lastpointer=temp_hostescalation;
 
 	/* duplicates are allowed */
@@ -712,9 +712,9 @@ int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
 	if(!new_serviceescalation)
 		return 0;
 
-	hashslot=hashfunc2(new_serviceescalation->host_name,new_serviceescalation->description,SERVICEESCALATION_HASHSLOTS);
+	hashslot=hashfunc(new_serviceescalation->host_name,new_serviceescalation->description,SERVICEESCALATION_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_serviceescalation=serviceescalation_hashlist[hashslot];temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)<0;temp_serviceescalation=temp_serviceescalation->nexthash)
+	for(temp_serviceescalation=serviceescalation_hashlist[hashslot];temp_serviceescalation && compare_hashdata(temp_serviceescalation->host_name,temp_serviceescalation->description,new_serviceescalation->host_name,new_serviceescalation->description)<0;temp_serviceescalation=temp_serviceescalation->nexthash)
 		lastpointer=temp_serviceescalation;
 
 	/* duplicates are allowed */
@@ -926,7 +926,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_up, int stalk_down, int stalk_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host;
 	host *new_host;
 #ifdef NSCORE
@@ -975,16 +975,6 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 		return NULL;
 	        }
 
-	/* make sure the name isn't too long */
-	if(strlen(name)>MAX_HOSTNAME_LENGTH-1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name '%s' exceeds maximum length of %d characters\n",name,MAX_HOSTNAME_LENGTH-1);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
 	if(max_attempts<=0){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid max_check_attempts value for host '%s'\n",name);
@@ -1006,6 +996,15 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	if(notification_interval<0){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification_interval value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	if(first_notification_delay<0){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid first_notification_delay value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -1084,25 +1083,49 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 #endif
 		return NULL;
 	        }
-	if(stalk_up<0 || stalk_up>1){
+	if(flap_detection_on_up<0 || flap_detection_on_up>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_up value for host '%s'\n",name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_up value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	if(stalk_down<0 || stalk_down>1){
+	if(flap_detection_on_down<0 || flap_detection_on_down>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_warning value for host '%s'\n",name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_down value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	if(stalk_unreachable<0 || stalk_unreachable>1){
+	if(flap_detection_on_unreachable<0 || flap_detection_on_unreachable>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_unknown value for host '%s'\n",name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_unreachable value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_up<0 || stalk_on_up>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_up value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_down<0 || stalk_on_down>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_warning value for host '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_unreachable<0 || stalk_on_unreachable>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_unknown value for host '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -1317,6 +1340,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->contact_groups=NULL;
 	new_host->check_interval=check_interval;
 	new_host->notification_interval=notification_interval;
+	new_host->first_notification_delay=first_notification_delay;
 	new_host->notify_on_recovery=(notify_up>0)?TRUE:FALSE;
 	new_host->notify_on_down=(notify_down>0)?TRUE:FALSE;
 	new_host->notify_on_unreachable=(notify_unreachable>0)?TRUE:FALSE;
@@ -1324,9 +1348,12 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->flap_detection_enabled=(flap_detection_enabled>0)?TRUE:FALSE;
 	new_host->low_flap_threshold=low_flap_threshold;
 	new_host->high_flap_threshold=high_flap_threshold;
-	new_host->stalk_on_up=(stalk_up>0)?TRUE:FALSE;
-	new_host->stalk_on_down=(stalk_down>0)?TRUE:FALSE;
-	new_host->stalk_on_unreachable=(stalk_unreachable>0)?TRUE:FALSE;
+	new_host->flap_detection_on_up=(flap_detection_on_up>0)?TRUE:FALSE;
+	new_host->flap_detection_on_down=(flap_detection_on_down>0)?TRUE:FALSE;
+	new_host->flap_detection_on_unreachable=(flap_detection_on_unreachable>0)?TRUE:FALSE;
+	new_host->stalk_on_up=(stalk_on_up>0)?TRUE:FALSE;
+	new_host->stalk_on_down=(stalk_on_down>0)?TRUE:FALSE;
+	new_host->stalk_on_unreachable=(stalk_on_unreachable>0)?TRUE:FALSE;
 	new_host->process_performance_data=(process_perfdata>0)?TRUE:FALSE;
 	new_host->check_freshness=(check_freshness>0)?TRUE:FALSE;
 	new_host->freshness_threshold=freshness_threshold;
@@ -1338,6 +1365,9 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
 
 #ifdef NSCORE
+	new_host->plugin_output=NULL;
+	new_host->long_plugin_output=NULL;
+	new_host->perf_data=NULL;
 	new_host->current_state=HOST_UP;
 	new_host->last_state=HOST_UP;
 	new_host->last_hard_state=HOST_UP;
@@ -1382,56 +1412,6 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->modified_attributes=MODATTR_NONE;
 	new_host->circular_path_checked=FALSE;
 	new_host->contains_circular_path=FALSE;
-
-	/* allocate new plugin output buffer */
-	new_host->plugin_output=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
-	if(new_host->plugin_output==NULL){
-
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' plugin output buffer\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-
-		if(new_host->failure_prediction_options!=NULL)
-			free(new_host->failure_prediction_options);
-		if(new_host->event_handler!=NULL)
-			free(new_host->event_handler);
-		if(new_host->host_check_command!=NULL)
-			free(new_host->host_check_command);
-		if(new_host->notification_period!=NULL)
-			free(new_host->notification_period);
-		free(new_host->address);
-		free(new_host->alias);
-		free(new_host->name);
-		free(new_host);
-		return NULL;
-	        }
-	strcpy(new_host->plugin_output,"");
-
-	/* allocate new performance data buffer */
-	new_host->perf_data=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
-	if(new_host->perf_data==NULL){
-
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' performance data buffer\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-
-		if(new_host->failure_prediction_options!=NULL)
-			free(new_host->failure_prediction_options);
-		if(new_host->event_handler!=NULL)
-			free(new_host->event_handler);
-		if(new_host->host_check_command!=NULL)
-			free(new_host->host_check_command);
-		if(new_host->notification_period!=NULL)
-			free(new_host->notification_period);
-		free(new_host->address);
-		free(new_host->alias);
-		free(new_host->name);
-		free(new_host->plugin_output);
-		free(new_host);
-		return NULL;
-	        }
-	strcpy(new_host->perf_data,"");
-
 #endif
 
 	new_host->next=NULL;
@@ -2751,7 +2731,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int stalk_ok, int stalk_warning, int stalk_unknown, int stalk_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
+service *add_service(char *host_name, char *description, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, int first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *temp_service;
 	service *new_service;
 #ifdef NSCORE
@@ -2789,31 +2769,11 @@ service *add_service(char *host_name, char *description, char *check_period, int
 		return NULL;
 	        }
 
-	/* make sure the host name isn't too long */
-	if(strlen(host_name)>MAX_HOSTNAME_LENGTH-1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name '%s' for service '%s' exceeds maximum length of %d characters\n",host_name,description,MAX_HOSTNAME_LENGTH-1);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
 	/* make sure there isn't a service by this name added already */
 	temp_service=find_service(host_name,description);
 	if(temp_service!=NULL){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* make sure the service description isn't too long */
-	if(strlen(description)>MAX_SERVICEDESC_LENGTH-1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Name of service '%s' on host '%s' exceeds maximum length of %d characters\n",description,host_name,MAX_SERVICEDESC_LENGTH-1);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2873,6 +2833,16 @@ service *add_service(char *host_name, char *description, char *check_period, int
 #endif
 		return NULL;
 	        }
+
+	if(first_notification_delay<0){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid first_notification_delay value for service '%s' on host '%s'\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
 	if(notify_recovery<0 || notify_recovery>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_recovery value for service '%s' on host '%s'\n",description,host_name);
@@ -2921,33 +2891,65 @@ service *add_service(char *host_name, char *description, char *check_period, int
 #endif
 		return NULL;
 	        }
-	if(stalk_ok<0 || stalk_ok>1){
+	if(flap_detection_on_ok<0 || flap_detection_on_ok>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_ok value for service '%s' on host '%s'\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_ok value for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	if(stalk_warning<0 || stalk_warning>1){
+	if(flap_detection_on_warning<0 || flap_detection_on_warning>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_warning value for service '%s' on host '%s'\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_warning value for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	if(stalk_unknown<0 || stalk_unknown>1){
+	if(flap_detection_on_unknown<0 || flap_detection_on_unknown>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_unknown value for service '%s' on host '%s'\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_unknown value for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
 		return NULL;
 	        }
-	if(stalk_critical<0 || stalk_critical>1){
+	if(flap_detection_on_critical<0 || flap_detection_on_critical>1){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_critical value for service '%s' on host '%s'\n",description,host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_critical value for service '%s' on host '%s'\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_ok<0 || stalk_on_ok>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_ok value for service '%s' on host '%s'\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_warning<0 || stalk_on_warning>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_warning value for service '%s' on host '%s'\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_unknown<0 || stalk_on_unknown>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_unknown value for service '%s' on host '%s'\n",description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(stalk_on_critical<0 || stalk_on_critical>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_critical value for service '%s' on host '%s'\n",description,host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -3142,6 +3144,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->max_attempts=max_attempts;
 	new_service->parallelize=(parallelize>0)?TRUE:FALSE;
 	new_service->notification_interval=notification_interval;
+	new_service->first_notification_delay=first_notification_delay;
 	new_service->notify_on_unknown=(notify_unknown>0)?TRUE:FALSE;
 	new_service->notify_on_warning=(notify_warning>0)?TRUE:FALSE;
 	new_service->notify_on_critical=(notify_critical>0)?TRUE:FALSE;
@@ -3151,10 +3154,14 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->flap_detection_enabled=(flap_detection_enabled>0)?TRUE:FALSE;
 	new_service->low_flap_threshold=low_flap_threshold;
 	new_service->high_flap_threshold=high_flap_threshold;
-	new_service->stalk_on_ok=(stalk_ok>0)?TRUE:FALSE;
-	new_service->stalk_on_warning=(stalk_warning>0)?TRUE:FALSE;
-	new_service->stalk_on_unknown=(stalk_unknown>0)?TRUE:FALSE;
-	new_service->stalk_on_critical=(stalk_critical>0)?TRUE:FALSE;
+	new_service->flap_detection_on_ok=(flap_detection_on_ok>0)?TRUE:FALSE;
+	new_service->flap_detection_on_warning=(flap_detection_on_warning>0)?TRUE:FALSE;
+	new_service->flap_detection_on_unknown=(flap_detection_on_unknown>0)?TRUE:FALSE;
+	new_service->flap_detection_on_critical=(flap_detection_on_critical>0)?TRUE:FALSE;
+	new_service->stalk_on_ok=(stalk_on_ok>0)?TRUE:FALSE;
+	new_service->stalk_on_warning=(stalk_on_warning>0)?TRUE:FALSE;
+	new_service->stalk_on_unknown=(stalk_on_unknown>0)?TRUE:FALSE;
+	new_service->stalk_on_critical=(stalk_on_critical>0)?TRUE:FALSE;
 	new_service->process_performance_data=(process_perfdata>0)?TRUE:FALSE;
 	new_service->check_freshness=(check_freshness>0)?TRUE:FALSE;
 	new_service->freshness_threshold=freshness_threshold;
@@ -3167,6 +3174,9 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->obsess_over_service=(obsess_over_service>0)?TRUE:FALSE;
 	new_service->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
 #ifdef NSCORE
+	new_service->plugin_output=NULL;
+	new_service->long_plugin_output=NULL;
+	new_service->perf_data=NULL;
 	new_service->problem_has_been_acknowledged=FALSE;
 	new_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 	new_service->check_type=SERVICE_CHECK_ACTIVE;
@@ -3174,12 +3184,8 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->current_state=STATE_OK;
 	new_service->last_state=STATE_OK;
 	new_service->last_hard_state=STATE_OK;
-	/* initial state type changed from SOFT_STATE on 6/17/03 - shouldn't this have been HARD_STATE all along? */
 	new_service->state_type=HARD_STATE;
 	new_service->host_problem_at_last_check=FALSE;
-#ifdef REMOVED_041403
-	new_service->no_recovery_notification=FALSE;
-#endif
 	new_service->check_flapping_recovery_notification=FALSE;
 	new_service->next_check=(time_t)0;
 	new_service->should_be_scheduled=TRUE;
@@ -3212,52 +3218,6 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->flapping_comment_id=0;
 	new_service->percent_state_change=0.0;
 	new_service->modified_attributes=MODATTR_NONE;
-
-	/* allocate new plugin output buffer */
-	new_service->plugin_output=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
-	if(new_service->plugin_output==NULL){
-
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' plugin output buffer\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-
-		if(new_service->failure_prediction_options!=NULL)
-			free(new_service->failure_prediction_options);
-		if(new_service->notification_period!=NULL)
-			free(new_service->notification_period);
-		if(new_service->event_handler!=NULL)
-			free(new_service->event_handler);
-		free(new_service->service_check_command);
-		free(new_service->description);
-		free(new_service->host_name);
-		free(new_service);
-		return NULL;
-	        }
-	strcpy(new_service->plugin_output,"(Service assumed to be ok)");
-
-	/* allocate new performance data buffer */
-	new_service->perf_data=(char *)malloc(MAX_PLUGINOUTPUT_LENGTH);
-	if(new_service->perf_data==NULL){
-
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' performance data buffer\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-
-		if(new_service->failure_prediction_options!=NULL)
-			free(new_service->failure_prediction_options);
-		if(new_service->notification_period!=NULL)
-			free(new_service->notification_period);
-		if(new_service->event_handler!=NULL)
-			free(new_service->event_handler);
-		free(new_service->service_check_command);
-		free(new_service->description);
-		free(new_service->host_name);
-		free(new_service->plugin_output);
-		free(new_service);
-		return NULL;
-	        }
-	strcpy(new_service->perf_data,"");
-
 #endif
 
 	new_service->next=NULL;
@@ -4742,9 +4702,9 @@ timeperiod * find_timeperiod(char *name){
 	if(name==NULL || timeperiod_hashlist==NULL)
 		return NULL;
 
-	for(temp_timeperiod=timeperiod_hashlist[hashfunc1(name,TIMEPERIOD_HASHSLOTS)];temp_timeperiod && compare_hashdata1(temp_timeperiod->name,name)<0;temp_timeperiod=temp_timeperiod->nexthash);
+	for(temp_timeperiod=timeperiod_hashlist[hashfunc(name,NULL,TIMEPERIOD_HASHSLOTS)];temp_timeperiod && compare_hashdata(temp_timeperiod->name,NULL,name,NULL)<0;temp_timeperiod=temp_timeperiod->nexthash);
 
-	if(temp_timeperiod && (compare_hashdata1(temp_timeperiod->name,name)==0))
+	if(temp_timeperiod && (compare_hashdata(temp_timeperiod->name,NULL,name,NULL)==0))
 		return temp_timeperiod;
 
 #ifdef DEBUG0
@@ -4767,9 +4727,9 @@ host * find_host(char *name){
 	if(name==NULL || host_hashlist==NULL)
 		return NULL;
 
-	for(temp_host=host_hashlist[hashfunc1(name,HOST_HASHSLOTS)];temp_host && compare_hashdata1(temp_host->name,name)<0;temp_host=temp_host->nexthash);
+	for(temp_host=host_hashlist[hashfunc(name,NULL,HOST_HASHSLOTS)];temp_host && compare_hashdata(temp_host->name,NULL,name,NULL)<0;temp_host=temp_host->nexthash);
 
-	if(temp_host && (compare_hashdata1(temp_host->name,name)==0))
+	if(temp_host && (compare_hashdata(temp_host->name,NULL,name,NULL)==0))
 		return temp_host;
 
 #ifdef DEBUG0
@@ -4792,9 +4752,9 @@ hostgroup * find_hostgroup(char *name){
 	if(name==NULL || hostgroup_hashlist==NULL)
 		return NULL;
 
-	for(temp_hostgroup=hostgroup_hashlist[hashfunc1(name,HOSTGROUP_HASHSLOTS)];temp_hostgroup && compare_hashdata1(temp_hostgroup->group_name,name)<0;temp_hostgroup=temp_hostgroup->nexthash);
+	for(temp_hostgroup=hostgroup_hashlist[hashfunc(name,NULL,HOSTGROUP_HASHSLOTS)];temp_hostgroup && compare_hashdata(temp_hostgroup->group_name,NULL,name,NULL)<0;temp_hostgroup=temp_hostgroup->nexthash);
 
-	if(temp_hostgroup && (compare_hashdata1(temp_hostgroup->group_name,name)==0))
+	if(temp_hostgroup && (compare_hashdata(temp_hostgroup->group_name,NULL,name,NULL)==0))
 		return temp_hostgroup;
 
 #ifdef DEBUG0
@@ -4804,39 +4764,6 @@ hostgroup * find_hostgroup(char *name){
 	/* we couldn't find a matching hostgroup */
 	return NULL;
 	}
-
-
-#ifdef REMOVED_061803
-/* find a member of a host group */
-hostgroupmember * find_hostgroupmember(char *name,hostgroup *grp){
-	hostgroupmember *temp_member;
-
-#ifdef DEBUG0
-	printf("find_hostgroupmember() start\n");
-#endif
-
-	if(name==NULL || grp==NULL)
-		return NULL;
-
-	temp_member=grp->members;
-	while(temp_member!=NULL){
-
-		/* we found a match */
-		if(!strcmp(temp_member->host_name,name))
-			return temp_member;
-
-		temp_member=temp_member->next;
-	        }
-	
-
-#ifdef DEBUG0
-	printf("find_hostgroupmember() end\n");
-#endif
-
-	/* we couldn't find a matching member */
-	return NULL;
-        }
-#endif
 
 
 /* find a servicegroup from the list in memory */
@@ -4850,9 +4777,9 @@ servicegroup * find_servicegroup(char *name){
 	if(name==NULL || servicegroup_hashlist==NULL)
 		return NULL;
 
-	for(temp_servicegroup=servicegroup_hashlist[hashfunc1(name,SERVICEGROUP_HASHSLOTS)];temp_servicegroup && compare_hashdata1(temp_servicegroup->group_name,name)<0;temp_servicegroup=temp_servicegroup->nexthash);
+	for(temp_servicegroup=servicegroup_hashlist[hashfunc(name,NULL,SERVICEGROUP_HASHSLOTS)];temp_servicegroup && compare_hashdata(temp_servicegroup->group_name,NULL,name,NULL)<0;temp_servicegroup=temp_servicegroup->nexthash);
 
-	if(temp_servicegroup && (compare_hashdata1(temp_servicegroup->group_name,name)==0))
+	if(temp_servicegroup && (compare_hashdata(temp_servicegroup->group_name,NULL,name,NULL)==0))
 		return temp_servicegroup;
 
 
@@ -4863,38 +4790,6 @@ servicegroup * find_servicegroup(char *name){
 	/* we couldn't find a matching servicegroup */
 	return NULL;
 	}
-
-#ifdef REMOVED_0618003
-/* find a member of a service group */
-servicegroupmember * find_servicegroupmember(char *host_name,char *svc_description,servicegroup *grp){
-	servicegroupmember *temp_member;
-
-#ifdef DEBUG0
-	printf("find_servicegroupmember() start\n");
-#endif
-
-	if(host_name==NULL || svc_description==NULL || grp==NULL)
-		return NULL;
-
-	temp_member=grp->members;
-	while(temp_member!=NULL){
-
-		/* we found a match */
-		if(!strcmp(temp_member->host_name,host_name) && !strcmp(temp_member->service_description,svc_description))
-			return temp_member;
-
-		temp_member=temp_member->next;
-	        }
-	
-
-#ifdef DEBUG0
-	printf("find_servicegroupmember() end\n");
-#endif
-
-	/* we couldn't find a matching member */
-	return NULL;
-        }
-#endif
 
 
 /* find a contact from the list in memory */
@@ -4908,9 +4803,9 @@ contact * find_contact(char *name){
 	if(name==NULL || contact_hashlist==NULL)
 		return NULL;
 
-	for(temp_contact=contact_hashlist[hashfunc1(name,CONTACT_HASHSLOTS)];temp_contact && compare_hashdata1(temp_contact->name,name)<0;temp_contact=temp_contact->nexthash);
+	for(temp_contact=contact_hashlist[hashfunc(name,NULL,CONTACT_HASHSLOTS)];temp_contact && compare_hashdata(temp_contact->name,NULL,name,NULL)<0;temp_contact=temp_contact->nexthash);
 
-	if(temp_contact && (compare_hashdata1(temp_contact->name,name)==0))
+	if(temp_contact && (compare_hashdata(temp_contact->name,NULL,name,NULL)==0))
 		return temp_contact;
 
 #ifdef DEBUG0
@@ -4933,9 +4828,9 @@ contactgroup * find_contactgroup(char *name){
 	if(name==NULL || contactgroup_hashlist==NULL)
 		return NULL;
 
-	for(temp_contactgroup=contactgroup_hashlist[hashfunc1(name,CONTACTGROUP_HASHSLOTS)];temp_contactgroup && compare_hashdata1(temp_contactgroup->group_name,name)<0;temp_contactgroup=temp_contactgroup->nexthash);
+	for(temp_contactgroup=contactgroup_hashlist[hashfunc(name,NULL,CONTACTGROUP_HASHSLOTS)];temp_contactgroup && compare_hashdata(temp_contactgroup->group_name,NULL,name,NULL)<0;temp_contactgroup=temp_contactgroup->nexthash);
 
-	if(temp_contactgroup && (compare_hashdata1(temp_contactgroup->group_name,name)==0))
+	if(temp_contactgroup && (compare_hashdata(temp_contactgroup->group_name,NULL,name,NULL)==0))
 		return temp_contactgroup;
 
 #ifdef DEBUG0
@@ -4988,9 +4883,9 @@ command * find_command(char *name){
 	if(name==NULL || command_hashlist==NULL)
 		return NULL;
 
-	for(temp_command=command_hashlist[hashfunc1(name,COMMAND_HASHSLOTS)];temp_command && compare_hashdata1(temp_command->name,name)<0;temp_command=temp_command->nexthash);
+	for(temp_command=command_hashlist[hashfunc(name,NULL,COMMAND_HASHSLOTS)];temp_command && compare_hashdata(temp_command->name,NULL,name,NULL)<0;temp_command=temp_command->nexthash);
 
-	if(temp_command && (compare_hashdata1(temp_command->name,name)==0))
+	if(temp_command && (compare_hashdata(temp_command->name,NULL,name,NULL)==0))
 		return temp_command;
 
 #ifdef DEBUG0
@@ -5013,9 +4908,9 @@ service * find_service(char *host_name,char *svc_desc){
 	if(host_name==NULL || svc_desc==NULL || service_hashlist==NULL)
 		return NULL;
 
-	for(temp_service=service_hashlist[hashfunc2(host_name,svc_desc,SERVICE_HASHSLOTS)];temp_service && compare_hashdata2(temp_service->host_name,temp_service->description,host_name,svc_desc)<0;temp_service=temp_service->nexthash);
+	for(temp_service=service_hashlist[hashfunc(host_name,svc_desc,SERVICE_HASHSLOTS)];temp_service && compare_hashdata(temp_service->host_name,temp_service->description,host_name,svc_desc)<0;temp_service=temp_service->nexthash);
 
-	if(temp_service && (compare_hashdata2(temp_service->host_name,temp_service->description,host_name,svc_desc)==0))
+	if(temp_service && (compare_hashdata(temp_service->host_name,temp_service->description,host_name,svc_desc)==0))
 		return temp_service;
 
 #ifdef DEBUG0
@@ -5039,9 +4934,9 @@ hostextinfo * find_hostextinfo(char *host_name){
 	if(host_name==NULL || hostextinfo_hashlist==NULL)
 		return NULL;
 
-	for(temp_hostextinfo=hostextinfo_hashlist[hashfunc1(host_name,HOSTEXTINFO_HASHSLOTS)];temp_hostextinfo && compare_hashdata1(temp_hostextinfo->host_name,host_name)<0;temp_hostextinfo=temp_hostextinfo->nexthash);
+	for(temp_hostextinfo=hostextinfo_hashlist[hashfunc(host_name,NULL,HOSTEXTINFO_HASHSLOTS)];temp_hostextinfo && compare_hashdata(temp_hostextinfo->host_name,NULL,host_name,NULL)<0;temp_hostextinfo=temp_hostextinfo->nexthash);
 
-	if(temp_hostextinfo && (compare_hashdata1(temp_hostextinfo->host_name,host_name)==0))
+	if(temp_hostextinfo && (compare_hashdata(temp_hostextinfo->host_name,NULL,host_name,NULL)==0))
 		return temp_hostextinfo;
 
 #ifdef DEBUG0
@@ -5064,9 +4959,9 @@ serviceextinfo * find_serviceextinfo(char *host_name, char *description){
 	if(host_name==NULL || description==NULL || serviceextinfo_hashlist==NULL)
 		return NULL;
 
-	for(temp_serviceextinfo=serviceextinfo_hashlist[hashfunc2(host_name,description,SERVICEEXTINFO_HASHSLOTS)];temp_serviceextinfo && compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash);
+	for(temp_serviceextinfo=serviceextinfo_hashlist[hashfunc(host_name,description,SERVICEEXTINFO_HASHSLOTS)];temp_serviceextinfo && compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash);
 
-	if(temp_serviceextinfo && (compare_hashdata2(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)==0))
+	if(temp_serviceextinfo && (compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)==0))
 		return temp_serviceextinfo;
 
 #ifdef DEBUG0
@@ -5097,13 +4992,13 @@ hostescalation *get_next_hostescalation_by_host(char *host_name, hostescalation 
 		return NULL;
 
 	if(start==NULL)
-		temp_hostescalation=hostescalation_hashlist[hashfunc1(host_name,HOSTESCALATION_HASHSLOTS)];
+		temp_hostescalation=hostescalation_hashlist[hashfunc(host_name,NULL,HOSTESCALATION_HASHSLOTS)];
 	else
 		temp_hostescalation=start->nexthash;
 
-	for(;temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,host_name)<0;temp_hostescalation=temp_hostescalation->nexthash);
+	for(;temp_hostescalation && compare_hashdata(temp_hostescalation->host_name,NULL,host_name,NULL)<0;temp_hostescalation=temp_hostescalation->nexthash);
 
-	if(temp_hostescalation && compare_hashdata1(temp_hostescalation->host_name,host_name)==0)
+	if(temp_hostescalation && compare_hashdata(temp_hostescalation->host_name,NULL,host_name,NULL)==0)
 		return temp_hostescalation;
 
 	return NULL;
@@ -5123,13 +5018,13 @@ serviceescalation *get_next_serviceescalation_by_service(char *host_name, char *
 		return NULL;
 
 	if(start==NULL)
-		temp_serviceescalation=serviceescalation_hashlist[hashfunc2(host_name,svc_description,SERVICEESCALATION_HASHSLOTS)];
+		temp_serviceescalation=serviceescalation_hashlist[hashfunc(host_name,svc_description,SERVICEESCALATION_HASHSLOTS)];
 	else
 		temp_serviceescalation=start->nexthash;
 
-	for(;temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)<0;temp_serviceescalation=temp_serviceescalation->nexthash);
+	for(;temp_serviceescalation && compare_hashdata(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)<0;temp_serviceescalation=temp_serviceescalation->nexthash);
 
-	if(temp_serviceescalation && compare_hashdata2(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)==0)
+	if(temp_serviceescalation && compare_hashdata(temp_serviceescalation->host_name,temp_serviceescalation->description,host_name,svc_description)==0)
 		return temp_serviceescalation;
 
 	return NULL;
@@ -5149,13 +5044,13 @@ hostdependency *get_next_hostdependency_by_dependent_host(char *host_name, hostd
 		return NULL;
 
 	if(start==NULL)
-		temp_hostdependency=hostdependency_hashlist[hashfunc1(host_name,HOSTDEPENDENCY_HASHSLOTS)];
+		temp_hostdependency=hostdependency_hashlist[hashfunc(host_name,NULL,HOSTDEPENDENCY_HASHSLOTS)];
 	else
 		temp_hostdependency=start->nexthash;
 
-	for(;temp_hostdependency && compare_hashdata1(temp_hostdependency->dependent_host_name,host_name)<0;temp_hostdependency=temp_hostdependency->nexthash);
+	for(;temp_hostdependency && compare_hashdata(temp_hostdependency->dependent_host_name,NULL,host_name,NULL)<0;temp_hostdependency=temp_hostdependency->nexthash);
 
-	if(temp_hostdependency && compare_hashdata1(temp_hostdependency->dependent_host_name,host_name)==0)
+	if(temp_hostdependency && compare_hashdata(temp_hostdependency->dependent_host_name,NULL,host_name,NULL)==0)
 		return temp_hostdependency;
 
 	return NULL;
@@ -5175,13 +5070,13 @@ servicedependency *get_next_servicedependency_by_dependent_service(char *host_na
 		return NULL;
 
 	if(start==NULL)
-		temp_servicedependency=servicedependency_hashlist[hashfunc2(host_name,svc_description,SERVICEDEPENDENCY_HASHSLOTS)];
+		temp_servicedependency=servicedependency_hashlist[hashfunc(host_name,svc_description,SERVICEDEPENDENCY_HASHSLOTS)];
 	else
 		temp_servicedependency=start->nexthash;
 
-	for(;temp_servicedependency && compare_hashdata2(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)<0;temp_servicedependency=temp_servicedependency->nexthash);
+	for(;temp_servicedependency && compare_hashdata(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)<0;temp_servicedependency=temp_servicedependency->nexthash);
 
-	if(temp_servicedependency && compare_hashdata2(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)==0)
+	if(temp_servicedependency && compare_hashdata(temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,host_name,svc_description)==0)
 		return temp_servicedependency;
 
 	return NULL;
@@ -5781,6 +5676,7 @@ int free_object_data(void){
 
 #ifdef NSCORE
 		free(this_host->plugin_output);
+		free(this_host->long_plugin_output);
 		free(this_host->perf_data);
 #endif
 		free(this_host->check_period);
@@ -5955,6 +5851,7 @@ int free_object_data(void){
 		free(this_service->service_check_command);
 #ifdef NSCORE
 		free(this_service->plugin_output);
+		free(this_service->long_plugin_output);
 		free(this_service->perf_data);
 #endif
 		free(this_service->notification_period);

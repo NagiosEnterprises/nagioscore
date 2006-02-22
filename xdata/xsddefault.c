@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-25-2005
+ * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-20-2006
  *
  * License:
  *
@@ -372,6 +372,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
+		fprintf(fp,"\tcheck_period=%s\n",(temp_host->check_period==NULL)?"":temp_host->check_period);
+		fprintf(fp,"\tcheck_interval=%d\n",temp_host->check_interval);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
@@ -381,6 +383,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tcurrent_state=%d\n",temp_host->current_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
+		fprintf(fp,"\tlong_plugin_output=%s\n",(temp_host->long_plugin_output==NULL)?"":temp_host->long_plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
@@ -427,6 +430,9 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
+		fprintf(fp,"\tcheck_period=%s\n",(temp_service->check_period==NULL)?"":temp_service->check_period);
+		fprintf(fp,"\tcheck_interval=%d\n",temp_service->check_interval);
+		fprintf(fp,"\tretry_interval=%d\n",temp_service->retry_interval);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_service->should_be_scheduled);
@@ -445,6 +451,7 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tlast_time_unknown=%lu\n",temp_service->last_time_unknown);
 		fprintf(fp,"\tlast_time_critical=%lu\n",temp_service->last_time_critical);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_service->plugin_output==NULL)?"":temp_service->plugin_output);
+		fprintf(fp,"\tlong_plugin_output=%s\n",(temp_service->long_plugin_output==NULL)?"":temp_service->long_plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_service->next_check);
@@ -552,6 +559,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 			if(temp_hoststatus){
 				temp_hoststatus->host_name=NULL;
 				temp_hoststatus->plugin_output=NULL;
+				temp_hoststatus->long_plugin_output=NULL;
 				temp_hoststatus->perf_data=NULL;
 			        }
 		        }
@@ -562,6 +570,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_servicestatus->host_name=NULL;
 				temp_servicestatus->description=NULL;
 				temp_servicestatus->plugin_output=NULL;
+				temp_servicestatus->long_plugin_output=NULL;
 				temp_servicestatus->perf_data=NULL;
 			        }
 		        }
@@ -666,6 +675,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->last_hard_state=atoi(val);
 					else if(!strcmp(var,"plugin_output"))
 						temp_hoststatus->plugin_output=strdup(val);
+					else if(!strcmp(var,"long_plugin_output"))
+						temp_hoststatus->long_plugin_output=strdup(val);
 					else if(!strcmp(var,"performance_data"))
 						temp_hoststatus->perf_data=strdup(val);
 					else if(!strcmp(var,"current_attempt"))
@@ -778,6 +789,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->last_time_critical=strtoul(val,NULL,10);
 					else if(!strcmp(var,"plugin_output"))
 						temp_servicestatus->plugin_output=strdup(val);
+					else if(!strcmp(var,"long_plugin_output"))
+						temp_servicestatus->long_plugin_output=strdup(val);
 					else if(!strcmp(var,"performance_data"))
 						temp_servicestatus->perf_data=strdup(val);
 					else if(!strcmp(var,"last_check"))

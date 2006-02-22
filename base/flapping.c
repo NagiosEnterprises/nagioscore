@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-12-2005
+ * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-16-2006
  *
  * License:
  *
@@ -48,7 +48,8 @@ extern double   high_host_flap_threshold;
 
 
 /* detects service flapping */
-void check_for_service_flapping(service *svc, int update_history){
+void check_for_service_flapping(service *svc, int update){
+	int update_history=TRUE;
 	int is_flapping=FALSE;
 	int x,y;
 	int last_state_history_value=STATE_OK;
@@ -72,6 +73,22 @@ void check_for_service_flapping(service *svc, int update_history){
 	low_threshold=(svc->low_flap_threshold<=0.0)?low_service_flap_threshold:svc->low_flap_threshold;
 	high_threshold=(svc->high_flap_threshold<=0.0)?high_service_flap_threshold:svc->high_flap_threshold;
 
+	update_history=update;
+
+	/* should we update state history for this state? */
+	if(update_history==TRUE){
+
+		if(svc->current_state==STATE_OK  && svc->flap_detection_on_ok==FALSE)
+			update_history=FALSE;
+		if(svc->current_state==STATE_WARNING && svc->flap_detection_on_warning==FALSE)
+			update_history=FALSE;
+		if(svc->current_state==STATE_UNKNOWN && svc->flap_detection_on_unknown==FALSE)
+			update_history=FALSE;
+		if(svc->current_state==STATE_CRITICAL && svc->flap_detection_on_critical==FALSE)
+			update_history=FALSE;
+	        }
+
+	/* record current service state */
 	if(update_history==TRUE){
 
 		/* record the current state in the state history */
@@ -151,7 +168,8 @@ void check_for_service_flapping(service *svc, int update_history){
 
 
 /* detects host flapping */
-void check_for_host_flapping(host *hst, int update_history){
+void check_for_host_flapping(host *hst, int update){
+	int update_history=TRUE;
 	int is_flapping=FALSE;
 	int x;
 	int last_state_history_value=HOST_UP;
@@ -177,8 +195,21 @@ void check_for_host_flapping(host *hst, int update_history){
 	else
 		wait_threshold=(hst->total_service_check_interval*interval_length)/hst->total_services;
 
+	update_history=update;
+
+	/* should we update state history for this state? */
+	if(update_history==TRUE){
+
+		if(hst->current_state==HOST_UP  && hst->flap_detection_on_up==FALSE)
+			update_history=FALSE;
+		if(hst->current_state==HOST_DOWN && hst->flap_detection_on_down==FALSE)
+			update_history=FALSE;
+		if(hst->current_state==HOST_UNREACHABLE && hst->flap_detection_on_unreachable==FALSE)
+			update_history=FALSE;
+	        }
+
 	/* if we haven't waited long enough since last record, only update if we've had a state change */
-	if((current_time-hst->last_state_history_update)<wait_threshold){
+	if(update_history==TRUE && (current_time-hst->last_state_history_update)<wait_threshold){
 
 		/* get the last recorded state */
 		last_state_history_value=hst->state_history[(hst->state_history_index==0)?MAX_STATE_HISTORY_ENTRIES-1:hst->state_history_index-1];
@@ -192,6 +223,7 @@ void check_for_host_flapping(host *hst, int update_history){
 	low_threshold=(hst->low_flap_threshold<=0.0)?low_host_flap_threshold:hst->low_flap_threshold;
 	high_threshold=(hst->high_flap_threshold<=0.0)?high_host_flap_threshold:hst->high_flap_threshold;
 
+	/* record current host state */
 	if(update_history==TRUE){
 
 		/* update the last record time */

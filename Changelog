@@ -2,6 +2,42 @@
 Nagios 3.x Change Log
 #####################
 
+NOTE:
+This change log isn't very detailed (or organized) as of yet.  Nagios
+3.0 development is just getting started, so documentation, etc. will
+lag development for a while.
+
+	- Ethan 02/21/2006
+
 
 Pre-alpha changes since 02/15/2006...
 -------------------------------------
+* Adaptive monitoring:
+     - Check timeperiod can now be modified on-the-fly
+* Notification changes:
+     - Added first_notification_delay to host and object definitions to delay first notification
+* Object changes: 
+     - Added ability to use multiple template names (separated by commas) in object definitions
+     - Added ability to null out optional character directives in object definitions (using 'null' without quotes)
+* Performance optimizations:
+     - Added ability to precache object config files
+     - Added ability to exclude object relationship and circular path
+       checks from verification process
+* Check output:
+     - Multiline output support for service checks (not Perl checks with embedded Perl support yet)
+* Macro changes:
+     - Added $LONGHOSTOUTPUT$ and $LONGSERVICEOUTPUT$ macros
+* Flapping changes:
+     - Added flap_detection_options directive to host and service definitions to control which
+       states (i.e. OK, WARNING, UNKNOWN, and/or CRITICAL) are used in flap detection logic
+* External command changes:
+     - Added PROCESS_FILE external command to allow processing of external commands found in
+       an external (regular) file.  Very useful for passive checks with long output or scripting.
+* Misc changes:
+     - More information given when testing scheduling (-s command line option)
+     - Removed fixed length restrictions for host names and service descriptions
+     - Plugin output length restriction bumped up to 2K
+       
+
+
+

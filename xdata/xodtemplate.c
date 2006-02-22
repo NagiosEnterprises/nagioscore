@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-12-2006
+ * Last Modified: 02-19-2006
  *
  * Description:
  *
@@ -71,6 +71,9 @@
 extern int use_regexp_matches;
 extern int use_true_regexp_matching;
 extern char *macro_x[MACRO_X_COUNT];
+extern int verify_config;
+extern int test_scheduling;
+extern int use_precached_objects;
 #endif
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
@@ -95,7 +98,7 @@ int xodtemplate_current_config_file=0;
 char **xodtemplate_config_files;
 
 char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
-
+char xodtemplate_precache_file[MAX_FILENAME_LENGTH];
 
 
 /******************************************************************/
@@ -103,11 +106,14 @@ char xodtemplate_cache_file[MAX_FILENAME_LENGTH];
 /******************************************************************/
 
 /* process all config files - both core and CGIs pass in name of main config file */
-int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
+int xodtemplate_read_config_data(char *main_config_file, int options, int cache, int precache){
 #ifdef NSCORE
 	char config_file[MAX_FILENAME_LENGTH];
 	char *input=NULL;
-	char *temp_ptr;
+	char *var=NULL;
+	char *val=NULL;
+	struct timeval tv[12];
+	double runtime[12];
 #endif
 	mmapfile *thefile;
 	int result=OK;
@@ -118,14 +124,6 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 	/* get variables from main config file */
 	xodtemplate_grab_config_info(main_config_file);
-
-	/* open the main config file for reading (we need to find all the config files to read) */
-	if((thefile=mmap_fopen(main_config_file))==NULL){
-#ifdef DEBUG1
-		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
-#endif
-		return ERROR;
-	        }
 
 	/* initialize variables */
 	xodtemplate_timeperiod_list=NULL;
@@ -157,75 +155,89 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 	        }
 
 #ifdef NSCORE
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[0],NULL);
 
-	/* daemon reads all config files/dirs specified in the main config file */
-	/* read in all lines from the main config file */
-	while(1){
+	/* only process the precached object file as long as we're not regenerating it and we're not verifying the config */
+	if(use_precached_objects==TRUE)
+		result=xodtemplate_process_config_file(xodtemplate_precache_file,options);
 
-		/* free memory */
+	/* process object config files normally... */
+	else{
+
+		/* open the main config file for reading (we need to find all the config files to read) */
+		if((thefile=mmap_fopen(main_config_file))==NULL){
+#ifdef DEBUG1
+			printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
+#endif
+			free(xodtemplate_config_files);
+			return ERROR;
+	                }
+
+		/* daemon reads all config files/dirs specified in the main config file */
+		/* read in all lines from the main config file */
+		while(1){
+
+			/* free memory */
+			free(input);
+
+			/* get the next line */
+			if((input=mmap_fgets(thefile))==NULL)
+				break;
+
+			/* strip input */
+			strip(input);
+
+			/* skip blank lines and comments */
+			if(input[0]=='#' || input[0]==';' || input[0]=='\x0')
+				continue;
+			
+			if((var=strtok(input,"="))==NULL)
+				continue;
+			
+			if((val=strtok(NULL,"\n"))==NULL)
+				continue;
+			
+			/* process a single config file */
+			if(!strcmp(var,"xodtemplate_config_file") || !strcmp(var,"cfg_file")){
+
+				strncpy(config_file,val,sizeof(config_file)-1);
+				config_file[sizeof(config_file)-1]='\x0';
+
+				/* process the config file... */
+				result=xodtemplate_process_config_file(config_file,options);
+				
+				/* if there was an error processing the config file, break out of loop */
+				if(result==ERROR)
+					break;
+		                }
+
+			/* process all files in a config directory */
+			else if(!strcmp(var,"xodtemplate_config_dir") || !strcmp(var,"cfg_dir")){
+				
+				strncpy(config_file,val,sizeof(config_file)-1);
+				config_file[sizeof(config_file)-1]='\x0';
+
+				/* strip trailing / if necessary */
+				if(config_file[strlen(config_file)-1]=='/')
+					config_file[strlen(config_file)-1]='\x0';
+
+				/* process the config directory... */
+				result=xodtemplate_process_config_dir(config_file,options);
+
+				/* if there was an error processing the config file, break out of loop */
+				if(result==ERROR)
+					break;
+		                }
+	                }
+
+		/* free memory and close the file */
 		free(input);
-
-		/* get the next line */
-		if((input=mmap_fgets(thefile))==NULL)
-			break;
-
-		/* strip input */
-		strip(input);
-
-		/* skip blank lines and comments */
-		if(input[0]=='#' || input[0]==';' || input[0]=='\x0')
-			continue;
-
-		temp_ptr=strtok(input,"=");
-		if(temp_ptr==NULL)
-			continue;
-
-		/* process a single config file */
-		if(strstr(temp_ptr,"xodtemplate_config_file")==temp_ptr || strstr(temp_ptr,"cfg_file")==temp_ptr){
-
-			/* get the config file name */
-			temp_ptr=strtok(NULL,"\n");
-			if(temp_ptr==NULL)
-				continue;
-
-			strncpy(config_file,temp_ptr,sizeof(config_file)-1);
-			config_file[sizeof(config_file)-1]='\x0';
-
-			/* process the config file... */
-			result=xodtemplate_process_config_file(config_file,options);
-
-			/* if there was an error processing the config file, break out of loop */
-			if(result==ERROR)
-				break;
-		        }
-
-		/* process all files in a config directory */
-		else if(strstr(temp_ptr,"xodtemplate_config_dir")==temp_ptr || strstr(temp_ptr,"cfg_dir")==temp_ptr){
-
-			/* get the config directory name */
-			temp_ptr=strtok(NULL,"\n");
-			if(temp_ptr==NULL)
-				continue;
-
-			strncpy(config_file,temp_ptr,sizeof(config_file)-1);
-			config_file[sizeof(config_file)-1]='\x0';
-
-			/* strip trailing / if necessary */
-			if(config_file[strlen(config_file)-1]=='/')
-				config_file[strlen(config_file)-1]='\x0';
-
-			/* process the config directory... */
-			result=xodtemplate_process_config_dir(config_file,options);
-
-			/* if there was an error processing the config file, break out of loop */
-			if(result==ERROR)
-				break;
-		        }
+		mmap_fclose(thefile);
 	        }
 
-	/* free memory and close the file */
-	free(input);
-	mmap_fclose(thefile);
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[1],NULL);
 #endif
 
 #ifdef NSCGI
@@ -235,37 +247,134 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 
 #ifdef NSCORE
 
-	/* resolve objects definitions */
-	if(result==OK)
-		result=xodtemplate_resolve_objects();
+	/* only perform intensive operations if we're not using the precached object file */
+	if(use_precached_objects==FALSE){
 
-	/* do the meat and potatoes stuff... */
-	if(result==OK)
-		result=xodtemplate_recombobulate_contactgroups();
-	if(result==OK)
-		result=xodtemplate_recombobulate_hostgroups();
-	if(result==OK)
-		result=xodtemplate_duplicate_services();
-	if(result==OK)
-		result=xodtemplate_recombobulate_servicegroups();
-	if(result==OK)
-		result=xodtemplate_duplicate_objects();
+		/* resolve objects definitions */
+		if(result==OK)
+			result=xodtemplate_resolve_objects();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[2],NULL);
 
-	/* sort objects */
-	if(result==OK)
-		result=xodtemplate_sort_objects();
+		/* do the meat and potatoes stuff... */
+		if(result==OK)
+			result=xodtemplate_recombobulate_contactgroups();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[3],NULL);
+		
+		if(result==OK)
+			result=xodtemplate_recombobulate_hostgroups();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[4],NULL);
+		
+		if(result==OK)
+			result=xodtemplate_duplicate_services();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[5],NULL);
+		
+		if(result==OK)
+			result=xodtemplate_recombobulate_servicegroups();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[6],NULL);
 
-	/* cache object definitions */
-	if(result==OK && cache==TRUE)
-		xodtemplate_cache_objects(xodtemplate_cache_file);
+		if(result==OK)
+			result=xodtemplate_duplicate_objects();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[7],NULL);
+
+
+		/* sort objects */
+		if(result==OK)
+			result=xodtemplate_sort_objects();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[8],NULL);
+	        }
+
+
+	if(result==OK){
+
+		/* cache object definitions for the CGIs and external apps */
+		if(cache==TRUE)
+			xodtemplate_cache_objects(xodtemplate_cache_file);
+
+		/* precache object definitions for future runs */
+		if(precache==TRUE)
+			xodtemplate_cache_objects(xodtemplate_precache_file);
+	        }
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[9],NULL);
+
 #endif
 
 	/* register objects */
 	if(result==OK)
 		result=xodtemplate_register_objects();
+#ifdef NSCORE
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[10],NULL);
+#endif
 
 	/* cleanup */
 	xodtemplate_free_memory();
+#ifdef NSCORE
+	if(test_scheduling==TRUE)
+		gettimeofday(&tv[11],NULL);
+#endif
+
+#ifdef NSCORE
+	if(test_scheduling==TRUE){
+
+		runtime[0]=(double)((double)(tv[1].tv_sec-tv[0].tv_sec)+(double)((tv[1].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
+		if(use_precached_objects==FALSE){
+			runtime[1]=(double)((double)(tv[2].tv_sec-tv[1].tv_sec)+(double)((tv[2].tv_usec-tv[1].tv_usec)/1000.0)/1000.0);
+			runtime[2]=(double)((double)(tv[3].tv_sec-tv[2].tv_sec)+(double)((tv[3].tv_usec-tv[2].tv_usec)/1000.0)/1000.0);
+			runtime[3]=(double)((double)(tv[4].tv_sec-tv[3].tv_sec)+(double)((tv[4].tv_usec-tv[3].tv_usec)/1000.0)/1000.0);
+			runtime[4]=(double)((double)(tv[5].tv_sec-tv[4].tv_sec)+(double)((tv[5].tv_usec-tv[4].tv_usec)/1000.0)/1000.0);
+			runtime[5]=(double)((double)(tv[6].tv_sec-tv[5].tv_sec)+(double)((tv[6].tv_usec-tv[5].tv_usec)/1000.0)/1000.0);
+			runtime[6]=(double)((double)(tv[7].tv_sec-tv[6].tv_sec)+(double)((tv[7].tv_usec-tv[6].tv_usec)/1000.0)/1000.0);
+			runtime[7]=(double)((double)(tv[8].tv_sec-tv[7].tv_sec)+(double)((tv[8].tv_usec-tv[7].tv_usec)/1000.0)/1000.0);
+			runtime[8]=(double)((double)(tv[9].tv_sec-tv[8].tv_sec)+(double)((tv[9].tv_usec-tv[8].tv_usec)/1000.0)/1000.0);
+			runtime[9]=(double)((double)(tv[10].tv_sec-tv[9].tv_sec)+(double)((tv[10].tv_usec-tv[9].tv_usec)/1000.0)/1000.0);
+		        }
+		else{
+			runtime[1]=0.0;
+			runtime[2]=0.0;
+			runtime[3]=0.0;
+			runtime[4]=0.0;
+			runtime[5]=0.0;
+			runtime[6]=0.0;
+			runtime[7]=0.0;
+			runtime[8]=0.0;
+			runtime[9]=(double)((double)(tv[10].tv_sec-tv[1].tv_sec)+(double)((tv[10].tv_usec-tv[1].tv_usec)/1000.0)/1000.0);
+		        }
+		runtime[10]=(double)((double)(tv[11].tv_sec-tv[10].tv_sec)+(double)((tv[11].tv_usec-tv[10].tv_usec)/1000.0)/1000.0);
+		runtime[11]=(double)((double)(tv[11].tv_sec-tv[0].tv_sec)+(double)((tv[11].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
+
+		printf("Timing information on object configuration processing is listed\n");
+		printf("below.  You can use this information to see if precaching your\n");
+		printf("object configuration would be useful.\n\n");
+
+		printf("Object Config Source: %s\n\n",(use_precached_objects==TRUE)?"Pre-cached file":"Config files (not pre-cached)");
+
+		printf("OBJECT CONFIG PROCESSING TIMES\n");
+		printf("----------------------------------\n");
+		printf("Read:                 %.6lf sec\n",runtime[0]);
+		printf("Resolve:              %.6lf sec *\n",runtime[1]);
+		printf("Recomb Contactgroups: %.6lf sec *\n",runtime[2]);
+		printf("Recomb Hostgroups:    %.6lf sec *\n",runtime[3]);
+		printf("Dup Services:         %.6lf sec *\n",runtime[4]);
+		printf("Recomb Servicegroups: %.6lf sec *\n",runtime[5]);
+		printf("Duplicate:            %.6lf sec *\n",runtime[6]);
+		printf("Sort:                 %.6lf sec *\n",runtime[7]);
+/*		printf("Cache:                %.6lf sec\n",runtime[8]);*/
+		printf("Register:             %.6lf sec\n",runtime[9]);
+		printf("Free:                 %.6lf sec\n",runtime[10]);
+		printf("                      ============\n");
+		printf("TOTAL:                %.6lf sec\n",runtime[11]);
+		printf("Est Precache Savings: %.6lf sec *\n",runtime[11]-runtime[0]-runtime[9]-runtime[10]);
+		printf("\n\n");
+	        }
+#endif
 
 #ifdef DEBUG0
 	printf("xodtemplate_read_config_data() end\n");
@@ -279,7 +388,8 @@ int xodtemplate_read_config_data(char *main_config_file,int options,int cache){
 /* grab config variable from main config file */
 int xodtemplate_grab_config_info(char *main_config_file){
 	char *input=NULL;
-	char *temp_ptr;
+	char *var=NULL;
+	char *val=NULL;
 	mmapfile *thefile;
 	
 #ifdef DEBUG0
@@ -289,6 +399,10 @@ int xodtemplate_grab_config_info(char *main_config_file){
 	/* default location of cached object file */
 	snprintf(xodtemplate_cache_file,sizeof(xodtemplate_cache_file)-1,"%s",DEFAULT_OBJECT_CACHE_FILE);
 	xodtemplate_cache_file[sizeof(xodtemplate_cache_file)-1]='\x0';
+
+	/* default location of pre-cached object file */
+	snprintf(xodtemplate_precache_file,sizeof(xodtemplate_precache_file)-1,"%s",DEFAULT_PRECACHED_OBJECT_FILE);
+	xodtemplate_precache_file[sizeof(xodtemplate_precache_file)-1]='\x0';
 
 	/* open the main config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL)
@@ -311,20 +425,22 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		if(input[0]=='#' || input[0]==';' || input[0]=='\x0')
 			continue;
 
-		temp_ptr=strtok(input,"=");
-		if(temp_ptr==NULL)
+		if((var=strtok(input,"="))==NULL)
+			continue;
+
+		if((val=strtok(NULL,"\n"))==NULL)
 			continue;
 
 		/* cached object file definition (overrides default location) */
-		if(strstr(temp_ptr,"object_cache_file")==temp_ptr){
-
-			/* get the config file name */
-			temp_ptr=strtok(NULL,"\n");
-			if(temp_ptr==NULL)
-				continue;
-
-			strncpy(xodtemplate_cache_file,temp_ptr,sizeof(xodtemplate_cache_file)-1);
+		if(!strcmp(var,"object_cache_file")){
+			strncpy(xodtemplate_cache_file,val,sizeof(xodtemplate_cache_file)-1);
 			xodtemplate_cache_file[sizeof(xodtemplate_cache_file)-1]='\x0';
+		        }
+
+		/* pre-cached object file definition */
+		if(!strcmp(var,"precached_object_file")){
+			strncpy(xodtemplate_precache_file,val,sizeof(xodtemplate_precache_file)-1);
+			xodtemplate_precache_file[sizeof(xodtemplate_precache_file)-1]='\x0';
 		        }
 	        }
 
@@ -916,12 +1032,14 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_timeperiod->template=NULL;
 		new_timeperiod->name=NULL;
+
 		new_timeperiod->timeperiod_name=NULL;
 		new_timeperiod->alias=NULL;
 		for(x=0;x<7;x++)
 			new_timeperiod->timeranges[x]=NULL;
 		new_timeperiod->has_been_resolved=FALSE;
 		new_timeperiod->register_object=TRUE;
+
 		new_timeperiod->_config_file=config_file;
 		new_timeperiod->_start_line=start_line;
 
@@ -947,10 +1065,12 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_command->template=NULL;
 		new_command->name=NULL;
+
 		new_command->command_name=NULL;
 		new_command->command_line=NULL;
 		new_command->has_been_resolved=FALSE;
 		new_command->register_object=TRUE;
+
 		new_command->_config_file=config_file;
 		new_command->_start_line=start_line;
 
@@ -976,11 +1096,13 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_contactgroup->template=NULL;
 		new_contactgroup->name=NULL;
+
 		new_contactgroup->contactgroup_name=NULL;
 		new_contactgroup->alias=NULL;
 		new_contactgroup->members=NULL;
 		new_contactgroup->has_been_resolved=FALSE;
 		new_contactgroup->register_object=TRUE;
+
 		new_contactgroup->_config_file=config_file;
 		new_contactgroup->_start_line=start_line;
 
@@ -1006,11 +1128,13 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_hostgroup->template=NULL;
 		new_hostgroup->name=NULL;
+
 		new_hostgroup->hostgroup_name=NULL;
 		new_hostgroup->alias=NULL;
 		new_hostgroup->members=NULL;
 		new_hostgroup->has_been_resolved=FALSE;
 		new_hostgroup->register_object=TRUE;
+
 		new_hostgroup->_config_file=config_file;
 		new_hostgroup->_start_line=start_line;
 
@@ -1035,11 +1159,13 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_servicegroup->template=NULL;
 		new_servicegroup->name=NULL;
+
 		new_servicegroup->servicegroup_name=NULL;
 		new_servicegroup->alias=NULL;
 		new_servicegroup->members=NULL;
 		new_servicegroup->has_been_resolved=FALSE;
 		new_servicegroup->register_object=TRUE;
+
 		new_servicegroup->_config_file=config_file;
 		new_servicegroup->_start_line=start_line;
 
@@ -1065,14 +1191,23 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_servicedependency->template=NULL;
 		new_servicedependency->name=NULL;
-		new_servicedependency->servicegroup_name=NULL;
-		new_servicedependency->hostgroup_name=NULL;
+
 		new_servicedependency->host_name=NULL;
+		new_servicedependency->have_host_name=FALSE;
 		new_servicedependency->service_description=NULL;
-		new_servicedependency->dependent_servicegroup_name=NULL;
-		new_servicedependency->dependent_hostgroup_name=NULL;
+		new_servicedependency->have_service_description=FALSE;
 		new_servicedependency->dependent_host_name=NULL;
+		new_servicedependency->have_dependent_host_name=FALSE;
 		new_servicedependency->dependent_service_description=NULL;
+		new_servicedependency->have_dependent_service_description=FALSE;
+		new_servicedependency->servicegroup_name=NULL;
+		new_servicedependency->have_servicegroup_name=FALSE;
+		new_servicedependency->hostgroup_name=NULL;
+		new_servicedependency->have_hostgroup_name=FALSE;
+		new_servicedependency->dependent_servicegroup_name=NULL;
+		new_servicedependency->have_dependent_servicegroup_name=FALSE;
+		new_servicedependency->dependent_hostgroup_name=NULL;
+		new_servicedependency->have_dependent_hostgroup_name=FALSE;
 		new_servicedependency->inherits_parent=FALSE;
 		new_servicedependency->fail_execute_on_ok=FALSE;
 		new_servicedependency->fail_execute_on_unknown=FALSE;
@@ -1089,6 +1224,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_servicedependency->have_notification_dependency_options=FALSE;
 		new_servicedependency->has_been_resolved=FALSE;
 		new_servicedependency->register_object=TRUE;
+
 		new_servicedependency->_config_file=config_file;
 		new_servicedependency->_start_line=start_line;
 
@@ -1113,12 +1249,19 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_serviceescalation->template=NULL;
 		new_serviceescalation->name=NULL;
-		new_serviceescalation->servicegroup_name=NULL;
-		new_serviceescalation->hostgroup_name=NULL;
+
 		new_serviceescalation->host_name=NULL;
+		new_serviceescalation->have_host_name=FALSE;
 		new_serviceescalation->service_description=NULL;
+		new_serviceescalation->have_service_description=FALSE;
+		new_serviceescalation->servicegroup_name=NULL;
+		new_serviceescalation->have_servicegroup_name=FALSE;
+		new_serviceescalation->hostgroup_name=NULL;
+		new_serviceescalation->have_hostgroup_name=FALSE;
 		new_serviceescalation->escalation_period=NULL;
+		new_serviceescalation->have_escalation_period=FALSE;
 		new_serviceescalation->contact_groups=NULL;
+		new_serviceescalation->have_contact_groups=FALSE;
 		new_serviceescalation->first_notification=-2;
 		new_serviceescalation->last_notification=-2;
 		new_serviceescalation->notification_interval=-2;
@@ -1132,6 +1275,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_serviceescalation->have_escalation_options=FALSE;
 		new_serviceescalation->has_been_resolved=FALSE;
 		new_serviceescalation->register_object=TRUE;
+
 		new_serviceescalation->_config_file=config_file;
 		new_serviceescalation->_start_line=start_line;
 
@@ -1156,17 +1300,27 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_contact->template=NULL;
 		new_contact->name=NULL;
+
 		new_contact->contact_name=NULL;
 		new_contact->alias=NULL;
-		new_contact->contactgroups=NULL;
+		new_contact->contact_groups=NULL;
+		new_contact->have_contact_groups=FALSE;
 		new_contact->email=NULL;
+		new_contact->have_email=FALSE;
 		new_contact->pager=NULL;
-		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++)
+		new_contact->have_pager=FALSE;
+		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
 			new_contact->address[x]=NULL;
+			new_contact->have_address[x]=FALSE;
+		        }
 		new_contact->host_notification_period=NULL;
+		new_contact->have_host_notification_period=FALSE;
 		new_contact->host_notification_commands=NULL;
+		new_contact->have_host_notification_commands=FALSE;
 		new_contact->service_notification_period=NULL;
+		new_contact->have_service_notification_period=FALSE;
 		new_contact->service_notification_commands=NULL;
+		new_contact->have_service_notification_commands=FALSE;
 		new_contact->notify_on_host_down=FALSE;
 		new_contact->notify_on_host_unreachable=FALSE;
 		new_contact->notify_on_host_recovery=FALSE;
@@ -1180,6 +1334,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contact->have_service_notification_options=FALSE;
 		new_contact->has_been_resolved=FALSE;
 		new_contact->register_object=TRUE;
+
 		new_contact->_config_file=config_file;
 		new_contact->_start_line=start_line;
 
@@ -1204,17 +1359,26 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_host->template=NULL;
 		new_host->name=NULL;
+
 		new_host->host_name=NULL;
 		new_host->alias=NULL;
 		new_host->address=NULL;
 		new_host->parents=NULL;
-		new_host->hostgroups=NULL;
+		new_host->have_parents=FALSE;
+		new_host->host_groups=NULL;
+		new_host->have_host_groups=FALSE;
 		new_host->check_command=NULL;
+		new_host->have_check_command=FALSE;
 		new_host->check_period=NULL;
+		new_host->have_check_period=FALSE;
 		new_host->event_handler=NULL;
+		new_host->have_event_handler=FALSE;
 		new_host->contact_groups=NULL;
+		new_host->have_contact_groups=FALSE;
 		new_host->notification_period=NULL;
-
+		new_host->have_notification_period=FALSE;
+		new_host->failure_prediction_options=NULL;
+		new_host->have_failure_prediction_options=FALSE;
 		new_host->check_interval=0;
 		new_host->have_check_interval=FALSE;
 		new_host->active_checks_enabled=TRUE;
@@ -1237,6 +1401,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_low_flap_threshold=FALSE;
 		new_host->high_flap_threshold=0.0;
 		new_host->have_high_flap_threshold=FALSE;
+		new_host->flap_detection_on_up=TRUE;
+		new_host->flap_detection_on_down=TRUE;
+		new_host->flap_detection_on_unreachable=TRUE;
+		new_host->have_flap_detection_options=FALSE;
 		new_host->notify_on_down=FALSE;
 		new_host->notify_on_unreachable=FALSE;
 		new_host->notify_on_recovery=FALSE;
@@ -1246,6 +1414,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_notifications_enabled=FALSE;
 		new_host->notification_interval=-2;
 		new_host->have_notification_interval=FALSE;
+		new_host->first_notification_delay=0;
+		new_host->have_first_notification_delay=FALSE;
 		new_host->stalk_on_up=FALSE;
 		new_host->stalk_on_down=FALSE;
 		new_host->stalk_on_unreachable=FALSE;
@@ -1254,13 +1424,13 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_process_perf_data=FALSE;
 		new_host->failure_prediction_enabled=TRUE;
 		new_host->have_failure_prediction_enabled=FALSE;
-		new_host->failure_prediction_options=NULL;
 		new_host->retain_status_information=TRUE;
 		new_host->have_retain_status_information=FALSE;
 		new_host->retain_nonstatus_information=TRUE;
 		new_host->have_retain_nonstatus_information=FALSE;
 		new_host->has_been_resolved=FALSE;
 		new_host->register_object=TRUE;
+
 		new_host->_config_file=config_file;
 		new_host->_start_line=start_line;
 
@@ -1285,16 +1455,27 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_service->template=NULL;
 		new_service->name=NULL;
-		new_service->hostgroup_name=NULL;
-		new_service->host_name=NULL;
-		new_service->service_description=NULL;
-		new_service->servicegroups=NULL;
-		new_service->check_command=NULL;
-		new_service->check_period=NULL;
-		new_service->event_handler=NULL;
-		new_service->notification_period=NULL;
-		new_service->contact_groups=NULL;
 
+		new_service->host_name=NULL;
+		new_service->have_host_name=FALSE;
+		new_service->service_description=NULL;
+		new_service->have_service_description=FALSE;
+		new_service->hostgroup_name=NULL;
+		new_service->have_hostgroup_name=FALSE;
+		new_service->service_groups=NULL;
+		new_service->have_service_groups=FALSE;
+		new_service->check_command=NULL;
+		new_service->have_check_command=FALSE;
+		new_service->check_period=NULL;
+		new_service->have_check_period=FALSE;
+		new_service->event_handler=NULL;
+		new_service->have_event_handler=FALSE;
+		new_service->notification_period=NULL;
+		new_service->have_notification_period=FALSE;
+		new_service->contact_groups=NULL;
+		new_service->have_contact_groups=FALSE;
+		new_service->failure_prediction_options=NULL;
+		new_service->have_failure_prediction_options=FALSE;
 		new_service->max_check_attempts=-2;
 		new_service->have_max_check_attempts=FALSE;
 		new_service->normal_check_interval=-2;
@@ -1323,6 +1504,11 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_low_flap_threshold=FALSE;
 		new_service->high_flap_threshold=0.0;
 		new_service->have_high_flap_threshold=FALSE;
+		new_service->flap_detection_on_ok=TRUE;
+		new_service->flap_detection_on_warning=TRUE;
+		new_service->flap_detection_on_unknown=TRUE;
+		new_service->flap_detection_on_critical=TRUE;
+		new_service->have_flap_detection_options=FALSE;
 		new_service->notify_on_unknown=FALSE;
 		new_service->notify_on_warning=FALSE;
 		new_service->notify_on_critical=FALSE;
@@ -1333,6 +1519,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_notifications_enabled=FALSE;
 		new_service->notification_interval=-2;
 		new_service->have_notification_interval=FALSE;
+		new_service->first_notification_delay=0;
+		new_service->have_first_notification_delay=FALSE;
 		new_service->stalk_on_ok=FALSE;
 		new_service->stalk_on_unknown=FALSE;
 		new_service->stalk_on_warning=FALSE;
@@ -1342,13 +1530,13 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_process_perf_data=FALSE;
 		new_service->failure_prediction_enabled=TRUE;
 		new_service->have_failure_prediction_enabled=FALSE;
-		new_service->failure_prediction_options=NULL;
 		new_service->retain_status_information=TRUE;
 		new_service->have_retain_status_information=FALSE;
 		new_service->retain_nonstatus_information=TRUE;
 		new_service->have_retain_nonstatus_information=FALSE;
 		new_service->has_been_resolved=FALSE;
 		new_service->register_object=TRUE;
+
 		new_service->_config_file=config_file;
 		new_service->_start_line=start_line;
 
@@ -1373,10 +1561,15 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_hostdependency->template=NULL;
 		new_hostdependency->name=NULL;
-		new_hostdependency->hostgroup_name=NULL;
-		new_hostdependency->dependent_hostgroup_name=NULL;
+
 		new_hostdependency->host_name=NULL;
+		new_hostdependency->have_host_name=FALSE;
 		new_hostdependency->dependent_host_name=NULL;
+		new_hostdependency->have_dependent_host_name=FALSE;
+		new_hostdependency->hostgroup_name=NULL;
+		new_hostdependency->have_hostgroup_name=FALSE;
+		new_hostdependency->dependent_hostgroup_name=NULL;
+		new_hostdependency->have_dependent_hostgroup_name=FALSE;
 		new_hostdependency->inherits_parent=FALSE;
 		new_hostdependency->fail_notify_on_up=FALSE;
 		new_hostdependency->fail_notify_on_down=FALSE;
@@ -1391,6 +1584,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostdependency->have_execution_dependency_options=FALSE;
 		new_hostdependency->has_been_resolved=FALSE;
 		new_hostdependency->register_object=TRUE;
+
 		new_hostdependency->_config_file=config_file;
 		new_hostdependency->_start_line=start_line;
 
@@ -1415,10 +1609,15 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		
 		new_hostescalation->template=NULL;
 		new_hostescalation->name=NULL;
+
 		new_hostescalation->hostgroup_name=NULL;
+		new_hostescalation->have_hostgroup_name=FALSE;
 		new_hostescalation->host_name=NULL;
+		new_hostescalation->have_host_name=FALSE;
 		new_hostescalation->escalation_period=NULL;
+		new_hostescalation->have_escalation_period=FALSE;
 		new_hostescalation->contact_groups=NULL;
+		new_hostescalation->have_contact_groups=FALSE;
 		new_hostescalation->first_notification=-2;
 		new_hostescalation->last_notification=-2;
 		new_hostescalation->notification_interval=-2;
@@ -1431,6 +1630,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostescalation->have_escalation_options=FALSE;
 		new_hostescalation->has_been_resolved=FALSE;
 		new_hostescalation->register_object=TRUE;
+
 		new_hostescalation->_config_file=config_file;
 		new_hostescalation->_start_line=start_line;
 
@@ -1455,15 +1655,25 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_hostextinfo->template=NULL;
 		new_hostextinfo->name=NULL;
+
 		new_hostextinfo->host_name=NULL;
+		new_hostextinfo->have_host_name=FALSE;
 		new_hostextinfo->hostgroup_name=NULL;
+		new_hostextinfo->have_hostgroup_name=FALSE;
 		new_hostextinfo->notes=NULL;
+		new_hostextinfo->have_notes=FALSE;
 		new_hostextinfo->notes_url=NULL;
+		new_hostextinfo->have_notes_url=FALSE;
 		new_hostextinfo->action_url=NULL;
+		new_hostextinfo->have_action_url=FALSE;
 		new_hostextinfo->icon_image=NULL;
+		new_hostextinfo->have_icon_image=FALSE;
 		new_hostextinfo->icon_image_alt=NULL;
+		new_hostextinfo->have_icon_image_alt=FALSE;
 		new_hostextinfo->vrml_image=NULL;
+		new_hostextinfo->have_vrml_image=FALSE;
 		new_hostextinfo->statusmap_image=NULL;
+		new_hostextinfo->have_statusmap_image=FALSE;
 		new_hostextinfo->x_2d=-1;
 		new_hostextinfo->y_2d=-1;
 		new_hostextinfo->x_3d=0.0;
@@ -1473,6 +1683,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostextinfo->have_3d_coords=FALSE;
 		new_hostextinfo->has_been_resolved=FALSE;
 		new_hostextinfo->register_object=TRUE;
+
 		new_hostextinfo->_config_file=config_file;
 		new_hostextinfo->_start_line=start_line;
 
@@ -1497,16 +1708,26 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		new_serviceextinfo->template=NULL;
 		new_serviceextinfo->name=NULL;
+
 		new_serviceextinfo->host_name=NULL;
+		new_serviceextinfo->have_host_name=FALSE;
 		new_serviceextinfo->hostgroup_name=NULL;
+		new_serviceextinfo->have_hostgroup_name=FALSE;
 		new_serviceextinfo->service_description=NULL;
+		new_serviceextinfo->have_service_description=FALSE;
 		new_serviceextinfo->notes=NULL;
+		new_serviceextinfo->have_notes=FALSE;
 		new_serviceextinfo->notes_url=NULL;
+		new_serviceextinfo->have_notes_url=FALSE;
 		new_serviceextinfo->action_url=NULL;
+		new_serviceextinfo->have_action_url=FALSE;
 		new_serviceextinfo->icon_image=NULL;
+		new_serviceextinfo->have_icon_image=FALSE;
 		new_serviceextinfo->icon_image_alt=NULL;
+		new_serviceextinfo->have_icon_image_alt=FALSE;
 		new_serviceextinfo->has_been_resolved=FALSE;
 		new_serviceextinfo->register_object=TRUE;
+
 		new_serviceextinfo->_config_file=config_file;
 		new_serviceextinfo->_start_line=start_line;
 
@@ -2094,76 +2315,100 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"servicegroup") || !strcmp(variable,"servicegroups") || !strcmp(variable,"servicegroup_name")){
-			temp_servicedependency->servicegroup_name=strdup(value);
-			if(temp_servicedependency->servicegroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->servicegroup_name=strdup(value);
+				if(temp_servicedependency->servicegroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency servicegroup.\n");
+					printf("Error: Could not allocate memory for servicedependency servicegroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_servicegroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
-			temp_servicedependency->hostgroup_name=strdup(value);
-			if(temp_servicedependency->hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->hostgroup_name=strdup(value);
+				if(temp_servicedependency->hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency hostgroup.\n");
+					printf("Error: Could not allocate memory for servicedependency hostgroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name") || !strcmp(variable,"master_host") || !strcmp(variable,"master_host_name")){
-			temp_servicedependency->host_name=strdup(value);
-			if(temp_servicedependency->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->host_name=strdup(value);
+				if(temp_servicedependency->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency host.\n");
+					printf("Error: Could not allocate memory for servicedependency host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"description") || !strcmp(variable,"service_description") || !strcmp(variable,"master_description") || !strcmp(variable,"master_service_description")){
-			temp_servicedependency->service_description=strdup(value);
-			if(temp_servicedependency->service_description==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->service_description=strdup(value);
+				if(temp_servicedependency->service_description==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency service_description.\n");
+					printf("Error: Could not allocate memory for servicedependency service_description.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_service_description=TRUE;
 		        }
 		else if(!strcmp(variable,"dependent_servicegroup") || !strcmp(variable,"dependent_servicegroups") || !strcmp(variable,"dependent_servicegroup_name")){
-			temp_servicedependency->dependent_servicegroup_name=strdup(value);
-			if(temp_servicedependency->dependent_servicegroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->dependent_servicegroup_name=strdup(value);
+				if(temp_servicedependency->dependent_servicegroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency dependent servicegroup.\n");
+					printf("Error: Could not allocate memory for servicedependency dependent servicegroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_dependent_servicegroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"dependent_hostgroup") || !strcmp(variable,"dependent_hostgroups") || !strcmp(variable,"dependent_hostgroup_name")){
-			temp_servicedependency->dependent_hostgroup_name=strdup(value);
-			if(temp_servicedependency->dependent_hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->dependent_hostgroup_name=strdup(value);
+				if(temp_servicedependency->dependent_hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency dependent hostgroup.\n");
+					printf("Error: Could not allocate memory for servicedependency dependent hostgroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_dependent_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"dependent_host") || !strcmp(variable,"dependent_host_name")){
-			temp_servicedependency->dependent_host_name=strdup(value);
-			if(temp_servicedependency->dependent_host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->dependent_host_name=strdup(value);
+				if(temp_servicedependency->dependent_host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency dependent host.\n");
+					printf("Error: Could not allocate memory for servicedependency dependent host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_dependent_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"dependent_description") || !strcmp(variable,"dependent_service_description")){
-			temp_servicedependency->dependent_service_description=strdup(value);
-			if(temp_servicedependency->dependent_service_description==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_servicedependency->dependent_service_description=strdup(value);
+				if(temp_servicedependency->dependent_service_description==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicedependency dependent service_description.\n");
+					printf("Error: Could not allocate memory for servicedependency dependent service_description.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_servicedependency->have_dependent_service_description=TRUE;
 		        }
 		else if(!strcmp(variable,"inherits_parent")){
 			temp_servicedependency->inherits_parent=(atoi(value)>0)?TRUE:FALSE;
@@ -2274,50 +2519,77 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 		        }
-		else if(!strcmp(variable,"servicegroup") || !strcmp(variable,"servicegroups") || !strcmp(variable,"servicegroup_name")){
-			temp_serviceescalation->servicegroup_name=strdup(value);
-			if(temp_serviceescalation->servicegroup_name==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for serviceescalation servicegroup.\n");
-#endif
-				return ERROR;
-			        }
-		        }
-		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
-			temp_serviceescalation->hostgroup_name=strdup(value);
-			if(temp_serviceescalation->hostgroup_name==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for serviceescalation hostgroup.\n");
-#endif
-				return ERROR;
-			        }
-		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name")){
-			temp_serviceescalation->host_name=strdup(value);
-			if(temp_serviceescalation->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceescalation->host_name=strdup(value);
+				if(temp_serviceescalation->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for serviceescalation host.\n");
+					printf("Error: Could not allocate memory for serviceescalation host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceescalation->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"description") || !strcmp(variable,"service_description")){
-			temp_serviceescalation->service_description=strdup(value);
-			if(temp_serviceescalation->service_description==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceescalation->service_description=strdup(value);
+				if(temp_serviceescalation->service_description==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for serviceescalation service_description.\n");
+					printf("Error: Could not allocate memory for serviceescalation service_description.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceescalation->have_service_description=TRUE;
+		        }
+		else if(!strcmp(variable,"servicegroup") || !strcmp(variable,"servicegroups") || !strcmp(variable,"servicegroup_name")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceescalation->servicegroup_name=strdup(value);
+				if(temp_serviceescalation->servicegroup_name==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for serviceescalation servicegroup.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_serviceescalation->have_servicegroup_name=TRUE;
+		        }
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceescalation->hostgroup_name=strdup(value);
+				if(temp_serviceescalation->hostgroup_name==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for serviceescalation hostgroup.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_serviceescalation->have_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"contact_groups")){
-			temp_serviceescalation->contact_groups=strdup(value);
-			if(temp_serviceescalation->contact_groups==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceescalation->contact_groups=strdup(value);
+				if(temp_serviceescalation->contact_groups==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for serviceescalation contact_groups.\n");
+					printf("Error: Could not allocate memory for serviceescalation contact_groups.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceescalation->have_contact_groups=TRUE;
+		        }
+		else if(!strcmp(variable,"escalation_period")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceescalation->escalation_period=strdup(value);
+				if(temp_serviceescalation->escalation_period==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for serviceescalation escalation_period.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_serviceescalation->have_escalation_period=TRUE;
 		        }
 		else if(!strcmp(variable,"first_notification")){
 			temp_serviceescalation->first_notification=atoi(value);
@@ -2330,15 +2602,6 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"notification_interval")){
 			temp_serviceescalation->notification_interval=atoi(value);
 			temp_serviceescalation->have_notification_interval=TRUE;
-		        }
-		else if(!strcmp(variable,"escalation_period")){
-			temp_serviceescalation->escalation_period=strdup(value);
-			if(temp_serviceescalation->escalation_period==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for serviceescalation escalation_period.\n");
-#endif
-				return ERROR;
-			        }
 		        }
 		else if(!strcmp(variable,"escalation_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
@@ -2431,32 +2694,41 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 		        }
-		else if(!strcmp(variable,"contactgroups")){
-			temp_contact->contactgroups=strdup(value);
-			if(temp_contact->contactgroups==NULL){
+		else if(!strcmp(variable,"contact_groups") || !strcmp(variable,"contactgroups")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->contact_groups=strdup(value);
+				if(temp_contact->contact_groups==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact contactgroups.\n");
+					printf("Error: Could not allocate memory for contact contact_groups.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_contact_groups=TRUE;
 		        }
 		else if(!strcmp(variable,"email")){
-			temp_contact->email=strdup(value);
-			if(temp_contact->email==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->email=strdup(value);
+				if(temp_contact->email==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact email.\n");
+					printf("Error: Could not allocate memory for contact email.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_email=TRUE;
 		        }
 		else if(!strcmp(variable,"pager")){
-			temp_contact->pager=strdup(value);
-			if(temp_contact->pager==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->pager=strdup(value);
+				if(temp_contact->pager==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact pager.\n");
+					printf("Error: Could not allocate memory for contact pager.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_pager=TRUE;
 		        }
 		else if(strstr(variable,"address")==variable){
 			x=atoi(variable+7);
@@ -2466,67 +2738,64 @@ int xodtemplate_add_object_property(char *input, int options){
 #endif
 				return ERROR;
 			        }
-			temp_contact->address[x-1]=strdup(value);
-			if(temp_contact->address[x-1]==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->address[x-1]=strdup(value);
+				if(temp_contact->address[x-1]==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact address #%d.\n",x);
+					printf("Error: Could not allocate memory for contact address #%d.\n",x);
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_address[x-1]=TRUE;
 		        }
 		else if(!strcmp(variable,"host_notification_period")){
-			temp_contact->host_notification_period=strdup(value);
-			if(temp_contact->host_notification_period==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->host_notification_period=strdup(value);
+				if(temp_contact->host_notification_period==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact host_notification_period.\n");
+					printf("Error: Could not allocate memory for contact host_notification_period.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_host_notification_period=TRUE;
 		        }
 		else if(!strcmp(variable,"host_notification_commands")){
-			temp_contact->host_notification_commands=strdup(value);
-			if(temp_contact->host_notification_commands==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->host_notification_commands=strdup(value);
+				if(temp_contact->host_notification_commands==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact host_notification_commands.\n");
+					printf("Error: Could not allocate memory for contact host_notification_commands.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_host_notification_commands=TRUE;
 		        }
 		else if(!strcmp(variable,"service_notification_period")){
-			temp_contact->service_notification_period=strdup(value);
-			if(temp_contact->service_notification_period==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->service_notification_period=strdup(value);
+				if(temp_contact->service_notification_period==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact service_notification_period.\n");
+					printf("Error: Could not allocate memory for contact service_notification_period.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_contact->have_service_notification_period=TRUE;
 		        }
 		else if(!strcmp(variable,"service_notification_commands")){
-			temp_contact->service_notification_commands=strdup(value);
-			if(temp_contact->service_notification_commands==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_contact->service_notification_commands=strdup(value);
+				if(temp_contact->service_notification_commands==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact service_notification_commands.\n");
+					printf("Error: Could not allocate memory for contact service_notification_commands.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
-		        }
-		else if(!strcmp(variable,"host_notification_period")){
-			temp_contact->host_notification_period=strdup(value);
-			if(temp_contact->host_notification_period==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact host_notification_period.\n");
-#endif
-				return ERROR;
-			        }
-		        }
-		else if(!strcmp(variable,"service_notification_period")){
-			temp_contact->service_notification_period=strdup(value);
-			if(temp_contact->service_notification_period==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for contact service_notification_period.\n");
-#endif
-				return ERROR;
-			        }
+			temp_contact->have_service_notification_commands=TRUE;
 		        }
 		else if(!strcmp(variable,"host_notification_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
@@ -2659,76 +2928,100 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"parents")){
-			temp_host->parents=strdup(value);
-			if(temp_host->parents==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->parents=strdup(value);
+				if(temp_host->parents==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host parents.\n");
+					printf("Error: Could not allocate memory for host parents.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_parents=TRUE;
 		        }
-		else if(!strcmp(variable,"hostgroups")){
-			temp_host->hostgroups=strdup(value);
-			if(temp_host->hostgroups==NULL){
+		else if(!strcmp(variable,"host_groups") || !strcmp(variable,"hostgroups")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->host_groups=strdup(value);
+				if(temp_host->host_groups==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host hostgroups.\n");
+					printf("Error: Could not allocate memory for host host_groups.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_host_groups=TRUE;
 		        }
 		else if(!strcmp(variable,"contact_groups")){
-			temp_host->contact_groups=strdup(value);
-			if(temp_host->contact_groups==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->contact_groups=strdup(value);
+				if(temp_host->contact_groups==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host contact_groups.\n");
+					printf("Error: Could not allocate memory for host contact_groups.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_contact_groups=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_period")){
-			temp_host->notification_period=strdup(value);
-			if(temp_host->notification_period==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->notification_period=strdup(value);
+				if(temp_host->notification_period==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host notification_period.\n");
+					printf("Error: Could not allocate memory for host notification_period.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_notification_period=TRUE;
 		        }
 		else if(!strcmp(variable,"check_command")){
-			temp_host->check_command=strdup(value);
-			if(temp_host->check_command==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->check_command=strdup(value);
+				if(temp_host->check_command==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host check_command.\n");
+					printf("Error: Could not allocate memory for host check_command.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_check_command=TRUE;
 		        }
 		else if(!strcmp(variable,"check_period")){
-			temp_host->check_period=strdup(value);
-			if(temp_host->check_period==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->check_period=strdup(value);
+				if(temp_host->check_period==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host check_period.\n");
+					printf("Error: Could not allocate memory for host check_period.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_check_period=TRUE;
 		        }
 		else if(!strcmp(variable,"event_handler")){
-			temp_host->event_handler=strdup(value);
-			if(temp_host->event_handler==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->event_handler=strdup(value);
+				if(temp_host->event_handler==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host event_handler.\n");
+					printf("Error: Could not allocate memory for host event_handler.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_event_handler=TRUE;
 		        }
 		else if(!strcmp(variable,"failure_prediction_options")){
-			temp_host->failure_prediction_options=strdup(value);
-			if(temp_host->failure_prediction_options==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->failure_prediction_options=strdup(value);
+				if(temp_host->failure_prediction_options==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for host failure_prediction_options.\n");
+					printf("Error: Could not allocate memory for host failure_prediction_options.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_host->have_failure_prediction_options=TRUE;
 		        }
 		else if(!strcmp(variable,"check_interval") || !strcmp(variable,"normal_check_interval")){
 			temp_host->check_interval=atoi(value);
@@ -2770,6 +3063,36 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_host->flap_detection_enabled=(atoi(value)>0)?TRUE:FALSE;
 			temp_host->have_flap_detection_enabled=TRUE;
 		        }
+		else if(!strcmp(variable,"flap_detection_options")){
+
+			/* user is specifying something, so discard defaults... */
+			temp_host->flap_detection_on_up=FALSE;
+			temp_host->flap_detection_on_down=FALSE;
+			temp_host->flap_detection_on_unreachable=FALSE;
+
+			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+				if(!strcmp(temp_ptr,"o") || !strcmp(temp_ptr,"up"))
+					temp_host->flap_detection_on_up=TRUE;
+				else if(!strcmp(temp_ptr,"d") || !strcmp(temp_ptr,"down"))
+					temp_host->flap_detection_on_down=TRUE;
+				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unreachable"))
+					temp_host->flap_detection_on_unreachable=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_host->flap_detection_on_up=FALSE;
+					temp_host->flap_detection_on_down=FALSE;
+					temp_host->flap_detection_on_unreachable=FALSE;
+				        }
+				else{
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap detection option '%s' in host definition.\n",temp_ptr);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_host->have_flap_detection_options=TRUE;
+		        }
 		else if(!strcmp(variable,"notification_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
 				if(!strcmp(temp_ptr,"d") || !strcmp(temp_ptr,"down"))
@@ -2804,6 +3127,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"notification_interval")){
 			temp_host->notification_interval=atoi(value);
 			temp_host->have_notification_interval=TRUE;
+		        }
+		else if(!strcmp(variable,"first_notification_delay")){
+			temp_host->first_notification_delay=atoi(value);
+			temp_host->have_first_notification_delay=TRUE;
 		        }
 		else if(!strcmp(variable,"stalking_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
@@ -2894,95 +3221,125 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 		        }
-		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
-			temp_service->hostgroup_name=strdup(value);
-			if(temp_service->hostgroup_name==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for service hostgroup.\n");
-#endif
-				return ERROR;
-			        }
-		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"hosts") || !strcmp(variable,"host_name")){
-			temp_service->host_name=strdup(value);
-			if(temp_service->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->host_name=strdup(value);
+				if(temp_service->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service host.\n");
+					printf("Error: Could not allocate memory for service host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"service_description") || !strcmp(variable,"description")){
-			temp_service->service_description=strdup(value);
-			if(temp_service->service_description==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->service_description=strdup(value);
+				if(temp_service->service_description==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service service_description.\n");
+					printf("Error: Could not allocate memory for service service_description.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_service_description=TRUE;
 		        }
-		else if(!strcmp(variable,"servicegroups")){
-			temp_service->servicegroups=strdup(value);
-			if(temp_service->servicegroups==NULL){
+		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->hostgroup_name=strdup(value);
+				if(temp_service->hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service servicegroups.\n");
+					printf("Error: Could not allocate memory for service hostgroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_hostgroup_name=TRUE;
+		        }
+		else if(!strcmp(variable,"service_groups") || !strcmp(variable,"servicegroups")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->service_groups=strdup(value);
+				if(temp_service->service_groups==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service service_groups.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_service_groups=TRUE;
 		        }
 		else if(!strcmp(variable,"check_command")){
-			temp_service->check_command=strdup(value);
-			if(temp_service->check_command==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->check_command=strdup(value);
+				if(temp_service->check_command==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service check_command.\n");
+					printf("Error: Could not allocate memory for service check_command.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_check_command=TRUE;
 		        }
 		else if(!strcmp(variable,"check_period")){
-			temp_service->check_period=strdup(value);
-			if(temp_service->check_period==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->check_period=strdup(value);
+				if(temp_service->check_period==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service check_period.\n");
+					printf("Error: Could not allocate memory for service check_period.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_check_period=TRUE;
 		        }
 		else if(!strcmp(variable,"event_handler")){
-			temp_service->event_handler=strdup(value);
-			if(temp_service->event_handler==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->event_handler=strdup(value);
+				if(temp_service->event_handler==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service event_handler.\n");
+					printf("Error: Could not allocate memory for service event_handler.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_event_handler=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_period")){
-			temp_service->notification_period=strdup(value);
-			if(temp_service->notification_period==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->notification_period=strdup(value);
+				if(temp_service->notification_period==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service notification_period.\n");
+					printf("Error: Could not allocate memory for service notification_period.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_notification_period=TRUE;
 		        }
 		else if(!strcmp(variable,"contact_groups")){
-			temp_service->contact_groups=strdup(value);
-			if(temp_service->contact_groups==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->contact_groups=strdup(value);
+				if(temp_service->contact_groups==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service contact_groups.\n");
+					printf("Error: Could not allocate memory for service contact_groups.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_contact_groups=TRUE;
 		        }
 		else if(!strcmp(variable,"failure_prediction_options")){
-			temp_service->failure_prediction_options=strdup(value);
-			if(temp_service->failure_prediction_options==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->failure_prediction_options=strdup(value);
+				if(temp_service->failure_prediction_options==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for service failure_prediction_options.\n");
+					printf("Error: Could not allocate memory for service failure_prediction_options.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_service->have_failure_prediction_options=TRUE;
 		        }
 		else if(!strcmp(variable,"max_check_attempts")){
 			temp_service->max_check_attempts=atoi(value);
@@ -3039,6 +3396,40 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"flap_detection_enabled")){
 			temp_service->flap_detection_enabled=(atoi(value)>0)?TRUE:FALSE;
 			temp_service->have_flap_detection_enabled=TRUE;
+		        }	
+		else if(!strcmp(variable,"flap_detection_options")){
+
+			/* user is specifying something, so discard defaults... */
+			temp_service->flap_detection_on_ok=FALSE;
+			temp_service->flap_detection_on_warning=FALSE;
+			temp_service->flap_detection_on_unknown=FALSE;
+			temp_service->flap_detection_on_critical=FALSE;
+
+			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
+				if(!strcmp(temp_ptr,"o") || !strcmp(temp_ptr,"ok"))
+					temp_service->flap_detection_on_ok=TRUE;
+				else if(!strcmp(temp_ptr,"w") || !strcmp(temp_ptr,"warning"))
+					temp_service->flap_detection_on_warning=TRUE;
+				else if(!strcmp(temp_ptr,"u") || !strcmp(temp_ptr,"unknown"))
+					temp_service->flap_detection_on_unknown=TRUE;
+				else if(!strcmp(temp_ptr,"c") || !strcmp(temp_ptr,"critical"))
+					temp_service->flap_detection_on_critical=TRUE;
+				else if(!strcmp(temp_ptr,"n") || !strcmp(temp_ptr,"none")){
+					temp_service->flap_detection_on_ok=FALSE;
+					temp_service->flap_detection_on_warning=FALSE;
+					temp_service->flap_detection_on_unknown=FALSE;
+					temp_service->flap_detection_on_critical=FALSE;
+				        }
+				else{
+#ifdef NSCORE
+					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap detection option '%s' in service definition.\n",temp_ptr);
+					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_flap_detection_options=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
@@ -3077,6 +3468,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"notification_interval")){
 			temp_service->notification_interval=atoi(value);
 			temp_service->have_notification_interval=TRUE;
+		        }
+		else if(!strcmp(variable,"first_notification_delay")){
+			temp_service->first_notification_delay=atoi(value);
+			temp_service->have_first_notification_delay=TRUE;
 		        }
 		else if(!strcmp(variable,"stalking_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
@@ -3167,40 +3562,52 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
-			temp_hostdependency->hostgroup_name=strdup(value);
-			if(temp_hostdependency->hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostdependency->hostgroup_name=strdup(value);
+				if(temp_hostdependency->hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostdependency hostgroup.\n");
+					printf("Error: Could not allocate memory for hostdependency hostgroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostdependency->have_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name") || !strcmp(variable,"master_host") || !strcmp(variable,"master_host_name")){
-			temp_hostdependency->host_name=strdup(value);
-			if(temp_hostdependency->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostdependency->host_name=strdup(value);
+				if(temp_hostdependency->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostdependency host.\n");
+					printf("Error: Could not allocate memory for hostdependency host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostdependency->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"dependent_hostgroup") || !strcmp(variable,"dependent_hostgroups") || !strcmp(variable,"dependent_hostgroup_name")){
-			temp_hostdependency->dependent_hostgroup_name=strdup(value);
-			if(temp_hostdependency->dependent_hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostdependency->dependent_hostgroup_name=strdup(value);
+				if(temp_hostdependency->dependent_hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostdependency dependent hostgroup.\n");
+					printf("Error: Could not allocate memory for hostdependency dependent hostgroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostdependency->have_dependent_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"dependent_host") || !strcmp(variable,"dependent_host_name")){
-			temp_hostdependency->dependent_host_name=strdup(value);
-			if(temp_hostdependency->dependent_host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostdependency->dependent_host_name=strdup(value);
+				if(temp_hostdependency->dependent_host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostdependency dependent host.\n");
+					printf("Error: Could not allocate memory for hostdependency dependent host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostdependency->have_dependent_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"inherits_parent")){
 			temp_hostdependency->inherits_parent=(atoi(value)>0)?TRUE:FALSE;
@@ -3307,31 +3714,52 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
-			temp_hostescalation->hostgroup_name=strdup(value);
-			if(temp_hostescalation->hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostescalation->hostgroup_name=strdup(value);
+				if(temp_hostescalation->hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostescalation hostgroup.\n");
+					printf("Error: Could not allocate memory for hostescalation hostgroup.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostescalation->have_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name")){
-			temp_hostescalation->host_name=strdup(value);
-			if(temp_hostescalation->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostescalation->host_name=strdup(value);
+				if(temp_hostescalation->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostescalation host.\n");
+					printf("Error: Could not allocate memory for hostescalation host.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostescalation->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"contact_groups")){
-			temp_hostescalation->contact_groups=strdup(value);
-			if(temp_hostescalation->contact_groups==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostescalation->contact_groups=strdup(value);
+				if(temp_hostescalation->contact_groups==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostescalation contact_groups.\n");
+					printf("Error: Could not allocate memory for hostescalation contact_groups.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostescalation->have_contact_groups=TRUE;
+		        }
+		else if(!strcmp(variable,"escalation_period")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostescalation->escalation_period=strdup(value);
+				if(temp_hostescalation->escalation_period==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for hostescalation escalation_period.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_hostescalation->have_escalation_period=TRUE;
 		        }
 		else if(!strcmp(variable,"first_notification")){
 			temp_hostescalation->first_notification=atoi(value);
@@ -3344,15 +3772,6 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"notification_interval")){
 			temp_hostescalation->notification_interval=atoi(value);
 			temp_hostescalation->have_notification_interval=TRUE;
-		        }
-		else if(!strcmp(variable,"escalation_period")){
-			temp_hostescalation->escalation_period=strdup(value);
-			if(temp_hostescalation->escalation_period==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostescalation escalation_period.\n");
-#endif
-				return ERROR;
-			        }
 		        }
 		else if(!strcmp(variable,"escalation_options")){
 			for(temp_ptr=strtok(value,", ");temp_ptr;temp_ptr=strtok(NULL,", ")){
@@ -3424,86 +3843,112 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"host_name")){
-			temp_hostextinfo->host_name=(char *)malloc(strlen(value)+1);
-			if(temp_hostextinfo->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->host_name=strdup(value);
+				if(temp_hostextinfo->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info host_name.\n");
+					printf("Error: Could not allocate memory for extended host info host_name.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
-			strcpy(temp_hostextinfo->host_name,value);
+			temp_hostextinfo->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
-			temp_hostextinfo->hostgroup_name=strdup(value);
-			if(temp_hostextinfo->hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->hostgroup_name=strdup(value);
+				if(temp_hostextinfo->hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info hostgroup_name.\n");
+					printf("Error: Could not allocate memory for extended host info hostgroup_name.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"notes")){
-			temp_hostextinfo->notes=strdup(value);
-			if(temp_hostextinfo->notes==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->notes=strdup(value);
+				if(temp_hostextinfo->notes==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info notes.\n");
+					printf("Error: Could not allocate memory for extended host info notes.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_notes=TRUE;
 		        }
 		else if(!strcmp(variable,"notes_url")){
-			temp_hostextinfo->notes_url=strdup(value);
-			if(temp_hostextinfo->notes_url==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->notes_url=strdup(value);
+				if(temp_hostextinfo->notes_url==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info notes_url.\n");
+					printf("Error: Could not allocate memory for extended host info notes_url.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_notes_url=TRUE;
 		        }
 		else if(!strcmp(variable,"action_url")){
-			temp_hostextinfo->action_url=strdup(value);
-			if(temp_hostextinfo->action_url==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->action_url=strdup(value);
+				if(temp_hostextinfo->action_url==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info action_url.\n");
+					printf("Error: Could not allocate memory for extended host info action_url.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_action_url=TRUE;
 		        }
 		else if(!strcmp(variable,"icon_image")){
-			temp_hostextinfo->icon_image=strdup(value);
-			if(temp_hostextinfo->icon_image==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->icon_image=strdup(value);
+				if(temp_hostextinfo->icon_image==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info icon_image.\n");
+					printf("Error: Could not allocate memory for extended host info icon_image.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_icon_image=TRUE;
 		        }
 		else if(!strcmp(variable,"icon_image_alt")){
-			temp_hostextinfo->icon_image_alt=strdup(value);
-			if(temp_hostextinfo->icon_image_alt==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->icon_image_alt=strdup(value);
+				if(temp_hostextinfo->icon_image_alt==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info icon_image_alt.\n");
+					printf("Error: Could not allocate memory for extended host info icon_image_alt.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_icon_image_alt=TRUE;
 		        }
 		else if(!strcmp(variable,"vrml_image")){
-			temp_hostextinfo->vrml_image=strdup(value);
-			if(temp_hostextinfo->vrml_image==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->vrml_image=strdup(value);
+				if(temp_hostextinfo->vrml_image==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info vrml_image.\n");
+					printf("Error: Could not allocate memory for extended host info vrml_image.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_vrml_image=TRUE;
 		        }
 		else if(!strcmp(variable,"gd2_image")|| !strcmp(variable,"statusmap_image")){
-			temp_hostextinfo->statusmap_image=strdup(value);
-			if(temp_hostextinfo->statusmap_image==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_hostextinfo->statusmap_image=strdup(value);
+				if(temp_hostextinfo->statusmap_image==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended host info statusmap_image.\n");
+					printf("Error: Could not allocate memory for extended host info statusmap_image.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_hostextinfo->have_statusmap_image=TRUE;
 		        }
 		else if(!strcmp(variable,"2d_coords")){
 			temp_ptr=strtok(value,", ");
@@ -3607,76 +4052,100 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"host_name")){
-			temp_serviceextinfo->host_name=strdup(value);
-			if(temp_serviceextinfo->host_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->host_name=strdup(value);
+				if(temp_serviceextinfo->host_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info host_name.\n");
+					printf("Error: Could not allocate memory for extended service info host_name.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_host_name=TRUE;
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
-			temp_serviceextinfo->hostgroup_name=strdup(value);
-			if(temp_serviceextinfo->hostgroup_name==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->hostgroup_name=strdup(value);
+				if(temp_serviceextinfo->hostgroup_name==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info hostgroup_name.\n");
+					printf("Error: Could not allocate memory for extended service info hostgroup_name.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_hostgroup_name=TRUE;
 		        }
 		else if(!strcmp(variable,"service_description")){
-			temp_serviceextinfo->service_description=strdup(value);
-			if(temp_serviceextinfo->service_description==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->service_description=strdup(value);
+				if(temp_serviceextinfo->service_description==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info service_description.\n");
+					printf("Error: Could not allocate memory for extended service info service_description.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_service_description=TRUE;
 		        }
 		else if(!strcmp(variable,"notes")){
-			temp_serviceextinfo->notes=strdup(value);
-			if(temp_serviceextinfo->notes==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->notes=strdup(value);
+				if(temp_serviceextinfo->notes==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info notes.\n");
+					printf("Error: Could not allocate memory for extended service info notes.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_notes=TRUE;
 		        }
 		else if(!strcmp(variable,"notes_url")){
-			temp_serviceextinfo->notes_url=strdup(value);
-			if(temp_serviceextinfo->notes_url==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->notes_url=strdup(value);
+				if(temp_serviceextinfo->notes_url==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info notes_url.\n");
+					printf("Error: Could not allocate memory for extended service info notes_url.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_notes_url=TRUE;
 		        }
 		else if(!strcmp(variable,"action_url")){
-			temp_serviceextinfo->action_url=strdup(value);
-			if(temp_serviceextinfo->action_url==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->action_url=strdup(value);
+				if(temp_serviceextinfo->action_url==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info action_url.\n");
+					printf("Error: Could not allocate memory for extended service info action_url.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_action_url=TRUE;
 		        }
 		else if(!strcmp(variable,"icon_image")){
-			temp_serviceextinfo->icon_image=strdup(value);
-			if(temp_serviceextinfo->icon_image==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->icon_image=strdup(value);
+				if(temp_serviceextinfo->icon_image==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info icon_image.\n");
+					printf("Error: Could not allocate memory for extended service info icon_image.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_icon_image=TRUE;
 		        }
 		else if(!strcmp(variable,"icon_image_alt")){
-			temp_serviceextinfo->icon_image_alt=strdup(value);
-			if(temp_serviceextinfo->icon_image_alt==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_serviceextinfo->icon_image_alt=strdup(value);
+				if(temp_serviceextinfo->icon_image_alt==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for extended service info icon_image_alt.\n");
+					printf("Error: Could not allocate memory for extended service info icon_image_alt.\n");
 #endif
-				return ERROR;
+					return ERROR;
+				        }
 			        }
+			temp_serviceextinfo->have_icon_image_alt=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_serviceextinfo->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -4402,79 +4871,38 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		return ERROR;
 	        }
 
-	/* defaults */
+	/* standard items */
 	new_service->template=NULL;
 	new_service->name=NULL;
-	new_service->hostgroup_name=NULL;
-	new_service->host_name=NULL;
-	new_service->service_description=NULL;
-	new_service->servicegroups=NULL;
-	new_service->check_command=NULL;
-	new_service->check_period=NULL;
-	new_service->event_handler=NULL;
-	new_service->notification_period=NULL;
-	new_service->contact_groups=NULL;
-	new_service->failure_prediction_options=NULL;
-
-	/* make sure hostgroup member in new service definition is NULL */
-	new_service->hostgroup_name=NULL;
-
-	new_service->max_check_attempts=temp_service->max_check_attempts;
-	new_service->have_max_check_attempts=temp_service->have_max_check_attempts;
-	new_service->normal_check_interval=temp_service->normal_check_interval;
-	new_service->have_normal_check_interval=temp_service->have_normal_check_interval;
-	new_service->retry_check_interval=temp_service->retry_check_interval;
-	new_service->have_retry_check_interval=temp_service->have_retry_check_interval;
-	new_service->active_checks_enabled=temp_service->active_checks_enabled;
-	new_service->have_active_checks_enabled=temp_service->have_active_checks_enabled;
-	new_service->passive_checks_enabled=temp_service->passive_checks_enabled;
-	new_service->have_passive_checks_enabled=temp_service->have_passive_checks_enabled;
-	new_service->parallelize_check=temp_service->parallelize_check;
-	new_service->have_parallelize_check=temp_service->have_parallelize_check;
-	new_service->is_volatile=temp_service->is_volatile;
-	new_service->have_is_volatile=temp_service->have_is_volatile;
-	new_service->obsess_over_service=temp_service->obsess_over_service;
-	new_service->have_obsess_over_service=temp_service->have_obsess_over_service;
-	new_service->event_handler_enabled=temp_service->event_handler_enabled;
-	new_service->have_event_handler_enabled=temp_service->have_event_handler_enabled;
-	new_service->check_freshness=temp_service->check_freshness;
-	new_service->have_check_freshness=temp_service->have_check_freshness;
-	new_service->freshness_threshold=temp_service->freshness_threshold;
-	new_service->have_freshness_threshold=temp_service->have_freshness_threshold;
-	new_service->flap_detection_enabled=temp_service->flap_detection_enabled;
-	new_service->have_flap_detection_enabled=temp_service->have_flap_detection_enabled;
-	new_service->low_flap_threshold=temp_service->low_flap_threshold;
-	new_service->have_low_flap_threshold=temp_service->have_low_flap_threshold;
-	new_service->high_flap_threshold=temp_service->high_flap_threshold;
-	new_service->have_high_flap_threshold=temp_service->have_high_flap_threshold;
-	new_service->notify_on_unknown=temp_service->notify_on_unknown;
-	new_service->notify_on_warning=temp_service->notify_on_warning;
-	new_service->notify_on_critical=temp_service->notify_on_critical;
-	new_service->notify_on_recovery=temp_service->notify_on_recovery;
-	new_service->notify_on_flapping=temp_service->notify_on_flapping;
-	new_service->have_notification_options=temp_service->have_notification_options;
-	new_service->notifications_enabled=temp_service->notifications_enabled;
-	new_service->have_notifications_enabled=temp_service->have_notifications_enabled;
-	new_service->notification_interval=temp_service->notification_interval;
-	new_service->have_notification_interval=temp_service->have_notification_interval;
-	new_service->stalk_on_ok=temp_service->stalk_on_ok;
-	new_service->stalk_on_unknown=temp_service->stalk_on_unknown;
-	new_service->stalk_on_warning=temp_service->stalk_on_warning;
-	new_service->stalk_on_critical=temp_service->stalk_on_critical;
-	new_service->have_stalking_options=temp_service->have_stalking_options;
-	new_service->process_perf_data=temp_service->process_perf_data;
-	new_service->have_process_perf_data=temp_service->have_process_perf_data;
-	new_service->failure_prediction_enabled=temp_service->failure_prediction_enabled;
-	new_service->have_failure_prediction_enabled=temp_service->have_failure_prediction_enabled;
-	new_service->retain_status_information=temp_service->retain_status_information;
-	new_service->have_retain_status_information=temp_service->have_retain_status_information;
-	new_service->retain_nonstatus_information=temp_service->retain_nonstatus_information;
-	new_service->have_retain_nonstatus_information=temp_service->have_retain_nonstatus_information;
-
 	new_service->has_been_resolved=temp_service->has_been_resolved;
 	new_service->register_object=temp_service->register_object;
 	new_service->_config_file=temp_service->_config_file;
 	new_service->_start_line=temp_service->_start_line;
+
+	/* string defaults */
+	new_service->hostgroup_name=NULL;
+	new_service->have_hostgroup_name=temp_service->have_hostgroup_name;
+	new_service->host_name=NULL;
+	new_service->have_host_name=temp_service->have_host_name;
+	new_service->service_description=NULL;
+	new_service->have_service_description=temp_service->have_service_description;
+	new_service->service_groups=NULL;
+	new_service->have_service_groups=temp_service->have_service_groups;
+	new_service->check_command=NULL;
+	new_service->have_check_command=temp_service->have_check_command;
+	new_service->check_period=NULL;
+	new_service->have_check_period=temp_service->have_check_period;
+	new_service->event_handler=NULL;
+	new_service->have_event_handler=temp_service->have_event_handler;
+	new_service->notification_period=NULL;
+	new_service->have_notification_period=temp_service->have_notification_period;
+	new_service->contact_groups=NULL;
+	new_service->have_contact_groups=temp_service->have_contact_groups;
+	new_service->failure_prediction_options=NULL;
+	new_service->have_failure_prediction_options=temp_service->have_failure_prediction_options;
+
+	/* make sure hostgroup member in new service definition is NULL */
+	new_service->hostgroup_name=NULL;
 
 	/* allocate memory for and copy string members of service definition (host name provided, DO NOT duplicate hostgroup member!)*/
 	if(temp_service->host_name!=NULL){
@@ -4523,9 +4951,9 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			return ERROR;
 		        }
 	        } 
-	if(temp_service->servicegroups!=NULL){
-		new_service->servicegroups=strdup(temp_service->servicegroups);
-		if(new_service->servicegroups==NULL){
+	if(temp_service->service_groups!=NULL){
+		new_service->service_groups=strdup(temp_service->service_groups);
+		if(new_service->service_groups==NULL){
 #ifdef DEBUG1
 			printf("Error: Could not allocate memory for duplicate definition of service.\n");
 #endif
@@ -4547,7 +4975,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service);
 			return ERROR;
 		        }
@@ -4563,7 +4991,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->name);
 			free(new_service->service_description);
 			free(new_service->check_command);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service);
 			return ERROR;
 		        }
@@ -4578,10 +5006,10 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service);
 			return ERROR;
 		        }
@@ -4596,7 +5024,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
 			free(new_service->event_handler);
@@ -4614,7 +5042,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
 			free(new_service->event_handler);
@@ -4633,7 +5061,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
-			free(new_service->servicegroups);
+			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
 			free(new_service->event_handler);
@@ -4643,6 +5071,66 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			return ERROR;
 		        }
 	        } 
+
+	/* duplicate non-string members */
+	new_service->max_check_attempts=temp_service->max_check_attempts;
+	new_service->have_max_check_attempts=temp_service->have_max_check_attempts;
+	new_service->normal_check_interval=temp_service->normal_check_interval;
+	new_service->have_normal_check_interval=temp_service->have_normal_check_interval;
+	new_service->retry_check_interval=temp_service->retry_check_interval;
+	new_service->have_retry_check_interval=temp_service->have_retry_check_interval;
+	new_service->active_checks_enabled=temp_service->active_checks_enabled;
+	new_service->have_active_checks_enabled=temp_service->have_active_checks_enabled;
+	new_service->passive_checks_enabled=temp_service->passive_checks_enabled;
+	new_service->have_passive_checks_enabled=temp_service->have_passive_checks_enabled;
+	new_service->parallelize_check=temp_service->parallelize_check;
+	new_service->have_parallelize_check=temp_service->have_parallelize_check;
+	new_service->is_volatile=temp_service->is_volatile;
+	new_service->have_is_volatile=temp_service->have_is_volatile;
+	new_service->obsess_over_service=temp_service->obsess_over_service;
+	new_service->have_obsess_over_service=temp_service->have_obsess_over_service;
+	new_service->event_handler_enabled=temp_service->event_handler_enabled;
+	new_service->have_event_handler_enabled=temp_service->have_event_handler_enabled;
+	new_service->check_freshness=temp_service->check_freshness;
+	new_service->have_check_freshness=temp_service->have_check_freshness;
+	new_service->freshness_threshold=temp_service->freshness_threshold;
+	new_service->have_freshness_threshold=temp_service->have_freshness_threshold;
+	new_service->flap_detection_enabled=temp_service->flap_detection_enabled;
+	new_service->have_flap_detection_enabled=temp_service->have_flap_detection_enabled;
+	new_service->low_flap_threshold=temp_service->low_flap_threshold;
+	new_service->have_low_flap_threshold=temp_service->have_low_flap_threshold;
+	new_service->high_flap_threshold=temp_service->high_flap_threshold;
+	new_service->have_high_flap_threshold=temp_service->have_high_flap_threshold;
+	new_service->flap_detection_on_ok=temp_service->flap_detection_on_ok;
+	new_service->flap_detection_on_warning=temp_service->flap_detection_on_warning;
+	new_service->flap_detection_on_unknown=temp_service->flap_detection_on_unknown;
+	new_service->flap_detection_on_critical=temp_service->flap_detection_on_critical;
+	new_service->have_flap_detection_options=temp_service->have_flap_detection_options;
+	new_service->notify_on_unknown=temp_service->notify_on_unknown;
+	new_service->notify_on_warning=temp_service->notify_on_warning;
+	new_service->notify_on_critical=temp_service->notify_on_critical;
+	new_service->notify_on_recovery=temp_service->notify_on_recovery;
+	new_service->notify_on_flapping=temp_service->notify_on_flapping;
+	new_service->have_notification_options=temp_service->have_notification_options;
+	new_service->notifications_enabled=temp_service->notifications_enabled;
+	new_service->have_notifications_enabled=temp_service->have_notifications_enabled;
+	new_service->notification_interval=temp_service->notification_interval;
+	new_service->have_notification_interval=temp_service->have_notification_interval;
+	new_service->first_notification_delay=temp_service->first_notification_delay;
+	new_service->have_first_notification_delay=temp_service->have_first_notification_delay;
+	new_service->stalk_on_ok=temp_service->stalk_on_ok;
+	new_service->stalk_on_unknown=temp_service->stalk_on_unknown;
+	new_service->stalk_on_warning=temp_service->stalk_on_warning;
+	new_service->stalk_on_critical=temp_service->stalk_on_critical;
+	new_service->have_stalking_options=temp_service->have_stalking_options;
+	new_service->process_perf_data=temp_service->process_perf_data;
+	new_service->have_process_perf_data=temp_service->have_process_perf_data;
+	new_service->failure_prediction_enabled=temp_service->failure_prediction_enabled;
+	new_service->have_failure_prediction_enabled=temp_service->have_failure_prediction_enabled;
+	new_service->retain_status_information=temp_service->retain_status_information;
+	new_service->have_retain_status_information=temp_service->have_retain_status_information;
+	new_service->retain_nonstatus_information=temp_service->retain_nonstatus_information;
+	new_service->have_retain_nonstatus_information=temp_service->have_retain_nonstatus_information;
 
 	/* add new service to head of list in memory */
 	new_service->next=xodtemplate_service_list;
@@ -4675,30 +5163,23 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		return ERROR;
 	        }
 
-	/* defaults */
+	/* standard items */
 	new_hostescalation->template=NULL;
 	new_hostescalation->name=NULL;
-	new_hostescalation->hostgroup_name=NULL;
-	new_hostescalation->host_name=NULL;
-	new_hostescalation->contact_groups=NULL;
-	new_hostescalation->escalation_period=NULL;
-
 	new_hostescalation->has_been_resolved=temp_hostescalation->has_been_resolved;
 	new_hostescalation->register_object=temp_hostescalation->register_object;
 	new_hostescalation->_config_file=temp_hostescalation->_config_file;
 	new_hostescalation->_start_line=temp_hostescalation->_start_line;
 
-	new_hostescalation->first_notification=temp_hostescalation->first_notification;
-	new_hostescalation->last_notification=temp_hostescalation->last_notification;
-	new_hostescalation->have_first_notification=temp_hostescalation->have_first_notification;
-	new_hostescalation->have_last_notification=temp_hostescalation->have_last_notification;
-	new_hostescalation->notification_interval=temp_hostescalation->notification_interval;
-	new_hostescalation->have_notification_interval=temp_hostescalation->have_notification_interval;
-	new_hostescalation->escalate_on_down=temp_hostescalation->escalate_on_down;
-	new_hostescalation->escalate_on_unreachable=temp_hostescalation->escalate_on_unreachable;
-	new_hostescalation->escalate_on_recovery=temp_hostescalation->escalate_on_recovery;
-	new_hostescalation->have_escalation_options=temp_hostescalation->have_escalation_options;
-	
+	/* string defaults */
+	new_hostescalation->hostgroup_name=NULL;
+	new_hostescalation->have_hostgroup_name=temp_hostescalation->have_hostgroup_name;
+	new_hostescalation->host_name=NULL;
+	new_hostescalation->have_host_name=temp_hostescalation->have_host_name;
+	new_hostescalation->contact_groups=NULL;
+	new_hostescalation->have_contact_groups=temp_hostescalation->have_contact_groups;
+	new_hostescalation->escalation_period=NULL;
+	new_hostescalation->have_escalation_period=temp_hostescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of hostescalation definition */
 	if(temp_hostescalation->host_name!=NULL){
@@ -4763,6 +5244,18 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		        }
 	        } 
 
+	/* duplicate non-string members */
+	new_hostescalation->first_notification=temp_hostescalation->first_notification;
+	new_hostescalation->last_notification=temp_hostescalation->last_notification;
+	new_hostescalation->have_first_notification=temp_hostescalation->have_first_notification;
+	new_hostescalation->have_last_notification=temp_hostescalation->have_last_notification;
+	new_hostescalation->notification_interval=temp_hostescalation->notification_interval;
+	new_hostescalation->have_notification_interval=temp_hostescalation->have_notification_interval;
+	new_hostescalation->escalate_on_down=temp_hostescalation->escalate_on_down;
+	new_hostescalation->escalate_on_unreachable=temp_hostescalation->escalate_on_unreachable;
+	new_hostescalation->escalate_on_recovery=temp_hostescalation->escalate_on_recovery;
+	new_hostescalation->have_escalation_options=temp_hostescalation->have_escalation_options;
+
 	/* add new hostescalation to head of list in memory */
 	new_hostescalation->next=xodtemplate_hostescalation_list;
 	xodtemplate_hostescalation_list=new_hostescalation;
@@ -4793,33 +5286,27 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		return ERROR;
 	        }
 
-	/* defaults */
+	/* standard items */
 	new_serviceescalation->template=NULL;
 	new_serviceescalation->name=NULL;
-	new_serviceescalation->servicegroup_name=NULL;
-	new_serviceescalation->hostgroup_name=NULL;
-	new_serviceescalation->host_name=NULL;
-	new_serviceescalation->service_description=NULL;
-	new_serviceescalation->contact_groups=NULL;
-	new_serviceescalation->escalation_period=NULL;
-
 	new_serviceescalation->has_been_resolved=temp_serviceescalation->has_been_resolved;
 	new_serviceescalation->register_object=temp_serviceescalation->register_object;
 	new_serviceescalation->_config_file=temp_serviceescalation->_config_file;
 	new_serviceescalation->_start_line=temp_serviceescalation->_start_line;
 
-	new_serviceescalation->first_notification=temp_serviceescalation->first_notification;
-	new_serviceescalation->last_notification=temp_serviceescalation->last_notification;
-	new_serviceescalation->have_first_notification=temp_serviceescalation->have_first_notification;
-	new_serviceescalation->have_last_notification=temp_serviceescalation->have_last_notification;
-	new_serviceescalation->notification_interval=temp_serviceescalation->notification_interval;
-	new_serviceescalation->have_notification_interval=temp_serviceescalation->have_notification_interval;
-	new_serviceescalation->escalate_on_warning=temp_serviceescalation->escalate_on_warning;
-	new_serviceescalation->escalate_on_unknown=temp_serviceescalation->escalate_on_unknown;
-	new_serviceescalation->escalate_on_critical=temp_serviceescalation->escalate_on_critical;
-	new_serviceescalation->escalate_on_recovery=temp_serviceescalation->escalate_on_recovery;
-	new_serviceescalation->have_escalation_options=temp_serviceescalation->have_escalation_options;
-	
+	/* string defaults */
+	new_serviceescalation->servicegroup_name=NULL;
+	new_serviceescalation->have_servicegroup_name=temp_serviceescalation->have_servicegroup_name;
+	new_serviceescalation->hostgroup_name=NULL;
+	new_serviceescalation->have_hostgroup_name=temp_serviceescalation->have_hostgroup_name;
+	new_serviceescalation->host_name=NULL;
+	new_serviceescalation->have_host_name=temp_serviceescalation->have_host_name;
+	new_serviceescalation->service_description=NULL;
+	new_serviceescalation->have_service_description=temp_serviceescalation->have_service_description;
+	new_serviceescalation->contact_groups=NULL;
+	new_serviceescalation->have_contact_groups=temp_serviceescalation->have_contact_groups;
+	new_serviceescalation->escalation_period=NULL;
+	new_serviceescalation->have_escalation_period=temp_serviceescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of serviceescalation definition */
 	if(host_name!=NULL){
@@ -4922,6 +5409,19 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		        }
 	        } 
 
+	/* duplicate non-string members */
+	new_serviceescalation->first_notification=temp_serviceescalation->first_notification;
+	new_serviceescalation->last_notification=temp_serviceescalation->last_notification;
+	new_serviceescalation->have_first_notification=temp_serviceescalation->have_first_notification;
+	new_serviceescalation->have_last_notification=temp_serviceescalation->have_last_notification;
+	new_serviceescalation->notification_interval=temp_serviceescalation->notification_interval;
+	new_serviceescalation->have_notification_interval=temp_serviceescalation->have_notification_interval;
+	new_serviceescalation->escalate_on_warning=temp_serviceescalation->escalate_on_warning;
+	new_serviceescalation->escalate_on_unknown=temp_serviceescalation->escalate_on_unknown;
+	new_serviceescalation->escalate_on_critical=temp_serviceescalation->escalate_on_critical;
+	new_serviceescalation->escalate_on_recovery=temp_serviceescalation->escalate_on_recovery;
+	new_serviceescalation->have_escalation_options=temp_serviceescalation->have_escalation_options;
+	
 	/* add new serviceescalation to head of list in memory */
 	new_serviceescalation->next=xodtemplate_serviceescalation_list;
 	xodtemplate_serviceescalation_list=new_serviceescalation;
@@ -4952,31 +5452,23 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 		return ERROR;
 	        }
 
-	/* defaults */
+	/* standard items */
 	new_hostdependency->template=NULL;
 	new_hostdependency->name=NULL;
-	new_hostdependency->hostgroup_name=NULL;
-	new_hostdependency->dependent_hostgroup_name=NULL;
-	new_hostdependency->host_name=NULL;
-	new_hostdependency->dependent_host_name=NULL;
-
 	new_hostdependency->has_been_resolved=temp_hostdependency->has_been_resolved;
 	new_hostdependency->register_object=temp_hostdependency->register_object;
 	new_hostdependency->_config_file=temp_hostdependency->_config_file;
 	new_hostdependency->_start_line=temp_hostdependency->_start_line;
 
-	new_hostdependency->fail_notify_on_up=temp_hostdependency->fail_notify_on_up;
-	new_hostdependency->fail_notify_on_down=temp_hostdependency->fail_notify_on_down;
-	new_hostdependency->fail_notify_on_unreachable=temp_hostdependency->fail_notify_on_unreachable;
-	new_hostdependency->fail_notify_on_pending=temp_hostdependency->fail_notify_on_pending;
-	new_hostdependency->have_notification_dependency_options=temp_hostdependency->have_notification_dependency_options;
-	new_hostdependency->fail_execute_on_up=temp_hostdependency->fail_execute_on_up;
-	new_hostdependency->fail_execute_on_down=temp_hostdependency->fail_execute_on_down;
-	new_hostdependency->fail_execute_on_unreachable=temp_hostdependency->fail_execute_on_unreachable;
-	new_hostdependency->fail_execute_on_pending=temp_hostdependency->fail_execute_on_pending;
-	new_hostdependency->have_execution_dependency_options=temp_hostdependency->have_execution_dependency_options;
-	new_hostdependency->inherits_parent=temp_hostdependency->inherits_parent;
-	new_hostdependency->have_inherits_parent=temp_hostdependency->have_inherits_parent;
+	/* string defaults */
+	new_hostdependency->hostgroup_name=NULL;
+	new_hostdependency->have_hostgroup_name=temp_hostdependency->have_hostgroup_name;
+	new_hostdependency->dependent_hostgroup_name=NULL;
+	new_hostdependency->have_dependent_hostgroup_name=temp_hostdependency->have_dependent_hostgroup_name;
+	new_hostdependency->host_name=NULL;
+	new_hostdependency->have_host_name=temp_hostdependency->have_host_name;
+	new_hostdependency->dependent_host_name=NULL;
+	new_hostdependency->have_dependent_host_name=temp_hostdependency->have_dependent_host_name;
 
 	/* allocate memory for and copy string members of hostdependency definition */
 	if(temp_hostdependency->host_name!=NULL){
@@ -5023,6 +5515,20 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 		        }
 	        } 
 
+	/* duplicate non-string members */
+	new_hostdependency->fail_notify_on_up=temp_hostdependency->fail_notify_on_up;
+	new_hostdependency->fail_notify_on_down=temp_hostdependency->fail_notify_on_down;
+	new_hostdependency->fail_notify_on_unreachable=temp_hostdependency->fail_notify_on_unreachable;
+	new_hostdependency->fail_notify_on_pending=temp_hostdependency->fail_notify_on_pending;
+	new_hostdependency->have_notification_dependency_options=temp_hostdependency->have_notification_dependency_options;
+	new_hostdependency->fail_execute_on_up=temp_hostdependency->fail_execute_on_up;
+	new_hostdependency->fail_execute_on_down=temp_hostdependency->fail_execute_on_down;
+	new_hostdependency->fail_execute_on_unreachable=temp_hostdependency->fail_execute_on_unreachable;
+	new_hostdependency->fail_execute_on_pending=temp_hostdependency->fail_execute_on_pending;
+	new_hostdependency->have_execution_dependency_options=temp_hostdependency->have_execution_dependency_options;
+	new_hostdependency->inherits_parent=temp_hostdependency->inherits_parent;
+	new_hostdependency->have_inherits_parent=temp_hostdependency->have_inherits_parent;
+
 	/* add new hostdependency to head of list in memory */
 	new_hostdependency->next=xodtemplate_hostdependency_list;
 	xodtemplate_hostdependency_list=new_hostdependency;
@@ -5053,38 +5559,29 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 		return ERROR;
 	        }
 
-	/* defaults */
+	/* standard items */
 	new_servicedependency->template=NULL;
 	new_servicedependency->name=NULL;
-	new_servicedependency->servicegroup_name=NULL;
-	new_servicedependency->hostgroup_name=NULL;
-	new_servicedependency->dependent_servicegroup_name=NULL;
-	new_servicedependency->dependent_hostgroup_name=NULL;
-	new_servicedependency->host_name=NULL;
-	new_servicedependency->dependent_host_name=NULL;
-
 	new_servicedependency->has_been_resolved=temp_servicedependency->has_been_resolved;
 	new_servicedependency->register_object=temp_servicedependency->register_object;
 	new_servicedependency->_config_file=temp_servicedependency->_config_file;
 	new_servicedependency->_start_line=temp_servicedependency->_start_line;
 
-	new_servicedependency->fail_notify_on_ok=temp_servicedependency->fail_notify_on_ok;
-	new_servicedependency->fail_notify_on_unknown=temp_servicedependency->fail_notify_on_unknown;
-	new_servicedependency->fail_notify_on_warning=temp_servicedependency->fail_notify_on_warning;
-	new_servicedependency->fail_notify_on_critical=temp_servicedependency->fail_notify_on_critical;
-	new_servicedependency->fail_notify_on_pending=temp_servicedependency->fail_notify_on_pending;
-	new_servicedependency->have_notification_dependency_options=temp_servicedependency->have_notification_dependency_options;
-	new_servicedependency->fail_execute_on_ok=temp_servicedependency->fail_execute_on_ok;
-	new_servicedependency->fail_execute_on_unknown=temp_servicedependency->fail_execute_on_unknown;
-	new_servicedependency->fail_execute_on_warning=temp_servicedependency->fail_execute_on_warning;
-	new_servicedependency->fail_execute_on_critical=temp_servicedependency->fail_execute_on_critical;
-	new_servicedependency->fail_execute_on_pending=temp_servicedependency->fail_execute_on_pending;
-	new_servicedependency->have_execution_dependency_options=temp_servicedependency->have_execution_dependency_options;
-	new_servicedependency->inherits_parent=temp_servicedependency->inherits_parent;
-	new_servicedependency->have_inherits_parent=temp_servicedependency->have_inherits_parent;
-	
+	/* string defaults */
+	new_servicedependency->servicegroup_name=NULL;
+	new_servicedependency->have_servicegroup_name=temp_servicedependency->have_servicegroup_name;
+	new_servicedependency->hostgroup_name=NULL;
+	new_servicedependency->have_hostgroup_name=temp_servicedependency->have_hostgroup_name;
+	new_servicedependency->dependent_servicegroup_name=NULL;
+	new_servicedependency->have_dependent_servicegroup_name=temp_servicedependency->have_dependent_servicegroup_name;
+	new_servicedependency->dependent_hostgroup_name=NULL;
+	new_servicedependency->have_dependent_hostgroup_name=temp_servicedependency->have_dependent_hostgroup_name;
+	new_servicedependency->host_name=NULL;
+	new_servicedependency->have_host_name=temp_servicedependency->have_host_name;
+	new_servicedependency->dependent_host_name=NULL;
+	new_servicedependency->have_dependent_host_name=temp_servicedependency->have_dependent_host_name;
 
-	/* allocate memory for and copy string members of hostdependency definition */
+	/* duplicate strings */
 	if(temp_servicedependency->host_name!=NULL){
 		new_servicedependency->host_name=strdup(master_host_name);
 		if(new_servicedependency->host_name==NULL){
@@ -5149,6 +5646,22 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 		        }
 	        } 
 
+	/* duplicate non-string members */
+	new_servicedependency->fail_notify_on_ok=temp_servicedependency->fail_notify_on_ok;
+	new_servicedependency->fail_notify_on_unknown=temp_servicedependency->fail_notify_on_unknown;
+	new_servicedependency->fail_notify_on_warning=temp_servicedependency->fail_notify_on_warning;
+	new_servicedependency->fail_notify_on_critical=temp_servicedependency->fail_notify_on_critical;
+	new_servicedependency->fail_notify_on_pending=temp_servicedependency->fail_notify_on_pending;
+	new_servicedependency->have_notification_dependency_options=temp_servicedependency->have_notification_dependency_options;
+	new_servicedependency->fail_execute_on_ok=temp_servicedependency->fail_execute_on_ok;
+	new_servicedependency->fail_execute_on_unknown=temp_servicedependency->fail_execute_on_unknown;
+	new_servicedependency->fail_execute_on_warning=temp_servicedependency->fail_execute_on_warning;
+	new_servicedependency->fail_execute_on_critical=temp_servicedependency->fail_execute_on_critical;
+	new_servicedependency->fail_execute_on_pending=temp_servicedependency->fail_execute_on_pending;
+	new_servicedependency->have_execution_dependency_options=temp_servicedependency->have_execution_dependency_options;
+	new_servicedependency->inherits_parent=temp_servicedependency->inherits_parent;
+	new_servicedependency->have_inherits_parent=temp_servicedependency->have_inherits_parent;
+	
 	/* add new servicedependency to head of list in memory */
 	new_servicedependency->next=xodtemplate_servicedependency_list;
 	xodtemplate_servicedependency_list=new_servicedependency;
@@ -5178,17 +5691,33 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 		return ERROR;
 	        }
 
+	/* standard items */
 	new_hostextinfo->template=NULL;
 	new_hostextinfo->name=NULL;
+	new_hostextinfo->has_been_resolved=this_hostextinfo->has_been_resolved;
+	new_hostextinfo->register_object=this_hostextinfo->register_object;
+	new_hostextinfo->_config_file=this_hostextinfo->_config_file;
+	new_hostextinfo->_start_line=this_hostextinfo->_start_line;
+
+	/* string defaults */
 	new_hostextinfo->host_name=NULL;
+	new_hostextinfo->have_host_name=this_hostextinfo->have_host_name;
 	new_hostextinfo->hostgroup_name=NULL;
+	new_hostextinfo->have_hostgroup_name=this_hostextinfo->have_hostgroup_name;
 	new_hostextinfo->notes=NULL;
+	new_hostextinfo->have_notes=this_hostextinfo->have_notes;
 	new_hostextinfo->notes_url=NULL;
+	new_hostextinfo->have_notes_url=this_hostextinfo->have_notes_url;
 	new_hostextinfo->action_url=NULL;
+	new_hostextinfo->have_action_url=this_hostextinfo->have_action_url;
 	new_hostextinfo->icon_image=NULL;
+	new_hostextinfo->have_icon_image=this_hostextinfo->have_icon_image;
 	new_hostextinfo->icon_image_alt=NULL;
+	new_hostextinfo->have_icon_image_alt=this_hostextinfo->have_icon_image_alt;
 	new_hostextinfo->vrml_image=NULL;
+	new_hostextinfo->have_vrml_image=this_hostextinfo->have_vrml_image;
 	new_hostextinfo->statusmap_image=NULL;
+	new_hostextinfo->have_statusmap_image=this_hostextinfo->have_statusmap_image;
 
 	/* duplicate strings (host_name member is passed in) */
 	if(host_name!=NULL)
@@ -5221,9 +5750,6 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	new_hostextinfo->z_3d=this_hostextinfo->z_3d;
 	new_hostextinfo->have_3d_coords=this_hostextinfo->have_3d_coords;
 
-	new_hostextinfo->has_been_resolved=this_hostextinfo->has_been_resolved;
-	new_hostextinfo->register_object=this_hostextinfo->register_object;
-
 	/* add new object to head of list */
 	new_hostextinfo->next=xodtemplate_hostextinfo_list;
 	xodtemplate_hostextinfo_list=new_hostextinfo;
@@ -5253,18 +5779,29 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 		return ERROR;
 	        }
 
+	/* standard items */
 	new_serviceextinfo->template=NULL;
 	new_serviceextinfo->name=NULL;
-	new_serviceextinfo->host_name=NULL;
-	new_serviceextinfo->hostgroup_name=NULL;
-	new_serviceextinfo->notes=NULL;
-	new_serviceextinfo->notes_url=NULL;
-	new_serviceextinfo->action_url=NULL;
-	new_serviceextinfo->icon_image=NULL;
-	new_serviceextinfo->icon_image_alt=NULL;
-
 	new_serviceextinfo->has_been_resolved=this_serviceextinfo->has_been_resolved;
 	new_serviceextinfo->register_object=this_serviceextinfo->register_object;
+	new_serviceextinfo->_config_file=this_serviceextinfo->_config_file;
+	new_serviceextinfo->_start_line=this_serviceextinfo->_start_line;
+
+	/* string defaults */
+	new_serviceextinfo->host_name=NULL;
+	new_serviceextinfo->have_host_name=this_serviceextinfo->have_host_name;
+	new_serviceextinfo->hostgroup_name=NULL;
+	new_serviceextinfo->have_hostgroup_name=this_serviceextinfo->have_hostgroup_name;
+	new_serviceextinfo->notes=NULL;
+	new_serviceextinfo->have_notes=this_serviceextinfo->have_notes;
+	new_serviceextinfo->notes_url=NULL;
+	new_serviceextinfo->have_notes_url=this_serviceextinfo->have_notes_url;
+	new_serviceextinfo->action_url=NULL;
+	new_serviceextinfo->have_action_url=this_serviceextinfo->have_action_url;
+	new_serviceextinfo->icon_image=NULL;
+	new_serviceextinfo->have_icon_image=this_serviceextinfo->have_icon_image;
+	new_serviceextinfo->icon_image_alt=NULL;
+	new_serviceextinfo->have_icon_image_alt=this_serviceextinfo->have_icon_image_alt;
 
 	/* duplicate strings (host_name member is passed in) */
 	if(host_name!=NULL)
@@ -5308,20 +5845,20 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 
 /* resolves object definitions */
 int xodtemplate_resolve_objects(void){
-	xodtemplate_timeperiod *temp_timeperiod;
-	xodtemplate_command *temp_command;
-	xodtemplate_contactgroup *temp_contactgroup;
-	xodtemplate_hostgroup *temp_hostgroup;
-	xodtemplate_servicegroup *temp_servicegroup;
-	xodtemplate_servicedependency *temp_servicedependency;
-	xodtemplate_serviceescalation *temp_serviceescalation;
-	xodtemplate_contact *temp_contact;
-	xodtemplate_host *temp_host;
-	xodtemplate_service *temp_service;
-	xodtemplate_hostdependency *temp_hostdependency;
-	xodtemplate_hostescalation *temp_hostescalation;
-	xodtemplate_hostextinfo *temp_hostextinfo;
-	xodtemplate_serviceextinfo *temp_serviceextinfo;
+	xodtemplate_timeperiod *temp_timeperiod=NULL;
+	xodtemplate_command *temp_command=NULL;
+	xodtemplate_contactgroup *temp_contactgroup=NULL;
+	xodtemplate_hostgroup *temp_hostgroup=NULL;
+	xodtemplate_servicegroup *temp_servicegroup=NULL;
+	xodtemplate_servicedependency *temp_servicedependency=NULL;
+	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
+	xodtemplate_contact *temp_contact=NULL;
+	xodtemplate_host *temp_host=NULL;
+	xodtemplate_service *temp_service=NULL;
+	xodtemplate_hostdependency *temp_hostdependency=NULL;
+	xodtemplate_hostescalation *temp_hostescalation=NULL;
+	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
+	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_objects() start\n");
@@ -5422,7 +5959,9 @@ int xodtemplate_resolve_objects(void){
 
 /* resolves a timeperiod object */
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
-	xodtemplate_timeperiod *template_timeperiod;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_timeperiod *template_timeperiod=NULL;
 	int x;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -5443,29 +5982,39 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	if(this_timeperiod->template==NULL)
 		return OK;
 
-	template_timeperiod=xodtemplate_find_timeperiod(this_timeperiod->template);
-	if(template_timeperiod==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in timeperiod definition could not be not found (config file '%s', starting on line %d)\n",this_timeperiod->template,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_timeperiod->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_timeperiod=xodtemplate_find_timeperiod(temp_ptr);
+		if(template_timeperiod==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in timeperiod definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_timeperiod->_config_file),this_timeperiod->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template timeperiod... */
+		xodtemplate_resolve_timeperiod(template_timeperiod);
+
+		/* apply missing properties from template timeperiod... */
+		if(this_timeperiod->timeperiod_name==NULL && template_timeperiod->timeperiod_name!=NULL)
+			this_timeperiod->timeperiod_name=strdup(template_timeperiod->timeperiod_name);
+		if(this_timeperiod->alias==NULL && template_timeperiod->alias!=NULL)
+			this_timeperiod->alias=strdup(template_timeperiod->alias);
+		for(x=0;x<7;x++){
+			if(this_timeperiod->timeranges[x]==NULL && template_timeperiod->timeranges[x]!=NULL){
+				this_timeperiod->timeranges[x]=strdup(template_timeperiod->timeranges[x]);
+		                }
+	                }
 	        }
 
-	/* resolve the template timeperiod... */
-	xodtemplate_resolve_timeperiod(template_timeperiod);
-
-	/* apply missing properties from template timeperiod... */
-	if(this_timeperiod->timeperiod_name==NULL && template_timeperiod->timeperiod_name!=NULL)
-		this_timeperiod->timeperiod_name=strdup(template_timeperiod->timeperiod_name);
-	if(this_timeperiod->alias==NULL && template_timeperiod->alias!=NULL)
-		this_timeperiod->alias=strdup(template_timeperiod->alias);
-	for(x=0;x<7;x++){
-		if(this_timeperiod->timeranges[x]==NULL && template_timeperiod->timeranges[x]!=NULL){
-			this_timeperiod->timeranges[x]=strdup(template_timeperiod->timeranges[x]);
-		        }
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_timeperiod() end\n");
@@ -5479,7 +6028,9 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 
 /* resolves a command object */
 int xodtemplate_resolve_command(xodtemplate_command *this_command){
-	xodtemplate_command *template_command;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_command *template_command=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5499,24 +6050,34 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 	if(this_command->template==NULL)
 		return OK;
 
-	template_command=xodtemplate_find_command(this_command->template);
-	if(template_command==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in command definition could not be not found (config file '%s', starting on line %d)\n",this_command->template,xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_command->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_command=xodtemplate_find_command(temp_ptr);
+		if(template_command==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in command definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_command->_config_file),this_command->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template command... */
+		xodtemplate_resolve_command(template_command);
+
+		/* apply missing properties from template command... */
+		if(this_command->command_name==NULL && template_command->command_name!=NULL)
+			this_command->command_name=strdup(template_command->command_name);
+		if(this_command->command_line==NULL && template_command->command_line!=NULL)
+			this_command->command_line=strdup(template_command->command_line);
 	        }
 
-	/* resolve the template command... */
-	xodtemplate_resolve_command(template_command);
-
-	/* apply missing properties from template command... */
-	if(this_command->command_name==NULL && template_command->command_name!=NULL)
-		this_command->command_name=strdup(template_command->command_name);
-	if(this_command->command_line==NULL && template_command->command_line!=NULL)
-		this_command->command_line=strdup(template_command->command_line);
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_command() end\n");
@@ -5530,7 +6091,9 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 
 /* resolves a contactgroup object */
 int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup){
-	xodtemplate_contactgroup *template_contactgroup;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_contactgroup *template_contactgroup=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5550,26 +6113,36 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 	if(this_contactgroup->template==NULL)
 		return OK;
 
-	template_contactgroup=xodtemplate_find_contactgroup(this_contactgroup->template);
-	if(template_contactgroup==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contactgroup definition could not be not found (config file '%s', starting on line %d)\n",this_contactgroup->template,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_contactgroup->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_contactgroup=xodtemplate_find_contactgroup(temp_ptr);
+		if(template_contactgroup==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contactgroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_contactgroup->_config_file),this_contactgroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template contactgroup... */
+		xodtemplate_resolve_contactgroup(template_contactgroup);
+
+		/* apply missing properties from template contactgroup... */
+		if(this_contactgroup->contactgroup_name==NULL && template_contactgroup->contactgroup_name!=NULL)
+			this_contactgroup->contactgroup_name=strdup(template_contactgroup->contactgroup_name);
+		if(this_contactgroup->alias==NULL && template_contactgroup->alias!=NULL)
+			this_contactgroup->alias=strdup(template_contactgroup->alias);
+		if(this_contactgroup->members==NULL && template_contactgroup->members!=NULL)
+			this_contactgroup->members=strdup(template_contactgroup->members);
 	        }
 
-	/* resolve the template contactgroup... */
-	xodtemplate_resolve_contactgroup(template_contactgroup);
-
-	/* apply missing properties from template contactgroup... */
-	if(this_contactgroup->contactgroup_name==NULL && template_contactgroup->contactgroup_name!=NULL)
-		this_contactgroup->contactgroup_name=strdup(template_contactgroup->contactgroup_name);
-	if(this_contactgroup->alias==NULL && template_contactgroup->alias!=NULL)
-		this_contactgroup->alias=strdup(template_contactgroup->alias);
-	if(this_contactgroup->members==NULL && template_contactgroup->members!=NULL)
-		this_contactgroup->members=strdup(template_contactgroup->members);
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_contactgroup() end\n");
@@ -5583,7 +6156,9 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 
 /* resolves a hostgroup object */
 int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
-	xodtemplate_hostgroup *template_hostgroup;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_hostgroup *template_hostgroup=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5603,26 +6178,36 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	if(this_hostgroup->template==NULL)
 		return OK;
 
-	template_hostgroup=xodtemplate_find_hostgroup(this_hostgroup->template);
-	if(template_hostgroup==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in hostgroup definition could not be not found (config file '%s', starting on line %d)\n",this_hostgroup->template,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_hostgroup->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_hostgroup=xodtemplate_find_hostgroup(temp_ptr);
+		if(template_hostgroup==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in hostgroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostgroup->_config_file),this_hostgroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template hostgroup... */
+		xodtemplate_resolve_hostgroup(template_hostgroup);
+
+		/* apply missing properties from template hostgroup... */
+		if(this_hostgroup->hostgroup_name==NULL && template_hostgroup->hostgroup_name!=NULL)
+			this_hostgroup->hostgroup_name=strdup(template_hostgroup->hostgroup_name);
+		if(this_hostgroup->alias==NULL && template_hostgroup->alias!=NULL)
+			this_hostgroup->alias=strdup(template_hostgroup->alias);
+		if(this_hostgroup->members==NULL && template_hostgroup->members!=NULL)
+			this_hostgroup->members=strdup(template_hostgroup->members);
 	        }
 
-	/* resolve the template hostgroup... */
-	xodtemplate_resolve_hostgroup(template_hostgroup);
-
-	/* apply missing properties from template hostgroup... */
-	if(this_hostgroup->hostgroup_name==NULL && template_hostgroup->hostgroup_name!=NULL)
-		this_hostgroup->hostgroup_name=strdup(template_hostgroup->hostgroup_name);
-	if(this_hostgroup->alias==NULL && template_hostgroup->alias!=NULL)
-		this_hostgroup->alias=strdup(template_hostgroup->alias);
-	if(this_hostgroup->members==NULL && template_hostgroup->members!=NULL)
-		this_hostgroup->members=strdup(template_hostgroup->members);
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_hostgroup() end\n");
@@ -5636,7 +6221,9 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 
 /* resolves a servicegroup object */
 int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup){
-	xodtemplate_servicegroup *template_servicegroup;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_servicegroup *template_servicegroup=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5656,26 +6243,36 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 	if(this_servicegroup->template==NULL)
 		return OK;
 
-	template_servicegroup=xodtemplate_find_servicegroup(this_servicegroup->template);
-	if(template_servicegroup==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', starting on line %d)\n",this_servicegroup->template,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_servicegroup->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_servicegroup=xodtemplate_find_servicegroup(temp_ptr);
+		if(template_servicegroup==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in servicegroup definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_servicegroup->_config_file),this_servicegroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template servicegroup... */
+		xodtemplate_resolve_servicegroup(template_servicegroup);
+
+		/* apply missing properties from template servicegroup... */
+		if(this_servicegroup->servicegroup_name==NULL && template_servicegroup->servicegroup_name!=NULL)
+			this_servicegroup->servicegroup_name=strdup(template_servicegroup->servicegroup_name);
+		if(this_servicegroup->alias==NULL && template_servicegroup->alias!=NULL)
+			this_servicegroup->alias=strdup(template_servicegroup->alias);
+		if(this_servicegroup->members==NULL && template_servicegroup->members!=NULL)
+			this_servicegroup->members=strdup(template_servicegroup->members);
 	        }
 
-	/* resolve the template servicegroup... */
-	xodtemplate_resolve_servicegroup(template_servicegroup);
-
-	/* apply missing properties from template servicegroup... */
-	if(this_servicegroup->servicegroup_name==NULL && template_servicegroup->servicegroup_name!=NULL)
-		this_servicegroup->servicegroup_name=strdup(template_servicegroup->servicegroup_name);
-	if(this_servicegroup->alias==NULL && template_servicegroup->alias!=NULL)
-		this_servicegroup->alias=strdup(template_servicegroup->alias);
-	if(this_servicegroup->members==NULL && template_servicegroup->members!=NULL)
-		this_servicegroup->members=strdup(template_servicegroup->members);
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_servicegroup() end\n");
@@ -5687,7 +6284,9 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 
 /* resolves a servicedependency object */
 int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_servicedependency){
-	xodtemplate_servicedependency *template_servicedependency;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_servicedependency *template_servicedependency=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5707,56 +6306,90 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 	if(this_servicedependency->template==NULL)
 		return OK;
 
-	template_servicedependency=xodtemplate_find_servicedependency(this_servicedependency->template);
-	if(template_servicedependency==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service dependency definition could not be not found (config file '%s', starting on line %d)\n",this_servicedependency->template,xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_servicedependency->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_servicedependency=xodtemplate_find_servicedependency(temp_ptr);
+		if(template_servicedependency==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service dependency definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_servicedependency->_config_file),this_servicedependency->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template servicedependency... */
+		xodtemplate_resolve_servicedependency(template_servicedependency);
+
+		/* apply missing properties from template servicedependency... */
+		if(this_servicedependency->have_servicegroup_name==FALSE && template_servicedependency->have_servicegroup_name==TRUE){
+			if(this_servicedependency->servicegroup_name==NULL && template_servicedependency->servicegroup_name!=NULL)
+				this_servicedependency->servicegroup_name=strdup(template_servicedependency->servicegroup_name);
+			this_servicedependency->have_servicegroup_name=TRUE;
+		        }
+		if(this_servicedependency->have_hostgroup_name==FALSE && template_servicedependency->have_hostgroup_name==TRUE){
+			if(this_servicedependency->hostgroup_name==NULL && template_servicedependency->hostgroup_name!=NULL)
+				this_servicedependency->hostgroup_name=strdup(template_servicedependency->hostgroup_name);
+			this_servicedependency->have_hostgroup_name=TRUE;
+		        }
+		if(this_servicedependency->have_host_name==FALSE && template_servicedependency->have_host_name==TRUE){
+			if(this_servicedependency->host_name==NULL && template_servicedependency->host_name!=NULL)
+				this_servicedependency->host_name=strdup(template_servicedependency->host_name);
+			this_servicedependency->have_host_name=TRUE;
+		        }
+		if(this_servicedependency->have_service_description==FALSE && template_servicedependency->have_service_description==TRUE){
+			if(this_servicedependency->service_description==NULL && template_servicedependency->service_description!=NULL)
+				this_servicedependency->service_description=strdup(template_servicedependency->service_description);
+			this_servicedependency->have_service_description=TRUE;
+		        }
+		if(this_servicedependency->have_dependent_servicegroup_name==FALSE && template_servicedependency->have_dependent_servicegroup_name==TRUE){
+			if(this_servicedependency->dependent_servicegroup_name==NULL && template_servicedependency->dependent_servicegroup_name!=NULL)
+				this_servicedependency->dependent_servicegroup_name=strdup(template_servicedependency->dependent_servicegroup_name);
+			this_servicedependency->have_dependent_servicegroup_name=TRUE;
+		        }
+		if(this_servicedependency->have_dependent_hostgroup_name==FALSE && template_servicedependency->have_dependent_hostgroup_name==TRUE){
+			if(this_servicedependency->dependent_hostgroup_name==NULL && template_servicedependency->dependent_hostgroup_name!=NULL)
+				this_servicedependency->dependent_hostgroup_name=strdup(template_servicedependency->dependent_hostgroup_name);
+			this_servicedependency->have_dependent_hostgroup_name=TRUE;
+		        }
+		if(this_servicedependency->have_dependent_host_name==FALSE && template_servicedependency->have_dependent_host_name==TRUE){
+			if(this_servicedependency->dependent_host_name==NULL && template_servicedependency->dependent_host_name!=NULL)
+				this_servicedependency->dependent_host_name=strdup(template_servicedependency->dependent_host_name);
+			this_servicedependency->have_dependent_host_name=TRUE;
+		        }
+		if(this_servicedependency->have_dependent_service_description==FALSE && template_servicedependency->have_dependent_service_description==TRUE){
+			if(this_servicedependency->dependent_service_description==NULL && template_servicedependency->dependent_service_description!=NULL)
+				this_servicedependency->dependent_service_description=strdup(template_servicedependency->dependent_service_description);
+			this_servicedependency->have_dependent_service_description=TRUE;
+		        }
+		if(this_servicedependency->have_inherits_parent==FALSE && template_servicedependency->have_inherits_parent==TRUE){
+			this_servicedependency->inherits_parent=template_servicedependency->inherits_parent;
+			this_servicedependency->have_inherits_parent=TRUE;
+	                }
+		if(this_servicedependency->have_execution_dependency_options==FALSE && template_servicedependency->have_execution_dependency_options==TRUE){
+			this_servicedependency->fail_execute_on_ok=template_servicedependency->fail_execute_on_ok;
+			this_servicedependency->fail_execute_on_unknown=template_servicedependency->fail_execute_on_unknown;
+			this_servicedependency->fail_execute_on_warning=template_servicedependency->fail_execute_on_warning;
+			this_servicedependency->fail_execute_on_critical=template_servicedependency->fail_execute_on_critical;
+			this_servicedependency->fail_execute_on_pending=template_servicedependency->fail_execute_on_pending;
+			this_servicedependency->have_execution_dependency_options=TRUE;
+	                }
+		if(this_servicedependency->have_notification_dependency_options==FALSE && template_servicedependency->have_notification_dependency_options==TRUE){
+			this_servicedependency->fail_notify_on_ok=template_servicedependency->fail_notify_on_ok;
+			this_servicedependency->fail_notify_on_unknown=template_servicedependency->fail_notify_on_unknown;
+			this_servicedependency->fail_notify_on_warning=template_servicedependency->fail_notify_on_warning;
+			this_servicedependency->fail_notify_on_critical=template_servicedependency->fail_notify_on_critical;
+			this_servicedependency->fail_notify_on_pending=template_servicedependency->fail_notify_on_pending;
+			this_servicedependency->have_notification_dependency_options=TRUE;
+	                }
 	        }
 
-	/* resolve the template servicedependency... */
-	xodtemplate_resolve_servicedependency(template_servicedependency);
-
-	/* apply missing properties from template servicedependency... */
-	if(this_servicedependency->servicegroup_name==NULL && template_servicedependency->servicegroup_name!=NULL)
-		this_servicedependency->servicegroup_name=strdup(template_servicedependency->servicegroup_name);
-	if(this_servicedependency->hostgroup_name==NULL && template_servicedependency->hostgroup_name!=NULL)
-		this_servicedependency->hostgroup_name=strdup(template_servicedependency->hostgroup_name);
-	if(this_servicedependency->host_name==NULL && template_servicedependency->host_name!=NULL)
-		this_servicedependency->host_name=strdup(template_servicedependency->host_name);
-	if(this_servicedependency->service_description==NULL && template_servicedependency->service_description!=NULL)
-		this_servicedependency->service_description=strdup(template_servicedependency->service_description);
-	if(this_servicedependency->dependent_servicegroup_name==NULL && template_servicedependency->dependent_servicegroup_name!=NULL)
-		this_servicedependency->dependent_servicegroup_name=strdup(template_servicedependency->dependent_servicegroup_name);
-	if(this_servicedependency->dependent_hostgroup_name==NULL && template_servicedependency->dependent_hostgroup_name!=NULL)
-		this_servicedependency->dependent_hostgroup_name=strdup(template_servicedependency->dependent_hostgroup_name);
-	if(this_servicedependency->dependent_host_name==NULL && template_servicedependency->dependent_host_name!=NULL)
-		this_servicedependency->dependent_host_name=strdup(template_servicedependency->dependent_host_name);
-	if(this_servicedependency->dependent_service_description==NULL && template_servicedependency->dependent_service_description!=NULL)
-		this_servicedependency->dependent_service_description=strdup(template_servicedependency->dependent_service_description);
-	if(this_servicedependency->have_inherits_parent==FALSE && template_servicedependency->have_inherits_parent==TRUE){
-		this_servicedependency->inherits_parent=template_servicedependency->inherits_parent;
-		this_servicedependency->have_inherits_parent=TRUE;
-	        }
-	if(this_servicedependency->have_execution_dependency_options==FALSE && template_servicedependency->have_execution_dependency_options==TRUE){
-		this_servicedependency->fail_execute_on_ok=template_servicedependency->fail_execute_on_ok;
-		this_servicedependency->fail_execute_on_unknown=template_servicedependency->fail_execute_on_unknown;
-		this_servicedependency->fail_execute_on_warning=template_servicedependency->fail_execute_on_warning;
-		this_servicedependency->fail_execute_on_critical=template_servicedependency->fail_execute_on_critical;
-		this_servicedependency->fail_execute_on_pending=template_servicedependency->fail_execute_on_pending;
-		this_servicedependency->have_execution_dependency_options=TRUE;
-	        }
-	if(this_servicedependency->have_notification_dependency_options==FALSE && template_servicedependency->have_notification_dependency_options==TRUE){
-		this_servicedependency->fail_notify_on_ok=template_servicedependency->fail_notify_on_ok;
-		this_servicedependency->fail_notify_on_unknown=template_servicedependency->fail_notify_on_unknown;
-		this_servicedependency->fail_notify_on_warning=template_servicedependency->fail_notify_on_warning;
-		this_servicedependency->fail_notify_on_critical=template_servicedependency->fail_notify_on_critical;
-		this_servicedependency->fail_notify_on_pending=template_servicedependency->fail_notify_on_pending;
-		this_servicedependency->have_notification_dependency_options=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_servicedependency() end\n");
@@ -5768,7 +6401,9 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 
 /* resolves a serviceescalation object */
 int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_serviceescalation){
-	xodtemplate_serviceescalation *template_serviceescalation;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_serviceescalation *template_serviceescalation=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5788,54 +6423,82 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	if(this_serviceescalation->template==NULL)
 		return OK;
 
-	template_serviceescalation=xodtemplate_find_serviceescalation(this_serviceescalation->template);
-	if(template_serviceescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service escalation definition could not be not found (config file '%s', starting on line %d)\n",this_serviceescalation->template,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_serviceescalation->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_serviceescalation=xodtemplate_find_serviceescalation(temp_ptr);
+		if(template_serviceescalation==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service escalation definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_serviceescalation->_config_file),this_serviceescalation->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template serviceescalation... */
+		xodtemplate_resolve_serviceescalation(template_serviceescalation);
+
+		/* apply missing properties from template serviceescalation... */
+		if(this_serviceescalation->have_servicegroup_name==FALSE && template_serviceescalation->have_servicegroup_name==TRUE){
+			if(this_serviceescalation->servicegroup_name==NULL && template_serviceescalation->servicegroup_name!=NULL)
+				this_serviceescalation->servicegroup_name=strdup(template_serviceescalation->servicegroup_name);
+			this_serviceescalation->have_servicegroup_name=TRUE;
+		        }
+		if(this_serviceescalation->have_hostgroup_name==FALSE && template_serviceescalation->have_hostgroup_name==TRUE){
+			if(this_serviceescalation->hostgroup_name==NULL && template_serviceescalation->hostgroup_name!=NULL)
+				this_serviceescalation->hostgroup_name=strdup(template_serviceescalation->hostgroup_name);
+			this_serviceescalation->have_hostgroup_name=TRUE;
+		        }
+		if(this_serviceescalation->have_host_name==FALSE && template_serviceescalation->have_host_name==TRUE){
+			if(this_serviceescalation->host_name==NULL && template_serviceescalation->host_name!=NULL)
+				this_serviceescalation->host_name=strdup(template_serviceescalation->host_name);
+			this_serviceescalation->have_host_name=TRUE;
+		        }
+		if(this_serviceescalation->have_service_description==FALSE && template_serviceescalation->have_service_description==TRUE){
+			if(this_serviceescalation->service_description==NULL && template_serviceescalation->service_description!=NULL)
+				this_serviceescalation->service_description=strdup(template_serviceescalation->service_description);
+			this_serviceescalation->have_service_description=TRUE;
+		        }
+		if(this_serviceescalation->have_escalation_period==FALSE && template_serviceescalation->have_escalation_period==TRUE){
+			if(this_serviceescalation->escalation_period==NULL && template_serviceescalation->escalation_period!=NULL)
+				this_serviceescalation->escalation_period=strdup(template_serviceescalation->escalation_period);
+			this_serviceescalation->have_escalation_period=TRUE;
+		        }
+		if(this_serviceescalation->have_contact_groups==FALSE && template_serviceescalation->have_contact_groups==TRUE){
+			if(this_serviceescalation->contact_groups==NULL && template_serviceescalation->contact_groups!=NULL)
+				this_serviceescalation->contact_groups=strdup(template_serviceescalation->contact_groups);
+			this_serviceescalation->have_contact_groups=TRUE;
+		        }
+		if(this_serviceescalation->have_first_notification==FALSE && template_serviceescalation->have_first_notification==TRUE){
+			this_serviceescalation->first_notification=template_serviceescalation->first_notification;
+			this_serviceescalation->have_first_notification=TRUE;
+	                }
+		if(this_serviceescalation->have_last_notification==FALSE && template_serviceescalation->have_last_notification==TRUE){
+			this_serviceescalation->last_notification=template_serviceescalation->last_notification;
+			this_serviceescalation->have_last_notification=TRUE;
+	                }
+		if(this_serviceescalation->have_notification_interval==FALSE && template_serviceescalation->have_notification_interval==TRUE){
+			this_serviceescalation->notification_interval=template_serviceescalation->notification_interval;
+			this_serviceescalation->have_notification_interval=TRUE;
+	                }
+		if(this_serviceescalation->have_escalation_options==FALSE && template_serviceescalation->have_escalation_options==TRUE){
+			this_serviceescalation->escalate_on_warning=template_serviceescalation->escalate_on_warning;
+			this_serviceescalation->escalate_on_unknown=template_serviceescalation->escalate_on_unknown;
+			this_serviceescalation->escalate_on_critical=template_serviceescalation->escalate_on_critical;
+			this_serviceescalation->escalate_on_recovery=template_serviceescalation->escalate_on_recovery;
+			this_serviceescalation->have_escalation_options=TRUE;
+	                }
 	        }
 
-	/* resolve the template serviceescalation... */
-	xodtemplate_resolve_serviceescalation(template_serviceescalation);
-
-	/* apply missing properties from template serviceescalation... */
-	if(this_serviceescalation->servicegroup_name==NULL && template_serviceescalation->servicegroup_name!=NULL)
-		this_serviceescalation->servicegroup_name=strdup(template_serviceescalation->servicegroup_name);
-	if(this_serviceescalation->hostgroup_name==NULL && template_serviceescalation->hostgroup_name!=NULL)
-		this_serviceescalation->hostgroup_name=strdup(template_serviceescalation->hostgroup_name);
-	if(this_serviceescalation->host_name==NULL && template_serviceescalation->host_name!=NULL)
-		this_serviceescalation->host_name=strdup(template_serviceescalation->host_name);
-	if(this_serviceescalation->service_description==NULL && template_serviceescalation->service_description!=NULL)
-		this_serviceescalation->service_description=strdup(template_serviceescalation->service_description);
-	if(this_serviceescalation->escalation_period==NULL && template_serviceescalation->escalation_period!=NULL)
-		this_serviceescalation->escalation_period=strdup(template_serviceescalation->escalation_period);
-	if(this_serviceescalation->contact_groups==NULL && template_serviceescalation->contact_groups!=NULL)
-		this_serviceescalation->contact_groups=strdup(template_serviceescalation->contact_groups);
-	if(this_serviceescalation->have_first_notification==FALSE && template_serviceescalation->have_first_notification==TRUE){
-		this_serviceescalation->first_notification=template_serviceescalation->first_notification;
-		this_serviceescalation->have_first_notification=TRUE;
-	        }
-	if(this_serviceescalation->have_last_notification==FALSE && template_serviceescalation->have_last_notification==TRUE){
-		this_serviceescalation->last_notification=template_serviceescalation->last_notification;
-		this_serviceescalation->have_last_notification=TRUE;
-	        }
-	if(this_serviceescalation->have_notification_interval==FALSE && template_serviceescalation->have_notification_interval==TRUE){
-		this_serviceescalation->notification_interval=template_serviceescalation->notification_interval;
-		this_serviceescalation->have_notification_interval=TRUE;
-	        }
-	if(this_serviceescalation->have_escalation_options==FALSE && template_serviceescalation->have_escalation_options==TRUE){
-		this_serviceescalation->escalate_on_warning=template_serviceescalation->escalate_on_warning;
-		this_serviceescalation->escalate_on_unknown=template_serviceescalation->escalate_on_unknown;
-		this_serviceescalation->escalate_on_critical=template_serviceescalation->escalate_on_critical;
-		this_serviceescalation->escalate_on_recovery=template_serviceescalation->escalate_on_recovery;
-		this_serviceescalation->have_escalation_options=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
-	printf("xodtemplate_resolve_servicedeescalation() end\n");
+	printf("xodtemplate_resolve_serviceescalation() end\n");
 #endif
 
 	return OK;
@@ -5845,7 +6508,9 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 
 /* resolves a contact object */
 int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
-	xodtemplate_contact *template_contact;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_contact *template_contact=NULL;
 	int x;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -5866,57 +6531,91 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	if(this_contact->template==NULL)
 		return OK;
 
-	template_contact=xodtemplate_find_contact(this_contact->template);
-	if(template_contact==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contact definition could not be not found (config file '%s', starting on line %d)\n",this_contact->template,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_contact->template))==NULL)
 		return ERROR;
-	        }
 
-	/* resolve the template contact... */
-	xodtemplate_resolve_contact(template_contact);
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
 
-	/* apply missing properties from template contact... */
-	if(this_contact->contact_name==NULL && template_contact->contact_name!=NULL)
-		this_contact->contact_name=strdup(template_contact->contact_name);
-	if(this_contact->alias==NULL && template_contact->alias!=NULL)
-		this_contact->alias=strdup(template_contact->alias);
-	if(this_contact->email==NULL && template_contact->email!=NULL)
-		this_contact->email=strdup(template_contact->email);
-	if(this_contact->pager==NULL && template_contact->pager!=NULL)
-		this_contact->pager=strdup(template_contact->pager);
-	for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
-		if(this_contact->address[x]==NULL && template_contact->address[x]!=NULL)
-			this_contact->address[x]=strdup(template_contact->address[x]);
+		template_contact=xodtemplate_find_contact(temp_ptr);
+		if(template_contact==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in contact definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+
+		/* resolve the template contact... */
+		xodtemplate_resolve_contact(template_contact);
+
+		/* apply missing properties from template contact... */
+		if(this_contact->contact_name==NULL && template_contact->contact_name!=NULL)
+			this_contact->contact_name=strdup(template_contact->contact_name);
+		if(this_contact->alias==NULL && template_contact->alias!=NULL)
+			this_contact->alias=strdup(template_contact->alias);
+
+		if(this_contact->have_email==FALSE && template_contact->have_email==TRUE){
+			if(this_contact->email==NULL && template_contact->email!=NULL)
+				this_contact->email=strdup(template_contact->email);
+			this_contact->have_email=TRUE;
+		        }
+		if(this_contact->have_pager==FALSE && template_contact->have_pager==TRUE){
+			if(this_contact->pager==NULL && template_contact->pager!=NULL)
+				this_contact->pager=strdup(template_contact->pager);
+			this_contact->have_pager=TRUE;
+		        }
+		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
+			if(this_contact->have_address[x]==FALSE && template_contact->have_address[x]==TRUE){
+				if(this_contact->address[x]==NULL && template_contact->address[x]!=NULL)
+					this_contact->address[x]=strdup(template_contact->address[x]);
+				this_contact->have_address[x]=TRUE;
+			        }
+	                }
+		if(this_contact->have_contact_groups==FALSE && template_contact->have_contact_groups==TRUE){
+			if(this_contact->contact_groups==NULL && template_contact->contact_groups!=NULL)
+				this_contact->contact_groups=strdup(template_contact->contact_groups);
+			this_contact->have_contact_groups=TRUE;
+		        }
+		if(this_contact->have_host_notification_period==FALSE && template_contact->have_host_notification_period==TRUE){
+			if(this_contact->host_notification_period==NULL && template_contact->host_notification_period!=NULL)
+				this_contact->host_notification_period=strdup(template_contact->host_notification_period);
+			this_contact->have_host_notification_period=TRUE;
+		        }
+		if(this_contact->have_service_notification_period==FALSE && template_contact->have_service_notification_period==TRUE){
+			if(this_contact->service_notification_period==NULL && template_contact->service_notification_period!=NULL)
+				this_contact->service_notification_period=strdup(template_contact->service_notification_period);
+			this_contact->have_service_notification_period=TRUE;
+		        }
+		if(this_contact->have_host_notification_commands==FALSE && template_contact->have_host_notification_commands==TRUE){
+			if(this_contact->host_notification_commands==NULL && template_contact->host_notification_commands!=NULL)
+				this_contact->host_notification_commands=strdup(template_contact->host_notification_commands);
+			this_contact->have_host_notification_commands=TRUE;
+		        }
+		if(this_contact->have_service_notification_commands==FALSE && template_contact->have_service_notification_commands==TRUE){
+			if(this_contact->service_notification_commands==NULL && template_contact->service_notification_commands!=NULL)
+				this_contact->service_notification_commands=strdup(template_contact->service_notification_commands);
+			this_contact->have_service_notification_commands=TRUE;
+		        }
+		if(this_contact->have_host_notification_options==FALSE && template_contact->have_host_notification_options==TRUE){
+			this_contact->notify_on_host_down=template_contact->notify_on_host_down;
+			this_contact->notify_on_host_unreachable=template_contact->notify_on_host_unreachable;
+			this_contact->notify_on_host_recovery=template_contact->notify_on_host_recovery;
+			this_contact->notify_on_host_flapping=template_contact->notify_on_host_flapping;
+			this_contact->have_host_notification_options=TRUE;
+	                }
+		if(this_contact->have_service_notification_options==FALSE && template_contact->have_service_notification_options==TRUE){
+			this_contact->notify_on_service_unknown=template_contact->notify_on_service_unknown;
+			this_contact->notify_on_service_warning=template_contact->notify_on_service_warning;
+			this_contact->notify_on_service_critical=template_contact->notify_on_service_critical;
+			this_contact->notify_on_service_recovery=template_contact->notify_on_service_recovery;
+			this_contact->notify_on_service_flapping=template_contact->notify_on_service_flapping;
+			this_contact->have_service_notification_options=TRUE;
+	                }
 	        }
-	if(this_contact->contactgroups==NULL && template_contact->contactgroups!=NULL)
-		this_contact->contactgroups=strdup(template_contact->contactgroups);
-	if(this_contact->host_notification_period==NULL && template_contact->host_notification_period!=NULL)
-		this_contact->host_notification_period=strdup(template_contact->host_notification_period);
-	if(this_contact->service_notification_period==NULL && template_contact->service_notification_period!=NULL)
-		this_contact->service_notification_period=strdup(template_contact->service_notification_period);
-	if(this_contact->host_notification_commands==NULL && template_contact->host_notification_commands!=NULL)
-		this_contact->host_notification_commands=strdup(template_contact->host_notification_commands);
-	if(this_contact->service_notification_commands==NULL && template_contact->service_notification_commands!=NULL)
-		this_contact->service_notification_commands=strdup(template_contact->service_notification_commands);
-	if(this_contact->have_host_notification_options==FALSE && template_contact->have_host_notification_options==TRUE){
-		this_contact->notify_on_host_down=template_contact->notify_on_host_down;
-		this_contact->notify_on_host_unreachable=template_contact->notify_on_host_unreachable;
-		this_contact->notify_on_host_recovery=template_contact->notify_on_host_recovery;
-		this_contact->notify_on_host_flapping=template_contact->notify_on_host_flapping;
-		this_contact->have_host_notification_options=TRUE;
-	        }
-	if(this_contact->have_service_notification_options==FALSE && template_contact->have_service_notification_options==TRUE){
-		this_contact->notify_on_service_unknown=template_contact->notify_on_service_unknown;
-		this_contact->notify_on_service_warning=template_contact->notify_on_service_warning;
-		this_contact->notify_on_service_critical=template_contact->notify_on_service_critical;
-		this_contact->notify_on_service_recovery=template_contact->notify_on_service_recovery;
-		this_contact->notify_on_service_flapping=template_contact->notify_on_service_flapping;
-		this_contact->have_service_notification_options=TRUE;
-	        }
+	
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_contact() end\n");
@@ -5929,7 +6628,9 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 
 /* resolves a host object */
 int xodtemplate_resolve_host(xodtemplate_host *this_host){
-	xodtemplate_host *template_host;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_host *template_host=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -5949,123 +6650,167 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 	if(this_host->template==NULL)
 		return OK;
 
-	template_host=xodtemplate_find_host(this_host->template);
-	if(template_host==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host definition could not be not found (config file '%s', starting on line %d)\n",this_host->template,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_host->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_host=xodtemplate_find_host(temp_ptr);
+		if(template_host==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template host... */
+		xodtemplate_resolve_host(template_host);
+
+		/* apply missing properties from template host... */
+		if(this_host->host_name==NULL && template_host->host_name!=NULL)
+			this_host->host_name=strdup(template_host->host_name);
+		if(this_host->alias==NULL && template_host->alias!=NULL)
+			this_host->alias=strdup(template_host->alias);
+		if(this_host->address==NULL && template_host->address!=NULL)
+			this_host->address=strdup(template_host->address);
+		if(this_host->have_parents==FALSE && template_host->have_parents==TRUE){
+			if(this_host->parents==NULL && template_host->parents!=NULL)
+				this_host->parents=strdup(template_host->parents);
+			this_host->have_parents=TRUE;
+		        }
+		if(this_host->have_host_groups==FALSE && template_host->have_host_groups==TRUE){
+			if(this_host->host_groups==NULL && template_host->host_groups!=NULL)
+				this_host->host_groups=strdup(template_host->host_groups);
+			this_host->have_host_groups=TRUE;
+		        }
+		if(this_host->have_check_command==FALSE && template_host->have_check_command==TRUE){
+			if(this_host->check_command==NULL && template_host->check_command!=NULL)
+				this_host->check_command=strdup(template_host->check_command);
+			this_host->have_check_command=TRUE;
+		        }
+		if(this_host->have_check_period==FALSE && template_host->have_check_period==TRUE){
+			if(this_host->check_period==NULL && template_host->check_period!=NULL)
+				this_host->check_period=strdup(template_host->check_period);
+			this_host->have_check_period=TRUE;
+		        }
+		if(this_host->have_event_handler==FALSE && template_host->have_event_handler==TRUE){
+			if(this_host->event_handler==NULL && template_host->event_handler!=NULL)
+				this_host->event_handler=strdup(template_host->event_handler);
+			this_host->have_event_handler=TRUE;
+		        }
+		if(this_host->have_contact_groups==FALSE && template_host->have_contact_groups==TRUE){
+			if(this_host->contact_groups==NULL && template_host->contact_groups!=NULL)
+				this_host->contact_groups=strdup(template_host->contact_groups);
+			this_host->have_contact_groups=TRUE;
+		        }
+		if(this_host->have_notification_period==FALSE && template_host->have_notification_period==TRUE){
+			if(this_host->notification_period==NULL && template_host->notification_period!=NULL)
+				this_host->notification_period=strdup(template_host->notification_period);
+			this_host->have_notification_period=TRUE;
+		        }
+		if(this_host->have_failure_prediction_options==FALSE && template_host->have_failure_prediction_options==TRUE){
+			if(this_host->failure_prediction_options==NULL && template_host->failure_prediction_options!=NULL)
+				this_host->failure_prediction_options=strdup(template_host->failure_prediction_options);
+			this_host->have_failure_prediction_options=TRUE;
+		        }
+		if(this_host->have_check_interval==FALSE && template_host->have_check_interval==TRUE){
+			this_host->check_interval=template_host->check_interval;
+			this_host->have_check_interval=TRUE;
+	                }
+		if(this_host->have_max_check_attempts==FALSE && template_host->have_max_check_attempts==TRUE){
+			this_host->max_check_attempts=template_host->max_check_attempts;
+			this_host->have_max_check_attempts=TRUE;
+	                }
+		if(this_host->have_active_checks_enabled==FALSE && template_host->have_active_checks_enabled==TRUE){
+			this_host->active_checks_enabled=template_host->active_checks_enabled;
+			this_host->have_active_checks_enabled=TRUE;
+	                }
+		if(this_host->have_passive_checks_enabled==FALSE && template_host->have_passive_checks_enabled==TRUE){
+			this_host->passive_checks_enabled=template_host->passive_checks_enabled;
+			this_host->have_passive_checks_enabled=TRUE;
+	                }
+		if(this_host->have_obsess_over_host==FALSE && template_host->have_obsess_over_host==TRUE){
+			this_host->obsess_over_host=template_host->obsess_over_host;
+			this_host->have_obsess_over_host=TRUE;
+	                }
+		if(this_host->have_event_handler_enabled==FALSE && template_host->have_event_handler_enabled==TRUE){
+			this_host->event_handler_enabled=template_host->event_handler_enabled;
+			this_host->have_event_handler_enabled=TRUE;
+	                }
+		if(this_host->have_check_freshness==FALSE && template_host->have_check_freshness==TRUE){
+			this_host->check_freshness=template_host->check_freshness;
+			this_host->have_check_freshness=TRUE;
+	                }
+		if(this_host->have_freshness_threshold==FALSE && template_host->have_freshness_threshold==TRUE){
+			this_host->freshness_threshold=template_host->freshness_threshold;
+			this_host->have_freshness_threshold=TRUE;
+	                }
+		if(this_host->have_low_flap_threshold==FALSE && template_host->have_low_flap_threshold==TRUE){
+			this_host->low_flap_threshold=template_host->low_flap_threshold;
+			this_host->have_low_flap_threshold=TRUE;
+	                }
+		if(this_host->have_high_flap_threshold==FALSE && template_host->have_high_flap_threshold==TRUE){
+			this_host->high_flap_threshold=template_host->high_flap_threshold;
+			this_host->have_high_flap_threshold=TRUE;
+	                }
+		if(this_host->have_flap_detection_enabled==FALSE && template_host->have_flap_detection_enabled==TRUE){
+			this_host->flap_detection_enabled=template_host->flap_detection_enabled;
+			this_host->have_flap_detection_enabled=TRUE;
+	                }
+		if(this_host->have_flap_detection_options==FALSE && template_host->have_flap_detection_options==TRUE){
+			this_host->flap_detection_on_up=template_host->flap_detection_on_up;
+			this_host->flap_detection_on_down=template_host->flap_detection_on_down;
+			this_host->flap_detection_on_unreachable=template_host->flap_detection_on_unreachable;
+			this_host->have_flap_detection_options=TRUE;
+	                }
+		if(this_host->have_notification_options==FALSE && template_host->have_notification_options==TRUE){
+			this_host->notify_on_down=template_host->notify_on_down;
+			this_host->notify_on_unreachable=template_host->notify_on_unreachable;
+			this_host->notify_on_recovery=template_host->notify_on_recovery;
+			this_host->notify_on_flapping=template_host->notify_on_flapping;
+			this_host->have_notification_options=TRUE;
+	                }
+		if(this_host->have_notifications_enabled==FALSE && template_host->have_notifications_enabled==TRUE){
+			this_host->notifications_enabled=template_host->notifications_enabled;
+			this_host->have_notifications_enabled=TRUE;
+	                }
+		if(this_host->have_notification_interval==FALSE && template_host->have_notification_interval==TRUE){
+			this_host->notification_interval=template_host->notification_interval;
+			this_host->have_notification_interval=TRUE;
+	                }
+		if(this_host->have_first_notification_delay==FALSE && template_host->have_first_notification_delay==TRUE){
+			this_host->first_notification_delay=template_host->first_notification_delay;
+			this_host->have_first_notification_delay=TRUE;
+	                }
+		if(this_host->have_stalking_options==FALSE && template_host->have_stalking_options==TRUE){
+			this_host->stalk_on_up=template_host->stalk_on_up;
+			this_host->stalk_on_down=template_host->stalk_on_down;
+			this_host->stalk_on_unreachable=template_host->stalk_on_unreachable;
+			this_host->have_stalking_options=TRUE;
+	                }
+		if(this_host->have_process_perf_data==FALSE && template_host->have_process_perf_data==TRUE){
+			this_host->process_perf_data=template_host->process_perf_data;
+			this_host->have_process_perf_data=TRUE;
+	                }
+		if(this_host->have_failure_prediction_enabled==FALSE && template_host->have_failure_prediction_enabled==TRUE){
+			this_host->failure_prediction_enabled=template_host->failure_prediction_enabled;
+			this_host->have_failure_prediction_enabled=TRUE;
+	                }
+		if(this_host->have_retain_status_information==FALSE && template_host->have_retain_status_information==TRUE){
+			this_host->retain_status_information=template_host->retain_status_information;
+			this_host->have_retain_status_information=TRUE;
+	                }
+		if(this_host->have_retain_nonstatus_information==FALSE && template_host->have_retain_nonstatus_information==TRUE){
+			this_host->retain_nonstatus_information=template_host->retain_nonstatus_information;
+			this_host->have_retain_nonstatus_information=TRUE;
+	                }
 	        }
 
-	/* resolve the template host... */
-	xodtemplate_resolve_host(template_host);
-
-	/* apply missing properties from template host... */
-	if(this_host->host_name==NULL && template_host->host_name!=NULL)
-		this_host->host_name=strdup(template_host->host_name);
-	if(this_host->alias==NULL && template_host->alias!=NULL)
-		this_host->alias=strdup(template_host->alias);
-	if(this_host->address==NULL && template_host->address!=NULL)
-		this_host->address=strdup(template_host->address);
-	if(this_host->parents==NULL && template_host->parents!=NULL)
-		this_host->parents=strdup(template_host->parents);
-	if(this_host->hostgroups==NULL && template_host->hostgroups!=NULL)
-		this_host->hostgroups=strdup(template_host->hostgroups);
-	if(this_host->check_command==NULL && template_host->check_command!=NULL)
-		this_host->check_command=strdup(template_host->check_command);
-	if(this_host->check_period==NULL && template_host->check_period!=NULL)
-		this_host->check_period=strdup(template_host->check_period);
-	if(this_host->event_handler==NULL && template_host->event_handler!=NULL)
-		this_host->event_handler=strdup(template_host->event_handler);
-	if(this_host->contact_groups==NULL && template_host->contact_groups!=NULL)
-		this_host->contact_groups=strdup(template_host->contact_groups);
-	if(this_host->notification_period==NULL && template_host->notification_period!=NULL)
-		this_host->notification_period=strdup(template_host->notification_period);
-	if(this_host->failure_prediction_options==NULL && template_host->failure_prediction_options!=NULL)
-		this_host->failure_prediction_options=strdup(template_host->failure_prediction_options);
-	if(this_host->have_check_interval==FALSE && template_host->have_check_interval==TRUE){
-		this_host->check_interval=template_host->check_interval;
-		this_host->have_check_interval=TRUE;
-	        }
-	if(this_host->have_max_check_attempts==FALSE && template_host->have_max_check_attempts==TRUE){
-		this_host->max_check_attempts=template_host->max_check_attempts;
-		this_host->have_max_check_attempts=TRUE;
-	        }
-	if(this_host->have_active_checks_enabled==FALSE && template_host->have_active_checks_enabled==TRUE){
-		this_host->active_checks_enabled=template_host->active_checks_enabled;
-		this_host->have_active_checks_enabled=TRUE;
-	        }
-	if(this_host->have_passive_checks_enabled==FALSE && template_host->have_passive_checks_enabled==TRUE){
-		this_host->passive_checks_enabled=template_host->passive_checks_enabled;
-		this_host->have_passive_checks_enabled=TRUE;
-	        }
-	if(this_host->have_obsess_over_host==FALSE && template_host->have_obsess_over_host==TRUE){
-		this_host->obsess_over_host=template_host->obsess_over_host;
-		this_host->have_obsess_over_host=TRUE;
-	        }
-	if(this_host->have_event_handler_enabled==FALSE && template_host->have_event_handler_enabled==TRUE){
-		this_host->event_handler_enabled=template_host->event_handler_enabled;
-		this_host->have_event_handler_enabled=TRUE;
-	        }
-	if(this_host->have_check_freshness==FALSE && template_host->have_check_freshness==TRUE){
-		this_host->check_freshness=template_host->check_freshness;
-		this_host->have_check_freshness=TRUE;
-	        }
-	if(this_host->have_freshness_threshold==FALSE && template_host->have_freshness_threshold==TRUE){
-		this_host->freshness_threshold=template_host->freshness_threshold;
-		this_host->have_freshness_threshold=TRUE;
-	        }
-	if(this_host->have_low_flap_threshold==FALSE && template_host->have_low_flap_threshold==TRUE){
-		this_host->low_flap_threshold=template_host->low_flap_threshold;
-		this_host->have_low_flap_threshold=TRUE;
-	        }
-	if(this_host->have_high_flap_threshold==FALSE && template_host->have_high_flap_threshold==TRUE){
-		this_host->high_flap_threshold=template_host->high_flap_threshold;
-		this_host->have_high_flap_threshold=TRUE;
-	        }
-	if(this_host->have_flap_detection_enabled==FALSE && template_host->have_flap_detection_enabled==TRUE){
-		this_host->flap_detection_enabled=template_host->flap_detection_enabled;
-		this_host->have_flap_detection_enabled=TRUE;
-	        }
-	if(this_host->have_notification_options==FALSE && template_host->have_notification_options==TRUE){
-		this_host->notify_on_down=template_host->notify_on_down;
-		this_host->notify_on_unreachable=template_host->notify_on_unreachable;
-		this_host->notify_on_recovery=template_host->notify_on_recovery;
-		this_host->notify_on_flapping=template_host->notify_on_flapping;
-		this_host->have_notification_options=TRUE;
-	        }
-	if(this_host->have_notifications_enabled==FALSE && template_host->have_notifications_enabled==TRUE){
-		this_host->notifications_enabled=template_host->notifications_enabled;
-		this_host->have_notifications_enabled=TRUE;
-	        }
-	if(this_host->have_notification_interval==FALSE && template_host->have_notification_interval==TRUE){
-		this_host->notification_interval=template_host->notification_interval;
-		this_host->have_notification_interval=TRUE;
-	        }
-	if(this_host->have_stalking_options==FALSE && template_host->have_stalking_options==TRUE){
-		this_host->stalk_on_up=template_host->stalk_on_up;
-		this_host->stalk_on_down=template_host->stalk_on_down;
-		this_host->stalk_on_unreachable=template_host->stalk_on_unreachable;
-		this_host->have_stalking_options=TRUE;
-	        }
-	if(this_host->have_process_perf_data==FALSE && template_host->have_process_perf_data==TRUE){
-		this_host->process_perf_data=template_host->process_perf_data;
-		this_host->have_process_perf_data=TRUE;
-	        }
-	if(this_host->have_failure_prediction_enabled==FALSE && template_host->have_failure_prediction_enabled==TRUE){
-		this_host->failure_prediction_enabled=template_host->failure_prediction_enabled;
-		this_host->have_failure_prediction_enabled=TRUE;
-	        }
-	if(this_host->have_retain_status_information==FALSE && template_host->have_retain_status_information==TRUE){
-		this_host->retain_status_information=template_host->retain_status_information;
-		this_host->have_retain_status_information=TRUE;
-	        }
-	if(this_host->have_retain_nonstatus_information==FALSE && template_host->have_retain_nonstatus_information==TRUE){
-		this_host->retain_nonstatus_information=template_host->retain_nonstatus_information;
-		this_host->have_retain_nonstatus_information=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_host() end\n");
@@ -6078,7 +6823,9 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 
 /* resolves a service object */
 int xodtemplate_resolve_service(xodtemplate_service *this_service){
-	xodtemplate_service *template_service;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_service *template_service=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6098,135 +6845,186 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 	if(this_service->template==NULL)
 		return OK;
 
-	template_service=xodtemplate_find_service(this_service->template);
-	if(template_service==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service definition could not be not found (config file '%s', starting on line %d)\n",this_service->template,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_service->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_service=xodtemplate_find_service(temp_ptr);
+		if(template_service==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in service definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template service... */
+		xodtemplate_resolve_service(template_service);
+
+		/* apply missing properties from template service... */
+		if(this_service->have_host_name==FALSE && template_service->have_host_name==TRUE){
+			if(this_service->host_name==NULL && template_service->host_name!=NULL)
+				this_service->host_name=strdup(template_service->host_name);
+			this_service->have_host_name=TRUE;
+		        }
+		if(this_service->have_service_description==FALSE && template_service->have_service_description==TRUE){
+			if(this_service->service_description==NULL && template_service->service_description!=NULL)
+				this_service->service_description=strdup(template_service->service_description);
+			this_service->have_service_description=TRUE;
+		        }
+		if(this_service->have_hostgroup_name==FALSE && template_service->have_hostgroup_name==TRUE){
+			if(this_service->hostgroup_name==NULL && template_service->hostgroup_name!=NULL)
+				this_service->hostgroup_name=strdup(template_service->hostgroup_name);
+			this_service->have_hostgroup_name=TRUE;
+		        }
+		if(this_service->have_service_groups==FALSE && template_service->have_service_groups==TRUE){
+			if(this_service->service_groups==NULL && template_service->service_groups!=NULL)
+				this_service->service_groups=strdup(template_service->service_groups);
+			this_service->have_service_groups=TRUE;
+		        }
+		if(this_service->have_check_command==FALSE && template_service->have_check_command==TRUE){
+			if(this_service->check_command==NULL && template_service->check_command!=NULL)
+				this_service->check_command=strdup(template_service->check_command);
+			this_service->have_check_command=TRUE;
+		        }
+		if(this_service->have_check_period==FALSE && template_service->have_check_period==TRUE){
+			if(this_service->check_period==NULL && template_service->check_period!=NULL)
+				this_service->check_period=strdup(template_service->check_period);
+			this_service->have_check_period=TRUE;
+		        }
+		if(this_service->have_event_handler==FALSE && template_service->have_event_handler==TRUE){
+			if(this_service->event_handler==NULL && template_service->event_handler!=NULL)
+				this_service->event_handler=strdup(template_service->event_handler);
+			this_service->have_event_handler=TRUE;
+		        }
+		if(this_service->have_notification_period==FALSE && template_service->have_notification_period==TRUE){
+			if(this_service->notification_period==NULL && template_service->notification_period!=NULL)
+				this_service->notification_period=strdup(template_service->notification_period);
+			this_service->have_notification_period=TRUE;
+		        }
+		if(this_service->have_contact_groups==FALSE && template_service->have_contact_groups==TRUE){
+			if(this_service->contact_groups==NULL && template_service->contact_groups!=NULL)
+				this_service->contact_groups=strdup(template_service->contact_groups);
+			this_service->have_contact_groups=TRUE;
+		        }
+		if(this_service->have_failure_prediction_options==FALSE && template_service->have_failure_prediction_options==TRUE){
+			if(this_service->failure_prediction_options==NULL && template_service->failure_prediction_options!=NULL)
+				this_service->failure_prediction_options=strdup(template_service->failure_prediction_options);
+			this_service->have_failure_prediction_options=TRUE;
+		        }
+		if(this_service->have_max_check_attempts==FALSE && template_service->have_max_check_attempts==TRUE){
+			this_service->max_check_attempts=template_service->max_check_attempts;
+			this_service->have_max_check_attempts=TRUE;
+	                }
+		if(this_service->have_normal_check_interval==FALSE && template_service->have_normal_check_interval==TRUE){
+			this_service->normal_check_interval=template_service->normal_check_interval;
+			this_service->have_normal_check_interval=TRUE;
+	                }
+		if(this_service->have_retry_check_interval==FALSE && template_service->have_retry_check_interval==TRUE){
+			this_service->retry_check_interval=template_service->retry_check_interval;
+			this_service->have_retry_check_interval=TRUE;
+	                }
+		if(this_service->have_active_checks_enabled==FALSE && template_service->have_active_checks_enabled==TRUE){
+			this_service->active_checks_enabled=template_service->active_checks_enabled;
+			this_service->have_active_checks_enabled=TRUE;
+	                }
+		if(this_service->have_passive_checks_enabled==FALSE && template_service->have_passive_checks_enabled==TRUE){
+			this_service->passive_checks_enabled=template_service->passive_checks_enabled;
+			this_service->have_passive_checks_enabled=TRUE;
+	                }
+		if(this_service->have_parallelize_check==FALSE && template_service->have_parallelize_check==TRUE){
+			this_service->parallelize_check=template_service->parallelize_check;
+			this_service->have_parallelize_check=TRUE;
+	                }
+		if(this_service->have_is_volatile==FALSE && template_service->have_is_volatile==TRUE){
+			this_service->is_volatile=template_service->is_volatile;
+			this_service->have_is_volatile=TRUE;
+	                }
+		if(this_service->have_obsess_over_service==FALSE && template_service->have_obsess_over_service==TRUE){
+			this_service->obsess_over_service=template_service->obsess_over_service;
+			this_service->have_obsess_over_service=TRUE;
+	                }
+		if(this_service->have_event_handler_enabled==FALSE && template_service->have_event_handler_enabled==TRUE){
+			this_service->event_handler_enabled=template_service->event_handler_enabled;
+			this_service->have_event_handler_enabled=TRUE;
+	                }
+		if(this_service->have_check_freshness==FALSE && template_service->have_check_freshness==TRUE){
+			this_service->check_freshness=template_service->check_freshness;
+			this_service->have_check_freshness=TRUE;
+	                }
+		if(this_service->have_freshness_threshold==FALSE && template_service->have_freshness_threshold==TRUE){
+			this_service->freshness_threshold=template_service->freshness_threshold;
+			this_service->have_freshness_threshold=TRUE;
+	                }
+		if(this_service->have_low_flap_threshold==FALSE && template_service->have_low_flap_threshold==TRUE){
+			this_service->low_flap_threshold=template_service->low_flap_threshold;
+			this_service->have_low_flap_threshold=TRUE;
+	                }
+		if(this_service->have_high_flap_threshold==FALSE && template_service->have_high_flap_threshold==TRUE){
+			this_service->high_flap_threshold=template_service->high_flap_threshold;
+			this_service->have_high_flap_threshold=TRUE;
+	                }
+		if(this_service->have_flap_detection_enabled==FALSE && template_service->have_flap_detection_enabled==TRUE){
+			this_service->flap_detection_enabled=template_service->flap_detection_enabled;
+			this_service->have_flap_detection_enabled=TRUE;
+	                }
+		if(this_service->have_flap_detection_options==FALSE && template_service->have_flap_detection_options==TRUE){
+			this_service->flap_detection_on_ok=template_service->flap_detection_on_ok;
+			this_service->flap_detection_on_unknown=template_service->flap_detection_on_unknown;
+			this_service->flap_detection_on_warning=template_service->flap_detection_on_warning;
+			this_service->flap_detection_on_critical=template_service->flap_detection_on_critical;
+			this_service->have_flap_detection_options=TRUE;
+	                }
+		if(this_service->have_notification_options==FALSE && template_service->have_notification_options==TRUE){
+			this_service->notify_on_unknown=template_service->notify_on_unknown;
+			this_service->notify_on_warning=template_service->notify_on_warning;
+			this_service->notify_on_critical=template_service->notify_on_critical;
+			this_service->notify_on_recovery=template_service->notify_on_recovery;
+			this_service->notify_on_flapping=template_service->notify_on_flapping;
+			this_service->have_notification_options=TRUE;
+	                }
+		if(this_service->have_notifications_enabled==FALSE && template_service->have_notifications_enabled==TRUE){
+			this_service->notifications_enabled=template_service->notifications_enabled;
+			this_service->have_notifications_enabled=TRUE;
+	                }
+		if(this_service->have_notification_interval==FALSE && template_service->have_notification_interval==TRUE){
+			this_service->notification_interval=template_service->notification_interval;
+			this_service->have_notification_interval=TRUE;
+	                }
+		if(this_service->have_first_notification_delay==FALSE && template_service->have_first_notification_delay==TRUE){
+			this_service->first_notification_delay=template_service->first_notification_delay;
+			this_service->have_first_notification_delay=TRUE;
+	                }
+		if(this_service->have_stalking_options==FALSE && template_service->have_stalking_options==TRUE){
+			this_service->stalk_on_ok=template_service->stalk_on_ok;
+			this_service->stalk_on_unknown=template_service->stalk_on_unknown;
+			this_service->stalk_on_warning=template_service->stalk_on_warning;
+			this_service->stalk_on_critical=template_service->stalk_on_critical;
+			this_service->have_stalking_options=TRUE;
+	                }
+		if(this_service->have_process_perf_data==FALSE && template_service->have_process_perf_data==TRUE){
+			this_service->process_perf_data=template_service->process_perf_data;
+			this_service->have_process_perf_data=TRUE;
+	                }
+		if(this_service->have_failure_prediction_enabled==FALSE && template_service->have_failure_prediction_enabled==TRUE){
+			this_service->failure_prediction_enabled=template_service->failure_prediction_enabled;
+			this_service->have_failure_prediction_enabled=TRUE;
+	                }
+		if(this_service->have_retain_status_information==FALSE && template_service->have_retain_status_information==TRUE){
+			this_service->retain_status_information=template_service->retain_status_information;
+			this_service->have_retain_status_information=TRUE;
+	                }
+		if(this_service->have_retain_nonstatus_information==FALSE && template_service->have_retain_nonstatus_information==TRUE){
+			this_service->retain_nonstatus_information=template_service->retain_nonstatus_information;
+			this_service->have_retain_nonstatus_information=TRUE;
+	                }
 	        }
 
-	/* resolve the template service... */
-	xodtemplate_resolve_service(template_service);
-
-	/* apply missing properties from template service... */
-	if(this_service->hostgroup_name==NULL && template_service->hostgroup_name!=NULL)
-		this_service->hostgroup_name=strdup(template_service->hostgroup_name);
-	if(this_service->host_name==NULL && template_service->host_name!=NULL)
-		this_service->host_name=strdup(template_service->host_name);
-	if(this_service->service_description==NULL && template_service->service_description!=NULL)
-		this_service->service_description=strdup(template_service->service_description);
-	if(this_service->servicegroups==NULL && template_service->servicegroups!=NULL)
-		this_service->servicegroups=strdup(template_service->servicegroups);
-	if(this_service->check_command==NULL && template_service->check_command!=NULL)
-		this_service->check_command=strdup(template_service->check_command);
-	if(this_service->check_period==NULL && template_service->check_period!=NULL)
-		this_service->check_period=strdup(template_service->check_period);
-	if(this_service->event_handler==NULL && template_service->event_handler!=NULL)
-		this_service->event_handler=strdup(template_service->event_handler);
-	if(this_service->notification_period==NULL && template_service->notification_period!=NULL)
-		this_service->notification_period=strdup(template_service->notification_period);
-	if(this_service->contact_groups==NULL && template_service->contact_groups!=NULL)
-		this_service->contact_groups=strdup(template_service->contact_groups);
-	if(this_service->failure_prediction_options==NULL && template_service->failure_prediction_options!=NULL)
-		this_service->failure_prediction_options=strdup(template_service->failure_prediction_options);
-	if(this_service->have_max_check_attempts==FALSE && template_service->have_max_check_attempts==TRUE){
-		this_service->max_check_attempts=template_service->max_check_attempts;
-		this_service->have_max_check_attempts=TRUE;
-	        }
-	if(this_service->have_normal_check_interval==FALSE && template_service->have_normal_check_interval==TRUE){
-		this_service->normal_check_interval=template_service->normal_check_interval;
-		this_service->have_normal_check_interval=TRUE;
-	        }
-	if(this_service->have_retry_check_interval==FALSE && template_service->have_retry_check_interval==TRUE){
-		this_service->retry_check_interval=template_service->retry_check_interval;
-		this_service->have_retry_check_interval=TRUE;
-	        }
-	if(this_service->have_active_checks_enabled==FALSE && template_service->have_active_checks_enabled==TRUE){
-		this_service->active_checks_enabled=template_service->active_checks_enabled;
-		this_service->have_active_checks_enabled=TRUE;
-	        }
-	if(this_service->have_passive_checks_enabled==FALSE && template_service->have_passive_checks_enabled==TRUE){
-		this_service->passive_checks_enabled=template_service->passive_checks_enabled;
-		this_service->have_passive_checks_enabled=TRUE;
-	        }
-	if(this_service->have_parallelize_check==FALSE && template_service->have_parallelize_check==TRUE){
-		this_service->parallelize_check=template_service->parallelize_check;
-		this_service->have_parallelize_check=TRUE;
-	        }
-	if(this_service->have_is_volatile==FALSE && template_service->have_is_volatile==TRUE){
-		this_service->is_volatile=template_service->is_volatile;
-		this_service->have_is_volatile=TRUE;
-	        }
-	if(this_service->have_obsess_over_service==FALSE && template_service->have_obsess_over_service==TRUE){
-		this_service->obsess_over_service=template_service->obsess_over_service;
-		this_service->have_obsess_over_service=TRUE;
-	        }
-	if(this_service->have_event_handler_enabled==FALSE && template_service->have_event_handler_enabled==TRUE){
-		this_service->event_handler_enabled=template_service->event_handler_enabled;
-		this_service->have_event_handler_enabled=TRUE;
-	        }
-	if(this_service->have_check_freshness==FALSE && template_service->have_check_freshness==TRUE){
-		this_service->check_freshness=template_service->check_freshness;
-		this_service->have_check_freshness=TRUE;
-	        }
-	if(this_service->have_freshness_threshold==FALSE && template_service->have_freshness_threshold==TRUE){
-		this_service->freshness_threshold=template_service->freshness_threshold;
-		this_service->have_freshness_threshold=TRUE;
-	        }
-	if(this_service->have_low_flap_threshold==FALSE && template_service->have_low_flap_threshold==TRUE){
-		this_service->low_flap_threshold=template_service->low_flap_threshold;
-		this_service->have_low_flap_threshold=TRUE;
-	        }
-	if(this_service->have_high_flap_threshold==FALSE && template_service->have_high_flap_threshold==TRUE){
-		this_service->high_flap_threshold=template_service->high_flap_threshold;
-		this_service->have_high_flap_threshold=TRUE;
-	        }
-	if(this_service->have_flap_detection_enabled==FALSE && template_service->have_flap_detection_enabled==TRUE){
-		this_service->flap_detection_enabled=template_service->flap_detection_enabled;
-		this_service->have_flap_detection_enabled=TRUE;
-	        }
-	if(this_service->have_notification_options==FALSE && template_service->have_notification_options==TRUE){
-		this_service->notify_on_unknown=template_service->notify_on_unknown;
-		this_service->notify_on_warning=template_service->notify_on_warning;
-		this_service->notify_on_critical=template_service->notify_on_critical;
-		this_service->notify_on_recovery=template_service->notify_on_recovery;
-		this_service->notify_on_flapping=template_service->notify_on_flapping;
-		this_service->have_notification_options=TRUE;
-	        }
-	if(this_service->have_notifications_enabled==FALSE && template_service->have_notifications_enabled==TRUE){
-		this_service->notifications_enabled=template_service->notifications_enabled;
-		this_service->have_notifications_enabled=TRUE;
-	        }
-	if(this_service->have_notification_interval==FALSE && template_service->have_notification_interval==TRUE){
-		this_service->notification_interval=template_service->notification_interval;
-		this_service->have_notification_interval=TRUE;
-	        }
-	if(this_service->have_stalking_options==FALSE && template_service->have_stalking_options==TRUE){
-		this_service->stalk_on_ok=template_service->stalk_on_ok;
-		this_service->stalk_on_unknown=template_service->stalk_on_unknown;
-		this_service->stalk_on_warning=template_service->stalk_on_warning;
-		this_service->stalk_on_critical=template_service->stalk_on_critical;
-		this_service->have_stalking_options=TRUE;
-	        }
-	if(this_service->have_process_perf_data==FALSE && template_service->have_process_perf_data==TRUE){
-		this_service->process_perf_data=template_service->process_perf_data;
-		this_service->have_process_perf_data=TRUE;
-	        }
-	if(this_service->have_failure_prediction_enabled==FALSE && template_service->have_failure_prediction_enabled==TRUE){
-		this_service->failure_prediction_enabled=template_service->failure_prediction_enabled;
-		this_service->have_failure_prediction_enabled=TRUE;
-	        }
-	if(this_service->have_retain_status_information==FALSE && template_service->have_retain_status_information==TRUE){
-		this_service->retain_status_information=template_service->retain_status_information;
-		this_service->have_retain_status_information=TRUE;
-	        }
-	if(this_service->have_retain_nonstatus_information==FALSE && template_service->have_retain_nonstatus_information==TRUE){
-		this_service->retain_nonstatus_information=template_service->retain_nonstatus_information;
-		this_service->have_retain_nonstatus_information=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_service() end\n");
@@ -6238,7 +7036,9 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 
 /* resolves a hostdependency object */
 int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdependency){
-	xodtemplate_hostdependency *template_hostdependency;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_hostdependency *template_hostdependency=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6258,46 +7058,68 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 	if(this_hostdependency->template==NULL)
 		return OK;
 
-	template_hostdependency=xodtemplate_find_hostdependency(this_hostdependency->template);
-	if(template_hostdependency==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host dependency definition could not be not found (config file '%s', starting on line %d)\n",this_hostdependency->template,xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_hostdependency->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_hostdependency=xodtemplate_find_hostdependency(temp_ptr);
+		if(template_hostdependency==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host dependency definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostdependency->_config_file),this_hostdependency->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(template_names);
+			return ERROR;
+	                }
+
+		/* resolve the template hostdependency... */
+		xodtemplate_resolve_hostdependency(template_hostdependency);
+
+		/* apply missing properties from template hostdependency... */
+		if(this_hostdependency->have_host_name==FALSE && template_hostdependency->have_host_name==TRUE){
+			if(this_hostdependency->host_name==NULL && template_hostdependency->host_name!=NULL)
+				this_hostdependency->host_name=strdup(template_hostdependency->host_name);
+			this_hostdependency->have_host_name=TRUE;
+		        }
+		if(this_hostdependency->have_dependent_host_name==FALSE && template_hostdependency->have_dependent_host_name==TRUE){
+			if(this_hostdependency->dependent_host_name==NULL && template_hostdependency->dependent_host_name!=NULL)
+				this_hostdependency->dependent_host_name=strdup(template_hostdependency->dependent_host_name);
+			this_hostdependency->have_dependent_host_name=TRUE;
+		        }
+		if(this_hostdependency->have_hostgroup_name==FALSE && template_hostdependency->have_hostgroup_name==TRUE){
+			if(this_hostdependency->hostgroup_name==NULL && template_hostdependency->hostgroup_name!=NULL)
+				this_hostdependency->hostgroup_name=strdup(template_hostdependency->hostgroup_name);
+			this_hostdependency->have_hostgroup_name=TRUE;
+		        }
+		if(this_hostdependency->have_dependent_hostgroup_name==FALSE && template_hostdependency->have_dependent_hostgroup_name==TRUE){
+			if(this_hostdependency->dependent_hostgroup_name==NULL && template_hostdependency->dependent_hostgroup_name!=NULL)
+				this_hostdependency->dependent_hostgroup_name=strdup(template_hostdependency->dependent_hostgroup_name);
+			this_hostdependency->have_dependent_hostgroup_name=TRUE;
+		        }
+		if(this_hostdependency->have_inherits_parent==FALSE && template_hostdependency->have_inherits_parent==TRUE){
+			this_hostdependency->inherits_parent=template_hostdependency->inherits_parent;
+			this_hostdependency->have_inherits_parent=TRUE;
+	                }
+		if(this_hostdependency->have_execution_dependency_options==FALSE && template_hostdependency->have_execution_dependency_options==TRUE){
+			this_hostdependency->fail_execute_on_up=template_hostdependency->fail_execute_on_up;
+			this_hostdependency->fail_execute_on_down=template_hostdependency->fail_execute_on_down;
+			this_hostdependency->fail_execute_on_unreachable=template_hostdependency->fail_execute_on_unreachable;
+			this_hostdependency->fail_execute_on_pending=template_hostdependency->fail_execute_on_pending;
+			this_hostdependency->have_execution_dependency_options=TRUE;
+	                }
+		if(this_hostdependency->have_notification_dependency_options==FALSE && template_hostdependency->have_notification_dependency_options==TRUE){
+			this_hostdependency->fail_notify_on_up=template_hostdependency->fail_notify_on_up;
+			this_hostdependency->fail_notify_on_down=template_hostdependency->fail_notify_on_down;
+			this_hostdependency->fail_notify_on_unreachable=template_hostdependency->fail_notify_on_unreachable;
+			this_hostdependency->fail_notify_on_pending=template_hostdependency->fail_notify_on_pending;
+			this_hostdependency->have_notification_dependency_options=TRUE;
+	                }
 	        }
 
-	/* resolve the template hostdependency... */
-	xodtemplate_resolve_hostdependency(template_hostdependency);
-
-	/* apply missing properties from template hostdependency... */
-	if(this_hostdependency->hostgroup_name==NULL && template_hostdependency->hostgroup_name!=NULL)
-		this_hostdependency->hostgroup_name=strdup(template_hostdependency->hostgroup_name);
-	if(this_hostdependency->dependent_hostgroup_name==NULL && template_hostdependency->dependent_hostgroup_name!=NULL)
-		this_hostdependency->dependent_hostgroup_name=strdup(template_hostdependency->dependent_hostgroup_name);
-	if(this_hostdependency->host_name==NULL && template_hostdependency->host_name!=NULL)
-		this_hostdependency->host_name=strdup(template_hostdependency->host_name);
-	if(this_hostdependency->dependent_host_name==NULL && template_hostdependency->dependent_host_name!=NULL)
-		this_hostdependency->dependent_host_name=strdup(template_hostdependency->dependent_host_name);
-	if(this_hostdependency->have_inherits_parent==FALSE && template_hostdependency->have_inherits_parent==TRUE){
-		this_hostdependency->inherits_parent=template_hostdependency->inherits_parent;
-		this_hostdependency->have_inherits_parent=TRUE;
-	        }
-	if(this_hostdependency->have_execution_dependency_options==FALSE && template_hostdependency->have_execution_dependency_options==TRUE){
-		this_hostdependency->fail_execute_on_up=template_hostdependency->fail_execute_on_up;
-		this_hostdependency->fail_execute_on_down=template_hostdependency->fail_execute_on_down;
-		this_hostdependency->fail_execute_on_unreachable=template_hostdependency->fail_execute_on_unreachable;
-		this_hostdependency->fail_execute_on_pending=template_hostdependency->fail_execute_on_pending;
-		this_hostdependency->have_execution_dependency_options=TRUE;
-	        }
-	if(this_hostdependency->have_notification_dependency_options==FALSE && template_hostdependency->have_notification_dependency_options==TRUE){
-		this_hostdependency->fail_notify_on_up=template_hostdependency->fail_notify_on_up;
-		this_hostdependency->fail_notify_on_down=template_hostdependency->fail_notify_on_down;
-		this_hostdependency->fail_notify_on_unreachable=template_hostdependency->fail_notify_on_unreachable;
-		this_hostdependency->fail_notify_on_pending=template_hostdependency->fail_notify_on_pending;
-		this_hostdependency->have_notification_dependency_options=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_hostdependency() end\n");
@@ -6309,7 +7131,9 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 
 /* resolves a hostescalation object */
 int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostescalation){
-	xodtemplate_hostescalation *template_hostescalation;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_hostescalation *template_hostescalation=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6329,44 +7153,67 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	if(this_hostescalation->template==NULL)
 		return OK;
 
-	template_hostescalation=xodtemplate_find_hostescalation(this_hostescalation->template);
-	if(template_hostescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host escalation definition could not be not found (config file '%s', starting on line %d)\n",this_hostescalation->template,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_hostescalation->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_hostescalation=xodtemplate_find_hostescalation(temp_ptr);
+		if(template_hostescalation==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in host escalation definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+
+		/* resolve the template hostescalation... */
+		xodtemplate_resolve_hostescalation(template_hostescalation);
+
+		/* apply missing properties from template hostescalation... */
+		if(this_hostescalation->have_host_name==FALSE && template_hostescalation->have_host_name==TRUE){
+			if(this_hostescalation->host_name==NULL && template_hostescalation->host_name!=NULL)
+				this_hostescalation->host_name=strdup(template_hostescalation->host_name);
+			this_hostescalation->have_host_name=TRUE;
+		        }
+		if(this_hostescalation->have_hostgroup_name==FALSE && template_hostescalation->have_hostgroup_name==TRUE){
+			if(this_hostescalation->hostgroup_name==NULL && template_hostescalation->hostgroup_name!=NULL)
+				this_hostescalation->hostgroup_name=strdup(template_hostescalation->hostgroup_name);
+			this_hostescalation->have_hostgroup_name=TRUE;
+		        }
+		if(this_hostescalation->have_escalation_period==FALSE && template_hostescalation->have_escalation_period==TRUE){
+			if(this_hostescalation->escalation_period==NULL && template_hostescalation->escalation_period!=NULL)
+				this_hostescalation->escalation_period=strdup(template_hostescalation->escalation_period);
+			this_hostescalation->have_escalation_period=TRUE;
+		        }
+		if(this_hostescalation->have_contact_groups==FALSE && template_hostescalation->have_contact_groups==TRUE){
+			if(this_hostescalation->contact_groups==NULL && template_hostescalation->contact_groups!=NULL)
+				this_hostescalation->contact_groups=strdup(template_hostescalation->contact_groups);
+			this_hostescalation->have_contact_groups=TRUE;
+		        }
+		if(this_hostescalation->have_first_notification==FALSE && template_hostescalation->have_first_notification==TRUE){
+			this_hostescalation->first_notification=template_hostescalation->first_notification;
+			this_hostescalation->have_first_notification=TRUE;
+	                }
+		if(this_hostescalation->have_last_notification==FALSE && template_hostescalation->have_last_notification==TRUE){
+			this_hostescalation->last_notification=template_hostescalation->last_notification;
+			this_hostescalation->have_last_notification=TRUE;
+	                }
+		if(this_hostescalation->have_notification_interval==FALSE && template_hostescalation->have_notification_interval==TRUE){
+			this_hostescalation->notification_interval=template_hostescalation->notification_interval;
+			this_hostescalation->have_notification_interval=TRUE;
+	                }
+		if(this_hostescalation->have_escalation_options==FALSE && template_hostescalation->have_escalation_options==TRUE){
+			this_hostescalation->escalate_on_down=template_hostescalation->escalate_on_down;
+			this_hostescalation->escalate_on_unreachable=template_hostescalation->escalate_on_unreachable;
+			this_hostescalation->escalate_on_recovery=template_hostescalation->escalate_on_recovery;
+			this_hostescalation->have_escalation_options=TRUE;
+	                }
 	        }
 
-	/* resolve the template hostescalation... */
-	xodtemplate_resolve_hostescalation(template_hostescalation);
-
-	/* apply missing properties from template hostescalation... */
-	if(this_hostescalation->host_name==NULL && template_hostescalation->host_name!=NULL)
-		this_hostescalation->host_name=strdup(template_hostescalation->host_name);
-	if(this_hostescalation->escalation_period==NULL && template_hostescalation->escalation_period!=NULL)
-		this_hostescalation->escalation_period=strdup(template_hostescalation->escalation_period);
-	if(this_hostescalation->contact_groups==NULL && template_hostescalation->contact_groups!=NULL)
-		this_hostescalation->contact_groups=strdup(template_hostescalation->contact_groups);
-	if(this_hostescalation->have_first_notification==FALSE && template_hostescalation->have_first_notification==TRUE){
-		this_hostescalation->first_notification=template_hostescalation->first_notification;
-		this_hostescalation->have_first_notification=TRUE;
-	        }
-	if(this_hostescalation->have_last_notification==FALSE && template_hostescalation->have_last_notification==TRUE){
-		this_hostescalation->last_notification=template_hostescalation->last_notification;
-		this_hostescalation->have_last_notification=TRUE;
-	        }
-	if(this_hostescalation->have_notification_interval==FALSE && template_hostescalation->have_notification_interval==TRUE){
-		this_hostescalation->notification_interval=template_hostescalation->notification_interval;
-		this_hostescalation->have_notification_interval=TRUE;
-	        }
-	if(this_hostescalation->have_escalation_options==FALSE && template_hostescalation->have_escalation_options==TRUE){
-		this_hostescalation->escalate_on_down=template_hostescalation->escalate_on_down;
-		this_hostescalation->escalate_on_unreachable=template_hostescalation->escalate_on_unreachable;
-		this_hostescalation->escalate_on_recovery=template_hostescalation->escalate_on_recovery;
-		this_hostescalation->have_escalation_options=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_hostdependency() end\n");
@@ -6379,7 +7226,9 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 
 /* resolves a hostextinfo object */
 int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
-	xodtemplate_hostextinfo *template_hostextinfo;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_hostextinfo *template_hostextinfo=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6399,49 +7248,85 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	if(this_hostextinfo->template==NULL)
 		return OK;
 
-	template_hostextinfo=xodtemplate_find_hostextinfo(this_hostextinfo->template);
-	if(template_hostextinfo==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', starting on line %d)\n",this_hostextinfo->template,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_hostextinfo->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_hostextinfo=xodtemplate_find_hostextinfo(temp_ptr);
+		if(template_hostextinfo==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended host info definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+
+		/* resolve the template hostextinfo... */
+		xodtemplate_resolve_hostextinfo(template_hostextinfo);
+
+		/* apply missing properties from template hostextinfo... */
+		if(this_hostextinfo->have_host_name==FALSE && template_hostextinfo->have_host_name==TRUE){
+			if(this_hostextinfo->host_name==NULL && template_hostextinfo->host_name!=NULL)
+				this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
+			this_hostextinfo->have_host_name=TRUE;
+		        }
+		if(this_hostextinfo->have_hostgroup_name==FALSE && template_hostextinfo->have_hostgroup_name==TRUE){
+			if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
+				this_hostextinfo->hostgroup_name=strdup(template_hostextinfo->hostgroup_name);
+			this_hostextinfo->have_hostgroup_name=TRUE;
+		        }
+		if(this_hostextinfo->have_notes==FALSE && template_hostextinfo->have_notes==TRUE){
+			if(this_hostextinfo->notes==NULL && template_hostextinfo->notes!=NULL)
+				this_hostextinfo->notes=strdup(template_hostextinfo->notes);
+			this_hostextinfo->have_notes=TRUE;
+		        }
+		if(this_hostextinfo->have_notes_url==FALSE && template_hostextinfo->have_notes_url==TRUE){
+			if(this_hostextinfo->notes_url==NULL && template_hostextinfo->notes_url!=NULL)
+				this_hostextinfo->notes_url=strdup(template_hostextinfo->notes_url);
+			this_hostextinfo->have_notes_url=TRUE;
+		        }
+		if(this_hostextinfo->have_action_url==FALSE && template_hostextinfo->have_action_url==TRUE){
+			if(this_hostextinfo->action_url==NULL && template_hostextinfo->action_url!=NULL)
+				this_hostextinfo->action_url=strdup(template_hostextinfo->action_url);
+			this_hostextinfo->have_action_url=TRUE;
+		        }
+		if(this_hostextinfo->have_icon_image==FALSE && template_hostextinfo->have_icon_image==TRUE){
+			if(this_hostextinfo->icon_image==NULL && template_hostextinfo->icon_image!=NULL)
+				this_hostextinfo->icon_image=strdup(template_hostextinfo->icon_image);
+			this_hostextinfo->have_icon_image=TRUE;
+		        }
+		if(this_hostextinfo->have_icon_image_alt==FALSE && template_hostextinfo->have_icon_image_alt==TRUE){
+			if(this_hostextinfo->icon_image_alt==NULL && template_hostextinfo->icon_image_alt!=NULL)
+				this_hostextinfo->icon_image_alt=strdup(template_hostextinfo->icon_image_alt);
+			this_hostextinfo->have_icon_image_alt=TRUE;
+		        }
+		if(this_hostextinfo->have_vrml_image==FALSE && template_hostextinfo->have_vrml_image==TRUE){
+			if(this_hostextinfo->vrml_image==NULL && template_hostextinfo->vrml_image!=NULL)
+				this_hostextinfo->vrml_image=strdup(template_hostextinfo->vrml_image);
+			this_hostextinfo->have_vrml_image=TRUE;
+		        }
+		if(this_hostextinfo->have_statusmap_image==FALSE && template_hostextinfo->have_statusmap_image==TRUE){
+			if(this_hostextinfo->statusmap_image==NULL && template_hostextinfo->statusmap_image!=NULL)
+				this_hostextinfo->statusmap_image=strdup(template_hostextinfo->statusmap_image);
+			this_hostextinfo->have_statusmap_image=TRUE;
+		        }
+		if(this_hostextinfo->have_2d_coords==FALSE && template_hostextinfo->have_2d_coords==TRUE){
+			this_hostextinfo->x_2d=template_hostextinfo->x_2d;
+			this_hostextinfo->y_2d=template_hostextinfo->y_2d;
+			this_hostextinfo->have_2d_coords=TRUE;
+	                }
+		if(this_hostextinfo->have_3d_coords==FALSE && template_hostextinfo->have_3d_coords==TRUE){
+			this_hostextinfo->x_3d=template_hostextinfo->x_3d;
+			this_hostextinfo->y_3d=template_hostextinfo->y_3d;
+			this_hostextinfo->z_3d=template_hostextinfo->z_3d;
+			this_hostextinfo->have_3d_coords=TRUE;
+	                }
 	        }
 
-	/* resolve the template hostextinfo... */
-	xodtemplate_resolve_hostextinfo(template_hostextinfo);
-
-	/* apply missing properties from template hostextinfo... */
-	if(this_hostextinfo->host_name==NULL && template_hostextinfo->host_name!=NULL)
-		this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
-	if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
-		this_hostextinfo->hostgroup_name=strdup(template_hostextinfo->hostgroup_name);
-	if(this_hostextinfo->notes==NULL && template_hostextinfo->notes!=NULL)
-		this_hostextinfo->notes=strdup(template_hostextinfo->notes);
-	if(this_hostextinfo->notes_url==NULL && template_hostextinfo->notes_url!=NULL)
-		this_hostextinfo->notes_url=strdup(template_hostextinfo->notes_url);
-	if(this_hostextinfo->action_url==NULL && template_hostextinfo->action_url!=NULL)
-		this_hostextinfo->action_url=strdup(template_hostextinfo->action_url);
-	if(this_hostextinfo->icon_image==NULL && template_hostextinfo->icon_image!=NULL)
-		this_hostextinfo->icon_image=strdup(template_hostextinfo->icon_image);
-	if(this_hostextinfo->icon_image_alt==NULL && template_hostextinfo->icon_image_alt!=NULL)
-		this_hostextinfo->icon_image_alt=strdup(template_hostextinfo->icon_image_alt);
-	if(this_hostextinfo->vrml_image==NULL && template_hostextinfo->vrml_image!=NULL)
-		this_hostextinfo->vrml_image=strdup(template_hostextinfo->vrml_image);
-	if(this_hostextinfo->statusmap_image==NULL && template_hostextinfo->statusmap_image!=NULL)
-		this_hostextinfo->statusmap_image=strdup(template_hostextinfo->statusmap_image);
-	if(this_hostextinfo->have_2d_coords==FALSE && template_hostextinfo->have_2d_coords==TRUE){
-		this_hostextinfo->x_2d=template_hostextinfo->x_2d;
-		this_hostextinfo->y_2d=template_hostextinfo->y_2d;
-		this_hostextinfo->have_2d_coords=TRUE;
-	        }
-	if(this_hostextinfo->have_3d_coords==FALSE && template_hostextinfo->have_3d_coords==TRUE){
-		this_hostextinfo->x_3d=template_hostextinfo->x_3d;
-		this_hostextinfo->y_3d=template_hostextinfo->y_3d;
-		this_hostextinfo->z_3d=template_hostextinfo->z_3d;
-		this_hostextinfo->have_3d_coords=TRUE;
-	        }
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_hostextinfo() end\n");
@@ -6454,7 +7339,9 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 
 /* resolves a serviceextinfo object */
 int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo){
-	xodtemplate_serviceextinfo *template_serviceextinfo;
+	char *temp_ptr=NULL;
+	char *template_names=NULL;
+	xodtemplate_serviceextinfo *template_serviceextinfo=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6474,36 +7361,69 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	if(this_serviceextinfo->template==NULL)
 		return OK;
 
-	template_serviceextinfo=xodtemplate_find_serviceextinfo(this_serviceextinfo->template);
-	if(template_serviceextinfo==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', starting on line %d)\n",this_serviceextinfo->template,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((template_names=strdup(this_serviceextinfo->template))==NULL)
 		return ERROR;
+
+	/* apply all templates */
+	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+
+		template_serviceextinfo=xodtemplate_find_serviceextinfo(temp_ptr);
+		if(template_serviceextinfo==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Template '%s' specified in extended service info definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+
+		/* resolve the template serviceextinfo... */
+		xodtemplate_resolve_serviceextinfo(template_serviceextinfo);
+
+		/* apply missing properties from template serviceextinfo... */
+		if(this_serviceextinfo->have_host_name==FALSE && template_serviceextinfo->have_host_name==TRUE){
+			if(this_serviceextinfo->host_name==NULL && template_serviceextinfo->host_name!=NULL)
+				this_serviceextinfo->host_name=strdup(template_serviceextinfo->host_name);
+			this_serviceextinfo->have_host_name=TRUE;
+		        }
+		if(this_serviceextinfo->have_hostgroup_name==FALSE && template_serviceextinfo->have_hostgroup_name==TRUE){
+		if(this_serviceextinfo->hostgroup_name==NULL && template_serviceextinfo->hostgroup_name!=NULL)
+			this_serviceextinfo->hostgroup_name=strdup(template_serviceextinfo->hostgroup_name);
+			this_serviceextinfo->have_hostgroup_name=TRUE;
+		        }
+		if(this_serviceextinfo->have_service_description==FALSE && template_serviceextinfo->have_service_description==TRUE){
+		if(this_serviceextinfo->service_description==NULL && template_serviceextinfo->service_description!=NULL)
+			this_serviceextinfo->service_description=strdup(template_serviceextinfo->service_description);
+			this_serviceextinfo->have_service_description=TRUE;
+		        }
+		if(this_serviceextinfo->have_notes==FALSE && template_serviceextinfo->have_notes==TRUE){
+		if(this_serviceextinfo->notes==NULL && template_serviceextinfo->notes!=NULL)
+			this_serviceextinfo->notes=strdup(template_serviceextinfo->notes);
+			this_serviceextinfo->have_notes=TRUE;
+		        }
+		if(this_serviceextinfo->have_notes_url==FALSE && template_serviceextinfo->have_notes_url==TRUE){
+		if(this_serviceextinfo->notes_url==NULL && template_serviceextinfo->notes_url!=NULL)
+			this_serviceextinfo->notes_url=strdup(template_serviceextinfo->notes_url);
+			this_serviceextinfo->have_notes_url=TRUE;
+		        }
+		if(this_serviceextinfo->have_action_url==FALSE && template_serviceextinfo->have_action_url==TRUE){
+		if(this_serviceextinfo->action_url==NULL && template_serviceextinfo->action_url!=NULL)
+			this_serviceextinfo->action_url=strdup(template_serviceextinfo->action_url);
+			this_serviceextinfo->have_action_url=TRUE;
+		        }
+		if(this_serviceextinfo->have_icon_image==FALSE && template_serviceextinfo->have_icon_image==TRUE){
+		if(this_serviceextinfo->icon_image==NULL && template_serviceextinfo->icon_image!=NULL)
+			this_serviceextinfo->icon_image=strdup(template_serviceextinfo->icon_image);
+			this_serviceextinfo->have_icon_image=TRUE;
+		        }
+		if(this_serviceextinfo->have_icon_image_alt==FALSE && template_serviceextinfo->have_icon_image_alt==TRUE){
+		if(this_serviceextinfo->icon_image_alt==NULL && template_serviceextinfo->icon_image_alt!=NULL)
+			this_serviceextinfo->icon_image_alt=strdup(template_serviceextinfo->icon_image_alt);
+			this_serviceextinfo->have_icon_image_alt=TRUE;
+		        }
 	        }
 
-	/* resolve the template serviceextinfo... */
-	xodtemplate_resolve_serviceextinfo(template_serviceextinfo);
-
-	/* apply missing properties from template serviceextinfo... */
-	if(this_serviceextinfo->host_name==NULL && template_serviceextinfo->host_name!=NULL)
-		this_serviceextinfo->host_name=strdup(template_serviceextinfo->host_name);
-	if(this_serviceextinfo->hostgroup_name==NULL && template_serviceextinfo->hostgroup_name!=NULL)
-		this_serviceextinfo->hostgroup_name=strdup(template_serviceextinfo->hostgroup_name);
-	if(this_serviceextinfo->service_description==NULL && template_serviceextinfo->service_description!=NULL)
-		this_serviceextinfo->service_description=strdup(template_serviceextinfo->service_description);
-	if(this_serviceextinfo->notes==NULL && template_serviceextinfo->notes!=NULL)
-		this_serviceextinfo->notes=strdup(template_serviceextinfo->notes);
-	if(this_serviceextinfo->notes_url==NULL && template_serviceextinfo->notes_url!=NULL)
-		this_serviceextinfo->notes_url=strdup(template_serviceextinfo->notes_url);
-	if(this_serviceextinfo->action_url==NULL && template_serviceextinfo->action_url!=NULL)
-		this_serviceextinfo->action_url=strdup(template_serviceextinfo->action_url);
-	if(this_serviceextinfo->icon_image==NULL && template_serviceextinfo->icon_image!=NULL)
-		this_serviceextinfo->icon_image=strdup(template_serviceextinfo->icon_image);
-	if(this_serviceextinfo->icon_image_alt==NULL && template_serviceextinfo->icon_image_alt!=NULL)
-		this_serviceextinfo->icon_image_alt=strdup(template_serviceextinfo->icon_image_alt);
+	free(template_names);
 
 #ifdef DEBUG0
 	printf("xodtemplate_resolve_serviceextinfo() end\n");
@@ -6545,11 +7465,11 @@ int xodtemplate_recombobulate_contactgroups(void){
 	for(temp_contact=xodtemplate_contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
 
 		/* skip contacts without contactgroup directives or contact names */
-		if(temp_contact->contactgroups==NULL || temp_contact->contact_name==NULL)
+		if(temp_contact->contact_groups==NULL || temp_contact->contact_name==NULL)
 			continue;
 
 		/* process the list of contactgroups */
-		contactgroup_names=strdup(temp_contact->contactgroups);
+		contactgroup_names=strdup(temp_contact->contact_groups);
 		if(contactgroup_names==NULL)
 			continue;
 		for(temp_ptr=strtok(contactgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -6655,7 +7575,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* skip hosts without hostgroup directives or host names */
-		if(temp_host->hostgroups==NULL || temp_host->host_name==NULL)
+		if(temp_host->host_groups==NULL || temp_host->host_name==NULL)
 			continue;
 
 		/* skip hosts that shouldn't be registered */
@@ -6663,7 +7583,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* process the list of hostgroups */
-		hostgroup_names=strdup(temp_host->hostgroups);
+		hostgroup_names=strdup(temp_host->host_groups);
 		if(hostgroup_names==NULL)
 			continue;
 		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -6777,7 +7697,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 
 		/* skip services without servicegroup directives or service names */
-		if(temp_service->servicegroups==NULL || temp_service->host_name==NULL || temp_service->service_description==NULL)
+		if(temp_service->service_groups==NULL || temp_service->host_name==NULL || temp_service->service_description==NULL)
 			continue;
 
 		/* skip services that shouldn't be registered */
@@ -6785,7 +7705,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 			continue;
 
 		/* process the list of servicegroups */
-		servicegroup_names=strdup(temp_service->servicegroups);
+		servicegroup_names=strdup(temp_service->service_groups);
 		if(servicegroup_names==NULL)
 			continue;
 		for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -8039,7 +8959,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		this_host->address=strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 #ifdef TEST_DEBUG
 	printf("HOST: %s, MAXATTEMPTS: %d, NOTINVERVAL: %d \n",this_host->host_name,this_host->max_check_attempts,this_host->notification_interval);
@@ -8117,7 +9037,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		return OK;
 
 	/* add the service */
-	new_service=add_service(this_service->host_name,this_service->service_description,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
+	new_service=add_service(this_service->host_name,this_service->service_description,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
@@ -9470,6 +10390,17 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\tlow_flap_threshold\t%f\n",temp_host->low_flap_threshold);
 		fprintf(fp,"\thigh_flap_threshold\t%f\n",temp_host->high_flap_threshold);
 		fprintf(fp,"\tflap_detection_enabled\t%d\n",temp_host->flap_detection_enabled);
+		fprintf(fp,"\tflap_detection_options\t");
+		x=0;
+		if(temp_host->flap_detection_on_up==TRUE)
+			fprintf(fp,"%so",(x++>0)?",":"");
+		if(temp_host->flap_detection_on_down==TRUE)
+			fprintf(fp,"%sd",(x++>0)?",":"");
+		if(temp_host->flap_detection_on_unreachable==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
 		fprintf(fp,"\tfreshness_threshold\t%d\n",temp_host->freshness_threshold);
 		fprintf(fp,"\tcheck_freshness\t%d\n",temp_host->check_freshness);
 		fprintf(fp,"\tnotification_options\t");
@@ -9487,6 +10418,7 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\n");
 		fprintf(fp,"\tnotifications_enabled\t%d\n",temp_host->notifications_enabled);
 		fprintf(fp,"\tnotification_interval\t%d\n",temp_host->notification_interval);
+		fprintf(fp,"\tfirst_notification_delay\t%d\n",temp_host->first_notification_delay);
 		fprintf(fp,"\tstalking_options\t");
 		x=0;
 		if(temp_host->stalk_on_up==TRUE)
@@ -9539,6 +10471,19 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\tlow_flap_threshold\t%f\n",temp_service->low_flap_threshold);
 		fprintf(fp,"\thigh_flap_threshold\t%f\n",temp_service->high_flap_threshold);
 		fprintf(fp,"\tflap_detection_enabled\t%d\n",temp_service->flap_detection_enabled);
+		fprintf(fp,"\tflap_detection_options\t");
+		x=0;
+		if(temp_service->flap_detection_on_ok==TRUE)
+			fprintf(fp,"%so",(x++>0)?",":"");
+		if(temp_service->flap_detection_on_warning==TRUE)
+			fprintf(fp,"%sw",(x++>0)?",":"");
+		if(temp_service->flap_detection_on_unknown==TRUE)
+			fprintf(fp,"%su",(x++>0)?",":"");
+		if(temp_service->flap_detection_on_critical==TRUE)
+			fprintf(fp,"%sc",(x++>0)?",":"");
+		if(x==0)
+			fprintf(fp,"n");
+		fprintf(fp,"\n");
 		fprintf(fp,"\tfreshness_threshold\t%d\n",temp_service->freshness_threshold);
 		fprintf(fp,"\tcheck_freshness\t%d\n",temp_service->check_freshness);
 		fprintf(fp,"\tnotification_options\t");
@@ -9558,6 +10503,7 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\n");
 		fprintf(fp,"\tnotifications_enabled\t%d\n",temp_service->notifications_enabled);
 		fprintf(fp,"\tnotification_interval\t%d\n",temp_service->notification_interval);
+		fprintf(fp,"\tfirst_notification_delay\t%d\n",temp_service->first_notification_delay);
 		fprintf(fp,"\tstalking_options\t");
 		x=0;
 		if(temp_service->stalk_on_ok==TRUE)
@@ -9937,7 +10883,7 @@ int xodtemplate_free_memory(void){
 		free(this_contact->name);
 		free(this_contact->contact_name);
 		free(this_contact->alias);
-		free(this_contact->contactgroups);
+		free(this_contact->contact_groups);
 		free(this_contact->email);
 		free(this_contact->pager);
 		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++)
@@ -9959,7 +10905,7 @@ int xodtemplate_free_memory(void){
 		free(this_host->alias);
 		free(this_host->address);
 		free(this_host->parents);
-		free(this_host->hostgroups);
+		free(this_host->host_groups);
 		free(this_host->check_command);
 		free(this_host->check_period);
 		free(this_host->event_handler);
@@ -9978,7 +10924,7 @@ int xodtemplate_free_memory(void){
 		free(this_service->hostgroup_name);
 		free(this_service->host_name);
 		free(this_service->service_description);
-		free(this_service->servicegroups);
+		free(this_service->service_groups);
 		free(this_service->check_command);
 		free(this_service->check_period);
 		free(this_service->event_handler);

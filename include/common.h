@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-01-2005
+ * Last Modified: 02-21-2006
  *
  * License:
  *
@@ -21,8 +21,11 @@
  ************************************************************************/
 
 
-#define PROGRAM_VERSION "2.0"
-#define PROGRAM_MODIFICATION_DATE "02-07-2006"
+#define PROGRAM_VERSION "3.0-prealpha-02222006"
+#define PROGRAM_MODIFICATION_DATE "02-22-2006"
+
+/*#define DEBUG_CHECK_IPC 1*/
+/*#define DEBUG_CHECK_IPC2 1*/
 
 
 
@@ -256,6 +259,14 @@
 #define CMD_SET_HOST_NOTIFICATION_NUMBER                142
 #define CMD_SET_SVC_NOTIFICATION_NUMBER                 143
 
+#define CMD_CHANGE_HOST_CHECK_TIMEPERIOD                144
+#define CMD_CHANGE_SVC_CHECK_TIMEPERIOD                 145
+
+#define CMD_CHANGE_CUSTOM_HOST_VAR                      146
+#define CMD_CHANGE_CUSTOM_SVC_VAR                       147
+
+#define CMD_PROCESS_FILE                                148
+
 
 
 /************************ SERVICE CHECK TYPES ****************************/
@@ -402,6 +413,7 @@
 #define MODATTR_RETRY_CHECK_INTERVAL            2048
 #define MODATTR_MAX_CHECK_ATTEMPTS              4096
 #define MODATTR_FRESHNESS_CHECKS_ENABLED        8192
-
+#define MODATTR_CHECK_TIMEPERIOD                16384
+#define MODATTR_CUSTOM_VARIABLE                 32768
 
 	

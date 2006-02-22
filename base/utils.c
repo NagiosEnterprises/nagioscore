@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-02-2006
+ * Last Modified:   02-21-2006
  *
  * License:
  *
@@ -142,7 +142,7 @@ extern time_t   last_log_rotation;
 extern int      verify_config;
 extern int      test_scheduling;
 
-extern service_message svc_msg;
+extern check_result check_result_info;
 extern int      ipc_pipe[2];
 
 extern int      max_parallel_service_checks;
@@ -203,7 +203,7 @@ extern char     *tzname[2];
 #endif
 #endif
 
-extern service_message svc_msg;
+extern dbuf     check_result_dbuf;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
@@ -445,6 +445,14 @@ int grab_service_macros(service *svc){
 		macro_x[MACRO_SERVICEOUTPUT]=NULL;
 	else
 		macro_x[MACRO_SERVICEOUTPUT]=strdup(svc->plugin_output);
+
+	/* get the long plugin output */
+	if(macro_x[MACRO_LONGSERVICEOUTPUT]!=NULL)
+		free(macro_x[MACRO_LONGSERVICEOUTPUT]);
+	if(svc->long_plugin_output==NULL)
+		macro_x[MACRO_LONGSERVICEOUTPUT]=NULL;
+	else
+		macro_x[MACRO_LONGSERVICEOUTPUT]=strdup(svc->long_plugin_output);
 
 	/* get the performance data */
 	if(macro_x[MACRO_SERVICEPERFDATA]!=NULL)
@@ -776,6 +784,14 @@ int grab_host_macros(host *hst){
 		macro_x[MACRO_HOSTOUTPUT]=NULL;
 	else
 		macro_x[MACRO_HOSTOUTPUT]=strdup(hst->plugin_output);
+
+	/* get the long plugin output */
+	if(macro_x[MACRO_LONGHOSTOUTPUT]!=NULL)
+		free(macro_x[MACRO_LONGHOSTOUTPUT]);
+	if(hst->long_plugin_output==NULL)
+		macro_x[MACRO_LONGHOSTOUTPUT]=NULL;
+	else
+		macro_x[MACRO_LONGHOSTOUTPUT]=strdup(hst->long_plugin_output);
 
 	/* get the performance data */
 	if(macro_x[MACRO_HOSTPERFDATA]!=NULL)
@@ -1267,6 +1283,16 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		        }
 	        }
 
+	/* get the long plugin output */
+	else if(!strcmp(macro,"LONGHOSTOUTPUT")){
+		if(hst->long_plugin_output==NULL)
+			macro_ondemand=NULL;
+		else{
+			macro_ondemand=strdup(hst->long_plugin_output);
+			strip(macro_ondemand);
+		        }
+	        }
+
 	/* get the performance data */
 	else if(!strcmp(macro,"HOSTPERFDATA")){
 		if(hst->perf_data==NULL)
@@ -1494,6 +1520,16 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			macro_ondemand=NULL;
 		else{
 			macro_ondemand=strdup(svc->plugin_output);
+			strip(macro_ondemand);
+		        }
+	        }
+
+	/* get the long plugin output */
+	if(!strcmp(macro,"LONGSERVICEOUTPUT")){
+		if(svc->long_plugin_output==NULL)
+			macro_ondemand=NULL;
+		else{
+			macro_ondemand=strdup(svc->long_plugin_output);
 			strip(macro_ondemand);
 		        }
 	        }
@@ -2389,6 +2425,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_PROCESSSTARTTIME,"PROCESSSTARTTIME");
 	add_macrox_name(MACRO_HOSTCHECKTYPE,"HOSTCHECKTYPE");
 	add_macrox_name(MACRO_SERVICECHECKTYPE,"SERVICECHECKTYPE");
+	add_macrox_name(MACRO_LONGHOSTOUTPUT,"LONGHOSTOUTPUT");
+	add_macrox_name(MACRO_LONGSERVICEOUTPUT,"LONGSERVICEOUTPUT");
 
 #ifdef DEBUG0
 	printf("init_macrox_names() end\n");
@@ -3432,19 +3470,23 @@ void service_check_sighandler(int sig){
 	/* get the current time */
 	gettimeofday(&end_time,NULL);
 
-	/* write plugin check results to message queue */
-	strncpy(svc_msg.output,"(Service Check Timed Out)",sizeof(svc_msg.output)-1);
-	svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
+	/* write plugin check results to temp file */
+	if(check_result_info.output_file_fp){
+		fputs("(Service Check Timed Out)",check_result_info.output_file_fp);
+		fclose(check_result_info.output_file_fp);
+		close(check_result_info.output_file_fd);
+	        }
+
 #ifdef SERVICE_CHECK_TIMEOUTS_RETURN_UNKNOWN
-	svc_msg.return_code=STATE_UNKNOWN;
+	check_result_info.return_code=STATE_UNKNOWN;
 #else
-	svc_msg.return_code=STATE_CRITICAL;
+	check_result_info.return_code=STATE_CRITICAL;
 #endif
-	svc_msg.exited_ok=TRUE;
-	svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-	svc_msg.finish_time=end_time;
-	svc_msg.early_timeout=TRUE;
-	write_svc_message(&svc_msg);
+	check_result_info.finish_time=end_time;
+	check_result_info.early_timeout=TRUE;
+
+	/* write check result to message queue */
+	write_check_result(&check_result_info);
 
 	/* close write end of IPC pipe */
 	close(ipc_pipe[1]);
@@ -3758,22 +3800,20 @@ int drop_privileges(char *user, char *group){
 /************************* IPC FUNCTIONS **************************/
 /******************************************************************/
 
-
-
-/* reads a service message from the circular buffer */
-int read_svc_message(service_message *message){
+/* reads a host/service check result from the circular buffer */
+int read_check_result(check_result *info){
 	char buffer[MAX_INPUT_BUFFER];
 	int result;
 
 #ifdef DEBUG0
-	printf("read_svc_message() start\n");
+	printf("read_check_result() start\n");
 #endif
 
-	if(message==NULL)
+	if(info==NULL)
 		return -1;
 
 	/* clear the message buffer */
-	memset((void *)message,0,sizeof(service_message));
+	memset((void *)info,0,sizeof(check_result));
 
 	/* get a lock on the buffer */
 	pthread_mutex_lock(&service_result_buffer.buffer_lock);
@@ -3782,7 +3822,7 @@ int read_svc_message(service_message *message){
 	if(service_result_buffer.overflow>0){
 
 		/* log the warning */
-		snprintf(buffer,sizeof(buffer)-1,"Warning: Overflow detected in service check result buffer - %lu message(s) lost.\n",service_result_buffer.overflow);
+		snprintf(buffer,sizeof(buffer)-1,"Warning: Overflow detected in check result buffer - %lu check result(s) lost.\n",service_result_buffer.overflow);
 		buffer[sizeof(buffer)-1]='\x0';
 		write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
@@ -3792,53 +3832,80 @@ int read_svc_message(service_message *message){
 
 	/* there are no items in the buffer */
 	if(service_result_buffer.items==0)
-		result=-1;
+		result=0;
 
-	/* return the message from the tail of the buffer */
+	/* return the result from the tail of the buffer */
 	else{
 		
-		/* copy message to user-supplied structure */
-		memcpy(message,((service_message **)service_result_buffer.buffer)[service_result_buffer.tail],sizeof(service_message));
+		/* copy result to user-supplied structure */
+		memcpy(info,((check_result **)service_result_buffer.buffer)[service_result_buffer.tail],sizeof(check_result));
 
 		/* free memory allocated for buffer slot */
-		free(((service_message **)service_result_buffer.buffer)[service_result_buffer.tail]);
+		free(((check_result **)service_result_buffer.buffer)[service_result_buffer.tail]);
 		service_result_buffer.buffer[service_result_buffer.tail]=NULL;
 
 		/* adjust tail counter and number of items */
 		service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
 		service_result_buffer.items--;
 
-		result=0;
+		result=1;
 	        }
 
 	/* release the lock on the buffer */
 	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 
 #ifdef DEBUG0
-	printf("read_svc_message() end\n");
+	printf("read_check_result() end\n");
 #endif
 
 	return result;
 	}
 
 
-
-/* writes a service message to the message pipe */
-int write_svc_message(service_message *message){
+/* writes host/service check result info to the message pipe */
+int write_check_result(check_result *info){
+	char buf[MAX_INPUT_BUFFER];
+	int tbytes=0;
+	int buflen=0;
 	struct timeval tv;
-	int write_result;
+	int write_result=0;
 
 #ifdef DEBUG0
-	printf("write_svc_message() start\n");
+	printf("write_check_result() start\n");
 #endif
 
-	if(message==NULL)
+	if(info==NULL)
 		return 0;
 
-	while(1){
+	snprintf(buf,sizeof(buf),
+		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%s\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
+		 ,1,info->object_check_type
+		 ,2,(info->host_name==NULL)?"":info->host_name
+		 ,3,(info->service_description==NULL)?"":info->service_description
+		 ,4,info->check_type
+		 ,5,info->parallelized
+		 ,6,(info->output_file==NULL)?"":info->output_file
+		 ,7,info->start_time.tv_sec,info->start_time.tv_usec
+		 ,8,info->finish_time.tv_sec,info->finish_time.tv_usec
+		 ,9,info->early_timeout
+		 ,10,info->exited_ok
+		 ,11,info->return_code
+		);
+	buf[sizeof(buf)-1]='\x0';
 
-		write_result=write(ipc_pipe[1],message,sizeof(service_message));
+#ifdef DEBUG_CHECK_IPC
+	printf("WRITING CHECK RESULT FOR: %s/%s\n",info->host_name,info->service_description);
+	printf("%s",buf);
+#endif
 
+	buflen=strlen(buf);
+
+	while(tbytes<buflen){
+
+		/* try to write everything we have left */
+		write_result=write(ipc_pipe[1],buf+tbytes,buflen-tbytes);
+
+		/* some kind of error occurred */
 		if(write_result==-1){
 
 			/* pipe is full - wait a bit and retry */
@@ -3849,24 +3916,289 @@ int write_svc_message(service_message *message){
 				continue;
 			        }
 
-			/* an interrupt occurred - retry */
-			if(errno==EINTR)
-				continue;
-
-			/* some other error occurred - bail out */
-			break;
+			/* unless we encountered a recoverable error, bail out */
+			if(errno!=EAGAIN && errno!=EINTR)
+				return -1;
 		        }
-		else 
-			break;
+
+		/* update the number of bytes we've written */
+		tbytes+=write_result;
 	        }
 
-
 #ifdef DEBUG0
-	printf("write_svc_message() end\n");
+	printf("write_check_result() end\n");
 #endif
 
-	return write_result;
+	return tbytes;
         }
+
+
+/* frees memory associated with a host/service check result */
+int free_check_result(check_result *info){
+	
+	if(info==NULL)
+		return OK;
+
+	if(info->host_name){
+		free(info->host_name);
+		info->host_name=NULL;
+	        }
+	if(info->service_description){
+		free(info->service_description);
+		info->service_description=NULL;
+	        }
+	if(info->output_file){
+		free(info->output_file);
+		info->output_file=NULL;
+	        }
+
+	return OK;
+        }
+
+
+
+/* grabs plugin output and perfdata from a file */
+int read_check_output_from_file(char *fname, char **short_output, char **long_output, char **perf_data, int escape_newlines){
+	mmapfile *thefile;
+	char *input=NULL;
+	int dbuf_chunk=1024;
+	dbuf db;
+
+	/* initialize values */
+	if(short_output)
+		*short_output=NULL;
+	if(long_output)
+		*long_output=NULL;
+	if(perf_data)
+		*perf_data=NULL;
+
+	/* no file name */
+	if(fname==NULL || !strcmp(fname,"")){
+		if(short_output)
+			*short_output=strdup("(Check result file missing - no plugin output!)");
+		return ERROR;
+	        }
+
+	/* open the file for reading */
+	if((thefile=mmap_fopen(fname))==NULL){
+		if(short_output)
+			*short_output=strdup("(Cannot read check result file - no plugin output!)");
+		return ERROR;
+	        }
+
+	/* initialize dynamic buffer (1KB chunk size) */
+	dbuf_init(&db,dbuf_chunk);
+
+	/* read in all lines from the config file */
+	while(1){
+
+		/* free memory */
+		free(input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
+
+		/* save the new input */
+		dbuf_strcat(&db,input);
+	        }
+
+	/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
+	if(db.used_size>MAX_PLUGIN_OUTPUT_LENGTH)
+		db.buf[MAX_PLUGIN_OUTPUT_LENGTH]='\x0';
+
+	/* parse the output: short and long output, and perf data */
+	parse_check_output(db.buf,short_output,long_output,perf_data,escape_newlines,FALSE);
+
+	/* free dynamic buffer */
+	dbuf_free(&db);
+
+	/* free memory and close file */
+	free(input);
+	mmap_fclose(thefile);
+
+	/* remove the file */
+	unlink(fname);
+
+	return OK;
+        }
+
+
+
+/* parse raw plugin output and return: short and long output, perf data */
+int parse_check_output(char *buf, char **short_output, char **long_output, char **perf_data, int escape_newlines, int newlines_are_escaped){
+	int current_line=0;
+	int found_newline=FALSE;
+	int eof=FALSE;
+	int used_buf=0;
+	int dbuf_chunk=1024;
+	dbuf db1;
+	dbuf db2;
+	char *ptr;
+	int in_perf_data=FALSE;
+	char *tempbuf=NULL;
+	register int x;
+	register int y;
+
+	/* initialize values */
+	if(short_output)
+		*short_output=NULL;
+	if(long_output)
+		*long_output=NULL;
+	if(perf_data)
+		*perf_data=NULL;
+
+	/* nothing to do */
+	if(buf==NULL || !strcmp(buf,""))
+		return OK;
+
+	used_buf=strlen(buf)+1;
+
+	/* initialize dynamic buffers (1KB chunk size) */
+	dbuf_init(&db1,dbuf_chunk);
+	dbuf_init(&db2,dbuf_chunk);
+
+	/* process each line of input */
+	for(x=0;eof==FALSE;x++){
+
+		/* we found the end of a line */
+		if(buf[x]=='\n')
+			found_newline=TRUE;
+		else if(buf[x]=='\\' && buf[x+1]=='n' && newlines_are_escaped==TRUE){
+			found_newline=TRUE;
+			buf[x]='\x0';
+			x++;
+		        }
+		else if(buf[x]=='\x0'){
+			found_newline=TRUE;
+			eof=TRUE;
+		        }
+		else
+			found_newline=FALSE;
+
+		if(found_newline==TRUE){
+	
+			current_line++;
+
+			/* handle this line of input */
+			buf[x]='\x0';
+			if((tempbuf=strdup(buf))){
+
+				/* first line contains short plugin output and optional perf data */
+				if(current_line==1){
+
+					/* get the short plugin output */
+					if((ptr=strtok(tempbuf,"|"))){
+						if(short_output)
+							*short_output=strdup(ptr);
+
+						/* get the optional perf data */
+						if((ptr=strtok(NULL,"\n")))
+							dbuf_strcat(&db2,ptr);
+					        }
+				        }
+
+				/* additional lines contain long plugin output and optional perf data */
+				else{
+
+					/* rest of the output is perf data */
+					if(in_perf_data==TRUE)
+						dbuf_strcat(&db2,tempbuf);
+
+					/* we're still in long output */
+					else{
+
+						/* perf data separator has been found */
+						if(strstr(tempbuf,"|")){
+
+							/* NOTE: strtok() causes problems if first character of tempbuf='|', so use my_strtok() instead */
+							/* get the remaining long plugin output */
+							if((ptr=my_strtok(tempbuf,"|"))){
+
+								if(current_line>2)
+									dbuf_strcat(&db1,"\n");
+								dbuf_strcat(&db1,ptr);
+
+								/* get the perf data */
+								if((ptr=my_strtok(NULL,"\n")))
+									dbuf_strcat(&db2,ptr);
+							        }
+
+							/* set the perf data flag */
+							in_perf_data=TRUE;
+						        }
+
+						/* just long output */
+						else{
+							if(current_line>2)
+								dbuf_strcat(&db1,"\n");
+							dbuf_strcat(&db1,tempbuf);
+						        }
+					        }
+				        }
+
+				free(tempbuf);
+				tempbuf=NULL;
+			        }
+		
+
+			/* shift data back to front of buffer and adjust counters */
+			memmove((void *)&buf[0],(void *)&buf[x+1],(size_t)((int)used_buf-x-1));
+			used_buf-=(x+1);
+			buf[used_buf]='\x0';
+			x=-1;
+		        }
+	        }
+
+	/* save long output */
+	if(long_output && (db1.buf && strcmp(db1.buf,""))){
+
+		if(escape_newlines==FALSE)
+			*long_output=strdup(db1.buf);
+
+		else{
+
+			/* escape newlines (and backslashes) in long output */
+			if((tempbuf=(char *)malloc((strlen(db1.buf)*2)+1))){
+
+				for(x=0,y=0;db1.buf[x]!='\x0';x++){
+
+					if(db1.buf[x]=='\n'){
+						tempbuf[y++]='\\';
+						tempbuf[y++]='n';
+					        }
+					else if(db1.buf[x]=='\\'){
+						tempbuf[y++]='\\';
+						tempbuf[y++]='\\';
+					        }
+					else
+						tempbuf[y++]=db1.buf[x];
+				        }
+
+				tempbuf[y]='\x0';
+				*long_output=strdup(tempbuf);
+				free(tempbuf);
+			        }
+		        }
+	        }
+
+	/* save perf data */
+	if(perf_data && (db2.buf && strcmp(db2.buf,"")))
+		*perf_data=strdup(db2.buf);
+
+	/* strip short output and perf data */
+	if(short_output)
+		strip(*short_output);
+	if(perf_data)
+		strip(*perf_data);
+
+	/* free dynamic buffers */
+	dbuf_free(&db1);
+	dbuf_free(&db2);
+
+	return OK;
+        }
+
 
 
 /* creates external command file as a named pipe (FIFO) and opens it for reading (non-blocked mode) */
@@ -4254,31 +4586,25 @@ char *get_url_encoded_string(char *input){
 
 
 
+/* compares strings */
+int compare_strings(char *val1a, char *val2a){
+
+	/* use the compare_hashdata() function */
+	return compare_hashdata(val1a,NULL,val2a,NULL);
+        }
+
+
+
 /******************************************************************/
 /************************* HASH FUNCTIONS *************************/
 /******************************************************************/
 
-/* single hash function */
-int hashfunc1(const char *name1,int hashslots){
-	unsigned int i,result;
-
-	result=0;
-
-	if(name1)
-		for(i=0;i<strlen(name1);i++)
-			result+=name1[i];
-
-	result=result%hashslots;
-
-	return result;
-        }
-
-
 /* dual hash function */
-int hashfunc2(const char *name1,const char *name2,int hashslots){
+int hashfunc(const char *name1,const char *name2,int hashslots){
 	unsigned int i,result;
 
 	result=0;
+
 	if(name1)
 		for(i=0;i<strlen(name1);i++)
 			result+=name1[i];
@@ -4293,24 +4619,35 @@ int hashfunc2(const char *name1,const char *name2,int hashslots){
         }
 
 
-/* single hash data comparison */
-int compare_hashdata1(const char *val1, const char *val2){
-	
-	return strcmp(val1,val2);
-        }
-
-
 /* dual hash data comparison */
-int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
-	int result;
+int compare_hashdata(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
+	int result=0;
 
-	result=strcmp(val1a,val2a);
-	if(result>0)
-		return 1;
-	else if(result<0)
-		return -1;
+	/* NOTE: If hash calculation changes, update the compare_strings() function! */
+
+	/* check first name */
+	if(val1a==NULL && val2a==NULL)
+		result=0;
+	else if(val1a==NULL)
+		result=1;
+	else if(val2a==NULL)
+		result=-1;
 	else
-		return strcmp(val1b,val2b);
+		result=strcmp(val1a,val2a);
+
+	/* check second name if necessary */
+	if(result==0){
+		if(val1b==NULL && val2b==NULL)
+			result=0;
+		else if(val1b==NULL)
+			result=1;
+		else if(val2b==NULL)
+			result=-1;
+		else
+			result=strcmp(val1b,val2b);
+	        }
+
+	return result;
         }
 
 
@@ -4530,6 +4867,86 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 
 
 
+
+/******************************************************************/
+/******************** DYNAMIC BUFFER FUNCTIONS ********************/
+/******************************************************************/
+
+/* initializes a dynamic buffer */
+int dbuf_init(dbuf *db, int chunk_size){
+
+	if(db==NULL)
+		return ERROR;
+
+	db->buf=NULL;
+	db->used_size=0L;
+	db->allocated_size=0L;
+	db->chunk_size=chunk_size;
+
+	return OK;
+        }
+
+
+/* frees a dynamic buffer */
+int dbuf_free(dbuf *db){
+
+	if(db==NULL)
+		return ERROR;
+
+	if(db->buf!=NULL)
+		free(db->buf);
+	db->buf=NULL;
+	db->used_size=0L;
+	db->allocated_size=0L;
+
+	return OK;
+        }
+
+
+/* dynamically expands a string */
+int dbuf_strcat(dbuf *db, char *buf){
+	char *newbuf=NULL;
+	unsigned long buflen=0L;
+	unsigned long new_size=0L;
+	unsigned long memory_needed=0L;
+
+	if(db==NULL || buf==NULL)
+		return ERROR;
+
+	/* how much memory should we allocate (if any)? */
+	buflen=strlen(buf);
+	new_size=db->used_size+buflen+1;
+
+	/* we need more memory */
+	if(db->allocated_size<new_size){
+
+		memory_needed=((ceil(new_size/db->chunk_size)+1)*db->chunk_size);
+
+		/* allocate memory to store old and new string */
+		if((newbuf=(char *)realloc((void *)db->buf,(size_t)memory_needed))==NULL)
+			return ERROR;
+
+		/* update buffer pointer */
+		db->buf=newbuf;
+
+		/* update allocated size */
+		db->allocated_size=memory_needed;
+
+		/* terminate buffer */
+		db->buf[db->used_size]='\x0';
+	        }
+
+	/* append the new string */
+	strcat(db->buf,buf);
+
+	/* update size allocated */
+	db->used_size+=buflen;
+
+	return OK;
+        }
+
+
+
 /******************************************************************/
 /******************** EMBEDDED PERL FUNCTIONS *********************/
 /******************************************************************/
@@ -4596,7 +5013,7 @@ int init_service_result_worker_thread(void){
 	service_result_buffer.tail=0;
 	service_result_buffer.items=0;
 	service_result_buffer.overflow=0L;
-	service_result_buffer.buffer=(void **)malloc(SERVICE_BUFFER_SLOTS*sizeof(service_message **));
+	service_result_buffer.buffer=(void **)malloc(SERVICE_BUFFER_SLOTS*sizeof(check_result **));
 	if(service_result_buffer.buffer==NULL)
 		return ERROR;
 
@@ -4643,10 +5060,13 @@ void cleanup_service_result_worker_thread(void *arg){
 
 	/* release memory allocated to circular buffer */
 	for(x=service_result_buffer.tail;x!=service_result_buffer.head;x=(x+1) % SERVICE_BUFFER_SLOTS){
-		free(((service_message **)service_result_buffer.buffer)[x]);
-		((service_message **)service_result_buffer.buffer)[x]=NULL;
+		free(((check_result **)service_result_buffer.buffer)[x]);
+		((check_result **)service_result_buffer.buffer)[x]=NULL;
 	        }
 	free(service_result_buffer.buffer);
+
+	/* free memory allocated to dynamic buffer */
+	dbuf_free(&check_result_dbuf);
 
 	return;
         }
@@ -4723,12 +5143,11 @@ void * service_result_worker_thread(void *arg){
 	struct pollfd pfd;
 	int pollval;
 	struct timeval tv;
-	int read_result;
-	int bytes_to_read;
-	int write_offset;
-	int buffer_items;
-	service_message message;
-	service_message *new_message;
+	int buffer_items=0;
+	char buf[512];
+	int dbuf_chunk=2048;
+	int result=0;
+	check_result info;
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_service_result_worker_thread,NULL);
@@ -4736,6 +5155,27 @@ void * service_result_worker_thread(void *arg){
 	/* set cancellation info */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
+
+	/* initialize dynamic buffer (2KB chunk size) */
+	dbuf_init(&check_result_dbuf,dbuf_chunk);
+
+	/* clear the check result structure */
+	memset((void *)&info,0,sizeof(check_result));
+
+	/* initialize check result structure */
+	info.object_check_type=SERVICE_CHECK;
+	info.host_name=NULL;
+	info.service_description=NULL;
+	info.check_type=SERVICE_CHECK_ACTIVE;
+	info.parallelized=TRUE;
+	info.output_file=NULL;
+	info.start_time.tv_sec=0;
+	info.start_time.tv_usec=0;
+	info.finish_time.tv_sec=0;
+	info.finish_time.tv_usec=0;
+	info.early_timeout=FALSE;
+	info.exited_ok=TRUE;
+	info.return_code=STATE_OK;
 
 	while(1){
 
@@ -4766,8 +5206,8 @@ void * service_result_worker_thread(void *arg){
 				write_to_log("service_result_worker_thread(): poll(): EFAULT",logging_options,NULL);
 				break;
 			case EINTR:
-				/* this should never happen */
-				write_to_log("service_result_worker_thread(): poll(): EINTR (impossible)",logging_options,NULL);
+				/* this should never happen, except when debugging */
+				write_to_log("service_result_worker_thread(): poll(): EINTR (impossible). Perhaps we're running under gdb?",logging_options,NULL);
 				break;
 			default:
 				write_to_log("service_result_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);
@@ -4788,90 +5228,56 @@ void * service_result_worker_thread(void *arg){
 		/* process data in the pipe (one message max) if there's some free space in the circular buffer */
 		if(buffer_items<SERVICE_BUFFER_SLOTS){
 
-			/* clear the message buffer */
-			memset((void *)&message,0,sizeof(service_message));
-
-			/* initialize the number of bytes to read */
-			bytes_to_read=sizeof(service_message);
-
-			/* read a single message from the pipe, taking into consideration that we may have had an interrupt */
+			/* read all data from client */
 			while(1){
 
-				write_offset=sizeof(service_message)-bytes_to_read;
+				result=read(ipc_pipe[0],buf,sizeof(buf)-1);
 
-				/* try and read a (full or partial) message */
-				read_result=read(ipc_pipe[0],((char *)&message)+write_offset,bytes_to_read);
+				/* handle errors */
+				if(result==-1){
 
-				/* we had a failure in reading from the pipe... */
-				if(read_result==-1){
+#ifdef DEBUG_CHECK_IPC
+					switch(errno){
+					case EAGAIN:
+						printf("EAGAIN: %d\n",errno);
+						break;
+					case EINTR:
+						printf("EINTR\n");
+						break;
+					case EIO:
+						printf("EIO\n");
+						break;
+					case EINVAL:
+						printf("EINVAL\n");
+						break;
+					case EBADF:
+						printf("EBADF\n");
+						break;
+					default:
+						printf("UNKNOWN: %d\n",errno);
+						break;
+					        }
+#endif
 
-					/* if the problem wasn't due to an interrupt, return with an error */
+					/* bail out on hard errors */
 					if(errno!=EINTR)
 						break;
-
-					/* otherwise we'll try reading from the pipe again... */
+					else
+						continue;
 				        }
 
-				/* are we at the end of pipe? this should not happen... */
-				else if(read_result==0){
-					
-					read_result=-1;
-					break;
-				        }
-
-				/* did we read fewer bytes than we were supposed to?  if so, try and get the rest of the message... */
-				else if(read_result<bytes_to_read){
-
-					bytes_to_read-=read_result;
-
-					/* should we shutdown? */
-					pthread_testcancel();
-
-					continue;
-				        }
-
-				/* we read the entire message... */
-				else
-					break;
-			        }
-
-			/* the read was good, so save it */
-			if(read_result>=0){
-				
-				/* allocate memory for the message */
-				new_message=(service_message *)malloc(sizeof(service_message));
-				if(new_message==NULL)
+				/* zero bytes read means we lost the connection */
+				if(result==0)
 					break;
 
-				/* copy the data we read to the message buffer */
-				memcpy(new_message,&message,sizeof(service_message));
+				/* append data we just read to dynamic buffer */
+				buf[result]='\x0';
+				dbuf_strcat(&check_result_dbuf,buf);
 
-				/* obtain a lock for writing to the buffer */
-				pthread_mutex_lock(&service_result_buffer.buffer_lock);
-
-				/* handle overflow conditions */
-				/* NOTE: This should never happen (see check above) - child processes will instead block trying to write messages to the pipe... */
-				if(service_result_buffer.items==SERVICE_BUFFER_SLOTS){
-
-					/* record overflow */
-					service_result_buffer.overflow++;
-
-					/* update tail pointer */
-					service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
-				        }
-
-				/* save the data to the buffer */
-				((service_message **)service_result_buffer.buffer)[service_result_buffer.head]=new_message;
-
-				/* increment the head counter and items */
-				service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
-				if(service_result_buffer.items<SERVICE_BUFFER_SLOTS)
-					service_result_buffer.items++;
-
-				/* release lock on buffer */
-				pthread_mutex_unlock(&service_result_buffer.buffer_lock);
-			        }
-                        }
+				/* check for completed lines of input */
+				handle_check_result_input1(&info,&check_result_dbuf);
+                               }
+		        }
 
 		/* no free space in the buffer, so wait a bit */
 		else{
@@ -4881,10 +5287,247 @@ void * service_result_worker_thread(void *arg){
 		        }
 	        }
 
-	/* removes cleanup handler - should never be reached */
+	/* should never be reached... */
+
+	/* removes cleanup handler */
 	pthread_cleanup_pop(0);
 
 	return NULL;
+        }
+
+
+
+/* top-level check result input handler */
+int handle_check_result_input1(check_result *info, dbuf *db){
+	char *buf=NULL;
+	register int x;
+	
+
+	if(db==NULL)
+		return OK;
+	if(db->buf==NULL)
+		return OK;
+
+	/* search for complete lines of input */
+	for(x=0;db->buf[x]!='\x0';x++){
+
+		/* we found the end of a line */
+		if(db->buf[x]=='\n'){
+
+			/* handle this line of input */
+			db->buf[x]='\x0';
+			if((buf=strdup(db->buf))){
+
+				handle_check_result_input2(info,buf);
+
+				free(buf);
+				buf=NULL;
+			        }
+		
+			/* shift data back to front of buffer and adjust counters */
+			memmove((void *)&db->buf[0],(void *)&db->buf[x+1],(size_t)((int)db->used_size-x-1));
+			db->used_size-=(x+1);
+			db->buf[db->used_size]='\x0';
+			x=-1;
+		        }
+	        }
+
+	return OK;
+        }
+
+
+
+/* low-level check result input handler */
+int handle_check_result_input2(check_result *info, char *buf){
+	char *var=NULL;
+	char *val=NULL;
+	char *ptr1=NULL;
+	char *ptr2=NULL;
+
+	if(info==NULL || buf==NULL){
+#ifdef DEBUG_CHECK_IPC
+		printf("** NULL INFO or BUF!\n");
+#endif
+		return ERROR;
+	        }
+
+	strip(buf);
+
+#ifdef DEBUG_CHECK_IPC
+	/*printf("HANDLING: '%s'",buf);*/
+#endif
+
+	/* input is finished, so buffer this check result */
+	if(!strcmp(buf,"")){
+
+#ifdef DEBUG_CHECK_IPC
+		/*printf(" OK.\n");*/
+#endif
+
+		/* buffer check result */
+		buffer_check_result(info);
+
+		/* reinitialize check result structure */
+		info->object_check_type=SERVICE_CHECK;
+		info->host_name=NULL;
+		info->service_description=NULL;
+		info->check_type=SERVICE_CHECK_ACTIVE;
+		info->parallelized=TRUE;
+		info->output_file=NULL;
+		info->start_time.tv_sec=0;
+		info->start_time.tv_usec=0;
+		info->finish_time.tv_sec=0;
+		info->finish_time.tv_usec=0;
+		info->early_timeout=FALSE;
+		info->exited_ok=TRUE;
+		info->return_code=STATE_OK;
+
+		return OK;
+	        }
+
+	/* get var/val pair */
+	if((var=strtok(buf,"="))==NULL){
+#ifdef DEBUG_CHECK_IPC
+		printf("** NULL VAR!\n");
+#endif
+		return ERROR;
+	        }
+	if((val=strtok(NULL,"\n"))==NULL){
+#ifdef DEBUG_CHECK_IPC
+		printf("** NULL VAL!\n");
+#endif
+		return ERROR;
+	        }
+
+	/* handle the data */
+	switch(atoi(var)){
+	case 1:
+		info->object_check_type=atoi(val);
+		break;
+	case 2:
+		info->host_name=strdup(val);
+		break;
+	case 3:
+		info->service_description=strdup(val);
+		break;
+	case 4:
+		info->check_type=atoi(val);
+		break;
+	case 5:
+		info->parallelized=atoi(val);
+		break;
+	case 6:
+		info->output_file=strdup(val);
+		break;
+	case 7:
+		if((ptr1=strtok(val,"."))==NULL){
+#ifdef DEBUG_CHECK_IPC
+			printf("** NULL VAR 7!\n");
+#endif
+			return ERROR;
+		        }
+		if((ptr2=strtok(NULL,"\n"))==NULL){
+#ifdef DEBUG_CHECK_IPC
+			printf("** NULL VAL 7!\n");
+#endif
+			return ERROR;
+		        }
+		info->start_time.tv_sec=strtoul(ptr1,NULL,0);
+		info->start_time.tv_usec=strtoul(ptr2,NULL,0);
+		break;
+	case 8:
+		if((ptr1=strtok(val,"."))==NULL){
+#ifdef DEBUG_CHECK_IPC
+			printf("** NULL VAR 8!\n");
+#endif
+			return ERROR;
+		        }
+		if((ptr2=strtok(NULL,"\n"))==NULL){
+#ifdef DEBUG_CHECK_IPC
+			printf("** NULL VAL 8!\n");
+#endif
+			return ERROR;
+		        }
+		info->finish_time.tv_sec=strtoul(ptr1,NULL,0);
+		info->finish_time.tv_usec=strtoul(ptr2,NULL,0);
+		break;
+	case 9:
+		info->early_timeout=atoi(val);
+		break;
+	case 10:
+		info->exited_ok=atoi(val);
+		break;
+	case 11:
+		info->return_code=atoi(val);
+		break;
+	default:
+#ifdef DEBUG_CHECK_IPC
+		printf("** UNKNOWN ID!\n");
+#endif
+		return ERROR;
+	        }
+
+#ifdef DEBUG_CHECK_IPC
+	/*printf(" OK.\n",buf);*/
+#endif
+
+	return OK;
+        }
+
+
+
+/* saves a host/service check result info structure to the circular buffer */
+int buffer_check_result(check_result *info){
+	check_result *new_info=NULL;
+
+	if(info==NULL)
+		return ERROR;
+
+#ifdef DEBUG_CHECK_IPC
+	printf("BUFFERING CHECK RESULT FOR: HOST=%s, SVC=%s\n",(info->host_name==NULL)?"":info->host_name,(info->service_description==NULL)?"":info->service_description);
+#endif
+
+	/* allocate memory for the result */
+	if((new_info=(check_result *)malloc(sizeof(check_result)))==NULL){
+#ifdef DEBUG_CHECK_IPC
+		printf("** BUFFER MALLOC ERROR!\n");
+#endif
+		return ERROR;
+	        }
+	
+	/* copy the original check result info */
+	memcpy(new_info,info,sizeof(check_result));
+
+	/* obtain a lock for writing to the buffer */
+	pthread_mutex_lock(&service_result_buffer.buffer_lock);
+
+	/* handle overflow conditions */
+	/* NOTE: This should never happen - child processes will instead block trying to write messages to the pipe... */
+	if(service_result_buffer.items==SERVICE_BUFFER_SLOTS){
+
+		/* record overflow */
+		service_result_buffer.overflow++;
+
+		/* update tail pointer */
+		service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
+	        }
+
+	/* save the data to the buffer */
+	((check_result **)service_result_buffer.buffer)[service_result_buffer.head]=new_info;
+
+	/* increment the head counter and items */
+	service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
+	if(service_result_buffer.items<SERVICE_BUFFER_SLOTS)
+		service_result_buffer.items++;
+	
+#ifdef DEBUG_CHECK_IPC
+	printf("BUFFER OK.  TOTAL ITEMS=%d\n",service_result_buffer.items);
+#endif
+
+	/* release lock on buffer */
+	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
+
+	return OK;
         }
 
 

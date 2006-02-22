@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-02-2006
+ * Last Modified: 02-22-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -33,6 +33,8 @@ extern "C" {
 #define MAX_COMMAND_ARGUMENTS			32	/* maximum number of $ARGx$ macros */
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
+#define MAX_PLUGIN_OUTPUT_LENGTH                2048    /* max length of plugin output (including perf data) */
+
 #define MAX_STATE_LENGTH			32	/* length definitions used in macros */
 #define MAX_STATETYPE_LENGTH			24
 #define MAX_CHECKTYPE_LENGTH         		8
@@ -49,7 +51,7 @@ extern "C" {
 
 #define MACRO_ENV_VAR_PREFIX			"NAGIOS_"
 
-#define MACRO_X_COUNT				99	/* size of macro_x[] array */
+#define MACRO_X_COUNT				101	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -150,6 +152,8 @@ extern "C" {
 #define MACRO_PROCESSSTARTTIME			96
 #define MACRO_HOSTCHECKTYPE			97
 #define MACRO_SERVICECHECKTYPE			98
+#define MACRO_LONGHOSTOUTPUT	                99
+#define MACRO_LONGSERVICEOUTPUT                 100
 
 
 
@@ -310,6 +314,11 @@ extern "C" {
 #define SERVICE_STATECHANGE             1
 
 
+/***************** OBJECT CHECK TYPES *****************/
+#define SERVICE_CHECK                   0
+#define HOST_CHECK                      1
+
+
 /******************* EVENT TYPES **********************/
 
 #define EVENT_SERVICE_CHECK		0	/* active service check */
@@ -389,19 +398,22 @@ typedef struct notify_list_struct{
         }notification;
 
 
-/* SERVICE_MESSAGE structure */
-typedef struct service_message_struct{
-	char host_name[MAX_HOSTNAME_LENGTH];		/* host name */
-	char description[MAX_SERVICEDESC_LENGTH];	/* service description */
-	int return_code;				/* plugin return code */
-	int exited_ok;					/* did the plugin check return okay? */
+/* CHECK_RESULT structure */
+typedef struct check_result_struct{
+	int object_check_type;                          /* is this a service or a host check? */
+	char *host_name;				/* host name */
+	char *service_description;			/* service description */
 	int check_type;					/* was this an active or passive service check? */
 	int parallelized;                               /* was this check run in parallel? */
+	char *output_file;                              /* what file is the output stored in? */
+	FILE *output_file_fp;
+	int output_file_fd;
 	struct timeval start_time;			/* time the service check was initiated */
 	struct timeval finish_time;			/* time the service check was completed */
 	int early_timeout;                              /* did the service check timeout? */
-	char output[MAX_PLUGINOUTPUT_LENGTH];		/* plugin output */
-	}service_message;
+	int exited_ok;					/* did the plugin check return okay? */
+	int return_code;				/* plugin return code */
+	}check_result;
 
 
 /* SCHED_INFO structure */
@@ -477,6 +489,15 @@ typedef struct mmapfile_struct{
         }mmapfile;
 
 
+/* DBUF structure - dynamic string storage */
+typedef struct dbuf_struct{
+	char *buf;
+	unsigned long used_size;
+	unsigned long allocated_size;
+	unsigned long chunk_size;
+        }dbuf;
+
+
 
 /* slots in circular buffers */
 #define COMMAND_BUFFER_SLOTS              1024
@@ -499,6 +520,8 @@ int read_all_object_data(char *);			/* reads all object config data */
 
 /**** Setup Functions ****/
 int pre_flight_check(void);                          	/* try and verify the configuration data */
+int pre_flight_object_check(int *,int *);               /* verify object relationships and settings */
+int pre_flight_circular_check(int *,int *);             /* detects circular dependencies and paths */
 void init_timing_loop(void);                         	/* setup the initial scheduling queue */
 void setup_sighandler(void);                         	/* trap signals */
 void reset_sighandler(void);                         	/* reset signals to default action */
@@ -508,8 +531,14 @@ void display_scheduling_info(void);			/* displays service check scheduling infor
 
 
 /**** IPC Functions ****/
-int read_svc_message(service_message *);		/* reads a service check message from the message pipe */
-int write_svc_message(service_message *);		/* writes a service check message to the message pipe */
+int write_check_result(check_result *);                 /* writes a host/service check result to the message pipe */
+int read_check_result(check_result *);                  /* reads a host/service check result from the message pipe */
+int handle_check_result_input1(check_result *,dbuf *);
+int handle_check_result_input2(check_result *,char *);
+int buffer_check_result(check_result *);                /* buffers a host/service check result in circular buffer */
+int free_check_result(check_result *);                  /* frees memory associated with a host/service check result */
+int read_check_output_from_file(char *,char **,char **,char **,int);
+int parse_check_output(char *,char **,char **,char **,int,int);
 int open_command_file(void);				/* creates the external command file as a named pipe (FIFO) and opens it for reading */
 int close_command_file(void);				/* closes and deletes the external command file (FIFO) */
 
@@ -614,10 +643,8 @@ void free_notification_list(void);		     	/* frees all memory allocated to the n
 
 
 /**** Hash Functions ****/
-int hashfunc1(const char *name1, int hashslots);
-int hashfunc2(const char *name1, const char *name2, int hashslots);
-int compare_hashdata1(const char *,const char *);
-int compare_hashdata2(const char *,const char *,const char *,const char *);
+int hashfunc(const char *name1, const char *name2, int hashslots);
+int compare_hashdata(const char *,const char *,const char *,const char *);
 
 
 /**** Miscellaneous Functions ****/
@@ -629,6 +656,7 @@ void strip(char *);                                  	/* strips whitespace from 
 char *my_strtok(char *,char *);                      	/* my replacement for strtok() function (doesn't skip consecutive tokens) */
 char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), so I took this from the glibc source code */
 char *get_url_encoded_string(char *);			/* URL encode a string */
+int compare_strings(char *,char *);                     /* compares two strings for equality */
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
 void get_raw_command_line(char *,char *,int,int);      	/* given a raw command line, determine the actual command to run */
@@ -638,6 +666,9 @@ void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
 int init_embedded_perl(char **);			/* initialized embedded perl interpreter */
 int deinit_embedded_perl(void);				/* cleans up embedded perl */
+int dbuf_init(dbuf *,int);
+int dbuf_free(dbuf *);
+int dbuf_strcat(dbuf *,char *);
 
 
 /**** Macro Functions ****/
@@ -657,8 +688,10 @@ int clear_nonvolatile_macros(void);                  	/* clear all "nonvolatile"
 
 
 /**** External Command Functions ****/
-void check_for_external_commands(void);			/* checks for any external commands */
-void process_external_command(int,time_t,char *);	/* process an external command */
+int check_for_external_commands(void);			/* checks for any external commands */
+int process_external_command1(char *);                  /* top-level external command processor */
+int process_external_command2(int,time_t,char *);	/* process an external command */
+int process_external_commands_from_file(char *,int);    /* process external commands in a file */
 int process_host_command(int,time_t,char *);            /* process an external host command */
 int process_hostgroup_command(int,time_t,char *);       /* process an external hostgroup command */
 int process_service_command(int,time_t,char *);         /* process an external service command */
@@ -680,9 +713,10 @@ int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service pro
 int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
 int cmd_schedule_downtime(int,time_t,char *);                   /* schedules host or service downtime */
 int cmd_delete_downtime(int,char *);				/* cancels active/pending host or service scheduled downtime */
-int cmd_change_command(int,char *);				/* changes host/svc command */
-int cmd_change_check_interval(int,char *);			/* changes host/svc check interval */
-int cmd_change_max_attempts(int,char *);			/* changes host/svc max attempts */
+int cmd_change_object_int_var(int,char *);                      /* changes host/svc (int) variable */
+int cmd_change_object_char_var(int,char *);			/* changes host/svc (char) variable */
+int cmd_change_object_custom_var(int,char *);                   /* changes host/svc custom variable */
+int cmd_process_external_commands_from_file(int,char *);        /* process external commands from a file */
 
 int process_passive_service_check(time_t,char *,char *,int,char *);
 int process_passive_host_check(time_t,char *,int,char *);

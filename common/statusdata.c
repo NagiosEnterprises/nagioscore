@@ -2,8 +2,8 @@
  *
  * STATUSDATA.C - External status data for Nagios CGIs
  *
- * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-25-2005
+ * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-21-2006
  *
  * License:
  *
@@ -231,12 +231,12 @@ int add_hoststatus_to_hashlist(hoststatus *new_hoststatus){
 	if(!new_hoststatus)
 		return 0;
 
-	hashslot=hashfunc1(new_hoststatus->host_name,HOSTSTATUS_HASHSLOTS);
+	hashslot=hashfunc(new_hoststatus->host_name,NULL,HOSTSTATUS_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_hoststatus=hoststatus_hashlist[hashslot];temp_hoststatus && compare_hashdata1(temp_hoststatus->host_name,new_hoststatus->host_name)<0;temp_hoststatus=temp_hoststatus->nexthash)
+	for(temp_hoststatus=hoststatus_hashlist[hashslot];temp_hoststatus && compare_hashdata(temp_hoststatus->host_name,NULL,new_hoststatus->host_name,NULL)<0;temp_hoststatus=temp_hoststatus->nexthash)
 		lastpointer=temp_hoststatus;
 
-	if(!temp_hoststatus || (compare_hashdata1(temp_hoststatus->host_name,new_hoststatus->host_name)!=0)){
+	if(!temp_hoststatus || (compare_hashdata(temp_hoststatus->host_name,NULL,new_hoststatus->host_name,NULL)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_hoststatus;
 		else
@@ -270,12 +270,12 @@ int add_servicestatus_to_hashlist(servicestatus *new_servicestatus){
 	if(!new_servicestatus)
 		return 0;
 
-	hashslot=hashfunc2(new_servicestatus->host_name,new_servicestatus->description,SERVICESTATUS_HASHSLOTS);
+	hashslot=hashfunc(new_servicestatus->host_name,new_servicestatus->description,SERVICESTATUS_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_servicestatus=servicestatus_hashlist[hashslot];temp_servicestatus && compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,new_servicestatus->host_name,new_servicestatus->description)<0;temp_servicestatus=temp_servicestatus->nexthash)
+	for(temp_servicestatus=servicestatus_hashlist[hashslot];temp_servicestatus && compare_hashdata(temp_servicestatus->host_name,temp_servicestatus->description,new_servicestatus->host_name,new_servicestatus->description)<0;temp_servicestatus=temp_servicestatus->nexthash)
 		lastpointer=temp_servicestatus;
 
-	if(!temp_servicestatus || (compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,new_servicestatus->host_name,new_servicestatus->description)!=0)){
+	if(!temp_servicestatus || (compare_hashdata(temp_servicestatus->host_name,temp_servicestatus->description,new_servicestatus->host_name,new_servicestatus->description)!=0)){
 		if(lastpointer)
 			lastpointer->nexthash=new_servicestatus;
 		else
@@ -445,6 +445,7 @@ void free_status_data(void){
 		next_hoststatus=this_hoststatus->next;
 		free(this_hoststatus->host_name);
 		free(this_hoststatus->plugin_output);
+		free(this_hoststatus->long_plugin_output);
 		free(this_hoststatus->perf_data);
 		free(this_hoststatus);
 	        }
@@ -455,6 +456,7 @@ void free_status_data(void){
 		free(this_svcstatus->host_name);
 		free(this_svcstatus->description);
 		free(this_svcstatus->plugin_output);
+		free(this_svcstatus->long_plugin_output);
 		free(this_svcstatus->perf_data);
 		free(this_svcstatus);
 	        }
@@ -485,9 +487,9 @@ hoststatus *find_hoststatus(char *host_name){
 	if(host_name==NULL || hoststatus_hashlist==NULL)
 		return NULL;
 
-	for(temp_hoststatus=hoststatus_hashlist[hashfunc1(host_name,HOSTSTATUS_HASHSLOTS)];temp_hoststatus && compare_hashdata1(temp_hoststatus->host_name,host_name)<0;temp_hoststatus=temp_hoststatus->nexthash);
+	for(temp_hoststatus=hoststatus_hashlist[hashfunc(host_name,NULL,HOSTSTATUS_HASHSLOTS)];temp_hoststatus && compare_hashdata(temp_hoststatus->host_name,NULL,host_name,NULL)<0;temp_hoststatus=temp_hoststatus->nexthash);
 
-	if(temp_hoststatus && (compare_hashdata1(temp_hoststatus->host_name,host_name)==0))
+	if(temp_hoststatus && (compare_hashdata(temp_hoststatus->host_name,NULL,host_name,NULL)==0))
 		return temp_hoststatus;
 
 	return NULL;
@@ -501,9 +503,9 @@ servicestatus *find_servicestatus(char *host_name,char *svc_desc){
 	if(host_name==NULL || svc_desc==NULL || servicestatus_hashlist==NULL)
 		return NULL;
 
-	for(temp_servicestatus=servicestatus_hashlist[hashfunc2(host_name,svc_desc,SERVICESTATUS_HASHSLOTS)];temp_servicestatus && compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,host_name,svc_desc)<0;temp_servicestatus=temp_servicestatus->nexthash);
+	for(temp_servicestatus=servicestatus_hashlist[hashfunc(host_name,svc_desc,SERVICESTATUS_HASHSLOTS)];temp_servicestatus && compare_hashdata(temp_servicestatus->host_name,temp_servicestatus->description,host_name,svc_desc)<0;temp_servicestatus=temp_servicestatus->nexthash);
 
-	if(temp_servicestatus && (compare_hashdata2(temp_servicestatus->host_name,temp_servicestatus->description,host_name,svc_desc)==0))
+	if(temp_servicestatus && (compare_hashdata(temp_servicestatus->host_name,temp_servicestatus->description,host_name,svc_desc)==0))
 		return temp_servicestatus;
 
 	return NULL;

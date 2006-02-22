@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 2.0
+ * Version: 3.0-prealpha-02222006
  * License: GPL
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-07-2006
+ * Last Modified:   02-22-2006
  *
  * Description:
  *
@@ -146,7 +146,11 @@ int             sigrestart=FALSE;
 int             restarting=FALSE;
 
 int             verify_config=FALSE;
+int             verify_object_relationships=TRUE;
+int             verify_circular_paths=TRUE;
 int             test_scheduling=FALSE;
+int             precache_objects=FALSE;
+int             use_precached_objects=FALSE;
 
 int             daemon_mode=FALSE;
 int             daemon_dumps_core=TRUE;
@@ -202,11 +206,13 @@ extern serviceescalation *serviceescalation_list;
 
 notification    *notification_list;
 
-service_message svc_msg;
+check_result    check_result_info;
 
-circular_buffer  external_command_buffer;
-circular_buffer  service_result_buffer;
-pthread_t worker_threads[TOTAL_WORKER_THREADS];
+dbuf            check_result_dbuf;
+
+circular_buffer external_command_buffer;
+circular_buffer service_result_buffer;
+pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
 
 
@@ -230,8 +236,13 @@ int main(int argc, char **argv){
 		{"help",no_argument,0,'h'},
 		{"version",no_argument,0,'V'},
 		{"license",no_argument,0,'V'},
-		{"verify",no_argument,0,'v'},
+		{"verify-config",no_argument,0,'v'},
 		{"daemon",no_argument,0,'d'},
+		{"test-scheduling",no_argument,0,'s'},
+		{"dont-verify-objects",no_argument,0,'o'},
+		{"dont-verify-paths",no_argument,0,'x'},
+		{"precache-objects",no_argument,0,'p'},
+		{"use-precached-objects",no_argument,0,'u'},
 		{0,0,0,0}
 	};
 #endif
@@ -245,9 +256,9 @@ int main(int argc, char **argv){
 	while(1){
 
 #ifdef HAVE_GETOPT_H
-		c=getopt_long(argc,argv,"+hVvds",long_options,&option_index);
+		c=getopt_long(argc,argv,"+hVvdsoxpu",long_options,&option_index);
 #else
-		c=getopt(argc,argv,"+hVvds");
+		c=getopt(argc,argv,"+hVvdsoxpu");
 #endif
 
 		if(c==-1 || c==EOF)
@@ -274,6 +285,22 @@ int main(int argc, char **argv){
 
 		case 'd': /* daemon mode */
 			daemon_mode=TRUE;
+			break;
+
+		case 'o': /* don't verify objects */
+			verify_object_relationships=FALSE;
+			break;
+
+		case 'x': /* don't verify circular paths */
+			verify_circular_paths=FALSE;
+			break;
+
+		case 'p': /* precache object config */
+			precache_objects=TRUE;
+			break;
+
+		case 'u': /* use precached object config */
+			use_precached_objects=TRUE;
 			break;
 
 		default:
@@ -313,23 +340,22 @@ int main(int argc, char **argv){
 	/* if there are no command line options (or if we encountered an error), print usage */
 	if(error==TRUE || display_help==TRUE){
 
-		printf("Usage: %s [option] <main_config_file>\n",argv[0]);
+		printf("Usage: %s [options] <main_config_file>\n",argv[0]);
 		printf("\n");
 		printf("Options:\n");
 		printf("\n");
-		printf("  -v   Reads all data in the configuration files and performs a basic\n");
-		printf("       verification/sanity check.  Always make sure you verify your\n");
-		printf("       config data before (re)starting Nagios.\n");
+		printf("  -v, --verify-config          Verify all configuration data\n");
+		printf("  -s, --test-scheduling        Shows projected/recommended check scheduling and other\n");
+		printf("                               diagnostic info based on the current configuration files.\n");
+		printf("  -o, --dont-verify-objects    Don't verify object relationships - USE WITH CAUTION!\n");
+		printf("  -x, --dont-verify-paths      Don't check for circular object paths - USE WITH CAUTION!\n");
+		printf("  -p, --precache-objects       Precache object configuration - use with -v or -s options\n");
+		printf("  -u, --use-precached-objects  Use precached object config file\n");
+		printf("  -d, --daemon                 Starts Nagios in daemon mode, instead of as a foreground process\n");
 		printf("\n");
-		printf("  -s   Shows projected/recommended check scheduling information based\n");
-		printf("       on the current data in the configuration files.\n");
-		printf("\n");
-		printf("  -d   Starts Nagios in daemon mode (instead of as a foreground process).\n");
-		printf("       This is the recommended way of starting Nagios for normal operation.\n");
-		printf("\n");
-		printf("Visit the Nagios website at http://www.nagios.org for bug fixes, new\n");
+		printf("Visit the Nagios website at http://www.nagios.org/ for bug fixes, new\n");
 		printf("releases, online documentation, FAQs, information on subscribing to\n");
-		printf("the mailing lists, and commercial and contract support for Nagios.\n");
+		printf("the mailing lists, and commercial support options for Nagios.\n");
 		printf("\n");
 
 		exit(ERROR);
@@ -678,9 +704,6 @@ int main(int argc, char **argv){
 				exit(ERROR);
 			        }
 
-			/* read end of the pipe should be non-blocking */
-			fcntl(ipc_pipe[0],F_SETFL,O_NONBLOCK);
-
 			/* initialize service result worker threads */
 			result=init_service_result_worker_thread();
 			if(result!=OK){
@@ -733,10 +756,6 @@ int main(int argc, char **argv){
 			/* clean up performance data */
 			cleanup_performance_data(config_file);
 
-			/* close the original pipe used for IPC (we'll create a new one if restarting) */
-			close(ipc_pipe[0]);
-			close(ipc_pipe[1]);
-
 			/* close and delete the external command file FIFO unless we're restarting */
 			if(sigrestart==FALSE)
 				close_command_file();
@@ -747,6 +766,10 @@ int main(int argc, char **argv){
 
 			/* cleanup worker threads */
 			shutdown_service_result_worker_thread();
+
+			/* close the original pipe used for IPC (we'll create a new one if restarting) */
+			close(ipc_pipe[0]);
+			close(ipc_pipe[1]);
 
 			/* shutdown stuff... */
 			if(sigshutdown==TRUE){

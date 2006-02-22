@@ -76,6 +76,7 @@
 
 int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *));
 int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *));
+int neb_deregister_module_callbacks(nebmodule *);
 
 #ifdef __cplusplus
 }

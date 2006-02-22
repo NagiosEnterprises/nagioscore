@@ -2,8 +2,8 @@
  *
  * BROKER.C - Event broker routines for Nagios
  *
- * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-16-2005
+ * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-17-2006
  *
  * License:
  *
@@ -173,7 +173,7 @@ void broker_system_command(int type, int flags, int attr, struct timeval start_t
 
 
 /* send event handler data to broker */
-void broker_event_handler(int type, int flags, int attr, int eventhandler_type, void *data, int state, int state_type, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *command, char *cmdline, char *output, struct timeval *timestamp){
+void broker_event_handler(int type, int flags, int attr, int eventhandler_type, void *data, int state, int state_type, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *cmdline, char *output, struct timeval *timestamp){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
 	char *command_buf=NULL;
@@ -188,8 +188,8 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 		return;
 
 	/* get command name/args */
-	if(command!=NULL){
-		command_buf=strdup(command);
+	if(cmd!=NULL){
+		command_buf=strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -237,7 +237,7 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 
 
 /* send host check data to broker */
-void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *command, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *perfdata, struct timeval *timestamp){
+void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *perfdata, struct timeval *timestamp){
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
@@ -250,8 +250,8 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 		return;
 
 	/* get command name/args */
-	if(command!=NULL){
-		command_buf=strdup(command);
+	if(cmd!=NULL){
+		command_buf=strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -293,7 +293,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 
 
 /* send service check data to broker */
-void broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *command, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp){
+void broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp){
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
@@ -306,8 +306,8 @@ void broker_service_check(int type, int flags, int attr, service *svc, int check
 		return;
 
 	/* get command name/args */
-	if(command!=NULL){
-		command_buf=strdup(command);
+	if(cmd!=NULL){
+		command_buf=strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -639,7 +639,7 @@ void broker_contact_notification_data(int type, int flags, int attr, int notific
 
 
 /* send contact notification data to broker */
-void broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *command, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp){
+void broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *cmd, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp){
 	nebstruct_contact_notification_method_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -651,8 +651,8 @@ void broker_contact_notification_method_data(int type, int flags, int attr, int 
 		return;
 
 	/* get command name/args */
-	if(command!=NULL){
-		command_buf=strdup(command);
+	if(cmd!=NULL){
+		command_buf=strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }

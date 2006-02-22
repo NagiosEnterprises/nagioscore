@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-16-2006
  *
  * License:
  *
@@ -419,6 +419,14 @@ int check_service_notification_viability(service *svc, int type){
 #endif
 			return ERROR;
 		        }
+	        }
+
+	/* see if enough time has elapsed for first notification (Mathias Sundman) */
+	if(current_time < (time_t)(svc->last_hard_state_change + svc->first_notification_delay*interval_length)){
+#ifdef DEBUG4
+		printf("\tEnough time has not elapsed since the host since the service changed state, so we should not notify about this yet!\n");
+#endif
+		return ERROR;
 	        }
 
 	/* if this service is currently flapping, don't send the notification */
@@ -1193,6 +1201,14 @@ int check_host_notification_viability(host *hst, int type){
 			return ERROR;
 		        }
 
+	        }
+
+	/* see if enough time has elapsed for first notification (Mathias Sundman) */
+	if(current_time < (time_t)(hst->last_hard_state_change + hst->first_notification_delay*interval_length)){
+#ifdef DEBUG4
+		printf("\tEnough time has not elapsed since the host since the host changed state, so we should not notify about this yet!\n");
+#endif
+		return ERROR;
 	        }
 
 	/* if this host is currently flapping, don't send the notification */

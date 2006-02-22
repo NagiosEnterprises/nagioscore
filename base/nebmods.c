@@ -2,8 +2,8 @@
  *
  * NEBMODS.C - Event Broker Module Functions
  *
- * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-24-2005
+ * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-17-2006
  *
  * License:
  *
@@ -47,7 +47,6 @@ nebcallback **neb_callback_list=NULL;
 
 /* initialize module routines */
 int neb_init_modules(void){
-	int result;
 
 	/* initialize library */
 #ifdef USE_LTDL
@@ -62,7 +61,6 @@ int neb_init_modules(void){
 
 /* deinitialize module routines */
 int neb_deinit_modules(void){
-	int result;
 
 	/* deinitialize library */
 #ifdef USE_LTDL
@@ -469,7 +467,6 @@ int neb_deregister_module_callbacks(nebmodule *mod){
 
 	for(callback_type=0;callback_type<NEBCALLBACK_NUMITEMS;callback_type++){
 		for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=next_callback){
-			printf("TEMP_CALLBACK: %x\n",temp_callback);
 			next_callback=temp_callback->next;
 			if((void *)temp_callback->module_handle==(void *)mod->module_handle)
 				neb_deregister_callback(callback_type,temp_callback->callback_func);

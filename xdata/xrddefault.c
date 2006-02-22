@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-21-2006
  *
  * License:
  *
@@ -235,6 +235,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
+		fprintf(fp,"\tcheck_period=%s\n",(temp_host->check_period==NULL)?"":temp_host->check_period);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_host->execution_time);
@@ -244,6 +245,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tlast_state=%d\n",temp_host->last_state);
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_host->last_hard_state);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
+		fprintf(fp,"\tlong_plugin_output=%s\n",(temp_host->long_plugin_output==NULL)?"":temp_host->long_plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_host->perf_data==NULL)?"":temp_host->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_host->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
@@ -289,6 +291,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
+		fprintf(fp,"\tcheck_period=%s\n",(temp_service->check_period==NULL)?"":temp_service->check_period);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tcheck_execution_time=%.3f\n",temp_service->execution_time);
@@ -309,6 +312,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tlast_time_unknown=%lu\n",temp_service->last_time_unknown);
 		fprintf(fp,"\tlast_time_critical=%lu\n",temp_service->last_time_critical);
 		fprintf(fp,"\tplugin_output=%s\n",(temp_service->plugin_output==NULL)?"":temp_service->plugin_output);
+		fprintf(fp,"\tlong_plugin_output=%s\n",(temp_service->long_plugin_output==NULL)?"":temp_service->long_plugin_output);
 		fprintf(fp,"\tperformance_data=%s\n",(temp_service->perf_data==NULL)?"":temp_service->perf_data);
 		fprintf(fp,"\tlast_check=%lu\n",temp_service->last_check);
 		fprintf(fp,"\tnext_check=%lu\n",temp_service->next_check);
@@ -361,20 +365,21 @@ int xrddefault_save_state_information(char *main_config_file){
 
 int xrddefault_read_state_information(char *main_config_file){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char temp_buffer2[MAX_INPUT_BUFFER];
 	char *input=NULL;
-	char *temp_ptr;
+	char *temp_ptr=NULL;
 	mmapfile *thefile;
 	char *host_name=NULL;
 	char *service_description=NULL;
 	int data_type=XRDDEFAULT_NO_DATA;
-	int x;
+	int x=0;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	command *temp_command=NULL;
-	char *var;
-	char *val;
-	char *ch;
+	timeperiod *temp_timeperiod=NULL;
+	char *var=NULL;
+	char *val=NULL;
+	char *tempval=NULL;
+	char *ch=NULL;
 	time_t creation_time;
 	time_t current_time;
 	int scheduling_info_is_ok=FALSE;
@@ -590,11 +595,11 @@ int xrddefault_read_state_information(char *main_config_file){
 						if(modified_host_process_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 							/* make sure the check command still exists... */
-							strncpy(temp_buffer2,val,sizeof(temp_buffer2));
-							temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
-							temp_ptr=my_strtok(temp_buffer2,"!");
+							tempval=strdup(val);
+							temp_ptr=my_strtok(tempval,"!");
 							temp_command=find_command(temp_ptr);
 							temp_ptr=strdup(val);
+							free(tempval);
 
 							if(temp_command!=NULL && temp_ptr!=NULL){
 								free(global_host_event_handler);
@@ -606,11 +611,11 @@ int xrddefault_read_state_information(char *main_config_file){
 						if(modified_service_process_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 							/* make sure the check command still exists... */
-							strncpy(temp_buffer2,val,sizeof(temp_buffer2));
-							temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
-							temp_ptr=my_strtok(temp_buffer2,"!");
+							tempval=strdup(val);
+							temp_ptr=my_strtok(tempval,"!");
 							temp_command=find_command(temp_ptr);
 							temp_ptr=strdup(val);
+							free(tempval);
 
 							if(temp_command!=NULL && temp_ptr!=NULL){
 								free(global_service_event_handler);
@@ -645,12 +650,19 @@ int xrddefault_read_state_information(char *main_config_file){
 						else if(!strcmp(var,"last_hard_state"))
 							temp_host->last_hard_state=atoi(val);
 						else if(!strcmp(var,"plugin_output")){
-							strncpy(temp_host->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
-							temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+							if(temp_host->plugin_output)
+								free(temp_host->plugin_output);
+							temp_host->plugin_output=strdup(val);
+					                }
+						else if(!strcmp(var,"long_plugin_output")){
+							if(temp_host->long_plugin_output)
+								free(temp_host->long_plugin_output);
+							temp_host->long_plugin_output=strdup(val);
 					                }
 						else if(!strcmp(var,"performance_data")){
-							strncpy(temp_host->perf_data,val,MAX_PLUGINOUTPUT_LENGTH-1);
-							temp_host->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+							if(temp_host->perf_data)
+								free(temp_host->perf_data);
+							temp_host->perf_data=strdup(val);
 					                }
 						else if(!strcmp(var,"last_check"))
 							temp_host->last_check=strtoul(val,NULL,10);
@@ -732,32 +744,51 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_host->modified_attributes & MODATTR_CHECK_COMMAND){
 
 								/* make sure the check command still exists... */
-								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
-								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
-								temp_ptr=my_strtok(temp_buffer2,"!");
+								tempval=strdup(val);
+								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
 								temp_ptr=strdup(val);
+								free(tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
 									free(temp_host->host_check_command);
 									temp_host->host_check_command=temp_ptr;
 								        }
+								else
+									temp_host->modified_attributes-=MODATTR_CHECK_COMMAND;
+							        }
+						        }
+						else if(!strcmp(var,"check_period")){
+							if(temp_host->modified_attributes & MODATTR_CHECK_TIMEPERIOD){
+
+								/* make sure the timeperiod still exists... */
+								temp_timeperiod=find_timeperiod(val);
+								temp_ptr=strdup(val);
+
+								if(temp_command!=NULL && temp_ptr!=NULL){
+									free(temp_host->check_period);
+									temp_host->check_period=temp_ptr;
+								        }
+								else
+									temp_host->modified_attributes-=MODATTR_CHECK_TIMEPERIOD;
 							        }
 						        }
 						else if(!strcmp(var,"event_handler")){
 							if(temp_host->modified_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 								/* make sure the check command still exists... */
-								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
-								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
-								temp_ptr=my_strtok(temp_buffer2,"!");
+								tempval=strdup(val);
+								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
 								temp_ptr=strdup(val);
+								free(tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
 									free(temp_host->event_handler);
 									temp_host->event_handler=temp_ptr;
 								        }
+								else
+									temp_host->modified_attributes-=MODATTR_EVENT_HANDLER_COMMAND;
 							        }
 						        }
 						else if(!strcmp(var,"normal_check_interval")){
@@ -823,12 +854,19 @@ int xrddefault_read_state_information(char *main_config_file){
 						else if(!strcmp(var,"last_time_critical"))
 							temp_service->last_time_critical=strtoul(val,NULL,10);
 						else if(!strcmp(var,"plugin_output")){
-							strncpy(temp_service->plugin_output,val,MAX_PLUGINOUTPUT_LENGTH-1);
-							temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+							if(temp_service->plugin_output)
+								free(temp_service->plugin_output);
+							temp_service->plugin_output=strdup(val);
+					                }
+						else if(!strcmp(var,"long_plugin_output")){
+							if(temp_service->long_plugin_output)
+								free(temp_service->long_plugin_output);
+							temp_service->long_plugin_output=strdup(val);
 					                }
 						else if(!strcmp(var,"performance_data")){
-							strncpy(temp_service->perf_data,val,MAX_PLUGINOUTPUT_LENGTH-1);
-							temp_service->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+							if(temp_service->perf_data)
+								free(temp_service->perf_data);
+							temp_service->perf_data=strdup(val);
 					                }
 						else if(!strcmp(var,"last_check"))
 							temp_service->last_check=strtoul(val,NULL,10);
@@ -899,32 +937,51 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_service->modified_attributes & MODATTR_CHECK_COMMAND){
 
 								/* make sure the check command still exists... */
-								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
-								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
-								temp_ptr=my_strtok(temp_buffer2,"!");
+								tempval=strdup(val);
+								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
 								temp_ptr=strdup(val);
+								free(tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
 									free(temp_service->service_check_command);
 									temp_service->service_check_command=temp_ptr;
 								        }
+								else
+									temp_service->modified_attributes-=MODATTR_CHECK_COMMAND;
+							        }
+						        }
+						else if(!strcmp(var,"check_period")){
+							if(temp_service->modified_attributes & MODATTR_CHECK_TIMEPERIOD){
+
+								/* make sure the timeperiod still exists... */
+								temp_timeperiod=find_timeperiod(val);
+								temp_ptr=strdup(val);
+
+								if(temp_command!=NULL && temp_ptr!=NULL){
+									free(temp_service->check_period);
+									temp_service->check_period=temp_ptr;
+								        }
+								else
+									temp_service->modified_attributes-=MODATTR_CHECK_TIMEPERIOD;
 							        }
 						        }
 						else if(!strcmp(var,"event_handler")){
 							if(temp_service->modified_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 								/* make sure the check command still exists... */
-								strncpy(temp_buffer2,val,sizeof(temp_buffer2));
-								temp_buffer2[sizeof(temp_buffer2)-1]='\x0';
-								temp_ptr=my_strtok(temp_buffer2,"!");
+								tempval=strdup(val);
+								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
 								temp_ptr=strdup(val);
+								free(tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
 									free(temp_service->event_handler);
 									temp_service->event_handler=temp_ptr;
 								        }
+								else
+									temp_service->modified_attributes-=MODATTR_EVENT_HANDLER_COMMAND;
 							        }
 						        }
 						else if(!strcmp(var,"normal_check_interval")){

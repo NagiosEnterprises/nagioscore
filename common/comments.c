@@ -2,8 +2,8 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-15-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-21-2006
  *
  * License:
  *
@@ -192,7 +192,7 @@ int delete_comment(int type, unsigned long comment_id){
 #endif
 
 		/* first remove from chained hash list */
-		hashslot=hashfunc1(this_comment->host_name,COMMENT_HASHSLOTS);
+		hashslot=hashfunc(this_comment->host_name,NULL,COMMENT_HASHSLOTS);
 		last_hash=NULL;
 		for(this_hash=comment_hashlist[hashslot];this_hash;this_hash=this_hash->nexthash){
 			if(this_hash==this_comment){
@@ -240,7 +240,7 @@ int delete_host_comment(unsigned long comment_id){
 	int result;
 
 	/* delete the comment from memory */
-	delete_comment(HOST_COMMENT,comment_id);
+	result=delete_comment(HOST_COMMENT,comment_id);
 	
 	return result;
         }
@@ -252,7 +252,7 @@ int delete_service_comment(unsigned long comment_id){
 	int result;
 	
 	/* delete the comment from memory */
-	delete_comment(SERVICE_COMMENT,comment_id);
+	result=delete_comment(SERVICE_COMMENT,comment_id);
 	
 	return result;
         }
@@ -382,10 +382,10 @@ int add_comment_to_hashlist(comment *new_comment){
 	if(!new_comment)
 		return 0;
 
-	hashslot=hashfunc1(new_comment->host_name,COMMENT_HASHSLOTS);
+	hashslot=hashfunc(new_comment->host_name,NULL,COMMENT_HASHSLOTS);
 	lastpointer=NULL;
-	for(temp_comment=comment_hashlist[hashslot];temp_comment && compare_hashdata1(temp_comment->host_name,new_comment->host_name)<0;temp_comment=temp_comment->nexthash){
-		if(compare_hashdata1(temp_comment->host_name,new_comment->host_name)>=0)
+	for(temp_comment=comment_hashlist[hashslot];temp_comment && compare_hashdata(temp_comment->host_name,NULL,new_comment->host_name,NULL)<0;temp_comment=temp_comment->nexthash){
+		if(compare_hashdata(temp_comment->host_name,NULL,new_comment->host_name,NULL)>=0)
 			break;
 		lastpointer=temp_comment;
 	        }
@@ -618,13 +618,13 @@ comment *get_next_comment_by_host(char *host_name, comment *start){
 		return NULL;
 
 	if(start==NULL)
-		temp_comment=comment_hashlist[hashfunc1(host_name,COMMENT_HASHSLOTS)];
+		temp_comment=comment_hashlist[hashfunc(host_name,NULL,COMMENT_HASHSLOTS)];
 	else
 		temp_comment=start->nexthash;
 
-	for(;temp_comment && compare_hashdata1(temp_comment->host_name,host_name)<0;temp_comment=temp_comment->nexthash);
+	for(;temp_comment && compare_hashdata(temp_comment->host_name,NULL,host_name,NULL)<0;temp_comment=temp_comment->nexthash);
 
-	if(temp_comment && compare_hashdata1(temp_comment->host_name,host_name)==0)
+	if(temp_comment && compare_hashdata(temp_comment->host_name,NULL,host_name,NULL)==0)
 		return temp_comment;
 
 	return NULL;

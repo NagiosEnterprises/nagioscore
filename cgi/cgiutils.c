@@ -2,8 +2,8 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-21-2006
  *
  * License:
  *
@@ -611,7 +611,7 @@ int read_all_object_configuration_data(char *config_file,int options){
 		return OK;
 
 	/* read in all external config data of the desired type(s) */
-	result=read_object_config_data(config_file,options,FALSE);
+	result=read_object_config_data(config_file,options,FALSE,FALSE);
 
 	/* mark what items we've read in... */
 	if(options & READ_HOSTS)
@@ -684,27 +684,12 @@ int read_all_status_data(char *config_file,int options){
  **********************************************************/
 
 
-/* single hash function */
-int hashfunc1(const char *name1,int hashslots){
-	unsigned int i,result;
-
-	result=0;
-
-	if(name1)
-		for(i=0;i<strlen(name1);i++)
-			result+=name1[i];
-
-	result=result%hashslots;
-
-	return result;
-        }
-
-
 /* dual hash function */
-int hashfunc2(const char *name1,const char *name2,int hashslots){
+int hashfunc(const char *name1,const char *name2,int hashslots){
 	unsigned int i,result;
 
 	result=0;
+
 	if(name1)
 		for(i=0;i<strlen(name1);i++)
 			result+=name1[i];
@@ -719,26 +704,36 @@ int hashfunc2(const char *name1,const char *name2,int hashslots){
         }
 
 
-/* single hash data comparison */
-int compare_hashdata1(const char *val1, const char *val2){
-	
-	return strcmp(val1,val2);
-        }
-
-
 /* dual hash data comparison */
-int compare_hashdata2(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
-	int result;
+int compare_hashdata(const char *val1a, const char *val1b, const char *val2a, const char *val2b){
+	int result=0;
 
-	result=strcmp(val1a,val2a);
-	if(result>0)
-		return 1;
-	else if(result<0)
-		return -1;
+	/* NOTE: If hash calculation changes, update the compare_strings() function! */
+
+	/* check first name */
+	if(val1a==NULL && val2a==NULL)
+		result=0;
+	else if(val1a==NULL)
+		result=1;
+	else if(val2a==NULL)
+		result=-1;
 	else
-		return strcmp(val1b,val2b);
-        }
+		result=strcmp(val1a,val2a);
 
+	/* check second name if necessary */
+	if(result==0){
+		if(val1b==NULL && val2b==NULL)
+			result=0;
+		else if(val1b==NULL)
+			result=1;
+		else if(val2b==NULL)
+			result=-1;
+		else
+			result=strcmp(val1b,val2b);
+	        }
+
+	return result;
+        }
 
 
 

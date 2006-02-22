@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-05-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-16-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -458,6 +458,7 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Freshness Threshold</TH>\n");
 	printf("<TH CLASS='data'>Default Contact Groups</TH>\n");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
+	printf("<TH CLASS='data'>First Notification Delay</TH>");
 	printf("<TH CLASS='data'>Notification Options</TH>");
 	printf("<TH CLASS='data'>Notification Period</TH>");
 	printf("<TH CLASS='data'>Event Handler</TH>");
@@ -466,6 +467,7 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
 	printf("<TH CLASS='data'>Low Flap Threshold</TH>");
 	printf("<TH CLASS='data'>High Flap Threshold</TH>");
+	printf("<TH CLASS='data'>Flap Detection Options</TH>\n");
 	printf("<TH CLASS='data'>Process Performance Data</TH>");
 	printf("<TH CLASS='data'>Enable Failure Prediction</TH>");
 	printf("<TH CLASS='data'>Failure Prediction Options</TH>");
@@ -544,6 +546,9 @@ void display_hosts(void){
 		get_interval_time_string(temp_host->notification_interval,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->notification_interval==0)?"<i>No Re-notification</I>":time_string);
 
+		get_interval_time_string(temp_host->first_notification_delay,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
 		if(temp_host->notify_on_down==TRUE){
@@ -618,6 +623,24 @@ void display_hosts(void){
 			printf("Program-wide value\n");
 		else
 			printf("%3.1f%%\n",temp_host->high_flap_threshold);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=0;
+		if(temp_host->flap_detection_on_up==TRUE){
+			options=1;
+			printf("Up");
+		        }
+		if(temp_host->flap_detection_on_down==TRUE){
+			printf("%sDown",(options)?", ":"");
+			options=1;
+		        }
+		if(temp_host->flap_detection_on_unreachable==TRUE){
+			printf("%sUnreachable",(options)?", ":"");
+			options=1;
+		        }
+		if(options==0)
+			printf("None");
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
@@ -1061,6 +1084,7 @@ void display_services(void){
 	printf("<TH CLASS='data'>Default Contact Groups</TH>\n");
 	printf("<TH CLASS='data'>Enable Notifications</TH>\n");
 	printf("<TH CLASS='data'>Notification Interval</TH>\n");
+	printf("<TH CLASS='data'>First Notification Delay</TH>\n");
 	printf("<TH CLASS='data'>Notification Options</TH>\n");
 	printf("<TH CLASS='data'>Notification Period</TH>\n");
 	printf("<TH CLASS='data'>Event Handler</TH>");
@@ -1069,6 +1093,7 @@ void display_services(void){
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
 	printf("<TH CLASS='data'>Low Flap Threshold</TH>");
 	printf("<TH CLASS='data'>High Flap Threshold</TH>");
+	printf("<TH CLASS='data'>Flap Detection Options</TH>");
 	printf("<TH CLASS='data'>Process Performance Data</TH>");
 	printf("<TH CLASS='data'>Enable Failure Prediction</TH>");
 	printf("<TH CLASS='data'>Failure Prediction Options</TH>");
@@ -1152,6 +1177,9 @@ void display_services(void){
 		get_interval_time_string(temp_service->notification_interval,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->notification_interval==0)?"<i>No Re-notification</i>":time_string);
 
+		get_interval_time_string(temp_service->first_notification_delay,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
 		if(temp_service->notify_on_unknown==TRUE){
@@ -1232,6 +1260,28 @@ void display_services(void){
 			printf("Program-wide value\n");
 		else
 			printf("%3.1f%%\n",temp_service->high_flap_threshold);
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=0;
+		if(temp_service->flap_detection_on_ok==TRUE){
+			options=1;
+			printf("Ok");
+	                }
+		if(temp_service->flap_detection_on_warning==TRUE){
+			printf("%sWarning",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->flap_detection_on_unknown==TRUE){
+			printf("%sUnknown",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->flap_detection_on_critical==TRUE){
+			printf("%sCritical",(options)?", ":"");
+			options=1;
+	                }
+		if(options==0)
+			printf("None");
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);

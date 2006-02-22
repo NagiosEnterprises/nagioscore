@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-12-2005
+ * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-17-2006
  *
  * License:
  *
@@ -95,7 +95,7 @@ int cleanup_downtime_data(char *config_file){
 
 /* schedules a host or service downtime */
 int schedule_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *new_downtime_id){
-	unsigned long downtime_id;
+	unsigned long downtime_id=0L;
 
 	/* don't add old or invalid downtimes */
 	if(start_time>=end_time || end_time<=time(NULL))

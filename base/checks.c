@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2006
+ * Last Modified:   02-21-2006
  *
  * License:
  *
@@ -77,7 +77,7 @@ extern service           *service_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency    *hostdependency_list;
 
-extern service_message svc_msg;
+extern check_result    check_result_info;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer service_result_buffer;
@@ -95,7 +95,6 @@ extern int      use_embedded_perl;
 void run_service_check(service *svc){
 	char raw_command[MAX_COMMAND_BUFFER];
 	char processed_command[MAX_COMMAND_BUFFER];
-	char plugin_output[MAX_PLUGINOUTPUT_LENGTH];
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int check_service=TRUE;
 	struct timeval start_time,end_time;
@@ -109,6 +108,9 @@ void run_service_check(service *svc){
 	FILE *fp;
 	int pclose_result=0;
 	int time_is_valid=TRUE;
+	mode_t new_umask=077;
+	mode_t old_umask;
+	char tmpfile[MAX_INPUT_BUFFER]="";
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
@@ -254,15 +256,31 @@ void run_service_check(service *svc){
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
 
-	/* save service info */
-	strncpy(svc_msg.host_name,svc->host_name,sizeof(svc_msg.host_name)-1);
-	svc_msg.host_name[sizeof(svc_msg.host_name)-1]='\x0';
-	strncpy(svc_msg.description,svc->description,sizeof(svc_msg.description)-1);
-	svc_msg.description[sizeof(svc_msg.description)-1]='\x0';
-	svc_msg.parallelized=svc->parallelize;
-	svc_msg.start_time=start_time;
-	svc_msg.finish_time=start_time;
-	svc_msg.early_timeout=FALSE;
+	/* open a temp file for storing check output */
+	old_umask=umask(new_umask);
+	sprintf(tmpfile,"/tmp/nagiosXXXXXX");
+	check_result_info.output_file_fd=mkstemp(tmpfile);
+	if(check_result_info.output_file_fd>0)
+		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
+	else{
+		check_result_info.output_file_fp=NULL;
+		check_result_info.output_file_fd=-1;
+	        }
+	umask(old_umask);
+
+	/* save check info */
+	check_result_info.object_check_type=SERVICE_CHECK;
+	check_result_info.host_name=strdup(svc->host_name);;
+	check_result_info.service_description=strdup(svc->description);
+	check_result_info.parallelized=svc->parallelize;
+	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
+	check_result_info.output_file=(check_result_info.output_file_fd<0)?NULL:strdup(tmpfile);
+	check_result_info.start_time=start_time;
+	check_result_info.finish_time=start_time;
+	check_result_info.early_timeout=FALSE;
+	check_result_info.exited_ok=TRUE;
+	check_result_info.return_code=STATE_OK;
+
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -325,26 +343,30 @@ void run_service_check(service *svc){
 
 			pclose_result=STATE_UNKNOWN;
 			perl_plugin_output=SvPVX(ERRSV);
-			strip(perl_plugin_output);
 
 #ifdef DEBUG1
 			printf("embedded perl failed to compile %s, compile error %s - skipping plugin\n",fname,perl_plugin_output);
 #endif
 
+			/* write the first line of plugin output to temp file */
+			if(check_result_info.output_file_fp)
+				fputs(perl_plugin_output,check_result_info.output_file_fp);
+
+			/* close the temp file */
+			if(check_result_info.output_file_fp){
+				fclose(check_result_info.output_file_fp);
+				close(check_result_info.output_file_fd);
+			        }
+
 			/* get the check finish time */
 			gettimeofday(&end_time,NULL);
 
 			/* record check result info */
-			strncpy(svc_msg.output,perl_plugin_output,sizeof(svc_msg.output)-1);
-			svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-			svc_msg.return_code=pclose_result;
-			svc_msg.exited_ok=TRUE;
-			svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-			svc_msg.finish_time=end_time;
-			svc_msg.early_timeout=FALSE;
+			check_result.return_code=pclose_result;
+			check_result.finish_time=end_time;
 
 			/* write check results to message queue */
-			write_svc_message(&svc_msg);
+			write_check_result(&check_result_info);
 
 			return ;
 
@@ -434,9 +456,6 @@ void run_service_check(service *svc){
 				SPAGAIN;
 
 				perl_plugin_output=POPpx;
-				strip(perl_plugin_output);
-				strncpy(plugin_output, perl_plugin_output, sizeof(plugin_output));
-				perl_plugin_output[sizeof(perl_plugin_output)-1]='\x0';
 				pclose_result=POPi;
 
 				PUTBACK;
@@ -444,8 +463,22 @@ void run_service_check(service *svc){
 				LEAVE;
 
 #ifdef DEBUG1
-				printf("embedded perl ran %s, plugin output was %d, %s\n",fname, pclose_result, plugin_output);
+				printf("embedded perl ran %s, plugin output was %d, %s\n",fname, pclose_result,perl_plugin_output);
 #endif
+
+				/* write the first line of plugin output to temp file */
+				if(check_result_info.output_file_fp)
+					fputs(perl_plugin_output,check_result_info.output_file_fp);
+
+#ifdef TODO_02202006
+				/* write additional output to temp file */
+#endif
+
+				/* close the temp file */
+				if(check_result_info.output_file_fp){
+					fclose(check_result_info.output_file_fp);
+					close(check_result_info.output_file_fd);
+			                }
 
 				/* reset the alarm */
 				alarm(0);
@@ -454,16 +487,11 @@ void run_service_check(service *svc){
 				gettimeofday(&end_time,NULL);
 
 				/* record check result info */
-				strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
-				svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-				svc_msg.return_code=pclose_result;
-				svc_msg.exited_ok=TRUE;
-				svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-				svc_msg.finish_time=end_time;
-				svc_msg.early_timeout=FALSE;
+				check_result_info.return_code=pclose_result;
+				check_result_info.finish_time=end_time;
 
 				/* write check results to message queue */
-				write_svc_message(&svc_msg);
+				write_check_result(&check_result_info);
 
 				/* close write end of IPC pipe */
 				close(ipc_pipe[1]);
@@ -476,25 +504,30 @@ void run_service_check(service *svc){
 #endif
 			/******** END EMBEDDED PERL INTERPRETER EXECUTION ********/
      
-
 			/* run the plugin check command */
 			fp=popen(processed_command,"r");
 			if(fp==NULL)
 				_exit(STATE_UNKNOWN);
 
-			/* default return string in case nothing was returned */
-			strcpy(plugin_output,"(No output!)");
+			/* write the first line of plugin output to temp file */
+			fgets(temp_buffer,sizeof(temp_buffer)-1,fp);
+			if(check_result_info.output_file_fp)
+				fputs(temp_buffer,check_result_info.output_file_fp);
 
-			/* grab the plugin output and clean it */
-			fgets(plugin_output,sizeof(plugin_output)-1,fp);
-			strip(plugin_output);
-
-			/* ADDED 01/04/2004 */
-			/* ignore any additional lines of output */
-			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
+			/* write additional output to temp file */
+			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
+				if(check_result_info.output_file_fp)
+					fputs(temp_buffer,check_result_info.output_file_fp);
+			        }
 
 			/* close the process */
 			pclose_result=pclose(fp);
+
+			/* close the temp file */
+			if(check_result_info.output_file_fp){
+				fclose(check_result_info.output_file_fp);
+				close(check_result_info.output_file_fd);
+			        }
 
 			/* reset the alarm */
 			alarm(0);
@@ -503,26 +536,21 @@ void run_service_check(service *svc){
 			gettimeofday(&end_time,NULL);
 
 			/* record check result info */
-			strncpy(svc_msg.output,plugin_output,sizeof(svc_msg.output)-1);
-			svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-			svc_msg.return_code=WEXITSTATUS(pclose_result);
-			svc_msg.exited_ok=TRUE;
-			svc_msg.check_type=SERVICE_CHECK_ACTIVE;
-			svc_msg.finish_time=end_time;
-			svc_msg.early_timeout=FALSE;
+			check_result_info.finish_time=end_time;
+			check_result_info.early_timeout=FALSE;
 
 			/* test for execution error */
 			if(pclose_result==-1){
 				pclose_result=STATE_UNKNOWN;
-				strncpy(svc_msg.output,"(Error returned by call to pclose() function)",sizeof(svc_msg.output)-1);
-				svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
-				svc_msg.return_code=STATE_CRITICAL;
-				svc_msg.exited_ok=FALSE;
-				svc_msg.early_timeout=FALSE;
+				check_result_info.return_code=STATE_CRITICAL;
+				check_result_info.exited_ok=FALSE;
+			        }
+			else{
+				check_result_info.return_code=WEXITSTATUS(pclose_result);
 			        }
 
 			/* write check result to message queue */
-			write_svc_message(&svc_msg);
+			write_check_result(&check_result_info);
 
 			/* close write end of IPC pipe */
 			close(ipc_pipe[1]);
@@ -558,7 +586,7 @@ void run_service_check(service *svc){
 	if(fork_error==TRUE){
 
 		/* log an error */
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc_msg.description,svc_msg.host_name);
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc->description,svc->host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
@@ -602,7 +630,7 @@ void run_service_check(service *svc){
 
 /* reaps service check results */
 void reap_service_checks(void){
-	service_message queued_svc_msg;
+	check_result queued_check_result;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
 	time_t preferred_time;
@@ -615,8 +643,8 @@ void reap_service_checks(void){
 	time_t current_time;
 	int first_check=FALSE;
 	int state_was_logged=FALSE;
-	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
-	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	char *old_plugin_output=NULL;
+	char *temp_plugin_output=NULL;
 	char *temp_ptr;
 	time_t reaper_start_time;
 	struct timeval tv;
@@ -632,13 +660,16 @@ void reap_service_checks(void){
 	time(&reaper_start_time);
 
 	/* read all service checks results that have come in... */
-	while(read_svc_message(&queued_svc_msg)!=-1){
+	while(read_check_result(&queued_check_result)>0){
 
-		/* make sure we really have something... */
-		if(!strcmp(queued_svc_msg.description,"") && !strcmp(queued_svc_msg.host_name,"")){
-#ifdef DEBUG1
-			printf("Found an empty message in service result pipe!\n");
-#endif
+		/* make sure we have something */
+		if(queued_check_result.host_name==NULL || queued_check_result.service_description==NULL){
+
+			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Check result item had NULL host name and/or service description!\n");
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
+			free_check_result(&queued_check_result);
 			continue;
 		        }
 
@@ -646,77 +677,68 @@ void reap_service_checks(void){
 		time(&current_time);
 
 		/* skip this service check results if its passive and we aren't accepting passive check results */
-		if(accept_passive_service_checks==FALSE && queued_svc_msg.check_type==SERVICE_CHECK_PASSIVE)
+		if(accept_passive_service_checks==FALSE && queued_check_result.check_type==SERVICE_CHECK_PASSIVE){
+			free_check_result(&queued_check_result);
 			continue;
-
-		/* because of my idiotic idea of having UNKNOWN states be equivalent to -1, I must hack things a bit... */
-		if(queued_svc_msg.return_code==255 || queued_svc_msg.return_code==-1)
-			queued_svc_msg.return_code=STATE_UNKNOWN;
+		        }
 
 		/* find the service */
-		temp_service=find_service(queued_svc_msg.host_name,queued_svc_msg.description);
+		temp_service=find_service(queued_check_result.host_name,queued_check_result.service_description);
 		if(temp_service==NULL){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Message queue contained results for service '%s' on host '%s'.  The service could not be found!\n",queued_svc_msg.description,queued_svc_msg.host_name);
+			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result.service_description,queued_check_result.host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
+			free_check_result(&queued_check_result);
 			continue;
 		        }
 
 		/* calculate passive check latency */
-		if(queued_svc_msg.check_type==SERVICE_CHECK_PASSIVE){
+		if(queued_check_result.check_type==SERVICE_CHECK_PASSIVE){
 			gettimeofday(&tv,NULL);
-			temp_service->latency=(double)((double)(tv.tv_sec-queued_svc_msg.finish_time.tv_sec)+(double)((tv.tv_usec-queued_svc_msg.finish_time.tv_usec)/1000.0));
+			temp_service->latency=(double)((double)(tv.tv_sec-queued_check_result.finish_time.tv_sec)+(double)((tv.tv_usec-queued_check_result.finish_time.tv_usec)/1000.0));
 			if(temp_service->latency<0.0)
 				temp_service->latency=0.0;
 		        }
 
 		/* update the execution time for this check (millisecond resolution) */
-		temp_service->execution_time=(double)((double)(queued_svc_msg.finish_time.tv_sec-queued_svc_msg.start_time.tv_sec)+(double)((queued_svc_msg.finish_time.tv_usec-queued_svc_msg.start_time.tv_usec)/1000)/1000.0);
-#ifdef REMOVED_050803
-		if(queued_svc_msg.start_time.time>current_time || queued_svc_msg.finish_time.time>current_time || (queued_svc_msg.finish_time.time<queued_svc_msg.start_time.time))
-			temp_service->execution_time=0.0;
-		else
-			temp_service->execution_time=(double)((double)(queued_svc_msg.finish_time.time-queued_svc_msg.start_time.time)+(double)((queued_svc_msg.finish_time.millitm-queued_svc_msg.start_time.millitm)/1000.0));
-#endif
+		temp_service->execution_time=(double)((double)(queued_check_result.finish_time.tv_sec-queued_check_result.start_time.tv_sec)+(double)((queued_check_result.finish_time.tv_usec-queued_check_result.start_time.tv_usec)/1000.0)/1000.0);
 
 		/* clear the freshening flag (it would have been set if this service was determined to be stale) */
 		temp_service->is_being_freshened=FALSE;
 
 		/* ignore passive service check results if we're not accepting them for this service */
-		if(temp_service->accept_passive_service_checks==FALSE && queued_svc_msg.check_type==SERVICE_CHECK_PASSIVE)
+		if(temp_service->accept_passive_service_checks==FALSE && queued_check_result.check_type==SERVICE_CHECK_PASSIVE){
+			free_check_result(&queued_check_result);
 			continue;
-
+		        }
 #ifdef DEBUG3
 		printf("\n\tFound check result for service '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
-		printf("\t\tCheck Type:    %s\n",(queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
-		printf("\t\tParallelized?: %s\n",(queued_svc_msg.parallelized==TRUE)?"Yes":"No");
-		printf("\t\tExited OK?:    %s\n",(queued_svc_msg.exited_ok==TRUE)?"Yes":"No");
-		printf("\t\tReturn Status: %d\n",queued_svc_msg.return_code);
-		printf("\t\tPlugin Output: '%s'\n",queued_svc_msg.output);
+		printf("\t\tCheck Type:    %s\n",(queued_check_result.check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
+		printf("\t\tParallelized?: %s\n",(queued_check_result.parallelized==TRUE)?"Yes":"No");
+		printf("\t\tExited OK?:    %s\n",(queued_check_result.exited_ok==TRUE)?"Yes":"No");
+		printf("\t\tReturn Status: %d\n",queued_check_result.return_code);
+		printf("\t\tPlugin Output: '%s'\n",queued_check_result.output);
 #endif
 
 		/* decrement the number of service checks still out there... */
-		if(queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE && currently_running_service_checks>0)
+		if(queued_check_result.check_type==SERVICE_CHECK_ACTIVE && currently_running_service_checks>0)
 			currently_running_service_checks--;
 
 		/* if this check was not parallelized, clear the flag */
-		if(queued_svc_msg.parallelized==FALSE && queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE)
+		if(queued_check_result.parallelized==FALSE && queued_check_result.check_type==SERVICE_CHECK_ACTIVE)
 			non_parallelized_check_running=FALSE;
 
 		/* clear the execution flag if this was an active check */
-		if(queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE)
+		if(queued_check_result.check_type==SERVICE_CHECK_ACTIVE)
 			temp_service->is_executing=FALSE;
 
 		/* get the last check time */
-		temp_service->last_check=queued_svc_msg.start_time.tv_sec;
-#ifdef REMOVED_050803
-		temp_service->last_check=queued_svc_msg.start_time.time;
-#endif
+		temp_service->last_check=queued_check_result.start_time.tv_sec;
 
 		/* was this check passive or active? */
-		temp_service->check_type=(queued_svc_msg.check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
+		temp_service->check_type=(queued_check_result.check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
 
 		/* INITIALIZE VARIABLES FOR THIS SERVICE */
 		state_change=FALSE;
@@ -725,62 +747,47 @@ void reap_service_checks(void){
 		dependency_result=DEPENDENCIES_OK;
 		first_check=FALSE;
 		state_was_logged=FALSE;
-		strcpy(old_plugin_output,"");
-		strcpy(temp_plugin_output,"");
+		old_plugin_output=NULL;
+		temp_plugin_output=NULL;
 
 		/* save the old service status info */
 		temp_service->last_state=temp_service->current_state;
 
 		/* save old plugin output */
-		strncpy(old_plugin_output,(temp_service->plugin_output==NULL)?"":temp_service->plugin_output,sizeof(old_plugin_output)-1);
-		old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
+		if(temp_service->plugin_output)
+			old_plugin_output=strdup(temp_service->plugin_output);
 
 		/* clear the old plugin output and perf data buffers */
-		strcpy(temp_service->plugin_output,"");
-		strcpy(temp_service->perf_data,"");
-
-		/* check for empty plugin output */
-		if(!strcmp(temp_plugin_output,""))
-			strcpy(temp_plugin_output,"(No output returned from plugin)");
-
-		/* get performance data (if it exists) */
-		strncpy(temp_plugin_output,queued_svc_msg.output,sizeof(temp_plugin_output)-1);
-		temp_plugin_output[sizeof(temp_plugin_output)-1]='\x0';
-		temp_ptr=strtok(temp_plugin_output,"|\n");
-		temp_ptr=strtok(NULL,"\n");
-		if(temp_ptr!=NULL){
-			strip(temp_ptr);
-			strncpy(temp_service->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-			temp_service->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-		        }
-
-		/* get status data - everything before pipe sign */
-		strncpy(temp_plugin_output,queued_svc_msg.output,sizeof(temp_plugin_output)-1);
-		temp_plugin_output[sizeof(temp_plugin_output)-1]='\x0';
-		temp_ptr=strtok(temp_plugin_output,"|\n");
+		if(temp_service->plugin_output)
+			free(temp_service->plugin_output);
+		temp_service->plugin_output=NULL;
+		if(temp_service->long_plugin_output)
+			free(temp_service->long_plugin_output);
+		temp_service->long_plugin_output=NULL;
+		if(temp_service->perf_data)
+			free(temp_service->perf_data);
+		temp_service->perf_data=NULL;
 
 		/* if there was some error running the command, just skip it (this shouldn't be happening) */
-		if(queued_svc_msg.exited_ok==FALSE){
+		if(queued_check_result.exited_ok==FALSE){
 
 			snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Check of service '%s' on host '%s' did not exit properly!\n",temp_service->description,temp_service->host_name);
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
-			snprintf(temp_service->plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"(Service check did not exit properly)");
-			temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+			temp_service->plugin_output=strdup("(Service check did not exit properly)");
 
 			temp_service->current_state=STATE_CRITICAL;
                         }
 
 		/* make sure the return code is within bounds */
-		else if(queued_svc_msg.return_code<0 || queued_svc_msg.return_code>3){
+		else if(queued_check_result.return_code<0 || queued_check_result.return_code>3){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_svc_msg.return_code,temp_service->description,temp_service->host_name,(queued_svc_msg.return_code==126 || queued_svc_msg.return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
+			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_check_result.return_code,temp_service->description,temp_service->host_name,(queued_check_result.return_code==126 || queued_check_result.return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
-			snprintf(temp_service->plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"(Return code of %d is out of bounds%s)",queued_svc_msg.return_code,(queued_svc_msg.return_code==126 || queued_svc_msg.return_code==127)?" - plugin may be missing":"");
-			temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+			asprintf(&temp_service->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result.return_code,(queued_check_result.return_code==126 || queued_check_result.return_code==127)?" - plugin may be missing":"");
 
 			temp_service->current_state=STATE_CRITICAL;
                         }
@@ -788,30 +795,32 @@ void reap_service_checks(void){
 		/* else the return code is okay... */
 		else{
 
+			/* parse check output file to get: (1) short output, (2) long output, (3) perf data */
+			if(queued_check_result.output_file){
+				read_check_output_from_file(queued_check_result.output_file,&temp_service->plugin_output,&temp_service->long_plugin_output,&temp_service->perf_data,TRUE);
+#ifdef DEBUG_CHECK_IPC
+				printf("\n");
+				printf("PARSED CHECK OUTPUT...\n");
+				printf("OUTPUT FILE: %s\n",queued_check_result.output_file);
+				printf("SHORT: %s\n",(temp_service->plugin_output==NULL)?"NULL":temp_service->plugin_output);
+				printf("LONG: %s\n",(temp_service->long_plugin_output==NULL)?"NULL":temp_service->long_plugin_output);
+				printf("PERF: %s\n",(temp_service->perf_data==NULL)?"NULL":temp_service->perf_data);
+				printf("\n");
+#endif
+			        }
+
 			/* make sure the plugin output isn't null */
-			if(temp_ptr==NULL){
-				strncpy(temp_service->plugin_output,"(No output returned from plugin)",MAX_PLUGINOUTPUT_LENGTH-1);
-				temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-			        }
-
-			/* grab the plugin output */
-			else{
-
-				strip(temp_ptr);
-				if(!strcmp(temp_ptr,""))
-					strncpy(temp_service->plugin_output,"(No output returned from plugin)",MAX_PLUGINOUTPUT_LENGTH-1);
-				else
-					strncpy(temp_service->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-				temp_service->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-			        }
+			if(temp_service->plugin_output==NULL)
+				temp_service->plugin_output=strdup("(No output returned from plugin)");
 
 			/* replace semicolons in plugin output (but not performance data) with colons */
-			temp_ptr=temp_service->plugin_output;
-			while((temp_ptr=strchr(temp_ptr,';')))
-				*temp_ptr=':';
+			else if((temp_ptr=temp_service->plugin_output)){
+				while((temp_ptr=strchr(temp_ptr,';')))
+					*temp_ptr=':';
+			        }
 			
 			/* grab the return code */
-			temp_service->current_state=queued_svc_msg.return_code;
+			temp_service->current_state=queued_check_result.return_code;
 		        }
 
 
@@ -845,52 +854,7 @@ void reap_service_checks(void){
 
 				/* verify the host status */
 				verify_route_to_host(temp_host,CHECK_OPTION_NONE);
-
-#ifdef REMOVED_080303
-				/* really check the host status if we're using aggressive host checking */
-				if(use_aggressive_host_checking==TRUE)
-					verify_route_to_host(temp_host,CHECK_OPTION_NONE);
-
-				/* else let's just assume the host is up... */
-				else{
-
-					/* set the checked flag */
-					temp_host->has_been_checked=TRUE;
-				
-					/* update the last check time */
-					temp_host->last_check=temp_service->last_check;
-
-					/* set the host state and check types */
-					temp_host->current_state=HOST_UP;
-					temp_host->current_attempt=1;
-					temp_host->state_type=HARD_STATE;
-					temp_host->check_type=HOST_CHECK_ACTIVE;
-					
-					/* plugin output should reflect our guess at the current host state */
-					strncpy(temp_host->plugin_output,"(Host assumed to be up)",MAX_PLUGINOUTPUT_LENGTH);
-					temp_host->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-
-					/* should we be calling handle_host_state() here?  probably not, but i'm not sure at the present time - 02/18/03 */
-
-					/* update the status log with the host status */
-					update_host_status(temp_host,FALSE);
-
-#ifdef REMOVED_042903
-					/* log the initial state if the user wants */
-					if(log_initial_states==TRUE)
-						log_host_event(temp_host);
-#endif
-				        }
-#endif
 		                }
-
-#ifdef REMOVED_042903
-			/* log the initial state if the user wants */
-			if(temp_service->has_been_checked==FALSE && log_initial_states==TRUE){
-				log_service_event(temp_service);
-				state_was_logged=TRUE;
-			        }
-#endif
 		        }
 
 
@@ -1061,9 +1025,6 @@ void reap_service_checks(void){
 
 			/* reset all service variables because its okay now... */
 			temp_service->host_problem_at_last_check=FALSE;
-#ifdef REMOVED_041403
-			temp_service->no_recovery_notification=FALSE;
-#endif
 			temp_service->current_attempt=1;
 			temp_service->state_type=HARD_STATE;
 			temp_service->last_hard_state=STATE_OK;
@@ -1093,11 +1054,6 @@ void reap_service_checks(void){
 			printf("\tOriginally PROBLEM\n");
 #endif
 
-#ifdef REMOVED_041403
-			/* reset the recovery notification flag (it may get set again though) */
-			temp_service->no_recovery_notification=FALSE;
-#endif
-			
 			/* check the route to the host if its supposed to be up right now... */
 			if(temp_host->current_state==HOST_UP){
 				route_result=verify_route_to_host(temp_host,CHECK_OPTION_NONE);
@@ -1134,12 +1090,6 @@ void reap_service_checks(void){
 
 #ifdef DEBUG_CHECKS
 					printf("\tSECTION B2d\n");
-#endif
-
-#ifdef REMOVED_042903
-					/* log the initial state if the user wants to and this host hasn't been checked yet */
-					if(log_initial_states==TRUE && temp_host->has_been_checked==FALSE)
-						log_host_event(temp_host);
 #endif
 
 					/* if the host has never been checked before, set the checked flag */
@@ -1199,11 +1149,6 @@ void reap_service_checks(void){
 				/* the hosts recovered.  This caused problems, so hopefully this will fix it */
 				if(temp_service->state_type==SOFT_STATE)
 					temp_service->current_attempt=1;
-
-#ifdef REMOVED_041403
-				/* don't send a recovery notification if the service recovers at the next check */
-				temp_service->no_recovery_notification=TRUE;
-#endif
 			        }
 
 			/* if we should retry the service check, do so (except it the host is down or unreachable!) */
@@ -1247,13 +1192,6 @@ void reap_service_checks(void){
 
 					/* run the service event handler to handle the soft state */
 					handle_service_event(temp_service);
-
-#ifdef REMOVED_021803
-					/*** NOTE TO SELF - THIS SHOULD BE MOVED SOMEWHERE ELSE - 02/18/03 ***/
-					/*** MOVED UP TO ~ LINE 780 ***/
-					/* increment the current attempt number */
-					temp_service->current_attempt=temp_service->current_attempt+1;
-#endif
 
 					if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
 						temp_service->next_check=(time_t)(temp_service->last_check+(temp_service->retry_interval*interval_length));
@@ -1357,7 +1295,7 @@ void reap_service_checks(void){
 #endif
 
 		/* if we're stalking this state type and state was not already logged AND the plugin output changed since last check, log it now.. */
-		if(temp_service->state_type==HARD_STATE && state_change==FALSE && state_was_logged==FALSE && strcmp(old_plugin_output,temp_service->plugin_output)){
+		if(temp_service->state_type==HARD_STATE && state_change==FALSE && state_was_logged==FALSE && compare_strings(old_plugin_output,temp_service->plugin_output)){
 
 			if((temp_service->current_state==STATE_OK && temp_service->stalk_on_ok==TRUE))
 				log_service_event(temp_service);
@@ -1374,7 +1312,7 @@ void reap_service_checks(void){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,queued_svc_msg.start_time,queued_svc_msg.finish_time,NULL,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_svc_msg.early_timeout,queued_svc_msg.return_code,NULL,NULL);
+		broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,queued_check_result.start_time,queued_check_result.finish_time,NULL,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_check_result.early_timeout,queued_check_result.return_code,NULL,NULL);
 #endif
 
 		/* set the checked flag */
@@ -1392,16 +1330,15 @@ void reap_service_checks(void){
 		/* update service performance info */
 		update_service_performance_data(temp_service);
 
+		/* free allocated check result memory */
+		free_check_result(&queued_check_result);
+		free(temp_plugin_output);
+		free(old_plugin_output);
+
 		/* break out if we've been here too long (max_check_reaper_time seconds) */
 		time(&current_time);
 		if((int)(current_time-reaper_start_time)>max_check_reaper_time)
 			break;
-
-#if OLD_CRUD
-		/* check for external commands if we're doing so as often as possible */
-		if(command_check_interval==-1)
-			check_for_external_commands();
-#endif
 	        }
 
 #ifdef DEBUG3
@@ -1759,7 +1696,7 @@ void check_service_result_freshness(void){
 		/* calculate expiration time */
 		/* CHANGED 11/10/05 EG - program start is only used in expiration time calculation if > last check AND active checks are enabled, so active checks can become stale immediately upon program startup */
 		/* CHANGED 02/25/06 SG - passive checks also become stale, so remove dependence on active check logic */
-		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check))
+		if(temp_service->has_been_checked==FALSE || program_start>temp_service->last_check)
 			expiration_time=(time_t)(program_start+freshness_threshold);
 		else
 			expiration_time=(time_t)(temp_service->last_check+freshness_threshold);
@@ -2034,7 +1971,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 	struct timeval start_time;
 	struct timeval end_time;
 	double execution_time=0.0;
-	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
+	char *old_plugin_output=NULL;
 
 #ifdef DEBUG0
 	printf("check_host() start\n");
@@ -2065,8 +2002,8 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 	/* save the old plugin output and host state for use with state stalking routines */
 	old_state=hst->current_state;
-	strncpy(old_plugin_output,(hst->plugin_output==NULL)?"":hst->plugin_output,sizeof(old_plugin_output)-1);
-	old_plugin_output[sizeof(old_plugin_output)-1]='\x0';
+	if(hst->plugin_output)
+		old_plugin_output=strdup(hst->plugin_output);
 
 
 	/***** HOST IS NOT UP INITIALLY *****/
@@ -2300,7 +2237,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 	update_host_status(hst,FALSE);
 
 	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
-	if(hst->last_state==hst->current_state && strcmp(old_plugin_output,hst->plugin_output)){
+	if(hst->last_state==hst->current_state && compare_strings(old_plugin_output,hst->plugin_output)){
 
 		if(hst->current_state==HOST_UP && hst->stalk_on_up==TRUE)
 			log_host_event(hst);
@@ -2317,12 +2254,15 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	execution_time=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000)/1000.0);
+	execution_time=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000.0)/1000.0);
 	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->perf_data,NULL);
 #endif
 
 	/* check to see if the associated host is flapping */
 	check_for_host_flapping(hst,TRUE);
+
+	/* free memory */
+	free(old_plugin_output);
 
 	/* check for external commands if we're doing so as often as possible */
 	if(command_check_interval==-1)
@@ -2362,7 +2302,7 @@ int run_host_check(host *hst, int check_options){
 	char *temp_ptr;
 	int early_timeout=FALSE;
 	double exectime;
-	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH];
+	char temp_plugin_output[MAX_INPUT_BUFFER]="";
 		
 
 #ifdef DEBUG0
@@ -2430,17 +2370,23 @@ int run_host_check(host *hst, int check_options){
 #endif
 
 	/* clear plugin output and performance data buffers */
-	strcpy(hst->plugin_output,"");
-	strcpy(hst->perf_data,"");
+	if(hst->plugin_output)
+		free(hst->plugin_output);
+	hst->plugin_output=NULL;
+	if(hst->long_plugin_output)
+		free(hst->long_plugin_output);
+	hst->long_plugin_output=NULL;
+	if(hst->perf_data)
+		free(hst->perf_data);
+	hst->perf_data=NULL;
 
 	/* run the host check command */
-	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,temp_plugin_output,MAX_PLUGINOUTPUT_LENGTH-1);
+	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,temp_plugin_output,sizeof(temp_plugin_output)-1);
 
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
 
-		snprintf(hst->plugin_output,MAX_PLUGINOUTPUT_LENGTH-1,"Host check timed out after %d seconds\n",host_check_timeout);
-		hst->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+		asprintf(&hst->plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
 
 		/* log the timeout */
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
@@ -2454,30 +2400,17 @@ int run_host_check(host *hst, int check_options){
 	/* record check type */
 	hst->check_type=HOST_CHECK_ACTIVE;
 
-	/* check for empty plugin output */
-	if(!strcmp(temp_plugin_output,""))
-		strcpy(temp_plugin_output,"(No Information Returned From Host Check)");
-
 	/* first part of plugin output (up to pipe) is status info */
-	temp_ptr=strtok(temp_plugin_output,"|\n");
-
-	/* make sure the plugin output isn't NULL */
-	if(temp_ptr==NULL){
-		strncpy(hst->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
-		hst->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-	        }
+	if((temp_ptr=strtok(temp_plugin_output,"|\n"))==NULL)
+		hst->plugin_output=strdup("(No output returned from host check)");
 
 	else{
 
 		strip(temp_ptr);
-		if(!strcmp(temp_ptr,"")){
-			strncpy(hst->plugin_output,"(No output returned from host check)",MAX_PLUGINOUTPUT_LENGTH-1);
-			hst->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-                        }
-		else{
-			strncpy(hst->plugin_output,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-			hst->plugin_output[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
-                        }
+		if(!strcmp(temp_ptr,""))
+			hst->plugin_output=strdup("(No output returned from host check)");
+		else
+			hst->plugin_output=strdup(temp_ptr);
 	        }
 
 	/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
@@ -2486,15 +2419,14 @@ int run_host_check(host *hst, int check_options){
 	/* grab performance data if we found it available */
 	if(temp_ptr!=NULL){
 		strip(temp_ptr);
-		strncpy(hst->perf_data,temp_ptr,MAX_PLUGINOUTPUT_LENGTH-1);
-		hst->perf_data[MAX_PLUGINOUTPUT_LENGTH-1]='\x0';
+		hst->perf_data=strdup(temp_ptr);
 	        }
 
 	/* replace semicolons in plugin output (but not performance data) with colons */
-	temp_ptr=hst->plugin_output;
-	while((temp_ptr=strchr(temp_ptr,';')))
-	      *temp_ptr=':';
-
+	if((temp_ptr=hst->plugin_output)){
+		while((temp_ptr=strchr(temp_ptr,';')))
+			*temp_ptr=':';
+	        }
 
 	/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be STATE_OK) */
 	if(use_aggressive_host_checking==FALSE && result==STATE_WARNING)

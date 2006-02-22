@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-12-2006
+ * Last Modified:   02-17-2006
  *
  * License:
  *
@@ -25,6 +25,7 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/downtime.h"
+#include "../include/comments.h"
 #include "../include/statusdata.h"
 #include "../include/nagios.h"
 #include "../include/broker.h"
@@ -558,10 +559,9 @@ void display_scheduling_info(void){
 	float max_reaper_interval;
 	int suggestions=0;
 
-	printf("Projected scheduling information for host and service\n");
-	printf("checks is listed below.  This information assumes that\n");
-	printf("you are going to start running Nagios with your current\n");
-	printf("config files.\n\n");
+	printf("Projected scheduling information for host and service checks\n");
+	printf("is listed below.  This information assumes that you are going\n");
+	printf("to start running Nagios with your current config files.\n\n");
 
 	printf("HOST SCHEDULING INFORMATION\n");
 	printf("---------------------------\n");

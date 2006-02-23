@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-21-2006
+ * Last Modified:   02-23-2006
  *
  * License:
  *
@@ -37,6 +37,7 @@
 #endif
 
 extern char     *temp_file;
+extern char     *temp_path;
 
 extern int      interval_length;
 
@@ -110,7 +111,7 @@ void run_service_check(service *svc){
 	int time_is_valid=TRUE;
 	mode_t new_umask=077;
 	mode_t old_umask;
-	char tmpfile[MAX_INPUT_BUFFER]="";
+	char *tmpfile=NULL;
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
@@ -258,8 +259,11 @@ void run_service_check(service *svc){
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	sprintf(tmpfile,"/tmp/nagiosXXXXXX");
+	asprintf(&tmpfile,"%s/nagiosXXXXXX",temp_path);
 	check_result_info.output_file_fd=mkstemp(tmpfile);
+#ifdef DEBUG_CHECK_IPC
+	printf("TMPFILE: %s\n",tmpfile);
+#endif
 	if(check_result_info.output_file_fd>0)
 		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
 	else{
@@ -267,6 +271,9 @@ void run_service_check(service *svc){
 		check_result_info.output_file_fd=-1;
 	        }
 	umask(old_umask);
+#ifdef DEBUG_CHECK_IPC
+	printf("TMPFILE FD: %d\n",check_result_info.output_file_fd);
+#endif
 
 	/* save check info */
 	check_result_info.object_check_type=SERVICE_CHECK;
@@ -274,13 +281,16 @@ void run_service_check(service *svc){
 	check_result_info.service_description=strdup(svc->description);
 	check_result_info.parallelized=svc->parallelize;
 	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
-	check_result_info.output_file=(check_result_info.output_file_fd<0)?NULL:strdup(tmpfile);
+	check_result_info.output_file=(check_result_info.output_file_fd<0 || tmpfile==NULL)?NULL:strdup(tmpfile);
 	check_result_info.start_time=start_time;
 	check_result_info.finish_time=start_time;
 	check_result_info.early_timeout=FALSE;
 	check_result_info.exited_ok=TRUE;
 	check_result_info.return_code=STATE_OK;
 
+	/* free memory */
+	free(tmpfile);
+	tmpfile=NULL;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -353,10 +363,8 @@ void run_service_check(service *svc){
 				fputs(perl_plugin_output,check_result_info.output_file_fp);
 
 			/* close the temp file */
-			if(check_result_info.output_file_fp){
+			if(check_result_info.output_file_fp)
 				fclose(check_result_info.output_file_fp);
-				close(check_result_info.output_file_fd);
-			        }
 
 			/* get the check finish time */
 			gettimeofday(&end_time,NULL);
@@ -475,10 +483,8 @@ void run_service_check(service *svc){
 #endif
 
 				/* close the temp file */
-				if(check_result_info.output_file_fp){
+				if(check_result_info.output_file_fp)
 					fclose(check_result_info.output_file_fp);
-					close(check_result_info.output_file_fd);
-			                }
 
 				/* reset the alarm */
 				alarm(0);
@@ -509,6 +515,9 @@ void run_service_check(service *svc){
 			if(fp==NULL)
 				_exit(STATE_UNKNOWN);
 
+			/* initialize buffer */
+			strcpy(temp_buffer,"");
+
 			/* write the first line of plugin output to temp file */
 			fgets(temp_buffer,sizeof(temp_buffer)-1,fp);
 			if(check_result_info.output_file_fp)
@@ -524,10 +533,8 @@ void run_service_check(service *svc){
 			pclose_result=pclose(fp);
 
 			/* close the temp file */
-			if(check_result_info.output_file_fp){
+			if(check_result_info.output_file_fp)
 				fclose(check_result_info.output_file_fp);
-				close(check_result_info.output_file_fd);
-			        }
 
 			/* reset the alarm */
 			alarm(0);
@@ -571,6 +578,10 @@ void run_service_check(service *svc){
 
 	/* else the parent should wait for the first child to return... */
 	else if(pid>0){
+
+		/* parent should close output file descriptor */
+		if(check_result_info.output_file_fd>0)
+			close(check_result_info.output_file_fd);
 
 		wait_result=waitpid(pid,NULL,0);
 

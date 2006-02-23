@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 02-17-2006
+# Last Modified: 02-23-2006
 #
 ##############################################################################
 
@@ -210,6 +210,15 @@ lock_file=@lockfile@
 # running.
 
 temp_file=@localstatedir@/nagios.tmp
+
+
+
+
+# TEMP PATH
+# This is path where Nagios can create temp files for service check
+# results, etc.
+
+temp_path=/tmp
 
 
 

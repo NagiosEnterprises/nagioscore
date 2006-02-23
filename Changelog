@@ -19,6 +19,8 @@ Pre-alpha changes since 02/15/2006...
 * Object changes: 
      - Added ability to use multiple template names (separated by commas) in object definitions
      - Added ability to null out optional character directives in object definitions (using 'null' without quotes)
+     - Added hostgroup_members and servicegroup_members directives to hostgroup and servicegroup definitions,
+       respectively, for allowing including host or service members from "sub" groups.
 * Performance optimizations:
      - Added ability to precache object config files
      - Added ability to exclude object relationship and circular path
@@ -27,6 +29,7 @@ Pre-alpha changes since 02/15/2006...
      - Multiline output support for service checks (not Perl checks with embedded Perl support yet)
 * Macro changes:
      - Added $LONGHOSTOUTPUT$ and $LONGSERVICEOUTPUT$ macros
+     - Added $TEMPPATH$ macro
 * Flapping changes:
      - Added flap_detection_options directive to host and service definitions to control which
        states (i.e. OK, WARNING, UNKNOWN, and/or CRITICAL) are used in flap detection logic
@@ -37,6 +40,7 @@ Pre-alpha changes since 02/15/2006...
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions
      - Plugin output length restriction bumped up to 2K
+     - Added temp_path directive to main config file for specifying temp directory
        
 
 

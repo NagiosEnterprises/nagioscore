@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-21-2006
+ * Last Modified:   02-23-2006
  *
  * License:
  *
@@ -36,6 +36,7 @@ extern char     *config_file;
 extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;
+extern char     *temp_path;
 
 extern int      sigshutdown;
 extern int      sigrestart;
@@ -3023,12 +3024,16 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 	int delete_file=FALSE;
 
 	/* get the file name */
-	if((fname=my_strtok(args,";"))==NULL)
+	if((temp_ptr=my_strtok(args,";"))==NULL)
+		return ERROR;
+	if((fname=strdup(temp_ptr))==NULL)
 		return ERROR;
 
 	/* find the deletion option */
-	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
+		free(fname);
 		return ERROR;
+	        }
 	if(atoi(temp_ptr)==0)
 		delete_file=FALSE;
 	else
@@ -3036,6 +3041,9 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 
 	/* process the file */
 	process_external_commands_from_file(fname,delete_file);
+
+	/* free memory */
+	free(fname);
 
 	return OK;
         }
@@ -4561,7 +4569,7 @@ void process_passive_service_checks(void){
 	check_result info;
 	mode_t new_umask=077;
 	mode_t old_umask;
-	char tmpfile[MAX_INPUT_BUFFER]="";
+	char *tmpfile=NULL;
 	char *output=NULL;
 	int len=0;
 	register int x=0;
@@ -4630,8 +4638,11 @@ void process_passive_service_checks(void){
 
 					/* open a temp file for storing check output */
 					old_umask=umask(new_umask);
-					sprintf(tmpfile,"/tmp/nagiosXXXXXX");
+					asprintf(&tmpfile,"%s/nagiosXXXXXX",temp_path);
 					info.output_file_fd=mkstemp(tmpfile);
+#ifdef DEBUG_CHECK_IPC
+					printf("TMPFILE: %s\n",tmpfile);
+#endif
 					if(info.output_file_fd>0)
 						info.output_file_fp=fdopen(info.output_file_fd,"w");
 					else{
@@ -4645,10 +4656,8 @@ void process_passive_service_checks(void){
 						fputs(output,info.output_file_fp);
 
 					/* close temp file */
-					if(info.output_file_fp){
+					if(info.output_file_fp)
 						fclose(info.output_file_fp);
-						close(info.output_file_fd);
-				                }
 
 					/* free memory */
 					free(output);
@@ -4657,10 +4666,14 @@ void process_passive_service_checks(void){
 
 				info.host_name=strdup(temp_pcr->host_name);;
 				info.service_description=strdup(temp_pcr->svc_description);
-				info.output_file=(info.output_file_fd<0)?NULL:strdup(tmpfile);
+				info.output_file=(info.output_file_fd<0 || tmpfile==NULL)?NULL:strdup(tmpfile);
 				info.start_time.tv_sec=temp_pcr->check_time;
 				info.finish_time.tv_sec=temp_pcr->check_time;
 				info.return_code=temp_pcr->return_code;
+
+				/* free memory */
+				free(tmpfile);
+				tmpfile=NULL;
 
 				/* write the service check results... */
 				write_check_result(&info);

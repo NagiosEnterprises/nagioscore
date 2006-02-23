@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 3.0-prealpha-02222006
+ * Version: 3.0-prealpha-02232006
  * License: GPL
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-22-2006
+ * Last Modified:   02-23-2006
  *
  * Description:
  *
@@ -53,6 +53,7 @@ char		*config_file=NULL;
 char		*log_file=NULL;
 char            *command_file=NULL;
 char            *temp_file=NULL;
+char            *temp_path=NULL;
 char            *lock_file=NULL;
 char            *log_archive_path=NULL;
 char            *p1_file=NULL;    /**** EMBEDDED PERL ****/

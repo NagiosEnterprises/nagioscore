@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-19-2006
+ * Last Modified: 02-23-2006
  *
  * Description:
  *
@@ -1132,6 +1132,9 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostgroup->hostgroup_name=NULL;
 		new_hostgroup->alias=NULL;
 		new_hostgroup->members=NULL;
+		new_hostgroup->have_members=FALSE;
+		new_hostgroup->hostgroup_members=NULL;
+		new_hostgroup->have_hostgroup_members=FALSE;
 		new_hostgroup->has_been_resolved=FALSE;
 		new_hostgroup->register_object=TRUE;
 
@@ -1163,6 +1166,9 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_servicegroup->servicegroup_name=NULL;
 		new_servicegroup->alias=NULL;
 		new_servicegroup->members=NULL;
+		new_servicegroup->have_members=FALSE;
+		new_servicegroup->servicegroup_members=NULL;
+		new_servicegroup->have_servicegroup_members=FALSE;
 		new_servicegroup->has_been_resolved=FALSE;
 		new_servicegroup->register_object=TRUE;
 
@@ -2171,21 +2177,44 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"members")){
-			if(temp_hostgroup->members==NULL)
-				temp_hostgroup->members=strdup(value);
-			else{
-				temp_hostgroup->members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(value)+2);
-				if(temp_hostgroup->members!=NULL){
-					strcat(temp_hostgroup->members,",");
-					strcat(temp_hostgroup->members,value);
-				        }
-			        }
-			if(temp_hostgroup->members==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if(temp_hostgroup->members==NULL)
+					temp_hostgroup->members=strdup(value);
+				else{
+					temp_hostgroup->members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(value)+2);
+					if(temp_hostgroup->members!=NULL){
+						strcat(temp_hostgroup->members,",");
+						strcat(temp_hostgroup->members,value);
+				                }
+			                } 
+				if(temp_hostgroup->members==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for hostgroup members.\n");
+					printf("Error: Could not allocate memory for hostgroup members.\n");
 #endif
-				return ERROR;
+					return ERROR;
+			                }
 			        }
+			temp_hostgroup->have_members=TRUE;
+		        }
+		else if(!strcmp(variable,"hostgroup_members")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if(temp_hostgroup->hostgroup_members==NULL)
+					temp_hostgroup->hostgroup_members=strdup(value);
+				else{
+					temp_hostgroup->hostgroup_members=(char *)realloc(temp_hostgroup->hostgroup_members,strlen(temp_hostgroup->hostgroup_members)+strlen(value)+2);
+					if(temp_hostgroup->hostgroup_members!=NULL){
+						strcat(temp_hostgroup->hostgroup_members,",");
+						strcat(temp_hostgroup->hostgroup_members,value);
+				                }
+			                }
+				if(temp_hostgroup->hostgroup_members==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for hostgroup hostgroup_members.\n");
+#endif
+					return ERROR;
+			                }
+			        }
+			temp_hostgroup->have_hostgroup_members=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_hostgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -2252,21 +2281,44 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"members")){
-			if(temp_servicegroup->members==NULL)
-				temp_servicegroup->members=strdup(value);
-			else{
-				temp_servicegroup->members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(value)+2);
-				if(temp_servicegroup->members!=NULL){
-					strcat(temp_servicegroup->members,",");
-					strcat(temp_servicegroup->members,value);
-				        }
-			        }
-			if(temp_servicegroup->members==NULL){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if(temp_servicegroup->members==NULL)
+					temp_servicegroup->members=strdup(value);
+				else{
+					temp_servicegroup->members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(value)+2);
+					if(temp_servicegroup->members!=NULL){
+						strcat(temp_servicegroup->members,",");
+						strcat(temp_servicegroup->members,value);
+				                }
+			                }
+				if(temp_servicegroup->members==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not allocate memory for servicegroup members.\n");
+					printf("Error: Could not allocate memory for servicegroup members.\n");
 #endif
-				return ERROR;
+					return ERROR;
+			                }
 			        }
+			temp_servicegroup->have_members=TRUE;
+		        }
+		else if(!strcmp(variable,"servicegroup_members")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if(temp_servicegroup->servicegroup_members==NULL)
+					temp_servicegroup->servicegroup_members=strdup(value);
+				else{
+					temp_servicegroup->servicegroup_members=(char *)realloc(temp_servicegroup->servicegroup_members,strlen(temp_servicegroup->servicegroup_members)+strlen(value)+2);
+					if(temp_servicegroup->servicegroup_members!=NULL){
+						strcat(temp_servicegroup->servicegroup_members,",");
+						strcat(temp_servicegroup->servicegroup_members,value);
+				                }
+			                }
+				if(temp_servicegroup->servicegroup_members==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for servicegroup _servicegroupmembers.\n");
+#endif
+					return ERROR;
+			                }
+			        }
+			temp_servicegroup->have_servicegroup_members=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_servicegroup->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -6203,8 +6255,16 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 			this_hostgroup->hostgroup_name=strdup(template_hostgroup->hostgroup_name);
 		if(this_hostgroup->alias==NULL && template_hostgroup->alias!=NULL)
 			this_hostgroup->alias=strdup(template_hostgroup->alias);
-		if(this_hostgroup->members==NULL && template_hostgroup->members!=NULL)
-			this_hostgroup->members=strdup(template_hostgroup->members);
+		if(this_hostgroup->have_members==FALSE && template_hostgroup->have_members==TRUE){
+			if(this_hostgroup->members==NULL && template_hostgroup->members!=NULL)
+				this_hostgroup->members=strdup(template_hostgroup->members);
+			this_hostgroup->have_members=TRUE;
+		        }
+		if(this_hostgroup->have_hostgroup_members==FALSE && template_hostgroup->have_hostgroup_members==TRUE){
+			if(this_hostgroup->hostgroup_members==NULL && template_hostgroup->hostgroup_members!=NULL)
+				this_hostgroup->hostgroup_members=strdup(template_hostgroup->hostgroup_members);
+			this_hostgroup->have_hostgroup_members=TRUE;
+		        }
 	        }
 
 	free(template_names);
@@ -6268,8 +6328,16 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 			this_servicegroup->servicegroup_name=strdup(template_servicegroup->servicegroup_name);
 		if(this_servicegroup->alias==NULL && template_servicegroup->alias!=NULL)
 			this_servicegroup->alias=strdup(template_servicegroup->alias);
-		if(this_servicegroup->members==NULL && template_servicegroup->members!=NULL)
-			this_servicegroup->members=strdup(template_servicegroup->members);
+		if(this_servicegroup->have_members==FALSE && template_servicegroup->have_members==TRUE){
+			if(this_servicegroup->members==NULL && template_servicegroup->members!=NULL)
+				this_servicegroup->members=strdup(template_servicegroup->members);
+			this_servicegroup->have_members=TRUE;
+		        }
+		if(this_servicegroup->have_servicegroup_members==FALSE && template_servicegroup->have_servicegroup_members==TRUE){
+			if(this_servicegroup->servicegroup_members==NULL && template_servicegroup->servicegroup_members!=NULL)
+				this_servicegroup->servicegroup_members=strdup(template_servicegroup->servicegroup_members);
+			this_servicegroup->have_servicegroup_members=TRUE;
+		        }
 	        }
 
 	free(template_names);
@@ -7662,6 +7730,45 @@ int xodtemplate_recombobulate_hostgroups(void){
 		xodtemplate_free_hostlist(temp_hostlist);
 	        }
 
+	/* include (sub)hostgroup members */
+	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
+
+		if(temp_hostgroup->hostgroup_members==NULL)
+			continue;
+
+		/* skip hostgroups that shouldn't be registered */
+		if(temp_hostgroup->register_object==FALSE)
+			continue;
+
+		/* get list of hosts in the (sub)hostgroup */
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostgroup->hostgroup_members,NULL);
+
+		/* add all members to the host group */
+		if(temp_hostlist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member hostgroups specified in hostgroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+	                }
+		for(this_hostlist=temp_hostlist;this_hostlist;this_hostlist=this_hostlist->next){
+
+			/* add this host to the hostgroup members directive */
+			if(temp_hostgroup->members==NULL)
+				temp_hostgroup->members=strdup(this_hostlist->host_name);
+			else{
+				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(this_hostlist->host_name)+2);
+				if(new_members!=NULL){
+					temp_hostgroup->members=new_members;
+					strcat(temp_hostgroup->members,",");
+					strcat(temp_hostgroup->members,this_hostlist->host_name);
+				        }
+			        }
+	                }
+		xodtemplate_free_hostlist(temp_hostlist);
+	        }
+
 #ifdef DEBUG0
 	printf("xodtemplate_recombobulate_hostgroups() end\n");
 #endif
@@ -7842,6 +7949,55 @@ int xodtemplate_recombobulate_servicegroups(void){
 			free(host_name);
 			return ERROR;
 		        }
+	        }
+
+	/* expand members of (sub)servicegroups */
+	for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup;temp_servicegroup=temp_servicegroup->next){
+
+		if(temp_servicegroup->servicegroup_members==NULL)
+			continue;
+
+		/* skip servicegroups that shouldn't be registered */
+		if(temp_servicegroup->register_object==FALSE)
+			continue;
+
+		/* get list of services in the servicegroup */
+		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicegroup->servicegroup_members,NULL,NULL);
+
+		/* add all members to the service group */
+		if(temp_servicelist==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not expand member servicegroups specified in servicegroup (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicegroup->_config_file),temp_servicegroup->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+
+		for(this_servicelist=temp_servicelist;this_servicelist;this_servicelist=this_servicelist->next){
+
+			/* add this service to the servicegroup members directive */
+			if(temp_servicegroup->members==NULL){
+				temp_servicegroup->members=(char *)malloc(strlen(this_servicelist->host_name)+strlen(this_servicelist->service_description)+2);
+				if(temp_servicegroup!=NULL){
+					strcpy(temp_servicegroup->members,this_servicelist->host_name);
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,this_servicelist->service_description);
+				        }
+			        }
+			else{
+				new_members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(this_servicelist->host_name)+strlen(this_servicelist->service_description)+3);
+				if(new_members!=NULL){
+					temp_servicegroup->members=new_members;
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,this_servicelist->host_name);
+					strcat(temp_servicegroup->members,",");
+					strcat(temp_servicegroup->members,this_servicelist->service_description);
+				        }
+			        }
+		        }
+
+		xodtemplate_free_servicelist(temp_servicelist);
 	        }
 
 #ifdef DEBUG0
@@ -10828,6 +10984,7 @@ int xodtemplate_free_memory(void){
 		free(this_hostgroup->hostgroup_name);
 		free(this_hostgroup->alias);
 		free(this_hostgroup->members);
+		free(this_hostgroup->hostgroup_members);
 		free(this_hostgroup);
 	        }
 	xodtemplate_hostgroup_list=NULL;
@@ -10840,6 +10997,7 @@ int xodtemplate_free_memory(void){
 		free(this_servicegroup->servicegroup_name);
 		free(this_servicegroup->alias);
 		free(this_servicegroup->members);
+		free(this_servicegroup->servicegroup_members);
 		free(this_servicegroup);
 	        }
 	xodtemplate_servicegroup_list=NULL;

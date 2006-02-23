@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-20-2006
+ * Last Modified: 02-23-2006
  *
  * License:
  *
@@ -34,6 +34,7 @@
 extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;
+extern char     *temp_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
@@ -408,6 +409,38 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\ttemp_file set to '%s'\n",temp_file);
+#endif
+			}
+		else if(!strcmp(variable,"temp_path")){
+
+			if(strlen(value)>MAX_FILENAME_LENGTH-1){
+				strcpy(error_message,"Temp path is too long");
+				error=TRUE;
+				break;
+				}
+
+			if(temp_path!=NULL)
+				free(temp_path);
+			if((temp_path=(char *)strdup(value))){
+				strip(temp_path);
+				/* make sure we don't have a trailing slash */
+				if(temp_path[strlen(temp_path)-1]=='/')
+					temp_path[strlen(temp_path)-1]='\x0';
+			        }
+
+			/* save the macro */
+			if(macro_x[MACRO_TEMPPATH]!=NULL)
+				free(macro_x[MACRO_TEMPPATH]);
+			macro_x[MACRO_TEMPPATH]=(char *)strdup(temp_path);
+			if(macro_x[MACRO_TEMPPATH]==NULL){
+				strcpy(error_message,"Could not allocate memory for macro");
+				error=TRUE;
+				break;
+			        }
+			strip(macro_x[MACRO_TEMPPATH]);
+
+#ifdef DEBUG1
+			printf("\t\ttemp_path set to '%s'\n",temp_path);
 #endif
 			}
 		else if(!strcmp(variable,"lock_file")){

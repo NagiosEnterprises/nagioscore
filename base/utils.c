@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-21-2006
+ * Last Modified:   02-23-2006
  *
  * License:
  *
@@ -47,6 +47,7 @@ extern char	*config_file;
 extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;
+extern char     *temp_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
@@ -2228,6 +2229,7 @@ int clear_volatile_macros(void){
 		case MACRO_HOSTPERFDATAFILE:
 		case MACRO_SERVICEPERFDATAFILE:
 		case MACRO_PROCESSSTARTTIME:
+		case MACRO_TEMPPATH:
 			break;
 		default:
 			if(macro_x[x]!=NULL){
@@ -2295,6 +2297,7 @@ int clear_nonvolatile_macros(void){
 		case MACRO_HOSTPERFDATAFILE:
 		case MACRO_SERVICEPERFDATAFILE:
 		case MACRO_PROCESSSTARTTIME:
+		case MACRO_TEMPPATH:
 			if(macro_x[x]!=NULL){
 				free(macro_x[x]);
 				macro_x[x]=NULL;
@@ -2427,6 +2430,7 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_SERVICECHECKTYPE,"SERVICECHECKTYPE");
 	add_macrox_name(MACRO_LONGHOSTOUTPUT,"LONGHOSTOUTPUT");
 	add_macrox_name(MACRO_LONGSERVICEOUTPUT,"LONGSERVICEOUTPUT");
+	add_macrox_name(MACRO_TEMPPATH,"TEMPPATH");
 
 #ifdef DEBUG0
 	printf("init_macrox_names() end\n");
@@ -3474,8 +3478,9 @@ void service_check_sighandler(int sig){
 	if(check_result_info.output_file_fp){
 		fputs("(Service Check Timed Out)",check_result_info.output_file_fp);
 		fclose(check_result_info.output_file_fp);
-		close(check_result_info.output_file_fd);
 	        }
+	if(check_result_info.output_file_fd>0)
+		close(check_result_info.output_file_fd);
 
 #ifdef SERVICE_CHECK_TIMEOUTS_RETURN_UNKNOWN
 	check_result_info.return_code=STATE_UNKNOWN;
@@ -3982,7 +3987,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	/* open the file for reading */
 	if((thefile=mmap_fopen(fname))==NULL){
 		if(short_output)
-			*short_output=strdup("(Cannot read check result file - no plugin output!)");
+			*short_output=strdup("(Cannot read check result file (file may be empty) - no plugin output!)");
 		return ERROR;
 	        }
 
@@ -4018,7 +4023,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	mmap_fclose(thefile);
 
 	/* remove the file */
-	unlink(fname);
+	/*unlink(fname);*/
 
 	return OK;
         }
@@ -4720,6 +4725,9 @@ mmapfile *mmap_fopen(char *filename){
 	struct stat statbuf;
 	int mode=O_RDONLY;
 
+	if(filename==NULL)
+		return NULL;
+
 	/* allocate memory */
 	if((new_mmapfile=(mmapfile *)malloc(sizeof(mmapfile)))==NULL)
 		return NULL;
@@ -4745,8 +4753,7 @@ mmapfile *mmap_fopen(char *filename){
 	        }
 
 	/* populate struct info for later use */
-	/*new_mmapfile->path=strdup(filename);*/
-	new_mmapfile->path=NULL;
+	new_mmapfile->path=strdup(filename);
 	new_mmapfile->fd=fd;
 	new_mmapfile->file_size=(unsigned long)(statbuf.st_size);
 	new_mmapfile->current_position=0L;
@@ -5887,6 +5894,10 @@ void free_memory(void){
 		free(temp_file);
 		temp_file=NULL;
 	        }
+	if(temp_path!=NULL){
+		free(temp_path);
+		temp_path=NULL;
+	        }
 	if(command_file!=NULL){
 		free(command_file);
 		command_file=NULL;
@@ -5953,6 +5964,7 @@ int reset_variables(void){
 
 	log_file=(char *)strdup(DEFAULT_LOG_FILE);
 	temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
+	temp_path=(char *)strdup(DEFAULT_TEMP_PATH);
 	command_file=(char *)strdup(DEFAULT_COMMAND_FILE);
 	lock_file=(char *)strdup(DEFAULT_LOCK_FILE);
 	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);

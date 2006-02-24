@@ -3986,8 +3986,13 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 
 	/* open the file for reading */
 	if((thefile=mmap_fopen(fname))==NULL){
+
 		if(short_output)
 			*short_output=strdup("(Cannot read check result file (file may be empty) - no plugin output!)");
+
+		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
+		unlink(fname);
+
 		return ERROR;
 	        }
 
@@ -4023,7 +4028,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	mmap_fclose(thefile);
 
 	/* remove the file */
-	/*unlink(fname);*/
+	unlink(fname);
 
 	return OK;
         }

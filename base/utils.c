@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2006
+ * Last Modified:   02-24-006
  *
  * License:
  *
@@ -3809,6 +3809,7 @@ int drop_privileges(char *user, char *group){
 int read_check_result(check_result *info){
 	char buffer[MAX_INPUT_BUFFER];
 	int result;
+	check_result *buffered_result=NULL;
 
 #ifdef DEBUG0
 	printf("read_check_result() start\n");
@@ -3841,12 +3842,26 @@ int read_check_result(check_result *info){
 
 	/* return the result from the tail of the buffer */
 	else{
+
+		buffered_result=((check_result **)service_result_buffer.buffer)[service_result_buffer.tail];
 		
 		/* copy result to user-supplied structure */
-		memcpy(info,((check_result **)service_result_buffer.buffer)[service_result_buffer.tail],sizeof(check_result));
+		memcpy(info,buffered_result,sizeof(check_result));
+		info->host_name=NULL;
+		if(buffered_result->host_name)
+			info->host_name=strdup(buffered_result->host_name);
+		info->service_description=NULL;
+		if(buffered_result->service_description)
+			info->service_description=strdup(buffered_result->service_description);
+		info->output_file=NULL;
+		if(buffered_result->output_file)
+			info->output_file=strdup(buffered_result->output_file);
+
+		/* free memory */
+		free_check_result(buffered_result);
 
 		/* free memory allocated for buffer slot */
-		free(((check_result **)service_result_buffer.buffer)[service_result_buffer.tail]);
+		free(service_result_buffer.buffer[service_result_buffer.tail]);
 		service_result_buffer.buffer[service_result_buffer.tail]=NULL;
 
 		/* adjust tail counter and number of items */
@@ -4724,9 +4739,9 @@ int my_rename(char *source, char *dest){
 
 /* open a file read-only via mmap() */
 mmapfile *mmap_fopen(char *filename){
-	mmapfile *new_mmapfile;
+	mmapfile *new_mmapfile=NULL;
 	int fd;
-	void *mmap_buf;
+	void *mmap_buf=NULL;
 	struct stat statbuf;
 	int mode=O_RDONLY;
 
@@ -4782,8 +4797,7 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 	close(temp_mmapfile->fd);
 
 	/* free memory */
-	if(temp_mmapfile->path!=NULL)
-		free(temp_mmapfile->path);
+	free(temp_mmapfile->path);
 	free(temp_mmapfile);
 	
 	return OK;
@@ -4792,7 +4806,7 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 
 /* gets one line of input from an mmap()'ed file */
 char *mmap_fgets(mmapfile *temp_mmapfile){
-	char *buf;
+	char *buf=NULL;
 	unsigned long x;
 	int len;
 
@@ -5356,36 +5370,21 @@ int handle_check_result_input2(check_result *info, char *buf){
 	char *ptr1=NULL;
 	char *ptr2=NULL;
 
-	if(info==NULL || buf==NULL){
-#ifdef DEBUG_CHECK_IPC
-		printf("** NULL INFO or BUF!\n");
-#endif
+	if(info==NULL || buf==NULL)
 		return ERROR;
-	        }
 
 	strip(buf);
 
-#ifdef DEBUG_CHECK_IPC
-	/*printf("HANDLING: '%s'",buf);*/
-#endif
-
 	/* input is finished, so buffer this check result */
 	if(!strcmp(buf,"")){
-
-#ifdef DEBUG_CHECK_IPC
-		/*printf(" OK.\n");*/
-#endif
 
 		/* buffer check result */
 		buffer_check_result(info);
 
 		/* reinitialize check result structure */
 		info->object_check_type=SERVICE_CHECK;
-		info->host_name=NULL;
-		info->service_description=NULL;
 		info->check_type=SERVICE_CHECK_ACTIVE;
 		info->parallelized=TRUE;
-		info->output_file=NULL;
 		info->start_time.tv_sec=0;
 		info->start_time.tv_usec=0;
 		info->finish_time.tv_sec=0;
@@ -5394,22 +5393,17 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->exited_ok=TRUE;
 		info->return_code=STATE_OK;
 
+		/* free check result memory */
+		free_check_result(info);
+
 		return OK;
 	        }
 
 	/* get var/val pair */
-	if((var=strtok(buf,"="))==NULL){
-#ifdef DEBUG_CHECK_IPC
-		printf("** NULL VAR!\n");
-#endif
+	if((var=strtok(buf,"="))==NULL)
 		return ERROR;
-	        }
-	if((val=strtok(NULL,"\n"))==NULL){
-#ifdef DEBUG_CHECK_IPC
-		printf("** NULL VAL!\n");
-#endif
+	if((val=strtok(NULL,"\n"))==NULL)
 		return ERROR;
-	        }
 
 	/* handle the data */
 	switch(atoi(var)){
@@ -5432,34 +5426,18 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->output_file=strdup(val);
 		break;
 	case 7:
-		if((ptr1=strtok(val,"."))==NULL){
-#ifdef DEBUG_CHECK_IPC
-			printf("** NULL VAR 7!\n");
-#endif
+		if((ptr1=strtok(val,"."))==NULL)
 			return ERROR;
-		        }
-		if((ptr2=strtok(NULL,"\n"))==NULL){
-#ifdef DEBUG_CHECK_IPC
-			printf("** NULL VAL 7!\n");
-#endif
+		if((ptr2=strtok(NULL,"\n"))==NULL)
 			return ERROR;
-		        }
 		info->start_time.tv_sec=strtoul(ptr1,NULL,0);
 		info->start_time.tv_usec=strtoul(ptr2,NULL,0);
 		break;
 	case 8:
-		if((ptr1=strtok(val,"."))==NULL){
-#ifdef DEBUG_CHECK_IPC
-			printf("** NULL VAR 8!\n");
-#endif
+		if((ptr1=strtok(val,"."))==NULL)
 			return ERROR;
-		        }
-		if((ptr2=strtok(NULL,"\n"))==NULL){
-#ifdef DEBUG_CHECK_IPC
-			printf("** NULL VAL 8!\n");
-#endif
+		if((ptr2=strtok(NULL,"\n"))==NULL)
 			return ERROR;
-		        }
 		info->finish_time.tv_sec=strtoul(ptr1,NULL,0);
 		info->finish_time.tv_usec=strtoul(ptr2,NULL,0);
 		break;
@@ -5473,15 +5451,8 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->return_code=atoi(val);
 		break;
 	default:
-#ifdef DEBUG_CHECK_IPC
-		printf("** UNKNOWN ID!\n");
-#endif
 		return ERROR;
 	        }
-
-#ifdef DEBUG_CHECK_IPC
-	/*printf(" OK.\n",buf);*/
-#endif
 
 	return OK;
         }
@@ -5500,15 +5471,20 @@ int buffer_check_result(check_result *info){
 #endif
 
 	/* allocate memory for the result */
-	if((new_info=(check_result *)malloc(sizeof(check_result)))==NULL){
-#ifdef DEBUG_CHECK_IPC
-		printf("** BUFFER MALLOC ERROR!\n");
-#endif
+	if((new_info=(check_result *)malloc(sizeof(check_result)))==NULL)
 		return ERROR;
-	        }
 	
 	/* copy the original check result info */
 	memcpy(new_info,info,sizeof(check_result));
+	new_info->host_name=NULL;
+	if(info->host_name)
+		new_info->host_name=strdup(info->host_name);
+	new_info->service_description=NULL;
+	if(info->service_description)
+		new_info->service_description=strdup(info->service_description);
+	new_info->output_file=NULL;
+	if(info->output_file)
+		new_info->output_file=strdup(info->output_file);
 
 	/* obtain a lock for writing to the buffer */
 	pthread_mutex_lock(&service_result_buffer.buffer_lock);

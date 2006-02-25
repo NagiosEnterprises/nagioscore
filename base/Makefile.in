@@ -13,6 +13,9 @@ SRC_XDATA=../xdata
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
 
+# Compiler flags for use with Valgrind
+#CFLAGS=-O0 -g -DHAVE_CONFIG_H -DNSCORE
+
 # Compiler flags for optimization (overrides default)
 #CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
 

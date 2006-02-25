@@ -5893,6 +5893,16 @@ int free_object_data(void){
 	/* free memory for the service escalation list */
 	this_serviceescalation=serviceescalation_list;
 	while(this_serviceescalation!=NULL){
+
+		/* free memory for the contact group members */
+		this_contactgroupsmember=this_serviceescalation->contact_groups;
+		while(this_contactgroupsmember!=NULL){
+			next_contactgroupsmember=this_contactgroupsmember->next;
+			free(this_contactgroupsmember->group_name);
+			free(this_contactgroupsmember);
+			this_contactgroupsmember=next_contactgroupsmember;
+		        }
+
 		next_serviceescalation=this_serviceescalation->next;
 		free(this_serviceescalation->host_name);
 		free(this_serviceescalation->description);
@@ -5953,6 +5963,16 @@ int free_object_data(void){
 	/* free memory for the host escalation list */
 	this_hostescalation=hostescalation_list;
 	while(this_hostescalation!=NULL){
+
+		/* free memory for the contact group members */
+		this_contactgroupsmember=this_hostescalation->contact_groups;
+		while(this_contactgroupsmember!=NULL){
+			next_contactgroupsmember=this_contactgroupsmember->next;
+			free(this_contactgroupsmember->group_name);
+			free(this_contactgroupsmember);
+			this_contactgroupsmember=next_contactgroupsmember;
+		        }
+
 		next_hostescalation=this_hostescalation->next;
 		free(this_hostescalation->host_name);
 		free(this_hostescalation->escalation_period);

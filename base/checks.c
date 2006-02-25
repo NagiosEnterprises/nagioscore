@@ -106,12 +106,12 @@ void run_service_check(service *svc){
 	int fork_error=FALSE;
 	int wait_result=0;
 	host *temp_host=NULL;
-	FILE *fp;
+	FILE *fp=NULL;
 	int pclose_result=0;
 	int time_is_valid=TRUE;
 	mode_t new_umask=077;
 	mode_t old_umask;
-	char *tmpfile=NULL;
+	char output_file[MAX_INPUT_BUFFER]="";
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
@@ -259,10 +259,11 @@ void run_service_check(service *svc){
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	asprintf(&tmpfile,"%s/nagiosXXXXXX",temp_path);
-	check_result_info.output_file_fd=mkstemp(tmpfile);
+	snprintf(output_file,sizeof(output_file)-1,"%s/nagiosXXXXXX",temp_path);
+	output_file[sizeof(output_file)-1]='\x0';
+	check_result_info.output_file_fd=mkstemp(output_file);
 #ifdef DEBUG_CHECK_IPC
-	printf("TMPFILE: %s\n",tmpfile);
+	printf("OUTPUT FILE: %s\n",output_file);
 #endif
 	if(check_result_info.output_file_fd>0)
 		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
@@ -272,25 +273,21 @@ void run_service_check(service *svc){
 	        }
 	umask(old_umask);
 #ifdef DEBUG_CHECK_IPC
-	printf("TMPFILE FD: %d\n",check_result_info.output_file_fd);
+	printf("OUTPUT FILE FD: %d\n",check_result_info.output_file_fd);
 #endif
 
 	/* save check info */
 	check_result_info.object_check_type=SERVICE_CHECK;
-	check_result_info.host_name=strdup(svc->host_name);;
+	check_result_info.host_name=strdup(svc->host_name);
 	check_result_info.service_description=strdup(svc->description);
 	check_result_info.parallelized=svc->parallelize;
 	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
-	check_result_info.output_file=(check_result_info.output_file_fd<0 || tmpfile==NULL)?NULL:strdup(tmpfile);
+	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
 	check_result_info.start_time=start_time;
 	check_result_info.finish_time=start_time;
 	check_result_info.early_timeout=FALSE;
 	check_result_info.exited_ok=TRUE;
 	check_result_info.return_code=STATE_OK;
-
-	/* free memory */
-	free(tmpfile);
-	tmpfile=NULL;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -375,6 +372,9 @@ void run_service_check(service *svc){
 
 			/* write check results to message queue */
 			write_check_result(&check_result_info);
+
+			/* free check result memory */
+			free_check_result(&check_result_info);
 
 			return ;
 
@@ -499,6 +499,9 @@ void run_service_check(service *svc){
 				/* write check results to message queue */
 				write_check_result(&check_result_info);
 
+				/* free check result memory */
+				free_check_result(&check_result_info);
+
 				/* close write end of IPC pipe */
 				close(ipc_pipe[1]);
 
@@ -559,6 +562,9 @@ void run_service_check(service *svc){
 			/* write check result to message queue */
 			write_check_result(&check_result_info);
 
+			/* free check result memory */
+			free_check_result(&check_result_info);
+
 			/* close write end of IPC pipe */
 			close(ipc_pipe[1]);
 
@@ -579,10 +585,15 @@ void run_service_check(service *svc){
 	/* else the parent should wait for the first child to return... */
 	else if(pid>0){
 
-		/* parent should close output file descriptor */
-		if(check_result_info.output_file_fd>0)
-			close(check_result_info.output_file_fd);
+		/* parent should close output file */
+		if(check_result_info.output_file_fp)
+			fclose(check_result_info.output_file_fp);
 
+		/* should this be done in first child process (after spawning grandchild) as well? */
+		/* free memory allocated for IPC functionality */
+		free_check_result(&check_result_info);
+
+		/* wait for the first child to return */
 		wait_result=waitpid(pid,NULL,0);
 
 		/* removed 06/28/2000 - caused problems under AIX */
@@ -656,7 +667,7 @@ void reap_service_checks(void){
 	int state_was_logged=FALSE;
 	char *old_plugin_output=NULL;
 	char *temp_plugin_output=NULL;
-	char *temp_ptr;
+	char *temp_ptr=NULL;
 	time_t reaper_start_time;
 	struct timeval tv;
 
@@ -719,11 +730,6 @@ void reap_service_checks(void){
 		/* clear the freshening flag (it would have been set if this service was determined to be stale) */
 		temp_service->is_being_freshened=FALSE;
 
-		/* ignore passive service check results if we're not accepting them for this service */
-		if(temp_service->accept_passive_service_checks==FALSE && queued_check_result.check_type==SERVICE_CHECK_PASSIVE){
-			free_check_result(&queued_check_result);
-			continue;
-		        }
 #ifdef DEBUG3
 		printf("\n\tFound check result for service '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
 		printf("\t\tCheck Type:    %s\n",(queued_check_result.check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
@@ -765,6 +771,7 @@ void reap_service_checks(void){
 		temp_service->last_state=temp_service->current_state;
 
 		/* save old plugin output */
+		/* Valgrind says this memory allocation is definitely lost - why??? */
 		if(temp_service->plugin_output)
 			old_plugin_output=strdup(temp_service->plugin_output);
 
@@ -1341,7 +1348,7 @@ void reap_service_checks(void){
 		/* update service performance info */
 		update_service_performance_data(temp_service);
 
-		/* free allocated check result memory */
+		/* free allocated memory */
 		free_check_result(&queued_check_result);
 		free(temp_plugin_output);
 		free(old_plugin_output);
@@ -2013,6 +2020,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 	/* save the old plugin output and host state for use with state stalking routines */
 	old_state=hst->current_state;
+	/* Valgrind says this memory allocation is a leak - why??? */
 	if(hst->plugin_output)
 		old_plugin_output=strdup(hst->plugin_output);
 
@@ -2274,6 +2282,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 
 	/* free memory */
 	free(old_plugin_output);
+	old_plugin_output=NULL;
 
 	/* check for external commands if we're doing so as often as possible */
 	if(command_check_interval==-1)
@@ -2397,7 +2406,8 @@ int run_host_check(host *hst, int check_options){
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
 
-		asprintf(&hst->plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
+		snprintf(temp_plugin_output,sizeof(temp_plugin_output)-1,"Host check timed out after %d seconds\n",host_check_timeout);
+		temp_plugin_output[sizeof(temp_plugin_output)-1]='\x0';
 
 		/* log the timeout */
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
@@ -2476,8 +2486,8 @@ int run_host_check(host *hst, int check_options){
 
 /* schedules an immediate or delayed host check */
 void schedule_host_check(host *hst,time_t check_time,int forced){
-	timed_event *temp_event;
-	timed_event *new_event;
+	timed_event *temp_event=NULL;
+	timed_event *new_event=NULL;
 	int found=FALSE;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	int use_original_event=TRUE;
@@ -2491,8 +2501,7 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 		return;
 
 	/* allocate memory for a new event item */
-	new_event=(timed_event *)malloc(sizeof(timed_event));
-	if(new_event==NULL){
+	if((new_event=(timed_event *)malloc(sizeof(timed_event)))==NULL){
 
 		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Could not reschedule check of host '%s'!\n",hst->name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';

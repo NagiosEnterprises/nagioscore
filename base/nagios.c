@@ -48,6 +48,11 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
+/*#define DEBUG_MEMORY 1*/
+#ifdef DEBUG_MEMORY
+#include <mcheck.h>
+#endif
+
 
 char		*config_file=NULL;
 char		*log_file=NULL;
@@ -309,6 +314,10 @@ int main(int argc, char **argv){
 		        }
 
 	        }
+
+#ifdef DEBUG_MEMORY
+	mtrace();
+#endif
 
 	if(daemon_mode==FALSE){
 		printf("\nNagios %s\n",PROGRAM_VERSION);

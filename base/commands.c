@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2006
+ * Last Modified:   02-24-2006
  *
  * License:
  *
@@ -227,7 +227,7 @@ int process_external_command1(char *cmd){
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char *command_id=NULL;
 	char *args=NULL;
-	time_t entry_time;
+	time_t entry_time=0L;
 	int command_type=CMD_NONE;
 	char *temp_ptr=NULL;
 
@@ -4569,7 +4569,7 @@ void process_passive_service_checks(void){
 	check_result info;
 	mode_t new_umask=077;
 	mode_t old_umask;
-	char *tmpfile=NULL;
+	char *output_file=NULL;
 	char *output=NULL;
 	int len=0;
 	register int x=0;
@@ -4638,10 +4638,10 @@ void process_passive_service_checks(void){
 
 					/* open a temp file for storing check output */
 					old_umask=umask(new_umask);
-					asprintf(&tmpfile,"%s/nagiosXXXXXX",temp_path);
-					info.output_file_fd=mkstemp(tmpfile);
+					asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
+					info.output_file_fd=mkstemp(output_file);
 #ifdef DEBUG_CHECK_IPC
-					printf("TMPFILE: %s\n",tmpfile);
+					printf("OUTPUT FILE: %s\n",output_file);
 #endif
 					if(info.output_file_fd>0)
 						info.output_file_fp=fdopen(info.output_file_fd,"w");
@@ -4664,16 +4664,16 @@ void process_passive_service_checks(void){
 					output=NULL;
 				        }
 
-				info.host_name=strdup(temp_pcr->host_name);;
+				info.host_name=strdup(temp_pcr->host_name);
 				info.service_description=strdup(temp_pcr->svc_description);
-				info.output_file=(info.output_file_fd<0 || tmpfile==NULL)?NULL:strdup(tmpfile);
+				info.output_file=(info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
 				info.start_time.tv_sec=temp_pcr->check_time;
 				info.finish_time.tv_sec=temp_pcr->check_time;
 				info.return_code=temp_pcr->return_code;
 
 				/* free memory */
-				free(tmpfile);
-				tmpfile=NULL;
+				free(output_file);
+				output_file=NULL;
 
 				/* write the service check results... */
 				write_check_result(&info);

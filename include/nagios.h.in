@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2006
+ * Last Modified: 02-24-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -402,11 +402,11 @@ typedef struct notify_list_struct{
 /* CHECK_RESULT structure */
 typedef struct check_result_struct{
 	int object_check_type;                          /* is this a service or a host check? */
-	char *host_name;				/* host name */
-	char *service_description;			/* service description */
+	char *host_name;                               /* host name */
+	char *service_description;                     /* service description */
 	int check_type;					/* was this an active or passive service check? */
 	int parallelized;                               /* was this check run in parallel? */
-	char *output_file;                              /* what file is the output stored in? */
+	char *output_file;                             /* what file is the output stored in? */
 	FILE *output_file_fp;
 	int output_file_fd;
 	struct timeval start_time;			/* time the service check was initiated */
@@ -417,7 +417,7 @@ typedef struct check_result_struct{
 	}check_result;
 
 
-/* SCHED_INFO structure */
+//* SCHED_INFO structure */
 typedef struct sched_info_struct{
 	int total_services;
 	int total_scheduled_services;

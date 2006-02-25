@@ -67,7 +67,7 @@ Using plugins to check the status of hosts may be a bit more difficult to unders
 </p>
 
 <p>
-Host checks can use the same plugins as service checks.  The only real difference is the important of the plugin results.  If a plugin that is used for a host check results in a non-OK status, Nagios will believe that the host is down.
+Host checks can use the same plugins as service checks.  The only real difference between the two types of checks is in the interpretation of the plugin results.  If a plugin that is used for a host check results in a non-OK status, Nagios will believe that the host is down.
 </p>
 
 <p>In most situations, you'll want to use a plugin which checks to see if the host can be pinged, as this is the most common method of telling whether or not a host is up.  However, if you were monitoring some kind of super-fantastic toaster, you might want to use a plugin that would check to see if the heating elements turned on when the handle was pushed down.  That would give a decent indication as to whether or not the toaster was "alive".  

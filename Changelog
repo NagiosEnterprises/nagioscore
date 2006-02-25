@@ -6,6 +6,7 @@ Nagios 2.x Change Log
 2.1 - ??/??/2006
 ----------------
 * Changed freshness logic so that passive checks don't immediately go stale after program restart
+* Bug fix for minor memory leak in object cleanup code
 
 
 2.0 - 02/07/2006

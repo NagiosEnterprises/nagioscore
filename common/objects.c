@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-21-2006
+ * Last Modified: 02-25-2006
  *
  * License:
  *
@@ -1363,6 +1363,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->obsess_over_host=(obsess_over_host>0)?TRUE:FALSE;
 	new_host->retain_status_information=(retain_status_information>0)?TRUE:FALSE;
 	new_host->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
+	new_host->custom_variables=NULL;
 
 #ifdef NSCORE
 	new_host->plugin_output=NULL;
@@ -1557,6 +1558,7 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
         }
 
 
+
 /* add a new contactgroup to a host */
 contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	contactgroupsmember *new_contactgroupsmember;
@@ -1621,6 +1623,15 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 
 	return new_contactgroupsmember;
         }
+
+
+
+/* adds a custom variable to a host */
+customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, char *varvalue){
+
+	return add_custom_variable_to_object(&hst->custom_variables,varname,varvalue);
+        }
+
 
 
 /* add a new host group to the list in memory */
@@ -2347,6 +2358,7 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->notify_on_host_down=(notify_host_down>0)?TRUE:FALSE;
 	new_contact->notify_on_host_unreachable=(notify_host_unreachable>0)?TRUE:FALSE;
 	new_contact->notify_on_host_flapping=(notify_host_flapping>0)?TRUE:FALSE;
+	new_contact->custom_variables=NULL;
 
 	new_contact->next=NULL;
 	new_contact->nexthash=NULL;
@@ -2534,6 +2546,14 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 #endif
 
 	return new_commandsmember;
+        }
+
+
+
+/* adds a custom variable to a contact */
+customvariablesmember *add_custom_variable_to_contact(contact *cntct, char *varname, char *varvalue){
+
+	return add_custom_variable_to_object(&cntct->custom_variables,varname,varvalue);
         }
 
 
@@ -3173,6 +3193,8 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->notifications_enabled=(notifications_enabled>0)?TRUE:FALSE;
 	new_service->obsess_over_service=(obsess_over_service>0)?TRUE:FALSE;
 	new_service->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
+	new_service->custom_variables=NULL;
+
 #ifdef NSCORE
 	new_service->plugin_output=NULL;
 	new_service->long_plugin_output=NULL;
@@ -3355,6 +3377,13 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 	return new_contactgroupsmember;
 	}
 
+
+
+/* adds a custom variable to a service */
+customvariablesmember *add_custom_variable_to_service(service *svc, char *varname, char *varvalue){
+
+	return add_custom_variable_to_object(&svc->custom_variables,varname,varvalue);
+        }
 
 
 
@@ -4686,6 +4715,85 @@ serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *no
 	
 
 
+/* adds a custom variable to an object */
+customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue){
+	customvariablesmember *new_customvariablesmember=NULL;
+#ifdef NSCORE
+	char temp_buffer[MAX_INPUT_BUFFER];
+#endif
+
+#ifdef DEBUD0
+	printf("add_custom_variable_to_object() start\n");
+#endif
+
+	/* make sure we have the data we need */
+	if(object_ptr==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Custom variable object is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	if(varname==NULL || !strcmp(varname,"")){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Custom variable name is NULL\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for a new member */
+	if((new_customvariablesmember=malloc(sizeof(customvariablesmember)))==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for custom variable\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if((new_customvariablesmember->variable_name=strdup(varname))==NULL){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for custom variable name\n");
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		free(new_customvariablesmember);
+		return NULL;
+	        }
+	if(varvalue){
+		if((new_customvariablesmember->variable_value=strdup(varvalue))==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for custom variable value\n");
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			free(new_customvariablesmember->variable_name);
+			free(new_customvariablesmember);
+			return NULL;
+	                }
+	        }
+	else
+		new_customvariablesmember->variable_value=NULL;
+
+	/* set initial values */
+	new_customvariablesmember->has_been_modified=FALSE;
+
+	/* add the new member to the head of the member list */
+	new_customvariablesmember->next=*object_ptr;
+	*object_ptr=new_customvariablesmember;
+
+#ifdef DEBUD0
+	printf("add_custom_variable_to_object() end\n");
+#endif
+
+	return new_customvariablesmember;
+        }
+
+
+
 
 /******************************************************************/
 /******************** OBJECT SEARCH FUNCTIONS *********************/
@@ -5596,6 +5704,8 @@ int free_object_data(void){
 	contactgroupmember *next_contactgroupmember=NULL;
 	contactgroupsmember *this_contactgroupsmember=NULL;
 	contactgroupsmember *next_contactgroupsmember=NULL;
+	customvariablesmember *this_customvariablesmember=NULL;
+	customvariablesmember *next_customvariablesmember=NULL;
 	service *this_service=NULL;
 	service *next_service=NULL;
 	command *this_command=NULL;
@@ -5669,6 +5779,16 @@ int free_object_data(void){
 			free(this_contactgroupsmember);
 			this_contactgroupsmember=next_contactgroupsmember;
 			}
+
+		/* free memory for custom variables */
+		this_customvariablesmember=this_host->custom_variables;
+		while(this_customvariablesmember!=NULL){
+			next_customvariablesmember=this_customvariablesmember->next;
+			free(this_customvariablesmember->variable_name);
+			free(this_customvariablesmember->variable_value);
+			free(this_customvariablesmember);
+			this_customvariablesmember=next_customvariablesmember;
+		        }
 
 		free(this_host->name);
 		free(this_host->alias);
@@ -5780,6 +5900,16 @@ int free_object_data(void){
 			this_commandsmember=next_commandsmember;
 		        }
 
+		/* free memory for custom variables */
+		this_customvariablesmember=this_contact->custom_variables;
+		while(this_customvariablesmember!=NULL){
+			next_customvariablesmember=this_customvariablesmember->next;
+			free(this_customvariablesmember->variable_name);
+			free(this_customvariablesmember->variable_value);
+			free(this_customvariablesmember);
+			this_customvariablesmember=next_customvariablesmember;
+		        }
+
 		next_contact=this_contact->next;
 		free(this_contact->name);
 		free(this_contact->alias);
@@ -5845,6 +5975,16 @@ int free_object_data(void){
 			free(this_contactgroupsmember);
 			this_contactgroupsmember=next_contactgroupsmember;
 	                }
+
+		/* free memory for custom variables */
+		this_customvariablesmember=this_service->custom_variables;
+		while(this_customvariablesmember!=NULL){
+			next_customvariablesmember=this_customvariablesmember->next;
+			free(this_customvariablesmember->variable_name);
+			free(this_customvariablesmember->variable_value);
+			free(this_customvariablesmember);
+			this_customvariablesmember=next_customvariablesmember;
+		        }
 
 		free(this_service->host_name);
 		free(this_service->description);

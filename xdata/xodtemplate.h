@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2006
+ * Last Modified:   02-25-2006
  *
  * License:
  *
@@ -56,6 +56,14 @@
 
 
 /********** STRUCTURE DEFINITIONS **********/
+
+/* CUSTOMVARIABLESMEMBER structure */
+typedef struct xodtemplate_customvariablesmember_struct{
+	char    *variable_name;
+	char    *variable_value;
+	struct xodtemplate_customvariablesmember_struct *next;
+        }xodtemplate_customvariablesmember;
+
 
 /* TIMEPERIOD TEMPLATE STRUCTURE */
 typedef struct xodtemplate_timeperiod_struct{
@@ -116,6 +124,7 @@ typedef struct xodtemplate_contact_struct{
 	int       notify_on_service_critical;
 	int       notify_on_service_recovery;
 	int       notify_on_service_flapping;
+	xodtemplate_customvariablesmember *custom_variables;
 
 	int       have_contact_groups;
 	int       have_email;
@@ -198,6 +207,7 @@ typedef struct xodtemplate_host_struct{
 	char      *failure_prediction_options;
 	int       retain_status_information;
 	int       retain_nonstatus_information;
+	xodtemplate_customvariablesmember *custom_variables;
 
 	int       have_parents;
 	int       have_host_groups;
@@ -308,6 +318,7 @@ typedef struct xodtemplate_service_struct{
 	char       *failure_prediction_options;
 	int        retain_status_information;
 	int        retain_nonstatus_information;
+	xodtemplate_customvariablesmember *custom_variables;
 
 	int        have_host_name;
 	int        have_service_description;
@@ -667,6 +678,11 @@ void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *,xodtemplate_s
 int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);
 int xodtemplate_end_object_definition(int);
+
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_host(xodtemplate_host *,char *,char *);
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_service(xodtemplate_service *,char *,char *);
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_contact(xodtemplate_contact *,char *,char *);
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xodtemplate_customvariablesmember **,char *,char *);
 
 int xodtemplate_register_objects(void);
 int xodtemplate_free_memory(void);

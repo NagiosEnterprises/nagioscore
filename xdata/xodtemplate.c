@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2006
+ * Last Modified: 02-25-2006
  *
  * Description:
  *
@@ -1338,6 +1338,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contact->notify_on_service_flapping=FALSE;
 		new_contact->have_host_notification_options=FALSE;
 		new_contact->have_service_notification_options=FALSE;
+		new_contact->custom_variables=NULL;
 		new_contact->has_been_resolved=FALSE;
 		new_contact->register_object=TRUE;
 
@@ -1434,6 +1435,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_retain_status_information=FALSE;
 		new_host->retain_nonstatus_information=TRUE;
 		new_host->have_retain_nonstatus_information=FALSE;
+		new_host->custom_variables=NULL;
 		new_host->has_been_resolved=FALSE;
 		new_host->register_object=TRUE;
 
@@ -1540,6 +1542,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_retain_status_information=FALSE;
 		new_service->retain_nonstatus_information=TRUE;
 		new_service->have_retain_nonstatus_information=FALSE;
+		new_service->custom_variables=NULL;
 		new_service->has_been_resolved=FALSE;
 		new_service->register_object=TRUE;
 
@@ -1764,7 +1767,9 @@ int xodtemplate_add_object_property(char *input, int options){
 	int result=OK;
 	char *variable=NULL;
 	char *value=NULL;
-	char *temp_ptr;
+	char *temp_ptr=NULL;
+	char *customvarname=NULL;
+	char *customvarvalue=NULL;
 	xodtemplate_timeperiod *temp_timeperiod;
 	xodtemplate_command *temp_command;
 	xodtemplate_contactgroup *temp_contactgroup;
@@ -2908,6 +2913,42 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_contact->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else if(variable[0]=='_'){
+
+			/* get the variable name */
+			customvarname=strdup(variable+1);
+
+			/* make sure we have a variable name */
+			if(customvarname==NULL || !strcmp(customvarname,"")){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Null custom variable name.\n");
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(customvarname);
+				return ERROR;
+			        }
+
+			/* get the variable value */
+			if(strcmp(value,XODTEMPLATE_NULL))
+				customvarvalue=strdup(value);
+			else
+				customvarvalue=NULL;
+
+			/* add the custom variable */
+			if(xodtemplate_add_custom_variable_to_contact(temp_contact,customvarname,customvarvalue)==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not add custom variable '%s' for contact.\n",varname);
+#endif
+				free(customvarname);
+				free(customvarvalue);
+				return ERROR;
+			        }
+
+			/* free memory */
+			free(customvarname);
+			free(customvarvalue);
+		        }
 		else{
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid contact object directive '%s'.\n",variable);
@@ -3230,6 +3271,42 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_host->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else if(variable[0]=='_'){
+
+			/* get the variable name */
+			customvarname=strdup(variable+1);
+
+			/* make sure we have a variable name */
+			if(customvarname==NULL || !strcmp(customvarname,"")){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Null custom variable name.\n");
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(customvarname);
+				return ERROR;
+			        }
+
+			/* get the variable value */
+			if(strcmp(value,XODTEMPLATE_NULL))
+				customvarvalue=strdup(value);
+			else
+				customvarvalue=NULL;
+
+			/* add the custom variable */
+			if(xodtemplate_add_custom_variable_to_host(temp_host,customvarname,customvarvalue)==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not add custom variable '%s' for host.\n",varname);
+#endif
+				free(customvarname);
+				free(customvarvalue);
+				return ERROR;
+			        }
+
+			/* free memory */
+			free(customvarname);
+			free(customvarvalue);
+		        }
 		else{
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid host object directive '%s'.\n",variable);
@@ -3570,6 +3647,42 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_service->register_object=(atoi(value)>0)?TRUE:FALSE;
+		else if(variable[0]=='_'){
+
+			/* get the variable name */
+			customvarname=strdup(variable+1);
+
+			/* make sure we have a variable name */
+			if(customvarname==NULL || !strcmp(customvarname,"")){
+#ifdef NSCORE
+				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Null custom variable name.\n");
+				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+				free(customvarname);
+				return ERROR;
+			        }
+
+			/* get the variable value */
+			if(strcmp(value,XODTEMPLATE_NULL))
+				customvarvalue=strdup(value);
+			else
+				customvarvalue=NULL;
+
+			/* add the custom variable */
+			if(xodtemplate_add_custom_variable_to_service(temp_service,customvarname,customvarvalue)==NULL){
+#ifdef DEBUG1
+				printf("Error: Could not add custom variable '%s' for service.\n",varname);
+#endif
+				free(customvarname);
+				free(customvarvalue);
+				return ERROR;
+			        }
+
+			/* free memory */
+			free(customvarname);
+			free(customvarvalue);
+		        }
 		else{
 #ifdef NSCORE
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid service object directive '%s'.\n",variable);
@@ -4250,6 +4363,73 @@ int xodtemplate_end_object_definition(int options){
 
 
 
+/* adds a custom variable to a host */
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_host(xodtemplate_host *hst, char *varname, char *varvalue){
+
+	return xodtemplate_add_custom_variable_to_object(&hst->custom_variables,varname,varvalue);
+        }
+
+
+
+/* adds a custom variable to a service */
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_service(xodtemplate_service *svc, char *varname, char *varvalue){
+
+	return xodtemplate_add_custom_variable_to_object(&svc->custom_variables,varname,varvalue);
+        }
+
+
+
+/* adds a custom variable to a contact */
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_contact(xodtemplate_contact *cntct, char *varname, char *varvalue){
+
+	return xodtemplate_add_custom_variable_to_object(&cntct->custom_variables,varname,varvalue);
+        }
+
+
+
+/* adds a custom variable to an object */
+xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xodtemplate_customvariablesmember **object_ptr, char *varname, char *varvalue){
+	xodtemplate_customvariablesmember *new_customvariablesmember=NULL;
+	register int x=0;
+
+	/* make sure we have the data we need */
+	if(object_ptr==NULL)
+		return NULL;
+
+	if(varname==NULL || !strcmp(varname,""))
+		return NULL;
+
+	/* allocate memory for a new member */
+	if((new_customvariablesmember=malloc(sizeof(xodtemplate_customvariablesmember)))==NULL)
+		return NULL;
+	if((new_customvariablesmember->variable_name=strdup(varname))==NULL){
+		free(new_customvariablesmember);
+		return NULL;
+	        }
+	if(varvalue){
+		if((new_customvariablesmember->variable_value=strdup(varvalue))==NULL){
+			free(new_customvariablesmember->variable_name);
+			free(new_customvariablesmember);
+			return NULL;
+	                }
+	        }
+	else
+		new_customvariablesmember->variable_value=NULL;
+
+	/* convert varname to all uppercase (saves CPU time during macro functions) */
+	for(x=0;new_customvariablesmember->variable_name[x]!='\x0';x++)
+		new_customvariablesmember->variable_name[x]=toupper(new_customvariablesmember->variable_name[x]);
+	
+	/* add the new member to the head of the member list */
+	new_customvariablesmember->next=*object_ptr;
+	*object_ptr=new_customvariablesmember;
+
+	return new_customvariablesmember;
+        }
+
+
+
+
 /******************************************************************/
 /***************** OBJECT DUPLICATION FUNCTIONS *******************/
 /******************************************************************/
@@ -4908,7 +5088,8 @@ int xodtemplate_duplicate_objects(void){
 
 /* duplicates a service definition (with a new host name) */
 int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_name){
-	xodtemplate_service *new_service;
+	xodtemplate_service *new_service=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_service() start\n");
@@ -4952,6 +5133,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->have_contact_groups=temp_service->have_contact_groups;
 	new_service->failure_prediction_options=NULL;
 	new_service->have_failure_prediction_options=temp_service->have_failure_prediction_options;
+	new_service->custom_variables=NULL;
 
 	/* make sure hostgroup member in new service definition is NULL */
 	new_service->hostgroup_name=NULL;
@@ -5123,6 +5305,10 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			return ERROR;
 		        }
 	        } 
+
+	/* duplicate custom variables */
+	for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
+		xodtemplate_add_custom_variable_to_service(new_service,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value);
 
 	/* duplicate non-string members */
 	new_service->max_check_attempts=temp_service->max_check_attempts;
@@ -6579,6 +6765,8 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
 	xodtemplate_contact *template_contact=NULL;
+	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 	int x;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
@@ -6681,6 +6869,20 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 			this_contact->notify_on_service_flapping=template_contact->notify_on_service_flapping;
 			this_contact->have_service_notification_options=TRUE;
 	                }
+
+		/* apply missing custom variables from template contact... */
+		for(temp_customvariablesmember=template_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+			/* see if this host has a variable by the same name */
+			for(this_customvariablesmember=this_contact->custom_variables;this_customvariablesmember!=NULL;this_customvariablesmember=this_customvariablesmember->next){
+				if(!strcmp(temp_customvariablesmember->variable_name,this_customvariablesmember->variable_name))
+					break;
+			        }
+
+			/* we didn't find the same variable name, so add a new custom variable */
+			if(this_customvariablesmember==NULL)
+				xodtemplate_add_custom_variable_to_contact(this_contact,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value);
+		        }
 	        }
 	
 	free(template_names);
@@ -6699,6 +6901,8 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
 	xodtemplate_host *template_host=NULL;
+	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -6876,6 +7080,20 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 			this_host->retain_nonstatus_information=template_host->retain_nonstatus_information;
 			this_host->have_retain_nonstatus_information=TRUE;
 	                }
+
+		/* apply missing custom variables from template host... */
+		for(temp_customvariablesmember=template_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+			/* see if this host has a variable by the same name */
+			for(this_customvariablesmember=this_host->custom_variables;this_customvariablesmember!=NULL;this_customvariablesmember=this_customvariablesmember->next){
+				if(!strcmp(temp_customvariablesmember->variable_name,this_customvariablesmember->variable_name))
+					break;
+			        }
+
+			/* we didn't find the same variable name, so add a new custom variable */
+			if(this_customvariablesmember==NULL)
+				xodtemplate_add_custom_variable_to_host(this_host,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value);
+		        }
 	        }
 
 	free(template_names);
@@ -6894,6 +7112,8 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
 	xodtemplate_service *template_service=NULL;
+	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -7090,6 +7310,20 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 			this_service->retain_nonstatus_information=template_service->retain_nonstatus_information;
 			this_service->have_retain_nonstatus_information=TRUE;
 	                }
+
+		/* apply missing custom variables from template service... */
+		for(temp_customvariablesmember=template_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+			/* see if this host has a variable by the same name */
+			for(this_customvariablesmember=this_service->custom_variables;this_customvariablesmember!=NULL;this_customvariablesmember=this_customvariablesmember->next){
+				if(!strcmp(temp_customvariablesmember->variable_name,this_customvariablesmember->variable_name))
+					break;
+			        }
+
+			/* we didn't find the same variable name, so add a new custom variable */
+			if(this_customvariablesmember==NULL)
+				xodtemplate_add_custom_variable_to_service(this_service,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value);
+		        }
 	        }
 
 	free(template_names);
@@ -9020,9 +9254,10 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 
 /* registers a contact definition */
 int xodtemplate_register_contact(xodtemplate_contact *this_contact){
-	contact *new_contact;
-	char *command_name;
-	commandsmember *new_commandsmember;
+	contact *new_contact=NULL;
+	char *command_name=NULL;
+	commandsmember *new_commandsmember=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -9080,6 +9315,18 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 		        }
 	        }
 
+	/* add all custom variables */
+	for(temp_customvariablesmember=this_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		if((add_custom_variable_to_contact(new_contact,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value))==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not custom variable to contact (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_contact->_config_file),this_contact->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+	        }
+
 #ifdef DEBUG0
 	printf("xodtemplate_register_contact() end\n");
 #endif
@@ -9091,11 +9338,12 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 
 /* registers a host definition */
 int xodtemplate_register_host(xodtemplate_host *this_host){
-	host *new_host;
-	char *parent_host;
-	hostsmember *new_hostsmember;
-	contactgroupsmember *new_contactgroupsmember;
-	char *contact_group;
+	host *new_host=NULL;
+	char *parent_host=NULL;
+	hostsmember *new_hostsmember=NULL;
+	contactgroupsmember *new_contactgroupsmember=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
+	char *contact_group=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -9148,7 +9396,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		        }
 	        }
 
-	/* add all contact groups to the host group */
+	/* add all contact groups to the host */
 	if(this_host->contact_groups!=NULL){
 
 		for(contact_group=strtok(this_host->contact_groups,",");contact_group!=NULL;contact_group=strtok(NULL,",")){
@@ -9166,6 +9414,18 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	                }
 	        }
 
+	/* add all custom variables */
+	for(temp_customvariablesmember=this_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		if((add_custom_variable_to_host(new_host,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value))==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not custom variable to host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_host->_config_file),this_host->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+	        }
+
 #ifdef DEBUG0
 	printf("xodtemplate_register_host() end\n");
 #endif
@@ -9177,9 +9437,10 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 
 /* registers a service definition */
 int xodtemplate_register_service(xodtemplate_service *this_service){
-	service *new_service;
-	contactgroupsmember *new_contactgroupsmember;
-	char *contactgroup_name;
+	service *new_service=NULL;
+	contactgroupsmember *new_contactgroupsmember=NULL;
+	char *contactgroup_name=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
 #endif
@@ -9226,6 +9487,17 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		        }
 	        }
 
+	/* add all custom variables */
+	for(temp_customvariablesmember=this_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		if((add_custom_variable_to_service(new_service,temp_customvariablesmember->variable_name,temp_customvariablesmember->variable_value))==NULL){
+#ifdef NSCORE
+			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not custom variable to service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
+			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+			return ERROR;
+		        }
+	        }
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_service() end\n");
@@ -10345,23 +10617,24 @@ int xodtemplate_sort_serviceextinfo(){
 /* writes cached object definitions for use by web interface */
 int xodtemplate_cache_objects(char *cache_file){
 	FILE *fp;
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-	int x;
+	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER]="";
+	int x=0;
 	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
-	xodtemplate_timeperiod *temp_timeperiod;
-	xodtemplate_command *temp_command;
-	xodtemplate_contactgroup *temp_contactgroup;
-	xodtemplate_hostgroup *temp_hostgroup;
-	xodtemplate_servicegroup *temp_servicegroup;
-	xodtemplate_contact *temp_contact;
-	xodtemplate_host *temp_host;
-	xodtemplate_service *temp_service;
-	xodtemplate_servicedependency *temp_servicedependency;
-	xodtemplate_serviceescalation *temp_serviceescalation;
-	xodtemplate_hostdependency *temp_hostdependency;
-	xodtemplate_hostescalation *temp_hostescalation;
-	xodtemplate_hostextinfo *temp_hostextinfo;
-	xodtemplate_serviceextinfo *temp_serviceextinfo;
+	xodtemplate_timeperiod *temp_timeperiod=NULL;
+	xodtemplate_command *temp_command=NULL;
+	xodtemplate_contactgroup *temp_contactgroup=NULL;
+	xodtemplate_hostgroup *temp_hostgroup=NULL;
+	xodtemplate_servicegroup *temp_servicegroup=NULL;
+	xodtemplate_contact *temp_contact=NULL;
+	xodtemplate_host *temp_host=NULL;
+	xodtemplate_service *temp_service=NULL;
+	xodtemplate_servicedependency *temp_servicedependency=NULL;
+	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
+	xodtemplate_hostdependency *temp_hostdependency=NULL;
+	xodtemplate_hostescalation *temp_hostescalation=NULL;
+	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
+	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
+	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 	time_t current_time;
 
 #ifdef DEBUG0
@@ -10509,6 +10782,14 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\temail\t%s\n",temp_contact->email);
 		if(temp_contact->pager)
 			fprintf(fp,"\tpager\t%s\n",temp_contact->pager);
+
+		/* custom variables */
+		for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s\t%s\n",temp_customvariablesmember->variable_name,(temp_customvariablesmember->variable_value==NULL)?XODTEMPLATE_NULL:temp_customvariablesmember->variable_value);
+		        }
+
+
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -10590,6 +10871,13 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\tfailure_prediction_enabled\t%d\n",temp_host->failure_prediction_enabled);
 		fprintf(fp,"\tretain_status_information\t%d\n",temp_host->retain_status_information);
 		fprintf(fp,"\tretain_nonstatus_information\t%d\n",temp_host->retain_nonstatus_information);
+
+		/* custom variables */
+		for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s\t%s\n",temp_customvariablesmember->variable_name,(temp_customvariablesmember->variable_value==NULL)?XODTEMPLATE_NULL:temp_customvariablesmember->variable_value);
+		        }
+
 
 		fprintf(fp,"\t}\n\n");
 	        }
@@ -10677,6 +10965,12 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\tfailure_prediction_enabled\t%d\n",temp_service->failure_prediction_enabled);
 		fprintf(fp,"\tretain_status_information\t%d\n",temp_service->retain_status_information);
 		fprintf(fp,"\tretain_nonstatus_information\t%d\n",temp_service->retain_nonstatus_information);
+
+		/* custom variables */
+		for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s\t%s\n",temp_customvariablesmember->variable_name,(temp_customvariablesmember->variable_value==NULL)?XODTEMPLATE_NULL:temp_customvariablesmember->variable_value);
+		        }
 
 		fprintf(fp,"\t}\n\n");
 	        }
@@ -10934,6 +11228,8 @@ int xodtemplate_free_memory(void){
 	xodtemplate_hostextinfo *next_hostextinfo;
 	xodtemplate_serviceextinfo *this_serviceextinfo;
 	xodtemplate_serviceextinfo *next_serviceextinfo;
+	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
+	xodtemplate_customvariablesmember *next_customvariablesmember=NULL;
 	int x;
 
 #ifdef DEBUG0
@@ -11036,6 +11332,17 @@ int xodtemplate_free_memory(void){
 
 	/* free memory allocated to contact list */
 	for(this_contact=xodtemplate_contact_list;this_contact!=NULL;this_contact=next_contact){
+
+		/* free custom variables */
+		this_customvariablesmember=this_contact->custom_variables;
+		while(this_customvariablesmember!=NULL){
+			next_customvariablesmember=this_customvariablesmember->next;
+			free(this_customvariablesmember->variable_name);
+			free(this_customvariablesmember->variable_value);
+			free(this_customvariablesmember);
+			this_customvariablesmember=next_customvariablesmember;
+		        }
+
 		next_contact=this_contact->next;
 		free(this_contact->template);
 		free(this_contact->name);
@@ -11056,6 +11363,17 @@ int xodtemplate_free_memory(void){
 
 	/* free memory allocated to host list */
 	for(this_host=xodtemplate_host_list;this_host!=NULL;this_host=next_host){
+
+		/* free custom variables */
+		this_customvariablesmember=this_host->custom_variables;
+		while(this_customvariablesmember!=NULL){
+			next_customvariablesmember=this_customvariablesmember->next;
+			free(this_customvariablesmember->variable_name);
+			free(this_customvariablesmember->variable_value);
+			free(this_customvariablesmember);
+			this_customvariablesmember=next_customvariablesmember;
+		        }
+
 		next_host=this_host->next;
 		free(this_host->template);
 		free(this_host->name);
@@ -11074,8 +11392,19 @@ int xodtemplate_free_memory(void){
 	        }
 	xodtemplate_host_list=NULL;
 
-	/* free memory allocated to service list (chained hash) */
+	/* free memory allocated to service list */
 	for(this_service=xodtemplate_service_list;this_service!=NULL;this_service=next_service){
+
+		/* free custom variables */
+		this_customvariablesmember=this_service->custom_variables;
+		while(this_customvariablesmember!=NULL){
+			next_customvariablesmember=this_customvariablesmember->next;
+			free(this_customvariablesmember->variable_name);
+			free(this_customvariablesmember->variable_value);
+			free(this_customvariablesmember);
+			this_customvariablesmember=next_customvariablesmember;
+		        }
+
 		next_service=this_service->next;
 		free(this_service->template);
 		free(this_service->name);

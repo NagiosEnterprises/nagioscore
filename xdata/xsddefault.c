@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-20-2006
+ * Last Modified:   02-25-2006
  *
  * License:
  *
@@ -289,9 +289,10 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 
 /* write all status data to file */
 int xsddefault_save_status_data(void){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	host *temp_host;
-	service *temp_service;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char temp_buffer[MAX_INPUT_BUFFER]="";
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
@@ -419,6 +420,11 @@ int xsddefault_save_status_data(void){
 			fprintf(fp,"%s%d",(x>0)?",":"",temp_host->state_history[(x+temp_host->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp,"\n");
 		*/
+		/* custom variables */
+		for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
+		        }
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -479,6 +485,11 @@ int xsddefault_save_status_data(void){
 			fprintf(fp,"%s%d",(x>0)?",":"",temp_service->state_history[(x+temp_service->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp,"\n");
 		*/
+		/* custom variables */
+		for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
+		        }
 		fprintf(fp,"\t}\n\n");
 	        }
 

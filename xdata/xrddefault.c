@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-21-2006
+ * Last Modified:   02-25-2006
  *
  * License:
  *
@@ -150,8 +150,9 @@ int xrddefault_grab_config_info(char *main_config_file){
 /******************************************************************/
 
 int xrddefault_save_state_information(char *main_config_file){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	char temp_file[MAX_FILENAME_LENGTH];
+	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char temp_file[MAX_FILENAME_LENGTH]="";
+	customvariablesmember *temp_customvariablesmember=NULL;
 	time_t current_time;
 	int result=OK;
 	FILE *fp=NULL;
@@ -280,6 +281,12 @@ int xrddefault_save_state_information(char *main_config_file){
 			fprintf(fp,"%s%d",(x>0)?",":"",temp_host->state_history[(x+temp_host->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp,"\n");
 
+		/* custom variables */
+		for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
+		        }
+
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -339,6 +346,12 @@ int xrddefault_save_state_information(char *main_config_file){
 			fprintf(fp,"%s%d",(x>0)?",":"",temp_service->state_history[(x+temp_service->state_history_index)%MAX_STATE_HISTORY_ENTRIES]);
 		fprintf(fp,"\n");
 
+		/* custom variables */
+		for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
+		        }
+
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -376,6 +389,8 @@ int xrddefault_read_state_information(char *main_config_file){
 	service *temp_service=NULL;
 	command *temp_command=NULL;
 	timeperiod *temp_timeperiod=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
 	char *var=NULL;
 	char *val=NULL;
 	char *tempval=NULL;
@@ -452,6 +467,17 @@ int xrddefault_read_state_information(char *main_config_file){
 					if(temp_host->retain_nonstatus_information==FALSE)
 						temp_host->modified_attributes=MODATTR_NONE;
 
+					/* adjust modified attributes if no custom variables have been changed */
+					if(temp_host->modified_attributes & MODATTR_CUSTOM_VARIABLE){
+						for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+							if(temp_customvariablesmember->has_been_modified==TRUE)
+								break;
+
+						        }
+						if(temp_customvariablesmember==NULL)
+							temp_host->modified_attributes-=MODATTR_CUSTOM_VARIABLE;
+					        }
+
 					/* calculate next possible notification time */
 					if(temp_host->current_state!=HOST_UP && temp_host->last_host_notification!=(time_t)0)
 						temp_host->next_host_notification=get_next_host_notification_time(temp_host,temp_host->last_host_notification);
@@ -462,7 +488,7 @@ int xrddefault_read_state_information(char *main_config_file){
 					/* check for flapping */
 					check_for_host_flapping(temp_host,FALSE);
 
-					/* handle new vars added */
+					/* handle new vars added in 2.x */
 					if(temp_host->last_hard_state_change==(time_t)0)
 						temp_host->last_hard_state_change=temp_host->last_state_change;
 				        }
@@ -479,6 +505,17 @@ int xrddefault_read_state_information(char *main_config_file){
 					/* adjust modified attributes if necessary */
 					if(temp_service->retain_nonstatus_information==FALSE)
 						temp_service->modified_attributes=MODATTR_NONE;
+					
+					/* adjust modified attributes if no custom variables have been changed */
+					if(temp_service->modified_attributes & MODATTR_CUSTOM_VARIABLE){
+						for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+							if(temp_customvariablesmember->has_been_modified==TRUE)
+								break;
+
+						        }
+						if(temp_customvariablesmember==NULL)
+							temp_service->modified_attributes-=MODATTR_CUSTOM_VARIABLE;
+					        }
 
 					/* calculate next possible notification time */
 					if(temp_service->current_state!=STATE_OK && temp_service->last_notification!=(time_t)0)
@@ -494,7 +531,7 @@ int xrddefault_read_state_information(char *main_config_file){
 					/* check for flapping */
 					check_for_service_flapping(temp_service,FALSE);
 					
-					/* handle new vars added */
+					/* handle new vars added in 2.x */
 					if(temp_service->last_hard_state_change==(time_t)0)
 						temp_service->last_hard_state_change=temp_service->last_state_change;
 				        }
@@ -805,6 +842,33 @@ int xrddefault_read_state_information(char *main_config_file){
 									temp_host->current_attempt=temp_host->max_attempts;
 							        }
 						        }
+
+						/* custom variables */
+						else if(var[0]=='_'){
+							
+							if(temp_host->modified_attributes & MODATTR_CUSTOM_VARIABLE){
+
+								/* get the variable name */
+								if((customvarname=strdup(var+1))){
+							
+									for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+										if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
+											if((x=atoi(val))>0 && strlen(val)>3){
+												if(temp_customvariablesmember->variable_value)
+													free(temp_customvariablesmember->variable_value);
+												temp_customvariablesmember->variable_value=strdup(val+2);
+												temp_customvariablesmember->has_been_modified=(x>0)?TRUE:FALSE;
+										                }
+											break;
+									                }
+								                }
+
+									/* free memory */
+									free(customvarname);
+								        }
+							        }
+
+						        }
 					        }
 
 				        }
@@ -1001,6 +1065,33 @@ int xrddefault_read_state_information(char *main_config_file){
 								if(temp_service->state_type==HARD_STATE && temp_service->current_state!=STATE_OK && temp_service->current_attempt>1)
 									temp_service->current_attempt=temp_service->max_attempts;
 							        }
+						        }
+
+						/* custom variables */
+						else if(var[0]=='_'){
+
+							if(temp_service->modified_attributes & MODATTR_CUSTOM_VARIABLE){
+							
+								/* get the variable name */
+								if((customvarname=strdup(var+1))){
+							
+									for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+										if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
+											if((x=atoi(val))>0 && strlen(val)>3){
+												if(temp_customvariablesmember->variable_value)
+													free(temp_customvariablesmember->variable_value);
+												temp_customvariablesmember->variable_value=strdup(val+2);
+												temp_customvariablesmember->has_been_modified=(x>0)?TRUE:FALSE;
+										                }
+											break;
+									                }
+								               }
+
+									/* free memory */
+									free(customvarname);
+							                }
+							        }
+
 						        }
 					        }
 				        }

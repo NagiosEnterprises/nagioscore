@@ -12,30 +12,42 @@ lag development for a while.
 
 Pre-alpha changes since 02/15/2006...
 -------------------------------------
+
 * Adaptive monitoring:
      - Check timeperiod can now be modified on-the-fly
+
 * Notification changes:
      - Added first_notification_delay to host and object definitions to delay first notification
+
 * Object changes: 
      - Added ability to use multiple template names (separated by commas) in object definitions
      - Added ability to null out optional character directives in object definitions (using 'null' without quotes)
      - Added hostgroup_members and servicegroup_members directives to hostgroup and servicegroup definitions,
        respectively, for allowing including host or service members from "sub" groups.
+     - Added support for custom variables in host, service, and contact definitions
+
 * Performance optimizations:
      - Added ability to precache object config files
      - Added ability to exclude object relationship and circular path
        checks from verification process
+
 * Check output:
      - Multiline output support for service checks (not Perl checks with embedded Perl support yet)
+
 * Macro changes:
      - Added $LONGHOSTOUTPUT$ and $LONGSERVICEOUTPUT$ macros
      - Added $TEMPPATH$ macro
+     - Custom host/service/contact macros accessible via $_HOST<varname>$, $_SERVICE<varname>, or $_CONTACT<varname>$.
+       On-demand host/service macros for custom vars are working.  Custom vars are also set as environment vars.
+
 * Flapping changes:
      - Added flap_detection_options directive to host and service definitions to control which
        states (i.e. OK, WARNING, UNKNOWN, and/or CRITICAL) are used in flap detection logic
+
 * External command changes:
      - Added PROCESS_FILE external command to allow processing of external commands found in
        an external (regular) file.  Very useful for passive checks with long output or scripting.
+
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions

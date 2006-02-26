@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-24-2006
+ * Last Modified: 02-25-2006
  *
  * License:
  *
@@ -107,9 +107,18 @@ typedef struct contactgroup_struct{
 
 /* CONTACTGROUPSMEMBER structure */
 typedef struct contactgroupsmember_struct{
-	char *group_name;
+	char    *group_name;
 	struct contactgroupsmember_struct *next;
         }contactgroupsmember;
+
+
+/* CUSTOMVARIABLESMEMBER structure */
+typedef struct customvariablesmember_struct{
+	char    *variable_name;
+	char    *variable_value;
+	int     has_been_modified;
+	struct customvariablesmember_struct *next;
+        }customvariablesmember;
 
 
 /* HOSTSMEMBER structure */
@@ -158,6 +167,7 @@ typedef struct host_struct{
 	int     failure_prediction_enabled;
 	char    *failure_prediction_options;
 	int     obsess_over_host;
+	customvariablesmember *custom_variables;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
@@ -272,6 +282,7 @@ typedef struct contact_struct{
 	int     notify_on_host_flapping;
 	char	*host_notification_period;
 	char	*service_notification_period;
+	customvariablesmember *custom_variables;
 	struct	contact_struct *next;
 	struct	contact_struct *nexthash;
 	}contact;
@@ -322,6 +333,7 @@ typedef struct service_struct{
 	int     obsess_over_service;
 	int     failure_prediction_enabled;
 	char    *failure_prediction_options;
+	customvariablesmember *custom_variables;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
@@ -458,22 +470,22 @@ typedef struct hostdependency_struct{
 
 /* EXTENDED HOST INFO structure */
 typedef struct hostextinfo_struct{
-	char *host_name;
-	char *notes;
-	char *notes_url;
-	char *action_url;
-	char *icon_image;
-	char *vrml_image;
-	char *statusmap_image;
-	char *icon_image_alt;
-	int have_2d_coords;
-	int x_2d;
-	int y_2d;
-	int have_3d_coords;
-	double x_3d;
-	double y_3d;
-	double z_3d;
-	int should_be_drawn;
+	char    *host_name;
+	char    *notes;
+	char    *notes_url;
+	char    *action_url;
+	char    *icon_image;
+	char    *vrml_image;
+	char    *statusmap_image;
+	char    *icon_image_alt;
+	int     have_2d_coords;
+	int     x_2d;
+	int     y_2d;
+	int     have_3d_coords;
+	double  x_3d;
+	double  y_3d;
+	double  z_3d;
+	int     should_be_drawn;
 	struct hostextinfo_struct *next;
 	struct hostextinfo_struct *nexthash;
         }hostextinfo;
@@ -481,13 +493,13 @@ typedef struct hostextinfo_struct{
 
 /* EXTENDED SERVICE INFO structure */
 typedef struct serviceextinfo_struct{
-	char *host_name;
-	char *description;
-	char *notes;
-	char *notes_url;
-	char *action_url;
-	char *icon_image;
-	char *icon_image_alt;
+	char    *host_name;
+	char    *description;
+	char    *notes;
+	char    *notes_url;
+	char    *action_url;
+	char    *icon_image;
+	char    *icon_image_alt;
 	struct serviceextinfo_struct *next;
 	struct serviceextinfo_struct *nexthash;
         }serviceextinfo;
@@ -535,9 +547,11 @@ int read_object_config_data(char *,int,int,int);        /* reads all external co
 contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
+customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
 host *add_host(char *,char *,char *,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
+customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
 hostgroup *add_hostgroup(char *,char *);								/* adds a hostgroup definition */
@@ -551,12 +565,15 @@ service *add_service(char *,char *,char *,int,int,int,int,int,int,int,char *,int
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
+customvariablesmember *add_custom_variable_to_service(service *,char *,char *);                         /* adds a custom variable to a service definition */
 servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int,int);     /* adds a service dependency definition */
 hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int);                             /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
 hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
-serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *,char *);                          /* add an extended service info definition */
+serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *,char *);                   /* add an extended service info definition */
+customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
+
 
 
 /**** Object Hash Functions ****/

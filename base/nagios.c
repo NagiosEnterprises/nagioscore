@@ -71,7 +71,10 @@ char            *macro_x_names[MACRO_X_COUNT];
 char            *macro_argv[MAX_COMMAND_ARGUMENTS];
 char            *macro_user[MAX_USER_MACROS];
 char            *macro_contactaddress[MAX_CONTACT_ADDRESSES];
-char            *macro_ondemand;
+char            *macro_ondemand=NULL;
+customvariablesmember *macro_custom_host_vars=NULL;
+customvariablesmember *macro_custom_service_vars=NULL;
+customvariablesmember *macro_custom_contact_vars=NULL;
 
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;
@@ -313,6 +316,12 @@ int main(int argc, char **argv){
 			break;
 		        }
 
+	        }
+
+	/* make sure we have the right combination of arguments */
+	if(precache_objects==TRUE && (test_scheduling==FALSE && verify_config==FALSE)){
+		error=TRUE;
+		display_help=TRUE;
 	        }
 
 #ifdef DEBUG_MEMORY

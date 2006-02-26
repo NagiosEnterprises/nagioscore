@@ -62,6 +62,9 @@ extern char     *macro_argv[MAX_COMMAND_ARGUMENTS];
 extern char     *macro_user[MAX_USER_MACROS];
 extern char     *macro_contactaddress[MAX_CONTACT_ADDRESSES];
 extern char     *macro_ondemand;
+customvariablesmember *macro_custom_host_vars;
+customvariablesmember *macro_custom_service_vars;
+customvariablesmember *macro_custom_contact_vars;
 
 extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
@@ -224,9 +227,10 @@ extern int errno;
 
 /* replace macros in notification commands with their values */
 int process_macros(char *input_buffer, char *output_buffer, int buffer_length, int options){
-	char *temp_buffer;
-	int in_macro;
-	int x;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *temp_buffer=NULL;
+	int in_macro=FALSE;
+	int x=0;
 	int arg_index=0;
 	int user_index=0;
 	int address_index=0;
@@ -327,6 +331,45 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 					        }
 				        }
+				
+				/* custom host variable macros */
+				else if(strstr(temp_buffer,"_HOST")==temp_buffer){
+					selected_macro=NULL;
+					for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+						if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
+							selected_macro=temp_customvariablesmember->variable_value;
+							clean_macro=TRUE;
+							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+							break;
+						        }
+					        }
+				         }
+
+				/* custom service variable macros */
+				else if(strstr(temp_buffer,"_SERVICE")==temp_buffer){
+					selected_macro=NULL;
+					for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+						if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
+							selected_macro=temp_customvariablesmember->variable_value;
+							clean_macro=TRUE;
+							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+							break;
+						        }
+					        }
+				         }
+
+				/* custom contact variable macros */
+				else if(strstr(temp_buffer,"_CONTACT")==temp_buffer){
+					selected_macro=NULL;
+					for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+						if(!strcmp(temp_buffer,temp_customvariablesmember->variable_name)){
+							selected_macro=temp_customvariablesmember->variable_value;
+							clean_macro=TRUE;
+							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+							break;
+						        }
+					        }
+				         }
 
 				/* argv macros */
 				else if(strstr(temp_buffer,"ARG")==temp_buffer){
@@ -420,15 +463,17 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 /* grab macros that are specific to a particular service */
 int grab_service_macros(service *svc){
-	servicegroup *temp_servicegroup;
-	serviceextinfo *temp_serviceextinfo;
+	servicegroup *temp_servicegroup=NULL;
+	serviceextinfo *temp_serviceextinfo=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
 	time_t current_time;
-	unsigned long duration;
-	int days;
-	int hours;
-	int minutes;
-	int seconds;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	unsigned long duration=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	char temp_buffer[MAX_INPUT_BUFFER]="";
 	
 #ifdef DEBUG0
 	printf("grab_service_macros() start\n");
@@ -683,6 +728,13 @@ int grab_service_macros(service *svc){
 			macro_x[MACRO_SERVICENOTES]=strdup(temp_serviceextinfo->notes);
 	        }
 
+	/* get custom variables */
+	for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		asprintf(&customvarname,"_SERVICE%s",temp_customvariablesmember->variable_name);
+		add_custom_variable_to_object(&macro_custom_service_vars,customvarname,temp_customvariablesmember->variable_value);
+		free(customvarname);
+	        }
+
 	/* get the date/time macros */
 	grab_datetime_macros();
 
@@ -713,15 +765,17 @@ int grab_service_macros(service *svc){
 
 /* grab macros that are specific to a particular host */
 int grab_host_macros(host *hst){
-	hostgroup *temp_hostgroup;
-	hostextinfo *temp_hostextinfo;
+	hostgroup *temp_hostgroup=NULL;
+	hostextinfo *temp_hostextinfo=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
 	time_t current_time;
-	unsigned long duration;
-	int days;
-	int hours;
-	int minutes;
-	int seconds;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	unsigned long duration=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
+	char temp_buffer[MAX_INPUT_BUFFER]="";
 
 #ifdef DEBUG0
 	printf("grab_host_macros() start\n");
@@ -975,6 +1029,13 @@ int grab_host_macros(host *hst){
 			macro_x[MACRO_HOSTNOTES]=strdup(temp_hostextinfo->notes);
 	        }
 
+	/* get custom variables */
+	for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		asprintf(&customvarname,"_HOST%s",temp_customvariablesmember->variable_name);
+		add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
+		free(customvarname);
+	        }
+
 	/* get the date/time macros */
 	grab_datetime_macros();
 
@@ -1201,15 +1262,17 @@ int grab_on_demand_macro(char *str){
 
 /* grab an on-demand host macro */
 int grab_on_demand_host_macro(host *hst, char *macro){
-	hostgroup *temp_hostgroup;
-	hostextinfo *temp_hostextinfo;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	hostgroup *temp_hostgroup=NULL;
+	hostextinfo *temp_hostextinfo=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
+	char temp_buffer[MAX_INPUT_BUFFER]="";
 	time_t current_time;
-	unsigned long duration;
-	int days;
-	int hours;
-	int minutes;
-	int seconds;
+	unsigned long duration=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
 
 #ifdef DEBUG0
 	printf("grab_on_demand_host_macro() start\n");
@@ -1473,6 +1536,25 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		        }
 	        }
 
+	/* custom variables */
+	else if(strstr(macro,"_HOST")==macro){
+		
+		/* get the variable name */
+		if(customvarname=strdup(macro+5)){
+
+			for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
+					macro_ondemand=strdup(temp_customvariablesmember->variable_value);
+					break;
+				        }
+			        }
+
+			/* free memory */
+			free(customvarname);
+		        }
+	        }
+
 	else
 		return ERROR;
 
@@ -1486,15 +1568,17 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 /* grab an on-demand service macro */
 int grab_on_demand_service_macro(service *svc, char *macro){
-	servicegroup *temp_servicegroup;
-	serviceextinfo *temp_serviceextinfo;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	servicegroup *temp_servicegroup=NULL;
+	serviceextinfo *temp_serviceextinfo=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
+	char temp_buffer[MAX_INPUT_BUFFER]="";
 	time_t current_time;
-	unsigned long duration;
-	int days;
-	int hours;
-	int minutes;
-	int seconds;
+	unsigned long duration=0L;
+	int days=0;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
 
 #ifdef DEBUG0
 	printf("grab_on_demand_service_macro() start\n");
@@ -1761,6 +1845,25 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 		        }
 	        }
 
+	/* custom variables */
+	else if(strstr(macro,"_SERVICE")==macro){
+		
+		/* get the variable name */
+		if(customvarname=strdup(macro+8)){
+
+			for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+
+				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
+					macro_ondemand=strdup(temp_customvariablesmember->variable_value);
+					break;
+				        }
+			        }
+
+			/* free memory */
+			free(customvarname);
+		        }
+	        }
+
 	else
 		return ERROR;
 
@@ -1774,7 +1877,9 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 /* grab macros that are specific to a particular contact */
 int grab_contact_macros(contact *cntct){
-	int x;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *customvarname=NULL;
+	int x=0;
 
 #ifdef DEBUG0
 	printf("grab_contact_macros() start\n");
@@ -1814,6 +1919,13 @@ int grab_contact_macros(contact *cntct){
 			macro_contactaddress[x]=NULL;
 		else
 			macro_contactaddress[x]=strdup(cntct->address[x]);
+	        }
+
+	/* get custom variables */
+	for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
+		add_custom_variable_to_object(&macro_custom_contact_vars,customvarname,temp_customvariablesmember->variable_value);
+		free(customvarname);
 	        }
 
 	/* get the date/time macros */
@@ -2206,7 +2318,9 @@ int clear_argv_macros(void){
 
 /* clear all macros that are not "constant" (i.e. they change throughout the course of monitoring) */
 int clear_volatile_macros(void){
-	int x;
+	customvariablesmember *this_customvariablesmember=NULL;
+	customvariablesmember *next_customvariablesmember=NULL;
+	int x=0;
 
 #ifdef DEBUG0
 	printf("clear_volatile_macros() start\n");
@@ -2262,7 +2376,35 @@ int clear_volatile_macros(void){
 		macro_ondemand=NULL;
 	        }
 
+	/* clear ARGx macros */
 	clear_argv_macros();
+
+	/* clear custom host variables */
+	for(this_customvariablesmember=macro_custom_host_vars;this_customvariablesmember!=NULL;this_customvariablesmember=next_customvariablesmember){
+		next_customvariablesmember=this_customvariablesmember->next;
+		free(this_customvariablesmember->variable_name);
+		free(this_customvariablesmember->variable_value);
+		free(this_customvariablesmember);
+	        }
+	macro_custom_host_vars=NULL;
+
+	/* clear custom service variables */
+	for(this_customvariablesmember=macro_custom_service_vars;this_customvariablesmember!=NULL;this_customvariablesmember=next_customvariablesmember){
+		next_customvariablesmember=this_customvariablesmember->next;
+		free(this_customvariablesmember->variable_name);
+		free(this_customvariablesmember->variable_value);
+		free(this_customvariablesmember);
+	        }
+	macro_custom_service_vars=NULL;
+
+	/* clear custom contact variables */
+	for(this_customvariablesmember=macro_custom_contact_vars;this_customvariablesmember!=NULL;this_customvariablesmember=next_customvariablesmember){
+		next_customvariablesmember=this_customvariablesmember->next;
+		free(this_customvariablesmember->variable_name);
+		free(this_customvariablesmember->variable_value);
+		free(this_customvariablesmember);
+	        }
+	macro_custom_contact_vars=NULL;
 
 #ifdef DEBUG0
 	printf("clear_volatile_macros() end\n");
@@ -2481,6 +2623,7 @@ int set_all_macro_environment_vars(int set){
 
 	set_macrox_environment_vars(set);
 	set_argv_macro_environment_vars(set);
+	set_custom_macro_environment_vars(set);
 
 #ifdef DEBUG0
 	printf("set_all_macro_environment_vars() start\n");
@@ -2538,6 +2681,34 @@ int set_argv_macro_environment_vars(int set){
 
 #ifdef DEBUG0
 	printf("set_argv_macro_environment_vars() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* sets or unsets custom host/service/contact macro environment variables */
+int set_custom_macro_environment_vars(int set){
+	customvariablesmember *temp_customvariablesmember=NULL;
+
+#ifdef DEBUG0
+	printf("set_custom_macro_environment_vars() start\n");
+#endif
+
+	/* set each of the custom host environment variables */
+	for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
+		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
+
+	/* set each of the custom service environment variables */
+	for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
+		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
+
+	/* set each of the custom contact environment variables */
+	for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
+		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
+
+#ifdef DEBUG0
+	printf("set_custom_macro_environment_vars() end\n");
 #endif
 
 	return OK;

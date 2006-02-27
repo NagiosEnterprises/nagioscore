@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-23-2006
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -356,7 +356,7 @@ void run_service_check(service *svc){
 #endif
 
 			/* write the first line of plugin output to temp file */
-			if(check_result_info.output_file_fp)
+			if(check_result_info.output_file_fp && perl_plugin_output)
 				fputs(perl_plugin_output,check_result_info.output_file_fp);
 
 			/* close the temp file */
@@ -367,8 +367,8 @@ void run_service_check(service *svc){
 			gettimeofday(&end_time,NULL);
 
 			/* record check result info */
-			check_result.return_code=pclose_result;
-			check_result.finish_time=end_time;
+			check_result_info.return_code=pclose_result;
+			check_result_info.finish_time=end_time;
 
 			/* write check results to message queue */
 			write_check_result(&check_result_info);
@@ -471,16 +471,12 @@ void run_service_check(service *svc){
 				LEAVE;
 
 #ifdef DEBUG1
-				printf("embedded perl ran %s, plugin output was %d, %s\n",fname, pclose_result,perl_plugin_output);
+				printf("embedded perl ran %s, plugin output was %d, %s\n",fname, pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
 #endif
-
-				/* write the first line of plugin output to temp file */
-				if(check_result_info.output_file_fp)
+				
+				/* write the plugin output to temp file */
+				if(check_result_info.output_file_fp && perl_plugin_output)
 					fputs(perl_plugin_output,check_result_info.output_file_fp);
-
-#ifdef TODO_02202006
-				/* write additional output to temp file */
-#endif
 
 				/* close the temp file */
 				if(check_result_info.output_file_fp)
@@ -2002,7 +1998,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL,NULL);
 #endif
 
 	/* make sure we return the original host state unless it changes... */
@@ -2274,7 +2270,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	execution_time=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000.0)/1000.0);
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
 	/* check to see if the associated host is flapping */
@@ -2381,7 +2377,7 @@ int run_host_check(host *hst, int check_options){
 	/* send data to event broker */
 	end_time_hires.tv_sec=0L;
 	end_time_hires.tv_usec=0L;
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->host_check_command,0.0,0.0,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->host_check_command,0.0,0.0,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
 #ifdef DEBUG3
@@ -2464,7 +2460,7 @@ int run_host_check(host *hst, int check_options){
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW_END,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->host_check_command,0.0,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW_END,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->host_check_command,0.0,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
 #ifdef DEBUG3

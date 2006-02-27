@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-23-2006
+ * Last Modified: 02-26-2006
  *
  * License:
  *
@@ -262,10 +262,21 @@
 #define CMD_CHANGE_HOST_CHECK_TIMEPERIOD                144
 #define CMD_CHANGE_SVC_CHECK_TIMEPERIOD                 145
 
-#define CMD_CHANGE_CUSTOM_HOST_VAR                      146
-#define CMD_CHANGE_CUSTOM_SVC_VAR                       147
+#define CMD_PROCESS_FILE                                146
 
-#define CMD_PROCESS_FILE                                148
+#define CMD_CHANGE_CUSTOM_HOST_VAR                      147
+#define CMD_CHANGE_CUSTOM_SVC_VAR                       148
+#define CMD_CHANGE_CUSTOM_CONTACT_VAR                   149
+
+#define CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS           150
+#define CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS          151
+#define CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS            152
+#define CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS           153
+
+#define CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS      154
+#define CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS     155
+#define CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS       156
+#define CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS      157
 
 
 

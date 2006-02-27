@@ -2,8 +2,8 @@
  *
  * NEBMODULES.H - Include file for event broker modules
  *
- * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-17-2005
+ * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -32,7 +32,7 @@
 /***** MODULE VERSION INFORMATION *****/
 
 #define NEB_API_VERSION(x) int __neb_api_version = x;
-#define CURRENT_NEB_API_VERSION    2
+#define CURRENT_NEB_API_VERSION    3
 
 
 

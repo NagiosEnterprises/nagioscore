@@ -846,6 +846,7 @@ void display_contacts(void){
 	printf("<TH CLASS='data'>Host Notification Period</TH>");
 	printf("<TH CLASS='data'>Service Notification Commands</TH>");
 	printf("<TH CLASS='data'>Host Notification Commands</TH>");
+	printf("<TH CLASS='data'>Retention Options</TH>");
 	printf("</TR>\n");
 	
 	/* check all contacts... */
@@ -956,6 +957,20 @@ void display_contacts(void){
 			found=TRUE;
 		        }
 		if(found==FALSE)
+			printf("None");
+		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		options=0;
+		if(temp_contact->retain_status_information==TRUE){
+			options=1;
+			printf("Status Information");
+		        }
+		if(temp_contact->retain_nonstatus_information==TRUE){
+			printf("%sNon-Status Information",(options==1)?", ":"");
+			options=1;
+		        }
+		if(options==0)
 			printf("None");
 		printf("</TD>\n");
 

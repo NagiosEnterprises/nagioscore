@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-25-2006
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -90,6 +90,7 @@ extern char *macro_x[MACRO_X_COUNT];
 
 extern host *host_list;
 extern service *service_list;
+extern contact *contact_list;
 
 extern unsigned long  modified_host_process_attributes;
 extern unsigned long  modified_service_process_attributes;
@@ -293,6 +294,7 @@ int xsddefault_save_status_data(void){
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	contact *temp_contact=NULL;
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
@@ -493,6 +495,26 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\t}\n\n");
 	        }
 
+	/* save contact status data */
+	for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+
+		fprintf(fp,"contact {\n");
+		fprintf(fp,"\tcontact_name=%s\n",temp_contact->name);
+		fprintf(fp,"\tmodified_attributes=%lu\n",temp_contact->modified_attributes);
+		fprintf(fp,"\tmodified_host_attributes=%lu\n",temp_contact->modified_host_attributes);
+		fprintf(fp,"\tmodified_service_attributes=%lu\n",temp_contact->modified_service_attributes);
+		fprintf(fp,"\tlast_host_notification=%lu\n",temp_contact->last_host_notification);
+		fprintf(fp,"\tlast_service_notification=%lu\n",temp_contact->last_service_notification);
+		fprintf(fp,"\thost_notifications_enabled=%d\n",temp_contact->host_notifications_enabled);
+		fprintf(fp,"\tservice_notifications_enabled=%d\n",temp_contact->service_notifications_enabled);
+		/* custom variables */
+		for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
+		        }
+		fprintf(fp,"\t}\n\n");
+	        }
+
 
 	/* reset file permissions */
 	fchmod(fd,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
@@ -585,6 +607,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_servicestatus->perf_data=NULL;
 			        }
 		        }
+		else if(!strcmp(input,"contact {")){
+			data_type=XSDDEFAULT_CONTACT_DATA;
+			/* unimplemented */
+		        }
 
 		else if(!strcmp(input,"}")){
 
@@ -604,6 +630,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 			case XSDDEFAULT_SERVICE_DATA:
 				add_service_status(temp_servicestatus);
 				temp_servicestatus=NULL;
+				break;
+
+			case XSDDEFAULT_CONTACT_DATA:
+				/* unimplemented */
 				break;
 
 			default:
@@ -853,6 +883,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 					        }
 					*/
 				        }
+				break;
+
+			case XSDDEFAULT_CONTACT_DATA:
+				/* unimplemented */
 				break;
 
 			default:

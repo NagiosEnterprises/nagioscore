@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-25-2006
+ * Last Modified: 02-27-2006
  *
  * Description:
  *
@@ -1338,6 +1338,16 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contact->notify_on_service_flapping=FALSE;
 		new_contact->have_host_notification_options=FALSE;
 		new_contact->have_service_notification_options=FALSE;
+		new_contact->host_notifications_enabled=TRUE;
+		new_contact->have_host_notifications_enabled=FALSE;
+		new_contact->service_notifications_enabled=TRUE;
+		new_contact->have_service_notifications_enabled=FALSE;
+		new_contact->can_submit_commands=TRUE;
+		new_contact->have_can_submit_commands=FALSE;
+		new_contact->retain_status_information=TRUE;
+		new_contact->have_retain_status_information=FALSE;
+		new_contact->retain_nonstatus_information=TRUE;
+		new_contact->have_retain_nonstatus_information=FALSE;
 		new_contact->custom_variables=NULL;
 		new_contact->has_been_resolved=FALSE;
 		new_contact->register_object=TRUE;
@@ -2910,6 +2920,26 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 			        }
 			temp_contact->have_service_notification_options=TRUE;
+		        }
+		else if(!strcmp(variable,"host_notifications_enabled")){
+			temp_contact->host_notifications_enabled=(atoi(value)>0)?TRUE:FALSE;
+			temp_contact->have_host_notifications_enabled=TRUE;
+		        }
+		else if(!strcmp(variable,"service_notifications_enabled")){
+			temp_contact->service_notifications_enabled=(atoi(value)>0)?TRUE:FALSE;
+			temp_contact->have_service_notifications_enabled=TRUE;
+		        }
+		else if(!strcmp(variable,"can_submit_commands")){
+			temp_contact->can_submit_commands=(atoi(value)>0)?TRUE:FALSE;
+			temp_contact->have_can_submit_commands=TRUE;
+		        }
+		else if(!strcmp(variable,"retain_status_information")){
+			temp_contact->retain_status_information=(atoi(value)>0)?TRUE:FALSE;
+			temp_contact->have_retain_status_information=TRUE;
+		        }
+		else if(!strcmp(variable,"retain_nonstatus_information")){
+			temp_contact->retain_nonstatus_information=(atoi(value)>0)?TRUE:FALSE;
+			temp_contact->have_retain_nonstatus_information=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_contact->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -6869,6 +6899,26 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 			this_contact->notify_on_service_flapping=template_contact->notify_on_service_flapping;
 			this_contact->have_service_notification_options=TRUE;
 	                }
+		if(this_contact->have_host_notifications_enabled==FALSE && template_contact->have_host_notifications_enabled==TRUE){
+			this_contact->host_notifications_enabled=template_contact->host_notifications_enabled;
+			this_contact->have_host_notifications_enabled=TRUE;
+	                }
+		if(this_contact->have_service_notifications_enabled==FALSE && template_contact->have_service_notifications_enabled==TRUE){
+			this_contact->service_notifications_enabled=template_contact->service_notifications_enabled;
+			this_contact->have_service_notifications_enabled=TRUE;
+	                }
+		if(this_contact->have_can_submit_commands==FALSE && template_contact->have_can_submit_commands==TRUE){
+			this_contact->can_submit_commands=template_contact->can_submit_commands;
+			this_contact->have_can_submit_commands=TRUE;
+	                }
+		if(this_contact->have_retain_status_information==FALSE && template_contact->have_retain_status_information==TRUE){
+			this_contact->retain_status_information=template_contact->retain_status_information;
+			this_contact->have_retain_status_information=TRUE;
+	                }
+		if(this_contact->have_retain_nonstatus_information==FALSE && template_contact->have_retain_nonstatus_information==TRUE){
+			this_contact->retain_nonstatus_information=template_contact->retain_nonstatus_information;
+			this_contact->have_retain_nonstatus_information=TRUE;
+	                }
 
 		/* apply missing custom variables from template contact... */
 		for(temp_customvariablesmember=template_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
@@ -9271,7 +9321,7 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 		return OK;
 
 	/* add the contact */
-	new_contact=add_contact(this_contact->contact_name,this_contact->alias,this_contact->email,this_contact->pager,this_contact->address,this_contact->service_notification_period,this_contact->host_notification_period,this_contact->notify_on_service_recovery,this_contact->notify_on_service_critical,this_contact->notify_on_service_warning,this_contact->notify_on_service_unknown,this_contact->notify_on_service_flapping,this_contact->notify_on_host_recovery,this_contact->notify_on_host_down,this_contact->notify_on_host_unreachable,this_contact->notify_on_host_flapping);
+	new_contact=add_contact(this_contact->contact_name,this_contact->alias,this_contact->email,this_contact->pager,this_contact->address,this_contact->service_notification_period,this_contact->host_notification_period,this_contact->notify_on_service_recovery,this_contact->notify_on_service_critical,this_contact->notify_on_service_warning,this_contact->notify_on_service_unknown,this_contact->notify_on_service_flapping,this_contact->notify_on_host_recovery,this_contact->notify_on_host_down,this_contact->notify_on_host_unreachable,this_contact->notify_on_host_flapping,this_contact->host_notifications_enabled,this_contact->service_notifications_enabled,this_contact->can_submit_commands,this_contact->retain_status_information,this_contact->retain_nonstatus_information);
 
 	/* return with an error if we couldn't add the contact */
 	if(new_contact==NULL){
@@ -10618,7 +10668,7 @@ int xodtemplate_sort_serviceextinfo(){
 int xodtemplate_cache_objects(char *cache_file){
 	FILE *fp;
 	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER]="";
-	int x=0;
+	register int x=0;
 	char *days[7]={"sunday","monday","tuesday","wednesday","thursday","friday","saturday"};
 	xodtemplate_timeperiod *temp_timeperiod=NULL;
 	xodtemplate_command *temp_command=NULL;
@@ -10782,6 +10832,15 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\temail\t%s\n",temp_contact->email);
 		if(temp_contact->pager)
 			fprintf(fp,"\tpager\t%s\n",temp_contact->pager);
+		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
+			if(temp_contact->address[x])
+				fprintf(fp,"\taddress%d\t%s\n",x+1,temp_contact->address[x]);
+		        }
+		fprintf(fp,"\thost_notifications_enabled\t%d\n",temp_contact->host_notifications_enabled);
+		fprintf(fp,"\tservice_notifications_enabled\t%d\n",temp_contact->service_notifications_enabled);
+		fprintf(fp,"\tcan_submit_commands\t%d\n",temp_contact->can_submit_commands);
+		fprintf(fp,"\tretain_status_information\t%d\n",temp_contact->retain_status_information);
+		fprintf(fp,"\tretain_nonstatus_information\t%d\n",temp_contact->retain_nonstatus_information);
 
 		/* custom variables */
 		for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){

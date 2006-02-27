@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-24-2006
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -594,6 +594,9 @@ int process_external_command1(char *cmd){
 	else if (!strcmp(command_id,"CHANGE_CUSTOM_SVC_VAR"))
 		command_type=CMD_CHANGE_CUSTOM_SVC_VAR;
 
+	else if (!strcmp(command_id,"CHANGE_CUSTOM_CONTACT_VAR"))
+		command_type=CMD_CHANGE_CUSTOM_CONTACT_VAR;
+
 
 	/***************************************/
 	/**** SERVICEGROUP-RELATED COMMANDS ****/
@@ -633,6 +636,36 @@ int process_external_command1(char *cmd){
 		command_type=CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME;
 	else if(!strcmp(command_id,"SCHEDULE_SERVICEGROUP_SVC_DOWNTIME"))
 		command_type=CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;
+
+
+	/**********************************/
+	/**** CONTACT-RELATED COMMANDS ****/
+	/**********************************/
+
+	else if(!strcmp(command_id,"ENABLE_CONTACT_HOST_NOTIFICATIONS"))
+		command_type=CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS;
+	else if(!strcmp(command_id,"DISABLE_CONTACT_HOST_NOTIFICATIONS"))
+		command_type=CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS;
+
+	else if(!strcmp(command_id,"ENABLE_CONTACT_SVC_NOTIFICATIONS"))
+		command_type=CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS;
+	else if(!strcmp(command_id,"DISABLE_CONTACT_SVC_NOTIFICATIONS"))
+		command_type=CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS;
+
+
+	/***************************************/
+	/**** CONTACTGROUP-RELATED COMMANDS ****/
+	/***************************************/
+
+	else if(!strcmp(command_id,"ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS"))
+		command_type=CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS;
+	else if(!strcmp(command_id,"DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS"))
+		command_type=CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS;
+
+	else if(!strcmp(command_id,"ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS"))
+		command_type=CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS;
+	else if(!strcmp(command_id,"DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS"))
+		command_type=CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS;
 
 
 	/**************************/
@@ -923,6 +956,30 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 		break;
 
 
+	/**********************************/
+	/**** CONTACT-RELATED COMMANDS ****/
+	/**********************************/
+
+	case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS:
+		process_contact_command(cmd,entry_time,args);
+		break;
+
+
+	/***************************************/
+	/**** CONTACTGROUP-RELATED COMMANDS ****/
+	/***************************************/
+
+	case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+		process_contactgroup_command(cmd,entry_time,args);
+		break;
+
+
 		/***************************/
 		/**** UNSORTED COMMANDS ****/
 		/***************************/
@@ -1023,13 +1080,14 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 
 	case CMD_CHANGE_CUSTOM_HOST_VAR:
 	case CMD_CHANGE_CUSTOM_SVC_VAR:
+	case CMD_CHANGE_CUSTOM_CONTACT_VAR:
 		cmd_change_object_custom_var(cmd,args);
 		break;
 
 
-		/***************************/
-		/**** UNSORTED COMMANDS ****/
-		/***************************/
+		/***********************/
+		/**** MISC COMMANDS ****/
+		/***********************/
 
 
 	case CMD_PROCESS_FILE:
@@ -1476,6 +1534,109 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 	return OK;
         }
 
+
+
+/* processes an external contact command */
+int process_contact_command(int cmd, time_t entry_time, char *args){
+	char *contact_name=NULL;
+	contact *temp_contact=NULL;
+	char *str=NULL;
+	int intval=0;
+
+	/* get the contact name */
+	if((contact_name=my_strtok(args,";"))==NULL)
+		return ERROR;
+
+	/* find the contact */
+	if((temp_contact=find_contact(contact_name))==NULL)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_ENABLE_CONTACT_HOST_NOTIFICATIONS:
+		enable_contact_host_notifications(temp_contact);
+		break;
+
+	case CMD_DISABLE_CONTACT_HOST_NOTIFICATIONS:
+		disable_contact_host_notifications(temp_contact);
+		break;
+
+	case CMD_ENABLE_CONTACT_SVC_NOTIFICATIONS:
+		enable_contact_service_notifications(temp_contact);
+		break;
+
+	case CMD_DISABLE_CONTACT_SVC_NOTIFICATIONS:
+		disable_contact_service_notifications(temp_contact);
+		break;
+
+	default:
+		break;
+	        }
+
+	return OK;
+        }
+
+
+/* processes an external contactgroup command */
+int process_contactgroup_command(int cmd, time_t entry_time, char *args){
+	char *contactgroup_name=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	contactgroupmember *temp_member=NULL;
+	contact *temp_contact=NULL;
+
+	/* get the contactgroup name */
+	if((contactgroup_name=my_strtok(args,";"))==NULL)
+		return ERROR;
+
+	/* find the contactgroup */
+	if((temp_contactgroup=find_contactgroup(contactgroup_name))==NULL)
+		return ERROR;
+
+	switch(cmd){
+
+	case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+	case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+	case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+
+		/* loop through all contactgroup members */
+		for(temp_member=temp_contactgroup->members;temp_member!=NULL;temp_member=temp_member->next){
+
+			temp_contact=find_contact(temp_member->contact_name);
+			if(temp_contact==NULL)
+				continue;
+
+			switch(cmd){
+
+			case CMD_ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+				enable_contact_host_notifications(temp_contact);
+				break;
+
+			case CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS:
+				disable_contact_host_notifications(temp_contact);
+				break;
+
+			case CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+				enable_contact_service_notifications(temp_contact);
+				break;
+
+			case CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS:
+				disable_contact_service_notifications(temp_contact);
+				break;
+
+			default:
+				break;
+			        }
+		        }
+
+		break;
+
+	default:
+		break;
+	        }
+
+	return OK;
+        }
 
 
 
@@ -3001,13 +3162,131 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 
 /* changes a custom host or service variable */
-int cmd_change_object_custom_var(int cmd,char *args){
+int cmd_change_object_custom_var(int cmd, char *args){
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	contact *temp_contact=NULL;
+	customvariablesmember *temp_customvariablesmember=NULL;
+	char *temp_ptr=NULL;
+	char *name1=NULL;
+	char *name2=NULL;
+	char *varname=NULL;
+	char *varvalue=NULL;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("cmd_change_object_custom_var() start\n");
 #endif
 
-	/* TODO */
+	printf("change_custom_var()\n");
+
+	/* get the host or contact name */
+	if((temp_ptr=my_strtok(args,";"))==NULL)
+		return ERROR;
+	if((name1=strdup(temp_ptr))==NULL)
+		return ERROR;
+
+	/* get the service description if necessary */
+	if(cmd==CMD_CHANGE_CUSTOM_SVC_VAR){
+		if((temp_ptr=my_strtok(NULL,";"))==NULL){
+			free(name1);
+			return ERROR;
+		        }
+		if((name2=strdup(temp_ptr))==NULL){
+			free(name1);
+			return ERROR;
+		        }
+	        }
+
+	/* get the custom variable name */
+	if((temp_ptr=my_strtok(NULL,";"))==NULL){
+		free(name1);
+		free(name2);
+		return ERROR;
+	        }
+	if((varname=strdup(temp_ptr))==NULL){
+		free(name1);
+		free(name2);
+		return ERROR;
+	        }
+
+	/* get the custom variable value */
+	if((temp_ptr=my_strtok(NULL,";"))==NULL){
+		free(name1);
+		free(name2);
+		free(varname);
+		return ERROR;
+	        }
+	if((varvalue=strdup(temp_ptr))==NULL){
+		free(name1);
+		free(name2);
+		free(varname);
+		return ERROR;
+	        }
+
+	/* find the object */
+	switch(cmd){
+	case CMD_CHANGE_CUSTOM_HOST_VAR:
+		temp_host=find_host(name1);
+		temp_customvariablesmember=temp_host->custom_variables;
+		break;
+	case CMD_CHANGE_CUSTOM_SVC_VAR:
+		temp_service=find_service(name1,name2);
+		temp_customvariablesmember=temp_service->custom_variables;
+		break;
+	case CMD_CHANGE_CUSTOM_CONTACT_VAR:
+		temp_contact=find_contact(name1);
+		temp_customvariablesmember=temp_contact->custom_variables;
+		break;
+	default:
+		break;
+	        }
+
+	/* capitalize the custom variable name */
+	for(x=0;varname[x]!='\x0';x++)
+		varname[x]=toupper(varname[x]);
+
+	/* find the proper variable */
+	for(;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+		
+		/* we found the variable, so update the value */
+		if(!strcmp(varname,temp_customvariablesmember->variable_name)){
+
+			/* update the value */
+			if(temp_customvariablesmember->variable_value)
+				free(temp_customvariablesmember->variable_value);
+			temp_customvariablesmember->variable_value=strdup(varvalue);
+
+			/* mark the variable value as having been changed */
+			temp_customvariablesmember->has_been_modified=TRUE;
+
+			break;
+		        }
+	        }
+
+	/* free memory */
+	free(name1);
+	free(name2);
+	free(varname);
+	free(varvalue);
+
+	/* set the modified attributes and update the status of the object */
+	switch(cmd){
+	case CMD_CHANGE_CUSTOM_HOST_VAR:
+		temp_host->modified_attributes|=MODATTR_CUSTOM_VARIABLE;
+		update_host_status(temp_host,FALSE);
+		break;
+	case CMD_CHANGE_CUSTOM_SVC_VAR:
+		temp_service->modified_attributes|=MODATTR_CUSTOM_VARIABLE;
+		update_service_status(temp_service,FALSE);
+		break;
+	case CMD_CHANGE_CUSTOM_CONTACT_VAR:
+		temp_contact->modified_attributes|=MODATTR_CUSTOM_VARIABLE;
+		update_contact_status(temp_contact,FALSE);
+		break;
+	default:
+		break;
+	        }
 
 #ifdef DEBUG0
 	printf("cmd_change_object_custom_var() end\n");
@@ -3386,6 +3665,107 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 
 	return;
         }
+
+
+
+/* enables host notifications for a contact */
+void enable_contact_host_notifications(contact *cntct){
+
+#ifdef DEBUG0
+	printf("enable_contact_host_notifications() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	cntct->modified_host_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
+	/* enable the host notifications... */
+	cntct->host_notifications_enabled=TRUE;
+
+	/* update the status log to reflect the new contact state */
+	update_contact_status(cntct,FALSE);
+
+#ifdef DEBUG0
+	printf("enable_contact_host_notifications() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* disables host notifications for a contact */
+void disable_contact_host_notifications(contact *cntct){
+
+#ifdef DEBUG0
+	printf("disable_contact_host_notifications() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	cntct->modified_host_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
+	/* enable the host notifications... */
+	cntct->host_notifications_enabled=FALSE;
+
+	/* update the status log to reflect the new contact state */
+	update_contact_status(cntct,FALSE);
+
+#ifdef DEBUG0
+	printf("disable_contact_host_notifications() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* enables service notifications for a contact */
+void enable_contact_service_notifications(contact *cntct){
+
+#ifdef DEBUG0
+	printf("enable_contact_service_notifications() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	cntct->modified_service_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
+	/* enable the host notifications... */
+	cntct->service_notifications_enabled=TRUE;
+
+	/* update the status log to reflect the new contact state */
+	update_contact_status(cntct,FALSE);
+
+#ifdef DEBUG0
+	printf("enable_contact_service_notifications() end\n");
+#endif
+
+	return;
+        }
+
+
+
+/* disables service notifications for a contact */
+void disable_contact_service_notifications(contact *cntct){
+
+#ifdef DEBUG0
+	printf("disable_contact_service_notifications() start\n");
+#endif
+
+	/* set the attribute modified flag */
+	cntct->modified_service_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+
+	/* enable the host notifications... */
+	cntct->service_notifications_enabled=FALSE;
+
+	/* update the status log to reflect the new contact state */
+	update_contact_status(cntct,FALSE);
+
+#ifdef DEBUG0
+	printf("disable_contact_service_notifications() end\n");
+#endif
+
+	return;
+        }
+
 
 
 /* schedules downtime for all hosts "beyond" a given host */

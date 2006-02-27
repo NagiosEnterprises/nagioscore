@@ -2,8 +2,8 @@
  *
  * CGIAUTH.C - Authorization utilities for Nagios CGIs
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-23-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -415,6 +415,10 @@ int is_authorized_for_service_commands(service *svc, authdata *authinfo){
 		/* find the contact */
 		temp_contact=find_contact(authinfo->username);
 
+		/* reject if contact is not allowed to issue commands */
+		if(temp_contact && temp_contact->can_submit_commands==FALSE)
+			return FALSE;
+
 		/* see if this user is a contact for the host */
 		if(is_contact_for_host(temp_host,temp_contact)==TRUE)
 			return TRUE;
@@ -460,6 +464,10 @@ int is_authorized_for_host_commands(host *hst, authdata *authinfo){
 
 		/* find the contact */
 		temp_contact=find_contact(authinfo->username);
+
+		/* reject if contact is not allowed to issue commands */
+		if(temp_contact && temp_contact->can_submit_commands==FALSE)
+			return FALSE;
 
 		/* this user is a contact for the host, so they have permission... */
 		if(is_contact_for_host(hst,temp_contact)==TRUE)

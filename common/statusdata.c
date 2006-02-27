@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-21-2006
+ * Last Modified:   02-26-2006
  *
  * License:
  *
@@ -177,6 +177,25 @@ int update_service_status(service *svc,int aggregated_dump){
 	return OK;
         }
 
+
+
+/* updates contact status info */
+int update_contact_status(contact *cntct,int aggregated_dump){
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker (non-aggregated dumps only) */
+	if(aggregated_dump==FALSE)
+	        broker_contact_status(NEBTYPE_CONTACTSTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cntct,NULL);
+#endif
+
+	/* currently a noop if aggregated updates is TRUE */
+
+	/* update all status data if we're not aggregating updates */
+	if(aggregate_status_updates==FALSE)
+		update_all_status_data();
+
+	return OK;
+        }
 #endif
 
 

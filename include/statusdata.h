@@ -2,8 +2,8 @@
  *
  * STATUSDATA.H - Header for external status data routines
  *
- * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-25-2005
+ * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-26-2006
  *
  * License:
  *
@@ -38,8 +38,9 @@
 #define READ_PROGRAM_STATUS	1
 #define READ_HOST_STATUS	2
 #define READ_SERVICE_STATUS	4
+#define READ_CONTACT_STATUS     8
 
-#define READ_ALL_STATUS_DATA    READ_PROGRAM_STATUS | READ_HOST_STATUS | READ_SERVICE_STATUS
+#define READ_ALL_STATUS_DATA    READ_PROGRAM_STATUS | READ_HOST_STATUS | READ_SERVICE_STATUS | READ_CONTACT_STATUS
 
 
 
@@ -188,6 +189,7 @@ int cleanup_status_data(char *,int);                    /* cleans up status data
 int update_program_status(int);                         /* updates program status data */
 int update_host_status(host *,int);                     /* updates host status data */
 int update_service_status(service *,int);               /* updates service status data */
+int update_contact_status(contact *,int);               /* updates contact status data */
 #endif
 
 #ifdef __cplusplus

@@ -25,6 +25,7 @@ Pre-alpha changes since 02/15/2006...
      - Added hostgroup_members and servicegroup_members directives to hostgroup and servicegroup definitions,
        respectively, for allowing including host or service members from "sub" groups.
      - Added support for custom variables in host, service, and contact definitions
+     - Added host_notifications_enabled, service_notifications_enabled, can_submit_commands to contact definitions
 
 * Performance optimizations:
      - Added ability to precache object config files
@@ -54,6 +55,12 @@ Pre-alpha changes since 02/15/2006...
      - Plugin output length restriction bumped up to 2K
      - Added temp_path directive to main config file for specifying temp directory
        
+* Status data changes:
+     - Contact status information is now saved (although it is not processed by the old CGIs)
+
+* Retention data changes:
+     - Contact status information is now retained across program restarts
+
 
 
 

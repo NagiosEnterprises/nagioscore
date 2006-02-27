@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-25-2006
+ * Last Modified: 02-27-2006
  *
  * License:
  *
@@ -2082,7 +2082,7 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 
 
 /* add a new contact to the list in memory */
-contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping){
+contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information){
 	contact *temp_contact;
 	contact *new_contact;
 	int x;
@@ -2208,6 +2208,38 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	if(notify_host_flapping<0 || notify_host_flapping>1){
 #ifdef NSCORE
 		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_flapping value for contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(host_notifications_enabled<0 || host_notifications_enabled>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid host_notifications_enabled value for contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(service_notifications_enabled<0 || service_notifications_enabled>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid service_notifications_enabled value for contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(retain_status_information<0 || retain_status_information>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_status_information value for contact '%s'\n",name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+#endif
+		return NULL;
+	        }
+	if(retain_nonstatus_information<0 || retain_nonstatus_information>1){
+#ifdef NSCORE
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_nonstatus_information value for contact '%s'\n",name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 #endif
@@ -2348,7 +2380,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 
 	new_contact->host_notification_commands=NULL;
 	new_contact->service_notification_commands=NULL;
-
 	new_contact->notify_on_service_recovery=(notify_service_ok>0)?TRUE:FALSE;
 	new_contact->notify_on_service_critical=(notify_service_critical>0)?TRUE:FALSE;
 	new_contact->notify_on_service_warning=(notify_service_warning>0)?TRUE:FALSE;
@@ -2358,7 +2389,19 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->notify_on_host_down=(notify_host_down>0)?TRUE:FALSE;
 	new_contact->notify_on_host_unreachable=(notify_host_unreachable>0)?TRUE:FALSE;
 	new_contact->notify_on_host_flapping=(notify_host_flapping>0)?TRUE:FALSE;
+	new_contact->host_notifications_enabled=(host_notifications_enabled>0)?TRUE:FALSE;
+	new_contact->service_notifications_enabled=(service_notifications_enabled>0)?TRUE:FALSE;
+	new_contact->can_submit_commands=(can_submit_commands>0)?TRUE:FALSE;
+	new_contact->retain_status_information=(retain_status_information>0)?TRUE:FALSE;
+	new_contact->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
 	new_contact->custom_variables=NULL;
+#ifdef NSCORE
+	new_contact->last_host_notification=(time_t)0L;
+	new_contact->last_service_notification=(time_t)0L;
+	new_contact->modified_attributes=MODATTR_NONE;
+	new_contact->modified_host_attributes=MODATTR_NONE;
+	new_contact->modified_service_attributes=MODATTR_NONE;
+#endif
 
 	new_contact->next=NULL;
 	new_contact->nexthash=NULL;

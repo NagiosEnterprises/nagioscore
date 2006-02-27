@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.H - Header file for default status data routines
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2003
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-26-2006
  *
  * License:
  *
@@ -35,6 +35,7 @@ int xsddefault_save_status_data(void);
 #define XSDDEFAULT_PROGRAM_DATA     2
 #define XSDDEFAULT_HOST_DATA        3
 #define XSDDEFAULT_SERVICE_DATA     4
+#define XSDDEFAULT_CONTACT_DATA     5
 
 int xsddefault_read_status_data(char *,int);
 #endif

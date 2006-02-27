@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-24-2006
+ * Last Modified: 02-27-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -727,6 +727,8 @@ int process_host_command(int,time_t,char *);            /* process an external h
 int process_hostgroup_command(int,time_t,char *);       /* process an external hostgroup command */
 int process_service_command(int,time_t,char *);         /* process an external service command */
 int process_servicegroup_command(int,time_t,char *);    /* process an external servicegroup command */
+int process_contact_command(int,time_t,char *);         /* process an external contact command */
+int process_contactgroup_command(int,time_t,char *);    /* process an external contactgroup command */
 
 
 /**** External Command Implementations ****/
@@ -810,6 +812,10 @@ void start_obsessing_over_host(host *);			/* start obsessing about specific host
 void stop_obsessing_over_host(host *);			/* stop obsessing about specific host check results */
 void set_host_notification_number(host *,int);		/* sets current notification number for a specific host */
 void set_service_notification_number(service *,int);	/* sets current notification number for a specific service */
+void enable_contact_host_notifications(contact *);      /* enables host notifications for a specific contact */
+void disable_contact_host_notifications(contact *);     /* disables host notifications for a specific contact */
+void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
+void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
 
 int init_service_result_worker_thread(void);
 int shutdown_service_result_worker_thread(void);

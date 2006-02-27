@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-25-2006
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -39,6 +39,7 @@
 
 extern host           *host_list;
 extern service        *service_list;
+extern contact        *contact_list;
 
 extern char           *global_host_event_handler;
 extern char           *global_service_event_handler;
@@ -158,6 +159,7 @@ int xrddefault_save_state_information(char *main_config_file){
 	FILE *fp=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	contact *temp_contact=NULL;
 	int x, fd=0;
 
 #ifdef DEBUG0
@@ -355,6 +357,27 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\t}\n\n");
 	        }
 
+	/* save contact state information */
+	for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+
+		fprintf(fp,"contact {\n");
+		fprintf(fp,"\tcontact_name=%s\n",temp_contact->name);
+		fprintf(fp,"\tmodified_host_attributes=%lu\n",temp_contact->modified_host_attributes);
+		fprintf(fp,"\tmodified_service_attributes=%lu\n",temp_contact->modified_service_attributes);
+		fprintf(fp,"\tlast_host_notification=%lu\n",temp_contact->last_host_notification);
+		fprintf(fp,"\tlast_service_notification=%lu\n",temp_contact->last_service_notification);
+		fprintf(fp,"\thost_notifications_enabled=%d\n",temp_contact->host_notifications_enabled);
+		fprintf(fp,"\tservice_notifications_enabled=%d\n",temp_contact->service_notifications_enabled);
+
+		/* custom variables */
+		for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+			if(temp_customvariablesmember->variable_name)
+				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
+		        }
+
+		fprintf(fp,"\t}\n\n");
+	        }
+
 	fclose(fp);
 
 	/* move the temp file to the retention file (overwrite the old retention file) */
@@ -383,10 +406,12 @@ int xrddefault_read_state_information(char *main_config_file){
 	mmapfile *thefile;
 	char *host_name=NULL;
 	char *service_description=NULL;
+	char *contact_name=NULL;
 	int data_type=XRDDEFAULT_NO_DATA;
 	int x=0;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	contact *temp_contact=NULL;
 	command *temp_command=NULL;
 	timeperiod *temp_timeperiod=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
@@ -442,6 +467,8 @@ int xrddefault_read_state_information(char *main_config_file){
 			data_type=XRDDEFAULT_HOST_DATA;
 		else if(!strcmp(input,"service {"))
 			data_type=XRDDEFAULT_SERVICE_DATA;
+		else if(!strcmp(input,"contact {"))
+			data_type=XRDDEFAULT_CONTACT_DATA;
 
 		else if(!strcmp(input,"}")){
 
@@ -541,6 +568,34 @@ int xrddefault_read_state_information(char *main_config_file){
 				free(service_description);
 				service_description=NULL;
 				temp_service=NULL;
+				break;
+
+			case XRDDEFAULT_CONTACT_DATA:
+
+				if(temp_contact!=NULL){
+
+					/* adjust modified attributes if necessary */
+					if(temp_contact->retain_nonstatus_information==FALSE)
+						temp_contact->modified_attributes=MODATTR_NONE;
+
+					/* adjust modified attributes if no custom variables have been changed */
+					if(temp_contact->modified_attributes & MODATTR_CUSTOM_VARIABLE){
+						for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+							if(temp_customvariablesmember->has_been_modified==TRUE)
+								break;
+
+						        }
+						if(temp_customvariablesmember==NULL)
+							temp_contact->modified_attributes-=MODATTR_CUSTOM_VARIABLE;
+					        }
+
+					/* update contact status */
+					update_contact_status(temp_contact,FALSE);
+				        }
+
+				free(host_name);
+				host_name=NULL;
+				temp_host=NULL;
 				break;
 
 			default:
@@ -1092,6 +1147,62 @@ int xrddefault_read_state_information(char *main_config_file){
 							                }
 							        }
 
+						        }
+					        }
+				        }
+				break;
+
+			case XRDDEFAULT_CONTACT_DATA:
+				if(!strcmp(var,"contact_name")){
+					contact_name=strdup(val);
+					temp_contact=find_contact(contact_name);
+				        }
+				else if(temp_contact!=NULL){
+					if(!strcmp(var,"modified_attributes"))
+						temp_contact->modified_attributes=strtoul(val,NULL,10);
+					if(!strcmp(var,"modified_host_attributes"))
+						temp_contact->modified_host_attributes=strtoul(val,NULL,10);
+					if(!strcmp(var,"modified_service_attributes"))
+						temp_contact->modified_service_attributes=strtoul(val,NULL,10);
+					if(temp_contact->retain_status_information==TRUE){
+						if(!strcmp(var,"last_host_notification"))
+							temp_contact->last_host_notification=strtoul(val,NULL,10);
+						if(!strcmp(var,"last_service_notification"))
+							temp_contact->last_service_notification=strtoul(val,NULL,10);
+					        }
+					if(temp_contact->retain_nonstatus_information==TRUE){
+						if(!strcmp(var,"host_notifications_enabled")){
+							if(temp_contact->modified_host_attributes & MODATTR_NOTIFICATIONS_ENABLED)
+								temp_contact->host_notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
+						        }
+						else if(!strcmp(var,"service_notifications_enabled")){
+							if(temp_contact->modified_service_attributes & MODATTR_NOTIFICATIONS_ENABLED)
+								temp_contact->service_notifications_enabled=(atoi(val)>0)?TRUE:FALSE;
+						        }
+						/* custom variables */
+						else if(var[0]=='_'){
+
+							if(temp_contact->modified_attributes & MODATTR_CUSTOM_VARIABLE){
+							
+								/* get the variable name */
+								if((customvarname=strdup(var+1))){
+							
+									for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
+										if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
+											if((x=atoi(val))>0 && strlen(val)>3){
+												if(temp_customvariablesmember->variable_value)
+													free(temp_customvariablesmember->variable_value);
+												temp_customvariablesmember->variable_value=strdup(val+2);
+												temp_customvariablesmember->has_been_modified=(x>0)?TRUE:FALSE;
+										                }
+											break;
+									                }
+								               }
+
+									/* free memory */
+									free(customvarname);
+							                }
+							        }
 						        }
 					        }
 				        }

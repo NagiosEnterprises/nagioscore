@@ -35,7 +35,7 @@
 
 /***** CALLBACK TYPES *****/
 
-#define NEBCALLBACK_NUMITEMS                          31    /* total number of callback types we have */
+#define NEBCALLBACK_NUMITEMS                          32    /* total number of callback types we have */
 
 #define NEBCALLBACK_RESERVED0                         0     /* reserved for future use */
 #define NEBCALLBACK_RESERVED1                         1
@@ -70,6 +70,7 @@
 #define NEBCALLBACK_CONTACT_NOTIFICATION_METHOD_DATA  28
 #define NEBCALLBACK_ACKNOWLEDGEMENT_DATA              29
 #define NEBCALLBACK_STATE_CHANGE_DATA                 30
+#define NEBCALLBACK_CONTACT_STATUS_DATA               31
 
 
 /***** CALLBACK FUNCTIONS *****/

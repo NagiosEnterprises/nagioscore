@@ -197,8 +197,6 @@ extern int      command_file_fd;
 extern FILE     *command_file_fp;
 extern int      command_file_created;
 
-char my_system_output[MAX_INPUT_BUFFER];
-
 #ifdef HAVE_TZNAME
 #ifdef CYGWIN
 extern char     *_tzname[2] __declspec(dllimport);

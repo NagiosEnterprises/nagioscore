@@ -2,8 +2,8 @@
  *
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
- * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-17-2005
+ * Copyright (c) 2003-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-27-2006
  *
  * License:
  *
@@ -138,6 +138,7 @@ typedef struct nebstruct_host_check_struct{
 	double          latency;
 	int             return_code;
 	char            *output;
+	char            *long_output;
 	char            *perf_data;
         }nebstruct_host_check_data;
 
@@ -167,6 +168,7 @@ typedef struct nebstruct_service_check_struct{
 	double          latency;
 	int             return_code;
 	char            *output;
+	char            *long_output;
 	char            *perf_data;
         }nebstruct_service_check_data;
 
@@ -282,6 +284,17 @@ typedef struct nebstruct_service_status_struct{
 
 	void            *object_ptr;
         }nebstruct_service_status_data;
+
+
+/* contact status structure */
+typedef struct nebstruct_contact_status_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	void            *object_ptr;
+        }nebstruct_contact_status_data;
 
 
 /* notification data structure */

@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2006
+ * Last Modified:   02-26-2006
  *
  * License:
  *
@@ -237,7 +237,7 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 
 
 /* send host check data to broker */
-void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *perfdata, struct timeval *timestamp){
+void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *long_output, char *perfdata, struct timeval *timestamp){
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
@@ -279,6 +279,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 	ds.latency=latency;
 	ds.return_code=retcode;
 	ds.output=output;
+	ds.long_output=long_output;
 	ds.perf_data=perfdata;
 
 	/* make callbacks */
@@ -336,6 +337,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, int check
 	ds.latency=latency;
 	ds.return_code=retcode;
 	ds.output=svc->plugin_output;
+	ds.long_output=svc->long_plugin_output;
 	ds.perf_data=svc->perf_data;
 
 	/* make callbacks */
@@ -541,6 +543,29 @@ void broker_service_status(int type, int flags, int attr, service *svc, struct t
 
 	/* make callbacks */
 	neb_make_callbacks(NEBCALLBACK_SERVICE_STATUS_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+
+/* sends contact status updates to broker */
+void broker_contact_status(int type, int flags, int attr, contact *cntct, struct timeval *timestamp){
+	nebstruct_service_status_data ds;
+
+	if(!(event_broker_options & BROKER_STATUS_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.object_ptr=(void *)cntct;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_CONTACT_STATUS_DATA,(void *)&ds);
 
 	return;
         }

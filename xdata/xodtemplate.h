@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-25-2006
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -124,6 +124,11 @@ typedef struct xodtemplate_contact_struct{
 	int       notify_on_service_critical;
 	int       notify_on_service_recovery;
 	int       notify_on_service_flapping;
+	int       host_notifications_enabled;
+	int       service_notifications_enabled;
+	int       can_submit_commands;
+	int       retain_status_information;
+	int       retain_nonstatus_information;
 	xodtemplate_customvariablesmember *custom_variables;
 
 	int       have_contact_groups;
@@ -137,6 +142,11 @@ typedef struct xodtemplate_contact_struct{
 
 	int       have_host_notification_options;
 	int       have_service_notification_options;
+	int       have_host_notifications_enabled;
+	int       have_service_notifications_enabled;
+	int       have_can_submit_commands;
+	int       have_retain_status_information;
+	int       have_retain_nonstatus_information;
 
 	int       has_been_resolved;
 	int       register_object;

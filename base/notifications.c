@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-16-2006
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -517,6 +517,14 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 	printf("check_contact_service_notification_viability() start\n");
 #endif
 
+	/* are notifications enabled? */
+	if(cntct->service_notifications_enabled==FALSE){
+#ifdef DEBUG4
+		printf("\tService notifications are disabled for this contact!\n");
+#endif
+		return ERROR;
+	        }
+
 	/* see if the contact can be notified at this time */
 	if(check_time_against_period(time(NULL),cntct->service_notification_period)==ERROR){
 #ifdef DEBUG4
@@ -705,6 +713,9 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 
 	/* get end time */
 	gettimeofday(&end_time,NULL);
+
+	/* update the contact's last service notification time */
+	cntct->last_service_notification=start_time.tv_sec;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -1266,6 +1277,14 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	printf("check_contact_host_notification_viability() start\n");
 #endif
 
+	/* are notifications enabled? */
+	if(cntct->host_notifications_enabled==FALSE){
+#ifdef DEBUG4
+		printf("\tHost notifications are disabled for this contact!\n");
+#endif
+		return ERROR;
+	        }
+
 	/* see if the contact can be notified at this time */
 	if(check_time_against_period(time(NULL),cntct->host_notification_period)==ERROR){
 #ifdef DEBUG4
@@ -1452,6 +1471,9 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 
 	/* get end time */
 	gettimeofday(&end_time,NULL);
+
+	/* update the contact's last host notification time */
+	cntct->last_host_notification=start_time.tv_sec;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

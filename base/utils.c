@@ -2775,8 +2775,8 @@ int set_macro_environment_var(char *name, char *value, int set){
 /******************************************************************/
 
 
-/* executes a system command - used for service checks and notifications */
-int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *output,int output_length){
+/* executes a system command - used for notifications, event handlers, etc. */
+int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length){
         pid_t pid;
 	int status;
 	int result=0;
@@ -2786,6 +2786,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 	FILE *fp=NULL;
 	int bytes_read=0;
 	struct timeval start_time,end_time;
+	dbuf output_dbuf;
+	int dbuf_chunk=1024;
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
@@ -2805,7 +2807,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 	/* initialize return variables */
 	if(output!=NULL)
-		strcpy(output,"");
+		*output=NULL;
 	*early_timeout=FALSE;
 	*exectime=0.0;
 
@@ -2914,12 +2916,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 		snprintf(buffer,sizeof(buffer)-1,"Warning: fork() in my_system() failed for command \"%s\"\n",cmd);
 		buffer[sizeof(buffer)-1]='\x0';
-
-		if(output!=NULL){
-			strncpy(output,buffer,output_length-1);
-			output[output_length-1]='\x0';
-		        }
-
 		write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
 		/* close both ends of the pipe */
@@ -3027,15 +3023,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 		        }
 		else{
 
-			/* default return string in case nothing was returned */
-			strcpy(buffer,"(No output!)");
-
-			/* read in the first line of output from the command */
-			fgets(buffer,sizeof(buffer)-1,fp);
-
-			/* ADDED 01/04/2004 */
-			/* ignore any additional lines of output */
-			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp));
+			/* write all the lines of output back to the parent process */
+			while(fgets(buffer,sizeof(temp_buffer)-1,fp))
+				write(fd[1],buffer,strlen(buffer));
 
 			/* close the command and get termination status */
 			status=pclose(fp);
@@ -3045,9 +3035,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 				result=STATE_CRITICAL;
 			else
 				result=WEXITSTATUS(status);
-
-			/* write the output back to the parent process */
-			write(fd[1],buffer,strlen(buffer)+1);
 		        }
 
 		/* close pipe for writing */
@@ -3090,26 +3077,50 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		        }
 
-		/* because of my idiotic idea of having UNKNOWN states be equivalent to -1, I must hack things a bit... */
-		if(result==255 || result==-1)
-			result=STATE_UNKNOWN;
-
 		/* check bounds on the return value */
 		if(result<-1 || result>3)
 			result=STATE_UNKNOWN;
 
+		/* initialize output */
+		strcpy(buffer,"");
+
+		/* initialize dynamic buffer */
+		dbuf_init(&output_dbuf,dbuf_chunk);
+
 		/* try and read the results from the command output (retry if we encountered a signal) */
 		do{
 			bytes_read=read(fd[0],buffer,sizeof(buffer)-1);
-	                }while(bytes_read==-1 && errno==EINTR);
-		buffer[sizeof(buffer)-1]='\x0';
-		if(output!=NULL){
-			strncpy(output,buffer,output_length);
-			output[output_length-1]='\x0';
-		        }
 
-		if(bytes_read==-1 && output!=NULL)
-			strcpy(output,"");
+			/* append data we just read to dynamic buffer */
+			if(bytes_read>0){
+				buffer[bytes_read]='\x0';
+				dbuf_strcat(&output_dbuf,buffer);
+			        }
+
+			/* handle errors */
+			if(bytes_read==-1){
+				/* we encountered a recoverable error, so try again */
+				if(errno==EINTR || errno==EAGAIN)
+					continue;
+				else
+					break;
+			        }
+
+			/* we're done */
+			if(bytes_read==0)
+				break;
+
+  		        }while(1);
+
+		/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
+		if(max_output_length>0  && output_dbuf.used_size>max_output_length)
+			output_dbuf.buf[max_output_length]='\x0';
+
+		if(output!=NULL && output_dbuf.buf)
+			*output=strdup(output_dbuf.buf);
+
+		/* free memory */
+		dbuf_free(&output_dbuf);
 
 		/* if there was a critical return code and no output AND the command time exceeded the timeout thresholds, assume a timeout */
 		if(result==STATE_CRITICAL && bytes_read==-1 && (end_time.tv_sec-start_time.tv_sec)>=timeout){
@@ -3125,7 +3136,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,output,NULL);
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,(output==NULL)?NULL:*output,NULL);
 #endif
 
 		/* close the pipe for reading */

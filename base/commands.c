@@ -2291,25 +2291,8 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	if(temp_host->latency<0.0)
 		temp_host->latency=0.0;
 
-	/* first part of plugin output (up to pipe) is status info */
-	if((temp_ptr=strtok(temp_plugin_output,"|\n"))==NULL)
-		temp_host->plugin_output=strdup("(No output returned from host check)");
-	else{
-		strip(temp_ptr);
-		if(!strcmp(temp_ptr,""))
-			temp_host->plugin_output=strdup("(No output returned from host check)");
-		else
-			temp_host->plugin_output=strdup(temp_ptr);
-	        }
-
-	/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
-	temp_ptr=strtok(NULL,"\n");
-
-	/* grab performance data if we found it available */
-	if(temp_ptr!=NULL){
-		strip(temp_ptr);
-		temp_host->perf_data=strdup(temp_ptr);
-	        }
+	/* parse the output: short and long output, and perf data */
+	parse_check_output(temp_plugin_output,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,TRUE,TRUE);
 
 	/* replace semicolons in plugin output (but not performance data) with colons */
 	temp_ptr=temp_host->plugin_output;
@@ -2341,7 +2324,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_PASSIVE,temp_host->current_state,temp_host->state_type,tv,tv,NULL,0.0,temp_host->execution_time,0,FALSE,return_code,NULL,temp_host->plugin_output,temp_host->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_PASSIVE,temp_host->current_state,temp_host->state_type,tv,tv,NULL,0.0,temp_host->execution_time,0,FALSE,return_code,NULL,temp_host->plugin_output,temp_host->long_plugin_output,temp_host->perf_data,NULL);
 #endif
 
 	/***** CHECK FOR FLAPPING *****/

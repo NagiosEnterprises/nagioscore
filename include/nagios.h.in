@@ -590,7 +590,7 @@ void check_for_orphaned_services(void);				/* checks for orphaned services */
 void check_service_result_freshness(void);              	/* checks the "freshness" of service check results */
 void check_host_result_freshness(void);                 	/* checks the "freshness" of host check results */
 void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */
-int my_system(char *,int,int *,double *,char *,int);            	/* executes a command via popen(), but also protects against timeouts */
+int my_system(char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
 void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */
 void adjust_timestamp_for_time_change(time_t,time_t,unsigned long,time_t *); /* adjusts a timestamp variable for a system time change */
 void resort_event_list(timed_event **);                 	/* resorts event list by event run time for system time changes */

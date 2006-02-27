@@ -2318,7 +2318,7 @@ int run_host_check(host *hst, int check_options){
 	char *temp_ptr;
 	int early_timeout=FALSE;
 	double exectime;
-	char temp_plugin_output[MAX_INPUT_BUFFER]="";
+	char *temp_plugin_output=NULL;
 		
 
 #ifdef DEBUG0
@@ -2397,7 +2397,7 @@ int run_host_check(host *hst, int check_options){
 	hst->perf_data=NULL;
 
 	/* run the host check command */
-	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,temp_plugin_output,sizeof(temp_plugin_output)-1);
+	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,&temp_plugin_output,MAX_PLUGIN_OUTPUT_LENGTH);
 
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
@@ -2417,26 +2417,16 @@ int run_host_check(host *hst, int check_options){
 	/* record check type */
 	hst->check_type=HOST_CHECK_ACTIVE;
 
-	/* first part of plugin output (up to pipe) is status info */
-	if((temp_ptr=strtok(temp_plugin_output,"|\n"))==NULL)
+	/* parse the output: short and long output, and perf data */
+	parse_check_output(temp_plugin_output,&hst->plugin_output,&hst->long_plugin_output,&hst->perf_data,TRUE,FALSE);
+
+	/* free memory */
+	free(temp_plugin_output);
+
+	/* make sure we have some data */
+	if(hst->plugin_output==NULL || !strcmp(hst->plugin_output,"")){
+		free(hst->plugin_output);
 		hst->plugin_output=strdup("(No output returned from host check)");
-
-	else{
-
-		strip(temp_ptr);
-		if(!strcmp(temp_ptr,""))
-			hst->plugin_output=strdup("(No output returned from host check)");
-		else
-			hst->plugin_output=strdup(temp_ptr);
-	        }
-
-	/* second part of plugin output (after pipe) is performance data (which may or may not exist) */
-	temp_ptr=strtok(NULL,"\n");
-
-	/* grab performance data if we found it available */
-	if(temp_ptr!=NULL){
-		strip(temp_ptr);
-		hst->perf_data=strdup(temp_ptr);
 	        }
 
 	/* replace semicolons in plugin output (but not performance data) with colons */

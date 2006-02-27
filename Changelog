@@ -33,7 +33,7 @@ Pre-alpha changes since 02/15/2006...
        checks from verification process
 
 * Check output:
-     - Multiline output support for service checks (not Perl checks with embedded Perl support yet)
+     - Multiline output support for host and service checks
 
 * Macro changes:
      - Added $LONGHOSTOUTPUT$ and $LONGSERVICEOUTPUT$ macros
@@ -54,6 +54,7 @@ Pre-alpha changes since 02/15/2006...
      - Removed fixed length restrictions for host names and service descriptions
      - Plugin output length restriction bumped up to 2K
      - Added temp_path directive to main config file for specifying temp directory
+     - Multiline output support for system commands via my_system()
        
 * Status data changes:
      - Contact status information is now saved (although it is not processed by the old CGIs)

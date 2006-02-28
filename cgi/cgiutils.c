@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-21-2006
+ * Last Modified: 02-28-2006
  *
  * License:
  *
@@ -1105,6 +1105,23 @@ char *my_strsep (char **stringp, const char *delim){
 
 	return begin;
 	}
+
+
+
+/* my wrapper for free() */
+int my_free(void **ptr){
+
+	if(ptr==NULL)
+		return ERROR;
+
+	/* I hate calling free() and then resetting the pointer to NULL, so lets do it together */
+	if(*ptr){
+		free(*ptr);
+		*ptr=NULL;
+	        }
+
+	return OK;
+        }
 
 
 

@@ -1540,8 +1540,6 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 int process_contact_command(int cmd, time_t entry_time, char *args){
 	char *contact_name=NULL;
 	contact *temp_contact=NULL;
-	char *str=NULL;
-	int intval=0;
 
 	/* get the contact name */
 	if((contact_name=my_strtok(args,";"))==NULL)

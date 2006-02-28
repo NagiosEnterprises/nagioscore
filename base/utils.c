@@ -483,242 +483,129 @@ int grab_service_macros(service *svc){
 #endif
 
 	/* get the service description */
-	if(macro_x[MACRO_SERVICEDESC]!=NULL)
-		free(macro_x[MACRO_SERVICEDESC]);
-	macro_x[MACRO_SERVICEDESC]=strdup(svc->description);
+	my_free((void **)&macro_x[MACRO_SERVICEDESC]);
+	macro_x[MACRO_SERVICEDESC]=(char *)strdup(svc->description);
 
 	/* get the plugin output */
-	if(macro_x[MACRO_SERVICEOUTPUT]!=NULL)
-		free(macro_x[MACRO_SERVICEOUTPUT]);
-	if(svc->plugin_output==NULL)
-		macro_x[MACRO_SERVICEOUTPUT]=NULL;
-	else
-		macro_x[MACRO_SERVICEOUTPUT]=strdup(svc->plugin_output);
+	my_free((void **)&macro_x[MACRO_SERVICEOUTPUT]);
+	if(svc->plugin_output)
+		macro_x[MACRO_SERVICEOUTPUT]=(char *)strdup(svc->plugin_output);
 
 	/* get the long plugin output */
-	if(macro_x[MACRO_LONGSERVICEOUTPUT]!=NULL)
-		free(macro_x[MACRO_LONGSERVICEOUTPUT]);
-	if(svc->long_plugin_output==NULL)
-		macro_x[MACRO_LONGSERVICEOUTPUT]=NULL;
-	else
-		macro_x[MACRO_LONGSERVICEOUTPUT]=strdup(svc->long_plugin_output);
+	my_free((void **)&macro_x[MACRO_LONGSERVICEOUTPUT]);
+	if(svc->long_plugin_output)
+		macro_x[MACRO_LONGSERVICEOUTPUT]=(char *)strdup(svc->long_plugin_output);
 
 	/* get the performance data */
-	if(macro_x[MACRO_SERVICEPERFDATA]!=NULL)
-		free(macro_x[MACRO_SERVICEPERFDATA]);
-	if(svc->perf_data==NULL)
-		macro_x[MACRO_SERVICEPERFDATA]=NULL;
-	else
-		macro_x[MACRO_SERVICEPERFDATA]=strdup(svc->perf_data);
+	my_free((void **)&macro_x[MACRO_SERVICEPERFDATA]);
+	if(svc->perf_data)
+		macro_x[MACRO_SERVICEPERFDATA]=(char *)strdup(svc->perf_data);
 
 	/* get the service check command */
-	if(macro_x[MACRO_SERVICECHECKCOMMAND]!=NULL)
-		free(macro_x[MACRO_SERVICECHECKCOMMAND]);
-	if(svc->service_check_command==NULL)
-		macro_x[MACRO_SERVICECHECKCOMMAND]=NULL;
-	else
-		macro_x[MACRO_SERVICECHECKCOMMAND]=strdup(svc->service_check_command);
+	my_free((void **)&macro_x[MACRO_SERVICECHECKCOMMAND]);
+	if(svc->service_check_command)
+		macro_x[MACRO_SERVICECHECKCOMMAND]=(char *)strdup(svc->service_check_command);
 
 	/* grab the service check type */
-	if(macro_x[MACRO_SERVICECHECKTYPE]!=NULL)
-		free(macro_x[MACRO_SERVICECHECKTYPE]);
-	macro_x[MACRO_SERVICECHECKTYPE]=(char *)malloc(MAX_CHECKTYPE_LENGTH);
-	if(macro_x[MACRO_SERVICECHECKTYPE]!=NULL)
-		strcpy(macro_x[MACRO_SERVICECHECKTYPE],(svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+	my_free((void **)&macro_x[MACRO_SERVICECHECKTYPE]);
+	macro_x[MACRO_SERVICECHECKTYPE]=(char *)strdup((svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
 
 	/* grab the service state type macro (this is usually overridden later on) */
-	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
-		free(macro_x[MACRO_SERVICESTATETYPE]);
-	macro_x[MACRO_SERVICESTATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_SERVICESTATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_SERVICESTATETYPE],(svc->state_type==HARD_STATE)?"HARD":"SOFT");
+	my_free((void **)&macro_x[MACRO_SERVICESTATETYPE]);
+	macro_x[MACRO_SERVICESTATETYPE]=(char *)strdup((svc->state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* get the service state */
-	if(macro_x[MACRO_SERVICESTATE]!=NULL)
-		free(macro_x[MACRO_SERVICESTATE]);
-	macro_x[MACRO_SERVICESTATE]=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_x[MACRO_SERVICESTATE]!=NULL){
-		if(svc->current_state==STATE_OK)
-			strcpy(macro_x[MACRO_SERVICESTATE],"OK");
-		else if(svc->current_state==STATE_WARNING)
-			strcpy(macro_x[MACRO_SERVICESTATE],"WARNING");
-		else if(svc->current_state==STATE_CRITICAL)
-			strcpy(macro_x[MACRO_SERVICESTATE],"CRITICAL");
-		else
-			strcpy(macro_x[MACRO_SERVICESTATE],"UNKNOWN");
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICESTATE]);
+	if(svc->current_state==STATE_OK)
+		macro_x[MACRO_SERVICESTATE]=(char *)strdup("OK");
+	else if(svc->current_state==STATE_WARNING)
+		macro_x[MACRO_SERVICESTATE]=(char *)strdup("WARNING");
+	else if(svc->current_state==STATE_CRITICAL)
+		macro_x[MACRO_SERVICESTATE]=(char *)strdup("CRITICAL");
+	else
+		macro_x[MACRO_SERVICESTATE]=(char *)strdup("UNKNOWN");
 
 	/* get the service state id */
-	if(macro_x[MACRO_SERVICESTATEID]!=NULL)
-		free(macro_x[MACRO_SERVICESTATEID]);
-	macro_x[MACRO_SERVICESTATEID]=(char *)malloc(MAX_STATEID_LENGTH);
-	if(macro_x[MACRO_SERVICESTATEID]!=NULL){
-		snprintf(macro_x[MACRO_SERVICESTATEID],MAX_STATEID_LENGTH,"%d",svc->current_state);
-		macro_x[MACRO_SERVICESTATEID][MAX_STATEID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICESTATEID]);
+	asprintf(&macro_x[MACRO_SERVICESTATEID],"%d",svc->current_state);
 
 	/* get the current service check attempt macro */
-	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL)
-		free(macro_x[MACRO_SERVICEATTEMPT]);
-	macro_x[MACRO_SERVICEATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_x[MACRO_SERVICEATTEMPT]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEATTEMPT],MAX_ATTEMPT_LENGTH,"%d",svc->current_attempt);
-		macro_x[MACRO_SERVICEATTEMPT][MAX_ATTEMPT_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEATTEMPT]);
+	asprintf(&macro_x[MACRO_SERVICEATTEMPT],"%d",svc->current_attempt);
 
 	/* get the execution time macro */
-	if(macro_x[MACRO_SERVICEEXECUTIONTIME]!=NULL)
-		free(macro_x[MACRO_SERVICEEXECUTIONTIME]);
-	macro_x[MACRO_SERVICEEXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
-	if(macro_x[MACRO_SERVICEEXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%.3f",svc->execution_time);
-		macro_x[MACRO_SERVICEEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEEXECUTIONTIME]);
+	asprintf(&macro_x[MACRO_SERVICEEXECUTIONTIME],"%.3f",svc->execution_time);
 
 	/* get the latency macro */
-	if(macro_x[MACRO_SERVICELATENCY]!=NULL)
-		free(macro_x[MACRO_SERVICELATENCY]);
-	macro_x[MACRO_SERVICELATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
-	if(macro_x[MACRO_SERVICELATENCY]!=NULL){
-		snprintf(macro_x[MACRO_SERVICELATENCY],MAX_LATENCY_LENGTH,"%.3f",svc->latency);
-		macro_x[MACRO_SERVICELATENCY][MAX_LATENCY_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICELATENCY]);
+	asprintf(&macro_x[MACRO_SERVICELATENCY],"%.3f",svc->latency);
 
 	/* get the last check time macro */
-	if(macro_x[MACRO_LASTSERVICECHECK]!=NULL)
-		free(macro_x[MACRO_LASTSERVICECHECK]);
-	macro_x[MACRO_LASTSERVICECHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTSERVICECHECK]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICECHECK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_check);
-		macro_x[MACRO_LASTSERVICECHECK][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICECHECK]);
+	asprintf(&macro_x[MACRO_LASTSERVICECHECK],"%lu",(unsigned long)svc->last_check);
 
 	/* get the last state change time macro */
-	if(macro_x[MACRO_LASTSERVICESTATECHANGE]!=NULL)
-		free(macro_x[MACRO_LASTSERVICESTATECHANGE]);
-	macro_x[MACRO_LASTSERVICESTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTSERVICESTATECHANGE]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICESTATECHANGE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_state_change);
-		macro_x[MACRO_LASTSERVICESTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICESTATECHANGE]);
+	asprintf(&macro_x[MACRO_LASTSERVICESTATECHANGE],"%lu",(unsigned long)svc->last_state_change);
 
 	/* get the last time ok macro */
-	if(macro_x[MACRO_LASTSERVICEOK]!=NULL)
-		free(macro_x[MACRO_LASTSERVICEOK]);
-	macro_x[MACRO_LASTSERVICEOK]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTSERVICEOK]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEOK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_ok);
-		macro_x[MACRO_LASTSERVICEOK][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICEOK]);
+	asprintf(&macro_x[MACRO_LASTSERVICEOK],"%lu",(unsigned long)svc->last_time_ok);
 
 	/* get the last time warning macro */
-	if(macro_x[MACRO_LASTSERVICEWARNING]!=NULL)
-		free(macro_x[MACRO_LASTSERVICEWARNING]);
-	macro_x[MACRO_LASTSERVICEWARNING]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTSERVICEWARNING]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEWARNING],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_warning);
-		macro_x[MACRO_LASTSERVICEWARNING][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICEWARNING]);
+	asprintf(&macro_x[MACRO_LASTSERVICEWARNING],"%lu",(unsigned long)svc->last_time_warning);
 
 	/* get the last time unknown macro */
-	if(macro_x[MACRO_LASTSERVICEUNKNOWN]!=NULL)
-		free(macro_x[MACRO_LASTSERVICEUNKNOWN]);
-	macro_x[MACRO_LASTSERVICEUNKNOWN]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTSERVICEUNKNOWN]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEUNKNOWN],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_unknown);
-		macro_x[MACRO_LASTSERVICEUNKNOWN][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICEUNKNOWN]);
+	asprintf(&macro_x[MACRO_LASTSERVICEUNKNOWN],"%lu",(unsigned long)svc->last_time_unknown);
 
 	/* get the last time critical macro */
-	if(macro_x[MACRO_LASTSERVICECRITICAL]!=NULL)
-		free(macro_x[MACRO_LASTSERVICECRITICAL]);
-	macro_x[MACRO_LASTSERVICECRITICAL]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTSERVICECRITICAL]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICECRITICAL],MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_critical);
-		macro_x[MACRO_LASTSERVICECRITICAL][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICECRITICAL]);
+	asprintf(&macro_x[MACRO_LASTSERVICECRITICAL],"%lu",(unsigned long)svc->last_time_critical);
 
 	/* get the service downtime depth */
-	if(macro_x[MACRO_SERVICEDOWNTIME]!=NULL)
-		free(macro_x[MACRO_SERVICEDOWNTIME]);
-	macro_x[MACRO_SERVICEDOWNTIME]=(char *)malloc(MAX_DOWNTIME_LENGTH);
-	if(macro_x[MACRO_SERVICEDOWNTIME]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEDOWNTIME],MAX_DOWNTIME_LENGTH,"%d",svc->scheduled_downtime_depth);
-		macro_x[MACRO_SERVICEDOWNTIME][MAX_DOWNTIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEDOWNTIME]);
+	asprintf(&macro_x[MACRO_SERVICEDOWNTIME],"%d",svc->scheduled_downtime_depth);
 
 	/* get the percent state change */
-	if(macro_x[MACRO_SERVICEPERCENTCHANGE]!=NULL)
-		free(macro_x[MACRO_SERVICEPERCENTCHANGE]);
-	macro_x[MACRO_SERVICEPERCENTCHANGE]=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
-	if(macro_x[MACRO_SERVICEPERCENTCHANGE]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEPERCENTCHANGE],MAX_PERCENTCHANGE_LENGTH,"%.2f",svc->percent_state_change);
-		macro_x[MACRO_SERVICEPERCENTCHANGE][MAX_PERCENTCHANGE_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEPERCENTCHANGE]);
+	asprintf(&macro_x[MACRO_SERVICEPERCENTCHANGE],"%.2f",svc->percent_state_change);
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-svc->last_state_change);
 
 	/* get the state duration in seconds */
-	if(macro_x[MACRO_SERVICEDURATIONSEC]!=NULL)
-		free(macro_x[MACRO_SERVICEDURATIONSEC]);
-	macro_x[MACRO_SERVICEDURATIONSEC]=(char *)malloc(MAX_DURATION_LENGTH);
-	if(macro_x[MACRO_SERVICEDURATIONSEC]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEDURATIONSEC],MAX_DURATION_LENGTH,"%lu",duration);
-		macro_x[MACRO_SERVICEDURATIONSEC][MAX_DURATION_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEDURATIONSEC]);
+	asprintf(&macro_x[MACRO_SERVICEDURATIONSEC],"%lu",duration);
 
 	/* get the state duration */
-	if(macro_x[MACRO_SERVICEDURATION]!=NULL)
-		free(macro_x[MACRO_SERVICEDURATION]);
-	macro_x[MACRO_SERVICEDURATION]=(char *)malloc(MAX_DURATION_LENGTH);
-	if(macro_x[MACRO_SERVICEDURATION]!=NULL){
-		days=duration/86400;
-		duration-=(days*86400);
-		hours=duration/3600;
-		duration-=(hours*3600);
-		minutes=duration/60;
-		duration-=(minutes*60);
-		seconds=duration;
-		snprintf(macro_x[MACRO_SERVICEDURATION],MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		macro_x[MACRO_SERVICEDURATION][MAX_DURATION_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEDURATION]);
+	days=duration/86400;
+	duration-=(days*86400);
+	hours=duration/3600;
+	duration-=(hours*3600);
+	minutes=duration/60;
+	duration-=(minutes*60);
+	seconds=duration;
+	asprintf(&macro_x[MACRO_SERVICEDURATION],"%dd %dh %dm %ds",days,hours,minutes,seconds);
 
 	/* get the notification number macro */
-	if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL)
-		free(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
-	macro_x[MACRO_SERVICENOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-	if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL){
-		snprintf(macro_x[MACRO_SERVICENOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
-		macro_x[MACRO_SERVICENOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+	asprintf(&macro_x[MACRO_SERVICENOTIFICATIONNUMBER],"%d",svc->current_notification_number);
 
 	/* get the notification id macro */
-	if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL)
-		free(macro_x[MACRO_SERVICENOTIFICATIONID]);
-	macro_x[MACRO_SERVICENOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
-	if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL){
-		snprintf(macro_x[MACRO_SERVICENOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",svc->current_notification_id);
-		macro_x[MACRO_SERVICENOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICENOTIFICATIONID]);
+	asprintf(&macro_x[MACRO_SERVICENOTIFICATIONID],"%lu",svc->current_notification_id);
 
 	/* get the event id macro */
-	if(macro_x[MACRO_SERVICEEVENTID]!=NULL)
-		free(macro_x[MACRO_SERVICEEVENTID]);
-	macro_x[MACRO_SERVICEEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
-	if(macro_x[MACRO_SERVICEEVENTID]!=NULL){
-		snprintf(macro_x[MACRO_SERVICEEVENTID],MAX_EVENTID_LENGTH-1,"%d",svc->current_event_id);
-		macro_x[MACRO_SERVICEEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_SERVICEEVENTID]);
+	asprintf(&macro_x[MACRO_SERVICEEVENTID],"%lu",svc->current_event_id);
 
 	/* get the last event id macro */
-	if(macro_x[MACRO_LASTSERVICEEVENTID]!=NULL)
-		free(macro_x[MACRO_LASTSERVICEEVENTID]);
-	macro_x[MACRO_LASTSERVICEEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
-	if(macro_x[MACRO_LASTSERVICEEVENTID]!=NULL){
-		snprintf(macro_x[MACRO_LASTSERVICEEVENTID],MAX_EVENTID_LENGTH-1,"%d",svc->last_event_id);
-		macro_x[MACRO_LASTSERVICEEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTSERVICEEVENTID]);
+	asprintf(&macro_x[MACRO_LASTSERVICEEVENTID],"%lu",svc->last_event_id);
 
 	/* find one servicegroup (there may be none or several) this service is associated with */
 	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
@@ -727,51 +614,38 @@ int grab_service_macros(service *svc){
 	        }
 
 	/* get the servicegroup name */
-	if(macro_x[MACRO_SERVICEGROUPNAME]!=NULL)
-		free(macro_x[MACRO_SERVICEGROUPNAME]);
-	macro_x[MACRO_SERVICEGROUPNAME]=NULL;
-	if(temp_servicegroup!=NULL)
-		macro_x[MACRO_SERVICEGROUPNAME]=strdup(temp_servicegroup->group_name);
+	my_free((void **)&macro_x[MACRO_SERVICEGROUPNAME]);
+	if(temp_servicegroup)
+		macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(temp_servicegroup->group_name);
 	
 	/* get the servicegroup alias */
-	if(macro_x[MACRO_SERVICEGROUPALIAS]!=NULL)
-		free(macro_x[MACRO_SERVICEGROUPALIAS]);
-	macro_x[MACRO_SERVICEGROUPALIAS]=NULL;
-	if(temp_servicegroup!=NULL)
-		macro_x[MACRO_SERVICEGROUPALIAS]=strdup(temp_servicegroup->alias);
+	my_free((void **)&macro_x[MACRO_SERVICEGROUPALIAS]);
+	if(temp_servicegroup)
+		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(temp_servicegroup->alias);
 
 	if((temp_serviceextinfo=find_serviceextinfo(svc->host_name,svc->description))){
 
 		/* get the action url */
-		if(macro_x[MACRO_SERVICEACTIONURL]!=NULL)
-			free(macro_x[MACRO_SERVICEACTIONURL]);
-		if(temp_serviceextinfo->action_url==NULL)
-			macro_x[MACRO_SERVICEACTIONURL]=NULL;
-		else
-			macro_x[MACRO_SERVICEACTIONURL]=strdup(temp_serviceextinfo->action_url);
+		my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
+		if(temp_serviceextinfo->action_url)
+			macro_x[MACRO_SERVICEACTIONURL]=(char *)strdup(temp_serviceextinfo->action_url);
 
 		/* get the notes url */
-		if(macro_x[MACRO_SERVICENOTESURL]!=NULL)
-			free(macro_x[MACRO_SERVICENOTESURL]);
-		if(temp_serviceextinfo->notes_url==NULL)
-			macro_x[MACRO_SERVICENOTESURL]=NULL;
-		else
-			macro_x[MACRO_SERVICENOTESURL]=strdup(temp_serviceextinfo->notes_url);
+		my_free((void **)&macro_x[MACRO_SERVICENOTESURL]);
+		if(temp_serviceextinfo->notes_url)
+			macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(temp_serviceextinfo->notes_url);
 
 		/* get the notes */
-		if(macro_x[MACRO_SERVICENOTES]!=NULL)
-			free(macro_x[MACRO_SERVICENOTES]);
-		if(temp_serviceextinfo->notes==NULL)
-			macro_x[MACRO_SERVICENOTES]=NULL;
-		else
-			macro_x[MACRO_SERVICENOTES]=strdup(temp_serviceextinfo->notes);
+		my_free((void **)&macro_x[MACRO_SERVICENOTES]);
+		if(temp_serviceextinfo->notes)
+			macro_x[MACRO_SERVICENOTES]=(char *)strdup(temp_serviceextinfo->notes);
 	        }
 
 	/* get custom variables */
 	for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		asprintf(&customvarname,"_SERVICE%s",temp_customvariablesmember->variable_name);
 		add_custom_variable_to_object(&macro_custom_service_vars,customvarname,temp_customvariablesmember->variable_value);
-		free(customvarname);
+		my_free((void **)&customvarname);
 	        }
 
 	/* get the date/time macros */
@@ -785,13 +659,13 @@ int grab_service_macros(service *svc){
 	/* notes and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
 		process_macros(macro_x[MACRO_SERVICEACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-		free(macro_x[MACRO_SERVICEACTIONURL]);
-		macro_x[MACRO_SERVICEACTIONURL]=strdup(temp_buffer);
+		my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
+		macro_x[MACRO_SERVICEACTIONURL]=(char *)strdup(temp_buffer);
 	        }
 	if(macro_x[MACRO_SERVICENOTESURL]!=NULL){
 		process_macros(macro_x[MACRO_SERVICENOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-		free(macro_x[MACRO_SERVICENOTESURL]);
-		macro_x[MACRO_SERVICENOTESURL]=strdup(temp_buffer);
+		my_free((void **)&macro_x[MACRO_SERVICENOTESURL]);
+		macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(temp_buffer);
 	        }
 
 #ifdef DEBUG0
@@ -821,241 +695,131 @@ int grab_host_macros(host *hst){
 #endif
 
 	/* get the host name */
-	if(macro_x[MACRO_HOSTNAME]!=NULL)
-		free(macro_x[MACRO_HOSTNAME]);
-	macro_x[MACRO_HOSTNAME]=strdup(hst->name);
+	my_free((void **)&macro_x[MACRO_HOSTNAME]);
+	macro_x[MACRO_HOSTNAME]=(char *)strdup(hst->name);
 	
 	/* get the host alias */
-	if(macro_x[MACRO_HOSTALIAS]!=NULL)
-		free(macro_x[MACRO_HOSTALIAS]);
-	macro_x[MACRO_HOSTALIAS]=strdup(hst->alias);
+	my_free((void **)&macro_x[MACRO_HOSTALIAS]);
+	macro_x[MACRO_HOSTALIAS]=(char *)strdup(hst->alias);
 
 	/* get the host address */
-	if(macro_x[MACRO_HOSTADDRESS]!=NULL)
-		free(macro_x[MACRO_HOSTADDRESS]);
-	macro_x[MACRO_HOSTADDRESS]=strdup(hst->address);
+	my_free((void **)&macro_x[MACRO_HOSTADDRESS]);
+	macro_x[MACRO_HOSTADDRESS]=(char *)strdup(hst->address);
 
 	/* get the host state */
-	if(macro_x[MACRO_HOSTSTATE]!=NULL)
-		free(macro_x[MACRO_HOSTSTATE]);
-	macro_x[MACRO_HOSTSTATE]=(char *)malloc(MAX_STATE_LENGTH);
-	if(macro_x[MACRO_HOSTSTATE]!=NULL){
-		if(hst->current_state==HOST_DOWN)
-			strcpy(macro_x[MACRO_HOSTSTATE],"DOWN");
-		else if(hst->current_state==HOST_UNREACHABLE)
-			strcpy(macro_x[MACRO_HOSTSTATE],"UNREACHABLE");
-		else
-			strcpy(macro_x[MACRO_HOSTSTATE],"UP");
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTSTATE]);
+	if(hst->current_state==HOST_DOWN)
+		macro_x[MACRO_HOSTSTATE]=(char *)strdup("DOWN");
+	else if(hst->current_state==HOST_UNREACHABLE)
+		macro_x[MACRO_HOSTSTATE]=(char *)strdup("UNREACHABLE");
+	else
+		macro_x[MACRO_HOSTSTATE]=(char *)strdup("UP");
 
 	/* get the host state id */
-	if(macro_x[MACRO_HOSTSTATEID]!=NULL)
-		free(macro_x[MACRO_HOSTSTATEID]);
-	macro_x[MACRO_HOSTSTATEID]=(char *)malloc(MAX_STATEID_LENGTH);
-	if(macro_x[MACRO_HOSTSTATEID]!=NULL){
-		snprintf(macro_x[MACRO_HOSTSTATEID],MAX_STATEID_LENGTH,"%d",hst->current_state);
-		macro_x[MACRO_HOSTSTATEID][MAX_STATEID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTSTATEID]);
+	asprintf(&macro_x[MACRO_HOSTSTATEID],"%d",hst->current_state);
 
 	/* grab the host check type */
-	if(macro_x[MACRO_HOSTCHECKTYPE]!=NULL)
-		free(macro_x[MACRO_HOSTCHECKTYPE]);
-	macro_x[MACRO_HOSTCHECKTYPE]=(char *)malloc(MAX_CHECKTYPE_LENGTH);
-	if(macro_x[MACRO_HOSTCHECKTYPE]!=NULL)
-		strcpy(macro_x[MACRO_HOSTCHECKTYPE],(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
+	my_free((void **)&macro_x[MACRO_HOSTCHECKTYPE]);
+	asprintf(&macro_x[MACRO_HOSTCHECKTYPE],"%s",(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
 
 	/* get the host state type macro */
-	if(macro_x[MACRO_HOSTSTATETYPE]!=NULL)
-		free(macro_x[MACRO_HOSTSTATETYPE]);
-	macro_x[MACRO_HOSTSTATETYPE]=(char *)malloc(MAX_STATETYPE_LENGTH);
-	if(macro_x[MACRO_HOSTSTATETYPE]!=NULL)
-		strcpy(macro_x[MACRO_HOSTSTATETYPE],(hst->state_type==HARD_STATE)?"HARD":"SOFT");
+	my_free((void **)&macro_x[MACRO_HOSTSTATETYPE]);
+	asprintf(&macro_x[MACRO_HOSTSTATETYPE],"%s",(hst->state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* get the plugin output */
-	if(macro_x[MACRO_HOSTOUTPUT]!=NULL)
-		free(macro_x[MACRO_HOSTOUTPUT]);
-	if(hst->plugin_output==NULL)
-		macro_x[MACRO_HOSTOUTPUT]=NULL;
-	else
-		macro_x[MACRO_HOSTOUTPUT]=strdup(hst->plugin_output);
+	my_free((void **)&macro_x[MACRO_HOSTOUTPUT]);
+	if(hst->plugin_output)
+		macro_x[MACRO_HOSTOUTPUT]=(char *)strdup(hst->plugin_output);
 
 	/* get the long plugin output */
-	if(macro_x[MACRO_LONGHOSTOUTPUT]!=NULL)
-		free(macro_x[MACRO_LONGHOSTOUTPUT]);
-	if(hst->long_plugin_output==NULL)
-		macro_x[MACRO_LONGHOSTOUTPUT]=NULL;
-	else
-		macro_x[MACRO_LONGHOSTOUTPUT]=strdup(hst->long_plugin_output);
+	my_free((void **)&macro_x[MACRO_LONGHOSTOUTPUT]);
+	if(hst->long_plugin_output)
+		macro_x[MACRO_LONGHOSTOUTPUT]=(char *)strdup(hst->long_plugin_output);
 
 	/* get the performance data */
-	if(macro_x[MACRO_HOSTPERFDATA]!=NULL)
-		free(macro_x[MACRO_HOSTPERFDATA]);
-	if(hst->perf_data==NULL)
-		macro_x[MACRO_HOSTPERFDATA]=NULL;
-	else
-		macro_x[MACRO_HOSTPERFDATA]=strdup(hst->perf_data);
+	my_free((void **)&macro_x[MACRO_HOSTPERFDATA]);
+	if(hst->perf_data)
+		macro_x[MACRO_HOSTPERFDATA]=(char *)strdup(hst->perf_data);
 
 	/* get the host check command */
-	if(macro_x[MACRO_HOSTCHECKCOMMAND]!=NULL)
-		free(macro_x[MACRO_HOSTCHECKCOMMAND]);
-	if(hst->host_check_command==NULL)
-		macro_x[MACRO_HOSTCHECKCOMMAND]=NULL;
-	else
-		macro_x[MACRO_HOSTCHECKCOMMAND]=strdup(hst->host_check_command);
+	my_free((void **)&macro_x[MACRO_HOSTCHECKCOMMAND]);
+	if(hst->host_check_command)
+		macro_x[MACRO_HOSTCHECKCOMMAND]=(char *)strdup(hst->host_check_command);
 
 	/* get the host current attempt */
-	if(macro_x[MACRO_HOSTATTEMPT]!=NULL)
-		free(macro_x[MACRO_HOSTATTEMPT]);
-	macro_x[MACRO_HOSTATTEMPT]=(char *)malloc(MAX_ATTEMPT_LENGTH);
-	if(macro_x[MACRO_HOSTATTEMPT]!=NULL){
-		snprintf(macro_x[MACRO_HOSTATTEMPT],MAX_ATTEMPT_LENGTH,"%d",hst->current_attempt);
-		macro_x[MACRO_HOSTATTEMPT][MAX_ATTEMPT_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTATTEMPT]);
+	asprintf(&macro_x[MACRO_HOSTATTEMPT],"%d",hst->current_attempt);
 
 	/* get the host downtime depth */
-	if(macro_x[MACRO_HOSTDOWNTIME]!=NULL)
-		free(macro_x[MACRO_HOSTDOWNTIME]);
-	macro_x[MACRO_HOSTDOWNTIME]=(char *)malloc(MAX_DOWNTIME_LENGTH);
-	if(macro_x[MACRO_HOSTDOWNTIME]!=NULL){
-		snprintf(macro_x[MACRO_HOSTDOWNTIME],MAX_DOWNTIME_LENGTH,"%d",hst->scheduled_downtime_depth);
-		macro_x[MACRO_HOSTDOWNTIME][MAX_DOWNTIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTDOWNTIME]);
+	asprintf(&macro_x[MACRO_HOSTDOWNTIME],"%d",hst->scheduled_downtime_depth);
 
 	/* get the percent state change */
-	if(macro_x[MACRO_HOSTPERCENTCHANGE]!=NULL)
-		free(macro_x[MACRO_HOSTPERCENTCHANGE]);
-	macro_x[MACRO_HOSTPERCENTCHANGE]=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
-	if(macro_x[MACRO_HOSTPERCENTCHANGE]!=NULL){
-		snprintf(macro_x[MACRO_HOSTPERCENTCHANGE],MAX_PERCENTCHANGE_LENGTH,"%.2f",hst->percent_state_change);
-		macro_x[MACRO_HOSTPERCENTCHANGE][MAX_PERCENTCHANGE_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTPERCENTCHANGE]);
+	asprintf(&macro_x[MACRO_HOSTPERCENTCHANGE],"%.2f",hst->percent_state_change);
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-hst->last_state_change);
 
 	/* get the state duration in seconds */
-	if(macro_x[MACRO_HOSTDURATIONSEC]!=NULL)
-		free(macro_x[MACRO_HOSTDURATIONSEC]);
-	macro_x[MACRO_HOSTDURATIONSEC]=(char *)malloc(MAX_DURATION_LENGTH);
-	if(macro_x[MACRO_HOSTDURATIONSEC]!=NULL){
-		snprintf(macro_x[MACRO_HOSTDURATIONSEC],MAX_DURATION_LENGTH,"%lu",duration);
-		macro_x[MACRO_HOSTDURATIONSEC][MAX_DURATION_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTDURATIONSEC]);
+	asprintf(&macro_x[MACRO_HOSTDURATIONSEC],"%lu",duration);
 
 	/* get the state duration */
-	if(macro_x[MACRO_HOSTDURATION]!=NULL)
-		free(macro_x[MACRO_HOSTDURATION]);
-	macro_x[MACRO_HOSTDURATION]=(char *)malloc(MAX_DURATION_LENGTH);
-	if(macro_x[MACRO_HOSTDURATION]!=NULL){
-		days=duration/86400;
-		duration-=(days*86400);
-		hours=duration/3600;
-		duration-=(hours*3600);
-		minutes=duration/60;
-		duration-=(minutes*60);
-		seconds=duration;
-		snprintf(macro_x[MACRO_HOSTDURATION],MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-		macro_x[MACRO_HOSTDURATION][MAX_DURATION_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTDURATION]);
+	days=duration/86400;
+	duration-=(days*86400);
+	hours=duration/3600;
+	duration-=(hours*3600);
+	minutes=duration/60;
+	duration-=(minutes*60);
+	seconds=duration;
+	asprintf(&macro_x[MACRO_HOSTDURATION],"%dd %dh %dm %ds",days,hours,minutes,seconds);
 
 	/* get the execution time macro */
-	if(macro_x[MACRO_HOSTEXECUTIONTIME]!=NULL)
-		free(macro_x[MACRO_HOSTEXECUTIONTIME]);
-	macro_x[MACRO_HOSTEXECUTIONTIME]=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
-	if(macro_x[MACRO_HOSTEXECUTIONTIME]!=NULL){
-		snprintf(macro_x[MACRO_HOSTEXECUTIONTIME],MAX_EXECUTIONTIME_LENGTH,"%.3f",hst->execution_time);
-		macro_x[MACRO_HOSTEXECUTIONTIME][MAX_EXECUTIONTIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTEXECUTIONTIME]);
+	asprintf(&macro_x[MACRO_HOSTEXECUTIONTIME],"%.3f",hst->execution_time);
 
 	/* get the latency macro */
-	if(macro_x[MACRO_HOSTLATENCY]!=NULL)
-		free(macro_x[MACRO_HOSTLATENCY]);
-	macro_x[MACRO_HOSTLATENCY]=(char *)malloc(MAX_LATENCY_LENGTH);
-	if(macro_x[MACRO_HOSTLATENCY]!=NULL){
-		snprintf(macro_x[MACRO_HOSTLATENCY],MAX_LATENCY_LENGTH,"%.3f",hst->latency);
-		macro_x[MACRO_HOSTLATENCY][MAX_LATENCY_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTLATENCY]);
+	asprintf(&macro_x[MACRO_HOSTLATENCY],"%.3f",hst->latency);
 
 	/* get the last check time macro */
-	if(macro_x[MACRO_LASTHOSTCHECK]!=NULL)
-		free(macro_x[MACRO_LASTHOSTCHECK]);
-	macro_x[MACRO_LASTHOSTCHECK]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTHOSTCHECK]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTCHECK],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_check);
-		macro_x[MACRO_LASTHOSTCHECK][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTHOSTCHECK]);
+	asprintf(&macro_x[MACRO_LASTHOSTCHECK],"%lu",(unsigned long)hst->last_check);
 
 	/* get the last state change time macro */
-	if(macro_x[MACRO_LASTHOSTSTATECHANGE]!=NULL)
-		free(macro_x[MACRO_LASTHOSTSTATECHANGE]);
-	macro_x[MACRO_LASTHOSTSTATECHANGE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTHOSTSTATECHANGE]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTSTATECHANGE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
-		macro_x[MACRO_LASTHOSTSTATECHANGE][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTHOSTSTATECHANGE]);
+	asprintf(&macro_x[MACRO_LASTHOSTSTATECHANGE],"%lu",(unsigned long)hst->last_state_change);
 
 	/* get the last time up macro */
-	if(macro_x[MACRO_LASTHOSTUP]!=NULL)
-		free(macro_x[MACRO_LASTHOSTUP]);
-	macro_x[MACRO_LASTHOSTUP]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTHOSTUP]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTUP],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_up);
-		macro_x[MACRO_LASTHOSTUP][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTHOSTUP]);
+	asprintf(&macro_x[MACRO_LASTHOSTUP],"%lu",(unsigned long)hst->last_time_up);
 
 	/* get the last time down macro */
-	if(macro_x[MACRO_LASTHOSTDOWN]!=NULL)
-		free(macro_x[MACRO_LASTHOSTDOWN]);
-	macro_x[MACRO_LASTHOSTDOWN]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTHOSTDOWN]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTDOWN],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_down);
-		macro_x[MACRO_LASTHOSTDOWN][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTHOSTDOWN]);
+	asprintf(&macro_x[MACRO_LASTHOSTDOWN],"%lu",(unsigned long)hst->last_time_down);
 
 	/* get the last time unreachable macro */
-	if(macro_x[MACRO_LASTHOSTUNREACHABLE]!=NULL)
-		free(macro_x[MACRO_LASTHOSTUNREACHABLE]);
-	macro_x[MACRO_LASTHOSTUNREACHABLE]=(char *)malloc(MAX_DATETIME_LENGTH);
-	if(macro_x[MACRO_LASTHOSTUNREACHABLE]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTUNREACHABLE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_unreachable);
-		macro_x[MACRO_LASTHOSTUNREACHABLE][MAX_DATETIME_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTHOSTUNREACHABLE]);
+	asprintf(&macro_x[MACRO_LASTHOSTUNREACHABLE],"%lu",(unsigned long)hst->last_time_unreachable);
 
 	/* get the notification number macro */
-	if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL)
-		free(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
-	macro_x[MACRO_HOSTNOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-	if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL){
-		snprintf(macro_x[MACRO_HOSTNOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
-		macro_x[MACRO_HOSTNOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+	asprintf(&macro_x[MACRO_HOSTNOTIFICATIONNUMBER],"%d",hst->current_notification_number);
 
 	/* get the notification id macro */
-	if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL)
-		free(macro_x[MACRO_HOSTNOTIFICATIONID]);
-	macro_x[MACRO_HOSTNOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
-	if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL){
-		snprintf(macro_x[MACRO_HOSTNOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",hst->current_notification_id);
-		macro_x[MACRO_HOSTNOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTNOTIFICATIONID]);
+	asprintf(&macro_x[MACRO_HOSTNOTIFICATIONID],"%lu",hst->current_notification_id);
 
 	/* get the event id macro */
-	if(macro_x[MACRO_HOSTEVENTID]!=NULL)
-		free(macro_x[MACRO_HOSTEVENTID]);
-	macro_x[MACRO_HOSTEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
-	if(macro_x[MACRO_HOSTEVENTID]!=NULL){
-		snprintf(macro_x[MACRO_HOSTEVENTID],MAX_EVENTID_LENGTH-1,"%d",hst->current_event_id);
-		macro_x[MACRO_HOSTEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_HOSTEVENTID]);
+	asprintf(&macro_x[MACRO_HOSTEVENTID],"%lu",hst->current_event_id);
 
 	/* get the last event id macro */
-	if(macro_x[MACRO_LASTHOSTEVENTID]!=NULL)
-		free(macro_x[MACRO_LASTHOSTEVENTID]);
-	macro_x[MACRO_LASTHOSTEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
-	if(macro_x[MACRO_LASTHOSTEVENTID]!=NULL){
-		snprintf(macro_x[MACRO_LASTHOSTEVENTID],MAX_EVENTID_LENGTH-1,"%d",hst->last_event_id);
-		macro_x[MACRO_LASTHOSTEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
-	        }
+	my_free((void **)&macro_x[MACRO_LASTHOSTEVENTID]);
+	asprintf(&macro_x[MACRO_LASTHOSTEVENTID],"%lu",hst->last_event_id);
 
 	/* find one hostgroup (there may be none or several) this host is associated with */
 	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
@@ -1064,51 +828,38 @@ int grab_host_macros(host *hst){
 	        }
 
 	/* get the hostgroup name */
-	if(macro_x[MACRO_HOSTGROUPNAME]!=NULL)
-		free(macro_x[MACRO_HOSTGROUPNAME]);
-	macro_x[MACRO_HOSTGROUPNAME]=NULL;
+	my_free((void **)&macro_x[MACRO_HOSTGROUPNAME]);
 	if(temp_hostgroup!=NULL)
-		macro_x[MACRO_HOSTGROUPNAME]=strdup(temp_hostgroup->group_name);
+		macro_x[MACRO_HOSTGROUPNAME]=(char *)strdup(temp_hostgroup->group_name);
 	
 	/* get the hostgroup alias */
-	if(macro_x[MACRO_HOSTGROUPALIAS]!=NULL)
-		free(macro_x[MACRO_HOSTGROUPALIAS]);
-	macro_x[MACRO_HOSTGROUPALIAS]=NULL;
+	my_free((void **)&macro_x[MACRO_HOSTGROUPALIAS]);
 	if(temp_hostgroup!=NULL)
-		macro_x[MACRO_HOSTGROUPALIAS]=strdup(temp_hostgroup->alias);
+		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(temp_hostgroup->alias);
 
 	if((temp_hostextinfo=find_hostextinfo(hst->name))){
 
 		/* get the action url */
-		if(macro_x[MACRO_HOSTACTIONURL]!=NULL)
-			free(macro_x[MACRO_HOSTACTIONURL]);
-		if(temp_hostextinfo->action_url==NULL)
-			macro_x[MACRO_HOSTACTIONURL]=NULL;
-		else
-			macro_x[MACRO_HOSTACTIONURL]=strdup(temp_hostextinfo->action_url);
+		my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
+		if(temp_hostextinfo->action_url)
+			macro_x[MACRO_HOSTACTIONURL]=(char *)strdup(temp_hostextinfo->action_url);
 
 		/* get the notes url */
-		if(macro_x[MACRO_HOSTNOTESURL]!=NULL)
-			free(macro_x[MACRO_HOSTNOTESURL]);
-		if(temp_hostextinfo->notes_url==NULL)
-			macro_x[MACRO_HOSTNOTESURL]=NULL;
-		else
-			macro_x[MACRO_HOSTNOTESURL]=strdup(temp_hostextinfo->notes_url);
+		my_free((void **)&macro_x[MACRO_HOSTNOTESURL]);
+		if(temp_hostextinfo->notes_url)
+			macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(temp_hostextinfo->notes_url);
 
 		/* get the notes */
-		if(macro_x[MACRO_HOSTNOTES]!=NULL)
-			free(macro_x[MACRO_HOSTNOTES]);
-		if(temp_hostextinfo->notes==NULL)
-			macro_x[MACRO_HOSTNOTES]=NULL;
-		else
-			macro_x[MACRO_HOSTNOTES]=strdup(temp_hostextinfo->notes);
+		my_free((void **)&macro_x[MACRO_HOSTNOTES]);
+		if(temp_hostextinfo->notes)
+			macro_x[MACRO_HOSTNOTES]=(char *)strdup(temp_hostextinfo->notes);
 	        }
 
 	/* get custom variables */
 	for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		asprintf(&customvarname,"_HOST%s",temp_customvariablesmember->variable_name);
 		add_custom_variable_to_object(&macro_custom_host_vars,customvarname,temp_customvariablesmember->variable_value);
-		free(customvarname);
+		my_free((void **)&customvarname);
 	        }
 
 	/* get the date/time macros */
@@ -1122,13 +873,13 @@ int grab_host_macros(host *hst){
 	/* notes and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
 		process_macros(macro_x[MACRO_HOSTACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-		free(macro_x[MACRO_HOSTACTIONURL]);
-		macro_x[MACRO_HOSTACTIONURL]=strdup(temp_buffer);
+		my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
+		macro_x[MACRO_HOSTACTIONURL]=(char *)strdup(temp_buffer);
 	        }
 	if(macro_x[MACRO_HOSTNOTESURL]!=NULL){
 		process_macros(macro_x[MACRO_HOSTNOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-		free(macro_x[MACRO_HOSTNOTESURL]);
-		macro_x[MACRO_HOSTNOTESURL]=strdup(temp_buffer);
+		my_free((void **)&macro_x[MACRO_HOSTNOTESURL]);
+		macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(temp_buffer);
 	        }
 
 #ifdef DEBUG0
@@ -1166,7 +917,7 @@ int grab_on_demand_macro(char *str){
 	        }
 
 	/* get the first argument */
-	macro=strdup(str);
+	macro=(char *)strdup(str);
 	if(macro==NULL)
 		return ERROR;
 
@@ -1214,7 +965,7 @@ int grab_on_demand_macro(char *str){
 			/* process each host in the hostgroup */
 			temp_hostgroupmember=temp_hostgroup->members;
 			if(temp_hostgroupmember==NULL){
-				macro_ondemand=strdup("");
+				macro_ondemand=(char *)strdup("");
 				free(macro);
 				return OK;
 				}
@@ -1249,7 +1000,7 @@ int grab_on_demand_macro(char *str){
 				}
 
 			free(macro_ondemand);
-			macro_ondemand=strdup(result_buffer);
+			macro_ondemand=(char *)strdup(result_buffer);
 			}
 	        }
 
@@ -1283,7 +1034,7 @@ int grab_on_demand_macro(char *str){
 			/* process each service in the servicegroup */
 			temp_servicegroupmember=temp_servicegroup->members;
 			if(temp_servicegroupmember==NULL){
-				macro_ondemand=strdup("");
+				macro_ondemand=(char *)strdup("");
 				free(macro);
 				return OK;
 				}
@@ -1318,7 +1069,7 @@ int grab_on_demand_macro(char *str){
 				}
 
 			free(macro_ondemand);
-			macro_ondemand=strdup(result_buffer);
+			macro_ondemand=(char *)strdup(result_buffer);
 			}
 	        }
 
@@ -1370,54 +1121,38 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	/* get the host alias */
 	if(!strcmp(macro,"HOSTALIAS"))
-		macro_ondemand=strdup(hst->alias);
+		macro_ondemand=(char *)strdup(hst->alias);
 
 	/* get the host address */
 	else if(!strcmp(macro,"HOSTADDRESS"))
-		macro_ondemand=strdup(hst->address);
+		macro_ondemand=(char *)strdup(hst->address);
 
 	/* get the host state */
 	else if(!strcmp(macro,"HOSTSTATE")){
-		macro_ondemand=(char *)malloc(MAX_STATE_LENGTH);
-		if(macro_ondemand!=NULL){
-			if(hst->current_state==HOST_DOWN)
-				strcpy(macro_ondemand,"DOWN");
-			else if(hst->current_state==HOST_UNREACHABLE)
-				strcpy(macro_ondemand,"UNREACHABLE");
-			else
-				strcpy(macro_ondemand,"UP");
-		        }
+		if(hst->current_state==HOST_DOWN)
+			macro_ondemand=(char *)strdup("DOWN");
+		else if(hst->current_state==HOST_UNREACHABLE)
+			macro_ondemand=(char *)strdup("UNREACHABLE");
+		else
+			macro_ondemand=(char *)strdup("UP");
 	        }
 
 	/* get the host state id */
-	else if(!strcmp(macro,"HOSTSTATEID")){
-		macro_ondemand=(char *)malloc(MAX_STATEID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_STATEID_LENGTH,"%d",hst->current_state);
-			macro_ondemand[MAX_STATEID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTSTATEID"))
+		asprintf(&macro_ondemand,"%d",hst->current_state);
 
 	/* grab the host check type */
-	else if(!strcmp(macro,"HOSTCHECKTYPE")){
-		macro_ondemand=(char *)malloc(MAX_CHECKTYPE_LENGTH);
-		if(macro_ondemand!=NULL)
-			strcpy(macro_ondemand,(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
-		}
+	else if(!strcmp(macro,"HOSTCHECKTYPE"))
+		asprintf(&macro_ondemand,"%s",(hst->check_type==HOST_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
 
 	/* get the host state type macro */
-	else if(!strcmp(macro,"HOSTSTATETYPE")){
-		macro_ondemand=(char *)malloc(MAX_STATETYPE_LENGTH);
-		if(macro_ondemand!=NULL)
-			strcpy(macro_ondemand,(hst->state_type==HARD_STATE)?"HARD":"SOFT");
-	        }
+	else if(!strcmp(macro,"HOSTSTATETYPE"))
+		asprintf(&macro_ondemand,"%s",(hst->state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* get the plugin output */
 	else if(!strcmp(macro,"HOSTOUTPUT")){
-		if(hst->plugin_output==NULL)
-			macro_ondemand=NULL;
-		else{
-			macro_ondemand=strdup(hst->plugin_output);
+		if(hst->plugin_output){
+			macro_ondemand=(char *)strdup(hst->plugin_output);
 			strip(macro_ondemand);
 		        }
 	        }
@@ -1427,182 +1162,101 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		if(hst->long_plugin_output==NULL)
 			macro_ondemand=NULL;
 		else{
-			macro_ondemand=strdup(hst->long_plugin_output);
+			macro_ondemand=(char *)strdup(hst->long_plugin_output);
 			strip(macro_ondemand);
 		        }
 	        }
 
 	/* get the performance data */
 	else if(!strcmp(macro,"HOSTPERFDATA")){
-		if(hst->perf_data==NULL)
-			macro_ondemand=NULL;
-		else{
-			macro_ondemand=strdup(hst->perf_data);
+		if(hst->perf_data){
+			macro_ondemand=(char *)strdup(hst->perf_data);
 			strip(macro_ondemand);
 		        }
 	        }
 
 	/* get the host current attempt */
-	else if(!strcmp(macro,"HOSTATTEMPT")){
-		macro_ondemand=(char *)malloc(MAX_ATTEMPT_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_ATTEMPT_LENGTH,"%d",hst->current_attempt);
-			macro_ondemand[MAX_ATTEMPT_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTATTEMPT"))
+		asprintf(&macro_ondemand,"%d",hst->current_attempt);
 
 	/* get the host downtime depth */
-	else if(!strcmp(macro,"HOSTDOWNTIME")){
-		macro_ondemand=(char *)malloc(MAX_DOWNTIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DOWNTIME_LENGTH,"%d",hst->scheduled_downtime_depth);
-			macro_ondemand[MAX_ATTEMPT_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTDOWNTIME"))
+		asprintf(&macro_ondemand,"%d",hst->scheduled_downtime_depth);
 
 	/* get the percent state change */
-	else if(!strcmp(macro,"HOSTPERCENTCHANGE")){
-		macro_ondemand=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_PERCENTCHANGE_LENGTH,"%.2f",hst->percent_state_change);
-			macro_ondemand[MAX_PERCENTCHANGE_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTPERCENTCHANGE"))
+		asprintf(&macro_ondemand,"%.2f",hst->percent_state_change);
 
 	/* get the state duration in seconds */
-	else if(!strcmp(macro,"HOSTDURATIONSEC")){
-		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%lu",duration);
-			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTDURATIONSEC"))
+		asprintf(&macro_ondemand,"%lu",duration);
 
 	/* get the state duration */
 	else if(!strcmp(macro,"HOSTDURATION")){
-		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
-		if(macro_ondemand!=NULL){
-			days=duration/86400;
-			duration-=(days*86400);
-			hours=duration/3600;
-			duration-=(hours*3600);
-			minutes=duration/60;
-			duration-=(minutes*60);
-			seconds=duration;
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
-		        }
+		days=duration/86400;
+		duration-=(days*86400);
+		hours=duration/3600;
+		duration-=(hours*3600);
+		minutes=duration/60;
+		duration-=(minutes*60);
+		seconds=duration;
+		asprintf(&macro_ondemand,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 	        }
 
 	/* get the execution time macro */
-	else if(!strcmp(macro,"HOSTEXECUTIONTIME")){
-		macro_ondemand=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%.3f",hst->execution_time);
-			macro_ondemand[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTEXECUTIONTIME"))
+		asprintf(&macro_ondemand,"%.3f",hst->execution_time);
 
 	/* get the latency macro */
-	else if(!strcmp(macro,"HOSTLATENCY")){
-		macro_ondemand=(char *)malloc(MAX_LATENCY_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%.3f",hst->latency);
-			macro_ondemand[MAX_LATENCY_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTLATENCY"))
+		asprintf(&macro_ondemand,"%.3f",hst->latency);
 
 	/* get the last check time macro */
-	else if(!strcmp(macro,"LASTHOSTCHECK")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_check);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTHOSTCHECK"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_check);
 
 	/* get the last state change time macro */
-	else if(!strcmp(macro,"LASTHOSTSTATECHANGE")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_state_change);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTHOSTSTATECHANGE"))
+		asprintf(macro_ondemand,"%lu",(unsigned long)hst->last_state_change);
 
 	/* get the last time up macro */
-	else if(!strcmp(macro,"LASTHOSTUP")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_up);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTHOSTUP"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_time_up);
 
 	/* get the last time down macro */
-	else if(!strcmp(macro,"LASTHOSTDOWN")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_down);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTHOSTDOWN"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_time_down);
 
 	/* get the last time unreachable macro */
-	else if(!strcmp(macro,"LASTHOSTUNREACHABLE")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_unreachable);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTHOSTUNREACHABLE"))
+		asprintf(macro_ondemand,"%lu",(unsigned long)hst->last_time_unreachable);
 
 	/* get the notification number macro */
-	else if(!strcmp(macro,"HOSTNOTIFICATIONNUMBER")){
-		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_NOTIFICATIONNUMBER_LENGTH,"%lu",hst->current_notification_number);
-			macro_ondemand[MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTNOTIFICATIONNUMBER"))
+		asprintf(macro_ondemand,"%d",hst->current_notification_number);
 
 	/* get the notification id macro */
-	else if(!strcmp(macro,"HOSTNOTIFICATIONID")){
-		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_NOTIFICATIONID_LENGTH,"%lu",hst->current_notification_id);
-			macro_ondemand[MAX_NOTIFICATIONID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTNOTIFICATIONID"))
+		asprintf(&macro_ondemand,"%lu",hst->current_notification_id);
 
 	/* get the event id macro */
-	else if(!strcmp(macro,"HOSTEVENTID")){
-		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",hst->current_event_id);
-			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"HOSTEVENTID"))
+		asprintf(&macro_ondemand,"%lu",hst->current_event_id);
 
 	/* get the last event id macro */
-	else if(!strcmp(macro,"LASTHOSTEVENTID")){
-		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",hst->last_event_id);
-			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTHOSTEVENTID"))
+		asprintf(&macro_ondemand,"%lu",hst->last_event_id);
 
 	/* get the hostgroup name */
 	else if(!strcmp(macro,"HOSTGROUPNAME")){
-		if(temp_hostgroup!=NULL)
-			macro_ondemand=strdup(temp_hostgroup->group_name);
+		if(temp_hostgroup)
+			macro_ondemand=(char *)strdup(temp_hostgroup->group_name);
 	        }
 	
 	/* get the hostgroup alias */
 	else if(!strcmp(macro,"HOSTGROUPALIAS")){
-		if(temp_hostgroup!=NULL)
-			macro_ondemand=strdup(temp_hostgroup->alias);
+		if(temp_hostgroup)
+			macro_ondemand=(char *)strdup(temp_hostgroup->alias);
 	        }
 
 	/* extended info */
@@ -1615,13 +1269,13 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			if(!strcmp(macro,"HOSTACTIONURL")){
 
 				if(temp_hostextinfo->action_url)
-					macro_ondemand=strdup(temp_hostextinfo->action_url);
+					macro_ondemand=(char *)strdup(temp_hostextinfo->action_url);
 
 				/* action URL macros may themselves contain macros, so process them... */
 				if(macro_ondemand!=NULL){
 					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					free(macro_ondemand);
-					macro_ondemand=strdup(temp_buffer);
+					my_free((void **)&macro_ondemand);
+					macro_ondemand=(char *)strdup(temp_buffer);
 				        }
 			        }
 
@@ -1629,20 +1283,20 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			if(!strcmp(macro,"HOSTNOTESURL")){
 
 				if(temp_hostextinfo->notes_url)
-					macro_ondemand=strdup(temp_hostextinfo->notes_url);
+					macro_ondemand=(char *)strdup(temp_hostextinfo->notes_url);
 
 				/* action URL macros may themselves contain macros, so process them... */
 				if(macro_ondemand!=NULL){
 					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					free(macro_ondemand);
-					macro_ondemand=strdup(temp_buffer);
+					my_free((void **)&macro_ondemand);
+					macro_ondemand=(char *)strdup(temp_buffer);
 				        }
 			        }
 
 			/* notes */
 			if(!strcmp(macro,"HOSTNOTES")){
 				if(temp_hostextinfo->notes)
-					macro_ondemand=strdup(temp_hostextinfo->notes);
+					macro_ondemand=(char *)strdup(temp_hostextinfo->notes);
 			        }
 		        }
 	        }
@@ -1651,12 +1305,12 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(strstr(macro,"_HOST")==macro){
 		
 		/* get the variable name */
-		if(customvarname=strdup(macro+5)){
+		if((customvarname=(char *)strdup(macro+5))){
 
 			for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 
 				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
-					macro_ondemand=strdup(temp_customvariablesmember->variable_value);
+					macro_ondemand=(char *)strdup(temp_customvariablesmember->variable_value);
 					break;
 				        }
 			        }
@@ -1712,242 +1366,139 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	/* get the plugin output */
 	if(!strcmp(macro,"SERVICEOUTPUT")){
-		if(svc->plugin_output==NULL)
-			macro_ondemand=NULL;
-		else{
-			macro_ondemand=strdup(svc->plugin_output);
+		if(svc->plugin_output){
+			macro_ondemand=(char *)strdup(svc->plugin_output);
 			strip(macro_ondemand);
 		        }
 	        }
 
 	/* get the long plugin output */
 	if(!strcmp(macro,"LONGSERVICEOUTPUT")){
-		if(svc->long_plugin_output==NULL)
-			macro_ondemand=NULL;
-		else{
-			macro_ondemand=strdup(svc->long_plugin_output);
+		if(svc->long_plugin_output){
+			macro_ondemand=(char *)strdup(svc->long_plugin_output);
 			strip(macro_ondemand);
 		        }
 	        }
 
 	/* get the performance data */
 	else if(!strcmp(macro,"SERVICEPERFDATA")){
-		if(svc->perf_data==NULL)
-			macro_ondemand=NULL;
-		else{
-			macro_ondemand=strdup(svc->perf_data);
+		if(svc->perf_data==NULL){
+			macro_ondemand=(char *)strdup(svc->perf_data);
 			strip(macro_ondemand);
 		        }
 	        }
 
 	/* grab the servuce check type */
-	else if(!strcmp(macro,"SERVICECHECKTYPE")){
-		macro_ondemand=(char *)malloc(MAX_CHECKTYPE_LENGTH);
-		if(macro_ondemand!=NULL)
-			strcpy(macro_ondemand,(svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
-		}
+	else if(!strcmp(macro,"SERVICECHECKTYPE"))
+		macro_ondemand=(char *)strdup((svc->check_type==SERVICE_CHECK_PASSIVE)?"PASSIVE":"ACTIVE");
 
 	/* grab the service state type macro (this is usually overridden later on) */
-	else if(!strcmp(macro,"SERVICESTATETYPE")){
-		macro_ondemand=(char *)malloc(MAX_STATETYPE_LENGTH);
-		if(macro_ondemand!=NULL)
-			strcpy(macro_ondemand,(svc->state_type==HARD_STATE)?"HARD":"SOFT");
-	        }
+	else if(!strcmp(macro,"SERVICESTATETYPE"))
+		macro_ondemand=(char *)strdup((svc->state_type==HARD_STATE)?"HARD":"SOFT");
 
 	/* get the service state */
 	else if(!strcmp(macro,"SERVICESTATE")){
-		macro_ondemand=(char *)malloc(MAX_STATE_LENGTH);
-		if(macro_ondemand!=NULL){
-			if(svc->current_state==STATE_OK)
-				strcpy(macro_ondemand,"OK");
-			else if(svc->current_state==STATE_WARNING)
-				strcpy(macro_ondemand,"WARNING");
-			else if(svc->current_state==STATE_CRITICAL)
-				strcpy(macro_ondemand,"CRITICAL");
-			else
-				strcpy(macro_ondemand,"UNKNOWN");
-		        }
+		if(svc->current_state==STATE_OK)
+			macro_ondemand=(char *)strdup("OK");
+		else if(svc->current_state==STATE_WARNING)
+			macro_ondemand=(char *)strdup("WARNING");
+		else if(svc->current_state==STATE_CRITICAL)
+			macro_ondemand=(char *)strdup("CRITICAL");
+		else
+			macro_ondemand=(char *)strdup("UNKNOWN");
 	        }
 
 	/* get the service state id */
-	else if(!strcmp(macro,"SERVICESTATEID")){
-		macro_ondemand=(char *)malloc(MAX_STATEID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_STATEID_LENGTH,"%d",svc->current_state);
-			macro_ondemand[MAX_STATEID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICESTATEID"))
+		asprintf(&macro_ondemand,"%d",svc->current_state);
 
 	/* get the current service check attempt macro */
-	else if(!strcmp(macro,"SERVICEATTEMPT")){
-		macro_ondemand=(char *)malloc(MAX_ATTEMPT_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_ATTEMPT_LENGTH,"%d",svc->current_attempt);
-			macro_ondemand[MAX_ATTEMPT_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICEATTEMPT"))
+		asprintf(&macro_ondemand,"%d",svc->current_attempt);
+
 
 	/* get the execution time macro */
-	else if(!strcmp(macro,"SERVICEEXECUTIONTIME")){
-		macro_ondemand=(char *)malloc(MAX_EXECUTIONTIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EXECUTIONTIME_LENGTH,"%.3f",svc->execution_time);
-			macro_ondemand[MAX_EXECUTIONTIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICEEXECUTIONTIME"))
+		asprintf(&macro_ondemand,"%.3f",svc->execution_time);
 
 	/* get the latency macro */
-	else if(!strcmp(macro,"SERVICELATENCY")){
-		macro_ondemand=(char *)malloc(MAX_LATENCY_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_LATENCY_LENGTH,"%.3f",svc->latency);
-			macro_ondemand[MAX_LATENCY_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICELATENCY"))
+		asprintf(&macro_ondemand,"%.3f",svc->latency);
 
 	/* get the last check time macro */
-	else if(!strcmp(macro,"LASTSERVICECHECK")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_check);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICECHECK"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_check);
 
 	/* get the last state change time macro */
-	else if(!strcmp(macro,"LASTSERVICESTATECHANGE")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_state_change);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICESTATECHANGE"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_state_change);
 
 	/* get the last time ok macro */
-	else if(!strcmp(macro,"LASTSERVICEOK")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_ok);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICEOK"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_ok);
 
 	/* get the last time warning macro */
-	else if(!strcmp(macro,"LASTSERVICEWARNING")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_warning);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICEWARNING"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_warning);
 
 	/* get the last time unknown macro */
-	else if(!strcmp(macro,"LASTSERVICEUNKNOWN")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_unknown);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICEUNKNOWN"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_unknown);
 
 	/* get the last time critical macro */
-	else if(!strcmp(macro,"LASTSERVICECRITICAL")){
-		macro_ondemand=(char *)malloc(MAX_DATETIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DATETIME_LENGTH,"%lu",(unsigned long)svc->last_time_critical);
-			macro_ondemand[MAX_DATETIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICECRITICAL"))
+		asprintf(&macro_ondemand,"%lu",(unsigned long)svc->last_time_critical);
 
 	/* get the service downtime depth */
-	else if(!strcmp(macro,"SERVICEDOWNTIME")){
-		macro_ondemand=(char *)malloc(MAX_DOWNTIME_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DOWNTIME_LENGTH,"%d",svc->scheduled_downtime_depth);
-			macro_ondemand[MAX_DOWNTIME_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICEDOWNTIME"))
+		asprintf(&macro_ondemand,"%d",svc->scheduled_downtime_depth);
 
 	/* get the percent state change */
-	else if(!strcmp(macro,"SERVICEPERCENTCHANGE")){
-		macro_ondemand=(char *)malloc(MAX_PERCENTCHANGE_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_PERCENTCHANGE_LENGTH,"%.2f",svc->percent_state_change);
-			macro_ondemand[MAX_PERCENTCHANGE_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICEPERCENTCHANGE"))
+		asprintf(&macro_ondemand,"%.2f",svc->percent_state_change);
 
 	/* get the state duration in seconds */
-	else if(!strcmp(macro,"SERVICEDURATIONSEC")){
-		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%lu",duration);
-			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICEDURATIONSEC"))
+		asprintf(&macro_ondemand,"%lu",duration);
 
 	/* get the state duration */
 	else if(!strcmp(macro,"SERVICEDURATION")){
-		macro_ondemand=(char *)malloc(MAX_DURATION_LENGTH);
-		if(macro_ondemand!=NULL){
-			days=duration/86400;
-			duration-=(days*86400);
-			hours=duration/3600;
-			duration-=(hours*3600);
-			minutes=duration/60;
-			duration-=(minutes*60);
-			seconds=duration;
-			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
-			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
-		        }
+		days=duration/86400;
+		duration-=(days*86400);
+		hours=duration/3600;
+		duration-=(hours*3600);
+		minutes=duration/60;
+		duration-=(minutes*60);
+		seconds=duration;
+		asprintf(&macro_ondemand,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 	        }
 
 	/* get the notification number macro */
-	else if(!strcmp(macro,"SERVICENOTIFICATIONNUMBER")){
-		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_NOTIFICATIONNUMBER_LENGTH,"%lu",svc->current_notification_number);
-			macro_ondemand[MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICENOTIFICATIONNUMBER"))
+		asprintf(&macro_ondemand,"%d",svc->current_notification_number);
 
 	/* get the notification id macro */
-	else if(!strcmp(macro,"SERVICENOTIFICATIONID")){
-		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_NOTIFICATIONID_LENGTH,"%lu",svc->current_notification_id);
-			macro_ondemand[MAX_NOTIFICATIONID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICENOTIFICATIONID"))
+		asprintf(&macro_ondemand,"%lu",svc->current_notification_id);
 
 	/* get the event id macro */
-	else if(!strcmp(macro,"SERVICEEVENTID")){
-		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",svc->current_event_id);
-			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"SERVICEEVENTID"))
+		asprintf(&macro_ondemand,"%lu",svc->current_event_id);
 
 	/* get the event id macro */
-	else if(!strcmp(macro,"LASTSERVICEEVENTID")){
-		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
-		if(macro_ondemand!=NULL){
-			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",svc->last_event_id);
-			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
-		        }
-	        }
+	else if(!strcmp(macro,"LASTSERVICEEVENTID"))
+		asprintf(&macro_ondemand,"%lu",svc->last_event_id);
 
 	/* get the servicegroup name */
 	else if(!strcmp(macro,"SERVICEGROUPNAME")){
-		if(temp_servicegroup!=NULL)
-			macro_ondemand=strdup(temp_servicegroup->group_name);
+		if(temp_servicegroup)
+			macro_ondemand=(char *)strdup(temp_servicegroup->group_name);
 	        }
 	
 	/* get the servicegroup alias */
 	else if(!strcmp(macro,"SERVICEGROUPALIAS")){
-		if(temp_servicegroup!=NULL)
-			macro_ondemand=strdup(temp_servicegroup->alias);
+		if(temp_servicegroup)
+			macro_ondemand=(char *)strdup(temp_servicegroup->alias);
 	        }
 
 	/* extended info */
@@ -1960,13 +1511,13 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			if(!strcmp(macro,"SERVICEACTIONURL")){
 
 				if(temp_serviceextinfo->action_url)
-					macro_ondemand=strdup(temp_serviceextinfo->action_url);
+					macro_ondemand=(char *)strdup(temp_serviceextinfo->action_url);
 
 				/* action URL macros may themselves contain macros, so process them... */
 				if(macro_ondemand!=NULL){
 					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					free(macro_ondemand);
-					macro_ondemand=strdup(temp_buffer);
+					my_free((void **)&macro_ondemand);
+					macro_ondemand=(char *)strdup(temp_buffer);
 				        }
 			        }
 
@@ -1974,20 +1525,20 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			if(!strcmp(macro,"SERVICENOTESURL")){
 
 				if(temp_serviceextinfo->notes_url)
-					macro_ondemand=strdup(temp_serviceextinfo->notes_url);
+					macro_ondemand=(char *)strdup(temp_serviceextinfo->notes_url);
 
 				/* action URL macros may themselves contain macros, so process them... */
 				if(macro_ondemand!=NULL){
 					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					free(macro_ondemand);
-					macro_ondemand=strdup(temp_buffer);
+					my_free((void **)&macro_ondemand);
+					macro_ondemand=(char *)strdup(temp_buffer);
 				        }
 			        }
 
 			/* notes */
 			if(!strcmp(macro,"SERVICENOTES")){
 				if(temp_serviceextinfo->notes)
-					macro_ondemand=strdup(temp_serviceextinfo->notes);
+					macro_ondemand=(char *)strdup(temp_serviceextinfo->notes);
 			        }
 		        }
 	        }
@@ -1996,12 +1547,12 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(strstr(macro,"_SERVICE")==macro){
 		
 		/* get the variable name */
-		if(customvarname=strdup(macro+8)){
+		if((customvarname=(char *)strdup(macro+8))){
 
 			for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 
 				if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
-					macro_ondemand=strdup(temp_customvariablesmember->variable_value);
+					macro_ondemand=(char *)strdup(temp_customvariablesmember->variable_value);
 					break;
 				        }
 			        }
@@ -2033,39 +1584,30 @@ int grab_contact_macros(contact *cntct){
 #endif
 
 	/* get the name */
-	if(macro_x[MACRO_CONTACTNAME]!=NULL)
-		free(macro_x[MACRO_CONTACTNAME]);
-	macro_x[MACRO_CONTACTNAME]=strdup(cntct->name);
+	my_free((void **)&macro_x[MACRO_CONTACTNAME]);
+	macro_x[MACRO_CONTACTNAME]=(char *)strdup(cntct->name);
 
 	/* get the alias */
-	if(macro_x[MACRO_CONTACTALIAS]!=NULL)
-		free(macro_x[MACRO_CONTACTALIAS]);
-	macro_x[MACRO_CONTACTALIAS]=strdup(cntct->alias);
+	my_free((void **)&macro_x[MACRO_CONTACTALIAS]);
+	macro_x[MACRO_CONTACTALIAS]=(char *)strdup(cntct->alias);
 
 	/* get the email address */
-	if(macro_x[MACRO_CONTACTEMAIL]!=NULL)
-		free(macro_x[MACRO_CONTACTEMAIL]);
-	if(cntct->email==NULL)
-		macro_x[MACRO_CONTACTEMAIL]=NULL;
-	else
-		macro_x[MACRO_CONTACTEMAIL]=strdup(cntct->email);
+	my_free((void **)&macro_x[MACRO_CONTACTEMAIL]);
+	if(cntct->email)
+		macro_x[MACRO_CONTACTEMAIL]=(char *)strdup(cntct->email);
 
 	/* get the pager number */
-	if(macro_x[MACRO_CONTACTPAGER]!=NULL)
-		free(macro_x[MACRO_CONTACTPAGER]);
-	if(cntct->pager==NULL)
-		macro_x[MACRO_CONTACTPAGER]=NULL;
-	else
-		macro_x[MACRO_CONTACTPAGER]=strdup(cntct->pager);
+	my_free((void **)&macro_x[MACRO_CONTACTPAGER]);
+	if(cntct->pager)
+		macro_x[MACRO_CONTACTPAGER]=(char *)strdup(cntct->pager);
 
 	/* get misc contact addresses */
 	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
-		if(macro_contactaddress[x]!=NULL)
-			free(macro_contactaddress[x]);
-		if(cntct->address[x]==NULL)
-			macro_contactaddress[x]=NULL;
-		else
-			macro_contactaddress[x]=strdup(cntct->address[x]);
+		my_free((void **)&macro_contactaddress[x]);
+		if(cntct->address[x]){
+			macro_contactaddress[x]=(char *)strdup(cntct->address[x]);
+			strip(macro_contactaddress[x]);
+		        }
 	        }
 
 	/* get custom variables */
@@ -2082,10 +1624,6 @@ int grab_contact_macros(contact *cntct){
 	strip(macro_x[MACRO_CONTACTALIAS]);
 	strip(macro_x[MACRO_CONTACTEMAIL]);
 	strip(macro_x[MACRO_CONTACTPAGER]);
-
-	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
-		strip(macro_contactaddress[x]);
-			
 
 #ifdef DEBUG0
 	printf("grab_contact_macros() end\n");
@@ -2227,148 +1765,68 @@ int grab_summary_macros(contact *temp_contact){
 
 
 	/* get total hosts up */
-	if(macro_x[MACRO_TOTALHOSTSUP]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTSUP]);
-	macro_x[MACRO_TOTALHOSTSUP]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTSUP]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTSUP],MAX_TOTALS_LENGTH,"%d",hosts_up);
-		macro_x[MACRO_TOTALHOSTSUP][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSUP]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSUP],"%d",hosts_up);
 
 	/* get total hosts down */
-	if(macro_x[MACRO_TOTALHOSTSDOWN]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTSDOWN]);
-	macro_x[MACRO_TOTALHOSTSDOWN]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTSDOWN]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTSDOWN],MAX_TOTALS_LENGTH,"%d",hosts_down);
-		macro_x[MACRO_TOTALHOSTSDOWN][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSDOWN]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSDOWN],"%d",hosts_down);
 
 	/* get total hosts unreachable */
-	if(macro_x[MACRO_TOTALHOSTSUNREACHABLE]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTSUNREACHABLE]);
-	macro_x[MACRO_TOTALHOSTSUNREACHABLE]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTSUNREACHABLE]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTSUNREACHABLE],MAX_TOTALS_LENGTH,"%d",hosts_unreachable);
-		macro_x[MACRO_TOTALHOSTSUNREACHABLE][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSUNREACHABLE]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSUNREACHABLE],"%d",hosts_unreachable);
 
 	/* get total unhandled hosts down */
-	if(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]);
-	macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED],MAX_TOTALS_LENGTH,"%d",hosts_down_unhandled);
-		macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSDOWNUNHANDLED],"%d",hosts_down_unhandled);
 
 	/* get total unhandled hosts unreachable */
-	if(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]);
-	macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED],MAX_TOTALS_LENGTH,"%d",hosts_unreachable_unhandled);
-		macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALHOSTSUNREACHABLEUNHANDLED],"%d",hosts_unreachable_unhandled);
 
 	/* get total host problems */
-	if(macro_x[MACRO_TOTALHOSTPROBLEMS]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTPROBLEMS]);
-	macro_x[MACRO_TOTALHOSTPROBLEMS]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTPROBLEMS]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTPROBLEMS],MAX_TOTALS_LENGTH,"%d",host_problems);
-		macro_x[MACRO_TOTALHOSTPROBLEMS][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTPROBLEMS]);
+	asprintf(&macro_x[MACRO_TOTALHOSTPROBLEMS],"%d",host_problems);
 
 	/* get total unhandled host problems */
-	if(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]);
-	macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED],MAX_TOTALS_LENGTH,"%d",host_problems_unhandled);
-		macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALHOSTPROBLEMSUNHANDLED],"%d",host_problems_unhandled);
 
 	/* get total services ok */
-	if(macro_x[MACRO_TOTALSERVICESOK]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESOK]);
-	macro_x[MACRO_TOTALSERVICESOK]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESOK]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESOK],MAX_TOTALS_LENGTH,"%d",services_ok);
-		macro_x[MACRO_TOTALSERVICESOK][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESOK]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESOK],"%d",services_ok);
 
 	/* get total services warning */
-	if(macro_x[MACRO_TOTALSERVICESWARNING]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESWARNING]);
-	macro_x[MACRO_TOTALSERVICESWARNING]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESWARNING]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESWARNING],MAX_TOTALS_LENGTH,"%d",services_warning);
-		macro_x[MACRO_TOTALSERVICESWARNING][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESWARNING]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESWARNING],"%d",services_warning);
 
 	/* get total services critical */
-	if(macro_x[MACRO_TOTALSERVICESCRITICAL]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESCRITICAL]);
-	macro_x[MACRO_TOTALSERVICESCRITICAL]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESCRITICAL]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESCRITICAL],MAX_TOTALS_LENGTH,"%d",services_critical);
-		macro_x[MACRO_TOTALSERVICESCRITICAL][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESCRITICAL]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESCRITICAL],"%d",services_critical);
 
 	/* get total services unknown */
-	if(macro_x[MACRO_TOTALSERVICESUNKNOWN]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESUNKNOWN]);
-	macro_x[MACRO_TOTALSERVICESUNKNOWN]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESUNKNOWN]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESUNKNOWN],MAX_TOTALS_LENGTH,"%d",services_unknown);
-		macro_x[MACRO_TOTALSERVICESUNKNOWN][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESUNKNOWN]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESUNKNOWN],"%d",services_unknown);
 
 	/* get total unhandled services warning */
-	if(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]);
-	macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED],MAX_TOTALS_LENGTH,"%d",services_warning_unhandled);
-		macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESWARNINGUNHANDLED],"%d",services_warning_unhandled);
 
 	/* get total unhandled services critical */
-	if(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]);
-	macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED],MAX_TOTALS_LENGTH,"%d",services_critical_unhandled);
-		macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESCRITICALUNHANDLED],"%d",services_critical_unhandled);
 
 	/* get total unhandled services unknown */
-	if(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]);
-	macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED],MAX_TOTALS_LENGTH,"%d",services_unknown_unhandled);
-		macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALSERVICESUNKNOWNUNHANDLED],"%d",services_unknown_unhandled);
 
 	/* get total service problems */
-	if(macro_x[MACRO_TOTALSERVICEPROBLEMS]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICEPROBLEMS]);
-	macro_x[MACRO_TOTALSERVICEPROBLEMS]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICEPROBLEMS]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICEPROBLEMS],MAX_TOTALS_LENGTH,"%d",service_problems);
-		macro_x[MACRO_TOTALSERVICEPROBLEMS][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICEPROBLEMS]);
+	asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMS],"%d",service_problems);
 
 	/* get total unhandled service problems */
-	if(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]!=NULL)
-		free(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]);
-	macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]=(char *)malloc(MAX_TOTALS_LENGTH);
-	if(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]!=NULL){
-		snprintf(macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED],MAX_TOTALS_LENGTH,"%d",service_problems_unhandled);
-		macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED][MAX_TOTALS_LENGTH-1]='\x0';
-		}
+	my_free((void **)&macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]);
+	asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED],"%d",service_problems_unhandled);
 
 #ifdef DEBUG0
 	printf("grab_summary_macros() end\n");
@@ -2447,12 +1905,8 @@ int clear_argv_macros(void){
 #endif
 
 	/* command argument macros */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-		if(macro_argv[x]!=NULL){
-			free(macro_argv[x]);
-			macro_argv[x]=NULL;
-		        }
-	        }
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
+		my_free((void **)&macro_argv[x]);
 
 #ifdef DEBUG0
 	printf("clear_argv_macros() end\n");
@@ -2493,35 +1947,17 @@ int clear_volatile_macros(void){
 		case MACRO_TEMPPATH:
 			break;
 		default:
-			if(macro_x[x]!=NULL){
-				free(macro_x[x]);
-				macro_x[x]=NULL;
-			        }
+			my_free((void **)&macro_x[x]);
 			break;
 		        }
 	        }
 
-	/* command argument macros */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-		if(macro_argv[x]!=NULL){
-			free(macro_argv[x]);
-			macro_argv[x]=NULL;
-		        }
-	        }
-
 	/* contact address macros */
-	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
-		if(macro_contactaddress[x]!=NULL){
-			free(macro_contactaddress[x]);
-			macro_contactaddress[x]=NULL;
-		        }
-	        }
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
+		my_free((void **)&macro_contactaddress[x]);
 
 	/* clear on-demand macro */
-	if(macro_ondemand!=NULL){
-		free(macro_ondemand);
-		macro_ondemand=NULL;
-	        }
+	my_free((void **)&macro_ondemand);
 
 	/* clear ARGx macros */
 	clear_argv_macros();
@@ -2587,10 +2023,7 @@ int clear_nonvolatile_macros(void){
 		case MACRO_SERVICEPERFDATAFILE:
 		case MACRO_PROCESSSTARTTIME:
 		case MACRO_TEMPPATH:
-			if(macro_x[x]!=NULL){
-				free(macro_x[x]);
-				macro_x[x]=NULL;
-			        }
+			my_free((void **)&macro_x[x]);
 			break;
 		default:
 			break;
@@ -2741,7 +2174,7 @@ int init_macrox_names(void){
 int add_macrox_name(int i, char *name){
 
 	/* dup the macro name */
-	macro_x_names[i]=strdup(name);
+	macro_x_names[i]=(char *)strdup(name);
 
 	return OK;
         }
@@ -2756,10 +2189,8 @@ int free_macrox_names(void){
 #endif
 
 	/* free each macro name */
-	for(x=0;x<MACRO_X_COUNT;x++){
-		free(macro_x_names[x]);
-		macro_x_names[x]=NULL;
-	        }
+	for(x=0;x<MACRO_X_COUNT;x++)
+		my_free((void **)&macro_x_names[x]);
 
 #ifdef DEBUG0
 	printf("free_macrox_names() end\n");
@@ -3165,7 +2596,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 
 		/* run the command */
-		fp=popen(cmd,"r");
+		fp=(FILE *)popen(cmd,"r");
 		
 		/* report an error if we couldn't run the command */
 		if(fp==NULL){
@@ -3274,7 +2705,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			output_dbuf.buf[max_output_length]='\x0';
 
 		if(output!=NULL && output_dbuf.buf)
-			*output=strdup(output_dbuf.buf);
+			*output=(char *)strdup(output_dbuf.buf);
 
 		/* free memory */
 		dbuf_free(&output_dbuf);
@@ -3395,7 +2826,7 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 		process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
 
 		strip(arg_buffer);
-		macro_argv[x]=strdup(arg_buffer);
+		macro_argv[x]=(char *)strdup(arg_buffer);
 	        }
 
 #ifdef DEBUG1
@@ -4186,13 +3617,13 @@ int read_check_result(check_result *info){
 		memcpy(info,buffered_result,sizeof(check_result));
 		info->host_name=NULL;
 		if(buffered_result->host_name)
-			info->host_name=strdup(buffered_result->host_name);
+			info->host_name=(char *)strdup(buffered_result->host_name);
 		info->service_description=NULL;
 		if(buffered_result->service_description)
-			info->service_description=strdup(buffered_result->service_description);
+			info->service_description=(char *)strdup(buffered_result->service_description);
 		info->output_file=NULL;
 		if(buffered_result->output_file)
-			info->output_file=strdup(buffered_result->output_file);
+			info->output_file=(char *)strdup(buffered_result->output_file);
 
 		/* free memory */
 		free_check_result(buffered_result);
@@ -4332,7 +3763,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	/* no file name */
 	if(fname==NULL || !strcmp(fname,"")){
 		if(short_output)
-			*short_output=strdup("(Check result file missing - no plugin output!)");
+			*short_output=(char *)strdup("(Check result file missing - no plugin output!)");
 		return ERROR;
 	        }
 
@@ -4340,7 +3771,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	if((thefile=mmap_fopen(fname))==NULL){
 
 		if(short_output)
-			*short_output=strdup("(Cannot read check result file (file may be empty) - no plugin output!)");
+			*short_output=(char *)strdup("(Cannot read check result file (file may be empty) - no plugin output!)");
 
 		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
 		unlink(fname);
@@ -4444,7 +3875,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 			/* handle this line of input */
 			buf[x]='\x0';
-			if((tempbuf=strdup(buf))){
+			if((tempbuf=(char *)strdup(buf))){
 
 				/* first line contains short plugin output and optional perf data */
 				if(current_line==1){
@@ -4452,7 +3883,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 					/* get the short plugin output */
 					if((ptr=strtok(tempbuf,"|"))){
 						if(short_output)
-							*short_output=strdup(ptr);
+							*short_output=(char *)strdup(ptr);
 
 						/* get the optional perf data */
 						if((ptr=strtok(NULL,"\n")))
@@ -4516,7 +3947,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 	if(long_output && (db1.buf && strcmp(db1.buf,""))){
 
 		if(escape_newlines==FALSE)
-			*long_output=strdup(db1.buf);
+			*long_output=(char *)strdup(db1.buf);
 
 		else{
 
@@ -4538,7 +3969,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 				        }
 
 				tempbuf[y]='\x0';
-				*long_output=strdup(tempbuf);
+				*long_output=(char *)strdup(tempbuf);
 				free(tempbuf);
 			        }
 		        }
@@ -4546,7 +3977,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 	/* save perf data */
 	if(perf_data && (db2.buf && strcmp(db2.buf,"")))
-		*perf_data=strdup(db2.buf);
+		*perf_data=(char *)strdup(db2.buf);
 
 	/* strip short output and perf data */
 	if(short_output)
@@ -4609,7 +4040,7 @@ int open_command_file(void){
 	        }
 
 	/* re-open the FIFO for use with fgets() */
-	if((command_file_fp=fdopen(command_file_fd,"r"))==NULL){
+	if((command_file_fp=(FILE *)fdopen(command_file_fd,"r"))==NULL){
 
 		snprintf(buffer,sizeof(buffer)-1,"Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n",errno,strerror(errno));
 		buffer[sizeof(buffer)-1]='\x0';
@@ -4901,6 +4332,23 @@ char *my_strsep (char **stringp, const char *delim){
 	}
 
 
+
+/* my wrapper for free() */
+int my_free(void **ptr){
+
+	if(ptr==NULL)
+		return ERROR;
+
+	/* I hate calling free() and then resetting the pointer to NULL, so lets do it together */
+	if(*ptr){
+		free(*ptr);
+		*ptr=NULL;
+	        }
+
+	return OK;
+        }
+
+
 /* encodes a string in proper URL format */
 char *get_url_encoded_string(char *input){
 	register int x,y;
@@ -5110,7 +4558,7 @@ mmapfile *mmap_fopen(char *filename){
 	        }
 
 	/* populate struct info for later use */
-	new_mmapfile->path=strdup(filename);
+	new_mmapfile->path=(char *)strdup(filename);
 	new_mmapfile->fd=fd;
 	new_mmapfile->file_size=(unsigned long)(statbuf.st_size);
 	new_mmapfile->current_position=0L;
@@ -5679,7 +5127,7 @@ int handle_check_result_input1(check_result *info, dbuf *db){
 
 			/* handle this line of input */
 			db->buf[x]='\x0';
-			if((buf=strdup(db->buf))){
+			if((buf=(char *)strdup(db->buf))){
 
 				handle_check_result_input2(info,buf);
 
@@ -5748,10 +5196,10 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->object_check_type=atoi(val);
 		break;
 	case 2:
-		info->host_name=strdup(val);
+		info->host_name=(char *)strdup(val);
 		break;
 	case 3:
-		info->service_description=strdup(val);
+		info->service_description=(char *)strdup(val);
 		break;
 	case 4:
 		info->check_type=atoi(val);
@@ -5760,7 +5208,7 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->parallelized=atoi(val);
 		break;
 	case 6:
-		info->output_file=strdup(val);
+		info->output_file=(char *)strdup(val);
 		break;
 	case 7:
 		if((ptr1=strtok(val,"."))==NULL)
@@ -5815,13 +5263,13 @@ int buffer_check_result(check_result *info){
 	memcpy(new_info,info,sizeof(check_result));
 	new_info->host_name=NULL;
 	if(info->host_name)
-		new_info->host_name=strdup(info->host_name);
+		new_info->host_name=(char *)strdup(info->host_name);
 	new_info->service_description=NULL;
 	if(info->service_description)
-		new_info->service_description=strdup(info->service_description);
+		new_info->service_description=(char *)strdup(info->service_description);
 	new_info->output_file=NULL;
 	if(info->output_file)
-		new_info->output_file=strdup(info->output_file);
+		new_info->output_file=(char *)strdup(info->output_file);
 
 	/* obtain a lock for writing to the buffer */
 	pthread_mutex_lock(&service_result_buffer.buffer_lock);
@@ -5962,7 +5410,7 @@ int submit_external_command(char *cmd, int *buffer_items){
 	if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
 
 		/* save the line in the buffer */
-		((char **)external_command_buffer.buffer)[external_command_buffer.head]=strdup(cmd);
+		((char **)external_command_buffer.buffer)[external_command_buffer.head]=(char *)strdup(cmd);
 
 		/* increment the head counter and items */
 		external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;

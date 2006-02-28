@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-26-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -232,8 +232,8 @@ int read_status_data(char *config_file,int options){
 
 /* adds hoststatus to hash list in memory */
 int add_hoststatus_to_hashlist(hoststatus *new_hoststatus){
-	hoststatus *temp_hoststatus, *lastpointer;
-	int hashslot;
+	hoststatus *temp_hoststatus=NULL, *lastpointer=NULL;
+	int hashslot=0;
 
 	/* initialize hash list */
 	if(hoststatus_hashlist==NULL){
@@ -271,8 +271,8 @@ int add_hoststatus_to_hashlist(hoststatus *new_hoststatus){
 
 
 int add_servicestatus_to_hashlist(servicestatus *new_servicestatus){
-	servicestatus *temp_servicestatus, *lastpointer;
-	int hashslot;
+	servicestatus *temp_servicestatus=NULL, *lastpointer=NULL;
+	int hashslot=0;
 
 	/* initialize hash list */
 	if(servicestatus_hashlist==NULL){
@@ -318,7 +318,6 @@ int add_servicestatus_to_hashlist(servicestatus *new_servicestatus){
 
 /* adds a host status entry to the list in memory */
 int add_host_status(hoststatus *new_hoststatus){
-	char temp_buffer[MAX_INPUT_BUFFER];
 	char date_string[MAX_DATETIME_LENGTH];
 
 	/* make sure we have what we need */
@@ -346,14 +345,13 @@ int add_host_status(hoststatus *new_hoststatus){
 		if(new_hoststatus->has_been_checked==FALSE){
 			new_hoststatus->status=HOST_PENDING;
 			free(new_hoststatus->plugin_output);
+			new_hoststatus->plugin_output=NULL;
 			if(new_hoststatus->should_be_scheduled==TRUE){
 				get_time_string(&new_hoststatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host check scheduled for %s",date_string);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				new_hoststatus->plugin_output=strdup(temp_buffer);
+				asprintf(&new_hoststatus->plugin_output,"Host check scheduled for %s",date_string);
 			        }
 			else
-				new_hoststatus->plugin_output=strdup("Host has not been checked yet");
+				new_hoststatus->plugin_output=(char *)strdup("Host has not been checked yet");
 		        }
 	        }
 
@@ -380,7 +378,6 @@ int add_host_status(hoststatus *new_hoststatus){
 
 /* adds a service status entry to the list in memory */
 int add_service_status(servicestatus *new_svcstatus){
-	char temp_buffer[MAX_INPUT_BUFFER];
 	char date_string[MAX_DATETIME_LENGTH];
 
 	/* make sure we have what we need */
@@ -412,14 +409,13 @@ int add_service_status(servicestatus *new_svcstatus){
 		if(new_svcstatus->has_been_checked==FALSE){
 			new_svcstatus->status=SERVICE_PENDING;
 			free(new_svcstatus->plugin_output);
+			new_svcstatus->plugin_output=NULL;
 			if(new_svcstatus->should_be_scheduled==TRUE){
 				get_time_string(&new_svcstatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Service check scheduled for %s",date_string);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				new_svcstatus->plugin_output=strdup(temp_buffer);
+				asprintf(&new_svcstatus->plugin_output,"Service check scheduled for %s",date_string);
 			        }
 			else
-				new_svcstatus->plugin_output=strdup("Service is not scheduled to be checked...");
+				new_svcstatus->plugin_output=(char *)strdup("Service is not scheduled to be checked...");
 		        }
 	        }
 

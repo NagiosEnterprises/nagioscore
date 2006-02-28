@@ -104,11 +104,11 @@ extern char           *global_service_event_handler;
 #endif
 
 
-char xsddefault_status_log[MAX_FILENAME_LENGTH]="";
-char xsddefault_temp_file[MAX_FILENAME_LENGTH]="";
+char *xsddefault_status_log=NULL;
+char *xsddefault_temp_file=NULL;
 
 #ifdef NSCORE
-char xsddefault_aggregate_temp_file[MAX_INPUT_BUFFER];
+char *xsddefault_aggregate_temp_file=NULL;
 #endif
 
 
@@ -131,20 +131,21 @@ int xsddefault_grab_config_info(char *config_file){
 	/*** CORE PASSES IN MAIN CONFIG FILE, CGIS PASS IN CGI CONFIG FILE! ***/
 
 	/* initialize the location of the status log */
-	strncpy(xsddefault_status_log,DEFAULT_STATUS_FILE,sizeof(xsddefault_status_log)-1);
-	strncpy(xsddefault_temp_file,DEFAULT_TEMP_FILE,sizeof(xsddefault_temp_file)-1);
-	xsddefault_status_log[sizeof(xsddefault_status_log)-1]='\x0';
-	xsddefault_temp_file[sizeof(xsddefault_temp_file)-1]='\x0';
+	xsddefault_status_log=(char *)strdup(DEFAULT_STATUS_FILE);
+	xsddefault_temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
 
 	/* open the config file for reading */
-	if((thefile=mmap_fopen(config_file))==NULL)
+	if((thefile=mmap_fopen(config_file))==NULL){
+		free(xsddefault_status_log);
+		free(xsddefault_temp_file);
 		return ERROR;
+	        }
 
 	/* read in all lines from the main config file */
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -172,7 +173,7 @@ int xsddefault_grab_config_info(char *config_file){
 			while(1){
 
 				/* free memory */
-				free(input2);
+				my_free((void **)&input2);
 
 				/* read the next line */
 				if((input2=mmap_fgets(thefile2))==NULL)
@@ -188,7 +189,7 @@ int xsddefault_grab_config_info(char *config_file){
 			        }
 
 			/* free memory and close the file */
-			free(input2);
+			my_free((void **)&input2);
 			mmap_fclose(thefile2);
 		        }
 #endif
@@ -200,23 +201,21 @@ int xsddefault_grab_config_info(char *config_file){
 	        }
 
 	/* free memory and close the file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
 
 	/* we didn't find the status log name */
-	if(!strcmp(xsddefault_status_log,""))
+	if(xsddefault_status_log==NULL)
 		return ERROR;
 
 	/* we didn't find the temp file */
-	if(!strcmp(xsddefault_temp_file,""))
+	if(xsddefault_temp_file==NULL)
 		return ERROR;
 
 #ifdef NSCORE
 	/* save the status file macro */
-	if(macro_x[MACRO_STATUSDATAFILE]!=NULL)
-		free(macro_x[MACRO_STATUSDATAFILE]);
-	macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log);
-	if(macro_x[MACRO_STATUSDATAFILE]!=NULL)
+	my_free((void **)&macro_x[MACRO_STATUSDATAFILE]);
+	if((macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log)))
 		strip(macro_x[MACRO_STATUSDATAFILE]);
 #endif
 
@@ -233,8 +232,8 @@ void xsddefault_grab_config_directives(char *input_buffer){
 		temp_buffer=strtok(NULL,"\n");
 		if(temp_buffer==NULL)
 			return;
-		strncpy(xsddefault_status_log,temp_buffer,sizeof(xsddefault_status_log)-1);
-		xsddefault_status_log[sizeof(xsddefault_status_log)-1]='\x0';
+		my_free((void **)&xsddefault_status_log);
+		xsddefault_status_log=(char *)strdup(temp_buffer);
 	        }
 
 
@@ -244,8 +243,8 @@ void xsddefault_grab_config_directives(char *input_buffer){
 		temp_buffer=strtok(NULL,"\n");
 		if(temp_buffer==NULL)
 			return;
-		strncpy(xsddefault_temp_file,temp_buffer,sizeof(xsddefault_temp_file)-1);
-		xsddefault_temp_file[sizeof(xsddefault_temp_file)-1]='\x0';
+		my_free((void **)&xsddefault_temp_file);
+		xsddefault_temp_file=(char *)strdup(temp_buffer);
 	        }
 
 	return;
@@ -270,7 +269,8 @@ int xsddefault_initialize_status_data(char *config_file){
 		return ERROR;
 
 	/* delete the old status log (it might not exist) */
-	unlink(xsddefault_status_log);
+	if(xsddefault_status_log)
+		unlink(xsddefault_status_log);
 
 	return OK;
         }
@@ -280,10 +280,14 @@ int xsddefault_initialize_status_data(char *config_file){
 int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 
 	/* delete the status log */
-	if(delete_status_data==TRUE){
+	if(delete_status_data==TRUE && xsddefault_status_log){
 		if(unlink(xsddefault_status_log))
 			return ERROR;
 	        }
+
+	/* free memory */
+	my_free((void **)&xsddefault_status_log);
+	my_free((void **)&xsddefault_temp_file);
 
 	return OK;
         }
@@ -296,7 +300,7 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 /* write all status data to file */
 int xsddefault_save_status_data(void){
 	customvariablesmember *temp_customvariablesmember=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	contact *temp_contact=NULL;
@@ -305,27 +309,41 @@ int xsddefault_save_status_data(void){
 	FILE *fp=NULL;
 
 	/* open a safe temp file for output */
-	snprintf(xsddefault_aggregate_temp_file,sizeof(xsddefault_aggregate_temp_file)-1,"%sXXXXXX",xsddefault_temp_file);
-	xsddefault_aggregate_temp_file[sizeof(xsddefault_aggregate_temp_file)-1]='\x0';
+	if(xsddefault_temp_file==NULL)
+		return ERROR;
+	asprintf(&xsddefault_aggregate_temp_file,"%sXXXXXX",xsddefault_temp_file);
+	if(xsddefault_aggregate_temp_file==NULL)
+		return ERROR;
+
 	if((fd=mkstemp(xsddefault_aggregate_temp_file))==-1){
 
 		/* log an error */
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to create temp file for writing status data!\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Unable to create temp file for writing status data!\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+
+		/* free memory */
+		my_free((void **)&xsddefault_status_log);
+		my_free((void **)&xsddefault_temp_file);
+		my_free((void **)&xsddefault_aggregate_temp_file);
 
 		return ERROR;
 	        }
-	fp=fdopen(fd,"w");
+	fp=(FILE *)fdopen(fd,"w");
 	if(fp==NULL){
 
 		close(fd);
 		unlink(xsddefault_aggregate_temp_file);
 
 		/* log an error */
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to open temp file '%s' for writing status data!\n",xsddefault_aggregate_temp_file);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Unable to open temp file '%s' for writing status data!\n",xsddefault_aggregate_temp_file);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+
+		/* free memory */
+		my_free((void **)&xsddefault_status_log);
+		my_free((void **)&xsddefault_temp_file);
+		my_free((void **)&xsddefault_aggregate_temp_file);
 
 		return ERROR;
 	        }
@@ -541,9 +559,9 @@ int xsddefault_save_status_data(void){
 	if(my_rename(xsddefault_aggregate_temp_file,xsddefault_status_log)){
 
 		/* log an error */
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -585,7 +603,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -714,7 +732,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(temp_hoststatus!=NULL){
 					if(!strcmp(var,"host_name"))
-						temp_hoststatus->host_name=strdup(val);
+						temp_hoststatus->host_name=(char *)strdup(val);
 					else if(!strcmp(var,"has_been_checked"))
 						temp_hoststatus->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"should_be_scheduled"))
@@ -730,11 +748,11 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"last_hard_state"))
 						temp_hoststatus->last_hard_state=atoi(val);
 					else if(!strcmp(var,"plugin_output"))
-						temp_hoststatus->plugin_output=strdup(val);
+						temp_hoststatus->plugin_output=(char *)strdup(val);
 					else if(!strcmp(var,"long_plugin_output"))
-						temp_hoststatus->long_plugin_output=strdup(val);
+						temp_hoststatus->long_plugin_output=(char *)strdup(val);
 					else if(!strcmp(var,"performance_data"))
-						temp_hoststatus->perf_data=strdup(val);
+						temp_hoststatus->perf_data=(char *)strdup(val);
 					else if(!strcmp(var,"current_attempt"))
 						temp_hoststatus->current_attempt=atoi(val);
 					else if(!strcmp(var,"max_attempts"))
@@ -808,9 +826,9 @@ int xsddefault_read_status_data(char *config_file,int options){
 				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(temp_servicestatus!=NULL){
 					if(!strcmp(var,"host_name"))
-						temp_servicestatus->host_name=strdup(val);
+						temp_servicestatus->host_name=(char *)strdup(val);
 					else if(!strcmp(var,"service_description"))
-						temp_servicestatus->description=strdup(val);
+						temp_servicestatus->description=(char *)strdup(val);
 					else if(!strcmp(var,"has_been_checked"))
 						temp_servicestatus->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
 					else if(!strcmp(var,"should_be_scheduled"))
@@ -844,11 +862,11 @@ int xsddefault_read_status_data(char *config_file,int options){
 					else if(!strcmp(var,"last_time_critical"))
 						temp_servicestatus->last_time_critical=strtoul(val,NULL,10);
 					else if(!strcmp(var,"plugin_output"))
-						temp_servicestatus->plugin_output=strdup(val);
+						temp_servicestatus->plugin_output=(char *)strdup(val);
 					else if(!strcmp(var,"long_plugin_output"))
-						temp_servicestatus->long_plugin_output=strdup(val);
+						temp_servicestatus->long_plugin_output=(char *)strdup(val);
 					else if(!strcmp(var,"performance_data"))
-						temp_servicestatus->perf_data=strdup(val);
+						temp_servicestatus->perf_data=(char *)strdup(val);
 					else if(!strcmp(var,"last_check"))
 						temp_servicestatus->last_check=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_check"))
@@ -912,8 +930,12 @@ int xsddefault_read_status_data(char *config_file,int options){
 	        }
 
 	/* free memory and close the file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
+
+	/* free memory */
+	my_free((void **)&xsddefault_status_log);
+	my_free((void **)&xsddefault_temp_file);
 
 	return OK;
         }

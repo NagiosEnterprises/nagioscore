@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-27-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -134,59 +134,38 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
-			if(macro_x[MACRO_SERVICEACKAUTHOR]!=NULL)
-				free(macro_x[MACRO_SERVICEACKAUTHOR]);
-			if(ack_author==NULL)
-				macro_x[MACRO_SERVICEACKAUTHOR]=NULL;
-			else
-				macro_x[MACRO_SERVICEACKAUTHOR]=strdup(ack_author);
-			if(macro_x[MACRO_SERVICEACKCOMMENT]!=NULL)
-				free(macro_x[MACRO_SERVICEACKCOMMENT]);
-			if(ack_data==NULL)
-				macro_x[MACRO_SERVICEACKCOMMENT]=NULL;
-			else
-				macro_x[MACRO_SERVICEACKCOMMENT]=strdup(ack_data);
+			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHOR]);
+			if(ack_author)
+				macro_x[MACRO_SERVICEACKAUTHOR]=(char *)strdup(ack_author);
+			my_free((void **)macro_x[MACRO_SERVICEACKCOMMENT]);
+			if(ack_data)
+				macro_x[MACRO_SERVICEACKCOMMENT]=(char *)strdup(ack_data);
 	                }
 
 		/* set the notification type macro */
-		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
-			free(macro_x[MACRO_NOTIFICATIONTYPE]);
-		macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
-		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
-			if(type==NOTIFICATION_ACKNOWLEDGEMENT)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
-			else if(type==NOTIFICATION_FLAPPINGSTART)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTART");
-			else if(type==NOTIFICATION_FLAPPINGSTOP)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTOP");
-			else if(svc->current_state==STATE_OK)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
-			else
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
-	                }
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONTYPE]);
+		if(type==NOTIFICATION_ACKNOWLEDGEMENT)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("ACKNOWLEDGEMENT");
+		else if(type==NOTIFICATION_FLAPPINGSTART)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTART");
+		else if(type==NOTIFICATION_FLAPPINGSTOP)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTOP");
+		else if(svc->current_state==STATE_OK)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("RECOVERY");
+		else
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("PROBLEM");
 
 		/* set the notification number macro */
-		if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL)
-			free(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
-		macro_x[MACRO_SERVICENOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-		if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL){
-			snprintf(macro_x[MACRO_SERVICENOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
-			macro_x[MACRO_SERVICENOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
-	                }
+		my_free((void **)&macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+		asprintf(&macro_x[MACRO_SERVICENOTIFICATIONNUMBER],"%d",svc->current_notification_number);
 
-		/* this is for backward compatability */
-		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
-			free(macro_x[MACRO_NOTIFICATIONNUMBER]);
-		macro_x[MACRO_NOTIFICATIONNUMBER]=strdup((macro_x[MACRO_SERVICENOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONNUMBER]);
+		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)strdup((macro_x[MACRO_SERVICENOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
-		if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL)
-			free(macro_x[MACRO_SERVICENOTIFICATIONID]);
-		macro_x[MACRO_SERVICENOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
-		if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL){
-			snprintf(macro_x[MACRO_SERVICENOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",svc->current_notification_id);
-			macro_x[MACRO_SERVICENOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
-	                }
+		my_free((void **)&macro_x[MACRO_SERVICENOTIFICATIONID]);
+		asprintf(&macro_x[MACRO_SERVICENOTIFICATIONID],"%lu",svc->current_notification_id);
 
 		/* notify each contact (duplicates have been removed) */
 		for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
@@ -971,59 +950,38 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
-			if(macro_x[MACRO_HOSTACKAUTHOR]!=NULL)
-				free(macro_x[MACRO_HOSTACKAUTHOR]);
-			if(ack_author==NULL)
-				macro_x[MACRO_HOSTACKAUTHOR]=NULL;
-			else
-				macro_x[MACRO_HOSTACKAUTHOR]=strdup(ack_author);
-			if(macro_x[MACRO_HOSTACKCOMMENT]!=NULL)
-				free(macro_x[MACRO_HOSTACKCOMMENT]);
-			if(ack_data==NULL)
-				macro_x[MACRO_HOSTACKCOMMENT]=NULL;
-			else
-				macro_x[MACRO_HOSTACKCOMMENT]=strdup(ack_data);
+			my_free((void **)&macro_x[MACRO_HOSTACKAUTHOR]);
+			if(ack_author)
+				macro_x[MACRO_HOSTACKAUTHOR]=(char *)strdup(ack_author);
+			my_free((void **)&macro_x[MACRO_HOSTACKCOMMENT]);
+			if(ack_data)
+				macro_x[MACRO_HOSTACKCOMMENT]=(char *)strdup(ack_data);
 	                }
 
 		/* set the notification type macro */
-		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL)
-			free(macro_x[MACRO_NOTIFICATIONTYPE]);
-		macro_x[MACRO_NOTIFICATIONTYPE]=(char *)malloc(MAX_NOTIFICATIONTYPE_LENGTH);
-		if(macro_x[MACRO_NOTIFICATIONTYPE]!=NULL){
-			if(type==NOTIFICATION_ACKNOWLEDGEMENT)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"ACKNOWLEDGEMENT");
-			else if(type==NOTIFICATION_FLAPPINGSTART)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTART");
-			else if(type==NOTIFICATION_FLAPPINGSTOP)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"FLAPPINGSTOP");
-			else if(hst->current_state==HOST_UP)
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"RECOVERY");
-			else
-				strcpy(macro_x[MACRO_NOTIFICATIONTYPE],"PROBLEM");
-	                }
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONTYPE]);
+		if(type==NOTIFICATION_ACKNOWLEDGEMENT)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("ACKNOWLEDGEMENT");
+		else if(type==NOTIFICATION_FLAPPINGSTART)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTART");
+		else if(type==NOTIFICATION_FLAPPINGSTOP)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTOP");
+		else if(hst->current_state==HOST_UP)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("RECOVERY");
+		else
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("PROBLEM");
 
 		/* set the notification number macro */
-		if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL)
-			free(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
-		macro_x[MACRO_HOSTNOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-		if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL){
-			snprintf(macro_x[MACRO_HOSTNOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
-			macro_x[MACRO_HOSTNOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
-	                }
+		my_free((void **)&macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+		asprintf(&macro_x[MACRO_HOSTNOTIFICATIONNUMBER],"%d",hst->current_notification_number);
 
-		/* this is for backward compatability */
-		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
-			free(macro_x[MACRO_NOTIFICATIONNUMBER]);
-		macro_x[MACRO_NOTIFICATIONNUMBER]=strdup((macro_x[MACRO_HOSTNOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
+		my_free((void **)&macro_x[MACRO_NOTIFICATIONNUMBER]);
+		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)strdup((macro_x[MACRO_HOSTNOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
-		if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL)
-			free(macro_x[MACRO_HOSTNOTIFICATIONID]);
-		macro_x[MACRO_HOSTNOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
-		if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL){
-			snprintf(macro_x[MACRO_HOSTNOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",hst->current_notification_id);
-			macro_x[MACRO_HOSTNOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
-	                }
+		my_free((void **)&macro_x[MACRO_HOSTNOTIFICATIONID]);
+		asprintf(&macro_x[MACRO_HOSTNOTIFICATIONID],"%lu",hst->current_notification_id);
 
 		/* notify each contact (duplicates have been removed) */
 		for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){

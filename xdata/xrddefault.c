@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-27-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -66,6 +66,8 @@ extern int            retention_scheduling_horizon;
 
 extern unsigned long  next_comment_id;
 extern unsigned long  next_downtime_id;
+extern unsigned long  next_event_id;
+extern unsigned long  next_notification_id;
 
 extern unsigned long  modified_host_process_attributes;
 extern unsigned long  modified_service_process_attributes;
@@ -234,6 +236,8 @@ int xrddefault_save_state_information(char *main_config_file){
 	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
 	fprintf(fp,"\tnext_comment_id=%lu\n",next_comment_id);
 	fprintf(fp,"\tnext_downtime_id=%lu\n",next_downtime_id);
+	fprintf(fp,"\tnext_event_id=%lu\n",next_event_id);
+	fprintf(fp,"\tnext_notification_id=%lu\n",next_notification_id);
 	fprintf(fp,"\t}\n\n");
 
 	/* save host state information */
@@ -259,6 +263,8 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tnext_check=%lu\n",temp_host->next_check);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_host->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
+		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_host->current_event_id);
+		fprintf(fp,"\tlast_event_id=%lu\n",temp_host->last_event_id);
 		fprintf(fp,"\tnormal_check_interval=%d\n",temp_host->check_interval);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
@@ -270,6 +276,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tnotified_on_unreachable=%d\n",temp_host->notified_on_unreachable);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_host->last_host_notification);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_host->current_notification_number);
+		fprintf(fp,"\tcurrent_notification_id=%lu\n",temp_host->current_notification_id);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_host->notifications_enabled);
 		fprintf(fp,"\tproblem_has_been_acknowledged=%d\n",temp_host->problem_has_been_acknowledged);
 		fprintf(fp,"\tacknowledgement_type=%d\n",temp_host->acknowledgement_type);
@@ -316,6 +323,8 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tlast_hard_state=%d\n",temp_service->last_hard_state);
 		fprintf(fp,"\tcurrent_attempt=%d\n",temp_service->current_attempt);
 		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
+		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_service->current_event_id);
+		fprintf(fp,"\tlast_event_id=%lu\n",temp_service->last_event_id);
 		fprintf(fp,"\tnormal_check_interval=%d\n",temp_service->check_interval);
 		fprintf(fp,"\tretry_check_interval=%d\n",temp_service->retry_interval);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
@@ -334,6 +343,7 @@ int xrddefault_save_state_information(char *main_config_file){
 		fprintf(fp,"\tnotified_on_warning=%d\n",temp_service->notified_on_warning);
 		fprintf(fp,"\tnotified_on_critical=%d\n",temp_service->notified_on_critical);
 		fprintf(fp,"\tcurrent_notification_number=%d\n",temp_service->current_notification_number);
+		fprintf(fp,"\tcurrent_notification_id=%lu\n",temp_service->current_notification_id);
 		fprintf(fp,"\tlast_notification=%lu\n",temp_service->last_notification);
 		fprintf(fp,"\tnotifications_enabled=%d\n",temp_service->notifications_enabled);
 		fprintf(fp,"\tactive_checks_enabled=%d\n",temp_service->checks_enabled);
@@ -724,6 +734,10 @@ int xrddefault_read_state_information(char *main_config_file){
 						next_comment_id=strtoul(val,NULL,10);
 					else if(!strcmp(var,"next_downtime_id"))
 						next_downtime_id=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_event_id"))
+						next_event_id=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_notification_id"))
+						next_notification_id=strtoul(val,NULL,10);
 				        }
 				break;
 
@@ -773,6 +787,10 @@ int xrddefault_read_state_information(char *main_config_file){
 						        }
 						else if(!strcmp(var,"current_attempt"))
 							temp_host->current_attempt=(atoi(val)>0)?TRUE:FALSE;
+						else if(!strcmp(var,"current_event_id"))
+							temp_host->current_event_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_event_id"))
+							temp_host->last_event_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"state_type"))
 							temp_host->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))
@@ -793,6 +811,8 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_host->last_host_notification=strtoul(val,NULL,10);
 						else if(!strcmp(var,"current_notification_number"))
 							temp_host->current_notification_number=atoi(val);
+						else if(!strcmp(var,"current_notification_id"))
+							temp_host->current_notification_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"state_history")){
 							temp_ptr=val;
 							for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++){
@@ -967,6 +987,10 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_service->last_hard_state=atoi(val);
 						else if(!strcmp(var,"current_attempt"))
 							temp_service->current_attempt=atoi(val);
+						else if(!strcmp(var,"current_event_id"))
+							temp_service->current_event_id=strtoul(val,NULL,10);
+						else if(!strcmp(var,"last_event_id"))
+							temp_service->last_event_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"state_type"))
 							temp_service->state_type=atoi(val);
 						else if(!strcmp(var,"last_state_change"))
@@ -1010,6 +1034,8 @@ int xrddefault_read_state_information(char *main_config_file){
 							temp_service->notified_on_critical=(atoi(val)>0)?TRUE:FALSE;
 						else if(!strcmp(var,"current_notification_number"))
 							temp_service->current_notification_number=atoi(val);
+						else if(!strcmp(var,"current_notification_id"))
+							temp_service->current_notification_id=strtoul(val,NULL,10);
 						else if(!strcmp(var,"last_notification"))
 							temp_service->last_notification=strtoul(val,NULL,10);
 

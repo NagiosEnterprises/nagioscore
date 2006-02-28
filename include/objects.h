@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2006
+ * Last Modified: 02-28-2006
  *
  * License:
  *
@@ -180,6 +180,8 @@ typedef struct host_struct{
 	char    *perf_data;
         int     state_type;
 	int     current_attempt;
+	int     current_event_id;
+	int     last_event_id;
 	double  latency;
 	double  execution_time;
 	int     check_options;
@@ -200,6 +202,7 @@ typedef struct host_struct{
 	int     notified_on_unreachable;
 	int     current_notification_number;
 	int     no_more_notifications;
+	int     current_notification_id;
 	int     check_flapping_recovery_notification;
 	int     scheduled_downtime_depth;
 	int     pending_flex_downtime;
@@ -362,6 +365,8 @@ typedef struct service_struct{
 	int     should_be_scheduled;
 	time_t	last_check;
 	int	current_attempt;
+	int     current_event_id;
+	int     last_event_id;
 	time_t	last_notification;
 	time_t  next_notification;
 	int     no_more_notifications;
@@ -378,6 +383,7 @@ typedef struct service_struct{
 	int     notified_on_warning;
 	int     notified_on_critical;
 	int     current_notification_number;
+        int     current_notification_id;
 	double  latency;
 	double  execution_time;
 	int     is_executing;

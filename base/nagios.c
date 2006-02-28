@@ -149,6 +149,8 @@ unsigned long   modified_service_process_attributes=MODATTR_NONE;
 
 unsigned long   next_comment_id=0L;
 unsigned long   next_downtime_id=0L;
+unsigned long   next_event_id=0L;
+unsigned long   next_notification_id=0L;
 
 int             log_rotation_method=LOG_ROTATION_NONE;
 

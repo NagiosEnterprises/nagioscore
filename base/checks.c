@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-27-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -77,6 +77,8 @@ extern host              *host_list;
 extern service           *service_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency    *hostdependency_list;
+
+extern unsigned long   next_event_id;
 
 extern check_result    check_result_info;
 
@@ -919,6 +921,7 @@ void reap_service_checks(void){
 #endif
 		        }
 
+		/* a state change occurred... */
 		/* reset last and next notification times and acknowledgement flag if necessary */
 		if(state_change==TRUE || hard_state_change==TRUE){
 
@@ -959,6 +962,12 @@ void reap_service_checks(void){
 		if(hard_state_change==TRUE)
 			temp_service->last_hard_state_change=temp_service->last_check;
 
+		/* update the event id */
+		if(state_change==TRUE){
+			temp_service->last_event_id=temp_service->current_event_id;
+			temp_service->current_event_id=next_event_id;
+			next_event_id++;
+		        }
 
 
 		/**************************************/

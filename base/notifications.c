@@ -41,6 +41,8 @@ extern int             enable_notifications;
 
 extern int             notification_timeout;
 
+extern unsigned long   next_notification_id;
+
 extern char            *macro_x[MACRO_X_COUNT];
 
 extern char            *generic_summary;
@@ -108,6 +110,10 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 	        }
 
+	/* save and increase the current notification id */
+	svc->current_notification_id=next_notification_id;
+	next_notification_id++;
+
 	/* create the contact notification list for this service */
 	create_notification_list_from_service(svc,&escalated);
 
@@ -160,12 +166,26 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 	                }
 
 		/* set the notification number macro */
+		if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL)
+			free(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+		macro_x[MACRO_SERVICENOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+		if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL){
+			snprintf(macro_x[MACRO_SERVICENOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
+			macro_x[MACRO_SERVICENOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	                }
+
+		/* this is for backward compatability */
 		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
 			free(macro_x[MACRO_NOTIFICATIONNUMBER]);
-		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
-			snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
-			macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+		macro_x[MACRO_NOTIFICATIONNUMBER]=strdup((macro_x[MACRO_SERVICENOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+
+		/* set the notification id macro */
+		if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL)
+			free(macro_x[MACRO_SERVICENOTIFICATIONID]);
+		macro_x[MACRO_SERVICENOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
+		if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL){
+			snprintf(macro_x[MACRO_SERVICENOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",svc->current_notification_id);
+			macro_x[MACRO_SERVICENOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
 	                }
 
 		/* notify each contact (duplicates have been removed) */
@@ -928,6 +948,10 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 #endif
 	        }
 
+	/* save and increase the current notification id */
+	hst->current_notification_id=next_notification_id;
+	next_notification_id++;
+
 	/* create the contact notification list for this host */
 	create_notification_list_from_host(hst,&escalated);
 
@@ -979,12 +1003,26 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 	                }
 
 		/* set the notification number macro */
+		if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL)
+			free(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+		macro_x[MACRO_HOSTNOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+		if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL){
+			snprintf(macro_x[MACRO_HOSTNOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
+			macro_x[MACRO_HOSTNOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	                }
+
+		/* this is for backward compatability */
 		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL)
 			free(macro_x[MACRO_NOTIFICATIONNUMBER]);
-		macro_x[MACRO_NOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
-		if(macro_x[MACRO_NOTIFICATIONNUMBER]!=NULL){
-			snprintf(macro_x[MACRO_NOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
-			macro_x[MACRO_NOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+		macro_x[MACRO_NOTIFICATIONNUMBER]=strdup((macro_x[MACRO_HOSTNOTIFICATIONNUMBER]==NULL)?"":macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+
+		/* set the notification id macro */
+		if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL)
+			free(macro_x[MACRO_HOSTNOTIFICATIONID]);
+		macro_x[MACRO_HOSTNOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
+		if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL){
+			snprintf(macro_x[MACRO_HOSTNOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",hst->current_notification_id);
+			macro_x[MACRO_HOSTNOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
 	                }
 
 		/* notify each contact (duplicates have been removed) */

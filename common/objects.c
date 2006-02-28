@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2006
+ * Last Modified: 02-28-2006
  *
  * License:
  *
@@ -1370,6 +1370,8 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->long_plugin_output=NULL;
 	new_host->perf_data=NULL;
 	new_host->current_state=HOST_UP;
+	new_host->current_event_id=0L;
+	new_host->last_event_id=0L;
 	new_host->last_state=HOST_UP;
 	new_host->last_hard_state=HOST_UP;
 	new_host->check_type=HOST_CHECK_ACTIVE;
@@ -1394,6 +1396,7 @@ host *add_host(char *name, char *alias, char *address, char *check_period, int c
 	new_host->notified_on_down=FALSE;
 	new_host->notified_on_unreachable=FALSE;
 	new_host->current_notification_number=0;
+	new_host->current_notification_id=0L;
 	new_host->no_more_notifications=FALSE;
 	new_host->check_flapping_recovery_notification=FALSE;
 	new_host->checks_enabled=(checks_enabled>0)?TRUE:FALSE;
@@ -3247,6 +3250,8 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->check_type=SERVICE_CHECK_ACTIVE;
 	new_service->current_attempt=1;
 	new_service->current_state=STATE_OK;
+	new_service->current_event_id=0L;
+	new_service->last_event_id=0L;
 	new_service->last_state=STATE_OK;
 	new_service->last_hard_state=STATE_OK;
 	new_service->state_type=HARD_STATE;
@@ -3270,6 +3275,7 @@ service *add_service(char *host_name, char *description, char *check_period, int
 	new_service->notified_on_warning=FALSE;
 	new_service->notified_on_critical=FALSE;
 	new_service->current_notification_number=0;
+	new_service->current_notification_id=0L;
 	new_service->latency=0.0;
 	new_service->execution_time=0.0;
 	new_service->is_executing=FALSE;

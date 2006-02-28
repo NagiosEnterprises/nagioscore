@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-24-006
+ * Last Modified:   02-28-006
  *
  * License:
  *
@@ -139,6 +139,8 @@ extern unsigned long modified_service_process_attributes;
 
 extern unsigned long next_comment_id;
 extern unsigned long next_downtime_id;
+extern unsigned long next_event_id;
+extern unsigned long next_notification_id;
 
 extern int      log_rotation_method;
 
@@ -682,6 +684,42 @@ int grab_service_macros(service *svc){
 		macro_x[MACRO_SERVICEDURATION][MAX_DURATION_LENGTH-1]='\x0';
 	        }
 
+	/* get the notification number macro */
+	if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL)
+		free(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]);
+	macro_x[MACRO_SERVICENOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+	if(macro_x[MACRO_SERVICENOTIFICATIONNUMBER]!=NULL){
+		snprintf(macro_x[MACRO_SERVICENOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",svc->current_notification_number);
+		macro_x[MACRO_SERVICENOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	        }
+
+	/* get the notification id macro */
+	if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL)
+		free(macro_x[MACRO_SERVICENOTIFICATIONID]);
+	macro_x[MACRO_SERVICENOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
+	if(macro_x[MACRO_SERVICENOTIFICATIONID]!=NULL){
+		snprintf(macro_x[MACRO_SERVICENOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",svc->current_notification_id);
+		macro_x[MACRO_SERVICENOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
+	        }
+
+	/* get the event id macro */
+	if(macro_x[MACRO_SERVICEEVENTID]!=NULL)
+		free(macro_x[MACRO_SERVICEEVENTID]);
+	macro_x[MACRO_SERVICEEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
+	if(macro_x[MACRO_SERVICEEVENTID]!=NULL){
+		snprintf(macro_x[MACRO_SERVICEEVENTID],MAX_EVENTID_LENGTH-1,"%d",svc->current_event_id);
+		macro_x[MACRO_SERVICEEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
+	        }
+
+	/* get the last event id macro */
+	if(macro_x[MACRO_LASTSERVICEEVENTID]!=NULL)
+		free(macro_x[MACRO_LASTSERVICEEVENTID]);
+	macro_x[MACRO_LASTSERVICEEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
+	if(macro_x[MACRO_LASTSERVICEEVENTID]!=NULL){
+		snprintf(macro_x[MACRO_LASTSERVICEEVENTID],MAX_EVENTID_LENGTH-1,"%d",svc->last_event_id);
+		macro_x[MACRO_LASTSERVICEEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
+	        }
+
 	/* find one servicegroup (there may be none or several) this service is associated with */
 	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
 		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE)
@@ -981,6 +1019,42 @@ int grab_host_macros(host *hst){
 	if(macro_x[MACRO_LASTHOSTUNREACHABLE]!=NULL){
 		snprintf(macro_x[MACRO_LASTHOSTUNREACHABLE],MAX_DATETIME_LENGTH,"%lu",(unsigned long)hst->last_time_unreachable);
 		macro_x[MACRO_LASTHOSTUNREACHABLE][MAX_DATETIME_LENGTH-1]='\x0';
+	        }
+
+	/* get the notification number macro */
+	if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL)
+		free(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]);
+	macro_x[MACRO_HOSTNOTIFICATIONNUMBER]=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+	if(macro_x[MACRO_HOSTNOTIFICATIONNUMBER]!=NULL){
+		snprintf(macro_x[MACRO_HOSTNOTIFICATIONNUMBER],MAX_NOTIFICATIONNUMBER_LENGTH-1,"%d",hst->current_notification_number);
+		macro_x[MACRO_HOSTNOTIFICATIONNUMBER][MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+	        }
+
+	/* get the notification id macro */
+	if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL)
+		free(macro_x[MACRO_HOSTNOTIFICATIONID]);
+	macro_x[MACRO_HOSTNOTIFICATIONID]=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
+	if(macro_x[MACRO_HOSTNOTIFICATIONID]!=NULL){
+		snprintf(macro_x[MACRO_HOSTNOTIFICATIONID],MAX_NOTIFICATIONID_LENGTH-1,"%d",hst->current_notification_id);
+		macro_x[MACRO_HOSTNOTIFICATIONID][MAX_NOTIFICATIONID_LENGTH-1]='\x0';
+	        }
+
+	/* get the event id macro */
+	if(macro_x[MACRO_HOSTEVENTID]!=NULL)
+		free(macro_x[MACRO_HOSTEVENTID]);
+	macro_x[MACRO_HOSTEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
+	if(macro_x[MACRO_HOSTEVENTID]!=NULL){
+		snprintf(macro_x[MACRO_HOSTEVENTID],MAX_EVENTID_LENGTH-1,"%d",hst->current_event_id);
+		macro_x[MACRO_HOSTEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
+	        }
+
+	/* get the last event id macro */
+	if(macro_x[MACRO_LASTHOSTEVENTID]!=NULL)
+		free(macro_x[MACRO_LASTHOSTEVENTID]);
+	macro_x[MACRO_LASTHOSTEVENTID]=(char *)malloc(MAX_EVENTID_LENGTH);
+	if(macro_x[MACRO_LASTHOSTEVENTID]!=NULL){
+		snprintf(macro_x[MACRO_LASTHOSTEVENTID],MAX_EVENTID_LENGTH-1,"%d",hst->last_event_id);
+		macro_x[MACRO_LASTHOSTEVENTID][MAX_EVENTID_LENGTH-1]='\x0';
 	        }
 
 	/* find one hostgroup (there may be none or several) this host is associated with */
@@ -1483,6 +1557,42 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 		        }
 	        }
 
+	/* get the notification number macro */
+	else if(!strcmp(macro,"HOSTNOTIFICATIONNUMBER")){
+		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_NOTIFICATIONNUMBER_LENGTH,"%lu",hst->current_notification_number);
+			macro_ondemand[MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the notification id macro */
+	else if(!strcmp(macro,"HOSTNOTIFICATIONID")){
+		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_NOTIFICATIONID_LENGTH,"%lu",hst->current_notification_id);
+			macro_ondemand[MAX_NOTIFICATIONID_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the event id macro */
+	else if(!strcmp(macro,"HOSTEVENTID")){
+		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",hst->current_event_id);
+			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the last event id macro */
+	else if(!strcmp(macro,"LASTHOSTEVENTID")){
+		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",hst->last_event_id);
+			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
+		        }
+	        }
+
 	/* get the hostgroup name */
 	else if(!strcmp(macro,"HOSTGROUPNAME")){
 		if(temp_hostgroup!=NULL)
@@ -1789,6 +1899,42 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			seconds=duration;
 			snprintf(macro_ondemand,MAX_DURATION_LENGTH,"%dd %dh %dm %ds",days,hours,minutes,seconds);
 			macro_ondemand[MAX_DURATION_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the notification number macro */
+	else if(!strcmp(macro,"SERVICENOTIFICATIONNUMBER")){
+		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONNUMBER_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_NOTIFICATIONNUMBER_LENGTH,"%lu",svc->current_notification_number);
+			macro_ondemand[MAX_NOTIFICATIONNUMBER_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the notification id macro */
+	else if(!strcmp(macro,"SERVICENOTIFICATIONID")){
+		macro_ondemand=(char *)malloc(MAX_NOTIFICATIONID_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_NOTIFICATIONID_LENGTH,"%lu",svc->current_notification_id);
+			macro_ondemand[MAX_NOTIFICATIONID_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the event id macro */
+	else if(!strcmp(macro,"SERVICEEVENTID")){
+		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",svc->current_event_id);
+			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
+		        }
+	        }
+
+	/* get the event id macro */
+	else if(!strcmp(macro,"LASTSERVICEEVENTID")){
+		macro_ondemand=(char *)malloc(MAX_EVENTID_LENGTH);
+		if(macro_ondemand!=NULL){
+			snprintf(macro_ondemand,MAX_EVENTID_LENGTH,"%lu",svc->last_event_id);
+			macro_ondemand[MAX_EVENTID_LENGTH-1]='\x0';
 		        }
 	        }
 
@@ -2574,6 +2720,14 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_LONGHOSTOUTPUT,"LONGHOSTOUTPUT");
 	add_macrox_name(MACRO_LONGSERVICEOUTPUT,"LONGSERVICEOUTPUT");
 	add_macrox_name(MACRO_TEMPPATH,"TEMPPATH");
+	add_macrox_name(MACRO_HOSTNOTIFICATIONNUMBER,"HOSTNOTIFICATIONNUMBER");
+	add_macrox_name(MACRO_SERVICENOTIFICATIONNUMBER,"SERVICENOTIFICATIONNUMBER");
+	add_macrox_name(MACRO_HOSTNOTIFICATIONID,"HOSTNOTIFICATIONID");
+	add_macrox_name(MACRO_SERVICENOTIFICATIONID,"SERVICENOTIFICATIONID");
+	add_macrox_name(MACRO_HOSTEVENTID,"HOSTEVENTID");
+	add_macrox_name(MACRO_LASTHOSTEVENTID,"LASTHOSTEVENTID");
+	add_macrox_name(MACRO_SERVICEEVENTID,"SERVICEEVENTID");
+	add_macrox_name(MACRO_LASTSERVICEEVENTID,"LASTSERVICEEVENTID");
 
 #ifdef DEBUG0
 	printf("init_macrox_names() end\n");
@@ -6214,8 +6368,10 @@ int reset_variables(void){
 	obsess_over_hosts=FALSE;
 	enable_failure_prediction=TRUE;
 
-	next_comment_id=0L;
+	next_comment_id=0L;  /* comment and downtime id get initialized to nonzero elsewhere */
 	next_downtime_id=0L;
+	next_event_id=1;
+	next_notification_id=1;
 
 	aggregate_status_updates=TRUE;
 	status_update_interval=DEFAULT_STATUS_UPDATE_INTERVAL;

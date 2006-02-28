@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-19-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -37,6 +37,8 @@ extern int             obsess_over_hosts;
 
 extern int             log_event_handlers;
 extern int             log_host_retries;
+
+extern unsigned long   next_event_id;
 
 extern int             event_handler_timeout;
 extern int             ocsp_timeout;
@@ -672,6 +674,11 @@ int handle_host_state(host *hst){
 		if(hst->state_type==HARD_STATE)
 			hst->last_hard_state_change=current_time;
 
+		/* update the event id */
+		hst->last_event_id=hst->current_event_id;
+		hst->current_event_id=next_event_id;
+		next_event_id++;
+
 		/* reset the acknowledgement flag if necessary */
 		if(hst->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
 			hst->problem_has_been_acknowledged=FALSE;
@@ -688,13 +695,6 @@ int handle_host_state(host *hst){
 
 		/* reset notification suppression option */
 		hst->no_more_notifications=FALSE;
-
-		/* the host just recovered, so reset the current host attempt */
-		/* 11/11/05 EG - moved below */
-		/*
-		if(hst->current_state==HOST_UP)
-			hst->current_attempt=1;
-		*/
 
 		/* write the host state change to the main log file */
 		if(hst->state_type==HARD_STATE || (hst->state_type==SOFT_STATE && log_host_retries==TRUE))

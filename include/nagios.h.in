@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2006
+ * Last Modified: 02-28-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -50,6 +50,8 @@ extern "C" {
 #define MAX_DOWNTIME_LENGTH			3
 #define MAX_STATEID_LENGTH			2
 #define MAX_PERCENTCHANGE_LENGTH           	8
+#define MAX_NOTIFICATIONID_LENGTH               11
+#define MAX_EVENTID_LENGTH                      11
 
 
 
@@ -59,7 +61,7 @@ extern "C" {
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				102	/* size of macro_x[] array */
+#define MACRO_X_COUNT				110	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -91,7 +93,7 @@ extern "C" {
 #define MACRO_HOSTSTATEID                       27
 #define MACRO_HOSTATTEMPT			28
 #define MACRO_NOTIFICATIONTYPE			29
-#define MACRO_NOTIFICATIONNUMBER		30
+#define MACRO_NOTIFICATIONNUMBER		30   /* deprecated - see HOSTNOTIFICATIONNUMBER and SERVICENOTIFICATIONNUMBER macros */
 #define MACRO_HOSTEXECUTIONTIME			31
 #define MACRO_SERVICEEXECUTIONTIME		32
 #define MACRO_HOSTLATENCY                       33
@@ -163,6 +165,15 @@ extern "C" {
 #define MACRO_LONGHOSTOUTPUT	                99
 #define MACRO_LONGSERVICEOUTPUT                 100
 #define MACRO_TEMPPATH                          101
+#define MACRO_HOSTNOTIFICATIONNUMBER            102
+#define MACRO_SERVICENOTIFICATIONNUMBER         103
+#define MACRO_HOSTNOTIFICATIONID                104
+#define MACRO_SERVICENOTIFICATIONID             105
+#define MACRO_HOSTEVENTID                       106
+#define MACRO_LASTHOSTEVENTID                   107
+#define MACRO_SERVICEEVENTID                    108
+#define MACRO_LASTSERVICEEVENTID                109
+
 
 
 

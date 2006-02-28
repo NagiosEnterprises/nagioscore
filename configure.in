@@ -41,6 +41,65 @@ AC_TYPE_SIZE_T
 AC_TYPE_SIGNAL
 AC_TYPE_GETGROUPS
 
+
+dnl Check for asprintf() and friends...
+AC_CACHE_CHECK([for va_copy],ac_cv_HAVE_VA_COPY,[
+AC_TRY_LINK([#include <stdarg.h>
+va_list ap1,ap2;], [va_copy(ap1,ap2);],
+ac_cv_HAVE_VA_COPY=yes,
+ac_cv_HAVE_VA_COPY=no)])
+if test x"$ac_cv_HAVE_VA_COPY" = x"yes"; then
+    AC_DEFINE(HAVE_VA_COPY,1,[Whether va_copy() is available])
+else    
+    AC_CACHE_CHECK([for __va_copy],ac_cv_HAVE___VA_COPY,[
+    AC_TRY_LINK([#include <stdarg.h>
+    va_list ap1,ap2;], [__va_copy(ap1,ap2);],
+    ac_cv_HAVE___VA_COPY=yes,
+    ac_cv_HAVE___VA_COPY=no)])
+    if test x"$ac_cv_HAVE___VA_COPY" = x"yes"; then
+        AC_DEFINE(HAVE___VA_COPY,1,[Whether __va_copy() is available])
+    fi
+fi
+
+AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O=../common/snprintf.o)
+AC_CHECK_FUNC(snprintf,,SNPRINTF_O=../common/snprintf.o)
+AC_CHECK_FUNC(asprintf,,SNPRINTF_O=../common/snprintf.o)
+AC_CHECK_FUNC(vasprintf,,SNPRINTF_O=../common/snprintf.o)
+
+AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <stdarg.h>
+void foo(const char *format, ...) { 
+       va_list ap;
+       int len;
+       char buf[5];
+
+       va_start(ap, format);
+       len = vsnprintf(buf, 0, format, ap);
+       va_end(ap);
+       if (len != 5) exit(1);
+
+       va_start(ap, format);
+       len = vsnprintf(0, 0, format, ap);
+       va_end(ap);
+       if (len != 5) exit(1);
+
+       if (snprintf(buf, 3, "hello") != 5 || strcmp(buf, "he") != 0) exit(1);
+
+       exit(0);
+}
+main() { foo("hello"); }
+],
+ac_cv_HAVE_C99_VSNPRINTF=yes,ac_cv_HAVE_C99_VSNPRINTF=no,ac_cv_HAVE_C99_VSNPRINTF=cross)])
+if test x"$ac_cv_HAVE_C99_VSNPRINTF" = x"yes"; then
+    AC_DEFINE(HAVE_C99_VSNPRINTF,1,[Define if system has C99 compatible vsnprintf])
+fi
+
+dnl AC_CHECK_FUNC(snprintf,AC_DEFINE(HAVE_SNPRINTF),SNPRINTF_O=../common/snprintf.o)
+AC_SUBST(SNPRINTF_O)
+
+
 dnl Checks for library functions.
 dnl AC_CHECK_LIB(nsl,main,SOCKETLIBS="$SOCKETLIBS -lnsl")
 dnl AC_CHECK_LIB(socket,socket,SOCKETLIBS="$SOCKETLIBS -lsocket")
@@ -633,9 +692,6 @@ PACKDIR=`pwd`/pkg
 AC_SUBST(PACKDIR)
 AC_SUBST(VERSION)
  
-AC_CHECK_FUNC(snprintf,AC_DEFINE(HAVE_SNPRINTF),SNPRINTF_O=../common/snprintf.o)
-AC_SUBST(SNPRINTF_O)
-
 AC_MSG_CHECKING(for type va_list)
 AC_TRY_COMPILE([#ifdef __STDC__
 #include <stdio.h>

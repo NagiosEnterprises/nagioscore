@@ -75,6 +75,18 @@
 
 
 
+/***** ASPRINTF() AND FRIENDS *****/
+
+#undef HAVE_VSNPRINTF
+#undef HAVE_SNPRINTF
+#undef HAVE_ASPRINTF
+#undef HAVE_VASPRINTF
+#undef HAVE_C99_VSNPRINTF
+#undef HAVE_VA_COPY
+#undef HAVE___VA_COPY
+
+
+
 /***** MISC DEFINITIONS *****/
 
 #undef USE_NANOSLEEP
@@ -93,6 +105,7 @@
 #ifndef RTLD_NOW
 #define RTLD_NOW 0
 #endif
+
 
 
 /***** HEADER FILES *****/

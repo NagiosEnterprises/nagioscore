@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 11-25-2005
+# Last Modified: 02-28-2006
 ############################
 
 
@@ -163,7 +163,7 @@ xretention-base.o: $(SRC_XDATA)/$(XRDC) $(SRC_XDATA)/$(XRDH)
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XRDC)
 
 
-########## CGIS ##########
+########## NAGIOS ##########
 
 nagios: nagios.c $(OBJS) $(OBJDEPS) $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h
 	$(CC) $(CFLAGS) -o $@ nagios.c $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS) $(BROKERLIBS) $(LIBS)

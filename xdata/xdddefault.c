@@ -2,8 +2,8 @@
  *
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
- * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-04-2004
+ * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -49,7 +49,7 @@ char xdddefault_downtime_file[MAX_FILENAME_LENGTH]="";
 char xdddefault_temp_file[MAX_FILENAME_LENGTH]="";
 
 #ifdef NSCORE
-unsigned long current_downtime_id=0;
+extern unsigned long next_downtime_id;
 extern scheduled_downtime *scheduled_downtime_list;
 extern char *macro_x[MACRO_X_COUNT];
 #endif
@@ -218,6 +218,10 @@ int xdddefault_initialize_downtime_data(char *main_config_file){
 	/* clean up the old downtime data */
 	xdddefault_validate_downtime_data();
 
+	/* initialize next downtime id if necessary */
+	if(next_downtime_id==0L)
+		next_downtime_id=1;
+
 	return OK;
         }
 
@@ -294,13 +298,12 @@ int xdddefault_validate_downtime_data(void){
 	if(update_file==TRUE)
 		xdddefault_save_downtime_data();
 
-	/* reset the current downtime counter */
-	current_downtime_id=0;
-
-	/* find the new starting index for downtime id */
-	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(temp_downtime->downtime_id>current_downtime_id)
-			current_downtime_id=temp_downtime->downtime_id;
+	/* find the new starting index for downtime id if its missing*/
+	if(next_downtime_id==0L){
+		for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+			if(temp_downtime->downtime_id>=next_downtime_id)
+				next_downtime_id=temp_downtime->downtime_id+1;
+		        }
 	        }
 
 	return OK;
@@ -325,21 +328,21 @@ int xdddefault_cleanup_downtime_data(char *main_config_file){
 int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 
 	/* find the next valid downtime id */
-	do{
-		current_downtime_id++;
-		if(current_downtime_id==0)
-			current_downtime_id++;
-  	        }while(find_host_downtime(current_downtime_id)!=NULL);
+	while(find_host_downtime(next_downtime_id)!=NULL)
+		next_downtime_id++;
 
 	/* add downtime to list in memory */
-	add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,current_downtime_id);
+	add_host_downtime(host_name,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,next_downtime_id);
 
 	/* update downtime file */
 	xdddefault_save_downtime_data();
 
 	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id!=NULL)
-		*downtime_id=current_downtime_id;
+		*downtime_id=next_downtime_id;
+
+	/* increment the downtime id */
+	next_downtime_id++;
 
 	return OK;
         }
@@ -350,22 +353,21 @@ int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *a
 int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id){
 
 	/* find the next valid downtime id */
-	do{
-		current_downtime_id++;
-		if(current_downtime_id==0)
-			current_downtime_id++;
-  	        }while(find_service_downtime(current_downtime_id)!=NULL);
+	while(find_service_downtime(next_downtime_id)!=NULL)
+		next_downtime_id++;
 
 	/* add downtime to list in memory */
-	add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,current_downtime_id);
+	add_service_downtime(host_name,service_description,entry_time,author,comment,start_time,end_time,fixed,triggered_by,duration,next_downtime_id);
 
 	/* update downtime file */
 	xdddefault_save_downtime_data();
 
 	/* return the id for the downtime we are about to add (this happens in the main code) */
 	if(downtime_id!=NULL)
-		*downtime_id=current_downtime_id;
+		*downtime_id=next_downtime_id;
 
+	/* increment the downtime id */
+	next_downtime_id++;
 
 	return OK;
         }

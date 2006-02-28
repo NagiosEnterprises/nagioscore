@@ -137,6 +137,9 @@ extern int      retention_scheduling_horizon;
 extern unsigned long modified_host_process_attributes;
 extern unsigned long modified_service_process_attributes;
 
+extern unsigned long next_comment_id;
+extern unsigned long next_downtime_id;
+
 extern int      log_rotation_method;
 
 extern time_t   last_command_check;
@@ -6210,6 +6213,9 @@ int reset_variables(void){
 	obsess_over_services=FALSE;
 	obsess_over_hosts=FALSE;
 	enable_failure_prediction=TRUE;
+
+	next_comment_id=0L;
+	next_downtime_id=0L;
 
 	aggregate_status_updates=TRUE;
 	status_update_interval=DEFAULT_STATUS_UPDATE_INTERVAL;

@@ -92,6 +92,9 @@ extern host *host_list;
 extern service *service_list;
 extern contact *contact_list;
 
+extern unsigned long  next_comment_id;
+extern unsigned long  next_downtime_id;
+
 extern unsigned long  modified_host_process_attributes;
 extern unsigned long  modified_service_process_attributes;
 extern char           *global_host_event_handler;
@@ -365,6 +368,8 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
 	fprintf(fp,"\tglobal_host_event_handler=%s\n",(global_host_event_handler==NULL)?"":global_host_event_handler);
 	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
+	fprintf(fp,"\tnext_comment_id=%lu\n",next_comment_id);
+	fprintf(fp,"\tnext_downtime_id=%lu\n",next_downtime_id);
 	fprintf(fp,"\t}\n\n");
 
 

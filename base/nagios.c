@@ -147,6 +147,9 @@ int             retention_scheduling_horizon=DEFAULT_RETENTION_SCHEDULING_HORIZO
 unsigned long   modified_host_process_attributes=MODATTR_NONE;
 unsigned long   modified_service_process_attributes=MODATTR_NONE;
 
+unsigned long   next_comment_id=0L;
+unsigned long   next_downtime_id=0L;
+
 int             log_rotation_method=LOG_ROTATION_NONE;
 
 int             sigshutdown=FALSE;

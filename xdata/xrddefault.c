@@ -64,6 +64,9 @@ extern int            use_retained_program_state;
 extern int            use_retained_scheduling_info;
 extern int            retention_scheduling_horizon;
 
+extern unsigned long  next_comment_id;
+extern unsigned long  next_downtime_id;
+
 extern unsigned long  modified_host_process_attributes;
 extern unsigned long  modified_service_process_attributes;
 
@@ -229,6 +232,8 @@ int xrddefault_save_state_information(char *main_config_file){
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
 	fprintf(fp,"\tglobal_host_event_handler=%s\n",(global_host_event_handler==NULL)?"":global_host_event_handler);
 	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
+	fprintf(fp,"\tnext_comment_id=%lu\n",next_comment_id);
+	fprintf(fp,"\tnext_downtime_id=%lu\n",next_downtime_id);
 	fprintf(fp,"\t}\n\n");
 
 	/* save host state information */
@@ -715,6 +720,10 @@ int xrddefault_read_state_information(char *main_config_file){
 							        }
 						        }
 					        }
+					else if(!strcmp(var,"next_comment_id"))
+						next_comment_id=strtoul(val,NULL,10);
+					else if(!strcmp(var,"next_downtime_id"))
+						next_downtime_id=strtoul(val,NULL,10);
 				        }
 				break;
 

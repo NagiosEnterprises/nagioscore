@@ -61,6 +61,7 @@ Pre-alpha changes since 02/15/2006...
 
 * Retention data changes:
      - Contact status information is now retained across program restarts
+     - Comment and downtime IDs are now stored across program restarts, should be unique unless reset
 
 
 

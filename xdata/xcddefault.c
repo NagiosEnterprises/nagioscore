@@ -2,8 +2,8 @@
  *
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
- * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-31-2004
+ * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   02-27-2006
  *
  * License:
  *
@@ -47,7 +47,7 @@ char xcddefault_comment_file[MAX_FILENAME_LENGTH]="";
 char xcddefault_temp_file[MAX_FILENAME_LENGTH]="";
 
 #ifdef NSCORE
-unsigned long current_comment_id=0;
+extern unsigned long next_comment_id;
 extern comment *comment_list;
 extern char *macro_x[MACRO_X_COUNT];
 #endif
@@ -217,6 +217,10 @@ int xcddefault_initialize_comment_data(char *main_config_file){
 	/* clean up the old comment data */
 	xcddefault_validate_comment_data();
 
+	/* initialize next comment id if necessary */
+	if(next_comment_id==0L)
+		next_comment_id=1;
+
 	return OK;
         }
 
@@ -274,13 +278,12 @@ int xcddefault_validate_comment_data(void){
 	if(update_file==TRUE)
 		xcddefault_save_comment_data();
 
-	/* reset the current comment counter */
-	current_comment_id=0;
-
-	/* find the new starting index for comment id */
-	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
-		if(temp_comment->comment_id>current_comment_id)
-			current_comment_id=temp_comment->comment_id;
+	/* find the new starting index for comment id if its missing */
+	if(next_comment_id==0L){
+		for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+			if(temp_comment->comment_id>=next_comment_id)
+				next_comment_id=temp_comment->comment_id+1;
+		        }
 	        }
 
 	return OK;
@@ -307,21 +310,21 @@ int xcddefault_cleanup_comment_data(char *main_config_file){
 int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 
 	/* find the next valid comment id */
-	do{
-		current_comment_id++;
-		if(current_comment_id==0)
-			current_comment_id++;
-  	        }while(find_host_comment(current_comment_id)!=NULL);
+	while(find_host_comment(next_comment_id)!=NULL)
+		next_comment_id++;
 
 	/* add comment to list in memory */
-	add_host_comment(entry_type,host_name,entry_time,author_name,comment_data,current_comment_id,persistent,expires,expire_time,source);
+	add_host_comment(entry_type,host_name,entry_time,author_name,comment_data,next_comment_id,persistent,expires,expire_time,source);
 
 	/* update comment file */
 	xcddefault_save_comment_data();
 
 	/* return the id for the comment we are about to add (this happens in the main code) */
 	if(comment_id!=NULL)
-		*comment_id=current_comment_id;
+		*comment_id=next_comment_id;
+
+	/* increment the comment id */
+	next_comment_id++;
 
 	return OK;
         }
@@ -331,21 +334,21 @@ int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entr
 int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
 
 	/* find the next valid comment id */
-	do{
-		current_comment_id++;
-		if(current_comment_id==0)
-			current_comment_id++;
-  	        }while(find_service_comment(current_comment_id)!=NULL);
+	while(find_service_comment(next_comment_id)!=NULL)
+		next_comment_id++;
 
 	/* add comment to list in memory */
-	add_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,current_comment_id,persistent,expires,expire_time,source);
+	add_service_comment(entry_type,host_name,svc_description,entry_time,author_name,comment_data,next_comment_id,persistent,expires,expire_time,source);
 
 	/* update comment file */
 	xcddefault_save_comment_data();
 
 	/* return the id for the comment we are about to add (this happens in the main code) */
 	if(comment_id!=NULL)
-		*comment_id=current_comment_id;
+		*comment_id=next_comment_id;
+
+	/* increment the comment id */
+	next_comment_id++;
 
 	return OK;
         }

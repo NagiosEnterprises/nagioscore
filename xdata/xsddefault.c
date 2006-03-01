@@ -107,10 +107,6 @@ extern char           *global_service_event_handler;
 char *xsddefault_status_log=NULL;
 char *xsddefault_temp_file=NULL;
 
-#ifdef NSCORE
-char *xsddefault_aggregate_temp_file=NULL;
-#endif
-
 
 
 /******************************************************************/
@@ -130,16 +126,9 @@ int xsddefault_grab_config_info(char *config_file){
 
 	/*** CORE PASSES IN MAIN CONFIG FILE, CGIS PASS IN CGI CONFIG FILE! ***/
 
-	/* initialize the location of the status log */
-	xsddefault_status_log=(char *)strdup(DEFAULT_STATUS_FILE);
-	xsddefault_temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
-
 	/* open the config file for reading */
-	if((thefile=mmap_fopen(config_file))==NULL){
-		free(xsddefault_status_log);
-		free(xsddefault_temp_file);
+	if((thefile=mmap_fopen(config_file))==NULL)
 		return ERROR;
-	        }
 
 	/* read in all lines from the main config file */
 	while(1){
@@ -204,11 +193,15 @@ int xsddefault_grab_config_info(char *config_file){
 	my_free((void **)&input);
 	mmap_fclose(thefile);
 
-	/* we didn't find the status log name */
+	/* initialize locations if necessary */
+	if(xsddefault_status_log==NULL)
+		xsddefault_status_log=(char *)strdup(DEFAULT_STATUS_FILE);
+	if(xsddefault_temp_file==NULL)
+		xsddefault_temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
+
+	/* make sure we have what we need */
 	if(xsddefault_status_log==NULL)
 		return ERROR;
-
-	/* we didn't find the temp file */
 	if(xsddefault_temp_file==NULL)
 		return ERROR;
 
@@ -223,31 +216,41 @@ int xsddefault_grab_config_info(char *config_file){
         }
 
 
-void xsddefault_grab_config_directives(char *input_buffer){
-	char *temp_buffer;
+/* processes a single directive */
+int xsddefault_grab_config_directives(char *input){
+	char *temp_ptr=NULL;
+	char *varname=NULL;
+	char *varvalue=NULL;
+
+	/* get the variable name */
+	if((temp_ptr=my_strtok(input,"="))==NULL)
+		return ERROR;
+	if((varname=(char *)strdup(temp_ptr))==NULL)
+		return ERROR;
+
+	/* get the variable value */
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
+		my_free((void **)&varname);
+		return ERROR;
+	        }
+	if((varvalue=(char *)strdup(temp_ptr))==NULL){
+		my_free((void **)&varname);
+		return ERROR;
+	        }
 
 	/* status log definition */
-	if((strstr(input_buffer,"status_file")==input_buffer) || (strstr(input_buffer,"xsddefault_status_log")==input_buffer)){
-		temp_buffer=strtok(input_buffer,"=");
-		temp_buffer=strtok(NULL,"\n");
-		if(temp_buffer==NULL)
-			return;
-		my_free((void **)&xsddefault_status_log);
-		xsddefault_status_log=(char *)strdup(temp_buffer);
-	        }
-
+	if(!strcmp(varname,"status_file") || !strcmp(varname,"xsddefault_status_log"))
+		xsddefault_status_log=(char *)strdup(temp_ptr);
 
 	/* temp file definition */
-	if((strstr(input_buffer,"temp_file")==input_buffer) || (strstr(input_buffer,"xsddefault_temp_file")==input_buffer)){
-		temp_buffer=strtok(input_buffer,"=");
-		temp_buffer=strtok(NULL,"\n");
-		if(temp_buffer==NULL)
-			return;
-		my_free((void **)&xsddefault_temp_file);
-		xsddefault_temp_file=(char *)strdup(temp_buffer);
-	        }
+	if(!strcmp(varname,"temp_file"))
+		xsddefault_temp_file=(char *)strdup(temp_ptr);
 
-	return;
+	/* free memory */
+	my_free((void **)&varname);
+	my_free((void **)&varvalue);
+
+	return OK;
         }
 
 
@@ -299,6 +302,7 @@ int xsddefault_cleanup_status_data(char *config_file, int delete_status_data){
 
 /* write all status data to file */
 int xsddefault_save_status_data(void){
+	char *temp_file=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *temp_buffer=NULL;
 	host *temp_host=NULL;
@@ -311,11 +315,11 @@ int xsddefault_save_status_data(void){
 	/* open a safe temp file for output */
 	if(xsddefault_temp_file==NULL)
 		return ERROR;
-	asprintf(&xsddefault_aggregate_temp_file,"%sXXXXXX",xsddefault_temp_file);
-	if(xsddefault_aggregate_temp_file==NULL)
+	asprintf(&temp_file,"%sXXXXXX",xsddefault_temp_file);
+	if(temp_file==NULL)
 		return ERROR;
 
-	if((fd=mkstemp(xsddefault_aggregate_temp_file))==-1){
+	if((fd=mkstemp(temp_file))==-1){
 
 		/* log an error */
 		asprintf(&temp_buffer,"Error: Unable to create temp file for writing status data!\n");
@@ -323,9 +327,7 @@ int xsddefault_save_status_data(void){
 		my_free((void **)&temp_buffer);
 
 		/* free memory */
-		my_free((void **)&xsddefault_status_log);
-		my_free((void **)&xsddefault_temp_file);
-		my_free((void **)&xsddefault_aggregate_temp_file);
+		my_free((void **)&temp_file);
 
 		return ERROR;
 	        }
@@ -333,17 +335,15 @@ int xsddefault_save_status_data(void){
 	if(fp==NULL){
 
 		close(fd);
-		unlink(xsddefault_aggregate_temp_file);
+		unlink(temp_file);
 
 		/* log an error */
-		asprintf(&temp_buffer,"Error: Unable to open temp file '%s' for writing status data!\n",xsddefault_aggregate_temp_file);
+		asprintf(&temp_buffer,"Error: Unable to open temp file '%s' for writing status data!\n",temp_file);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 
 		/* free memory */
-		my_free((void **)&xsddefault_status_log);
-		my_free((void **)&xsddefault_temp_file);
-		my_free((void **)&xsddefault_aggregate_temp_file);
+		my_free((void **)&temp_file);
 
 		return ERROR;
 	        }
@@ -556,15 +556,21 @@ int xsddefault_save_status_data(void){
 	fclose(fp);
 
 	/* move the temp file to the status log (overwrite the old status log) */
-	if(my_rename(xsddefault_aggregate_temp_file,xsddefault_status_log)){
+	if(my_rename(temp_file,xsddefault_status_log)){
 
 		/* log an error */
 		asprintf(&temp_buffer,"Error: Unable to update status data file '%s'!\n",xsddefault_status_log);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 
+		/* free memory */
+		my_free((void **)&temp_file);
+
 		return ERROR;
 	        }
+
+	/* free memory */
+	my_free((void **)&temp_file);
 
 	return OK;
         }

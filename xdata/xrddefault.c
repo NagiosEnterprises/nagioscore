@@ -73,8 +73,8 @@ extern unsigned long  modified_host_process_attributes;
 extern unsigned long  modified_service_process_attributes;
 
 
-char xrddefault_retention_file[MAX_FILENAME_LENGTH]="";
-char xrddefault_temp_file[MAX_FILENAME_LENGTH]="";
+char *xrddefault_retention_file=NULL;
+char *xrddefault_temp_file=NULL;
 
 
 
@@ -85,21 +85,16 @@ char xrddefault_temp_file[MAX_FILENAME_LENGTH]="";
 
 int xrddefault_grab_config_info(char *main_config_file){
 	char *input=NULL;
-	char *temp_ptr;
-	mmapfile *thefile;
+	mmapfile *thefile=NULL;
 							      
-
-	/* initialize the location of the retention file */
-	strncpy(xrddefault_retention_file,DEFAULT_RETENTION_FILE,sizeof(xrddefault_retention_file)-1);
-	strncpy(xrddefault_temp_file,DEFAULT_TEMP_FILE,sizeof(xrddefault_temp_file)-1);
-	xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
-	xrddefault_temp_file[sizeof(xrddefault_temp_file)-1]='\x0';
 
 	/* open the main config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL){
 #ifdef DEBUG1
 		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
 #endif
+		my_free((void **)&xrddefault_retention_file);
+		my_free((void **)&xrddefault_temp_file);
 		return ERROR;
 	        }
 
@@ -107,7 +102,7 @@ int xrddefault_grab_config_info(char *main_config_file){
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -119,33 +114,99 @@ int xrddefault_grab_config_info(char *main_config_file){
 		if(input[0]=='#' || input[0]=='\x0')
 			continue;
 
-		temp_ptr=my_strtok(input,"=");
-		if(temp_ptr==NULL)
-			continue;
-
-		/* skip lines that don't specify the host config file location */
-		if(strcmp(temp_ptr,"xrddefault_retention_file") && strcmp(temp_ptr,"state_retention_file"))
-			continue;
-
-		/* get the retention file name */
-		temp_ptr=my_strtok(NULL,"\n");
-		if(temp_ptr==NULL)
-			continue;
-
-		strncpy(xrddefault_retention_file,temp_ptr,sizeof(xrddefault_retention_file)-1);
-		xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
+		xrddefault_grab_config_directives(input);
 	        }
 
 	/* free memory and close the file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
 
+	/* initialize locations if necessary  */
+	if(xrddefault_retention_file==NULL)
+		xrddefault_retention_file=(char *)strdup(DEFAULT_RETENTION_FILE);
+	if(xrddefault_temp_file==NULL)
+		xrddefault_temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
+
+	/* make sure we have everything */
+	if(xrddefault_retention_file==NULL)
+		return ERROR;
+	if(xrddefault_temp_file==NULL)
+		return ERROR;
+
 	/* save the retention file macro */
-	if(macro_x[MACRO_RETENTIONDATAFILE]!=NULL)
-		free(macro_x[MACRO_RETENTIONDATAFILE]);
-	macro_x[MACRO_RETENTIONDATAFILE]=(char *)strdup(xrddefault_retention_file);
-	if(macro_x[MACRO_RETENTIONDATAFILE]!=NULL)
+	my_free((void **)&macro_x[MACRO_RETENTIONDATAFILE]);
+	if((macro_x[MACRO_RETENTIONDATAFILE]=(char *)strdup(xrddefault_retention_file)))
 		strip(macro_x[MACRO_RETENTIONDATAFILE]);
+
+	return OK;
+        }
+
+
+
+/* process a single config directive */
+int xrddefault_grab_config_directives(char *input){
+	char *temp_ptr=NULL;
+	char *varname=NULL;
+	char *varvalue=NULL;
+
+	/* get the variable name */
+	if((temp_ptr=my_strtok(input,"="))==NULL)
+		return ERROR;
+	if((varname=(char *)strdup(temp_ptr))==NULL)
+		return ERROR;
+
+	/* get the variable value */
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
+		my_free((void **)&varname);
+		return ERROR;
+	        }
+	if((varvalue=(char *)strdup(temp_ptr))==NULL){
+		my_free((void **)&varname);
+		return ERROR;
+	        }
+
+	/* retention file definition */
+	if(!strcmp(varname,"xrddefault_retention_file") || !strcmp(varname,"state_retention_file"))
+		xrddefault_retention_file=(char *)strdup(varvalue);
+
+	/* temp file definition */
+	if(!strcmp(varname,"temp_file"))
+		xrddefault_temp_file=(char *)strdup(varvalue);
+
+	/* free memory */
+	my_free((void **)&varname);
+	my_free((void **)&varvalue);
+
+	return OK;
+        }
+
+
+
+
+/******************************************************************/
+/********************* INIT/CLEANUP FUNCTIONS *********************/
+/******************************************************************/
+
+
+/* initialize retention data */
+int xrddefault_initialize_retention_data(char *config_file){
+	int result;
+
+	/* grab configuration data */
+	result=xrddefault_grab_config_info(config_file);
+	if(result==ERROR)
+		return ERROR;
+
+	return OK;
+        }
+
+
+/* cleanup retention data before terminating */
+int xrddefault_cleanup_retention_data(char *config_file){
+
+	/* free memory */
+	my_free((void **)&xrddefault_retention_file);
+	my_free((void **)&xrddefault_temp_file);
 
 	return OK;
         }
@@ -155,46 +216,51 @@ int xrddefault_grab_config_info(char *main_config_file){
 /**************** DEFAULT STATE OUTPUT FUNCTION *******************/
 /******************************************************************/
 
-int xrddefault_save_state_information(char *main_config_file){
-	char temp_buffer[MAX_INPUT_BUFFER]="";
-	char temp_file[MAX_FILENAME_LENGTH]="";
+int xrddefault_save_state_information(void){
+	char *temp_buffer=NULL;
+	char *temp_file=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
-	time_t current_time;
+	time_t current_time=0L;
 	int result=OK;
 	FILE *fp=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	contact *temp_contact=NULL;
-	int x, fd=0;
+	int x=0;
+	int fd=0;
 
 #ifdef DEBUG0
 	printf("xrddefault_save_state_information() start\n");
 #endif
 
-	/* grab config info */
-	if(xrddefault_grab_config_info(main_config_file)==ERROR){
+	/* make sure we have everything */
+	if(xrddefault_retention_file==NULL || xrddefault_temp_file==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Failed to grab configuration information for retention data!\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: We don't have the required file names to store retention data!\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
 
 	/* open a safe temp file for output */
-	snprintf(temp_file,sizeof(temp_file)-1,"%sXXXXXX",xrddefault_temp_file);
-	temp_file[sizeof(temp_file)-1]='\x0';
+	asprintf(&temp_file,"%sXXXXXX",xrddefault_temp_file);
+	if(temp_file==NULL)
+		return ERROR;
 	if((fd=mkstemp(temp_file))==-1)
 		return ERROR;
-	fp=fdopen(fd,"w");
+
+	fp=(FILE *)fdopen(fd,"w");
 	if(fp==NULL){
 
 		close(fd);
 		unlink(temp_file);
 
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not open temp state retention file '%s' for writing!\n",temp_file);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Could not open temp state retention file '%s' for writing!\n",temp_file);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+
+		my_free((void **)&temp_file);
 
 		return ERROR;
 	        }
@@ -397,8 +463,10 @@ int xrddefault_save_state_information(char *main_config_file){
 
 	/* move the temp file to the retention file (overwrite the old retention file) */
 	if(my_rename(temp_file,xrddefault_retention_file))
-		return ERROR;
+		result=ERROR;
 
+	/* free memory */
+	my_free((void **)&temp_file);
 
 #ifdef DEBUG0
 	printf("xrddefault_save_state_information() end\n");
@@ -414,8 +482,8 @@ int xrddefault_save_state_information(char *main_config_file){
 /***************** DEFAULT STATE INPUT FUNCTION *******************/
 /******************************************************************/
 
-int xrddefault_read_state_information(char *main_config_file){
-	char temp_buffer[MAX_INPUT_BUFFER];
+int xrddefault_read_state_information(void){
+	char *temp_buffer=NULL;
 	char *input=NULL;
 	char *temp_ptr=NULL;
 	mmapfile *thefile;
@@ -443,12 +511,12 @@ int xrddefault_read_state_information(char *main_config_file){
 	printf("xrddefault_read_state_information() start\n");
 #endif
 
-	/* grab config info */
-	if(xrddefault_grab_config_info(main_config_file)==ERROR){
+	/* make sure we have what we need */
+	if(xrddefault_retention_file==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Failed to grab configuration information for retention data!\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: We don't have a filename for retention data!\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -462,7 +530,7 @@ int xrddefault_read_state_information(char *main_config_file){
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -535,7 +603,7 @@ int xrddefault_read_state_information(char *main_config_file){
 						temp_host->last_hard_state_change=temp_host->last_state_change;
 				        }
 
-				free(host_name);
+				my_free((void **)&host_name);
 				host_name=NULL;
 				temp_host=NULL;
 				break;
@@ -578,10 +646,8 @@ int xrddefault_read_state_information(char *main_config_file){
 						temp_service->last_hard_state_change=temp_service->last_state_change;
 				        }
 
-				free(host_name);
-				host_name=NULL;
-				free(service_description);
-				service_description=NULL;
+				my_free((void **)&host_name);
+				my_free((void **)&service_description);
 				temp_service=NULL;
 				break;
 
@@ -608,8 +674,7 @@ int xrddefault_read_state_information(char *main_config_file){
 					update_contact_status(temp_contact,FALSE);
 				        }
 
-				free(host_name);
-				host_name=NULL;
+				my_free((void **)&host_name);
 				temp_host=NULL;
 				break;
 
@@ -702,14 +767,14 @@ int xrddefault_read_state_information(char *main_config_file){
 						if(modified_host_process_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 							/* make sure the check command still exists... */
-							tempval=strdup(val);
+							tempval=(char *)strdup(val);
 							temp_ptr=my_strtok(tempval,"!");
 							temp_command=find_command(temp_ptr);
-							temp_ptr=strdup(val);
-							free(tempval);
+							temp_ptr=(char *)strdup(val);
+							my_free((void **)&tempval);
 
 							if(temp_command!=NULL && temp_ptr!=NULL){
-								free(global_host_event_handler);
+								my_free((void **)&global_host_event_handler);
 								global_host_event_handler=temp_ptr;
 							        }
 						        }
@@ -718,14 +783,14 @@ int xrddefault_read_state_information(char *main_config_file){
 						if(modified_service_process_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 							/* make sure the check command still exists... */
-							tempval=strdup(val);
+							tempval=(char *)strdup(val);
 							temp_ptr=my_strtok(tempval,"!");
 							temp_command=find_command(temp_ptr);
-							temp_ptr=strdup(val);
-							free(tempval);
+							temp_ptr=(char *)strdup(val);
+							my_free((void **)&tempval);
 
 							if(temp_command!=NULL && temp_ptr!=NULL){
-								free(global_service_event_handler);
+								my_free((void **)&global_service_event_handler);
 								global_service_event_handler=temp_ptr;
 							        }
 						        }
@@ -743,7 +808,7 @@ int xrddefault_read_state_information(char *main_config_file){
 
 			case XRDDEFAULT_HOST_DATA:
 				if(!strcmp(var,"host_name")){
-					host_name=strdup(val);
+					host_name=(char *)strdup(val);
 					temp_host=find_host(host_name);
 				        }
 				else if(temp_host!=NULL){
@@ -765,19 +830,16 @@ int xrddefault_read_state_information(char *main_config_file){
 						else if(!strcmp(var,"last_hard_state"))
 							temp_host->last_hard_state=atoi(val);
 						else if(!strcmp(var,"plugin_output")){
-							if(temp_host->plugin_output)
-								free(temp_host->plugin_output);
-							temp_host->plugin_output=strdup(val);
+							my_free((void **)&temp_host->plugin_output);
+							temp_host->plugin_output=(char *)strdup(val);
 					                }
 						else if(!strcmp(var,"long_plugin_output")){
-							if(temp_host->long_plugin_output)
-								free(temp_host->long_plugin_output);
-							temp_host->long_plugin_output=strdup(val);
+							my_free((void **)&temp_host->long_plugin_output);
+							temp_host->long_plugin_output=(char *)strdup(val);
 					                }
 						else if(!strcmp(var,"performance_data")){
-							if(temp_host->perf_data)
-								free(temp_host->perf_data);
-							temp_host->perf_data=strdup(val);
+							my_free((void **)&temp_host->perf_data);
+							temp_host->perf_data=(char *)strdup(val);
 					                }
 						else if(!strcmp(var,"last_check"))
 							temp_host->last_check=strtoul(val,NULL,10);
@@ -865,14 +927,14 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_host->modified_attributes & MODATTR_CHECK_COMMAND){
 
 								/* make sure the check command still exists... */
-								tempval=strdup(val);
+								tempval=(char *)strdup(val);
 								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
-								temp_ptr=strdup(val);
-								free(tempval);
+								temp_ptr=(char *)strdup(val);
+								my_free((void **)&tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
-									free(temp_host->host_check_command);
+									my_free((void **)&temp_host->host_check_command);
 									temp_host->host_check_command=temp_ptr;
 								        }
 								else
@@ -884,10 +946,10 @@ int xrddefault_read_state_information(char *main_config_file){
 
 								/* make sure the timeperiod still exists... */
 								temp_timeperiod=find_timeperiod(val);
-								temp_ptr=strdup(val);
+								temp_ptr=(char *)strdup(val);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
-									free(temp_host->check_period);
+									my_free((void **)&temp_host->check_period);
 									temp_host->check_period=temp_ptr;
 								        }
 								else
@@ -898,14 +960,14 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_host->modified_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 								/* make sure the check command still exists... */
-								tempval=strdup(val);
+								tempval=(char *)strdup(val);
 								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
-								temp_ptr=strdup(val);
-								free(tempval);
+								temp_ptr=(char *)strdup(val);
+								my_free((void **)&tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
-									free(temp_host->event_handler);
+									my_free((void **)&temp_host->event_handler);
 									temp_host->event_handler=temp_ptr;
 								        }
 								else
@@ -933,14 +995,13 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_host->modified_attributes & MODATTR_CUSTOM_VARIABLE){
 
 								/* get the variable name */
-								if((customvarname=strdup(var+1))){
+								if((customvarname=(char *)strdup(var+1))){
 							
 									for(temp_customvariablesmember=temp_host->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 										if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
 											if((x=atoi(val))>0 && strlen(val)>3){
-												if(temp_customvariablesmember->variable_value)
-													free(temp_customvariablesmember->variable_value);
-												temp_customvariablesmember->variable_value=strdup(val+2);
+												my_free((void **)&temp_customvariablesmember->variable_value);
+												temp_customvariablesmember->variable_value=(char *)strdup(val+2);
 												temp_customvariablesmember->has_been_modified=(x>0)?TRUE:FALSE;
 										                }
 											break;
@@ -948,7 +1009,7 @@ int xrddefault_read_state_information(char *main_config_file){
 								                }
 
 									/* free memory */
-									free(customvarname);
+									my_free((void **)&customvarname);
 								        }
 							        }
 
@@ -960,11 +1021,11 @@ int xrddefault_read_state_information(char *main_config_file){
 
 			case XRDDEFAULT_SERVICE_DATA:
 				if(!strcmp(var,"host_name")){
-					host_name=strdup(val);
+					host_name=(char *)strdup(val);
 					temp_service=find_service(host_name,service_description);
 				        }
 				else if(!strcmp(var,"service_description")){
-					service_description=strdup(val);
+					service_description=(char *)strdup(val);
 					temp_service=find_service(host_name,service_description);
 				        }
 				else if(temp_service!=NULL){
@@ -1006,19 +1067,16 @@ int xrddefault_read_state_information(char *main_config_file){
 						else if(!strcmp(var,"last_time_critical"))
 							temp_service->last_time_critical=strtoul(val,NULL,10);
 						else if(!strcmp(var,"plugin_output")){
-							if(temp_service->plugin_output)
-								free(temp_service->plugin_output);
-							temp_service->plugin_output=strdup(val);
+							my_free((void **)&temp_service->plugin_output);
+							temp_service->plugin_output=(char *)strdup(val);
 					                }
 						else if(!strcmp(var,"long_plugin_output")){
-							if(temp_service->long_plugin_output)
-								free(temp_service->long_plugin_output);
-							temp_service->long_plugin_output=strdup(val);
+							my_free((void **)&temp_service->long_plugin_output);
+							temp_service->long_plugin_output=(char *)strdup(val);
 					                }
 						else if(!strcmp(var,"performance_data")){
-							if(temp_service->perf_data)
-								free(temp_service->perf_data);
-							temp_service->perf_data=strdup(val);
+							my_free((void **)&temp_service->perf_data);
+							temp_service->perf_data=(char *)strdup(val);
 					                }
 						else if(!strcmp(var,"last_check"))
 							temp_service->last_check=strtoul(val,NULL,10);
@@ -1091,14 +1149,14 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_service->modified_attributes & MODATTR_CHECK_COMMAND){
 
 								/* make sure the check command still exists... */
-								tempval=strdup(val);
+								tempval=(char *)strdup(val);
 								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
-								temp_ptr=strdup(val);
-								free(tempval);
+								temp_ptr=(char *)strdup(val);
+								my_free((void **)&tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
-									free(temp_service->service_check_command);
+									my_free((void **)&temp_service->service_check_command);
 									temp_service->service_check_command=temp_ptr;
 								        }
 								else
@@ -1110,10 +1168,10 @@ int xrddefault_read_state_information(char *main_config_file){
 
 								/* make sure the timeperiod still exists... */
 								temp_timeperiod=find_timeperiod(val);
-								temp_ptr=strdup(val);
+								temp_ptr=(char *)strdup(val);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
-									free(temp_service->check_period);
+									my_free((void **)&temp_service->check_period);
 									temp_service->check_period=temp_ptr;
 								        }
 								else
@@ -1124,14 +1182,14 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_service->modified_attributes & MODATTR_EVENT_HANDLER_COMMAND){
 
 								/* make sure the check command still exists... */
-								tempval=strdup(val);
+								tempval=(char *)strdup(val);
 								temp_ptr=my_strtok(tempval,"!");
 								temp_command=find_command(temp_ptr);
-								temp_ptr=strdup(val);
-								free(tempval);
+								temp_ptr=(char *)strdup(val);
+								my_free((void **)&tempval);
 
 								if(temp_command!=NULL && temp_ptr!=NULL){
-									free(temp_service->event_handler);
+									my_free((void **)&temp_service->event_handler);
 									temp_service->event_handler=temp_ptr;
 								        }
 								else
@@ -1163,14 +1221,13 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_service->modified_attributes & MODATTR_CUSTOM_VARIABLE){
 							
 								/* get the variable name */
-								if((customvarname=strdup(var+1))){
+								if((customvarname=(char *)strdup(var+1))){
 							
 									for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 										if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
 											if((x=atoi(val))>0 && strlen(val)>3){
-												if(temp_customvariablesmember->variable_value)
-													free(temp_customvariablesmember->variable_value);
-												temp_customvariablesmember->variable_value=strdup(val+2);
+												my_free((void **)&temp_customvariablesmember->variable_value);
+												temp_customvariablesmember->variable_value=(char *)strdup(val+2);
 												temp_customvariablesmember->has_been_modified=(x>0)?TRUE:FALSE;
 										                }
 											break;
@@ -1178,7 +1235,7 @@ int xrddefault_read_state_information(char *main_config_file){
 								               }
 
 									/* free memory */
-									free(customvarname);
+									my_free((void **)&customvarname);
 							                }
 							        }
 
@@ -1189,7 +1246,7 @@ int xrddefault_read_state_information(char *main_config_file){
 
 			case XRDDEFAULT_CONTACT_DATA:
 				if(!strcmp(var,"contact_name")){
-					contact_name=strdup(val);
+					contact_name=(char *)strdup(val);
 					temp_contact=find_contact(contact_name);
 				        }
 				else if(temp_contact!=NULL){
@@ -1220,14 +1277,13 @@ int xrddefault_read_state_information(char *main_config_file){
 							if(temp_contact->modified_attributes & MODATTR_CUSTOM_VARIABLE){
 							
 								/* get the variable name */
-								if((customvarname=strdup(var+1))){
+								if((customvarname=(char *)strdup(var+1))){
 							
 									for(temp_customvariablesmember=temp_contact->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 										if(!strcmp(customvarname,temp_customvariablesmember->variable_name)){
 											if((x=atoi(val))>0 && strlen(val)>3){
-												if(temp_customvariablesmember->variable_value)
-													free(temp_customvariablesmember->variable_value);
-												temp_customvariablesmember->variable_value=strdup(val+2);
+												my_free((void **)&temp_customvariablesmember->variable_value);
+												temp_customvariablesmember->variable_value=(char *)strdup(val+2);
 												temp_customvariablesmember->has_been_modified=(x>0)?TRUE:FALSE;
 										                }
 											break;
@@ -1235,7 +1291,7 @@ int xrddefault_read_state_information(char *main_config_file){
 								               }
 
 									/* free memory */
-									free(customvarname);
+									my_free((void **)&customvarname);
 							                }
 							        }
 						        }
@@ -1251,7 +1307,7 @@ int xrddefault_read_state_information(char *main_config_file){
 	        }
 
 	/* free memory and close the file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
 
 #ifdef DEBUG0

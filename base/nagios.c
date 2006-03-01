@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-27-2006
+ * Last Modified:   02-28-2006
  *
  * Description:
  *
@@ -701,7 +701,8 @@ int main(int argc, char **argv){
 			initialize_performance_data(config_file);
 
 			/* read initial service and host state information  */
-			read_initial_state_information(config_file);
+			initialize_retention_data(config_file);
+			read_initial_state_information();
 
 		        /* initialize the event timing loop */
 			init_timing_loop();
@@ -766,7 +767,8 @@ int main(int argc, char **argv){
 #endif
 
 			/* save service and host state information */
-			save_state_information(config_file,FALSE);
+			save_state_information(FALSE);
+			cleanup_retention_data(config_file);
 
 			/* clean up the status data */
 			cleanup_status_data(config_file,TRUE);

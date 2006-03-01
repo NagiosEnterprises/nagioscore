@@ -51,8 +51,36 @@ extern int            retain_state_information;
 /******************************************************************/
 
 
+/* initializes retention data at program start */
+int initialize_retention_data(char *config_file){
+	int result=OK;
+
+	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
+#ifdef USE_XRDDEFAULT
+	result=xrddefault_initialize_retention_data(config_file);
+#endif
+
+	return result;
+        }
+
+
+
+/* cleans up retention data before program termination */
+int cleanup_retention_data(char *config_file){
+	int result=OK;
+
+	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
+#ifdef USE_XRDDEFAULT
+	result=xrddefault_cleanup_retention_data(config_file);
+#endif
+
+	return result;
+        }
+
+
+
 /* save all host and service state information */
-int save_state_information(char *main_config_file, int autosave){
+int save_state_information(int autosave){
 	char buffer[MAX_INPUT_BUFFER];
 	int result=OK;
 
@@ -70,7 +98,7 @@ int save_state_information(char *main_config_file, int autosave){
 
 	/********* IMPLEMENTATION-SPECIFIC OUTPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
-	result=xrddefault_save_state_information(main_config_file);
+	result=xrddefault_save_state_information();
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -98,7 +126,7 @@ int save_state_information(char *main_config_file, int autosave){
 
 
 /* reads in initial host and state information */
-int read_initial_state_information(char *main_config_file){
+int read_initial_state_information(void){
 	int result=OK;
 
 #ifdef DEBUG0
@@ -115,7 +143,7 @@ int read_initial_state_information(char *main_config_file){
 
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
-	result=xrddefault_read_state_information(main_config_file);
+	result=xrddefault_read_state_information();
 #endif
 
 #ifdef USE_EVENT_BROKER

@@ -3,7 +3,7 @@
  * XSDDEFAULT.H - Header file for default status data routines
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-26-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -41,4 +41,4 @@ int xsddefault_read_status_data(char *,int);
 #endif
 
 int xsddefault_grab_config_info(char *);
-void xsddefault_grab_config_directives(char *);
+int xsddefault_grab_config_directives(char *);

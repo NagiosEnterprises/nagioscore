@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -1268,7 +1268,7 @@ int handle_timed_event(timed_event *event){
 #endif
 
 		/* save state retention data */
-		save_state_information(config_file,TRUE);
+		save_state_information(TRUE);
 		break;
 
 	case EVENT_STATUS_SAVE:

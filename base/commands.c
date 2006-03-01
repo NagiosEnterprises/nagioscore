@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-27-2006
+ * Last Modified:   02-28-2006
  *
  * License:
  *
@@ -754,11 +754,11 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 		break;
 
 	case CMD_SAVE_STATE_INFORMATION:
-		save_state_information(config_file,FALSE);
+		save_state_information(FALSE);
 		break;
 
 	case CMD_READ_STATE_INFORMATION:
-		read_initial_state_information(config_file);
+		read_initial_state_information();
 		break;
 
 	case CMD_ENABLE_NOTIFICATIONS:

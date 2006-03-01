@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 11-25-2005
+# Last Modified: 03-01-2006
 ###############################
 
 
@@ -55,30 +55,22 @@ XDDH=@XDDH@
 SNPRINTF_O=@SNPRINTF_O@
 
 # Object functions
-#ODATALIBS=$(SRC_COMMON)/objects.c $(SRC_XDATA)/$(XODC)
-#ODATAHDRS=$(SRC_INCLUDE)/objects.h $(SRC_XDATA)/$(XODH)
 ODATALIBS=objects-cgi.o xobjects-cgi.o
 ODATAHDRS=
 ODATADEPS=$(ODATALIBS)
 
 # Host, service, and program status functions
-#SDATALIBS=$(SRC_COMMON)/statusdata.c $(SRC_XDATA)/$(XSDC)
-#SDATAHDRS=$(SRC_INCLUDE)/statusdata.h $(SRC_XDATA)/$(XSDH)
-SDATALIBS=statusdata-cgi.o xstatusdata-cgi.o
+SDATALIBS=statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o
 SDATAHDRS=
 SDATADEPS=$(SDATALIBS)
 
 # Host and service comment functions
-#CDATALIBS=$(SRC_COMMON)/comments.c $(SRC_XDATA)/$(XCDC)
-#CDATAHDRS=$(SRC_INCLUDE)/comments.h $(SRC_XDATA)/$(XCDH)
-CDATALIBS=comments-cgi.o xcomments-cgi.o
+CDATALIBS=
 CDATAHDRS=
 CDATADEPS=$(CDATALIBS)
 
 # Host and service downtime functions
-#DDATALIBS=$(SRC_COMMON)/downtime.c $(SRC_XDATA)/$(XDDC)
-#DDATAHDRS=$(SRC_INCLUDE)/downtime.h $(SRC_XDATA)/$(XDDH)
-DDATALIBS=downtime-cgi.o xdowntime-cgi.o
+DDATALIBS=
 DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 

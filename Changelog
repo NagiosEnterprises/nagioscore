@@ -49,14 +49,6 @@ Pre-alpha changes since 02/15/2006...
      - Added PROCESS_FILE external command to allow processing of external commands found in
        an external (regular) file.  Very useful for passive checks with long output or scripting.
 
-* Misc changes:
-     - More information given when testing scheduling (-s command line option)
-     - Removed fixed length restrictions for host names and service descriptions
-     - Plugin output length restriction bumped up to 2K
-     - Added temp_path directive to main config file for specifying temp directory
-     - Multiline output support for system commands via my_system()
-     - Added global event_id and notification_id vars that are at least unique during a single run of Nagios
-       
 * Status data changes:
      - Contact status information is now saved (although it is not processed by the old CGIs)
 
@@ -64,6 +56,17 @@ Pre-alpha changes since 02/15/2006...
      - Contact status information is now retained across program restarts
      - Comment and downtime IDs are now stored across program restarts, should be unique unless reset
 
+* Downtime changes:
+     - Scheduled downtime entries are now stored in the status and retention files
 
+* Comment changes:
+     - Comments are now stored in the status and retention files
 
+* Misc changes:
+     - More information given when testing scheduling (-s command line option)
+     - Removed fixed length restrictions for host names and service descriptions
+     - Plugin output length restriction bumped up to 2K
+     - Added temp_path directive to main config file for specifying temp directory
+     - Multiline output support for system commands via my_system()
+     - Added global event_id and notification_id vars that are at least unique during a single run of Nagios
 

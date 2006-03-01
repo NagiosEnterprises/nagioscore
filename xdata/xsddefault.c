@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-01-2006
  *
  * License:
  *
@@ -29,6 +29,8 @@
 #include "../include/common.h"
 #include "../include/locations.h"
 #include "../include/statusdata.h"
+#include "../include/comments.h"
+#include "../include/downtime.h"
 
 #ifdef NSCORE
 #include "../include/nagios.h"
@@ -91,6 +93,9 @@ extern char *macro_x[MACRO_X_COUNT];
 extern host *host_list;
 extern service *service_list;
 extern contact *contact_list;
+extern comment *comment_list;
+extern scheduled_downtime *scheduled_downtime_list;
+
 
 extern unsigned long  next_comment_id;
 extern unsigned long  next_downtime_id;
@@ -210,6 +215,16 @@ int xsddefault_grab_config_info(char *config_file){
 	my_free((void **)&macro_x[MACRO_STATUSDATAFILE]);
 	if((macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log)))
 		strip(macro_x[MACRO_STATUSDATAFILE]);
+
+	/* save the comment file macro (deprecated) */
+	my_free((void **)&macro_x[MACRO_COMMENTDATAFILE]);
+	if((macro_x[MACRO_COMMENTDATAFILE]=(char *)strdup(xsddefault_status_log)))
+		strip(macro_x[MACRO_COMMENTDATAFILE]);
+
+	/* save the downtime file macro (deprecated) */
+	my_free((void **)&macro_x[MACRO_DOWNTIMEDATAFILE]);
+	if((macro_x[MACRO_DOWNTIMEDATAFILE]=(char *)strdup(xsddefault_status_log)))
+		strip(macro_x[MACRO_DOWNTIMEDATAFILE]);
 #endif
 
 	return OK;
@@ -243,7 +258,7 @@ int xsddefault_grab_config_directives(char *input){
 		xsddefault_status_log=(char *)strdup(temp_ptr);
 
 	/* temp file definition */
-	if(!strcmp(varname,"temp_file"))
+	else if(!strcmp(varname,"temp_file"))
 		xsddefault_temp_file=(char *)strdup(temp_ptr);
 
 	/* free memory */
@@ -308,6 +323,8 @@ int xsddefault_save_status_data(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	contact *temp_contact=NULL;
+	comment *temp_comment=NULL;
+	scheduled_downtime *temp_downtime=NULL;
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
@@ -365,7 +382,7 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\t}\n\n");
 
 	/* save program status data */
-	fprintf(fp,"program {\n");
+	fprintf(fp,"programstatus {\n");
 	fprintf(fp,"\tmodified_host_attributes=%lu\n",modified_host_process_attributes);
 	fprintf(fp,"\tmodified_service_attributes=%lu\n",modified_service_process_attributes);
 	fprintf(fp,"\tnagios_pid=%d\n",nagios_pid);
@@ -398,7 +415,7 @@ int xsddefault_save_status_data(void){
 	/* save host status data */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		fprintf(fp,"host {\n");
+		fprintf(fp,"hoststatus {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
@@ -463,7 +480,7 @@ int xsddefault_save_status_data(void){
 	/* save service status data */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
 
-		fprintf(fp,"service {\n");
+		fprintf(fp,"servicestatus {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_service->host_name);
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
@@ -531,7 +548,7 @@ int xsddefault_save_status_data(void){
 	/* save contact status data */
 	for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
 
-		fprintf(fp,"contact {\n");
+		fprintf(fp,"contactstatus {\n");
 		fprintf(fp,"\tcontact_name=%s\n",temp_contact->name);
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_contact->modified_attributes);
 		fprintf(fp,"\tmodified_host_attributes=%lu\n",temp_contact->modified_host_attributes);
@@ -545,6 +562,50 @@ int xsddefault_save_status_data(void){
 			if(temp_customvariablesmember->variable_name)
 				fprintf(fp,"\t_%s=%d;%s\n",temp_customvariablesmember->variable_name,temp_customvariablesmember->has_been_modified,(temp_customvariablesmember->variable_value==NULL)?"":temp_customvariablesmember->variable_value);
 		        }
+		fprintf(fp,"\t}\n\n");
+	        }
+
+	/* save all comments */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+
+		if(temp_comment->comment_type==HOST_COMMENT)
+			fprintf(fp,"hostcomment {\n");
+		else
+			fprintf(fp,"servicecomment {\n");
+		fprintf(fp,"\thost_name=%s\n",temp_comment->host_name);
+		if(temp_comment->comment_type==SERVICE_COMMENT)
+			fprintf(fp,"\tservice_description=%s\n",temp_comment->service_description);
+		fprintf(fp,"\tentry_type=%d\n",temp_comment->entry_type);
+		fprintf(fp,"\tcomment_id=%lu\n",temp_comment->comment_id);
+		fprintf(fp,"\tsource=%d\n",temp_comment->source);
+		fprintf(fp,"\tpersistent=%d\n",temp_comment->persistent);
+		fprintf(fp,"\tentry_time=%lu\n",temp_comment->entry_time);
+		fprintf(fp,"\texpires=%d\n",temp_comment->expires);
+		fprintf(fp,"\texpire_time=%lu\n",temp_comment->expire_time);
+		fprintf(fp,"\tauthor=%s\n",temp_comment->author);
+		fprintf(fp,"\tcomment_data=%s\n",temp_comment->comment_data);
+		fprintf(fp,"\t}\n\n");
+	        }
+
+	/* save all downtime */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+
+		if(temp_downtime->type==HOST_DOWNTIME)
+			fprintf(fp,"hostdowntime {\n");
+		else
+			fprintf(fp,"servicedowntime {\n");
+		fprintf(fp,"\thost_name=%s\n",temp_downtime->host_name);
+		if(temp_downtime->type==SERVICE_DOWNTIME)
+			fprintf(fp,"\tservice_description=%s\n",temp_downtime->service_description);
+		fprintf(fp,"\tdowntime_id=%lu\n",temp_downtime->downtime_id);
+		fprintf(fp,"\tentry_time=%lu\n",temp_downtime->entry_time);
+		fprintf(fp,"\tstart_time=%lu\n",temp_downtime->start_time);
+		fprintf(fp,"\tend_time=%lu\n",temp_downtime->end_time);
+		fprintf(fp,"\ttriggered_by=%lu\n",temp_downtime->triggered_by);
+		fprintf(fp,"\tfixed=%d\n",temp_downtime->fixed);
+		fprintf(fp,"\tduration=%lu\n",temp_downtime->duration);
+		fprintf(fp,"\tauthor=%s\n",temp_downtime->author);
+		fprintf(fp,"\tcomment=%s\n",temp_downtime->comment);
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -588,13 +649,32 @@ int xsddefault_save_status_data(void){
 /* read all program, host, and service status information */
 int xsddefault_read_status_data(char *config_file,int options){
 	char *input=NULL;
-	mmapfile *thefile;
+	mmapfile *thefile=NULL;
 	int data_type=XSDDEFAULT_NO_DATA;
 	hoststatus *temp_hoststatus=NULL;
 	servicestatus *temp_servicestatus=NULL;
-	char *var;
-	char *val;
-	int result;
+	char *var=NULL;
+	char *val=NULL;
+	int result=0;
+	/* comment and downtime vars */
+	unsigned long comment_id=0;
+	int persistent=FALSE;
+	int expires=FALSE;
+	time_t expire_time=0L;
+	int entry_type=USER_COMMENT;
+	int source=COMMENTSOURCE_INTERNAL;
+	time_t entry_time=0L;
+	char *host_name=NULL;
+	char *service_description=NULL;
+	char *author=NULL;
+	char *comment_data=NULL;
+	unsigned long downtime_id=0;
+	time_t start_time=0L;
+	time_t end_time=0L;
+	int fixed=FALSE;
+	unsigned long triggered_by=0;
+	unsigned long duration=0L;
+
 
 	/* grab configuration data */
 	result=xsddefault_grab_config_info(config_file);
@@ -623,10 +703,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 
 		else if(!strcmp(input,"info {"))
 			data_type=XSDDEFAULT_INFO_DATA;
-		else if(!strcmp(input,"program {"))
-			data_type=XSDDEFAULT_PROGRAM_DATA;
-		else if(!strcmp(input,"host {")){
-			data_type=XSDDEFAULT_HOST_DATA;
+		else if(!strcmp(input,"programstatus {"))
+			data_type=XSDDEFAULT_PROGRAMSTATUS_DATA;
+		else if(!strcmp(input,"hoststatus {")){
+			data_type=XSDDEFAULT_HOSTSTATUS_DATA;
 			temp_hoststatus=(hoststatus *)malloc(sizeof(hoststatus));
 			if(temp_hoststatus){
 				temp_hoststatus->host_name=NULL;
@@ -635,8 +715,8 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_hoststatus->perf_data=NULL;
 			        }
 		        }
-		else if(!strcmp(input,"service {")){
-			data_type=XSDDEFAULT_SERVICE_DATA;
+		else if(!strcmp(input,"servicestatus {")){
+			data_type=XSDDEFAULT_SERVICESTATUS_DATA;
 			temp_servicestatus=(servicestatus *)malloc(sizeof(servicestatus));
 			if(temp_servicestatus){
 				temp_servicestatus->host_name=NULL;
@@ -646,10 +726,18 @@ int xsddefault_read_status_data(char *config_file,int options){
 				temp_servicestatus->perf_data=NULL;
 			        }
 		        }
-		else if(!strcmp(input,"contact {")){
-			data_type=XSDDEFAULT_CONTACT_DATA;
+		else if(!strcmp(input,"contactstatus {")){
+			data_type=XSDDEFAULT_CONTACTSTATUS_DATA;
 			/* unimplemented */
 		        }
+		else if(!strcmp(input,"hostcomment {"))
+			data_type=XSDDEFAULT_HOSTCOMMENT_DATA;
+		else if(!strcmp(input,"servicecomment {"))
+			data_type=XSDDEFAULT_SERVICECOMMENT_DATA;
+		else if(!strcmp(input,"hostdowntime {"))
+			data_type=XSDDEFAULT_HOSTDOWNTIME_DATA;
+		else if(!strcmp(input,"servicedowntime {"))
+			data_type=XSDDEFAULT_SERVICEDOWNTIME_DATA;
 
 		else if(!strcmp(input,"}")){
 
@@ -658,21 +746,70 @@ int xsddefault_read_status_data(char *config_file,int options){
 			case XSDDEFAULT_INFO_DATA:
 				break;
 
-			case XSDDEFAULT_PROGRAM_DATA:
+			case XSDDEFAULT_PROGRAMSTATUS_DATA:
 				break;
 
-			case XSDDEFAULT_HOST_DATA:
+			case XSDDEFAULT_HOSTSTATUS_DATA:
 				add_host_status(temp_hoststatus);
 				temp_hoststatus=NULL;
 				break;
 
-			case XSDDEFAULT_SERVICE_DATA:
+			case XSDDEFAULT_SERVICESTATUS_DATA:
 				add_service_status(temp_servicestatus);
 				temp_servicestatus=NULL;
 				break;
 
-			case XSDDEFAULT_CONTACT_DATA:
+			case XSDDEFAULT_CONTACTSTATUS_DATA:
 				/* unimplemented */
+				break;
+
+			case XSDDEFAULT_HOSTCOMMENT_DATA:
+			case XSDDEFAULT_SERVICECOMMENT_DATA:
+
+				/* add the comment */
+				add_comment((data_type==XSDDEFAULT_HOSTCOMMENT_DATA)?HOST_COMMENT:SERVICE_COMMENT,entry_type,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
+
+				/* free temp memory */
+				my_free((void **)&host_name);
+				my_free((void **)&service_description);
+				my_free((void **)&author);
+				my_free((void **)&comment_data);
+
+				/* reset defaults */
+				entry_type=USER_COMMENT;
+				comment_id=0;
+				source=COMMENTSOURCE_INTERNAL;
+				persistent=FALSE;
+				entry_time=0L;
+				expires=FALSE;
+				expire_time=0L;
+
+				break;
+
+			case XSDDEFAULT_HOSTDOWNTIME_DATA:
+			case XSDDEFAULT_SERVICEDOWNTIME_DATA:
+
+				/* add the downtime */
+				if(data_type==XSDDEFAULT_HOSTDOWNTIME_DATA)
+					add_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+				else
+					add_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+
+				/* free temp memory */
+				my_free((void **)&host_name);
+				my_free((void **)&service_description);
+				my_free((void **)&author);
+				my_free((void **)&comment_data);
+
+				/* reset defaults */
+				downtime_id=0;
+				entry_time=0L;
+				start_time=0L;
+				end_time=0L;
+				fixed=FALSE;
+				triggered_by=0;
+				duration=0L;
+
 				break;
 
 			default:
@@ -694,7 +831,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 			case XSDDEFAULT_INFO_DATA:
 				break;
 
-			case XSDDEFAULT_PROGRAM_DATA:
+			case XSDDEFAULT_PROGRAMSTATUS_DATA:
 				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(!strcmp(var,"nagios_pid"))
 					nagios_pid=atoi(val);
@@ -734,7 +871,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 					process_performance_data=(atoi(val)>0)?TRUE:FALSE;
 				break;
 
-			case XSDDEFAULT_HOST_DATA:
+			case XSDDEFAULT_HOSTSTATUS_DATA:
 				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(temp_hoststatus!=NULL){
 					if(!strcmp(var,"host_name"))
@@ -828,7 +965,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 				        }
 				break;
 
-			case XSDDEFAULT_SERVICE_DATA:
+			case XSDDEFAULT_SERVICESTATUS_DATA:
 				/* NOTE: some vars are not read, as they are not used by the CGIs (modified attributes, event handler commands, etc.) */
 				if(temp_servicestatus!=NULL){
 					if(!strcmp(var,"host_name"))
@@ -924,8 +1061,60 @@ int xsddefault_read_status_data(char *config_file,int options){
 				        }
 				break;
 
-			case XSDDEFAULT_CONTACT_DATA:
+			case XSDDEFAULT_CONTACTSTATUS_DATA:
 				/* unimplemented */
+				break;
+
+			case XSDDEFAULT_HOSTCOMMENT_DATA:
+			case XSDDEFAULT_SERVICECOMMENT_DATA:
+				if(!strcmp(var,"host_name"))
+					host_name=(char *)strdup(val);
+				else if(!strcmp(var,"service_description"))
+					service_description=(char *)strdup(val);
+				else if(!strcmp(var,"entry_type"))
+					entry_type=atoi(val);
+				else if(!strcmp(var,"comment_id"))
+					comment_id=strtoul(val,NULL,10);
+				else if(!strcmp(var,"source"))
+					source=atoi(val);
+				else if(!strcmp(var,"persistent"))
+					persistent=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"entry_time"))
+					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"expires"))
+					expires=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"expire_time"))
+					expire_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"author"))
+					author=(char *)strdup(val);
+				else if(!strcmp(var,"comment_data"))
+					comment_data=(char *)strdup(val);
+				break;
+
+			case XSDDEFAULT_HOSTDOWNTIME_DATA:
+			case XSDDEFAULT_SERVICEDOWNTIME_DATA:
+				if(!strcmp(var,"host_name"))
+					host_name=(char *)strdup(val);
+				else if(!strcmp(var,"service_description"))
+					service_description=(char *)strdup(val);
+				else if(!strcmp(var,"downtime_id"))
+					downtime_id=strtoul(val,NULL,10);
+				else if(!strcmp(var,"entry_time"))
+					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"start_time"))
+					start_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"end_time"))
+					end_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"fixed"))
+					fixed=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"triggered_by"))
+					triggered_by=strtoul(val,NULL,10);
+				else if(!strcmp(var,"duration"))
+					duration=strtoul(val,NULL,10);
+				else if(!strcmp(var,"author"))
+					author=(char *)strdup(val);
+				else if(!strcmp(var,"comment"))
+					comment_data=(char *)strdup(val);
 				break;
 
 			default:

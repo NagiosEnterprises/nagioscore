@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-01-2006
  *
  * License:
  *
@@ -31,6 +31,8 @@
 #include "../include/statusdata.h"
 #include "../include/nagios.h"
 #include "../include/sretention.h"
+#include "../include/comments.h"
+#include "../include/downtime.h"
 
 
 /**** STATE INFORMATION SPECIFIC HEADER FILES ****/
@@ -40,6 +42,8 @@
 extern host           *host_list;
 extern service        *service_list;
 extern contact        *contact_list;
+extern comment        *comment_list;
+extern scheduled_downtime *scheduled_downtime_list;
 
 extern char           *global_host_event_handler;
 extern char           *global_service_event_handler;
@@ -170,7 +174,7 @@ int xrddefault_grab_config_directives(char *input){
 		xrddefault_retention_file=(char *)strdup(varvalue);
 
 	/* temp file definition */
-	if(!strcmp(varname,"temp_file"))
+	else if(!strcmp(varname,"temp_file"))
 		xrddefault_temp_file=(char *)strdup(varvalue);
 
 	/* free memory */
@@ -226,6 +230,8 @@ int xrddefault_save_state_information(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	contact *temp_contact=NULL;
+	comment *temp_comment=NULL;
+	scheduled_downtime *temp_downtime=NULL;
 	int x=0;
 	int fd=0;
 
@@ -459,6 +465,50 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\t}\n\n");
 	        }
 
+	/* save all comments */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
+
+		if(temp_comment->comment_type==HOST_COMMENT)
+			fprintf(fp,"hostcomment {\n");
+		else
+			fprintf(fp,"servicecomment {\n");
+		fprintf(fp,"\thost_name=%s\n",temp_comment->host_name);
+		if(temp_comment->comment_type==SERVICE_COMMENT)
+			fprintf(fp,"\tservice_description=%s\n",temp_comment->service_description);
+		fprintf(fp,"\tentry_type=%d\n",temp_comment->entry_type);
+		fprintf(fp,"\tcomment_id=%lu\n",temp_comment->comment_id);
+		fprintf(fp,"\tsource=%d\n",temp_comment->source);
+		fprintf(fp,"\tpersistent=%d\n",temp_comment->persistent);
+		fprintf(fp,"\tentry_time=%lu\n",temp_comment->entry_time);
+		fprintf(fp,"\texpires=%d\n",temp_comment->expires);
+		fprintf(fp,"\texpire_time=%lu\n",temp_comment->expire_time);
+		fprintf(fp,"\tauthor=%s\n",temp_comment->author);
+		fprintf(fp,"\tcomment_data=%s\n",temp_comment->comment_data);
+		fprintf(fp,"\t}\n\n");
+	        }
+
+	/* save all downtime */
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+
+		if(temp_downtime->type==HOST_DOWNTIME)
+			fprintf(fp,"hostdowntime {\n");
+		else
+			fprintf(fp,"servicedowntime {\n");
+		fprintf(fp,"\thost_name=%s\n",temp_downtime->host_name);
+		if(temp_downtime->type==SERVICE_DOWNTIME)
+			fprintf(fp,"\tservice_description=%s\n",temp_downtime->service_description);
+		fprintf(fp,"\tdowntime_id=%lu\n",temp_downtime->downtime_id);
+		fprintf(fp,"\tentry_time=%lu\n",temp_downtime->entry_time);
+		fprintf(fp,"\tstart_time=%lu\n",temp_downtime->start_time);
+		fprintf(fp,"\tend_time=%lu\n",temp_downtime->end_time);
+		fprintf(fp,"\ttriggered_by=%lu\n",temp_downtime->triggered_by);
+		fprintf(fp,"\tfixed=%d\n",temp_downtime->fixed);
+		fprintf(fp,"\tduration=%lu\n",temp_downtime->duration);
+		fprintf(fp,"\tauthor=%s\n",temp_downtime->author);
+		fprintf(fp,"\tcomment=%s\n",temp_downtime->comment);
+		fprintf(fp,"\t}\n\n");
+	        }
+
 	fclose(fp);
 
 	/* move the temp file to the retention file (overwrite the old retention file) */
@@ -490,6 +540,8 @@ int xrddefault_read_state_information(void){
 	char *host_name=NULL;
 	char *service_description=NULL;
 	char *contact_name=NULL;
+	char *author=NULL;
+	char *comment_data=NULL;
 	int data_type=XRDDEFAULT_NO_DATA;
 	int x=0;
 	host *temp_host=NULL;
@@ -503,9 +555,22 @@ int xrddefault_read_state_information(void){
 	char *val=NULL;
 	char *tempval=NULL;
 	char *ch=NULL;
+	unsigned long comment_id=0;
+	int persistent=FALSE;
+	int expires=FALSE;
+	time_t expire_time=0L;
+	int entry_type=USER_COMMENT;
+	int source=COMMENTSOURCE_INTERNAL;
+	time_t entry_time=0L;
 	time_t creation_time;
 	time_t current_time;
 	int scheduling_info_is_ok=FALSE;
+	unsigned long downtime_id=0;
+	time_t start_time=0L;
+	time_t end_time=0L;
+	int fixed=FALSE;
+	unsigned long triggered_by=0;
+	unsigned long duration=0L;
 
 #ifdef DEBUG0
 	printf("xrddefault_read_state_information() start\n");
@@ -545,13 +610,21 @@ int xrddefault_read_state_information(void){
 		else if(!strcmp(input,"info {"))
 			data_type=XRDDEFAULT_INFO_DATA;
 		else if(!strcmp(input,"program {"))
-			data_type=XRDDEFAULT_PROGRAM_DATA;
+			data_type=XRDDEFAULT_PROGRAMSTATUS_DATA;
 		else if(!strcmp(input,"host {"))
-			data_type=XRDDEFAULT_HOST_DATA;
+			data_type=XRDDEFAULT_HOSTSTATUS_DATA;
 		else if(!strcmp(input,"service {"))
-			data_type=XRDDEFAULT_SERVICE_DATA;
+			data_type=XRDDEFAULT_SERVICESTATUS_DATA;
 		else if(!strcmp(input,"contact {"))
-			data_type=XRDDEFAULT_CONTACT_DATA;
+			data_type=XRDDEFAULT_CONTACTSTATUS_DATA;
+		else if(!strcmp(input,"hostcomment {"))
+			data_type=XRDDEFAULT_HOSTCOMMENT_DATA;
+		else if(!strcmp(input,"servicecomment {"))
+			data_type=XRDDEFAULT_SERVICECOMMENT_DATA;
+		else if(!strcmp(input,"hostdowntime {"))
+			data_type=XRDDEFAULT_HOSTDOWNTIME_DATA;
+		else if(!strcmp(input,"servicedowntime {"))
+			data_type=XRDDEFAULT_SERVICEDOWNTIME_DATA;
 
 		else if(!strcmp(input,"}")){
 
@@ -560,7 +633,7 @@ int xrddefault_read_state_information(void){
 			case XRDDEFAULT_INFO_DATA:
 				break;
 
-			case XRDDEFAULT_PROGRAM_DATA:
+			case XRDDEFAULT_PROGRAMSTATUS_DATA:
 
 				/* adjust modified attributes if necessary */
 				if(use_retained_program_state==FALSE){
@@ -569,7 +642,7 @@ int xrddefault_read_state_information(void){
 				        }
 				break;
 
-			case XRDDEFAULT_HOST_DATA:
+			case XRDDEFAULT_HOSTSTATUS_DATA:
 
 				if(temp_host!=NULL){
 
@@ -608,7 +681,7 @@ int xrddefault_read_state_information(void){
 				temp_host=NULL;
 				break;
 
-			case XRDDEFAULT_SERVICE_DATA:
+			case XRDDEFAULT_SERVICESTATUS_DATA:
 
 				if(temp_service!=NULL){
 
@@ -651,7 +724,7 @@ int xrddefault_read_state_information(void){
 				temp_service=NULL;
 				break;
 
-			case XRDDEFAULT_CONTACT_DATA:
+			case XRDDEFAULT_CONTACTSTATUS_DATA:
 
 				if(temp_contact!=NULL){
 
@@ -676,6 +749,63 @@ int xrddefault_read_state_information(void){
 
 				my_free((void **)&host_name);
 				temp_host=NULL;
+				break;
+
+			case XRDDEFAULT_HOSTCOMMENT_DATA:
+			case XRDDEFAULT_SERVICECOMMENT_DATA:
+
+				/* add the comment */
+				add_comment((data_type==XRDDEFAULT_HOSTCOMMENT_DATA)?HOST_COMMENT:SERVICE_COMMENT,entry_type,host_name,service_description,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
+
+				/* delete the comment if necessary */
+				/* it seems a bit backwards to add and then immediately delete the comment, but its necessary to track comment deletions in the event broker */
+				if(persistent==FALSE || (find_host(host_name)==NULL) || (data_type==XRDDEFAULT_SERVICECOMMENT_DATA && find_service(host_name,service_description)==NULL))
+					delete_comment((data_type==XRDDEFAULT_HOSTCOMMENT_DATA)?HOST_COMMENT:SERVICE_COMMENT,comment_id);
+
+				/* free temp memory */
+				my_free((void **)&host_name);
+				my_free((void **)&service_description);
+				my_free((void **)&author);
+				my_free((void **)&comment_data);
+
+				/* reset defaults */
+				entry_type=USER_COMMENT;
+				comment_id=0;
+				source=COMMENTSOURCE_INTERNAL;
+				persistent=FALSE;
+				entry_time=0L;
+				expires=FALSE;
+				expire_time=0L;
+
+				break;
+
+			case XRDDEFAULT_HOSTDOWNTIME_DATA:
+			case XRDDEFAULT_SERVICEDOWNTIME_DATA:
+
+				/* add the downtime */
+				if(data_type==XRDDEFAULT_HOSTDOWNTIME_DATA)
+					add_host_downtime(host_name,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+				else
+					add_service_downtime(host_name,service_description,entry_time,author,comment_data,start_time,end_time,fixed,triggered_by,duration,downtime_id);
+
+				/* must register the downtime with Nagios so it can schedule it, add comments, etc. */
+				register_downtime((data_type==XRDDEFAULT_HOSTDOWNTIME_DATA)?HOST_DOWNTIME:SERVICE_DOWNTIME,downtime_id);
+
+				/* free temp memory */
+				my_free((void **)&host_name);
+				my_free((void **)&service_description);
+				my_free((void **)&author);
+				my_free((void **)&comment_data);
+
+				/* reset defaults */
+				downtime_id=0;
+				entry_time=0L;
+				start_time=0L;
+				end_time=0L;
+				fixed=FALSE;
+				triggered_by=0;
+				duration=0L;
+
 				break;
 
 			default:
@@ -705,7 +835,7 @@ int xrddefault_read_state_information(void){
 				        }
 				break;
 
-			case XRDDEFAULT_PROGRAM_DATA:
+			case XRDDEFAULT_PROGRAMSTATUS_DATA:
 				if(!strcmp(var,"modified_host_attributes"))
 					modified_host_process_attributes=strtoul(val,NULL,10);
 				else if(!strcmp(var,"modified_service_attributes"))
@@ -806,7 +936,7 @@ int xrddefault_read_state_information(void){
 				        }
 				break;
 
-			case XRDDEFAULT_HOST_DATA:
+			case XRDDEFAULT_HOSTSTATUS_DATA:
 				if(!strcmp(var,"host_name")){
 					host_name=(char *)strdup(val);
 					temp_host=find_host(host_name);
@@ -1019,7 +1149,7 @@ int xrddefault_read_state_information(void){
 				        }
 				break;
 
-			case XRDDEFAULT_SERVICE_DATA:
+			case XRDDEFAULT_SERVICESTATUS_DATA:
 				if(!strcmp(var,"host_name")){
 					host_name=(char *)strdup(val);
 					temp_service=find_service(host_name,service_description);
@@ -1244,7 +1374,7 @@ int xrddefault_read_state_information(void){
 				        }
 				break;
 
-			case XRDDEFAULT_CONTACT_DATA:
+			case XRDDEFAULT_CONTACTSTATUS_DATA:
 				if(!strcmp(var,"contact_name")){
 					contact_name=(char *)strdup(val);
 					temp_contact=find_contact(contact_name);
@@ -1297,6 +1427,58 @@ int xrddefault_read_state_information(void){
 						        }
 					        }
 				        }
+				break;
+
+			case XRDDEFAULT_HOSTCOMMENT_DATA:
+			case XRDDEFAULT_SERVICECOMMENT_DATA:
+				if(!strcmp(var,"host_name"))
+					host_name=(char *)strdup(val);
+				else if(!strcmp(var,"service_description"))
+					service_description=(char *)strdup(val);
+				else if(!strcmp(var,"entry_type"))
+					entry_type=atoi(val);
+				else if(!strcmp(var,"comment_id"))
+					comment_id=strtoul(val,NULL,10);
+				else if(!strcmp(var,"source"))
+					source=atoi(val);
+				else if(!strcmp(var,"persistent"))
+					persistent=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"entry_time"))
+					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"expires"))
+					expires=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"expire_time"))
+					expire_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"author"))
+					author=(char *)strdup(val);
+				else if(!strcmp(var,"comment_data"))
+					comment_data=(char *)strdup(val);
+				break;
+
+			case XRDDEFAULT_HOSTDOWNTIME_DATA:
+			case XRDDEFAULT_SERVICEDOWNTIME_DATA:
+				if(!strcmp(var,"host_name"))
+					host_name=(char *)strdup(val);
+				else if(!strcmp(var,"service_description"))
+					service_description=(char *)strdup(val);
+				else if(!strcmp(var,"downtime_id"))
+					downtime_id=strtoul(val,NULL,10);
+				else if(!strcmp(var,"entry_time"))
+					entry_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"start_time"))
+					start_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"end_time"))
+					end_time=strtoul(val,NULL,10);
+				else if(!strcmp(var,"fixed"))
+					fixed=(atoi(val)>0)?TRUE:FALSE;
+				else if(!strcmp(var,"triggered_by"))
+					triggered_by=strtoul(val,NULL,10);
+				else if(!strcmp(var,"duration"))
+					duration=strtoul(val,NULL,10);
+				else if(!strcmp(var,"author"))
+					author=(char *)strdup(val);
+				else if(!strcmp(var,"comment"))
+					comment_data=(char *)strdup(val);
 				break;
 
 			default:

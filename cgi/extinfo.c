@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-20-2006
+ * Last Modified: 03-01-2006
  *
  * License:
  * 
@@ -1755,9 +1755,6 @@ void show_all_comments(void){
 	char expire_time[MAX_DATETIME_LENGTH];
 
 
-	/* read in all comments */
-	read_comment_data(get_cgi_config_location());
-
 	printf("<P>\n");
 	printf("<DIV CLASS='commentNav'>[&nbsp;<A HREF='#HOSTCOMMENTS' CLASS='commentNav'>Host Comments</A>&nbsp;|&nbsp;<A HREF='#SERVICECOMMENTS' CLASS='commentNav'>Service Comments</A>&nbsp;]</DIV>\n");
 	printf("</P>\n");
@@ -2417,9 +2414,6 @@ void display_comments(int type){
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
 
-	/* read in all comments */
-	read_comment_data(get_cgi_config_location());
-
 	/* check all the comments to see if they apply to this host or service */
 	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
 
@@ -2496,9 +2490,6 @@ void show_all_downtime(void){
 	int minutes;
 	int seconds;
 
-
-	/* read in all downtime */
-	read_downtime_data(get_cgi_config_location());
 
 	printf("<P>\n");
 	printf("<DIV CLASS='downtimeNav'>[&nbsp;<A HREF='#HOSTDOWNTIME' CLASS='downtimeNav'>Host Downtime</A>&nbsp;|&nbsp;<A HREF='#SERVICEDOWNTIME' CLASS='downtimeNav'>Service Downtime</A>&nbsp;]</DIV>\n");

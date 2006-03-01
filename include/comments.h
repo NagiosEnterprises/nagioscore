@@ -2,7 +2,8 @@
  *
  * COMMENTS.H - Header file for comment functions
  *
- * Last Modified:   12-15-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-01-2006
  *
  * License:
  *
@@ -107,8 +108,6 @@ comment *get_next_comment_by_host(char *,comment *);
 
 int number_of_host_comments(char *);			              /* returns the number of comments associated with a particular host */
 int number_of_service_comments(char *, char *);		              /* returns the number of comments associated with a particular service */
-
-int read_comment_data(char *);                                            /* reads all host and service comments */
 
 int add_comment(int,int,char *,char *,time_t,char *,char *,unsigned long,int,int,time_t,int);      /* adds a comment (host or service) */
 int add_host_comment(int,char *,time_t,char *,char *,unsigned long,int,int,time_t,int);            /* adds a host comment */

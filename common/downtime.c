@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-17-2006
+ * Last Modified: 03-01-2006
  *
  * License:
  *
@@ -770,26 +770,6 @@ int delete_service_downtime(unsigned long downtime_id){
 #endif
 
 
-
-#ifdef NSCGI
-
-/******************************************************************/
-/************************ INPUT FUNCTIONS *************************/
-/******************************************************************/
-
-/* reads all downtime data */
-int read_downtime_data(char *main_config_file){
-	int result;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XDDDEFAULT
-	result=xdddefault_read_downtime_data(main_config_file);
-#endif
-
-	return result;
-        }
-
-#endif
 
 
 

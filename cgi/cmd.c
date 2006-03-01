@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-23-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-01-2006
  *
  * License:
  * 
@@ -1164,8 +1164,6 @@ void request_command_data(int cmd){
 		printf("<select name='trigger'>\n");
 		printf("<option value='0'>N/A\n");
 
-		/* read scheduled downtime */
-		read_downtime_data(get_cgi_config_location());
 		for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
 			if(temp_downtime->type!=HOST_DOWNTIME)
 				continue;
@@ -1412,9 +1410,6 @@ void commit_command_data(int cmd){
 		if(comment_id==0)
 			error=TRUE;
 
-		/* read comments */
-		read_comment_data(get_cgi_config_location());
-
 		/* find the comment */
 		if(cmd==CMD_DEL_HOST_COMMENT)
 			temp_comment=find_host_comment(comment_id);
@@ -1444,9 +1439,6 @@ void commit_command_data(int cmd){
 		/* check the sanity of the downtime id */
 		if(downtime_id==0)
 			error=TRUE;
-
-		/* read scheduled downtime */
-		read_downtime_data(get_cgi_config_location());
 
 		/* find the downtime entry */
 		if(cmd==CMD_DEL_HOST_DOWNTIME)

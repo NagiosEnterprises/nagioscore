@@ -22,6 +22,9 @@
  *
  *****************************************************************************/
 
+#ifndef _XPDDEFAULT_H
+#define _XPDDEFAULT_H
+
 #include "../include/objects.h"
 
 
@@ -54,3 +57,4 @@ int xpddefault_close_service_perfdata_file(void);
 int xpddefault_process_host_perfdata_file(void);
 int xpddefault_process_service_perfdata_file(void);
 
+#endif

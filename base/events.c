@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-01-2006
  *
  * License:
  *
@@ -97,18 +97,17 @@ sched_info scheduling_info;
 
 /* initialize the event timing loop before we start monitoring */
 void init_timing_loop(void){
-	host *temp_host;
-	service *temp_service;
-	time_t current_time;
-	unsigned long interval_to_use;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
+	time_t current_time=0L;
+	unsigned long interval_to_use=0L;
 	int total_interleave_blocks=0;
 	int current_interleave_block=1;
 	int interleave_block_index=0;
-	int mult_factor;
-	int is_valid_time;
-	time_t next_valid_time;
-
-	int schedule_check;
+	int mult_factor=0;
+	int is_valid_time=0;
+	time_t next_valid_time=0L;
+	int schedule_check=0;
 	double max_inter_check_delay=0.0;
 
 #ifdef DEBUG0
@@ -555,8 +554,8 @@ void init_timing_loop(void){
 
 /* displays service check scheduling information */
 void display_scheduling_info(void){
-	float minimum_concurrent_checks;
-	float max_reaper_interval;
+	float minimum_concurrent_checks=0.0;
+	float max_reaper_interval=0.0;
 	int suggestions=0;
 
 	printf("Projected scheduling information for host and service checks\n");
@@ -706,7 +705,7 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 
 /* reschedule an event in order of execution time */
 void reschedule_event(timed_event *event,timed_event **event_list){
-	time_t current_time;
+	time_t current_time=0L;
 	time_t (*timingfunc)(void);
 
 #ifdef DEBUG0
@@ -748,8 +747,8 @@ void reschedule_event(timed_event *event,timed_event **event_list){
 
 /* remove event from schedule */
 int deschedule_event(int event_type, int high_priority, void *event_data, void *event_args){
-	timed_event **event_list;
-	timed_event *temp_event;
+	timed_event **event_list=NULL;
+	timed_event *temp_event=NULL;
 	int found=FALSE;
 	
 #ifdef DEBUG0
@@ -771,7 +770,7 @@ int deschedule_event(int event_type, int high_priority, void *event_data, void *
 	/* remove the event from the event list */
 	if (found){
 		remove_event(temp_event,event_list);
-		free(temp_event);
+		my_free((void **)&temp_event);
 		}
 	else{
 		return ERROR; 
@@ -787,8 +786,8 @@ int deschedule_event(int event_type, int high_priority, void *event_data, void *
 
 /* add an event to list ordered by execution time */
 void add_event(timed_event *event,timed_event **event_list){
-	timed_event *temp_event;
-	timed_event *first_event;
+	timed_event *temp_event=NULL;
+	timed_event *first_event=NULL;
 
 #ifdef DEBUG0
 	printf("add_event() start\n");
@@ -845,7 +844,7 @@ void add_event(timed_event *event,timed_event **event_list){
 
 /* remove an event from the queue */
 void remove_event(timed_event *event,timed_event **event_list){
-	timed_event *temp_event;
+	timed_event *temp_event=NULL;
 
 #ifdef DEBUG0
 	printf("remove_event() start\n");
@@ -884,13 +883,13 @@ void remove_event(timed_event *event,timed_event **event_list){
 
 /* this is the main event handler loop */
 int event_execution_loop(void){
-	timed_event *temp_event;
+	timed_event *temp_event=NULL;
 	timed_event sleep_event;
-	time_t last_time;
-	time_t current_time;
+	time_t last_time=0L;
+	time_t current_time=0L;
 	int run_event=TRUE;
-	host *temp_host;
-	service *temp_service;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 	struct timespec delay;
 	struct timeval tv;
 
@@ -969,7 +968,7 @@ int event_execution_loop(void){
 
 			/* else free memory associated with the event */
 			else
-				free(temp_event);
+				my_free((void **)&temp_event);
 		        }
 
 		/* handle low priority events */
@@ -1083,7 +1082,7 @@ int event_execution_loop(void){
 
 				/* else free memory associated with the event */
 				else
-					free(temp_event);
+					my_free((void **)&temp_event);
 			        }
 
 			/* wait a while so we don't hog the CPU... */
@@ -1152,7 +1151,7 @@ int event_execution_loop(void){
 int handle_timed_event(timed_event *event){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	void (*userfunc)(void *);
 
 #ifdef DEBUG0
@@ -1225,9 +1224,9 @@ int handle_timed_event(timed_event *event){
 		sigshutdown=TRUE;
 
 		/* log the shutdown */
-		snprintf(temp_buffer,sizeof(temp_buffer),"PROGRAM_SHUTDOWN event encountered, shutting down...\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"PROGRAM_SHUTDOWN event encountered, shutting down...\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,TRUE);
+		my_free((void **)&temp_buffer);
 		break;
 
 	case EVENT_PROGRAM_RESTART:
@@ -1239,9 +1238,9 @@ int handle_timed_event(timed_event *event){
 		sigrestart=TRUE;
 
 		/* log the restart */
-		snprintf(temp_buffer,sizeof(temp_buffer),"PROGRAM_RESTART event encountered, restarting...\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"PROGRAM_RESTART event encountered, restarting...\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO,TRUE);
+		my_free((void **)&temp_buffer);
 		break;
 
 	case EVENT_SERVICE_REAPER:
@@ -1362,12 +1361,12 @@ int handle_timed_event(timed_event *event){
 
 /* adjusts scheduling of host and service checks */
 void adjust_check_scheduling(void){
-	timed_event *temp_event;
+	timed_event *temp_event=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
 	double projected_host_check_overhead=0.9;
 	double projected_service_check_overhead=0.1;
-	time_t current_time;
+	time_t current_time=0L;
 	time_t first_window_time=0L;
 	time_t last_window_time=0L;
 	time_t last_check_time=0L;
@@ -1570,11 +1569,11 @@ void adjust_check_scheduling(void){
 
 /* attempts to compensate for a change in the system time */
 void compensate_for_system_time_change(unsigned long last_time,unsigned long current_time){
-	char buffer[MAX_INPUT_BUFFER];
-	unsigned long time_difference;
-	timed_event *temp_event;
-	service *temp_service;
-	host *temp_host;
+	char *temp_buffer=NULL;
+	unsigned long time_difference=0L;
+	timed_event *temp_event=NULL;
+	service *temp_service=NULL;
+	host *temp_host=NULL;
 	time_t (*timingfunc)(void);
 
 #ifdef DEBUG0
@@ -1590,9 +1589,9 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 		time_difference=current_time-last_time;
 
 	/* log the time change */
-	snprintf(buffer,sizeof(buffer),"Warning: A system time change of %lu seconds (%s in time) has been detected.  Compensating...\n",time_difference,(last_time>current_time)?"backwards":"forwards");
-	buffer[sizeof(buffer)-1]='\x0';
-	write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING,TRUE);
+	asprintf(&temp_buffer,"Warning: A system time change of %lu seconds (%s in time) has been detected.  Compensating...\n",time_difference,(last_time>current_time)?"backwards":"forwards");
+	write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_WARNING,TRUE);
+	my_free((void **)&temp_buffer);
 
 	/* adjust the next run time for all high priority timed events */
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){
@@ -1688,9 +1687,9 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 /* resorts an event list by event execution time - needed when compensating for system time changes */
 void resort_event_list(timed_event **event_list){
-	timed_event *temp_event_list;
-	timed_event *temp_event;
-	timed_event *next_event;
+	timed_event *temp_event_list=NULL;
+	timed_event *temp_event=NULL;
+	timed_event *next_event=NULL;
 
 	/* move current event list to temp list */
 	temp_event_list=*event_list;

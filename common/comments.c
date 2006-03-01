@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-21-2006
+ * Last Modified: 03-01-2006
  *
  * License:
  *
@@ -338,23 +338,6 @@ int check_for_expired_comment(unsigned long comment_id){
 #endif
 
 
-
-
-/******************************************************************/
-/********************** INPUT FUNCTIONS ***************************/
-/******************************************************************/
-
-
-int read_comment_data(char *main_config_file){
-	int result;
-
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result=xcddefault_read_comment_data(main_config_file);
-#endif
-
-	return result;
-        }
 
 
 

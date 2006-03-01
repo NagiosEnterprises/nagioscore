@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2006
+ * Last Modified: 03-01-2006
  *
  * License:
  *
@@ -180,7 +180,7 @@ extern service		**service_hashlist;
 /* read all configuration data */
 int read_all_object_data(char *main_config_file){
 	int result=OK;
-	int options;
+	int options=0;
 	int cache=FALSE;
 	int precache=FALSE;
 
@@ -214,17 +214,17 @@ int read_all_object_data(char *main_config_file){
 /* process the main configuration file */
 int read_main_config_file(char *main_config_file){
 	char *input=NULL;
-	char variable[MAX_INPUT_BUFFER];
-	char value[MAX_INPUT_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *variable=NULL;
+	char *value=NULL;
+	char *temp_buffer=NULL;
 	char error_message[MAX_INPUT_BUFFER];
-	char *temp;
-	mmapfile *thefile;
+	char *temp_ptr=NULL;
+	mmapfile *thefile=NULL;
 	int current_line=0;
 	int error=FALSE;
 	int command_check_interval_is_seconds=FALSE;
-	char *modptr;
-	char *argptr;
+	char *modptr=NULL;
+	char *argptr=NULL;
 
 #ifdef DEBUG0
 	printf("read_main_config_file() start\n");
@@ -235,25 +235,24 @@ int read_main_config_file(char *main_config_file){
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open main configuration file '%s' for reading!",main_config_file);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Cannot open main configuration file '%s' for reading!",main_config_file);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
 		}
 
 	/* save the main config file macro */
-	if(macro_x[MACRO_MAINCONFIGFILE]!=NULL)
-		free(macro_x[MACRO_MAINCONFIGFILE]);
-	macro_x[MACRO_MAINCONFIGFILE]=(char *)strdup(main_config_file);
-	if(macro_x[MACRO_MAINCONFIGFILE]!=NULL)
+	my_free((void **)&macro_x[MACRO_MAINCONFIGFILE]);
+	if((macro_x[MACRO_MAINCONFIGFILE]=(char *)strdup(main_config_file)))
 		strip(macro_x[MACRO_MAINCONFIGFILE]);
 
 	/* process all lines in the config file */
 	while(1){
 
-
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
+		my_free((void **)&variable);
+		my_free((void **)&value);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -271,41 +270,34 @@ int read_main_config_file(char *main_config_file){
 		if(input[0]=='#' || input[0]==';')
 			continue;
 
-		/* skip external data directives */
-		if(strstr(input,"x")==input)
-			continue;
-
 #ifdef DEBUG1
 		printf("\tLine %d = '%s'\n",current_line,input);
 #endif
 
 		/* get the variable name */
-		temp=my_strtok(input,"=");
-
-		/* if there is no variable name, return error */
-		if(temp==NULL){
+		if((temp_ptr=my_strtok(input,"="))==NULL){
 			strcpy(error_message,"NULL variable");
 			error=TRUE;
 			break;
 			}
-
-		/* else the variable is good */
-		strncpy(variable,temp,sizeof(variable));
-		variable[sizeof(variable)-1]='\x0';
+		if((variable=(char *)strdup(temp_ptr))==NULL){
+			strcpy(error_message,"malloc() error");
+			error=TRUE;
+			break;
+		        }
 
 		/* get the value */
-		temp=my_strtok(NULL,"\n");
-
-		/* if no value exists, return error */
-		if(temp==NULL){
+		if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
 			strcpy(error_message,"NULL value");
 			error=TRUE;
 			break;
 			}
-
-		/* else the value is good */
-		strncpy(value,temp,sizeof(value));
-		value[sizeof(value)-1]='\x0';
+		if((value=(char *)strdup(temp_ptr))==NULL){
+			strcpy(error_message,"malloc() error");
+			error=TRUE;
+			break;
+		        }
+		strip(variable);
 		strip(value);
 
 		/* process the variable/value */
@@ -313,21 +305,17 @@ int read_main_config_file(char *main_config_file){
 		if(!strcmp(variable,"resource_file")){
 
 			/* save the macro */
-			if(macro_x[MACRO_RESOURCEFILE]!=NULL)
-				free(macro_x[MACRO_RESOURCEFILE]);
+			my_free((void **)&macro_x[MACRO_RESOURCEFILE]);
 			macro_x[MACRO_RESOURCEFILE]=(char *)strdup(value);
-			if(macro_x[MACRO_RESOURCEFILE]==NULL){
-				strcpy(error_message,"Could not allocate memory for macro");
-				error=TRUE;
-				break;
-			        }
-			strip(macro_x[MACRO_RESOURCEFILE]);
 
 #ifdef DEBUG1
 			printf("\t\tprocessing resource file '%s'\n",value);
 #endif
+
+			/* process the resource file */
 			read_resource_file(value);
 		        }
+
 		else if(!strcmp(variable,"log_file")){
 
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
@@ -336,53 +324,38 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			if(log_file!=NULL)
-				free(log_file);
+			my_free((void **)&log_file);
 			log_file=(char *)strdup(value);
-			strip(log_file);
 
 			/* save the macro */
-			if(macro_x[MACRO_LOGFILE]!=NULL)
-				free(macro_x[MACRO_LOGFILE]);
+			my_free((void **)&macro_x[MACRO_LOGFILE]);
 			macro_x[MACRO_LOGFILE]=(char *)strdup(log_file);
-			if(macro_x[MACRO_LOGFILE]==NULL){
-				strcpy(error_message,"Could not allocate memory for macro");
-				error=TRUE;
-				break;
-			        }
-			strip(macro_x[MACRO_LOGFILE]);
 
 #ifdef DEBUG1
 			printf("\t\tlog_file set to '%s'\n",log_file);
 #endif
 			}
+
 		else if(!strcmp(variable,"command_file")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"Command file is too long");
 				error=TRUE;
 				break;
 				}
 
-			if(command_file!=NULL)
-				free(command_file);
+			my_free((void **)&command_file);
 			command_file=(char *)strdup(value);
-			strip(command_file);
 
 			/* save the macro */
-			if(macro_x[MACRO_COMMANDFILE]!=NULL)
-				free(macro_x[MACRO_COMMANDFILE]);
+			my_free((void **)&macro_x[MACRO_COMMANDFILE]);
 			macro_x[MACRO_COMMANDFILE]=(char *)strdup(value);
-			if(macro_x[MACRO_COMMANDFILE]==NULL){
-				strcpy(error_message,"Could not allocate memory for macro");
-				error=TRUE;
-				break;
-			        }
-			strip(macro_x[MACRO_COMMANDFILE]);
 
 #ifdef DEBUG1
 			printf("\t\tcommand_file set to '%s'\n",command_file);
 #endif
 			}
+
 		else if(!strcmp(variable,"temp_file")){
 
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
@@ -391,26 +364,18 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			if(temp_file!=NULL)
-				free(temp_file);
+			my_free((void **)&temp_file);
 			temp_file=(char *)strdup(value);
-			strip(temp_file);
 
 			/* save the macro */
-			if(macro_x[MACRO_TEMPFILE]!=NULL)
-				free(macro_x[MACRO_TEMPFILE]);
+			my_free((void **)&macro_x[MACRO_TEMPFILE]);
 			macro_x[MACRO_TEMPFILE]=(char *)strdup(temp_file);
-			if(macro_x[MACRO_TEMPFILE]==NULL){
-				strcpy(error_message,"Could not allocate memory for macro");
-				error=TRUE;
-				break;
-			        }
-			strip(macro_x[MACRO_TEMPFILE]);
 
 #ifdef DEBUG1
 			printf("\t\ttemp_file set to '%s'\n",temp_file);
 #endif
 			}
+
 		else if(!strcmp(variable,"temp_path")){
 
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
@@ -419,8 +384,7 @@ int read_main_config_file(char *main_config_file){
 				break;
 				}
 
-			if(temp_path!=NULL)
-				free(temp_path);
+			my_free((void **)&temp_path);
 			if((temp_path=(char *)strdup(value))){
 				strip(temp_path);
 				/* make sure we don't have a trailing slash */
@@ -429,273 +393,213 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			/* save the macro */
-			if(macro_x[MACRO_TEMPPATH]!=NULL)
-				free(macro_x[MACRO_TEMPPATH]);
+			my_free((void **)&macro_x[MACRO_TEMPPATH]);
 			macro_x[MACRO_TEMPPATH]=(char *)strdup(temp_path);
-			if(macro_x[MACRO_TEMPPATH]==NULL){
-				strcpy(error_message,"Could not allocate memory for macro");
-				error=TRUE;
-				break;
-			        }
-			strip(macro_x[MACRO_TEMPPATH]);
 
 #ifdef DEBUG1
 			printf("\t\ttemp_path set to '%s'\n",temp_path);
 #endif
 			}
+
 		else if(!strcmp(variable,"lock_file")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"Lock file is too long");
 				error=TRUE;
 				break;
 				}
 
-			if(lock_file!=NULL)
-				free(lock_file);
+			my_free((void **)&lock_file);
 			lock_file=(char *)strdup(value);
-			strip(lock_file);
 
 #ifdef DEBUG1
 			printf("\t\tlock_file set to '%s'\n",lock_file);
 #endif
 			}
-		else if(!strcmp(variable,"global_host_event_handler")){
-			if(global_host_event_handler!=NULL)
-				free(global_host_event_handler);
-			global_host_event_handler=(char *)strdup(value);
-			if(global_host_event_handler==NULL){
-				strcpy(error_message,"Could not allocate memory for global host event handler");
-				error=TRUE;
-				break;
-			        }
-			strip(global_host_event_handler);
 
+		else if(!strcmp(variable,"global_host_event_handler")){
+			my_free((void **)&global_host_event_handler);
+			global_host_event_handler=(char *)strdup(value);
 #ifdef DEBUG1
 			printf("\t\tglobal_host_event_handler set to '%s'\n",global_host_event_handler);
 #endif
 		        }
+
 		else if(!strcmp(variable,"global_service_event_handler")){
-			if(global_service_event_handler!=NULL)
-				free(global_service_event_handler);
+			my_free((void **)&global_service_event_handler);
 			global_service_event_handler=(char *)strdup(value);
-			if(global_service_event_handler==NULL){
-				strcpy(error_message,"Could not allocate memory for global service event handler");
-				error=TRUE;
-				break;
-			        }
-
-			strip(global_service_event_handler);
-
 #ifdef DEBUG1
 			printf("\t\tglobal_service_event_handler set to '%s'\n",global_service_event_handler);
 #endif
 		        }
+
 		else if(!strcmp(variable,"ocsp_command")){
-			if(ocsp_command!=NULL)
-				free(ocsp_command);
+			my_free((void **)&ocsp_command);
 			ocsp_command=(char *)strdup(value);
-			if(ocsp_command==NULL){
-				strcpy(error_message,"Could not allocate memory for obsessive compulsive service processor command");
-				error=TRUE;
-				break;
-			        }
-
-			strip(ocsp_command);
-
 #ifdef DEBUG1
 			printf("\t\tocsp_command set to '%s'\n",ocsp_command);
 #endif
 		        }
+
 		else if(!strcmp(variable,"ochp_command")){
-			if(ochp_command!=NULL)
-				free(ochp_command);
+			my_free((void **)&ochp_command);
 			ochp_command=(char *)strdup(value);
-			if(ochp_command==NULL){
-				strcpy(error_message,"Could not allocate memory for obsessive compulsive host processor command");
-				error=TRUE;
-				break;
-			        }
-
-			strip(ochp_command);
-
 #ifdef DEBUG1
 			printf("\t\tochp_command set to '%s'\n",ochp_command);
 #endif
 		        }
+
 		else if(!strcmp(variable,"nagios_user")){
-			if(nagios_user!=NULL)
-				free(nagios_user);
+			my_free((void **)&nagios_user);
 			nagios_user=(char *)strdup(value);
-			if(nagios_user==NULL){
-				strcpy(error_message,"Could not allocate memory for nagios user");
-				error=TRUE;
-				break;
-			        }
-
-			strip(nagios_user);
-
 #ifdef DEBUG1
 			printf("\t\tnagios_user set to '%s'\n",nagios_user);
 #endif
 		        }
+
 		else if(!strcmp(variable,"nagios_group")){
-			if(nagios_group!=NULL)
-				free(nagios_group);
+			my_free((void **)&nagios_group);
 			nagios_group=(char *)strdup(value);
-			if(nagios_group==NULL){
-				strcpy(error_message,"Could not allocate memory for nagios group");
-				error=TRUE;
-				break;
-			        }
-
-			strip(nagios_group);
-
 #ifdef DEBUG1
 			printf("\t\tnagios_group set to '%s'\n",nagios_group);
 #endif
 		        }
+
 		else if(!strcmp(variable,"admin_email")){
 
 			/* save the macro */
-			if(macro_x[MACRO_ADMINEMAIL]!=NULL)
-				free(macro_x[MACRO_ADMINEMAIL]);
+			my_free((void **)&macro_x[MACRO_ADMINEMAIL]);
 			macro_x[MACRO_ADMINEMAIL]=(char *)strdup(value);
-			if(macro_x[MACRO_ADMINEMAIL]==NULL){
-				strcpy(error_message,"Could not allocate memory for admin email address");
-				error=TRUE;
-				break;
-			        }
-
-			strip(macro_x[MACRO_ADMINEMAIL]);
 
 #ifdef DEBUG1
 			printf("\t\tmacro_admin_email set to '%s'\n",macro_x[MACRO_ADMINEMAIL]);
 #endif
 		        }
+
 		else if(!strcmp(variable,"admin_pager")){
 
 			/* save the macro */
-			if(macro_x[MACRO_ADMINPAGER]!=NULL)
-				free(macro_x[MACRO_ADMINPAGER]);
+			my_free((void **)&macro_x[MACRO_ADMINPAGER]);
 			macro_x[MACRO_ADMINPAGER]=(char *)strdup(value);
-			if(macro_x[MACRO_ADMINPAGER]==NULL){
-				strcpy(error_message,"Could not allocate memory for admin pager");
-				error=TRUE;
-				break;
-			        }
-
-			strip(macro_x[MACRO_ADMINPAGER]);
 
 #ifdef DEBUG1
 			printf("\t\tmacro_admin_pager set to '%s'\n",macro_x[MACRO_ADMINPAGER]);
 #endif
 		        }
+
 		else if(!strcmp(variable,"use_syslog")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for use_syslog");
 				error=TRUE;
 				break;
 				}
 
-			strip(value);
 			use_syslog=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tuse_syslog set to %s\n",(use_syslog==TRUE)?"TRUE":"FALSE");
 #endif
 			}
+
 		else if(!strcmp(variable,"log_notifications")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_notifications");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_notifications=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tlog_notifications set to %s\n",(log_notifications==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_service_retries")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_service_retries");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_service_retries=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tlog_service_retries set to %s\n",(log_service_retries==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_host_retries")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_host_retries");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_host_retries=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tlog_host_retries set to %s\n",(log_host_retries==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_event_handlers")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_event_handlers");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_event_handlers=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tlog_event_handlers set to %s\n",(log_event_handlers==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_external_commands")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_external_commands");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_external_commands=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tlog_external_commands set to %s\n",(log_external_commands==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_passive_checks")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_passive_checks");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_passive_checks=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tlog_passive_checks set to %s\n",(log_passive_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_initial_states")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for log_initial_states");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			log_initial_states=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
@@ -703,21 +607,22 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"retain_state_information")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for retain_state_information");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			retain_state_information=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tretain_state_information set to %s\n",(retain_state_information==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"retention_update_interval")){
-			strip(value);
+
 			retention_update_interval=atoi(value);
 			if(retention_update_interval<0){
 				strcpy(error_message,"Illegal value for retention_update_interval");
@@ -729,37 +634,39 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tretention_update_interval set to %d\n",retention_update_interval);
 #endif
 		        }
+
 		else if(!strcmp(variable,"use_retained_program_state")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for use_retained_program_state");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			use_retained_program_state=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tuse_retained_program_state set to %s\n",(use_retained_program_state==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"use_retained_scheduling_info")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for use_retained_scheduling_info");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			use_retained_scheduling_info=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tuse_retained_scheduling_info set to %s\n",(use_retained_scheduling_info==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"retention_scheduling_horizon")){
 
-			strip(value);
 			retention_scheduling_horizon=atoi(value);
 
 			if(retention_scheduling_horizon<=0){
@@ -772,36 +679,39 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tretention_scheduling_horizon set to %d\n",retention_scheduling_horizon);
 #endif
 		        }
+
 		else if(!strcmp(variable,"obsess_over_services")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for obsess_over_services");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			obsess_over_services=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tobsess_over_services set to %s\n",(obsess_over_services==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"obsess_over_hosts")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for obsess_over_hosts");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			obsess_over_hosts=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tobsess_over_hosts set to %s\n",(obsess_over_hosts==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"service_check_timeout")){
-			strip(value);
+
 			service_check_timeout=atoi(value);
 
 			if(service_check_timeout<=0){
@@ -814,8 +724,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tservice_check_timeout set to %d\n",service_check_timeout);
 #endif
 		        }
+
 		else if(!strcmp(variable,"host_check_timeout")){
-			strip(value);
+
 			host_check_timeout=atoi(value);
 
 			if(host_check_timeout<=0){
@@ -828,8 +739,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\thost_check_timeout set to %d\n",host_check_timeout);
 #endif
 		        }
+
 		else if(!strcmp(variable,"event_handler_timeout")){
-			strip(value);
+
 			event_handler_timeout=atoi(value);
 
 			if(event_handler_timeout<=0){
@@ -842,8 +754,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tevent_handler_timeout set to %d\n",event_handler_timeout);
 #endif
 		        }
+
 		else if(!strcmp(variable,"notification_timeout")){
-			strip(value);
+
 			notification_timeout=atoi(value);
 
 			if(notification_timeout<=0){
@@ -856,8 +769,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tnotification_timeout set to %d\n",notification_timeout);
 #endif
 		        }
+
 		else if(!strcmp(variable,"ocsp_timeout")){
-			strip(value);
+
 			ocsp_timeout=atoi(value);
 
 			if(ocsp_timeout<=0){
@@ -870,8 +784,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tocsp_timeout set to %d\n",ocsp_timeout);
 #endif
 		        }
+
 		else if(!strcmp(variable,"ochp_timeout")){
-			strip(value);
+
 			ochp_timeout=atoi(value);
 
 			if(ochp_timeout<=0){
@@ -884,20 +799,22 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tochp_timeout set to %d\n",ochp_timeout);
 #endif
 		        }
+
 		else if(!strcmp(variable,"use_agressive_host_checking") || !strcmp(variable,"use_aggressive_host_checking")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for use_aggressive_host_checking");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			use_aggressive_host_checking=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tuse_aggressive_host_checking set to %s\n",(use_aggressive_host_checking==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"soft_state_dependencies")){
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for soft_state_dependencies");
@@ -905,13 +822,13 @@ int read_main_config_file(char *main_config_file){
 				break;
 			        }
 
-			strip(value);
 			soft_state_dependencies=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tsoft_state_dependencies set to %s\n",(soft_state_dependencies==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_rotation_method")){
 			if(!strcmp(value,"n"))
 				log_rotation_method=LOG_ROTATION_NONE;
@@ -933,64 +850,65 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tlog_rotation_method set to %d\n",log_rotation_method);
 #endif
 		        }
+
 		else if(!strcmp(variable,"log_archive_path")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"Log archive path too long");
 				error=TRUE;
 				break;
 				}
 
-			if(log_archive_path!=NULL)
-				free(log_archive_path);
+			my_free((void **)&log_archive_path);
 			log_archive_path=(char *)strdup(value);
-			strip(log_archive_path);
 
 #ifdef DEBUG1
 			printf("\t\tlog_archive_path set to '%s'\n",log_archive_path);
 #endif
 			}
+
 		else if(!strcmp(variable,"enable_event_handlers")){
-			strip(value);
 			enable_event_handlers=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tenable_event_handlers set to %s\n",(enable_event_handlers==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"enable_notifications")){
-			strip(value);
 			enable_notifications=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tenable_notifications set to %s\n",(enable_notifications==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"execute_service_checks")){
-			strip(value);
 			execute_service_checks=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\texecute_service_checks set to %s\n",(execute_service_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"accept_passive_service_checks")){
-			strip(value);
 			accept_passive_service_checks=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\taccept_passive_service_checks set to %s\n",(accept_passive_service_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"execute_host_checks")){
-			strip(value);
 			execute_host_checks=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\texecute_host_checks set to %s\n",(execute_host_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"accept_passive_host_checks")){
-			strip(value);
 			accept_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\taccept_passive_host_checks set to %s\n",(accept_passive_host_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"service_inter_check_delay_method")){
 			if(!strcmp(value,"n"))
 				service_inter_check_delay_method=ICD_NONE;
@@ -1011,6 +929,7 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tservice_inter_check_delay_method set to %d\n",service_inter_check_delay_method);
 #endif
 		        }
+
 		else if(!strcmp(variable,"max_service_check_spread")){
 			strip(value);
 			max_service_check_spread=atoi(value);
@@ -1024,7 +943,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tmax_service_check_spread set to %d\n",max_service_check_spread);
 #endif
 		        }
+
 		else if(!strcmp(variable,"host_inter_check_delay_method")){
+
 			if(!strcmp(value,"n"))
 				host_inter_check_delay_method=ICD_NONE;
 			else if(!strcmp(value,"d"))
@@ -1044,8 +965,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\thost_inter_check_delay_method set to %d\n",host_inter_check_delay_method);
 #endif
 		        }
+
 		else if(!strcmp(variable,"max_host_check_spread")){
-			strip(value);
+
 			max_host_check_spread=atoi(value);
 			if(max_host_check_spread<1){
 				strcpy(error_message,"Illegal value for max_host_check_spread");
@@ -1057,6 +979,7 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tmax_host_check_spread set to %d\n",max_host_check_spread);
 #endif
 		        }
+
 		else if(!strcmp(variable,"service_interleave_factor")){
 			if(!strcmp(value,"s"))
 				service_interleave_factor_method=ILF_SMART;
@@ -1067,8 +990,9 @@ int read_main_config_file(char *main_config_file){
 					scheduling_info.service_interleave_factor=1;
 			        }
 		        }
+
 		else if(!strcmp(variable,"max_concurrent_checks")){
-			strip(value);
+
 			max_parallel_service_checks=atoi(value);
 			if(max_parallel_service_checks<0){
 				strcpy(error_message,"Illegal value for max_concurrent_checks");
@@ -1080,8 +1004,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tmax_parallel_service_checks set to %d\n",max_parallel_service_checks);
 #endif
 		        }
+
 		else if(!strcmp(variable,"service_reaper_frequency")){
-			strip(value);
+
 			service_check_reaper_interval=atoi(value);
 			if(service_check_reaper_interval<1){
 				strcpy(error_message,"Illegal value for service_reaper_frequency");
@@ -1093,8 +1018,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tservice_check_reaper_interval set to %d\n",service_check_reaper_interval);
 #endif
 		        }
+
 		else if(!strcmp(variable,"sleep_time")){
-			strip(value);
+
 			sleep_time=atof(value);
 			if(sleep_time<=0.0){
 				strcpy(error_message,"Illegal value for sleep_time");
@@ -1105,8 +1031,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tsleep_time set to %f\n",sleep_time);
 #endif
 		        }
+
 		else if(!strcmp(variable,"interval_length")){
-			strip(value);
+
 			interval_length=atoi(value);
 			if(interval_length<1){
 				strcpy(error_message,"Illegal value for interval_length");
@@ -1118,22 +1045,24 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tinterval_length set to %d\n",interval_length);
 #endif
 		        }
+
 		else if(!strcmp(variable,"check_external_commands")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for check_external_commands");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			check_external_commands=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tcheck_external_commands set to %s\n",(check_external_commands==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"command_check_interval")){
-			strip(value);
+
 			command_check_interval_is_seconds=(strstr(value,"s"))?TRUE:FALSE;
 			command_check_interval=atoi(value);
 			if(command_check_interval<-1 || command_check_interval==0){
@@ -1146,50 +1075,54 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tcommand_check_interval set to %d\n",command_check_interval);
 #endif
 		        }
+
 		else if(!strcmp(variable,"check_for_orphaned_services")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for check_for_orphaned_services");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			check_orphaned_services=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tcheck_orphaned_services set to %s\n",(check_orphaned_services==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"check_service_freshness")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for check_service_freshness");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			check_service_freshness=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tcheck_service_freshness set to %s\n",(check_service_freshness==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"check_host_freshness")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for check_host_freshness");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			check_host_freshness=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tcheck_host_freshness set to %s\n",(check_host_freshness==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"service_freshness_check_interval") || !strcmp(variable,"freshness_check_interval")){
-			strip(value);
+
 			service_freshness_check_interval=atoi(value);
 			if(service_freshness_check_interval<=0){
 				strcpy(error_message,"Illegal value for service_freshness_check_interval");
@@ -1201,8 +1134,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tservice_freshness_check_interval set to %d\n",service_freshness_check_interval);
 #endif
 		        }
+
 		else if(!strcmp(variable,"host_freshness_check_interval")){
-			strip(value);
+
 			host_freshness_check_interval=atoi(value);
 			if(host_freshness_check_interval<=0){
 				strcpy(error_message,"Illegal value for host_freshness_check_interval");
@@ -1215,21 +1149,22 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 		else if(!strcmp(variable,"auto_reschedule_checks")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for auto_reschedule_checks");
 				error=TRUE;
 				break;
 			        }
 
-			strip(value);
 			auto_reschedule_checks=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
 			printf("\t\tauto_reschedule_checks set to %s\n",(auto_reschedule_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"auto_rescheduling_interval")){
-			strip(value);
+
 			auto_rescheduling_interval=atoi(value);
 			if(auto_rescheduling_interval<=0){
 				strcpy(error_message,"Illegal value for auto_rescheduling_interval");
@@ -1241,8 +1176,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tauto_rescheduling_interval set to %d\n",auto_rescheduling_interval);
 #endif
 		        }
+
 		else if(!strcmp(variable,"auto_rescheduling_window")){
-			strip(value);
+
 			auto_rescheduling_window=atoi(value);
 			if(auto_rescheduling_window<=0){
 				strcpy(error_message,"Illegal value for auto_rescheduling_window");
@@ -1254,15 +1190,17 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tauto_rescheduling_window set to %d\n",auto_rescheduling_window);
 #endif
 		        }
+
 		else if(!strcmp(variable,"aggregate_status_updates")){
-			strip(value);
+
 			aggregate_status_updates=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\taggregate_status_updates to %s\n",(aggregate_status_updates==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"status_update_interval")){
-			strip(value);
+
 			status_update_interval=atoi(value);
 			if(status_update_interval<=1){
 				strcpy(error_message,"Illegal value for status_update_interval");
@@ -1276,7 +1214,7 @@ int read_main_config_file(char *main_config_file){
 		        }
 
 		else if(!strcmp(variable,"time_change_threshold")){
-			strip(value);
+
 			time_change_threshold=atoi(value);
 
 			if(time_change_threshold<=5){
@@ -1289,28 +1227,33 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\ttime_change_threshold set to %d\n",time_change_threshold);
 #endif
 		        }
+
 		else if(!strcmp(variable,"process_performance_data")){
-			strip(value);
+
 			process_performance_data=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tprocess_performance_data set to %s\n",(process_performance_data==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"enable_flap_detection")){
-			strip(value);
+
 			enable_flap_detection=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tenable_flap_detection set to %s\n",(enable_flap_detection==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"enable_failure_prediction")){
-			strip(value);
+
 			enable_failure_prediction=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tenable_failure_prediction set to %s\n",(enable_failure_prediction==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"low_service_flap_threshold")){
+
 			low_service_flap_threshold=strtod(value,NULL);
 			if(low_service_flap_threshold<=0.0 || low_service_flap_threshold>=100.0){
 				strcpy(error_message,"Illegal value for low_service_flap_threshold");
@@ -1321,7 +1264,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tlow_service_flap_threshold set to %f\n",low_service_flap_threshold);
 #endif
 		        }
+
 		else if(!strcmp(variable,"high_service_flap_threshold")){
+
 			high_service_flap_threshold=strtod(value,NULL);
 			if(high_service_flap_threshold<=0.0 ||  high_service_flap_threshold>100.0){
 				strcpy(error_message,"Illegal value for high_service_flap_threshold");
@@ -1332,7 +1277,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\thigh_service_flap_threshold set to %f\n",high_service_flap_threshold);
 #endif
 		        }
+
 		else if(!strcmp(variable,"low_host_flap_threshold")){
+
 			low_host_flap_threshold=strtod(value,NULL);
 			if(low_host_flap_threshold<=0.0 || low_host_flap_threshold>=100.0){
 				strcpy(error_message,"Illegal value for low_host_flap_threshold");
@@ -1343,7 +1290,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tlow_host_flap_threshold set to %f\n",low_host_flap_threshold);
 #endif
 		        }
+
 		else if(!strcmp(variable,"high_host_flap_threshold")){
+
 			high_host_flap_threshold=strtod(value,NULL);
 			if(high_host_flap_threshold<=0.0 || high_host_flap_threshold>100.0){
 				strcpy(error_message,"Illegal value for high_host_flap_threshold");
@@ -1354,8 +1303,9 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\thigh_host_flap_threshold set to %f\n",high_host_flap_threshold);
 #endif
 		        }
+
 		else if(!strcmp(variable,"date_format")){
-			strip(value);
+
 			if(!strcmp(value,"euro"))
 				date_format=DATE_FORMAT_EURO;
 			else if(!strcmp(value,"iso8601"))
@@ -1368,24 +1318,25 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tdate_format set to %d\n",date_format);
 #endif
 		        }
+
 		else if(!strcmp(variable,"p1_file")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"P1 file is too long");
 				error=TRUE;
 				break;
 				}
 
-			if(p1_file!=NULL)
-				free(p1_file);
+			my_free((void **)&p1_file);
 			p1_file=(char *)strdup(value);
-			strip(p1_file);
 
 #ifdef DEBUG1
 			printf("\t\tp1_file set to '%s'\n",p1_file);
 #endif
 			}
+
 		else if(!strcmp(variable,"event_broker_options")){
-			strip(value);
+
 			if(!strcmp(value,"-1"))
 				event_broker_options=BROKER_EVERYTHING;
 			else
@@ -1394,18 +1345,21 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tevent_broker_options set to %d\n",event_broker_options);
 #endif
 		        }
+
 		else if(!strcmp(variable,"illegal_object_name_chars")){
-			illegal_object_chars=strdup(value);
+			illegal_object_chars=(char *)strdup(value);
 #ifdef DEBUG1
 			printf("\t\tillegal_object_name_chars set to '%s'\n",illegal_object_chars);
 #endif
 		        }
+
 		else if(!strcmp(variable,"illegal_macro_output_chars")){
-			illegal_output_chars=strdup(value);
+			illegal_output_chars=(char *)strdup(value);
 #ifdef DEBUG1
 			printf("\t\tillegal_macro_output_chars set to '%s'\n",illegal_output_chars);
 #endif
 		        }
+
 		else if(!strcmp(variable,"broker_module")){
 			modptr=strtok(value," \n");
 			argptr=strtok(NULL,"\n");
@@ -1413,28 +1367,31 @@ int read_main_config_file(char *main_config_file){
                         neb_add_module(modptr,argptr,TRUE);
 #endif
 		        }
+
 		else if(!strcmp(variable,"use_regexp_matching")){
-			strip(value);
+
 			use_regexp_matches=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tuse_regexp_matches to %s\n",(use_regexp_matches==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"use_true_regexp_matching")){
-			strip(value);
+
 			use_true_regexp_matching=(atoi(value)>0)?TRUE:FALSE;
 #ifdef DEBUG1
 			printf("\t\tuse_true_regexp_matching to %s\n",(use_true_regexp_matching==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
 		else if(!strcmp(variable,"daemon_dumps_core")){
+
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for daemon_dumps_core");
 				error=TRUE;
 				break;
 				}
 
-			strip(value);
 			daemon_dumps_core=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
@@ -1444,27 +1401,38 @@ int read_main_config_file(char *main_config_file){
 
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){
+
 			if(strlen(value)>MAX_FILENAME_LENGTH-1){
 				strcpy(error_message,"Auth file is too long");
 				error=TRUE;
 				break;
 			        }
 
-			if(auth_file!=NULL)
-				free(auth_file);
+			my_free((void **)&auth_file);
 			auth_file=(char *)strdup(value);
-			strip(auth_file);
 #ifdef DEBUG1
 			printf("\t\tauth_file set to '%s'\n",auth_file);
 #endif
 		        }
 
-		/* ignore old/external variables */
+		/* warn about old variables */
+		else if(!strcmp(variable,"comment_file") || !strcmp(variable,"xcddefault_comment_file")){
+			asprintf(&temp_buffer,"Warning: comment_file variable ignored.  Comments are now stored in the status and retention files.");
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
+		        }
+		else if(!strcmp(variable,"downtime_file") || !strcmp(variable,"xdddefault_downtime_file")){
+			asprintf(&temp_buffer,"Warning: downtime_file variable ignored.  Downtime entries are now stored in the status and retention files.");
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
+		        }
+
+		/* skip external data directives */
+		else if(strstr(input,"x")==input)
+			continue;
+
+		/* ignore external variables */
 		else if(!strcmp(variable,"status_file"))
-			continue;
-		else if(!strcmp(variable,"comment_file"))
-			continue;
-		else if(!strcmp(variable,"downtime_file"))
 			continue;
 		else if(!strcmp(variable,"perfdata_timeout"))
 			continue;
@@ -1495,15 +1463,20 @@ int read_main_config_file(char *main_config_file){
 		command_check_interval*=interval_length;
 
 	if(error==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,error_message);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,error_message);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
 	        }
 
 	/* free leftover memory and close the file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
+
+	/* free memory */
+	my_free((void **)&input);
+	my_free((void **)&variable);
+	my_free((void **)&value);
 
 	/* make sure a log file has been specified */
 	strip(log_file);
@@ -1524,12 +1497,12 @@ int read_main_config_file(char *main_config_file){
 
 /* processes macros in resource file */
 int read_resource_file(char *resource_file){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	char *input=NULL;
-	char variable[MAX_INPUT_BUFFER];
-	char value[MAX_INPUT_BUFFER];
-	char *temp_ptr;
-	mmapfile *thefile;
+	char *variable=NULL;
+	char *value=NULL;
+	char *temp_ptr=NULL;
+	mmapfile *thefile=NULL;
 	int current_line=1;
 	int error=FALSE;
 	int user_index=0;
@@ -1543,9 +1516,9 @@ int read_resource_file(char *resource_file){
 #endif
 
 	if((thefile=mmap_fopen(resource_file))==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open resource file '%s' for reading!",resource_file);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Cannot open resource file '%s' for reading!",resource_file);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
 		}
 
@@ -1553,7 +1526,9 @@ int read_resource_file(char *resource_file){
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
+		my_free((void **)&variable);
+		my_free((void **)&value);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -1568,37 +1543,30 @@ int read_resource_file(char *resource_file){
 		strip(input);
 
 		/* get the variable name */
-		temp_ptr=my_strtok(input,"=");
-
-		/* if there is no variable name, return error */
-		if(temp_ptr==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: NULL variable - Line %d of resource file '%s'",current_line,resource_file);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		if((temp_ptr=my_strtok(input,"="))==NULL){
+			asprintf(&temp_buffer,"Error: NULL variable - Line %d of resource file '%s'",current_line,resource_file);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			error=TRUE;
 			break;
 			}
-
-		/* else the variable is good */
-		strncpy(variable,temp_ptr,sizeof(variable));
-		variable[sizeof(variable)-1]='\x0';
+		if((variable=(char *)strdup(temp_ptr))==NULL){
+			error=TRUE;
+			break;
+		        }
 
 		/* get the value */
-		temp_ptr=my_strtok(NULL,"\n");
-
-		/* if no value exists, return error */
-		if(temp_ptr==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: NULL variable value - Line %d of resource file '%s'",current_line,resource_file);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
+			asprintf(&temp_buffer,"Error: NULL variable value - Line %d of resource file '%s'",current_line,resource_file);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			error=TRUE;
 			break;
 			}
-
-		/* else the value is good */
-		strncpy(value,temp_ptr,sizeof(value));
-		value[sizeof(value)-1]='\x0';
-		strip(value);
+		if((value=(char *)strdup(temp_ptr))==NULL){
+			error=TRUE;
+			break;
+		        }
 
 		/* what should we do with the variable/value pair? */
 
@@ -1609,23 +1577,23 @@ int read_resource_file(char *resource_file){
 			if(strstr(variable,"$USER")==variable  && strlen(variable)>5){
 				user_index=atoi(variable+5)-1;
 				if(user_index>=0 && user_index<MAX_USER_MACROS){
-					if(macro_user[user_index]!=NULL)
-						free(macro_user[user_index]);
-					macro_user[user_index]=strdup(value);
-					if(macro_user[user_index]!=NULL){
-						strcpy(macro_user[user_index],value);
+					my_free((void **)&macro_user[user_index]);
+					macro_user[user_index]=(char *)strdup(value);
 #ifdef DEBUG1
-						printf("\t\t$USER%d$ set to '%s'\n",user_index+1,macro_user[user_index]);
+					printf("\t\t$USER%d$ set to '%s'\n",user_index+1,macro_user[user_index]);
 #endif
-					        }
 				        }
 			        }
 		        }
 	        }
 
 	/* free leftover memory and close the file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
+
+	/* free memory */
+	my_free((void **)&variable);
+	my_free((void **)&value);
 
 	if(error==TRUE)
 		return ERROR;
@@ -1648,8 +1616,9 @@ int read_resource_file(char *resource_file){
 
 /* do a pre-flight check to make sure object relationships, etc. make sense */
 int pre_flight_check(void){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	host *temp_host=NULL;
+	char *buf=NULL;
 	service *temp_service=NULL;
 	command *temp_command=NULL;
 	char *temp_command_name="";
@@ -1689,36 +1658,38 @@ int pre_flight_check(void){
 	if(global_host_event_handler!=NULL){
 
 		/* check the event handler command */
-		strncpy(temp_buffer,global_host_event_handler,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		buf=(char *)strdup(global_host_event_handler);
 
 		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
+		temp_command_name=my_strtok(buf,"!");
 
 		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Global host event handler command '%s' is not defined anywhere!",temp_command_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		my_free((void **)&buf);
 	        }
 	if(global_service_event_handler!=NULL){
 
 		/* check the event handler command */
-		strncpy(temp_buffer,global_service_event_handler,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		buf=(char *)strdup(global_service_event_handler);
 
 		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
+		temp_command_name=my_strtok(buf,"!");
 
 		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Global service event handler command '%s' is not defined anywhere!",temp_command_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		my_free((void **)&buf);
 	        }
 
 #ifdef DEBUG1
@@ -1732,35 +1703,37 @@ int pre_flight_check(void){
 		printf("Checking obsessive compulsive processor commands...\n");
 	if(ocsp_command!=NULL){
 
-		strncpy(temp_buffer,ocsp_command,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		buf=(char *)strdup(ocsp_command);
 
 		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
+		temp_command_name=my_strtok(buf,"!");
 
 	        temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Obsessive compulsive service processor command '%s' is not defined anywhere!",temp_command_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		my_free((void **)&buf);
 	        }
 	if(ochp_command!=NULL){
 
-		strncpy(temp_buffer,ochp_command,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		buf=(char *)strdup(ochp_command);
 
 		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
+		temp_command_name=my_strtok(buf,"!");
 
 	        temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Obsessive compulsive host processor command '%s' is not defined anywhere!",temp_command_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		my_free((void **)&buf);
 	        }
 
 #ifdef DEBUG1
@@ -1775,8 +1748,9 @@ int pre_flight_check(void){
 
 	/* warn if user didn't specify any illegal macro output chars */
 	if(illegal_output_chars==NULL){
-		sprintf(temp_buffer,"Warning: Nothing specified for illegal_macro_output_chars variable!\n");
+		asprintf(&temp_buffer,"%s","Warning: Nothing specified for illegal_macro_output_chars variable!\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 		warnings++;
 	        }
 
@@ -1855,7 +1829,8 @@ int pre_flight_object_check(int *w, int *e){
 	hostdependency *temp_hd=NULL;
 	hostextinfo *temp_hostextinfo=NULL;
 	serviceextinfo *temp_serviceextinfo=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
+	char *buf=NULL;
 	char *temp_command_name="";
 	int found=FALSE;
 	int total_objects=0;
@@ -1878,9 +1853,9 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking services...\n");
 	if(service_hashlist==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no services defined!");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: There are no services defined!");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		errors++;
 	        }
 	total_objects=0;
@@ -1894,9 +1869,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find an associated host! */
 		if(!temp_host){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in service '%s' not defined anywhere!",temp_service->host_name,temp_service->description);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Host '%s' specified in service '%s' not defined anywhere!",temp_service->host_name,temp_service->description);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 			}
 
@@ -1904,41 +1879,43 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_service->event_handler!=NULL){
 
 			/* check the event handler command */
-			strncpy(temp_buffer,temp_service->event_handler,sizeof(temp_buffer));
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			buf=(char *)strdup(temp_service->event_handler);
 
 			/* get the command name, leave any arguments behind */
-			temp_command_name=my_strtok(temp_buffer,"!");
+			temp_command_name=my_strtok(buf,"!");
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_command_name,temp_service->description,temp_service->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Event handler command '%s' specified in service '%s' for host '%s' not defined anywhere",temp_command_name,temp_service->description,temp_service->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			my_free((void **)&buf);
 		        }
 
 		/* check the service check_command */
-		strncpy(temp_buffer,temp_service->service_check_command,sizeof(temp_buffer));
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		buf=(char *)strdup(temp_service->service_check_command);
 
 		/* get the command name, leave any arguments behind */
-		temp_command_name=my_strtok(temp_buffer,"!");
+		temp_command_name=my_strtok(buf,"!");
 
 		temp_command=find_command(temp_command_name);
 		if(temp_command==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!",temp_command_name,temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Service check command '%s' specified in service '%s' for host '%s' not defined anywhere!",temp_command_name,temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }		
 
+		my_free((void **)&buf);
+
 		/* check for sane recovery options */
 		if(temp_service->notify_on_recovery==TRUE && temp_service->notify_on_warning==FALSE && temp_service->notify_on_critical==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Recovery notification option in service '%s' for host '%s' doesn't make any sense - specify warning and/or critical options as well",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Recovery notification option in service '%s' for host '%s' doesn't make any sense - specify warning and/or critical options as well",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
@@ -1951,69 +1928,69 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 			}
 
 		/* check to see if there is at least one contact group */
 		if(temp_service->contact_groups==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service '%s' on host '%s'  has no default contact group(s) defined!",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s'  has no default contact group(s) defined!",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		/* verify service check timeperiod */
 		if(temp_service->check_period==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service '%s' on host '%s'  has no check time period defined!",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s'  has no check time period defined!",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 		else{
 		        temp_timeperiod=find_timeperiod(temp_service->check_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Check period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->check_period,temp_service->description,temp_service->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Check period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->check_period,temp_service->description,temp_service->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
 
 		/* check service notification timeperiod */
 		if(temp_service->notification_period==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service '%s' on host '%s' has no notification time period defined!",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no notification time period defined!",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		else{
 		        temp_timeperiod=find_timeperiod(temp_service->notification_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Notification period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->notification_period,temp_service->description,temp_service->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Notification period '%s' specified for service '%s' on host '%s' is not defined anywhere!",temp_service->notification_period,temp_service->description,temp_service->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
 
 		/* see if the notification interval is less than the check interval */
 		if(temp_service->notification_interval<temp_service->check_interval && temp_service->notification_interval!=0){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service '%s' on host '%s'  has a notification interval less than its check interval!  Notifications are only re-sent after checks are made, so the effective notification interval will be that of the check interval.",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s'  has a notification interval less than its check interval!  Notifications are only re-sent after checks are made, so the effective notification interval will be that of the check interval.",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		/* check for illegal characters in service description */
 		if(contains_illegal_object_chars(temp_service->description)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The description string for service '%s' on host '%s' contains one or more illegal characters.",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2034,9 +2011,9 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking hosts...\n");
 	if(host_hashlist==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no hosts defined!");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: There are no hosts defined!");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		errors++;
 	        }
 	total_objects=0;
@@ -2055,9 +2032,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find a service associated with this host! */
 		if(found==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host '%s' has no services associated with it!",temp_host->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Host '%s' has no services associated with it!",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 			}
 
@@ -2075,9 +2052,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find the host in any host groups */
 		if(found==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host '%s' is not a member of any host groups!",temp_host->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Host '%s' is not a member of any host groups!",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 #endif
@@ -2086,47 +2063,49 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_host->event_handler!=NULL){
 
 			/* check the event handler command */
-			strncpy(temp_buffer,temp_host->event_handler,sizeof(temp_buffer));
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			buf=(char *)strdup(temp_host->event_handler);
 
 			/* get the command name, leave any arguments behind */
-			temp_command_name=my_strtok(temp_buffer,"!");
+			temp_command_name=my_strtok(buf,"!");
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_command_name,temp_host->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Event handler command '%s' specified for host '%s' not defined anywhere",temp_command_name,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			my_free((void **)&buf);
 		        }
 
 		/* hosts that don't have check commands defined shouldn't ever be checked... */
 		if(temp_host->host_check_command!=NULL){
 
 			/* check the host check_command */
-			strncpy(temp_buffer,temp_host->host_check_command,sizeof(temp_buffer));
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			buf=(char *)strdup(temp_host->host_check_command);
 
 			/* get the command name, leave any arguments behind */
-			temp_command_name=my_strtok(temp_buffer,"!");
+			temp_command_name=my_strtok(buf,"!");
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_command_name,temp_host->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Host check command '%s' specified for host '%s' is not defined anywhere!",temp_command_name,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 		                }
+
+			my_free((void **)&buf);
 		        }
 
 		/* check host check timeperiod */
 		if(temp_host->check_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_host->check_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Check period '%s' specified for host '%s' is not defined anywhere!",temp_host->check_period,temp_host->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Check period '%s' specified for host '%s' is not defined anywhere!",temp_host->check_period,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2137,17 +2116,17 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 
 			if(temp_contactgroup==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 			}
 		/* check to see if there is at least one contact group */
 		if(temp_host->contact_groups==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s'  has no default contact group(s) defined!",temp_host->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Host '%s'  has no default contact group(s) defined!",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
@@ -2155,9 +2134,9 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_host->notification_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_host->notification_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Notification period '%s' specified for host '%s' is not defined anywhere!",temp_host->notification_period,temp_host->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Notification period '%s' specified for host '%s' is not defined anywhere!",temp_host->notification_period,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2166,26 +2145,26 @@ int pre_flight_object_check(int *w, int *e){
 		for(temp_hostsmember=temp_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
 			if(find_host(temp_hostsmember->host_name)==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: '%s' is not a valid parent for host '%s'!",temp_hostsmember->host_name,temp_host->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: '%s' is not a valid parent for host '%s'!",temp_hostsmember->host_name,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 		                }
 		        }
 
 		/* check for sane recovery options */
 		if(temp_host->notify_on_recovery==TRUE && temp_host->notify_on_down==FALSE && temp_host->notify_on_unreachable==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Recovery notification option in host '%s' definition doesn't make any sense - specify down and/or unreachable options as well",temp_host->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Recovery notification option in host '%s' definition doesn't make any sense - specify down and/or unreachable options as well",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		/* check for illegal characters in host name */
 		if(contains_illegal_object_chars(temp_host->name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of host '%s' contains one or more illegal characters.",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2205,9 +2184,9 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking host groups...\n");
 	if(hostgroup_list==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no host groups defined!");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: There are no host groups defined!");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		errors++;
 	        }
 	for(temp_hostgroup=hostgroup_list,total_objects=0;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next,total_objects++){
@@ -2217,9 +2196,9 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_host=find_host(temp_hostgroupmember->host_name);
 			if(temp_host==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostgroupmember->host_name,temp_hostgroup->group_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Host '%s' specified in host group '%s' is not defined anywhere!",temp_hostgroupmember->host_name,temp_hostgroup->group_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 
@@ -2227,9 +2206,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in hostgroup name */
 		if(contains_illegal_object_chars(temp_hostgroup->group_name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of hostgroup '%s' contains one or more illegal characters.",temp_hostgroup->group_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 		}
@@ -2254,9 +2233,9 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
 			if(temp_service==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicegroupmember->service_description,temp_servicegroupmember->host_name,temp_servicegroup->group_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service group '%s' is not defined anywhere!",temp_servicegroupmember->service_description,temp_servicegroupmember->host_name,temp_servicegroup->group_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 
@@ -2264,9 +2243,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in servicegroup name */
 		if(contains_illegal_object_chars(temp_servicegroup->group_name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of servicegroup '%s' contains one or more illegal characters.",temp_servicegroup->group_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 		}
@@ -2285,94 +2264,97 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking contacts...\n");
 	if(contact_list==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no contacts defined!");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: There are no contacts defined!");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		errors++;
 	        }
 	for(temp_contact=contact_list,total_objects=0;temp_contact!=NULL;temp_contact=temp_contact->next,total_objects++){
 
 		/* check service notification commands */
 		if(temp_contact->service_notification_commands==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact '%s' has no service notification commands defined!",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Contact '%s' has no service notification commands defined!",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 		else for(temp_commandsmember=temp_contact->service_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
 
 			/* check the host notification command */
-			strncpy(temp_buffer,temp_commandsmember->command,sizeof(temp_buffer));
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			buf=(char *)strdup(temp_commandsmember->command);
 
 			/* get the command name, leave any arguments behind */
-			temp_command_name=my_strtok(temp_buffer,"!");
+			temp_command_name=my_strtok(buf,"!");
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Service notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			my_free((void **)&buf);
 		        }
 
 		/* check host notification commands */
 		if(temp_contact->host_notification_commands==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact '%s' has no host notification commands defined!",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Contact '%s' has no host notification commands defined!",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 		else for(temp_commandsmember=temp_contact->host_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
 
 			/* check the host notification command */
-			strncpy(temp_buffer,temp_commandsmember->command,sizeof(temp_buffer));
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			buf=(char *)strdup(temp_commandsmember->command);
 
 			/* get the command name, leave any arguments behind */
-			temp_command_name=my_strtok(temp_buffer,"!");
+			temp_command_name=my_strtok(buf,"!");
 
 			temp_command=find_command(temp_command_name);
 			if(temp_command==NULL){
-				sprintf(temp_buffer,"Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
+				asprintf(&temp_buffer,"Error: Host notification command '%s' specified for contact '%s' is not defined anywhere!",temp_command_name,temp_contact->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			my_free((void **)&buf);
 	                }
 
 		/* check service notification timeperiod */
 		if(temp_contact->service_notification_period==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' has no service notification time period defined!",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Contact '%s' has no service notification time period defined!",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		else{
 		        temp_timeperiod=find_timeperiod(temp_contact->service_notification_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->service_notification_period,temp_contact->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Service notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->service_notification_period,temp_contact->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
 
 		/* check host notification timeperiod */
 		if(temp_contact->host_notification_period==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' has no host notification time period defined!",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Contact '%s' has no host notification time period defined!",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		else{
 		        temp_timeperiod=find_timeperiod(temp_contact->host_notification_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->host_notification_period,temp_contact->name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Host notification period '%s' specified for contact '%s' is not defined anywhere!",temp_contact->host_notification_period,temp_contact->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2390,33 +2372,33 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find the contact in any contact groups */
 		if(found==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' is not a member of any contact groups!",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Contact '%s' is not a member of any contact groups!",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 	
 		/* check for sane host recovery options */
 		if(temp_contact->notify_on_host_recovery==TRUE && temp_contact->notify_on_host_down==FALSE && temp_contact->notify_on_host_unreachable==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		/* check for sane service recovery options */
 		if(temp_contact->notify_on_service_recovery==TRUE && temp_contact->notify_on_service_critical==FALSE && temp_contact->notify_on_service_warning==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service recovery notification option for contact '%s' doesn't make any sense - specify critical and/or warning options as well",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Service recovery notification option for contact '%s' doesn't make any sense - specify critical and/or warning options as well",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
 
 		/* check for illegal characters in contact name */
 		if(contains_illegal_object_chars(temp_contact->name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of contact '%s' contains one or more illegal characters.",temp_contact->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2436,9 +2418,9 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("Checking contact groups...\n");
 	if(contactgroup_list==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: There are no contact groups defined!\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: There are no contact groups defined!\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		errors++;
 	        }
 	for(temp_contactgroup=contactgroup_list,total_objects=0;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next,total_objects++){
@@ -2495,9 +2477,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* we couldn't find a hostgroup or service */
 		if(found==FALSE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact group '%s' is not used in any host/service definitions or host/service escalations!",temp_contactgroup->group_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Contact group '%s' is not used in any host/service definitions or host/service escalations!",temp_contactgroup->group_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			warnings++;
 			}
 
@@ -2506,9 +2488,9 @@ int pre_flight_object_check(int *w, int *e){
 
 			temp_contact=find_contact(temp_contactgroupmember->contact_name);
 			if(temp_contact==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactgroupmember->contact_name,temp_contactgroup->group_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Contact '%s' specified in contact group '%s' is not defined anywhere!",temp_contactgroupmember->contact_name,temp_contactgroup->group_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 
@@ -2516,9 +2498,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in contactgroup name */
 		if(contains_illegal_object_chars(temp_contactgroup->group_name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of contact group '%s' contains one or more illegal characters.",temp_contactgroup->group_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 		}
@@ -2543,9 +2525,9 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the service */
 		temp_service=find_service(temp_se->host_name,temp_se->description);
 		if(temp_service==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service escalation is not defined anywhere!",temp_se->description,temp_se->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service escalation is not defined anywhere!",temp_se->description,temp_se->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
@@ -2553,9 +2535,9 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_se->escalation_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_se->escalation_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->escalation_period,temp_se->description,temp_se->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Escalation period '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_se->escalation_period,temp_se->description,temp_se->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2566,9 +2548,9 @@ int pre_flight_object_check(int *w, int *e){
 			/* find the contact group */
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 			if(temp_contactgroup==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2594,26 +2576,26 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the dependent service */
 		temp_service=find_service(temp_sd->dependent_host_name,temp_sd->dependent_service_description);
 		if(temp_service==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Dependent service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name,temp_sd->service_description,temp_sd->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Dependent service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependent_service_description,temp_sd->dependent_host_name,temp_sd->service_description,temp_sd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
 		/* find the service we're depending on */
 		temp_service2=find_service(temp_sd->host_name,temp_sd->service_description);
 		if(temp_service2==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->service_description,temp_sd->host_name,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->service_description,temp_sd->host_name,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
 		/* make sure they're not the same service */
 		if(temp_service==temp_service2){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service dependency definition for service '%s' on host '%s' is circular (it depends on itself)!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Service dependency definition for service '%s' on host '%s' is circular (it depends on itself)!",temp_sd->dependent_service_description,temp_sd->dependent_host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2638,9 +2620,9 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the host */
 		temp_host=find_host(temp_he->host_name);
 		if(temp_host==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in host escalation is not defined anywhere!",temp_he->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Host '%s' specified in host escalation is not defined anywhere!",temp_he->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
@@ -2648,9 +2630,9 @@ int pre_flight_object_check(int *w, int *e){
 		if(temp_he->escalation_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_he->escalation_period);
 			if(temp_timeperiod==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_he->escalation_period,temp_he->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Escalation period '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_he->escalation_period,temp_he->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2661,9 +2643,9 @@ int pre_flight_object_check(int *w, int *e){
 			/* find the contact group */
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
 			if(temp_contactgroup==NULL){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 				errors++;
 			        }
 		        }
@@ -2688,26 +2670,26 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the dependent host */
 		temp_host=find_host(temp_hd->dependent_host_name);
 		if(temp_host==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Dependent host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Dependent host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
 		/* find the host we're depending on */
 		temp_host2=find_host(temp_hd->host_name);
 		if(temp_host2==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Host specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependent_host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 
 		/* make sure they're not the same host */
 		if(temp_host==temp_host2){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host dependency definition for host '%s' is circular (it depends on itself)!",temp_hd->dependent_host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Host dependency definition for host '%s' is circular (it depends on itself)!",temp_hd->dependent_host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2730,9 +2712,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in command name */
 		if(contains_illegal_object_chars(temp_command->name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of command '%s' contains one or more illegal characters.",temp_command->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2755,9 +2737,9 @@ int pre_flight_object_check(int *w, int *e){
 
 		/* check for illegal characters in timeperiod name */
 		if(contains_illegal_object_chars(temp_timeperiod->name)==TRUE){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: The name of time period '%s' contains one or more illegal characters.",temp_timeperiod->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2781,9 +2763,9 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the host */
 		temp_host=find_host(temp_hostextinfo->host_name);
 		if(temp_host==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Host '%s' specified in extended host information is not defined anywhere!",temp_hostextinfo->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Host '%s' specified in extended host information is not defined anywhere!",temp_hostextinfo->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2807,9 +2789,9 @@ int pre_flight_object_check(int *w, int *e){
 		/* find the service */
 		temp_service=find_service(temp_serviceextinfo->host_name,temp_serviceextinfo->description);
 		if(temp_service==NULL){
-			snprintf(temp_buffer,sizeof(temp_buffer),"Error: Service '%s' on host '%s' specified in extended service information is not defined anywhere!",temp_serviceextinfo->description,temp_serviceextinfo->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in extended service information is not defined anywhere!",temp_serviceextinfo->description,temp_serviceextinfo->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2841,7 +2823,7 @@ int pre_flight_circular_check(int *w, int *e){
 	servicedependency *temp_sd2=NULL;
 	hostdependency *temp_hd=NULL;
 	hostdependency *temp_hd2=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int found=FALSE;
 	int result=OK;
 	int warnings=0;
@@ -2874,8 +2856,9 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_path(temp_host,temp_host);
 		if(found==TRUE){
-			sprintf(temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
+			asprintf(&temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			result=ERROR;
 		        }
 	        }
@@ -2903,8 +2886,9 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_servicedependency(temp_sd,temp_sd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
-			sprintf(temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
+			asprintf(&temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2918,8 +2902,9 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_servicedependency(temp_sd,temp_sd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
-			sprintf(temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
+			asprintf(&temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2933,8 +2918,9 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_hostdependency(temp_hd,temp_hd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
-			sprintf(temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
+			asprintf(&temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }
@@ -2948,8 +2934,9 @@ int pre_flight_circular_check(int *w, int *e){
 
 		found=check_for_circular_hostdependency(temp_hd,temp_hd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
-			sprintf(temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
+			asprintf(&temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			errors++;
 		        }
 	        }

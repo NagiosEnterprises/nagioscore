@@ -83,12 +83,6 @@ int check_pending_flex_service_downtime(service *);
 int check_for_expired_downtime(void);
 #endif
 
-
-#ifdef NSCGI
-int read_downtime_data(char *);
-#endif
-
-
 int add_host_downtime(char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long);
 int add_service_downtime(char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long);
 int add_downtime(int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long);

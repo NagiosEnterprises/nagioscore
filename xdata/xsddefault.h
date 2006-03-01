@@ -3,7 +3,7 @@
  * XSDDEFAULT.H - Header file for default status data routines
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-01-2006
  *
  * License:
  *
@@ -22,6 +22,9 @@
  *
  *****************************************************************************/
 
+#ifndef _XSDDEFAULT_H
+#define _XSDDEFAULT_H
+
 #ifdef NSCORE
 int xsddefault_initialize_status_data(char *);
 int xsddefault_cleanup_status_data(char *,int);
@@ -30,15 +33,21 @@ int xsddefault_save_status_data(void);
 
 #ifdef NSCGI
 
-#define XSDDEFAULT_NO_DATA          0
-#define XSDDEFAULT_INFO_DATA        1
-#define XSDDEFAULT_PROGRAM_DATA     2
-#define XSDDEFAULT_HOST_DATA        3
-#define XSDDEFAULT_SERVICE_DATA     4
-#define XSDDEFAULT_CONTACT_DATA     5
+#define XSDDEFAULT_NO_DATA               0
+#define XSDDEFAULT_INFO_DATA             1
+#define XSDDEFAULT_PROGRAMSTATUS_DATA    2
+#define XSDDEFAULT_HOSTSTATUS_DATA       3
+#define XSDDEFAULT_SERVICESTATUS_DATA    4
+#define XSDDEFAULT_CONTACTSTATUS_DATA    5
+#define XSDDEFAULT_HOSTCOMMENT_DATA      6
+#define XSDDEFAULT_SERVICECOMMENT_DATA   7
+#define XSDDEFAULT_HOSTDOWNTIME_DATA     8
+#define XSDDEFAULT_SERVICEDOWNTIME_DATA  9
 
 int xsddefault_read_status_data(char *,int);
 #endif
 
 int xsddefault_grab_config_info(char *);
 int xsddefault_grab_config_directives(char *);
+
+#endif

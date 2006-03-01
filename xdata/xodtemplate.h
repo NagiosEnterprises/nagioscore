@@ -30,28 +30,28 @@
 
 /*********** GENERAL DEFINITIONS ************/
 
-#define XODTEMPLATE_NULL                "null"
+#define XODTEMPLATE_NULL                  "null"
 
-#define MAX_XODTEMPLATE_INPUT_BUFFER    1024
+#define MAX_XODTEMPLATE_INPUT_BUFFER      1024
 
 #define MAX_XODTEMPLATE_CONTACT_ADDRESSES 6
 
-#define XODTEMPLATE_NONE                0
-#define XODTEMPLATE_TIMEPERIOD          1
-#define XODTEMPLATE_COMMAND             2
-#define XODTEMPLATE_CONTACT             3
-#define XODTEMPLATE_CONTACTGROUP        4
-#define XODTEMPLATE_HOST                5
-#define XODTEMPLATE_HOSTGROUP           6
-#define XODTEMPLATE_SERVICE             7
-#define XODTEMPLATE_SERVICEDEPENDENCY   8
-#define XODTEMPLATE_HOSTGROUPESCALATION 9      /* no longer implemented */
-#define XODTEMPLATE_SERVICEESCALATION   10
-#define XODTEMPLATE_HOSTESCALATION      11
-#define XODTEMPLATE_HOSTDEPENDENCY      12
-#define XODTEMPLATE_HOSTEXTINFO         13
-#define XODTEMPLATE_SERVICEEXTINFO      14
-#define XODTEMPLATE_SERVICEGROUP        15
+#define XODTEMPLATE_NONE                  0
+#define XODTEMPLATE_TIMEPERIOD            1
+#define XODTEMPLATE_COMMAND               2
+#define XODTEMPLATE_CONTACT               3
+#define XODTEMPLATE_CONTACTGROUP          4
+#define XODTEMPLATE_HOST                  5
+#define XODTEMPLATE_HOSTGROUP             6
+#define XODTEMPLATE_SERVICE               7
+#define XODTEMPLATE_SERVICEDEPENDENCY     8
+#define XODTEMPLATE_HOSTGROUPESCALATION   9      /* no longer implemented */
+#define XODTEMPLATE_SERVICEESCALATION     10
+#define XODTEMPLATE_HOSTESCALATION        11
+#define XODTEMPLATE_HOSTDEPENDENCY        12
+#define XODTEMPLATE_HOSTEXTINFO           13
+#define XODTEMPLATE_SERVICEEXTINFO        14
+#define XODTEMPLATE_SERVICEGROUP          15
 
 
 

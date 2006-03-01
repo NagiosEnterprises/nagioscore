@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 3.0-prealpha-02272006
+ * Version: 3.0-prealpha-03012006
  * License: GPL
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-01-2006
  *
  * Description:
  *
@@ -238,7 +238,7 @@ int main(int argc, char **argv){
 #endif
 	int result;
 	int error=FALSE;
-	char buffer[MAX_INPUT_BUFFER];
+	char *buffer=NULL;
 	int display_license=FALSE;
 	int display_help=FALSE;
 	int c;
@@ -397,8 +397,7 @@ int main(int argc, char **argv){
 	if(config_file[0]!='/'){
 
 		/* save the name of the config file */
-		strncpy(buffer,config_file,sizeof(buffer));
-		buffer[sizeof(buffer)-1]='\x0';
+		buffer=(char *)strdup(config_file);
 
 		/* reallocate a larger chunk of memory */
 		config_file=(char *)realloc(config_file,MAX_FILENAME_LENGTH);
@@ -417,6 +416,8 @@ int main(int argc, char **argv){
 		/* append the config file to the path */
 		strncat(config_file,buffer,MAX_FILENAME_LENGTH-strlen(config_file)-1);
 		config_file[MAX_FILENAME_LENGTH-1]='\x0';
+
+		my_free((void **)&buffer);
 	        }
 
 
@@ -487,7 +488,7 @@ int main(int argc, char **argv){
 		cleanup();
 
 		/* free config_file */
-		free(config_file);
+		my_free((void **)&config_file);
 
 		/* exit */
 		exit(result);
@@ -545,13 +546,8 @@ int main(int argc, char **argv){
 
 			/* get program (re)start time and save as macro */
 			program_start=time(NULL);
-			if(macro_x[MACRO_PROCESSSTARTTIME]!=NULL)
-				free(macro_x[MACRO_PROCESSSTARTTIME]);
-			macro_x[MACRO_PROCESSSTARTTIME]=(char *)malloc(MAX_DATETIME_LENGTH);
-			if(macro_x[MACRO_PROCESSSTARTTIME]!=NULL){
-				snprintf(macro_x[MACRO_PROCESSSTARTTIME],MAX_DATETIME_LENGTH,"%lu",(unsigned long)program_start);
-				macro_x[MACRO_PROCESSSTARTTIME][MAX_DATETIME_LENGTH-1]='\x0';
-			        }
+			my_free((void **)&macro_x[MACRO_PROCESSSTARTTIME]);
+			asprintf(&macro_x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
 
 			/* get PID */
 			nagios_pid=(int)getpid();
@@ -562,9 +558,9 @@ int main(int argc, char **argv){
 			/* drop privileges */
 			if(drop_privileges(nagios_user,nagios_group)==ERROR){
 
-				snprintf(buffer,sizeof(buffer),"Failed to drop privileges.  Aborting.");
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Failed to drop privileges.  Aborting.");
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&buffer);
 
 				cleanup();
 				exit(ERROR);
@@ -577,9 +573,9 @@ int main(int argc, char **argv){
 #endif
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
-			snprintf(buffer,sizeof(buffer),"Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
-			buffer[sizeof(buffer)-1]='\x0';
+			asprintf(&buffer,"Nagios %s starting... (PID=%d)\n",PROGRAM_VERSION,(int)getpid());
 			write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
+			my_free((void **)&buffer);
 
 			/* write log version/info */
 			write_log_file_info(NULL);
@@ -599,9 +595,9 @@ int main(int argc, char **argv){
 			/* there was a problem reading the config files */
 			if(result!=OK){
 
-				snprintf(buffer,sizeof(buffer),"Bailing out due to one or more errors encountered in the configuration files.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Bailing out due to one or more errors encountered in the configuration files.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&buffer);
 
 				/* close and delete the external command file if we were restarting */
 				if(sigrestart==TRUE)
@@ -621,9 +617,9 @@ int main(int argc, char **argv){
 			/* there was a problem running the pre-flight check */
 			if(result!=OK){
 
-				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while running the pre-flight check.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Bailing out due to errors encountered while running the pre-flight check.  Run Nagios from the command line with the -v option to verify your config before restarting. (PID=%d)\n",(int)getpid());
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_VERIFICATION_ERROR ,TRUE);
+				my_free((void **)&buffer);
 
 				/* close and delete the external command file if we were restarting */
 				if(sigrestart==TRUE)
@@ -663,9 +659,9 @@ int main(int argc, char **argv){
 #else
 				daemon_init();
 
-				snprintf(buffer,sizeof(buffer),"Finished daemonizing... (New PID=%d)\n",(int)getpid());
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
+				my_free((void **)&buffer);
 
 				/* get new PID */
 				nagios_pid=(int)getpid();
@@ -676,9 +672,9 @@ int main(int argc, char **argv){
 			result=open_command_file();
 			if(result!=OK){
 
-				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
+				my_free((void **)&buffer);
 
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
@@ -691,6 +687,10 @@ int main(int argc, char **argv){
 		        /* initialize status data */
 			initialize_status_data(config_file);
 
+			/* read initial service and host state information  */
+			initialize_retention_data(config_file);
+			read_initial_state_information();
+
 			/* initialize comment data */
 			initialize_comment_data(config_file);
 			
@@ -699,10 +699,6 @@ int main(int argc, char **argv){
 			
 			/* initialize performance data */
 			initialize_performance_data(config_file);
-
-			/* read initial service and host state information  */
-			initialize_retention_data(config_file);
-			read_initial_state_information();
 
 		        /* initialize the event timing loop */
 			init_timing_loop();
@@ -717,9 +713,9 @@ int main(int argc, char **argv){
 			/* create pipe used for service check IPC */
 			if(pipe(ipc_pipe)){
 
-				snprintf(buffer,sizeof(buffer),"Error: Could not initialize service check IPC pipe...\n");
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Error: Could not initialize service check IPC pipe...\n");
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
+				my_free((void **)&buffer);
 
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
@@ -733,9 +729,9 @@ int main(int argc, char **argv){
 			result=init_service_result_worker_thread();
 			if(result!=OK){
 
-				snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while trying to initialize service result worker thread... (PID=%d)\n",(int)getpid());
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Bailing out due to errors encountered while trying to initialize service result worker thread... (PID=%d)\n",(int)getpid());
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
+				my_free((void **)&buffer);
 
 #ifdef USE_EVENT_BROKER
 				/* send program data to broker */
@@ -770,17 +766,17 @@ int main(int argc, char **argv){
 			save_state_information(FALSE);
 			cleanup_retention_data(config_file);
 
-			/* clean up the status data */
-			cleanup_status_data(config_file,TRUE);
-
-			/* clean up the comment data */
-			cleanup_comment_data(config_file);
+			/* clean up performance data */
+			cleanup_performance_data(config_file);
 
 			/* clean up the scheduled downtime data */
 			cleanup_downtime_data(config_file);
 
-			/* clean up performance data */
-			cleanup_performance_data(config_file);
+			/* clean up the comment data */
+			cleanup_comment_data(config_file);
+
+			/* clean up the status data */
+			cleanup_status_data(config_file,TRUE);
 
 			/* close and delete the external command file FIFO unless we're restarting */
 			if(sigrestart==FALSE)
@@ -805,9 +801,9 @@ int main(int argc, char **argv){
 					unlink(lock_file);
 
 				/* log a shutdown message */
-				snprintf(buffer,sizeof(buffer),"Successfully shutdown... (PID=%d)\n",(int)getpid());
-				buffer[sizeof(buffer)-1]='\x0';
+				asprintf(&buffer,"Successfully shutdown... (PID=%d)\n",(int)getpid());
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO,TRUE);
+				my_free((void **)&buffer);
  			        }
 
 			/* clean up after ourselves */
@@ -816,7 +812,7 @@ int main(int argc, char **argv){
 	                }while(sigrestart==TRUE && sigshutdown==FALSE);
 
 		/* free misc memory */
-		free(config_file);
+		my_free((void **)&config_file);
 	        }
 
 	return OK;

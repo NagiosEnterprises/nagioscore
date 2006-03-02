@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-006
+ * Last Modified:   03-01-006
  *
  * License:
  *
@@ -486,6 +486,11 @@ int grab_service_macros(service *svc){
 	my_free((void **)&macro_x[MACRO_SERVICEDESC]);
 	macro_x[MACRO_SERVICEDESC]=(char *)strdup(svc->description);
 
+	/* get the service display name */
+	my_free((void **)&macro_x[MACRO_SERVICEDISPLAYNAME]);
+	if(svc->display_name)
+		macro_x[MACRO_SERVICEDISPLAYNAME]=(char *)strdup(svc->display_name);
+
 	/* get the plugin output */
 	my_free((void **)&macro_x[MACRO_SERVICEOUTPUT]);
 	if(svc->plugin_output)
@@ -698,6 +703,11 @@ int grab_host_macros(host *hst){
 	my_free((void **)&macro_x[MACRO_HOSTNAME]);
 	macro_x[MACRO_HOSTNAME]=(char *)strdup(hst->name);
 	
+	/* get the host display name */
+	my_free((void **)&macro_x[MACRO_HOSTDISPLAYNAME]);
+	if(hst->display_name)
+		macro_x[MACRO_HOSTDISPLAYNAME]=(char *)strdup(hst->display_name);
+
 	/* get the host alias */
 	my_free((void **)&macro_x[MACRO_HOSTALIAS]);
 	macro_x[MACRO_HOSTALIAS]=(char *)strdup(hst->alias);
@@ -1119,6 +1129,12 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			break;
 	        }
 
+	/* get the host display name */
+	if(!strcmp(macro,"HOSTDISPLAYNAME")){
+		if(hst->display_name)
+			macro_ondemand=(char *)strdup(hst->display_name);
+	        }
+
 	/* get the host alias */
 	if(!strcmp(macro,"HOSTALIAS"))
 		macro_ondemand=(char *)strdup(hst->alias);
@@ -1362,6 +1378,12 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
 		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE)
 			break;
+	        }
+
+	/* get the service display name */
+	if(!strcmp(macro,"SERVICEDISPLAYNAME")){
+		if(svc->display_name)
+			macro_ondemand=(char *)strdup(svc->display_name);
 	        }
 
 	/* get the plugin output */
@@ -1933,8 +1955,6 @@ int clear_volatile_macros(void){
 		case MACRO_ADMINPAGER:
 		case MACRO_MAINCONFIGFILE:
 		case MACRO_STATUSDATAFILE:
-		case MACRO_COMMENTDATAFILE:
-		case MACRO_DOWNTIMEDATAFILE:
 		case MACRO_RETENTIONDATAFILE:
 		case MACRO_OBJECTCACHEFILE:
 		case MACRO_TEMPFILE:
@@ -2011,8 +2031,6 @@ int clear_nonvolatile_macros(void){
 		case MACRO_ADMINPAGER:
 		case MACRO_MAINCONFIGFILE:
 		case MACRO_STATUSDATAFILE:
-		case MACRO_COMMENTDATAFILE:
-		case MACRO_DOWNTIMEDATAFILE:
 		case MACRO_RETENTIONDATAFILE:
 		case MACRO_OBJECTCACHEFILE:
 		case MACRO_TEMPFILE:
@@ -2115,8 +2133,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_HOSTCHECKCOMMAND,"HOSTCHECKCOMMAND");
 	add_macrox_name(MACRO_MAINCONFIGFILE,"MAINCONFIGFILE");
 	add_macrox_name(MACRO_STATUSDATAFILE,"STATUSDATAFILE");
-	add_macrox_name(MACRO_COMMENTDATAFILE,"COMMENTDATAFILE");
-	add_macrox_name(MACRO_DOWNTIMEDATAFILE,"DOWNTIMEDATAFILE");
+	add_macrox_name(MACRO_HOSTDISPLAYNAME,"HOSTDISPLAYNAME");
+	add_macrox_name(MACRO_SERVICEDISPLAYNAME,"SERVICEDISPLAYNAME");
 	add_macrox_name(MACRO_RETENTIONDATAFILE,"RETENTIONDATAFILE");
 	add_macrox_name(MACRO_OBJECTCACHEFILE,"OBJECTCACHEFILE");
 	add_macrox_name(MACRO_TEMPFILE,"TEMPFILE");

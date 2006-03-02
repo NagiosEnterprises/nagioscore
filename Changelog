@@ -26,6 +26,7 @@ Pre-alpha changes since 02/15/2006...
        respectively, for allowing including host or service members from "sub" groups.
      - Added support for custom variables in host, service, and contact definitions
      - Added host_notifications_enabled, service_notifications_enabled, can_submit_commands to contact definitions
+     - Added optional display_name directive to host and service definitions
 
 * Performance optimizations:
      - Added ability to precache object config files
@@ -38,6 +39,8 @@ Pre-alpha changes since 02/15/2006...
 * Macro changes:
      - Added $LONGHOSTOUTPUT$ and $LONGSERVICEOUTPUT$ macros
      - Added $TEMPPATH$ macro
+     - Removed $COMMENTDATAFILE$ and $DOWNTIMEDATAFILE$ macros
+     - Added $HOSTDISPLAYNAME$ and $SERVICEDISPLAYNAME$ macros
      - Custom host/service/contact macros accessible via $_HOST<varname>$, $_SERVICE<varname>, or $_CONTACT<varname>$.
        On-demand host/service macros for custom vars are working.  Custom vars are also set as environment vars.
 

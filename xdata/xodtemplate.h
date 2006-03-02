@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-27-2006
+ * Last Modified:   03-01-2006
  *
  * License:
  *
@@ -179,6 +179,7 @@ typedef struct xodtemplate_host_struct{
 	int        _start_line;
 
 	char      *host_name;
+	char      *display_name;
 	char      *alias;
 	char      *address;
 	char      *parents;
@@ -219,6 +220,7 @@ typedef struct xodtemplate_host_struct{
 	int       retain_nonstatus_information;
 	xodtemplate_customvariablesmember *custom_variables;
 
+	int       have_display_name;
 	int       have_parents;
 	int       have_host_groups;
 	int       have_check_command;
@@ -286,6 +288,7 @@ typedef struct xodtemplate_service_struct{
 
 	char       *host_name;
 	char       *service_description;
+	char       *display_name;
 	char       *hostgroup_name;
 	char       *service_groups;
 	char       *check_command;
@@ -332,6 +335,7 @@ typedef struct xodtemplate_service_struct{
 
 	int        have_host_name;
 	int        have_service_description;
+	int        have_display_name;
 	int        have_hostgroup_name;
 	int        have_service_groups;
 	int        have_check_command;

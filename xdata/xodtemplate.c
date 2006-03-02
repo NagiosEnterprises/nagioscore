@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2006
+ * Last Modified: 03-01-2006
  *
  * Description:
  *
@@ -1378,6 +1378,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->name=NULL;
 
 		new_host->host_name=NULL;
+		new_host->display_name=NULL;
+		new_host->have_display_name=FALSE;
 		new_host->alias=NULL;
 		new_host->address=NULL;
 		new_host->parents=NULL;
@@ -1478,6 +1480,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_host_name=FALSE;
 		new_service->service_description=NULL;
 		new_service->have_service_description=FALSE;
+		new_service->display_name=NULL;
+		new_service->have_display_name=FALSE;
 		new_service->hostgroup_name=NULL;
 		new_service->have_hostgroup_name=FALSE;
 		new_service->service_groups=NULL;
@@ -3032,6 +3036,18 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 		        }
+		else if(!strcmp(variable,"display_name")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_host->display_name=strdup(value);
+				if(temp_host->display_name==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for host display name.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_host->have_display_name=TRUE;
+		        }
 		else if(!strcmp(variable,"alias")){
 			temp_host->alias=strdup(value);
 			if(temp_host->alias==NULL){
@@ -3403,6 +3419,18 @@ int xodtemplate_add_object_property(char *input, int options){
 				        }
 			        }
 			temp_service->have_service_description=TRUE;
+		        }
+		else if(!strcmp(variable,"display_name")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->display_name=strdup(value);
+				if(temp_service->display_name==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service display name.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_display_name=TRUE;
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
@@ -5149,6 +5177,8 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->have_host_name=temp_service->have_host_name;
 	new_service->service_description=NULL;
 	new_service->have_service_description=temp_service->have_service_description;
+	new_service->display_name=NULL;
+	new_service->have_display_name=temp_service->have_display_name;
 	new_service->service_groups=NULL;
 	new_service->have_service_groups=temp_service->have_service_groups;
 	new_service->check_command=NULL;
@@ -5215,6 +5245,20 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			return ERROR;
 		        }
 	        } 
+	if(temp_service->display_name!=NULL){
+		new_service->display_name=strdup(temp_service->display_name);
+		if(new_service->display_name==NULL){
+#ifdef DEBUG1
+			printf("Error: Could not allocate memory for duplicate definition of service.\n");
+#endif
+			free(new_service->host_name);
+			free(new_service->template);
+			free(new_service->name);
+			free(new_service->service_description);
+			free(new_service);
+			return ERROR;
+		        }
+	        } 
 	if(temp_service->service_groups!=NULL){
 		new_service->service_groups=strdup(temp_service->service_groups);
 		if(new_service->service_groups==NULL){
@@ -5225,6 +5269,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service);
 			return ERROR;
 		        }
@@ -5239,6 +5284,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service->service_groups);
 			free(new_service);
 			return ERROR;
@@ -5254,6 +5300,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service->check_command);
 			free(new_service->service_groups);
 			free(new_service);
@@ -5270,6 +5317,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
@@ -5288,6 +5336,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
@@ -5306,6 +5355,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
@@ -5325,6 +5375,7 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 			free(new_service->template);
 			free(new_service->name);
 			free(new_service->service_description);
+			free(new_service->display_name);
 			free(new_service->service_groups);
 			free(new_service->check_command);
 			free(new_service->check_period);
@@ -6995,6 +7046,11 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		/* apply missing properties from template host... */
 		if(this_host->host_name==NULL && template_host->host_name!=NULL)
 			this_host->host_name=strdup(template_host->host_name);
+		if(this_host->have_display_name==FALSE && template_host->have_display_name==TRUE){
+			if(this_host->display_name==NULL && template_host->display_name!=NULL)
+				this_host->display_name=strdup(template_host->display_name);
+			this_host->have_display_name=TRUE;
+		        }
 		if(this_host->alias==NULL && template_host->alias!=NULL)
 			this_host->alias=strdup(template_host->alias);
 		if(this_host->address==NULL && template_host->address!=NULL)
@@ -7213,6 +7269,11 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 			if(this_service->service_description==NULL && template_service->service_description!=NULL)
 				this_service->service_description=strdup(template_service->service_description);
 			this_service->have_service_description=TRUE;
+		        }
+		if(this_service->have_display_name==FALSE && template_service->have_display_name==TRUE){
+			if(this_service->display_name==NULL && template_service->display_name!=NULL)
+				this_service->display_name=strdup(template_service->display_name);
+			this_service->have_display_name=TRUE;
 		        }
 		if(this_service->have_hostgroup_name==FALSE && template_service->have_hostgroup_name==TRUE){
 			if(this_service->hostgroup_name==NULL && template_service->hostgroup_name!=NULL)
@@ -9413,7 +9474,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		this_host->address=strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 #ifdef TEST_DEBUG
 	printf("HOST: %s, MAXATTEMPTS: %d, NOTINVERVAL: %d \n",this_host->host_name,this_host->max_check_attempts,this_host->notification_interval);
@@ -9504,7 +9565,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		return OK;
 
 	/* add the service */
-	new_service=add_service(this_service->host_name,this_service->service_description,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
+	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
@@ -10859,6 +10920,8 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"define host {\n");
 		if(temp_host->host_name)
 			fprintf(fp,"\thost_name\t%s\n",temp_host->host_name);
+		if(temp_host->display_name)
+			fprintf(fp,"\tdisplay_name\t%s\n",temp_host->display_name);
 		if(temp_host->alias)
 			fprintf(fp,"\talias\t%s\n",temp_host->alias);
 		if(temp_host->address)
@@ -10950,6 +11013,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\thost_name\t%s\n",temp_service->host_name);
 		if(temp_service->service_description)
 			fprintf(fp,"\tservice_description\t%s\n",temp_service->service_description);
+		if(temp_service->display_name)
+			fprintf(fp,"\tdisplay_name\t%s\n",temp_service->display_name);
 		if(temp_service->check_period)
 			fprintf(fp,"\tcheck_period\t%s\n",temp_service->check_period);
 		if(temp_service->check_command)

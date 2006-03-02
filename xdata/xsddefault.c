@@ -215,16 +215,6 @@ int xsddefault_grab_config_info(char *config_file){
 	my_free((void **)&macro_x[MACRO_STATUSDATAFILE]);
 	if((macro_x[MACRO_STATUSDATAFILE]=(char *)strdup(xsddefault_status_log)))
 		strip(macro_x[MACRO_STATUSDATAFILE]);
-
-	/* save the comment file macro (deprecated) */
-	my_free((void **)&macro_x[MACRO_COMMENTDATAFILE]);
-	if((macro_x[MACRO_COMMENTDATAFILE]=(char *)strdup(xsddefault_status_log)))
-		strip(macro_x[MACRO_COMMENTDATAFILE]);
-
-	/* save the downtime file macro (deprecated) */
-	my_free((void **)&macro_x[MACRO_DOWNTIMEDATAFILE]);
-	if((macro_x[MACRO_DOWNTIMEDATAFILE]=(char *)strdup(xsddefault_status_log)))
-		strip(macro_x[MACRO_DOWNTIMEDATAFILE]);
 #endif
 
 	return OK;

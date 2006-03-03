@@ -7,6 +7,8 @@ Nagios 2.x Change Log
 ----------------
 * Changed freshness logic so that passive checks don't immediately go stale after program restart
 * Bug fix for minor memory leak in object cleanup code
+* Bug fix for flapping notifications during scheduled downtime
+
 
 
 2.0 - 02/07/2006
@@ -15,6 +17,7 @@ Nagios 2.x Change Log
 * Removed length limitations for object vars/vals
 * Updated config.sub and config.guess to versions from automake-1.9
 * Doc updates
+
 
 
 2.0rc2 - 01/10/2006

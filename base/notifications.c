@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-02-2006
  *
  * License:
  *
@@ -340,6 +340,14 @@ int check_service_notification_viability(service *svc, int type){
 #endif
 			return ERROR;
 	                }
+
+		/* don't send notifications during scheduled downtime */
+		if(svc->scheduled_downtime_depth>0 || temp_host->scheduled_downtime_depth>0){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about FLAPPING events during scheduled downtime!\n");
+#endif
+			return ERROR;
+		        }
 
 		/* flapping viability test passed, so the notification can be sent out */
 		return OK;
@@ -1139,6 +1147,14 @@ int check_host_notification_viability(host *hst, int type){
 #endif
 			return ERROR;
 	                }
+
+		/* don't send notifications during scheduled downtime */
+		if(hst->scheduled_downtime_depth>0){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about FLAPPING events during scheduled downtime!\n");
+#endif
+			return ERROR;
+		        }
 
 		/* flapping viability test passed, so the notification can be sent out */
 		return OK;

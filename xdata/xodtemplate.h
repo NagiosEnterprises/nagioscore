@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Last Modified:   03-02-2006
  *
  * License:
  *
@@ -329,6 +329,11 @@ typedef struct xodtemplate_service_struct{
 	int        process_perf_data;
 	int        failure_prediction_enabled;
 	char       *failure_prediction_options;
+	char       *notes;
+	char       *notes_url;
+	char       *action_url;
+	char       *icon_image;
+	char       *icon_image_alt;
 	int        retain_status_information;
 	int        retain_nonstatus_information;
 	xodtemplate_customvariablesmember *custom_variables;
@@ -344,6 +349,11 @@ typedef struct xodtemplate_service_struct{
 	int        have_notification_period;
 	int        have_contact_groups;
 	int        have_failure_prediction_options;
+	int        have_notes;
+	int        have_notes_url;
+	int        have_action_url;
+	int        have_icon_image;
+	int        have_icon_image_alt;
 
 	int        have_max_check_attempts;
 	int        have_normal_check_interval;
@@ -755,6 +765,10 @@ int xodtemplate_sort_hostescalations(void);
 int xodtemplate_sort_hostextinfo(void);
 int xodtemplate_sort_serviceextinfo(void);
 
+int xodtemplate_merge_extinfo_ojects(void);
+int xodtemplate_merge_host_extinfo_object(xodtemplate_host *,xodtemplate_hostextinfo *);
+int xodtemplate_merge_service_extinfo_object(xodtemplate_service *,xodtemplate_serviceextinfo *);
+
 xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *);
 xodtemplate_command *xodtemplate_find_command(char *);
 xodtemplate_contactgroup *xodtemplate_find_contactgroup(char *);
@@ -790,7 +804,6 @@ int xodtemplate_register_service(xodtemplate_service *);
 int xodtemplate_register_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *);
 int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *);
-int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *);
 
 #endif
 

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2006
+ * Last Modified: 03-02-2006
  *
  * License:
  *
@@ -350,6 +350,11 @@ typedef struct service_struct{
 	int     obsess_over_service;
 	int     failure_prediction_enabled;
 	char    *failure_prediction_options;
+	char    *notes;
+	char    *notes_url;
+	char    *action_url;
+	char    *icon_image;
+	char    *icon_image_alt;
 	customvariablesmember *custom_variables;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
@@ -511,20 +516,6 @@ typedef struct hostextinfo_struct{
         }hostextinfo;
 
 
-/* EXTENDED SERVICE INFO structure */
-typedef struct serviceextinfo_struct{
-	char    *host_name;
-	char    *description;
-	char    *notes;
-	char    *notes_url;
-	char    *action_url;
-	char    *icon_image;
-	char    *icon_image_alt;
-	struct serviceextinfo_struct *next;
-	struct serviceextinfo_struct *nexthash;
-        }serviceextinfo;
-
-
 
 /****************** HASH STRUCTURES ********************/
 
@@ -581,7 +572,7 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);  
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
 command *add_command(char *,char *);									/* adds a command definition */
-service *add_service(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a service definition */
+service *add_service(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
@@ -591,7 +582,6 @@ hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int);     
 hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
 hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
-serviceextinfo *add_serviceextinfo(char *,char *,char *,char *,char *,char *,char *);                   /* add an extended service info definition */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
 
 
@@ -610,7 +600,6 @@ int add_servicedependency_to_hashlist(servicedependency *);
 int add_hostescalation_to_hashlist(hostescalation *);
 int add_serviceescalation_to_hashlist(serviceescalation *);
 int add_hostextinfo_to_hashlist(hostextinfo *);
-int add_serviceextinfo_to_hashlist(serviceextinfo *);
 
 
 /**** Object Search Functions ****/
@@ -624,7 +613,6 @@ contactgroupmember *find_contactgroupmember(char *,contactgroup *);	            
 command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
 hostextinfo *find_hostextinfo(char *);				                                /* find an extended host info object */
-serviceextinfo *find_serviceextinfo(char *,char *);                                             /* find an extended service info object */
 
 
 /**** Object Traversal Functions ****/

@@ -413,11 +413,6 @@ void run_service_check(service *svc){
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
-#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
-		/* free allocated memory */
-		free_memory();
-#endif
-
 		/* fork again... */
 		pid=fork();
 
@@ -575,6 +570,12 @@ void run_service_check(service *svc){
 
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
+
+#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
+		/* free allocated memory */
+		/* this needs to be done last, so we don't free memory for variables before they're used above */
+		free_memory();
+#endif
 
 		/* parent exits immediately - grandchild process is inherited by the INIT process, so we have no zombie problem... */
 		_exit(STATE_OK);

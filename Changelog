@@ -27,6 +27,7 @@ Pre-alpha changes since 02/15/2006...
      - Added support for custom variables in host, service, and contact definitions
      - Added host_notifications_enabled, service_notifications_enabled, can_submit_commands to contact definitions
      - Added optional display_name directive to host and service definitions
+     - Removed serviceextinfo definitions and merged variables with service definitions
 
 * Performance optimizations:
      - Added ability to precache object config files

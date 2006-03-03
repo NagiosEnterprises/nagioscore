@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-16-2006
+ * Last Modified: 03-02-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -50,7 +50,6 @@ extern serviceescalation *serviceescalation_list;
 extern hostdependency *hostdependency_list;
 extern hostescalation *hostescalation_list;
 extern hostextinfo *hostextinfo_list;
-extern serviceextinfo *serviceextinfo_list;
 
 
 #define DISPLAY_NONE                     0
@@ -67,7 +66,6 @@ extern serviceextinfo *serviceextinfo_list;
 #define DISPLAY_HOSTDEPENDENCIES         11
 #define DISPLAY_HOSTESCALATIONS          12
 #define DISPLAY_HOSTEXTINFO              13
-#define DISPLAY_SERVICEEXTINFO           14
 #define DISPLAY_SERVICEGROUPS            15
 
 void document_header(int);
@@ -89,7 +87,6 @@ void display_serviceescalations(void);
 void display_hostdependencies(void);
 void display_hostescalations(void);
 void display_hostextinfo(void);
-void display_serviceextinfo(void);
 
 void unauthorized_message(void);
 
@@ -176,7 +173,6 @@ int main(void){
 		printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
 		printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
 		printf("<option value='hostextinfo' %s>Extended Host Information\n",(display_type==DISPLAY_HOSTEXTINFO)?"SELECTED":"");
-		printf("<option value='serviceextinfo' %s>Extended Service Information\n",(display_type==DISPLAY_SERVICEEXTINFO)?"SELECTED":"");
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -225,9 +221,6 @@ int main(void){
 		break;
 	case DISPLAY_HOSTEXTINFO:
 		display_context_help(CONTEXTHELP_CONFIG_HOSTEXTINFO);
-		break;
-	case DISPLAY_SERVICEEXTINFO:
-		display_context_help(CONTEXTHELP_CONFIG_SERVICEEXTINFO);
 		break;
 	default:
 		display_context_help(CONTEXTHELP_CONFIG_MENU);
@@ -280,9 +273,6 @@ int main(void){
 		break;
 	case DISPLAY_HOSTEXTINFO:
 		display_hostextinfo();
-		break;
-	case DISPLAY_SERVICEEXTINFO:
-		display_serviceextinfo();
 		break;
 	default:
 		display_options();
@@ -401,8 +391,6 @@ int process_cgivars(void){
 				display_type=DISPLAY_HOSTESCALATIONS;
 			else if(!strcmp(variables[x],"hostextinfo"))
 				display_type=DISPLAY_HOSTEXTINFO;
-			else if(!strcmp(variables[x],"serviceextinfo"))
-				display_type=DISPLAY_SERVICEEXTINFO;
 
 			/* we found the embed option */
 			else if(!strcmp(variables[x],"embedded"))
@@ -1112,6 +1100,11 @@ void display_services(void){
 	printf("<TH CLASS='data'>Process Performance Data</TH>");
 	printf("<TH CLASS='data'>Enable Failure Prediction</TH>");
 	printf("<TH CLASS='data'>Failure Prediction Options</TH>");
+	printf("<TH CLASS='data'>Notes</TH>");
+	printf("<TH CLASS='data'>Notes URL</TH>");
+	printf("<TH CLASS='data'>Action URL</TH>");
+	printf("<TH CLASS='data'>Logo Image</TH>");
+	printf("<TH CLASS='data'>Image Alt</TH>");
 	printf("<TH CLASS='data'>Retention Options</TH>");
 	printf("</TR>\n");
 
@@ -1308,6 +1301,19 @@ void display_services(void){
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_service->failure_prediction_options==NULL)?"&nbsp;":temp_service->failure_prediction_options);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->notes==NULL)?"&nbsp;":temp_service->notes);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->notes_url==NULL)?"&nbsp;":temp_service->notes_url);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->action_url==NULL)?"&nbsp;":temp_service->action_url);
+
+		if(temp_service->icon_image==NULL)
+			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
+		else
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_service->icon_image,temp_service->icon_image);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_service->icon_image_alt==NULL)?"&nbsp;":temp_service->icon_image_alt);
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
@@ -1974,75 +1980,6 @@ void display_hostextinfo(void){
         }
 
 
-void display_serviceextinfo(void){
-	serviceextinfo *temp_serviceextinfo;
-	int odd=0;
-	char *bg_class="";
-
-	/* see if user is authorized to view hostdependency information... */
-	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
-		unauthorized_message();
-		return;
-	        }
-
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_HOSTEXTINFO);
-
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Extended Service Information</DIV></P>\n");
-
-	printf("<P>\n");
-	printf("<DIV ALIGN=CENTER>\n");
-
-	printf("<TABLE BORDER=0 CLASS='data'>\n");
-	printf("<TR>\n");
-	printf("<TH CLASS='data' COLSPAN=2>Service</TH>");
-	printf("</TR>\n");
-	printf("<TR>\n");
-	printf("<TH CLASS='data'>Host</TH>");
-	printf("<TH CLASS='data'>Description</TH>");
-	printf("<TH CLASS='data'>Notes URL</TH>");
-	printf("<TH CLASS='data'>Logo Image</TH>");
-	printf("<TH CLASS='data'>Image Alt</TH>");
-	printf("</TR>\n");
-
-	/* check all the definitions... */
-	for(temp_serviceextinfo=serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
-
-		if(odd){
-			odd=0;
-			bg_class="dataOdd";
-		        }
-		else{
-			odd=1;
-			bg_class="dataEven";
-		        }
-
-		printf("<TR CLASS='%s'>\n",bg_class);
-
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts#%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_serviceextinfo->host_name),temp_serviceextinfo->host_name);
-
-		printf("<TD CLASS='%s'><A HREF='%s?type=services#%s;",bg_class,CONFIG_CGI,url_encode(temp_serviceextinfo->host_name));
-		printf("%s'>%s</A></TD>\n",url_encode(temp_serviceextinfo->description),temp_serviceextinfo->description);
-
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_serviceextinfo->notes_url==NULL)?"&nbsp;":temp_serviceextinfo->notes_url);
-
-		if(temp_serviceextinfo->icon_image==NULL)
-			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_serviceextinfo->icon_image,temp_serviceextinfo->icon_image);
-
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_serviceextinfo->icon_image_alt==NULL)?"&nbsp;":temp_serviceextinfo->icon_image_alt);
-
-		printf("</TR>\n");
-	        }
-
-	printf("</TABLE>\n");
-	printf("</DIV>\n");
-	printf("</P>\n");
-
-	return;
-        }
-
 
 
 void unauthorized_message(void){
@@ -2086,7 +2023,6 @@ void display_options(void){
 	printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
 	printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
 	printf("<option value='hostextinfo' %s>Extended Host Information\n",(display_type==DISPLAY_HOSTEXTINFO)?"SELECTED":"");
-	printf("<option value='serviceextinfo' %s>Extended Service Information\n",(display_type==DISPLAY_SERVICEEXTINFO)?"SELECTED":"");
 	printf("</select>\n");
 	printf("</td></tr>\n");
 

@@ -4954,9 +4954,6 @@ void process_passive_service_checks(void){
 		/* become the process group leader */
 		setpgid(0,0);
 
-		/* free allocated memory */
-		free_memory();
-
 		/* close read end of IPC pipe */
 		close(ipc_pipe[0]);
 
@@ -5001,9 +4998,11 @@ void process_passive_service_checks(void){
 					old_umask=umask(new_umask);
 					asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
 					info.output_file_fd=mkstemp(output_file);
+
 #ifdef DEBUG_CHECK_IPC
 					printf("OUTPUT FILE: %s\n",output_file);
 #endif
+
 					if(info.output_file_fd>0)
 						info.output_file_fp=fdopen(info.output_file_fd,"w");
 					else{
@@ -5054,6 +5053,10 @@ void process_passive_service_checks(void){
 			free(this_pcr);
 			this_pcr=next_pcr;
 	                }
+
+		/* free allocated memory */
+		/* this needs to be done last, so we don't free memory for variables before they're used above */
+		free_memory();
 
 		exit(OK);
 	        }

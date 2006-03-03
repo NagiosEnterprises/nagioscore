@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2006
+ * Last Modified: 03-02-2006
  *
  * License:
  * 
@@ -126,7 +126,6 @@ int main(void){
 	int found=FALSE;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	hostextinfo *temp_hostextinfo=NULL;
-	serviceextinfo *temp_serviceextinfo=NULL;
 	host *temp_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
 	service *temp_service=NULL;
@@ -353,15 +352,12 @@ int main(void){
 			        }
 
 			if(display_type==DISPLAY_SERVICE_INFO){
-				temp_serviceextinfo=find_serviceextinfo(host_name,service_desc);
-				if(temp_serviceextinfo!=NULL){
-					if(temp_serviceextinfo->icon_image!=NULL)
-						printf("<img src='%s%s' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_serviceextinfo->icon_image,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt);
-					if(temp_serviceextinfo->icon_image_alt!=NULL)
-						printf("<font size=-1><i>( %s )</i><font>\n",temp_serviceextinfo->icon_image_alt);
-					if(temp_serviceextinfo->notes!=NULL)
-						printf("<p>%s</p>\n",temp_serviceextinfo->notes);
-				        }
+				if(temp_service->icon_image!=NULL)
+					printf("<img src='%s%s' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_service->icon_image,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt);
+				if(temp_service->icon_image_alt!=NULL)
+					printf("<font size=-1><i>( %s )</i><font>\n",temp_service->icon_image_alt);
+				if(temp_service->notes!=NULL)
+					printf("<p>%s</p>\n",temp_service->notes);
 			        }
 
 			if(display_type==DISPLAY_HOST_INFO){
@@ -406,22 +402,20 @@ int main(void){
 	                }
 
 		else if(display_type==DISPLAY_SERVICE_INFO){
-			if(temp_serviceextinfo!=NULL){
-				printf("<TABLE BORDER='0'>\n");
-				if(temp_serviceextinfo->action_url!=NULL && strcmp(temp_serviceextinfo->action_url,"")){
-					printf("<A HREF='");
-					print_extra_service_url(temp_serviceextinfo->host_name,temp_serviceextinfo->description,temp_serviceextinfo->action_url);
-					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Service' title='Perform Additional Actions On This Service'></A>\n",url_images_path,ACTION_ICON);
-					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-				        }
-				if(temp_serviceextinfo->notes_url!=NULL && strcmp(temp_serviceextinfo->notes_url,"")){
-					printf("<A HREF='");
-					print_extra_service_url(temp_serviceextinfo->host_name,temp_serviceextinfo->description,temp_serviceextinfo->notes_url);
-					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n",url_images_path,NOTES_ICON);
-					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-				        }
-				printf("</TABLE>\n");
-		                }
+			printf("<TABLE BORDER='0'>\n");
+			if(temp_service->action_url!=NULL && strcmp(temp_service->action_url,"")){
+				printf("<A HREF='");
+				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->action_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Service' title='Perform Additional Actions On This Service'></A>\n",url_images_path,ACTION_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+			        }
+			if(temp_service->notes_url!=NULL && strcmp(temp_service->notes_url,"")){
+				printf("<A HREF='");
+				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->notes_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n",url_images_path,NOTES_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+			        }
+			printf("</TABLE>\n");
 	                }
 
 		/* display context-sensitive help */

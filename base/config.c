@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2006
+ * Last Modified: 03-02-2006
  *
  * License:
  *
@@ -165,7 +165,6 @@ extern servicedependency *servicedependency_list;
 extern hostdependency   *hostdependency_list;
 extern hostescalation   *hostescalation_list;
 extern hostextinfo      *hostextinfo_list;
-extern serviceextinfo   *serviceextinfo_list;
 
 extern host		**host_hashlist;
 extern service		**service_hashlist;
@@ -1828,7 +1827,6 @@ int pre_flight_object_check(int *w, int *e){
 	servicedependency *temp_sd=NULL;
 	hostdependency *temp_hd=NULL;
 	hostextinfo *temp_hostextinfo=NULL;
-	serviceextinfo *temp_serviceextinfo=NULL;
 	char *temp_buffer=NULL;
 	char *buf=NULL;
 	char *temp_command_name="";
@@ -2777,31 +2775,6 @@ int pre_flight_object_check(int *w, int *e){
 	printf("\tCompleted extended host info checks\n");
 #endif
 
-
-	/*****************************************/
-	/* check extended service information... */
-	/*****************************************/
-	if(verify_config==TRUE)
-		printf("Checking extended service info definitions...\n");
-
-	for(temp_serviceextinfo=serviceextinfo_list,total_objects=0;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next,total_objects++){
-
-		/* find the service */
-		temp_service=find_service(temp_serviceextinfo->host_name,temp_serviceextinfo->description);
-		if(temp_service==NULL){
-			asprintf(&temp_buffer,"Error: Service '%s' on host '%s' specified in extended service information is not defined anywhere!",temp_serviceextinfo->description,temp_serviceextinfo->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-			errors++;
-		        }
-	        }
-
-	if(verify_config==TRUE)
-		printf("\tChecked %d extended service info definitions.\n",total_objects);
-
-#ifdef DEBUG1
-	printf("\tCompleted extended service info checks\n");
-#endif
 
        /* update warning and error count */
 	*w+=warnings;

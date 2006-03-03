@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2006
+ * Last Modified: 03-02-2006
  *
  * License:
  * 
@@ -1192,7 +1192,6 @@ void show_service_detail(void){
 	hostgroup *temp_hostgroup=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	hostextinfo *temp_hostextinfo=NULL;
-	serviceextinfo *temp_serviceextinfo=NULL;
 	hoststatus *temp_hoststatus=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -1654,16 +1653,13 @@ void show_service_detail(void){
 				printf("<TD ALIGN=center valign=center><A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='This service is currently in a period of scheduled downtime' TITLE='This service is currently in a period of scheduled downtime'></A></TD>",url_encode(temp_status->description),url_images_path,SCHEDULED_DOWNTIME_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT);
 			        }
-			temp_serviceextinfo=find_serviceextinfo(temp_service->host_name,temp_service->description);
-			if(temp_serviceextinfo!=NULL){
-				if(temp_serviceextinfo->icon_image!=NULL){
-					printf("<TD ALIGN=center valign=center>");
-					printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_service->host_name));
-					printf("&service=%s'>",url_encode(temp_service->description));
-					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_serviceextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt);
-					printf("</A>");
-					printf("</TD>\n");
-				        }
+			if(temp_service->icon_image!=NULL){
+				printf("<TD ALIGN=center valign=center>");
+				printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_service->host_name));
+				printf("&service=%s'>",url_encode(temp_service->description));
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_service->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt);
+				printf("</A>");
+				printf("</TD>\n");
 			        }
 			printf("</TR>\n");
 			printf("</TABLE>\n");

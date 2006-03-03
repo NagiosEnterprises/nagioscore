@@ -102,7 +102,6 @@ int             serviceescalations_have_been_read=FALSE;
 int             hostdependencies_have_been_read=FALSE;
 int             hostescalations_have_been_read=FALSE;
 int             hostextinfo_have_been_read=FALSE;
-int             serviceextinfo_have_been_read=FALSE;
 
 int             host_status_has_been_read=FALSE;
 int             service_status_has_been_read=FALSE;
@@ -601,9 +600,7 @@ int read_all_object_configuration_data(char *config_file,int options){
 		options-=READ_HOSTESCALATIONS;
 	if(hostextinfo_have_been_read==TRUE && (options & READ_HOSTEXTINFO))
 		options-=READ_HOSTEXTINFO;
-	if(serviceextinfo_have_been_read==TRUE && (options & READ_SERVICEEXTINFO))
-		options-=READ_SERVICEEXTINFO;
-	if(serviceextinfo_have_been_read==TRUE && (options & READ_SERVICEGROUPS))
+	if(servicegroups_have_been_read==TRUE && (options & READ_SERVICEGROUPS))
 		options-=READ_SERVICEGROUPS;
 
 	/* bail out if we've already read what we need */
@@ -638,8 +635,6 @@ int read_all_object_configuration_data(char *config_file,int options){
 		hostescalations_have_been_read=TRUE;
 	if(options & READ_HOSTEXTINFO)
 		hostextinfo_have_been_read=TRUE;
-	if(options & READ_SERVICEEXTINFO)
-		serviceextinfo_have_been_read=TRUE;
 	if(options & READ_SERVICEGROUPS)
 		servicegroups_have_been_read=TRUE;
 

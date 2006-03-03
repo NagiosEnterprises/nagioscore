@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2006
+ * Last Modified: 03-02-2006
  *
  * License:
  *
@@ -54,7 +54,6 @@ servicedependency *servicedependency_list=NULL,*servicedependency_list_tail=NULL
 hostdependency  *hostdependency_list=NULL,*hostdependency_list_tail=NULL;
 hostescalation  *hostescalation_list=NULL,*hostescalation_list_tail=NULL;
 hostextinfo     *hostextinfo_list=NULL,*hostextinfo_list_tail=NULL;
-serviceextinfo  *serviceextinfo_list=NULL,*serviceextinfo_list_tail=NULL;
 
 host		**host_hashlist=NULL;
 service		**service_hashlist=NULL;
@@ -65,7 +64,6 @@ contactgroup    **contactgroup_hashlist=NULL;
 hostgroup       **hostgroup_hashlist=NULL;
 servicegroup    **servicegroup_hashlist=NULL;
 hostextinfo     **hostextinfo_hashlist=NULL;
-serviceextinfo  **serviceextinfo_hashlist=NULL;
 hostdependency  **hostdependency_hashlist=NULL;
 servicedependency **servicedependency_hashlist=NULL;
 hostescalation  **hostescalation_hashlist=NULL;
@@ -540,55 +538,6 @@ int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
 	/* else already exists */
 #ifdef NSCORE
 	asprintf(temp_buffer,"Error: Could not add duplicate hostextinfo entry for host '%s'.\n",new_hostextinfo->host_name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
-#endif
-	return 0;
-        }
-
-
-int add_serviceextinfo_to_hashlist(serviceextinfo *new_serviceextinfo){
-	serviceextinfo *temp_serviceextinfo=NULL;
-	serviceextinfo *lastpointer=NULL;
-	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
-
-	/* initialize hash list */
-	if(serviceextinfo_hashlist==NULL){
-		int i;
-
-		serviceextinfo_hashlist=(serviceextinfo **)malloc(sizeof(serviceextinfo *)*SERVICEEXTINFO_HASHSLOTS);
-		if(serviceextinfo_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i< SERVICEEXTINFO_HASHSLOTS;i++)
-			serviceextinfo_hashlist[i]=NULL;
-	        }
-
-	if(!new_serviceextinfo)
-		return 0;
-
-	hashslot=hashfunc(new_serviceextinfo->host_name,new_serviceextinfo->description,SERVICEEXTINFO_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_serviceextinfo=serviceextinfo_hashlist[hashslot];temp_serviceextinfo && compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash)
-		lastpointer=temp_serviceextinfo;
-
-	if(!temp_serviceextinfo || (compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,new_serviceextinfo->host_name,new_serviceextinfo->description)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_serviceextinfo;
-		else
-			serviceextinfo_hashlist[hashslot]=new_serviceextinfo;
-		new_serviceextinfo->nexthash=temp_serviceextinfo;
-
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	asprintf(&temp_buffer,"Error: Could not add duplicate serviceextinfo entry for service '%s' on host '%s'.\n",new_serviceextinfo->description,new_serviceextinfo->host_name);
 	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 	my_free((void **)&temp_buffer);
 #endif
@@ -2811,7 +2760,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, int first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, int first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *temp_service;
 	service *new_service;
 #ifdef NSCORE
@@ -3216,6 +3165,27 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	        }
 	else
 		new_service->failure_prediction_options=NULL;
+
+	if(notes!=NULL)
+		new_service->notes=(char *)strdup(notes);
+	else
+		new_service->notes=NULL;
+	if(notes_url!=NULL)
+		new_service->notes_url=(char *)strdup(notes_url);
+	else
+		new_service->notes_url=NULL;
+	if(action_url!=NULL)
+		new_service->action_url=(char *)strdup(action_url);
+	else
+		new_service->action_url=NULL;
+	if(icon_image!=NULL)
+		new_service->icon_image=(char *)strdup(icon_image);
+	else
+		new_service->icon_image=NULL;
+	if(icon_image_alt!=NULL)
+		new_service->icon_image_alt=(char *)strdup(icon_image_alt);
+	else
+		new_service->icon_image_alt=NULL;
 
 
 	new_service->display_name=(char *)strdup((display_name==NULL)?description:display_name);
@@ -4583,202 +4553,6 @@ hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, cha
 	
 
 
-/* adds an extended service info structure to the list in memory */
-serviceextinfo * add_serviceextinfo(char *host_name, char *description, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt){
-	serviceextinfo *new_serviceextinfo;
-#ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("add_serviceextinfo() start\n");
-#endif
-
-	/* make sure we have what we need */
-	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,""))){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name or service description is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* allocate memory for a new data structure */
-	new_serviceextinfo=(serviceextinfo *)malloc(sizeof(serviceextinfo));
-	if(new_serviceextinfo==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-				
-	new_serviceextinfo->host_name=(char *)strdup(host_name);
-	if(new_serviceextinfo->host_name==NULL){
-		my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-				
-	new_serviceextinfo->description=(char *)strdup(description);
-	if(new_serviceextinfo->description==NULL){
-		my_free((void **)&new_serviceextinfo->host_name);
-		my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(notes==NULL || !strcmp(notes,""))
-		new_serviceextinfo->notes=NULL;
-	else{
-		new_serviceextinfo->notes=(char *)strdup(notes);
-		if(new_serviceextinfo->notes==NULL){
-			my_free((void **)&new_serviceextinfo->description);
-			my_free((void **)&new_serviceextinfo->host_name);
-			my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	if(notes_url==NULL || !strcmp(notes_url,""))
-		new_serviceextinfo->notes_url=NULL;
-	else{
-		new_serviceextinfo->notes_url=(char *)strdup(notes_url);
-		if(new_serviceextinfo->notes_url==NULL){
-			my_free((void **)&new_serviceextinfo->notes);
-			my_free((void **)&new_serviceextinfo->description);
-			my_free((void **)&new_serviceextinfo->host_name);
-			my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	if(action_url==NULL || !strcmp(action_url,""))
-		new_serviceextinfo->action_url=NULL;
-	else{
-		new_serviceextinfo->action_url=(char *)strdup(action_url);
-		if(new_serviceextinfo->action_url==NULL){
-			my_free((void **)&new_serviceextinfo->notes_url);
-			my_free((void **)&new_serviceextinfo->notes);
-			my_free((void **)&new_serviceextinfo->description);
-			my_free((void **)&new_serviceextinfo->host_name);
-			my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	if(icon_image==NULL || !strcmp(icon_image,""))
-		new_serviceextinfo->icon_image=NULL;
-	else{
-		new_serviceextinfo->icon_image=(char *)strdup(icon_image);
-		if(new_serviceextinfo->icon_image==NULL){
-			my_free((void **)&new_serviceextinfo->notes);
-			my_free((void **)&new_serviceextinfo->notes_url);
-			my_free((void **)&new_serviceextinfo->action_url);
-			my_free((void **)&new_serviceextinfo->description);
-			my_free((void **)&new_serviceextinfo->host_name);
-			my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-	                }
-	        }
-
-	if(icon_image_alt==NULL || !strcmp(icon_image_alt,""))
-		new_serviceextinfo->icon_image_alt=NULL;
-	else{
-		new_serviceextinfo->icon_image_alt=(char *)strdup(icon_image_alt);
-		if(new_serviceextinfo->icon_image_alt==NULL){
-			my_free((void **)&new_serviceextinfo->icon_image);
-			my_free((void **)&new_serviceextinfo->notes);
-			my_free((void **)&new_serviceextinfo->notes_url);
-			my_free((void **)&new_serviceextinfo->action_url);
-			my_free((void **)&new_serviceextinfo->description);
-			my_free((void **)&new_serviceextinfo->host_name);
-			my_free((void **)&new_serviceextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' extended info.\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	new_serviceextinfo->next=NULL;
-	new_serviceextinfo->nexthash=NULL;
-
-	/* add new serviceextinfo to serviceextinfo chained hash list */
-	if(!add_serviceextinfo_to_hashlist(new_serviceextinfo)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceextinfo list to add extended info for service '%s' on host '%s'.\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_serviceextinfo->icon_image);
-		my_free((void **)&new_serviceextinfo->icon_image_alt);
-		my_free((void **)&new_serviceextinfo->notes_url);
-		my_free((void **)&new_serviceextinfo->notes);
-		my_free((void **)&new_serviceextinfo->action_url);
-		my_free((void **)&new_serviceextinfo->description);
-		my_free((void **)&new_serviceextinfo->host_name);
-		my_free((void **)&new_serviceextinfo);
-		return NULL;
-	        }
-
-#ifdef NSCORE
-	/* serviceextinfo entries are sorted alphabetically for daemon, so add new items to tail of list */
-	if(serviceextinfo_list==NULL){
-		serviceextinfo_list=new_serviceextinfo;
-		serviceextinfo_list_tail=serviceextinfo_list;
-		}
-	else{
-		serviceextinfo_list_tail->next=new_serviceextinfo;
-		serviceextinfo_list_tail=new_serviceextinfo;
-		}
-#else
-	/* serviceextinfo entries are sorted in reverse for CGIs, so add new items to head of list */
-	new_serviceextinfo->next=serviceextinfo_list;
-	serviceextinfo_list=new_serviceextinfo;
-#endif		
-
-#ifdef DEBUG0
-	printf("add_serviceextinfo() end\n");
-#endif
-
-	return new_serviceextinfo;
-        }
-	
-
-
 /* adds a custom variable to an object */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue){
 	customvariablesmember *new_customvariablesmember=NULL;
@@ -5116,31 +4890,6 @@ hostextinfo * find_hostextinfo(char *host_name){
 #endif
 
 	/* we couldn't find a matching extended host info object */
-	return NULL;
-        }
-
-
-/* find the extended information for a given service */
-serviceextinfo * find_serviceextinfo(char *host_name, char *description){
-	serviceextinfo *temp_serviceextinfo=NULL;
-
-#ifdef DEBUG0
-	printf("find_serviceextinfo() start\n");
-#endif
-
-	if(host_name==NULL || description==NULL || serviceextinfo_hashlist==NULL)
-		return NULL;
-
-	for(temp_serviceextinfo=serviceextinfo_hashlist[hashfunc(host_name,description,SERVICEEXTINFO_HASHSLOTS)];temp_serviceextinfo && compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)<0;temp_serviceextinfo=temp_serviceextinfo->nexthash);
-
-	if(temp_serviceextinfo && (compare_hashdata(temp_serviceextinfo->host_name,temp_serviceextinfo->description,host_name,description)==0))
-		return temp_serviceextinfo;
-
-#ifdef DEBUG0
-	printf("find_serviceextinfo() end\n");
-#endif
-
-	/* we couldn't find a matching extended service info object */
 	return NULL;
         }
 
@@ -6064,6 +5813,11 @@ int free_object_data(void){
 		my_free((void **)&this_service->check_period);
 		my_free((void **)&this_service->event_handler);
 		my_free((void **)&this_service->failure_prediction_options);
+		my_free((void **)&this_service->notes);
+		my_free((void **)&this_service->notes_url);
+		my_free((void **)&this_service->action_url);
+		my_free((void **)&this_service->icon_image);
+		my_free((void **)&this_service->icon_image_alt);
 		my_free((void **)&this_service);
 		this_service=next_service;
 	        }
@@ -6210,8 +5964,6 @@ int free_object_data(void){
 int free_extended_data(void){
 	hostextinfo *this_hostextinfo=NULL;
 	hostextinfo *next_hostextinfo=NULL;
-	serviceextinfo *this_serviceextinfo=NULL;
-	serviceextinfo *next_serviceextinfo=NULL;
 
 #ifdef DEBUG0
 	printf("free_extended_data() start\n");
@@ -6239,29 +5991,6 @@ int free_extended_data(void){
 	my_free((void **)&hostextinfo_hashlist);
 	hostextinfo_hashlist=NULL;
 	hostextinfo_list=NULL;
-
-	/* free memory for the extended service info list */
-	for(this_serviceextinfo=serviceextinfo_list;this_serviceextinfo!=NULL;this_serviceextinfo=next_serviceextinfo){
-		next_serviceextinfo=this_serviceextinfo->next;
-		my_free((void **)&this_serviceextinfo->host_name);
-		my_free((void **)&this_serviceextinfo->description);
-		my_free((void **)&this_serviceextinfo->notes);
-		my_free((void **)&this_serviceextinfo->notes_url);
-		my_free((void **)&this_serviceextinfo->action_url);
-		my_free((void **)&this_serviceextinfo->icon_image);
-		my_free((void **)&this_serviceextinfo->icon_image_alt);
-		my_free((void **)&this_serviceextinfo);
-	        }
-
-#ifdef DEBUG1
-	printf("\tserviceextinfo_list freed\n");
-#endif
-
-	/* free hashlist and reset pointers */
-	my_free((void **)&serviceextinfo_hashlist);
-	serviceextinfo_hashlist=NULL;
-	serviceextinfo_list=NULL;
-
 
 #ifdef DEBUG0
 	printf("free_extended_data() end\n");

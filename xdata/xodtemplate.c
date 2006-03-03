@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-01-2006
+ * Last Modified: 03-02-2006
  *
  * Description:
  *
@@ -290,8 +290,11 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			gettimeofday(&tv[8],NULL);
 	        }
 
-
 	if(result==OK){
+
+		/* merge host/service extinfo definitions with host/service definitions */
+		/* this will be removed in Nagios 4.x */
+		xodtemplate_merge_extinfo_ojects();
 
 		/* cache object definitions for the CGIs and external apps */
 		if(cache==TRUE)
@@ -301,6 +304,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		if(precache==TRUE)
 			xodtemplate_cache_objects(xodtemplate_precache_file);
 	        }
+
 	if(test_scheduling==TRUE)
 		gettimeofday(&tv[9],NULL);
 
@@ -662,7 +666,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 
 
 	/* save config file name */
-	xodtemplate_config_files[xodtemplate_current_config_file++]=strdup(filename);
+	xodtemplate_config_files[xodtemplate_current_config_file++]=(char *)strdup(filename);
 
 	/* reallocate memory for config files */
 	if(!(xodtemplate_current_config_file%256)){
@@ -1552,6 +1556,16 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_process_perf_data=FALSE;
 		new_service->failure_prediction_enabled=TRUE;
 		new_service->have_failure_prediction_enabled=FALSE;
+		new_service->notes=NULL;
+		new_service->have_notes=FALSE;
+		new_service->notes_url=NULL;
+		new_service->have_notes_url=FALSE;
+		new_service->action_url=NULL;
+		new_service->have_action_url=FALSE;
+		new_service->icon_image=NULL;
+		new_service->have_icon_image=FALSE;
+		new_service->icon_image_alt=NULL;
+		new_service->have_icon_image_alt=FALSE;
 		new_service->retain_status_information=TRUE;
 		new_service->have_retain_status_information=FALSE;
 		new_service->retain_nonstatus_information=TRUE;
@@ -1928,7 +1942,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_timeperiod=(xodtemplate_timeperiod *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_timeperiod->template=strdup(value);
+			temp_timeperiod->template=(char *)strdup(value);
 			if(temp_timeperiod->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for timeperiod template.\n");
@@ -1947,7 +1961,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_timeperiod->name=strdup(value);
+			temp_timeperiod->name=(char *)strdup(value);
 			if(temp_timeperiod->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for timeperiod name.\n");
@@ -1956,7 +1970,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"timeperiod_name")){
-			temp_timeperiod->timeperiod_name=strdup(value);
+			temp_timeperiod->timeperiod_name=(char *)strdup(value);
 			if(temp_timeperiod->timeperiod_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for timeperiod name.\n");
@@ -1965,7 +1979,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"alias")){
-			temp_timeperiod->alias=strdup(value);
+			temp_timeperiod->alias=(char *)strdup(value);
 			if(temp_timeperiod->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for timeperiod alias.\n");
@@ -1988,7 +2002,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				x=6;
 			else
 				x=0;
-			temp_timeperiod->timeranges[x]=strdup(value);
+			temp_timeperiod->timeranges[x]=(char *)strdup(value);
 			if(temp_timeperiod->timeranges[x]==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for timeperiod timerange.\n");
@@ -2015,7 +2029,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_command=(xodtemplate_command *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_command->template=strdup(value);
+			temp_command->template=(char *)strdup(value);
 			if(temp_command->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for command template.\n");
@@ -2034,7 +2048,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_command->name=strdup(value);
+			temp_command->name=(char *)strdup(value);
 			if(temp_command->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for command name.\n");
@@ -2043,7 +2057,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"command_name")){
-			temp_command->command_name=strdup(value);
+			temp_command->command_name=(char *)strdup(value);
 			if(temp_command->command_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for command name.\n");
@@ -2052,7 +2066,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"command_line")){
-			temp_command->command_line=strdup(value);
+			temp_command->command_line=(char *)strdup(value);
 			if(temp_command->command_line==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for command line.\n");
@@ -2078,7 +2092,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_contactgroup=(xodtemplate_contactgroup *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_contactgroup->template=strdup(value);
+			temp_contactgroup->template=(char *)strdup(value);
 			if(temp_contactgroup->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contactgroup template.\n");
@@ -2097,7 +2111,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_contactgroup->name=strdup(value);
+			temp_contactgroup->name=(char *)strdup(value);
 			if(temp_contactgroup->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contactgroup name.\n");
@@ -2106,7 +2120,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"contactgroup_name")){
-			temp_contactgroup->contactgroup_name=strdup(value);
+			temp_contactgroup->contactgroup_name=(char *)strdup(value);
 			if(temp_contactgroup->contactgroup_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contactgroup name.\n");
@@ -2115,7 +2129,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"alias")){
-			temp_contactgroup->alias=strdup(value);
+			temp_contactgroup->alias=(char *)strdup(value);
 			if(temp_contactgroup->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contactgroup alias.\n");
@@ -2124,7 +2138,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"members")){
-			temp_contactgroup->members=strdup(value);
+			temp_contactgroup->members=(char *)strdup(value);
 			if(temp_contactgroup->members==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contactgroup members.\n");
@@ -2150,7 +2164,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_hostgroup=(xodtemplate_hostgroup *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_hostgroup->template=strdup(value);
+			temp_hostgroup->template=(char *)strdup(value);
 			if(temp_hostgroup->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostgroup template.\n");
@@ -2169,7 +2183,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_hostgroup->name=strdup(value);
+			temp_hostgroup->name=(char *)strdup(value);
 			if(temp_hostgroup->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostgroup name.\n");
@@ -2178,7 +2192,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"hostgroup_name")){
-			temp_hostgroup->hostgroup_name=strdup(value);
+			temp_hostgroup->hostgroup_name=(char *)strdup(value);
 			if(temp_hostgroup->hostgroup_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostgroup name.\n");
@@ -2187,7 +2201,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"alias")){
-			temp_hostgroup->alias=strdup(value);
+			temp_hostgroup->alias=(char *)strdup(value);
 			if(temp_hostgroup->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostgroup alias.\n");
@@ -2198,7 +2212,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"members")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
 				if(temp_hostgroup->members==NULL)
-					temp_hostgroup->members=strdup(value);
+					temp_hostgroup->members=(char *)strdup(value);
 				else{
 					temp_hostgroup->members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(value)+2);
 					if(temp_hostgroup->members!=NULL){
@@ -2218,7 +2232,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"hostgroup_members")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
 				if(temp_hostgroup->hostgroup_members==NULL)
-					temp_hostgroup->hostgroup_members=strdup(value);
+					temp_hostgroup->hostgroup_members=(char *)strdup(value);
 				else{
 					temp_hostgroup->hostgroup_members=(char *)realloc(temp_hostgroup->hostgroup_members,strlen(temp_hostgroup->hostgroup_members)+strlen(value)+2);
 					if(temp_hostgroup->hostgroup_members!=NULL){
@@ -2254,7 +2268,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_servicegroup=(xodtemplate_servicegroup *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_servicegroup->template=strdup(value);
+			temp_servicegroup->template=(char *)strdup(value);
 			if(temp_servicegroup->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for servicegroup template.\n");
@@ -2273,7 +2287,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_servicegroup->name=strdup(value);
+			temp_servicegroup->name=(char *)strdup(value);
 			if(temp_servicegroup->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for servicegroup name.\n");
@@ -2282,7 +2296,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"servicegroup_name")){
-			temp_servicegroup->servicegroup_name=strdup(value);
+			temp_servicegroup->servicegroup_name=(char *)strdup(value);
 			if(temp_servicegroup->servicegroup_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for servicegroup name.\n");
@@ -2291,7 +2305,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"alias")){
-			temp_servicegroup->alias=strdup(value);
+			temp_servicegroup->alias=(char *)strdup(value);
 			if(temp_servicegroup->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for servicegroup alias.\n");
@@ -2302,7 +2316,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"members")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
 				if(temp_servicegroup->members==NULL)
-					temp_servicegroup->members=strdup(value);
+					temp_servicegroup->members=(char *)strdup(value);
 				else{
 					temp_servicegroup->members=(char *)realloc(temp_servicegroup->members,strlen(temp_servicegroup->members)+strlen(value)+2);
 					if(temp_servicegroup->members!=NULL){
@@ -2322,7 +2336,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"servicegroup_members")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
 				if(temp_servicegroup->servicegroup_members==NULL)
-					temp_servicegroup->servicegroup_members=strdup(value);
+					temp_servicegroup->servicegroup_members=(char *)strdup(value);
 				else{
 					temp_servicegroup->servicegroup_members=(char *)realloc(temp_servicegroup->servicegroup_members,strlen(temp_servicegroup->servicegroup_members)+strlen(value)+2);
 					if(temp_servicegroup->servicegroup_members!=NULL){
@@ -2358,7 +2372,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_servicedependency=(xodtemplate_servicedependency *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_servicedependency->template=strdup(value);
+			temp_servicedependency->template=(char *)strdup(value);
 			if(temp_servicedependency->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for servicedependency template.\n");
@@ -2377,7 +2391,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_servicedependency->name=strdup(value);
+			temp_servicedependency->name=(char *)strdup(value);
 			if(temp_servicedependency->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for servicedependency name.\n");
@@ -2387,7 +2401,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"servicegroup") || !strcmp(variable,"servicegroups") || !strcmp(variable,"servicegroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->servicegroup_name=strdup(value);
+				temp_servicedependency->servicegroup_name=(char *)strdup(value);
 				if(temp_servicedependency->servicegroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency servicegroup.\n");
@@ -2399,7 +2413,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->hostgroup_name=strdup(value);
+				temp_servicedependency->hostgroup_name=(char *)strdup(value);
 				if(temp_servicedependency->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency hostgroup.\n");
@@ -2411,7 +2425,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name") || !strcmp(variable,"master_host") || !strcmp(variable,"master_host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->host_name=strdup(value);
+				temp_servicedependency->host_name=(char *)strdup(value);
 				if(temp_servicedependency->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency host.\n");
@@ -2423,7 +2437,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"description") || !strcmp(variable,"service_description") || !strcmp(variable,"master_description") || !strcmp(variable,"master_service_description")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->service_description=strdup(value);
+				temp_servicedependency->service_description=(char *)strdup(value);
 				if(temp_servicedependency->service_description==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency service_description.\n");
@@ -2435,7 +2449,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"dependent_servicegroup") || !strcmp(variable,"dependent_servicegroups") || !strcmp(variable,"dependent_servicegroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->dependent_servicegroup_name=strdup(value);
+				temp_servicedependency->dependent_servicegroup_name=(char *)strdup(value);
 				if(temp_servicedependency->dependent_servicegroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency dependent servicegroup.\n");
@@ -2447,7 +2461,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"dependent_hostgroup") || !strcmp(variable,"dependent_hostgroups") || !strcmp(variable,"dependent_hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->dependent_hostgroup_name=strdup(value);
+				temp_servicedependency->dependent_hostgroup_name=(char *)strdup(value);
 				if(temp_servicedependency->dependent_hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency dependent hostgroup.\n");
@@ -2459,7 +2473,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"dependent_host") || !strcmp(variable,"dependent_host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->dependent_host_name=strdup(value);
+				temp_servicedependency->dependent_host_name=(char *)strdup(value);
 				if(temp_servicedependency->dependent_host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency dependent host.\n");
@@ -2471,7 +2485,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"dependent_description") || !strcmp(variable,"dependent_service_description")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_servicedependency->dependent_service_description=strdup(value);
+				temp_servicedependency->dependent_service_description=(char *)strdup(value);
 				if(temp_servicedependency->dependent_service_description==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for servicedependency dependent service_description.\n");
@@ -2563,7 +2577,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_serviceescalation=(xodtemplate_serviceescalation *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_serviceescalation->template=strdup(value);
+			temp_serviceescalation->template=(char *)strdup(value);
 			if(temp_serviceescalation->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for serviceescalation template.\n");
@@ -2582,7 +2596,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_serviceescalation->name=strdup(value);
+			temp_serviceescalation->name=(char *)strdup(value);
 			if(temp_serviceescalation->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for serviceescalation name.\n");
@@ -2592,7 +2606,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceescalation->host_name=strdup(value);
+				temp_serviceescalation->host_name=(char *)strdup(value);
 				if(temp_serviceescalation->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for serviceescalation host.\n");
@@ -2604,7 +2618,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"description") || !strcmp(variable,"service_description")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceescalation->service_description=strdup(value);
+				temp_serviceescalation->service_description=(char *)strdup(value);
 				if(temp_serviceescalation->service_description==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for serviceescalation service_description.\n");
@@ -2616,7 +2630,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"servicegroup") || !strcmp(variable,"servicegroups") || !strcmp(variable,"servicegroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceescalation->servicegroup_name=strdup(value);
+				temp_serviceescalation->servicegroup_name=(char *)strdup(value);
 				if(temp_serviceescalation->servicegroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for serviceescalation servicegroup.\n");
@@ -2628,7 +2642,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceescalation->hostgroup_name=strdup(value);
+				temp_serviceescalation->hostgroup_name=(char *)strdup(value);
 				if(temp_serviceescalation->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for serviceescalation hostgroup.\n");
@@ -2640,7 +2654,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"contact_groups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceescalation->contact_groups=strdup(value);
+				temp_serviceescalation->contact_groups=(char *)strdup(value);
 				if(temp_serviceescalation->contact_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for serviceescalation contact_groups.\n");
@@ -2652,7 +2666,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"escalation_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceescalation->escalation_period=strdup(value);
+				temp_serviceescalation->escalation_period=(char *)strdup(value);
 				if(temp_serviceescalation->escalation_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for serviceescalation escalation_period.\n");
@@ -2720,7 +2734,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_contact=(xodtemplate_contact *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_contact->template=strdup(value);
+			temp_contact->template=(char *)strdup(value);
 			if(temp_contact->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contact template.\n");
@@ -2739,7 +2753,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_contact->name=strdup(value);
+			temp_contact->name=(char *)strdup(value);
 			if(temp_contact->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contact name.\n");
@@ -2748,7 +2762,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"contact_name")){
-			temp_contact->contact_name=strdup(value);
+			temp_contact->contact_name=(char *)strdup(value);
 			if(temp_contact->contact_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contact name.\n");
@@ -2757,7 +2771,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"alias")){
-			temp_contact->alias=strdup(value);
+			temp_contact->alias=(char *)strdup(value);
 			if(temp_contact->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for contact alias.\n");
@@ -2767,7 +2781,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"contact_groups") || !strcmp(variable,"contactgroups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->contact_groups=strdup(value);
+				temp_contact->contact_groups=(char *)strdup(value);
 				if(temp_contact->contact_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact contact_groups.\n");
@@ -2779,7 +2793,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"email")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->email=strdup(value);
+				temp_contact->email=(char *)strdup(value);
 				if(temp_contact->email==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact email.\n");
@@ -2791,7 +2805,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"pager")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->pager=strdup(value);
+				temp_contact->pager=(char *)strdup(value);
 				if(temp_contact->pager==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact pager.\n");
@@ -2810,7 +2824,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				return ERROR;
 			        }
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->address[x-1]=strdup(value);
+				temp_contact->address[x-1]=(char *)strdup(value);
 				if(temp_contact->address[x-1]==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact address #%d.\n",x);
@@ -2822,7 +2836,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host_notification_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->host_notification_period=strdup(value);
+				temp_contact->host_notification_period=(char *)strdup(value);
 				if(temp_contact->host_notification_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact host_notification_period.\n");
@@ -2834,7 +2848,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host_notification_commands")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->host_notification_commands=strdup(value);
+				temp_contact->host_notification_commands=(char *)strdup(value);
 				if(temp_contact->host_notification_commands==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact host_notification_commands.\n");
@@ -2846,7 +2860,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"service_notification_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->service_notification_period=strdup(value);
+				temp_contact->service_notification_period=(char *)strdup(value);
 				if(temp_contact->service_notification_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact service_notification_period.\n");
@@ -2858,7 +2872,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"service_notification_commands")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_contact->service_notification_commands=strdup(value);
+				temp_contact->service_notification_commands=(char *)strdup(value);
 				if(temp_contact->service_notification_commands==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for contact service_notification_commands.\n");
@@ -2950,7 +2964,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(variable[0]=='_'){
 
 			/* get the variable name */
-			customvarname=strdup(variable+1);
+			customvarname=(char *)strdup(variable+1);
 
 			/* make sure we have a variable name */
 			if(customvarname==NULL || !strcmp(customvarname,"")){
@@ -2965,7 +2979,7 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			/* get the variable value */
 			if(strcmp(value,XODTEMPLATE_NULL))
-				customvarvalue=strdup(value);
+				customvarvalue=(char *)strdup(value);
 			else
 				customvarvalue=NULL;
 
@@ -3000,7 +3014,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_host=(xodtemplate_host *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_host->template=strdup(value);
+			temp_host->template=(char *)strdup(value);
 			if(temp_host->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host template.\n");
@@ -3019,7 +3033,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_host->name=strdup(value);
+			temp_host->name=(char *)strdup(value);
 			if(temp_host->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host name.\n");
@@ -3028,7 +3042,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"host_name")){
-			temp_host->host_name=strdup(value);
+			temp_host->host_name=(char *)strdup(value);
 			if(temp_host->host_name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host name.\n");
@@ -3038,7 +3052,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"display_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->display_name=strdup(value);
+				temp_host->display_name=(char *)strdup(value);
 				if(temp_host->display_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host display name.\n");
@@ -3049,7 +3063,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_host->have_display_name=TRUE;
 		        }
 		else if(!strcmp(variable,"alias")){
-			temp_host->alias=strdup(value);
+			temp_host->alias=(char *)strdup(value);
 			if(temp_host->alias==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host alias.\n");
@@ -3058,7 +3072,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 		        }
 		else if(!strcmp(variable,"address")){
-			temp_host->address=strdup(value);
+			temp_host->address=(char *)strdup(value);
 			if(temp_host->address==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for host address.\n");
@@ -3068,7 +3082,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"parents")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->parents=strdup(value);
+				temp_host->parents=(char *)strdup(value);
 				if(temp_host->parents==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host parents.\n");
@@ -3080,7 +3094,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host_groups") || !strcmp(variable,"hostgroups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->host_groups=strdup(value);
+				temp_host->host_groups=(char *)strdup(value);
 				if(temp_host->host_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host host_groups.\n");
@@ -3092,7 +3106,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"contact_groups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->contact_groups=strdup(value);
+				temp_host->contact_groups=(char *)strdup(value);
 				if(temp_host->contact_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host contact_groups.\n");
@@ -3104,7 +3118,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"notification_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->notification_period=strdup(value);
+				temp_host->notification_period=(char *)strdup(value);
 				if(temp_host->notification_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host notification_period.\n");
@@ -3116,7 +3130,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"check_command")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->check_command=strdup(value);
+				temp_host->check_command=(char *)strdup(value);
 				if(temp_host->check_command==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host check_command.\n");
@@ -3128,7 +3142,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"check_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->check_period=strdup(value);
+				temp_host->check_period=(char *)strdup(value);
 				if(temp_host->check_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host check_period.\n");
@@ -3140,7 +3154,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"event_handler")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->event_handler=strdup(value);
+				temp_host->event_handler=(char *)strdup(value);
 				if(temp_host->event_handler==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host event_handler.\n");
@@ -3152,7 +3166,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"failure_prediction_options")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_host->failure_prediction_options=strdup(value);
+				temp_host->failure_prediction_options=(char *)strdup(value);
 				if(temp_host->failure_prediction_options==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for host failure_prediction_options.\n");
@@ -3320,7 +3334,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(variable[0]=='_'){
 
 			/* get the variable name */
-			customvarname=strdup(variable+1);
+			customvarname=(char *)strdup(variable+1);
 
 			/* make sure we have a variable name */
 			if(customvarname==NULL || !strcmp(customvarname,"")){
@@ -3335,7 +3349,7 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			/* get the variable value */
 			if(strcmp(value,XODTEMPLATE_NULL))
-				customvarvalue=strdup(value);
+				customvarvalue=(char *)strdup(value);
 			else
 				customvarvalue=NULL;
 
@@ -3369,7 +3383,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_service=(xodtemplate_service *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_service->template=strdup(value);
+			temp_service->template=(char *)strdup(value);
 			if(temp_service->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for service template.\n");
@@ -3388,7 +3402,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_service->name=strdup(value);
+			temp_service->name=(char *)strdup(value);
 			if(temp_service->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for service name.\n");
@@ -3398,7 +3412,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"hosts") || !strcmp(variable,"host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->host_name=strdup(value);
+				temp_service->host_name=(char *)strdup(value);
 				if(temp_service->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service host.\n");
@@ -3410,7 +3424,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"service_description") || !strcmp(variable,"description")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->service_description=strdup(value);
+				temp_service->service_description=(char *)strdup(value);
 				if(temp_service->service_description==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service service_description.\n");
@@ -3422,7 +3436,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"display_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->display_name=strdup(value);
+				temp_service->display_name=(char *)strdup(value);
 				if(temp_service->display_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service display name.\n");
@@ -3434,7 +3448,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->hostgroup_name=strdup(value);
+				temp_service->hostgroup_name=(char *)strdup(value);
 				if(temp_service->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service hostgroup.\n");
@@ -3446,7 +3460,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"service_groups") || !strcmp(variable,"servicegroups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->service_groups=strdup(value);
+				temp_service->service_groups=(char *)strdup(value);
 				if(temp_service->service_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service service_groups.\n");
@@ -3458,7 +3472,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"check_command")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->check_command=strdup(value);
+				temp_service->check_command=(char *)strdup(value);
 				if(temp_service->check_command==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service check_command.\n");
@@ -3470,7 +3484,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"check_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->check_period=strdup(value);
+				temp_service->check_period=(char *)strdup(value);
 				if(temp_service->check_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service check_period.\n");
@@ -3482,7 +3496,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"event_handler")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->event_handler=strdup(value);
+				temp_service->event_handler=(char *)strdup(value);
 				if(temp_service->event_handler==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service event_handler.\n");
@@ -3494,7 +3508,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"notification_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->notification_period=strdup(value);
+				temp_service->notification_period=(char *)strdup(value);
 				if(temp_service->notification_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service notification_period.\n");
@@ -3506,7 +3520,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"contact_groups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->contact_groups=strdup(value);
+				temp_service->contact_groups=(char *)strdup(value);
 				if(temp_service->contact_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service contact_groups.\n");
@@ -3518,7 +3532,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"failure_prediction_options")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_service->failure_prediction_options=strdup(value);
+				temp_service->failure_prediction_options=(char *)strdup(value);
 				if(temp_service->failure_prediction_options==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for service failure_prediction_options.\n");
@@ -3695,6 +3709,66 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_service->failure_prediction_enabled=(atoi(value)>0)?TRUE:FALSE;
 			temp_service->have_failure_prediction_enabled=TRUE;
 		        }
+		else if(!strcmp(variable,"notes")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->notes=(char *)strdup(value);
+				if(temp_service->notes==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service notes.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_notes=TRUE;
+		        }
+		else if(!strcmp(variable,"notes_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->notes_url=(char *)strdup(value);
+				if(temp_service->notes_url==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service notes_url.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_notes_url=TRUE;
+		        }
+		else if(!strcmp(variable,"action_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->action_url=(char *)strdup(value);
+				if(temp_service->action_url==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service action_url.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_action_url=TRUE;
+		        }
+		else if(!strcmp(variable,"icon_image")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->icon_image=(char *)strdup(value);
+				if(temp_service->icon_image==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service icon_image.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_icon_image=TRUE;
+		        }
+		else if(!strcmp(variable,"icon_image_alt")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				temp_service->icon_image_alt=(char *)strdup(value);
+				if(temp_service->icon_image_alt==NULL){
+#ifdef DEBUG1
+					printf("Error: Could not allocate memory for service icon_image_alt.\n");
+#endif
+					return ERROR;
+				        }
+			        }
+			temp_service->have_icon_image_alt=TRUE;
+		        }
 		else if(!strcmp(variable,"retain_status_information")){
 			temp_service->retain_status_information=(atoi(value)>0)?TRUE:FALSE;
 			temp_service->have_retain_status_information=TRUE;
@@ -3708,7 +3782,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(variable[0]=='_'){
 
 			/* get the variable name */
-			customvarname=strdup(variable+1);
+			customvarname=(char *)strdup(variable+1);
 
 			/* make sure we have a variable name */
 			if(customvarname==NULL || !strcmp(customvarname,"")){
@@ -3723,7 +3797,7 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			/* get the variable value */
 			if(strcmp(value,XODTEMPLATE_NULL))
-				customvarvalue=strdup(value);
+				customvarvalue=(char *)strdup(value);
 			else
 				customvarvalue=NULL;
 
@@ -3757,7 +3831,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_hostdependency=(xodtemplate_hostdependency *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_hostdependency->template=strdup(value);
+			temp_hostdependency->template=(char *)strdup(value);
 			if(temp_hostdependency->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostdependency template.\n");
@@ -3776,7 +3850,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_hostdependency->name=strdup(value);
+			temp_hostdependency->name=(char *)strdup(value);
 			if(temp_hostdependency->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostdependency name.\n");
@@ -3786,7 +3860,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostdependency->hostgroup_name=strdup(value);
+				temp_hostdependency->hostgroup_name=(char *)strdup(value);
 				if(temp_hostdependency->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostdependency hostgroup.\n");
@@ -3798,7 +3872,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name") || !strcmp(variable,"master_host") || !strcmp(variable,"master_host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostdependency->host_name=strdup(value);
+				temp_hostdependency->host_name=(char *)strdup(value);
 				if(temp_hostdependency->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostdependency host.\n");
@@ -3810,7 +3884,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"dependent_hostgroup") || !strcmp(variable,"dependent_hostgroups") || !strcmp(variable,"dependent_hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostdependency->dependent_hostgroup_name=strdup(value);
+				temp_hostdependency->dependent_hostgroup_name=(char *)strdup(value);
 				if(temp_hostdependency->dependent_hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostdependency dependent hostgroup.\n");
@@ -3822,7 +3896,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"dependent_host") || !strcmp(variable,"dependent_host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostdependency->dependent_host_name=strdup(value);
+				temp_hostdependency->dependent_host_name=(char *)strdup(value);
 				if(temp_hostdependency->dependent_host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostdependency dependent host.\n");
@@ -3909,7 +3983,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_hostescalation=(xodtemplate_hostescalation *)xodtemplate_current_object;
 
 		if(!strcmp(variable,"use")){
-			temp_hostescalation->template=strdup(value);
+			temp_hostescalation->template=(char *)strdup(value);
 			if(temp_hostescalation->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostescalation template.\n");
@@ -3928,7 +4002,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_hostescalation->name=strdup(value);
+			temp_hostescalation->name=(char *)strdup(value);
 			if(temp_hostescalation->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for hostescalation name.\n");
@@ -3938,7 +4012,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroups") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostescalation->hostgroup_name=strdup(value);
+				temp_hostescalation->hostgroup_name=(char *)strdup(value);
 				if(temp_hostescalation->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostescalation hostgroup.\n");
@@ -3950,7 +4024,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostescalation->host_name=strdup(value);
+				temp_hostescalation->host_name=(char *)strdup(value);
 				if(temp_hostescalation->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostescalation host.\n");
@@ -3962,7 +4036,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"contact_groups")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostescalation->contact_groups=strdup(value);
+				temp_hostescalation->contact_groups=(char *)strdup(value);
 				if(temp_hostescalation->contact_groups==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostescalation contact_groups.\n");
@@ -3974,7 +4048,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"escalation_period")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostescalation->escalation_period=strdup(value);
+				temp_hostescalation->escalation_period=(char *)strdup(value);
 				if(temp_hostescalation->escalation_period==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for hostescalation escalation_period.\n");
@@ -4038,7 +4112,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_hostextinfo=xodtemplate_hostextinfo_list;
 
 		if(!strcmp(variable,"use")){
-			temp_hostextinfo->template=strdup(value);
+			temp_hostextinfo->template=(char *)strdup(value);
 			if(temp_hostextinfo->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for extended host info template.\n");
@@ -4057,7 +4131,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_hostextinfo->name=strdup(value);
+			temp_hostextinfo->name=(char *)strdup(value);
 			if(temp_hostextinfo->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for extended host info name.\n");
@@ -4067,7 +4141,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->host_name=strdup(value);
+				temp_hostextinfo->host_name=(char *)strdup(value);
 				if(temp_hostextinfo->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info host_name.\n");
@@ -4079,7 +4153,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->hostgroup_name=strdup(value);
+				temp_hostextinfo->hostgroup_name=(char *)strdup(value);
 				if(temp_hostextinfo->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info hostgroup_name.\n");
@@ -4091,7 +4165,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"notes")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->notes=strdup(value);
+				temp_hostextinfo->notes=(char *)strdup(value);
 				if(temp_hostextinfo->notes==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info notes.\n");
@@ -4103,7 +4177,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"notes_url")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->notes_url=strdup(value);
+				temp_hostextinfo->notes_url=(char *)strdup(value);
 				if(temp_hostextinfo->notes_url==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info notes_url.\n");
@@ -4115,7 +4189,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"action_url")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->action_url=strdup(value);
+				temp_hostextinfo->action_url=(char *)strdup(value);
 				if(temp_hostextinfo->action_url==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info action_url.\n");
@@ -4127,7 +4201,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"icon_image")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->icon_image=strdup(value);
+				temp_hostextinfo->icon_image=(char *)strdup(value);
 				if(temp_hostextinfo->icon_image==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info icon_image.\n");
@@ -4139,7 +4213,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"icon_image_alt")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->icon_image_alt=strdup(value);
+				temp_hostextinfo->icon_image_alt=(char *)strdup(value);
 				if(temp_hostextinfo->icon_image_alt==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info icon_image_alt.\n");
@@ -4151,7 +4225,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"vrml_image")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->vrml_image=strdup(value);
+				temp_hostextinfo->vrml_image=(char *)strdup(value);
 				if(temp_hostextinfo->vrml_image==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info vrml_image.\n");
@@ -4163,7 +4237,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"gd2_image")|| !strcmp(variable,"statusmap_image")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_hostextinfo->statusmap_image=strdup(value);
+				temp_hostextinfo->statusmap_image=(char *)strdup(value);
 				if(temp_hostextinfo->statusmap_image==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended host info statusmap_image.\n");
@@ -4247,7 +4321,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		temp_serviceextinfo=xodtemplate_serviceextinfo_list;
 
 		if(!strcmp(variable,"use")){
-			temp_serviceextinfo->template=strdup(value);
+			temp_serviceextinfo->template=(char *)strdup(value);
 			if(temp_serviceextinfo->template==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for extended service info template.\n");
@@ -4266,7 +4340,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 #endif
 
-			temp_serviceextinfo->name=strdup(value);
+			temp_serviceextinfo->name=(char *)strdup(value);
 			if(temp_serviceextinfo->name==NULL){
 #ifdef DEBUG1
 				printf("Error: Could not allocate memory for extended service info name.\n");
@@ -4276,7 +4350,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->host_name=strdup(value);
+				temp_serviceextinfo->host_name=(char *)strdup(value);
 				if(temp_serviceextinfo->host_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info host_name.\n");
@@ -4288,7 +4362,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"hostgroup") || !strcmp(variable,"hostgroup_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->hostgroup_name=strdup(value);
+				temp_serviceextinfo->hostgroup_name=(char *)strdup(value);
 				if(temp_serviceextinfo->hostgroup_name==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info hostgroup_name.\n");
@@ -4300,7 +4374,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"service_description")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->service_description=strdup(value);
+				temp_serviceextinfo->service_description=(char *)strdup(value);
 				if(temp_serviceextinfo->service_description==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info service_description.\n");
@@ -4312,7 +4386,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"notes")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->notes=strdup(value);
+				temp_serviceextinfo->notes=(char *)strdup(value);
 				if(temp_serviceextinfo->notes==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info notes.\n");
@@ -4324,7 +4398,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"notes_url")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->notes_url=strdup(value);
+				temp_serviceextinfo->notes_url=(char *)strdup(value);
 				if(temp_serviceextinfo->notes_url==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info notes_url.\n");
@@ -4336,7 +4410,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"action_url")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->action_url=strdup(value);
+				temp_serviceextinfo->action_url=(char *)strdup(value);
 				if(temp_serviceextinfo->action_url==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info action_url.\n");
@@ -4348,7 +4422,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"icon_image")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->icon_image=strdup(value);
+				temp_serviceextinfo->icon_image=(char *)strdup(value);
 				if(temp_serviceextinfo->icon_image==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info icon_image.\n");
@@ -4360,7 +4434,7 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"icon_image_alt")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
-				temp_serviceextinfo->icon_image_alt=strdup(value);
+				temp_serviceextinfo->icon_image_alt=(char *)strdup(value);
 				if(temp_serviceextinfo->icon_image_alt==NULL){
 #ifdef DEBUG1
 					printf("Error: Could not allocate memory for extended service info icon_image_alt.\n");
@@ -4460,12 +4534,12 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xod
 	/* allocate memory for a new member */
 	if((new_customvariablesmember=malloc(sizeof(xodtemplate_customvariablesmember)))==NULL)
 		return NULL;
-	if((new_customvariablesmember->variable_name=strdup(varname))==NULL){
+	if((new_customvariablesmember->variable_name=(char *)strdup(varname))==NULL){
 		free(new_customvariablesmember);
 		return NULL;
 	        }
 	if(varvalue){
-		if((new_customvariablesmember->variable_value=strdup(varvalue))==NULL){
+		if((new_customvariablesmember->variable_value=(char *)strdup(varvalue))==NULL){
 			free(new_customvariablesmember->variable_name);
 			free(new_customvariablesmember);
 			return NULL;
@@ -4542,7 +4616,7 @@ int xodtemplate_duplicate_services(void){
 			if(first_item==TRUE){
 
 				free(temp_service->host_name);
-				temp_service->host_name=strdup(this_hostlist->host_name);
+				temp_service->host_name=(char *)strdup(this_hostlist->host_name);
 				if(temp_service->host_name==NULL){
 					xodtemplate_free_hostlist(temp_hostlist);
 					return ERROR;
@@ -4632,7 +4706,7 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE){
 
 				free(temp_hostescalation->host_name);
-				temp_hostescalation->host_name=strdup(this_hostlist->host_name);
+				temp_hostescalation->host_name=(char *)strdup(this_hostlist->host_name);
 				if(temp_hostescalation->host_name==NULL){
 					xodtemplate_free_hostlist(temp_hostlist);
 					return ERROR;
@@ -4683,7 +4757,7 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE){
 
 				free(temp_serviceescalation->host_name);
-				temp_serviceescalation->host_name=strdup(this_hostlist->host_name);
+				temp_serviceescalation->host_name=(char *)strdup(this_hostlist->host_name);
 				if(temp_serviceescalation->host_name==NULL){
 					xodtemplate_free_hostlist(temp_hostlist);
 					return ERROR;
@@ -4735,7 +4809,7 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE){
 
 				free(temp_serviceescalation->service_description);
-				temp_serviceescalation->service_description=strdup(this_servicelist->service_description);
+				temp_serviceescalation->service_description=(char *)strdup(this_servicelist->service_description);
 				if(temp_serviceescalation->service_description==NULL){
 					xodtemplate_free_servicelist(temp_servicelist);
 					return ERROR;
@@ -4788,9 +4862,9 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE && temp_serviceescalation->host_name==NULL && temp_serviceescalation->service_description==NULL){
 
 				free(temp_serviceescalation->host_name);
-				temp_serviceescalation->host_name=strdup(this_servicelist->host_name);
+				temp_serviceescalation->host_name=(char *)strdup(this_servicelist->host_name);
 				free(temp_serviceescalation->service_description);
-				temp_serviceescalation->service_description=strdup(this_servicelist->service_description);
+				temp_serviceescalation->service_description=(char *)strdup(this_servicelist->service_description);
 				if(temp_serviceescalation->service_description==NULL){
 					xodtemplate_free_servicelist(temp_servicelist);
 					return ERROR;
@@ -4854,8 +4928,8 @@ int xodtemplate_duplicate_objects(void){
 				if(first_item==TRUE){
 					free(temp_hostdependency->host_name);
 					free(temp_hostdependency->dependent_host_name);
-					temp_hostdependency->host_name=strdup(temp_hostlist->host_name);
-					temp_hostdependency->dependent_host_name=strdup(this_hostlist->host_name);
+					temp_hostdependency->host_name=(char *)strdup(temp_hostlist->host_name);
+					temp_hostdependency->dependent_host_name=(char *)strdup(this_hostlist->host_name);
 					first_item=FALSE;
 					continue;
 				        }
@@ -4913,8 +4987,8 @@ int xodtemplate_duplicate_objects(void){
 				if(first_item==TRUE){
 					free(temp_servicedependency->host_name);
 					free(temp_servicedependency->dependent_host_name);
-					temp_servicedependency->host_name=strdup(temp_hostlist->host_name);
-					temp_servicedependency->dependent_host_name=strdup(this_hostlist->host_name);
+					temp_servicedependency->host_name=(char *)strdup(temp_hostlist->host_name);
+					temp_servicedependency->dependent_host_name=(char *)strdup(this_hostlist->host_name);
 					first_item=FALSE;
 					continue;
 				        }
@@ -4960,7 +5034,7 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE){
 
 				free(temp_servicedependency->service_description);
-				temp_servicedependency->service_description=strdup(this_servicelist->service_description);
+				temp_servicedependency->service_description=(char *)strdup(this_servicelist->service_description);
 				if(temp_servicedependency->service_description==NULL){
 					xodtemplate_free_servicelist(temp_servicelist);
 					return ERROR;
@@ -5012,7 +5086,7 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE){
 
 				free(temp_servicedependency->dependent_service_description);
-				temp_servicedependency->dependent_service_description=strdup(this_servicelist->service_description);
+				temp_servicedependency->dependent_service_description=(char *)strdup(this_servicelist->service_description);
 				if(temp_servicedependency->dependent_service_description==NULL){
 					xodtemplate_free_servicelist(temp_servicelist);
 					return ERROR;
@@ -5063,7 +5137,7 @@ int xodtemplate_duplicate_objects(void){
 			if(first_item==TRUE){
 
 				free(temp_hostextinfo->host_name);
-				temp_hostextinfo->host_name=strdup(this_hostlist->host_name);
+				temp_hostextinfo->host_name=(char *)strdup(this_hostlist->host_name);
 				if(temp_hostextinfo->host_name==NULL){
 					xodtemplate_free_hostlist(temp_hostlist);
 					return ERROR;
@@ -5112,7 +5186,7 @@ int xodtemplate_duplicate_objects(void){
 			/* existing definition gets first host name */
 			if(first_item==TRUE){
 				free(temp_serviceextinfo->host_name);
-				temp_serviceextinfo->host_name=strdup(this_hostlist->host_name);
+				temp_serviceextinfo->host_name=(char *)strdup(this_hostlist->host_name);
 				if(temp_serviceextinfo->host_name==NULL){
 					xodtemplate_free_hostlist(temp_hostlist);
 					return ERROR;
@@ -5148,6 +5222,7 @@ int xodtemplate_duplicate_objects(void){
 int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_name){
 	xodtemplate_service *new_service=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_service() start\n");
@@ -5193,199 +5268,81 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->have_contact_groups=temp_service->have_contact_groups;
 	new_service->failure_prediction_options=NULL;
 	new_service->have_failure_prediction_options=temp_service->have_failure_prediction_options;
+	new_service->notes=NULL;
+	new_service->have_notes=temp_service->have_notes;
+	new_service->notes_url=NULL;
+	new_service->have_notes_url=temp_service->have_notes_url;
+	new_service->action_url=NULL;
+	new_service->have_action_url=temp_service->have_action_url;
+	new_service->icon_image=NULL;
+	new_service->have_icon_image=temp_service->have_icon_image;
+	new_service->icon_image_alt=NULL;
+	new_service->have_icon_image_alt=temp_service->have_icon_image_alt;
 	new_service->custom_variables=NULL;
 
 	/* make sure hostgroup member in new service definition is NULL */
 	new_service->hostgroup_name=NULL;
 
 	/* allocate memory for and copy string members of service definition (host name provided, DO NOT duplicate hostgroup member!)*/
-	if(temp_service->host_name!=NULL){
-		new_service->host_name=strdup(host_name);
-		if(new_service->host_name==NULL){
+	if(temp_service->host_name!=NULL && (new_service->host_name=(char *)strdup(host_name))==NULL)
+		error=TRUE;
+	if(temp_service->template!=NULL && (new_service->template=(char *)strdup(temp_service->template))==NULL)
+		error=TRUE;
+	if(temp_service->name!=NULL && (new_service->name=(char *)strdup(temp_service->name))==NULL)
+		error=TRUE;
+	if(temp_service->service_description!=NULL && (new_service->service_description=(char *)strdup(temp_service->service_description))==NULL)
+		error=TRUE;
+	if(temp_service->display_name!=NULL && (new_service->display_name=(char *)strdup(temp_service->display_name))==NULL)
+		error=TRUE;
+	if(temp_service->service_groups!=NULL && (new_service->service_groups=(char *)strdup(temp_service->service_groups))==NULL)
+		error=TRUE;
+	if(temp_service->check_command!=NULL && (new_service->check_command=(char *)strdup(temp_service->check_command))==NULL)
+		error=TRUE;
+	if(temp_service->check_period!=NULL && (new_service->check_period=(char *)strdup(temp_service->check_period))==NULL)
+		error=TRUE;
+	if(temp_service->event_handler!=NULL && (new_service->event_handler=(char *)strdup(temp_service->event_handler))==NULL)
+		error=TRUE;
+	if(temp_service->notification_period!=NULL && (new_service->notification_period=(char *)strdup(temp_service->notification_period))==NULL)
+		error=TRUE;
+	if(temp_service->contact_groups!=NULL && (new_service->contact_groups=(char *)strdup(temp_service->contact_groups))==NULL)
+		error=TRUE;
+	if(temp_service->failure_prediction_options!=NULL && (new_service->failure_prediction_options=(char *)strdup(temp_service->failure_prediction_options))==NULL)
+		error=TRUE;
+	if(temp_service->notes!=NULL && (new_service->notes=(char *)strdup(temp_service->notes))==NULL)
+		error=TRUE;
+	if(temp_service->notes_url!=NULL && (new_service->notes_url=(char *)strdup(temp_service->notes_url))==NULL)
+		error=TRUE;
+	if(temp_service->action_url!=NULL && (new_service->action_url=(char *)strdup(temp_service->action_url))==NULL)
+		error=TRUE;
+	if(temp_service->icon_image!=NULL && (new_service->icon_image=(char *)strdup(temp_service->icon_image))==NULL)
+		error=TRUE;
+	if(temp_service->icon_image_alt!=NULL && (new_service->icon_image_alt=(char *)strdup(temp_service->icon_image_alt))==NULL)
+		error=TRUE;
+
+	if(error==TRUE){
+		free(new_service->host_name);
+		free(new_service->template);
+		free(new_service->name);
+		free(new_service->service_description);
+		free(new_service->display_name);
+		free(new_service->service_groups);
+		free(new_service->check_command);
+		free(new_service->check_period);
+		free(new_service->event_handler);
+		free(new_service->notification_period);
+		free(new_service->contact_groups);
+		free(new_service->failure_prediction_options);
+		free(new_service->notes);
+		free(new_service->notes_url);
+		free(new_service->action_url);
+		free(new_service->icon_image);
+		free(new_service->icon_image_alt);
+		free(new_service);
 #ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
+		printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->template!=NULL){
-		new_service->template=strdup(temp_service->template);
-		if(new_service->template==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->name!=NULL){
-		new_service->name=strdup(temp_service->name);
-		if(new_service->name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->service_description!=NULL){
-		new_service->service_description=strdup(temp_service->service_description);
-		if(new_service->service_description==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->display_name!=NULL){
-		new_service->display_name=strdup(temp_service->display_name);
-		if(new_service->display_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->service_groups!=NULL){
-		new_service->service_groups=strdup(temp_service->service_groups);
-		if(new_service->service_groups==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->check_command!=NULL){
-		new_service->check_command=strdup(temp_service->check_command);
-		if(new_service->check_command==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service->service_groups);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->check_period!=NULL){
-		new_service->check_period=strdup(temp_service->check_period);
-		if(new_service->check_period==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service->check_command);
-			free(new_service->service_groups);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->event_handler!=NULL){
-		new_service->event_handler=strdup(temp_service->event_handler);
-		if(new_service->event_handler==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service->service_groups);
-			free(new_service->check_command);
-			free(new_service->check_period);
-			free(new_service->service_groups);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->notification_period!=NULL){
-		new_service->notification_period=strdup(temp_service->notification_period);
-		if(new_service->notification_period==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service->service_groups);
-			free(new_service->check_command);
-			free(new_service->check_period);
-			free(new_service->event_handler);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->contact_groups!=NULL){
-		new_service->contact_groups=strdup(temp_service->contact_groups);
-		if(new_service->contact_groups==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service->service_groups);
-			free(new_service->check_command);
-			free(new_service->check_period);
-			free(new_service->event_handler);
-			free(new_service->notification_period);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
-	if(temp_service->failure_prediction_options!=NULL){
-		new_service->failure_prediction_options=strdup(temp_service->failure_prediction_options);
-		if(new_service->failure_prediction_options==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
-			free(new_service->host_name);
-			free(new_service->template);
-			free(new_service->name);
-			free(new_service->service_description);
-			free(new_service->display_name);
-			free(new_service->service_groups);
-			free(new_service->check_command);
-			free(new_service->check_period);
-			free(new_service->event_handler);
-			free(new_service->notification_period);
-			free(new_service->contact_groups);
-			free(new_service);
-			return ERROR;
-		        }
-	        } 
+		return ERROR;
+	        }
 
 	/* duplicate custom variables */
 	for(temp_customvariablesmember=temp_service->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
@@ -5467,7 +5424,8 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 
 /* duplicates a host escalation definition (with a new host name) */
 int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostescalation, char *host_name){
-	xodtemplate_hostescalation *new_hostescalation;
+	xodtemplate_hostescalation *new_hostescalation=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_hostescalation() start\n");
@@ -5501,67 +5459,29 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation->have_escalation_period=temp_hostescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of hostescalation definition */
-	if(temp_hostescalation->host_name!=NULL){
-		new_hostescalation->host_name=strdup(host_name);
-		if(new_hostescalation->host_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
-			free(new_hostescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostescalation->template!=NULL){
-		new_hostescalation->template=strdup(temp_hostescalation->template);
-		if(new_hostescalation->template==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
-			free(new_hostescalation->host_name);
-			free(new_hostescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostescalation->name!=NULL){
-		new_hostescalation->name=strdup(temp_hostescalation->name);
-		if(new_hostescalation->name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
-			free(new_hostescalation->host_name);
-			free(new_hostescalation->template);
-			free(new_hostescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostescalation->contact_groups!=NULL){
-		new_hostescalation->contact_groups=strdup(temp_hostescalation->contact_groups);
-		if(new_hostescalation->contact_groups==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
-			free(new_hostescalation->host_name);
-			free(new_hostescalation->template);
-			free(new_hostescalation->name);
-			free(new_hostescalation);
-			return ERROR;
-		        }
-	        } 
+	if(temp_hostescalation->host_name!=NULL && (new_hostescalation->host_name=(char *)strdup(host_name))==NULL)
+		error=TRUE;
+	if(temp_hostescalation->template!=NULL && (new_hostescalation->template=(char *)strdup(temp_hostescalation->template))==NULL)
+		error=TRUE;
+	if(temp_hostescalation->name!=NULL && (new_hostescalation->name=(char *)strdup(temp_hostescalation->name))==NULL)
+		error=TRUE;
+	if(temp_hostescalation->contact_groups!=NULL && (new_hostescalation->contact_groups=(char *)strdup(temp_hostescalation->contact_groups))==NULL)
+		error=TRUE;
+	if(temp_hostescalation->escalation_period!=NULL && (new_hostescalation->escalation_period=(char *)strdup(temp_hostescalation->escalation_period))==NULL)
+		error=TRUE;
 
-	if(temp_hostescalation->escalation_period!=NULL){
-		new_hostescalation->escalation_period=strdup(temp_hostescalation->escalation_period);
-		if(new_hostescalation->escalation_period==NULL){
+	if(error==TRUE){
+		free(new_hostescalation->escalation_period);
+		free(new_hostescalation->contact_groups);
+		free(new_hostescalation->host_name);
+		free(new_hostescalation->template);
+		free(new_hostescalation->name);
+		free(new_hostescalation);
 #ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
+		printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
 #endif
-			free(new_hostescalation->contact_groups);
-			free(new_hostescalation->host_name);
-			free(new_hostescalation->template);
-			free(new_hostescalation->name);
-			free(new_hostescalation);
-			return ERROR;
-		        }
-	        } 
+		return ERROR;
+	        }
 
 	/* duplicate non-string members */
 	new_hostescalation->first_notification=temp_hostescalation->first_notification;
@@ -5590,7 +5510,8 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 
 /* duplicates a service escalation definition (with a new host name and/or service description) */
 int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_serviceescalation, char *host_name, char *svc_description){
-	xodtemplate_serviceescalation *new_serviceescalation;
+	xodtemplate_serviceescalation *new_serviceescalation=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_serviceescalation() start\n");
@@ -5628,105 +5549,36 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	new_serviceescalation->have_escalation_period=temp_serviceescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of serviceescalation definition */
-	if(host_name!=NULL){
-		new_serviceescalation->host_name=strdup(host_name);
-		if(new_serviceescalation->host_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
-	else if(temp_serviceescalation->host_name!=NULL){
-		new_serviceescalation->host_name=strdup(temp_serviceescalation->host_name);
-		if(new_serviceescalation->host_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_serviceescalation->template!=NULL){
-		new_serviceescalation->template=strdup(temp_serviceescalation->template);
-		if(new_serviceescalation->template==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation->host_name);
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_serviceescalation->name!=NULL){
-		new_serviceescalation->name=strdup(temp_serviceescalation->name);
-		if(new_serviceescalation->name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation->host_name);
-			free(new_serviceescalation->template);
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
-	if(svc_description!=NULL){
-		new_serviceescalation->service_description=strdup(svc_description);
-		if(new_serviceescalation->service_description==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation->host_name);
-			free(new_serviceescalation->template);
-			free(new_serviceescalation->name);
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
-	else if(temp_serviceescalation->service_description!=NULL){
-		new_serviceescalation->service_description=strdup(temp_serviceescalation->service_description);
-		if(new_serviceescalation->service_description==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation->host_name);
-			free(new_serviceescalation->template);
-			free(new_serviceescalation->name);
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
-	if(temp_serviceescalation->contact_groups!=NULL){
-		new_serviceescalation->contact_groups=strdup(temp_serviceescalation->contact_groups);
-		if(new_serviceescalation->contact_groups==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
-			free(new_serviceescalation->service_description);
-			free(new_serviceescalation->host_name);
-			free(new_serviceescalation->template);
-			free(new_serviceescalation->name);
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
+	if(host_name!=NULL && (new_serviceescalation->host_name=(char *)strdup(host_name))==NULL)
+		error=TRUE;
+	else if(temp_serviceescalation->host_name!=NULL && (new_serviceescalation->host_name=(char *)strdup(temp_serviceescalation->host_name))==NULL)
+		error=TRUE;
+	if(temp_serviceescalation->template!=NULL && (new_serviceescalation->template=(char *)strdup(temp_serviceescalation->template))==NULL)
+		error=TRUE;
+	if(temp_serviceescalation->name!=NULL && (new_serviceescalation->name=(char *)strdup(temp_serviceescalation->name))==NULL)
+		error=TRUE;
+	if(svc_description!=NULL && (new_serviceescalation->service_description=(char *)strdup(svc_description))==NULL)
+		error=TRUE;
+	else if(temp_serviceescalation->service_description!=NULL && (new_serviceescalation->service_description=(char *)strdup(temp_serviceescalation->service_description))==NULL)
+		error=TRUE;
+	if(temp_serviceescalation->contact_groups!=NULL && (new_serviceescalation->contact_groups=(char *)strdup(temp_serviceescalation->contact_groups))==NULL)
+		error=TRUE;
+	if(temp_serviceescalation->escalation_period!=NULL && (new_serviceescalation->escalation_period=(char *)strdup(temp_serviceescalation->escalation_period))==NULL)
+		error=TRUE;
 
-	if(temp_serviceescalation->escalation_period!=NULL){
-		new_serviceescalation->escalation_period=strdup(temp_serviceescalation->escalation_period);
-		if(new_serviceescalation->escalation_period==NULL){
+	if(error==TRUE){
+		free(new_serviceescalation->host_name);
+		free(new_serviceescalation->template);
+		free(new_serviceescalation->name);
+		free(new_serviceescalation->service_description);
+		free(new_serviceescalation->contact_groups);
+		free(new_serviceescalation->contact_groups);
+		free(new_serviceescalation);
 #ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
+		printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
 #endif
-			free(new_serviceescalation->contact_groups);
-			free(new_serviceescalation->service_description);
-			free(new_serviceescalation->host_name);
-			free(new_serviceescalation->template);
-			free(new_serviceescalation->name);
-			free(new_serviceescalation);
-			return ERROR;
-		        }
-	        } 
+		return ERROR;
+	        }
 
 	/* duplicate non-string members */
 	new_serviceescalation->first_notification=temp_serviceescalation->first_notification;
@@ -5756,7 +5608,8 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 
 /* duplicates a host dependency definition (with master and dependent host names) */
 int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostdependency, char *master_host_name, char *dependent_host_name){
-	xodtemplate_hostdependency *new_hostdependency;
+	xodtemplate_hostdependency *new_hostdependency=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_hostdependency() start\n");
@@ -5790,48 +5643,25 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	new_hostdependency->have_dependent_host_name=temp_hostdependency->have_dependent_host_name;
 
 	/* allocate memory for and copy string members of hostdependency definition */
-	if(temp_hostdependency->host_name!=NULL){
-		new_hostdependency->host_name=strdup(master_host_name);
-		if(new_hostdependency->host_name==NULL){
+	if(temp_hostdependency->host_name!=NULL && (new_hostdependency->host_name=(char *)strdup(master_host_name))==NULL)
+		error=TRUE;
+       	if(temp_hostdependency->dependent_host_name!=NULL && (new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+		error=TRUE;
+	if(temp_hostdependency->template!=NULL && (new_hostdependency->template=(char *)strdup(temp_hostdependency->template))==NULL)
+		error=TRUE;
+	if(temp_hostdependency->name!=NULL && (new_hostdependency->name=(char *)strdup(temp_hostdependency->name))==NULL)
+		error=TRUE;
+
+	if(error==TRUE){
+		free(new_hostdependency->dependent_host_name);
+		free(new_hostdependency->host_name);
+		free(new_hostdependency->template);
+		free(new_hostdependency->name);
+		free(new_hostdependency);
 #ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
+		printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
 #endif
-			free(new_hostdependency);
-			return ERROR;
-		        }
-	        } 
-       	if(temp_hostdependency->dependent_host_name!=NULL){
-		new_hostdependency->dependent_host_name=strdup(dependent_host_name);
-		if(new_hostdependency->dependent_host_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
-#endif
-			free(new_hostdependency);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostdependency->template!=NULL){
-		new_hostdependency->template=strdup(temp_hostdependency->template);
-		if(new_hostdependency->template==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
-#endif
-			free(new_hostdependency->host_name);
-			free(new_hostdependency);
-			return ERROR;
-		        }
-	        } 
-	if(temp_hostdependency->name!=NULL){
-		new_hostdependency->name=strdup(temp_hostdependency->name);
-		if(new_hostdependency->name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
-#endif
-			free(new_hostdependency->host_name);
-			free(new_hostdependency->template);
-			free(new_hostdependency);
-			return ERROR;
-		        }
+		return ERROR;
 	        } 
 
 	/* duplicate non-string members */
@@ -5863,7 +5693,8 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 
 /* duplicates a service dependency definition */
 int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_servicedependency, char *master_host_name, char *master_service_description, char *dependent_host_name, char *dependent_service_description){
-	xodtemplate_servicedependency *new_servicedependency;
+	xodtemplate_servicedependency *new_servicedependency=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_servicedependency() start\n");
@@ -5901,68 +5732,31 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->have_dependent_host_name=temp_servicedependency->have_dependent_host_name;
 
 	/* duplicate strings */
-	if(temp_servicedependency->host_name!=NULL){
-		new_servicedependency->host_name=strdup(master_host_name);
-		if(new_servicedependency->host_name==NULL){
+	if(temp_servicedependency->host_name!=NULL && (new_servicedependency->host_name=(char *)strdup(master_host_name))==NULL)
+		error=TRUE;
+	if(temp_servicedependency->service_description!=NULL && (new_servicedependency->service_description=(char *)strdup(master_service_description))==NULL)
+		error=TRUE;
+       	if(temp_servicedependency->dependent_host_name!=NULL && (new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+		error=TRUE;
+	if(temp_servicedependency->dependent_service_description!=NULL && (new_servicedependency->dependent_service_description=(char *)strdup(dependent_service_description))==NULL)
+		error=TRUE;
+	if(temp_servicedependency->template!=NULL && (new_servicedependency->template=(char *)strdup(temp_servicedependency->template))==NULL)
+		error=TRUE;
+	if(temp_servicedependency->name!=NULL && (new_servicedependency->name=(char *)strdup(temp_servicedependency->name))==NULL)
+		error=TRUE;
+
+	if(error==TRUE){
+		free(new_servicedependency->host_name);
+		free(new_servicedependency->service_description);
+		free(new_servicedependency->dependent_host_name);
+		free(new_servicedependency->dependent_service_description);
+		free(new_servicedependency->template);
+		free(new_servicedependency->name);
+		free(new_servicedependency);
 #ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
+		printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
 #endif
-			free(new_servicedependency);
-			return ERROR;
-		        }
-	        } 
-	if(temp_servicedependency->service_description!=NULL){
-		new_servicedependency->service_description=strdup(master_service_description);
-		if(new_servicedependency->service_description==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
-			free(new_servicedependency);
-			return ERROR;
-		        }
-	        } 
-       	if(temp_servicedependency->dependent_host_name!=NULL){
-		new_servicedependency->dependent_host_name=strdup(dependent_host_name);
-		if(new_servicedependency->dependent_host_name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
-			free(new_servicedependency);
-			return ERROR;
-		        }
-	        } 
-	if(temp_servicedependency->dependent_service_description!=NULL){
-		new_servicedependency->dependent_service_description=strdup(dependent_service_description);
-		if(new_servicedependency->dependent_service_description==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
-			free(new_servicedependency);
-			return ERROR;
-		        }
-	        } 
-	if(temp_servicedependency->template!=NULL){
-		new_servicedependency->template=strdup(temp_servicedependency->template);
-		if(new_servicedependency->template==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
-			free(new_servicedependency->host_name);
-			free(new_servicedependency);
-			return ERROR;
-		        }
-	        } 
-	if(temp_servicedependency->name!=NULL){
-		new_servicedependency->name=strdup(temp_servicedependency->name);
-		if(new_servicedependency->name==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
-			free(new_servicedependency->host_name);
-			free(new_servicedependency->template);
-			free(new_servicedependency);
-			return ERROR;
-		        }
+		return ERROR;
 	        } 
 
 	/* duplicate non-string members */
@@ -5996,7 +5790,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 
 /* duplicates a hostextinfo object definition */
 int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo, char *host_name){
-	xodtemplate_hostextinfo *new_hostextinfo;
+	xodtemplate_hostextinfo *new_hostextinfo=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_hostextinfo() start\n");
@@ -6039,26 +5834,44 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	new_hostextinfo->have_statusmap_image=this_hostextinfo->have_statusmap_image;
 
 	/* duplicate strings (host_name member is passed in) */
-	if(host_name!=NULL)
-		new_hostextinfo->host_name=strdup(host_name);
-	if(this_hostextinfo->template!=NULL)
-		new_hostextinfo->template=strdup(this_hostextinfo->template);
-	if(this_hostextinfo->name!=NULL)
-		new_hostextinfo->name=strdup(this_hostextinfo->name);
-	if(this_hostextinfo->notes!=NULL)
-		new_hostextinfo->notes=strdup(this_hostextinfo->notes);
-	if(this_hostextinfo->notes_url!=NULL)
-		new_hostextinfo->notes_url=strdup(this_hostextinfo->notes_url);
-	if(this_hostextinfo->action_url!=NULL)
-		new_hostextinfo->action_url=strdup(this_hostextinfo->action_url);
-	if(this_hostextinfo->icon_image!=NULL)
-		new_hostextinfo->icon_image=strdup(this_hostextinfo->icon_image);
-	if(this_hostextinfo->icon_image_alt!=NULL)
-		new_hostextinfo->icon_image_alt=strdup(this_hostextinfo->icon_image_alt);
-	if(this_hostextinfo->vrml_image!=NULL)
-		new_hostextinfo->vrml_image=strdup(this_hostextinfo->vrml_image);
-	if(this_hostextinfo->statusmap_image!=NULL)
-		new_hostextinfo->statusmap_image=strdup(this_hostextinfo->statusmap_image);
+	if(host_name!=NULL && (new_hostextinfo->host_name=(char *)strdup(host_name))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->template!=NULL && (new_hostextinfo->template=(char *)strdup(this_hostextinfo->template))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->name!=NULL && (new_hostextinfo->name=(char *)strdup(this_hostextinfo->name))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->notes!=NULL && (new_hostextinfo->notes=(char *)strdup(this_hostextinfo->notes))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->notes_url!=NULL && (new_hostextinfo->notes_url=(char *)strdup(this_hostextinfo->notes_url))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->action_url!=NULL && (new_hostextinfo->action_url=(char *)strdup(this_hostextinfo->action_url))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->icon_image!=NULL && (new_hostextinfo->icon_image=(char *)strdup(this_hostextinfo->icon_image))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->icon_image_alt!=NULL && (new_hostextinfo->icon_image_alt=(char *)strdup(this_hostextinfo->icon_image_alt))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->vrml_image!=NULL && (new_hostextinfo->vrml_image=(char *)strdup(this_hostextinfo->vrml_image))==NULL)
+		error=TRUE;
+	if(this_hostextinfo->statusmap_image!=NULL && (new_hostextinfo->statusmap_image=(char *)strdup(this_hostextinfo->statusmap_image))==NULL)
+		error=TRUE;
+
+	if(error==TRUE){
+		free(new_hostextinfo->host_name);
+		free(new_hostextinfo->template);
+		free(new_hostextinfo->name);
+		free(new_hostextinfo->notes);
+		free(new_hostextinfo->notes_url);
+		free(new_hostextinfo->action_url);
+		free(new_hostextinfo->icon_image);
+		free(new_hostextinfo->icon_image_alt);
+		free(new_hostextinfo->vrml_image);
+		free(new_hostextinfo->statusmap_image);
+		free(new_hostextinfo);
+#ifdef DEBUG1
+		printf("Error: Could not allocate memory for duplicate definition of extended host info.\n");
+#endif
+		return ERROR;
+	        }
 
 	/* duplicate non-string members */
 	new_hostextinfo->x_2d=this_hostextinfo->x_2d;
@@ -6084,7 +5897,8 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 
 /* duplicates a serviceextinfo object definition */
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo, char *host_name){
-	xodtemplate_serviceextinfo *new_serviceextinfo;
+	xodtemplate_serviceextinfo *new_serviceextinfo=NULL;
+	int error=FALSE;
 
 #ifdef DEBUG0
 	printf("xodtemplate_duplicate_serviceextinfo() start\n");
@@ -6123,24 +5937,41 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	new_serviceextinfo->have_icon_image_alt=this_serviceextinfo->have_icon_image_alt;
 
 	/* duplicate strings (host_name member is passed in) */
-	if(host_name!=NULL)
-		new_serviceextinfo->host_name=strdup(host_name);
-	if(this_serviceextinfo->template!=NULL)
-		new_serviceextinfo->template=strdup(this_serviceextinfo->template);
-	if(this_serviceextinfo->name!=NULL)
-		new_serviceextinfo->name=strdup(this_serviceextinfo->name);
-	if(this_serviceextinfo->service_description!=NULL)
-		new_serviceextinfo->service_description=strdup(this_serviceextinfo->service_description);
-	if(this_serviceextinfo->notes!=NULL)
-		new_serviceextinfo->notes=strdup(this_serviceextinfo->notes);
-	if(this_serviceextinfo->notes_url!=NULL)
-		new_serviceextinfo->notes_url=strdup(this_serviceextinfo->notes_url);
-	if(this_serviceextinfo->action_url!=NULL)
-		new_serviceextinfo->action_url=strdup(this_serviceextinfo->action_url);
-	if(this_serviceextinfo->icon_image!=NULL)
-		new_serviceextinfo->icon_image=strdup(this_serviceextinfo->icon_image);
-	if(this_serviceextinfo->icon_image_alt!=NULL)
-		new_serviceextinfo->icon_image_alt=strdup(this_serviceextinfo->icon_image_alt);
+	if(host_name!=NULL && (new_serviceextinfo->host_name=(char *)strdup(host_name))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->template!=NULL && (new_serviceextinfo->template=(char *)strdup(this_serviceextinfo->template))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->name!=NULL && (new_serviceextinfo->name=(char *)strdup(this_serviceextinfo->name))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->service_description!=NULL && (new_serviceextinfo->service_description=(char *)strdup(this_serviceextinfo->service_description))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->notes!=NULL && (new_serviceextinfo->notes=(char *)strdup(this_serviceextinfo->notes))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->notes_url!=NULL && (new_serviceextinfo->notes_url=(char *)strdup(this_serviceextinfo->notes_url))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->action_url!=NULL && (new_serviceextinfo->action_url=(char *)strdup(this_serviceextinfo->action_url))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->icon_image!=NULL && (new_serviceextinfo->icon_image=(char *)strdup(this_serviceextinfo->icon_image))==NULL)
+		error=TRUE;
+	if(this_serviceextinfo->icon_image_alt!=NULL && (new_serviceextinfo->icon_image_alt=(char *)strdup(this_serviceextinfo->icon_image_alt))==NULL)
+		error=TRUE;
+
+	if(error==TRUE){
+		free(new_serviceextinfo->host_name);
+		free(new_serviceextinfo->template);
+		free(new_serviceextinfo->name);
+		free(new_serviceextinfo->service_description);
+		free(new_serviceextinfo->notes);
+		free(new_serviceextinfo->notes_url);
+		free(new_serviceextinfo->action_url);
+		free(new_serviceextinfo->icon_image);
+		free(new_serviceextinfo->icon_image_alt);
+		free(new_serviceextinfo);
+#ifdef DEBUG1
+		printf("Error: Could not allocate memory for duplicate definition of extended service info.\n");
+#endif
+		return ERROR;
+	        }
 
 	/* add new object to head of list */
 	new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
@@ -6301,7 +6132,7 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	if(this_timeperiod->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_timeperiod->template))==NULL)
+	if((template_names=(char *)strdup(this_timeperiod->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6323,12 +6154,12 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 
 		/* apply missing properties from template timeperiod... */
 		if(this_timeperiod->timeperiod_name==NULL && template_timeperiod->timeperiod_name!=NULL)
-			this_timeperiod->timeperiod_name=strdup(template_timeperiod->timeperiod_name);
+			this_timeperiod->timeperiod_name=(char *)strdup(template_timeperiod->timeperiod_name);
 		if(this_timeperiod->alias==NULL && template_timeperiod->alias!=NULL)
-			this_timeperiod->alias=strdup(template_timeperiod->alias);
+			this_timeperiod->alias=(char *)strdup(template_timeperiod->alias);
 		for(x=0;x<7;x++){
 			if(this_timeperiod->timeranges[x]==NULL && template_timeperiod->timeranges[x]!=NULL){
-				this_timeperiod->timeranges[x]=strdup(template_timeperiod->timeranges[x]);
+				this_timeperiod->timeranges[x]=(char *)strdup(template_timeperiod->timeranges[x]);
 		                }
 	                }
 	        }
@@ -6369,7 +6200,7 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 	if(this_command->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_command->template))==NULL)
+	if((template_names=(char *)strdup(this_command->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6391,9 +6222,9 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 
 		/* apply missing properties from template command... */
 		if(this_command->command_name==NULL && template_command->command_name!=NULL)
-			this_command->command_name=strdup(template_command->command_name);
+			this_command->command_name=(char *)strdup(template_command->command_name);
 		if(this_command->command_line==NULL && template_command->command_line!=NULL)
-			this_command->command_line=strdup(template_command->command_line);
+			this_command->command_line=(char *)strdup(template_command->command_line);
 	        }
 
 	free(template_names);
@@ -6432,7 +6263,7 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 	if(this_contactgroup->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_contactgroup->template))==NULL)
+	if((template_names=(char *)strdup(this_contactgroup->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6454,11 +6285,11 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 
 		/* apply missing properties from template contactgroup... */
 		if(this_contactgroup->contactgroup_name==NULL && template_contactgroup->contactgroup_name!=NULL)
-			this_contactgroup->contactgroup_name=strdup(template_contactgroup->contactgroup_name);
+			this_contactgroup->contactgroup_name=(char *)strdup(template_contactgroup->contactgroup_name);
 		if(this_contactgroup->alias==NULL && template_contactgroup->alias!=NULL)
-			this_contactgroup->alias=strdup(template_contactgroup->alias);
+			this_contactgroup->alias=(char *)strdup(template_contactgroup->alias);
 		if(this_contactgroup->members==NULL && template_contactgroup->members!=NULL)
-			this_contactgroup->members=strdup(template_contactgroup->members);
+			this_contactgroup->members=(char *)strdup(template_contactgroup->members);
 	        }
 
 	free(template_names);
@@ -6497,7 +6328,7 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	if(this_hostgroup->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_hostgroup->template))==NULL)
+	if((template_names=(char *)strdup(this_hostgroup->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6519,17 +6350,17 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 
 		/* apply missing properties from template hostgroup... */
 		if(this_hostgroup->hostgroup_name==NULL && template_hostgroup->hostgroup_name!=NULL)
-			this_hostgroup->hostgroup_name=strdup(template_hostgroup->hostgroup_name);
+			this_hostgroup->hostgroup_name=(char *)strdup(template_hostgroup->hostgroup_name);
 		if(this_hostgroup->alias==NULL && template_hostgroup->alias!=NULL)
-			this_hostgroup->alias=strdup(template_hostgroup->alias);
+			this_hostgroup->alias=(char *)strdup(template_hostgroup->alias);
 		if(this_hostgroup->have_members==FALSE && template_hostgroup->have_members==TRUE){
 			if(this_hostgroup->members==NULL && template_hostgroup->members!=NULL)
-				this_hostgroup->members=strdup(template_hostgroup->members);
+				this_hostgroup->members=(char *)strdup(template_hostgroup->members);
 			this_hostgroup->have_members=TRUE;
 		        }
 		if(this_hostgroup->have_hostgroup_members==FALSE && template_hostgroup->have_hostgroup_members==TRUE){
 			if(this_hostgroup->hostgroup_members==NULL && template_hostgroup->hostgroup_members!=NULL)
-				this_hostgroup->hostgroup_members=strdup(template_hostgroup->hostgroup_members);
+				this_hostgroup->hostgroup_members=(char *)strdup(template_hostgroup->hostgroup_members);
 			this_hostgroup->have_hostgroup_members=TRUE;
 		        }
 	        }
@@ -6570,7 +6401,7 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 	if(this_servicegroup->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_servicegroup->template))==NULL)
+	if((template_names=(char *)strdup(this_servicegroup->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6592,17 +6423,17 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 
 		/* apply missing properties from template servicegroup... */
 		if(this_servicegroup->servicegroup_name==NULL && template_servicegroup->servicegroup_name!=NULL)
-			this_servicegroup->servicegroup_name=strdup(template_servicegroup->servicegroup_name);
+			this_servicegroup->servicegroup_name=(char *)strdup(template_servicegroup->servicegroup_name);
 		if(this_servicegroup->alias==NULL && template_servicegroup->alias!=NULL)
-			this_servicegroup->alias=strdup(template_servicegroup->alias);
+			this_servicegroup->alias=(char *)strdup(template_servicegroup->alias);
 		if(this_servicegroup->have_members==FALSE && template_servicegroup->have_members==TRUE){
 			if(this_servicegroup->members==NULL && template_servicegroup->members!=NULL)
-				this_servicegroup->members=strdup(template_servicegroup->members);
+				this_servicegroup->members=(char *)strdup(template_servicegroup->members);
 			this_servicegroup->have_members=TRUE;
 		        }
 		if(this_servicegroup->have_servicegroup_members==FALSE && template_servicegroup->have_servicegroup_members==TRUE){
 			if(this_servicegroup->servicegroup_members==NULL && template_servicegroup->servicegroup_members!=NULL)
-				this_servicegroup->servicegroup_members=strdup(template_servicegroup->servicegroup_members);
+				this_servicegroup->servicegroup_members=(char *)strdup(template_servicegroup->servicegroup_members);
 			this_servicegroup->have_servicegroup_members=TRUE;
 		        }
 	        }
@@ -6641,7 +6472,7 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 	if(this_servicedependency->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_servicedependency->template))==NULL)
+	if((template_names=(char *)strdup(this_servicedependency->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6664,42 +6495,42 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 		/* apply missing properties from template servicedependency... */
 		if(this_servicedependency->have_servicegroup_name==FALSE && template_servicedependency->have_servicegroup_name==TRUE){
 			if(this_servicedependency->servicegroup_name==NULL && template_servicedependency->servicegroup_name!=NULL)
-				this_servicedependency->servicegroup_name=strdup(template_servicedependency->servicegroup_name);
+				this_servicedependency->servicegroup_name=(char *)strdup(template_servicedependency->servicegroup_name);
 			this_servicedependency->have_servicegroup_name=TRUE;
 		        }
 		if(this_servicedependency->have_hostgroup_name==FALSE && template_servicedependency->have_hostgroup_name==TRUE){
 			if(this_servicedependency->hostgroup_name==NULL && template_servicedependency->hostgroup_name!=NULL)
-				this_servicedependency->hostgroup_name=strdup(template_servicedependency->hostgroup_name);
+				this_servicedependency->hostgroup_name=(char *)strdup(template_servicedependency->hostgroup_name);
 			this_servicedependency->have_hostgroup_name=TRUE;
 		        }
 		if(this_servicedependency->have_host_name==FALSE && template_servicedependency->have_host_name==TRUE){
 			if(this_servicedependency->host_name==NULL && template_servicedependency->host_name!=NULL)
-				this_servicedependency->host_name=strdup(template_servicedependency->host_name);
+				this_servicedependency->host_name=(char *)strdup(template_servicedependency->host_name);
 			this_servicedependency->have_host_name=TRUE;
 		        }
 		if(this_servicedependency->have_service_description==FALSE && template_servicedependency->have_service_description==TRUE){
 			if(this_servicedependency->service_description==NULL && template_servicedependency->service_description!=NULL)
-				this_servicedependency->service_description=strdup(template_servicedependency->service_description);
+				this_servicedependency->service_description=(char *)strdup(template_servicedependency->service_description);
 			this_servicedependency->have_service_description=TRUE;
 		        }
 		if(this_servicedependency->have_dependent_servicegroup_name==FALSE && template_servicedependency->have_dependent_servicegroup_name==TRUE){
 			if(this_servicedependency->dependent_servicegroup_name==NULL && template_servicedependency->dependent_servicegroup_name!=NULL)
-				this_servicedependency->dependent_servicegroup_name=strdup(template_servicedependency->dependent_servicegroup_name);
+				this_servicedependency->dependent_servicegroup_name=(char *)strdup(template_servicedependency->dependent_servicegroup_name);
 			this_servicedependency->have_dependent_servicegroup_name=TRUE;
 		        }
 		if(this_servicedependency->have_dependent_hostgroup_name==FALSE && template_servicedependency->have_dependent_hostgroup_name==TRUE){
 			if(this_servicedependency->dependent_hostgroup_name==NULL && template_servicedependency->dependent_hostgroup_name!=NULL)
-				this_servicedependency->dependent_hostgroup_name=strdup(template_servicedependency->dependent_hostgroup_name);
+				this_servicedependency->dependent_hostgroup_name=(char *)strdup(template_servicedependency->dependent_hostgroup_name);
 			this_servicedependency->have_dependent_hostgroup_name=TRUE;
 		        }
 		if(this_servicedependency->have_dependent_host_name==FALSE && template_servicedependency->have_dependent_host_name==TRUE){
 			if(this_servicedependency->dependent_host_name==NULL && template_servicedependency->dependent_host_name!=NULL)
-				this_servicedependency->dependent_host_name=strdup(template_servicedependency->dependent_host_name);
+				this_servicedependency->dependent_host_name=(char *)strdup(template_servicedependency->dependent_host_name);
 			this_servicedependency->have_dependent_host_name=TRUE;
 		        }
 		if(this_servicedependency->have_dependent_service_description==FALSE && template_servicedependency->have_dependent_service_description==TRUE){
 			if(this_servicedependency->dependent_service_description==NULL && template_servicedependency->dependent_service_description!=NULL)
-				this_servicedependency->dependent_service_description=strdup(template_servicedependency->dependent_service_description);
+				this_servicedependency->dependent_service_description=(char *)strdup(template_servicedependency->dependent_service_description);
 			this_servicedependency->have_dependent_service_description=TRUE;
 		        }
 		if(this_servicedependency->have_inherits_parent==FALSE && template_servicedependency->have_inherits_parent==TRUE){
@@ -6758,7 +6589,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	if(this_serviceescalation->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_serviceescalation->template))==NULL)
+	if((template_names=(char *)strdup(this_serviceescalation->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6781,32 +6612,32 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 		/* apply missing properties from template serviceescalation... */
 		if(this_serviceescalation->have_servicegroup_name==FALSE && template_serviceescalation->have_servicegroup_name==TRUE){
 			if(this_serviceescalation->servicegroup_name==NULL && template_serviceescalation->servicegroup_name!=NULL)
-				this_serviceescalation->servicegroup_name=strdup(template_serviceescalation->servicegroup_name);
+				this_serviceescalation->servicegroup_name=(char *)strdup(template_serviceescalation->servicegroup_name);
 			this_serviceescalation->have_servicegroup_name=TRUE;
 		        }
 		if(this_serviceescalation->have_hostgroup_name==FALSE && template_serviceescalation->have_hostgroup_name==TRUE){
 			if(this_serviceescalation->hostgroup_name==NULL && template_serviceescalation->hostgroup_name!=NULL)
-				this_serviceescalation->hostgroup_name=strdup(template_serviceescalation->hostgroup_name);
+				this_serviceescalation->hostgroup_name=(char *)strdup(template_serviceescalation->hostgroup_name);
 			this_serviceescalation->have_hostgroup_name=TRUE;
 		        }
 		if(this_serviceescalation->have_host_name==FALSE && template_serviceescalation->have_host_name==TRUE){
 			if(this_serviceescalation->host_name==NULL && template_serviceescalation->host_name!=NULL)
-				this_serviceescalation->host_name=strdup(template_serviceescalation->host_name);
+				this_serviceescalation->host_name=(char *)strdup(template_serviceescalation->host_name);
 			this_serviceescalation->have_host_name=TRUE;
 		        }
 		if(this_serviceescalation->have_service_description==FALSE && template_serviceescalation->have_service_description==TRUE){
 			if(this_serviceescalation->service_description==NULL && template_serviceescalation->service_description!=NULL)
-				this_serviceescalation->service_description=strdup(template_serviceescalation->service_description);
+				this_serviceescalation->service_description=(char *)strdup(template_serviceescalation->service_description);
 			this_serviceescalation->have_service_description=TRUE;
 		        }
 		if(this_serviceescalation->have_escalation_period==FALSE && template_serviceescalation->have_escalation_period==TRUE){
 			if(this_serviceescalation->escalation_period==NULL && template_serviceescalation->escalation_period!=NULL)
-				this_serviceescalation->escalation_period=strdup(template_serviceescalation->escalation_period);
+				this_serviceescalation->escalation_period=(char *)strdup(template_serviceescalation->escalation_period);
 			this_serviceescalation->have_escalation_period=TRUE;
 		        }
 		if(this_serviceescalation->have_contact_groups==FALSE && template_serviceescalation->have_contact_groups==TRUE){
 			if(this_serviceescalation->contact_groups==NULL && template_serviceescalation->contact_groups!=NULL)
-				this_serviceescalation->contact_groups=strdup(template_serviceescalation->contact_groups);
+				this_serviceescalation->contact_groups=(char *)strdup(template_serviceescalation->contact_groups);
 			this_serviceescalation->have_contact_groups=TRUE;
 		        }
 		if(this_serviceescalation->have_first_notification==FALSE && template_serviceescalation->have_first_notification==TRUE){
@@ -6868,7 +6699,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	if(this_contact->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_contact->template))==NULL)
+	if((template_names=(char *)strdup(this_contact->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6889,50 +6720,50 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 
 		/* apply missing properties from template contact... */
 		if(this_contact->contact_name==NULL && template_contact->contact_name!=NULL)
-			this_contact->contact_name=strdup(template_contact->contact_name);
+			this_contact->contact_name=(char *)strdup(template_contact->contact_name);
 		if(this_contact->alias==NULL && template_contact->alias!=NULL)
-			this_contact->alias=strdup(template_contact->alias);
+			this_contact->alias=(char *)strdup(template_contact->alias);
 
 		if(this_contact->have_email==FALSE && template_contact->have_email==TRUE){
 			if(this_contact->email==NULL && template_contact->email!=NULL)
-				this_contact->email=strdup(template_contact->email);
+				this_contact->email=(char *)strdup(template_contact->email);
 			this_contact->have_email=TRUE;
 		        }
 		if(this_contact->have_pager==FALSE && template_contact->have_pager==TRUE){
 			if(this_contact->pager==NULL && template_contact->pager!=NULL)
-				this_contact->pager=strdup(template_contact->pager);
+				this_contact->pager=(char *)strdup(template_contact->pager);
 			this_contact->have_pager=TRUE;
 		        }
 		for(x=0;x<MAX_XODTEMPLATE_CONTACT_ADDRESSES;x++){
 			if(this_contact->have_address[x]==FALSE && template_contact->have_address[x]==TRUE){
 				if(this_contact->address[x]==NULL && template_contact->address[x]!=NULL)
-					this_contact->address[x]=strdup(template_contact->address[x]);
+					this_contact->address[x]=(char *)strdup(template_contact->address[x]);
 				this_contact->have_address[x]=TRUE;
 			        }
 	                }
 		if(this_contact->have_contact_groups==FALSE && template_contact->have_contact_groups==TRUE){
 			if(this_contact->contact_groups==NULL && template_contact->contact_groups!=NULL)
-				this_contact->contact_groups=strdup(template_contact->contact_groups);
+				this_contact->contact_groups=(char *)strdup(template_contact->contact_groups);
 			this_contact->have_contact_groups=TRUE;
 		        }
 		if(this_contact->have_host_notification_period==FALSE && template_contact->have_host_notification_period==TRUE){
 			if(this_contact->host_notification_period==NULL && template_contact->host_notification_period!=NULL)
-				this_contact->host_notification_period=strdup(template_contact->host_notification_period);
+				this_contact->host_notification_period=(char *)strdup(template_contact->host_notification_period);
 			this_contact->have_host_notification_period=TRUE;
 		        }
 		if(this_contact->have_service_notification_period==FALSE && template_contact->have_service_notification_period==TRUE){
 			if(this_contact->service_notification_period==NULL && template_contact->service_notification_period!=NULL)
-				this_contact->service_notification_period=strdup(template_contact->service_notification_period);
+				this_contact->service_notification_period=(char *)strdup(template_contact->service_notification_period);
 			this_contact->have_service_notification_period=TRUE;
 		        }
 		if(this_contact->have_host_notification_commands==FALSE && template_contact->have_host_notification_commands==TRUE){
 			if(this_contact->host_notification_commands==NULL && template_contact->host_notification_commands!=NULL)
-				this_contact->host_notification_commands=strdup(template_contact->host_notification_commands);
+				this_contact->host_notification_commands=(char *)strdup(template_contact->host_notification_commands);
 			this_contact->have_host_notification_commands=TRUE;
 		        }
 		if(this_contact->have_service_notification_commands==FALSE && template_contact->have_service_notification_commands==TRUE){
 			if(this_contact->service_notification_commands==NULL && template_contact->service_notification_commands!=NULL)
-				this_contact->service_notification_commands=strdup(template_contact->service_notification_commands);
+				this_contact->service_notification_commands=(char *)strdup(template_contact->service_notification_commands);
 			this_contact->have_service_notification_commands=TRUE;
 		        }
 		if(this_contact->have_host_notification_options==FALSE && template_contact->have_host_notification_options==TRUE){
@@ -7023,7 +6854,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 	if(this_host->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_host->template))==NULL)
+	if((template_names=(char *)strdup(this_host->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -7045,54 +6876,54 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 
 		/* apply missing properties from template host... */
 		if(this_host->host_name==NULL && template_host->host_name!=NULL)
-			this_host->host_name=strdup(template_host->host_name);
+			this_host->host_name=(char *)strdup(template_host->host_name);
 		if(this_host->have_display_name==FALSE && template_host->have_display_name==TRUE){
 			if(this_host->display_name==NULL && template_host->display_name!=NULL)
-				this_host->display_name=strdup(template_host->display_name);
+				this_host->display_name=(char *)strdup(template_host->display_name);
 			this_host->have_display_name=TRUE;
 		        }
 		if(this_host->alias==NULL && template_host->alias!=NULL)
-			this_host->alias=strdup(template_host->alias);
+			this_host->alias=(char *)strdup(template_host->alias);
 		if(this_host->address==NULL && template_host->address!=NULL)
-			this_host->address=strdup(template_host->address);
+			this_host->address=(char *)strdup(template_host->address);
 		if(this_host->have_parents==FALSE && template_host->have_parents==TRUE){
 			if(this_host->parents==NULL && template_host->parents!=NULL)
-				this_host->parents=strdup(template_host->parents);
+				this_host->parents=(char *)strdup(template_host->parents);
 			this_host->have_parents=TRUE;
 		        }
 		if(this_host->have_host_groups==FALSE && template_host->have_host_groups==TRUE){
 			if(this_host->host_groups==NULL && template_host->host_groups!=NULL)
-				this_host->host_groups=strdup(template_host->host_groups);
+				this_host->host_groups=(char *)strdup(template_host->host_groups);
 			this_host->have_host_groups=TRUE;
 		        }
 		if(this_host->have_check_command==FALSE && template_host->have_check_command==TRUE){
 			if(this_host->check_command==NULL && template_host->check_command!=NULL)
-				this_host->check_command=strdup(template_host->check_command);
+				this_host->check_command=(char *)strdup(template_host->check_command);
 			this_host->have_check_command=TRUE;
 		        }
 		if(this_host->have_check_period==FALSE && template_host->have_check_period==TRUE){
 			if(this_host->check_period==NULL && template_host->check_period!=NULL)
-				this_host->check_period=strdup(template_host->check_period);
+				this_host->check_period=(char *)strdup(template_host->check_period);
 			this_host->have_check_period=TRUE;
 		        }
 		if(this_host->have_event_handler==FALSE && template_host->have_event_handler==TRUE){
 			if(this_host->event_handler==NULL && template_host->event_handler!=NULL)
-				this_host->event_handler=strdup(template_host->event_handler);
+				this_host->event_handler=(char *)strdup(template_host->event_handler);
 			this_host->have_event_handler=TRUE;
 		        }
 		if(this_host->have_contact_groups==FALSE && template_host->have_contact_groups==TRUE){
 			if(this_host->contact_groups==NULL && template_host->contact_groups!=NULL)
-				this_host->contact_groups=strdup(template_host->contact_groups);
+				this_host->contact_groups=(char *)strdup(template_host->contact_groups);
 			this_host->have_contact_groups=TRUE;
 		        }
 		if(this_host->have_notification_period==FALSE && template_host->have_notification_period==TRUE){
 			if(this_host->notification_period==NULL && template_host->notification_period!=NULL)
-				this_host->notification_period=strdup(template_host->notification_period);
+				this_host->notification_period=(char *)strdup(template_host->notification_period);
 			this_host->have_notification_period=TRUE;
 		        }
 		if(this_host->have_failure_prediction_options==FALSE && template_host->have_failure_prediction_options==TRUE){
 			if(this_host->failure_prediction_options==NULL && template_host->failure_prediction_options!=NULL)
-				this_host->failure_prediction_options=strdup(template_host->failure_prediction_options);
+				this_host->failure_prediction_options=(char *)strdup(template_host->failure_prediction_options);
 			this_host->have_failure_prediction_options=TRUE;
 		        }
 		if(this_host->have_check_interval==FALSE && template_host->have_check_interval==TRUE){
@@ -7239,7 +7070,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 	if(this_service->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_service->template))==NULL)
+	if((template_names=(char *)strdup(this_service->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -7262,58 +7093,83 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 		/* apply missing properties from template service... */
 		if(this_service->have_host_name==FALSE && template_service->have_host_name==TRUE){
 			if(this_service->host_name==NULL && template_service->host_name!=NULL)
-				this_service->host_name=strdup(template_service->host_name);
+				this_service->host_name=(char *)strdup(template_service->host_name);
 			this_service->have_host_name=TRUE;
 		        }
 		if(this_service->have_service_description==FALSE && template_service->have_service_description==TRUE){
 			if(this_service->service_description==NULL && template_service->service_description!=NULL)
-				this_service->service_description=strdup(template_service->service_description);
+				this_service->service_description=(char *)strdup(template_service->service_description);
 			this_service->have_service_description=TRUE;
 		        }
 		if(this_service->have_display_name==FALSE && template_service->have_display_name==TRUE){
 			if(this_service->display_name==NULL && template_service->display_name!=NULL)
-				this_service->display_name=strdup(template_service->display_name);
+				this_service->display_name=(char *)strdup(template_service->display_name);
 			this_service->have_display_name=TRUE;
 		        }
 		if(this_service->have_hostgroup_name==FALSE && template_service->have_hostgroup_name==TRUE){
 			if(this_service->hostgroup_name==NULL && template_service->hostgroup_name!=NULL)
-				this_service->hostgroup_name=strdup(template_service->hostgroup_name);
+				this_service->hostgroup_name=(char *)strdup(template_service->hostgroup_name);
 			this_service->have_hostgroup_name=TRUE;
 		        }
 		if(this_service->have_service_groups==FALSE && template_service->have_service_groups==TRUE){
 			if(this_service->service_groups==NULL && template_service->service_groups!=NULL)
-				this_service->service_groups=strdup(template_service->service_groups);
+				this_service->service_groups=(char *)strdup(template_service->service_groups);
 			this_service->have_service_groups=TRUE;
 		        }
 		if(this_service->have_check_command==FALSE && template_service->have_check_command==TRUE){
 			if(this_service->check_command==NULL && template_service->check_command!=NULL)
-				this_service->check_command=strdup(template_service->check_command);
+				this_service->check_command=(char *)strdup(template_service->check_command);
 			this_service->have_check_command=TRUE;
 		        }
 		if(this_service->have_check_period==FALSE && template_service->have_check_period==TRUE){
 			if(this_service->check_period==NULL && template_service->check_period!=NULL)
-				this_service->check_period=strdup(template_service->check_period);
+				this_service->check_period=(char *)strdup(template_service->check_period);
 			this_service->have_check_period=TRUE;
 		        }
 		if(this_service->have_event_handler==FALSE && template_service->have_event_handler==TRUE){
 			if(this_service->event_handler==NULL && template_service->event_handler!=NULL)
-				this_service->event_handler=strdup(template_service->event_handler);
+				this_service->event_handler=(char *)strdup(template_service->event_handler);
 			this_service->have_event_handler=TRUE;
 		        }
 		if(this_service->have_notification_period==FALSE && template_service->have_notification_period==TRUE){
 			if(this_service->notification_period==NULL && template_service->notification_period!=NULL)
-				this_service->notification_period=strdup(template_service->notification_period);
+				this_service->notification_period=(char *)strdup(template_service->notification_period);
 			this_service->have_notification_period=TRUE;
 		        }
 		if(this_service->have_contact_groups==FALSE && template_service->have_contact_groups==TRUE){
 			if(this_service->contact_groups==NULL && template_service->contact_groups!=NULL)
-				this_service->contact_groups=strdup(template_service->contact_groups);
+				this_service->contact_groups=(char *)strdup(template_service->contact_groups);
 			this_service->have_contact_groups=TRUE;
 		        }
 		if(this_service->have_failure_prediction_options==FALSE && template_service->have_failure_prediction_options==TRUE){
 			if(this_service->failure_prediction_options==NULL && template_service->failure_prediction_options!=NULL)
-				this_service->failure_prediction_options=strdup(template_service->failure_prediction_options);
+				this_service->failure_prediction_options=(char *)strdup(template_service->failure_prediction_options);
 			this_service->have_failure_prediction_options=TRUE;
+		        }
+		if(this_service->have_notes==FALSE && template_service->have_notes==TRUE){
+			if(this_service->notes==NULL && template_service->notes!=NULL)
+				this_service->notes=(char *)strdup(template_service->notes);
+			this_service->have_notes=TRUE;
+		        }
+		if(this_service->have_notes_url==FALSE && template_service->have_notes_url==TRUE){
+			if(this_service->notes_url==NULL && template_service->notes_url!=NULL)
+				this_service->notes_url=(char *)strdup(template_service->notes_url);
+			this_service->have_notes_url=TRUE;
+		        }
+		if(this_service->have_action_url==FALSE && template_service->have_action_url==TRUE){
+			if(this_service->action_url==NULL && template_service->action_url!=NULL)
+				this_service->action_url=(char *)strdup(template_service->action_url);
+			this_service->have_action_url=TRUE;
+		        }
+		if(this_service->have_icon_image==FALSE && template_service->have_icon_image==TRUE){
+			if(this_service->icon_image==NULL && template_service->icon_image!=NULL)
+				this_service->icon_image=(char *)strdup(template_service->icon_image);
+			this_service->have_icon_image=TRUE;
+		        }
+		if(this_service->have_icon_image_alt==FALSE && template_service->have_icon_image_alt==TRUE){
+			if(this_service->icon_image_alt==NULL && template_service->icon_image_alt!=NULL)
+				this_service->icon_image_alt=(char *)strdup(template_service->icon_image_alt);
+			this_service->have_icon_image_alt=TRUE;
 		        }
 		if(this_service->have_max_check_attempts==FALSE && template_service->have_max_check_attempts==TRUE){
 			this_service->max_check_attempts=template_service->max_check_attempts;
@@ -7471,7 +7327,7 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 	if(this_hostdependency->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_hostdependency->template))==NULL)
+	if((template_names=(char *)strdup(this_hostdependency->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -7494,22 +7350,22 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 		/* apply missing properties from template hostdependency... */
 		if(this_hostdependency->have_host_name==FALSE && template_hostdependency->have_host_name==TRUE){
 			if(this_hostdependency->host_name==NULL && template_hostdependency->host_name!=NULL)
-				this_hostdependency->host_name=strdup(template_hostdependency->host_name);
+				this_hostdependency->host_name=(char *)strdup(template_hostdependency->host_name);
 			this_hostdependency->have_host_name=TRUE;
 		        }
 		if(this_hostdependency->have_dependent_host_name==FALSE && template_hostdependency->have_dependent_host_name==TRUE){
 			if(this_hostdependency->dependent_host_name==NULL && template_hostdependency->dependent_host_name!=NULL)
-				this_hostdependency->dependent_host_name=strdup(template_hostdependency->dependent_host_name);
+				this_hostdependency->dependent_host_name=(char *)strdup(template_hostdependency->dependent_host_name);
 			this_hostdependency->have_dependent_host_name=TRUE;
 		        }
 		if(this_hostdependency->have_hostgroup_name==FALSE && template_hostdependency->have_hostgroup_name==TRUE){
 			if(this_hostdependency->hostgroup_name==NULL && template_hostdependency->hostgroup_name!=NULL)
-				this_hostdependency->hostgroup_name=strdup(template_hostdependency->hostgroup_name);
+				this_hostdependency->hostgroup_name=(char *)strdup(template_hostdependency->hostgroup_name);
 			this_hostdependency->have_hostgroup_name=TRUE;
 		        }
 		if(this_hostdependency->have_dependent_hostgroup_name==FALSE && template_hostdependency->have_dependent_hostgroup_name==TRUE){
 			if(this_hostdependency->dependent_hostgroup_name==NULL && template_hostdependency->dependent_hostgroup_name!=NULL)
-				this_hostdependency->dependent_hostgroup_name=strdup(template_hostdependency->dependent_hostgroup_name);
+				this_hostdependency->dependent_hostgroup_name=(char *)strdup(template_hostdependency->dependent_hostgroup_name);
 			this_hostdependency->have_dependent_hostgroup_name=TRUE;
 		        }
 		if(this_hostdependency->have_inherits_parent==FALSE && template_hostdependency->have_inherits_parent==TRUE){
@@ -7566,7 +7422,7 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	if(this_hostescalation->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_hostescalation->template))==NULL)
+	if((template_names=(char *)strdup(this_hostescalation->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -7588,22 +7444,22 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 		/* apply missing properties from template hostescalation... */
 		if(this_hostescalation->have_host_name==FALSE && template_hostescalation->have_host_name==TRUE){
 			if(this_hostescalation->host_name==NULL && template_hostescalation->host_name!=NULL)
-				this_hostescalation->host_name=strdup(template_hostescalation->host_name);
+				this_hostescalation->host_name=(char *)strdup(template_hostescalation->host_name);
 			this_hostescalation->have_host_name=TRUE;
 		        }
 		if(this_hostescalation->have_hostgroup_name==FALSE && template_hostescalation->have_hostgroup_name==TRUE){
 			if(this_hostescalation->hostgroup_name==NULL && template_hostescalation->hostgroup_name!=NULL)
-				this_hostescalation->hostgroup_name=strdup(template_hostescalation->hostgroup_name);
+				this_hostescalation->hostgroup_name=(char *)strdup(template_hostescalation->hostgroup_name);
 			this_hostescalation->have_hostgroup_name=TRUE;
 		        }
 		if(this_hostescalation->have_escalation_period==FALSE && template_hostescalation->have_escalation_period==TRUE){
 			if(this_hostescalation->escalation_period==NULL && template_hostescalation->escalation_period!=NULL)
-				this_hostescalation->escalation_period=strdup(template_hostescalation->escalation_period);
+				this_hostescalation->escalation_period=(char *)strdup(template_hostescalation->escalation_period);
 			this_hostescalation->have_escalation_period=TRUE;
 		        }
 		if(this_hostescalation->have_contact_groups==FALSE && template_hostescalation->have_contact_groups==TRUE){
 			if(this_hostescalation->contact_groups==NULL && template_hostescalation->contact_groups!=NULL)
-				this_hostescalation->contact_groups=strdup(template_hostescalation->contact_groups);
+				this_hostescalation->contact_groups=(char *)strdup(template_hostescalation->contact_groups);
 			this_hostescalation->have_contact_groups=TRUE;
 		        }
 		if(this_hostescalation->have_first_notification==FALSE && template_hostescalation->have_first_notification==TRUE){
@@ -7661,7 +7517,7 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	if(this_hostextinfo->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_hostextinfo->template))==NULL)
+	if((template_names=(char *)strdup(this_hostextinfo->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -7683,47 +7539,47 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 		/* apply missing properties from template hostextinfo... */
 		if(this_hostextinfo->have_host_name==FALSE && template_hostextinfo->have_host_name==TRUE){
 			if(this_hostextinfo->host_name==NULL && template_hostextinfo->host_name!=NULL)
-				this_hostextinfo->host_name=strdup(template_hostextinfo->host_name);
+				this_hostextinfo->host_name=(char *)strdup(template_hostextinfo->host_name);
 			this_hostextinfo->have_host_name=TRUE;
 		        }
 		if(this_hostextinfo->have_hostgroup_name==FALSE && template_hostextinfo->have_hostgroup_name==TRUE){
 			if(this_hostextinfo->hostgroup_name==NULL && template_hostextinfo->hostgroup_name!=NULL)
-				this_hostextinfo->hostgroup_name=strdup(template_hostextinfo->hostgroup_name);
+				this_hostextinfo->hostgroup_name=(char *)strdup(template_hostextinfo->hostgroup_name);
 			this_hostextinfo->have_hostgroup_name=TRUE;
 		        }
 		if(this_hostextinfo->have_notes==FALSE && template_hostextinfo->have_notes==TRUE){
 			if(this_hostextinfo->notes==NULL && template_hostextinfo->notes!=NULL)
-				this_hostextinfo->notes=strdup(template_hostextinfo->notes);
+				this_hostextinfo->notes=(char *)strdup(template_hostextinfo->notes);
 			this_hostextinfo->have_notes=TRUE;
 		        }
 		if(this_hostextinfo->have_notes_url==FALSE && template_hostextinfo->have_notes_url==TRUE){
 			if(this_hostextinfo->notes_url==NULL && template_hostextinfo->notes_url!=NULL)
-				this_hostextinfo->notes_url=strdup(template_hostextinfo->notes_url);
+				this_hostextinfo->notes_url=(char *)strdup(template_hostextinfo->notes_url);
 			this_hostextinfo->have_notes_url=TRUE;
 		        }
 		if(this_hostextinfo->have_action_url==FALSE && template_hostextinfo->have_action_url==TRUE){
 			if(this_hostextinfo->action_url==NULL && template_hostextinfo->action_url!=NULL)
-				this_hostextinfo->action_url=strdup(template_hostextinfo->action_url);
+				this_hostextinfo->action_url=(char *)strdup(template_hostextinfo->action_url);
 			this_hostextinfo->have_action_url=TRUE;
 		        }
 		if(this_hostextinfo->have_icon_image==FALSE && template_hostextinfo->have_icon_image==TRUE){
 			if(this_hostextinfo->icon_image==NULL && template_hostextinfo->icon_image!=NULL)
-				this_hostextinfo->icon_image=strdup(template_hostextinfo->icon_image);
+				this_hostextinfo->icon_image=(char *)strdup(template_hostextinfo->icon_image);
 			this_hostextinfo->have_icon_image=TRUE;
 		        }
 		if(this_hostextinfo->have_icon_image_alt==FALSE && template_hostextinfo->have_icon_image_alt==TRUE){
 			if(this_hostextinfo->icon_image_alt==NULL && template_hostextinfo->icon_image_alt!=NULL)
-				this_hostextinfo->icon_image_alt=strdup(template_hostextinfo->icon_image_alt);
+				this_hostextinfo->icon_image_alt=(char *)strdup(template_hostextinfo->icon_image_alt);
 			this_hostextinfo->have_icon_image_alt=TRUE;
 		        }
 		if(this_hostextinfo->have_vrml_image==FALSE && template_hostextinfo->have_vrml_image==TRUE){
 			if(this_hostextinfo->vrml_image==NULL && template_hostextinfo->vrml_image!=NULL)
-				this_hostextinfo->vrml_image=strdup(template_hostextinfo->vrml_image);
+				this_hostextinfo->vrml_image=(char *)strdup(template_hostextinfo->vrml_image);
 			this_hostextinfo->have_vrml_image=TRUE;
 		        }
 		if(this_hostextinfo->have_statusmap_image==FALSE && template_hostextinfo->have_statusmap_image==TRUE){
 			if(this_hostextinfo->statusmap_image==NULL && template_hostextinfo->statusmap_image!=NULL)
-				this_hostextinfo->statusmap_image=strdup(template_hostextinfo->statusmap_image);
+				this_hostextinfo->statusmap_image=(char *)strdup(template_hostextinfo->statusmap_image);
 			this_hostextinfo->have_statusmap_image=TRUE;
 		        }
 		if(this_hostextinfo->have_2d_coords==FALSE && template_hostextinfo->have_2d_coords==TRUE){
@@ -7774,7 +7630,7 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	if(this_serviceextinfo->template==NULL)
 		return OK;
 
-	if((template_names=strdup(this_serviceextinfo->template))==NULL)
+	if((template_names=(char *)strdup(this_serviceextinfo->template))==NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -7796,42 +7652,42 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 		/* apply missing properties from template serviceextinfo... */
 		if(this_serviceextinfo->have_host_name==FALSE && template_serviceextinfo->have_host_name==TRUE){
 			if(this_serviceextinfo->host_name==NULL && template_serviceextinfo->host_name!=NULL)
-				this_serviceextinfo->host_name=strdup(template_serviceextinfo->host_name);
+				this_serviceextinfo->host_name=(char *)strdup(template_serviceextinfo->host_name);
 			this_serviceextinfo->have_host_name=TRUE;
 		        }
 		if(this_serviceextinfo->have_hostgroup_name==FALSE && template_serviceextinfo->have_hostgroup_name==TRUE){
 		if(this_serviceextinfo->hostgroup_name==NULL && template_serviceextinfo->hostgroup_name!=NULL)
-			this_serviceextinfo->hostgroup_name=strdup(template_serviceextinfo->hostgroup_name);
+			this_serviceextinfo->hostgroup_name=(char *)strdup(template_serviceextinfo->hostgroup_name);
 			this_serviceextinfo->have_hostgroup_name=TRUE;
 		        }
 		if(this_serviceextinfo->have_service_description==FALSE && template_serviceextinfo->have_service_description==TRUE){
 		if(this_serviceextinfo->service_description==NULL && template_serviceextinfo->service_description!=NULL)
-			this_serviceextinfo->service_description=strdup(template_serviceextinfo->service_description);
+			this_serviceextinfo->service_description=(char *)strdup(template_serviceextinfo->service_description);
 			this_serviceextinfo->have_service_description=TRUE;
 		        }
 		if(this_serviceextinfo->have_notes==FALSE && template_serviceextinfo->have_notes==TRUE){
 		if(this_serviceextinfo->notes==NULL && template_serviceextinfo->notes!=NULL)
-			this_serviceextinfo->notes=strdup(template_serviceextinfo->notes);
+			this_serviceextinfo->notes=(char *)strdup(template_serviceextinfo->notes);
 			this_serviceextinfo->have_notes=TRUE;
 		        }
 		if(this_serviceextinfo->have_notes_url==FALSE && template_serviceextinfo->have_notes_url==TRUE){
 		if(this_serviceextinfo->notes_url==NULL && template_serviceextinfo->notes_url!=NULL)
-			this_serviceextinfo->notes_url=strdup(template_serviceextinfo->notes_url);
+			this_serviceextinfo->notes_url=(char *)strdup(template_serviceextinfo->notes_url);
 			this_serviceextinfo->have_notes_url=TRUE;
 		        }
 		if(this_serviceextinfo->have_action_url==FALSE && template_serviceextinfo->have_action_url==TRUE){
 		if(this_serviceextinfo->action_url==NULL && template_serviceextinfo->action_url!=NULL)
-			this_serviceextinfo->action_url=strdup(template_serviceextinfo->action_url);
+			this_serviceextinfo->action_url=(char *)strdup(template_serviceextinfo->action_url);
 			this_serviceextinfo->have_action_url=TRUE;
 		        }
 		if(this_serviceextinfo->have_icon_image==FALSE && template_serviceextinfo->have_icon_image==TRUE){
 		if(this_serviceextinfo->icon_image==NULL && template_serviceextinfo->icon_image!=NULL)
-			this_serviceextinfo->icon_image=strdup(template_serviceextinfo->icon_image);
+			this_serviceextinfo->icon_image=(char *)strdup(template_serviceextinfo->icon_image);
 			this_serviceextinfo->have_icon_image=TRUE;
 		        }
 		if(this_serviceextinfo->have_icon_image_alt==FALSE && template_serviceextinfo->have_icon_image_alt==TRUE){
 		if(this_serviceextinfo->icon_image_alt==NULL && template_serviceextinfo->icon_image_alt!=NULL)
-			this_serviceextinfo->icon_image_alt=strdup(template_serviceextinfo->icon_image_alt);
+			this_serviceextinfo->icon_image_alt=(char *)strdup(template_serviceextinfo->icon_image_alt);
 			this_serviceextinfo->have_icon_image_alt=TRUE;
 		        }
 	        }
@@ -7882,7 +7738,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 			continue;
 
 		/* process the list of contactgroups */
-		contactgroup_names=strdup(temp_contact->contact_groups);
+		contactgroup_names=(char *)strdup(temp_contact->contact_groups);
 		if(contactgroup_names==NULL)
 			continue;
 		for(temp_ptr=strtok(contactgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -7904,7 +7760,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 
 			/* add this contact to the contactgroup members directive */
 			if(temp_contactgroup->members==NULL)
-				temp_contactgroup->members=strdup(temp_contact->contact_name);
+				temp_contactgroup->members=(char *)strdup(temp_contact->contact_name);
 			else{
 				new_members=(char *)realloc(temp_contactgroup->members,strlen(temp_contactgroup->members)+strlen(temp_contact->contact_name)+2);
 				if(new_members!=NULL){
@@ -7944,7 +7800,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 
 			/* add this contact to the contactgroup members directive */
 			if(temp_contactgroup->members==NULL)
-				temp_contactgroup->members=strdup(this_contactlist->contact_name);
+				temp_contactgroup->members=(char *)strdup(this_contactlist->contact_name);
 			else{
 				new_members=(char *)realloc(temp_contactgroup->members,strlen(temp_contactgroup->members)+strlen(this_contactlist->contact_name)+2);
 				if(new_members!=NULL){
@@ -7996,7 +7852,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* process the list of hostgroups */
-		hostgroup_names=strdup(temp_host->host_groups);
+		hostgroup_names=(char *)strdup(temp_host->host_groups);
 		if(hostgroup_names==NULL)
 			continue;
 		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -8018,7 +7874,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 
 			/* add this list to the hostgroup members directive */
 			if(temp_hostgroup->members==NULL)
-				temp_hostgroup->members=strdup(temp_host->host_name);
+				temp_hostgroup->members=(char *)strdup(temp_host->host_name);
 			else{
 				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(temp_host->host_name)+2);
 				if(new_members!=NULL){
@@ -8062,7 +7918,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 
 			/* add this host to the hostgroup members directive */
 			if(temp_hostgroup->members==NULL)
-				temp_hostgroup->members=strdup(this_hostlist->host_name);
+				temp_hostgroup->members=(char *)strdup(this_hostlist->host_name);
 			else{
 				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(this_hostlist->host_name)+2);
 				if(new_members!=NULL){
@@ -8101,7 +7957,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 
 			/* add this host to the hostgroup members directive */
 			if(temp_hostgroup->members==NULL)
-				temp_hostgroup->members=strdup(this_hostlist->host_name);
+				temp_hostgroup->members=(char *)strdup(this_hostlist->host_name);
 			else{
 				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(this_hostlist->host_name)+2);
 				if(new_members!=NULL){
@@ -8157,7 +8013,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 			continue;
 
 		/* process the list of servicegroups */
-		servicegroup_names=strdup(temp_service->service_groups);
+		servicegroup_names=(char *)strdup(temp_service->service_groups);
 		if(servicegroup_names==NULL)
 			continue;
 		for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
@@ -8217,11 +8073,11 @@ int xodtemplate_recombobulate_servicegroups(void){
 
 			/* this is the host name */
 			if(host_name==NULL)
-				host_name=strdup((temp_ptr[0]==',')?temp_ptr+1:temp_ptr);
+				host_name=(char *)strdup((temp_ptr[0]==',')?temp_ptr+1:temp_ptr);
 
 			/* this is the service description */
 			else{
-				service_description=strdup(temp_ptr+1);
+				service_description=(char *)strdup(temp_ptr+1);
 
 				/* strsep and strtok cannot be used, as they're used in expand_servicegroups...() */
 				temp_ptr2=strchr(host_name,',');
@@ -8837,13 +8693,6 @@ int xodtemplate_register_objects(void){
 		if((result=xodtemplate_register_hostextinfo(temp_hostextinfo))==ERROR)
 			return ERROR;
 	        }
-
-	/* register service extended info */
-	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
-		if((result=xodtemplate_register_serviceextinfo(temp_serviceextinfo))==ERROR)
-			return ERROR;
-	        }
-
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_objects() end\n");
@@ -9469,9 +9318,9 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 
 	/* if host has no alias or address, use host name - added 3/11/05 */
 	if(this_host->alias==NULL && this_host->host_name!=NULL)
-		this_host->alias=strdup(this_host->host_name);
+		this_host->alias=(char *)strdup(this_host->host_name);
 	if(this_host->address==NULL && this_host->host_name!=NULL)
-		this_host->address=strdup(this_host->host_name);
+		this_host->address=(char *)strdup(this_host->host_name);
 
 	/* add the host definition */
 	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
@@ -9565,7 +9414,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		return OK;
 
 	/* add the service */
-	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
+	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->notes,this_service->notes_url,this_service->action_url,this_service->icon_image,this_service->icon_image_alt,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
@@ -9777,42 +9626,6 @@ int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	return OK;
         }
 
-
-
-/* registers a serviceextinfo definition */
-int xodtemplate_register_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo){
-	serviceextinfo *new_serviceextinfo;
-#ifdef NSCORE
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_serviceextinfo() start\n");
-#endif
-
-	/* bail out if we shouldn't register this object */
-	if(this_serviceextinfo->register_object==FALSE)
-		return OK;
-
-	/* register the extended service object */
-	new_serviceextinfo=add_serviceextinfo(this_serviceextinfo->host_name,this_serviceextinfo->service_description,this_serviceextinfo->notes,this_serviceextinfo->notes_url,this_serviceextinfo->action_url,this_serviceextinfo->icon_image,this_serviceextinfo->icon_image_alt);
-
-	/* return with an error if we couldn't add the definition */
-	if(new_serviceextinfo==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not register extended service information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_serviceextinfo->_config_file),this_serviceextinfo->_start_line);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return ERROR;
-	        }
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_serviceextinfo() end\n");
-#endif
-
-	return OK;
-        }
 
 
 
@@ -10719,6 +10532,88 @@ int xodtemplate_sort_serviceextinfo(){
 
 
 
+
+/******************************************************************/
+/*********************** CACHE FUNCTIONS **************************/
+/******************************************************************/
+
+#ifdef NSCORE
+
+/* merge extinfo definitions */
+int xodtemplate_merge_extinfo_ojects(void){
+	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
+	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
+	xodtemplate_host *temp_host=NULL;
+	xodtemplate_service *temp_service=NULL;
+
+	/* merge service extinfo definitions */
+	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
+
+		/* make sure we have everything */
+		if(temp_serviceextinfo->host_name==NULL || temp_serviceextinfo->service_description==NULL)
+			continue;
+
+		/* find the service */
+		if((temp_service=xodtemplate_find_real_service(temp_serviceextinfo->host_name,temp_serviceextinfo->service_description))==NULL)
+			continue;
+
+		/* merge the definitions */
+		xodtemplate_merge_service_extinfo_object(temp_service,temp_serviceextinfo);
+	        }
+
+	/* merge host extinfo definitions */
+	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+
+		/* make sure we have everything */
+		if(temp_hostextinfo->host_name==NULL)
+			continue;
+
+		/* find the host */
+		if((temp_host=xodtemplate_find_real_host(temp_hostextinfo->host_name))==NULL)
+			continue;
+
+		/* merge the definitions */
+		xodtemplate_merge_host_extinfo_object(temp_host,temp_hostextinfo);
+	        }
+
+	return OK;
+        }
+
+
+/* merges a service extinfo definition */
+int xodtemplate_merge_service_extinfo_object(xodtemplate_service *this_service, xodtemplate_serviceextinfo *this_serviceextinfo){
+
+	if(this_service==NULL || this_serviceextinfo==NULL)
+		return ERROR;
+
+	if(this_service->notes==NULL && this_serviceextinfo->notes!=NULL)
+		this_service->notes=strdup(this_serviceextinfo->notes);
+	if(this_service->notes_url==NULL && this_serviceextinfo->notes_url!=NULL)
+		this_service->notes_url=strdup(this_serviceextinfo->notes_url);
+	if(this_service->action_url==NULL && this_serviceextinfo->action_url!=NULL)
+		this_service->action_url=strdup(this_serviceextinfo->action_url);
+	if(this_service->icon_image==NULL && this_serviceextinfo->icon_image!=NULL)
+		this_service->icon_image=strdup(this_serviceextinfo->icon_image);
+	if(this_service->icon_image_alt==NULL && this_serviceextinfo->icon_image_alt!=NULL)
+		this_service->icon_image_alt=strdup(this_serviceextinfo->icon_image_alt);
+
+	return OK;
+        }
+
+
+/* merges a host extinfo definition */
+int xodtemplate_merge_host_extinfo_object(xodtemplate_host *this_host, xodtemplate_hostextinfo *this_hostextinfo){
+
+	if(this_host==NULL || this_hostextinfo==NULL)
+		return ERROR;
+
+	return OK;
+        }
+
+#endif
+
+
+
 /******************************************************************/
 /*********************** CACHE FUNCTIONS **************************/
 /******************************************************************/
@@ -11087,6 +10982,16 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\n");
 		fprintf(fp,"\tprocess_perf_data\t%d\n",temp_service->process_perf_data);
 		fprintf(fp,"\tfailure_prediction_enabled\t%d\n",temp_service->failure_prediction_enabled);
+		if(temp_service->icon_image)
+			fprintf(fp,"\ticon_image\t%s\n",temp_service->icon_image);
+		if(temp_service->icon_image_alt)
+			fprintf(fp,"\ticon_image_alt\t%s\n",temp_service->icon_image_alt);
+		if(temp_service->notes)
+			fprintf(fp,"\tnotes\t%s\n",temp_service->notes);
+		if(temp_service->notes_url)
+			fprintf(fp,"\tnotes_url\t%s\n",temp_service->notes_url);
+		if(temp_service->action_url)
+			fprintf(fp,"\taction_url\t%s\n",temp_service->action_url);
 		fprintf(fp,"\tretain_status_information\t%d\n",temp_service->retain_status_information);
 		fprintf(fp,"\tretain_nonstatus_information\t%d\n",temp_service->retain_nonstatus_information);
 
@@ -11282,28 +11187,6 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tnotes_url\t%s\n",temp_hostextinfo->notes_url);
 		if(temp_hostextinfo->action_url)
 			fprintf(fp,"\taction_url\t%s\n",temp_hostextinfo->action_url);
-		fprintf(fp,"\t}\n\n");
-	        }
-
-	/* cache service extended info */
-	for(temp_serviceextinfo=xodtemplate_serviceextinfo_list;temp_serviceextinfo!=NULL;temp_serviceextinfo=temp_serviceextinfo->next){
-		if(temp_serviceextinfo->register_object==FALSE)
-			continue;
-		fprintf(fp,"define serviceextinfo {\n");
-		if(temp_serviceextinfo->host_name)
-			fprintf(fp,"\thost_name\t%s\n",temp_serviceextinfo->host_name);
-		if(temp_serviceextinfo->service_description)
-			fprintf(fp,"\tservice_description\t%s\n",temp_serviceextinfo->service_description);
-		if(temp_serviceextinfo->icon_image)
-			fprintf(fp,"\ticon_image\t%s\n",temp_serviceextinfo->icon_image);
-		if(temp_serviceextinfo->icon_image_alt)
-			fprintf(fp,"\ticon_image_alt\t%s\n",temp_serviceextinfo->icon_image_alt);
-		if(temp_serviceextinfo->notes)
-			fprintf(fp,"\tnotes\t%s\n",temp_serviceextinfo->notes);
-		if(temp_serviceextinfo->notes_url)
-			fprintf(fp,"\tnotes_url\t%s\n",temp_serviceextinfo->notes_url);
-		if(temp_serviceextinfo->action_url)
-			fprintf(fp,"\taction_url\t%s\n",temp_serviceextinfo->action_url);
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -11542,6 +11425,11 @@ int xodtemplate_free_memory(void){
 		free(this_service->notification_period);
 		free(this_service->contact_groups);
 		free(this_service->failure_prediction_options);
+		free(this_service->notes);
+		free(this_service->notes_url);
+		free(this_service->action_url);
+		free(this_service->icon_image);
+		free(this_service->icon_image_alt);
 		free(this_service);
 	        }
 	xodtemplate_service_list=NULL;
@@ -11886,7 +11774,7 @@ int xodtemplate_expand_contacts2(xodtemplate_contactlist **list, xodtemplate_con
 	if(list==NULL || contacts==NULL)
 		return ERROR;
 
-	contact_names=strdup(contacts);
+	contact_names=(char *)strdup(contacts);
 	if(contact_names==NULL)
 		return ERROR;
 
@@ -12025,7 +11913,7 @@ int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **list, char 
 		return ERROR;
 
 	/* save the contact name */
-	new_item->contact_name=strdup(contact_name);
+	new_item->contact_name=(char *)strdup(contact_name);
 	if(new_item->contact_name==NULL){
 		free(new_item);
 		return ERROR;
@@ -12132,7 +12020,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 		return ERROR;
 
 	/* allocate memory for hostgroup name list */
-	hostgroup_names=strdup(hostgroups);
+	hostgroup_names=(char *)strdup(hostgroups);
 	if(hostgroup_names==NULL)
 		return ERROR;
 
@@ -12268,7 +12156,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist *
 	if(list==NULL || hosts==NULL)
 		return ERROR;
 
-	host_names=strdup(hosts);
+	host_names=(char *)strdup(hosts);
 	if(host_names==NULL)
 		return ERROR;
 
@@ -12399,7 +12287,7 @@ int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, x
 		return OK;
 
 	/* save a copy of the members */
-	group_members=strdup(temp_hostgroup->members);
+	group_members=(char *)strdup(temp_hostgroup->members);
 	if(group_members==NULL)
 		return ERROR;
 
@@ -12442,7 +12330,7 @@ int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **list, char *host_nam
 		return ERROR;
 
 	/* save the host name */
-	new_item->host_name=strdup(host_name);
+	new_item->host_name=(char *)strdup(host_name);
 	if(new_item->host_name==NULL){
 		free(new_item);
 		return ERROR;
@@ -12546,7 +12434,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 		return ERROR;
 
 	/* allocate memory for servicegroup name list */
-	servicegroup_names=strdup(servicegroups);
+	servicegroup_names=(char *)strdup(servicegroups);
 	if(servicegroup_names==NULL)
 		return ERROR;
 
@@ -12695,7 +12583,7 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 			return ERROR;
 	        }
 
-	service_names=strdup(services);
+	service_names=(char *)strdup(services);
 	if(service_names==NULL){
 		if(use_regexp_host==TRUE)
 			regfree(&preg2);
@@ -12857,7 +12745,7 @@ int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist 
 		return OK;
 
 	/* save a copy of the members */
-	group_members=strdup(temp_servicegroup->members);
+	group_members=(char *)strdup(temp_servicegroup->members);
 	if(group_members==NULL)
 		return ERROR;
 
@@ -12872,7 +12760,7 @@ int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist 
 
 		/* host name */
 		if(host_name==NULL){
-			host_name=strdup(member_name);
+			host_name=(char *)strdup(member_name);
 			if(host_name==NULL){
 				free(group_members);
 				return ERROR;
@@ -12917,8 +12805,8 @@ int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **list, char 
 		return ERROR;
 
 	/* save the host name and service description */
-	new_item->host_name=strdup(host_name);
-	new_item->service_description=strdup(description);
+	new_item->host_name=(char *)strdup(host_name);
+	new_item->service_description=(char *)strdup(description);
 	if(new_item->host_name==NULL || new_item->service_description==NULL){
 		free(new_item);
 		return ERROR;

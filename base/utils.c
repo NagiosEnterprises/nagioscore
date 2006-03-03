@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-006
+ * Last Modified:   03-02-006
  *
  * License:
  *
@@ -467,7 +467,6 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 /* grab macros that are specific to a particular service */
 int grab_service_macros(service *svc){
 	servicegroup *temp_servicegroup=NULL;
-	serviceextinfo *temp_serviceextinfo=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	time_t current_time;
@@ -628,23 +627,20 @@ int grab_service_macros(service *svc){
 	if(temp_servicegroup)
 		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(temp_servicegroup->alias);
 
-	if((temp_serviceextinfo=find_serviceextinfo(svc->host_name,svc->description))){
+	/* get the action url */
+	my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
+	if(svc->action_url)
+		macro_x[MACRO_SERVICEACTIONURL]=(char *)strdup(svc->action_url);
 
-		/* get the action url */
-		my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
-		if(temp_serviceextinfo->action_url)
-			macro_x[MACRO_SERVICEACTIONURL]=(char *)strdup(temp_serviceextinfo->action_url);
+	/* get the notes url */
+	my_free((void **)&macro_x[MACRO_SERVICENOTESURL]);
+	if(svc->notes_url)
+		macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(svc->notes_url);
 
-		/* get the notes url */
-		my_free((void **)&macro_x[MACRO_SERVICENOTESURL]);
-		if(temp_serviceextinfo->notes_url)
-			macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(temp_serviceextinfo->notes_url);
-
-		/* get the notes */
-		my_free((void **)&macro_x[MACRO_SERVICENOTES]);
-		if(temp_serviceextinfo->notes)
-			macro_x[MACRO_SERVICENOTES]=(char *)strdup(temp_serviceextinfo->notes);
-	        }
+	/* get the notes */
+	my_free((void **)&macro_x[MACRO_SERVICENOTES]);
+	if(svc->notes)
+		macro_x[MACRO_SERVICENOTES]=(char *)strdup(svc->notes);
 
 	/* get custom variables */
 	for(temp_customvariablesmember=svc->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
@@ -1350,7 +1346,6 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 /* grab an on-demand service macro */
 int grab_on_demand_service_macro(service *svc, char *macro){
 	servicegroup *temp_servicegroup=NULL;
-	serviceextinfo *temp_serviceextinfo=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
@@ -1523,46 +1518,37 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			macro_ondemand=(char *)strdup(temp_servicegroup->alias);
 	        }
 
-	/* extended info */
-	else if(!strcmp(macro,"SERVICEACTIONURL") || !strcmp(macro,"SERVICENOTESURL") || !strcmp(macro,"SERVICENOTES")){
-		
-		/* find the extended info entry */
-		if((temp_serviceextinfo=find_serviceextinfo(svc->host_name,svc->description))){
+	/* action url */
+	else if(!strcmp(macro,"SERVICEACTIONURL")){
+		if(svc->action_url)
+			macro_ondemand=(char *)strdup(svc->action_url);
 
-			/* action url */
-			if(!strcmp(macro,"SERVICEACTIONURL")){
-
-				if(temp_serviceextinfo->action_url)
-					macro_ondemand=(char *)strdup(temp_serviceextinfo->action_url);
-
-				/* action URL macros may themselves contain macros, so process them... */
-				if(macro_ondemand!=NULL){
-					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					my_free((void **)&macro_ondemand);
-					macro_ondemand=(char *)strdup(temp_buffer);
-				        }
-			        }
-
-			/* notes url */
-			if(!strcmp(macro,"SERVICENOTESURL")){
-
-				if(temp_serviceextinfo->notes_url)
-					macro_ondemand=(char *)strdup(temp_serviceextinfo->notes_url);
-
-				/* action URL macros may themselves contain macros, so process them... */
-				if(macro_ondemand!=NULL){
-					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					my_free((void **)&macro_ondemand);
-					macro_ondemand=(char *)strdup(temp_buffer);
-				        }
-			        }
-
-			/* notes */
-			if(!strcmp(macro,"SERVICENOTES")){
-				if(temp_serviceextinfo->notes)
-					macro_ondemand=(char *)strdup(temp_serviceextinfo->notes);
-			        }
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(temp_buffer);
 		        }
+	        }
+
+	/* notes url */
+	else if(!strcmp(macro,"SERVICENOTESURL")){
+
+		if(svc->notes_url)
+			macro_ondemand=(char *)strdup(svc->notes_url);
+
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(temp_buffer);
+		        }
+	        }
+
+	/* notes */
+	else if(!strcmp(macro,"SERVICENOTES")){
+		if(svc->notes)
+			macro_ondemand=(char *)strdup(svc->notes);
 	        }
 
 	/* custom variables */
@@ -2540,11 +2526,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
-#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
-		/* free allocated memory */
-		free_memory();
-#endif
-
 		/* reset signal handling */
 		reset_sighandler();
 
@@ -2651,6 +2632,12 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		
 		/* clear environment variables */
 		set_all_macro_environment_vars(FALSE);
+
+#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
+		/* free allocated memory */
+		/* this needs to be done last, so we don't free memory for variables before they're used above */
+		free_memory();
+#endif
 
 		_exit(result);
 	        }
@@ -3828,8 +3815,10 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	free(input);
 	mmap_fclose(thefile);
 
+#ifndef DEBUG_CHECK_IPC
 	/* remove the file */
 	unlink(fname);
+#endif
 
 	return OK;
         }

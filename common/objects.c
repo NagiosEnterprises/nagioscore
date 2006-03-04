@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2006
+ * Last Modified: 03-03-2006
  *
  * License:
  *
@@ -700,11 +700,11 @@ int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
 
 /* add a new timeperiod to the list in memory */
 timeperiod *add_timeperiod(char *name,char *alias){
-	timeperiod *new_timeperiod;
-	timeperiod *temp_timeperiod;
+	timeperiod *new_timeperiod=NULL;
 	int day=0;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -712,81 +712,51 @@ timeperiod *add_timeperiod(char *name,char *alias){
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || alias==NULL)
-		return NULL;
-
-	strip(name);
-	strip(alias);
-
-	if(!strcmp(name,"") || !strcmp(alias,"")){
+	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Name or alias for timeperiod is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Name or alias for timeperiod is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure there isn't a timeperiod by this name added already */
-	temp_timeperiod=find_timeperiod(name);
-	if(temp_timeperiod!=NULL){
+	if(find_timeperiod(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Timeperiod '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Timeperiod '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for the new timeperiod */
-	new_timeperiod=malloc(sizeof(timeperiod));
-	if(new_timeperiod==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for timeperiod '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_timeperiod=malloc(sizeof(timeperiod)))==NULL)
 		return NULL;
-	        }
-	new_timeperiod->name=(char *)malloc(strlen(name)+1);
-	if(new_timeperiod->name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for timeperiod '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_timeperiod);
-		return NULL;
-	        }
-	new_timeperiod->alias=(char *)malloc(strlen(alias)+1);
-	if(new_timeperiod->alias==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for timeperiod '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_timeperiod->name);
-		my_free((void **)&new_timeperiod);
-		return NULL;
-	        }
 
-	strcpy(new_timeperiod->name,name);
-	strcpy(new_timeperiod->alias,alias);
-
-	/* initialize the time ranges for each day in the time period to NULL */
+	/* initialize values */
+	new_timeperiod->name=NULL;
+	new_timeperiod->alias=NULL;
 	for(day=0;day<7;day++)
 		new_timeperiod->days[day]=NULL;
-
 	new_timeperiod->next=NULL;
 	new_timeperiod->nexthash=NULL;
 
+	/* copy string vars */
+	if((new_timeperiod->name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_timeperiod->alias=(char *)strdup(alias))==NULL)
+		result=ERROR;
+
 	/* add new timeperiod to timeperiod chained hash list */
-	if(!add_timeperiod_to_hashlist(new_timeperiod)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for timeperiod list to add timeperiod '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_timeperiod_to_hashlist(new_timeperiod))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_timeperiod->alias);
 		my_free((void **)&new_timeperiod->name);
 		my_free((void **)&new_timeperiod);
@@ -824,9 +794,9 @@ timeperiod *add_timeperiod(char *name,char *alias){
 
 /* add a new timerange to a timeperiod */
 timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned long start_time, unsigned long end_time){
-	timerange *new_timerange;
+	timerange *new_timerange=NULL;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -839,39 +809,32 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 	if(day<0 || day>6){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Day %d is not valid for timeperiod '%s'\n",day,period->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Day %d is not valid for timeperiod '%s'\n",day,period->name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 	if(start_time<0 || start_time>86400){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Start time %lu on day %d is not valid for timeperiod '%s'\n",start_time,day,period->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Start time %lu on day %d is not valid for timeperiod '%s'\n",start_time,day,period->name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 	if(end_time<0 || end_time>86400){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: End time %lu on day %d is not value for timeperiod '%s'\n",end_time,day,period->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: End time %lu on day %d is not value for timeperiod '%s'\n",end_time,day,period->name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for the new time range */
-	new_timerange=malloc(sizeof(timerange));
-	if(new_timerange==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for day %d timerange in timeperiod '%s'\n",day,period->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_timerange=malloc(sizeof(timerange)))==NULL)
 		return NULL;
-	        }
 
 	new_timerange->range_start=start_time;
 	new_timerange->range_end=end_time;
@@ -890,11 +853,12 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 /* add a new host definition */
 host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
-	host *temp_host;
-	host *new_host;
+	host *temp_host=NULL;
+	host *new_host=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-	int x;
+	char *temp_buffer=NULL;
+	int x=0;
 #endif
 
 #ifdef DEBUG0
@@ -902,405 +866,126 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || alias==NULL || address==NULL){
+	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,"")) || (address==NULL || !strcmp(address,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name, alias, or address is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host name, alias, or address is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(name);
-	strip(alias);
-	strip(address);
-	strip(check_command);
-	strip(event_handler);
-	strip(notification_period);
-
-	if(!strcmp(name,"") || !strcmp(alias,"") || !strcmp(address,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name, alias, or address is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure there isn't a host by this name already added */
-	temp_host=find_host(name);
-	if(temp_host!=NULL){
+	if(find_host(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
+	/* check values */
 	if(max_attempts<=0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid max_check_attempts value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid max_check_attempts value for host '%s'\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
-
 	if(check_interval<0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid check_interval value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid check_interval value for host '%s'\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
-
 	if(notification_interval<0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notification_interval value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid notification_interval value for host '%s'\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
-
 	if(first_notification_delay<0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid first_notification_delay value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid first_notification_delay value for host '%s'\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(notify_up<0 || notify_up>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_up value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_down<0 || notify_down>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_down value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_unreachable<0 || notify_unreachable>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_unreachable value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_flapping<0 || notify_flapping>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_flappingvalue for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(checks_enabled<0 || checks_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid checks_enabled value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(accept_passive_checks<0 || accept_passive_checks>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid accept_passive_checks value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notifications_enabled<0 || notifications_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notifications_enabled value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(event_handler_enabled<0 || event_handler_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid event_handler_enabled value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_enabled<0 || flap_detection_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_enabled value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_up<0 || flap_detection_on_up>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_up value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_down<0 || flap_detection_on_down>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_down value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_unreachable<0 || flap_detection_on_unreachable>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_unreachable value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_up<0 || stalk_on_up>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_up value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_down<0 || stalk_on_down>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_warning value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_unreachable<0 || stalk_on_unreachable>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_unknown value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(process_perfdata<0 || process_perfdata>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid process_perfdata value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(failure_prediction_enabled<0 || failure_prediction_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid failure_prediction_enabled value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(check_freshness<0 || check_freshness>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid check_freshness value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 	if(freshness_threshold<0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid freshness_threshold value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid freshness_threshold value for host '%s'\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(obsess_over_host<0 || obsess_over_host>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid obsess_over_host value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(retain_status_information<0 || retain_status_information>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_status_information value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(retain_nonstatus_information<0 || retain_nonstatus_information>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_nonstatus_information value for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 
 	/* allocate memory for a new host */
-	new_host=(host *)malloc(sizeof(host));
-	if(new_host==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_host=(host *)malloc(sizeof(host)))==NULL)
 		return NULL;
-	        }
-	new_host->name=(char *)strdup(name);
-	if(new_host->name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_host);
-		return NULL;
-	        }
-	new_host->alias=(char *)strdup(alias);
-	if(new_host->alias==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_host->name);
-		my_free((void **)&new_host);
-		return NULL;
-	        }
-	new_host->address=(char *)strdup(address);
-	if(new_host->address==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' address\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_host->alias);
-		my_free((void **)&new_host->name);
-		my_free((void **)&new_host);
-		return NULL;
-	        }
-	if(check_period!=NULL && strcmp(check_period,"")){
-		new_host->check_period=(char *)strdup(check_period);
-		if(new_host->check_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' check period\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_host->address);
-			my_free((void **)&new_host->alias);
-			my_free((void **)&new_host->name);
-			my_free((void **)&new_host);
-			return NULL;
-		        }
-	        }
-	else
-		new_host->check_period=NULL;
-	if(notification_period!=NULL && strcmp(notification_period,"")){
-		new_host->notification_period=(char *)strdup(notification_period);
-		if(new_host->notification_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' notification period\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_host->check_period);
-			my_free((void **)&new_host->address);
-			my_free((void **)&new_host->alias);
-			my_free((void **)&new_host->name);
-			my_free((void **)&new_host);
-			return NULL;
-		        }
-	        }
-	else
-		new_host->notification_period=NULL;
-	if(check_command!=NULL && strcmp(check_command,"")){
-		new_host->host_check_command=(char *)strdup(check_command);
-		if(new_host->host_check_command==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' check command\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			if(new_host->notification_period!=NULL)
-				my_free((void **)&new_host->notification_period);
-			my_free((void **)&new_host->check_period);
-			my_free((void **)&new_host->address);
-			my_free((void **)&new_host->alias);
-			my_free((void **)&new_host->name);
-			my_free((void **)&new_host);
-			return NULL;
-		        }
-	        }
-	else
-		new_host->host_check_command=NULL;
-	if(event_handler!=NULL && strcmp(event_handler,"")){
-		new_host->event_handler=(char *)strdup(event_handler);
-		if(new_host->event_handler==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' event handler\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			if(new_host->host_check_command!=NULL)
-				my_free((void **)&new_host->host_check_command);
-			if(new_host->notification_period!=NULL)
-				my_free((void **)&new_host->notification_period);
-			my_free((void **)&new_host->check_period);
-			my_free((void **)&new_host->address);
-			my_free((void **)&new_host->alias);
-			my_free((void **)&new_host->name);
-			my_free((void **)&new_host);
-			return NULL;
-	                }
-	        }
-	else
-		new_host->event_handler=NULL;
-	if(failure_prediction_options!=NULL && strcmp(failure_prediction_options,"")){
-		new_host->failure_prediction_options=(char *)strdup(failure_prediction_options);
-		if(new_host->failure_prediction_options==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' failure prediction options\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			if(new_host->event_handler!=NULL)
-				my_free((void **)&new_host->event_handler);
-			if(new_host->host_check_command!=NULL)
-				my_free((void **)&new_host->host_check_command);
-			if(new_host->notification_period!=NULL)
-				my_free((void **)&new_host->notification_period);
-			my_free((void **)&new_host->check_period);
-			my_free((void **)&new_host->address);
-			my_free((void **)&new_host->alias);
-			my_free((void **)&new_host->name);
-			my_free((void **)&new_host);
-			return NULL;
-	                }
-	        }
-	else
-		new_host->failure_prediction_options=NULL;
 
-	new_host->display_name=(char *)strdup((display_name==NULL)?name:display_name);
+	/* initialize values */
+	new_host->name=NULL;
+	new_host->alias=NULL;
+	new_host->address=NULL;
+	new_host->check_period=NULL;
+	new_host->notification_period=NULL;
+	new_host->host_check_command=NULL;
+	new_host->event_handler=NULL;
+	new_host->failure_prediction_options=NULL;
+	new_host->display_name=NULL;
 	new_host->parent_hosts=NULL;
-	new_host->max_attempts=max_attempts;
 	new_host->contact_groups=NULL;
+	new_host->custom_variables=NULL;
+#ifdef NSCORE
+	new_host->plugin_output=NULL;
+	new_host->long_plugin_output=NULL;
+	new_host->perf_data=NULL;
+#endif
+	new_host->next=NULL;
+	new_host->nexthash=NULL;
+
+
+	/* duplicate string vars */
+	if((new_host->name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_host->display_name=(char *)strdup((display_name==NULL)?name:display_name))==NULL)
+		result=ERROR;
+	if((new_host->alias=(char *)strdup(alias))==NULL)
+		result=ERROR;
+	if((new_host->address=(char *)strdup(address))==NULL)
+		result=ERROR;
+	if(check_period){
+		if((new_host->check_period=(char *)strdup(check_period))==NULL)
+			result=ERROR;
+	        }
+	if(notification_period){
+		if((new_host->notification_period=(char *)strdup(notification_period))==NULL)
+			result=ERROR;
+	        }
+	if(check_command){
+		if((new_host->host_check_command=(char *)strdup(check_command))==NULL)
+			result=ERROR;
+	        }
+	if(event_handler){
+		if((new_host->event_handler=(char *)strdup(event_handler))==NULL)
+			result=ERROR;
+	        }
+	if(failure_prediction_options){
+		if((new_host->failure_prediction_options=(char *)strdup(failure_prediction_options))==NULL)
+			result=ERROR;
+	        }
+
+	/* duplicate non-string vars */
+	new_host->max_attempts=max_attempts;
 	new_host->check_interval=check_interval;
 	new_host->notification_interval=notification_interval;
 	new_host->first_notification_delay=first_notification_delay;
@@ -1326,12 +1011,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->obsess_over_host=(obsess_over_host>0)?TRUE:FALSE;
 	new_host->retain_status_information=(retain_status_information>0)?TRUE:FALSE;
 	new_host->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
-	new_host->custom_variables=NULL;
-
 #ifdef NSCORE
-	new_host->plugin_output=NULL;
-	new_host->long_plugin_output=NULL;
-	new_host->perf_data=NULL;
 	new_host->current_state=HOST_UP;
 	new_host->current_event_id=0L;
 	new_host->last_event_id=0L;
@@ -1381,29 +1061,25 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->contains_circular_path=FALSE;
 #endif
 
-	new_host->next=NULL;
-	new_host->nexthash=NULL;
-
 	/* add new host to host chained hash list */
-	if(!add_host_to_hashlist(new_host)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host list to add host '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		
-		my_free((void **)&new_host->plugin_output);
-		if(new_host->perf_data)
-			my_free((void **)&new_host->perf_data);
-#endif
+	if(result==OK){
+		if(!add_host_to_hashlist(new_host))
+			result=ERROR;
+	        }
 
-		if(new_host->failure_prediction_options!=NULL)
-			my_free((void **)&new_host->failure_prediction_options);
-		if(new_host->event_handler!=NULL)
-			my_free((void **)&new_host->event_handler);
-		if(new_host->host_check_command!=NULL)
-			my_free((void **)&new_host->host_check_command);
-		if(new_host->notification_period!=NULL)
-			my_free((void **)&new_host->notification_period);
+	/* handle errors */
+	if(result==ERROR){
+#ifdef NSCORE
+		my_free((void **)&new_host->plugin_output);
+		my_free((void **)&new_host->long_plugin_output);
+		my_free((void **)&new_host->perf_data);
+#endif
+		my_free((void **)&new_host->display_name);
+		my_free((void **)&new_host->failure_prediction_options);
+		my_free((void **)&new_host->event_handler);
+		my_free((void **)&new_host->host_check_command);
+		my_free((void **)&new_host->notification_period);
+		my_free((void **)&new_host->check_period);
 		my_free((void **)&new_host->address);
 		my_free((void **)&new_host->alias);
 		my_free((void **)&new_host->name);
@@ -1450,9 +1126,10 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 
 
 hostsmember *add_parent_host_to_host(host *hst,char *host_name){
-	hostsmember *new_hostsmember;
+	hostsmember *new_hostsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -1460,22 +1137,11 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 #endif
 
 	/* make sure we have the data we need */
-	if(hst==NULL || host_name==NULL){
+	if(hst==NULL || host_name==NULL || !strcmp(host_name,"")){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host is NULL or parent host name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host is NULL or parent host name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(host_name);
-
-	if(!strcmp(host_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host '%s' parent host name is NULL\n",hst->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
@@ -1483,31 +1149,27 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	/* a host cannot be a parent/child of itself */
 	if(!strcmp(host_name,hst->name)){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host '%s' cannot be a child/parent of itself\n",hst->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host '%s' cannot be a child/parent of itself\n",hst->name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory */
-	new_hostsmember=(hostsmember *)malloc(sizeof(hostsmember));
-	if(new_hostsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' parent host (%s)\n",hst->name,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_hostsmember=(hostsmember *)malloc(sizeof(hostsmember)))==NULL)
 		return NULL;
-	        }
 
-	new_hostsmember->host_name=(char *)strdup(host_name);
-	if(new_hostsmember->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' parent host (%s) name\n",hst->name,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	/* initialize values */
+	new_hostsmember->host_name=NULL;
+
+	/* duplicate string vars */
+	if((new_hostsmember->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_hostsmember->host_name);
 		my_free((void **)&new_hostsmember);
 		return NULL;
 	        }
@@ -1527,9 +1189,10 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 
 /* add a new contactgroup to a host */
 contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
-	contactgroupsmember *new_contactgroupsmember;
+	contactgroupsmember *new_contactgroupsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -1537,47 +1200,32 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 #endif
 
 	/* make sure we have the data we need */
-	if(hst==NULL || group_name==NULL){
+	if(hst==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host or contactgroup member is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host or contactgroup member is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host '%s' contactgroup member is NULL\n",hst->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new member */
-	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
-	if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' contactgroup member '%s'\n",hst->name,group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contactgroupsmember=malloc(sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-	        }
-	new_contactgroupsmember->group_name=(char *)strdup(group_name);
-	if(new_contactgroupsmember->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' contactgroup member '%s' name\n",hst->name,group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	
+	/* initialize vars */
+	new_contactgroupsmember->group_name=NULL;
+
+	/* duplicate string vars */
+	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_contactgroupsmember->group_name);
 		my_free((void **)&new_contactgroupsmember);
 		return NULL;
 	        }
-
 	
 	/* add the new member to the head of the member list */
 	new_contactgroupsmember->next=hst->contact_groups;
@@ -1602,10 +1250,10 @@ customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, cha
 
 /* add a new host group to the list in memory */
 hostgroup *add_hostgroup(char *name,char *alias){
-	hostgroup *temp_hostgroup;
-	hostgroup *new_hostgroup;
+	hostgroup *new_hostgroup=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -1613,85 +1261,52 @@ hostgroup *add_hostgroup(char *name,char *alias){
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || alias==NULL){
+	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup name and/or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Hostgroup name and/or alias is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(name);
-	strip(alias);
-
-	if(!strcmp(name,"") || !strcmp(alias,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup name and/or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure a hostgroup by this name hasn't been added already */
-	temp_hostgroup=find_hostgroup(name);
-	if(temp_hostgroup!=NULL){
+	if(find_hostgroup(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Hostgroup '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory */
-	new_hostgroup=(hostgroup *)malloc(sizeof(hostgroup));
-	if(new_hostgroup==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_hostgroup=(hostgroup *)malloc(sizeof(hostgroup)))==NULL)
 		return NULL;
-	        }
-	new_hostgroup->group_name=(char *)strdup(name);
-	if(new_hostgroup->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostgroup);
-		return NULL;
-	        }
-	new_hostgroup->alias=(char *)strdup(alias);
-	if(new_hostgroup->alias==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostgroup->group_name);
-		my_free((void **)&new_hostgroup);
-		return NULL;
-	        }
 
+	/* initialize vars */
+	new_hostgroup->group_name=NULL;
+	new_hostgroup->alias=NULL;
 	new_hostgroup->members=NULL;
-
 	new_hostgroup->next=NULL;
 	new_hostgroup->nexthash=NULL;
 
-	/* add new hostgroup to hostgroup chained hash list */
-	if(!add_hostgroup_to_hashlist(new_hostgroup)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup list to add hostgroup '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	/* duplicate vars */
+	if((new_hostgroup->group_name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_hostgroup->alias=(char *)strdup(alias))==NULL)
+		result=ERROR;
 
-		my_free((void **)&new_hostgroup->group_name);
+	/* add new hostgroup to hostgroup chained hash list */
+	if(result==OK){
+		if(!add_hostgroup_to_hashlist(new_hostgroup))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_hostgroup->alias);
+		my_free((void **)&new_hostgroup->group_name);
 		my_free((void **)&new_hostgroup);
 		return NULL;
 	        }
@@ -1727,11 +1342,12 @@ hostgroup *add_hostgroup(char *name,char *alias){
 
 /* add a new host to a host group */
 hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_name){
-	hostgroupmember *new_member;
-	hostgroupmember *last_member;
-	hostgroupmember *temp_member;
+	hostgroupmember *new_member=NULL;
+	hostgroupmember *last_member=NULL;
+	hostgroupmember *temp_member=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -1739,47 +1355,32 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 #endif
 
 	/* make sure we have the data we need */
-	if(temp_hostgroup==NULL || host_name==NULL){
+	if(temp_hostgroup==NULL || (host_name==NULL || !strcmp(host_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup or group member is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Hostgroup or group member is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(host_name);
-
-	if(!strcmp(host_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Hostgroup member is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new member */
-	new_member=malloc(sizeof(hostgroupmember));
-	if(new_member==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s'\n",temp_hostgroup->group_name,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_member=malloc(sizeof(hostgroupmember)))==NULL)
 		return NULL;
-	        }
-	new_member->host_name=(char *)strdup(host_name);
-	if(new_member->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostgroup '%s' member '%s' name\n",temp_hostgroup->group_name,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+
+	/* initialize vars */
+	new_member->host_name=NULL;
+
+	/* duplicate vars */
+	if((new_member->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_member->host_name);
 		my_free((void **)&new_member);
 		return NULL;
 	        }
-
 	
 	/* add the new member to the member list, sorted by host name */
 	last_member=temp_hostgroup->members;
@@ -1814,10 +1415,10 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 
 /* add a new service group to the list in memory */
 servicegroup *add_servicegroup(char *name,char *alias){
-	servicegroup *temp_servicegroup;
-	servicegroup *new_servicegroup;
+	servicegroup *new_servicegroup=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -1825,85 +1426,52 @@ servicegroup *add_servicegroup(char *name,char *alias){
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || alias==NULL){
+	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup name and/or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Servicegroup name and/or alias is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(name);
-	strip(alias);
-
-	if(!strcmp(name,"") || !strcmp(alias,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup name and/or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure a servicegroup by this name hasn't been added already */
-	temp_servicegroup=find_servicegroup(name);
-	if(temp_servicegroup!=NULL){
+	if(find_servicegroup(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Servicegroup '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory */
-	new_servicegroup=(servicegroup *)malloc(sizeof(servicegroup));
-	if(new_servicegroup==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_servicegroup=(servicegroup *)malloc(sizeof(servicegroup)))==NULL)
 		return NULL;
-	        }
-	new_servicegroup->group_name=(char *)strdup(name);
-	if(new_servicegroup->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_servicegroup);
-		return NULL;
-	        }
-	new_servicegroup->alias=(char *)strdup(alias);
-	if(new_servicegroup->alias==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_servicegroup->group_name);
-		my_free((void **)&new_servicegroup);
-		return NULL;
-	        }
 
+	/* initialize vars */
+	new_servicegroup->group_name=NULL;
+	new_servicegroup->alias=NULL;
 	new_servicegroup->members=NULL;
-
 	new_servicegroup->next=NULL;
 	new_servicegroup->nexthash=NULL;
 
-	/* add new servicegroup to servicegroup chained hash list */
-	if(!add_servicegroup_to_hashlist(new_servicegroup)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup list to add servicegroup '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	/* duplicate vars */
+	if((new_servicegroup->group_name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_servicegroup->alias=(char *)strdup(alias))==NULL)
+		result=ERROR;
 
-		my_free((void **)&new_servicegroup->group_name);
+	/* add new servicegroup to servicegroup chained hash list */
+	if(result==OK){
+		if(!add_servicegroup_to_hashlist(new_servicegroup))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_servicegroup->alias);
+		my_free((void **)&new_servicegroup->group_name);
 		my_free((void **)&new_servicegroup);
 		return NULL;
 	        }
@@ -1939,11 +1507,12 @@ servicegroup *add_servicegroup(char *name,char *alias){
 
 /* add a new service to a service group */
 servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup, char *host_name, char *svc_description){
-	servicegroupmember *new_member;
-	servicegroupmember *last_member;
-	servicegroupmember *temp_member;
+	servicegroupmember *new_member=NULL;
+	servicegroupmember *last_member=NULL;
+	servicegroupmember *temp_member=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -1951,59 +1520,36 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 #endif
 
 	/* make sure we have the data we need */
-	if(temp_servicegroup==NULL || host_name==NULL || svc_description==NULL){
+	if(temp_servicegroup==NULL || (host_name==NULL || !strcmp(host_name,"")) || (svc_description==NULL || !strcmp(svc_description,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup or group member is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Servicegroup or group member is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(host_name);
-	strip(svc_description);
-
-	if(!strcmp(host_name,"") || !strcmp(svc_description,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Servicegroup member is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new member */
-	new_member=malloc(sizeof(servicegroupmember));
-	if(new_member==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s')\n",temp_servicegroup->group_name,host_name,svc_description);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_member=malloc(sizeof(servicegroupmember)))==NULL)
 		return NULL;
-	        }
-	new_member->host_name=(char *)strdup(host_name);
-	if(new_member->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",temp_servicegroup->group_name,host_name,svc_description);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_member);
-		return NULL;
-	        }
-	new_member->service_description=(char *)strdup(svc_description);
-	if(new_member->service_description==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicegroup '%s' member (service '%s' on host '%s') name\n",temp_servicegroup->group_name,host_name,svc_description);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+
+	/* initialize vars */
+	new_member->host_name=NULL;
+	new_member->service_description=NULL;
+
+	/* duplicate vars */
+	if((new_member->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+	if((new_member->service_description=(char *)strdup(svc_description))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_member->service_description);
 		my_free((void **)&new_member->host_name);
 		my_free((void **)&new_member);
 		return NULL;
 	        }
-
 	
 	/* add new member to member list, sorted by host name then service description */
 	last_member=temp_servicegroup->members;
@@ -2049,11 +1595,11 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 
 /* add a new contact to the list in memory */
 contact *add_contact(char *name,char *alias, char *email, char *pager, char **addresses, char *svc_notification_period, char *host_notification_period,int notify_service_ok,int notify_service_critical,int notify_service_warning, int notify_service_unknown, int notify_service_flapping, int notify_host_up, int notify_host_down, int notify_host_unreachable, int notify_host_flapping, int host_notifications_enabled, int service_notifications_enabled, int can_submit_commands, int retain_status_information, int retain_nonstatus_information){
-	contact *temp_contact;
-	contact *new_contact;
-	int x;
+	contact *new_contact=NULL;
+	int x=0;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -2061,291 +1607,72 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || alias==NULL || (email==NULL && pager==NULL)){
+	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact name, alias, or email address and pager number are NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contact name or alias are NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(name);
-	strip(alias);
-	strip(email);
-	strip(pager);
-	strip(svc_notification_period);
-	strip(host_notification_period);
-
-	if(!strcmp(name,"") || !strcmp(alias,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact name or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if((email==NULL || !strcmp(email,"")) && (pager==NULL || !strcmp(pager,""))){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact email address and pager number are both NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure there isn't a contact by this name already added */
-	temp_contact=find_contact(name);
-	if(temp_contact!=NULL){
+	if(find_contact(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contact '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(notify_service_ok<0 || notify_service_ok>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_service_ok value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_service_critical<0 || notify_service_critical>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_service_critical value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_service_warning<0 || notify_service_warning>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_service_warning value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_service_unknown<0 || notify_service_unknown>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_service_unknown value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_service_flapping<0 || notify_service_flapping>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_service_flapping value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(notify_host_up<0 || notify_host_up>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_up value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_host_down<0 || notify_host_down>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_down value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_host_unreachable<0 || notify_host_unreachable>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_unreachable value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_host_flapping<0 || notify_host_flapping>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_host_flapping value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(host_notifications_enabled<0 || host_notifications_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid host_notifications_enabled value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(service_notifications_enabled<0 || service_notifications_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid service_notifications_enabled value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(retain_status_information<0 || retain_status_information>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_status_information value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(retain_nonstatus_information<0 || retain_nonstatus_information>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_nonstatus_information value for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new contact */
-	new_contact=(contact *)malloc(sizeof(contact));
-	if(new_contact==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contact=(contact *)malloc(sizeof(contact)))==NULL)
 		return NULL;
-	        }
-	new_contact->name=(char *)strdup(name);
-	if(new_contact->name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_contact);
-		return NULL;
-	        }
-	new_contact->alias=(char *)strdup(alias);
-	if(new_contact->alias==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_contact->name);
-		my_free((void **)&new_contact);
-		return NULL;
-	        }
-	if(email!=NULL && strcmp(email,"")){
-		new_contact->email=(char *)strdup(email);
-		if(new_contact->email==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' email address\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_contact->name);
-			my_free((void **)&new_contact->alias);
-			my_free((void **)&new_contact);
-			return NULL;
-		        }
-	        }
-	else
-		new_contact->email=NULL;
-	if(pager!=NULL && strcmp(pager,"")){
-		new_contact->pager=(char *)strdup(pager);
-		if(new_contact->pager==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' pager number\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_contact->name);
-			my_free((void **)&new_contact->alias);
-			if(new_contact->email!=NULL)
-				my_free((void **)&new_contact->email);
-			my_free((void **)&new_contact);
-			return NULL;
-		        }
-	        }
-	else
-		new_contact->pager=NULL;
-	if(svc_notification_period!=NULL && strcmp(svc_notification_period,"")){
-		new_contact->service_notification_period=(char *)strdup(svc_notification_period);
-		if(new_contact->service_notification_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' service notification period\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_contact->name);
-			my_free((void **)&new_contact->alias);
-			if(new_contact->email!=NULL)
-				my_free((void **)&new_contact->email);
-			if(new_contact->pager!=NULL)
-				my_free((void **)&new_contact->pager);
-			my_free((void **)&new_contact);
-			return NULL;
-		        }
-	        }
-	else 
-		new_contact->service_notification_period=NULL;
-	if(host_notification_period!=NULL && strcmp(host_notification_period,"")){
-		new_contact->host_notification_period=(char *)strdup(host_notification_period);
-		if(new_contact->host_notification_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' host notification period\n",name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_contact->name);
-			my_free((void **)&new_contact->alias);
-			if(new_contact->email!=NULL)
-				my_free((void **)&new_contact->email);
-			if(new_contact->pager!=NULL)
-				my_free((void **)&new_contact->pager);
-			if(new_contact->service_notification_period!=NULL)
-				my_free((void **)&new_contact->service_notification_period);
-			my_free((void **)&new_contact);
-			return NULL;
-		        }
-	        }
-	else
-		new_contact->host_notification_period=NULL;
 
-
-	for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+	/* initialize vars */
+	new_contact->name=NULL;
+	new_contact->alias=NULL;
+	new_contact->email=NULL;
+	new_contact->pager=NULL;
+	for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
 		new_contact->address[x]=NULL;
-		if(addresses[x]!=NULL){
-			strip(addresses[x]);
-			new_contact->address[x]=(char *)strdup(addresses[x]);
-			if(new_contact->address[x]==NULL){
-#ifdef NSCORE
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' address #%d\n",name,x);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-				my_free((void **)&new_contact->name);
-				my_free((void **)&new_contact->alias);
-				my_free((void **)&new_contact->email);
-				my_free((void **)&new_contact->pager);
-				my_free((void **)&new_contact->service_notification_period);
-				my_free((void **)&new_contact->host_notification_period);
-				my_free((void **)&new_contact);
-				return NULL;
-		                }
-		        }
-	        }
-
 	new_contact->host_notification_commands=NULL;
 	new_contact->service_notification_commands=NULL;
+	new_contact->custom_variables=NULL;
+	new_contact->next=NULL;
+	new_contact->nexthash=NULL;
+
+	/* duplicate vars */
+	if((new_contact->name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_contact->alias=(char *)strdup(alias))==NULL)
+		result=ERROR;
+	if(email){
+		if((new_contact->email=(char *)strdup(email))==NULL)
+			result=ERROR;
+	        }
+	if(pager){
+		if((new_contact->pager=(char *)strdup(pager))==NULL)
+			result=ERROR;
+	        }
+	if(svc_notification_period){
+		if((new_contact->service_notification_period=(char *)strdup(svc_notification_period))==NULL)
+			result=ERROR;
+	        }
+	if(host_notification_period){
+		if((new_contact->host_notification_period=(char *)strdup(host_notification_period))==NULL)
+			result=ERROR;
+	        }
+	if(addresses){
+		for(x=0;x<MAX_CONTACT_ADDRESSES;x++){
+			if(addresses[x]){
+				if((new_contact->address[x]=(char *)strdup(addresses[x]))==NULL)
+					result=ERROR;
+			        }
+		        }
+	        }
+
 	new_contact->notify_on_service_recovery=(notify_service_ok>0)?TRUE:FALSE;
 	new_contact->notify_on_service_critical=(notify_service_critical>0)?TRUE:FALSE;
 	new_contact->notify_on_service_warning=(notify_service_warning>0)?TRUE:FALSE;
@@ -2360,7 +1687,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->can_submit_commands=(can_submit_commands>0)?TRUE:FALSE;
 	new_contact->retain_status_information=(retain_status_information>0)?TRUE:FALSE;
 	new_contact->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
-	new_contact->custom_variables=NULL;
 #ifdef NSCORE
 	new_contact->last_host_notification=(time_t)0L;
 	new_contact->last_service_notification=(time_t)0L;
@@ -2369,16 +1695,14 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->modified_service_attributes=MODATTR_NONE;
 #endif
 
-	new_contact->next=NULL;
-	new_contact->nexthash=NULL;
-
 	/* add new contact to contact chained hash list */
-	if(!add_contact_to_hashlist(new_contact)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact list to add contact '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_contact_to_hashlist(new_contact))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		for(x=0;x<MAX_CONTACT_ADDRESSES;x++)
 			my_free((void **)&new_contact->address[x]);
 		my_free((void **)&new_contact->name);
@@ -2388,7 +1712,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 		my_free((void **)&new_contact->service_notification_period);
 		my_free((void **)&new_contact->host_notification_period);
 		my_free((void **)&new_contact);
-
 		return NULL;
 	        }
 
@@ -2427,9 +1750,10 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 
 /* adds a host notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *cntct,char *command_name){
-	commandsmember *new_commandsmember;
+	commandsmember *new_commandsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -2437,44 +1761,29 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 #endif
 
 	/* make sure we have the data we need */
-	if(cntct==NULL || command_name==NULL){
+	if(cntct==NULL || (command_name==NULL || !strcmp(command_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact or host notification command is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contact or host notification command is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(command_name);
-
-	if(!strcmp(command_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact '%s' host notification command is NULL\n",cntct->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory */
-	new_commandsmember=malloc(sizeof(commandsmember));
-	if(new_commandsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' host notification command '%s'\n",cntct->name,command_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_commandsmember=malloc(sizeof(commandsmember)))==NULL)
 		return NULL;
-	        }
 
-	new_commandsmember->command=(char *)strdup(command_name);
-	if(new_commandsmember->command==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' host notification command '%s' name\n",cntct->name,command_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	/* initialize vars */
+	new_commandsmember->command=NULL;
+
+	/* duplicate vars */
+	if((new_commandsmember->command=(char *)strdup(command_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_commandsmember->command);
 		my_free((void **)&new_commandsmember);
 		return NULL;
 	        }
@@ -2494,9 +1803,10 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 
 /* adds a service notification command to a contact definition */
 commandsmember *add_service_notification_command_to_contact(contact *cntct,char *command_name){
-	commandsmember *new_commandsmember;
+	commandsmember *new_commandsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -2504,44 +1814,29 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 #endif
 
 	/* make sure we have the data we need */
-	if(cntct==NULL || command_name==NULL){
+	if(cntct==NULL || (command_name==NULL || !strcmp(command_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact or service notification command is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contact or service notification command is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(command_name);
-
-	if(!strcmp(command_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contact '%s' service notification command is NULL\n",cntct->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory */
-	new_commandsmember=malloc(sizeof(commandsmember));
-	if(new_commandsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' service notification command '%s'\n",cntct->name,command_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_commandsmember=malloc(sizeof(commandsmember)))==NULL)
 		return NULL;
-	        }
 
-	new_commandsmember->command=(char *)strdup(command_name);
-	if(new_commandsmember->command==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact '%s' service notification command '%s' name\n",cntct->name,command_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	/* initialize vars */
+	new_commandsmember->command=NULL;
+
+	/* duplicate vars */
+	if((new_commandsmember->command=(char *)strdup(command_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_commandsmember->command);
 		my_free((void **)&new_commandsmember);
 		return NULL;
 	        }
@@ -2569,10 +1864,10 @@ customvariablesmember *add_custom_variable_to_contact(contact *cntct, char *varn
 
 /* add a new contact group to the list in memory */
 contactgroup *add_contactgroup(char *name,char *alias){
-	contactgroup *temp_contactgroup;
-	contactgroup *new_contactgroup;
+	contactgroup *new_contactgroup=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -2580,86 +1875,53 @@ contactgroup *add_contactgroup(char *name,char *alias){
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || alias==NULL){
+	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup name or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contactgroup name or alias is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(name);
-	strip(alias);
-
-	if(!strcmp(name,"") || !strcmp(alias,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup name or alias is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure there isn't a contactgroup by this name added already */
-	temp_contactgroup=find_contactgroup(name);
-	if(temp_contactgroup!=NULL){
+	if(find_contactgroup(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contactgroup '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new contactgroup entry */
-	new_contactgroup=malloc(sizeof(contactgroup));
-	if(new_contactgroup==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contactgroup=malloc(sizeof(contactgroup)))==NULL)
 		return NULL;
-	        }
-	new_contactgroup->group_name=(char *)strdup(name);
-	if(new_contactgroup->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_contactgroup);
-		return NULL;
-	        }
-	new_contactgroup->alias=(char *)strdup(alias);
-	if(new_contactgroup->alias==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_contactgroup->group_name);
-		my_free((void **)&new_contactgroup);
-		return NULL;
-	        }
 
+	/* initialize vars */
+	new_contactgroup->group_name=NULL;
+	new_contactgroup->alias=NULL;
 	new_contactgroup->members=NULL;
-
 	new_contactgroup->next=NULL;
 	new_contactgroup->nexthash=NULL;
 
+	/* duplicate vars */
+	if((new_contactgroup->group_name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_contactgroup->alias=(char *)strdup(alias))==NULL)
+		result=ERROR;
+
 	/* add new contactgroup to contactgroup chained hash list */
-	if(!add_contactgroup_to_hashlist(new_contactgroup)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup list to add contactgroup '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_contactgroup_to_hashlist(new_contactgroup))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_contactgroup->alias);
 		my_free((void **)&new_contactgroup->group_name);
 		my_free((void **)&new_contactgroup);
-
 		return NULL;
 	        }
 
@@ -2695,9 +1957,10 @@ contactgroup *add_contactgroup(char *name,char *alias){
 
 /* add a new member to a contact group */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_name){
-	contactgroupmember *new_contactgroupmember;
+	contactgroupmember *new_contactgroupmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -2705,43 +1968,29 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 #endif
 
 	/* make sure we have the data we need */
-	if(grp==NULL || contact_name==NULL){
+	if(grp==NULL || (contact_name==NULL || !strcmp(contact_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup or contact name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Contactgroup or contact name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(contact_name);
-
-	if(!strcmp(contact_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup '%s' contact name is NULL\n",grp->group_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new member */
-	new_contactgroupmember=malloc(sizeof(contactgroupmember));
-	if(new_contactgroupmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' contact '%s'\n",grp->group_name,contact_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contactgroupmember=malloc(sizeof(contactgroupmember)))==NULL)
 		return NULL;
-	        }
-	new_contactgroupmember->contact_name=(char *)strdup(contact_name);
-	if(new_contactgroupmember->contact_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contactgroup '%s' contact '%s' name\n",grp->group_name,contact_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+
+	/* initialize vars */
+	new_contactgroupmember->contact_name=NULL;
+
+	/* duplicate vars */
+	if((new_contactgroupmember->contact_name=(char *)strdup(contact_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_contactgroupmember->contact_name);
 		my_free((void **)&new_contactgroupmember);
 		return NULL;
 	        }
@@ -2761,11 +2010,11 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 /* add a new service to the list in memory */
 service *add_service(char *host_name, char *description, char *display_name, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, int first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
-	service *temp_service;
-	service *new_service;
+	service *new_service=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-	int x;
+	char *temp_buffer=NULL;
+	int x=0;
 #endif
 
 #ifdef DEBUG0
@@ -2773,423 +2022,117 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 #endif
 
 	/* make sure we have everything we need */
-	if(host_name==NULL || description==NULL || check_command==NULL){
+	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,"")) || (check_command==NULL || !strcmp(check_command,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service description, host name, or check command is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Service description, host name, or check command is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(host_name);
-	strip(description);
-	strip(check_command);
-	strip(event_handler);
-	strip(notification_period);
-	strip(check_period);
-
-	if(!strcmp(host_name,"") || !strcmp(description,"") || !strcmp(check_command,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service description, host name, or check command is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure there isn't a service by this name added already */
-	temp_service=find_service(host_name,description);
-	if(temp_service!=NULL){
+	if(find_service(host_name,description)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Service '%s' on host '%s' has already been defined\n",description,host_name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
-	if(parallelize<0 || parallelize>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid parallelize value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(accept_passive_checks<0 || accept_passive_checks>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid accept_passive_checks value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(event_handler_enabled<0 || event_handler_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid event_handler_enabled value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(checks_enabled<0 || checks_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid checks_enabled value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(notifications_enabled<0 || notifications_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notifications_enabled value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
+	/* check values */
 	if(max_attempts<=0 || check_interval<0 || retry_interval<=0 || notification_interval<0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid max_attempts, check_interval, retry_interval, or notification_interval value for service '%s' on host '%s'\n",description,host_name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	if(first_notification_delay<0){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid first_notification_delay value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Invalid first_notification_delay value for service '%s' on host '%s'\n",description,host_name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
-
-	if(notify_recovery<0 || notify_recovery>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_recovery value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_critical<0 || notify_critical>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_critical value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_flapping<0 || notify_flapping>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_flapping value '%d' for service '%s' on host '%s'\n",notify_flapping,description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(notify_recovery<0 || notify_recovery>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid notify_recovery value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(is_volatile<0 || is_volatile>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid is_volatile value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_enabled<0 || flap_detection_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_enabled value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_ok<0 || flap_detection_on_ok>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_ok value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_warning<0 || flap_detection_on_warning>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_warning value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_unknown<0 || flap_detection_on_unknown>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_unknown value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(flap_detection_on_critical<0 || flap_detection_on_critical>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid flap_detection_on_critical value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_ok<0 || stalk_on_ok>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_ok value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_warning<0 || stalk_on_warning>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_warning value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_unknown<0 || stalk_on_unknown>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_unknown value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(stalk_on_critical<0 || stalk_on_critical>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid stalk_on_critical value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(process_perfdata<0 || process_perfdata>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid process_perfdata value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(failure_prediction_enabled<0 || failure_prediction_enabled>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid failure_prediction_enabled value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(check_freshness<0 || check_freshness>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid check_freshness value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(freshness_threshold<0){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid freshness_threshold value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(retain_status_information<0 || retain_status_information>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_status_information value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(retain_nonstatus_information<0 || retain_nonstatus_information>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid retain_nonstatus_information value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-	if(obsess_over_service<0 || obsess_over_service>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid obsess_over_service value for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
 
 	/* allocate memory */
-	new_service=(service *)malloc(sizeof(service));
-	if(new_service==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_service=(service *)malloc(sizeof(service)))==NULL)
 		return NULL;
-	        }
-	new_service->host_name=(char *)strdup(host_name);
-	if(new_service->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' name\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_service);
-		return NULL;
-	        }
-	new_service->description=(char *)strdup(description);
-	if(new_service->description==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' description\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_service->host_name);
-		my_free((void **)&new_service);
-		return NULL;
-	        }
-	new_service->service_check_command=(char *)strdup(check_command);
-	if(new_service->service_check_command==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' check command\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_service->description);
-		my_free((void **)&new_service->host_name);
-		my_free((void **)&new_service);
-		return NULL;
-	        }
-	if(event_handler!=NULL && strcmp(event_handler,"")){
-		new_service->event_handler=(char *)strdup(event_handler);
-		if(new_service->event_handler==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' event handler\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_service->service_check_command);
-			my_free((void **)&new_service->description);
-			my_free((void **)&new_service->host_name);
-			my_free((void **)&new_service);
-			return NULL;
-		        }
-	        }
-	else
-		new_service->event_handler=NULL;
-	if(notification_period!=NULL && strcmp(notification_period,"")){
-		new_service->notification_period=(char *)strdup(notification_period);
-		if(new_service->notification_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' notification period\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			if(new_service->event_handler!=NULL)
-				my_free((void **)&new_service->event_handler);
-			my_free((void **)&new_service->service_check_command);
-			my_free((void **)&new_service->description);
-			my_free((void **)&new_service->host_name);
-			my_free((void **)&new_service);
-			return NULL;
-		        }
-	        }
-	else
-		new_service->notification_period=NULL;
-	if(check_period!=NULL && strcmp(check_period,"")){
-		new_service->check_period=(char *)strdup(check_period);
-		if(new_service->check_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' check period\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			if(new_service->notification_period!=NULL)
-				my_free((void **)&new_service->notification_period);
-			if(new_service->event_handler!=NULL)
-				my_free((void **)&new_service->event_handler);
-			my_free((void **)&new_service->service_check_command);
-			my_free((void **)&new_service->description);
-			my_free((void **)&new_service->host_name);
-			my_free((void **)&new_service);
-			return NULL;
-		        }
-	        }
-	else
-		new_service->check_period=NULL;
-	if(failure_prediction_options!=NULL && strcmp(failure_prediction_options,"")){
-		new_service->failure_prediction_options=(char *)strdup(failure_prediction_options);
-		if(new_service->failure_prediction_options==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' failure prediction options\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			if(new_service->check_period!=NULL)
-				my_free((void **)&new_service->check_period);
-			if(new_service->notification_period!=NULL)
-				my_free((void **)&new_service->notification_period);
-			if(new_service->event_handler!=NULL)
-				my_free((void **)&new_service->event_handler);
-			my_free((void **)&new_service->service_check_command);
-			my_free((void **)&new_service->description);
-			my_free((void **)&new_service->host_name);
-			my_free((void **)&new_service);
-			return NULL;
-		        }
-	        }
-	else
-		new_service->failure_prediction_options=NULL;
 
-	if(notes!=NULL)
-		new_service->notes=(char *)strdup(notes);
-	else
-		new_service->notes=NULL;
-	if(notes_url!=NULL)
-		new_service->notes_url=(char *)strdup(notes_url);
-	else
-		new_service->notes_url=NULL;
-	if(action_url!=NULL)
-		new_service->action_url=(char *)strdup(action_url);
-	else
-		new_service->action_url=NULL;
-	if(icon_image!=NULL)
-		new_service->icon_image=(char *)strdup(icon_image);
-	else
-		new_service->icon_image=NULL;
-	if(icon_image_alt!=NULL)
-		new_service->icon_image_alt=(char *)strdup(icon_image_alt);
-	else
-		new_service->icon_image_alt=NULL;
-
-
-	new_service->display_name=(char *)strdup((display_name==NULL)?description:display_name);
+	/* initialize vars */
+	new_service->host_name=NULL;
+	new_service->description=NULL;
+	new_service->display_name=NULL;
+	new_service->event_handler=NULL;
+	new_service->notification_period=NULL;
+	new_service->check_period=NULL;
+	new_service->failure_prediction_options=NULL;
+	new_service->notes=NULL;
+	new_service->notes_url=NULL;
+	new_service->action_url=NULL;
+	new_service->icon_image=NULL;
+	new_service->icon_image_alt=NULL;
 	new_service->contact_groups=NULL;
+	new_service->custom_variables=NULL;
+#ifdef NSCORE
+	new_service->plugin_output=NULL;
+	new_service->long_plugin_output=NULL;
+	new_service->perf_data=NULL;
+#endif
+	new_service->next=NULL;
+	new_service->nexthash=NULL;
+
+	/* duplicate vars */
+	if((new_service->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+	if((new_service->description=(char *)strdup(description))==NULL)
+		result=ERROR;
+	if((new_service->display_name=(char *)strdup((display_name==NULL)?description:display_name))==NULL)
+		result=ERROR;
+	if((new_service->service_check_command=(char *)strdup(check_command))==NULL)
+		result=ERROR;
+	if(event_handler){
+		if((new_service->event_handler=(char *)strdup(event_handler))==NULL)
+			result=ERROR;
+	        }
+	if(notification_period){
+		if((new_service->notification_period=(char *)strdup(notification_period))==NULL)
+			result=ERROR;
+	        }
+	if(check_period){
+		if((new_service->check_period=(char *)strdup(check_period))==NULL)
+			result=ERROR;
+	        }
+	if(failure_prediction_options){
+		if((new_service->failure_prediction_options=(char *)strdup(failure_prediction_options))==NULL)
+			result=ERROR;
+	        }
+	if(notes){
+		if((new_service->notes=(char *)strdup(notes))==NULL)
+			result=ERROR;
+	        }
+	if(notes_url){
+		if((new_service->notes_url=(char *)strdup(notes_url))==NULL)
+			result=ERROR;
+	        }
+	if(action_url){
+		if((new_service->action_url=(char *)strdup(action_url))==NULL)
+			result=ERROR;
+	        }
+	if(icon_image){
+		if((new_service->icon_image=(char *)strdup(icon_image))==NULL)
+			result=ERROR;
+	        }
+	if(icon_image_alt){
+		if((new_service->icon_image_alt=(char *)strdup(icon_image_alt))==NULL)
+			result=ERROR;
+	        }
+
 	new_service->check_interval=check_interval;
 	new_service->retry_interval=retry_interval;
 	new_service->max_attempts=max_attempts;
@@ -3224,12 +2167,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->notifications_enabled=(notifications_enabled>0)?TRUE:FALSE;
 	new_service->obsess_over_service=(obsess_over_service>0)?TRUE:FALSE;
 	new_service->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
-	new_service->custom_variables=NULL;
-
 #ifdef NSCORE
-	new_service->plugin_output=NULL;
-	new_service->long_plugin_output=NULL;
-	new_service->perf_data=NULL;
 	new_service->problem_has_been_acknowledged=FALSE;
 	new_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
 	new_service->check_type=SERVICE_CHECK_ACTIVE;
@@ -3276,33 +2214,25 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->modified_attributes=MODATTR_NONE;
 #endif
 
-	new_service->next=NULL;
-	new_service->nexthash=NULL;
-
 	/* add new service to service chained hash list */
-	if(!add_service_to_hashlist(new_service)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service list to add new service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+	if(result==OK){
+		if(!add_service_to_hashlist(new_service))
+			result=ERROR;
+	        }
 
-		if(new_service->perf_data!=NULL)
-			my_free((void **)&new_service->perf_data);
-		if(new_service->plugin_output)
-			my_free((void **)&new_service->plugin_output);
+	/* handle errors */
+	if(result==ERROR){
+#ifdef NSCORE
+		my_free((void **)&new_service->perf_data);
+		my_free((void **)&new_service->plugin_output);
+		my_free((void **)&new_service->long_plugin_output);
 #endif
-		if(new_service->failure_prediction_options!=NULL)
-			my_free((void **)&new_service->failure_prediction_options);
-		if(new_service->notification_period!=NULL)
-			my_free((void **)&new_service->notification_period);
-		if(new_service->event_handler!=NULL)
-			my_free((void **)&new_service->event_handler);
-		if(new_service->service_check_command)
-			my_free((void **)&new_service->service_check_command);
-		if(new_service->description)
-			my_free((void **)&new_service->description);
-		if(new_service->host_name)
-			my_free((void **)&new_service->host_name);
+		my_free((void **)&new_service->failure_prediction_options);
+		my_free((void **)&new_service->notification_period);
+		my_free((void **)&new_service->event_handler);
+		my_free((void **)&new_service->service_check_command);
+		my_free((void **)&new_service->description);
+		my_free((void **)&new_service->host_name);
 		my_free((void **)&new_service);
 		return NULL;
 	        }
@@ -3349,9 +2279,10 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 
 /* adds a contact group to a service */
 contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
-	contactgroupsmember *new_contactgroupsmember;
+	contactgroupsmember *new_contactgroupsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -3359,43 +2290,28 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 #endif
 
 	/* bail out if we weren't given the data we need */
-	if(svc==NULL || group_name==NULL){
+	if(svc==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service or contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Service or contactgroup name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for the contactgroups member */
-	new_contactgroupsmember=malloc(sizeof(contactgroupsmember));
-	if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' for service '%s' on host '%s'\n",group_name,svc->description,svc->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contactgroupsmember=malloc(sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-	        }
-	new_contactgroupsmember->group_name=(char *)strdup(group_name);
-	if(new_contactgroupsmember->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for service '%s' on host '%s'\n",group_name,svc->description,svc->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+
+	/* initialize vars */
+	new_contactgroupsmember->group_name=NULL;
+	
+	/* duplicate vars */
+	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_contactgroupsmember);
 		return NULL;
 	        }
@@ -3423,10 +2339,10 @@ customvariablesmember *add_custom_variable_to_service(service *svc, char *varnam
 
 /* add a new command to the list in memory */
 command *add_command(char *name,char *value){
-	command *new_command;
-	command *temp_command;
+	command *new_command=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -3434,80 +2350,50 @@ command *add_command(char *name,char *value){
 #endif
 
 	/* make sure we have the data we need */
-	if(name==NULL || value==NULL){
+	if((name==NULL || !strcmp(name,"")) || (value==NULL || !strcmp(value,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Command name of command line is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Command name of command line is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(name);
-	strip(value);
-
-	if(!strcmp(name,"") || !strcmp(value,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Command name of command line is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* make sure there isn't a command by this name added already */
-	temp_command=find_command(name);
-	if(temp_command!=NULL){
+	if(find_command(name)!=NULL){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Command '%s' has already been defined\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Command '%s' has already been defined\n",name);
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for the new command */
-	new_command=(command *)malloc(sizeof(command));
-	if(new_command==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_command=(command *)malloc(sizeof(command)))==NULL)
 		return NULL;
-	        }
-	new_command->name=(char *)strdup(name);
-	if(new_command->name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command '%s' name\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_command);
-		return NULL;
-	        }
-	new_command->command_line=(char *)strdup(value);
-	if(new_command->command_line==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command '%s' alias\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_command->name);
-		my_free((void **)&new_command);
-		return NULL;
-	        }
 
+	/* initialize vars */
+	new_command->name=NULL;
+	new_command->command_line=NULL;
 	new_command->next=NULL;
 	new_command->nexthash=NULL;
 
+	/* duplicate vars */
+	if((new_command->name=(char *)strdup(name))==NULL)
+		result=ERROR;
+	if((new_command->command_line=(char *)strdup(value))==NULL)
+		result=ERROR;
+
 	/* add new command to command chained hash list */
-	if(!add_command_to_hashlist(new_command)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for command list to add command '%s'\n",name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_command_to_hashlist(new_command))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_command->command_line);
 		my_free((void **)&new_command->name);
 		my_free((void **)&new_command);
 		return NULL;
@@ -3544,9 +2430,10 @@ command *add_command(char *name,char *value){
 
 /* add a new service escalation to the list in memory */
 serviceescalation *add_serviceescalation(char *host_name,char *description,int first_notification,int last_notification, int notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery){
-	serviceescalation *new_serviceescalation;
+	serviceescalation *new_serviceescalation=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -3554,85 +2441,36 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 #endif
 
 	/* make sure we have the data we need */
-	if(host_name==NULL || description==NULL){
+	if((host_name==NULL || !strcmp(host_name,"")) || (description==NULL || !strcmp(description,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service escalation host name or description is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Service escalation host name or description is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(host_name);
-	strip(description);
-
-	if(!strcmp(host_name,"") || !strcmp(description,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service escalation host name or description is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* check options */
-	if(escalate_on_warning<0 || escalate_on_warning>1 || escalate_on_unknown<0 || escalate_on_unknown>1 || escalate_on_critical<0 || escalate_on_critical>1 || escalate_on_recovery<0 || escalate_on_recovery>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid escalation options in service '%s' on host '%s' escalation\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new service escalation entry */
-	new_serviceescalation=malloc(sizeof(serviceescalation));
-	if(new_serviceescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_serviceescalation=malloc(sizeof(serviceescalation)))==NULL)
 		return NULL;
-	        }
-	new_serviceescalation->host_name=(char *)strdup(host_name);
-	if(new_serviceescalation->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation host name\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_serviceescalation);
-		return NULL;
-	        }
-	new_serviceescalation->description=(char *)strdup(description);
-	if(new_serviceescalation->description==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation description\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_serviceescalation->host_name);
-		my_free((void **)&new_serviceescalation);
-		return NULL;
-	        }
-	if(escalation_period==NULL)
-		new_serviceescalation->escalation_period=NULL;
-	else{
-		new_serviceescalation->escalation_period=(char *)strdup(escalation_period);
-		if(new_serviceescalation->escalation_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' escalation period\n",description,host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_serviceescalation->host_name);
-			my_free((void **)&new_serviceescalation->description);
-			my_free((void **)&new_serviceescalation);
-			return NULL;
-		        }
-	        }
 
+	/* initialize vars */
+	new_serviceescalation->host_name=NULL;
+	new_serviceescalation->description=NULL;
+	new_serviceescalation->escalation_period=NULL;
+	new_serviceescalation->contact_groups=NULL;
+	new_serviceescalation->next=NULL;
+	new_serviceescalation->nexthash=NULL;
+
+	/* duplicate vars */
+	if((new_serviceescalation->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+	if((new_serviceescalation->description=(char *)strdup(description))==NULL)
+		result=ERROR;
+	if(escalation_period){
+		if((new_serviceescalation->escalation_period=(char *)strdup(escalation_period))==NULL)
+			result=ERROR;
+	        }
 
 	new_serviceescalation->first_notification=first_notification;
 	new_serviceescalation->last_notification=last_notification;
@@ -3641,18 +2479,15 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 	new_serviceescalation->escalate_on_warning=(escalate_on_warning>0)?TRUE:FALSE;
 	new_serviceescalation->escalate_on_unknown=(escalate_on_unknown>0)?TRUE:FALSE;
 	new_serviceescalation->escalate_on_critical=(escalate_on_critical>0)?TRUE:FALSE;
-	new_serviceescalation->contact_groups=NULL;
-
-	new_serviceescalation->next=NULL;
-	new_serviceescalation->nexthash=NULL;
 
 	/* add new serviceescalation to serviceescalation chained hash list */
-	if(!add_serviceescalation_to_hashlist(new_serviceescalation)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for serviceescalation list to add escalation for service '%s' on host '%s'\n",description,host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_serviceescalation_to_hashlist(new_serviceescalation))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_serviceescalation->host_name);
 		my_free((void **)&new_serviceescalation->description);
 		my_free((void **)&new_serviceescalation->escalation_period);
@@ -3695,9 +2530,10 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 
 /* adds a contact group to a service escalation */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se,char *group_name){
-	contactgroupsmember *new_contactgroupsmember;
+	contactgroupsmember *new_contactgroupsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -3705,43 +2541,29 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 #endif
 
 	/* bail out if we weren't given the data we need */
-	if(se==NULL || group_name==NULL){
+	if(se==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Service escalation or contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Service escalation or contactgroup name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for the contactgroups member */
-	new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember));
-	if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' for service '%s' on host '%s' escalation\n",group_name,se->description,se->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-	        }
-	new_contactgroupsmember->group_name=(char *)strdup(group_name);
-	if(new_contactgroupsmember->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for service '%s' on host '%s' escalation\n",group_name,se->description,se->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+
+	/* initialize vars */
+	new_contactgroupsmember->group_name=NULL;
+
+	/* duplicate vars */
+	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_contactgroupsmember->group_name);
 		my_free((void **)&new_contactgroupsmember);
 		return NULL;
 	        }
@@ -3761,9 +2583,10 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 /* adds a service dependency definition */
 servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending){
-	servicedependency *new_servicedependency;
+	servicedependency *new_servicedependency=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -3771,139 +2594,36 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 #endif
 
 	/* make sure we have what we need */
-	if(dependent_host_name==NULL || dependent_service_description==NULL || host_name==NULL || service_description==NULL){
+	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (dependent_service_description==NULL || !strcmp(dependent_service_description,"")) || (host_name==NULL || !strcmp(host_name,"")) || (service_description==NULL || !strcmp(service_description,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: NULL service description/host name in service dependency definition\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: NULL service description/host name in service dependency definition\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
-
-	strip(dependent_host_name);
-	strip(dependent_service_description);
-	strip(host_name);
-	strip(service_description);
-
-	if(!strcmp(dependent_host_name,"") || !strcmp(dependent_service_description,"") || !strcmp(host_name,"") || !strcmp(service_description,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: NULL service description/host name in service dependency definition\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_ok<0 || fail_on_ok>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_ok value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_warning<0 || fail_on_warning>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_warning value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_unknown<0 || fail_on_unknown>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_unknown value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_critical<0 || fail_on_critical>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_critical value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_pending<0 || fail_on_pending>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_pending value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(inherits_parent<0 || inherits_parent>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid inherits_parent value for service '%s' on host '%s' dependency definition\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-                }
 
 	/* allocate memory for a new service dependency entry */
-	new_servicedependency=(servicedependency *)malloc(sizeof(servicedependency));
-	if(new_servicedependency==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_servicedependency=(servicedependency *)malloc(sizeof(servicedependency)))==NULL)
 		return NULL;
-	        }
-	new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name);
-	if(new_servicedependency->dependent_host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_servicedependency);
-		return NULL;
-	        }
-	new_servicedependency->dependent_service_description=(char *)strdup(dependent_service_description);
-	if(new_servicedependency->dependent_service_description==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_servicedependency);
-		my_free((void **)&new_servicedependency->dependent_host_name);
-		return NULL;
-	        }
-	new_servicedependency->host_name=(char *)strdup(host_name);
-	if(new_servicedependency->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_servicedependency);
-		my_free((void **)&new_servicedependency->dependent_host_name);
-		my_free((void **)&new_servicedependency->dependent_service_description);
-		return NULL;
-	        }
-	new_servicedependency->service_description=(char *)strdup(service_description);
-	if(new_servicedependency->service_description==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for service '%s' on host '%s' dependency\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_servicedependency);
-		my_free((void **)&new_servicedependency->dependent_host_name);
-		my_free((void **)&new_servicedependency->dependent_service_description);
-		my_free((void **)&new_servicedependency->host_name);
-		return NULL;
-	        }
+
+	/* initialize vars */
+	new_servicedependency->dependent_host_name=NULL;
+	new_servicedependency->dependent_service_description=NULL;
+	new_servicedependency->host_name=NULL;
+	new_servicedependency->service_description=NULL;
+	new_servicedependency->next=NULL;
+	new_servicedependency->nexthash=NULL;
+
+	/* duplicate vars */
+	if((new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+		result=ERROR;
+	if((new_servicedependency->dependent_service_description=(char *)strdup(dependent_service_description))==NULL)
+		result=ERROR;
+	if((new_servicedependency->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+	if((new_servicedependency->service_description=(char *)strdup(service_description))==NULL)
+		result=ERROR;
 
 	new_servicedependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
 	new_servicedependency->inherits_parent=(inherits_parent>0)?TRUE:FALSE;
@@ -3912,22 +2632,19 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->fail_on_unknown=(fail_on_unknown==1)?TRUE:FALSE;
 	new_servicedependency->fail_on_critical=(fail_on_critical==1)?TRUE:FALSE;
 	new_servicedependency->fail_on_pending=(fail_on_pending==1)?TRUE:FALSE;
-
 #ifdef NSCORE
 	new_servicedependency->circular_path_checked=FALSE;
 	new_servicedependency->contains_circular_path=FALSE;
 #endif
 
-	new_servicedependency->next=NULL;
-	new_servicedependency->nexthash=NULL;
-
 	/* add new servicedependency to servicedependency chained hash list */
-	if(!add_servicedependency_to_hashlist(new_servicedependency)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for servicedependency list to add dependency for service '%s' on host '%s'\n",dependent_service_description,dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_servicedependency_to_hashlist(new_servicedependency))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_servicedependency->host_name);
 		my_free((void **)&new_servicedependency->service_description);
 		my_free((void **)&new_servicedependency->dependent_host_name);
@@ -3962,9 +2679,10 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 /* adds a host dependency definition */
 hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending){
-	hostdependency *new_hostdependency;
+	hostdependency *new_hostdependency=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -3972,94 +2690,30 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 #endif
 
 	/* make sure we have what we need */
-	if(dependent_host_name==NULL || host_name==NULL){
+	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (host_name==NULL || !strcmp(host_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: NULL host name in host dependency definition\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: NULL host name in host dependency definition\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(dependent_host_name);
-	strip(host_name);
-
-	if(!strcmp(dependent_host_name,"") || !strcmp(host_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: NULL host name in host dependency definition\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_up<0 || fail_on_up>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_up value for host '%s' dependency definition\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_down<0 || fail_on_down>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_down value for host '%s' dependency definition\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_unreachable<0 || fail_on_unreachable>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_unreachable value for host '%s' dependency definition\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	if(fail_on_pending<0 || fail_on_pending>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid fail_on_pending value for host '%s' dependency definition\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new host dependency entry */
-	new_hostdependency=(hostdependency *)malloc(sizeof(hostdependency));
-	if(new_hostdependency==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' dependency\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_hostdependency=(hostdependency *)malloc(sizeof(hostdependency)))==NULL)
 		return NULL;
-	        }
-	new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name);
-	if(new_hostdependency->dependent_host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' dependency\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostdependency);
-		return NULL;
-	        }
-	new_hostdependency->host_name=(char *)strdup(host_name);
-	if(new_hostdependency->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' dependency\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostdependency);
-		my_free((void **)&new_hostdependency->dependent_host_name);
-		return NULL;
-	        }
+
+	/* initialize vars */
+	new_hostdependency->dependent_host_name=NULL;
+	new_hostdependency->host_name=NULL;
+	new_hostdependency->next=NULL;
+	new_hostdependency->nexthash=NULL;
+
+	/* duplicate vars */
+	if((new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+		result=ERROR;
+	if((new_hostdependency->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
 
 	new_hostdependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
 	new_hostdependency->inherits_parent=(inherits_parent>0)?TRUE:FALSE;
@@ -4067,22 +2721,19 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	new_hostdependency->fail_on_down=(fail_on_down==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_unreachable=(fail_on_unreachable==1)?TRUE:FALSE;
 	new_hostdependency->fail_on_pending=(fail_on_pending==1)?TRUE:FALSE;
-
 #ifdef NSCORE
 	new_hostdependency->circular_path_checked=FALSE;
 	new_hostdependency->contains_circular_path=FALSE;
 #endif
 
-	new_hostdependency->next=NULL;
-	new_hostdependency->nexthash=NULL;
-
 	/* add new hostdependency to hostdependency chained hash list */
-	if(!add_hostdependency_to_hashlist(new_hostdependency)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostdependency list to add dependency for host '%s'\n",dependent_host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_hostdependency_to_hashlist(new_hostdependency))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_hostdependency->host_name);
 		my_free((void **)&new_hostdependency->dependent_host_name);
 		my_free((void **)&new_hostdependency);
@@ -4116,9 +2767,10 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 /* add a new host escalation to the list in memory */
 hostescalation *add_hostescalation(char *host_name,int first_notification,int last_notification, int notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery){
-	hostescalation *new_hostescalation;
+	hostescalation *new_hostescalation=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -4126,70 +2778,32 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 #endif
 
 	/* make sure we have the data we need */
-	if(host_name==NULL){
+	if(host_name==NULL || !strcmp(host_name,"")){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host escalation host name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host escalation host name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(host_name);
-
-	if(!strcmp(host_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host escalation host name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* check options */
-	if(escalate_on_down<0 || escalate_on_down>1 || escalate_on_unreachable<0 || escalate_on_unreachable>1 || escalate_on_recovery<0 || escalate_on_recovery>1){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Invalid escalation options in host '%s' escalation\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for a new host escalation entry */
-	new_hostescalation=malloc(sizeof(hostescalation));
-	if(new_hostescalation==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' escalation\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_hostescalation=malloc(sizeof(hostescalation)))==NULL)
 		return NULL;
-	        }
-	new_hostescalation->host_name=(char *)strdup(host_name);
-	if(new_hostescalation->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' escalation host name\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostescalation);
-		return NULL;
-	        }
-	if(escalation_period==NULL)
-		new_hostescalation->escalation_period=NULL;
-	else{
-		new_hostescalation->escalation_period=(char *)strdup(escalation_period);
-		if(new_hostescalation->escalation_period==NULL){
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' escalation period\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			my_free((void **)&new_hostescalation->host_name);
-			my_free((void **)&new_hostescalation);
-			return NULL;
-		        }
+
+	/* initialize vars */
+	new_hostescalation->host_name=NULL;
+	new_hostescalation->escalation_period=NULL;
+	new_hostescalation->contact_groups=NULL;
+	new_hostescalation->next=NULL;
+	new_hostescalation->nexthash=NULL;
+
+	/* duplicate vars */
+	if((new_hostescalation->host_name=(char *)strdup(host_name))==NULL)
+		result=ERROR;
+	if(escalation_period){
+		if((new_hostescalation->escalation_period=(char *)strdup(escalation_period))==NULL)
+			result=ERROR;
 	        }
 
 	new_hostescalation->first_notification=first_notification;
@@ -4198,18 +2812,15 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	new_hostescalation->escalate_on_recovery=(escalate_on_recovery>0)?TRUE:FALSE;
 	new_hostescalation->escalate_on_down=(escalate_on_down>0)?TRUE:FALSE;
 	new_hostescalation->escalate_on_unreachable=(escalate_on_unreachable>0)?TRUE:FALSE;
-	new_hostescalation->contact_groups=NULL;
-
-	new_hostescalation->next=NULL;
-	new_hostescalation->nexthash=NULL;
 
 	/* add new hostescalation to hostescalation chained hash list */
-	if(!add_hostescalation_to_hashlist(new_hostescalation)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostescalation list to add escalation for host '%s'\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if(result==OK){
+		if(!add_hostescalation_to_hashlist(new_hostescalation))
+			result=ERROR;
+	        }
+
+	/* handle errors */
+	if(result==ERROR){
 		my_free((void **)&new_hostescalation->host_name);
 		my_free((void **)&new_hostescalation->escalation_period);
 		my_free((void **)&new_hostescalation);
@@ -4250,9 +2861,10 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 
 /* adds a contact group to a host escalation */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char *group_name){
-	contactgroupsmember *new_contactgroupsmember;
+	contactgroupsmember *new_contactgroupsmember=NULL;
+	int result=OK;
 #ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -4260,43 +2872,29 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 #endif
 
 	/* bail out if we weren't given the data we need */
-	if(he==NULL || group_name==NULL){
+	if(he==NULL || (group_name==NULL || !strcmp(group_name,""))){
 #ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host escalation or contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Host escalation or contactgroup name is NULL\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	strip(group_name);
-
-	if(!strcmp(group_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Contactgroup name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 #endif
 		return NULL;
 	        }
 
 	/* allocate memory for the contactgroups member */
-	new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember));
-	if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' for host '%s' escalation\n",group_name,he->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+	if((new_contactgroupsmember=(contactgroupsmember *)malloc(sizeof(contactgroupsmember)))==NULL)
 		return NULL;
-	        }
-	new_contactgroupsmember->group_name=(char *)strdup(group_name);
-	if(new_contactgroupsmember->group_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for contact group '%s' name for host '%s' escalation\n",group_name,he->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
+
+	/* initialize vars */
+	new_contactgroupsmember->group_name=NULL;
+
+	/* duplicate vars */
+	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_contactgroupsmember->group_name);
 		my_free((void **)&new_contactgroupsmember);
 		return NULL;
 	        }
@@ -5533,8 +4131,8 @@ int free_object_data(void){
 	hostdependency *next_hostdependency=NULL;
 	hostescalation *this_hostescalation=NULL;
 	hostescalation *next_hostescalation=NULL;
-	int day;
-	int i;
+	register int day=0;
+	register int i=0;
 
 #ifdef DEBUG0
 	printf("free_object_data() start\n");

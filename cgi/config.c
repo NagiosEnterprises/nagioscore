@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2006
+ * Last Modified: 03-04-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -49,7 +49,6 @@ extern servicedependency *servicedependency_list;
 extern serviceescalation *serviceescalation_list;
 extern hostdependency *hostdependency_list;
 extern hostescalation *hostescalation_list;
-extern hostextinfo *hostextinfo_list;
 
 
 #define DISPLAY_NONE                     0
@@ -65,7 +64,6 @@ extern hostextinfo *hostextinfo_list;
 #define DISPLAY_SERVICEESCALATIONS       10
 #define DISPLAY_HOSTDEPENDENCIES         11
 #define DISPLAY_HOSTESCALATIONS          12
-#define DISPLAY_HOSTEXTINFO              13
 #define DISPLAY_SERVICEGROUPS            15
 
 void document_header(int);
@@ -86,7 +84,6 @@ void display_servicedependencies(void);
 void display_serviceescalations(void);
 void display_hostdependencies(void);
 void display_hostescalations(void);
-void display_hostextinfo(void);
 
 void unauthorized_message(void);
 
@@ -172,7 +169,6 @@ int main(void){
 		printf("<option value='contactgroups' %s>Contact Groups\n",(display_type==DISPLAY_CONTACTGROUPS)?"SELECTED":"");
 		printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
 		printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
-		printf("<option value='hostextinfo' %s>Extended Host Information\n",(display_type==DISPLAY_HOSTEXTINFO)?"SELECTED":"");
 		printf("</select>\n");
 		printf("</td></tr>\n");
 
@@ -218,9 +214,6 @@ int main(void){
 		break;
 	case DISPLAY_HOSTESCALATIONS:
 		display_context_help(CONTEXTHELP_CONFIG_HOSTESCALATIONS);
-		break;
-	case DISPLAY_HOSTEXTINFO:
-		display_context_help(CONTEXTHELP_CONFIG_HOSTEXTINFO);
 		break;
 	default:
 		display_context_help(CONTEXTHELP_CONFIG_MENU);
@@ -270,9 +263,6 @@ int main(void){
 		break;
 	case DISPLAY_HOSTESCALATIONS:
 		display_hostescalations();
-		break;
-	case DISPLAY_HOSTEXTINFO:
-		display_hostextinfo();
 		break;
 	default:
 		display_options();
@@ -389,8 +379,6 @@ int process_cgivars(void){
 				display_type=DISPLAY_HOSTDEPENDENCIES;
 			else if(!strcmp(variables[x],"hostescalations"))
 				display_type=DISPLAY_HOSTESCALATIONS;
-			else if(!strcmp(variables[x],"hostextinfo"))
-				display_type=DISPLAY_HOSTEXTINFO;
 
 			/* we found the embed option */
 			else if(!strcmp(variables[x],"embedded"))
@@ -459,6 +447,15 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Process Performance Data</TH>");
 	printf("<TH CLASS='data'>Enable Failure Prediction</TH>");
 	printf("<TH CLASS='data'>Failure Prediction Options</TH>");
+	printf("<TH CLASS='data'>Notes</TH>");
+	printf("<TH CLASS='data'>Notes URL</TH>");
+	printf("<TH CLASS='data'>Action URL</TH>");
+	printf("<TH CLASS='data'>2-D Coords</TH>");
+	printf("<TH CLASS='data'>3-D Coords</TH>");
+	printf("<TH CLASS='data'>Statusmap Image</TH>");
+	printf("<TH CLASS='data'>VRML Image</TH>");
+	printf("<TH CLASS='data'>Logo Image</TH>");
+	printf("<TH CLASS='data'>Image Alt</TH>");
 	printf("<TH CLASS='data'>Retention Options</TH>");
 	printf("</TR>\n");
 
@@ -640,6 +637,39 @@ void display_hosts(void){
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,(temp_host->failure_prediction_options==NULL)?"&nbsp;":temp_host->failure_prediction_options);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->notes==NULL)?"&nbsp;":temp_host->notes);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->notes_url==NULL)?"&nbsp;":temp_host->notes_url);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->action_url==NULL)?"&nbsp;":temp_host->action_url);
+
+		if(temp_host->have_2d_coords==FALSE)
+			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
+		else
+			printf("<TD CLASS='%s'>%d,%d</TD>",bg_class,temp_host->x_2d,temp_host->y_2d);
+
+		if(temp_host->have_3d_coords==FALSE)
+			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
+		else
+			printf("<TD CLASS='%s'>%.2f,%.2f,%.2f</TD>",bg_class,temp_host->x_3d,temp_host->y_3d,temp_host->z_3d);
+
+		if(temp_host->statusmap_image==NULL)
+			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
+		else
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->statusmap_image,temp_host->statusmap_image);
+
+		if(temp_host->vrml_image==NULL)
+			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
+		else
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->vrml_image,temp_host->vrml_image);
+
+		if(temp_host->icon_image==NULL)
+			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
+		else
+			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_host->icon_image,temp_host->icon_image);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_host->icon_image_alt==NULL)?"&nbsp;":temp_host->icon_image_alt);
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=0;
@@ -1893,94 +1923,6 @@ void display_hostescalations(void){
         }
 
 
-void display_hostextinfo(void){
-	hostextinfo *temp_hostextinfo;
-	int odd=0;
-	char *bg_class="";
-
-	/* see if user is authorized to view hostdependency information... */
-	if(is_authorized_for_configuration_information(&current_authdata)==FALSE){
-		unauthorized_message();
-		return;
-	        }
-
-	/* read in command definitions... */
-	read_all_object_configuration_data(main_config_file,READ_HOSTEXTINFO);
-
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Extended Host Information</DIV></P>\n");
-
-	printf("<P>\n");
-	printf("<DIV ALIGN=CENTER>\n");
-
-	printf("<TABLE BORDER=0 CLASS='data'>\n");
-	printf("<TR>\n");
-	printf("<TH CLASS='data'>Host</TH>");
-	printf("<TH CLASS='data'>Notes URL</TH>");
-	printf("<TH CLASS='data'>2-D Coords</TH>");
-	printf("<TH CLASS='data'>3-D Coords</TH>");
-	printf("<TH CLASS='data'>Statusmap Image</TH>");
-	printf("<TH CLASS='data'>VRML Image</TH>");
-	printf("<TH CLASS='data'>Logo Image</TH>");
-	printf("<TH CLASS='data'>Image Alt</TH>");
-	printf("</TR>\n");
-
-	/* check all the definitions... */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-
-		if(odd){
-			odd=0;
-			bg_class="dataOdd";
-		        }
-		else{
-			odd=1;
-			bg_class="dataEven";
-		        }
-
-		printf("<TR CLASS='%s'>\n",bg_class);
-
-		printf("<TD CLASS='%s'><A HREF='%s?type=hosts#%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hostextinfo->host_name),temp_hostextinfo->host_name);
-
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostextinfo->notes_url==NULL)?"&nbsp;":temp_hostextinfo->notes_url);
-
-		if(temp_hostextinfo->have_2d_coords==FALSE)
-			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s'>%d,%d</TD>",bg_class,temp_hostextinfo->x_2d,temp_hostextinfo->y_2d);
-
-		if(temp_hostextinfo->have_3d_coords==FALSE)
-			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s'>%.2f,%.2f,%.2f</TD>",bg_class,temp_hostextinfo->x_3d,temp_hostextinfo->y_3d,temp_hostextinfo->z_3d);
-
-		if(temp_hostextinfo->statusmap_image==NULL)
-			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_hostextinfo->statusmap_image,temp_hostextinfo->statusmap_image);
-
-		if(temp_hostextinfo->vrml_image==NULL)
-			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_hostextinfo->vrml_image,temp_hostextinfo->vrml_image);
-
-		if(temp_hostextinfo->icon_image==NULL)
-			printf("<TD CLASS='%s'>&nbsp;</TD>",bg_class);
-		else
-			printf("<TD CLASS='%s' valign='center'><img src='%s%s' border='0' width='20' height='20'> %s</TD>",bg_class,url_logo_images_path,temp_hostextinfo->icon_image,temp_hostextinfo->icon_image);
-
-		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostextinfo->icon_image_alt==NULL)?"&nbsp;":temp_hostextinfo->icon_image_alt);
-
-		printf("</TR>\n");
-	        }
-
-	printf("</TABLE>\n");
-	printf("</DIV>\n");
-	printf("</P>\n");
-
-	return;
-        }
-
-
-
 
 void unauthorized_message(void){
 
@@ -2022,7 +1964,6 @@ void display_options(void){
 	printf("<option value='contactgroups' %s>Contact Groups\n",(display_type==DISPLAY_CONTACTGROUPS)?"SELECTED":"");
 	printf("<option value='timeperiods' %s>Timeperiods\n",(display_type==DISPLAY_TIMEPERIODS)?"SELECTED":"");
 	printf("<option value='commands' %s>Commands\n",(display_type==DISPLAY_COMMANDS)?"SELECTED":"");
-	printf("<option value='hostextinfo' %s>Extended Host Information\n",(display_type==DISPLAY_HOSTEXTINFO)?"SELECTED":"");
 	printf("</select>\n");
 	printf("</td></tr>\n");
 

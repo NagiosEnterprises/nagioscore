@@ -1311,9 +1311,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 PKG_NAME=nagios
-PKG_VERSION="3.0-prealpha-03012006"
+PKG_VERSION="3.0prealpha-03052006"
 PKG_HOME_URL="http://www.nagios.org/"
-PKG_REL_DATE="03-01-2006"
+PKG_REL_DATE="03-05-2006"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do

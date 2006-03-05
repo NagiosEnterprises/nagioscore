@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2006
+ * Last Modified:   03-05-2006
  *
  * License:
  *
@@ -76,8 +76,8 @@ int neb_deinit_modules(void){
 
 /* add a new module to module list */
 int neb_add_module(char *filename,char *args,int should_be_loaded){
-	nebmodule *new_module;
-	int x;
+	nebmodule *new_module=NULL;
+	int x=OK;
 
 	if(filename==NULL)
 		return ERROR;
@@ -113,17 +113,17 @@ int neb_add_module(char *filename,char *args,int should_be_loaded){
 
 /* free memory allocated to module list */
 int neb_free_module_list(void){
-	nebmodule *temp_module;
-	nebmodule *next_module;
-	int x;
+	nebmodule *temp_module=NULL;
+	nebmodule *next_module=NULL;
+	int x=OK;
 
 	for(temp_module=neb_module_list;temp_module;){
 		next_module=temp_module->next;
-		free(temp_module->filename);
-		free(temp_module->args);
+		my_free((void **)&temp_module->filename);
+		my_free((void **)&temp_module->args);
 		for(x=0;x<NEBMODULE_MODINFO_NUMITEMS;x++)
-			free(temp_module->info[x]);
-		free(temp_module);
+			my_free((void **)&temp_module->info[x]);
+		my_free((void **)&temp_module);
 		temp_module=next_module;
 	        }
 
@@ -143,8 +143,8 @@ int neb_free_module_list(void){
 
 /* load all modules */
 int neb_load_all_modules(void){
-	nebmodule *temp_module;
-	int result;
+	nebmodule *temp_module=NULL;
+	int result=OK;
 
 	for(temp_module=neb_module_list;temp_module;temp_module=temp_module->next){
 		result=neb_load_module(temp_module);
@@ -156,10 +156,10 @@ int neb_load_all_modules(void){
 
 /* load a particular module */
 int neb_load_module(nebmodule *mod){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int (*initfunc)(int,char *,void *);
-	int *module_version_ptr;
-	int result;
+	int *module_version_ptr=NULL;
+	int result=OK;
 
 	if(mod==NULL || mod->filename==NULL)
 		return ERROR;
@@ -181,12 +181,12 @@ int neb_load_module(nebmodule *mod){
 	if(mod->module_handle==NULL){
 
 #ifdef USE_LTDL
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Could not load module '%s' -> %s\n",mod->filename,lt_dlerror());
+		asprintf(&temp_buffer,"Error: Could not load module '%s' -> %s\n",mod->filename,lt_dlerror());
 #else
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Could not load module '%s' -> %s\n",mod->filename,dlerror());
+		asprintf(&temp_buffer,"Error: Could not load module '%s' -> %s\n",mod->filename,dlerror());
 #endif
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -204,9 +204,9 @@ int neb_load_module(nebmodule *mod){
 	/* check the module API version */
 	if(module_version_ptr==NULL || ((*module_version_ptr)!=CURRENT_NEB_API_VERSION)){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n",mod->filename);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Module '%s' is using an old or unspecified version of the event broker API.  Module will be unloaded.\n",mod->filename);
 		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
+		my_free((void **)&temp_buffer);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_API_VERSION);
 
@@ -223,9 +223,9 @@ int neb_load_module(nebmodule *mod){
 	/* if the init function could not be located, unload the module */
 	if(mod->init_func==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n",mod->filename);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Could not locate nebmodule_init() in module '%s'.  Module will be unloaded.\n",mod->filename);
 		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
+		my_free((void **)&temp_buffer);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_NO_INIT);
 
@@ -239,18 +239,18 @@ int neb_load_module(nebmodule *mod){
 	/* if the init function returned an error, unload the module */
 	if(result!=OK){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n",mod->filename);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Function nebmodule_init() in module '%s' returned an error.  Module will be unloaded.\n",mod->filename);
 		write_to_all_logs(temp_buffer,NSLOG_RUNTIME_ERROR);
+		my_free((void **)&temp_buffer);
 
 		neb_unload_module(mod,NEBMODULE_FORCE_UNLOAD,NEBMODULE_ERROR_BAD_INIT);
 
 		return ERROR;
 	        }
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"Event broker module '%s' initialized successfully.\n",mod->filename);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"Event broker module '%s' initialized successfully.\n",mod->filename);
 	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+	my_free((void **)&temp_buffer);
 
 	/* locate the de-initialization function (may or may not be present) */
 #ifdef USE_LTDL
@@ -294,9 +294,9 @@ int neb_unload_all_modules(int flags, int reason){
 
 /* close (unload) a particular module */
 int neb_unload_module(nebmodule *mod, int flags, int reason){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int (*deinitfunc)(int,int);
-	int result;
+	int result=OK;
 
 	if(mod==NULL)
 		return ERROR;
@@ -335,9 +335,9 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 	printf("Module '%s' unloaded successfully.\n",mod->filename);
 #endif
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"Event broker module '%s' deinitialized successfully.\n",mod->filename);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"Event broker module '%s' deinitialized successfully.\n",mod->filename);
 	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+	my_free((void **)&temp_buffer);
 
 	return OK;
         }
@@ -353,7 +353,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 
 /* sets module information */
 int neb_set_module_info(void *handle, int type, char *data){
-	nebmodule *mod;
+	nebmodule *mod=NULL;
 
 	if(handle==NULL)
 		return NEBERROR_NOMODULE;
@@ -366,16 +366,11 @@ int neb_set_module_info(void *handle, int type, char *data){
 	mod=(nebmodule *)handle;
 
 	/* free any previously allocated memory */
-	free(mod->info[type]);
+	my_free((void **)&mod->info[type]);
 
 	/* allocate memory for the new data */
-	if(data==NULL)
-		mod->info[type]=NULL;
-	else{
-		mod->info[type]=strdup(data);
-		if(mod->info[type]==NULL)
-			return NEBERROR_NOMEM;
-	        }
+	if((mod->info[type]=(char *)strdup(data))==NULL)
+		return NEBERROR_NOMEM;
 
 	return OK;
         }
@@ -390,10 +385,10 @@ int neb_set_module_info(void *handle, int type, char *data){
 
 /* allows a module to register a callback function */
 int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *)){
-	nebmodule *temp_module;
-	nebcallback *new_callback;
-	nebcallback *temp_callback;
-	nebcallback *last_callback;
+	nebmodule *temp_module=NULL;
+	nebcallback *new_callback=NULL;
+	nebcallback *temp_callback=NULL;
+	nebcallback *last_callback=NULL;
 
 	if(callback_func==NULL)
 		return NEBERROR_NOCALLBACKFUNC;
@@ -455,9 +450,9 @@ int neb_register_callback(int callback_type, void *mod_handle, int priority, int
 
 /* dregisters all callback functions for a given module */
 int neb_deregister_module_callbacks(nebmodule *mod){
-	nebcallback *temp_callback;
-	nebcallback *next_callback;
-	int callback_type;
+	nebcallback *temp_callback=NULL;
+	nebcallback *next_callback=NULL;
+	int callback_type=0;
 
 	if(mod==NULL)
 		return NEBERROR_NOMODULE;
@@ -480,8 +475,8 @@ int neb_deregister_module_callbacks(nebmodule *mod){
 
 /* allows a module to deregister a callback function */
 int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *)){
-	nebcallback *temp_callback;
-	nebcallback *last_callback;
+	nebcallback *temp_callback=NULL;
+	nebcallback *last_callback=NULL;
 	nebcallback *next_callback=NULL;
 
 	if(callback_func==NULL)
@@ -515,7 +510,7 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *))
 			neb_callback_list[callback_type]=NULL;
 		else
 			last_callback->next=next_callback;
-		free(temp_callback);
+		my_free((void **)&temp_callback);
 		}
 	
 	return OK;
@@ -525,9 +520,9 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *))
 
 /* make callbacks to modules */
 int neb_make_callbacks(int callback_type, void *data){
-	nebcallback *temp_callback;
+	nebcallback *temp_callback=NULL;
 	int (*callbackfunc)(int,void *);
-	int cbresult;
+	register int cbresult=0;
 
 	/* make sure callback list is initialized */
 	if(neb_callback_list==NULL)
@@ -553,7 +548,7 @@ int neb_make_callbacks(int callback_type, void *data){
 
 /* initialize callback list */
 int neb_init_callback_list(void){
-	int x;
+	register int x=0;
 
 	/* allocate memory for the callback list */
 	neb_callback_list=(nebcallback **)malloc(NEBCALLBACK_NUMITEMS*sizeof(nebcallback *));
@@ -570,9 +565,9 @@ int neb_init_callback_list(void){
 
 /* free memory allocated to callback list */
 int neb_free_callback_list(void){
-	nebcallback *temp_callback;
-	nebcallback *next_callback;
-	int x;
+	nebcallback *temp_callback=NULL;
+	nebcallback *next_callback=NULL;
+	register int x=0;
 
 	if(neb_callback_list==NULL)
 		return OK;
@@ -581,14 +576,13 @@ int neb_free_callback_list(void){
 
 		for(temp_callback=neb_callback_list[x];temp_callback!=NULL;temp_callback=next_callback){
 			next_callback=temp_callback->next;
-			free(temp_callback);
+			my_free((void **)&temp_callback);
 	                }
 
 		neb_callback_list[x]=NULL;
 	        }
 
-	free(neb_callback_list);
-	neb_callback_list=NULL;
+	my_free((void **)&neb_callback_list);
 
 	return OK;
         }

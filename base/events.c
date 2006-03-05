@@ -666,8 +666,8 @@ void display_scheduling_info(void){
 
 /* schedule a new timed event */
 int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args){
-	timed_event **event_list;
-	timed_event *new_event;
+	timed_event **event_list=NULL;
+	timed_event *new_event=NULL;
 
 #ifdef DEBUG0
 	printf("schedule_new_event() start\n");

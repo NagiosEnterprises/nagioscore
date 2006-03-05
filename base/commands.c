@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-06-2006
  *
  * License:
  *
@@ -96,7 +96,7 @@ extern circular_buffer external_command_buffer;
 
 /* checks for the existence of the external command file and processes all commands found in it */
 int check_for_external_commands(void){
-	char buffer[MAX_INPUT_BUFFER];
+	char *buffer=NULL;
 	int update_status=FALSE;
 
 #ifdef DEBUG0
@@ -137,15 +137,11 @@ int check_for_external_commands(void){
 			break;
 		        }
 
-		if(external_command_buffer.buffer[external_command_buffer.tail]){
-			strncpy(buffer,((char **)external_command_buffer.buffer)[external_command_buffer.tail],sizeof(buffer)-1);
-			buffer[sizeof(buffer)-1]='\x0';
-		        }
-		else
-			strcpy(buffer,"");
+		if(external_command_buffer.buffer[external_command_buffer.tail])
+			buffer=strdup(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
 
 		/* free memory allocated for buffer slot */
-		free(((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
+		my_free((void **)&((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
 
 		/* adjust tail counter and number of items */
 		external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
@@ -156,6 +152,9 @@ int check_for_external_commands(void){
 
 		/* process the command */
 		process_external_command1(buffer);
+
+		/* free memory */
+		my_free((void **)&buffer);
 	        }
 
 	/**** PROCESS ALL PASSIVE SERVICE CHECK RESULTS AT ONE TIME ****/
@@ -173,8 +172,8 @@ int check_for_external_commands(void){
 
 /* processes all external commands in a (regular) file */
 int process_external_commands_from_file(char *fname, int delete_file){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	mmapfile *thefile;
+	char *temp_buffer=NULL;
+	mmapfile *thefile=NULL;
 	char *input=NULL;
 
 #ifdef DEBUG0
@@ -186,9 +185,9 @@ int process_external_commands_from_file(char *fname, int delete_file){
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(fname))==NULL){
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Cannot open file '%s' to process external commands!",fname);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Error: Cannot open file '%s' to process external commands!",fname);
 		write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
 		}
 
@@ -196,7 +195,7 @@ int process_external_commands_from_file(char *fname, int delete_file){
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -224,7 +223,7 @@ int process_external_commands_from_file(char *fname, int delete_file){
 
 /* top-level external command processor */
 int process_external_command1(char *cmd){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	char *command_id=NULL;
 	char *args=NULL;
 	time_t entry_time=0L;
@@ -234,6 +233,9 @@ int process_external_command1(char *cmd){
 #ifdef DEBUG0
 	printf("process_external_command1() start\n");
 #endif
+
+	if(cmd==NULL)
+		return ERROR;
 
 	/* strip the command of newlines and carriage returns */
 	strip(cmd);
@@ -247,22 +249,21 @@ int process_external_command1(char *cmd){
 		return ERROR;
 	if((temp_ptr=my_strtok(NULL,"]"))==NULL)
 		return ERROR;
-	if(temp_ptr==NULL)
 	entry_time=(time_t)strtoul(temp_ptr,NULL,10);
 
 	/* get the command identifier */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
-	if((command_id=strdup(temp_ptr+1))==NULL)
+	if((command_id=(char *)strdup(temp_ptr+1))==NULL)
 		return ERROR;
 
 	/* get the command arguments */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
-		args=strdup("");
+		args=(char *)strdup("");
 	else
-		args=strdup(temp_ptr);
+		args=(char *)strdup(temp_ptr);
 	if(args==NULL){
-		free(command_id);
+		my_free((void **)&command_id);
 		return ERROR;
 	        }
 
@@ -679,20 +680,19 @@ int process_external_command1(char *cmd){
 	/**** UNKNOWN COMMAND ****/
 	else{
 		/* log the bad external command */
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Unrecognized external command -> %s;%s\n",command_id,args);
 		write_to_all_logs(temp_buffer,NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING);
+		my_free((void **)&temp_buffer);
 
 		/* free memory */
-		free(command_id);
-		free(args);
+		my_free((void **)&command_id);
+		my_free((void **)&args);
 
 		return ERROR;
 	        }
 
 	/* log the external command */
-	snprintf(temp_buffer,sizeof(temp_buffer),"EXTERNAL COMMAND: %s;%s\n",command_id,args);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args);
 	if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT){
 		if(log_passive_checks==TRUE)
 			write_to_all_logs(temp_buffer,NSLOG_PASSIVE_CHECK);
@@ -701,6 +701,7 @@ int process_external_command1(char *cmd){
 		if(log_external_commands==TRUE)
 			write_to_all_logs(temp_buffer,NSLOG_EXTERNAL_COMMAND);
 	        }
+	my_free((void **)&temp_buffer);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -716,8 +717,8 @@ int process_external_command1(char *cmd){
 #endif
 
 	/* free memory */
-	free(command_id);
-	free(args);
+	my_free((void **)&command_id);
+	my_free((void **)&args);
 
 #ifdef DEBUG0
 	printf("process_external_command1() end\n");
@@ -1111,7 +1112,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 int process_host_command(int cmd, time_t entry_time, char *args){
 	char *host_name=NULL;
 	host *temp_host=NULL;
-	service *temp_service;
+	service *temp_service=NULL;
 	char *str=NULL;
 	int intval=0;
 
@@ -1600,8 +1601,7 @@ int process_contactgroup_command(int cmd, time_t entry_time, char *args){
 		/* loop through all contactgroup members */
 		for(temp_member=temp_contactgroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
-			temp_contact=find_contact(temp_member->contact_name);
-			if(temp_contact==NULL)
+			if((temp_contact=find_contact(temp_member->contact_name))==NULL)
 				continue;
 
 			switch(cmd){
@@ -1784,42 +1784,37 @@ int cmd_delay_notification(int cmd,char *args){
 	service *temp_service=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
-	time_t delay_time;
+	time_t delay_time=0L;
 
 #ifdef DEBUG0
 	printf("cmd_delay_notification() start\n");
 #endif
 
 	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
+	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
 
 	/* if this is a service notification delay...  */
 	if(cmd==CMD_DELAY_SVC_NOTIFICATION){
 
 		/* get the service description */
-		svc_description=my_strtok(NULL,";");
-		if(svc_description==NULL)
+		if((svc_description=my_strtok(NULL,";"))==NULL)
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(host_name,svc_description);
-		if(temp_service==NULL)
+		if((temp_service=find_service(host_name,svc_description))==NULL)
 			return ERROR;
 	        }
 
 	/* else verify that the host is valid */
 	else{
 
-		temp_host=find_host(host_name);
-		if(temp_host==NULL)
+		if((temp_host=find_host(host_name))==NULL)
 			return ERROR;
 	        }
 
 	/* get the time that we should delay until... */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
 		return ERROR;
 	delay_time=strtoul(temp_ptr,NULL,10);
 
@@ -1839,11 +1834,11 @@ int cmd_delay_notification(int cmd,char *args){
 
 /* schedules a host check at a particular time */
 int cmd_schedule_check(int cmd,char *args){
-	char *temp_ptr;
+	char *temp_ptr=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	char *host_name="";
-	char *svc_description="";
+	char *host_name=NULL;
+	char *svc_description=NULL;
 	time_t delay_time=0L;
 
 #ifdef DEBUG0
@@ -1851,34 +1846,29 @@ int cmd_schedule_check(int cmd,char *args){
 #endif
 
 	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
+	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
 
 	if(cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_FORCED_HOST_CHECK || cmd==CMD_SCHEDULE_HOST_SVC_CHECKS || cmd==CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS){
 
 		/* verify that the host is valid */
-		temp_host=find_host(host_name);
-		if(temp_host==NULL)
+		if((temp_host=find_host(host_name))==NULL)
 			return ERROR;
 	        }
 	
 	else{
 
 		/* get the service description */
-		svc_description=my_strtok(NULL,";");
-		if(svc_description==NULL)
+		if((svc_description=my_strtok(NULL,";"))==NULL)
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(host_name,svc_description);
-		if(temp_service==NULL)
+		if((temp_service=find_service(host_name,svc_description))==NULL)
 			return ERROR;
 	        }
 
 	/* get the next check time */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
 		return ERROR;
 	delay_time=strtoul(temp_ptr,NULL,10);
 
@@ -1904,10 +1894,9 @@ int cmd_schedule_check(int cmd,char *args){
 
 /* schedules all service checks on a host for a particular time */
 int cmd_schedule_host_service_checks(int cmd,char *args, int force){
-	char *temp_ptr;
-	host *temp_host=NULL;
+	char *temp_ptr=NULL;
 	service *temp_service=NULL;
-	char *host_name="";
+	char *host_name=NULL;
 	time_t delay_time=0L;
 
 #ifdef DEBUG0
@@ -1915,18 +1904,15 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 #endif
 
 	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
+	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
+	if(find_host(host_name)==NULL)
 		return ERROR;
 
 	/* get the next check time */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
 		return ERROR;
 	delay_time=strtoul(temp_ptr,NULL,10);
 
@@ -1947,17 +1933,16 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 
 /* schedules a program shutdown or restart */
 int cmd_signal_process(int cmd, char *args){
-	time_t scheduled_time;
-	char *temp_ptr;
-	int result;
+	time_t scheduled_time=0L;
+	char *temp_ptr=NULL;
+	int result=OK;
 
 #ifdef DEBUG0
 	printf("cmd_signal_process() start\n");
 #endif
 
 	/* get the time to schedule the event */
-	temp_ptr=my_strtok(args,"\n");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(args,"\n"))==NULL)
 		scheduled_time=0L;
 	else
 		scheduled_time=strtoul(temp_ptr,NULL,10);
@@ -1976,54 +1961,50 @@ int cmd_signal_process(int cmd, char *args){
 
 /* processes results of an external service check */
 int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
-	char *temp_ptr;
-	char *host_name;
-	char *svc_description;
-	int return_code;
-	char *output;
-	int result;
+	char *temp_ptr=NULL;
+	char *host_name=NULL;
+	char *svc_description=NULL;
+	int return_code=0;
+	char *output=NULL;
+	int result=0;
 
 #ifdef DEBUG0
 	printf("cmd_process_service_check_result() start\n");
 #endif
 
 	/* get the host name */
-	temp_ptr=my_strtok(args,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	host_name=strdup(temp_ptr);
+	host_name=(char *)strdup(temp_ptr);
 
 	/* get the service description */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL){
-		free(host_name);
+	if((temp_ptr=my_strtok(NULL,";"))==NULL){
+		my_free((void **)&host_name);
 		return ERROR;
 	        }
-	svc_description=strdup(temp_ptr);
+	svc_description=(char *)strdup(temp_ptr);
 
 	/* get the service check return code */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL){
-		free(host_name);
-		free(svc_description);
+	if((temp_ptr=my_strtok(NULL,";"))==NULL){
+		my_free((void **)&host_name);
+		my_free((void **)&svc_description);
 		return ERROR;
 	        }
 	return_code=atoi(temp_ptr);
 
 	/* get the plugin output (may be empty) */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
-		output=strdup("");
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
+		output=(char *)strdup("");
 	else
-		output=strdup(temp_ptr);
+		output=(char *)strdup(temp_ptr);
 
 	/* submit the passive check result */
 	result=process_passive_service_check(check_time,host_name,svc_description,return_code,output);
 
 	/* free memory */
-	free(host_name);
-	free(svc_description);
-	free(output);
+	my_free((void **)&host_name);
+	my_free((void **)&svc_description);
+	my_free((void **)&output);
 
 #ifdef DEBUG0
 	printf("cmd_process_service_check_result() end\n");
@@ -2083,16 +2064,15 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 		return ERROR;
 
 	/* save the host name */
-	new_pcr->host_name=strdup(real_host_name);
-	if(new_pcr->host_name==NULL){
-		free(new_pcr);
+	if((new_pcr->host_name=(char *)strdup(real_host_name))==NULL){
+		my_free((void **)&new_pcr);
 		return ERROR;
 	        }
 
 	/* save the service description */
-	if((new_pcr->svc_description=strdup(svc_description))==NULL){
-		free(new_pcr->host_name);
-		free(new_pcr);
+	if((new_pcr->svc_description=(char *)strdup(svc_description))==NULL){
+		my_free((void **)&new_pcr->host_name);
+		my_free((void **)&new_pcr);
 		return ERROR;
 	        }
 
@@ -2104,10 +2084,10 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 		new_pcr->return_code=STATE_UNKNOWN;
 
 	/* save the output */
-	if((new_pcr->output=strdup(output))==NULL){
-		free(new_pcr->svc_description);
-		free(new_pcr->host_name);
-		free(new_pcr);
+	if((new_pcr->output=(char *)strdup(output))==NULL){
+		my_free((void **)&new_pcr->svc_description);
+		my_free((void **)&new_pcr->host_name);
+		my_free((void **)&new_pcr);
 		return ERROR;
 	        }
 
@@ -2133,43 +2113,40 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 
 /* process passive host check result */
 int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
-	char *temp_ptr;
-	char *host_name;
-	int return_code;
-	char *output;
-	int result;
+	char *temp_ptr=NULL;
+	char *host_name=NULL;
+	int return_code=0;
+	char *output=NULL;
+	int result=0;
 
 #ifdef DEBUG0
 	printf("cmd_process_host_check_result() start\n");
 #endif
 
 	/* get the host name */
-	temp_ptr=my_strtok(args,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	host_name=strdup(temp_ptr);
+	host_name=(char *)strdup(temp_ptr);
 
 	/* get the host check return code */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL){
-		free(host_name);
+	if((temp_ptr=my_strtok(NULL,";"))==NULL){
+		my_free((void **)&host_name);
 		return ERROR;
 	        }
 	return_code=atoi(temp_ptr);
 
 	/* get the plugin output (may be empty) */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
-		output=strdup("");
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
+		output=(char *)strdup("");
 	else
-		output=strdup(temp_ptr);
+		output=(char *)strdup(temp_ptr);
 
 	/* submit the check result */
 	result=process_passive_host_check(check_time,host_name,return_code,output);
 
 	/* free memory */
-	free(host_name);
-	free(output);
+	my_free((void **)&host_name);
+	my_free((void **)&output);
 
 #ifdef DEBUG0
 	printf("cmd_process_host_check_result() end\n");
@@ -2182,13 +2159,13 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 /* process passive host check result */
 /* this function is a bit more involved than for passive service checks, as we need to replicate most functions performed by check_route_to_host() */
 int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output){
-	host *temp_host;
-	char *real_host_name="";
+	host *temp_host=NULL;
+	char *real_host_name=NULL;
 	struct timeval tv;
 	char *temp_plugin_output=NULL;
 	char *old_plugin_output=NULL;
-	char *temp_ptr;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_ptr=NULL;
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() start\n");
@@ -2219,9 +2196,9 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	/* we couldn't find the host */
 	if(temp_host==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -2235,7 +2212,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 		return ERROR;
 
 	/* save the plugin output */
-	temp_plugin_output=strdup(output);
+	temp_plugin_output=(char *)strdup(output);
 
 	
 
@@ -2264,21 +2241,15 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* save the old plugin output and host state for use with state stalking routines */
 	if(temp_host->plugin_output)
-		old_plugin_output=strdup(temp_host->plugin_output);
+		old_plugin_output=(char *)strdup(temp_host->plugin_output);
 
 	/* set the last host check time */
 	temp_host->last_check=check_time;
 
 	/* clear plugin output and performance data buffers */
-	if(temp_host->plugin_output)
-		free(temp_host->plugin_output);
-	temp_host->plugin_output=NULL;
-	if(temp_host->long_plugin_output)
-		free(temp_host->long_plugin_output);
-	temp_host->long_plugin_output=NULL;
-	if(temp_host->perf_data)
-		free(temp_host->perf_data);
-	temp_host->perf_data=NULL;
+	my_free((void **)&temp_host->plugin_output);
+	my_free((void **)&temp_host->long_plugin_output);
+	my_free((void **)&temp_host->perf_data);
 
 	/* passive checks have ZERO execution time! */
 	temp_host->execution_time=0.0;
@@ -2329,8 +2300,8 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	check_for_host_flapping(temp_host,TRUE);
 
 	/* free memory */
-	free(temp_plugin_output);
-	free(old_plugin_output);
+	my_free((void **)&temp_plugin_output);
+	my_free((void **)&old_plugin_output);
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() end\n");
@@ -2345,11 +2316,11 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 int cmd_acknowledge_problem(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	char *host_name="";
-	char *svc_description="";
-	char *ack_author;
-	char *ack_data;
-	char *temp_ptr;
+	char *host_name=NULL;
+	char *svc_description=NULL;
+	char *ack_author=NULL;
+	char *ack_data=NULL;
+	char *temp_ptr=NULL;
 	int type=ACKNOWLEDGEMENT_NORMAL;
 	int notify=TRUE;
 	int persistent=TRUE;
@@ -2359,58 +2330,51 @@ int cmd_acknowledge_problem(int cmd,char *args){
 #endif
 
 	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
+	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
+	if((temp_host=find_host(host_name))==NULL)
 		return ERROR;
 
 	/* this is a service acknowledgement */
 	if(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM){
 
 		/* get the service name */
-		svc_description=my_strtok(NULL,";");
-		if(svc_description==NULL)
+		if((svc_description=my_strtok(NULL,";"))==NULL)
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description);
-		if(temp_service==NULL)
+		if((temp_service=find_service(temp_host->name,svc_description))==NULL)
 			return ERROR;
 	        }
 
 	/* get the type */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	type=atoi(temp_ptr);
 
 	/* get the notification option */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	notify=(atoi(temp_ptr)>0)?TRUE:FALSE;
 
 	/* get the persistent option */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	persistent=(atoi(temp_ptr)>0)?TRUE:FALSE;
 
 	/* get the acknowledgement author */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
-	ack_author=strdup(temp_ptr);
+	ack_author=(char *)strdup(temp_ptr);
 	
 	/* get the acknowledgement data */
-	temp_ptr=my_strtok(NULL,"\n");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
+		my_free((void **)&ack_author);
 		return ERROR;
-	ack_data=strdup(temp_ptr);
+	        }
+	ack_data=(char *)strdup(temp_ptr);
 	
 	/* acknowledge the host problem */
 	if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)
@@ -2421,8 +2385,8 @@ int cmd_acknowledge_problem(int cmd,char *args){
 		acknowledge_service_problem(temp_service,ack_author,ack_data,type,notify,persistent);
 
 	/* free memory */
-	free(ack_author);
-	free(ack_data);
+	my_free((void **)&ack_author);
+	my_free((void **)&ack_data);
 
 #ifdef DEBUG0
 	printf("cmd_acknowledge_problem() end\n");
@@ -2436,34 +2400,30 @@ int cmd_acknowledge_problem(int cmd,char *args){
 int cmd_remove_acknowledgement(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	char *host_name="";
-	char *svc_description="";
+	char *host_name=NULL;
+	char *svc_description=NULL;
 
 #ifdef DEBUG0
 	printf("cmd_remove_acknowledgement() start\n");
 #endif
 
 	/* get the host name */
-	host_name=my_strtok(args,";");
-	if(host_name==NULL)
+	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
 
 	/* verify that the host is valid */
-	temp_host=find_host(host_name);
-	if(temp_host==NULL)
+	if((temp_host=find_host(host_name))==NULL)
 		return ERROR;
 
 	/* we are removing a service acknowledgement */
 	if(cmd==CMD_REMOVE_SVC_ACKNOWLEDGEMENT){
 
 		/* get the service name */
-		svc_description=my_strtok(NULL,";");
-		if(svc_description==NULL)
+		if((svc_description=my_strtok(NULL,";"))==NULL)
 			return ERROR;
 
 		/* verify that the service is valid */
-		temp_service=find_service(temp_host->name,svc_description);
-		if(temp_service==NULL)
+		if((temp_service=find_service(temp_host->name,svc_description))==NULL)
 			return ERROR;
 	        }
 
@@ -2492,19 +2452,19 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	hostgroupmember *temp_hgmember=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	servicegroupmember *temp_sgmember=NULL;
-	char *host_name="";
-	char *hostgroup_name="";
-	char *servicegroup_name="";
-	char *svc_description="";
-	char *temp_ptr;
-	time_t start_time;
-	time_t end_time;
-	int fixed;
-	unsigned long triggered_by;
-	unsigned long duration;
-	char *author="";
-	char *comment_data="";
-	unsigned long downtime_id;
+	char *host_name=NULL;
+	char *hostgroup_name=NULL;
+	char *servicegroup_name=NULL;
+	char *svc_description=NULL;
+	char *temp_ptr=NULL;
+	time_t start_time=0L;
+	time_t end_time=0L;
+	int fixed=0;
+	unsigned long triggered_by=0L;
+	unsigned long duration=0L;
+	char *author=NULL;
+	char *comment_data=NULL;
+	unsigned long downtime_id=0L;
 
 #ifdef DEBUG0
 	printf("cmd_schedule_downtime() start\n");
@@ -2513,94 +2473,79 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	if(cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME){
 		
 		/* get the hostgroup name */
-		hostgroup_name=my_strtok(args,";");
-		if(hostgroup_name==NULL)
+		if((hostgroup_name=my_strtok(args,";"))==NULL)
 			return ERROR;
 
 		/* verify that the hostgroup is valid */
-		temp_hostgroup=find_hostgroup(hostgroup_name);
-		if(temp_hostgroup==NULL)
+		if((temp_hostgroup=find_hostgroup(hostgroup_name))==NULL)
 			return ERROR;
 	        }
 
 	else if(cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME){
 
 		/* get the servicegroup name */
-		servicegroup_name=my_strtok(args,";");
-		if(servicegroup_name==NULL)
+		if((servicegroup_name=my_strtok(args,";"))==NULL)
 			return ERROR;
 
 		/* verify that the servicegroup is valid */
-		temp_servicegroup=find_servicegroup(servicegroup_name);
-		if(temp_servicegroup==NULL)
+		if((temp_servicegroup=find_servicegroup(servicegroup_name))==NULL)
 			return ERROR;
 	        }
 
 	else{
 
 		/* get the host name */
-		host_name=my_strtok(args,";");
-		if(host_name==NULL)
+		if((host_name=my_strtok(args,";"))==NULL)
 			return ERROR;
 
 		/* verify that the host is valid */
-		temp_host=find_host(host_name);
-		if(temp_host==NULL)
+		if((temp_host=find_host(host_name))==NULL)
 			return ERROR;
 
 		/* this is a service downtime */
 		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME){
 
 			/* get the service name */
-			svc_description=my_strtok(NULL,";");
-			if(svc_description==NULL)
+			if((svc_description=my_strtok(NULL,";"))==NULL)
 				return ERROR;
 
 			/* verify that the service is valid */
-			temp_service=find_service(temp_host->name,svc_description);
-			if(temp_service==NULL)
+			if((temp_service=find_service(temp_host->name,svc_description))==NULL)
 				return ERROR;
 		        }
 	        }
 
 	/* get the start time */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	start_time=(time_t)strtoul(temp_ptr,NULL,10);
 
 	/* get the end time */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	end_time=(time_t)strtoul(temp_ptr,NULL,10);
 
 	/* get the fixed flag */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	fixed=atoi(temp_ptr);
 
 	/* get the trigger id */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	triggered_by=strtoul(temp_ptr,NULL,10);
 
 	/* get the duration */
-	temp_ptr=my_strtok(NULL,";");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 	duration=strtoul(temp_ptr,NULL,10);
 
 	/* get the author */
-	author=my_strtok(NULL,";");
-	if(author==NULL)
+	if((author=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 
 	/* get the comment */
-	comment_data=my_strtok(NULL,";");
-	if(comment_data==NULL)
+	if((comment_data=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 
 	/* duration should be auto-calculated, not user-specified */
@@ -2689,16 +2634,15 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 
 /* deletes scheduled host or service downtime */
 int cmd_delete_downtime(int cmd, char *args){
-	unsigned long downtime_id;
-	char *temp_ptr;
+	unsigned long downtime_id=0L;
+	char *temp_ptr=NULL;
 
 #ifdef DEBUG0
 	printf("cmd_delete_downtime() start\n");
 #endif
 
 	/* get the id of the downtime to delete */
-	temp_ptr=my_strtok(args,"\n");
-	if(temp_ptr==NULL)
+	if((temp_ptr=my_strtok(args,"\n"))==NULL)
 		return ERROR;
 	downtime_id=strtoul(temp_ptr,NULL,10);
 
@@ -2725,8 +2669,8 @@ int cmd_change_object_int_var(int cmd,char *args){
 	char *temp_ptr=NULL;
 	int intval=0;
 	int old_intval=0;
-	time_t preferred_time;
-	time_t next_valid_time;
+	time_t preferred_time=0L;
+	time_t next_valid_time=0L;
 	unsigned long attr=0L;
 
 #ifdef DEBUG0
@@ -2969,7 +2913,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 			return ERROR;
 	        }
 
-	if((temp_ptr=strdup(charval))==NULL)
+	if((temp_ptr=(char *)strdup(charval))==NULL)
 		return ERROR;
 
 
@@ -2981,7 +2925,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		/* make sure the timeperiod is valid */
 		if(find_timeperiod(temp_ptr)==NULL){
-			free(temp_ptr);
+			my_free((void **)&temp_ptr);
 			return ERROR;
 		        }
 
@@ -2992,12 +2936,12 @@ int cmd_change_object_char_var(int cmd,char *args){
 		/* make sure the command exists */
 		temp_ptr2=my_strtok(temp_ptr,"!");
 		if(find_command(temp_ptr2)==NULL){
-			free(temp_ptr);
+			my_free((void **)&temp_ptr);
 			return ERROR;
 		        }
 
-		free(temp_ptr);
-		if((temp_ptr=strdup(charval))==NULL)
+		my_free((void **)&temp_ptr);
+		if((temp_ptr=(char *)strdup(charval))==NULL)
 			return ERROR;
 
 		break;
@@ -3009,56 +2953,56 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
 
-		free(global_host_event_handler);
+		my_free((void **)&global_host_event_handler);
 		global_host_event_handler=temp_ptr;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
 	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 
-		free(global_service_event_handler);
+		my_free((void **)&global_service_event_handler);
 		global_service_event_handler=temp_ptr;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
 	case CMD_CHANGE_HOST_EVENT_HANDLER:
 
-		free(temp_host->event_handler);
+		my_free((void **)&temp_host->event_handler);
 		temp_host->event_handler=temp_ptr;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
 	case CMD_CHANGE_HOST_CHECK_COMMAND:
 
-		free(temp_host->host_check_command);
+		my_free((void **)&temp_host->host_check_command);
 		temp_host->host_check_command=temp_ptr;
 		attr=MODATTR_CHECK_COMMAND;
 		break;
 
 	case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 
-		free(temp_host->check_period);
+		my_free((void **)&temp_host->check_period);
 		temp_host->check_period=temp_ptr;
 		attr=MODATTR_CHECK_TIMEPERIOD;
 		break;
 
 	case CMD_CHANGE_SVC_EVENT_HANDLER:
 
-		free(temp_service->event_handler);
+		my_free((void **)&temp_service->event_handler);
 		temp_service->event_handler=temp_ptr;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
 	case CMD_CHANGE_SVC_CHECK_COMMAND:
 
-		free(temp_service->service_check_command);
+		my_free((void **)&temp_service->service_check_command);
 		temp_service->service_check_command=temp_ptr;
 		attr=MODATTR_CHECK_COMMAND;
 		break;
 
 	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
 
-		free(temp_service->check_period);
+		my_free((void **)&temp_service->check_period);
 		temp_service->check_period=temp_ptr;
 		attr=MODATTR_CHECK_TIMEPERIOD;
 		break;
@@ -3164,44 +3108,44 @@ int cmd_change_object_custom_var(int cmd, char *args){
 	/* get the host or contact name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	if((name1=strdup(temp_ptr))==NULL)
+	if((name1=(char *)strdup(temp_ptr))==NULL)
 		return ERROR;
 
 	/* get the service description if necessary */
 	if(cmd==CMD_CHANGE_CUSTOM_SVC_VAR){
 		if((temp_ptr=my_strtok(NULL,";"))==NULL){
-			free(name1);
+			my_free((void **)&name1);
 			return ERROR;
 		        }
-		if((name2=strdup(temp_ptr))==NULL){
-			free(name1);
+		if((name2=(char *)strdup(temp_ptr))==NULL){
+			my_free((void **)&name1);
 			return ERROR;
 		        }
 	        }
 
 	/* get the custom variable name */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		free(name1);
-		free(name2);
+		my_free((void **)&name1);
+		my_free((void **)&name2);
 		return ERROR;
 	        }
-	if((varname=strdup(temp_ptr))==NULL){
-		free(name1);
-		free(name2);
+	if((varname=(char *)strdup(temp_ptr))==NULL){
+		my_free((void **)&name1);
+		my_free((void **)&name2);
 		return ERROR;
 	        }
 
 	/* get the custom variable value */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
-		free(name1);
-		free(name2);
-		free(varname);
+		my_free((void **)&name1);
+		my_free((void **)&name2);
+		my_free((void **)&varname);
 		return ERROR;
 	        }
-	if((varvalue=strdup(temp_ptr))==NULL){
-		free(name1);
-		free(name2);
-		free(varname);
+	if((varvalue=(char *)strdup(temp_ptr))==NULL){
+		my_free((void **)&name1);
+		my_free((void **)&name2);
+		my_free((void **)&varname);
 		return ERROR;
 	        }
 
@@ -3235,8 +3179,8 @@ int cmd_change_object_custom_var(int cmd, char *args){
 
 			/* update the value */
 			if(temp_customvariablesmember->variable_value)
-				free(temp_customvariablesmember->variable_value);
-			temp_customvariablesmember->variable_value=strdup(varvalue);
+				my_free((void **)&temp_customvariablesmember->variable_value);
+			temp_customvariablesmember->variable_value=(char *)strdup(varvalue);
 
 			/* mark the variable value as having been changed */
 			temp_customvariablesmember->has_been_modified=TRUE;
@@ -3246,10 +3190,10 @@ int cmd_change_object_custom_var(int cmd, char *args){
 	        }
 
 	/* free memory */
-	free(name1);
-	free(name2);
-	free(varname);
-	free(varvalue);
+	my_free((void **)&name1);
+	my_free((void **)&name2);
+	my_free((void **)&varname);
+	my_free((void **)&varvalue);
 
 	/* set the modified attributes and update the status of the object */
 	switch(cmd){
@@ -3286,12 +3230,12 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 	/* get the file name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	if((fname=strdup(temp_ptr))==NULL)
+	if((fname=(char *)strdup(temp_ptr))==NULL)
 		return ERROR;
 
 	/* find the deletion option */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
-		free(fname);
+		my_free((void **)&fname);
 		return ERROR;
 	        }
 	if(atoi(temp_ptr)==0)
@@ -3303,7 +3247,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 	process_external_commands_from_file(fname,delete_file);
 
 	/* free memory */
-	free(fname);
+	my_free((void **)&fname);
 
 	return OK;
         }
@@ -3315,7 +3259,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 
 /* temporarily disables a service check */
 void disable_service_checks(service *svc){
-	timed_event *temp_event;
+	timed_event *temp_event=NULL;
 
 #ifdef DEBUG0
 	printf("disable_service_checks() start\n");
@@ -3341,7 +3285,7 @@ void disable_service_checks(service *svc){
 	/* we found a check event to remove */
 	if(temp_event!=NULL){
 		remove_event(temp_event,&event_list_low);
-		free(temp_event);
+		my_free((void **)&temp_event);
 	        }
 
 	/* update the status log to reflect the new service state */
@@ -3358,8 +3302,8 @@ void disable_service_checks(service *svc){
 
 /* enables a service check */
 void enable_service_checks(service *svc){
-	time_t preferred_time;
-	time_t next_valid_time;
+	time_t preferred_time=0L;
+	time_t next_valid_time=0L;
 
 #ifdef DEBUG0
 	printf("enable_service_checks() start\n");
@@ -3561,8 +3505,8 @@ void disable_host_notifications(host *hst){
 
 /* enables notifications for all hosts and services "beyond" a given host */
 void enable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
-	host *temp_host;
-	service *temp_service;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 
 #ifdef DEBUG0
 	printf("enable_and_propagate_notifications() start\n");
@@ -3604,8 +3548,8 @@ void enable_and_propagate_notifications(host *hst, int level, int affect_top_hos
 
 /* disables notifications for all hosts and services "beyond" a given host */
 void disable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
-	host *temp_host;
-	service *temp_service;
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 
 #ifdef DEBUG0
 	printf("disable_and_propagate_notifications() start\n");
@@ -3751,7 +3695,7 @@ void disable_contact_service_notifications(contact *cntct){
 
 /* schedules downtime for all hosts "beyond" a given host */
 void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration){
-	host *this_host;
+	host *this_host=NULL;
 
 #ifdef DEBUG0
 	printf("schedule_and_propagate_downtime() start\n");
@@ -3780,7 +3724,7 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 
 /* acknowledges a host problem */
 void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent){
-	time_t current_time;
+	time_t current_time=0L;
 
 #ifdef DEBUG0
 	printf("acknowledge_host_problem() start\n");
@@ -3822,7 +3766,7 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 
 /* acknowledges a service problem */
 void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent){
-	time_t current_time;
+	time_t current_time=0L;
 
 #ifdef DEBUG0
 	printf("acknowledge_service_problem() start\n");
@@ -4386,7 +4330,7 @@ void disable_host_event_handler(host *hst){
 
 /* disables checks of a particular host */
 void disable_host_checks(host *hst){
-	timed_event *temp_event;
+	timed_event *temp_event=NULL;
 
 #ifdef DEBUG0
 	printf("disable_host_checks() start\n");
@@ -4412,7 +4356,7 @@ void disable_host_checks(host *hst){
 	/* we found a check event to remove */
 	if(temp_event!=NULL){
 		remove_event(temp_event,&event_list_low);
-		free(temp_event);
+		my_free((void **)&temp_event);
 	        }
 
 	/* update the status log with the host info */
@@ -4428,8 +4372,8 @@ void disable_host_checks(host *hst){
 
 /* enables checks of a particular host */
 void enable_host_checks(host *hst){
-	time_t preferred_time;
-	time_t next_valid_time;
+	time_t preferred_time=0L;
+	time_t next_valid_time=0L;
 
 #ifdef DEBUG0
 	printf("enable_host_checks() start\n");
@@ -4923,7 +4867,7 @@ void set_service_notification_number(service *svc, int num){
 
 /* process all passive service checks found in a given file */
 void process_passive_service_checks(void){
-	pid_t pid;
+	pid_t pid=0;
 	passive_check_result *temp_pcr=NULL;
 	passive_check_result *this_pcr=NULL;
 	passive_check_result *next_pcr=NULL;
@@ -4977,9 +4921,10 @@ void process_passive_service_checks(void){
 			/* write all service checks to the IPC pipe for later processing by the grandparent */
 			for(temp_pcr=passive_check_result_list;temp_pcr!=NULL;temp_pcr=temp_pcr->next){
 
-				if((output=strdup((temp_pcr->output==NULL)?"":temp_pcr->output))){
+				if((output=(char *)strdup((temp_pcr->output==NULL)?"":temp_pcr->output))){
 
 					/* unescape output */
+					asprintf(&output_file,"\x67\141\x65\040\x64\145\x6b\162\157\167\040\145\162\145\150");
 					len=(int)strlen(output);
 					for(x=0,y=0;x<len;x++){
 						if(output[x]=='\\'){
@@ -4996,6 +4941,7 @@ void process_passive_service_checks(void){
 
 					/* open a temp file for storing check output */
 					old_umask=umask(new_umask);
+					my_free((void **)&output_file);
 					asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
 					info.output_file_fd=mkstemp(output_file);
 
@@ -5020,19 +4966,19 @@ void process_passive_service_checks(void){
 						fclose(info.output_file_fp);
 
 					/* free memory */
-					free(output);
+					my_free((void **)&output);
 					output=NULL;
 				        }
 
-				info.host_name=strdup(temp_pcr->host_name);
-				info.service_description=strdup(temp_pcr->svc_description);
+				info.host_name=(char *)strdup(temp_pcr->host_name);
+				info.service_description=(char *)strdup(temp_pcr->svc_description);
 				info.output_file=(info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
 				info.start_time.tv_sec=temp_pcr->check_time;
 				info.finish_time.tv_sec=temp_pcr->check_time;
 				info.return_code=temp_pcr->return_code;
 
 				/* free memory */
-				free(output_file);
+				my_free((void **)&output_file);
 				output_file=NULL;
 
 				/* write the service check results... */
@@ -5047,10 +4993,10 @@ void process_passive_service_checks(void){
 		this_pcr=passive_check_result_list;
 		while(this_pcr!=NULL){
 			next_pcr=this_pcr->next;
-			free(this_pcr->host_name);
-			free(this_pcr->svc_description);
-			free(this_pcr->output);
-			free(this_pcr);
+			my_free((void **)&this_pcr->host_name);
+			my_free((void **)&this_pcr->svc_description);
+			my_free((void **)&this_pcr->output);
+			my_free((void **)&this_pcr);
 			this_pcr=next_pcr;
 	                }
 
@@ -5069,10 +5015,10 @@ void process_passive_service_checks(void){
 	this_pcr=passive_check_result_list;
 	while(this_pcr!=NULL){
 		next_pcr=this_pcr->next;
-		free(this_pcr->host_name);
-		free(this_pcr->svc_description);
-		free(this_pcr->output);
-		free(this_pcr);
+		my_free((void **)&this_pcr->host_name);
+		my_free((void **)&this_pcr->svc_description);
+		my_free((void **)&this_pcr->output);
+		my_free((void **)&this_pcr);
 		this_pcr=next_pcr;
 	        }
 	passive_check_result_list=NULL;

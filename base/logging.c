@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-17-2006
+ * Last Modified: 03-04-2006
  *
  * License:
  *
@@ -62,8 +62,8 @@ extern int      daemon_mode;
 
 /* write something to the log file, syslog, and possibly the console */
 int write_to_logs_and_console(char *buffer, unsigned long data_type, int display){
-	int len;
-	int x;
+	register int len=0;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("write_to_logs_and_console() start\n");
@@ -162,13 +162,15 @@ int write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time
 
 /* write something to the nagios log file */
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
-	FILE *fp;
-	time_t log_time;
-
+	FILE *fp=NULL;
+	time_t log_time=0L;
 
 #ifdef DEBUG0
 	printf("write_to_log() start\n");
 #endif
+
+	if(buffer==NULL)
+		return ERROR;
 
 	/* don't log anything if we're not actually running... */
 	if(verify_config==TRUE || test_scheduling==TRUE)
@@ -219,6 +221,9 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 	printf("write_to_syslog() start\n");
 #endif
 
+	if(buffer==NULL)
+		return ERROR;
+
 	/* don't log anything if we're not actually running... */
 	if(verify_config==TRUE || test_scheduling==TRUE)
 		return OK;
@@ -244,9 +249,9 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 
 /* write a service problem/recovery to the nagios log file */
 int log_service_event(service *svc){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	unsigned long log_options;
-	host *temp_host;
+	char *temp_buffer=NULL;
+	unsigned long log_options=0L;
+	host *temp_host=NULL;
 
 #ifdef DEBUG0
 	printf("log_service_event() start\n");
@@ -275,10 +280,9 @@ int log_service_event(service *svc){
 	grab_service_macros(svc);
 	grab_summary_macros(NULL);
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],(svc->plugin_output==NULL)?"":svc->plugin_output);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],(svc->plugin_output==NULL)?"":svc->plugin_output);
 	write_to_all_logs(temp_buffer,log_options);
-
+	my_free((void **)&temp_buffer);
 
 #ifdef DEBUG0
 	printf("log_service_event() end\n");
@@ -290,7 +294,7 @@ int log_service_event(service *svc){
 
 /* write a host problem/recovery to the log file */
 int log_host_event(host *hst){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	unsigned long log_options=0L;
 
 #ifdef DEBUG0
@@ -311,9 +315,9 @@ int log_host_event(host *hst){
 		log_options=NSLOG_HOST_UP;
 
 
-	snprintf(temp_buffer,sizeof(temp_buffer),"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(hst->plugin_output==NULL)?"":hst->plugin_output);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"HOST ALERT: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(hst->plugin_output==NULL)?"":hst->plugin_output);
 	write_to_all_logs(temp_buffer,log_options);
+	my_free((void **)&temp_buffer);
 
 #ifdef DEBUG0
 	printf("log_host_event() start\n");
@@ -324,8 +328,8 @@ int log_host_event(host *hst){
 
 /* logs host states */
 int log_host_states(int type, time_t *timestamp){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	host *temp_host;
+	char *temp_buffer=NULL;
+	host *temp_host=NULL;;
 
 	/* bail if we shouldn't be logging initial states */
 	if(type==INITIAL_STATES && log_initial_states==FALSE)
@@ -340,9 +344,9 @@ int log_host_states(int type, time_t *timestamp){
 		clear_volatile_macros();
 		grab_host_macros(temp_host);
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"%s HOST STATE: %s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
+		my_free((void **)&temp_buffer);
 	        }
 
 	return OK;
@@ -351,9 +355,9 @@ int log_host_states(int type, time_t *timestamp){
 
 /* logs service states */
 int log_service_states(int type, time_t *timestamp){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	service *temp_service;
-	host *temp_host;
+	char *temp_buffer=NULL;
+	service *temp_service=NULL;
+	host *temp_host=NULL;;
 
 	/* bail if we shouldn't be logging initial states */
 	if(type==INITIAL_STATES && log_initial_states==FALSE)
@@ -372,10 +376,9 @@ int log_service_states(int type, time_t *timestamp){
 		grab_host_macros(temp_host);
 		grab_service_macros(temp_service);
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
-
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;%s;%s;%s;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],temp_service->plugin_output);
 		write_to_all_logs_with_timestamp(temp_buffer,NSLOG_INFO_MESSAGE,timestamp);
+		my_free((void **)&temp_buffer);
 	        }
 
 	return OK;
@@ -384,11 +387,11 @@ int log_service_states(int type, time_t *timestamp){
 
 /* rotates the main log file */
 int rotate_log_file(time_t rotation_time){
-	char temp_buffer[MAX_INPUT_BUFFER];
-	char method_string[16];
-	char log_archive[MAX_FILENAME_LENGTH];
+	char *temp_buffer=NULL;
+	char method_string[16]="";
+	char *log_archive=NULL;
 	struct tm *t;
-	int rename_result;
+	int rename_result=0;
 
 #ifdef DEBUG0
 	printf("rotate_log_file() start\n");
@@ -419,18 +422,16 @@ int rotate_log_file(time_t rotation_time){
 	t=localtime(&rotation_time);
 
 	/* get the archived filename to use */
-	snprintf(log_archive,sizeof(log_archive),"%s%snagios-%02d-%02d-%d-%02d.log",log_archive_path,(log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour);
-	log_archive[sizeof(log_archive)-1]='\x0';
+	asprintf(&log_archive,"%s%snagios-%02d-%02d-%d-%02d.log",log_archive_path,(log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour);
 
 	/* rotate the log file */
 	rename_result=my_rename(log_file,log_archive);
 
 	if(rename_result){
-
 #ifdef DEBUG1
 		printf("\tError: Could not rotate main log file to '%s'\n",log_archive);
 #endif
-
+		my_free((void **)&log_archive);
 		return ERROR;
 	        }
 
@@ -443,9 +444,9 @@ int rotate_log_file(time_t rotation_time){
 #endif
 
 	/* record the log rotation after it has been done... */
-	snprintf(temp_buffer,sizeof(temp_buffer),"LOG ROTATION: %s\n",method_string);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,&rotation_time);
+	my_free((void **)&temp_buffer);
 
 	/* record log file version format */
 	write_log_file_info(&rotation_time);
@@ -458,6 +459,9 @@ int rotate_log_file(time_t rotation_time){
 	printf("\tRotated main log file to '%s'\n",log_archive);
 #endif
 
+	/* free memory */
+	my_free((void **)&log_archive);
+
 #ifdef DEBUG0
 	printf("rotate_log_file() end\n");
 #endif
@@ -468,16 +472,16 @@ int rotate_log_file(time_t rotation_time){
 
 /* record log file version/info */
 int write_log_file_info(time_t *timestamp){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("write_log_file_info() start\n");
 #endif
 
 	/* write log version */
-	snprintf(temp_buffer,sizeof(temp_buffer),"LOG VERSION: %s\n",LOG_VERSION_2);
-	temp_buffer[sizeof(temp_buffer)-1]='\x0';
+	asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,timestamp);
+	my_free((void **)&temp_buffer);
 
 #ifdef DEBUG0
 	printf("write_log_file_info() end\n");

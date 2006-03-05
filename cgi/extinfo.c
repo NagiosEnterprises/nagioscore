@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2006
+ * Last Modified: 03-04-2006
  *
  * License:
  * 
@@ -125,7 +125,6 @@ int main(void){
 	int result=OK;
 	int found=FALSE;
 	char temp_buffer[MAX_INPUT_BUFFER];
-	hostextinfo *temp_hostextinfo=NULL;
 	host *temp_host=NULL;
 	hostgroup *temp_hostgroup=NULL;
 	service *temp_service=NULL;
@@ -361,15 +360,12 @@ int main(void){
 			        }
 
 			if(display_type==DISPLAY_HOST_INFO){
-				temp_hostextinfo=find_hostextinfo(host_name);
-				if(temp_hostextinfo!=NULL){
-					if(temp_hostextinfo->icon_image!=NULL)
-						printf("<img src='%s%s' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_hostextinfo->icon_image,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
-					if(temp_hostextinfo->icon_image_alt!=NULL)
-						printf("<font size=-1><i>( %s )</i><font>\n",temp_hostextinfo->icon_image_alt);
-					if(temp_hostextinfo->notes!=NULL)
-						printf("<p>%s</p>\n",temp_hostextinfo->notes);
-				        }
+				if(temp_host->icon_image!=NULL)
+					printf("<img src='%s%s' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_host->icon_image,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+				if(temp_host->icon_image_alt!=NULL)
+					printf("<font size=-1><i>( %s )</i><font>\n",temp_host->icon_image_alt);
+				if(temp_host->notes!=NULL)
+					printf("<p>%s</p>\n",temp_host->notes);
 		                }
  	                }
 
@@ -379,26 +375,24 @@ int main(void){
 		printf("<td align=right valign=bottom width=33%%>\n");
 
 		if(display_type==DISPLAY_HOST_INFO){
-			if(temp_hostextinfo!=NULL){
-				printf("<TABLE BORDER='0'>\n");
-				if(temp_hostextinfo->action_url!=NULL && strcmp(temp_hostextinfo->action_url,"")){
-					printf("<TR><TD ALIGN='right'>\n");
-					printf("<A HREF='");
-					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
-					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Host' title='Perform Additional Actions On This Host'></A>\n",url_images_path,ACTION_ICON);
-					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-					printf("</TD></TR>\n");
-				        }
-				if(temp_hostextinfo->notes_url!=NULL && strcmp(temp_hostextinfo->notes_url,"")){
-					printf("<TR><TD ALIGN='right'>\n");
-					printf("<A HREF='");
-					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
-					printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Host' title='View Additional Notes For This Host'></A>\n",url_images_path,NOTES_ICON);
-					printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
-					printf("</TD></TR>\n");
-				        }
-				printf("</TABLE>\n");
-		                }
+			printf("<TABLE BORDER='0'>\n");
+			if(temp_host->action_url!=NULL && strcmp(temp_host->action_url,"")){
+				printf("<TR><TD ALIGN='right'>\n");
+				printf("<A HREF='");
+				print_extra_host_url(temp_host->name,temp_host->action_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Host' title='Perform Additional Actions On This Host'></A>\n",url_images_path,ACTION_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+				printf("</TD></TR>\n");
+			        }
+			if(temp_host->notes_url!=NULL && strcmp(temp_host->notes_url,"")){
+				printf("<TR><TD ALIGN='right'>\n");
+				printf("<A HREF='");
+				print_extra_host_url(temp_host->name,temp_host->notes_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Host' title='View Additional Notes For This Host'></A>\n",url_images_path,NOTES_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Host Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+				printf("</TD></TR>\n");
+			        }
+			printf("</TABLE>\n");
 	                }
 
 		else if(display_type==DISPLAY_SERVICE_INFO){

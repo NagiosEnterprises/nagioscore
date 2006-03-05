@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-06-2006
  *
  * License:
  *
@@ -615,7 +615,7 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 	char *command_name_ptr=NULL;
 	char raw_command[MAX_COMMAND_BUFFER];
 	char processed_command[MAX_COMMAND_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime;
 	struct timeval start_time,end_time;
@@ -682,20 +682,20 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 			if(log_notifications==TRUE){
 				switch(type){
 				case NOTIFICATION_ACKNOWLEDGEMENT:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_SERVICEACKAUTHOR],macro_x[MACRO_SERVICEACKCOMMENT]);
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT],macro_x[MACRO_SERVICEACKAUTHOR],macro_x[MACRO_SERVICEACKCOMMENT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTART:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTOP:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				default:
-					snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				        }
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_all_logs(temp_buffer,NSLOG_SERVICE_NOTIFICATION);
+				my_free((void **)&temp_buffer);
 			        }
 
 			/* run the command */
@@ -703,9 +703,9 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 
 			/* check to see if the notification command timed out */
 			if(early_timeout==TRUE){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Warning: Contact '%s' service notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
 				write_to_logs_and_console(temp_buffer,NSLOG_SERVICE_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
+				my_free((void **)&temp_buffer);
 			        }
 		        }
 
@@ -1446,19 +1446,19 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 			if(log_notifications==TRUE){
 				switch(type){
 				case NOTIFICATION_ACKNOWLEDGEMENT:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_HOSTACKAUTHOR],macro_x[MACRO_HOSTACKCOMMENT]);
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;ACKNOWLEDGEMENT (%s);%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT],macro_x[MACRO_HOSTACKAUTHOR],macro_x[MACRO_HOSTACKCOMMENT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTART:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTOP:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);					break;
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);					break;
 				default:
-					snprintf(temp_buffer,sizeof(temp_buffer),"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				        }
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
 				write_to_all_logs(temp_buffer,NSLOG_HOST_NOTIFICATION);
+				my_free((void **)&temp_buffer);
 			        }
 
 			/* run the command */
@@ -1466,9 +1466,9 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 
 			/* check to see if the notification timed out */
 			if(early_timeout==TRUE){
-				snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Warning: Contact '%s' host notification command '%s' timed out after %d seconds\n",cntct->name,processed_command,DEFAULT_NOTIFICATION_TIMEOUT);
 				write_to_logs_and_console(temp_buffer,NSLOG_HOST_NOTIFICATION | NSLOG_RUNTIME_WARNING,TRUE);
+				my_free((void **)&temp_buffer);
 			        }
 		        }
 

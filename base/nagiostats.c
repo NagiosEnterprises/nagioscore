@@ -3,11 +3,11 @@
  * NAGIOSTATS.C - Displays Nagios Statistics
  *
  * Program: Nagiostats
- * Version: 3.0-prealpha-03012006
+ * Version: 3.0prealpha-03052006
  * License: GPL
  * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   03-01-2006
+ * Last Modified:   03-05-2006
  *
  * License:
  *
@@ -213,7 +213,7 @@ int main(int argc, char **argv){
 
 	if(mrtg_mode==FALSE){
 		printf("\nNagios Stats %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 2003-2005 Ethan Galstad (www.nagios.org)\n");
+		printf("Copyright (c) 2003-2006 Ethan Galstad (www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -650,13 +650,13 @@ int read_status_file(void){
 
 		else if(!strcmp(temp_buffer,"info {"))
 			data_type=STATUS_INFO_DATA;
-		else if(!strcmp(temp_buffer,"program {"))
+		else if(!strcmp(temp_buffer,"programstatus {"))
 			data_type=STATUS_PROGRAM_DATA;
-		else if(!strcmp(temp_buffer,"host {")){
+		else if(!strcmp(temp_buffer,"hoststatus {")){
 			data_type=STATUS_HOST_DATA;
 			status_host_entries++;
 		        }
-		else if(!strcmp(temp_buffer,"service {")){
+		else if(!strcmp(temp_buffer,"servicestatus {")){
 			data_type=STATUS_SERVICE_DATA;
 			status_service_entries++;
 		        }

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2006
+ * Last Modified: 03-04-2006
  *
  * License:
  *
@@ -164,7 +164,6 @@ extern serviceescalation *serviceescalation_list;
 extern servicedependency *servicedependency_list;
 extern hostdependency   *hostdependency_list;
 extern hostescalation   *hostescalation_list;
-extern hostextinfo      *hostextinfo_list;
 
 extern host		**host_hashlist;
 extern service		**service_hashlist;
@@ -1826,7 +1825,6 @@ int pre_flight_object_check(int *w, int *e){
 	hostescalation *temp_he=NULL;
 	servicedependency *temp_sd=NULL;
 	hostdependency *temp_hd=NULL;
-	hostextinfo *temp_hostextinfo=NULL;
 	char *temp_buffer=NULL;
 	char *buf=NULL;
 	char *temp_command_name="";
@@ -2747,32 +2745,6 @@ int pre_flight_object_check(int *w, int *e){
 
 #ifdef DEBUG1
 	printf("\tCompleted command checks\n");
-#endif
-
-
-	/*****************************************/
-	/* check extended host information...    */
-	/*****************************************/
-	if(verify_config==TRUE)
-		printf("Checking extended host info definitions...\n");
-
-	for(temp_hostextinfo=hostextinfo_list,total_objects=0;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next,total_objects++){
-
-		/* find the host */
-		temp_host=find_host(temp_hostextinfo->host_name);
-		if(temp_host==NULL){
-			asprintf(&temp_buffer,"Error: Host '%s' specified in extended host information is not defined anywhere!",temp_hostextinfo->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-			errors++;
-		        }
-	        }
-
-	if(verify_config==TRUE)
-		printf("\tChecked %d extended host info definitions.\n",total_objects);
-
-#ifdef DEBUG1
-	printf("\tCompleted extended host info checks\n");
 #endif
 
 

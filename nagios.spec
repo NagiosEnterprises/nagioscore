@@ -1,5 +1,5 @@
 %define name nagios
-%define version 3.0-prealpha-03012006
+%define version 3.0prealpha-03052006
 %define release 1.fc4.test
 %define nsusr nagios
 %define nsgrp nagios

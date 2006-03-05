@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2006
+ * Last Modified: 03-04-2006
  *
  * License:
  *
@@ -58,8 +58,6 @@
 #define CONTACTGROUP_HASHSLOTS                 64
 #define HOSTGROUP_HASHSLOTS                    128
 #define SERVICEGROUP_HASHSLOTS                 128
-#define HOSTEXTINFO_HASHSLOTS                  1024
-#define SERVICEEXTINFO_HASHSLOTS               1024
 
 #define HOSTDEPENDENCY_HASHSLOTS               1024
 #define SERVICEDEPENDENCY_HASHSLOTS            1024
@@ -168,6 +166,21 @@ typedef struct host_struct{
 	int     failure_prediction_enabled;
 	char    *failure_prediction_options;
 	int     obsess_over_host;
+	char    *notes;
+	char    *notes_url;
+	char    *action_url;
+	char    *icon_image;
+	char    *icon_image_alt;
+	char    *vrml_image;
+	char    *statusmap_image;
+	int     have_2d_coords;
+	int     x_2d;
+	int     y_2d;
+	int     have_3d_coords;
+	double  x_3d;
+	double  y_3d;
+	double  z_3d;
+	int     should_be_drawn;
 	customvariablesmember *custom_variables;
 #ifdef NSCORE
 	int     problem_has_been_acknowledged;
@@ -493,29 +506,6 @@ typedef struct hostdependency_struct{
         }hostdependency;
 
 
-/* EXTENDED HOST INFO structure */
-typedef struct hostextinfo_struct{
-	char    *host_name;
-	char    *notes;
-	char    *notes_url;
-	char    *action_url;
-	char    *icon_image;
-	char    *vrml_image;
-	char    *statusmap_image;
-	char    *icon_image_alt;
-	int     have_2d_coords;
-	int     x_2d;
-	int     y_2d;
-	int     have_3d_coords;
-	double  x_3d;
-	double  y_3d;
-	double  z_3d;
-	int     should_be_drawn;
-	struct hostextinfo_struct *next;
-	struct hostextinfo_struct *nexthash;
-        }hostextinfo;
-
-
 
 /****************** HASH STRUCTURES ********************/
 
@@ -559,7 +549,7 @@ contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,i
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
-host *add_host(char *,char *,char *,char *,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
@@ -581,7 +571,6 @@ servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,in
 hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int);                             /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
-hostextinfo *add_hostextinfo(char *,char *,char *,char *,char *,char *,char *,char *,int,int,double,double,double,int,int); /* adds an extended host info definition */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
 
 
@@ -599,7 +588,6 @@ int add_hostdependency_to_hashlist(hostdependency *);
 int add_servicedependency_to_hashlist(servicedependency *);
 int add_hostescalation_to_hashlist(hostescalation *);
 int add_serviceescalation_to_hashlist(serviceescalation *);
-int add_hostextinfo_to_hashlist(hostextinfo *);
 
 
 /**** Object Search Functions ****/
@@ -612,7 +600,6 @@ contactgroup * find_contactgroup(char *);					                /* finds a contact
 contactgroupmember *find_contactgroupmember(char *,contactgroup *);	                        /* finds a contactgroup member object */
 command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
-hostextinfo *find_hostextinfo(char *);				                                /* find an extended host info object */
 
 
 /**** Object Traversal Functions ****/
@@ -668,7 +655,6 @@ int check_for_circular_hostdependency(hostdependency *,hostdependency *,int);   
 
 /**** Object Cleanup Functions ****/
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
-int free_extended_data(void);                           /* frees memory allocated to the extended host/service information */
 
 #ifdef __cplusplus
   }

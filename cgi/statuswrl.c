@@ -2,8 +2,8 @@
  *
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-11-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-04-2006
  *
  * Description:
  *
@@ -45,7 +45,6 @@ extern char *statuswrl_include;
 
 extern host *host_list;
 extern service *service_list;
-extern hostextinfo *hostextinfo_list;
 
 extern int default_statuswrl_layout_method;
 
@@ -73,7 +72,7 @@ void calculate_world_bounds(void);
 void display_world(void);
 void write_global_vrml_data(void);
 void draw_process_icon(void);
-void draw_host(hostextinfo *);
+void draw_host(host *);
 void draw_host_links(void);
 void draw_host_link(host *,double,double,double,double,double,double);
 void document_header(void);
@@ -309,7 +308,7 @@ int process_cgivars(void){
 
 /* top-level VRML world generation... */
 void display_world(void){
-	hostextinfo *temp_hostextinfo;
+	host *temp_host=NULL;
 
 	/* get the url we will use to grab the logo images... */
 	snprintf(url_logo_images_path,sizeof(url_logo_images_path),"%slogos/",url_images_path);
@@ -374,8 +373,8 @@ void display_world(void){
 			draw_process_icon();
 
 		/* draw all hosts */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next)
-			draw_host(temp_hostextinfo);
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
+			draw_host(temp_host);
 
 		/* draw host links */
 		draw_host_links();
@@ -496,7 +495,6 @@ int max_child_host_drawing_width(host *parent){
 
 /* calculates host drawing coordinates */
 void calculate_host_coords(void){
-	hostextinfo *temp_hostextinfo;
 	host *this_host;
 	host *temp_host;
 	int parent_hosts=0;
@@ -519,12 +517,12 @@ void calculate_host_coords(void){
 	if(layout_method==LAYOUT_USER_SUPPLIED){
 
 		/* see which hosts we should draw (only those with 3-D coords) */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-			if(temp_hostextinfo->have_3d_coords==TRUE)
-				temp_hostextinfo->should_be_drawn=TRUE;
+			if(temp_host->have_3d_coords==TRUE)
+				temp_host->should_be_drawn=TRUE;
 			else
-				temp_hostextinfo->should_be_drawn=FALSE;
+				temp_host->should_be_drawn=FALSE;
 		        }
 
 		return;
@@ -537,16 +535,17 @@ void calculate_host_coords(void){
 	/* add empty extended host info entries for all hosts that don't have any */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		/* find the corresponding hostextinfo definition */
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-
 		/* none was found, so add a blank one */
+		/*
 		if(temp_hostextinfo==NULL)
 			add_hostextinfo(temp_host->name,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
+		*/
 
 		/* default z coord should 0 for auto-layout modes unless overridden later */
+		/*
 		else
-			temp_hostextinfo->z_3d=0.0;
+		*/
+		temp_host->z_3d=0.0;
 	        }
 
 
@@ -579,35 +578,29 @@ void calculate_host_coords(void){
 			offset_y+=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
 
 		/* see which hosts we should draw and calculate drawing coords */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-			/* find the host that matches this entry */
-			temp_host=find_host(temp_hostextinfo->host_name);
-
-			if(temp_host==NULL)
-				continue;
-			
 			/* this is an immediate parent of the "main" host we're drawing */
-			else if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_3d_coords=TRUE;
-				temp_hostextinfo->x_3d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
-				temp_hostextinfo->y_3d=offset_y;
+			if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_3d_coords=TRUE;
+				temp_host->x_3d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+				temp_host->y_3d=offset_y;
 				current_parent_host++;
 			        }
 			
 			/* this is the "main" host we're drawing */
 			else if(this_host==temp_host){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_3d_coords=TRUE;
-				temp_hostextinfo->x_3d=center_x;
-				temp_hostextinfo->y_3d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_3d_coords=TRUE;
+				temp_host->x_3d=center_x;
+				temp_host->y_3d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
 			        }
 
 			/* else do not draw this host (we might if its a child - see below, but assume no for now) */
 			else{
-				temp_hostextinfo->should_be_drawn=FALSE;
-				temp_hostextinfo->have_3d_coords=FALSE;
+				temp_host->should_be_drawn=FALSE;
+				temp_host->have_3d_coords=FALSE;
 			        }
 		        }
 
@@ -626,23 +619,17 @@ void calculate_host_coords(void){
 			current_layer_member=0;
 
 			/* see which hosts are members of this layer and calculate drawing coords */
-			for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-
-				/* find the host that matches this entry */
-				temp_host=find_host(temp_hostextinfo->host_name);
-
-				if(temp_host==NULL)
-					continue;
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 				/* is this host a member of the current child layer? */
 				if(host_child_depth_separation(this_host,temp_host)==current_layer){
-					temp_hostextinfo->should_be_drawn=TRUE;
-					temp_hostextinfo->have_3d_coords=TRUE;
-					temp_hostextinfo->x_3d=center_x-(((layer_members*DEFAULT_NODE_WIDTH)+((layer_members-1)*DEFAULT_NODE_HSPACING))/2)+(current_layer_member*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+					temp_host->should_be_drawn=TRUE;
+					temp_host->have_3d_coords=TRUE;
+					temp_host->x_3d=center_x-(((layer_members*DEFAULT_NODE_WIDTH)+((layer_members-1)*DEFAULT_NODE_HSPACING))/2)+(current_layer_member*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
 					if(this_host==NULL)
-						temp_hostextinfo->y_3d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*current_layer)+offset_y;
+						temp_host->y_3d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*current_layer)+offset_y;
 					else
-						temp_hostextinfo->y_3d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*(current_layer+1))+offset_y;
+						temp_host->y_3d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*(current_layer+1))+offset_y;
 					current_layer_member++;
 				        }
 			        }
@@ -680,35 +667,29 @@ void calculate_host_coords(void){
 			offset_y+=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
 
 		/* see which hosts we should draw and calculate drawing coords */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-			/* find the host that matches this entry */
-			temp_host=find_host(temp_hostextinfo->host_name);
-
-			if(temp_host==NULL)
-				continue;
-			
 			/* this is an immediate parent of the "main" host we're drawing */
-			else if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_3d_coords=TRUE;
-				temp_hostextinfo->x_3d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
-				temp_hostextinfo->y_3d=offset_y;
+			if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_3d_coords=TRUE;
+				temp_host->x_3d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+				temp_host->y_3d=offset_y;
 				current_parent_host++;
 			        }
 			
 			/* this is the "main" host we're drawing */
 			else if(this_host==temp_host){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_3d_coords=TRUE;
-				temp_hostextinfo->x_3d=center_x;
-				temp_hostextinfo->y_3d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_3d_coords=TRUE;
+				temp_host->x_3d=center_x;
+				temp_host->y_3d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
 			        }
 
 			/* else do not draw this host (we might if its a child - see below, but assume no for now) */
 			else{
-				temp_hostextinfo->should_be_drawn=FALSE;
-				temp_hostextinfo->have_3d_coords=FALSE;
+				temp_host->should_be_drawn=FALSE;
+				temp_host->have_3d_coords=FALSE;
 			        }
 		        }
 
@@ -737,7 +718,7 @@ void calculate_host_coords(void){
 
 /* calculate world dimensions */
 void calculate_world_bounds(void){
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 
 	min_x_coord=0.0;
 	min_y_coord=0.0;
@@ -747,28 +728,28 @@ void calculate_world_bounds(void){
 	max_z_coord=0.0;
 
 	/* check all extended host entries */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		if(temp_hostextinfo->have_3d_coords==FALSE){
-			temp_hostextinfo->should_be_drawn=FALSE;
+		if(temp_host->have_3d_coords==FALSE){
+			temp_host->should_be_drawn=FALSE;
 			continue;
 		        }
 
-		if(temp_hostextinfo->should_be_drawn==FALSE)
+		if(temp_host->should_be_drawn==FALSE)
 			continue;
 
-		if(temp_hostextinfo->x_3d < min_x_coord)
-			min_x_coord=temp_hostextinfo->x_3d;
-		else if(temp_hostextinfo->x_3d > max_x_coord)
-			max_x_coord=temp_hostextinfo->x_3d;
-		if(temp_hostextinfo->y_3d < min_y_coord)
-			min_y_coord=temp_hostextinfo->y_3d;
-		else if(temp_hostextinfo->y_3d > max_y_coord)
-			max_y_coord=temp_hostextinfo->y_3d;
-		if(temp_hostextinfo->z_3d < min_z_coord)
-			min_x_coord=temp_hostextinfo->z_3d;
-		else if(temp_hostextinfo->z_3d > max_z_coord)
-			max_z_coord=temp_hostextinfo->z_3d;
+		if(temp_host->x_3d < min_x_coord)
+			min_x_coord=temp_host->x_3d;
+		else if(temp_host->x_3d > max_x_coord)
+			max_x_coord=temp_host->x_3d;
+		if(temp_host->y_3d < min_y_coord)
+			min_y_coord=temp_host->y_3d;
+		else if(temp_host->y_3d > max_y_coord)
+			max_y_coord=temp_host->y_3d;
+		if(temp_host->z_3d < min_z_coord)
+			min_x_coord=temp_host->z_3d;
+		else if(temp_host->z_3d > max_z_coord)
+			max_z_coord=temp_host->z_3d;
 
 		coordinates_were_specified=TRUE;
 	        }
@@ -800,7 +781,7 @@ void calculate_world_bounds(void){
 
 /* write global VRML data */
 void write_global_vrml_data(void){
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 	float visibility_range=0.0;
 	float viewpoint_z=0.0;
 
@@ -847,11 +828,11 @@ void write_global_vrml_data(void){
 	/* host close-up viewpoint */
 	if(show_all_hosts==FALSE){
 
-		temp_hostextinfo=find_hostextinfo(host_name);
-		if(temp_hostextinfo!=NULL && temp_hostextinfo->have_3d_coords==TRUE){
+		temp_host=find_host(host_name);
+		if(temp_host!=NULL && temp_host->have_3d_coords==TRUE){
 			printf("\n");
 			printf("Viewpoint{\n");
-			printf("position %2.3f %2.3f %2.3f\n",temp_hostextinfo->x_3d,temp_hostextinfo->y_3d,temp_hostextinfo->z_3d+5.0);
+			printf("position %2.3f %2.3f %2.3f\n",temp_host->x_3d,temp_host->y_3d,temp_host->z_3d+5.0);
 			printf("fieldOfView 0.78\n");
 			printf("description \"Host Close-Up Viewpoint\"\n");
 			printf("}\n");
@@ -918,30 +899,24 @@ void write_global_vrml_data(void){
 
 
 /* draws a host */
-void draw_host(hostextinfo *temp_hostextinfo){
-	host *temp_host;
+void draw_host(host *temp_host){
 	hoststatus *temp_hoststatus=NULL;
 	char state_string[16]="";
 	double x, y, z;
 	char *vrml_safe_hostname=NULL;
 	int a, ch;
 
-	if(temp_hostextinfo==NULL)
+	if(temp_host==NULL)
 		return;
 
 	/* make sure we have the coordinates */
-	if(temp_hostextinfo->have_3d_coords==FALSE)
+	if(temp_host->have_3d_coords==FALSE)
 		return;
 	else{
-		x=temp_hostextinfo->x_3d;
-		y=temp_hostextinfo->y_3d;
-		z=temp_hostextinfo->z_3d;
+		x=temp_host->x_3d;
+		y=temp_host->y_3d;
+		z=temp_host->z_3d;
 	        }
-
-	/* find the config entry for this host */
-	temp_host=find_host(temp_hostextinfo->host_name);
-	if(temp_host==NULL)
-		return;
 
 	/* make the host name safe for embedding in VRML */
 	vrml_safe_hostname=(char *)strdup(temp_host->name);
@@ -982,9 +957,9 @@ void draw_host(hostextinfo *temp_hostextinfo){
 		printf("emissiveColor 1.0 0.2 0.2\ndiffuseColor 1.0 0.2 0.2\n");
 	printf("transparency 0.4\n");
 	printf("}\n");
-	if(use_textures==TRUE && temp_hostextinfo->vrml_image!=NULL){
+	if(use_textures==TRUE && temp_host->vrml_image!=NULL){
 		printf("texture ImageTexture{\n");
-		printf("url \"%s%s\"\n",url_logo_images_path,temp_hostextinfo->vrml_image);
+		printf("url \"%s%s\"\n",url_logo_images_path,temp_host->vrml_image);
 		printf("}\n");
 		}
 	printf("}\n");
@@ -1050,21 +1025,15 @@ void draw_host(hostextinfo *temp_hostextinfo){
 
 /* draw links between hosts */
 void draw_host_links(void){
-	hostextinfo *child_hostextinfo;
-	hostextinfo *parent_hostextinfo;
 	host *parent_host;
 	host *child_host;
 
 	if(use_links==FALSE)
 		return;
 
-	for(child_hostextinfo=hostextinfo_list;child_hostextinfo!=NULL;child_hostextinfo=child_hostextinfo->next){
+	for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
 
-		if(child_hostextinfo->have_3d_coords==FALSE)
-			continue;
-
-		child_host=find_host(child_hostextinfo->host_name);
-		if(child_host==NULL)
+		if(child_host->have_3d_coords==FALSE)
 			continue;
 
 		/* check authorization */
@@ -1076,12 +1045,7 @@ void draw_host_links(void){
 
 			if(is_host_immediate_child_of_host(child_host,parent_host)==TRUE){
 
-				parent_hostextinfo=find_hostextinfo(parent_host->name);
-
-				if(parent_hostextinfo==NULL)
-					continue;
-
-				if(parent_hostextinfo->have_3d_coords==FALSE)
+				if(parent_host->have_3d_coords==FALSE)
 					continue;
 				
 				/* check authorization */
@@ -1089,7 +1053,7 @@ void draw_host_links(void){
 					continue;
 
 				/* draw the link between the child and parent hosts */
-				draw_host_link(parent_host,parent_hostextinfo->x_3d,parent_hostextinfo->y_3d,parent_hostextinfo->z_3d,child_hostextinfo->x_3d,child_hostextinfo->y_3d,child_hostextinfo->z_3d);
+				draw_host_link(parent_host,parent_host->x_3d,parent_host->y_3d,parent_host->z_3d,child_host->x_3d,child_host->y_3d,child_host->z_3d);
 			        }
 		        }
 	        }
@@ -1135,7 +1099,6 @@ void draw_host_link(host *hst,double x0, double y0, double z0, double x1, double
 
 /* draw process icon */
 void draw_process_icon(void){
-	hostextinfo *child_hostextinfo;
 	host *child_host;
 
 	if(draw_nagios_icon==FALSE)
@@ -1183,13 +1146,9 @@ void draw_process_icon(void){
 		return;
 
 	/* draw links to immediate child hosts */
-	for(child_hostextinfo=hostextinfo_list;child_hostextinfo!=NULL;child_hostextinfo=child_hostextinfo->next){
+	for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
 
-		if(child_hostextinfo->have_3d_coords==FALSE)
-			continue;
-
-		child_host=find_host(child_hostextinfo->host_name);
-		if(child_host==NULL)
+		if(child_host->have_3d_coords==FALSE)
 			continue;
 
 		/* check authorization */
@@ -1198,7 +1157,7 @@ void draw_process_icon(void){
 
 		/* draw a link to the host */
 		if(is_host_immediate_child_of_host(NULL,child_host)==TRUE)
-			draw_host_link(NULL,nagios_icon_x,nagios_icon_y,0.0,child_hostextinfo->x_3d,child_hostextinfo->y_3d,child_hostextinfo->z_3d);
+			draw_host_link(NULL,nagios_icon_x,nagios_icon_y,0.0,child_host->x_3d,child_host->y_3d,child_host->z_3d);
 	        }
 
 	return;
@@ -1218,7 +1177,6 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 	int current_drawing_x;
 	int this_drawing_width;
 	host *temp_host;
-	hostextinfo *temp_hostextinfo;
 
 	/* calculate total drawing width of parent host */
 	parent_drawing_width=max_child_host_drawing_width(parent);
@@ -1231,24 +1189,20 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 	/* calculate coords for children */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo==NULL)
-			continue;
-
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE){
 
 			/* get drawing width of child host */
 			this_drawing_width=max_child_host_drawing_width(temp_host);
 
-			temp_hostextinfo->x_3d=current_drawing_x+(((DEFAULT_NODE_WIDTH*this_drawing_width)+(DEFAULT_NODE_HSPACING*(this_drawing_width-1)))/2);
-			temp_hostextinfo->y_3d=y+DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
-			temp_hostextinfo->have_3d_coords=TRUE;
-			temp_hostextinfo->should_be_drawn=TRUE;
+			temp_host->x_3d=current_drawing_x+(((DEFAULT_NODE_WIDTH*this_drawing_width)+(DEFAULT_NODE_HSPACING*(this_drawing_width-1)))/2);
+			temp_host->y_3d=y+DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
+			temp_host->have_3d_coords=TRUE;
+			temp_host->should_be_drawn=TRUE;
 			
 			current_drawing_x+=(this_drawing_width*DEFAULT_NODE_WIDTH)+((this_drawing_width-1)*DEFAULT_NODE_HSPACING)+DEFAULT_NODE_HSPACING;
 
 			/* recurse into child host ... */
-			calculate_balanced_tree_coords(temp_host,temp_hostextinfo->x_3d,temp_hostextinfo->y_3d);
+			calculate_balanced_tree_coords(temp_host,temp_host->x_3d,temp_host->y_3d);
 		        }
 
 	        }
@@ -1280,7 +1234,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 	double x_coord=0.0;
 	double y_coord=0.0;
 	host *temp_host;
-	hostextinfo *temp_hostextinfo;
 
 
 	/* get the total number of immediate children to this host */
@@ -1302,10 +1255,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 
 	/* calculate coords for children */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo==NULL)
-			continue;
 
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE){
 
@@ -1334,10 +1283,10 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 			x_coord=-(sin(-this_drawing_angle*(M_PI/180.0))*radius);
 			y_coord=-(sin((90+this_drawing_angle)*(M_PI/180.0))*radius);
 
-			temp_hostextinfo->x_3d=(int)x_coord;
-			temp_hostextinfo->y_3d=(int)y_coord;
-			temp_hostextinfo->have_3d_coords=TRUE;
-			temp_hostextinfo->should_be_drawn=TRUE;
+			temp_host->x_3d=(int)x_coord;
+			temp_host->y_3d=(int)y_coord;
+			temp_host->have_3d_coords=TRUE;
+			temp_host->should_be_drawn=TRUE;
 
 			/* recurse into child host ... */
 			calculate_circular_layer_coords(temp_host,current_drawing_angle+((available_angle-clipped_available_angle)/2),clipped_available_angle,layer+1,radius+CIRCULAR_DRAWING_RADIUS);

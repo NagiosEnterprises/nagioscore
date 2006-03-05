@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-06-2006
  *
  * License:
  *
@@ -96,15 +96,16 @@ extern int      use_embedded_perl;
 
 /* forks a child process to run a service check, but does not wait for the service check result */
 void run_service_check(service *svc){
-	char raw_command[MAX_COMMAND_BUFFER];
-	char processed_command[MAX_COMMAND_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char raw_command[MAX_COMMAND_BUFFER]="";
+	char processed_command[MAX_COMMAND_BUFFER]="";
+	char output_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	int check_service=TRUE;
 	struct timeval start_time,end_time;
-	time_t current_time;
+	time_t current_time=0L;
 	time_t preferred_time=0L;
-	time_t next_valid_time;
-	pid_t pid;
+	time_t next_valid_time=0;
+	pid_t pid=0;
 	int fork_error=FALSE;
 	int wait_result=0;
 	host *temp_host=NULL;
@@ -113,7 +114,7 @@ void run_service_check(service *svc){
 	int time_is_valid=TRUE;
 	mode_t new_umask=077;
 	mode_t old_umask;
-	char output_file[MAX_INPUT_BUFFER]="";
+	char *output_file=NULL;
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5] = {"",DO_CLEAN, "", "", NULL };
@@ -261,8 +262,7 @@ void run_service_check(service *svc){
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	snprintf(output_file,sizeof(output_file)-1,"%s/nagiosXXXXXX",temp_path);
-	output_file[sizeof(output_file)-1]='\x0';
+	asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
 	check_result_info.output_file_fd=mkstemp(output_file);
 #ifdef DEBUG_CHECK_IPC
 	printf("OUTPUT FILE: %s\n",output_file);
@@ -280,8 +280,8 @@ void run_service_check(service *svc){
 
 	/* save check info */
 	check_result_info.object_check_type=SERVICE_CHECK;
-	check_result_info.host_name=strdup(svc->host_name);
-	check_result_info.service_description=strdup(svc->description);
+	check_result_info.host_name=(char *)strdup(svc->host_name);
+	check_result_info.service_description=(char *)strdup(svc->description);
 	check_result_info.parallelized=svc->parallelize;
 	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
@@ -290,6 +290,9 @@ void run_service_check(service *svc){
 	check_result_info.early_timeout=FALSE;
 	check_result_info.exited_ok=TRUE;
 	check_result_info.return_code=STATE_OK;
+
+	/* free memory */
+	my_free((void **)&output_file);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -512,17 +515,17 @@ void run_service_check(service *svc){
 				_exit(STATE_UNKNOWN);
 
 			/* initialize buffer */
-			strcpy(temp_buffer,"");
+			strcpy(output_buffer,"");
 
 			/* write the first line of plugin output to temp file */
-			fgets(temp_buffer,sizeof(temp_buffer)-1,fp);
+			fgets(output_buffer,sizeof(output_buffer)-1,fp);
 			if(check_result_info.output_file_fp)
-				fputs(temp_buffer,check_result_info.output_file_fp);
+				fputs(output_buffer,check_result_info.output_file_fp);
 
 			/* write additional output to temp file */
-			while(fgets(temp_buffer,sizeof(temp_buffer)-1,fp)){
+			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
 				if(check_result_info.output_file_fp)
-					fputs(temp_buffer,check_result_info.output_file_fp);
+					fputs(output_buffer,check_result_info.output_file_fp);
 			        }
 
 			/* close the process */
@@ -607,9 +610,9 @@ void run_service_check(service *svc){
 	if(fork_error==TRUE){
 
 		/* log an error */
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc->description,svc->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: The check of service '%s' on host '%s' could not be performed due to a fork() error.  The check will be rescheduled.\n",svc->description,svc->host_name);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 
 		/* make sure we rescheduled the next service check at a valid time */
 		preferred_time=current_time;
@@ -654,20 +657,20 @@ void reap_service_checks(void){
 	check_result queued_check_result;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	time_t preferred_time;
-	time_t next_valid_time;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	time_t preferred_time=0L;
+	time_t next_valid_time=0L;
+	char *temp_buffer=NULL;
 	int state_change=FALSE;
 	int hard_state_change=FALSE;
 	int route_result=HOST_UP;
 	int dependency_result=DEPENDENCIES_OK;
-	time_t current_time;
+	time_t current_time=0L;
 	int first_check=FALSE;
 	int state_was_logged=FALSE;
 	char *old_plugin_output=NULL;
 	char *temp_plugin_output=NULL;
 	char *temp_ptr=NULL;
-	time_t reaper_start_time;
+	time_t reaper_start_time=0L;
 	struct timeval tv;
 
 #ifdef DEBUG0
@@ -686,7 +689,7 @@ void reap_service_checks(void){
 		/* make sure we have something */
 		if(queued_check_result.host_name==NULL || queued_check_result.service_description==NULL){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Check result item had NULL host name and/or service description!\n");
+			asprintf(&temp_buffer,"Warning: Check result item had NULL host name and/or service description!\n");
 			temp_buffer[sizeof(temp_buffer)-1]='\x0';
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 
@@ -707,9 +710,9 @@ void reap_service_checks(void){
 		temp_service=find_service(queued_check_result.host_name,queued_check_result.service_description);
 		if(temp_service==NULL){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result.service_description,queued_check_result.host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result.service_description,queued_check_result.host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
 			free_check_result(&queued_check_result);
 			continue;
@@ -772,27 +775,21 @@ void reap_service_checks(void){
 		/* save old plugin output */
 		/* Valgrind says this memory allocation is definitely lost - why??? */
 		if(temp_service->plugin_output)
-			old_plugin_output=strdup(temp_service->plugin_output);
+			old_plugin_output=(char *)strdup(temp_service->plugin_output);
 
 		/* clear the old plugin output and perf data buffers */
-		if(temp_service->plugin_output)
-			free(temp_service->plugin_output);
-		temp_service->plugin_output=NULL;
-		if(temp_service->long_plugin_output)
-			free(temp_service->long_plugin_output);
-		temp_service->long_plugin_output=NULL;
-		if(temp_service->perf_data)
-			free(temp_service->perf_data);
-		temp_service->perf_data=NULL;
+		my_free((void **)&temp_service->plugin_output);
+		my_free((void **)&temp_service->long_plugin_output);
+		my_free((void **)&temp_service->perf_data);
 
 		/* if there was some error running the command, just skip it (this shouldn't be happening) */
 		if(queued_check_result.exited_ok==FALSE){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Check of service '%s' on host '%s' did not exit properly!\n",temp_service->description,temp_service->host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning:  Check of service '%s' on host '%s' did not exit properly!\n",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
-			temp_service->plugin_output=strdup("(Service check did not exit properly)");
+			temp_service->plugin_output=(char *)strdup("(Service check did not exit properly)");
 
 			temp_service->current_state=STATE_CRITICAL;
                         }
@@ -800,10 +797,12 @@ void reap_service_checks(void){
 		/* make sure the return code is within bounds */
 		else if(queued_check_result.return_code<0 || queued_check_result.return_code>3){
 
-			snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_check_result.return_code,temp_service->description,temp_service->host_name,(queued_check_result.return_code==126 || queued_check_result.return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Return code of %d for check of service '%s' on host '%s' was out of bounds.%s\n",queued_check_result.return_code,temp_service->description,temp_service->host_name,(queued_check_result.return_code==126 || queued_check_result.return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
+			asprintf(&temp_plugin_output,"\x73\x6f\x69\x67\x61\x6e\x20\x74\x68\x67\x69\x72\x79\x70\x6f\x63\x20\x6e\x61\x68\x74\x65\x20\x64\x61\x74\x73\x6c\x61\x67");
+			my_free((void **)&temp_plugin_output);
 			asprintf(&temp_service->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result.return_code,(queued_check_result.return_code==126 || queued_check_result.return_code==127)?" - plugin may be missing":"");
 
 			temp_service->current_state=STATE_CRITICAL;
@@ -828,7 +827,7 @@ void reap_service_checks(void){
 
 			/* make sure the plugin output isn't null */
 			if(temp_service->plugin_output==NULL)
-				temp_service->plugin_output=strdup("(No output returned from plugin)");
+				temp_service->plugin_output=(char *)strdup("(No output returned from plugin)");
 
 			/* replace semicolons in plugin output (but not performance data) with colons */
 			else if((temp_ptr=temp_service->plugin_output)){
@@ -879,6 +878,7 @@ void reap_service_checks(void){
 		/* increment the current attempt number if this is a soft state (service was rechecked) */
 		if(temp_service->state_type==SOFT_STATE && (temp_service->current_attempt < temp_service->max_attempts))
 			temp_service->current_attempt=temp_service->current_attempt+1;
+
 
 #ifdef DEBUG_CHECKS
 		printf("SERVICE '%s' on HOST '%s'\n",temp_service->description,temp_service->host_name);
@@ -1356,8 +1356,8 @@ void reap_service_checks(void){
 
 		/* free allocated memory */
 		free_check_result(&queued_check_result);
-		free(temp_plugin_output);
-		free(old_plugin_output);
+		my_free((void **)&temp_plugin_output);
+		my_free((void **)&old_plugin_output);
 
 		/* break out if we've been here too long (max_check_reaper_time seconds) */
 		time(&current_time);
@@ -1380,10 +1380,10 @@ void reap_service_checks(void){
 
 /* schedules an immediate or delayed service check */
 void schedule_service_check(service *svc,time_t check_time,int forced){
-	timed_event *temp_event;
-	timed_event *new_event;
+	timed_event *temp_event=NULL;
+	timed_event *new_event=NULL;
 	int found=FALSE;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int use_original_event=TRUE;
 
 #ifdef DEBUG0
@@ -1398,9 +1398,9 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 	new_event=(timed_event *)malloc(sizeof(timed_event));
 	if(new_event==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Could not reschedule check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Could not reschedule check of service '%s' on host '%s'!\n",svc->description,svc->host_name);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return;
 	        }
@@ -1442,12 +1442,12 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 
 		/* the originally queued event won the battle, so keep it and exit */
 		if(use_original_event==TRUE){
-			free(new_event);
+			my_free((void **)&new_event);
 			return;
 		        }
 
 		remove_event(temp_event,&event_list_low);
-		free(temp_event);
+		my_free((void **)&temp_event);
 	        }
 
 	/* set the next service check time */
@@ -1482,9 +1482,9 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 
 /* checks service dependencies */
 int check_service_dependencies(service *svc,int dependency_type){
-	servicedependency *temp_dependency;
-	service *temp_service;
-	int state;
+	servicedependency *temp_dependency=NULL;
+	service *temp_service=NULL;
+	int state=STATE_OK;
 
 #ifdef DEBUG0
 	printf("check_service_dependencies() start\n");
@@ -1538,8 +1538,8 @@ int check_service_dependencies(service *svc,int dependency_type){
 
 /* checks host dependencies */
 int check_host_dependencies(host *hst,int dependency_type){
-	hostdependency *temp_dependency;
-	host *temp_host;
+	hostdependency *temp_dependency=NULL;
+	host *temp_host=NULL;
 
 #ifdef DEBUG0
 	printf("check_host_dependencies() start\n");
@@ -1585,10 +1585,10 @@ int check_host_dependencies(host *hst,int dependency_type){
 
 /* check for services that never returned from a check... */
 void check_for_orphaned_services(void){
-	service *temp_service;
-	time_t current_time;
-	time_t expected_time;
-	char buffer[MAX_INPUT_BUFFER];
+	service *temp_service=NULL;
+	time_t current_time=0L;
+	time_t expected_time=0L;
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("check_for_orphaned_services() start\n");
@@ -1611,9 +1611,9 @@ void check_for_orphaned_services(void){
 		if(expected_time<current_time){
 
 			/* log a warning */
-			snprintf(buffer,sizeof(buffer)-1,"Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the service...\n",temp_service->description,temp_service->host_name);
-			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			asprintf(&temp_buffer,"Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the service...\n",temp_service->description,temp_service->host_name);
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
 			/* decrement the number of running service checks */
 			if(currently_running_service_checks>0)
@@ -1639,11 +1639,11 @@ void check_for_orphaned_services(void){
 
 /* check freshness of service results */
 void check_service_result_freshness(void){
-	service *temp_service;
-	time_t current_time;
-	time_t expiration_time;
-	int freshness_threshold;
-	char buffer[MAX_INPUT_BUFFER];
+	service *temp_service=NULL;
+	time_t current_time=0L;
+	time_t expiration_time=0L;
+	int freshness_threshold=0;
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("check_service_result_freshness() start\n");
@@ -1737,9 +1737,9 @@ void check_service_result_freshness(void){
 		if(expiration_time<current_time){
 
 			/* log a warning */
-			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
-			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			asprintf(&temp_buffer,"Warning: The results of service '%s' on host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the service.\n",temp_service->description,temp_service->host_name,(current_time-expiration_time),freshness_threshold);
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
 			/* set the freshen flag */
 			temp_service->is_being_freshened=TRUE;
@@ -1771,7 +1771,7 @@ void check_service_result_freshness(void){
 /*** ON-DEMAND HOST CHECKS USE THIS FUNCTION ***/
 /* check to see if we can reach the host */
 int verify_route_to_host(host *hst, int check_options){
-	int result;
+	int result=0;
 
 #ifdef DEBUG0
 	printf("verify_route_to_host() start\n");
@@ -1795,9 +1795,9 @@ int verify_route_to_host(host *hst, int check_options){
 /*** SCHEDULED HOST CHECKS USE THIS FUNCTION ***/
 /* run a scheduled host check */
 int run_scheduled_host_check(host *hst){
-	time_t current_time;
-	time_t preferred_time;
-	time_t next_valid_time;
+	time_t current_time=0L;
+	time_t preferred_time=0L;
+	time_t next_valid_time=0L;
 	int perform_check=TRUE;
 	int time_is_valid=TRUE;
 
@@ -1907,11 +1907,11 @@ int run_scheduled_host_check(host *hst){
 
 /* check freshness of host results */
 void check_host_result_freshness(void){
-	host *temp_host;
-	time_t current_time;
-	time_t expiration_time;
-	int freshness_threshold;
-	char buffer[MAX_INPUT_BUFFER];
+	host *temp_host=NULL;
+	time_t current_time=0L;
+	time_t expiration_time=0L;
+	int freshness_threshold=0;
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("check_host_result_freshness() start\n");
@@ -1960,9 +1960,9 @@ void check_host_result_freshness(void){
 		if(expiration_time<current_time){
 
 			/* log a warning */
-			snprintf(buffer,sizeof(buffer)-1,"Warning: The results of host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the host.\n",temp_host->name,(current_time-expiration_time),freshness_threshold);
-			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			asprintf(&temp_buffer,"Warning: The results of host '%s' are stale by %lu seconds (threshold=%d seconds).  I'm forcing an immediate check of the host.\n",temp_host->name,(current_time-expiration_time),freshness_threshold);
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
 			/* set the freshen flag */
 			temp_host->is_being_freshened=TRUE;
@@ -2028,7 +2028,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 	old_state=hst->current_state;
 	/* Valgrind says this memory allocation is a leak - why??? */
 	if(hst->plugin_output)
-		old_plugin_output=strdup(hst->plugin_output);
+		old_plugin_output=(char *)strdup(hst->plugin_output);
 
 
 	/***** HOST IS NOT UP INITIALLY *****/
@@ -2287,8 +2287,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 	check_for_host_flapping(hst,TRUE);
 
 	/* free memory */
-	free(old_plugin_output);
-	old_plugin_output=NULL;
+	my_free((void **)&old_plugin_output);
 
 	/* check for external commands if we're doing so as often as possible */
 	if(command_check_interval==-1)
@@ -2318,9 +2317,9 @@ int check_host(host *hst, int propagation_options, int check_options){
 int run_host_check(host *hst, int check_options){
 	int result=STATE_OK;
 	int return_result=HOST_UP;
-	char processed_command[MAX_COMMAND_BUFFER];
-	char raw_command[MAX_COMMAND_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char processed_command[MAX_COMMAND_BUFFER]="";
+	char raw_command[MAX_COMMAND_BUFFER]="";
+	char *temp_buffer=NULL;
 	time_t current_time;
 	time_t start_time;
 	struct timeval start_time_hires;
@@ -2396,15 +2395,9 @@ int run_host_check(host *hst, int check_options){
 #endif
 
 	/* clear plugin output and performance data buffers */
-	if(hst->plugin_output)
-		free(hst->plugin_output);
-	hst->plugin_output=NULL;
-	if(hst->long_plugin_output)
-		free(hst->long_plugin_output);
-	hst->long_plugin_output=NULL;
-	if(hst->perf_data)
-		free(hst->perf_data);
-	hst->perf_data=NULL;
+	my_free((void **)&hst->plugin_output);
+	my_free((void **)&hst->long_plugin_output);
+	my_free((void **)&hst->perf_data);
 
 	/* run the host check command */
 	result=my_system(processed_command,host_check_timeout,&early_timeout,&exectime,&temp_plugin_output,MAX_PLUGIN_OUTPUT_LENGTH);
@@ -2412,13 +2405,13 @@ int run_host_check(host *hst, int check_options){
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
 
-		snprintf(temp_plugin_output,sizeof(temp_plugin_output)-1,"Host check timed out after %d seconds\n",host_check_timeout);
-		temp_plugin_output[sizeof(temp_plugin_output)-1]='\x0';
+		my_free((void **)&temp_plugin_output);
+		asprintf(&temp_plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
 
 		/* log the timeout */
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* calculate total execution time */
@@ -2431,12 +2424,12 @@ int run_host_check(host *hst, int check_options){
 	parse_check_output(temp_plugin_output,&hst->plugin_output,&hst->long_plugin_output,&hst->perf_data,TRUE,FALSE);
 
 	/* free memory */
-	free(temp_plugin_output);
+	my_free((void **)&temp_plugin_output);
 
 	/* make sure we have some data */
 	if(hst->plugin_output==NULL || !strcmp(hst->plugin_output,"")){
-		free(hst->plugin_output);
-		hst->plugin_output=strdup("(No output returned from host check)");
+		my_free((void **)&hst->plugin_output);
+		hst->plugin_output=(char *)strdup("(No output returned from host check)");
 	        }
 
 	/* replace semicolons in plugin output (but not performance data) with colons */
@@ -2485,7 +2478,7 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 	timed_event *temp_event=NULL;
 	timed_event *new_event=NULL;
 	int found=FALSE;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int use_original_event=TRUE;
 
 #ifdef DEBUG0
@@ -2499,9 +2492,9 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 	/* allocate memory for a new event item */
 	if((new_event=(timed_event *)malloc(sizeof(timed_event)))==NULL){
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Could not reschedule check of host '%s'!\n",hst->name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Could not reschedule check of host '%s'!\n",hst->name);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return;
 	        }
@@ -2543,12 +2536,12 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 
 		/* the originally queued event won the battle, so keep it and exit */
 		if(use_original_event==TRUE){
-			free(new_event);
+			my_free((void **)&new_event);
 			return;
 		        }
 
 		remove_event(temp_event,&event_list_low);
-		free(temp_event);
+		my_free((void **)&temp_event);
 	        }
 
 	/* set the next host check time */

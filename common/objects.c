@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-03-2006
+ * Last Modified: 03-04-2006
  *
  * License:
  *
@@ -53,7 +53,6 @@ serviceescalation *serviceescalation_list=NULL,*serviceescalation_list_tail=NULL
 servicedependency *servicedependency_list=NULL,*servicedependency_list_tail=NULL;
 hostdependency  *hostdependency_list=NULL,*hostdependency_list_tail=NULL;
 hostescalation  *hostescalation_list=NULL,*hostescalation_list_tail=NULL;
-hostextinfo     *hostextinfo_list=NULL,*hostextinfo_list_tail=NULL;
 
 host		**host_hashlist=NULL;
 service		**service_hashlist=NULL;
@@ -63,7 +62,6 @@ contact         **contact_hashlist=NULL;
 contactgroup    **contactgroup_hashlist=NULL;
 hostgroup       **hostgroup_hashlist=NULL;
 servicegroup    **servicegroup_hashlist=NULL;
-hostextinfo     **hostextinfo_hashlist=NULL;
 hostdependency  **hostdependency_hashlist=NULL;
 servicedependency **servicedependency_hashlist=NULL;
 hostescalation  **hostescalation_hashlist=NULL;
@@ -496,55 +494,6 @@ int add_servicegroup_to_hashlist(servicegroup *new_servicegroup){
         }
 
 
-/* adds hostextinfo to hash list in memory */
-int add_hostextinfo_to_hashlist(hostextinfo *new_hostextinfo){
-	hostextinfo *temp_hostextinfo=NULL;
-	hostextinfo *lastpointer=NULL;
-	int hashslot=0;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
-
-	/* initialize hash list */
-	if(hostextinfo_hashlist==NULL){
-		int i;
-
-		hostextinfo_hashlist=(hostextinfo **)malloc(sizeof(hostextinfo *)*HOSTEXTINFO_HASHSLOTS);
-		if(hostextinfo_hashlist==NULL)
-			return 0;
-		
-		for(i=0;i<HOSTEXTINFO_HASHSLOTS;i++)
-			hostextinfo_hashlist[i]=NULL;
-	        }
-
-	if(!new_hostextinfo)
-		return 0;
-
-	hashslot=hashfunc(new_hostextinfo->host_name,NULL,HOSTEXTINFO_HASHSLOTS);
-	lastpointer=NULL;
-	for(temp_hostextinfo=hostextinfo_hashlist[hashslot];temp_hostextinfo && compare_hashdata(temp_hostextinfo->host_name,NULL,new_hostextinfo->host_name,NULL)<0;temp_hostextinfo=temp_hostextinfo->nexthash)
-		lastpointer=temp_hostextinfo;
-
-	if(!temp_hostextinfo || (compare_hashdata(temp_hostextinfo->host_name,NULL,new_hostextinfo->host_name,NULL)!=0)){
-		if(lastpointer)
-			lastpointer->nexthash=new_hostextinfo;
-		else
-			hostextinfo_hashlist[hashslot]=new_hostextinfo;
-		new_hostextinfo->nexthash=temp_hostextinfo;
-
-		return 1;
-	        }
-
-	/* else already exists */
-#ifdef NSCORE
-	asprintf(temp_buffer,"Error: Could not add duplicate hostextinfo entry for host '%s'.\n",new_hostextinfo->host_name);
-	write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-	my_free((void **)&temp_buffer);
-#endif
-	return 0;
-        }
-
-
 /* adds hostdependency to hash list in memory */
 int add_hostdependency_to_hashlist(hostdependency *new_hostdependency){
 	hostdependency *temp_hostdependency=NULL;
@@ -852,7 +801,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host=NULL;
 	host *new_host=NULL;
 	int result=OK;
@@ -944,6 +893,13 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->display_name=NULL;
 	new_host->parent_hosts=NULL;
 	new_host->contact_groups=NULL;
+	new_host->notes=NULL;
+	new_host->notes_url=NULL;
+	new_host->action_url=NULL;
+	new_host->icon_image=NULL;
+	new_host->icon_image_alt=NULL;
+	new_host->vrml_image=NULL;
+	new_host->statusmap_image=NULL;
 	new_host->custom_variables=NULL;
 #ifdef NSCORE
 	new_host->plugin_output=NULL;
@@ -983,6 +939,34 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		if((new_host->failure_prediction_options=(char *)strdup(failure_prediction_options))==NULL)
 			result=ERROR;
 	        }
+	if(notes){
+		if((new_host->notes=(char *)strdup(notes))==NULL)
+			result=ERROR;
+	        }
+	if(notes_url){
+		if((new_host->notes_url=(char *)strdup(notes_url))==NULL)
+			result=ERROR;
+	        }
+	if(action_url){
+		if((new_host->action_url=(char *)strdup(action_url))==NULL)
+			result=ERROR;
+	        }
+	if(icon_image){
+		if((new_host->icon_image=(char *)strdup(icon_image))==NULL)
+			result=ERROR;
+	        }
+	if(icon_image_alt){
+		if((new_host->icon_image_alt=(char *)strdup(icon_image_alt))==NULL)
+			result=ERROR;
+	        }
+	if(vrml_image){
+		if((new_host->vrml_image=(char *)strdup(vrml_image))==NULL)
+			result=ERROR;
+	        }
+	if(statusmap_image){
+		if((new_host->statusmap_image=(char *)strdup(statusmap_image))==NULL)
+			result=ERROR;
+	        }
 
 	/* duplicate non-string vars */
 	new_host->max_attempts=max_attempts;
@@ -1008,6 +992,14 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->accept_passive_host_checks=(accept_passive_checks>0)?TRUE:FALSE;
 	new_host->event_handler_enabled=(event_handler_enabled>0)?TRUE:FALSE;
 	new_host->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
+	new_host->x_2d=x_2d;
+	new_host->y_3d=y_2d;
+	new_host->have_2d_coords=(have_2d_coords>0)?TRUE:FALSE;
+	new_host->x_3d=x_3d;
+	new_host->y_3d=y_3d;
+	new_host->z_3d=z_3d;
+	new_host->have_3d_coords=(have_3d_coords>0)?TRUE:FALSE;
+	new_host->should_be_drawn=(should_be_drawn>0)?TRUE:FALSE;
 	new_host->obsess_over_host=(obsess_over_host>0)?TRUE:FALSE;
 	new_host->retain_status_information=(retain_status_information>0)?TRUE:FALSE;
 	new_host->retain_nonstatus_information=(retain_nonstatus_information>0)?TRUE:FALSE;
@@ -1074,7 +1066,13 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free((void **)&new_host->long_plugin_output);
 		my_free((void **)&new_host->perf_data);
 #endif
-		my_free((void **)&new_host->display_name);
+		my_free((void **)&new_host->statusmap_image);
+		my_free((void **)&new_host->vrml_image);
+		my_free((void **)&new_host->icon_image_alt);
+		my_free((void **)&new_host->icon_image);
+		my_free((void **)&new_host->action_url);
+		my_free((void **)&new_host->notes_url);
+		my_free((void **)&new_host->notes);
 		my_free((void **)&new_host->failure_prediction_options);
 		my_free((void **)&new_host->event_handler);
 		my_free((void **)&new_host->host_check_command);
@@ -1082,6 +1080,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free((void **)&new_host->check_period);
 		my_free((void **)&new_host->address);
 		my_free((void **)&new_host->alias);
+		my_free((void **)&new_host->display_name);
 		my_free((void **)&new_host->name);
 		my_free((void **)&new_host);
 		return NULL;
@@ -2912,245 +2911,6 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 
 
-
-/* adds an extended host info structure to the list in memory */
-hostextinfo * add_hostextinfo(char *host_name, char *notes, char *notes_url, char *action_url, char *icon_image, char *vrml_image, char *statusmap_image, char *icon_image_alt, int x_2d, int y_2d, double x_3d, double y_3d, double z_3d, int have_2d_coords, int have_3d_coords){
-	hostextinfo *new_hostextinfo;
-#ifdef NSCORE
-	char temp_buffer[MAX_INPUT_BUFFER];
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostextinfo() start\n");
-#endif
-
-	/* make sure we have what we need */
-	if(host_name==NULL || !strcmp(host_name,"")){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Host name is NULL\n");
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-
-	/* allocate memory for a new data structure */
-	new_hostextinfo=(hostextinfo *)malloc(sizeof(hostextinfo));
-	if(new_hostextinfo==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		return NULL;
-	        }
-				
-	new_hostextinfo->host_name=(char *)strdup(host_name);
-	if(new_hostextinfo->host_name==NULL){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostextinfo);
-		return NULL;
-	        }
-
-	if(notes==NULL || !strcmp(notes,""))
-		new_hostextinfo->notes=NULL;
-	else{
-		new_hostextinfo->notes=(char *)strdup(notes);
-		if(new_hostextinfo->notes==NULL){
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	if(notes_url==NULL || !strcmp(notes_url,""))
-		new_hostextinfo->notes_url=NULL;
-	else{
-		new_hostextinfo->notes_url=(char *)strdup(notes_url);
-		if(new_hostextinfo->notes_url==NULL){
-			my_free((void **)&new_hostextinfo->notes);
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	if(action_url==NULL || !strcmp(action_url,""))
-		new_hostextinfo->action_url=NULL;
-	else{
-		new_hostextinfo->action_url=(char *)strdup(action_url);
-		if(new_hostextinfo->action_url==NULL){
-			my_free((void **)&new_hostextinfo->notes_url);
-			my_free((void **)&new_hostextinfo->notes);
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	if(icon_image==NULL || !strcmp(icon_image,""))
-		new_hostextinfo->icon_image=NULL;
-	else{
-		new_hostextinfo->icon_image=(char *)strdup(icon_image);
-		if(new_hostextinfo->icon_image==NULL){
-			my_free((void **)&new_hostextinfo->action_url);
-			my_free((void **)&new_hostextinfo->notes_url);
-			my_free((void **)&new_hostextinfo->notes);
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-	                }
-	        }
-
-	if(vrml_image==NULL || !strcmp(vrml_image,""))
-		new_hostextinfo->vrml_image=NULL;
-	else{
-		new_hostextinfo->vrml_image=(char *)strdup(vrml_image);
-		if(new_hostextinfo->vrml_image==NULL){
-			my_free((void **)&new_hostextinfo->icon_image);
-			my_free((void **)&new_hostextinfo->action_url);
-			my_free((void **)&new_hostextinfo->notes_url);
-			my_free((void **)&new_hostextinfo->notes);
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-	                }
-	        }
-
-
-	if(statusmap_image==NULL || !strcmp(statusmap_image,""))
-		new_hostextinfo->statusmap_image=NULL;
-	else{
-		new_hostextinfo->statusmap_image=(char *)strdup(statusmap_image);
-		if(new_hostextinfo->statusmap_image==NULL){
-			my_free((void **)&new_hostextinfo->vrml_image);
-			my_free((void **)&new_hostextinfo->icon_image);
-			my_free((void **)&new_hostextinfo->action_url);
-			my_free((void **)&new_hostextinfo->notes_url);
-			my_free((void **)&new_hostextinfo->notes);
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-
-	if(icon_image_alt==NULL || !strcmp(icon_image_alt,""))
-		new_hostextinfo->icon_image_alt=NULL;
-	else{
-		new_hostextinfo->icon_image_alt=(char *)strdup(icon_image_alt);
-		if(new_hostextinfo->icon_image_alt==NULL){
-			my_free((void **)&new_hostextinfo->statusmap_image);
-			my_free((void **)&new_hostextinfo->vrml_image);
-			my_free((void **)&new_hostextinfo->icon_image);
-			my_free((void **)&new_hostextinfo->action_url);
-			my_free((void **)&new_hostextinfo->notes_url);
-			my_free((void **)&new_hostextinfo->notes);
-			my_free((void **)&new_hostextinfo->host_name);
-			my_free((void **)&new_hostextinfo);
-#ifdef NSCORE
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for host '%s' extended info.\n",host_name);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-			return NULL;
-		        }
-	        }
-
-	/* 2-D coordinates */
-	new_hostextinfo->x_2d=x_2d;
-	new_hostextinfo->y_2d=y_2d;
-	new_hostextinfo->have_2d_coords=have_2d_coords;
-
-	/* 3-D coordinates */
-	new_hostextinfo->x_3d=x_3d;
-	new_hostextinfo->y_3d=y_3d;
-	new_hostextinfo->z_3d=z_3d;
-	new_hostextinfo->have_3d_coords=have_3d_coords;
-
-	/* default is to not draw this item */
-	new_hostextinfo->should_be_drawn=FALSE;
-
-	new_hostextinfo->next=NULL;
-	new_hostextinfo->nexthash=NULL;
-
-	/* add new hostextinfo to hostextinfo chained hash list */
-	if(!add_hostextinfo_to_hashlist(new_hostextinfo)){
-#ifdef NSCORE
-		snprintf(temp_buffer,sizeof(temp_buffer)-1,"Error: Could not allocate memory for hostextinfo list to add extended info for host '%s'.\n",host_name);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-#endif
-		my_free((void **)&new_hostextinfo->statusmap_image);
-		my_free((void **)&new_hostextinfo->vrml_image);
-		my_free((void **)&new_hostextinfo->icon_image);
-		my_free((void **)&new_hostextinfo->icon_image_alt);
-		my_free((void **)&new_hostextinfo->action_url);
-		my_free((void **)&new_hostextinfo->notes_url);
-		my_free((void **)&new_hostextinfo->notes);
-		my_free((void **)&new_hostextinfo->host_name);
-		my_free((void **)&new_hostextinfo);
-		return NULL;
-	        }
-
-#ifdef NSCORE
-	/* hostextinfo entries are sorted alphabetically for daemon, so add new items to tail of list */
-	if(hostextinfo_list==NULL){
-		hostextinfo_list=new_hostextinfo;
-		hostextinfo_list_tail=hostextinfo_list;
-		}
-	else{
-		hostextinfo_list_tail->next=new_hostextinfo;
-		hostextinfo_list_tail=new_hostextinfo;
-		}
-#else
-	/* hostextinfo entries are sorted in reverse for CGIs, so add new items to head of list */
-	new_hostextinfo->next=hostextinfo_list;
-	hostextinfo_list=new_hostextinfo;
-#endif		
-
-#ifdef DEBUG0
-	printf("add_hostextinfo() end\n");
-#endif
-	return new_hostextinfo;
-        }
-	
-
-
 /* adds a custom variable to an object */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue){
 	customvariablesmember *new_customvariablesmember=NULL;
@@ -3462,32 +3222,6 @@ service * find_service(char *host_name,char *svc_desc){
 #endif
 
 	/* we couldn't find a matching service */
-	return NULL;
-        }
-
-
-
-/* find the extended information for a given host */
-hostextinfo * find_hostextinfo(char *host_name){
-	hostextinfo *temp_hostextinfo=NULL;
-
-#ifdef DEBUG0
-	printf("find_hostextinfo() start\n");
-#endif
-
-	if(host_name==NULL || hostextinfo_hashlist==NULL)
-		return NULL;
-
-	for(temp_hostextinfo=hostextinfo_hashlist[hashfunc(host_name,NULL,HOSTEXTINFO_HASHSLOTS)];temp_hostextinfo && compare_hashdata(temp_hostextinfo->host_name,NULL,host_name,NULL)<0;temp_hostextinfo=temp_hostextinfo->nexthash);
-
-	if(temp_hostextinfo && (compare_hashdata(temp_hostextinfo->host_name,NULL,host_name,NULL)==0))
-		return temp_hostextinfo;
-
-#ifdef DEBUG0
-	printf("find_hostextinfo() end\n");
-#endif
-
-	/* we couldn't find a matching extended host info object */
 	return NULL;
         }
 
@@ -4205,7 +3939,6 @@ int free_object_data(void){
 		my_free((void **)&this_host->display_name);
 		my_free((void **)&this_host->alias);
 		my_free((void **)&this_host->address);
-
 #ifdef NSCORE
 		my_free((void **)&this_host->plugin_output);
 		my_free((void **)&this_host->long_plugin_output);
@@ -4216,6 +3949,13 @@ int free_object_data(void){
 		my_free((void **)&this_host->event_handler);
 		my_free((void **)&this_host->failure_prediction_options);
 		my_free((void **)&this_host->notification_period);
+		my_free((void **)&this_host->notes);
+		my_free((void **)&this_host->notes_url);
+		my_free((void **)&this_host->action_url);
+		my_free((void **)&this_host->icon_image);
+		my_free((void **)&this_host->icon_image_alt);
+		my_free((void **)&this_host->vrml_image);
+		my_free((void **)&this_host->statusmap_image);
 		my_free((void **)&this_host);
 		this_host=next_host;
 	        }
@@ -4543,55 +4283,12 @@ int free_object_data(void){
 	hostescalation_hashlist=NULL;
 	hostescalation_list=NULL;
 
-	/* free extended info data */
-	free_extended_data();
-
 #ifdef DEBUG1
 	printf("\thostescalation_list freed\n");
 #endif
 
 #ifdef DEBUG0
 	printf("free_object_data() end\n");
-#endif
-
-	return OK;
-        }
-
-
-/* free all allocated memory for extended info objects */
-int free_extended_data(void){
-	hostextinfo *this_hostextinfo=NULL;
-	hostextinfo *next_hostextinfo=NULL;
-
-#ifdef DEBUG0
-	printf("free_extended_data() start\n");
-#endif
-
-	/* free memory for the extended host info list */
-	for(this_hostextinfo=hostextinfo_list;this_hostextinfo!=NULL;this_hostextinfo=next_hostextinfo){
-		next_hostextinfo=this_hostextinfo->next;
-		my_free((void **)&this_hostextinfo->host_name);
-		my_free((void **)&this_hostextinfo->notes);
-		my_free((void **)&this_hostextinfo->notes_url);
-		my_free((void **)&this_hostextinfo->action_url);
-		my_free((void **)&this_hostextinfo->icon_image);
-		my_free((void **)&this_hostextinfo->vrml_image);
-		my_free((void **)&this_hostextinfo->statusmap_image);
-		my_free((void **)&this_hostextinfo->icon_image_alt);
-		my_free((void **)&this_hostextinfo);
-	        }
-
-#ifdef DEBUG1
-	printf("\thostextinfo_list freed\n");
-#endif
-
-	/* free hashlist and reset pointers */
-	my_free((void **)&hostextinfo_hashlist);
-	hostextinfo_hashlist=NULL;
-	hostextinfo_list=NULL;
-
-#ifdef DEBUG0
-	printf("free_extended_data() end\n");
 #endif
 
 	return OK;

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2006
+ * Last Modified: 03-04-2006
  *
  * License:
  * 
@@ -1191,7 +1191,6 @@ void show_service_detail(void){
 	servicestatus *temp_status=NULL;
 	hostgroup *temp_hostgroup=NULL;
 	servicegroup *temp_servicegroup=NULL;
-	hostextinfo *temp_hostextinfo=NULL;
 	hoststatus *temp_hoststatus=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -1518,9 +1517,6 @@ void show_service_detail(void){
 			/* host name column */
 			if(new_host==TRUE){
 
-				/* find extended information for this host */
-				temp_hostextinfo=find_hostextinfo(temp_status->host_name);
-
 				if(temp_hoststatus->status==HOST_DOWN){
 					if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
 						host_status_bg_class="HOSTDOWNACK";
@@ -1572,32 +1568,30 @@ void show_service_detail(void){
 				if(temp_hoststatus->scheduled_downtime_depth>0){
 					printf("<TD ALIGN=center valign=center><A HREF='%s?type=%d&host=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='This host is currently in a period of scheduled downtime' TITLE='This host is currently in a period of scheduled downtime'></A></TD>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),url_images_path,SCHEDULED_DOWNTIME_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT);
 				        }
-				if(temp_hostextinfo!=NULL){
-					if(temp_hostextinfo->notes_url!=NULL){
-						printf("<TD align=center valign=center>");
-						printf("<A HREF='");
-						print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
-						printf("' TARGET='_blank'>");
-						printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
-						printf("</A>");
-						printf("</TD>\n");
-					        }
-					if(temp_hostextinfo->action_url!=NULL){
-						printf("<TD align=center valign=center>");
-						printf("<A HREF='");
-						print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
-						printf("' TARGET='_blank'>");
-						printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
-						printf("</A>");
-						printf("</TD>\n");
-					        }
-					if(temp_hostextinfo->icon_image!=NULL){
-						printf("<TD align=center valign=center>");
-						printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
-						printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
-						printf("</A>");
-						printf("</TD>\n");
-					        }
+				if(temp_host->notes_url!=NULL){
+					printf("<TD align=center valign=center>");
+					printf("<A HREF='");
+					print_extra_host_url(temp_host->name,temp_host->notes_url);
+					printf("' TARGET='_blank'>");
+					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
+					printf("</A>");
+					printf("</TD>\n");
+				        }
+				if(temp_host->action_url!=NULL){
+					printf("<TD align=center valign=center>");
+					printf("<A HREF='");
+					print_extra_host_url(temp_host->name,temp_host->action_url);
+					printf("' TARGET='_blank'>");
+					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
+					printf("</A>");
+					printf("</TD>\n");
+				        }
+				if(temp_host->icon_image!=NULL){
+					printf("<TD align=center valign=center>");
+					printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
+					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_host->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+					printf("</A>");
+					printf("</TD>\n");
 				        }
 				printf("</TR>\n");
 				printf("</TABLE>\n");
@@ -1741,7 +1735,6 @@ void show_host_detail(void){
 	char *status_bg_class="";
 	hoststatus *temp_status=NULL;
 	hostgroup *temp_hostgroup=NULL;
-	hostextinfo *temp_hostextinfo=NULL;
 	host *temp_host=NULL;
 	hostsort *temp_hostsort=NULL;
 	int odd=0;
@@ -1979,9 +1972,6 @@ void show_host_detail(void){
 
 			/**** host name column ****/
 
-			/* find extended information for this host */
-			temp_hostextinfo=find_hostextinfo(temp_status->host_name);
-
 			printf("<TD CLASS='status%s'>",status_class);
 
 			printf("<TABLE BORDER=0 WIDTH='100%%' cellpadding=0 cellspacing=0>\n");
@@ -2014,32 +2004,30 @@ void show_host_detail(void){
 			if(temp_status->scheduled_downtime_depth>0){
 				printf("<TD ALIGN=center valign=center><A HREF='%s?type=%d&host=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='This host is currently in a period of scheduled downtime' TITLE='This host is currently in a period of scheduled downtime'></A></TD>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),url_images_path,SCHEDULED_DOWNTIME_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT);
 			        }
-			if(temp_hostextinfo!=NULL){
-				if(temp_hostextinfo->notes_url!=NULL){
-					printf("<TD align=center valign=center>");
-					printf("<A HREF='");
-					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
-					printf("' TARGET='_blank'>");
-					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
-					printf("</A>");
-					printf("</TD>\n");
-				        }
-				if(temp_hostextinfo->action_url!=NULL){
-					printf("<TD align=center valign=center>");
-					printf("<A HREF='");
-					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
-					printf("' TARGET='_blank'>");
-					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
-					printf("</A>");
-					printf("</TD>\n");
-				        }
-				if(temp_hostextinfo->icon_image!=NULL){
-					printf("<TD align=center valign=center>");
-					printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
-					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
-					printf("</A>");
-					printf("</TD>\n");
-				        }
+			if(temp_host->notes_url!=NULL){
+				printf("<TD align=center valign=center>");
+				printf("<A HREF='");
+				print_extra_host_url(temp_host->name,temp_host->notes_url);
+				printf("' TARGET='_blank'>");
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
+				printf("</A>");
+				printf("</TD>\n");
+			        }
+			if(temp_host->action_url!=NULL){
+				printf("<TD align=center valign=center>");
+				printf("<A HREF='");
+				print_extra_host_url(temp_host->name,temp_host->action_url);
+				printf("' TARGET='_blank'>");
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
+				printf("</A>");
+				printf("</TD>\n");
+			        }
+			if(temp_host->icon_image!=NULL){
+				printf("<TD align=center valign=center>");
+				printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_host->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+				printf("</A>");
+				printf("</TD>\n");
 			        }
 			printf("<TD><a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a></TD>\n",STATUS_CGI,url_encode(temp_status->host_name),url_images_path,STATUS_DETAIL_ICON);
 			printf("</TR>\n");
@@ -2720,7 +2708,6 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 	host *last_host;
 	hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
-	hostextinfo *temp_hostextinfo;
 	int odd=0;
 	int current_item;
 
@@ -2787,15 +2774,12 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 		printf("<TR>\n");
 
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo!=NULL){
-			if(temp_hostextinfo->icon_image!=NULL){
-				printf("<TD align=center valign=center>");
-				printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
-				printf("</A>");
-				printf("<TD>\n");
-			        }
+		if(temp_host->icon_image!=NULL){
+			printf("<TD align=center valign=center>");
+			printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
+			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_host->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+			printf("</A>");
+			printf("<TD>\n");
 		        }
 
 		printf("</TR>\n");
@@ -2849,21 +2833,19 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,DETAIL_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extended Information For This Host","View Extended Information For This Host");
 		printf("</A>");
 
-		if(temp_hostextinfo!=NULL){
-			if(temp_hostextinfo->notes_url!=NULL){
-				printf("<A HREF='");
-				print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
-				printf("' TARGET='_blank'>");
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
-				printf("</A>");
-			        }
-			if(temp_hostextinfo->action_url!=NULL){
-				printf("<A HREF='");
-				print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
-				printf("' TARGET='_blank'>");
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
-				printf("</A>");
-			        }
+		if(temp_host->notes_url!=NULL){
+			printf("<A HREF='");
+			print_extra_host_url(temp_host->name,temp_host->notes_url);
+			printf("' TARGET='_blank'>");
+			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
+			printf("</A>");
+		        }
+		if(temp_host->action_url!=NULL){
+			printf("<A HREF='");
+			print_extra_host_url(temp_host->name,temp_host->action_url);
+			printf("' TARGET='_blank'>");
+			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
+			printf("</A>");
 		        }
 
 		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);
@@ -3088,7 +3070,9 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	char status[MAX_INPUT_BUFFER];
 	char *status_bg_class="";
 	char *status_class="";
-	hostextinfo *temp_hostextinfo;
+	host *temp_host=NULL;
+
+	temp_host=find_host(hststatus->host_name);
 
 	if(hststatus->status==HOST_PENDING){
 		strncpy(status,"PENDING",sizeof(status));
@@ -3115,24 +3099,19 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 
 	printf("<TR CLASS='status%s'>\n",status_bg_class);
 
-	/* find extended information for this host */
-	temp_hostextinfo=find_hostextinfo(hststatus->host_name);
-
 	printf("<TD CLASS='status%s'>\n",status_bg_class);
 
 	printf("<TABLE BORDER=0 WIDTH=100%% cellpadding=0 cellspacing=0>\n");
 	printf("<TR CLASS='status%s'>\n",status_bg_class);
 	printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),hststatus->host_name);
 
-	if(temp_hostextinfo!=NULL){
-		if(temp_hostextinfo->icon_image!=NULL){
-			printf("<TD CLASS='status%s' WIDTH=5></TD>\n",status_bg_class);
-			printf("<TD CLASS='status%s' ALIGN=right>",status_bg_class);
-			printf("<a href='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(hststatus->host_name));
-			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
-			printf("</A>");
-			printf("</TD>\n");
-	                }
+	if(temp_host->icon_image!=NULL){
+		printf("<TD CLASS='status%s' WIDTH=5></TD>\n",status_bg_class);
+		printf("<TD CLASS='status%s' ALIGN=right>",status_bg_class);
+		printf("<a href='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(hststatus->host_name));
+		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_host->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+		printf("</A>");
+		printf("</TD>\n");
 	        }
 	printf("</TR>\n");
 	printf("</TABLE>\n");
@@ -3146,21 +3125,19 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 
 	printf("<td valign=center CLASS='status%s'>",status_bg_class);
 	printf("<a href='%s?type=%d&host=%s'><img src='%s%s' border=0 alt='View Extended Information For This Host' title='View Extended Information For This Host'></a>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(hststatus->host_name),url_images_path,DETAIL_ICON);
-	if(temp_hostextinfo!=NULL){
-		if(temp_hostextinfo->notes_url!=NULL){
-			printf("<A HREF='");
-			print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
-			printf("' TARGET='_blank'>");
-			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
-			printf("</A>");
-		        }
-		if(temp_hostextinfo->action_url!=NULL){
-			printf("<A HREF='");
-			print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
-			printf("' TARGET='_blank'>");
-			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
-			printf("</A>");
-		        }
+	if(temp_host->notes_url!=NULL){
+		printf("<A HREF='");
+		print_extra_host_url(temp_host->name,temp_host->notes_url);
+		printf("' TARGET='_blank'>");
+		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
+		printf("</A>");
+	        }
+	if(temp_host->action_url!=NULL){
+		printf("<A HREF='");
+		print_extra_host_url(temp_host->name,temp_host->action_url);
+		printf("' TARGET='_blank'>");
+		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
+		printf("</A>");
 	        }
 	printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(hststatus->host_name),url_images_path,STATUS_DETAIL_ICON);
 #ifdef USE_STATUSMAP
@@ -3661,7 +3638,6 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 	service *temp_service;
 	hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
-	hostextinfo *temp_hostextinfo;
 	int odd=0;
 	int current_item;
 
@@ -3724,15 +3700,12 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 		printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 		printf("<TR>\n");
 
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo!=NULL){
-			if(temp_hostextinfo->icon_image!=NULL){
-				printf("<TD align=center valign=center>");
-				printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
-				printf("</A>");
-				printf("<TD>\n");
-			        }
+		if(temp_host->icon_image!=NULL){
+			printf("<TD align=center valign=center>");
+			printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
+			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_host->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+			printf("</A>");
+			printf("<TD>\n");
 		        }
 		printf("<TD>\n");
 
@@ -3789,21 +3762,19 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,DETAIL_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extended Information For This Host","View Extended Information For This Host");
 		printf("</A>");
 
-		if(temp_hostextinfo!=NULL){
-			if(temp_hostextinfo->notes_url!=NULL){
-				printf("<A HREF='");
-				print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->notes_url);
-				printf("' TARGET='_blank'>");
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
-				printf("</A>");
-			        }
-			if(temp_hostextinfo->action_url!=NULL){
-				printf("<A HREF='");
-				print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->action_url);
-				printf("' TARGET='_blank'>");
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
-				printf("</A>");
-			        }
+		if(temp_host->notes_url!=NULL){
+			printf("<A HREF='");
+			print_extra_host_url(temp_host->name,temp_host->notes_url);
+			printf("' TARGET='_blank'>");
+			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Host Notes","View Extra Host Notes");
+			printf("</A>");
+		        }
+		if(temp_host->action_url!=NULL){
+			printf("<A HREF='");
+			print_extra_host_url(temp_host->name,temp_host->action_url);
+			printf("' TARGET='_blank'>");
+			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Host Actions","Perform Extra Host Actions");
+			printf("</A>");
 		        }
 
 		printf("<a href='%s?host=%s'><img src='%s%s' border=0 alt='View Service Details For This Host' title='View Service Details For This Host'></a>\n",STATUS_CGI,url_encode(temp_host->name),url_images_path,STATUS_DETAIL_ICON);

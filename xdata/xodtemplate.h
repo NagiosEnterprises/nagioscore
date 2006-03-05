@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-02-2006
+ * Last Modified:   03-04-2006
  *
  * License:
  *
@@ -216,6 +216,18 @@ typedef struct xodtemplate_host_struct{
 	int       process_perf_data;
 	int       failure_prediction_enabled;
 	char      *failure_prediction_options;
+	char      *notes;
+	char      *notes_url;
+	char      *action_url;
+	char      *icon_image;
+	char      *icon_image_alt;
+	char      *vrml_image;
+	char      *statusmap_image;
+	int       x_2d;
+	int       y_2d;
+	double    x_3d;
+	double    y_3d;
+	double    z_3d;
 	int       retain_status_information;
 	int       retain_nonstatus_information;
 	xodtemplate_customvariablesmember *custom_variables;
@@ -229,6 +241,13 @@ typedef struct xodtemplate_host_struct{
 	int       have_contact_groups;
 	int       have_notification_period;
 	int       have_failure_prediction_options;
+	int       have_notes;
+	int       have_notes_url;
+	int       have_action_url;
+	int       have_icon_image;
+	int       have_icon_image_alt;
+	int       have_vrml_image;
+	int       have_statusmap_image;
 
 	int       have_check_interval;
 	int       have_max_check_attempts;
@@ -249,6 +268,8 @@ typedef struct xodtemplate_host_struct{
 	int       have_stalking_options;
 	int       have_process_perf_data;
 	int       have_failure_prediction_enabled;
+	int       have_2d_coords;
+	int       have_3d_coords;
 	int       have_retain_status_information;
 	int       have_retain_nonstatus_information;
 
@@ -803,7 +824,6 @@ int xodtemplate_register_host(xodtemplate_host *);
 int xodtemplate_register_service(xodtemplate_service *);
 int xodtemplate_register_hostdependency(xodtemplate_hostdependency *);
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *);
-int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *);
 
 #endif
 

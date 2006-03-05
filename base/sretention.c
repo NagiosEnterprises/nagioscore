@@ -2,8 +2,8 @@
  *
  * SRETENTION.C - State retention routines for Nagios
  *
- * Copyright (c) 1999-2003 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   08-24-2003
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-05-2006
  *
  * License:
  *
@@ -81,7 +81,7 @@ int cleanup_retention_data(char *config_file){
 
 /* save all host and service state information */
 int save_state_information(int autosave){
-	char buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int result=OK;
 
 #ifdef DEBUG0
@@ -110,9 +110,9 @@ int save_state_information(int autosave){
 		return ERROR;
 
 	if(autosave==TRUE){
-		snprintf(buffer,sizeof(buffer),"Auto-save of retention data completed successfully.\n");
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
+		asprintf(&temp_buffer,"Auto-save of retention data completed successfully.\n");
+		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
+		my_free((void **)&temp_buffer);
 	        }
 
 #ifdef DEBUG0

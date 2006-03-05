@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-03-2006
+ * Last Modified: 03-04-2006
  *
  * Description:
  *
@@ -1404,6 +1404,20 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_notification_period=FALSE;
 		new_host->failure_prediction_options=NULL;
 		new_host->have_failure_prediction_options=FALSE;
+		new_host->notes=NULL;
+		new_host->have_notes=FALSE;
+		new_host->notes_url=NULL;
+		new_host->have_notes_url=FALSE;
+		new_host->action_url=NULL;
+		new_host->have_action_url=FALSE;
+		new_host->icon_image=NULL;
+		new_host->have_icon_image=FALSE;
+		new_host->icon_image_alt=NULL;
+		new_host->have_icon_image_alt=FALSE;
+		new_host->vrml_image=NULL;
+		new_host->have_vrml_image=FALSE;
+		new_host->statusmap_image=NULL;
+		new_host->have_statusmap_image=FALSE;
 		new_host->check_interval=0;
 		new_host->have_check_interval=FALSE;
 		new_host->active_checks_enabled=TRUE;
@@ -1449,6 +1463,13 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_process_perf_data=FALSE;
 		new_host->failure_prediction_enabled=TRUE;
 		new_host->have_failure_prediction_enabled=FALSE;
+		new_host->x_2d=-1;
+		new_host->y_2d=-1;
+		new_host->x_3d=0.0;
+		new_host->y_3d=0.0;
+		new_host->z_3d=0.0;
+		new_host->have_2d_coords=FALSE;
+		new_host->have_3d_coords=FALSE;
 		new_host->retain_status_information=TRUE;
 		new_host->have_retain_status_information=FALSE;
 		new_host->retain_nonstatus_information=TRUE;
@@ -2798,6 +2819,55 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_host->have_failure_prediction_options=TRUE;
 		        }
+		else if(!strcmp(variable,"notes")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->notes=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_notes=TRUE;
+		        }
+		else if(!strcmp(variable,"notes_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->notes_url=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_notes_url=TRUE;
+		        }
+		else if(!strcmp(variable,"action_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->action_url=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_action_url=TRUE;
+		        }
+		else if(!strcmp(variable,"icon_image")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->icon_image=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_icon_image=TRUE;
+		        }
+		else if(!strcmp(variable,"icon_image_alt")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->icon_image_alt=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_icon_image_alt=TRUE;
+		        }
+		else if(!strcmp(variable,"vrml_image")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->vrml_image=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_vrml_image=TRUE;
+		        }
+		else if(!strcmp(variable,"gd2_image")|| !strcmp(variable,"statusmap_image")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_host->statusmap_image=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_host->have_statusmap_image=TRUE;
+		        }
 		else if(!strcmp(variable,"check_interval") || !strcmp(variable,"normal_check_interval")){
 			temp_host->check_interval=atoi(value);
 			temp_host->have_check_interval=TRUE;
@@ -2938,6 +3008,57 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"failure_prediction_enabled")){
 			temp_host->failure_prediction_enabled=(atoi(value)>0)?TRUE:FALSE;
 			temp_host->have_failure_prediction_enabled=TRUE;
+		        }
+		else if(!strcmp(variable,"2d_coords")){
+			if((temp_ptr=strtok(value,", "))==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid 2d_coords value '%s' in host definition.\n",temp_ptr);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+			temp_host->x_2d=atoi(temp_ptr);
+			if((temp_ptr=strtok(NULL,", "))==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid 2d_coords value '%s' in host definition.\n",temp_ptr);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+			temp_host->y_2d=atoi(temp_ptr);
+			temp_host->have_2d_coords=TRUE;
+		        }
+		else if(!strcmp(variable,"3d_coords")){
+			if((temp_ptr=strtok(value,", "))==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+			temp_host->x_3d=strtod(temp_ptr,NULL);
+			if((temp_ptr=strtok(NULL,", "))==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+			temp_host->y_3d=strtod(temp_ptr,NULL);
+			if((temp_ptr=strtok(NULL,", "))==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Invalid 3d_coords value '%s' in host definition.\n",temp_ptr);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+			        }
+			temp_host->z_3d=strtod(temp_ptr,NULL);
+			temp_host->have_3d_coords=TRUE;
 		        }
 		else if(!strcmp(variable,"obsess_over_host")){
 			temp_host->obsess_over_host=(atoi(value)>0)?TRUE:FALSE;
@@ -6291,6 +6412,41 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 				this_host->failure_prediction_options=(char *)strdup(template_host->failure_prediction_options);
 			this_host->have_failure_prediction_options=TRUE;
 		        }
+		if(this_host->have_notes==FALSE && template_host->have_notes==TRUE){
+			if(this_host->notes==NULL && template_host->notes!=NULL)
+				this_host->notes=(char *)strdup(template_host->notes);
+			this_host->have_notes=TRUE;
+		        }
+		if(this_host->have_notes_url==FALSE && template_host->have_notes_url==TRUE){
+			if(this_host->notes_url==NULL && template_host->notes_url!=NULL)
+				this_host->notes_url=(char *)strdup(template_host->notes_url);
+			this_host->have_notes_url=TRUE;
+		        }
+		if(this_host->have_action_url==FALSE && template_host->have_action_url==TRUE){
+			if(this_host->action_url==NULL && template_host->action_url!=NULL)
+				this_host->action_url=(char *)strdup(template_host->action_url);
+			this_host->have_action_url=TRUE;
+		        }
+		if(this_host->have_icon_image==FALSE && template_host->have_icon_image==TRUE){
+			if(this_host->icon_image==NULL && template_host->icon_image!=NULL)
+				this_host->icon_image=(char *)strdup(template_host->icon_image);
+			this_host->have_icon_image=TRUE;
+		        }
+		if(this_host->have_icon_image_alt==FALSE && template_host->have_icon_image_alt==TRUE){
+			if(this_host->icon_image_alt==NULL && template_host->icon_image_alt!=NULL)
+				this_host->icon_image_alt=(char *)strdup(template_host->icon_image_alt);
+			this_host->have_icon_image_alt=TRUE;
+		        }
+		if(this_host->have_vrml_image==FALSE && template_host->have_vrml_image==TRUE){
+			if(this_host->vrml_image==NULL && template_host->vrml_image!=NULL)
+				this_host->vrml_image=(char *)strdup(template_host->vrml_image);
+			this_host->have_vrml_image=TRUE;
+		        }
+		if(this_host->have_statusmap_image==FALSE && template_host->have_statusmap_image==TRUE){
+			if(this_host->statusmap_image==NULL && template_host->statusmap_image!=NULL)
+				this_host->statusmap_image=(char *)strdup(template_host->statusmap_image);
+			this_host->have_statusmap_image=TRUE;
+		        }
 		if(this_host->have_check_interval==FALSE && template_host->have_check_interval==TRUE){
 			this_host->check_interval=template_host->check_interval;
 			this_host->have_check_interval=TRUE;
@@ -6373,6 +6529,17 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		if(this_host->have_failure_prediction_enabled==FALSE && template_host->have_failure_prediction_enabled==TRUE){
 			this_host->failure_prediction_enabled=template_host->failure_prediction_enabled;
 			this_host->have_failure_prediction_enabled=TRUE;
+	                }
+		if(this_host->have_2d_coords==FALSE && template_host->have_2d_coords==TRUE){
+			this_host->x_2d=template_host->x_2d;
+			this_host->y_2d=template_host->y_2d;
+			this_host->have_2d_coords=TRUE;
+	                }
+		if(this_host->have_3d_coords==FALSE && template_host->have_3d_coords==TRUE){
+			this_host->x_3d=template_host->x_3d;
+			this_host->y_3d=template_host->y_3d;
+			this_host->z_3d=template_host->z_3d;
+			this_host->have_3d_coords=TRUE;
 	                }
 		if(this_host->have_retain_status_information==FALSE && template_host->have_retain_status_information==TRUE){
 			this_host->retain_status_information=template_host->retain_status_information;
@@ -7970,8 +8137,6 @@ int xodtemplate_register_objects(void){
 	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
 	xodtemplate_hostdependency *temp_hostdependency=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
-	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
-	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_objects() start\n");
@@ -8046,12 +8211,6 @@ int xodtemplate_register_objects(void){
 	/* register host escalations */
 	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
 		if((result=xodtemplate_register_hostescalation(temp_hostescalation))==ERROR)
-			return ERROR;
-	        }
-
-	/* register host extended info */
-	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-		if((result=xodtemplate_register_hostextinfo(temp_hostextinfo))==ERROR)
 			return ERROR;
 	        }
 
@@ -8683,11 +8842,8 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		this_host->address=(char *)strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
-#ifdef TEST_DEBUG
-	printf("HOST: %s, MAXATTEMPTS: %d, NOTINVERVAL: %d \n",this_host->host_name,this_host->max_check_attempts,this_host->notification_interval);
-#endif
 
 	/* return with an error if we couldn't add the host */
 	if(new_host==NULL){
@@ -8944,43 +9100,6 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 
 #ifdef DEBUG0
 	printf("xodtemplate_register_hostescalation() end\n");
-#endif
-
-	return OK;
-        }
-
-
-
-/* registers a hostextinfo definition */
-int xodtemplate_register_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
-	hostextinfo *new_hostextinfo=NULL;
-#ifdef NSCORE
-	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostextinfo() start\n");
-#endif
-
-	/* bail out if we shouldn't register this object */
-	if(this_hostextinfo->register_object==FALSE)
-		return OK;
-
-	/* register the extended host object */
-	new_hostextinfo=add_hostextinfo(this_hostextinfo->host_name,this_hostextinfo->notes,this_hostextinfo->notes_url,this_hostextinfo->action_url,this_hostextinfo->icon_image,this_hostextinfo->vrml_image,this_hostextinfo->statusmap_image,this_hostextinfo->icon_image_alt,this_hostextinfo->x_2d,this_hostextinfo->y_2d,this_hostextinfo->x_3d,this_hostextinfo->y_3d,this_hostextinfo->z_3d,this_hostextinfo->have_2d_coords,this_hostextinfo->have_3d_coords);
-
-	/* return with an error if we couldn't add the definition */
-	if(new_hostextinfo==NULL){
-#ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Could not register extended host information (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostextinfo->_config_file),this_hostextinfo->_start_line);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
-#endif
-		return ERROR;
-	        }
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostextinfo() end\n");
 #endif
 
 	return OK;
@@ -9986,6 +10105,33 @@ int xodtemplate_merge_host_extinfo_object(xodtemplate_host *this_host, xodtempla
 	if(this_host==NULL || this_hostextinfo==NULL)
 		return ERROR;
 
+	if(this_host->notes==NULL && this_hostextinfo->notes!=NULL)
+		this_host->notes=strdup(this_hostextinfo->notes);
+	if(this_host->notes_url==NULL && this_hostextinfo->notes_url!=NULL)
+		this_host->notes_url=strdup(this_hostextinfo->notes_url);
+	if(this_host->action_url==NULL && this_hostextinfo->action_url!=NULL)
+		this_host->action_url=strdup(this_hostextinfo->action_url);
+	if(this_host->icon_image==NULL && this_hostextinfo->icon_image!=NULL)
+		this_host->icon_image=strdup(this_hostextinfo->icon_image);
+	if(this_host->icon_image_alt==NULL && this_hostextinfo->icon_image_alt!=NULL)
+		this_host->icon_image_alt=strdup(this_hostextinfo->icon_image_alt);
+	if(this_host->vrml_image==NULL && this_hostextinfo->vrml_image!=NULL)
+		this_host->vrml_image=strdup(this_hostextinfo->vrml_image);
+	if(this_host->statusmap_image==NULL && this_hostextinfo->statusmap_image!=NULL)
+		this_host->statusmap_image=strdup(this_hostextinfo->statusmap_image);
+
+	if(this_host->have_2d_coords==FALSE && this_hostextinfo->have_2d_coords==TRUE){
+		this_host->x_2d=this_hostextinfo->x_2d;
+		this_host->y_2d=this_hostextinfo->y_2d;
+		this_host->have_2d_coords=TRUE;
+	        }
+	if(this_host->have_3d_coords==FALSE && this_hostextinfo->have_3d_coords==TRUE){
+		this_host->x_3d=this_hostextinfo->x_3d;
+		this_host->y_3d=this_hostextinfo->y_3d;
+		this_host->z_3d=this_hostextinfo->z_3d;
+		this_host->have_3d_coords=TRUE;
+	        }
+
 	return OK;
         }
 
@@ -10017,8 +10163,6 @@ int xodtemplate_cache_objects(char *cache_file){
 	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
 	xodtemplate_hostdependency *temp_hostdependency=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
-	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
-	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 	time_t current_time=0L;
 
@@ -10265,6 +10409,24 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\n");
 		fprintf(fp,"\tprocess_perf_data\t%d\n",temp_host->process_perf_data);
 		fprintf(fp,"\tfailure_prediction_enabled\t%d\n",temp_host->failure_prediction_enabled);
+		if(temp_host->icon_image)
+			fprintf(fp,"\ticon_image\t%s\n",temp_host->icon_image);
+		if(temp_host->icon_image_alt)
+			fprintf(fp,"\ticon_image_alt\t%s\n",temp_host->icon_image_alt);
+		if(temp_host->vrml_image)
+			fprintf(fp,"\tvrml_image\t%s\n",temp_host->vrml_image);
+		if(temp_host->statusmap_image)
+			fprintf(fp,"\tstatusmap_image\t%s\n",temp_host->statusmap_image);
+		if(temp_host->have_2d_coords==TRUE)
+			fprintf(fp,"\t2d_coords\t%d,%d\n",temp_host->x_2d,temp_host->y_2d);
+		if(temp_host->have_3d_coords==TRUE)
+			fprintf(fp,"\t3d_coords\t%f,%f,%f\n",temp_host->x_3d,temp_host->y_3d,temp_host->z_3d);
+		if(temp_host->notes)
+			fprintf(fp,"\tnotes\t%s\n",temp_host->notes);
+		if(temp_host->notes_url)
+			fprintf(fp,"\tnotes_url\t%s\n",temp_host->notes_url);
+		if(temp_host->action_url)
+			fprintf(fp,"\taction_url\t%s\n",temp_host->action_url);
 		fprintf(fp,"\tretain_status_information\t%d\n",temp_host->retain_status_information);
 		fprintf(fp,"\tretain_nonstatus_information\t%d\n",temp_host->retain_nonstatus_information);
 
@@ -10541,34 +10703,6 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\t}\n\n");
 	        }
 
-	/* cache host extended info */
-	for(temp_hostextinfo=xodtemplate_hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-		if(temp_hostextinfo->register_object==FALSE)
-			continue;
-		fprintf(fp,"define hostextinfo {\n");
-		if(temp_hostextinfo->host_name)
-			fprintf(fp,"\thost_name\t%s\n",temp_hostextinfo->host_name);
-		if(temp_hostextinfo->icon_image)
-			fprintf(fp,"\ticon_image\t%s\n",temp_hostextinfo->icon_image);
-		if(temp_hostextinfo->icon_image_alt)
-			fprintf(fp,"\ticon_image_alt\t%s\n",temp_hostextinfo->icon_image_alt);
-		if(temp_hostextinfo->vrml_image)
-			fprintf(fp,"\tvrml_image\t%s\n",temp_hostextinfo->vrml_image);
-		if(temp_hostextinfo->statusmap_image)
-			fprintf(fp,"\tstatusmap_image\t%s\n",temp_hostextinfo->statusmap_image);
-		if(temp_hostextinfo->have_2d_coords==TRUE)
-			fprintf(fp,"\t2d_coords\t%d,%d\n",temp_hostextinfo->x_2d,temp_hostextinfo->y_2d);
-		if(temp_hostextinfo->have_3d_coords==TRUE)
-			fprintf(fp,"\t3d_coords\t%f,%f,%f\n",temp_hostextinfo->x_3d,temp_hostextinfo->y_3d,temp_hostextinfo->z_3d);
-		if(temp_hostextinfo->notes)
-			fprintf(fp,"\tnotes\t%s\n",temp_hostextinfo->notes);
-		if(temp_hostextinfo->notes_url)
-			fprintf(fp,"\tnotes_url\t%s\n",temp_hostextinfo->notes_url);
-		if(temp_hostextinfo->action_url)
-			fprintf(fp,"\taction_url\t%s\n",temp_hostextinfo->action_url);
-		fprintf(fp,"\t}\n\n");
-	        }
-
 	fclose(fp);
 
 #ifdef DEBUG0
@@ -10774,6 +10908,13 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_host->contact_groups);
 		my_free((void **)&this_host->notification_period);
 		my_free((void **)&this_host->failure_prediction_options);
+		my_free((void **)&this_host->notes);
+		my_free((void **)&this_host->notes_url);
+		my_free((void **)&this_host->action_url);
+		my_free((void **)&this_host->icon_image);
+		my_free((void **)&this_host->icon_image_alt);
+		my_free((void **)&this_host->vrml_image);
+		my_free((void **)&this_host->statusmap_image);
 		my_free((void **)&this_host);
 	        }
 	xodtemplate_host_list=NULL;

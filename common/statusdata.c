@@ -3,7 +3,7 @@
  * STATUSDATA.C - External status data for Nagios CGIs
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-04-2006
  *
  * License:
  *
@@ -81,7 +81,7 @@ int initialize_status_data(char *config_file){
 
 /* update all status data (aggregated dump) */
 int update_all_status_data(void){
-	int result;
+	int result=OK;
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -232,12 +232,13 @@ int read_status_data(char *config_file,int options){
 
 /* adds hoststatus to hash list in memory */
 int add_hoststatus_to_hashlist(hoststatus *new_hoststatus){
-	hoststatus *temp_hoststatus=NULL, *lastpointer=NULL;
+	hoststatus *temp_hoststatus=NULL;
+	hoststatus *lastpointer=NULL;
 	int hashslot=0;
+	int i=0;
 
 	/* initialize hash list */
 	if(hoststatus_hashlist==NULL){
-		int i;
 
 		hoststatus_hashlist=(hoststatus **)malloc(sizeof(hoststatus *)*HOSTSTATUS_HASHSLOTS);
 		if(hoststatus_hashlist==NULL)
@@ -273,10 +274,10 @@ int add_hoststatus_to_hashlist(hoststatus *new_hoststatus){
 int add_servicestatus_to_hashlist(servicestatus *new_servicestatus){
 	servicestatus *temp_servicestatus=NULL, *lastpointer=NULL;
 	int hashslot=0;
+	int i=0;
 
 	/* initialize hash list */
 	if(servicestatus_hashlist==NULL){
-		int i;
 
 		servicestatus_hashlist=(servicestatus **)malloc(sizeof(servicestatus *)*SERVICESTATUS_HASHSLOTS);
 		if(servicestatus_hashlist==NULL)
@@ -344,8 +345,7 @@ int add_host_status(hoststatus *new_hoststatus){
 		        }
 		if(new_hoststatus->has_been_checked==FALSE){
 			new_hoststatus->status=HOST_PENDING;
-			free(new_hoststatus->plugin_output);
-			new_hoststatus->plugin_output=NULL;
+			my_free((void **)&new_hoststatus->plugin_output);
 			if(new_hoststatus->should_be_scheduled==TRUE){
 				get_time_string(&new_hoststatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
 				asprintf(&new_hoststatus->plugin_output,"Host check scheduled for %s",date_string);
@@ -408,8 +408,7 @@ int add_service_status(servicestatus *new_svcstatus){
 		        }
 		if(new_svcstatus->has_been_checked==FALSE){
 			new_svcstatus->status=SERVICE_PENDING;
-			free(new_svcstatus->plugin_output);
-			new_svcstatus->plugin_output=NULL;
+			my_free((void **)&new_svcstatus->plugin_output);
 			if(new_svcstatus->should_be_scheduled==TRUE){
 				get_time_string(&new_svcstatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);
 				asprintf(&new_svcstatus->plugin_output,"Service check scheduled for %s",date_string);
@@ -450,37 +449,35 @@ int add_service_status(servicestatus *new_svcstatus){
 
 /* free all memory for status data */
 void free_status_data(void){
-	hoststatus *this_hoststatus;
-	hoststatus *next_hoststatus;
-	servicestatus *this_svcstatus;
-	servicestatus *next_svcstatus;
+	hoststatus *this_hoststatus=NULL;
+	hoststatus *next_hoststatus=NULL;
+	servicestatus *this_svcstatus=NULL;
+	servicestatus *next_svcstatus=NULL;
 
 	/* free memory for the host status list */
 	for(this_hoststatus=hoststatus_list;this_hoststatus!=NULL;this_hoststatus=next_hoststatus){
 		next_hoststatus=this_hoststatus->next;
-		free(this_hoststatus->host_name);
-		free(this_hoststatus->plugin_output);
-		free(this_hoststatus->long_plugin_output);
-		free(this_hoststatus->perf_data);
-		free(this_hoststatus);
+		my_free((void **)&this_hoststatus->host_name);
+		my_free((void **)&this_hoststatus->plugin_output);
+		my_free((void **)&this_hoststatus->long_plugin_output);
+		my_free((void **)&this_hoststatus->perf_data);
+		my_free((void **)&this_hoststatus);
 	        }
 
 	/* free memory for the service status list */
 	for(this_svcstatus=servicestatus_list;this_svcstatus!=NULL;this_svcstatus=next_svcstatus){
 		next_svcstatus=this_svcstatus->next;
-		free(this_svcstatus->host_name);
-		free(this_svcstatus->description);
-		free(this_svcstatus->plugin_output);
-		free(this_svcstatus->long_plugin_output);
-		free(this_svcstatus->perf_data);
-		free(this_svcstatus);
+		my_free((void **)&this_svcstatus->host_name);
+		my_free((void **)&this_svcstatus->description);
+		my_free((void **)&this_svcstatus->plugin_output);
+		my_free((void **)&this_svcstatus->long_plugin_output);
+		my_free((void **)&this_svcstatus->perf_data);
+		my_free((void **)&this_svcstatus);
 	        }
 
 	/* free hash lists reset list pointers */
-	free(hoststatus_hashlist);
-	free(servicestatus_hashlist);
-	hoststatus_hashlist=NULL;
-	servicestatus_hashlist=NULL;
+	my_free((void **)&hoststatus_hashlist);
+	my_free((void **)&servicestatus_hashlist);
 	hoststatus_list=NULL;
 	servicestatus_list=NULL;
 
@@ -497,7 +494,7 @@ void free_status_data(void){
 
 /* find a host status entry */
 hoststatus *find_hoststatus(char *host_name){
-	hoststatus *temp_hoststatus;
+	hoststatus *temp_hoststatus=NULL;
 
 	if(host_name==NULL || hoststatus_hashlist==NULL)
 		return NULL;
@@ -513,7 +510,7 @@ hoststatus *find_hoststatus(char *host_name){
 
 /* find a service status entry */
 servicestatus *find_servicestatus(char *host_name,char *svc_desc){
-	servicestatus *temp_servicestatus;
+	servicestatus *temp_servicestatus=NULL;
 
 	if(host_name==NULL || svc_desc==NULL || servicestatus_hashlist==NULL)
 		return NULL;
@@ -536,7 +533,7 @@ servicestatus *find_servicestatus(char *host_name,char *svc_desc){
 
 /* gets the total number of services of a certain state for a specific host */
 int get_servicestatus_count(char *host_name, int type){
-	servicestatus *temp_status;
+	servicestatus *temp_status=NULL;
 	int count=0;
 
 	if(host_name==NULL)

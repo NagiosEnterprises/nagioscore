@@ -2,8 +2,8 @@
  *
  * STATUSMAP.C - Nagios Network Status Map CGI
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-12-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-04-2006
  *
  * Description:
  *
@@ -213,7 +213,6 @@ int draw_nagios_icon=FALSE;    /* should we drawn the Nagios process icon? */
 int nagios_icon_x=0;           /* coords of Nagios icon */
 int nagios_icon_y=0;
 
-extern hostextinfo *hostextinfo_list;
 extern hoststatus *hoststatus_list;
 
 extern time_t program_start;
@@ -849,7 +848,6 @@ void display_map(void){
 
 /* calculates host drawing coordinates */
 void calculate_host_coords(void){
-	hostextinfo *temp_hostextinfo;
 	host *this_host;
 	host *temp_host;
 	int child_hosts=0;
@@ -874,12 +872,12 @@ void calculate_host_coords(void){
 	if(layout_method==LAYOUT_USER_SUPPLIED){
 
 		/* see which hosts we should draw and calculate drawing coords */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			
-			if(temp_hostextinfo->have_2d_coords==TRUE)
-				temp_hostextinfo->should_be_drawn=TRUE;
+			if(temp_host->have_2d_coords==TRUE)
+				temp_host->should_be_drawn=TRUE;
 			else
-				temp_hostextinfo->should_be_drawn=FALSE;
+				temp_host->should_be_drawn=FALSE;
 		        }
 
 		return;
@@ -889,18 +887,6 @@ void calculate_host_coords(void){
 	/*****************************/
 	/***** AUTO-LAYOUT MODES *****/
 	/*****************************/
-
-	/* add empty extended host info entries for all hosts that don't have any */
-	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-		/* find the corresponding hostextinfo definition */
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-
-		/* none was found, so add a blank one */
-		if(temp_hostextinfo==NULL)
-			add_hostextinfo(temp_host->name,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,0.0,0.0,0.0,0,0);
-	        }
-
 
 	/***** DEPTH LAYER MODE *****/
 	if(layout_method==LAYOUT_SUBLAYERS){
@@ -937,40 +923,34 @@ void calculate_host_coords(void){
 		        }
 
 		/* see which hosts we should draw and calculate drawing coords */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-			/* find the host that matches this entry */
-			temp_host=find_host(temp_hostextinfo->host_name);
-
-			if(temp_host==NULL)
-				continue;
-			
 			/* this is an immediate parent of the "main" host we're drawing */
-			else if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
-				temp_hostextinfo->y_2d=offset_y;
+			if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+				temp_host->y_2d=offset_y;
 				current_parent_host++;
 			        }
 			
 			/* this is the "main" host we're drawing */
 			else if(this_host==temp_host){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x;
-				temp_hostextinfo->y_2d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x;
+				temp_host->y_2d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
 			        }
 
 			/* this is an immediate child of the "main" host we're drawing */
 			else if(is_host_immediate_child_of_host(this_host,temp_host)==TRUE){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x-(((child_hosts*DEFAULT_NODE_WIDTH)+((child_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_child_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x-(((child_hosts*DEFAULT_NODE_WIDTH)+((child_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_child_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
 				if(this_host==NULL)
-					temp_hostextinfo->y_2d=(DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)+offset_y;
+					temp_host->y_2d=(DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)+offset_y;
 				else
-					temp_hostextinfo->y_2d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*2)+offset_y;
+					temp_host->y_2d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*2)+offset_y;
 				current_child_host++;
 				if(number_of_immediate_child_hosts(temp_host)>0){
 					bottom_margin=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
@@ -980,8 +960,8 @@ void calculate_host_coords(void){
 
 			/* else do not draw this host */
 			else{
-				temp_hostextinfo->should_be_drawn=FALSE;
-				temp_hostextinfo->have_2d_coords=FALSE;
+				temp_host->should_be_drawn=FALSE;
+				temp_host->have_2d_coords=FALSE;
 			        }
 		        }
 	        }
@@ -1027,35 +1007,29 @@ void calculate_host_coords(void){
 		        }
 
 		/* see which hosts we should draw and calculate drawing coords */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-			/* find the host that matches this entry */
-			temp_host=find_host(temp_hostextinfo->host_name);
-
-			if(temp_host==NULL)
-				continue;
-			
 			/* this is an immediate parent of the "main" host we're drawing */
-			else if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
-				temp_hostextinfo->y_2d=offset_y;
+			if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+				temp_host->y_2d=offset_y;
 				current_parent_host++;
 			        }
 			
 			/* this is the "main" host we're drawing */
 			else if(this_host==temp_host){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x;
-				temp_hostextinfo->y_2d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x;
+				temp_host->y_2d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
 			        }
 
 			/* else do not draw this host (we might if its a child - see below, but assume no for now) */
 			else{
-				temp_hostextinfo->should_be_drawn=FALSE;
-				temp_hostextinfo->have_2d_coords=FALSE;
+				temp_host->should_be_drawn=FALSE;
+				temp_host->have_2d_coords=FALSE;
 			        }
 		        }
 
@@ -1074,23 +1048,17 @@ void calculate_host_coords(void){
 			current_layer_member=0;
 
 			/* see which hosts are members of this layer and calculate drawing coords */
-			for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-
-				/* find the host that matches this entry */
-				temp_host=find_host(temp_hostextinfo->host_name);
-
-				if(temp_host==NULL)
-					continue;
+			for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 				/* is this host a member of the current child layer? */
 				if(host_child_depth_separation(this_host,temp_host)==current_layer){
-					temp_hostextinfo->should_be_drawn=TRUE;
-					temp_hostextinfo->have_2d_coords=TRUE;
-					temp_hostextinfo->x_2d=center_x-(((layer_members*DEFAULT_NODE_WIDTH)+((layer_members-1)*DEFAULT_NODE_HSPACING))/2)+(current_layer_member*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+					temp_host->should_be_drawn=TRUE;
+					temp_host->have_2d_coords=TRUE;
+					temp_host->x_2d=center_x-(((layer_members*DEFAULT_NODE_WIDTH)+((layer_members-1)*DEFAULT_NODE_HSPACING))/2)+(current_layer_member*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
 					if(this_host==NULL)
-						temp_hostextinfo->y_2d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*current_layer)+offset_y;
+						temp_host->y_2d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*current_layer)+offset_y;
 					else
-						temp_hostextinfo->y_2d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*(current_layer+1))+offset_y;
+						temp_host->y_2d=((DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING)*(current_layer+1))+offset_y;
 					current_layer_member++;
 				        }
 			        }
@@ -1138,35 +1106,29 @@ void calculate_host_coords(void){
 		        }
 
 		/* see which hosts we should draw and calculate drawing coords */
-		for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-			/* find the host that matches this entry */
-			temp_host=find_host(temp_hostextinfo->host_name);
-
-			if(temp_host==NULL)
-				continue;
-			
 			/* this is an immediate parent of the "main" host we're drawing */
-			else if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
-				temp_hostextinfo->y_2d=offset_y;
+			if(is_host_immediate_parent_of_host(this_host,temp_host)==TRUE){
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x-(((parent_hosts*DEFAULT_NODE_WIDTH)+((parent_hosts-1)*DEFAULT_NODE_HSPACING))/2)+(current_parent_host*(DEFAULT_NODE_WIDTH+DEFAULT_NODE_HSPACING))+(DEFAULT_NODE_WIDTH/2);
+				temp_host->y_2d=offset_y;
 				current_parent_host++;
 			        }
 			
 			/* this is the "main" host we're drawing */
 			else if(this_host==temp_host){
-				temp_hostextinfo->should_be_drawn=TRUE;
-				temp_hostextinfo->have_2d_coords=TRUE;
-				temp_hostextinfo->x_2d=center_x;
-				temp_hostextinfo->y_2d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
+				temp_host->should_be_drawn=TRUE;
+				temp_host->have_2d_coords=TRUE;
+				temp_host->x_2d=center_x;
+				temp_host->y_2d=DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING+offset_y;
 			        }
 
 			/* else do not draw this host (we might if its a child - see below, but assume no for now) */
 			else{
-				temp_hostextinfo->should_be_drawn=FALSE;
-				temp_hostextinfo->have_2d_coords=FALSE;
+				temp_host->should_be_drawn=FALSE;
+				temp_host->have_2d_coords=FALSE;
 			        }
 		        }
 
@@ -1195,26 +1157,26 @@ void calculate_host_coords(void){
 
 /* calculates max possible image dimensions */
 void calculate_total_image_bounds(void){
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 
 	total_image_width=0;
 	total_image_height=0;
 
 	/* check all extended host information entries... */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* only check entries that have 2-D coords specified */
-		if(temp_hostextinfo->have_2d_coords==FALSE)
+		if(temp_host->have_2d_coords==FALSE)
 			continue;
 
 		/* skip hosts we shouldn't be drawing */
-		if(temp_hostextinfo->should_be_drawn==FALSE)
+		if(temp_host->should_be_drawn==FALSE)
 			continue;
 		
-		if(temp_hostextinfo->x_2d>total_image_width)
-			total_image_width=temp_hostextinfo->x_2d;
-		if(temp_hostextinfo->y_2d>total_image_height)
-			total_image_height=temp_hostextinfo->y_2d;
+		if(temp_host->x_2d>total_image_width)
+			total_image_width=temp_host->x_2d;
+		if(temp_host->y_2d>total_image_height)
+			total_image_height=temp_host->y_2d;
 
 		coordinates_were_specified=TRUE;
 	        }
@@ -1275,17 +1237,17 @@ void calculate_canvas_bounds(void){
 
 /* calculates canvas coordinates/dimensions around a particular host */
 void calculate_canvas_bounds_from_host(char *host_name){
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 	int zoom_width;
 	int zoom_height;
 
 	/* find the extended host info */
-	temp_hostextinfo=find_hostextinfo(host_name);
-	if(temp_hostextinfo==NULL)
+	temp_host=find_host(host_name);
+	if(temp_host==NULL)
 		return;
 
 	/* make sure we have 2-D coords */
-	if(temp_hostextinfo->have_2d_coords==FALSE)
+	if(temp_host->have_2d_coords==FALSE)
 		return;
 	
 	if(max_image_width>0 && proximity_width>max_image_width)
@@ -1301,13 +1263,13 @@ void calculate_canvas_bounds_from_host(char *host_name){
 	if(canvas_width>=total_image_width)
 		canvas_x=0;
 	else
-		canvas_x=(temp_hostextinfo->x_2d-(zoom_width/2));
+		canvas_x=(temp_host->x_2d-(zoom_width/2));
 
 	canvas_height=zoom_height;
 	if(canvas_height>=total_image_height)
 		canvas_y=0;
 	else
-		canvas_y=(temp_hostextinfo->y_2d-(zoom_height/2));
+		canvas_y=(temp_host->y_2d-(zoom_height/2));
 
 
 	return;
@@ -1347,42 +1309,35 @@ void calculate_scaling_factor(void){
 
 /* finds hosts that can be drawn in the canvas area */
 void find_eligible_hosts(void){
-	hostextinfo *temp_hostextinfo;
 	int total_eligible_hosts=0;
 	host *temp_host;
 
 	/* check all extended host information entries... */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-
-		/* find the host */
-		temp_host=find_host(temp_hostextinfo->host_name);
-
-		if(temp_host==NULL)
-			temp_hostextinfo->should_be_drawn=FALSE;
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* only include hosts that have 2-D coords supplied */
-		else if(temp_hostextinfo->have_2d_coords==FALSE)
-			temp_hostextinfo->should_be_drawn=FALSE;
+		if(temp_host->have_2d_coords==FALSE)
+			temp_host->should_be_drawn=FALSE;
 
 		/* make sure coords are all positive */
-		else if(temp_hostextinfo->x_2d<0 || temp_hostextinfo->y_2d<0)
-			temp_hostextinfo->should_be_drawn=FALSE;
+		else if(temp_host->x_2d<0 || temp_host->y_2d<0)
+			temp_host->should_be_drawn=FALSE;
 
 		/* make sure x coordinates fall within canvas bounds */
-		else if(temp_hostextinfo->x_2d<(canvas_x-DEFAULT_NODE_WIDTH) || temp_hostextinfo->x_2d>(canvas_x+canvas_width))
-			temp_hostextinfo->should_be_drawn=FALSE;
+		else if(temp_host->x_2d<(canvas_x-DEFAULT_NODE_WIDTH) || temp_host->x_2d>(canvas_x+canvas_width))
+			temp_host->should_be_drawn=FALSE;
 
 		/* make sure y coordinates fall within canvas bounds */
-		else if(temp_hostextinfo->y_2d<(canvas_y-DEFAULT_NODE_HEIGHT) || temp_hostextinfo->y_2d>(canvas_y+canvas_height))
-			temp_hostextinfo->should_be_drawn=FALSE;
+		else if(temp_host->y_2d<(canvas_y-DEFAULT_NODE_HEIGHT) || temp_host->y_2d>(canvas_y+canvas_height))
+			temp_host->should_be_drawn=FALSE;
 
 		/* see if the user is authorized to view the host */
 		else if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
-			temp_hostextinfo->should_be_drawn=FALSE;
+			temp_host->should_be_drawn=FALSE;
 
 		/* all checks passed, so we can draw the host! */
 		else{
-			temp_hostextinfo->should_be_drawn=TRUE;
+			temp_host->should_be_drawn=TRUE;
 			total_eligible_hosts++;
 		        }
 	        }
@@ -1467,8 +1422,6 @@ void draw_background_extras(void){
 
 /* draws host links */
 void draw_host_links(void){
-	hostextinfo *temp_hostextinfo;
-	hostextinfo *temp_parent_hostextinfo;
 	host *this_host;
 	host *main_host;
 	host *parent_host;
@@ -1494,12 +1447,7 @@ void draw_host_links(void){
 		main_host=NULL;
 
 	/* check all extended host information entries... */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-
-		/* find the config entry for this host */
-		this_host=find_host(temp_hostextinfo->host_name);
-		if(this_host==NULL)
-			continue;
+	for(this_host=host_list;this_host!=NULL;this_host=this_host->next){
 
 		/* only draw link if user is authorized to view this host */
 		if(is_authorized_for_host(this_host,&current_authdata)==FALSE)
@@ -1508,8 +1456,8 @@ void draw_host_links(void){
 		/* this is a "root" host, so draw link to Nagios process icon if using auto-layout mode */
 		if(this_host->parent_hosts==NULL && layout_method!=LAYOUT_USER_SUPPLIED && draw_nagios_icon==TRUE){
 
-			x=temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2)-canvas_x;
-			y=temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2)-canvas_y;
+			x=this_host->x_2d+(DEFAULT_NODE_WIDTH/2)-canvas_x;
+			y=this_host->y_2d+(DEFAULT_NODE_WIDTH/2)-canvas_y;
 
 			draw_line(x,y,nagios_icon_x+(DEFAULT_NODE_WIDTH/2)-canvas_x,nagios_icon_y+(DEFAULT_NODE_WIDTH/2)-canvas_y,color_black);
 		        }
@@ -1517,7 +1465,7 @@ void draw_host_links(void){
 		/* this is a child of the main host we're drawing in auto-layout mode... */
 		if(layout_method!=LAYOUT_USER_SUPPLIED && draw_child_links==TRUE && number_of_immediate_child_hosts(this_host)>0 && is_host_immediate_child_of_host(main_host,this_host)==TRUE){
 			/* determine color to use when drawing links to children  */
-			this_hoststatus=find_hoststatus(temp_hostextinfo->host_name);
+			this_hoststatus=find_hoststatus(this_host->name);
 			if(this_hoststatus!=NULL){
 				if(this_hoststatus->status==HOST_DOWN || this_hoststatus->status==HOST_UNREACHABLE)
 					status_color=color_red;
@@ -1527,8 +1475,8 @@ void draw_host_links(void){
 			else
 				status_color=color_black;
 
-			x=temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2)-canvas_x;
-			y=(temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y;
+			x=this_host->x_2d+(DEFAULT_NODE_WIDTH/2)-canvas_x;
+			y=(this_host->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y;
 
 			draw_dashed_line(x,y,x,y+DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING,status_color);
 
@@ -1540,8 +1488,8 @@ void draw_host_links(void){
 		/* this is a parent of the main host we're drawing in auto-layout mode... */
 		if(layout_method!=LAYOUT_USER_SUPPLIED && draw_parent_links==TRUE && is_host_immediate_child_of_host(this_host,main_host)==TRUE){
 
-			x=temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2)-canvas_x;
-			y=temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2)-canvas_y;
+			x=this_host->x_2d+(DEFAULT_NODE_WIDTH/2)-canvas_x;
+			y=this_host->y_2d+(DEFAULT_NODE_WIDTH/2)-canvas_y;
 
 			draw_dashed_line(x,y,x,y-DEFAULT_NODE_HEIGHT-DEFAULT_NODE_VSPACING,color_black);
 
@@ -1553,18 +1501,13 @@ void draw_host_links(void){
 		/* draw links to all parent hosts */
 		for(temp_hostsmember=this_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-			/* find extended info entry for this parent host */
-			temp_parent_hostextinfo=find_hostextinfo(temp_hostsmember->host_name);
-			if(temp_parent_hostextinfo==NULL)
+			/* find the parent host config entry */
+			parent_host=find_host(temp_hostsmember->host_name);
+			if(parent_host==NULL)
 				continue;
 
 			/* don't draw the link if we don't have the coords */
-			if(temp_parent_hostextinfo->have_2d_coords==FALSE || temp_hostextinfo->have_2d_coords==FALSE)
-				continue;
-
-			/* find the parent host config entry */
-			parent_host=find_host(temp_parent_hostextinfo->host_name);
-			if(parent_host==NULL)
+			if(parent_host->have_2d_coords==FALSE || this_host->have_2d_coords==FALSE)
 				continue;
 
 			/* only draw link if user is authorized for this parent host */
@@ -1587,7 +1530,7 @@ void draw_host_links(void){
 				dotted_line=FALSE;
 
 			/* determine color to use when drawing links to parent host */
-			parent_hoststatus=find_hoststatus(temp_parent_hostextinfo->host_name);
+			parent_hoststatus=find_hoststatus(parent_host->name);
 			if(parent_hoststatus!=NULL){
 				if(parent_hoststatus->status==HOST_DOWN || parent_hoststatus->status==HOST_UNREACHABLE)
 					status_color=color_red;
@@ -1599,9 +1542,9 @@ void draw_host_links(void){
 
 			/* draw the link */
 			if(dotted_line==TRUE)
-				draw_dotted_line((temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y,(temp_parent_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_parent_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,status_color);
+				draw_dotted_line((this_host->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(this_host->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y,(parent_host->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(parent_host->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,status_color);
 			else
-				draw_line((temp_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y,(temp_parent_hostextinfo->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(temp_parent_hostextinfo->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,status_color);
+				draw_line((this_host->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(this_host->y_2d+(DEFAULT_NODE_WIDTH)/2)-canvas_y,(parent_host->x_2d+(DEFAULT_NODE_WIDTH/2))-canvas_x,(parent_host->y_2d+(DEFAULT_NODE_WIDTH/2))-canvas_y,status_color);
 		        }
 
 	        }
@@ -1613,7 +1556,6 @@ void draw_host_links(void){
 
 /* draws hosts */
 void draw_hosts(void){
-	hostextinfo *temp_hostextinfo;
 	host *temp_host;
 	int x1, x2;
 	int y1, y2;
@@ -1683,14 +1625,11 @@ void draw_hosts(void){
 	average_host_services=4;
 
 	/* draw all hosts... */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		
 		/* skip hosts that should not be drawn */
-		if(temp_hostextinfo->should_be_drawn==FALSE)
+		if(temp_host->should_be_drawn==FALSE)
 			continue;
-
-		/* find the host */
-		temp_host=find_host(temp_hostextinfo->host_name);
 
 		/* is this host in the layer inclusion/exclusion list? */
 		in_layer_list=is_host_in_layer_list(temp_host);
@@ -1698,15 +1637,15 @@ void draw_hosts(void){
 			continue;
 
 		/* get coords of host bounding box */
-		x1=temp_hostextinfo->x_2d-canvas_x;
+		x1=temp_host->x_2d-canvas_x;
 		x2=x1+DEFAULT_NODE_WIDTH;
-		y1=temp_hostextinfo->y_2d-canvas_y;
+		y1=temp_host->y_2d-canvas_y;
 		y2=y1+DEFAULT_NODE_HEIGHT;
 
 		if(create_type==CREATE_IMAGE){
 
 
-			temp_hoststatus=find_hoststatus(temp_hostextinfo->host_name);
+			temp_hoststatus=find_hoststatus(temp_host->name);
 			if(temp_hoststatus!=NULL){
 				if(temp_hoststatus->status==HOST_DOWN)
 					status_color=color_red;
@@ -1778,7 +1717,7 @@ void draw_hosts(void){
 					gdImageArc(map_image,x1+(DEFAULT_NODE_WIDTH/2),y1+(DEFAULT_NODE_WIDTH/2),current_radius,current_radius,0,360,status_color);
 
 				/* draw circles around the selected host (if there is one) */
-				if(!strcmp(host_name,temp_hostextinfo->host_name) && use_highlights==TRUE){
+				if(!strcmp(host_name,temp_host->name) && use_highlights==TRUE){
 					for(current_radius=DEFAULT_NODE_WIDTH*2;current_radius>0;current_radius-=10)
 						gdImageArc(map_image,x1+(DEFAULT_NODE_WIDTH/2),y1+(DEFAULT_NODE_WIDTH/2),current_radius,current_radius,0,360,status_color);
 			                }
@@ -1798,13 +1737,13 @@ void draw_hosts(void){
 			                }
 
 				/* draw circles around the selected host (if there is one) */
-				if(!strcmp(host_name,temp_hostextinfo->host_name) && use_highlights==TRUE){
+				if(!strcmp(host_name,temp_host->name) && use_highlights==TRUE){
 					for(current_radius=DEFAULT_NODE_WIDTH*2;current_radius>0;current_radius-=10)
 						gdImageArc(map_image,x1+(DEFAULT_NODE_WIDTH/2),y1+(DEFAULT_NODE_WIDTH/2),current_radius,current_radius,0,360,status_color);
 			                }
 
 
-				if(temp_hostextinfo->statusmap_image!=NULL)
+				if(temp_host->statusmap_image!=NULL)
 					has_image=TRUE;
 				else
 					has_image=FALSE;
@@ -1813,7 +1752,7 @@ void draw_hosts(void){
 				if(has_image==TRUE){
 
 				        /* get the name of the image file to open for the logo */
-					snprintf(image_input_file,sizeof(image_input_file)-1,"%s%s",physical_logo_images_path,temp_hostextinfo->statusmap_image);
+					snprintf(image_input_file,sizeof(image_input_file)-1,"%s%s",physical_logo_images_path,temp_host->statusmap_image);
 					image_input_file[sizeof(image_input_file)-1]='\x0';
 
 				        /* read in the logo image from file... */
@@ -1847,7 +1786,7 @@ void draw_hosts(void){
 
 
 			/* draw host name, status, etc. */
-			draw_host_text(temp_hostextinfo->host_name,x1+(DEFAULT_NODE_WIDTH/2),y1+DEFAULT_NODE_HEIGHT);
+			draw_host_text(temp_host->name,x1+(DEFAULT_NODE_WIDTH/2),y1+DEFAULT_NODE_HEIGHT);
 		        }
 
 		/* we're creating HTML image map... */
@@ -1858,10 +1797,10 @@ void draw_hosts(void){
 			printf("coords='%d,%d,%d,%d' ",(int)(x1*scaling_factor),(int)(y1*scaling_factor),(int)((x1+DEFAULT_NODE_WIDTH)*scaling_factor),(int)((y1+DEFAULT_NODE_HEIGHT)*scaling_factor));
 
 			/* URL */
-			if(!strcmp(host_name,temp_hostextinfo->host_name))
-				printf("href='%s?host=%s' ",STATUS_CGI,url_encode(temp_hostextinfo->host_name));
+			if(!strcmp(host_name,temp_host->name))
+				printf("href='%s?host=%s' ",STATUS_CGI,url_encode(temp_host->name));
 			else{
-				printf("href='%s?host=%s&layout=%d&max_width=%d&max_height=%d&proximity_width=%d&proximity_height=%d%s%s%s%s%s",STATUSMAP_CGI,url_encode(temp_hostextinfo->host_name),layout_method,max_image_width,max_image_height,proximity_width,proximity_height,(display_header==TRUE)?"":"&noheader",(use_links==FALSE)?"&nolinks":"",(use_text==FALSE)?"&notext":"",(use_highlights==FALSE)?"&nohighlights":"",(display_popups==FALSE)?"&nopopups":"");
+				printf("href='%s?host=%s&layout=%d&max_width=%d&max_height=%d&proximity_width=%d&proximity_height=%d%s%s%s%s%s",STATUSMAP_CGI,url_encode(temp_host->name),layout_method,max_image_width,max_image_height,proximity_width,proximity_height,(display_header==TRUE)?"":"&noheader",(use_links==FALSE)?"&nolinks":"",(use_text==FALSE)?"&notext":"",(use_highlights==FALSE)?"&nohighlights":"",(display_popups==FALSE)?"&nopopups":"");
 				if(user_supplied_scaling==TRUE)
 					printf("&scaling_factor=%2.1f",user_scaling_factor);
 				print_layer_url(TRUE);
@@ -1872,7 +1811,7 @@ void draw_hosts(void){
 			if(display_popups==TRUE){
 
 				printf("onMouseOver='showPopup(\"");
-				write_host_popup_text(find_host(temp_hostextinfo->host_name));
+				write_host_popup_text(find_host(temp_host->name));
 				printf("\",event)' onMouseOut='hidePopup()'");
 			        }
 
@@ -1956,7 +1895,7 @@ void draw_host_text(char *name,int x,int y){
 
 /* writes popup text for a specific host */
 void write_host_popup_text(host *hst){
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 	hoststatus *temp_status;
 	hostsmember *temp_hostsmember;
 	int service_totals;
@@ -1986,11 +1925,8 @@ void write_host_popup_text(host *hst){
 
 	printf("<table border=0 cellpadding=0 cellspacing=5>");
 
-	temp_hostextinfo=find_hostextinfo(hst->name);
-	if(temp_hostextinfo!=NULL){
-		printf("<tr><td><img src=%s%s border=0 width=40 height=40></td>",url_logo_images_path,(temp_hostextinfo->icon_image==NULL)?UNKNOWN_ICON_IMAGE:temp_hostextinfo->icon_image);
-		printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(temp_hostextinfo->icon_image_alt==NULL)?"":html_encode(temp_hostextinfo->icon_image_alt));
-	        }
+	printf("<tr><td><img src=%s%s border=0 width=40 height=40></td>",url_logo_images_path,(hst->icon_image==NULL)?UNKNOWN_ICON_IMAGE:hst->icon_image);
+	printf("<td class=\\\"popupText\\\"><i>%s</i></td></tr>",(hst->icon_image_alt==NULL)?"":html_encode(hst->icon_image_alt));
 
 	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->name));
 	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->alias));
@@ -2586,7 +2522,6 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 	int current_drawing_x;
 	int this_drawing_width;
 	host *temp_host;
-	hostextinfo *temp_hostextinfo;
 
 	/* calculate total drawing width of parent host */
 	parent_drawing_width=max_child_host_drawing_width(parent);
@@ -2599,24 +2534,20 @@ void calculate_balanced_tree_coords(host *parent, int x, int y){
 	/* calculate coords for children */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo==NULL)
-			continue;
-
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE){
 
 			/* get drawing width of child host */
 			this_drawing_width=max_child_host_drawing_width(temp_host);
 
-			temp_hostextinfo->x_2d=current_drawing_x+(((DEFAULT_NODE_WIDTH*this_drawing_width)+(DEFAULT_NODE_HSPACING*(this_drawing_width-1)))/2);
-			temp_hostextinfo->y_2d=y+DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
-			temp_hostextinfo->have_2d_coords=TRUE;
-			temp_hostextinfo->should_be_drawn=TRUE;
+			temp_host->x_2d=current_drawing_x+(((DEFAULT_NODE_WIDTH*this_drawing_width)+(DEFAULT_NODE_HSPACING*(this_drawing_width-1)))/2);
+			temp_host->y_2d=y+DEFAULT_NODE_HEIGHT+DEFAULT_NODE_VSPACING;
+			temp_host->have_2d_coords=TRUE;
+			temp_host->should_be_drawn=TRUE;
 			
 			current_drawing_x+=(this_drawing_width*DEFAULT_NODE_WIDTH)+((this_drawing_width-1)*DEFAULT_NODE_HSPACING)+DEFAULT_NODE_HSPACING;
 
 			/* recurse into child host ... */
-			calculate_balanced_tree_coords(temp_host,temp_hostextinfo->x_2d,temp_hostextinfo->y_2d);
+			calculate_balanced_tree_coords(temp_host,temp_host->x_2d,temp_host->y_2d);
 		        }
 
 	        }
@@ -2631,7 +2562,7 @@ void calculate_circular_coords(void){
 	int min_y=0;
 	int have_min_x=FALSE;
 	int have_min_y=FALSE;
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 
 	/* calculate all host coords, starting with first layer */
 	calculate_circular_layer_coords(NULL,0.0,360.0,1,CIRCULAR_DRAWING_RADIUS);
@@ -2639,23 +2570,23 @@ void calculate_circular_coords(void){
 	/* adjust all calculated coords so none are negative in x or y axis... */
 
 	/* calculate min x, y coords */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-		if(have_min_x==FALSE || temp_hostextinfo->x_2d<min_x){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+		if(have_min_x==FALSE || temp_host->x_2d<min_x){
 			have_min_x=TRUE;
-			min_x=temp_hostextinfo->x_2d;
+			min_x=temp_host->x_2d;
 		        }
-		if(have_min_y==FALSE || temp_hostextinfo->y_2d<min_y){
+		if(have_min_y==FALSE || temp_host->y_2d<min_y){
 			have_min_y=TRUE;
-			min_y=temp_hostextinfo->y_2d;
+			min_y=temp_host->y_2d;
 		        }
 	        }
 	
 	/* offset all drawing coords by the min x,y coords we found */
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(min_x<0)
-			temp_hostextinfo->x_2d-=min_x;
+			temp_host->x_2d-=min_x;
 		if(min_y<0)
-			temp_hostextinfo->y_2d-=min_y;
+			temp_host->y_2d-=min_y;
 	        }
 
 	if(min_x<0)
@@ -2663,9 +2594,9 @@ void calculate_circular_coords(void){
 	if(min_y<0)
 		nagios_icon_y-=min_y;
 
-	for(temp_hostextinfo=hostextinfo_list;temp_hostextinfo!=NULL;temp_hostextinfo=temp_hostextinfo->next){
-		temp_hostextinfo->x_2d+=(DEFAULT_NODE_WIDTH/2);
-		temp_hostextinfo->y_2d+=(DEFAULT_NODE_HEIGHT/2);
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
+		temp_host->x_2d+=(DEFAULT_NODE_WIDTH/2);
+		temp_host->y_2d+=(DEFAULT_NODE_HEIGHT/2);
 	        }
 	nagios_icon_x+=(DEFAULT_NODE_WIDTH/2);
 	nagios_icon_y+=(DEFAULT_NODE_HEIGHT/2);
@@ -2687,7 +2618,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 	double x_coord=0.0;
 	double y_coord=0.0;
 	host *temp_host;
-	hostextinfo *temp_hostextinfo;
 
 
 	/* get the total number of immediate children to this host */
@@ -2709,10 +2639,6 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 
 	/* calculate coords for children */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo==NULL)
-			continue;
 
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE){
 
@@ -2741,10 +2667,10 @@ void calculate_circular_layer_coords(host *parent, double start_angle, double us
 			x_coord=-(sin(-this_drawing_angle*(M_PI/180.0))*radius);
 			y_coord=-(sin((90+this_drawing_angle)*(M_PI/180.0))*radius);
 
-			temp_hostextinfo->x_2d=(int)x_coord;
-			temp_hostextinfo->y_2d=(int)y_coord;
-			temp_hostextinfo->have_2d_coords=TRUE;
-			temp_hostextinfo->should_be_drawn=TRUE;
+			temp_host->x_2d=(int)x_coord;
+			temp_host->y_2d=(int)y_coord;
+			temp_host->have_2d_coords=TRUE;
+			temp_host->should_be_drawn=TRUE;
 
 			/* recurse into child host ... */
 			calculate_circular_layer_coords(temp_host,current_drawing_angle+((available_angle-clipped_available_angle)/2),clipped_available_angle,layer+1,radius+CIRCULAR_DRAWING_RADIUS);
@@ -2780,9 +2706,8 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 	double average_child_angle=0.0;
 	double x_coord[4]={0.0,0.0,0.0,0.0};
 	double y_coord[4]={0.0,0.0,0.0,0.0};
-	host *temp_host;
 	hoststatus *temp_hoststatus;
-	hostextinfo *temp_hostextinfo;
+	host *temp_host;
 	int x_offset=0;
 	int y_offset=0;
 	int center_x=0;
@@ -2811,10 +2736,6 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 
 	/* calculate coords for children */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-
-		temp_hostextinfo=find_hostextinfo(temp_host->name);
-		if(temp_hostextinfo==NULL)
-			continue;
 
 		if(is_host_immediate_child_of_host(parent,temp_host)==TRUE){
 

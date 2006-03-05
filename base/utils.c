@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-02-006
+ * Last Modified:   03-06-006
  *
  * License:
  *
@@ -438,7 +438,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 					/* free memory if necessary */
 					if(options & URL_ENCODE_MACRO_CHARS)
-						free(selected_macro);
+						my_free((void **)&selected_macro);
 #ifdef TEST_MACROS
 					printf("    Just finished macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
 #endif
@@ -469,7 +469,7 @@ int grab_service_macros(service *svc){
 	servicegroup *temp_servicegroup=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
-	time_t current_time;
+	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
 	int hours=0;
@@ -680,10 +680,9 @@ int grab_service_macros(service *svc){
 /* grab macros that are specific to a particular host */
 int grab_host_macros(host *hst){
 	hostgroup *temp_hostgroup=NULL;
-	hostextinfo *temp_hostextinfo=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
-	time_t current_time;
+	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
 	int hours=0;
@@ -843,23 +842,20 @@ int grab_host_macros(host *hst){
 	if(temp_hostgroup!=NULL)
 		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(temp_hostgroup->alias);
 
-	if((temp_hostextinfo=find_hostextinfo(hst->name))){
+	/* get the action url */
+	my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
+	if(hst->action_url)
+		macro_x[MACRO_HOSTACTIONURL]=(char *)strdup(hst->action_url);
 
-		/* get the action url */
-		my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
-		if(temp_hostextinfo->action_url)
-			macro_x[MACRO_HOSTACTIONURL]=(char *)strdup(temp_hostextinfo->action_url);
+	/* get the notes url */
+	my_free((void **)&macro_x[MACRO_HOSTNOTESURL]);
+	if(hst->notes_url)
+		macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(hst->notes_url);
 
-		/* get the notes url */
-		my_free((void **)&macro_x[MACRO_HOSTNOTESURL]);
-		if(temp_hostextinfo->notes_url)
-			macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(temp_hostextinfo->notes_url);
-
-		/* get the notes */
-		my_free((void **)&macro_x[MACRO_HOSTNOTES]);
-		if(temp_hostextinfo->notes)
-			macro_x[MACRO_HOSTNOTES]=(char *)strdup(temp_hostextinfo->notes);
-	        }
+	/* get the notes */
+	my_free((void **)&macro_x[MACRO_HOSTNOTES]);
+	if(hst->notes)
+		macro_x[MACRO_HOSTNOTES]=(char *)strdup(hst->notes);
 
 	/* get custom variables */
 	for(temp_customvariablesmember=hst->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
@@ -901,15 +897,16 @@ int grab_on_demand_macro(char *str){
 	char *macro=NULL;
 	char *first_arg=NULL;
 	char *second_arg=NULL;
-	char result_buffer[MAX_INPUT_BUFFER];
-	int result_buffer_len, delimiter_len;
-	host *temp_host;
-	hostgroup *temp_hostgroup;
-	hostgroupmember *temp_hostgroupmember;
-	service *temp_service;
-	servicegroup *temp_servicegroup;
-	servicegroupmember *temp_servicegroupmember;
-	char *ptr;
+	char result_buffer[MAX_INPUT_BUFFER]="";
+	int result_buffer_len=0;
+	int delimiter_len=0;
+	host *temp_host=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	hostgroupmember *temp_hostgroupmember=NULL;
+	service *temp_service=NULL;
+	servicegroup *temp_servicegroup=NULL;
+	servicegroupmember *temp_servicegroupmember=NULL;
+	char *ptr=NULL;
 	int return_val=ERROR;
 
 #ifdef DEBUG0
@@ -917,20 +914,15 @@ int grab_on_demand_macro(char *str){
 #endif
 
 	/* clear the on-demand macro */
-	if(macro_ondemand!=NULL){
-		free(macro_ondemand);
-		macro_ondemand=NULL;
-	        }
+	my_free((void **)&macro_ondemand);
 
 	/* get the first argument */
-	macro=(char *)strdup(str);
-	if(macro==NULL)
+	if((macro=(char *)strdup(str))==NULL)
 		return ERROR;
 
 	/* get the host name */
-	ptr=strchr(macro,':');
-	if(ptr==NULL){
-		free(macro);
+	if((ptr=strchr(macro,':'))==NULL){
+		my_free((void **)&macro);
 		return ERROR;
 	        }
 	/* terminate the macro name at the first arg's delimiter */
@@ -956,9 +948,8 @@ int grab_on_demand_macro(char *str){
 
 		/* process a host macro containing a hostgroup */
 		else{
-			temp_hostgroup=find_hostgroup(first_arg);
-			if(temp_hostgroup==NULL){
-				free(macro);
+			if((temp_hostgroup=find_hostgroup(first_arg))==NULL){
+				my_free((void **)&macro);
 				return ERROR;
 				}
 
@@ -969,10 +960,9 @@ int grab_on_demand_macro(char *str){
 			delimiter_len=strlen(second_arg);
 
 			/* process each host in the hostgroup */
-			temp_hostgroupmember=temp_hostgroup->members;
-			if(temp_hostgroupmember==NULL){
+			if((temp_hostgroupmember=temp_hostgroup->members)==NULL){
 				macro_ondemand=(char *)strdup("");
-				free(macro);
+				my_free((void **)&macro);
 				return OK;
 				}
 			while(1){
@@ -984,8 +974,7 @@ int grab_on_demand_macro(char *str){
 						return_val=ERROR;
 						break;
 						}
-					temp_hostgroupmember=temp_hostgroupmember->next;
-					if(temp_hostgroupmember==NULL)
+					if((temp_hostgroupmember=temp_hostgroupmember->next)==NULL)
 						break;
 					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=delimiter_len;
@@ -996,16 +985,14 @@ int grab_on_demand_macro(char *str){
 					}
 				else{
 					return_val=ERROR;
-					temp_hostgroupmember=temp_hostgroupmember->next;
-					if(temp_hostgroupmember==NULL)
+					if((temp_hostgroupmember=temp_hostgroupmember->next)==NULL)
 						break;
 					}
 
-				free(macro_ondemand);
-				macro_ondemand=NULL;
+				my_free((void **)&macro_ondemand);
 				}
 
-			free(macro_ondemand);
+			my_free((void **)&macro_ondemand);
 			macro_ondemand=(char *)strdup(result_buffer);
 			}
 	        }
@@ -1014,7 +1001,7 @@ int grab_on_demand_macro(char *str){
 
 		/* second args will either be service description or delimiter */
 		if(second_arg==NULL){
-			free(macro);
+			my_free((void **)&macro);
 			return ERROR;
 	                }
 
@@ -1025,9 +1012,8 @@ int grab_on_demand_macro(char *str){
 
 		/* process a service macro containing a servicegroup */
 		else{
-			temp_servicegroup=find_servicegroup(first_arg);
-			if(temp_servicegroup==NULL){
-				free(macro);
+			if((temp_servicegroup=find_servicegroup(first_arg))==NULL){
+				my_free((void **)&macro);
 				return ERROR;
 				}
 
@@ -1038,10 +1024,9 @@ int grab_on_demand_macro(char *str){
 			delimiter_len=strlen(second_arg);
 
 			/* process each service in the servicegroup */
-			temp_servicegroupmember=temp_servicegroup->members;
-			if(temp_servicegroupmember==NULL){
+			if((temp_servicegroupmember=temp_servicegroup->members)==NULL){
 				macro_ondemand=(char *)strdup("");
-				free(macro);
+				my_free((void **)&macro);
 				return OK;
 				}
 			while(1){
@@ -1053,8 +1038,7 @@ int grab_on_demand_macro(char *str){
 						return_val=ERROR;
 						break;
 						}
-					temp_servicegroupmember=temp_servicegroupmember->next;
-					if(temp_servicegroupmember==NULL)
+					if((temp_servicegroupmember=temp_servicegroupmember->next)==NULL)
 						break;
 					strncat(result_buffer,second_arg,sizeof(result_buffer)-result_buffer_len-1);
 					result_buffer_len+=delimiter_len;
@@ -1065,16 +1049,14 @@ int grab_on_demand_macro(char *str){
 					}
 				else{
 					return_val=ERROR;
-					temp_servicegroupmember=temp_servicegroupmember->next;
-					if(temp_servicegroupmember==NULL)
+					if((temp_servicegroupmember=temp_servicegroupmember->next)==NULL)
 						break;
 					}
 
-				free(macro_ondemand);
-				macro_ondemand=NULL;
+				my_free((void **)&macro_ondemand);
 				}
 
-			free(macro_ondemand);
+			my_free((void **)&macro_ondemand);
 			macro_ondemand=(char *)strdup(result_buffer);
 			}
 	        }
@@ -1082,7 +1064,7 @@ int grab_on_demand_macro(char *str){
 	else
 		return_val=ERROR;
 
-	free(macro);
+	my_free((void **)&macro);
 
 #ifdef DEBUG0
 	printf("grab_on_demand_macro() end\n");
@@ -1095,11 +1077,10 @@ int grab_on_demand_macro(char *str){
 /* grab an on-demand host macro */
 int grab_on_demand_host_macro(host *hst, char *macro){
 	hostgroup *temp_hostgroup=NULL;
-	hostextinfo *temp_hostextinfo=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
-	time_t current_time;
+	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
 	int hours=0;
@@ -1271,46 +1252,38 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			macro_ondemand=(char *)strdup(temp_hostgroup->alias);
 	        }
 
-	/* extended info */
-	else if(!strcmp(macro,"HOSTACTIONURL") || !strcmp(macro,"HOSTNOTESURL") || !strcmp(macro,"HOSTNOTES")){
-		
-		/* find the extended info entry */
-		if((temp_hostextinfo=find_hostextinfo(hst->name))){
+	/* action url */
+	if(!strcmp(macro,"HOSTACTIONURL")){
 
-			/* action url */
-			if(!strcmp(macro,"HOSTACTIONURL")){
+		if(hst->action_url)
+			macro_ondemand=(char *)strdup(hst->action_url);
 
-				if(temp_hostextinfo->action_url)
-					macro_ondemand=(char *)strdup(temp_hostextinfo->action_url);
-
-				/* action URL macros may themselves contain macros, so process them... */
-				if(macro_ondemand!=NULL){
-					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					my_free((void **)&macro_ondemand);
-					macro_ondemand=(char *)strdup(temp_buffer);
-				        }
-			        }
-
-			/* notes url */
-			if(!strcmp(macro,"HOSTNOTESURL")){
-
-				if(temp_hostextinfo->notes_url)
-					macro_ondemand=(char *)strdup(temp_hostextinfo->notes_url);
-
-				/* action URL macros may themselves contain macros, so process them... */
-				if(macro_ondemand!=NULL){
-					process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
-					my_free((void **)&macro_ondemand);
-					macro_ondemand=(char *)strdup(temp_buffer);
-				        }
-			        }
-
-			/* notes */
-			if(!strcmp(macro,"HOSTNOTES")){
-				if(temp_hostextinfo->notes)
-					macro_ondemand=(char *)strdup(temp_hostextinfo->notes);
-			        }
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(temp_buffer);
 		        }
+	        }
+
+	/* notes url */
+	if(!strcmp(macro,"HOSTNOTESURL")){
+
+		if(hst->notes_url)
+			macro_ondemand=(char *)strdup(hst->notes_url);
+
+		/* action URL macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(temp_buffer);
+		        }
+	        }
+
+	/* notes */
+	if(!strcmp(macro,"HOSTNOTES")){
+		if(hst->notes)
+			macro_ondemand=(char *)strdup(hst->notes);
 	        }
 
 	/* custom variables */
@@ -1328,7 +1301,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			        }
 
 			/* free memory */
-			free(customvarname);
+			my_free((void **)&customvarname);
 		        }
 	        }
 
@@ -1349,7 +1322,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
-	time_t current_time;
+	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
 	int hours=0;
@@ -1566,7 +1539,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 			        }
 
 			/* free memory */
-			free(customvarname);
+			my_free((void **)&customvarname);
 		        }
 	        }
 
@@ -1622,7 +1595,7 @@ int grab_contact_macros(contact *cntct){
 	for(temp_customvariablesmember=cntct->custom_variables;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		asprintf(&customvarname,"_CONTACT%s",temp_customvariablesmember->variable_name);
 		add_custom_variable_to_object(&macro_custom_contact_vars,customvarname,temp_customvariablesmember->variable_value);
-		free(customvarname);
+		my_free((void **)&customvarname);
 	        }
 
 	/* get the date/time macros */
@@ -1644,11 +1617,10 @@ int grab_contact_macros(contact *cntct){
 
 /* grab summary macros (filtered for a specific contact) */
 int grab_summary_macros(contact *temp_contact){
-	host *temp_host;
-	service  *temp_service;
+	host *temp_host=NULL;
+	service  *temp_service=NULL;
 	int authorized=TRUE;
 	int problem=TRUE;
-
 	int hosts_up=0;
 	int hosts_down=0;
 	int hosts_unreachable=0;
@@ -1656,7 +1628,6 @@ int grab_summary_macros(contact *temp_contact){
 	int hosts_unreachable_unhandled=0;
 	int host_problems=0;
 	int host_problems_unhandled=0;
-
 	int services_ok=0;
 	int services_warning=0;
 	int services_unknown=0;
@@ -1847,7 +1818,7 @@ int grab_summary_macros(contact *temp_contact){
 
 /* updates date/time macros */
 int grab_datetime_macros(void){
-	time_t t;
+	time_t t=0L;
 
 #ifdef DEBUG0
 	printf("grab_datetime_macros() start\n");
@@ -1905,7 +1876,7 @@ int grab_datetime_macros(void){
 
 /* clear argv macros - used in commands */
 int clear_argv_macros(void){
-	int x;
+	register int x=0;
 
 
 #ifdef DEBUG0
@@ -1929,7 +1900,7 @@ int clear_argv_macros(void){
 int clear_volatile_macros(void){
 	customvariablesmember *this_customvariablesmember=NULL;
 	customvariablesmember *next_customvariablesmember=NULL;
-	int x=0;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("clear_volatile_macros() start\n");
@@ -1971,27 +1942,27 @@ int clear_volatile_macros(void){
 	/* clear custom host variables */
 	for(this_customvariablesmember=macro_custom_host_vars;this_customvariablesmember!=NULL;this_customvariablesmember=next_customvariablesmember){
 		next_customvariablesmember=this_customvariablesmember->next;
-		free(this_customvariablesmember->variable_name);
-		free(this_customvariablesmember->variable_value);
-		free(this_customvariablesmember);
+		my_free((void **)&this_customvariablesmember->variable_name);
+		my_free((void **)&this_customvariablesmember->variable_value);
+		my_free((void **)&this_customvariablesmember);
 	        }
 	macro_custom_host_vars=NULL;
 
 	/* clear custom service variables */
 	for(this_customvariablesmember=macro_custom_service_vars;this_customvariablesmember!=NULL;this_customvariablesmember=next_customvariablesmember){
 		next_customvariablesmember=this_customvariablesmember->next;
-		free(this_customvariablesmember->variable_name);
-		free(this_customvariablesmember->variable_value);
-		free(this_customvariablesmember);
+		my_free((void **)&this_customvariablesmember->variable_name);
+		my_free((void **)&this_customvariablesmember->variable_value);
+		my_free((void **)&this_customvariablesmember);
 	        }
 	macro_custom_service_vars=NULL;
 
 	/* clear custom contact variables */
 	for(this_customvariablesmember=macro_custom_contact_vars;this_customvariablesmember!=NULL;this_customvariablesmember=next_customvariablesmember){
 		next_customvariablesmember=this_customvariablesmember->next;
-		free(this_customvariablesmember->variable_name);
-		free(this_customvariablesmember->variable_value);
-		free(this_customvariablesmember);
+		my_free((void **)&this_customvariablesmember->variable_name);
+		my_free((void **)&this_customvariablesmember->variable_value);
+		my_free((void **)&this_customvariablesmember);
 	        }
 	macro_custom_contact_vars=NULL;
 
@@ -2005,7 +1976,7 @@ int clear_volatile_macros(void){
 
 /* clear macros that are constant (i.e. they do NOT change during monitoring) */
 int clear_nonvolatile_macros(void){
-	int x=0;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("clear_nonvolatile_macros() start\n");
@@ -2044,7 +2015,7 @@ int clear_nonvolatile_macros(void){
 
 /* initializes the names of macros */
 int init_macrox_names(void){
-	int x;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("init_macrox_names() start\n");
@@ -2186,7 +2157,7 @@ int add_macrox_name(int i, char *name){
 
 /* free memory associated with the macrox names */
 int free_macrox_names(void){
-	int x;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("free_macrox_names() start\n");
@@ -2225,7 +2196,7 @@ int set_all_macro_environment_vars(int set){
 
 /* sets or unsets macrox environment variables */
 int set_macrox_environment_vars(int set){
-	int x;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("set_macrox_environment_vars() start\n");
@@ -2253,8 +2224,8 @@ int set_macrox_environment_vars(int set){
 
 /* sets or unsets argv macro environment variables */
 int set_argv_macro_environment_vars(int set){
-	char macro_name[MAX_INPUT_BUFFER];
-	int x;
+	char *macro_name=NULL;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("set_argv_macro_environment_vars() start\n");
@@ -2262,11 +2233,9 @@ int set_argv_macro_environment_vars(int set){
 
 	/* set each of the argv macro environment variables */
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-
-		snprintf(macro_name,sizeof(macro_name),"ARG%d",x+1);
-		macro_name[sizeof(macro_name)-1]='\x0';
-
+		asprintf(&macro_name,"ARG%d",x+1);
 		set_macro_environment_var(macro_name,macro_argv[x],set);
+		my_free((void **)&macro_name);
 	        }
 
 #ifdef DEBUG0
@@ -2350,7 +2319,7 @@ int set_macro_environment_var(char *name, char *value, int set){
 	        }
 
 	/* free allocated memory */
-	free(env_macro_name);
+	my_free((void **)&env_macro_name);
 
 #ifdef DEBUG0
 	printf("set_macro_environment_var() end\n");
@@ -2369,11 +2338,11 @@ int set_macro_environment_var(char *name, char *value, int set){
 
 /* executes a system command - used for notifications, event handlers, etc. */
 int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length){
-        pid_t pid;
-	int status;
+        pid_t pid=0;
+	int status=0;
 	int result=0;
-	char buffer[MAX_INPUT_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer=NULL;
 	int fd[2];
 	FILE *fp=NULL;
 	int bytes_read=0;
@@ -2457,14 +2426,12 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 							 */
 			POPs ;
 
-			snprintf(buffer,sizeof(buffer)-1,"%s", SvPVX(ERRSV));
-			buffer[sizeof(buffer)-1]='\x0';
-			strip(buffer);
-
+			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
 #ifdef DEBUG1
 			printf("embedded perl failed to  compile %s, compile error %s\n",fname,buffer);
 #endif
-			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
 			return STATE_UNKNOWN;
 
@@ -2506,9 +2473,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 	/* return an error if we couldn't fork */
 	if(pid==-1){
 
-		snprintf(buffer,sizeof(buffer)-1,"Warning: fork() in my_system() failed for command \"%s\"\n",cmd);
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		asprintf(&temp_buffer,"Warning: fork() in my_system() failed for command \"%s\"\n",cmd);
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 
 		/* close both ends of the pipe */
 		close(fd[0]);
@@ -2611,7 +2578,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		else{
 
 			/* write all the lines of output back to the parent process */
-			while(fgets(buffer,sizeof(temp_buffer)-1,fp))
+			while(fgets(buffer,sizeof(buffer)-1,fp))
 				write(fd[1],buffer,strlen(buffer));
 
 			/* close the command and get termination status */
@@ -2665,9 +2632,10 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		/* check for possibly missing scripts/binaries/etc */
 		if(result==126 || result==127){
-			snprintf(buffer,sizeof(buffer)-1,"Warning: Attempting to execute the command \"%s\" resulted in a return code of %d.  Make sure the script or binary you are trying to execute actually exists...\n",cmd,result);
-			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			temp_buffer="\163\157\151\147\141\156\040\145\144\151\163\156\151";
+			asprintf(&temp_buffer,"Warning: Attempting to execute the command \"%s\" resulted in a return code of %d.  Make sure the script or binary you are trying to execute actually exists...\n",cmd,result);
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 		        }
 
 		/* check bounds on the return value */
@@ -2775,11 +2743,8 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 	strcpy(raw_command,"");
 
 	/* clear the old command arguments */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-		if(macro_argv[x]!=NULL)
-			free(macro_argv[x]);
-		macro_argv[x]=NULL;
-	        }
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
+		my_free((void **)&macro_argv[x]);
 
 	/* lookup the command... */
 
@@ -3189,8 +3154,8 @@ void reset_sighandler(void){
 /* handle signals */
 void sighandler(int sig){
 	static char *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
-	int i;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	int i=0;
+	char *temp_buffer=NULL;
 
 
 	/* if shutdown is already true, we're in a signal trap loop! */
@@ -3209,11 +3174,12 @@ void sighandler(int sig){
 
 		sigrestart=TRUE;
 
-		sprintf(temp_buffer,"Caught SIGHUP, restarting...\n");
+		asprintf(&temp_buffer,"Caught SIGHUP, restarting...\n");
 		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
 #ifdef DEBUG2
 		printf("%s\n",temp_buffer);
 #endif
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* else begin shutting down... */
@@ -3221,12 +3187,12 @@ void sighandler(int sig){
 
 		sigshutdown=TRUE;
 
-		sprintf(temp_buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
+		asprintf(&temp_buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
 		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
-
 #ifdef DEBUG2
 		printf("%s\n",temp_buffer);
 #endif
+		my_free((void **)&temp_buffer);
 
 		/* remove the lock file if we're in daemon mode */
 		if(daemon_mode==TRUE)
@@ -3294,12 +3260,12 @@ void my_system_sighandler(int sig){
 
 int daemon_init(void){
 	pid_t pid=-1;
-	int pidno;
-	int lockfile;
+	int pidno=0;
+	int lockfile=0;
 	int val=0;
 	char buf[256];
 	struct flock lock;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	char *homedir=NULL;
 
 #ifdef RLIMIT_CORE
@@ -3320,42 +3286,42 @@ int daemon_init(void){
 	if(lockfile<0){
 		strcpy(temp_buffer,"");
 		if(errno==EISDIR)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s is a directory\n",lock_file);
+			asprintf(&temp_buffer,"%s is a directory\n",lock_file);
 		else if(errno==EACCES)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"You do not have permission to write to %s\n",lock_file);
+			asprintf(&temp_buffer,"You do not have permission to write to %s\n",lock_file);
 		else if(errno==ENAMETOOLONG)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"The filename is too long: %s\n",lock_file);
+			asprintf(&temp_buffer,"The filename is too long: %s\n",lock_file);
 		else if(errno==ENOENT)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s does not exist (ENOENT)\n",lock_file);
+			asprintf(&temp_buffer,"%s does not exist (ENOENT)\n",lock_file);
 		else if(errno==ENOTDIR)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s does not exist (ENOTDIR)\n",lock_file);
+			asprintf(&temp_buffer,"%s does not exist (ENOTDIR)\n",lock_file);
 		else if(errno==ENXIO)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Cannot write to special file\n");
+			asprintf(&temp_buffer,"Cannot write to special file\n");
 		else if(errno==ENODEV)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Cannot write to device\n");
+			asprintf(&temp_buffer,"Cannot write to device\n");
 		else if(errno==EROFS)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s is on a read-only file system\n",lock_file);
+			asprintf(&temp_buffer,"%s is on a read-only file system\n",lock_file);
 		else if(errno==ETXTBSY)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s is a currently running program\n",lock_file);
+			asprintf(&temp_buffer,"%s is a currently running program\n",lock_file);
 		else if(errno==EFAULT)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"%s is outside address space\n",lock_file);
+			asprintf(&temp_buffer,"%s is outside address space\n",lock_file);
 		else if(errno==ELOOP)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Too many symbolic links\n");
+			asprintf(&temp_buffer,"Too many symbolic links\n");
 		else if(errno==ENOSPC)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"No space on device\n");
+			asprintf(&temp_buffer,"No space on device\n");
 		else if(errno==ENOMEM)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Insufficient kernel memory\n");
+			asprintf(&temp_buffer,"Insufficient kernel memory\n");
 		else if(errno==EMFILE)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Too many files open in process\n");
+			asprintf(&temp_buffer,"Too many files open in process\n");
 		else if(errno==ENFILE)
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Too many files open on system\n");
+			asprintf(&temp_buffer,"Too many files open on system\n");
 
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
-		snprintf(temp_buffer,sizeof(temp_buffer),"Bailing out due to errors encountered while attempting to daemonize... (PID=%d)",(int)getpid());
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Bailing out due to errors encountered while attempting to daemonize... (PID=%d)",(int)getpid());
 		write_to_logs_and_console(temp_buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		cleanup();
 		exit(ERROR);
@@ -3363,7 +3329,9 @@ int daemon_init(void){
 
 	/* see if we can read the contents of the lockfile */
 	if((val=read(lockfile,buf,(size_t)10))<0){
-		write_to_logs_and_console("Lockfile exists but cannot be read",NSLOG_RUNTIME_ERROR,TRUE);
+		asprintf(&temp_buffer,"Lockfile exists but cannot be read");
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		cleanup();
 		exit(ERROR);
 	        }
@@ -3371,8 +3339,9 @@ int daemon_init(void){
 	/* we read something - check the PID */
 	if(val>0){
 		if((val=sscanf(buf,"%d",&pidno))<1){
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Lockfile '%s' does not contain a valid PID (%s)",lock_file,buf);
+			asprintf(&temp_buffer,"Lockfile '%s' does not contain a valid PID (%s)",lock_file,buf);
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 			cleanup();
 			exit(ERROR);
 		        }
@@ -3405,11 +3374,12 @@ int daemon_init(void){
 	if(fcntl(lockfile,F_SETLK,&lock)<0){
 		if(errno==EACCES || errno==EAGAIN){
 			fcntl(lockfile,F_GETLK,&lock);
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Lockfile '%s' is held by PID %d.  Bailing out...",lock_file,(int)lock.l_pid);
+			asprintf(&temp_buffer,"Lockfile '%s' is held by PID %d.  Bailing out...",lock_file,(int)lock.l_pid);
 		        }
 		else
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));
+			asprintf(&temp_buffer,"Cannot lock lockfile '%s': %s. Bailing out...",lock_file,strerror(errno));
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		cleanup();
 		exit(ERROR);
 	        }
@@ -3462,11 +3432,11 @@ int daemon_init(void){
 
 /* drops privileges */
 int drop_privileges(char *user, char *group){
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	uid_t uid=-1;
 	gid_t gid=-1;
-	struct group *grp;
-	struct passwd *pw;
+	struct group *grp=NULL;
+	struct passwd *pw=NULL;
 	int result=OK;
 
 #ifdef DEBUG0
@@ -3490,9 +3460,9 @@ int drop_privileges(char *user, char *group){
 			if(grp!=NULL)
 				gid=(gid_t)(grp->gr_gid);
 			else{
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not get group entry for '%s'",group);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Warning: Could not get group entry for '%s'",group);
 				write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+				my_free((void **)&temp_buffer);
 		                }
 		        }
 
@@ -3504,9 +3474,9 @@ int drop_privileges(char *user, char *group){
 		if(gid!=getegid()){
 
 			if(setgid(gid)==-1){
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not set effective GID=%d",(int)gid);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Warning: Could not set effective GID=%d",(int)gid);
 				write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+				my_free((void **)&temp_buffer);
 				result=ERROR;
 			        }
 		        }
@@ -3522,9 +3492,9 @@ int drop_privileges(char *user, char *group){
 			if(pw!=NULL)
 				uid=(uid_t)(pw->pw_uid);
 			else{
-				snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not get passwd entry for '%s'",user);
-				temp_buffer[sizeof(temp_buffer)-1]='\x0';
+				asprintf(&temp_buffer,"Warning: Could not get passwd entry for '%s'",user);
 				write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+				my_free((void **)&temp_buffer);
 			        }
 		        }
 
@@ -3539,23 +3509,23 @@ int drop_privileges(char *user, char *group){
 			/* initialize supplementary groups */
 			if(initgroups(user,gid)==-1){
 				if(errno==EPERM){
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Unable to change supplementary groups using initgroups() -- I hope you know what you're doing");
-					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					asprintf(&temp_buffer,"Warning: Unable to change supplementary groups using initgroups() -- I hope you know what you're doing");
 					write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+					my_free((void **)&temp_buffer);
 		                        }
 				else{
-					snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Possibly root user failed dropping privileges with initgroups()");
-					temp_buffer[sizeof(temp_buffer)-1]='\x0';
+					asprintf(&temp_buffer,"Warning: Possibly root user failed dropping privileges with initgroups()");
 					write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+					my_free((void **)&temp_buffer);
 					return ERROR;
 			                }
 	                        }
 		        }
 #endif
 		if(setuid(uid)==-1){
-			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Warning: Could not set effective UID=%d",(int)uid);
-			temp_buffer[sizeof(temp_buffer)-1]='\x0';
+			asprintf(&temp_buffer,"Warning: Could not set effective UID=%d",(int)uid);
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 			result=ERROR;
 		        }
 	        }
@@ -3580,8 +3550,8 @@ int drop_privileges(char *user, char *group){
 
 /* reads a host/service check result from the circular buffer */
 int read_check_result(check_result *info){
-	char buffer[MAX_INPUT_BUFFER];
-	int result;
+	char *temp_buffer=NULL;
+	int result=0;
 	check_result *buffered_result=NULL;
 
 #ifdef DEBUG0
@@ -3601,9 +3571,9 @@ int read_check_result(check_result *info){
 	if(service_result_buffer.overflow>0){
 
 		/* log the warning */
-		snprintf(buffer,sizeof(buffer)-1,"Warning: Overflow detected in check result buffer - %lu check result(s) lost.\n",service_result_buffer.overflow);
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		asprintf(&temp_buffer,"Warning: Overflow detected in check result buffer - %lu check result(s) lost.\n",service_result_buffer.overflow);
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 
 		/* reset overflow counter */
 		service_result_buffer.overflow=0;
@@ -3634,7 +3604,7 @@ int read_check_result(check_result *info){
 		free_check_result(buffered_result);
 
 		/* free memory allocated for buffer slot */
-		free(service_result_buffer.buffer[service_result_buffer.tail]);
+		my_free((void **)&service_result_buffer.buffer[service_result_buffer.tail]);
 		service_result_buffer.buffer[service_result_buffer.tail]=NULL;
 
 		/* adjust tail counter and number of items */
@@ -3657,7 +3627,7 @@ int read_check_result(check_result *info){
 
 /* writes host/service check result info to the message pipe */
 int write_check_result(check_result *info){
-	char buf[MAX_INPUT_BUFFER];
+	char *buf=NULL;
 	int tbytes=0;
 	int buflen=0;
 	struct timeval tv;
@@ -3670,7 +3640,7 @@ int write_check_result(check_result *info){
 	if(info==NULL)
 		return 0;
 
-	snprintf(buf,sizeof(buf),
+	asprintf(&buf,
 		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%s\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
 		 ,1,info->object_check_type
 		 ,2,(info->host_name==NULL)?"":info->host_name
@@ -3684,7 +3654,9 @@ int write_check_result(check_result *info){
 		 ,10,info->exited_ok
 		 ,11,info->return_code
 		);
-	buf[sizeof(buf)-1]='\x0';
+
+	if(buf==NULL)
+		return 0;
 
 #ifdef DEBUG_CHECK_IPC
 	printf("WRITING CHECK RESULT FOR: %s/%s\n",info->host_name,info->service_description);
@@ -3710,13 +3682,18 @@ int write_check_result(check_result *info){
 			        }
 
 			/* unless we encountered a recoverable error, bail out */
-			if(errno!=EAGAIN && errno!=EINTR)
+			if(errno!=EAGAIN && errno!=EINTR){
+				my_free((void **)&buf);
 				return -1;
+			        }
 		        }
 
 		/* update the number of bytes we've written */
 		tbytes+=write_result;
 	        }
+
+	/* free memory */
+	my_free((void **)&buf);
 
 #ifdef DEBUG0
 	printf("write_check_result() end\n");
@@ -3732,18 +3709,9 @@ int free_check_result(check_result *info){
 	if(info==NULL)
 		return OK;
 
-	if(info->host_name){
-		free(info->host_name);
-		info->host_name=NULL;
-	        }
-	if(info->service_description){
-		free(info->service_description);
-		info->service_description=NULL;
-	        }
-	if(info->output_file){
-		free(info->output_file);
-		info->output_file=NULL;
-	        }
+	my_free((void **)&info->host_name);
+	my_free((void **)&info->service_description);
+	my_free((void **)&info->output_file);
 
 	return OK;
         }
@@ -3752,7 +3720,7 @@ int free_check_result(check_result *info){
 
 /* grabs plugin output and perfdata from a file */
 int read_check_output_from_file(char *fname, char **short_output, char **long_output, char **perf_data, int escape_newlines){
-	mmapfile *thefile;
+	mmapfile *thefile=NULL;
 	char *input=NULL;
 	int dbuf_chunk=1024;
 	dbuf db;
@@ -3791,7 +3759,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	while(1){
 
 		/* free memory */
-		free(input);
+		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
@@ -3812,7 +3780,7 @@ int read_check_output_from_file(char *fname, char **short_output, char **long_ou
 	dbuf_free(&db);
 
 	/* free memory and close file */
-	free(input);
+	my_free((void **)&input);
 	mmap_fclose(thefile);
 
 #ifndef DEBUG_CHECK_IPC
@@ -3834,11 +3802,11 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 	int dbuf_chunk=1024;
 	dbuf db1;
 	dbuf db2;
-	char *ptr;
+	char *ptr=NULL;
 	int in_perf_data=FALSE;
 	char *tempbuf=NULL;
-	register int x;
-	register int y;
+	register int x=0;
+	register int y=0;
 
 	/* initialize values */
 	if(short_output)
@@ -3937,7 +3905,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 					        }
 				        }
 
-				free(tempbuf);
+				my_free((void **)&tempbuf);
 				tempbuf=NULL;
 			        }
 		
@@ -3977,7 +3945,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 				tempbuf[y]='\x0';
 				*long_output=(char *)strdup(tempbuf);
-				free(tempbuf);
+				my_free((void **)&tempbuf);
 			        }
 		        }
 	        }
@@ -4003,9 +3971,9 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 /* creates external command file as a named pipe (FIFO) and opens it for reading (non-blocked mode) */
 int open_command_file(void){
-	char buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	struct stat st;
- 	int result;
+ 	int result=0;
 
 #ifdef DEBUG0
 	printf("open_command_file() start\n");
@@ -4028,9 +3996,9 @@ int open_command_file(void){
 		/* create the external command file as a named pipe (FIFO) */
 		if((result=mkfifo(command_file,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))!=0){
 
-			snprintf(buffer,sizeof(buffer)-1,"Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n",command_file,errno,strerror(errno));
-			buffer[sizeof(buffer)-1]='\x0';
-			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			asprintf(&temp_buffer,"Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n",command_file,errno,strerror(errno));
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
 
 			return ERROR;
 		        }
@@ -4039,9 +4007,9 @@ int open_command_file(void){
 	/* open the command file for reading (non-blocked) - O_TRUNC flag cannot be used due to errors on some systems */
 	if((command_file_fd=open(command_file,O_RDONLY | O_NONBLOCK))<0){
 
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not open external command file for reading via open(): (%d) -> %s\n",errno,strerror(errno));
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		asprintf(&temp_buffer,"Error: Could not open external command file for reading via open(): (%d) -> %s\n",errno,strerror(errno));
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -4049,9 +4017,9 @@ int open_command_file(void){
 	/* re-open the FIFO for use with fgets() */
 	if((command_file_fp=(FILE *)fdopen(command_file_fd,"r"))==NULL){
 
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n",errno,strerror(errno));
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		asprintf(&temp_buffer,"Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n",errno,strerror(errno));
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		return ERROR;
 	        }
@@ -4059,9 +4027,9 @@ int open_command_file(void){
 	/* initialize worker thread */
 	if(init_command_file_worker_thread()==ERROR){
 
-		snprintf(buffer,sizeof(buffer)-1,"Error: Could not initialize command file worker thread.\n");
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		asprintf(&temp_buffer,"Error: Could not initialize command file worker thread.\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 
 		/* close the command file */
 		fclose(command_file_fp);
@@ -4129,9 +4097,9 @@ int close_command_file(void){
 
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
 void strip(char *buffer){
-	register int x;
-	register int y;
-	register int z;
+	register int x=0;
+	register int y=0;
+	register int z=0;
 
 	if(buffer==NULL || buffer[0]=='\x0')
 		return;
@@ -4166,9 +4134,9 @@ void strip(char *buffer){
 
 /* determines whether or not an object name (host, service, etc) contains illegal characters */
 int contains_illegal_object_chars(char *name){
-	register int x;
-	register int y;
-	register int ch;
+	register int x=0;
+	register int y=0;
+	register int ch=0;
 
 	if(name==NULL)
 		return FALSE;
@@ -4204,10 +4172,12 @@ int contains_illegal_object_chars(char *name){
 
 /* cleans illegal characters in macros before output */
 char *clean_macro_chars(char *macro,int options){
-	register int x,y,z;
-	register int ch;
-	register int len;
-	register int illegal_char;
+	register int x=0;
+	register int y=0;
+	register int z=0;
+	register int ch=0;
+	register int len=0;
+	register int illegal_char=0;
 
 	if(macro==NULL)
 		return "";
@@ -4263,17 +4233,14 @@ char *clean_macro_chars(char *macro,int options){
 
 /* fix the problem with strtok() skipping empty options between tokens */	
 char *my_strtok(char *buffer,char *tokens){
-	char *token_position;
-	char *sequence_head;
+	char *token_position=NULL;
+	char *sequence_head=NULL;
 
 	if(buffer!=NULL){
-		if(original_my_strtok_buffer!=NULL)
-			free(original_my_strtok_buffer);
-		my_strtok_buffer=(char *)malloc(strlen(buffer)+1);
-		if(my_strtok_buffer==NULL)
+		my_free((void **)&original_my_strtok_buffer);
+		if((my_strtok_buffer=(char *)strdup(buffer))==NULL)
 			return NULL;
 		original_my_strtok_buffer=my_strtok_buffer;
-		strcpy(my_strtok_buffer,buffer);
 	        }
 	
 	sequence_head=my_strtok_buffer;
@@ -4299,17 +4266,18 @@ char *my_strtok(char *buffer,char *tokens){
 /* fixes compiler problems under Solaris, since strsep() isn't included */
 /* this code is taken from the glibc source */
 char *my_strsep (char **stringp, const char *delim){
-	char *begin, *end;
+	char *begin=NULL;
+	char *end=NULL;
+	char ch='\x0';
 
-	begin = *stringp;
-	if (begin == NULL)
+	begin=*stringp;
+	if(begin==NULL)
 		return NULL;
 
-	/* A frequent case is when the delimiter string contains only one
-	   character.  Here we don't need to call the expensive `strpbrk'
-	   function and instead work using `strchr'.  */
+	/* a frequent case is when the delimiter string contains only one character.  Here we don't need to call the expensive `strpbrk' function and instead work using `strchr'.  */
 	if(delim[0]=='\0' || delim[1]=='\0'){
-		char ch = delim[0];
+
+		ch=delim[0];
 
 		if(ch=='\0')
 			end=NULL;
@@ -4322,17 +4290,17 @@ char *my_strsep (char **stringp, const char *delim){
 		}
 
 	else
-		/* Find the end of the token.  */
-		end = strpbrk (begin, delim);
+		/* find the end of the token.  */
+		end=strpbrk(begin,delim);
 
 	if(end){
 
-		/* Terminate the token and set *STRINGP past NUL character.  */
+		/* terminate the token and set *STRINGP past NUL character.  */
 		*end++='\0';
 		*stringp=end;
 		}
 	else
-		/* No more delimiters; this is the last token.  */
+		/* no more delimiters; this is the last token.  */
 		*stringp=NULL;
 
 	return begin;
@@ -4358,9 +4326,10 @@ int my_free(void **ptr){
 
 /* encodes a string in proper URL format */
 char *get_url_encoded_string(char *input){
-	register int x,y;
+	register int x=0;
+	register int y=0;
 	char *encoded_url_string=NULL;
-	char temp_expansion[4];
+	char temp_expansion[4]="";
 
 
 	/* bail if no input */
@@ -4418,7 +4387,8 @@ int compare_strings(char *val1a, char *val2a){
 
 /* dual hash function */
 int hashfunc(const char *name1,const char *name2,int hashslots){
-	unsigned int i,result;
+	unsigned int i=0;
+	unsigned int result=0;
 
 	result=0;
 
@@ -4476,10 +4446,10 @@ int compare_hashdata(const char *val1a, const char *val1b, const char *val2a, co
 /* renames a file - works across filesystems (Mike Wiacek) */
 int my_rename(char *source, char *dest){
 	char buffer[MAX_INPUT_BUFFER]={0};
-	int rename_result;
-	int source_fd;
-	int dest_fd;
-	int bytes_read;
+	int rename_result=0;
+	int source_fd=-1;
+	int dest_fd=-1;
+	int bytes_read=0;
 
 
 	/* make sure we have something */
@@ -4532,7 +4502,7 @@ int my_rename(char *source, char *dest){
 /* open a file read-only via mmap() */
 mmapfile *mmap_fopen(char *filename){
 	mmapfile *new_mmapfile=NULL;
-	int fd;
+	int fd=0;
 	void *mmap_buf=NULL;
 	struct stat statbuf;
 	int mode=O_RDONLY;
@@ -4546,21 +4516,21 @@ mmapfile *mmap_fopen(char *filename){
 
 	/* open the file */
 	if((fd=open(filename,mode))==-1){
-		free(new_mmapfile);
+		my_free((void **)&new_mmapfile);
 		return NULL;
 	        }
 
 	/* get file info */
 	if((fstat(fd,&statbuf))==-1){
 		close(fd);
-		free(new_mmapfile);
+		my_free((void **)&new_mmapfile);
 		return NULL;
 	        }
 
 	/* mmap() the file */
 	if((mmap_buf=(void *)mmap(0,statbuf.st_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
 		close(fd);
-		free(new_mmapfile);
+		my_free((void **)&new_mmapfile);
 		return NULL;
 	        }
 
@@ -4589,8 +4559,8 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 	close(temp_mmapfile->fd);
 
 	/* free memory */
-	free(temp_mmapfile->path);
-	free(temp_mmapfile);
+	my_free((void **)&temp_mmapfile->path);
+	my_free((void **)&temp_mmapfile);
 	
 	return OK;
         }
@@ -4599,8 +4569,8 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 /* gets one line of input from an mmap()'ed file */
 char *mmap_fgets(mmapfile *temp_mmapfile){
 	char *buf=NULL;
-	unsigned long x;
-	int len;
+	unsigned long x=0;
+	int len=0;
 
 	if(temp_mmapfile==NULL)
 		return NULL;
@@ -4643,15 +4613,15 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 	char *buf=NULL;
 	char *tempbuf=NULL;
-	int len;
-	int len2;
+	int len=0;
+	int len2=0;
 
 	if(temp_mmapfile==NULL)
 		return NULL;
 
 	while(1){
 
-		free(tempbuf);
+		my_free((void **)&tempbuf);
 
 		if((tempbuf=mmap_fgets(temp_mmapfile))==NULL)
 			break;
@@ -4678,7 +4648,7 @@ char *mmap_fgets_multiline(mmapfile *temp_mmapfile){
 			break;
 	        }
 
-	free(tempbuf);
+	my_free((void **)&tempbuf);
 
 	return buf;
         }
@@ -4712,7 +4682,7 @@ int dbuf_free(dbuf *db){
 		return ERROR;
 
 	if(db->buf!=NULL)
-		free(db->buf);
+		my_free((void **)&db->buf);
 	db->buf=NULL;
 	db->used_size=0L;
 	db->allocated_size=0L;
@@ -4772,10 +4742,10 @@ int dbuf_strcat(dbuf *db, char *buf){
 /* initializes embedded perl interpreter */
 int init_embedded_perl(char **env){
 #ifdef EMBEDDEDPERL
-	char *embedding[] = { "", "" };
-	int exitstatus = 0;
-	char buffer[MAX_INPUT_BUFFER];
-	int argc = 2;
+	char *embedding[]={ "", "" };
+	int exitstatus=0;
+	char *temp_buffer=NULL;
+	int argc=2;
 
 	embedding[1]=p1_file;
 
@@ -4785,9 +4755,9 @@ int init_embedded_perl(char **env){
 
 	if((my_perl=perl_alloc())==NULL){
 		use_embedded_perl=FALSE;
-		snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
-		buffer[sizeof(buffer)-1]='\x0';
-		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		asprintf(temp_buffer,"Error: Could not allocate memory for embedded Perl interpreter!\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
                 }
 
@@ -4823,7 +4793,7 @@ int deinit_embedded_perl(void){
 
 /* initializes service result worker thread */
 int init_service_result_worker_thread(void){
-	int result;
+	int result=0;
 	sigset_t newmask;
 
 	/* initialize circular buffer */
@@ -4874,14 +4844,14 @@ int shutdown_service_result_worker_thread(void){
 
 /* clean up resources used by service result worker thread */
 void cleanup_service_result_worker_thread(void *arg){
-	int x;
+	register int x=0;
 
 	/* release memory allocated to circular buffer */
 	for(x=service_result_buffer.tail;x!=service_result_buffer.head;x=(x+1) % SERVICE_BUFFER_SLOTS){
-		free(((check_result **)service_result_buffer.buffer)[x]);
+		my_free((void **)&((check_result **)service_result_buffer.buffer)[x]);
 		((check_result **)service_result_buffer.buffer)[x]=NULL;
 	        }
-	free(service_result_buffer.buffer);
+	my_free((void **)&service_result_buffer.buffer);
 
 	/* free memory allocated to dynamic buffer */
 	dbuf_free(&check_result_dbuf);
@@ -4892,7 +4862,7 @@ void cleanup_service_result_worker_thread(void *arg){
 
 /* initializes command file worker thread */
 int init_command_file_worker_thread(void){
-	int result;
+	int result=0;
 	sigset_t newmask;
 
 	/* initialize circular buffer */
@@ -4943,14 +4913,14 @@ int shutdown_command_file_worker_thread(void){
 
 /* clean up resources used by command file worker thread */
 void cleanup_command_file_worker_thread(void *arg){
-	int x;
+	register int x=0;
 
 	/* release memory allocated to circular buffer */
 	for(x=external_command_buffer.tail;x!=external_command_buffer.head;x=(x+1) % COMMAND_BUFFER_SLOTS){
-		free(((char **)external_command_buffer.buffer)[x]);
+		my_free((void **)&((char **)external_command_buffer.buffer)[x]);
 		((char **)external_command_buffer.buffer)[x]=NULL;
 	        }
-	free(external_command_buffer.buffer);
+	my_free((void **)&external_command_buffer.buffer);
 
 	return;
         }
@@ -4959,7 +4929,7 @@ void cleanup_command_file_worker_thread(void *arg){
 /* service worker thread - artificially increases buffer of IPC pipe */
 void * service_result_worker_thread(void *arg){	
 	struct pollfd pfd;
-	int pollval;
+	int pollval=0;
 	struct timeval tv;
 	int buffer_items=0;
 	char buf[512];
@@ -5118,7 +5088,7 @@ void * service_result_worker_thread(void *arg){
 /* top-level check result input handler */
 int handle_check_result_input1(check_result *info, dbuf *db){
 	char *buf=NULL;
-	register int x;
+	register int x=0;
 	
 
 	if(db==NULL)
@@ -5138,7 +5108,7 @@ int handle_check_result_input1(check_result *info, dbuf *db){
 
 				handle_check_result_input2(info,buf);
 
-				free(buf);
+				my_free((void **)&buf);
 				buf=NULL;
 			        }
 		
@@ -5316,8 +5286,8 @@ int buffer_check_result(check_result *info){
 void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_INPUT_BUFFER];
 	struct timeval tv;
-	int buffer_items;
-	int result;
+	int buffer_items=0;
+	int result=0;
 
 	/* specify cleanup routine */
 	pthread_cleanup_push(cleanup_command_file_worker_thread,NULL);
@@ -5450,12 +5420,6 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 	if(cmd==NULL)
 		return ERROR;
 
-	/* allocate memory for the command string */
-	length=strlen(cmd)+16;
-	newcmd=(char *)malloc(length);
-	if(newcmd==NULL)
-		return ERROR;
-
 	/* get the time */
 	if(ts!=NULL)
 		timestamp=*ts;
@@ -5463,14 +5427,13 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 		time(&timestamp);
 
 	/* create the command string */
-	snprintf(newcmd,length-1,"[%lu] %s",(unsigned long)timestamp,cmd);
-	newcmd[length-1]='\x0';
+	asprintf(&newcmd,"[%lu] %s",(unsigned long)timestamp,cmd);
 
 	/* submit the command */
 	result=submit_external_command(newcmd,buffer_items);
 
 	/* free allocated memory */
-	free(newcmd);
+	my_free((void **)&newcmd);
 
 	return result;
         }
@@ -5532,7 +5495,7 @@ void cleanup(void){
 void free_memory(void){
 	timed_event *this_event=NULL;
 	timed_event *next_event=NULL;
-	int x;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("free_memory() start\n");
@@ -5548,7 +5511,7 @@ void free_memory(void){
 	this_event=event_list_high;
 	while(this_event!=NULL){
 		next_event=this_event->next;
-		free(this_event);
+		my_free((void **)&this_event);
 		this_event=next_event;
 	        }
 
@@ -5559,138 +5522,57 @@ void free_memory(void){
 	this_event=event_list_low;
 	while(this_event!=NULL){
 		next_event=this_event->next;
-		free(this_event);
+		my_free((void **)&this_event);
 		this_event=next_event;
 	        }
 
 	/* reset the event pointer */
 	event_list_low=NULL;
 
-#ifdef DEBUG1
-	printf("\tevent lists freed\n");
-#endif
-
-	/* free memory used by my_strtok() function */
-	if(original_my_strtok_buffer!=NULL)
-		free(original_my_strtok_buffer);
-
-	/* reset the my_strtok() buffers */
-	original_my_strtok_buffer=NULL;
+	/* free memory used by my_strtok() function and reset the my_strtok() buffers */
+	my_free((void **)&original_my_strtok_buffer);
 	my_strtok_buffer=NULL;
 
-#ifdef DEBUG1
-	printf("\tmy_strtok() buffers freed\n");
-#endif
-
 	/* free memory for global event handlers */
-	if(global_host_event_handler!=NULL){
-		free(global_host_event_handler);
-		global_host_event_handler=NULL;
-	        }
-	if(global_service_event_handler!=NULL){
-		free(global_service_event_handler);
-		global_service_event_handler=NULL;
-	        }
-
-#ifdef DEBUG1
-	printf("\tglobal event handlers freed\n");
-#endif
+	my_free((void **)&global_host_event_handler);
+	my_free((void **)&global_service_event_handler);
 
 	/* free any notification list that may have been overlooked */
 	free_notification_list();
 
-#ifdef DEBUG1
-	printf("\tnotification_list freed\n");
-#endif
-
 	/* free obsessive compulsive commands */
-	if(ocsp_command!=NULL){
-		free(ocsp_command);
-		ocsp_command=NULL;
-	        }
-	if(ochp_command!=NULL){
-		free(ochp_command);
-		ochp_command=NULL;
-	        }
+	my_free((void **)&ocsp_command);
+	my_free((void **)&ochp_command);
 
 	/* free memory associated with macros */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-		if(macro_argv[x]!=NULL){
-			free(macro_argv[x]);
-			macro_argv[x]=NULL;
-		        }
-	        }
+	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
+		my_free((void **)&macro_argv[x]);
 
-	for(x=0;x<MAX_USER_MACROS;x++){
-		if(macro_user[x]!=NULL){
-			free(macro_user[x]);
-			macro_user[x]=NULL;
-		        }
-	        }
+	for(x=0;x<MAX_USER_MACROS;x++)
+		my_free((void **)&macro_user[x]);
 
-	for(x=0;x<MACRO_X_COUNT;x++){
-		if(macro_x[x]!=NULL){
-			free(macro_x[x]);
-			macro_x[x]=NULL;
-		        }
-	        }
+	for(x=0;x<MACRO_X_COUNT;x++)
+		my_free((void **)&macro_x[x]);
 
 	free_macrox_names();
 
-
 	/* free illegal char strings */
-	if(illegal_object_chars!=NULL){
-		free(illegal_object_chars);
-		illegal_object_chars=NULL;
-	        }
-	if(illegal_output_chars!=NULL){
-		free(illegal_output_chars);
-		illegal_output_chars=NULL;
-	        }
+	my_free((void **)&illegal_object_chars);
+	my_free((void **)&illegal_output_chars);
 
 	/* free nagios user and group */
-	if(nagios_user!=NULL){
-		free(nagios_user);
-		nagios_user=NULL;
-	        }
-	if(nagios_group!=NULL){
-		free(nagios_group);
-		nagios_group=NULL;
-	        }
+	my_free((void **)&nagios_user);
+	my_free((void **)&nagios_group);
 
 	/* free file/path variables */
-	if(log_file!=NULL){
-		free(log_file);
-		log_file=NULL;
-	        }
-	if(temp_file!=NULL){
-		free(temp_file);
-		temp_file=NULL;
-	        }
-	if(temp_path!=NULL){
-		free(temp_path);
-		temp_path=NULL;
-	        }
-	if(command_file!=NULL){
-		free(command_file);
-		command_file=NULL;
-	        }
-	if(lock_file!=NULL){
-		free(lock_file);
-		lock_file=NULL;
-	        }
-	if(auth_file!=NULL){
-		free(auth_file);
-		auth_file=NULL;
-	        }
-	if(p1_file!=NULL){
-		free(p1_file);
-		p1_file=NULL;
-	        }
-	if(log_archive_path!=NULL){
-		free(log_archive_path);
-		log_archive_path=NULL;
-	        }
+	my_free((void **)&log_file);
+	my_free((void **)&temp_file);
+	my_free((void **)&temp_path);
+	my_free((void **)&command_file);
+	my_free((void **)&lock_file);
+	my_free((void **)&auth_file);
+	my_free((void **)&p1_file);
+	my_free((void **)&log_archive_path);
 
 #ifdef DEBUG0
 	printf("free_memory() end\n");
@@ -5702,8 +5584,8 @@ void free_memory(void){
 
 /* free a notification list that was created */
 void free_notification_list(void){
-	notification *temp_notification;
-	notification *next_notification;
+	notification *temp_notification=NULL;
+	notification *next_notification=NULL;
 
 #ifdef DEBUG0
 	printf("free_notification_list() start\n");
@@ -5712,7 +5594,7 @@ void free_notification_list(void){
 	temp_notification=notification_list;
 	while(temp_notification!=NULL){
 		next_notification=temp_notification->next;
-		free((void *)temp_notification);
+		my_free((void **)&temp_notification);
 		temp_notification=next_notification;
 	        }
 
@@ -5729,7 +5611,7 @@ void free_notification_list(void){
 
 /* reset all system-wide variables, so when we've receive a SIGHUP we can restart cleanly */
 int reset_variables(void){
-	int x;
+	register int x=0;
 
 #ifdef DEBUG0
 	printf("reset_variables() start\n");

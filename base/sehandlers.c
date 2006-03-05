@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-05-2006
  *
  * License:
  *
@@ -63,12 +63,12 @@ extern time_t          program_start;
 
 /* handles service check results in an obsessive compulsive manner... */
 int obsessive_compulsive_service_check_processor(service *svc){
-	char raw_command_line[MAX_COMMAND_BUFFER];
-	char processed_command_line[MAX_COMMAND_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
-	host *temp_host;
+	char raw_command_line[MAX_COMMAND_BUFFER]="";
+	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *temp_buffer=NULL;
+	host *temp_host=NULL;
 	int early_timeout=FALSE;
-	double exectime;
+	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
@@ -114,9 +114,9 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command_line,svc->description,svc->host_name,ocsp_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: OCSP command '%s' for service '%s' on host '%s' timed out after %d seconds\n",processed_command_line,svc->description,svc->host_name,ocsp_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 	
 #ifdef DEBUG0
@@ -130,11 +130,11 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 /* handles host check results in an obsessive compulsive manner... */
 int obsessive_compulsive_host_check_processor(host *hst){
-	char raw_command_line[MAX_COMMAND_BUFFER];
-	char processed_command_line[MAX_COMMAND_BUFFER];
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER]="";
+	char processed_command_line[MAX_COMMAND_BUFFER]="";
+	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
-	double exectime;
+	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
 #ifdef DEBUG0
@@ -176,9 +176,9 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command_line,hst->name,ochp_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: OCHP command '%s' for host '%s' timed out after %d seconds\n",processed_command_line,hst->name,ochp_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 
 #ifdef DEBUG0
@@ -198,7 +198,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 /* handles changes in the state of a service */
 int handle_service_event(service *svc){
-	host *temp_host;
+	host *temp_host=NULL;
 
 #ifdef DEBUG0
 	printf("handle_service_event() start\n");
@@ -245,10 +245,10 @@ int handle_service_event(service *svc){
 
 /* runs the global service event handler */
 int run_global_service_event_handler(service *svc){
-	char raw_command_line[MAX_COMMAND_BUFFER];
-	char processed_command_line[MAX_COMMAND_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER]="";
+	char processed_command_line[MAX_COMMAND_BUFFER]="";
 	char *command_output=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int result=0;
@@ -294,9 +294,9 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* run the command */
@@ -304,9 +304,9 @@ int run_global_service_event_handler(service *svc){
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Global service event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Global service event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* get end time */
@@ -318,7 +318,7 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* free memory */
-	free(command_output);
+	my_free((void **)&command_output);
 
 #ifdef DEBUG0
 	printf("run_global_service_event_handler() end\n");
@@ -331,10 +331,10 @@ int run_global_service_event_handler(service *svc){
 
 /* runs a service event handler command */
 int run_service_event_handler(service *svc){
-	char raw_command_line[MAX_COMMAND_BUFFER];
-	char processed_command_line[MAX_COMMAND_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER]="";
+	char processed_command_line[MAX_COMMAND_BUFFER]="";
 	char *command_output=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int result=0;
@@ -376,9 +376,9 @@ int run_service_event_handler(service *svc){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* run the command */
@@ -386,9 +386,9 @@ int run_service_event_handler(service *svc){
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Service event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Service event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* get end time */
@@ -400,7 +400,7 @@ int run_service_event_handler(service *svc){
 #endif
 
 	/* free memory */
-	free(command_output);
+	my_free((void **)&command_output);
 
 #ifdef DEBUG0
 	printf("run_service_event_handler() end\n");
@@ -460,10 +460,10 @@ int handle_host_event(host *hst){
 
 /* runs the global host event handler */
 int run_global_host_event_handler(host *hst){
-	char raw_command_line[MAX_COMMAND_BUFFER];
-	char processed_command_line[MAX_COMMAND_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER]="";
+	char processed_command_line[MAX_COMMAND_BUFFER]="";
 	char *command_output=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int result=0;
@@ -509,9 +509,9 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* run the command */
@@ -519,9 +519,9 @@ int run_global_host_event_handler(host *hst){
 
 	/* check for a timeout in the execution of the event handler command */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Global host event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Global host event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* get end time */
@@ -533,7 +533,7 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* free memory */
-	free(command_output);
+	my_free((void **)&command_output);
 
 #ifdef DEBUG0
 	printf("run_global_host_event_handler() end\n");
@@ -545,10 +545,10 @@ int run_global_host_event_handler(host *hst){
 
 /* runs a host event handler command */
 int run_host_event_handler(host *hst){
-	char raw_command_line[MAX_COMMAND_BUFFER];
-	char processed_command_line[MAX_COMMAND_BUFFER];
+	char raw_command_line[MAX_COMMAND_BUFFER]="";
+	char processed_command_line[MAX_COMMAND_BUFFER]="";
 	char *command_output=NULL;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime=0.0;
 	int result=0;
@@ -588,9 +588,9 @@ int run_host_event_handler(host *hst){
 #endif
 
 	if(log_event_handlers==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
 		write_to_all_logs(temp_buffer,NSLOG_EVENT_HANDLER);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* run the command */
@@ -598,9 +598,9 @@ int run_host_event_handler(host *hst){
 
 	/* check to see if the event handler timed out */
 	if(early_timeout==TRUE){
-		snprintf(temp_buffer,sizeof(temp_buffer),"Warning: Host event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
-		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		asprintf(&temp_buffer,"Warning: Host event handler command '%s' timed out after %d seconds\n",processed_command_line,event_handler_timeout);
 		write_to_logs_and_console(temp_buffer,NSLOG_EVENT_HANDLER | NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 	        }
 
 	/* get end time */
@@ -612,7 +612,7 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* free memory */
-	free(command_output);
+	my_free((void **)&command_output);
 
 #ifdef DEBUG0
 	printf("run_host_event_handler() end\n");
@@ -632,7 +632,7 @@ int run_host_event_handler(host *hst){
 /* top level host state handler - occurs after every host check (soft/hard and active/passive) */
 int handle_host_state(host *hst){
 	int state_change=FALSE;
-	time_t current_time;
+	time_t current_time=0L;
 
 #ifdef DEBUG0
 	printf("handle_host_state() start\n");

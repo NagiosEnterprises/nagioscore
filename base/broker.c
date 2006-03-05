@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-26-2006
+ * Last Modified:   03-04-2006
  *
  * License:
  *
@@ -189,7 +189,7 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 
 	/* get command name/args */
 	if(cmd!=NULL){
-		command_buf=strdup(cmd);
+		command_buf=(char *)strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -228,7 +228,7 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 	neb_make_callbacks(NEBCALLBACK_EVENT_HANDLER_DATA,(void *)&ds);
 
 	/* free memory */
-	free(command_buf);
+	my_free((void **)&command_buf);
 
 	return;
         }
@@ -251,7 +251,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 
 	/* get command name/args */
 	if(cmd!=NULL){
-		command_buf=strdup(cmd);
+		command_buf=(char *)strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -286,7 +286,7 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 	neb_make_callbacks(NEBCALLBACK_HOST_CHECK_DATA,(void *)&ds);
 
 	/* free data */
-	free(command_buf);
+	my_free((void **)&command_buf);
 
 	return;
         }
@@ -308,7 +308,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, int check
 
 	/* get command name/args */
 	if(cmd!=NULL){
-		command_buf=strdup(cmd);
+		command_buf=(char *)strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -344,7 +344,7 @@ void broker_service_check(int type, int flags, int attr, service *svc, int check
 	neb_make_callbacks(NEBCALLBACK_SERVICE_CHECK_DATA,(void *)&ds);
 
 	/* free data */
-	free(command_buf);
+	my_free((void **)&command_buf);
 
 	return;
         }
@@ -677,7 +677,7 @@ void broker_contact_notification_method_data(int type, int flags, int attr, int 
 
 	/* get command name/args */
 	if(cmd!=NULL){
-		command_buf=strdup(cmd);
+		command_buf=(char *)strdup(cmd);
 		command_name=strtok(command_buf,"!");
 		command_args=strtok(NULL,"\x0");
 	        }
@@ -717,7 +717,7 @@ void broker_contact_notification_method_data(int type, int flags, int attr, int 
 	neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_METHOD_DATA,(void *)&ds);
 
 	/* free memory */
-	free(command_buf);
+	my_free((void **)&command_buf);
 
 	return;
         }

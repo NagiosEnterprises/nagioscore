@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 02-23-2006
+# Last Modified: 03-11-2006
 #
 ##############################################################################
 
@@ -436,12 +436,77 @@ max_concurrent_checks=0
 
 
 
-# SERVICE CHECK REAPER FREQUENCY
+# HOST AND SERVICE CHECK REAPER FREQUENCY
 # This is the frequency (in seconds!) that Nagios will process
-# the results of services that have been checked.
+# the results of host and service checks.
 
-service_reaper_frequency=10
+check_reaper_frequency=10
 
+
+
+# OLD HOST CHECK LOGIC OPTION
+# This option determines whether Nagios will use the old
+# Nagios 2.x logic for host checks or the new Nagios 3.x logic.
+# This is useful for testing the new logic and seeing how well
+# it performs in comparison to the older logic.
+# Values:
+#  0 = Use new Nagios 3.x logic
+#  1 = Use old Nagios 2.x logic (default)
+
+use_old_host_check_logic=0
+
+
+
+# CACHED HOST CHECK HORIZON
+# This option determines the maximum amount of time (in seconds)
+# that the state of a previously checked host is considered current.
+# Cached host states (from host checks that were performed more
+# recently that the timeframe specified by this value) can immensely
+# improve performance in regards to the host check logic.
+# Too high of a value for this option may result in inaccurate host
+# states being used by Nagios, while a lower value may result in a
+# performance hit for host checks.  Use a value of 0 to disable host
+# check caching.
+
+cached_host_check_horizon=15
+
+
+
+# CACHED SERVICE CHECK HORIZON
+# This option determines the maximum amount of time (in seconds)
+# that the state of a previously checked service is considered current.
+# Cached service states (from service checks that were performed more
+# recently that the timeframe specified by this value) can immensely
+# improve performance in regards to predictive dependency checks.
+# Use a value of 0 to disable service check caching.
+
+cached_service_check_horizon=15
+
+
+
+# ENABLE PREDICTIVE HOST DEPENDENCY CHECKS
+# This option determines whether or not Nagios will attempt to execute
+# checks of hosts when it predicts that future dependency logic test
+# may be needed.  These predictive checks can help ensure that your
+# host dependency logic works well.
+# Values:
+#  0 = Disable predictive checks
+#  1 = Enable predictive checks (default)
+
+enable_predictive_host_dependency_checks=1
+
+
+
+# ENABLE PREDICTIVE SERVICE DEPENDENCY CHECKS
+# This option determines whether or not Nagios will attempt to execute
+# checks of service when it predicts that future dependency logic test
+# may be needed.  These predictive checks can help ensure that your
+# service dependency logic works well.
+# Values:
+#  0 = Disable predictive checks
+#  1 = Enable predictive checks (default)
+
+enable_predictive_service_dependency_checks=1
 
 
 

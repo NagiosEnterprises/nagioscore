@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-06-2006
+ * Last Modified:   03-11-2006
  *
  * License:
  *
@@ -157,9 +157,9 @@ int check_for_external_commands(void){
 		my_free((void **)&buffer);
 	        }
 
-	/**** PROCESS ALL PASSIVE SERVICE CHECK RESULTS AT ONE TIME ****/
+	/**** PROCESS ALL PASSIVE HOST AND SERVICE CHECK RESULTS AT ONE TIME ****/
 	if(passive_check_result_list!=NULL)
-		process_passive_service_checks();
+		process_passive_checks();
 
 #ifdef DEBUG0
 	printf("check_for_external_commands() end\n");
@@ -2021,6 +2021,8 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	char *real_host_name=NULL;
+	struct timeval tv;
+	int result=OK;
 
 #ifdef DEBUG0
 	printf("process_passive_service_check() start\n");
@@ -2063,14 +2065,25 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	if(new_pcr==NULL)
 		return ERROR;
 
-	/* save the host name */
-	if((new_pcr->host_name=(char *)strdup(real_host_name))==NULL){
-		my_free((void **)&new_pcr);
-		return ERROR;
-	        }
+	/* initialize vars */
+	new_pcr->object_check_type=SERVICE_CHECK;
+	new_pcr->host_name=NULL;
+	new_pcr->service_description=NULL;
+	new_pcr->output=NULL;
+	new_pcr->next=NULL;
 
-	/* save the service description */
-	if((new_pcr->svc_description=(char *)strdup(svc_description))==NULL){
+	/* save string vars */
+	if((new_pcr->host_name=(char *)strdup(real_host_name))==NULL)
+		result=ERROR;
+	if((new_pcr->service_description=(char *)strdup(svc_description))==NULL)
+		result=ERROR;
+	if((new_pcr->output=(char *)strdup(output))==NULL)
+		result=ERROR;
+
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_pcr->output);
+		my_free((void **)&new_pcr->service_description);
 		my_free((void **)&new_pcr->host_name);
 		my_free((void **)&new_pcr);
 		return ERROR;
@@ -2083,17 +2096,13 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	if(new_pcr->return_code<0 || new_pcr->return_code>3)
 		new_pcr->return_code=STATE_UNKNOWN;
 
-	/* save the output */
-	if((new_pcr->output=(char *)strdup(output))==NULL){
-		my_free((void **)&new_pcr->svc_description);
-		my_free((void **)&new_pcr->host_name);
-		my_free((void **)&new_pcr);
-		return ERROR;
-	        }
-
 	new_pcr->check_time=check_time;
 
-	new_pcr->next=NULL;
+	/* calculate latency */
+	gettimeofday(&tv,NULL);
+	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0));
+	if(new_pcr->latency<0.0)
+		new_pcr->latency=0.0;
 
 	/* add the passive check result to the end of the list in memory */
 	if(passive_check_result_list==NULL)
@@ -2157,22 +2166,19 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 
 /* process passive host check result */
-/* this function is a bit more involved than for passive service checks, as we need to replicate most functions performed by check_route_to_host() */
 int process_passive_host_check(time_t check_time, char *host_name, int return_code, char *output){
+	passive_check_result *new_pcr=NULL;
 	host *temp_host=NULL;
 	char *real_host_name=NULL;
 	struct timeval tv;
-	char *temp_plugin_output=NULL;
-	char *old_plugin_output=NULL;
-	char *temp_ptr=NULL;
-	char *temp_buffer=NULL;
+	int result=OK;
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() start\n");
 #endif
 
-	/* skip this host check result if we aren't accepting passive host check results */
-	if(accept_passive_host_checks==FALSE)
+	/* skip this host check result if we aren't accepting passive host checks */
+	if(accept_passive_service_checks==FALSE)
 		return ERROR;
 
 	/* make sure we have all required data */
@@ -2189,119 +2195,64 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 				break;
 			        }
 		        }
-
-		temp_host=find_host(real_host_name);
 	        }
 
 	/* we couldn't find the host */
-	if(temp_host==NULL){
-
-		asprintf(&temp_buffer,"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
-
+	if(temp_host==NULL)
 		return ERROR;
-	        }
 
 	/* skip this is we aren't accepting passive checks for this host */
 	if(temp_host->accept_passive_host_checks==FALSE)
 		return ERROR;
 
-	/* make sure the return code is within bounds */
-	if(return_code<0 || return_code>2)
+	/* allocate memory for the passive check result */
+	new_pcr=(passive_check_result *)malloc(sizeof(passive_check_result));
+	if(new_pcr==NULL)
 		return ERROR;
 
-	/* save the plugin output */
-	temp_plugin_output=(char *)strdup(output);
+	/* initialize vars */
+	new_pcr->object_check_type=HOST_CHECK;
+	new_pcr->host_name=NULL;
+	new_pcr->service_description=NULL;
+	new_pcr->output=NULL;
+	new_pcr->next=NULL;
 
-	
+	/* save string vars */
+	if((new_pcr->host_name=(char *)strdup(real_host_name))==NULL)
+		result=ERROR;
+	if((new_pcr->output=(char *)strdup(output))==NULL)
+		result=ERROR;
 
-	/********* LET'S DO IT (SUBSET OF NORMAL HOST CHECK OPERATIONS) ********/
+	/* handle errors */
+	if(result==ERROR){
+		my_free((void **)&new_pcr->output);
+		my_free((void **)&new_pcr->service_description);
+		my_free((void **)&new_pcr->host_name);
+		my_free((void **)&new_pcr);
+		return ERROR;
+	        }
 
-	/* set the checked flag */
-	temp_host->has_been_checked=TRUE;
+	/* save the return code */
+	new_pcr->return_code=return_code;
 
-	/* save old state */
-	temp_host->last_state=temp_host->current_state;
-	if(temp_host->state_type==HARD_STATE)
-		temp_host->last_hard_state=temp_host->current_state;
+	/* make sure the return code is within bounds */
+	if(new_pcr->return_code<0 || new_pcr->return_code>3)
+		new_pcr->return_code=STATE_UNKNOWN;
 
-	/* NOTE TO SELF: Host state should be adjusted to reflect current host topology... */
-	/* record new state */
-	temp_host->current_state=return_code;
-
-	/* record check type */
-	temp_host->check_type=HOST_CHECK_PASSIVE;
-
-	/* record state type */
-	temp_host->state_type=HARD_STATE;
-
-	/* set the current attempt - should this be set to max_attempts instead? */
-	temp_host->current_attempt=1;
-
-	/* save the old plugin output and host state for use with state stalking routines */
-	if(temp_host->plugin_output)
-		old_plugin_output=(char *)strdup(temp_host->plugin_output);
-
-	/* set the last host check time */
-	temp_host->last_check=check_time;
-
-	/* clear plugin output and performance data buffers */
-	my_free((void **)&temp_host->plugin_output);
-	my_free((void **)&temp_host->long_plugin_output);
-	my_free((void **)&temp_host->perf_data);
-
-	/* passive checks have ZERO execution time! */
-	temp_host->execution_time=0.0;
+	new_pcr->check_time=check_time;
 
 	/* calculate latency */
 	gettimeofday(&tv,NULL);
-	temp_host->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000)/1000.0);
-	if(temp_host->latency<0.0)
-		temp_host->latency=0.0;
+	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0));
+	if(new_pcr->latency<0.0)
+		new_pcr->latency=0.0;
 
-	/* parse the output: short and long output, and perf data */
-	parse_check_output(temp_plugin_output,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,TRUE,TRUE);
-
-	/* replace semicolons in plugin output (but not performance data) with colons */
-	temp_ptr=temp_host->plugin_output;
-	while((temp_ptr=strchr(temp_ptr,';')))
-	      *temp_ptr=':';
-
-
-	/***** HANDLE THE HOST STATE *****/
-	handle_host_state(temp_host);
-
-
-	/***** UPDATE HOST STATUS *****/
-	update_host_status(temp_host,FALSE);
-
-
-	/****** STALKING STUFF *****/
-	/* if the host didn't change state and the plugin output differs from the last time it was checked, log the current state/output if state stalking is enabled */
-	if(temp_host->last_state==temp_host->current_state && compare_strings(old_plugin_output,temp_host->plugin_output)){
-
-		if(temp_host->current_state==HOST_UP && temp_host->stalk_on_up==TRUE)
-			log_host_event(temp_host);
-
-		else if(temp_host->current_state==HOST_DOWN && temp_host->stalk_on_down==TRUE)
-			log_host_event(temp_host);
-
-		else if(temp_host->current_state==HOST_UNREACHABLE && temp_host->stalk_on_unreachable==TRUE)
-			log_host_event(temp_host);
-	        }
-
-#ifdef USE_EVENT_BROKER
-	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_PASSIVE,temp_host->current_state,temp_host->state_type,tv,tv,NULL,0.0,temp_host->execution_time,0,FALSE,return_code,NULL,temp_host->plugin_output,temp_host->long_plugin_output,temp_host->perf_data,NULL);
-#endif
-
-	/***** CHECK FOR FLAPPING *****/
-	check_for_host_flapping(temp_host,TRUE);
-
-	/* free memory */
-	my_free((void **)&temp_plugin_output);
-	my_free((void **)&old_plugin_output);
+	/* add the passive check result to the end of the list in memory */
+	if(passive_check_result_list==NULL)
+		passive_check_result_list=new_pcr;
+	else
+		passive_check_result_list_tail->next=new_pcr;
+	passive_check_result_list_tail=new_pcr;
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() end\n");
@@ -4865,8 +4816,8 @@ void set_service_notification_number(service *svc, int num){
         }
 
 
-/* process all passive service checks found in a given file */
-void process_passive_service_checks(void){
+/* process all passive host and service checks we found in the external command file */
+void process_passive_checks(void){
 	pid_t pid=0;
 	passive_check_result *temp_pcr=NULL;
 	passive_check_result *this_pcr=NULL;
@@ -4882,7 +4833,7 @@ void process_passive_service_checks(void){
 
 
 #ifdef DEBUG0
-	printf("process_passive_service_checks() start\n");
+	printf("process_passive_checks() start\n");
 #endif
 
 	/* fork... */
@@ -4907,12 +4858,9 @@ void process_passive_service_checks(void){
 		/* fork again... */
 		pid=fork();
 
-		/* the grandchild process should submit the service check result... */
+		/* the grandchild process should submit the check results... */
 		if(pid==0){
 
-			info.object_check_type=SERVICE_CHECK;
-			info.parallelized=FALSE;
-			info.check_type=SERVICE_CHECK_PASSIVE;
 			info.early_timeout=FALSE;
 			info.exited_ok=TRUE;
 			info.start_time.tv_usec=0;
@@ -4969,10 +4917,22 @@ void process_passive_service_checks(void){
 					my_free((void **)&output);
 					output=NULL;
 				        }
+				
+				/* what type of check is this? */
+				if(temp_pcr->object_check_type==SERVICE_CHECK){
+					info.object_check_type=SERVICE_CHECK;
+					info.check_type=SERVICE_CHECK_PASSIVE;
+				        }
+				else{
+					info.object_check_type=HOST_CHECK;
+					info.check_type=HOST_CHECK_PASSIVE;
+				        }
 
 				info.host_name=(char *)strdup(temp_pcr->host_name);
-				info.service_description=(char *)strdup(temp_pcr->svc_description);
+				if(temp_pcr->service_description)
+					info.service_description=(char *)strdup(temp_pcr->service_description);
 				info.output_file=(info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
+				info.latency=temp_pcr->latency;
 				info.start_time.tv_sec=temp_pcr->check_time;
 				info.finish_time.tv_sec=temp_pcr->check_time;
 				info.return_code=temp_pcr->return_code;
@@ -4989,12 +4949,12 @@ void process_passive_service_checks(void){
 	                        }
 		        }
 
-		/* free memory for the passive service check result list */
+		/* free memory for the passive check result list */
 		this_pcr=passive_check_result_list;
 		while(this_pcr!=NULL){
 			next_pcr=this_pcr->next;
 			my_free((void **)&this_pcr->host_name);
-			my_free((void **)&this_pcr->svc_description);
+			my_free((void **)&this_pcr->service_description);
 			my_free((void **)&this_pcr->output);
 			my_free((void **)&this_pcr);
 			this_pcr=next_pcr;
@@ -5011,12 +4971,12 @@ void process_passive_service_checks(void){
 	else if(pid>0)
 		waitpid(pid,NULL,0);
 
-	/* free memory for the passive service check result list */
+	/* free memory for the passive check result list */
 	this_pcr=passive_check_result_list;
 	while(this_pcr!=NULL){
 		next_pcr=this_pcr->next;
 		my_free((void **)&this_pcr->host_name);
-		my_free((void **)&this_pcr->svc_description);
+		my_free((void **)&this_pcr->service_description);
 		my_free((void **)&this_pcr->output);
 		my_free((void **)&this_pcr);
 		this_pcr=next_pcr;
@@ -5025,7 +4985,7 @@ void process_passive_service_checks(void){
 	passive_check_result_list_tail=NULL;
 
 #ifdef DEBUG0
-	printf("process_passive_service_checks() end\n");
+	printf("process_passive_checks() end\n");
 #endif
 
 	return;

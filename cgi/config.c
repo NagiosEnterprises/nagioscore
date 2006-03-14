@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-10-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -426,6 +426,7 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Parent Hosts</TH>");
 	printf("<TH CLASS='data'>Max. Check Attempts</TH>");
 	printf("<TH CLASS='data'>Check Interval</TH>\n");
+	printf("<TH CLASS='data'>Retry Interval</TH>\n");
 	printf("<TH CLASS='data'>Host Check Command</TH>");
 	printf("<TH CLASS='data'>Obsess Over</TH>\n");
 	printf("<TH CLASS='data'>Enable Active Checks</TH>\n");
@@ -492,6 +493,9 @@ void display_hosts(void){
 		printf("<TD CLASS='%s'>%d</TD>\n",bg_class,temp_host->max_attempts);
 
 		get_interval_time_string(temp_host->check_interval,time_string,sizeof(time_string));
+		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
+
+		get_interval_time_string(temp_host->retry_interval,time_string,sizeof(time_string));
 		printf("<TD CLASS='%s'>%s</TD>\n",bg_class,time_string);
 
 		printf("<TD CLASS='%s'>",bg_class);

@@ -116,16 +116,15 @@ int             max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
 int             max_service_check_spread=DEFAULT_SERVICE_CHECK_SPREAD;
 
 int             command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
-int             service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
+int             check_reaper_interval=DEFAULT_CHECK_REAPER_INTERVAL;
 int             max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
 int             service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 int             host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 int             auto_rescheduling_interval=DEFAULT_AUTO_RESCHEDULING_INTERVAL;
 
-int             non_parallelized_check_running=FALSE;
-
 int             check_external_commands=DEFAULT_CHECK_EXTERNAL_COMMANDS;
 int             check_orphaned_services=DEFAULT_CHECK_ORPHANED_SERVICES;
+int             check_orphaned_hosts=DEFAULT_CHECK_ORPHANED_HOSTS;
 int             check_service_freshness=DEFAULT_CHECK_SERVICE_FRESHNESS;
 int             check_host_freshness=DEFAULT_CHECK_HOST_FRESHNESS;
 int             auto_reschedule_checks=DEFAULT_AUTO_RESCHEDULE_CHECKS;
@@ -136,6 +135,11 @@ time_t          last_command_status_update=0L;
 time_t          last_log_rotation=0L;
 
 int             use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
+int             use_old_host_check_logic=TRUE;
+unsigned long   cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
+unsigned long   cached_service_check_horizon=DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
+int             enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
+int             enable_predictive_service_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
 
 int             soft_state_dependencies=FALSE;
 
@@ -173,6 +177,7 @@ int             ipc_pipe[2];
 
 int             max_parallel_service_checks=DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;
 int             currently_running_service_checks=0;
+int             currently_running_host_checks=0;
 
 time_t          program_start=0L;
 int             nagios_pid=0;
@@ -225,7 +230,7 @@ check_result    check_result_info;
 dbuf            check_result_dbuf;
 
 circular_buffer external_command_buffer;
-circular_buffer service_result_buffer;
+circular_buffer check_result_buffer;
 pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
 
@@ -242,6 +247,7 @@ int main(int argc, char **argv){
 	int display_license=FALSE;
 	int display_help=FALSE;
 	int c;
+
 
 #ifdef HAVE_GETOPT_H
 	int option_index=0;
@@ -725,11 +731,11 @@ int main(int argc, char **argv){
 				exit(ERROR);
 			        }
 
-			/* initialize service result worker threads */
-			result=init_service_result_worker_thread();
+			/* initialize check result worker thread */
+			result=init_check_result_worker_thread();
 			if(result!=OK){
 
-				asprintf(&buffer,"Bailing out due to errors encountered while trying to initialize service result worker thread... (PID=%d)\n",(int)getpid());
+				asprintf(&buffer,"Bailing out due to errors encountered while trying to initialize check result worker thread... (PID=%d)\n",(int)getpid());
 				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
 				my_free((void **)&buffer);
 
@@ -787,7 +793,7 @@ int main(int argc, char **argv){
 				deinit_embedded_perl();
 
 			/* cleanup worker threads */
-			shutdown_service_result_worker_thread();
+			shutdown_check_result_worker_thread();
 
 			/* close the original pipe used for IPC (we'll create a new one if restarting) */
 			close(ipc_pipe[0]);

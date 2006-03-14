@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Last Modified:   03-11-2006
  *
  * License:
  *
@@ -49,7 +49,7 @@ extern int      max_host_check_spread;
 extern int      max_service_check_spread;
 
 extern int      command_check_interval;
-extern int      service_check_reaper_interval;
+extern int      check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
 extern int      auto_rescheduling_interval;
@@ -57,6 +57,7 @@ extern int      auto_rescheduling_window;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
+extern int      check_orphaned_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
@@ -78,8 +79,6 @@ extern int      execute_service_checks;
 extern int      execute_host_checks;
 
 extern int      time_change_threshold;
-
-extern int      non_parallelized_check_running;
 
 timed_event *event_list_low=NULL;
 timed_event *event_list_high=NULL;
@@ -109,6 +108,7 @@ void init_timing_loop(void){
 	time_t next_valid_time=0L;
 	int schedule_check=0;
 	double max_inter_check_delay=0.0;
+	int use_interval=0;
 
 #ifdef DEBUG0
 	printf("init_timing_loop() start\n");
@@ -507,12 +507,12 @@ void init_timing_loop(void){
 	if(auto_reschedule_checks==TRUE)
 		schedule_new_event(EVENT_RESCHEDULE_CHECKS,TRUE,current_time+auto_rescheduling_interval,TRUE,auto_rescheduling_interval,NULL,TRUE,NULL,NULL);
 
-	/* add a service check reaper event */
-	schedule_new_event(EVENT_SERVICE_REAPER,TRUE,current_time+service_check_reaper_interval,TRUE,service_check_reaper_interval,NULL,TRUE,NULL,NULL);
+	/* add a check result reaper event */
+	schedule_new_event(EVENT_CHECK_REAPER,TRUE,current_time+check_reaper_interval,TRUE,check_reaper_interval,NULL,TRUE,NULL,NULL);
 
-	/* add an orphaned service check event */
-	if(check_orphaned_services==TRUE)
-		schedule_new_event(EVENT_ORPHAN_CHECK,TRUE,current_time+(service_check_timeout*2),TRUE,(service_check_timeout*2),NULL,TRUE,NULL,NULL);
+	/* add an orphaned check event */
+	if(check_orphaned_services==TRUE || check_orphaned_hosts==TRUE)
+		schedule_new_event(EVENT_ORPHAN_CHECK,TRUE,current_time+DEFAULT_ORPHAN_CHECK_INTERVAL,TRUE,DEFAULT_ORPHAN_CHECK_INTERVAL,NULL,TRUE,NULL,NULL);
 
 	/* add a service result "freshness" check event */
 	if(check_service_freshness==TRUE)
@@ -614,7 +614,7 @@ void display_scheduling_info(void){
 
 	printf("CHECK PROCESSING INFORMATION\n");
 	printf("----------------------------\n");
-	printf("Service check reaper interval:      %d sec\n",service_check_reaper_interval);
+	printf("Check result reaper interval:       %d sec\n",check_reaper_interval);
 	printf("Max concurrent service checks:      ");
 	if(max_parallel_service_checks==0)
 		printf("Unlimited\n");
@@ -625,33 +625,27 @@ void display_scheduling_info(void){
 	printf("PERFORMANCE SUGGESTIONS\n");
 	printf("-----------------------\n");
 
-	/* check sanity of host inter-check delay */
-	if(scheduling_info.host_inter_check_delay<=10.0 && scheduling_info.total_scheduled_hosts>0){
-		printf("* Host checks might be scheduled too closely together - consider increasing 'check_interval' option for your hosts\n");
-		suggestions++;
-	        }
-
 	/* assume a 100% (2x) service check burst for max concurrent checks */
 	if(scheduling_info.service_inter_check_delay==0.0)
-		minimum_concurrent_checks=ceil(service_check_reaper_interval*2.0);
-	minimum_concurrent_checks=ceil((service_check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
+		minimum_concurrent_checks=ceil(check_reaper_interval*2.0);
+	minimum_concurrent_checks=ceil((check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
 	if(((int)minimum_concurrent_checks > max_parallel_service_checks) && max_parallel_service_checks!=0){
 		printf("* Value for 'max_concurrent_checks' option should >= %d\n",(int)minimum_concurrent_checks);
 		suggestions++;
 	        }
 
 	/* assume a 100% (2x) service check burst for service check reaper */
-	max_reaper_interval=floor((double)SERVICE_BUFFER_SLOTS/scheduling_info.service_inter_check_delay);
+	max_reaper_interval=floor((double)CHECK_RESULT_BUFFER_SLOTS/scheduling_info.service_inter_check_delay);
 	if(max_reaper_interval<2.0)
 		max_reaper_interval=2.0;
 	if(max_reaper_interval>30.0)
 		max_reaper_interval=30.0;
-	if((int)max_reaper_interval<service_check_reaper_interval){
-		printf("* Value for 'service_reaper_frequency' should be <= %d seconds\n",(int)max_reaper_interval);
+	if((int)max_reaper_interval<check_reaper_interval){
+		printf("* Value for 'check_result_reaper_frequency' should be <= %d seconds\n",(int)max_reaper_interval);
 		suggestions++;
 	        }
-	if(service_check_reaper_interval<2){
-		printf("* Value for 'service_reaper_frequency' should be >= 2 seconds\n");
+	if(check_reaper_interval<2){
+		printf("* Value for 'check_result_reaper_frequency' should be >= 2 seconds\n");
 		suggestions++;
 	        }
 
@@ -1017,32 +1011,12 @@ int event_execution_loop(void){
 #endif
 					run_event=FALSE;
 				        }
-
-				/* don't run a service check that can't be parallized if there are other checks out there... */
-				if(temp_service->parallelize==FALSE && currently_running_service_checks>0){
-#ifdef DEBUG3
-					printf("\tA non-parallelizable check is queued for execution, but there are still other checks executing.  We'll wait...\n");
-#endif
-					run_event=FALSE;
-				        }
-
-				/* a service check that shouldn't be parallized with other checks is currently running, so don't execute another check */
-				if(non_parallelized_check_running==TRUE){
-#ifdef DEBUG3
-					printf("\tA non-parallelizable check is currently running, so we have to wait before executing other checks...\n");
-#endif
-					run_event=FALSE;
-				        }
 			        }
 
 			/* run a few checks before executing a host check... */
 			if(event_list_low->event_type==EVENT_HOST_CHECK){
 
 				temp_host=(host *)event_list_low->event_data;
-
-				/* update host check latency */
-				gettimeofday(&tv,NULL);
-				temp_host->latency=(double)((double)(tv.tv_sec-event_list_low->run_time)+(double)(tv.tv_usec/1000)/1000.0);
 
 				/* don't run a host check if we're not supposed to right now */
 				if(execute_host_checks==FALSE && !(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)){
@@ -1057,7 +1031,11 @@ int event_execution_loop(void){
 					/*
 					event_list_low=event_list_low->next;
 					*/
-					temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
+					if(temp_host->state_type==SOFT_STATE && temp_host->current_state!=STATE_OK)
+						temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->retry_interval*interval_length));
+					else
+						temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
+
 					temp_event->run_time=temp_host->next_check;
 					reschedule_event(temp_event,&event_list_low);
 					update_host_status(temp_host,FALSE);
@@ -1153,6 +1131,8 @@ int handle_timed_event(timed_event *event){
 	service *temp_service=NULL;
 	char *temp_buffer=NULL;
 	void (*userfunc)(void *);
+	struct timeval tv;
+	double latency=0.0;
 
 #ifdef DEBUG0
 	printf("handle_timed_event() start\n");
@@ -1180,9 +1160,13 @@ int handle_timed_event(timed_event *event){
 		printf("\t\tAssociated Host:     %s\n",temp_service->host_name);
 #endif
 
-		/* run  a service check */
+		/* get check latency */
+		gettimeofday(&tv,NULL);
+		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+
+		/* run the service check */
 		temp_service=(service *)event->event_data;
-		run_service_check(temp_service);
+		run_scheduled_service_check(temp_service,temp_service->check_options,latency);
 		break;
 
 	case EVENT_HOST_CHECK:
@@ -1192,9 +1176,13 @@ int handle_timed_event(timed_event *event){
 		printf("\t\tHost:     %s\n",temp_host->name);
 #endif
 
-		/* run a host check */
+		/* get check latency */
+		gettimeofday(&tv,NULL);
+		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+
+		/* run the host check */
 		temp_host=(host *)event->event_data;
-		run_scheduled_host_check(temp_host);
+		perform_scheduled_host_check(temp_host,latency);
 		break;
 
 	case EVENT_COMMAND_CHECK:
@@ -1243,21 +1231,22 @@ int handle_timed_event(timed_event *event){
 		my_free((void **)&temp_buffer);
 		break;
 
-	case EVENT_SERVICE_REAPER:
+	case EVENT_CHECK_REAPER:
 #ifdef DEBUG3
-		printf("(service check reaper)\n");
+		printf("(check result reaper)\n");
 #endif
 
-		/* reap service check results */
-		reap_service_checks();
+		/* reap host and service check results */
+		reap_check_results();
 		break;
 
 	case EVENT_ORPHAN_CHECK:
 #ifdef DEBUG3
-		printf("(orphaned service check)\n");
+		printf("(orphaned host and service check)\n");
 #endif
 
-		/* check for orphaned services */
+		/* check for orphaned hosts and services */
+		check_for_orphaned_hosts();
 		check_for_orphaned_services();
 		break;
 

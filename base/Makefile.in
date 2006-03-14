@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 02-28-2006
+# Last Modified: 03-06-2006
 ############################
 
 
@@ -17,7 +17,7 @@ CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
 #CFLAGS=-O0 -g -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (overrides default)
-#CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (complements default)
 #CFLAGS_WARN=-Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs

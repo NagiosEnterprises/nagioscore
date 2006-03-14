@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-28-2006
+ * Last Modified: 03-11-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -163,60 +163,67 @@ extern "C" {
 
 /******************* DEFAULT VALUES *******************/
 
-#define DEFAULT_LOG_LEVEL			1	/* log all events to main log file */
-#define DEFAULT_USE_SYSLOG			1	/* log events to syslog? 1=yes, 0=no */
-#define DEFAULT_SYSLOG_LEVEL			2	/* log only severe events to syslog */
+#define DEFAULT_LOG_LEVEL					1	/* log all events to main log file */
+#define DEFAULT_USE_SYSLOG					1	/* log events to syslog? 1=yes, 0=no */
+#define DEFAULT_SYSLOG_LEVEL					2	/* log only severe events to syslog */
 
-#define DEFAULT_NOTIFICATION_LOGGING		1	/* log notification events? 1=yes, 0=no */
+#define DEFAULT_NOTIFICATION_LOGGING				1	/* log notification events? 1=yes, 0=no */
 
-#define DEFAULT_INTER_CHECK_DELAY		5.0	/* seconds between initial service check scheduling */
-#define DEFAULT_INTERLEAVE_FACTOR      		1       /* default interleave to use when scheduling checks */
-#define DEFAULT_SLEEP_TIME      		0.5    	/* seconds between event run checks */
-#define DEFAULT_INTERVAL_LENGTH 		60     	/* seconds per interval unit for check scheduling */
-#define DEFAULT_RETRY_INTERVAL  		30	/* services are retried in 30 seconds if they're not OK */
-#define DEFAULT_COMMAND_CHECK_INTERVAL		-1	/* interval to check for external commands (default = as often as possible) */
-#define DEFAULT_SERVICE_REAPER_INTERVAL		10	/* interval in seconds to reap service check results */
-#define DEFAULT_MAX_REAPER_TIME                 30      /* maximum number of seconds to spend reaping service checks before we break out for a while */
-#define DEFAULT_MAX_PARALLEL_SERVICE_CHECKS 	0	/* maximum number of service checks we can have running at any given time (0=unlimited) */
-#define DEFAULT_RETENTION_UPDATE_INTERVAL	60	/* minutes between auto-save of retention data */
-#define DEFAULT_RETENTION_SCHEDULING_HORIZON    900     /* max seconds between program restarts that we will preserve scheduling information */
-#define DEFAULT_STATUS_UPDATE_INTERVAL		60	/* seconds between aggregated status data updates */
-#define DEFAULT_FRESHNESS_CHECK_INTERVAL        60      /* seconds between service result freshness checks */
-#define DEFAULT_AUTO_RESCHEDULING_INTERVAL      30      /* seconds between host and service check rescheduling events */
-#define DEFAULT_AUTO_RESCHEDULING_WINDOW        180     /* window of time (in seconds) for which we should reschedule host and service checks */
+#define DEFAULT_INTER_CHECK_DELAY				5.0	/* seconds between initial service check scheduling */
+#define DEFAULT_INTERLEAVE_FACTOR      				1       /* default interleave to use when scheduling checks */
+#define DEFAULT_SLEEP_TIME      				0.5    	/* seconds between event run checks */
+#define DEFAULT_INTERVAL_LENGTH 				60     	/* seconds per interval unit for check scheduling */
+#define DEFAULT_RETRY_INTERVAL  				30	/* services are retried in 30 seconds if they're not OK */
+#define DEFAULT_COMMAND_CHECK_INTERVAL				-1	/* interval to check for external commands (default = as often as possible) */
+#define DEFAULT_CHECK_REAPER_INTERVAL				10	/* interval in seconds to reap host and service check results */
+#define DEFAULT_MAX_REAPER_TIME                 		30      /* maximum number of seconds to spend reaping service checks before we break out for a while */
+#define DEFAULT_MAX_PARALLEL_SERVICE_CHECKS 			0	/* maximum number of service checks we can have running at any given time (0=unlimited) */
+#define DEFAULT_RETENTION_UPDATE_INTERVAL			60	/* minutes between auto-save of retention data */
+#define DEFAULT_RETENTION_SCHEDULING_HORIZON    		900     /* max seconds between program restarts that we will preserve scheduling information */
+#define DEFAULT_STATUS_UPDATE_INTERVAL				60	/* seconds between aggregated status data updates */
+#define DEFAULT_FRESHNESS_CHECK_INTERVAL        		60      /* seconds between service result freshness checks */
+#define DEFAULT_AUTO_RESCHEDULING_INTERVAL      		30      /* seconds between host and service check rescheduling events */
+#define DEFAULT_AUTO_RESCHEDULING_WINDOW        		180     /* window of time (in seconds) for which we should reschedule host and service checks */
+#define DEFAULT_ORPHAN_CHECK_INTERVAL           		60      /* seconds between checks for orphaned hosts and services */
 
-#define DEFAULT_NOTIFICATION_TIMEOUT		30	/* max time in seconds to wait for notification commands to complete */
-#define DEFAULT_EVENT_HANDLER_TIMEOUT		30	/* max time in seconds to wait for event handler commands to complete */
-#define DEFAULT_HOST_CHECK_TIMEOUT		30	/* max time in seconds to wait for host check commands to complete */
-#define DEFAULT_SERVICE_CHECK_TIMEOUT		60	/* max time in seconds to wait for service check commands to complete */
-#define DEFAULT_OCSP_TIMEOUT			15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
-#define DEFAULT_OCHP_TIMEOUT			15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
-#define DEFAULT_PERFDATA_TIMEOUT                5       /* max time in seconds to wait for performance data commands to complete */
-#define DEFAULT_TIME_CHANGE_THRESHOLD		900	/* compensate for time changes of more than 15 minutes */
+#define DEFAULT_NOTIFICATION_TIMEOUT				30	/* max time in seconds to wait for notification commands to complete */
+#define DEFAULT_EVENT_HANDLER_TIMEOUT				30	/* max time in seconds to wait for event handler commands to complete */
+#define DEFAULT_HOST_CHECK_TIMEOUT				30	/* max time in seconds to wait for host check commands to complete */
+#define DEFAULT_SERVICE_CHECK_TIMEOUT				60	/* max time in seconds to wait for service check commands to complete */
+#define DEFAULT_OCSP_TIMEOUT					15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
+#define DEFAULT_OCHP_TIMEOUT					15	/* max time in seconds to wait for obsessive compulsive processing commands to complete */
+#define DEFAULT_PERFDATA_TIMEOUT                		5       /* max time in seconds to wait for performance data commands to complete */
+#define DEFAULT_TIME_CHANGE_THRESHOLD				900	/* compensate for time changes of more than 15 minutes */
 
-#define DEFAULT_LOG_HOST_RETRIES		0	/* don't log host retries */
-#define DEFAULT_LOG_SERVICE_RETRIES		0	/* don't log service retries */
-#define DEFAULT_LOG_EVENT_HANDLERS		1	/* log event handlers */
-#define DEFAULT_LOG_INITIAL_STATES		0	/* don't log initial service and host states */
-#define DEFAULT_LOG_EXTERNAL_COMMANDS		1	/* log external commands */
-#define DEFAULT_LOG_PASSIVE_CHECKS		1	/* log passive service checks */
+#define DEFAULT_LOG_HOST_RETRIES				0	/* don't log host retries */
+#define DEFAULT_LOG_SERVICE_RETRIES				0	/* don't log service retries */
+#define DEFAULT_LOG_EVENT_HANDLERS				1	/* log event handlers */
+#define DEFAULT_LOG_INITIAL_STATES				0	/* don't log initial service and host states */
+#define DEFAULT_LOG_EXTERNAL_COMMANDS				1	/* log external commands */
+#define DEFAULT_LOG_PASSIVE_CHECKS				1	/* log passive service checks */
 
-#define DEFAULT_AGGRESSIVE_HOST_CHECKING	0	/* don't use "aggressive" host checking */
-#define DEFAULT_CHECK_EXTERNAL_COMMANDS		0 	/* don't check for external commands */
-#define DEFAULT_CHECK_ORPHANED_SERVICES		0	/* don't check for orphaned services */
-#define DEFAULT_ENABLE_FLAP_DETECTION           0       /* don't enable flap detection */
-#define DEFAULT_PROCESS_PERFORMANCE_DATA        0       /* don't process performance data */
-#define DEFAULT_CHECK_SERVICE_FRESHNESS         1       /* check service result freshness */
-#define DEFAULT_CHECK_HOST_FRESHNESS            0       /* don't check host result freshness */
-#define DEFAULT_AUTO_RESCHEDULE_CHECKS          0       /* don't auto-reschedule host and service checks */
+#define DEFAULT_AGGRESSIVE_HOST_CHECKING			0	/* don't use "aggressive" host checking */
+#define DEFAULT_CHECK_EXTERNAL_COMMANDS				0 	/* don't check for external commands */
+#define DEFAULT_CHECK_ORPHANED_SERVICES				1	/* check for orphaned services */
+#define DEFAULT_CHECK_ORPHANED_HOSTS            		1       /* check for orphaned hosts */
+#define DEFAULT_ENABLE_FLAP_DETECTION           		0       /* don't enable flap detection */
+#define DEFAULT_PROCESS_PERFORMANCE_DATA        		0       /* don't process performance data */
+#define DEFAULT_CHECK_SERVICE_FRESHNESS         		1       /* check service result freshness */
+#define DEFAULT_CHECK_HOST_FRESHNESS            		0       /* don't check host result freshness */
+#define DEFAULT_AUTO_RESCHEDULE_CHECKS          		0       /* don't auto-reschedule host and service checks */
 
-#define DEFAULT_LOW_SERVICE_FLAP_THRESHOLD	20.0	/* low threshold for detection of service flapping */
-#define DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD	30.0	/* high threshold for detection of service flapping */
-#define DEFAULT_LOW_HOST_FLAP_THRESHOLD		20.0	/* low threshold for detection of host flapping */
-#define DEFAULT_HIGH_HOST_FLAP_THRESHOLD	30.0	/* high threshold for detection of host flapping */
+#define DEFAULT_LOW_SERVICE_FLAP_THRESHOLD			20.0	/* low threshold for detection of service flapping */
+#define DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD			30.0	/* high threshold for detection of service flapping */
+#define DEFAULT_LOW_HOST_FLAP_THRESHOLD				20.0	/* low threshold for detection of host flapping */
+#define DEFAULT_HIGH_HOST_FLAP_THRESHOLD			30.0	/* high threshold for detection of host flapping */
 
-#define DEFAULT_HOST_CHECK_SPREAD		30	/* max minutes to schedule all initial host checks */
-#define DEFAULT_SERVICE_CHECK_SPREAD		30	/* max minutes to schedule all initial service checks */
+#define DEFAULT_HOST_CHECK_SPREAD				30	/* max minutes to schedule all initial host checks */
+#define DEFAULT_SERVICE_CHECK_SPREAD				30	/* max minutes to schedule all initial service checks */
+
+#define DEFAULT_CACHED_HOST_CHECK_HORIZON      			15      /* max age in seconds that cached host checks can be used */
+#define DEFAULT_CACHED_SERVICE_CHECK_HORIZON    		15      /* max age in seconds that cached service checks can be used */
+#define DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS	1	/* should we use predictive host dependency checks? */
+#define DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS	1	/* should we use predictive service dependency checks? */
 
 
 
@@ -344,8 +351,8 @@ extern "C" {
 #define EVENT_LOG_ROTATION		2	/* log file rotation */
 #define EVENT_PROGRAM_SHUTDOWN		3	/* program shutdown */
 #define EVENT_PROGRAM_RESTART		4	/* program restart */
-#define EVENT_SERVICE_REAPER		5	/* reaps results from service checks */
-#define EVENT_ORPHAN_CHECK		6	/* checks for orphaned service checks */
+#define EVENT_CHECK_REAPER              5       /* reaps results from host and service checks */
+#define EVENT_ORPHAN_CHECK		6	/* checks for orphaned hosts and services */
 #define EVENT_RETENTION_SAVE		7	/* save (dump) retention data */
 #define EVENT_STATUS_SAVE		8	/* save (dump) status data */
 #define EVENT_SCHEDULED_DOWNTIME	9	/* scheduled host or service downtime */
@@ -427,10 +434,10 @@ typedef struct check_result_struct{
 	char *host_name;                                /* host name */
 	char *service_description;                      /* service description */
 	int check_type;					/* was this an active or passive service check? */
-	int parallelized;                               /* was this check run in parallel? */
 	char *output_file;                              /* what file is the output stored in? */
 	FILE *output_file_fp;
 	int output_file_fd;
+	double latency;
 	struct timeval start_time;			/* time the service check was initiated */
 	struct timeval finish_time;			/* time the service check was completed */
 	int early_timeout;                              /* did the service check timeout? */
@@ -467,11 +474,13 @@ typedef struct sched_info_struct{
 
 /* PASSIVE_CHECK_RESULT structure */
 typedef struct passive_check_result_struct{
+	int object_check_type;
 	char *host_name;
-	char *svc_description;
+	char *service_description;
 	int return_code;
 	char *output;
 	time_t check_time;
+	double latency;
 	struct passive_check_result_struct *next;
 	}passive_check_result;
 
@@ -526,13 +535,13 @@ typedef struct dbuf_struct{
 
 /* slots in circular buffers */
 #define COMMAND_BUFFER_SLOTS              1024
-#define SERVICE_BUFFER_SLOTS		  1024
+#define CHECK_RESULT_BUFFER_SLOTS	  1024
 
 /* worker threads */
 #define TOTAL_WORKER_THREADS              2
 
 #define COMMAND_WORKER_THREAD		  0
-#define SERVICE_WORKER_THREAD  		  1
+#define CHECK_RESULT_WORKER_THREAD 	  1
 
 
 
@@ -577,11 +586,10 @@ void add_event(timed_event *,timed_event **);     		/* adds an event to the exec
 void remove_event(timed_event *,timed_event **);     		/* remove an event from the execution queue */
 int event_execution_loop(void);                      		/* main monitoring/event handler loop */
 int handle_timed_event(timed_event *);		     		/* top level handler for timed events */
-void run_service_check(service *);				/* parallelized service check routine */
-void reap_service_checks(void);					/* handles results from service checks */
 int check_service_dependencies(service *,int);          	/* checks service dependencies */
 int check_host_dependencies(host *,int);                	/* checks host dependencies */
 void check_for_orphaned_services(void);				/* checks for orphaned services */
+void check_for_orphaned_hosts(void);				/* checks for orphaned hosts */
 void check_service_result_freshness(void);              	/* checks the "freshness" of service check results */
 void check_host_result_freshness(void);                 	/* checks the "freshness" of host check results */
 void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host and service checks */
@@ -593,7 +601,7 @@ void resort_event_list(timed_event **);                 	/* resorts event list b
 
 /**** Flap Detection Functions ****/
 void check_for_service_flapping(service *,int);			/* determines whether or not a service is "flapping" between states */
-void check_for_host_flapping(host *,int);			/* determines whether or not a host is "flapping" between states */
+void check_for_host_flapping(host *,int,int);			/* determines whether or not a host is "flapping" between states */
 void set_service_flap(service *,double,double,double);		/* handles a service that is flapping */
 void clear_service_flap(service *,double,double,double);	/* handles a service that has stopped flapping */
 void set_host_flap(host *,double,double,double);		/* handles a host that is flapping */
@@ -607,11 +615,6 @@ void disable_service_flap_detection(service *);			/* disables flap detection for
 
 
 /**** Route/Host Check Functions ****/
-int verify_route_to_host(host *,int);                	   	/* on-demand check of whether a host is up, down, or unreachable */
-int run_scheduled_host_check(host *);				/* runs a scheduled host check */
-int check_host(host *,int,int);                      	   	/* checks if a host is up or down */
-int run_host_check(host *,int);                 		/* runs a host check */
-int handle_host_state(host *);               			/* top level host state handler */
 
 
 /**** Event Handler Functions ****/
@@ -676,6 +679,7 @@ int compare_hashdata(const char *,const char *,const char *,const char *);
 /**** Miscellaneous Functions ****/
 void sighandler(int);                                	/* handles signals */
 void service_check_sighandler(int);                     /* handles timeouts when executing service checks */
+void host_check_sighandler(int);                        /* handles timeouts when executing host checks */
 void my_system_sighandler(int);				/* handles timeouts when executing commands via my_system() */
 void file_lock_sighandler(int);				/* handles timeouts while waiting for file locks */
 void strip(char *);                                  	/* strips whitespace from string */  
@@ -791,7 +795,7 @@ void enable_service_freshness_checks(void);		/* enable service freshness checks 
 void disable_service_freshness_checks(void);		/* disable service freshness checks */
 void enable_host_freshness_checks(void);		/* enable host freshness checks */
 void disable_host_freshness_checks(void);		/* disable host freshness checks */
-void process_passive_service_checks(void);              /* processes passive service check results */
+void process_passive_checks(void);                      /* processes passive host and service check results */
 void enable_all_failure_prediction(void);               /* enables failure prediction on a program-wide basis */
 void disable_all_failure_prediction(void);              /* disables failure prediction on a program-wide basis */
 void enable_performance_data(void);                     /* enables processing of performance data on a program-wide basis */
@@ -813,10 +817,10 @@ void disable_contact_host_notifications(contact *);     /* disables host notific
 void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
 void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
 
-int init_service_result_worker_thread(void);
-int shutdown_service_result_worker_thread(void);
-void * service_result_worker_thread(void *);
-void cleanup_service_result_worker_thread(void *);
+int init_check_result_worker_thread(void);
+int shutdown_check_result_worker_thread(void);
+void * check_result_worker_thread(void *);
+void cleanup_check_result_worker_thread(void *);
 
 int init_command_file_worker_thread(void);
 int shutdown_command_file_worker_thread(void);
@@ -834,7 +838,6 @@ int mmap_fclose(mmapfile *);
 char *mmap_fgets(mmapfile *);
 char *mmap_fgets_multiline(mmapfile *);
 
-
 int init_macrox_names(void);
 int add_macrox_name(int,char *);
 int free_macrox_names(void);
@@ -843,6 +846,46 @@ int set_macrox_environment_vars(int);
 int set_argv_macro_environment_vars(int);
 int set_custom_macro_environment_vars(int);
 int set_macro_environment_var(char *,char *,int);
+
+
+/***** HOST CHECK FUNCTIONS FOR 2.X *****/
+int verify_route_to_host(host *,int);                	   	/* on-demand check of whether a host is up, down, or unreachable */
+int run_scheduled_host_check(host *);				/* runs a scheduled host check */
+int check_host(host *,int,int);                      	   	/* checks if a host is up or down */
+int run_host_check(host *,int);                 		/* runs a host check */
+int handle_host_state(host *);               			/* top level host state handler */
+
+
+/***** NEW HOST CHECK FUNCTIONS FOR 3.X *****/
+int check_host_check_viability_3x(host *,int,int *,time_t *);
+int adjust_host_check_attempt_3x(host *);
+int determine_host_reachability(host *);
+int process_host_check_result_3x(host *,int,char *,int,int,unsigned long);
+
+int perform_on_demand_host_check_3x(host *,int *,int,int,unsigned long);
+int run_sync_host_check_3x(host *,int *,int,int,unsigned long);
+int execute_sync_host_check_3x(host *);
+int run_scheduled_host_check_3x(host *,int,double);
+int run_async_host_check_3x(host *,int,double,int,int *,time_t *);
+int handle_async_host_check_result_3x(host *,check_result *);
+
+
+/***** COMMON HOST CHECK FUNCTIONS FOR 2.X and 3.X *****/
+int perform_on_demand_host_check(host *,int *,int,int,unsigned long);
+int perform_scheduled_host_check(host *,double);
+
+
+/***** COMMON FUNCTIONS *****/
+int reap_check_results(void);
+
+
+/***** SERVICE CHECK FUNCTIONS *****/
+int check_service_check_viability_3x(service *,int,int *,time_t *);
+int run_scheduled_service_check(service *,int,double);
+int run_async_service_check(service *,int,double,int,int *,time_t *);
+int handle_async_service_check_result(service *,check_result *);
+
+
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-05-2006
+ * Last Modified:   03-11-2006
  *
  * License:
  *
@@ -34,6 +34,8 @@
 extern int             enable_event_handlers;
 extern int             obsess_over_services;
 extern int             obsess_over_hosts;
+
+extern int             use_old_host_check_logic;
 
 extern int             log_event_handlers;
 extern int             log_host_retries;
@@ -663,8 +665,14 @@ int handle_host_state(host *hst){
 	        }
 
 	/* has the host state changed? */
-	if(hst->last_state!=hst->current_state || (hst->current_state==HOST_UP && hst->state_type==SOFT_STATE))
-		state_change=TRUE;
+	if(use_old_host_check_logic==TRUE){
+		if(hst->last_state!=hst->current_state || (hst->current_state==HOST_UP && hst->state_type==SOFT_STATE))
+			state_change=TRUE;
+	        }
+	else{
+		if(hst->last_state!=hst->current_state || hst->last_hard_state!=hst->current_state || (hst->current_state==HOST_UP && hst->state_type==SOFT_STATE))
+			state_change=TRUE;
+	        }
 
 	/* if the host state has changed... */
 	if(state_change==TRUE){

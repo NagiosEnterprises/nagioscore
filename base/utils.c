@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-06-006
+ * Last Modified:   03-11-2006
  *
  * License:
  *
@@ -41,7 +41,6 @@ int use_embedded_perl=TRUE;
 
 char            *my_strtok_buffer=NULL;
 char            *original_my_strtok_buffer=NULL;
-
 
 extern char	*config_file;
 extern char	*log_file;
@@ -113,7 +112,7 @@ extern int      max_host_check_spread;
 extern int      max_service_check_spread;
 
 extern int      command_check_interval;
-extern int      service_check_reaper_interval;
+extern int      check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
 extern int      auto_rescheduling_interval;
@@ -121,11 +120,17 @@ extern int      auto_rescheduling_window;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
+extern int      check_orphaned_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
 
 extern int      use_aggressive_host_checking;
+extern int      use_old_host_check_logic;
+extern unsigned long cached_host_check_horizon;
+extern unsigned long cached_service_check_horizon;
+extern int      enable_predictive_host_dependency_checks;
+extern int      enable_predictive_service_dependency_checks;
 
 extern int      soft_state_dependencies;
 
@@ -214,7 +219,7 @@ extern dbuf     check_result_dbuf;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
-extern circular_buffer service_result_buffer;
+extern circular_buffer check_result_buffer;
 extern circular_buffer event_broker_buffer;
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
@@ -2714,12 +2719,13 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
-void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int macro_options){
-	char temp_arg[MAX_COMMAND_BUFFER];
-	char arg_buffer[MAX_COMMAND_BUFFER];
-	command *temp_command;
-	int x,y;
-	int arg_index;
+void get_raw_command_line(char *cmd, char *full_command, int buffer_length, int macro_options){
+	char temp_arg[MAX_COMMAND_BUFFER]="";
+	char arg_buffer[MAX_COMMAND_BUFFER]="";
+	command *temp_command=NULL;
+	int x=0;
+	int y=0;
+	int arg_index=0;
 
 #ifdef DEBUG0
 	printf("get_raw_command_line() start\n");
@@ -2731,16 +2737,17 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 	/* clear the argv macros */
 	clear_argv_macros();
 
+	/* initialize the full command */
+	if(full_command && buffer_length>0)
+		strcpy(full_command,"");
+
 	/* make sure we've got all the requirements */
-	if(cmd==NULL || raw_command==NULL || buffer_length<=0){
+	if(cmd==NULL || full_command==NULL || buffer_length<=0){
 #ifdef DEBUG1
-		printf("\tWe don't have enough data to get the raw command line!\n");
+		printf("\tWe don't have enough data to get the expanded command line!\n");
 #endif
 		return;
 	        }
-
-	/* initialize the command */
-	strcpy(raw_command,"");
 
 	/* clear the old command arguments */
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
@@ -2752,21 +2759,21 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 	for(x=0,y=0;y<buffer_length-1;x++){
 		if(cmd[x]=='!' || cmd[x]=='\x0')
 			break;
-		raw_command[y]=cmd[x];
+		full_command[y]=cmd[x];
 		y++;
 	        }
-	raw_command[y]='\x0';
+	full_command[y]='\x0';
 
 	/* find the command used to check this service */
-	temp_command=find_command(raw_command);
+	temp_command=find_command(full_command);
 
 	/* error if we couldn't find the command */
 	if(temp_command==NULL)
 		return;
 
-	strncpy(raw_command,temp_command->command_line,buffer_length);
-	raw_command[buffer_length-1]='\x0';
-	strip(raw_command);
+	strncpy(full_command,temp_command->command_line,buffer_length);
+	full_command[buffer_length-1]='\x0';
+	strip(full_command);
 
 	/* skip the command name (we're about to get the arguments)... */
 	for(arg_index=0;;arg_index++){
@@ -2800,7 +2807,7 @@ void get_raw_command_line(char *cmd, char *raw_command, int buffer_length, int m
 	        }
 
 #ifdef DEBUG1
-	printf("\tOutput: %s\n",raw_command);
+	printf("\tOutput: %s\n",full_command);
 #endif
 #ifdef DEBUG0
 	printf("get_raw_command_line() end\n");
@@ -3244,6 +3251,40 @@ void service_check_sighandler(int sig){
         }
 
 
+/* handle timeouts when executing host checks */
+void host_check_sighandler(int sig){
+	struct timeval end_time;
+
+	/* get the current time */
+	gettimeofday(&end_time,NULL);
+
+	/* write plugin check results to temp file */
+	if(check_result_info.output_file_fp){
+		fputs("(Host Check Timed Out)",check_result_info.output_file_fp);
+		fclose(check_result_info.output_file_fp);
+	        }
+	if(check_result_info.output_file_fd>0)
+		close(check_result_info.output_file_fd);
+
+	check_result_info.return_code=STATE_CRITICAL;
+	check_result_info.finish_time=end_time;
+	check_result_info.early_timeout=TRUE;
+
+	/* write check result to message queue */
+	write_check_result(&check_result_info);
+
+	/* close write end of IPC pipe */
+	close(ipc_pipe[1]);
+
+	/* try to kill the command that timed out by sending termination signal to our process group */
+	/* we also kill ourselves while doing this... */
+	kill((pid_t)0,SIGKILL);
+	
+	/* force the child process (service check) to exit... */
+	exit(STATE_CRITICAL);
+        }
+
+
 /* handle timeouts when executing commands via my_system() */
 void my_system_sighandler(int sig){
 
@@ -3425,7 +3466,6 @@ int daemon_init(void){
 
 
 
-
 /******************************************************************/
 /*********************** SECURITY FUNCTIONS ***********************/
 /******************************************************************/
@@ -3565,28 +3605,28 @@ int read_check_result(check_result *info){
 	memset((void *)info,0,sizeof(check_result));
 
 	/* get a lock on the buffer */
-	pthread_mutex_lock(&service_result_buffer.buffer_lock);
+	pthread_mutex_lock(&check_result_buffer.buffer_lock);
 
 	/* handle detected overflows */
-	if(service_result_buffer.overflow>0){
+	if(check_result_buffer.overflow>0){
 
 		/* log the warning */
-		asprintf(&temp_buffer,"Warning: Overflow detected in check result buffer - %lu check result(s) lost.\n",service_result_buffer.overflow);
+		asprintf(&temp_buffer,"Warning: Overflow detected in check result buffer - %lu check result(s) lost.\n",check_result_buffer.overflow);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 
 		/* reset overflow counter */
-		service_result_buffer.overflow=0;
+		check_result_buffer.overflow=0;
 	        }
 
 	/* there are no items in the buffer */
-	if(service_result_buffer.items==0)
+	if(check_result_buffer.items==0)
 		result=0;
 
 	/* return the result from the tail of the buffer */
 	else{
 
-		buffered_result=((check_result **)service_result_buffer.buffer)[service_result_buffer.tail];
+		buffered_result=((check_result **)check_result_buffer.buffer)[check_result_buffer.tail];
 		
 		/* copy result to user-supplied structure */
 		memcpy(info,buffered_result,sizeof(check_result));
@@ -3604,18 +3644,18 @@ int read_check_result(check_result *info){
 		free_check_result(buffered_result);
 
 		/* free memory allocated for buffer slot */
-		my_free((void **)&service_result_buffer.buffer[service_result_buffer.tail]);
-		service_result_buffer.buffer[service_result_buffer.tail]=NULL;
+		my_free((void **)&check_result_buffer.buffer[check_result_buffer.tail]);
+		check_result_buffer.buffer[check_result_buffer.tail]=NULL;
 
 		/* adjust tail counter and number of items */
-		service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
-		service_result_buffer.items--;
+		check_result_buffer.tail=(check_result_buffer.tail + 1) % CHECK_RESULT_BUFFER_SLOTS;
+		check_result_buffer.items--;
 
 		result=1;
 	        }
 
 	/* release the lock on the buffer */
-	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
+	pthread_mutex_unlock(&check_result_buffer.buffer_lock);
 
 #ifdef DEBUG0
 	printf("read_check_result() end\n");
@@ -3641,13 +3681,13 @@ int write_check_result(check_result *info){
 		return 0;
 
 	asprintf(&buf,
-		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%s\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
+		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%s\n%d=%f\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
 		 ,1,info->object_check_type
 		 ,2,(info->host_name==NULL)?"":info->host_name
 		 ,3,(info->service_description==NULL)?"":info->service_description
 		 ,4,info->check_type
-		 ,5,info->parallelized
-		 ,6,(info->output_file==NULL)?"":info->output_file
+		 ,5,(info->output_file==NULL)?"":info->output_file
+		 ,6,info->latency
 		 ,7,info->start_time.tv_sec,info->start_time.tv_usec
 		 ,8,info->finish_time.tv_sec,info->finish_time.tv_usec
 		 ,9,info->early_timeout
@@ -4792,34 +4832,34 @@ int deinit_embedded_perl(void){
 /******************************************************************/
 
 /* initializes service result worker thread */
-int init_service_result_worker_thread(void){
+int init_check_result_worker_thread(void){
 	int result=0;
 	sigset_t newmask;
 
 	/* initialize circular buffer */
-	service_result_buffer.head=0;
-	service_result_buffer.tail=0;
-	service_result_buffer.items=0;
-	service_result_buffer.overflow=0L;
-	service_result_buffer.buffer=(void **)malloc(SERVICE_BUFFER_SLOTS*sizeof(check_result **));
-	if(service_result_buffer.buffer==NULL)
+	check_result_buffer.head=0;
+	check_result_buffer.tail=0;
+	check_result_buffer.items=0;
+	check_result_buffer.overflow=0L;
+	check_result_buffer.buffer=(void **)malloc(CHECK_RESULT_BUFFER_SLOTS*sizeof(check_result **));
+	if(check_result_buffer.buffer==NULL)
 		return ERROR;
 
 	/* initialize mutex */
-	pthread_mutex_init(&service_result_buffer.buffer_lock,NULL);
+	pthread_mutex_init(&check_result_buffer.buffer_lock,NULL);
 
 	/* new thread should block all signals */
 	sigfillset(&newmask);
 	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
 
 	/* create worker thread */
-	result=pthread_create(&worker_threads[SERVICE_WORKER_THREAD],NULL,service_result_worker_thread,NULL);
+	result=pthread_create(&worker_threads[CHECK_RESULT_WORKER_THREAD],NULL,check_result_worker_thread,NULL);
 
 	/* main thread should unblock all signals */
 	pthread_sigmask(SIG_UNBLOCK,&newmask,NULL);
 
 #ifdef DEBUG1
-	printf("SERVICE CHECK THREAD: %lu\n",(unsigned long)worker_threads[SERVICE_WORKER_THREAD]);
+	printf("SERVICE CHECK THREAD: %lu\n",(unsigned long)worker_threads[CHECK_RESULT_WORKER_THREAD]);
 #endif
 
 	if(result)
@@ -4830,28 +4870,28 @@ int init_service_result_worker_thread(void){
 
 
 /* shutdown the service result worker thread */
-int shutdown_service_result_worker_thread(void){
+int shutdown_check_result_worker_thread(void){
 
 	/* tell the worker thread to exit */
-	pthread_cancel(worker_threads[SERVICE_WORKER_THREAD]);
+	pthread_cancel(worker_threads[CHECK_RESULT_WORKER_THREAD]);
 
 	/* wait for the worker thread to exit */
-	pthread_join(worker_threads[SERVICE_WORKER_THREAD],NULL);
+	pthread_join(worker_threads[CHECK_RESULT_WORKER_THREAD],NULL);
 
 	return OK;
         }
 
 
 /* clean up resources used by service result worker thread */
-void cleanup_service_result_worker_thread(void *arg){
+void cleanup_check_result_worker_thread(void *arg){
 	register int x=0;
 
 	/* release memory allocated to circular buffer */
-	for(x=service_result_buffer.tail;x!=service_result_buffer.head;x=(x+1) % SERVICE_BUFFER_SLOTS){
-		my_free((void **)&((check_result **)service_result_buffer.buffer)[x]);
-		((check_result **)service_result_buffer.buffer)[x]=NULL;
+	for(x=check_result_buffer.tail;x!=check_result_buffer.head;x=(x+1) % CHECK_RESULT_BUFFER_SLOTS){
+		my_free((void **)&((check_result **)check_result_buffer.buffer)[x]);
+		((check_result **)check_result_buffer.buffer)[x]=NULL;
 	        }
-	my_free((void **)&service_result_buffer.buffer);
+	my_free((void **)&check_result_buffer.buffer);
 
 	/* free memory allocated to dynamic buffer */
 	dbuf_free(&check_result_dbuf);
@@ -4926,8 +4966,8 @@ void cleanup_command_file_worker_thread(void *arg){
         }
 
 
-/* service worker thread - artificially increases buffer of IPC pipe */
-void * service_result_worker_thread(void *arg){	
+/* check result worker thread - artificially increases buffer of IPC pipe */
+void * check_result_worker_thread(void *arg){	
 	struct pollfd pfd;
 	int pollval=0;
 	struct timeval tv;
@@ -4938,7 +4978,7 @@ void * service_result_worker_thread(void *arg){
 	check_result info;
 
 	/* specify cleanup routine */
-	pthread_cleanup_push(cleanup_service_result_worker_thread,NULL);
+	pthread_cleanup_push(cleanup_check_result_worker_thread,NULL);
 
 	/* set cancellation info */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
@@ -4955,8 +4995,8 @@ void * service_result_worker_thread(void *arg){
 	info.host_name=NULL;
 	info.service_description=NULL;
 	info.check_type=SERVICE_CHECK_ACTIVE;
-	info.parallelized=TRUE;
 	info.output_file=NULL;
+	info.latency=0.0;
 	info.start_time.tv_sec=0;
 	info.start_time.tv_usec=0;
 	info.finish_time.tv_sec=0;
@@ -4985,20 +5025,23 @@ void * service_result_worker_thread(void *arg){
 
 			switch(errno){
 			case EBADF:
-				write_to_log("service_result_worker_thread(): poll(): EBADF",logging_options,NULL);
+				write_to_log("check_result_worker_thread(): poll(): EBADF",logging_options,NULL);
 				break;
 			case ENOMEM:
-				write_to_log("service_result_worker_thread(): poll(): ENOMEM",logging_options,NULL);
+				write_to_log("check_result_worker_thread(): poll(): ENOMEM",logging_options,NULL);
 				break;
 			case EFAULT:
-				write_to_log("service_result_worker_thread(): poll(): EFAULT",logging_options,NULL);
+				write_to_log("check_result_worker_thread(): poll(): EFAULT",logging_options,NULL);
 				break;
 			case EINTR:
-				/* this should never happen, except when debugging */
-				write_to_log("service_result_worker_thread(): poll(): EINTR (impossible). Perhaps we're running under gdb?",logging_options,NULL);
+				/* this can happen when we're running Nagios under a debugger like gdb */
+				/* REMOVED 03/11/2006 EG */
+				/*
+				write_to_log("check_result_worker_thread(): poll(): EINTR (impossible). Perhaps we're running under gdb?",logging_options,NULL);
+				*/
 				break;
 			default:
-				write_to_log("service_result_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);
+				write_to_log("check_result_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);
 				break;
 			        }
 
@@ -5009,12 +5052,12 @@ void * service_result_worker_thread(void *arg){
 		pthread_testcancel();
 
 		/* get number of items in the buffer */
-		pthread_mutex_lock(&service_result_buffer.buffer_lock);
-		buffer_items=service_result_buffer.items;
-		pthread_mutex_unlock(&service_result_buffer.buffer_lock);
+		pthread_mutex_lock(&check_result_buffer.buffer_lock);
+		buffer_items=check_result_buffer.items;
+		pthread_mutex_unlock(&check_result_buffer.buffer_lock);
 
 		/* process data in the pipe (one message max) if there's some free space in the circular buffer */
-		if(buffer_items<SERVICE_BUFFER_SLOTS){
+		if(buffer_items<CHECK_RESULT_BUFFER_SLOTS){
 
 			/* read all data from client */
 			while(1){
@@ -5146,9 +5189,9 @@ int handle_check_result_input2(check_result *info, char *buf){
 		/* reinitialize check result structure */
 		info->object_check_type=SERVICE_CHECK;
 		info->check_type=SERVICE_CHECK_ACTIVE;
-		info->parallelized=TRUE;
 		info->start_time.tv_sec=0;
 		info->start_time.tv_usec=0;
+		info->latency=0.0;
 		info->finish_time.tv_sec=0;
 		info->finish_time.tv_usec=0;
 		info->early_timeout=FALSE;
@@ -5182,10 +5225,10 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->check_type=atoi(val);
 		break;
 	case 5:
-		info->parallelized=atoi(val);
+		info->output_file=(char *)strdup(val);
 		break;
 	case 6:
-		info->output_file=(char *)strdup(val);
+		info->latency=strtod(val,NULL);
 		break;
 	case 7:
 		if((ptr1=strtok(val,"."))==NULL)
@@ -5249,33 +5292,33 @@ int buffer_check_result(check_result *info){
 		new_info->output_file=(char *)strdup(info->output_file);
 
 	/* obtain a lock for writing to the buffer */
-	pthread_mutex_lock(&service_result_buffer.buffer_lock);
+	pthread_mutex_lock(&check_result_buffer.buffer_lock);
 
 	/* handle overflow conditions */
 	/* NOTE: This should never happen - child processes will instead block trying to write messages to the pipe... */
-	if(service_result_buffer.items==SERVICE_BUFFER_SLOTS){
+	if(check_result_buffer.items==CHECK_RESULT_BUFFER_SLOTS){
 
 		/* record overflow */
-		service_result_buffer.overflow++;
+		check_result_buffer.overflow++;
 
 		/* update tail pointer */
-		service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
+		check_result_buffer.tail=(check_result_buffer.tail + 1) % CHECK_RESULT_BUFFER_SLOTS;
 	        }
 
 	/* save the data to the buffer */
-	((check_result **)service_result_buffer.buffer)[service_result_buffer.head]=new_info;
+	((check_result **)check_result_buffer.buffer)[check_result_buffer.head]=new_info;
 
 	/* increment the head counter and items */
-	service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
-	if(service_result_buffer.items<SERVICE_BUFFER_SLOTS)
-		service_result_buffer.items++;
+	check_result_buffer.head=(check_result_buffer.head + 1) % CHECK_RESULT_BUFFER_SLOTS;
+	if(check_result_buffer.items<CHECK_RESULT_BUFFER_SLOTS)
+		check_result_buffer.items++;
 	
 #ifdef DEBUG_CHECK_IPC
-	printf("BUFFER OK.  TOTAL ITEMS=%d\n",service_result_buffer.items);
+	printf("BUFFER OK.  TOTAL ITEMS=%d\n",check_result_buffer.items);
 #endif
 
 	/* release lock on buffer */
-	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
+	pthread_mutex_unlock(&check_result_buffer.buffer_lock);
 
 	return OK;
         }
@@ -5413,7 +5456,6 @@ int submit_external_command(char *cmd, int *buffer_items){
 /* submits a raw external command (without timestamp) for processing */
 int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 	char *newcmd=NULL;
-	int length=0;
 	int result=OK;
 	time_t timestamp;
 
@@ -5662,6 +5704,11 @@ int reset_variables(void){
 	max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
 
 	use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
+	use_old_host_check_logic=TRUE;
+	cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
+	cached_service_check_horizon=DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
+	enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
+	enable_predictive_service_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS;
 
 	soft_state_dependencies=FALSE;
 
@@ -5674,7 +5721,7 @@ int reset_variables(void){
 	modified_service_process_attributes=MODATTR_NONE;
 
 	command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
-	service_check_reaper_interval=DEFAULT_SERVICE_REAPER_INTERVAL;
+	check_reaper_interval=DEFAULT_CHECK_REAPER_INTERVAL;
 	service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	auto_rescheduling_interval=DEFAULT_AUTO_RESCHEDULING_INTERVAL;
@@ -5682,6 +5729,7 @@ int reset_variables(void){
 
 	check_external_commands=DEFAULT_CHECK_EXTERNAL_COMMANDS;
 	check_orphaned_services=DEFAULT_CHECK_ORPHANED_SERVICES;
+	check_orphaned_hosts=DEFAULT_CHECK_ORPHANED_HOSTS;
 	check_service_freshness=DEFAULT_CHECK_SERVICE_FRESHNESS;
 	check_host_freshness=DEFAULT_CHECK_HOST_FRESHNESS;
 	auto_reschedule_checks=DEFAULT_AUTO_RESCHEDULE_CHECKS;

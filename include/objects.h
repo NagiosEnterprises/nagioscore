@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-11-2006
  *
  * License:
  *
@@ -135,6 +135,7 @@ typedef struct host_struct{
         hostsmember *parent_hosts;
 	char    *host_check_command;
 	int     check_interval;
+	int     retry_interval;
 	int     max_attempts;
 	char    *event_handler;
 	contactgroupsmember *contact_groups;
@@ -198,6 +199,7 @@ typedef struct host_struct{
 	unsigned long last_event_id;
 	double  latency;
 	double  execution_time;
+	int     is_executing;
 	int     check_options;
 	int     notifications_enabled;
 	time_t  last_host_notification;
@@ -506,6 +508,13 @@ typedef struct hostdependency_struct{
         }hostdependency;
 
 
+/* OBJECT LIST STRUCTURE */
+typedef struct objectlist_struct{
+	void      *object_ptr;
+	struct objectlist_struct *next;
+        }objectlist;
+
+
 
 /****************** HASH STRUCTURES ********************/
 
@@ -549,7 +558,7 @@ contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,i
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
-host *add_host(char *,char *,char *,char *,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,char *,int,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
@@ -623,6 +632,10 @@ hostdependency *get_next_hostdependency_by_dependent_host(char *,hostdependency 
 servicedependency *get_first_servicedependency_by_dependent_service(char *,char *);
 servicedependency *get_next_servicedependency_by_dependent_service(char *,char *,servicedependency *);
 
+#ifdef NSCORE
+int add_object_to_objectlist(objectlist **,void *);
+int free_objectlist(objectlist **);
+#endif
 
 
 /**** Object Query Functions ****/
@@ -647,9 +660,9 @@ int number_of_immediate_parent_hosts(host *);				/* counts the number of immedia
 int number_of_total_parent_hosts(host *);				/* counts the number of total parents hosts for a particular host */
 
 #ifdef NSCORE
-int check_for_circular_path(host *,host *);                             /* checks if a circular path exists for a given host */
-int check_for_circular_servicedependency(servicedependency *,servicedependency *,int);   /* checks if a circular dependency exists for a given service */
-int check_for_circular_hostdependency(hostdependency *,hostdependency *,int);   /* checks if a circular dependency exists for a given host */
+int check_for_circular_host_path(host *,host *);                             /* checks if a circular path exists for a given host */
+int check_for_circular_servicedependency_path(servicedependency *,servicedependency *,int);   /* checks if a circular dependency exists for a given service */
+int check_for_circular_hostdependency_path(hostdependency *,hostdependency *,int);   /* checks if a circular dependency exists for a given host */
 #endif
 
 

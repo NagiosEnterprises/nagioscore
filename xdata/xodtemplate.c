@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-10-2006
  *
  * Description:
  *
@@ -1420,6 +1420,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_statusmap_image=FALSE;
 		new_host->check_interval=0;
 		new_host->have_check_interval=FALSE;
+		new_host->retry_interval=0;
+		new_host->have_retry_interval=FALSE;
 		new_host->active_checks_enabled=TRUE;
 		new_host->have_active_checks_enabled=FALSE;
 		new_host->passive_checks_enabled=TRUE;
@@ -2871,6 +2873,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		else if(!strcmp(variable,"check_interval") || !strcmp(variable,"normal_check_interval")){
 			temp_host->check_interval=atoi(value);
 			temp_host->have_check_interval=TRUE;
+		        }
+		else if(!strcmp(variable,"retry_interval") || !strcmp(variable,"retry_check_interval")){
+			temp_host->retry_interval=atoi(value);
+			temp_host->have_retry_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"max_check_attempts")){
 			temp_host->max_check_attempts=atoi(value);
@@ -6451,6 +6457,10 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 			this_host->check_interval=template_host->check_interval;
 			this_host->have_check_interval=TRUE;
 	                }
+		if(this_host->have_retry_interval==FALSE && template_host->have_retry_interval==TRUE){
+			this_host->retry_interval=template_host->retry_interval;
+			this_host->have_retry_interval=TRUE;
+	                }
 		if(this_host->have_max_check_attempts==FALSE && template_host->have_max_check_attempts==TRUE){
 			this_host->max_check_attempts=template_host->max_check_attempts;
 			this_host->have_max_check_attempts=TRUE;
@@ -8842,7 +8852,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		this_host->address=(char *)strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->check_interval,this_host->retry_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 
 	/* return with an error if we couldn't add the host */
@@ -10359,6 +10369,7 @@ int xodtemplate_cache_objects(char *cache_file){
 		if(temp_host->failure_prediction_options)
 			fprintf(fp,"\tfailure_prediction_options\t%s\n",temp_host->failure_prediction_options);
 		fprintf(fp,"\tcheck_interval\t%d\n",temp_host->check_interval);
+		fprintf(fp,"\tretry_interval\t%d\n",temp_host->retry_interval);
 		fprintf(fp,"\tmax_check_attempts\t%d\n",temp_host->max_check_attempts);
 		fprintf(fp,"\tactive_checks_enabled\t%d\n",temp_host->active_checks_enabled);
 		fprintf(fp,"\tpassive_checks_enabled\t%d\n",temp_host->passive_checks_enabled);

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-11-2006
  *
  * License:
  *
@@ -99,7 +99,7 @@ extern int      max_child_process_time;
 extern int      max_parallel_service_checks;
 
 extern int      command_check_interval;
-extern int      service_check_reaper_interval;
+extern int      check_reaper_interval;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
 extern int      auto_rescheduling_interval;
@@ -107,11 +107,17 @@ extern int      auto_rescheduling_window;
 
 extern int      check_external_commands;
 extern int      check_orphaned_services;
+extern int      check_orphaned_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
 
 extern int      use_aggressive_host_checking;
+extern int      use_old_host_check_logic;
+extern unsigned long cached_host_check_horizon;
+extern unsigned long cached_service_check_horizon;
+extern int      enable_predictive_host_dependency_checks;
+extern int      enable_predictive_service_dependency_checks;
 
 extern int      soft_state_dependencies;
 
@@ -813,6 +819,41 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 
+		else if(!strcmp(variable,"use_old_host_check_logic")){
+			use_old_host_check_logic=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\tuse_old_host_check_logic set to %s\n",(use_old_host_check_logic==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+
+		else if(!strcmp(variable,"cached_host_check_horizon")){
+			cached_host_check_horizon=strtoul(value,NULL,0);
+#ifdef DEBUG1
+			printf("\t\tcached_host_check_horizon set to %lu\n",cached_host_check_horizon);
+#endif
+		        }
+
+		else if(!strcmp(variable,"enable_predictive_host_dependency_checks")){
+			enable_predictive_host_dependency_checks=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\tenable_predictive_host_dependency_checks set to %s\n",(enable_predictive_host_dependency_checks==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+
+		else if(!strcmp(variable,"cached_service_check_horizon")){
+			cached_service_check_horizon=strtoul(value,NULL,0);
+#ifdef DEBUG1
+			printf("\t\tcached_service_check_horizon set to %lu\n",cached_service_check_horizon);
+#endif
+		        }
+
+		else if(!strcmp(variable,"enable_predictive_service_dependency_checks")){
+			enable_predictive_service_dependency_checks=(atoi(value)>0)?TRUE:FALSE;
+#ifdef DEBUG1
+			printf("\t\tenable_predictive_service_dependency_checks set to %s\n",(enable_predictive_service_dependency_checks==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+
 		else if(!strcmp(variable,"soft_state_dependencies")){
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
 				strcpy(error_message,"Illegal value for soft_state_dependencies");
@@ -1003,17 +1044,17 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 
-		else if(!strcmp(variable,"service_reaper_frequency")){
+		else if(!strcmp(variable,"check_result_reaper_frequency") || !strcmp(variable,"service_reaper_frequency")){
 
-			service_check_reaper_interval=atoi(value);
-			if(service_check_reaper_interval<1){
-				strcpy(error_message,"Illegal value for service_reaper_frequency");
+			check_reaper_interval=atoi(value);
+			if(check_reaper_interval<1){
+				strcpy(error_message,"Illegal value for check_result_reaper_frequency");
 				error=TRUE;
 				break;
 			        }
 
 #ifdef DEBUG1
-			printf("\t\tservice_check_reaper_interval set to %d\n",service_check_reaper_interval);
+			printf("\t\tcheck_result_reaper_interval set to %d\n",check_reaper_interval);
 #endif
 		        }
 
@@ -1086,6 +1127,21 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tcheck_orphaned_services set to %s\n",(check_orphaned_services==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+
+		else if(!strcmp(variable,"check_for_orphaned_hosts")){
+
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for check_for_orphaned_hosts");
+				error=TRUE;
+				break;
+			        }
+
+			check_orphaned_hosts=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tcheck_orphaned_hosts set to %s\n",(check_orphaned_host==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 
@@ -2799,7 +2855,7 @@ int pre_flight_circular_check(int *w, int *e){
 		for(temp_host2=host_list;temp_host2!=NULL;temp_host2=temp_host2->next)
 			temp_host2->circular_path_checked=FALSE;
 
-		found=check_for_circular_path(temp_host,temp_host);
+		found=check_for_circular_host_path(temp_host,temp_host);
 		if(found==TRUE){
 			asprintf(&temp_buffer,"Error: There is a circular parent/child path that exists for host '%s'!",temp_host->name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -2829,7 +2885,7 @@ int pre_flight_circular_check(int *w, int *e){
 		for(temp_sd2=servicedependency_list;temp_sd2!=NULL;temp_sd2=temp_sd2->next)
 			temp_sd2->circular_path_checked=FALSE;
 
-		found=check_for_circular_servicedependency(temp_sd,temp_sd,EXECUTION_DEPENDENCY);
+		found=check_for_circular_servicedependency_path(temp_sd,temp_sd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
 			asprintf(&temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -2845,7 +2901,7 @@ int pre_flight_circular_check(int *w, int *e){
 		for(temp_sd2=servicedependency_list;temp_sd2!=NULL;temp_sd2=temp_sd2->next)
 			temp_sd2->circular_path_checked=FALSE;
 
-		found=check_for_circular_servicedependency(temp_sd,temp_sd,NOTIFICATION_DEPENDENCY);
+		found=check_for_circular_servicedependency_path(temp_sd,temp_sd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
 			asprintf(&temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for service '%s' on host '%s'!",temp_sd->service_description,temp_sd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -2861,7 +2917,7 @@ int pre_flight_circular_check(int *w, int *e){
 		for(temp_hd2=hostdependency_list;temp_hd2!=NULL;temp_hd2=temp_hd2->next)
 			temp_hd2->circular_path_checked=FALSE;
 
-		found=check_for_circular_hostdependency(temp_hd,temp_hd,EXECUTION_DEPENDENCY);
+		found=check_for_circular_hostdependency_path(temp_hd,temp_hd,EXECUTION_DEPENDENCY);
 		if(found==TRUE){
 			asprintf(&temp_buffer,"Error: A circular execution dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
@@ -2877,7 +2933,7 @@ int pre_flight_circular_check(int *w, int *e){
 		for(temp_hd2=hostdependency_list;temp_hd2!=NULL;temp_hd2=temp_hd2->next)
 			temp_hd2->circular_path_checked=FALSE;
 
-		found=check_for_circular_hostdependency(temp_hd,temp_hd,NOTIFICATION_DEPENDENCY);
+		found=check_for_circular_hostdependency_path(temp_hd,temp_hd,NOTIFICATION_DEPENDENCY);
 		if(found==TRUE){
 			asprintf(&temp_buffer,"Error: A circular notification dependency (which could result in a deadlock) exists for host '%s'!",temp_hd->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-11-2006
  *
  * License:
  *
@@ -801,7 +801,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int check_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int check_interval, int retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host=NULL;
 	host *new_host=NULL;
 	int result=OK;
@@ -971,6 +971,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* duplicate non-string vars */
 	new_host->max_attempts=max_attempts;
 	new_host->check_interval=check_interval;
+	new_host->retry_interval=(retry_interval==0)?1:retry_interval;
 	new_host->notification_interval=notification_interval;
 	new_host->first_notification_delay=first_notification_delay;
 	new_host->notify_on_recovery=(notify_up>0)?TRUE:FALSE;
@@ -1018,6 +1019,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->current_attempt=1;
 	new_host->state_type=HARD_STATE;
 	new_host->execution_time=0.0;
+	new_host->is_executing=FALSE;
 	new_host->latency=0.0;
 	new_host->last_state_change=(time_t)0;
 	new_host->last_hard_state_change=(time_t)0;
@@ -3337,6 +3339,60 @@ servicedependency *get_next_servicedependency_by_dependent_service(char *host_na
 
 
 
+/* adds a object to a list of objects */
+int add_object_to_objectlist(objectlist **list, void *object_ptr){
+	objectlist *temp_item=NULL;
+	objectlist *new_item=NULL;
+
+	if(list==NULL || object_ptr==NULL)
+		return ERROR;
+
+	/* skip this object if its already in the list */
+	for(temp_item=*list;temp_item;temp_item=temp_item->next){
+		if(temp_item->object_ptr==object_ptr)
+			break;
+	        }
+	if(temp_item)
+		return OK;
+
+	/* allocate memory for a new list item */
+	if((new_item=(objectlist *)malloc(sizeof(objectlist)))==NULL)
+		return ERROR;
+
+	/* initialize vars */
+	new_item->object_ptr=object_ptr;
+
+	/* add new item to head of list */
+	new_item->next=*list;
+	*list=new_item;
+
+	return OK;
+        }
+
+
+
+/* frees memory allocated to a temporary object list */
+int free_objectlist(objectlist **temp_list){
+	objectlist *this_objectlist=NULL;
+	objectlist *next_objectlist=NULL;
+
+	if(temp_list==NULL)
+		return ERROR;
+
+	/* free memory allocated to object list */
+	for(this_objectlist=*temp_list;this_objectlist!=NULL;this_objectlist=next_objectlist){
+		next_objectlist=this_objectlist->next;
+		my_free((void **)&this_objectlist);
+	        }
+
+	*temp_list=NULL;
+
+	return OK;
+        }
+
+
+
+
 /******************************************************************/
 /********************* OBJECT QUERY FUNCTIONS *********************/
 /******************************************************************/
@@ -3679,7 +3735,7 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 #ifdef NSCORE
 
 /* checks to see if there exists a circular parent/child path for a host */
-int check_for_circular_path(host *root_hst, host *hst){
+int check_for_circular_host_path(host *root_hst, host *hst){
 	host *temp_host=NULL;
 
 	/* don't go into a loop, don't bother checking anymore if we know this host already has a loop */
@@ -3704,7 +3760,7 @@ int check_for_circular_path(host *root_hst, host *hst){
 	/* check all immediate children for a circular path */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(is_host_immediate_child_of_host(hst,temp_host)==TRUE)
-			if(check_for_circular_path(root_hst,temp_host)==TRUE)
+			if(check_for_circular_host_path(root_hst,temp_host)==TRUE)
 				return TRUE;
 	        }
 
@@ -3713,7 +3769,7 @@ int check_for_circular_path(host *root_hst, host *hst){
 
 
 /* checks to see if there exists a circular dependency for a service */
-int check_for_circular_servicedependency(servicedependency *root_dep, servicedependency *dep, int dependency_type){
+int check_for_circular_servicedependency_path(servicedependency *root_dep, servicedependency *dep, int dependency_type){
 	servicedependency *temp_sd=NULL;
 
 	if(root_dep==NULL || dep==NULL)
@@ -3755,7 +3811,7 @@ int check_for_circular_servicedependency(servicedependency *root_dep, servicedep
 		if(strcmp(dep->host_name,temp_sd->dependent_host_name) || strcmp(dep->service_description,temp_sd->dependent_service_description))
 			continue;
 
-		if(check_for_circular_servicedependency(root_dep,temp_sd,dependency_type)==TRUE)
+		if(check_for_circular_servicedependency_path(root_dep,temp_sd,dependency_type)==TRUE)
 			return TRUE;
 	        }
 
@@ -3764,7 +3820,7 @@ int check_for_circular_servicedependency(servicedependency *root_dep, servicedep
 
 
 /* checks to see if there exists a circular dependency for a host */
-int check_for_circular_hostdependency(hostdependency *root_dep, hostdependency *dep, int dependency_type){
+int check_for_circular_hostdependency_path(hostdependency *root_dep, hostdependency *dep, int dependency_type){
 	hostdependency *temp_hd=NULL;
 
 	if(root_dep==NULL || dep==NULL)
@@ -3806,7 +3862,7 @@ int check_for_circular_hostdependency(hostdependency *root_dep, hostdependency *
 		if(strcmp(dep->host_name,temp_hd->dependent_host_name))
 			continue;
 
-		if(check_for_circular_hostdependency(root_dep,temp_hd,dependency_type)==TRUE)
+		if(check_for_circular_hostdependency_path(root_dep,temp_hd,dependency_type)==TRUE)
 			return TRUE;
 	        }
 

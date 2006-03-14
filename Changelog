@@ -67,6 +67,19 @@ Pre-alpha changes since 02/15/2006...
 * Comment changes:
      - Comments are now stored in the status and retention files
 
+* Host check logic changes:
+     - Most host checks are now run asynchronously, in parallel!
+     - Scheduled host checks now help improve performance, instead of hinder it (if caching is enabled)
+     - Added cached_host_check_horizon option for enabling use of cached host check results
+     - Added enable_predictive_host_dependency_checks for enabling predictive checks of dependent hosts
+     - Added retry_interval to host definitions
+     - Added check_for_orphaned_hosts option and support for orphaned host checks
+
+* Service check logic changes:
+     - 'parallelize' option in service definitions deprecated/no longer used
+     - Added cached_service_check_horizon option for enabling use of cached service check results
+     - Added enable_predictive_service_dependency_checks for enabling predictive checks of dependent services
+
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions
@@ -74,4 +87,6 @@ Pre-alpha changes since 02/15/2006...
      - Added temp_path directive to main config file for specifying temp directory
      - Multiline output support for system commands via my_system()
      - Added global event_id and notification_id vars that are at least unique during a single run of Nagios
+     - Default is now to check for orphaned services, rather than not
+     - Renamed service_reaper_frequency to check_result_reaper_frequency
 

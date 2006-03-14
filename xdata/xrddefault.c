@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Last Modified:   03-10-2006
  *
  * License:
  *
@@ -669,7 +669,7 @@ int xrddefault_read_state_information(void){
 					update_host_status(temp_host,FALSE);
 
 					/* check for flapping */
-					check_for_host_flapping(temp_host,FALSE);
+					check_for_host_flapping(temp_host,FALSE,FALSE);
 
 					/* handle new vars added in 2.x */
 					if(temp_host->last_hard_state_change==(time_t)0)

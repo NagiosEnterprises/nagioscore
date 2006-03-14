@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-06-2006
+ * Last Modified: 03-10-2006
  *
  * License:
  *
@@ -169,7 +169,7 @@ void check_for_service_flapping(service *svc, int update){
 
 
 /* detects host flapping */
-void check_for_host_flapping(host *hst, int update){
+void check_for_host_flapping(host *hst, int update, int actual_check){
 	int update_history=TRUE;
 	int is_flapping=FALSE;
 	register int x=0;
@@ -192,7 +192,6 @@ void check_for_host_flapping(host *hst, int update){
 	/* period to wait for updating archived state info if we have no state change */
 	if(hst->total_services==0)
 		wait_threshold=hst->notification_interval*interval_length;
-	
 	else
 		wait_threshold=(hst->total_service_check_interval*interval_length)/hst->total_services;
 
@@ -209,8 +208,8 @@ void check_for_host_flapping(host *hst, int update){
 			update_history=FALSE;
 	        }
 
-	/* if we haven't waited long enough since last record, only update if we've had a state change */
-	if(update_history==TRUE && (current_time-hst->last_state_history_update)<wait_threshold){
+	/* if we didn't have an actual check, only update if we've waited long enough */
+	if(update_history==TRUE && actual_check==FALSE && (current_time-hst->last_state_history_update)<wait_threshold){
 
 		/* get the last recorded state */
 		last_state_history_value=hst->state_history[(hst->state_history_index==0)?MAX_STATE_HISTORY_ENTRIES-1:hst->state_history_index-1];

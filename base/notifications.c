@@ -1374,7 +1374,7 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 	commandsmember *temp_commandsmember;
 	char command_name[MAX_INPUT_BUFFER];
 	char *command_name_ptr;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 	char raw_command[MAX_COMMAND_BUFFER];
 	char processed_command[MAX_COMMAND_BUFFER];
 	int early_timeout=FALSE;

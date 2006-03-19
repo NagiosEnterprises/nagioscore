@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2006
+ * Last Modified:   03-17-2006
  *
  * License:
  *
@@ -301,7 +301,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 						found_macro_x=TRUE;
 						
 						/* host/service output/perfdata macros get cleaned */
-						if(x>=16 && x<=19){
+						if((x>=16 && x<=19) || (x>=99 && x<=100)){
 							clean_macro=TRUE;
 							options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 						        }
@@ -321,7 +321,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					selected_macro=macro_ondemand;
 
 					/* output/perfdata macros get cleaned */
-					if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"HOSTPERFDATA:")){
+					if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGHOSTOUTPUT:")==temp_buffer  || strstr(temp_buffer,"HOSTPERFDATA:")){
 						clean_macro=TRUE;
 						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 					        }
@@ -334,7 +334,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					selected_macro=macro_ondemand;
 
 					/* output/perfdata macros get cleaned */
-					if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
+					if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGSERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
 						clean_macro=TRUE;
 						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 					        }

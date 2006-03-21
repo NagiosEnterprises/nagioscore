@@ -476,18 +476,18 @@ void document_header(int use_stylesheet){
 	char date_time[MAX_DATETIME_LENGTH];
 	time_t expire_time;
 
-	printf("Cache-Control: no-store\n");
-	printf("Pragma: no-cache\n");
-	printf("Refresh: %d\n",refresh_rate);
+	printf("Cache-Control: no-store\r\n");
+	printf("Pragma: no-cache\r\n");
+	printf("Refresh: %d\r\n",refresh_rate);
 
 	get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Last-Modified: %s\n",date_time);
+	printf("Last-Modified: %s\r\n",date_time);
 
 	expire_time=(time_t)0L;
 	get_time_string(&expire_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Expires: %s\n",date_time);
+	printf("Expires: %s\r\n",date_time);
 
-	printf("Content-type: text/html\n\n");
+	printf("Content-type: text/html\r\n\r\n");
 
 	if(embedded==TRUE)
 		return;

@@ -183,17 +183,17 @@ void document_header(void){
 
 	time(&current_time);
 
-	printf("Cache-Control: no-store\n");
-	printf("Pragma: no-cache\n");
+	printf("Cache-Control: no-store\r\n");
+	printf("Pragma: no-cache\r\n");
 
 	get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Last-Modified: %s\n",date_time);
+	printf("Last-Modified: %s\r\n",date_time);
 
 	expire_time=(time_t)0L;
 	get_time_string(&expire_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Expires: %s\n",date_time);
+	printf("Expires: %s\r\n",date_time);
 
-	printf("Content-type: text/vnd.wap.wml\n\n");
+	printf("Content-type: text/vnd.wap.wml\r\n\r\n");
 
 	printf("<?xml version=\"1.0\"?>\n");
 	printf("<!DOCTYPE wml PUBLIC \"-//WAPFORUM//DTD WML 1.1//EN\" \"http://www.wapforum.org/DTD/wml_1.1.xml\">\n");

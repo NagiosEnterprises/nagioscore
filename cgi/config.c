@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2006
+ * Last Modified: 03-21-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -287,10 +287,10 @@ void document_header(int use_stylesheet){
 	time(&t);
 	get_time_string(&t,date_time,sizeof(date_time),HTTP_DATE_TIME);
 
-	printf("Cache-Control: no-store\n");
-	printf("Pragma: no-cache\n");
-	printf("Last-Modified: %s\n",date_time);
-	printf("Expires: %s\n",date_time);
+	printf("Cache-Control: no-store\r\n");
+	printf("Pragma: no-cache\r\n");
+	printf("Last-Modified: %s\r\n",date_time);
+	printf("Expires: %s\r\n",date_time);
 	printf("Content-type: text/html\r\n\r\n");
 
 	printf("<html>\n");

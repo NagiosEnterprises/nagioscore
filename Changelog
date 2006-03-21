@@ -13,6 +13,7 @@ Nagios 2.x Change Log
 * Bug fix in status CGI when displaying servicegroups
 * Bug fixes in computation of indeterminate time and scheduled downtime in availability CGI
 * Bug fix with not deleting all comments associated with a service
+* Lowered max plugin output length from 348 to 332 chars to run on 64-bit systems without problems
 * Minor doc updates
 
 

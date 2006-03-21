@@ -69,27 +69,29 @@ package OutputTrap;
  
 sub TIEHANDLE {
 	my ($class) = @_;
-	my $me ;
+	my $me = '';
 	bless \$me, $class;
 }
 
 sub PRINT {
 	my $self = shift;
-	$$self = substr(join('',@_), 0, 256) ;
-	# $$self .= substr(join('',@_), 0, 256) ;
+	# $$self = substr(join('',@_), 0, 256) ;
+	$$self .= substr(join('',@_), 0, 256) ;
 }
 
 sub PRINTF {
 	my $self = shift;
 	my $fmt = shift;
-	$$self = substr(sprintf($fmt,@_), 0, 256) ;
-	# $$self .= substr(sprintf($fmt,@_), 0, 256) ;
+	# $$self = substr(sprintf($fmt,@_), 0, 256) ;
+	$$self .= substr(sprintf($fmt,@_), 0, 256) ;
 }
 
 sub READLINE {
 	my $self = shift;
+								# Omit all lines after the first, per the nagios plugin guidelines
+        $$self = (split /\n/, $$self)[0];
 								# Perl code other than plugins may print nothing; in this case return "(No output!)\n".
-	return $$self ? $$self : "(No output!)\n" ;
+	return $$self ? substr($$self, 0, 256) : "(No output!)\n" ;
 }
 
 sub CLOSE {

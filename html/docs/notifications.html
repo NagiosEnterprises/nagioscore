@@ -57,7 +57,7 @@ Each service definition has a &lt;<i>contact_groups</i>&gt; option that specifie
 </p>
 
 <p>
-Each host may belong to one or more host groups.  Each host group has a &lt;<i>contact_groups</i>&gt; option that specifies what contact groups receive notifications for hosts in that particular host group.  When Nagios sends out a host notification, it will notify contacts that are members of all the contact groups that that should be notified for any and all host groups that the host is a member of.  Nagios removes any duplicate contacts from the notification list before it does anything.
+Each host definition has a &lt;<i>contact_groups</i>&gt; option that specifies what contact groups receive notifications for that particular host.  When Nagios sends out a host notification, it will notify contacts that are members of all the contact groups that that should be notified for that host.  Nagios removes any duplicate contacts from the notification list before it does anything.
 </p>
 
 

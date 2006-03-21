@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-20-2006
+ * Last Modified: 03-21-2006
  *
  * License:
  * 
@@ -2257,13 +2257,20 @@ void compute_subject_downtime(avail_subject *subject, time_t current_time){
 
 
 /* computes downtime times */
-void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_subject *subject, archived_state *sd){
-	archived_state *temp_as;
-	time_t part_start_time;
-	time_t part_subject_state;
+void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_subject *subject, archived_state *sd) {
+	archived_state *temp_as=NULL;
+	time_t part_start_time=0L;
+	time_t part_subject_state=0L;
+	int save_status=0;
+	int saved_status=0;
+	int saved_stamp=0;
+	int calc_temp=0;
+	int count=0;
+	archived_state *temp_before=NULL;
+	archived_state *last=NULL;
 
 #ifdef DEBUG2
-	printf("ENTERING COMPUTE_SUBJECT_DOWNTIME_TIMES: start=%lu, end=%lu\n",start_time,end_time);
+	printf("<P><b>ENTERING COMPUTE_SUBJECT_DOWNTIME_TIMES: start=%lu, end=%lu, t1=%lu, t2=%lu </b></P>",start_time,end_time,t1,t2);
 #endif
 
 	/* times are weird, so bail out... */
@@ -2271,32 +2278,32 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 		return;
 	if(start_time<t1 || end_time>t2)
 		return;
-
+		
 	/* find starting point in archived state list */
-	if(sd==NULL){
+	if(sd==NULL){ 
 #ifdef DEBUG2
-		printf("\tTEMP_AS=SUBJECT->AS_LIST\n");
+		printf("<P>TEMP_AS=SUBJECT->AS_LIST </P>");
 #endif
 		temp_as=subject->as_list;
-	        }
+		}
 	else if(sd->misc_ptr==NULL){
 #ifdef DEBUG2
-		printf("\tTEMP_AS=SUBJECT->AS_LIST\n");
+		printf("<P>TEMP_AS=SUBJECT->AS_LIST</P>");
 #endif
 		temp_as=subject->as_list;
-	        }
+		}
 	else if(sd->misc_ptr->next==NULL){
 #ifdef DEBUG2
-		printf("\tTEMP_AS=SD->MISC_PTR\n");
+		printf("<P>TEMP_AS=SD->MISC_PTR</P>");
 #endif
 		temp_as=sd->misc_ptr;
-	        }
+		}
 	else{
 #ifdef DEBUG2
-		printf("\tTEMP_AS=SD->MISC_PTR->NEXT\n");
+		printf("<P>TEMP_AS=SD->MISC_PTR->NEXT</P>");
 #endif
 		temp_as=sd->misc_ptr->next;
-	        }
+		}
 
 	/* initialize values */
 	part_start_time=start_time;
@@ -2304,74 +2311,79 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 		part_subject_state=AS_NO_DATA;
 	else if(temp_as->processed_state==AS_PROGRAM_START || temp_as->processed_state==AS_PROGRAM_END || temp_as->processed_state==AS_NO_DATA){
 #ifdef DEBUG2
-		printf("\tENTRY TYPE #1: %d\n",temp_as->entry_type);
+		printf("<P>ENTRY TYPE #1: %d</P>",temp_as->entry_type);
 #endif
 		part_subject_state=AS_NO_DATA;
 	        }
 	else{
 #ifdef DEBUG2
-		printf("\tENTRY TYPE #2: %d\n",temp_as->entry_type);
+		printf("<P>ENTRY TYPE #2: %d</P>",temp_as->entry_type);
 #endif
 		part_subject_state=temp_as->processed_state;
 	        }
 
 #ifdef DEBUG2
-	printf("\tTEMP_AS=%s\n",(temp_as==NULL)?"NULL":"Not NULL");
-	printf("\tSD=%s\n",(sd==NULL)?"NULL":"Not NULL");
+	printf("<P>TEMP_AS=%s</P>",(temp_as==NULL)?"NULL":"Not NULL");
+	printf("<P>SD=%s</P>",(sd==NULL)?"NULL":"Not NULL");
 #endif
-	
+
 	/* temp_as now points to first event to possibly "break" this chunk */
 	for(;temp_as!=NULL;temp_as=temp_as->next){
+		count++;
+		last=temp_as;
 
-		/* time looks weird, skip this one but update subject state */
-		if(temp_as->time_stamp<start_time){
-#ifdef DEBUG2
-			printf("\tSKIPPING EVENT %d (%d) at time %lu\n",temp_as->entry_type,temp_as->processed_state,temp_as->time_stamp);
-#endif
-			part_subject_state=temp_as->processed_state;
+		if(temp_before==NULL){
+			if(last->time_stamp>start_time){
+				if(last->time_stamp>end_time)
+					compute_subject_downtime_part_times(start_time,end_time,part_subject_state,subject);
+				else
+					compute_subject_downtime_part_times(start_time,last->time_stamp,part_subject_state,subject);
+				}
+			temp_before=temp_as;
+			saved_status=temp_as->entry_type;
+			saved_stamp=temp_as->time_stamp;
+
+			/* check if first time is before schedule downtime */
+			if(saved_stamp<start_time)
+				saved_stamp=start_time;
+
 			continue;
-		        }
+			}
 
-		/* this event happens after chunk we care about, so clip time and get out... */
-		else if(temp_as->time_stamp>=end_time){
-			compute_subject_downtime_part_times(part_start_time,end_time,part_subject_state,subject);
-			break;
-		        }
+		/* if status changed, we have to calculate */
+		if(saved_status!=temp_as->entry_type){
 
-		/* this event is a program stop or (re)start, so downtime implicitly ends here... */
-		else if(temp_as->entry_type==AS_PROGRAM_START || temp_as->entry_type==AS_PROGRAM_END){
-			compute_subject_downtime_part_times(part_start_time,temp_as->time_stamp,part_subject_state,subject);
-			break;
-		        }
+			/* is outside schedule time, use end schdule downtime */
+			if(temp_as->time_stamp>end_time){ 
+				if(saved_stamp<start_time)
+					compute_subject_downtime_part_times(start_time,end_time,saved_status,subject);
+				else
+					compute_subject_downtime_part_times(saved_stamp,end_time,saved_status,subject);
+				}
+			else{
+				if(saved_stamp<start_time)
+					compute_subject_downtime_part_times(start_time,temp_as->time_stamp,saved_status,subject);
+				else
+					compute_subject_downtime_part_times(saved_stamp,temp_as->time_stamp,saved_status,subject);
+				}
+			saved_status=temp_as->entry_type;
+			saved_stamp=temp_as->time_stamp;			
+			}
+		}
 
-		/* normal event occurs within our time chunk */
-		else{
-
-			/* record time for this chunk */
-			/*compute_subject_downtime_part_times(part_start_time,end_time,part_subject_state);*/
-
-			/* update start time using this event's timestamp as new start time */
-			part_start_time=temp_as->time_stamp;
-			
-			/* set running subject state */
-			if(temp_as->processed_state==AS_PROGRAM_START || temp_as->processed_state==AS_PROGRAM_END || temp_as->processed_state==AS_NO_DATA)
-				part_subject_state=AS_NO_DATA;
-			else
-				part_subject_state=temp_as->processed_state;
-		        }
-	        }
-
-	/* archived state list ran out before we did... */
-	if(temp_as==NULL){
-#ifdef DEBUG2
-		printf("\tARCHIVED STATE LIST RAN OUT...\n");
-#endif
-		compute_subject_downtime_part_times(part_start_time,end_time,part_subject_state,subject);
-	        }
+	/* just one entry inside the scheduled downtime */
+	if(count==0)
+		compute_subject_downtime_part_times(start_time,end_time,part_subject_state,subject);
+	else{
+		/* is outside scheduled time, use end schdule downtime */
+		if(last->time_stamp>end_time) 
+			compute_subject_downtime_part_times(saved_stamp,end_time,saved_status,subject);
+		else
+			compute_subject_downtime_part_times(saved_stamp,last->time_stamp,saved_status,subject);
+		}
 
 	return;
-        }
-
+	}
 
 
 
@@ -3754,6 +3766,7 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		percent_time_warning=0.0;
 		percent_time_unknown=0.0;
 		percent_time_critical=0.0;
+		percent_time_indeterminate=0.0;
 		percent_time_ok_known=0.0;
 		percent_time_warning_known=0.0;
 		percent_time_unknown_known=0.0;
@@ -3764,6 +3777,7 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 			percent_time_warning=(double)(((double)temp_subject->time_warning*100.0)/(double)total_time);
 			percent_time_unknown=(double)(((double)temp_subject->time_unknown*100.0)/(double)total_time);
 			percent_time_critical=(double)(((double)temp_subject->time_critical*100.0)/(double)total_time);
+			percent_time_indeterminate=(double)(((double)time_indeterminate*100.0)/(double)total_time);
 			if(time_determinate>0){
 				percent_time_ok_known=(double)(((double)temp_subject->time_ok*100.0)/(double)time_determinate);
 				percent_time_warning_known=(double)(((double)temp_subject->time_warning*100.0)/(double)time_determinate);

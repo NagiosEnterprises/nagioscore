@@ -2,8 +2,8 @@
  *
  * COMMENTS.C - Comment functions for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-15-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-21-2006
  *
  * License:
  *
@@ -274,7 +274,7 @@ int delete_all_comments(int type, char *host_name, char *svc_description){
 /* deletes all comments for a particular host */
 int delete_all_host_comments(char *host_name){
 	int result;
-	comment *temp_comment;
+	comment *temp_comment=NULL;
 
 	if(host_name==NULL)
 		return ERROR;
@@ -297,16 +297,24 @@ int delete_all_host_comments(char *host_name){
 /* deletes all comments for a particular service */
 int delete_all_service_comments(char *host_name, char *svc_description){
 	int result;
-	comment *temp_comment;
+	comment *temp_comment=NULL;
+	comment *next_comment=NULL;
 
 	if(host_name==NULL || svc_description==NULL)
 		return ERROR;
 	
 	/* delete service comments from memory */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=next_comment){
+		next_comment=temp_comment->next;
+		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->host_name,host_name) && !strcmp(temp_comment->service_description,svc_description))
+			delete_comment(SERVICE_COMMENT,temp_comment->comment_id);
+	        }
+#ifdef REMOVED_032106
 	for(temp_comment=get_first_comment_by_host(host_name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(host_name,temp_comment)){
 		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->service_description,svc_description))
 			delete_comment(SERVICE_COMMENT,temp_comment->comment_id);
 	        }
+#endif
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT

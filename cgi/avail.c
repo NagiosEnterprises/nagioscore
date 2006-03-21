@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-20-2006
+ * Last Modified: 03-21-2006
  *
  * License:
  * 
@@ -3754,6 +3754,7 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		percent_time_warning=0.0;
 		percent_time_unknown=0.0;
 		percent_time_critical=0.0;
+		percent_time_indeterminate=0.0;
 		percent_time_ok_known=0.0;
 		percent_time_warning_known=0.0;
 		percent_time_unknown_known=0.0;
@@ -3764,6 +3765,7 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 			percent_time_warning=(double)(((double)temp_subject->time_warning*100.0)/(double)total_time);
 			percent_time_unknown=(double)(((double)temp_subject->time_unknown*100.0)/(double)total_time);
 			percent_time_critical=(double)(((double)temp_subject->time_critical*100.0)/(double)total_time);
+			percent_time_indeterminate=(double)(((double)time_indeterminate*100.0)/(double)total_time);
 			if(time_determinate>0){
 				percent_time_ok_known=(double)(((double)temp_subject->time_ok*100.0)/(double)time_determinate);
 				percent_time_warning_known=(double)(((double)temp_subject->time_warning*100.0)/(double)time_determinate);

@@ -11,6 +11,8 @@ Nagios 2.x Change Log
 * Bug fix for $TOTALHOSTSDOWNUNHANDLED$ macro
 * Bug fix in sample minimal.cfg file
 * Bug fix in status CGI when displaying servicegroups
+* Bug fix in computation of indeterminate time in availability CGI
+* Bug fix with not deleting all comments associated with a service
 
 
 

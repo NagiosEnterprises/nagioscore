@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-20-2006
+ * Last Modified: 03-21-2006
  *
  * License:
  * 
@@ -313,9 +313,9 @@ int main(void){
 				if(group_style_type==STYLE_DETAIL)
 					printf("<a href='%s?servicegroup=all&style=detail'>View Service Status Detail For All Service Groups</a><br>\n",STATUS_CGI);
 				if(group_style_type==STYLE_OVERVIEW)
-					printf("<a href='%s?servicegroup&style=overview'>View Status Overview For All Service Groups</a><br>\n",STATUS_CGI);
+					printf("<a href='%s?servicegroup=all&style=overview'>View Status Overview For All Service Groups</a><br>\n",STATUS_CGI);
 				if(group_style_type==STYLE_SUMMARY)
-					printf("<a href='%s?servicegroup&style=summary'>View Status Summary For All Service Groups</a><br>\n",STATUS_CGI);
+					printf("<a href='%s?servicegroup=all&style=summary'>View Status Summary For All Service Groups</a><br>\n",STATUS_CGI);
 				if(group_style_type==STYLE_GRID)
 					printf("<a href='%s?servicegroup=all&style=grid'>View Service Status Grid For All Service Groups</a><br>\n",STATUS_CGI);
 

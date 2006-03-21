@@ -8,6 +8,9 @@ Nagios 2.x Change Log
 * Changed freshness logic so that passive checks don't immediately go stale after program restart
 * Bug fix for minor memory leak in object cleanup code
 * Bug fix for flapping notifications during scheduled downtime
+* Bug fix for $TOTALHOSTSDOWNUNHANDLED$ macro
+* Bug fix in sample minimal.cfg file
+* Bug fix in status CGI when displaying servicegroups
 
 
 

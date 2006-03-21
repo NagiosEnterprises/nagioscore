@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-23-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-21-2006
  *
  * License:
  * 
@@ -229,7 +229,7 @@ void document_header(int use_stylesheet){
 
 	if(content_type==WML_CONTENT){
 
-		printf("Content-type: text/vnd.wap.wml\n\n");
+		printf("Content-type: text/vnd.wap.wml\r\n\r\n");
 
 		printf("<?xml version=\"1.0\"?>\n");
 		printf("<!DOCTYPE wml PUBLIC \"-//WAPFORUM//DTD WML 1.1//EN\" \"http://www.wapforum.org/DTD/wml_1.1.xml\">\n");

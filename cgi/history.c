@@ -2,8 +2,8 @@
  *
  * HISTORY.C - Nagios History CGI
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-02-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 03-21-2006
  *
  * This CGI program will display the history for the specified host.
  * If no host is specified, the history for all hosts will be displayed.
@@ -301,18 +301,18 @@ void document_header(int use_stylesheet){
 	time_t current_time;
 	time_t expire_time;
 
-	printf("Cache-Control: no-store\n");
-	printf("Pragma: no-cache\n");
+	printf("Cache-Control: no-store\r\n");
+	printf("Pragma: no-cache\r\n");
 
 	time(&current_time);
 	get_time_string(&current_time,date_time,sizeof(date_time),HTTP_DATE_TIME);
-	printf("Last-Modified: %s\n",date_time);
+	printf("Last-Modified: %s\r\n",date_time);
 
 	expire_time=(time_t)0L;
 	get_time_string(&expire_time,date_time,sizeof(date_time),HTTP_DATE_TIME);
-	printf("Expires: %s\n",date_time);
+	printf("Expires: %s\r\n",date_time);
 
-	printf("Content-type: text/html\n\n");
+	printf("Content-type: text/html\r\n\r\n");
 
 	if(embedded==TRUE)
 		return;

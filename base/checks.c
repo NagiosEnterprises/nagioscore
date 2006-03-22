@@ -1499,6 +1499,7 @@ int check_service_dependencies(service *svc,int dependency_type){
 int check_host_dependencies(host *hst,int dependency_type){
 	hostdependency *temp_dependency=NULL;
 	host *temp_host=NULL;
+	int state=HOST_UP;
 
 #ifdef DEBUG0
 	printf("check_host_dependencies() start\n");
@@ -1516,14 +1517,20 @@ int check_host_dependencies(host *hst,int dependency_type){
 		if(temp_host==NULL)
 			continue;
 
+		/* get the status to use (use last hard state if its currently in a soft state) */
+		if(temp_host->state_type==SOFT_STATE && soft_state_dependencies==FALSE)
+			state=temp_host->last_hard_state;
+		else
+			state=temp_host->current_state;
+
 		/* is the host we depend on in state that fails the dependency tests? */
-		if(temp_host->current_state==HOST_UP && temp_dependency->fail_on_up==TRUE)
+		if(state==HOST_UP && temp_dependency->fail_on_up==TRUE)
 			return DEPENDENCIES_FAILED;
-		if(temp_host->current_state==HOST_DOWN && temp_dependency->fail_on_down==TRUE)
+		if(state==HOST_DOWN && temp_dependency->fail_on_down==TRUE)
 			return DEPENDENCIES_FAILED;
-		if(temp_host->current_state==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
+		if(state==HOST_UNREACHABLE && temp_dependency->fail_on_unreachable==TRUE)
 			return DEPENDENCIES_FAILED;
-		if((temp_host->current_state==HOST_UP && temp_host->has_been_checked==FALSE) && temp_dependency->fail_on_pending==TRUE)
+		if((state==HOST_UP && temp_host->has_been_checked==FALSE) && temp_dependency->fail_on_pending==TRUE)
 			return DEPENDENCIES_FAILED;
 
 		/* immediate dependencies ok at this point - check parent dependencies if necessary */

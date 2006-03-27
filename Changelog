@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.1 - ??/??/2006
+2.1 - 03/27/2006
 ----------------
 * Changed freshness logic so that passive checks don't immediately go stale after program restart
 * Bug fix for minor memory leak in object cleanup code
@@ -16,6 +16,7 @@ Nagios 2.x Change Log
 * Lowered max plugin output length from 348 to 332 chars to run on 64-bit systems without problems
 * Minor fix to p1.pl for embedded Perl interpreter
 * Minor fixes to WAP interface (statuswml CGI)
+* Minor bug fix to VRML interface (statuswrl CGI)
 * Minor doc updates
 
 

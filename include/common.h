@@ -21,8 +21,8 @@
  ************************************************************************/
 
 
-#define PROGRAM_VERSION "2.0"
-#define PROGRAM_MODIFICATION_DATE "02-07-2006"
+#define PROGRAM_VERSION "2.1"
+#define PROGRAM_MODIFICATION_DATE "03-27-2006"
 
 
 

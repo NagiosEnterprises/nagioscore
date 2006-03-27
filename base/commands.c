@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2006
+ * Last Modified:   03-26-2006
  *
  * License:
  *
@@ -71,9 +71,12 @@ extern unsigned long    modified_service_process_attributes;
 
 extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
+extern command  *global_host_event_handler_ptr;
+extern command  *global_service_event_handler_ptr;
 
 extern timed_event      *event_list_high;
 extern timed_event      *event_list_low;
+extern timed_event      *event_list_low_tail;
 
 extern host     *host_list;
 extern service  *service_list;
@@ -2681,8 +2684,8 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 			/* schedule a check for right now (or as soon as possible) */
 			time(&preferred_time);
-			if(check_time_against_period(preferred_time,temp_host->check_period)==ERROR){
-				get_next_valid_time(preferred_time,&next_valid_time,temp_host->check_period);
+			if(check_time_against_period(preferred_time,temp_host->check_period_ptr)==ERROR){
+				get_next_valid_time(preferred_time,&next_valid_time,temp_host->check_period_ptr);
 				temp_host->next_check=next_valid_time;
 			        }
 			else
@@ -2723,8 +2726,8 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 			/* schedule a check for right now (or as soon as possible) */
 			time(&preferred_time);
-			if(check_time_against_period(preferred_time,temp_service->check_period)==ERROR){
-				get_next_valid_time(preferred_time,&next_valid_time,temp_service->check_period);
+			if(check_time_against_period(preferred_time,temp_service->check_period_ptr)==ERROR){
+				get_next_valid_time(preferred_time,&next_valid_time,temp_service->check_period_ptr);
 				temp_service->next_check=next_valid_time;
 			        }
 			else
@@ -2808,6 +2811,8 @@ int cmd_change_object_int_var(int cmd,char *args){
 int cmd_change_object_char_var(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
+	timeperiod *temp_timeperiod=NULL;
+	command *temp_command=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
 	char *charval=NULL;
@@ -2875,7 +2880,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 	case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
 
 		/* make sure the timeperiod is valid */
-		if(find_timeperiod(temp_ptr)==NULL){
+		if((temp_timeperiod=find_timeperiod(temp_ptr))==NULL){
 			my_free((void **)&temp_ptr);
 			return ERROR;
 		        }
@@ -2886,7 +2891,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		/* make sure the command exists */
 		temp_ptr2=my_strtok(temp_ptr,"!");
-		if(find_command(temp_ptr2)==NULL){
+		if((temp_command=find_command(temp_ptr2))==NULL){
 			my_free((void **)&temp_ptr);
 			return ERROR;
 		        }
@@ -2906,6 +2911,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&global_host_event_handler);
 		global_host_event_handler=temp_ptr;
+		global_host_event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
@@ -2913,6 +2919,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&global_service_event_handler);
 		global_service_event_handler=temp_ptr;
+		global_service_event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
@@ -2920,6 +2927,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&temp_host->event_handler);
 		temp_host->event_handler=temp_ptr;
+		temp_host->event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
@@ -2927,6 +2935,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&temp_host->host_check_command);
 		temp_host->host_check_command=temp_ptr;
+		temp_host->check_command_ptr=temp_command;
 		attr=MODATTR_CHECK_COMMAND;
 		break;
 
@@ -2934,6 +2943,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&temp_host->check_period);
 		temp_host->check_period=temp_ptr;
+		temp_host->check_period_ptr=temp_timeperiod;
 		attr=MODATTR_CHECK_TIMEPERIOD;
 		break;
 
@@ -2941,6 +2951,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&temp_service->event_handler);
 		temp_service->event_handler=temp_ptr;
+		temp_service->event_handler_ptr=temp_command;
 		attr=MODATTR_EVENT_HANDLER_COMMAND;
 		break;
 
@@ -2948,6 +2959,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&temp_service->service_check_command);
 		temp_service->service_check_command=temp_ptr;
+		temp_service->check_command_ptr=temp_command;
 		attr=MODATTR_CHECK_COMMAND;
 		break;
 
@@ -2955,6 +2967,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 		my_free((void **)&temp_service->check_period);
 		temp_service->check_period=temp_ptr;
+		temp_service->check_period_ptr=temp_timeperiod;
 		attr=MODATTR_CHECK_TIMEPERIOD;
 		break;
 
@@ -3235,7 +3248,7 @@ void disable_service_checks(service *svc){
 
 	/* we found a check event to remove */
 	if(temp_event!=NULL){
-		remove_event(temp_event,&event_list_low);
+		remove_event(temp_event,&event_list_low,&event_list_low_tail);
 		my_free((void **)&temp_event);
 	        }
 
@@ -3277,8 +3290,8 @@ void enable_service_checks(service *svc){
 
 	/* schedule a check for right now (or as soon as possible) */
 	time(&preferred_time);
-	if(check_time_against_period(preferred_time,svc->check_period)==ERROR){
-		get_next_valid_time(preferred_time,&next_valid_time,svc->check_period);
+	if(check_time_against_period(preferred_time,svc->check_period_ptr)==ERROR){
+		get_next_valid_time(preferred_time,&next_valid_time,svc->check_period_ptr);
 		svc->next_check=next_valid_time;
 	        }
 	else
@@ -4306,7 +4319,7 @@ void disable_host_checks(host *hst){
 
 	/* we found a check event to remove */
 	if(temp_event!=NULL){
-		remove_event(temp_event,&event_list_low);
+		remove_event(temp_event,&event_list_low,&event_list_low_tail);
 		my_free((void **)&temp_event);
 	        }
 
@@ -4347,8 +4360,8 @@ void enable_host_checks(host *hst){
 
 	/* schedule a check for right now (or as soon as possible) */
 	time(&preferred_time);
-	if(check_time_against_period(preferred_time,hst->check_period)==ERROR){
-		get_next_valid_time(preferred_time,&next_valid_time,hst->check_period);
+	if(check_time_against_period(preferred_time,hst->check_period_ptr)==ERROR){
+		get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
 		hst->next_check=next_valid_time;
 	        }
 	else
@@ -4929,6 +4942,7 @@ void process_passive_checks(void){
 				        }
 
 				info.host_name=(char *)strdup(temp_pcr->host_name);
+				info.service_description=NULL;
 				if(temp_pcr->service_description)
 					info.service_description=(char *)strdup(temp_pcr->service_description);
 				info.output_file=(info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);

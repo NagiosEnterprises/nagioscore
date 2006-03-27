@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   03-05-2006
+ * Last Modified:   03-26-2006
  *
  * Description:
  *
@@ -78,9 +78,13 @@ customvariablesmember *macro_custom_contact_vars=NULL;
 
 char            *global_host_event_handler=NULL;
 char            *global_service_event_handler=NULL;
+command         *global_host_event_handler_ptr=NULL;
+command         *global_service_event_handler_ptr=NULL;
 
 char            *ocsp_command=NULL;
 char            *ochp_command=NULL;
+command         *ocsp_command_ptr=NULL;
+command         *ochp_command_ptr=NULL;
 
 char            *illegal_object_chars=NULL;
 char            *illegal_output_chars=NULL;
@@ -207,6 +211,8 @@ double          high_service_flap_threshold=DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD;
 double          low_host_flap_threshold=DEFAULT_LOW_HOST_FLAP_THRESHOLD;
 double          high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
+int             use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+
 int             date_format=DATE_FORMAT_US;
 
 int             command_file_fd;
@@ -308,7 +314,9 @@ int main(int argc, char **argv){
 			break;
 
 		case 'o': /* don't verify objects */
+			/*
 			verify_object_relationships=FALSE;
+			*/
 			break;
 
 		case 'x': /* don't verify circular paths */
@@ -377,7 +385,7 @@ int main(int argc, char **argv){
 		printf("  -v, --verify-config          Verify all configuration data\n");
 		printf("  -s, --test-scheduling        Shows projected/recommended check scheduling and other\n");
 		printf("                               diagnostic info based on the current configuration files.\n");
-		printf("  -o, --dont-verify-objects    Don't verify object relationships - USE WITH CAUTION!\n");
+		/*printf("  -o, --dont-verify-objects    Don't verify object relationships - USE WITH CAUTION!\n");*/
 		printf("  -x, --dont-verify-paths      Don't check for circular object paths - USE WITH CAUTION!\n");
 		printf("  -p, --precache-objects       Precache object configuration - use with -v or -s options\n");
 		printf("  -u, --use-precached-objects  Use precached object config file\n");
@@ -508,21 +516,31 @@ int main(int argc, char **argv){
 		reset_variables();
 
 		/* read in the configuration files (main config file and all host config files) */
-		if((result=read_main_config_file(config_file))==OK){
+		result=read_main_config_file(config_file);
 
-			/* drop privileges */
+		/* drop privileges */
+		if(result==OK)
 			if((result=drop_privileges(nagios_user,nagios_group))==ERROR)
 				printf("Failed to drop privileges.  Aborting.");
-			else
-				/* read object config files */
-				result=read_all_object_data(config_file);
-		        }
+
+		/* read object config files */
+		if(result==OK)
+			result=read_all_object_data(config_file);
+
+		/* read initial service and host state information */
+		if(result==OK){
+			initialize_retention_data(config_file);
+			read_initial_state_information();
+			}
+
 		if(result!=OK)
 			printf("***> One or more problems was encountered while reading configuration data...\n");
 
 		/* run the pre-flight check to make sure everything looks okay */
-		else if((result=pre_flight_check())!=OK)
-			printf("***> One or more problems was encountered while running the pre-flight check...\n");
+		if(result==OK){
+			if((result=pre_flight_check())!=OK)
+				printf("***> One or more problems was encountered while running the pre-flight check...\n");
+			}
 
 		if(result==OK){
 
@@ -531,7 +549,15 @@ int main(int argc, char **argv){
 
 			/* display scheduling information */
 			display_scheduling_info();
+
+			if(precache_objects==TRUE){
+				printf("\n");
+				printf("OBJECT PRECACHING\n");
+				printf("-----------------\n");
+				printf("Object config files were precached.\n");
+				}
 		        }
+
 
 		/* clean up after ourselves */
 		cleanup();

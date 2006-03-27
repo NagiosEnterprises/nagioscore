@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2006
+ * Last Modified: 03-27-2006
  *
  * License:
  *
@@ -68,6 +68,10 @@
 
 /****************** DATA STRUCTURES *******************/
 
+typedef struct host_struct host;
+typedef struct service_struct service;
+typedef struct contact_struct contact;
+
 /* TIMERANGE structure */
 typedef struct timerange_struct{
 	unsigned long range_start;
@@ -89,6 +93,9 @@ typedef struct timeperiod_struct{
 /* CONTACTGROUPMEMBER structure */
 typedef struct contactgroupmember_struct{
 	char    *contact_name;
+#ifdef NSCORE
+	contact *contact_ptr;
+#endif
 	struct  contactgroupmember_struct *next;
         }contactgroupmember;
 
@@ -106,6 +113,9 @@ typedef struct contactgroup_struct{
 /* CONTACTGROUPSMEMBER structure */
 typedef struct contactgroupsmember_struct{
 	char    *group_name;
+#ifdef NSCORE
+	contactgroup *group_ptr;
+#endif
 	struct contactgroupsmember_struct *next;
         }contactgroupsmember;
 
@@ -119,15 +129,57 @@ typedef struct customvariablesmember_struct{
         }customvariablesmember;
 
 
+/* COMMAND structure */
+typedef struct command_struct{
+	char    *name;
+	char    *command_line;
+	struct command_struct *next;
+	struct command_struct *nexthash;
+        }command;
+
+
+/* COMMANDSMEMBER structure */
+typedef struct commandsmember_struct{
+	char	*command;
+#ifdef NSCORE
+	command *command_ptr;
+#endif
+	struct	commandsmember_struct *next;
+	}commandsmember;
+
+
 /* HOSTSMEMBER structure */
 typedef struct hostsmember_struct{
-	char *host_name;
+	char    *host_name;
+#ifdef NSCORE
+	host    *host_ptr;
+#endif
 	struct hostsmember_struct *next;
         }hostsmember;
 
 
+/* HOSTGROUPMEMBER structure */
+typedef struct hostgroupmember_struct{
+	char    *host_name;
+#ifdef NSCORE
+	host    *host_ptr;
+#endif
+	struct  hostgroupmember_struct *next;
+        }hostgroupmember;
+
+
+/* HOSTGROUP structure */
+typedef struct hostgroup_struct{
+	char 	*group_name;
+	char    *alias;
+	hostgroupmember *members;
+	struct	hostgroup_struct *next;
+	struct	hostgroup_struct *nexthash;
+	}hostgroup;
+
+
 /* HOST structure */
-typedef struct host_struct{
+struct host_struct{
 	char    *name;
 	char    *display_name;
 	char	*alias;
@@ -233,33 +285,25 @@ typedef struct host_struct{
 	unsigned long modified_attributes;
 	int     circular_path_checked;
 	int     contains_circular_path;
+
+	command *event_handler_ptr;
+	command *check_command_ptr;
+	timeperiod *check_period_ptr;
+	timeperiod *notification_period_ptr;
+	hostgroup *first_hostgroup_ptr;
 #endif
 	struct  host_struct *next;
 	struct  host_struct *nexthash;
-        }host;
-
-
-/* HOSTGROUPMEMBER structure */
-typedef struct hostgroupmember_struct{
-	char    *host_name;
-	struct  hostgroupmember_struct *next;
-        }hostgroupmember;
-
-
-/* HOSTGROUP structure */
-typedef struct hostgroup_struct{
-	char 	*group_name;
-	char    *alias;
-	hostgroupmember *members;
-	struct	hostgroup_struct *next;
-	struct	hostgroup_struct *nexthash;
-	}hostgroup;
+        };
 
 
 /* SERVICEGROUPMEMBER structure */
 typedef struct servicegroupmember_struct{
 	char    *host_name;
 	char    *service_description;
+#ifdef NSCORE
+	service *service_ptr;
+#endif
 	struct  servicegroupmember_struct *next;
         }servicegroupmember;
 
@@ -274,15 +318,8 @@ typedef struct servicegroup_struct{
 	}servicegroup;
 
 
-/* COMMANDSMEMBER structure */
-typedef struct commandsmember_struct{
-	char	*command;
-	struct	commandsmember_struct *next;
-	}commandsmember;
-
-
 /* CONTACT structure */
-typedef struct contact_struct{
+struct contact_struct{
 	char	*name;
 	char	*alias;
 	char	*email;
@@ -313,15 +350,18 @@ typedef struct contact_struct{
 	unsigned long modified_attributes;
 	unsigned long modified_host_attributes;
 	unsigned long modified_service_attributes;
+
+	timeperiod *host_notification_period_ptr;
+	timeperiod *service_notification_period_ptr;
 #endif
 	struct	contact_struct *next;
 	struct	contact_struct *nexthash;
-        }contact;
+        };
 
 
 
 /* SERVICE structure */
-typedef struct service_struct{
+struct service_struct{
 	char	*host_name;
 	char	*description;
 	char    *display_name;
@@ -418,19 +458,19 @@ typedef struct service_struct{
 	unsigned long flapping_comment_id;
 	double  percent_state_change;
 	unsigned long modified_attributes;
+
+	host *host_ptr;
+	command *event_handler_ptr;
+	char *event_handler_args;
+	command *check_command_ptr;
+	char *check_command_args;
+	timeperiod *check_period_ptr;
+	timeperiod *notification_period_ptr;
+	servicegroup *first_servicegroup_ptr;
 #endif
 	struct service_struct *next;
 	struct service_struct *nexthash;
-	}service;
-
-
-/* COMMAND structure */
-typedef struct command_struct{
-	char    *name;
-	char    *command_line;
-	struct command_struct *next;
-	struct command_struct *nexthash;
-        }command;
+	};
 
 
 /* SERVICE ESCALATION structure */
@@ -446,6 +486,10 @@ typedef struct serviceescalation_struct{
 	int     escalate_on_unknown;
 	int     escalate_on_critical;
 	contactgroupsmember *contact_groups;
+#ifdef NSCORE
+	service *service_ptr;
+	timeperiod *escalation_period_ptr;
+#endif
 	struct  serviceescalation_struct *next;
 	struct  serviceescalation_struct *nexthash;
         }serviceescalation;
@@ -467,6 +511,9 @@ typedef struct servicedependency_struct{
 #ifdef NSCORE
 	int     circular_path_checked;
 	int     contains_circular_path;
+
+	service *master_service_ptr;
+	service *dependent_service_ptr;
 #endif
 	struct servicedependency_struct *next;
 	struct servicedependency_struct *nexthash;
@@ -484,6 +531,10 @@ typedef struct hostescalation_struct{
 	int     escalate_on_down;
 	int     escalate_on_unreachable;
 	contactgroupsmember *contact_groups;
+#ifdef NSCORE
+	host    *host_ptr;
+	timeperiod *escalation_period_ptr;
+#endif
 	struct  hostescalation_struct *next;
 	struct  hostescalation_struct *nexthash;
         }hostescalation;
@@ -502,6 +553,9 @@ typedef struct hostdependency_struct{
 #ifdef NSCORE
 	int     circular_path_checked;
 	int     contains_circular_path;
+
+	host    *master_host_ptr;
+	host    *dependent_host_ptr;
 #endif
 	struct hostdependency_struct *next;
 	struct hostdependency_struct *nexthash;

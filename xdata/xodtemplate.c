@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2006
+ * Last Modified: 03-23-2006
  *
  * Description:
  *
@@ -364,9 +364,9 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		printf("below.  You can use this information to see if precaching your\n");
 		printf("object configuration would be useful.\n\n");
 
-		printf("Object Config Source: %s\n\n",(use_precached_objects==TRUE)?"Pre-cached file":"Config files (not pre-cached)");
+		printf("Object Config Source: %s\n\n",(use_precached_objects==TRUE)?"Pre-cached config file":"Object config files");
 
-		printf("OBJECT CONFIG PROCESSING TIMES\n");
+		printf("OBJECT CONFIG PROCESSING TIMES       (* = Potential for precache savings)\n");
 		printf("----------------------------------\n");
 		printf("Read:                 %.6lf sec\n",runtime[0]);
 		printf("Resolve:              %.6lf sec *\n",runtime[1]);
@@ -381,7 +381,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		printf("Free:                 %.6lf sec\n",runtime[10]);
 		printf("                      ============\n");
 		printf("TOTAL:                %.6lf sec\n",runtime[11]);
-		printf("Est Precache Savings: %.6lf sec *\n",runtime[11]-runtime[0]-runtime[9]-runtime[10]);
+		if(use_precached_objects==FALSE)
+			printf("Est Precache Savings: %.6lf sec *\n",runtime[11]-runtime[0]-runtime[9]-runtime[10]);
 		printf("\n\n");
 	        }
 #endif

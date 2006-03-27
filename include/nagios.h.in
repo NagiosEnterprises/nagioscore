@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2006
+ * Last Modified: 03-26-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -225,6 +225,8 @@ extern "C" {
 #define DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS	1	/* should we use predictive host dependency checks? */
 #define DEFAULT_ENABLE_PREDICTIVE_SERVICE_DEPENDENCY_CHECKS	1	/* should we use predictive service dependency checks? */
 
+#define DEFAULT_USE_LARGE_INSTALLATION_TWEAKS                   0       /* don't use tweaks for large Nagios installations */
+
 
 
 /******************* LOGGING TYPES ********************/
@@ -418,6 +420,7 @@ typedef struct timed_event_struct{
 	void *event_data;
 	void *event_args;
         struct timed_event_struct *next;
+        struct timed_event_struct *prev;
         }timed_event;
 
 
@@ -456,6 +459,7 @@ typedef struct sched_info_struct{
 	double average_scheduled_services_per_host;
 	unsigned long service_check_interval_total;
 	unsigned long host_check_interval_total;
+	double average_service_execution_time;
 	double average_service_check_interval;
 	double average_host_check_interval;
 	double average_service_inter_check_delay;
@@ -580,10 +584,9 @@ int close_command_file(void);					/* closes and deletes the external command fil
 
 /**** Monitoring/Event Handler Functions ****/
 int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *);	/* schedules a new timed event */
-void reschedule_event(timed_event *,timed_event **);   		/* reschedules an event */
-int deschedule_event(int,int,void *,void *);            	/* removes an event from the schedule */
-void add_event(timed_event *,timed_event **);     		/* adds an event to the execution queue */
-void remove_event(timed_event *,timed_event **);     		/* remove an event from the execution queue */
+void reschedule_event(timed_event *,timed_event **,timed_event **);   		/* reschedules an event */
+void add_event(timed_event *,timed_event **,timed_event **);     		/* adds an event to the execution queue */
+void remove_event(timed_event *,timed_event **,timed_event **);     		/* remove an event from the execution queue */
 int event_execution_loop(void);                      		/* main monitoring/event handler loop */
 int handle_timed_event(timed_event *);		     		/* top level handler for timed events */
 int check_service_dependencies(service *,int);          	/* checks service dependencies */
@@ -596,7 +599,7 @@ void adjust_check_scheduling(void);		        	/* auto-adjusts scheduling of host
 int my_system(char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
 void compensate_for_system_time_change(unsigned long,unsigned long);	/* attempts to compensate for a change in the system time */
 void adjust_timestamp_for_time_change(time_t,time_t,unsigned long,time_t *); /* adjusts a timestamp variable for a system time change */
-void resort_event_list(timed_event **);                 	/* resorts event list by event run time for system time changes */
+void resort_event_list(timed_event **,timed_event **);                 	/* resorts event list by event run time for system time changes */
 
 
 /**** Flap Detection Functions ****/
@@ -644,7 +647,7 @@ int notify_contact_of_host(contact *,host *,int,char *,char *,int);            	
 int create_notification_list_from_host(host *,int *);         			/* given a host, create list of contacts to be notified (remove duplicates) */
 int create_notification_list_from_service(service *,int *);    			/* given a service, create list of contacts to be notified (remove duplicates) */
 int add_notification(contact *);						/* adds a notification instance */
-notification * find_notification(char *);					/* finds a notification object */
+notification *find_notification(contact *);					/* finds a notification object */
 time_t get_next_host_notification_time(host *,time_t);				/* calculates nex acceptable re-notification time for a host */
 time_t get_next_service_notification_time(service *,time_t);			/* calculates nex acceptable re-notification time for a service */
 
@@ -690,9 +693,10 @@ char *get_url_encoded_string(char *);			/* URL encode a string */
 int compare_strings(char *,char *);                     /* compares two strings for equality */
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
-void get_raw_command_line(char *,char *,int,int);      	/* given a raw command line, determine the actual command to run */
-int check_time_against_period(time_t,char *);		/* check to see if a specific time is covered by a time period */
-void get_next_valid_time(time_t, time_t *,char *);	/* get the next valid time in a time period */
+int get_raw_command_line(command *,char *,char *,int,int);    	/* given a raw command line, determine the actual command to run */
+int get_raw_command_line2(command *,char *,char **,int);      	/* given a raw command line, determine the actual command to run */
+int check_time_against_period(time_t,timeperiod *);		/* check to see if a specific time is covered by a time period */
+void get_next_valid_time(time_t, time_t *,timeperiod *);	/* get the next valid time in a time period */
 void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for use in output */
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
 int init_embedded_perl(char **);			/* initialized embedded perl interpreter */

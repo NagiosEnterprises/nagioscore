@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2006
+ * Last Modified: 03-27-2006
  *
  * License:
  *
@@ -154,6 +154,8 @@ extern double   low_service_flap_threshold;
 extern double   high_service_flap_threshold;
 extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
+
+extern int      use_large_installation_tweaks;
 
 extern int      date_format;
 
@@ -1453,6 +1455,21 @@ int read_main_config_file(char *main_config_file){
 #endif
 			}
 
+		else if(!strcmp(variable,"use_large_installation_tweaks")){
+
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value foruse_large_installation_tweaks ");
+				error=TRUE;
+				break;
+			        }
+
+			use_large_installation_tweaks=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\tuse_large_installation_tweaks set to %s\n",(use_large_installation_tweaks==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){
 
@@ -1927,6 +1944,9 @@ int pre_flight_object_check(int *w, int *e){
 			errors++;
 			}
 
+		/* save the host pointer for later */
+		temp_service->host_ptr=temp_host;
+
 		/* check the event handler command */
 		if(temp_service->event_handler!=NULL){
 
@@ -1945,6 +1965,9 @@ int pre_flight_object_check(int *w, int *e){
 			        }
 
 			my_free((void **)&buf);
+
+			/* save the pointer to the event handler for later */
+			temp_service->event_handler_ptr=temp_command;
 		        }
 
 		/* check the service check_command */
@@ -1959,9 +1982,12 @@ int pre_flight_object_check(int *w, int *e){
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 			errors++;
-		        }		
+		        }
 
 		my_free((void **)&buf);
+
+		/* save the pointer to the check command for later */
+		temp_service->check_command_ptr=temp_command;
 
 		/* check for sane recovery options */
 		if(temp_service->notify_on_recovery==TRUE && temp_service->notify_on_warning==FALSE && temp_service->notify_on_critical==FALSE){
@@ -1985,6 +2011,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
 			}
 
 		/* check to see if there is at least one contact group */
@@ -2010,6 +2039,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the pointer to the check timeperiod for later */
+			temp_service->check_period_ptr=temp_timeperiod;
 		        }
 
 		/* check service notification timeperiod */
@@ -2028,6 +2060,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the pointer to the notification timeperiod for later */
+			temp_service->notification_period_ptr=temp_timeperiod;
 		        }
 
 		/* see if the notification interval is less than the check interval */
@@ -2129,6 +2164,9 @@ int pre_flight_object_check(int *w, int *e){
 			        }
 
 			my_free((void **)&buf);
+
+			/* save the pointer to the event handler command for later */
+			temp_host->event_handler_ptr=temp_command;
 		        }
 
 		/* hosts that don't have check commands defined shouldn't ever be checked... */
@@ -2148,6 +2186,9 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 		                }
 
+			/* save the pointer to the check command for later */
+			temp_host->check_command_ptr=temp_command;
+
 			my_free((void **)&buf);
 		        }
 
@@ -2160,6 +2201,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the pointer to the check timeperiod for later */
+			temp_host->check_period_ptr=temp_timeperiod;
 		        }
 
 		/* check all contact groups */
@@ -2173,6 +2217,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
 			}
 		/* check to see if there is at least one contact group */
 		if(temp_host->contact_groups==NULL){
@@ -2191,17 +2238,23 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the pointer to the notification timeperiod for later */
+			temp_host->notification_period_ptr=temp_timeperiod;
 		        }
 
 		/* check all parent parent host */
 		for(temp_hostsmember=temp_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
 
-			if(find_host(temp_hostsmember->host_name)==NULL){
+			if((temp_host2=find_host(temp_hostsmember->host_name))==NULL){
 				asprintf(&temp_buffer,"Error: '%s' is not a valid parent for host '%s'!",temp_hostsmember->host_name,temp_host->name);
 				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 				my_free((void **)&temp_buffer);
 				errors++;
 		                }
+
+			/* save the parent host pointer for later */
+			temp_hostsmember->host_ptr=temp_host2;
 		        }
 
 		/* check for sane recovery options */
@@ -2254,6 +2307,8 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
+			/* save host pointer for later */
+			temp_hostgroupmember->host_ptr=temp_host;
 		        }
 
 		/* check for illegal characters in hostgroup name */
@@ -2291,6 +2346,8 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
+			/* save service pointer for later */
+			temp_servicegroupmember->service_ptr=temp_service;
 		        }
 
 		/* check for illegal characters in servicegroup name */
@@ -2346,6 +2403,9 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
+			/* save pointer to the command for later */
+			temp_commandsmember->command_ptr=temp_command;
+
 			my_free((void **)&buf);
 		        }
 
@@ -2372,6 +2432,9 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
+			/* save pointer to the command for later */
+			temp_commandsmember->command_ptr=temp_command;
+
 			my_free((void **)&buf);
 	                }
 
@@ -2391,6 +2454,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the pointer to the service notification timeperiod for later */
+			temp_contact->service_notification_period_ptr=temp_timeperiod;
 		        }
 
 		/* check host notification timeperiod */
@@ -2409,6 +2475,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the pointer to the host notification timeperiod for later */
+			temp_contact->host_notification_period_ptr=temp_timeperiod;
 		        }
 
 		found=FALSE;
@@ -2546,6 +2615,8 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
+			/* save the contact pointer for later */
+			temp_contactgroupmember->contact_ptr=temp_contact;
 		        }
 
 		/* check for illegal characters in contactgroup name */
@@ -2583,6 +2654,9 @@ int pre_flight_object_check(int *w, int *e){
 			errors++;
 		        }
 
+		/* save the service pointer for later */
+		temp_se->service_ptr=temp_service;
+
 		/* find the timeperiod */
 		if(temp_se->escalation_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_se->escalation_period);
@@ -2592,6 +2666,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the timeperiod pointer for later */
+			temp_se->escalation_period_ptr=temp_timeperiod;
 		        }
 
 		/* find the contact groups */
@@ -2605,6 +2682,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
 		        }
 	        }
 
@@ -2634,6 +2714,9 @@ int pre_flight_object_check(int *w, int *e){
 			errors++;
 		        }
 
+		/* save pointer for later */
+		temp_sd->dependent_service_ptr=temp_service;
+
 		/* find the service we're depending on */
 		temp_service2=find_service(temp_sd->host_name,temp_sd->service_description);
 		if(temp_service2==NULL){
@@ -2642,6 +2725,9 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		/* save pointer for later */
+		temp_sd->master_service_ptr=temp_service2;
 
 		/* make sure they're not the same service */
 		if(temp_service==temp_service2){
@@ -2678,6 +2764,9 @@ int pre_flight_object_check(int *w, int *e){
 			errors++;
 		        }
 
+		/* save the host pointer for later */
+		temp_he->host_ptr=temp_host;
+
 		/* find the timeperiod */
 		if(temp_he->escalation_period!=NULL){
 		        temp_timeperiod=find_timeperiod(temp_he->escalation_period);
@@ -2687,6 +2776,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the timeperiod pointer for later */
+			temp_he->escalation_period_ptr=temp_timeperiod;
 		        }
 
 		/* find the contact groups */
@@ -2700,6 +2792,9 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save the group pointer for later */
+			temp_contactgroupsmember->group_ptr=temp_contactgroup;
 		        }
 	        }
 
@@ -2728,6 +2823,9 @@ int pre_flight_object_check(int *w, int *e){
 			errors++;
 		        }
 
+		/* save pointer for later */
+		temp_hd->dependent_host_ptr=temp_host2;
+
 		/* find the host we're depending on */
 		temp_host2=find_host(temp_hd->host_name);
 		if(temp_host2==NULL){
@@ -2736,6 +2834,9 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		/* save pointer for later */
+		temp_hd->master_host_ptr=temp_host2;
 
 		/* make sure they're not the same host */
 		if(temp_host==temp_host2){

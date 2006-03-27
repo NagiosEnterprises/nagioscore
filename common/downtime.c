@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-26-2006
  *
  * License:
  *
@@ -49,6 +49,7 @@ scheduled_downtime *scheduled_downtime_list=NULL;
 
 #ifdef NSCORE
 extern timed_event *event_list_high;
+extern timed_event *event_list_high_tail;
 #endif
 
 
@@ -197,7 +198,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 			break;
 	        }
 	if(temp_event!=NULL)
-		remove_event(temp_event,&event_list_high);
+		remove_event(temp_event,&event_list_high,&event_list_high_tail);
 
 	/* delete downtime entry */
 	if(temp_downtime->type==HOST_DOWNTIME)

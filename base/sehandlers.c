@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2006
+ * Last Modified:   03-26-2006
  *
  * License:
  *
@@ -50,9 +50,13 @@ extern char            *macro_x[MACRO_X_COUNT];
 
 extern char            *global_host_event_handler;
 extern char            *global_service_event_handler;
+extern command         *global_host_event_handler_ptr;
+extern command         *global_service_event_handler_ptr;
 
 extern char            *ocsp_command;
 extern char            *ochp_command;
+extern command         *ocsp_command_ptr;
+extern command         *ochp_command_ptr;
 
 extern time_t          program_start;
 
@@ -94,11 +98,11 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(ocsp_command,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(ocsp_command_ptr,ocsp_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw obsessive compulsive service processor command line: %s\n",raw_command_line);
@@ -156,11 +160,11 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	/* update macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(ochp_command,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(ochp_command_ptr,ochp_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw obsessive compulsive host processor command line: %s\n",raw_command_line);
@@ -224,6 +228,7 @@ int handle_service_event(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* run the global service event handler */
@@ -281,8 +286,7 @@ int run_global_service_event_handler(service *svc){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(global_service_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(global_service_event_handler_ptr,global_service_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw global service event handler command line: %s\n",raw_command_line);
@@ -363,8 +367,7 @@ int run_service_event_handler(service *svc){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(svc->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(svc->event_handler_ptr,svc->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw service event handler command line: %s\n",raw_command_line);
@@ -440,6 +443,7 @@ int handle_host_event(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* run the global host event handler */
@@ -496,8 +500,7 @@ int run_global_host_event_handler(host *hst){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(global_host_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(global_host_event_handler_ptr,global_host_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw global host event handler command line: %s\n",raw_command_line);
@@ -575,8 +578,7 @@ int run_host_event_handler(host *hst){
 #endif
 
 	/* get the raw command line */
-	get_raw_command_line(hst->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(hst->event_handler_ptr,hst->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw host event handler command line: %s\n",raw_command_line);

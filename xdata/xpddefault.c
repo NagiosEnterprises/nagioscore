@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-28-2006
+ * Last Modified:   03-26-2006
  *
  * License:
  *
@@ -40,6 +40,8 @@ int     xpddefault_perfdata_timeout;
 
 char    *xpddefault_host_perfdata_command=NULL;
 char    *xpddefault_service_perfdata_command=NULL;
+command *xpddefault_host_perfdata_command_ptr=NULL;
+command *xpddefault_service_perfdata_command_ptr=NULL;
 
 char    *xpddefault_host_perfdata_file_template=NULL;
 char    *xpddefault_service_perfdata_file_template=NULL;
@@ -55,6 +57,8 @@ unsigned long xpddefault_service_perfdata_file_processing_interval=0L;
 
 char    *xpddefault_host_perfdata_file_processing_command=NULL;
 char    *xpddefault_service_perfdata_file_processing_command=NULL;
+command *xpddefault_host_perfdata_file_processing_command_ptr=NULL;
+command *xpddefault_service_perfdata_file_processing_command_ptr=NULL;
 
 FILE    *xpddefault_host_perfdata_fp=NULL;
 FILE    *xpddefault_service_perfdata_fp=NULL;
@@ -198,9 +202,16 @@ int xpddefault_initialize_performance_data(char *config_file){
 	char *buffer=NULL;
 	char *temp_buffer=NULL;
 	char *temp_command_name=NULL;
+	command *temp_command=NULL;
 	time_t current_time;
 
 	time(&current_time);
+
+	/* reset vars */
+	xpddefault_host_perfdata_command_ptr=NULL;
+	xpddefault_service_perfdata_command_ptr=NULL;
+	xpddefault_host_perfdata_file_processing_command_ptr=NULL;
+	xpddefault_service_perfdata_file_processing_command_ptr=NULL;
 
 	/* grab config info from main config file */
 	xpddefault_grab_config_info(config_file);
@@ -227,12 +238,15 @@ int xpddefault_initialize_performance_data(char *config_file){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		if(find_command(temp_command_name)==NULL){
+		if((temp_command=find_command(temp_command_name))==NULL){
 			asprintf(&buffer,"Warning: Host performance command '%s' was not found - host performance data will not be processed!\n",temp_command_name);
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&buffer);
 			my_free((void **)&xpddefault_host_perfdata_command);
 		        }
+
+		/* save the command pointer for later */
+		xpddefault_host_perfdata_command_ptr=temp_command;
 	        }
 	if(xpddefault_service_perfdata_command!=NULL){
 
@@ -241,12 +255,15 @@ int xpddefault_initialize_performance_data(char *config_file){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		if(find_command(temp_command_name)==NULL){
+		if((temp_command=find_command(temp_command_name))==NULL){
 			asprintf(&buffer,"Warning: Service performance command '%s' was not found - service performance data will not be processed!\n",temp_command_name);
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&buffer);
 			my_free((void **)&xpddefault_service_perfdata_command);
 		        }
+
+		/* save the command pointer for later */
+		xpddefault_service_perfdata_command_ptr=temp_command;
 	        }
 	if(xpddefault_host_perfdata_file_processing_command!=NULL){
 
@@ -255,12 +272,15 @@ int xpddefault_initialize_performance_data(char *config_file){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		if(find_command(temp_command_name)==NULL){
+		if((temp_command=find_command(temp_command_name))==NULL){
 			asprintf(&buffer,"Warning: Host performance file processing command '%s' was not found - host performance data file will not be processed!\n",temp_command_name);
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&buffer);
 			my_free((void **)&xpddefault_host_perfdata_file_processing_command);
 		        }
+
+		/* save the command pointer for later */
+		xpddefault_host_perfdata_file_processing_command_ptr=temp_command;
 	        }
 	if(xpddefault_service_perfdata_file_processing_command!=NULL){
 
@@ -269,12 +289,15 @@ int xpddefault_initialize_performance_data(char *config_file){
 		/* get the command name, leave any arguments behind */
 		temp_command_name=my_strtok(temp_buffer,"!");
 
-		if(find_command(temp_command_name)==NULL){
+		if((temp_command=find_command(temp_command_name))==NULL){
 			asprintf(&buffer,"Warning: Service performance file processing command '%s' was not found - service performance data file will not be processed!\n",temp_command_name);
 			write_to_logs_and_console(buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&buffer);
 			my_free((void **)&xpddefault_service_perfdata_file_processing_command);
 		        }
+
+		/* save the command pointer for later */
+		xpddefault_host_perfdata_file_processing_command_ptr=temp_command;
 	        }
 
 	/* periodically process the host perfdata file */
@@ -390,11 +413,11 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw service performance data command line: %s\n",raw_command_line);
@@ -438,11 +461,11 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
-	strip(raw_command_line);
+	get_raw_command_line(xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
 #ifdef DEBUG3
 	printf("\tRaw host performance data command line: %s\n",raw_command_line);
@@ -596,6 +619,7 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw line to write */
@@ -637,6 +661,7 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	/* update host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw output */
@@ -689,7 +714,7 @@ int xpddefault_process_host_perfdata_file(void){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_host_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3
@@ -745,7 +770,7 @@ int xpddefault_process_service_perfdata_file(void){
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(xpddefault_service_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
+	get_raw_command_line(xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
 #ifdef DEBUG3

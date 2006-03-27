@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2006
+ * Last Modified:   03-27-2006
  *
  * License:
  *
@@ -77,9 +77,12 @@ extern int      obsess_over_hosts;
 extern int      check_service_freshness;
 extern int      check_host_freshness;
 
+extern int      use_large_installation_tweaks;
+
 extern time_t   program_start;
 
 extern timed_event       *event_list_low;
+extern timed_event       *event_list_low_tail;
 
 extern host              *host_list;
 extern service           *service_list;
@@ -206,7 +209,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 		if(svc->should_be_scheduled==TRUE){
 
 			/* make sure we rescheduled the next service check at a valid time */
-			get_next_valid_time(preferred_time,&next_valid_time,svc->check_period);
+			get_next_valid_time(preferred_time,&next_valid_time,svc->check_period_ptr);
 
 			/* the service could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){
@@ -279,7 +282,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		return ERROR;
 
 	/* find the host associated with this service */
-	if((temp_host=find_host(svc->host_name))==NULL)
+	if((temp_host=svc->host_ptr)==NULL)
 		return ERROR;
 
 	/******** GOOD TO GO FOR A REAL SERVICE CHECK AT THIS POINT ********/
@@ -306,15 +309,14 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	clear_volatile_macros();
 	grab_host_macros(temp_host);
 	grab_service_macros(svc);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(svc->service_check_command,raw_command,sizeof(raw_command),0);
-	strip(raw_command);
+	get_raw_command_line(svc->check_command_ptr,svc->service_check_command,raw_command,sizeof(raw_command),0);
 
 	/* process any macros contained in the argument */
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
-	strip(processed_command);
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -477,15 +479,19 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
-		/* fork again... */
-		pid=fork();
+		/* fork again if we're not in a large installation */
+		if(use_large_installation_tweaks==FALSE){
 
-		/* an error occurred while trying to fork again */
-		if(pid==-1)
-			exit(STATE_UNKNOWN);
+			/* fork again... */
+			pid=fork();
 
-		/* the grandchild process should run the service check... */
-		if(pid==0){
+			/* an error occurred while trying to fork again */
+			if(pid==-1)
+				exit(STATE_UNKNOWN);
+			}
+
+		/* the grandchild (or child if large install tweaks are enabled) process should run the service check... */
+		if(pid==0 || use_large_installation_tweaks==TRUE){
 
 			/* reset signal handling */
 			reset_sighandler();
@@ -629,6 +635,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			_exit(pclose_result);
 		        }
 
+		/* NOTE: this code is never reached if large install tweaks are enabled... */
+
 		/* close write end of IPC pipe */
 		close(ipc_pipe[1]);
 
@@ -638,7 +646,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 #ifndef USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		free_memory();
+		if(use_large_installation_tweaks==FALSE)
+			free_memory();
 #endif
 
 		/* parent exits immediately - grandchild process is inherited by the INIT process, so we have no zombie problem... */
@@ -657,7 +666,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		free_check_result(&check_result_info);
 
 		/* wait for the first child to return */
-		wait_result=waitpid(pid,NULL,0);
+		/* don't do this if large install tweaks are enabled - we'll clean up children in event loop */
+		if(use_large_installation_tweaks==FALSE)
+			wait_result=waitpid(pid,NULL,0);
 
 		/* removed 06/28/2000 - caused problems under AIX */
 		/*
@@ -1130,12 +1141,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				/* check services that THIS ONE depends on for notification AND execution */
 				/* we do this because we might be sending out a notification soon and we want the dependency logic to be accurate */
 				for(temp_dependency=servicedependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
-					if(temp_dependency->dependent_host_name==NULL || temp_dependency->dependent_service_description==NULL)
-						continue;
-					if(!strcmp(temp_service->host_name,temp_dependency->dependent_host_name) && !strcmp(temp_service->description,temp_dependency->dependent_service_description)){
-						if((master_service=find_service(temp_dependency->host_name,temp_dependency->service_description))!=NULL)
-							add_object_to_objectlist(&check_servicelist,(void *)&master_service);
-					        }
+					if(temp_dependency->dependent_service_ptr==temp_service && temp_dependency->master_service_ptr!=NULL)
+						add_object_to_objectlist(&check_servicelist,(void *)master_service);
 				        }
 			        }
 		        }
@@ -1198,7 +1205,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 		/* make sure we rescheduled the next service check at a valid time */
 		preferred_time=temp_service->next_check;
-		get_next_valid_time(preferred_time,&next_valid_time,temp_service->check_period);
+		get_next_valid_time(preferred_time,&next_valid_time,temp_service->check_period_ptr);
 		temp_service->next_check=next_valid_time;
 
 		/* services with non-recurring intervals do not get rescheduled */
@@ -1305,14 +1312,20 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 		return;
 	        }
 
-	/* see if there are any other scheduled checks of this service in the queue */
-	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+	/* default is to use the new event */
+	use_original_event=FALSE;
+	found=FALSE;
 
-		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data){
-			found=TRUE;
-			break;
-		        }
-	        }
+	/* see if there are any other scheduled checks of this service in the queue */
+	if(use_large_installation_tweaks==FALSE){
+		for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+
+			if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data){
+				found=TRUE;
+				break;
+				}
+			}
+		}
 
 	/* we found another service check event for this service in the queue - what should we do? */
 	if(found==TRUE && temp_event!=NULL){
@@ -1340,33 +1353,38 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 				use_original_event=FALSE;
 		        }
 
-		/* the originally queued event won the battle, so keep it and exit */
-		if(use_original_event==TRUE){
+		/* the originally queued event won the battle, so keep it */
+		if(use_original_event==TRUE)
 			my_free((void **)&new_event);
-			return;
-		        }
 
-		remove_event(temp_event,&event_list_low);
-		my_free((void **)&temp_event);
+		/* else we're using the new event, so remove the old one */
+		else{
+			remove_event(temp_event,&event_list_low,&event_list_low_tail);
+			my_free((void **)&temp_event);
+			}
 	        }
-
-	/* set the next service check time */
-	svc->next_check=check_time;
 
 	/* set the force service check option */
 	if(forced==TRUE)
 		svc->check_options|=CHECK_OPTION_FORCE_EXECUTION;
 
-	/* place the new event in the event queue */
-	new_event->event_type=EVENT_SERVICE_CHECK;
-	new_event->event_data=(void *)svc;
-	new_event->event_args=(void *)NULL;
-	new_event->run_time=svc->next_check;
-	new_event->recurring=FALSE;
-	new_event->event_interval=0L;
-	new_event->timing_func=NULL;
-	new_event->compensate_for_time_change=TRUE;
-	reschedule_event(new_event,&event_list_low);
+	/* schedule a new event */
+	if(use_original_event==FALSE){
+
+		/* set the next service check time */
+		svc->next_check=check_time;
+
+		/* place the new event in the event queue */
+		new_event->event_type=EVENT_SERVICE_CHECK;
+		new_event->event_data=(void *)svc;
+		new_event->event_args=(void *)NULL;
+		new_event->run_time=svc->next_check;
+		new_event->recurring=FALSE;
+		new_event->event_interval=0L;
+		new_event->timing_func=NULL;
+		new_event->compensate_for_time_change=TRUE;
+		reschedule_event(new_event,&event_list_low,&event_list_low_tail);
+		}
 
 	/* update the status log */
 	update_service_status(svc,FALSE);
@@ -1414,7 +1432,7 @@ int check_service_check_viability(service *svc, int check_options, int *time_is_
 		        }
 
 		/* make sure this is a valid time to check the service */
-		if(check_time_against_period((unsigned long)current_time,svc->check_period)==ERROR){
+		if(check_time_against_period((unsigned long)current_time,svc->check_period_ptr)==ERROR){
 			preferred_time=current_time;
 			if(time_is_valid)
 				*time_is_valid=FALSE;
@@ -1457,8 +1475,7 @@ int check_service_dependencies(service *svc,int dependency_type){
 			continue;
 
 		/* find the service we depend on... */
-		temp_service=find_service(temp_dependency->host_name,temp_dependency->service_description);
-		if(temp_service==NULL)
+		if((temp_service=temp_dependency->master_service_ptr)==NULL)
 			continue;
 
 		/* get the status to use (use last hard state if its currently in a soft state) */
@@ -1513,8 +1530,7 @@ int check_host_dependencies(host *hst,int dependency_type){
 			continue;
 
 		/* find the host we depend on... */
-		temp_host=find_host(temp_dependency->host_name);
-		if(temp_host==NULL)
+		if((temp_host=temp_dependency->master_host_ptr)==NULL)
 			continue;
 
 		/* get the status to use (use last hard state if its currently in a soft state) */
@@ -1657,7 +1673,7 @@ void check_service_result_freshness(void){
 			continue;
 
 		/* see if the time is right... */
-		if(check_time_against_period(current_time,temp_service->check_period)==ERROR)
+		if(check_time_against_period(current_time,temp_service->check_period_ptr)==ERROR)
 			continue;
 
 		/* EXCEPTION */
@@ -1795,7 +1811,7 @@ int run_scheduled_host_check(host *hst){
                 }
 
 	/* make sure this is a valid time to check the host */
-	if(check_time_against_period((unsigned long)current_time,hst->check_period)==ERROR){
+	if(check_time_against_period((unsigned long)current_time,hst->check_period_ptr)==ERROR){
 
 		/* don't check the host if we're not forcing it through */
 		if(!(hst->check_options & CHECK_OPTION_FORCE_EXECUTION))
@@ -1847,7 +1863,7 @@ int run_scheduled_host_check(host *hst){
 		hst->should_be_scheduled=FALSE;
 
 	/* make sure we rescheduled the next host check at a valid time */
-	get_next_valid_time(preferred_time,&next_valid_time,hst->check_period);
+	get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
 
 	/* the host could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
 	if(time_is_valid==FALSE && next_valid_time==preferred_time){
@@ -2242,7 +2258,7 @@ int run_host_check(host *hst, int check_options){
 			return hst->current_state;
 
 		/* make sure this is a valid time to check the host */
-		if(check_time_against_period((unsigned long)current_time,hst->check_period)==ERROR)
+		if(check_time_against_period((unsigned long)current_time,hst->check_period_ptr)==ERROR)
 			return hst->current_state;
 
 		/* check host dependencies for execution */
@@ -2263,6 +2279,7 @@ int run_host_check(host *hst, int check_options){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* high resolution start time for event broker */
@@ -2273,12 +2290,10 @@ int run_host_check(host *hst, int check_options){
 	hst->last_check=start_time;
 
 	/* get the raw command line */
-	get_raw_command_line(hst->host_check_command,raw_command,sizeof(raw_command),0);
-	strip(raw_command);
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,raw_command,sizeof(raw_command),0);
 
 	/* process any macros contained in the argument */
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
-	strip(processed_command);
 			
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -2430,14 +2445,19 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 		return;
 	        }
 
-	/* see if there are any other scheduled checks of this host in the queue */
-	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+	/* default is to use the new event */
+	use_original_event=FALSE;
+	found=FALSE;
 
-		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
-			found=TRUE;
-			break;
-		        }
-	        }
+	/* see if there are any other scheduled checks of this host in the queue */
+	if(use_large_installation_tweaks==FALSE){
+		for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+			if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
+				found=TRUE;
+				break;
+				}
+			}
+		}
 
 	/* we found another host check event for this host in the queue - what should we do? */
 	if(found==TRUE && temp_event!=NULL){
@@ -2465,33 +2485,38 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 				use_original_event=FALSE;
 		        }
 
-		/* the originally queued event won the battle, so keep it and exit */
-		if(use_original_event==TRUE){
+		/* the originally queued event won the battle, so keep it */
+		if(use_original_event==TRUE)
 			my_free((void **)&new_event);
-			return;
-		        }
 
-		remove_event(temp_event,&event_list_low);
-		my_free((void **)&temp_event);
+		/* else use the new event, so remove the old */
+		else{
+			remove_event(temp_event,&event_list_low,&event_list_low_tail);
+			my_free((void **)&temp_event);
+			}
 	        }
-
-	/* set the next host check time */
-	hst->next_check=check_time;
 
 	/* set the force service check option */
 	if(forced==TRUE)
 		hst->check_options|=CHECK_OPTION_FORCE_EXECUTION;
 
-	/* place the new event in the event queue */
-	new_event->event_type=EVENT_HOST_CHECK;
-	new_event->event_data=(void *)hst;
-	new_event->event_args=(void *)NULL;
-	new_event->run_time=hst->next_check;
-	new_event->recurring=FALSE;
-	new_event->event_interval=0L;
-	new_event->timing_func=NULL;
-	new_event->compensate_for_time_change=TRUE;
-	reschedule_event(new_event,&event_list_low);
+	/* use the new event */
+	if(use_original_event==FALSE){
+
+		/* set the next host check time */
+		hst->next_check=check_time;
+
+		/* place the new event in the event queue */
+		new_event->event_type=EVENT_HOST_CHECK;
+		new_event->event_data=(void *)hst;
+		new_event->event_args=(void *)NULL;
+		new_event->run_time=hst->next_check;
+		new_event->recurring=FALSE;
+		new_event->event_interval=0L;
+		new_event->timing_func=NULL;
+		new_event->compensate_for_time_change=TRUE;
+		reschedule_event(new_event,&event_list_low,&event_list_low_tail);
+		}
 
 	/* update the status log */
 	update_host_status(hst,FALSE);
@@ -2598,7 +2623,7 @@ void check_host_result_freshness(void){
 			continue;
 
 		/* see if the time is right... */
-		if(check_time_against_period(current_time,temp_host->check_period)==ERROR)
+		if(check_time_against_period(current_time,temp_host->check_period_ptr)==ERROR)
 			continue;
 
 		/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
@@ -2829,6 +2854,7 @@ int execute_sync_host_check_3x(host *hst){
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* high resolution start time for event broker */
@@ -2839,12 +2865,10 @@ int execute_sync_host_check_3x(host *hst){
 	hst->last_check=start_time;
 
 	/* get the raw command line */
-	get_raw_command_line(hst->host_check_command,raw_command,sizeof(raw_command),0);
-	strip(raw_command);
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,raw_command,sizeof(raw_command),0);
 
 	/* process any macros contained in the argument */
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
-	strip(processed_command);
 			
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -2965,7 +2989,7 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 		if(hst->should_be_scheduled==TRUE){
 
 			/* make sure we rescheduled the next host check at a valid time */
-			get_next_valid_time(preferred_time,&next_valid_time,hst->check_period);
+			get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
 
 			/* the host could not be rescheduled properly - set the next check time for next year, but don't actually reschedule it */
 			if(time_is_valid==FALSE && next_valid_time==preferred_time){
@@ -3064,15 +3088,14 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 	/* grab the host macro variables */
 	clear_volatile_macros();
 	grab_host_macros(hst);
+	grab_datetime_macros();
 	grab_summary_macros(NULL);
 
 	/* get the raw command line */
-	get_raw_command_line(hst->host_check_command,raw_command,sizeof(raw_command),0);
-	strip(raw_command);
+	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,raw_command,sizeof(raw_command),0);
 
 	/* process any macros contained in the argument */
 	process_macros(raw_command,processed_command,sizeof(processed_command),0);
-	strip(processed_command);
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -3134,15 +3157,19 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 		/* set environment variables */
 		set_all_macro_environment_vars(TRUE);
 
-		/* fork again... */
-		pid=fork();
+		/* fork again if we're not in a large installation */
+		if(use_large_installation_tweaks==FALSE){
 
-		/* an error occurred while trying to fork again */
-		if(pid==-1)
-			exit(STATE_UNKNOWN);
+			/* fork again... */
+			pid=fork();
 
-		/* the grandchild process should run the service check... */
-		if(pid==0){
+			/* an error occurred while trying to fork again */
+			if(pid==-1)
+				exit(STATE_UNKNOWN);
+			}
+
+		/* the grandchild (or child if large install tweaks are enabled) process should run the host check... */
+		if(pid==0 || use_large_installation_tweaks==TRUE){
 
 			/* reset signal handling */
 			reset_sighandler();
@@ -3216,6 +3243,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 			_exit(pclose_result);
 		        }
 
+		/* NOTE: this code is never reached if large install tweaks are enabled... */
+
 		/* close write end of IPC pipe */
 		close(ipc_pipe[1]);
 
@@ -3225,7 +3254,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 #ifndef USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		free_memory();
+		if(use_large_installation_tweaks==FALSE)
+			free_memory();
 #endif
 
 		/* parent exits immediately - grandchild process is inherited by the INIT process, so we have no zombie problem... */
@@ -3244,7 +3274,9 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 		free_check_result(&check_result_info);
 
 		/* wait for the first child to return */
-		wait_result=waitpid(pid,NULL,0);
+		/* if large install tweaks are enabled, we'll clean up the zombie process later */
+		if(use_large_installation_tweaks==FALSE)
+			wait_result=waitpid(pid,NULL,0);
 	        }
 
 	/* see if we could run the check... */
@@ -3489,7 +3521,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 			/* propagate checks to immediate parents if they are not already UP */
 			/* we do this because a parent host (or grandparent) may have recovered somewhere and we should catch the recovery as soon as possible */
 			for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
-				if((parent_host=find_host(temp_hostsmember->host_name))==NULL)
+				if((parent_host=temp_hostsmember->host_ptr)==NULL)
 					continue;
 				if(parent_host->current_state!=HOST_UP)
 					add_object_to_objectlist(&check_hostlist,(void *)parent_host);
@@ -3652,7 +3684,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				/* we do this because a parent host (or grandparent) may have gone down and blocked our route */
 				/* checking the parents ASAP will allow us to better determine the final state (DOWN/UNREACHABLE) of this host later */
 				for(temp_hostsmember=hst->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
-					if((parent_host=find_host(temp_hostsmember->host_name))==NULL)
+					if((parent_host=temp_hostsmember->host_ptr)==NULL)
 						continue;
 					if(parent_host->current_state==HOST_UP)
 						add_object_to_objectlist(&check_hostlist,(void *)parent_host);
@@ -3671,12 +3703,8 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					/* propagate checks to hosts that THIS ONE depends on for notifications AND execution */
 					/* we do to help ensure that the dependency checks are accurate before it comes time to notify */
 					for(temp_dependency=hostdependency_list;temp_dependency!=NULL;temp_dependency=temp_dependency->next){
-						if(temp_dependency->dependent_host_name==NULL)
-							continue;
-						if(!strcmp(hst->name,temp_dependency->dependent_host_name)){
-							if((master_host=find_host(temp_dependency->host_name))!=NULL)
-								add_object_to_objectlist(&check_hostlist,(void *)master_host);
-				                        }
+						if(temp_dependency->dependent_host_ptr==hst && temp_dependency->master_host_ptr!=NULL)
+							add_object_to_objectlist(&check_hostlist,(void *)master_host);
 					        }
 		                        }
 			        }
@@ -3728,7 +3756,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 		/* make sure we rescheduled the next service check at a valid time */
 		preferred_time=hst->next_check;
-		get_next_valid_time(preferred_time,&next_valid_time,hst->check_period);
+		get_next_valid_time(preferred_time,&next_valid_time,hst->check_period_ptr);
 		hst->next_check=next_valid_time;
 
 		/* hosts with non-recurring intervals do not get rescheduled if we're in a HARD or UP state */
@@ -3804,7 +3832,7 @@ int check_host_check_viability_3x(host *hst, int check_options, int *time_is_val
 		        }
 
 		/* make sure this is a valid time to check the host */
-		if(check_time_against_period((unsigned long)current_time,hst->check_period)==ERROR){
+		if(check_time_against_period((unsigned long)current_time,hst->check_period_ptr)==ERROR){
 			preferred_time=current_time;
 			if(time_is_valid)
 				*time_is_valid=FALSE;

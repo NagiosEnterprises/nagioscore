@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2006
+ * Last Modified:   03-26-2006
  *
  * License:
  *
@@ -67,9 +67,13 @@ customvariablesmember *macro_custom_contact_vars;
 
 extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
+extern command  *global_host_event_handler_ptr;
+extern command  *global_service_event_handler_ptr;
 
 extern char     *ocsp_command;
 extern char     *ochp_command;
+extern command  *ocsp_command_ptr;
+extern command  *ochp_command_ptr;
 
 extern char     *illegal_object_chars;
 extern char     *illegal_output_chars;
@@ -188,6 +192,8 @@ extern double   low_service_flap_threshold;
 extern double   high_service_flap_threshold;
 extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
+
+extern int      use_large_installation_tweaks;
 
 extern int      date_format;
 
@@ -617,20 +623,25 @@ int grab_service_macros(service *svc){
 	asprintf(&macro_x[MACRO_LASTSERVICEEVENTID],"%lu",svc->last_event_id);
 
 	/* find one servicegroup (there may be none or several) this service is associated with */
-	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE)
-			break;
-	        }
+	/* cache servicegroup pointer after first lookup */
+	if(svc->first_servicegroup_ptr==NULL){
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+			if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+				svc->first_servicegroup_ptr=temp_servicegroup;
+				break;
+				}
+			}
+		}
 
 	/* get the servicegroup name */
 	my_free((void **)&macro_x[MACRO_SERVICEGROUPNAME]);
-	if(temp_servicegroup)
-		macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(temp_servicegroup->group_name);
+	if(svc->first_servicegroup_ptr)
+		macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(svc->first_servicegroup_ptr->group_name);
 	
 	/* get the servicegroup alias */
 	my_free((void **)&macro_x[MACRO_SERVICEGROUPALIAS]);
-	if(temp_servicegroup)
-		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(temp_servicegroup->alias);
+	if(svc->first_servicegroup_ptr)
+		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(svc->first_servicegroup_ptr->alias);
 
 	/* get the action url */
 	my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
@@ -654,13 +665,12 @@ int grab_service_macros(service *svc){
 		my_free((void **)&customvarname);
 	        }
 
-	/* get the date/time macros */
-	grab_datetime_macros();
-
+	/*
 	strip(macro_x[MACRO_SERVICEOUTPUT]);
 	strip(macro_x[MACRO_SERVICEPERFDATA]);
 	strip(macro_x[MACRO_SERVICECHECKCOMMAND]);
 	strip(macro_x[MACRO_SERVICENOTES]);
+	*/
 
 	/* notes and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
@@ -832,20 +842,25 @@ int grab_host_macros(host *hst){
 	asprintf(&macro_x[MACRO_LASTHOSTEVENTID],"%lu",hst->last_event_id);
 
 	/* find one hostgroup (there may be none or several) this host is associated with */
-	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-		if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE)
-			break;
-	        }
+	/* cache pointer after first lookup */
+	if(hst->first_hostgroup_ptr==NULL){
+		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+			if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+				hst->first_hostgroup_ptr=temp_hostgroup;
+				break;
+				}
+			}
+		}
 
 	/* get the hostgroup name */
 	my_free((void **)&macro_x[MACRO_HOSTGROUPNAME]);
-	if(temp_hostgroup!=NULL)
-		macro_x[MACRO_HOSTGROUPNAME]=(char *)strdup(temp_hostgroup->group_name);
+	if(hst->first_hostgroup_ptr)
+		macro_x[MACRO_HOSTGROUPNAME]=(char *)strdup(hst->first_hostgroup_ptr->group_name);
 	
 	/* get the hostgroup alias */
 	my_free((void **)&macro_x[MACRO_HOSTGROUPALIAS]);
-	if(temp_hostgroup!=NULL)
-		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(temp_hostgroup->alias);
+	if(hst->first_hostgroup_ptr)
+		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(hst->first_hostgroup_ptr->alias);
 
 	/* get the action url */
 	my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
@@ -869,13 +884,12 @@ int grab_host_macros(host *hst){
 		my_free((void **)&customvarname);
 	        }
 
-	/* get the date/time macros */
-	grab_datetime_macros();
-
+	/*
 	strip(macro_x[MACRO_HOSTOUTPUT]);
 	strip(macro_x[MACRO_HOSTPERFDATA]);
 	strip(macro_x[MACRO_HOSTCHECKCOMMAND]);
 	strip(macro_x[MACRO_HOSTNOTES]);
+	*/
 
 	/* notes and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
@@ -1106,10 +1120,15 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	duration=(unsigned long)(current_time-hst->last_state_change);
 
 	/* find one hostgroup (there may be none or several) this host is associated with */
-	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-		if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE)
-			break;
-	        }
+	/* cache pointer after first lookup */
+	if(hst->first_hostgroup_ptr==NULL){
+		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+			if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+				hst->first_hostgroup_ptr=temp_hostgroup;
+				break;
+				}
+			}
+		}
 
 	/* get the host display name */
 	if(!strcmp(macro,"HOSTDISPLAYNAME")){
@@ -1151,7 +1170,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTOUTPUT")){
 		if(hst->plugin_output){
 			macro_ondemand=(char *)strdup(hst->plugin_output);
-			strip(macro_ondemand);
+			/*strip(macro_ondemand);*/
 		        }
 	        }
 
@@ -1161,7 +1180,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 			macro_ondemand=NULL;
 		else{
 			macro_ondemand=(char *)strdup(hst->long_plugin_output);
-			strip(macro_ondemand);
+			/*strip(macro_ondemand);*/
 		        }
 	        }
 
@@ -1169,7 +1188,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTPERFDATA")){
 		if(hst->perf_data){
 			macro_ondemand=(char *)strdup(hst->perf_data);
-			strip(macro_ondemand);
+			/*strip(macro_ondemand);*/
 		        }
 	        }
 
@@ -1247,14 +1266,14 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	/* get the hostgroup name */
 	else if(!strcmp(macro,"HOSTGROUPNAME")){
-		if(temp_hostgroup)
-			macro_ondemand=(char *)strdup(temp_hostgroup->group_name);
+		if(hst->first_hostgroup_ptr)
+			macro_ondemand=(char *)strdup(hst->first_hostgroup_ptr->group_name);
 	        }
 	
 	/* get the hostgroup alias */
 	else if(!strcmp(macro,"HOSTGROUPALIAS")){
-		if(temp_hostgroup)
-			macro_ondemand=(char *)strdup(temp_hostgroup->alias);
+		if(hst->first_hostgroup_ptr)
+			macro_ondemand=(char *)strdup(hst->first_hostgroup_ptr->alias);
 	        }
 
 	/* action url */
@@ -1348,10 +1367,14 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	duration=(unsigned long)(current_time-svc->last_state_change);
 
 	/* find one servicegroup (there may be none or several) this service is associated with */
-	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE)
-			break;
-	        }
+	if(svc->first_servicegroup_ptr==NULL){
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+			if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+				svc->first_servicegroup_ptr=temp_servicegroup;
+				break;
+				}
+			}
+		}
 
 	/* get the service display name */
 	if(!strcmp(macro,"SERVICEDISPLAYNAME")){
@@ -1363,7 +1386,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	if(!strcmp(macro,"SERVICEOUTPUT")){
 		if(svc->plugin_output){
 			macro_ondemand=(char *)strdup(svc->plugin_output);
-			strip(macro_ondemand);
+			/*strip(macro_ondemand);*/
 		        }
 	        }
 
@@ -1371,7 +1394,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	if(!strcmp(macro,"LONGSERVICEOUTPUT")){
 		if(svc->long_plugin_output){
 			macro_ondemand=(char *)strdup(svc->long_plugin_output);
-			strip(macro_ondemand);
+			/*strip(macro_ondemand);*/
 		        }
 	        }
 
@@ -1379,7 +1402,7 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICEPERFDATA")){
 		if(svc->perf_data==NULL){
 			macro_ondemand=(char *)strdup(svc->perf_data);
-			strip(macro_ondemand);
+			/*strip(macro_ondemand);*/
 		        }
 	        }
 
@@ -1486,14 +1509,14 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	/* get the servicegroup name */
 	else if(!strcmp(macro,"SERVICEGROUPNAME")){
-		if(temp_servicegroup)
-			macro_ondemand=(char *)strdup(temp_servicegroup->group_name);
+		if(svc->first_servicegroup_ptr)
+			macro_ondemand=(char *)strdup(svc->first_servicegroup_ptr->group_name);
 	        }
 	
 	/* get the servicegroup alias */
 	else if(!strcmp(macro,"SERVICEGROUPALIAS")){
-		if(temp_servicegroup)
-			macro_ondemand=(char *)strdup(temp_servicegroup->alias);
+		if(svc->first_servicegroup_ptr)
+			macro_ondemand=(char *)strdup(svc->first_servicegroup_ptr->alias);
 	        }
 
 	/* action url */
@@ -1592,7 +1615,7 @@ int grab_contact_macros(contact *cntct){
 		my_free((void **)&macro_contactaddress[x]);
 		if(cntct->address[x]){
 			macro_contactaddress[x]=(char *)strdup(cntct->address[x]);
-			strip(macro_contactaddress[x]);
+			/*strip(macro_contactaddress[x]);*/
 		        }
 	        }
 
@@ -1603,13 +1626,12 @@ int grab_contact_macros(contact *cntct){
 		my_free((void **)&customvarname);
 	        }
 
-	/* get the date/time macros */
-	grab_datetime_macros();
-
+	/*
 	strip(macro_x[MACRO_CONTACTNAME]);
 	strip(macro_x[MACRO_CONTACTALIAS]);
 	strip(macro_x[MACRO_CONTACTEMAIL]);
 	strip(macro_x[MACRO_CONTACTPAGER]);
+	*/
 
 #ifdef DEBUG0
 	printf("grab_contact_macros() end\n");
@@ -1646,6 +1668,10 @@ int grab_summary_macros(contact *temp_contact){
 #ifdef DEBUG0
 	printf("grab_summary_macros() start\n");
 #endif
+
+	/* this func seems to take up quite a bit of CPU, so skip it if we have a large install... */
+	if(use_large_installation_tweaks==TRUE)
+		return OK;
 
 	/* get host totals */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -1864,11 +1890,13 @@ int grab_datetime_macros(void){
 		macro_x[MACRO_TIMET][MAX_DATETIME_LENGTH-1]='\x0';
 	        }
 
+	/*
 	strip(macro_x[MACRO_LONGDATETIME]);
 	strip(macro_x[MACRO_SHORTDATETIME]);
 	strip(macro_x[MACRO_DATE]);
 	strip(macro_x[MACRO_TIME]);
 	strip(macro_x[MACRO_TIMET]);
+	*/
 
 #ifdef DEBUG0
 	printf("grab_datetime_macros() end\n");
@@ -2608,7 +2636,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 #ifndef USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		free_memory();
+		if(use_large_installation_tweaks==FALSE)
+			free_memory();
 #endif
 
 		_exit(result);
@@ -2628,9 +2657,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		/* return execution time in milliseconds */
 		*exectime=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000)/1000.0);
-#ifdef REMOVED_050803
-		*exectime=(double)((double)(end_time.time-start_time.time)+(double)((end_time.millitm-start_time.millitm)/1000.0));
-#endif
 
 		/* get the exit code returned from the program */
 		result=WEXITSTATUS(status);
@@ -2719,13 +2745,12 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 
 /* given a "raw" command, return the "expanded" or "whole" command line */
-void get_raw_command_line(char *cmd, char *full_command, int buffer_length, int macro_options){
+int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int buffer_length, int macro_options){
 	char temp_arg[MAX_COMMAND_BUFFER]="";
 	char arg_buffer[MAX_COMMAND_BUFFER]="";
-	command *temp_command=NULL;
-	int x=0;
-	int y=0;
-	int arg_index=0;
+	register int x=0;
+	register int y=0;
+	register int arg_index=0;
 
 #ifdef DEBUG0
 	printf("get_raw_command_line() start\n");
@@ -2738,73 +2763,56 @@ void get_raw_command_line(char *cmd, char *full_command, int buffer_length, int 
 	clear_argv_macros();
 
 	/* initialize the full command */
-	if(full_command && buffer_length>0)
-		strcpy(full_command,"");
+	if(full_command)
+		full_command[0]='\x0';
 
 	/* make sure we've got all the requirements */
-	if(cmd==NULL || full_command==NULL || buffer_length<=0){
+	if(cmd_ptr==NULL || full_command==NULL){
 #ifdef DEBUG1
 		printf("\tWe don't have enough data to get the expanded command line!\n");
 #endif
-		return;
+		return ERROR;
 	        }
 
-	/* clear the old command arguments */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
-		my_free((void **)&macro_argv[x]);
-
-	/* lookup the command... */
-
-	/* get the command name */
-	for(x=0,y=0;y<buffer_length-1;x++){
-		if(cmd[x]=='!' || cmd[x]=='\x0')
-			break;
-		full_command[y]=cmd[x];
-		y++;
-	        }
-	full_command[y]='\x0';
-
-	/* find the command used to check this service */
-	temp_command=find_command(full_command);
-
-	/* error if we couldn't find the command */
-	if(temp_command==NULL)
-		return;
-
-	strncpy(full_command,temp_command->command_line,buffer_length);
-	full_command[buffer_length-1]='\x0';
-	strip(full_command);
-
-	/* skip the command name (we're about to get the arguments)... */
-	for(arg_index=0;;arg_index++){
-		if(cmd[arg_index]=='!' || cmd[arg_index]=='\x0')
-			break;
-	        }
+	/* get the full command line */
+	if(cmd_ptr->command_line!=NULL){
+		strncpy(full_command,cmd_ptr->command_line,buffer_length);
+		full_command[buffer_length-1]='\x0';
+		}
 
 	/* get the command arguments */
-	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+	if(cmd!=NULL){
 
-		/* we reached the end of the arguments... */
-		if(cmd[arg_index]=='\x0')
-			break;
-
-		/* get the next argument */
-		/* can't use strtok(), as that's used in process_macros... */
-		for(arg_index++,y=0;y<sizeof(temp_arg)-1;arg_index++){
+		/* skip the command name (we're about to get the arguments)... */
+		for(arg_index=0;;arg_index++){
 			if(cmd[arg_index]=='!' || cmd[arg_index]=='\x0')
 				break;
-			temp_arg[y]=cmd[arg_index];
-			y++;
-		        }
-		temp_arg[y]='\x0';
+			}
 
-		/* ADDED 01/29/04 EG */
-		/* process any macros we find in the argument */
-		process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
+		/* get each command argument */
+		for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
 
-		strip(arg_buffer);
-		macro_argv[x]=(char *)strdup(arg_buffer);
-	        }
+			/* we reached the end of the arguments... */
+			if(cmd[arg_index]=='\x0')
+				break;
+
+			/* get the next argument */
+			/* can't use strtok(), as that's used in process_macros... */
+			for(arg_index++,y=0;y<sizeof(temp_arg)-1;arg_index++){
+				if(cmd[arg_index]=='!' || cmd[arg_index]=='\x0')
+					break;
+				temp_arg[y]=cmd[arg_index];
+				y++;
+				}
+			temp_arg[y]='\x0';
+
+			/* ADDED 01/29/04 EG */
+			/* process any macros we find in the argument */
+			process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
+
+			macro_argv[x]=(char *)strdup(arg_buffer);
+			}
+		}
 
 #ifdef DEBUG1
 	printf("\tOutput: %s\n",full_command);
@@ -2813,7 +2821,85 @@ void get_raw_command_line(char *cmd, char *full_command, int buffer_length, int 
 	printf("get_raw_command_line() end\n");
 #endif
 
-	return;
+	return OK;
+        }
+
+
+
+/* given a "raw" command, return the "expanded" or "whole" command line */
+int get_raw_command_line2(command *cmd_ptr, char *cmd_args, char **full_command, int macro_options){
+	char temp_arg[MAX_COMMAND_BUFFER]="";
+	char arg_buffer[MAX_COMMAND_BUFFER]="";
+	register int x=0;
+	register int y=0;
+	register int arg_index=0;
+
+#ifdef DEBUG0
+	printf("get_raw_command_line() start\n");
+#endif
+#ifdef DEBUG1
+	printf("\tInput: %s\n",cmd);
+#endif
+
+	/* clear the argv macros */
+	clear_argv_macros();
+
+	/* initialize the full command */
+	if(full_command)
+		*full_command=NULL;
+
+	/* make sure we've got all the requirements */
+	if(cmd_ptr==NULL || full_command==NULL){
+#ifdef DEBUG1
+		printf("\tWe don't have enough data to get the expanded command line!\n");
+#endif
+		return ERROR;
+	        }
+
+	/* get the full command line */
+	if(cmd_ptr->command_line!=NULL)
+		*full_command=(char *)strdup(cmd_ptr->command_line);
+
+	/* get the command arguments */
+	if(cmd_args!=NULL){
+
+		/* skip the command name (we're about to get the arguments)... */
+		/* use the previous value from above */
+		arg_index=0;
+
+		/* get each command argument */
+		for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
+
+			/* we reached the end of the arguments... */
+			if(cmd_args[arg_index]=='\x0')
+				break;
+
+			/* get the next argument */
+			/* can't use strtok(), as that's used in process_macros... */
+			for(arg_index++,y=0;y<sizeof(temp_arg)-1;arg_index++){
+				if(cmd_args[arg_index]=='!' || cmd_args[arg_index]=='\x0')
+					break;
+				temp_arg[y]=cmd_args[arg_index];
+				y++;
+				}
+			temp_arg[y]='\x0';
+
+			/* ADDED 01/29/04 EG */
+			/* process any macros we find in the argument */
+			process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
+
+			macro_argv[x]=(char *)strdup(arg_buffer);
+			}
+		}
+
+#ifdef DEBUG1
+	printf("\tOutput: %s\n",full_command);
+#endif
+#ifdef DEBUG0
+	printf("get_raw_command_line() end\n");
+#endif
+
+	return OK;
         }
 
 
@@ -2826,8 +2912,7 @@ void get_raw_command_line(char *cmd, char *full_command, int buffer_length, int 
 
 
 /* see if the specified time falls into a valid time range in the given time period */
-int check_time_against_period(time_t check_time,char *period_name){
-	timeperiod *temp_period;
+int check_time_against_period(time_t check_time, timeperiod *tperiod){
 	timerange *temp_range;
 	unsigned long midnight_today;
 	struct tm *t;
@@ -2836,17 +2921,8 @@ int check_time_against_period(time_t check_time,char *period_name){
 	printf("check_time_against_period() start\n");
 #endif
 	
-	/* if no period name was specified, assume the time is good */
-	if(period_name==NULL)
-		return OK;
-
-	/* if no period name was specified, assume the time is good */
-	if(!strcmp(period_name,""))
-		return OK;
-
-	/* if period could not be found, assume the time is good */
-	temp_period=find_timeperiod(period_name);
-	if(temp_period==NULL)
+	/* if no period was specified, assume the time is good */
+	if(tperiod==NULL)
 		return OK;
 
 	t=localtime((time_t *)&check_time);
@@ -2857,7 +2933,7 @@ int check_time_against_period(time_t check_time,char *period_name){
 	t->tm_hour=0;
 	midnight_today=(unsigned long)mktime(t);
 
-	for(temp_range=temp_period->days[t->tm_wday];temp_range!=NULL;temp_range=temp_range->next){
+	for(temp_range=tperiod->days[t->tm_wday];temp_range!=NULL;temp_range=temp_range->next){
 
 		/* if the user-specified time falls in this range, return with a positive result */
 		if(check_time>=(time_t)(midnight_today+temp_range->range_start) && check_time<=(time_t)(midnight_today+temp_range->range_end))
@@ -2874,8 +2950,7 @@ int check_time_against_period(time_t check_time,char *period_name){
 
 
 /* given a preferred time, get the next valid time within a time period */ 
-void get_next_valid_time(time_t preferred_time,time_t *valid_time, char *period_name){
-	timeperiod *temp_period;
+void get_next_valid_time(time_t preferred_time,time_t *valid_time, timeperiod *tperiod){
 	timerange *temp_timerange;
 	unsigned long midnight_today;
 	struct tm *t;
@@ -2895,15 +2970,14 @@ void get_next_valid_time(time_t preferred_time,time_t *valid_time, char *period_
 #endif
 
 	/* if the preferred time is valid today, go with it */
-	if(check_time_against_period(preferred_time,period_name)==OK)
+	if(check_time_against_period(preferred_time,tperiod)==OK)
 		*valid_time=preferred_time;
 
 	/* else find the next available time */
 	else{
 
 		/* find the time period - if we can't find it, go with the preferred time */
-		temp_period=find_timeperiod(period_name);
-		if(temp_period==NULL){
+		if(tperiod==NULL){
 			*valid_time=preferred_time;
 			return;
 		        }
@@ -2930,7 +3004,7 @@ void get_next_valid_time(time_t preferred_time,time_t *valid_time, char *period_
 			        }
 
 			/* check all time ranges for this day of the week */
-			for(temp_timerange=temp_period->days[weekday];temp_timerange!=NULL;temp_timerange=temp_timerange->next){
+			for(temp_timerange=tperiod->days[weekday];temp_timerange!=NULL;temp_timerange=temp_timerange->next){
 
 				/* calculate the time for the start of this time range */
 				this_time_range_start=(time_t)(midnight_today+(days_into_the_future*3600*24)+temp_timerange->range_start);
@@ -3247,7 +3321,7 @@ void service_check_sighandler(int sig){
 	kill((pid_t)0,SIGKILL);
 	
 	/* force the child process (service check) to exit... */
-	exit(STATE_CRITICAL);
+	_exit(STATE_CRITICAL);
         }
 
 
@@ -3281,7 +3355,7 @@ void host_check_sighandler(int sig){
 	kill((pid_t)0,SIGKILL);
 	
 	/* force the child process (service check) to exit... */
-	exit(STATE_CRITICAL);
+	_exit(STATE_CRITICAL);
         }
 
 
@@ -3289,7 +3363,7 @@ void host_check_sighandler(int sig){
 void my_system_sighandler(int sig){
 
 	/* force the child process to exit... */
-	exit(STATE_CRITICAL);
+	_exit(STATE_CRITICAL);
         }
 
 
@@ -4152,16 +4226,21 @@ void strip(char *buffer){
 		else
 			break;
 	        }
+	/* save last position for later... */
+	z=x;
 
 	/* strip beginning of string (by shifting) */
-	y=(int)strlen(buffer);
-	for(x=0;x<y;x++){
+	for(x=0;;x++){
 		if(buffer[x]==' ' || buffer[x]=='\n' || buffer[x]=='\r' || buffer[x]=='\t' || buffer[x]==13)
 			continue;
 		else
 			break;
 	        }
 	if(x>0){
+		/* new length of the string after we stripped the end */
+		y=z+1;
+		
+		/* shift chars towards beginning of string to remove leading whitespace */
 		for(z=x;z<y;z++)
 			buffer[z-x]=buffer[z];
 		buffer[y-x]='\x0';
@@ -5773,6 +5852,8 @@ int reset_variables(void){
 
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
 
+	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+
 	date_format=DATE_FORMAT_US;
 
 	for(x=0;x<MACRO_X_COUNT;x++)
@@ -5793,9 +5874,13 @@ int reset_variables(void){
 
 	global_host_event_handler=NULL;
 	global_service_event_handler=NULL;
+	global_host_event_handler_ptr=NULL;
+	global_service_event_handler_ptr=NULL;
 
 	ocsp_command=NULL;
 	ochp_command=NULL;
+	ocsp_command_ptr=NULL;
+	ochp_command_ptr=NULL;
 
 	/* reset umask */
 	umask(S_IWGRP|S_IWOTH);

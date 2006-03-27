@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-06-2006
+ * Last Modified:   03-27-2006
  *
  * License:
  *
@@ -131,6 +131,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		clear_volatile_macros();
 		grab_host_macros(temp_host);
 		grab_service_macros(svc);
+		grab_datetime_macros();
 
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
@@ -274,7 +275,7 @@ int check_service_notification_viability(service *svc, int type){
 	        }
 
 	/* see if the service can have notifications sent out at this time */
-	if(check_time_against_period(current_time,svc->notification_period)==ERROR){
+	if(check_time_against_period(current_time,svc->notification_period_ptr)==ERROR){
 #ifdef DEBUG4
 		printf("\tThis service shouldn't have notifications sent out at this time!\n");
 #endif
@@ -282,7 +283,7 @@ int check_service_notification_viability(service *svc, int type){
 		/* calculate the next acceptable notification time, once the next valid time range arrives... */
 		if(type==NOTIFICATION_NORMAL){
 
-			get_next_valid_time(current_time,&timeperiod_start,svc->notification_period);
+			get_next_valid_time(current_time,&timeperiod_start,svc->notification_period_ptr);
 
 			/* looks like there are no valid notification times defined, so schedule the next one far into the future (one year)... */
 			if(timeperiod_start==(time_t)0)
@@ -533,7 +534,7 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 	        }
 
 	/* see if the contact can be notified at this time */
-	if(check_time_against_period(time(NULL),cntct->service_notification_period)==ERROR){
+	if(check_time_against_period(time(NULL),cntct->service_notification_period_ptr)==ERROR){
 #ifdef DEBUG4
 		printf("\tThis contact shouldn't be notified at this time!\n");
 #endif
@@ -663,12 +664,10 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 		command_name_ptr=strtok(command_name,"!");
 
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
-		strip(raw_command);
+		get_raw_command_line(temp_commandsmember->command_ptr,temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
 
 		/* process any macros contained in the argument */
 		process_macros(raw_command,processed_command,sizeof(processed_command),macro_options);
-		strip(processed_command);
 
 		/* run the notification command */
 		if(strcmp(processed_command,"")){
@@ -739,8 +738,9 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 
 /* checks to see if a service escalation entry is a match for the current service notification */
 int is_valid_escalation_for_service_notification(service *svc,serviceescalation *se){
-	int notification_number;
-	time_t current_time;
+	int notification_number=0;
+	time_t current_time=0L;
+	service *temp_service=NULL;
 
 #ifdef DEBUG0
 	printf("is_valid_escalation_for_service_notification() start\n");
@@ -756,7 +756,8 @@ int is_valid_escalation_for_service_notification(service *svc,serviceescalation 
 		notification_number=svc->current_notification_number;
 
 	/* this entry if it is not for this service */
-	if(strcmp(svc->host_name,se->host_name) || strcmp(svc->description,se->description))
+	temp_service=se->service_ptr;
+	if(temp_service==NULL || temp_service!=svc)
 		return FALSE;
 
 	/* skip this escalation if it happens later */
@@ -768,7 +769,7 @@ int is_valid_escalation_for_service_notification(service *svc,serviceescalation 
 		return FALSE;
 
 	/* skip this escalation if it has a timeperiod and the current time isn't valid */
-	if(se->escalation_period!=NULL && check_time_against_period(current_time,se->escalation_period)==ERROR)
+	if(se->escalation_period!=NULL && check_time_against_period(current_time,se->escalation_period_ptr)==ERROR)
 		return FALSE;
 
 	/* skip this escalation if the state options don't match */
@@ -823,10 +824,11 @@ int should_service_notification_be_escalated(service *svc){
 
 /* given a service, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_service(service *svc, int *escalated){
-	serviceescalation *temp_se;
-	contactgroupsmember *temp_group;
-	contactgroup *temp_contactgroup;
-	contact *temp_contact;
+	serviceescalation *temp_se=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroupmember *temp_contactgroupmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	contact *temp_contact=NULL;
 
 #ifdef DEBUG0
 	printf("create_notification_list_from_service() end\n");
@@ -846,18 +848,14 @@ int create_notification_list_from_service(service *svc, int *escalated){
 				continue;
 
 			/* find each contact group in this escalation entry */
-			for(temp_group=temp_se->contact_groups;temp_group!=NULL;temp_group=temp_group->next){
-
-				temp_contactgroup=find_contactgroup(temp_group->group_name);
-				if(temp_contactgroup==NULL)
+			for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
 					continue;
-
-				/* check all contacts */
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					
-					if(is_contact_member_of_contactgroup(temp_contactgroup,temp_contact)==TRUE)
-						add_notification(temp_contact);
-				        }
+				for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
+					if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
+						continue;
+					add_notification(temp_contact);
+					}
 			        }
 		        }
 	        }
@@ -869,11 +867,15 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		*escalated=FALSE;
 
 		/* find all contacts for this service */
-		for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-		
-			if(is_contact_for_service(svc,temp_contact)==TRUE)
+		for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
+				continue;
+			for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
+				if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
+					continue;
 				add_notification(temp_contact);
-	                }
+				}
+			}
 	        }
 
 #ifdef DEBUG0
@@ -955,6 +957,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		/* grab the macro variables */
 		clear_volatile_macros();
 		grab_host_macros(hst);
+		grab_datetime_macros();
 
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
@@ -1097,7 +1100,7 @@ int check_host_notification_viability(host *hst, int type){
 	        }
 
 	/* see if the host can have notifications sent out at this time */
-	if(check_time_against_period(current_time,hst->notification_period)==ERROR){
+	if(check_time_against_period(current_time,hst->notification_period_ptr)==ERROR){
 #ifdef DEBUG4
 		printf("\tThis host shouldn't have notifications sent out at this time!\n");
 #endif
@@ -1105,7 +1108,7 @@ int check_host_notification_viability(host *hst, int type){
 		/* if this is a normal notification, calculate the next acceptable notification time, once the next valid time range arrives... */
 		if(type==NOTIFICATION_NORMAL){
 
-			get_next_valid_time(current_time,&timeperiod_start,hst->notification_period);
+			get_next_valid_time(current_time,&timeperiod_start,hst->notification_period_ptr);
 
 			/* it looks like there is no notification time defined, so schedule next one far into the future (one year)... */
 			if(timeperiod_start==(time_t)0)
@@ -1298,7 +1301,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	        }
 
 	/* see if the contact can be notified at this time */
-	if(check_time_against_period(time(NULL),cntct->host_notification_period)==ERROR){
+	if(check_time_against_period(time(NULL),cntct->host_notification_period_ptr)==ERROR){
 #ifdef DEBUG4
 		printf("\tThis contact shouldn't be notified at this time!\n");
 #endif
@@ -1426,12 +1429,10 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 		command_name_ptr=strtok(command_name,"!");
 
 		/* get the raw command line */
-		get_raw_command_line(temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
-		strip(raw_command);
+		get_raw_command_line(temp_commandsmember->command_ptr,temp_commandsmember->command,raw_command,sizeof(raw_command),macro_options);
 
 		/* process any macros contained in the argument */
 		process_macros(raw_command,processed_command,sizeof(processed_command),macro_options);
-		strip(processed_command);
 
 		/* run the notification command */
 		if(strcmp(processed_command,"")){
@@ -1502,9 +1503,9 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 
 /* checks to see if a host escalation entry is a match for the current host notification */
 int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he){
-	host *temp_host;
-	int notification_number;
-	time_t current_time;
+	int notification_number=0;
+	time_t current_time=0L;
+	host *temp_host=NULL;
 
 #ifdef DEBUG0
 	printf("is_valid_host_escalation_for_host_notification() start\n");
@@ -1520,7 +1521,7 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 		notification_number=hst->current_notification_number;
 
 	/* find the host this escalation entry is associated with */
-	temp_host=find_host(he->host_name);
+	temp_host=he->host_ptr;
 	if(temp_host==NULL || temp_host!=hst)
 		return FALSE;
 
@@ -1533,7 +1534,7 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 		return FALSE;
 
 	/* skip this escalation if it has a timeperiod and the current time isn't valid */
-	if(he->escalation_period!=NULL && check_time_against_period(current_time,he->escalation_period)==ERROR)
+	if(he->escalation_period!=NULL && check_time_against_period(current_time,he->escalation_period_ptr)==ERROR)
 		return FALSE;
 
 	/* skip this escalation if the state options don't match */
@@ -1579,10 +1580,11 @@ int should_host_notification_be_escalated(host *hst){
 
 /* given a host, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_host(host *hst, int *escalated){
-	hostescalation *temp_he;
-	contactgroupsmember *temp_group;
-	contactgroup *temp_contactgroup;
-	contact *temp_contact;
+	hostescalation *temp_he=NULL;
+	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactgroupmember *temp_contactgroupmember=NULL;
+	contactgroup *temp_contactgroup=NULL;
+	contact *temp_contact=NULL;
 
 #ifdef DEBUG0
 	printf("create_notification_list_from_host() start\n");
@@ -1602,18 +1604,14 @@ int create_notification_list_from_host(host *hst, int *escalated){
 				continue;
 
 			/* find each contact group in this escalation entry */
-			for(temp_group=temp_he->contact_groups;temp_group!=NULL;temp_group=temp_group->next){
-
-				temp_contactgroup=find_contactgroup(temp_group->group_name);
-				if(temp_contactgroup==NULL)
+			for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
 					continue;
-
-				/* check all contacts */
-				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-					
-					if(is_contact_member_of_contactgroup(temp_contactgroup,temp_contact)==TRUE)
-						add_notification(temp_contact);
-				        }
+				for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
+					if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
+						continue;
+					add_notification(temp_contact);
+					}
 			        }
 		        }
 	        }
@@ -1625,11 +1623,15 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		*escalated=FALSE;
 
 		/* get all contacts for this host */
-		for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
-
-			if(is_contact_for_host(hst,temp_contact)==TRUE)
+		for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
+				continue;
+			for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
+				if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
+					continue;
 				add_notification(temp_contact);
-		        }
+				}
+			}
 	        }
 
 #ifdef DEBUG0
@@ -1649,9 +1651,9 @@ int create_notification_list_from_host(host *hst, int *escalated){
 
 /* calculates next acceptable re-notification time for a service */
 time_t get_next_service_notification_time(service *svc, time_t offset){
-	time_t next_notification;
-	int interval_to_use;
-	serviceescalation *temp_se;
+	time_t next_notification=0L;
+	int interval_to_use=0;
+	serviceescalation *temp_se=NULL;
 	int have_escalated_interval=FALSE;
 
 #ifdef DEBUG0
@@ -1723,9 +1725,9 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 
 /* calculates next acceptable re-notification time for a host */
 time_t get_next_host_notification_time(host *hst, time_t offset){
-	time_t next_notification;
-	int interval_to_use;
-	hostescalation *temp_he;
+	time_t next_notification=0L;
+	int interval_to_use=0;
+	hostescalation *temp_he=NULL;
 	int have_escalated_interval=FALSE;
 
 #ifdef DEBUG0
@@ -1781,21 +1783,19 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 
 
 /* given a contact name, find the notification entry for them for the list in memory */
-notification * find_notification(char *contact_name){
-	notification *temp_notification;
+notification * find_notification(contact *cntct){
+	notification *temp_notification=NULL;
 
 #ifdef DEBUG0
 	printf("find_notification() start\n");
 #endif
 
-	if(contact_name==NULL)
+	if(cntct==NULL)
 		return NULL;
 	
-	temp_notification=notification_list;
-	while(temp_notification!=NULL){
-		if(!strcmp(contact_name,temp_notification->contact->name))
-		  return temp_notification;
-		temp_notification=temp_notification->next;
+	for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
+		if(temp_notification->contact==cntct)
+			return temp_notification;
 	        }
 
 #ifdef DEBUG0
@@ -1810,8 +1810,8 @@ notification * find_notification(char *contact_name){
 
 /* add a new notification to the list in memory */
 int add_notification(contact *cntct){
-	notification *new_notification;
-	notification *temp_notification;
+	notification *new_notification=NULL;
+	notification *temp_notification=NULL;
 
 #ifdef DEBUG0
 	printf("add_notification() start\n");
@@ -1821,13 +1821,11 @@ int add_notification(contact *cntct){
 #endif
 
 	/* don't add anything if this contact is already on the notification list */
-	temp_notification=find_notification(cntct->name);
-	if(temp_notification!=NULL)
+	if((temp_notification=find_notification(cntct))!=NULL)
 		return OK;
 
 	/* allocate memory for a new contact in the notification list */
-	new_notification=malloc(sizeof(notification));
-	if(new_notification==NULL)
+	if((new_notification=malloc(sizeof(notification)))==NULL)
 		return ERROR;
 
 	/* fill in the contact info */

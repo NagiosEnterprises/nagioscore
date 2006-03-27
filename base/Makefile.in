@@ -22,7 +22,8 @@ CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
 # Compiler flags for optimization (complements default)
 #CFLAGS_WARN=-Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs
 #CFLAGS_DEBUG=-ggdb3 -g3
-#CFLAGS+=$(CFLAGS_WARN) $(CFLAGS_DEBUG)
+#CFLAGS_GPROF=-pg
+#CFLAGS+=$(CFLAGS_WARN) $(CFLAGS_DEBUG) $(CFLAGS_GPROF)
 
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@

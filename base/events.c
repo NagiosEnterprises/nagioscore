@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-11-2006
+ * Last Modified: 03-26-2006
  *
  * License:
  *
@@ -78,10 +78,14 @@ extern int      service_check_timeout;
 extern int      execute_service_checks;
 extern int      execute_host_checks;
 
+extern int      use_large_installation_tweaks;
+
 extern int      time_change_threshold;
 
 timed_event *event_list_low=NULL;
+timed_event *event_list_low_tail=NULL;
 timed_event *event_list_high=NULL;
+timed_event *event_list_high_tail=NULL;
 
 extern host     *host_list;
 extern service  *service_list;
@@ -126,6 +130,7 @@ void init_timing_loop(void){
 	scheduling_info.total_scheduled_hosts=0;
 	scheduling_info.average_services_per_host=0.0;
 	scheduling_info.average_scheduled_services_per_host=0.0;
+	scheduling_info.average_service_execution_time=0.0;
 	scheduling_info.service_check_interval_total=0;
 	scheduling_info.average_service_inter_check_delay=0.0;
 	scheduling_info.host_check_interval_total=0;
@@ -145,9 +150,9 @@ void init_timing_loop(void){
 			schedule_check=FALSE;
 
 		/* are there any valid times this service can be checked? */
-		is_valid_time=check_time_against_period(current_time,temp_service->check_period);
+		is_valid_time=check_time_against_period(current_time,temp_service->check_period_ptr);
 		if(is_valid_time==ERROR){
-			get_next_valid_time(current_time,&next_valid_time,temp_service->check_period);
+			get_next_valid_time(current_time,&next_valid_time,temp_service->check_period_ptr);
 			if(current_time==next_valid_time)
 				schedule_check=FALSE;
 		        }
@@ -158,6 +163,9 @@ void init_timing_loop(void){
 
 			/* used later in inter-check delay calculations */
 			scheduling_info.service_check_interval_total+=temp_service->check_interval;
+
+			/* calculate rolling average execution time (available from retained state information) */
+			scheduling_info.average_service_execution_time=(double)(((scheduling_info.average_service_execution_time*(scheduling_info.total_scheduled_services-1)) + temp_service->execution_time)/(double)scheduling_info.total_scheduled_services);
 		        }
 		else{
 			temp_service->should_be_scheduled=FALSE;
@@ -183,9 +191,9 @@ void init_timing_loop(void){
 			schedule_check=FALSE;
 
 		/* are there any valid times this host can be checked? */
-		is_valid_time=check_time_against_period(current_time,temp_host->check_period);
+		is_valid_time=check_time_against_period(current_time,temp_host->check_period_ptr);
 		if(is_valid_time==ERROR){
-			get_next_valid_time(current_time,&next_valid_time,temp_host->check_period);
+			get_next_valid_time(current_time,&next_valid_time,temp_host->check_period_ptr);
 			if(current_time==next_valid_time)
 				schedule_check=FALSE;
 		        }
@@ -209,6 +217,12 @@ void init_timing_loop(void){
 
 	scheduling_info.average_services_per_host=(double)((double)scheduling_info.total_services/(double)scheduling_info.total_hosts);
 	scheduling_info.average_scheduled_services_per_host=(double)((double)scheduling_info.total_scheduled_services/(double)scheduling_info.total_hosts);
+
+	/* adjust the check interval total to correspond to the interval length */
+	scheduling_info.service_check_interval_total=(scheduling_info.service_check_interval_total*interval_length);
+
+	/* calculate the average check interval for services */
+	scheduling_info.average_service_check_interval=(double)((double)scheduling_info.service_check_interval_total/(double)scheduling_info.total_scheduled_services);
 
 
 	/******** DETERMINE SERVICE SCHEDULING PARAMS  ********/
@@ -241,12 +255,6 @@ void init_timing_loop(void){
 
 		/* be smart and calculate the best delay to use to minimize local load... */
 		if(scheduling_info.total_scheduled_services>0 && scheduling_info.service_check_interval_total>0){
-
-			/* adjust the check interval total to correspond to the interval length */
-			scheduling_info.service_check_interval_total=(scheduling_info.service_check_interval_total*interval_length);
-
-			/* calculate the average check interval for services */
-			scheduling_info.average_service_check_interval=(double)((double)scheduling_info.service_check_interval_total/(double)scheduling_info.total_scheduled_services);
 
 			/* calculate the average inter check delay (in seconds) needed to evenly space the service checks out */
 			scheduling_info.average_service_inter_check_delay=(double)(scheduling_info.average_service_check_interval/(double)scheduling_info.total_scheduled_services);
@@ -327,8 +335,8 @@ void init_timing_loop(void){
 			if(temp_service->should_be_scheduled==FALSE)
 				continue;
 
-			/* skip services that are already scheduled (from retention data) */
-			if(temp_service->next_check!=(time_t)0)
+			/* skip services that are already scheduled for the future (from retention data), but reschedule ones that were supposed to happen while we weren't running... */
+			if(temp_service->next_check>current_time)
 				continue;
 
 			/* interleave block index should only be increased when we find a schedulable service */
@@ -351,9 +359,9 @@ void init_timing_loop(void){
 #endif
 
 			/* make sure the service can actually be scheduled when we want */
-			is_valid_time=check_time_against_period(temp_service->next_check,temp_service->check_period);
+			is_valid_time=check_time_against_period(temp_service->next_check,temp_service->check_period_ptr);
 			if(is_valid_time==ERROR){
-				get_next_valid_time(temp_service->next_check,&next_valid_time,temp_service->check_period);
+				get_next_valid_time(temp_service->next_check,&next_valid_time,temp_service->check_period_ptr);
 				temp_service->next_check=next_valid_time;
 			        }
 
@@ -455,8 +463,8 @@ void init_timing_loop(void){
 		if(temp_host->should_be_scheduled==FALSE)
 			continue;
 
-		/* skip hosts that are already scheduled (from retention data) */
-		if(temp_host->next_check!=(time_t)0)
+		/* skip hosts that are already scheduled for the future (from retention data), but reschedule ones that were supposed to be checked before we started */
+		if(temp_host->next_check>current_time)
 			continue;
 
 #ifdef DEBUG1
@@ -471,9 +479,9 @@ void init_timing_loop(void){
 #endif
 
 		/* make sure the host can actually be scheduled at this time */
-		is_valid_time=check_time_against_period(temp_host->next_check,temp_host->check_period);
+		is_valid_time=check_time_against_period(temp_host->next_check,temp_host->check_period_ptr);
 		if(is_valid_time==ERROR){
-			get_next_valid_time(temp_host->next_check,&next_valid_time,temp_host->check_period);
+			get_next_valid_time(temp_host->next_check,&next_valid_time,temp_host->check_period_ptr);
 			temp_host->next_check=next_valid_time;
 		        }
 
@@ -554,6 +562,8 @@ void init_timing_loop(void){
 
 /* displays service check scheduling information */
 void display_scheduling_info(void){
+	float minimum_concurrent_checks1=0.0;
+	float minimum_concurrent_checks2=0.0;
 	float minimum_concurrent_checks=0.0;
 	float max_reaper_interval=0.0;
 	int suggestions=0;
@@ -625,16 +635,10 @@ void display_scheduling_info(void){
 	printf("PERFORMANCE SUGGESTIONS\n");
 	printf("-----------------------\n");
 
-	/* assume a 100% (2x) service check burst for max concurrent checks */
-	if(scheduling_info.service_inter_check_delay==0.0)
-		minimum_concurrent_checks=ceil(check_reaper_interval*2.0);
-	minimum_concurrent_checks=ceil((check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
-	if(((int)minimum_concurrent_checks > max_parallel_service_checks) && max_parallel_service_checks!=0){
-		printf("* Value for 'max_concurrent_checks' option should >= %d\n",(int)minimum_concurrent_checks);
-		suggestions++;
-	        }
 
-	/* assume a 100% (2x) service check burst for service check reaper */
+	/***** MAX REAPER INTERVAL RECOMMENDATION *****/
+
+	/* assume a 100% (2x) check burst for check reaper */
 	max_reaper_interval=floor((double)CHECK_RESULT_BUFFER_SLOTS/scheduling_info.service_inter_check_delay);
 	if(max_reaper_interval<2.0)
 		max_reaper_interval=2.0;
@@ -646,6 +650,28 @@ void display_scheduling_info(void){
 	        }
 	if(check_reaper_interval<2){
 		printf("* Value for 'check_result_reaper_frequency' should be >= 2 seconds\n");
+		suggestions++;
+	        }
+
+	/***** MINIMUM CONCURRENT CHECKS RECOMMENDATION *****/
+
+	/* first method (old) - assume a 100% (2x) service check burst for max concurrent checks */
+	if(scheduling_info.service_inter_check_delay==0.0)
+		minimum_concurrent_checks1=ceil(check_reaper_interval*2.0);
+	minimum_concurrent_checks1=ceil((check_reaper_interval*2.0)/scheduling_info.service_inter_check_delay);
+
+	/* second method (new) - assume a 25% (1.25x) service check burst for max concurrent checks */
+	minimum_concurrent_checks2=ceil((((double)scheduling_info.total_scheduled_services)/scheduling_info.average_service_check_interval) * 1.25 * check_reaper_interval * scheduling_info.average_service_execution_time);
+
+	/* use max of computed values */
+	if(minimum_concurrent_checks1>minimum_concurrent_checks2)
+		minimum_concurrent_checks=minimum_concurrent_checks1;
+	else
+		minimum_concurrent_checks=minimum_concurrent_checks2;
+
+	/* compare with configured value */
+	if(((int)minimum_concurrent_checks > max_parallel_service_checks) && max_parallel_service_checks!=0){
+		printf("* Value for 'max_concurrent_checks' option should be >= %d\n",(int)minimum_concurrent_checks);
 		suggestions++;
 	        }
 
@@ -661,16 +687,21 @@ void display_scheduling_info(void){
 /* schedule a new timed event */
 int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args){
 	timed_event **event_list=NULL;
+	timed_event **event_list_tail=NULL;
 	timed_event *new_event=NULL;
 
 #ifdef DEBUG0
 	printf("schedule_new_event() start\n");
 #endif
 
-	if(high_priority==TRUE)
+	if(high_priority==TRUE){
 		event_list=&event_list_high;
-	else
+		event_list_tail=&event_list_high_tail;
+		}
+	else{
 		event_list=&event_list_low;
+		event_list_tail=&event_list_low_tail;
+		}
 
 	new_event=(timed_event *)malloc(sizeof(timed_event));
 	if(new_event!=NULL){
@@ -687,7 +718,7 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 		return ERROR;
 
 	/* add the event to the event list */
-	add_event(new_event,event_list);
+	add_event(new_event,event_list,event_list_tail);
 
 #ifdef DEBUG0
 	printf("schedule_new_event() end\n");
@@ -698,15 +729,13 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 
 
 /* reschedule an event in order of execution time */
-void reschedule_event(timed_event *event,timed_event **event_list){
+void reschedule_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){
 	time_t current_time=0L;
 	time_t (*timingfunc)(void);
 
 #ifdef DEBUG0
 	printf("reschedule_event() start\n");
 #endif
-
-	/*printf("INITIAL TIME: %s",ctime(&event->run_time));*/
 
 	/* reschedule recurring events... */
 	if(event->recurring==TRUE){
@@ -726,10 +755,8 @@ void reschedule_event(timed_event *event,timed_event **event_list){
 		        }
 	        }
 
-	/*printf("RESCHEDULED TIME: %s",ctime(&event->run_time));*/
-
 	/* add the event to the event list */
-	add_event(event,event_list);
+	add_event(event,event_list,event_list_tail);
 
 #ifdef DEBUG0
 	printf("reschedule_event() end\n");
@@ -739,64 +766,31 @@ void reschedule_event(timed_event *event,timed_event **event_list){
         }
 
 
-/* remove event from schedule */
-int deschedule_event(int event_type, int high_priority, void *event_data, void *event_args){
-	timed_event **event_list=NULL;
-	timed_event *temp_event=NULL;
-	int found=FALSE;
-	
-#ifdef DEBUG0
-	printf("deschedule_event() start\n");
-#endif
-
-	if(high_priority==TRUE)
-		event_list=&event_list_high;
-	else
-		event_list=&event_list_low;
-
-	for(temp_event=*event_list;temp_event!=NULL;temp_event=temp_event->next){
-		if(temp_event->event_type==event_type && temp_event->event_data==event_data && temp_event->event_args==event_args){
-			found=TRUE;
-			break;
-			}
-		}
-
-	/* remove the event from the event list */
-	if (found){
-		remove_event(temp_event,event_list);
-		my_free((void **)&temp_event);
-		}
-	else{
-		return ERROR; 
-		}
-
-#ifdef DEBUG0
-		printf("deschedule_event() end\n");
-#endif
-
-	return OK;
-	}
-
-
 /* add an event to list ordered by execution time */
-void add_event(timed_event *event,timed_event **event_list){
+void add_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){
 	timed_event *temp_event=NULL;
 	timed_event *first_event=NULL;
+	int count=0;
 
 #ifdef DEBUG0
 	printf("add_event() start\n");
 #endif
 
 	event->next=NULL;
+	event->prev=NULL;
 
 	first_event=*event_list;
 
 	/* add the event to the head of the list if there are no other events */
-	if(*event_list==NULL)
+	if(*event_list==NULL){
 		*event_list=event;
+		*event_list_tail=event;
+		}
 
         /* add event to head of the list if it should be executed first */
 	else if(event->run_time < first_event->run_time){
+		event->prev=NULL;
+		(*event_list)->prev=event;
 	        event->next=*event_list;
 		*event_list=event;
 	        }
@@ -804,22 +798,25 @@ void add_event(timed_event *event,timed_event **event_list){
 	/* else place the event according to next execution time */
 	else{
 
-		temp_event=*event_list;
-		while(temp_event!=NULL){
-
-			if(temp_event->next==NULL){
-				temp_event->next=event;
-				break;
-			        }
-			
-			if(event->run_time < temp_event->next->run_time){
+		/* start from the end of the list, as new events are likely to be executed in the future, rather than now... */
+		for(temp_event=*event_list_tail;temp_event!=NULL;temp_event=temp_event->prev){
+			if(event->run_time >= temp_event->run_time){
 				event->next=temp_event->next;
+				event->prev=temp_event;
 				temp_event->next=event;
+				if(event->next==NULL)
+					*event_list_tail=event;
+				else
+					event->next->prev=event;
 				break;
 			        }
-
-			temp_event=temp_event->next;
-		        }
+			else if(temp_event->prev==NULL){
+				temp_event->prev=event;
+				event->next=temp_event;
+				*event_list=event;
+				break;
+			        }
+			}
 	        }
 
 #ifdef USE_EVENT_BROKER
@@ -837,7 +834,7 @@ void add_event(timed_event *event,timed_event **event_list){
 
 
 /* remove an event from the queue */
-void remove_event(timed_event *event,timed_event **event_list){
+void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){
 	timed_event *temp_event=NULL;
 
 #ifdef DEBUG0
@@ -852,19 +849,28 @@ void remove_event(timed_event *event,timed_event **event_list){
 	if(*event_list==NULL)
 		return;
 
-	if(*event_list==event)
+	if(*event_list==event){
+		event->prev=NULL;
 		*event_list=event->next;
+		if(*event_list==NULL)
+			*event_list_tail=NULL;
+		}
 
 	else{
 
 		for(temp_event=*event_list;temp_event!=NULL;temp_event=temp_event->next){
 			if(temp_event->next==event){
+				temp_event->next->next->prev=temp_event;
 				temp_event->next=temp_event->next->next;
+				if(temp_event->next==NULL)
+					*event_list_tail=temp_event;
 				event->next=NULL;
+				event->prev=NULL;
 				break;
 			        }
 		        }
 	        }
+
 
 #ifdef DEBUG0
 	printf("remove_event() end\n");
@@ -884,8 +890,10 @@ int event_execution_loop(void){
 	int run_event=TRUE;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	char *temp_buffer=NULL;
 	struct timespec delay;
 	struct timeval tv;
+	pid_t wait_result;
 
 #ifdef DEBUG0
 	printf("event_execution_loop() start\n");
@@ -946,19 +954,25 @@ int event_execution_loop(void){
 		printf("Current/Max Outstanding Service Checks: %d/%d\n",currently_running_service_checks,max_parallel_service_checks);
 #endif
 
+		/* get rid of terminated child processes (zombies) */
+		if(use_large_installation_tweaks==TRUE){
+			while((wait_result=waitpid(-1,NULL,WNOHANG))>0);
+			}
+
 		/* handle high priority events */
 		if(event_list_high!=NULL && (current_time>=event_list_high->run_time)){
 
 			/* remove the first event from the timing loop */
 			temp_event=event_list_high;
 			event_list_high=event_list_high->next;
+			event_list_high->prev=NULL;
 
 			/* handle the event */
 			handle_timed_event(temp_event);
 
 			/* reschedule the event if necessary */
 			if(temp_event->recurring==TRUE)
-				reschedule_event(temp_event,&event_list_high);
+				reschedule_event(temp_event,&event_list_high,&event_list_high_tail);
 
 			/* else free memory associated with the event */
 			else
@@ -976,20 +990,33 @@ int event_execution_loop(void){
 
 				temp_service=(service *)event_list_low->event_data;
 
-				/* update service check latency */
-				gettimeofday(&tv,NULL);
-				temp_service->latency=(double)((double)(tv.tv_sec-event_list_low->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+				/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
+				if(max_parallel_service_checks!=0 && (currently_running_service_checks >= max_parallel_service_checks)){
+					asprintf(&temp_buffer,"\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
+					write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+					my_free((void **)&temp_buffer);
+					run_event=FALSE;
+					}
 
-				/* don't run a service check if we're not supposed to right now */
-				if(execute_service_checks==FALSE && !(temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)){
+				/* don't run a service check if active checks are disabled */
+				if(execute_service_checks==FALSE){
 #ifdef DEBUG3
 					printf("\tWe're not executing service checks right now...\n");
 #endif
+					run_event=FALSE;
+					}
+
+				/* forced checks override normal check logic */
+				if((temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION))
+					run_event=TRUE;
+
+				/* reschedule the check if we can't run it now */
+				if(run_event==FALSE){
 
 					/* remove the service check from the event queue and reschedule it for a later time */
 					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
 					temp_event=event_list_low;
-					remove_event(temp_event,&event_list_low);
+					remove_event(temp_event,&event_list_low,&event_list_low_tail);
 					/*
 					event_list_low=event_list_low->next;
 					*/
@@ -998,19 +1025,12 @@ int event_execution_loop(void){
 					else
 						temp_service->next_check=(time_t)(temp_service->next_check+(temp_service->check_interval*interval_length));
 					temp_event->run_time=temp_service->next_check;
-					reschedule_event(temp_event,&event_list_low);
+					reschedule_event(temp_event,&event_list_low,&event_list_low_tail);
 					update_service_status(temp_service,FALSE);
 
 					run_event=FALSE;
 				        }
 
-				/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
-				if(max_parallel_service_checks!=0 && (currently_running_service_checks >= max_parallel_service_checks)){
-#ifdef DEBUG3
-					printf("\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
-#endif
-					run_event=FALSE;
-				        }
 			        }
 
 			/* run a few checks before executing a host check... */
@@ -1018,16 +1038,25 @@ int event_execution_loop(void){
 
 				temp_host=(host *)event_list_low->event_data;
 
-				/* don't run a host check if we're not supposed to right now */
-				if(execute_host_checks==FALSE && !(temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)){
+				/* don't run a host check if active checks are disabled */
+				if(execute_host_checks==FALSE){
 #ifdef DEBUG3
 					printf("\tWe're not executing host checks right now...\n");
 #endif
+					run_event=FALSE;
+					}
+
+				/* forced checks override normal check logic */
+				if((temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION))
+					run_event=TRUE;
+
+				/* reschedule the host check if we can't run it right now */
+				if(run_event==FALSE){
 
 					/* remove the host check from the event queue and reschedule it for a later time */
 					/* 12/20/05 since event was not executed, it needs to be remove()'ed to maintain sync with event broker modules */
 					temp_event=event_list_low;
-					remove_event(temp_event,&event_list_low);
+					remove_event(temp_event,&event_list_low,&event_list_low_tail);
 					/*
 					event_list_low=event_list_low->next;
 					*/
@@ -1037,26 +1066,27 @@ int event_execution_loop(void){
 						temp_host->next_check=(time_t)(temp_host->next_check+(temp_host->check_interval*interval_length));
 
 					temp_event->run_time=temp_host->next_check;
-					reschedule_event(temp_event,&event_list_low);
+					reschedule_event(temp_event,&event_list_low,&event_list_low_tail);
 					update_host_status(temp_host,FALSE);
 
 					run_event=FALSE;
 				        }
 			        }
 
-			/* run the event except... */
+			/* run the event */
 			if(run_event==TRUE){
 
 				/* remove the first event from the timing loop */
 				temp_event=event_list_low;
 				event_list_low=event_list_low->next;
-
+				event_list_low->prev=NULL;
+				
 				/* handle the event */
 				handle_timed_event(temp_event);
 
 				/* reschedule the event if necessary */
 				if(temp_event->recurring==TRUE)
-					reschedule_event(temp_event,&event_list_low);
+					reschedule_event(temp_event,&event_list_low,&event_list_low_tail);
 
 				/* else free memory associated with the event */
 				else
@@ -1353,7 +1383,7 @@ void adjust_check_scheduling(void){
 	timed_event *temp_event=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	double projected_host_check_overhead=0.9;
+	double projected_host_check_overhead=0.1;
 	double projected_service_check_overhead=0.1;
 	time_t current_time=0L;
 	time_t first_window_time=0L;
@@ -1412,7 +1442,8 @@ void adjust_check_scheduling(void){
 			last_check_time=temp_event->run_time;
 
 			/* calculate time needed to perform check */
-			last_check_exec_time=temp_host->execution_time+projected_host_check_overhead;
+			/* NOTE: host check execution time is not taken into account, as scheduled host checks are run in parallel */
+			last_check_exec_time=projected_host_check_overhead;
 			total_check_exec_time+=last_check_exec_time;
 		        }
 
@@ -1545,7 +1576,7 @@ void adjust_check_scheduling(void){
 	        }
 
 	/* resort event list (some events may be out of order at this point) */
-	resort_event_list(&event_list_low);
+	resort_event_list(&event_list_low,&event_list_low_tail);
 
 #ifdef DEBUG0
 	printf("adjust_check_scheduling() end\n");
@@ -1601,7 +1632,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* resort event list (some events may be out of order at this point) */
-	resort_event_list(&event_list_high);
+	resort_event_list(&event_list_high,&event_list_high_tail);
 
 	/* adjust the next run time for all low priority timed events */
 	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
@@ -1622,7 +1653,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	        }
 
 	/* resort event list (some events may be out of order at this point) */
-	resort_event_list(&event_list_low);
+	resort_event_list(&event_list_low,&event_list_low_tail);
 
 	/* adjust service timestamps */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -1675,7 +1706,7 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 
 
 /* resorts an event list by event execution time - needed when compensating for system time changes */
-void resort_event_list(timed_event **event_list){
+void resort_event_list(timed_event **event_list, timed_event **event_list_tail){
 	timed_event *temp_event_list=NULL;
 	timed_event *temp_event=NULL;
 	timed_event *next_event=NULL;
@@ -1690,7 +1721,8 @@ void resort_event_list(timed_event **event_list){
 
 		/* add the event to the newly created event list so it will be resorted */
 		temp_event->next=NULL;
-		add_event(temp_event,event_list);
+		temp_event->prev=NULL;
+		add_event(temp_event,event_list,event_list_tail);
 	        }
 
 	return;

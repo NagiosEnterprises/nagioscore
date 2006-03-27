@@ -3,7 +3,7 @@
  * STATUSWRL.C - Nagios 3-D (VRML) Network Status View
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2006
+ * Last Modified:   03-27-2006
  *
  * Description:
  *
@@ -747,7 +747,7 @@ void calculate_world_bounds(void){
 		else if(temp_host->y_3d > max_y_coord)
 			max_y_coord=temp_host->y_3d;
 		if(temp_host->z_3d < min_z_coord)
-			min_x_coord=temp_host->z_3d;
+			min_z_coord=temp_host->z_3d;
 		else if(temp_host->z_3d > max_z_coord)
 			max_z_coord=temp_host->z_3d;
 

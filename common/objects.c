@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-11-2006
+ * Last Modified: 03-27-2006
  *
  * License:
  *
@@ -905,6 +905,12 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->plugin_output=NULL;
 	new_host->long_plugin_output=NULL;
 	new_host->perf_data=NULL;
+
+	new_host->event_handler_ptr=NULL;
+	new_host->check_command_ptr=NULL;
+	new_host->check_period_ptr=NULL;
+	new_host->notification_period_ptr=NULL;
+	new_host->first_hostgroup_ptr=NULL;
 #endif
 	new_host->next=NULL;
 	new_host->nexthash=NULL;
@@ -1163,6 +1169,9 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 
 	/* initialize values */
 	new_hostsmember->host_name=NULL;
+#ifdef NSCORE
+	new_hostsmember->host_ptr=NULL;
+#endif
 
 	/* duplicate string vars */
 	if((new_hostsmember->host_name=(char *)strdup(host_name))==NULL)
@@ -1216,6 +1225,9 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	
 	/* initialize vars */
 	new_contactgroupsmember->group_name=NULL;
+#ifdef NSCORE
+	new_contactgroupsmember->group_ptr=NULL;
+#endif
 
 	/* duplicate string vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
@@ -1233,7 +1245,7 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	hst->contact_groups=new_contactgroupsmember;;
 
 #ifdef DEBUG0
-	printf("add_host_to_host() end\n");
+	printf("add_contactgroup_to_host() end\n");
 #endif
 
 	return new_contactgroupsmember;
@@ -1371,6 +1383,9 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 
 	/* initialize vars */
 	new_member->host_name=NULL;
+#ifdef NSCORE
+	new_member->host_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_member->host_name=(char *)strdup(host_name))==NULL)
@@ -1537,6 +1552,9 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 	/* initialize vars */
 	new_member->host_name=NULL;
 	new_member->service_description=NULL;
+#ifdef NSCORE
+	new_member->service_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_member->host_name=(char *)strdup(host_name))==NULL)
@@ -1694,6 +1712,9 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	new_contact->modified_attributes=MODATTR_NONE;
 	new_contact->modified_host_attributes=MODATTR_NONE;
 	new_contact->modified_service_attributes=MODATTR_NONE;
+
+	new_contact->host_notification_period_ptr=NULL;
+	new_contact->service_notification_period_ptr=NULL;
 #endif
 
 	/* add new contact to contact chained hash list */
@@ -1777,6 +1798,9 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 
 	/* initialize vars */
 	new_commandsmember->command=NULL;
+#ifdef NSCORE
+	new_commandsmember->command_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_commandsmember->command=(char *)strdup(command_name))==NULL)
@@ -1830,6 +1854,9 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 
 	/* initialize vars */
 	new_commandsmember->command=NULL;
+#ifdef NSCORE
+	new_commandsmember->command_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_commandsmember->command=(char *)strdup(command_name))==NULL)
@@ -1984,6 +2011,9 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 	/* initialize vars */
 	new_contactgroupmember->contact_name=NULL;
+#ifdef NSCORE
+	new_contactgroupmember->contact_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_contactgroupmember->contact_name=(char *)strdup(contact_name))==NULL)
@@ -2084,6 +2114,15 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->plugin_output=NULL;
 	new_service->long_plugin_output=NULL;
 	new_service->perf_data=NULL;
+
+	new_service->host_ptr=NULL;
+	new_service->event_handler_ptr=NULL;
+	new_service->event_handler_args=NULL;
+	new_service->check_command_ptr=NULL;
+	new_service->check_command_args=NULL;
+	new_service->check_period_ptr=NULL;
+	new_service->notification_period_ptr=NULL;
+	new_service->first_servicegroup_ptr=NULL;
 #endif
 	new_service->next=NULL;
 	new_service->nexthash=NULL;
@@ -2306,6 +2345,9 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 
 	/* initialize vars */
 	new_contactgroupsmember->group_name=NULL;
+#ifdef NSCORE
+	new_contactgroupsmember->group_ptr=NULL;
+#endif
 	
 	/* duplicate vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
@@ -2462,6 +2504,10 @@ serviceescalation *add_serviceescalation(char *host_name,char *description,int f
 	new_serviceescalation->contact_groups=NULL;
 	new_serviceescalation->next=NULL;
 	new_serviceescalation->nexthash=NULL;
+#ifdef NSCORE
+	new_serviceescalation->service_ptr=NULL;
+	new_serviceescalation->escalation_period_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_serviceescalation->host_name=(char *)strdup(host_name))==NULL)
@@ -2557,6 +2603,9 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 	/* initialize vars */
 	new_contactgroupsmember->group_name=NULL;
+#ifdef NSCORE
+	new_contactgroupsmember->group_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
@@ -2636,6 +2685,9 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 #ifdef NSCORE
 	new_servicedependency->circular_path_checked=FALSE;
 	new_servicedependency->contains_circular_path=FALSE;
+
+	new_servicedependency->master_service_ptr;
+	new_servicedependency->dependent_service_ptr;
 #endif
 
 	/* add new servicedependency to servicedependency chained hash list */
@@ -2725,6 +2777,9 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 #ifdef NSCORE
 	new_hostdependency->circular_path_checked=FALSE;
 	new_hostdependency->contains_circular_path=FALSE;
+
+	new_hostdependency->master_host_ptr=NULL;
+	new_hostdependency->dependent_host_ptr=NULL;
 #endif
 
 	/* add new hostdependency to hostdependency chained hash list */
@@ -2798,6 +2853,10 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	new_hostescalation->contact_groups=NULL;
 	new_hostescalation->next=NULL;
 	new_hostescalation->nexthash=NULL;
+#ifdef NSCORE
+	new_hostescalation->host_ptr=NULL;
+	new_hostescalation->escalation_period_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_hostescalation->host_name=(char *)strdup(host_name))==NULL)
@@ -2888,6 +2947,9 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 	/* initialize vars */
 	new_contactgroupsmember->group_name=NULL;
+#ifdef NSCORE
+	new_contactgroupsmember->group_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_contactgroupsmember->group_name=(char *)strdup(group_name))==NULL)
@@ -3412,8 +3474,13 @@ int is_host_immediate_child_of_host(host *parent_host,host *child_host){
 	else{
 
 		for(temp_hostsmember=child_host->parent_hosts;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
+#ifdef NSCORE
+			if(temp_hostsmember->host_ptr==parent_host)
+				return TRUE;
+#else
 			if(!strcmp(temp_hostsmember->host_name,parent_host->name))
 				return TRUE;
+#endif
 		        }
 	        }
 
@@ -3439,8 +3506,13 @@ int is_host_primary_immediate_child_of_host(host *parent_host, host *child_host)
 
 	for(temp_hostsmember=child_host->parent_hosts;temp_hostsmember->next!=NULL;temp_hostsmember=temp_hostsmember->next);
 
+#ifdef NSCORE
+	if(temp_hostsmember->host_ptr==parent_host)
+		return TRUE;
+#else
 	if(!strcmp(temp_hostsmember->host_name,parent_host->name))
 		return TRUE;
+#endif
 
 	return FALSE;
         }
@@ -3525,8 +3597,13 @@ int is_host_member_of_hostgroup(hostgroup *group, host *hst){
 		return FALSE;
 
 	for(temp_hostgroupmember=group->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
+#ifdef NSCORE
+		if(temp_hostgroupmember->host_ptr==hst)
+			return TRUE;
+#else
 		if(!strcmp(temp_hostgroupmember->host_name,hst->name))
 			return TRUE;
+#endif
 	        }
 
 	return FALSE;
@@ -3541,8 +3618,13 @@ int is_host_member_of_servicegroup(servicegroup *group, host *hst){
 		return FALSE;
 
 	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+#ifdef NSCORE
+		if(temp_servicegroupmember->service_ptr!=NULL && temp_servicegroupmember->service_ptr->host_ptr==hst)
+			return TRUE;
+#else
 		if(!strcmp(temp_servicegroupmember->host_name,hst->name))
 			return TRUE;
+#endif
 	        }
 
 	return FALSE;
@@ -3557,8 +3639,13 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 		return FALSE;
 
 	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+#ifdef NSCORE
+		if(temp_servicegroupmember->service_ptr==svc)
+			return TRUE;
+#else
 		if(!strcmp(temp_servicegroupmember->host_name,svc->host_name) && !strcmp(temp_servicegroupmember->service_description,svc->description))
 			return TRUE;
+#endif
 	        }
 
 	return FALSE;
@@ -3575,9 +3662,13 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
 	/* search all contacts in this contact group */
 	for(temp_contactgroupmember=group->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
 
-		/* we found the contact! */
+#ifdef NSCORE
+		if(temp_contactgroupmember->contact_ptr==cntct)
+			return TRUE;
+#else
 		if(!strcmp(temp_contactgroupmember->contact_name,cntct->name))
 			return TRUE;
+#endif
                 }
 
 	return FALSE;
@@ -3593,7 +3684,11 @@ int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
 		return FALSE;
 
 	for(temp_hostgroupmember=group->members;temp_hostgroupmember!=NULL;temp_hostgroupmember=temp_hostgroupmember->next){
+#ifdef NSCORE
+		temp_host=temp_hostgroupmember->host_ptr;
+#else
 		temp_host=find_host(temp_hostgroupmember->host_name);
+#endif
 		if(temp_host==NULL)
 			continue;
 		if(is_contact_for_host(temp_host,cntct)==TRUE)
@@ -3614,7 +3709,11 @@ int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
 		return FALSE;
 
 	for(temp_servicegroupmember=group->members;temp_servicegroupmember!=NULL;temp_servicegroupmember=temp_servicegroupmember->next){
+#ifdef NSCORE
+		temp_service=temp_servicegroupmember->service_ptr;
+#else
 		temp_service=find_service(temp_servicegroupmember->host_name,temp_servicegroupmember->service_description);
+#endif
 		if(temp_service==NULL)
 			continue;
 		if(is_contact_for_service(temp_service,cntct)==TRUE)
@@ -3639,7 +3738,11 @@ int is_contact_for_host(host *hst, contact *cntct){
 	for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 		/* find the contact group */
+#ifdef NSCORE
+		temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
 		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
 		if(temp_contactgroup==NULL)
 			continue;
 
@@ -3666,7 +3769,11 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 			/* find the contact group */
+#ifdef NSCORE
+			temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
 			if(temp_contactgroup==NULL)
 				continue;
 
@@ -3692,7 +3799,11 @@ int is_contact_for_service(service *svc, contact *cntct){
 	for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 		/* find the contact group */
+#ifdef NSCORE
+		temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
 		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
 		if(temp_contactgroup==NULL)
 			continue;
 
@@ -3718,7 +3829,11 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 		for(temp_contactgroupsmember=temp_serviceescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
 			/* find the contact group */
+#ifdef NSCORE
+			temp_contactgroup=temp_contactgroupsmember->group_ptr;
+#else
 			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
+#endif
 			if(temp_contactgroup==NULL)
 				continue;
 
@@ -3793,7 +3908,7 @@ int check_for_circular_servicedependency_path(servicedependency *root_dep, servi
 
 	/* is this service dependent on the root service? */
 	if(dep!=root_dep){
-		if(!strcmp(root_dep->dependent_host_name,dep->host_name) && !strcmp(root_dep->dependent_service_description,dep->service_description)){
+		if(root_dep->dependent_service_ptr==dep->master_service_ptr){
 			root_dep->contains_circular_path=TRUE;
 			dep->contains_circular_path=TRUE;
 			return TRUE;
@@ -3808,7 +3923,7 @@ int check_for_circular_servicedependency_path(servicedependency *root_dep, servi
 	for(temp_sd=servicedependency_list;temp_sd!=NULL;temp_sd=temp_sd->next){
 
 		/* only check parent dependencies */
-		if(strcmp(dep->host_name,temp_sd->dependent_host_name) || strcmp(dep->service_description,temp_sd->dependent_service_description))
+		if(dep->master_service_ptr==temp_sd->dependent_service_ptr)
 			continue;
 
 		if(check_for_circular_servicedependency_path(root_dep,temp_sd,dependency_type)==TRUE)
@@ -3844,7 +3959,7 @@ int check_for_circular_hostdependency_path(hostdependency *root_dep, hostdepende
 
 	/* is this host dependent on the root host? */
 	if(dep!=root_dep){
-		if(!strcmp(root_dep->dependent_host_name,dep->host_name)){
+		if(root_dep->dependent_host_ptr==dep->master_host_ptr){
 			root_dep->contains_circular_path=TRUE;
 			dep->contains_circular_path=TRUE;
 			return TRUE;
@@ -3859,7 +3974,7 @@ int check_for_circular_hostdependency_path(hostdependency *root_dep, hostdepende
 	for(temp_hd=hostdependency_list;temp_hd!=NULL;temp_hd=temp_hd->next){
 
 		/* only check parent dependencies */
-		if(strcmp(dep->host_name,temp_hd->dependent_host_name))
+		if(dep->master_host_ptr==temp_hd->dependent_host_ptr)
 			continue;
 
 		if(check_for_circular_hostdependency_path(root_dep,temp_hd,dependency_type)==TRUE)
@@ -4202,6 +4317,9 @@ int free_object_data(void){
 		my_free((void **)&this_service->plugin_output);
 		my_free((void **)&this_service->long_plugin_output);
 		my_free((void **)&this_service->perf_data);
+
+		my_free((void **)&this_service->event_handler_args);
+		my_free((void **)&this_service->check_command_args);
 #endif
 		my_free((void **)&this_service->notification_period);
 		my_free((void **)&this_service->check_period);

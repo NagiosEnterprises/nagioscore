@@ -3,6 +3,12 @@ Nagios 2.x Change Log
 #####################
 
 
+2.2 - ??/??/2006
+----------------
+* Minor bug fix in availability CGI
+
+
+
 2.1 - 03/27/2006
 ----------------
 * Changed freshness logic so that passive checks don't immediately go stale after program restart

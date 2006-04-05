@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-17-2006
+ * Last Modified:   04-05-2006
  *
  * License:
  *
@@ -47,7 +47,7 @@ nebcallback **neb_callback_list=NULL;
 
 /* initialize module routines */
 int neb_init_modules(void){
-	int result;
+	int result=OK;
 
 	/* initialize library */
 #ifdef USE_LTDL
@@ -99,7 +99,9 @@ int neb_add_module(char *filename,char *args,int should_be_loaded){
 	new_module->module_handle=NULL;
 	new_module->init_func=NULL;
 	new_module->deinit_func=NULL;
-	new_module->thread_id=-1;
+#ifdef HAVE_PTHREAD_H
+	new_module->thread_id=(pthread_t)NULL;
+#endif
 
 	/* add module to head of list */
 	new_module->next=neb_module_list;

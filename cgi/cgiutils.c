@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-04-2006
+ * Last Modified: 03-30-2006
  *
  * License:
  *
@@ -1000,7 +1000,7 @@ void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 
 
 /* get time string for an interval of time */
-void get_interval_time_string(int time_units,char *buffer,int buffer_length){
+void get_interval_time_string(double time_units,char *buffer,int buffer_length){
 	unsigned long total_seconds;
 	int hours=0;
 	int minutes=0;

@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 03-30-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -1550,6 +1550,7 @@ void display_servicedependencies(void){
 	printf("<TH CLASS='data'>Host</TH>");
 	printf("<TH CLASS='data'>Service</TH>");
 	printf("<TH CLASS='data'>Dependency Type</TH>");
+	printf("<TH CLASS='data'>Dependency Perod</TH>");
 	printf("<TH CLASS='data'>Dependency Failure Options</TH>");
 	printf("</TR>\n");
 
@@ -1578,6 +1579,13 @@ void display_servicedependencies(void){
 		printf("%s'>%s</A></TD>\n",url_encode(temp_sd->service_description),temp_sd->service_description);
 
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_sd->dependency_type==NOTIFICATION_DEPENDENCY)?"Notification":"Check Execution");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_sd->dependency_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_sd->dependency_period),temp_sd->dependency_period);
+		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=FALSE;
@@ -1762,6 +1770,7 @@ void display_hostdependencies(void){
 	printf("<TH CLASS='data'>Dependent Host</TH>");
 	printf("<TH CLASS='data'>Master Host</TH>");
 	printf("<TH CLASS='data'>Dependency Type</TH>");
+	printf("<TH CLASS='data'>Dependency Period</TH>");
 	printf("<TH CLASS='data'>Dependency Failure Options</TH>");
 	printf("</TR>\n");
 
@@ -1784,6 +1793,13 @@ void display_hostdependencies(void){
 		printf("<TD CLASS='%s'><A HREF='%s?type=hosts#%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_hd->host_name),temp_hd->host_name);
 
 		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hd->dependency_type==NOTIFICATION_DEPENDENCY)?"Notification":"Check Execution");
+
+		printf("<TD CLASS='%s'>",bg_class);
+		if(temp_hd->dependency_period==NULL)
+			printf("&nbsp;");
+		else
+			printf("<A HREF='%s?type=timeperiods#%s'>%s</A>",CONFIG_CGI,url_encode(temp_hd->dependency_period),temp_hd->dependency_period);
+		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
 		options=FALSE;

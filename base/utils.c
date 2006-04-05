@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-26-2006
+ * Last Modified:   04-05-2006
  *
  * License:
  *
@@ -1234,7 +1234,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	/* get the last state change time macro */
 	else if(!strcmp(macro,"LASTHOSTSTATECHANGE"))
-		asprintf(macro_ondemand,"%lu",(unsigned long)hst->last_state_change);
+		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_state_change);
 
 	/* get the last time up macro */
 	else if(!strcmp(macro,"LASTHOSTUP"))
@@ -1246,11 +1246,11 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	/* get the last time unreachable macro */
 	else if(!strcmp(macro,"LASTHOSTUNREACHABLE"))
-		asprintf(macro_ondemand,"%lu",(unsigned long)hst->last_time_unreachable);
+		asprintf(&macro_ondemand,"%lu",(unsigned long)hst->last_time_unreachable);
 
 	/* get the notification number macro */
 	else if(!strcmp(macro,"HOSTNOTIFICATIONNUMBER"))
-		asprintf(macro_ondemand,"%d",hst->current_notification_number);
+		asprintf(&macro_ondemand,"%d",hst->current_notification_number);
 
 	/* get the notification id macro */
 	else if(!strcmp(macro,"HOSTNOTIFICATIONID"))

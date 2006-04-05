@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-27-2006
+ * Last Modified:   03-30-2006
  *
  * License:
  *
@@ -430,7 +430,7 @@ int check_service_notification_viability(service *svc, int type){
 	        }
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
-	if(current_time < (time_t)(svc->last_hard_state_change + svc->first_notification_delay*interval_length)){
+	if(current_time < (time_t)(svc->last_hard_state_change + (svc->first_notification_delay*interval_length))){
 #ifdef DEBUG4
 		printf("\tEnough time has not elapsed since the host since the service changed state, so we should not notify about this yet!\n");
 #endif
@@ -1230,7 +1230,7 @@ int check_host_notification_viability(host *hst, int type){
 	        }
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
-	if(current_time < (time_t)(hst->last_hard_state_change + hst->first_notification_delay*interval_length)){
+	if(current_time < (time_t)(hst->last_hard_state_change + (hst->first_notification_delay*interval_length))){
 #ifdef DEBUG4
 		printf("\tEnough time has not elapsed since the host since the host changed state, so we should not notify about this yet!\n");
 #endif
@@ -1652,7 +1652,7 @@ int create_notification_list_from_host(host *hst, int *escalated){
 /* calculates next acceptable re-notification time for a service */
 time_t get_next_service_notification_time(service *svc, time_t offset){
 	time_t next_notification=0L;
-	int interval_to_use=0;
+	double interval_to_use=0.0;
 	serviceescalation *temp_se=NULL;
 	int have_escalated_interval=FALSE;
 
@@ -1675,7 +1675,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 	for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
 
 		/* interval < 0 means to use non-escalated interval */
-		if(temp_se->notification_interval<0)
+		if(temp_se->notification_interval<0.0)
 			continue;
 
 		/* skip this entry if it isn't appropriate */
@@ -1683,7 +1683,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 			continue;
 
 #ifdef DEBUG4
-		printf("\t\tFound a valid escalation w/ interval of %d\n",temp_se->notification_interval);
+		printf("\t\tFound a valid escalation w/ interval of %f\n",temp_se->notification_interval);
 #endif
 
 		/* if we haven't used a notification interval from an escalation yet, use this one */
@@ -1696,19 +1696,19 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 		else if(temp_se->notification_interval<interval_to_use)
 			interval_to_use=svc->notification_interval;
 #ifdef DEBUG4
-		printf("\t\tNew interval: %d\n",interval_to_use);
+		printf("\t\tNew interval: %f\n",interval_to_use);
 #endif
 
 	        }
 
 	/* if notification interval is 0, we shouldn't send any more problem notifications (unless service is volatile) */
-	if(interval_to_use==0 && svc->is_volatile==FALSE)
+	if(interval_to_use==0.0 && svc->is_volatile==FALSE)
 		svc->no_more_notifications=TRUE;
 	else
 		svc->no_more_notifications=FALSE;
 
 #ifdef DEBUG4
-	printf("\tInterval used for calculating next valid notification time: %d\n",interval_to_use);
+	printf("\tInterval used for calculating next valid notification time: %f\n",interval_to_use);
 #endif
 
 	/* calculate next notification time */
@@ -1726,7 +1726,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 /* calculates next acceptable re-notification time for a host */
 time_t get_next_host_notification_time(host *hst, time_t offset){
 	time_t next_notification=0L;
-	int interval_to_use=0;
+	double interval_to_use=0.0;
 	hostescalation *temp_he=NULL;
 	int have_escalated_interval=FALSE;
 
@@ -1741,7 +1741,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
 
 		/* interval < 0 means to use non-escalated interval */
-		if(temp_he->notification_interval<0)
+		if(temp_he->notification_interval<0.0)
 			continue;
 
 		/* skip this entry if it isn't appropriate */
@@ -1760,7 +1760,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 	        }
 
 	/* if interval is 0, no more notifications should be sent */
-	if(interval_to_use==0)
+	if(interval_to_use==0.0)
 		hst->no_more_notifications=TRUE;
 	else
 		hst->no_more_notifications=FALSE;

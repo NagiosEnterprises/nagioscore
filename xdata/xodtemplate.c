@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-23-2006
+ * Last Modified: 04-05-2006
  *
  * Description:
  *
@@ -1221,6 +1221,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_servicedependency->have_dependent_servicegroup_name=FALSE;
 		new_servicedependency->dependent_hostgroup_name=NULL;
 		new_servicedependency->have_dependent_hostgroup_name=FALSE;
+		new_servicedependency->dependency_period=NULL;
+		new_servicedependency->have_dependency_period=FALSE;
 		new_servicedependency->inherits_parent=FALSE;
 		new_servicedependency->fail_execute_on_ok=FALSE;
 		new_servicedependency->fail_execute_on_unknown=FALSE;
@@ -1277,7 +1279,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_serviceescalation->have_contact_groups=FALSE;
 		new_serviceescalation->first_notification=-2;
 		new_serviceescalation->last_notification=-2;
-		new_serviceescalation->notification_interval=-2;
+		new_serviceescalation->notification_interval=-2.0;
 		new_serviceescalation->escalate_on_warning=FALSE;
 		new_serviceescalation->escalate_on_unknown=FALSE;
 		new_serviceescalation->escalate_on_critical=FALSE;
@@ -1419,9 +1421,9 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_vrml_image=FALSE;
 		new_host->statusmap_image=NULL;
 		new_host->have_statusmap_image=FALSE;
-		new_host->check_interval=0;
+		new_host->check_interval=5.0;
 		new_host->have_check_interval=FALSE;
-		new_host->retry_interval=0;
+		new_host->retry_interval=1.0;
 		new_host->have_retry_interval=FALSE;
 		new_host->active_checks_enabled=TRUE;
 		new_host->have_active_checks_enabled=FALSE;
@@ -1454,7 +1456,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_host->have_notification_options=FALSE;
 		new_host->notifications_enabled=TRUE;
 		new_host->have_notifications_enabled=FALSE;
-		new_host->notification_interval=-2;
+		new_host->notification_interval=30.0;
 		new_host->have_notification_interval=FALSE;
 		new_host->first_notification_delay=0;
 		new_host->have_first_notification_delay=FALSE;
@@ -1530,9 +1532,9 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_failure_prediction_options=FALSE;
 		new_service->max_check_attempts=-2;
 		new_service->have_max_check_attempts=FALSE;
-		new_service->normal_check_interval=-2;
+		new_service->normal_check_interval=5.0;
 		new_service->have_normal_check_interval=FALSE;
-		new_service->retry_check_interval=-2;
+		new_service->retry_check_interval=1.0;
 		new_service->have_retry_check_interval=FALSE;
 		new_service->active_checks_enabled=TRUE;
 		new_service->have_active_checks_enabled=FALSE;
@@ -1569,7 +1571,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_notification_options=FALSE;
 		new_service->notifications_enabled=TRUE;
 		new_service->have_notifications_enabled=FALSE;
-		new_service->notification_interval=-2;
+		new_service->notification_interval=30.0;
 		new_service->have_notification_interval=FALSE;
 		new_service->first_notification_delay=0;
 		new_service->have_first_notification_delay=FALSE;
@@ -1633,6 +1635,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostdependency->have_hostgroup_name=FALSE;
 		new_hostdependency->dependent_hostgroup_name=NULL;
 		new_hostdependency->have_dependent_hostgroup_name=FALSE;
+		new_hostdependency->dependency_period=NULL;
+		new_hostdependency->have_dependency_period=FALSE;
 		new_hostdependency->inherits_parent=FALSE;
 		new_hostdependency->fail_notify_on_up=FALSE;
 		new_hostdependency->fail_notify_on_down=FALSE;
@@ -1683,7 +1687,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostescalation->have_contact_groups=FALSE;
 		new_hostescalation->first_notification=-2;
 		new_hostescalation->last_notification=-2;
-		new_hostescalation->notification_interval=-2;
+		new_hostescalation->notification_interval=-2.0;
 		new_hostescalation->escalate_on_down=FALSE;
 		new_hostescalation->escalate_on_unreachable=FALSE;
 		new_hostescalation->escalate_on_recovery=FALSE;
@@ -2315,6 +2319,13 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_servicedependency->have_dependent_service_description=TRUE;
 		        }
+		else if(!strcmp(variable,"dependency_period")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_servicedependency->dependency_period=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_servicedependency->have_dependency_period=TRUE;
+		        }
 		else if(!strcmp(variable,"inherits_parent")){
 			temp_servicedependency->inherits_parent=(atoi(value)>0)?TRUE:FALSE;
 			temp_servicedependency->have_inherits_parent=TRUE;
@@ -2464,7 +2475,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_serviceescalation->have_last_notification=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_interval")){
-			temp_serviceescalation->notification_interval=atoi(value);
+			temp_serviceescalation->notification_interval=strtod(value,NULL);
 			temp_serviceescalation->have_notification_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"escalation_options")){
@@ -2872,11 +2883,11 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_host->have_statusmap_image=TRUE;
 		        }
 		else if(!strcmp(variable,"check_interval") || !strcmp(variable,"normal_check_interval")){
-			temp_host->check_interval=atoi(value);
+			temp_host->check_interval=strtod(value,NULL);
 			temp_host->have_check_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"retry_interval") || !strcmp(variable,"retry_check_interval")){
-			temp_host->retry_interval=atoi(value);
+			temp_host->retry_interval=strtod(value,NULL);
 			temp_host->have_retry_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"max_check_attempts")){
@@ -2977,11 +2988,11 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_host->have_notifications_enabled=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_interval")){
-			temp_host->notification_interval=atoi(value);
+			temp_host->notification_interval=strtod(value,NULL);
 			temp_host->have_notification_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"first_notification_delay")){
-			temp_host->first_notification_delay=atoi(value);
+			temp_host->first_notification_delay=strtod(value,NULL);
 			temp_host->have_first_notification_delay=TRUE;
 		        }
 		else if(!strcmp(variable,"stalking_options")){
@@ -3266,11 +3277,11 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_service->have_max_check_attempts=TRUE;
 		        }
 		else if(!strcmp(variable,"normal_check_interval")){
-			temp_service->normal_check_interval=atoi(value);
+			temp_service->normal_check_interval=strtod(value,NULL);
 			temp_service->have_normal_check_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"retry_check_interval")){
-			temp_service->retry_check_interval=atoi(value);
+			temp_service->retry_check_interval=strtod(value,NULL);
 			temp_service->have_retry_check_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"active_checks_enabled")){
@@ -3386,11 +3397,11 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_service->have_notifications_enabled=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_interval")){
-			temp_service->notification_interval=atoi(value);
+			temp_service->notification_interval=strtod(value,NULL);
 			temp_service->have_notification_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"first_notification_delay")){
-			temp_service->first_notification_delay=atoi(value);
+			temp_service->first_notification_delay=strtod(value,NULL);
 			temp_service->have_first_notification_delay=TRUE;
 		        }
 		else if(!strcmp(variable,"stalking_options")){
@@ -3535,6 +3546,13 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_hostdependency->have_dependent_host_name=TRUE;
 		        }
+		else if(!strcmp(variable,"dependency_period")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_hostdependency->dependency_period=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_hostdependency->have_dependency_period=TRUE;
+		        }
 		else if(!strcmp(variable,"inherits_parent")){
 			temp_hostdependency->inherits_parent=(atoi(value)>0)?TRUE:FALSE;
 			temp_hostdependency->have_inherits_parent=TRUE;
@@ -3665,7 +3683,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_hostescalation->have_last_notification=TRUE;
 		        }
 		else if(!strcmp(variable,"notification_interval")){
-			temp_hostescalation->notification_interval=atoi(value);
+			temp_hostescalation->notification_interval=strtod(value,NULL);
 			temp_hostescalation->have_notification_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"escalation_options")){
@@ -4159,7 +4177,7 @@ int xodtemplate_duplicate_objects(void){
 	char *host_name=NULL;
 	int first_item=FALSE;
 #ifdef NSCORE
-	char temp_buffer[MAX_XODTEMPLATE_INPUT_BUFFER];
+	char *temp_buffer=NULL;
 #endif
 
 #ifdef DEBUG0
@@ -5133,8 +5151,12 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	new_hostdependency->have_host_name=temp_hostdependency->have_host_name;
 	new_hostdependency->dependent_host_name=NULL;
 	new_hostdependency->have_dependent_host_name=temp_hostdependency->have_dependent_host_name;
+	new_hostdependency->dependency_period=NULL;
+	new_hostdependency->have_dependency_period=temp_hostdependency->have_dependency_period;
 
 	/* allocate memory for and copy string members of hostdependency definition */
+	if(temp_hostdependency->dependency_period!=NULL && (new_hostdependency->dependency_period=(char *)strdup(temp_hostdependency->dependency_period))==NULL)
+		error=TRUE;
 	if(temp_hostdependency->host_name!=NULL && (new_hostdependency->host_name=(char *)strdup(master_host_name))==NULL)
 		error=TRUE;
        	if(temp_hostdependency->dependent_host_name!=NULL && (new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
@@ -5222,6 +5244,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->have_host_name=temp_servicedependency->have_host_name;
 	new_servicedependency->dependent_host_name=NULL;
 	new_servicedependency->have_dependent_host_name=temp_servicedependency->have_dependent_host_name;
+	new_servicedependency->dependency_period=NULL;
+	new_servicedependency->have_dependency_period=temp_servicedependency->have_dependency_period;
 
 	/* duplicate strings */
 	if(temp_servicedependency->host_name!=NULL && (new_servicedependency->host_name=(char *)strdup(master_host_name))==NULL)
@@ -5231,6 +5255,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
        	if(temp_servicedependency->dependent_host_name!=NULL && (new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
 		error=TRUE;
 	if(temp_servicedependency->dependent_service_description!=NULL && (new_servicedependency->dependent_service_description=(char *)strdup(dependent_service_description))==NULL)
+		error=TRUE;
+	if(temp_servicedependency->dependency_period!=NULL && (new_servicedependency->dependency_period=(char *)strdup(temp_servicedependency->dependency_period))==NULL)
 		error=TRUE;
 	if(temp_servicedependency->template!=NULL && (new_servicedependency->template=(char *)strdup(temp_servicedependency->template))==NULL)
 		error=TRUE;
@@ -6024,6 +6050,11 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 			if(this_servicedependency->dependent_service_description==NULL && template_servicedependency->dependent_service_description!=NULL)
 				this_servicedependency->dependent_service_description=(char *)strdup(template_servicedependency->dependent_service_description);
 			this_servicedependency->have_dependent_service_description=TRUE;
+		        }
+		if(this_servicedependency->have_dependency_period==FALSE && template_servicedependency->have_dependency_period==TRUE){
+			if(this_servicedependency->dependency_period==NULL && template_servicedependency->dependency_period!=NULL)
+				this_servicedependency->dependency_period=(char *)strdup(template_servicedependency->dependency_period);
+			this_servicedependency->have_dependency_period=TRUE;
 		        }
 		if(this_servicedependency->have_inherits_parent==FALSE && template_servicedependency->have_inherits_parent==TRUE){
 			this_servicedependency->inherits_parent=template_servicedependency->inherits_parent;
@@ -6910,6 +6941,11 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 			if(this_hostdependency->dependent_hostgroup_name==NULL && template_hostdependency->dependent_hostgroup_name!=NULL)
 				this_hostdependency->dependent_hostgroup_name=(char *)strdup(template_hostdependency->dependent_hostgroup_name);
 			this_hostdependency->have_dependent_hostgroup_name=TRUE;
+		        }
+		if(this_hostdependency->have_dependency_period==FALSE && template_hostdependency->have_dependency_period==TRUE){
+			if(this_hostdependency->dependency_period==NULL && template_hostdependency->dependency_period!=NULL)
+				this_hostdependency->dependency_period=(char *)strdup(template_hostdependency->dependency_period);
+			this_hostdependency->have_dependency_period=TRUE;
 		        }
 		if(this_hostdependency->have_inherits_parent==FALSE && template_hostdependency->have_inherits_parent==TRUE){
 			this_hostdependency->inherits_parent=template_hostdependency->inherits_parent;
@@ -8638,7 +8674,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	/* add the servicedependency */
 	if(this_servicedependency->have_execution_dependency_options==TRUE){
 
-		new_servicedependency=add_service_dependency(this_servicedependency->dependent_host_name,this_servicedependency->dependent_service_description,this_servicedependency->host_name,this_servicedependency->service_description,EXECUTION_DEPENDENCY,this_servicedependency->inherits_parent,this_servicedependency->fail_execute_on_ok,this_servicedependency->fail_execute_on_warning,this_servicedependency->fail_execute_on_unknown,this_servicedependency->fail_execute_on_critical,this_servicedependency->fail_execute_on_pending);
+		new_servicedependency=add_service_dependency(this_servicedependency->dependent_host_name,this_servicedependency->dependent_service_description,this_servicedependency->host_name,this_servicedependency->service_description,EXECUTION_DEPENDENCY,this_servicedependency->inherits_parent,this_servicedependency->fail_execute_on_ok,this_servicedependency->fail_execute_on_warning,this_servicedependency->fail_execute_on_unknown,this_servicedependency->fail_execute_on_critical,this_servicedependency->fail_execute_on_pending,this_servicedependency->dependency_period);
 
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
@@ -8652,7 +8688,7 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	        }
 	if(this_servicedependency->have_notification_dependency_options==TRUE){
 
-		new_servicedependency=add_service_dependency(this_servicedependency->dependent_host_name,this_servicedependency->dependent_service_description,this_servicedependency->host_name,this_servicedependency->service_description,NOTIFICATION_DEPENDENCY,this_servicedependency->inherits_parent,this_servicedependency->fail_notify_on_ok,this_servicedependency->fail_notify_on_warning,this_servicedependency->fail_notify_on_unknown,this_servicedependency->fail_notify_on_critical,this_servicedependency->fail_notify_on_pending);
+		new_servicedependency=add_service_dependency(this_servicedependency->dependent_host_name,this_servicedependency->dependent_service_description,this_servicedependency->host_name,this_servicedependency->service_description,NOTIFICATION_DEPENDENCY,this_servicedependency->inherits_parent,this_servicedependency->fail_notify_on_ok,this_servicedependency->fail_notify_on_warning,this_servicedependency->fail_notify_on_unknown,this_servicedependency->fail_notify_on_critical,this_servicedependency->fail_notify_on_pending,this_servicedependency->dependency_period);
 
 		/* return with an error if we couldn't add the servicedependency */
 		if(new_servicedependency==NULL){
@@ -9013,7 +9049,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 	/* add the host execution dependency */
 	if(this_hostdependency->have_execution_dependency_options==TRUE){
 
-		new_hostdependency=add_host_dependency(this_hostdependency->dependent_host_name,this_hostdependency->host_name,EXECUTION_DEPENDENCY,this_hostdependency->inherits_parent,this_hostdependency->fail_execute_on_up,this_hostdependency->fail_execute_on_down,this_hostdependency->fail_execute_on_unreachable,this_hostdependency->fail_execute_on_pending);
+		new_hostdependency=add_host_dependency(this_hostdependency->dependent_host_name,this_hostdependency->host_name,EXECUTION_DEPENDENCY,this_hostdependency->inherits_parent,this_hostdependency->fail_execute_on_up,this_hostdependency->fail_execute_on_down,this_hostdependency->fail_execute_on_unreachable,this_hostdependency->fail_execute_on_pending,this_hostdependency->dependency_period);
 
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
@@ -9029,7 +9065,7 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 	/* add the host notification dependency */
 	if(this_hostdependency->have_notification_dependency_options==TRUE){
 
-		new_hostdependency=add_host_dependency(this_hostdependency->dependent_host_name,this_hostdependency->host_name,NOTIFICATION_DEPENDENCY,this_hostdependency->inherits_parent,this_hostdependency->fail_notify_on_up,this_hostdependency->fail_notify_on_down,this_hostdependency->fail_notify_on_unreachable,this_hostdependency->fail_notify_on_pending);
+		new_hostdependency=add_host_dependency(this_hostdependency->dependent_host_name,this_hostdependency->host_name,NOTIFICATION_DEPENDENCY,this_hostdependency->inherits_parent,this_hostdependency->fail_notify_on_up,this_hostdependency->fail_notify_on_down,this_hostdependency->fail_notify_on_unreachable,this_hostdependency->fail_notify_on_pending,this_hostdependency->dependency_period);
 
 		/* return with an error if we couldn't add the hostdependency */
 		if(new_hostdependency==NULL){
@@ -10369,8 +10405,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tnotification_period\t%s\n",temp_host->notification_period);
 		if(temp_host->failure_prediction_options)
 			fprintf(fp,"\tfailure_prediction_options\t%s\n",temp_host->failure_prediction_options);
-		fprintf(fp,"\tcheck_interval\t%d\n",temp_host->check_interval);
-		fprintf(fp,"\tretry_interval\t%d\n",temp_host->retry_interval);
+		fprintf(fp,"\tcheck_interval\t%f\n",temp_host->check_interval);
+		fprintf(fp,"\tretry_interval\t%f\n",temp_host->retry_interval);
 		fprintf(fp,"\tmax_check_attempts\t%d\n",temp_host->max_check_attempts);
 		fprintf(fp,"\tactive_checks_enabled\t%d\n",temp_host->active_checks_enabled);
 		fprintf(fp,"\tpassive_checks_enabled\t%d\n",temp_host->passive_checks_enabled);
@@ -10406,8 +10442,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"n");
 		fprintf(fp,"\n");
 		fprintf(fp,"\tnotifications_enabled\t%d\n",temp_host->notifications_enabled);
-		fprintf(fp,"\tnotification_interval\t%d\n",temp_host->notification_interval);
-		fprintf(fp,"\tfirst_notification_delay\t%d\n",temp_host->first_notification_delay);
+		fprintf(fp,"\tnotification_interval\t%f\n",temp_host->notification_interval);
+		fprintf(fp,"\tfirst_notification_delay\t%f\n",temp_host->first_notification_delay);
 		fprintf(fp,"\tstalking_options\t");
 		x=0;
 		if(temp_host->stalk_on_up==TRUE)
@@ -10475,8 +10511,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tnotification_period\t%s\n",temp_service->notification_period);
 		if(temp_service->failure_prediction_options)
 			fprintf(fp,"\tfailure_prediction_options\t%s\n",temp_service->failure_prediction_options);
-		fprintf(fp,"\tnormal_check_interval\t%d\n",temp_service->normal_check_interval);
-		fprintf(fp,"\tretry_check_interval\t%d\n",temp_service->retry_check_interval);
+		fprintf(fp,"\tnormal_check_interval\t%f\n",temp_service->normal_check_interval);
+		fprintf(fp,"\tretry_check_interval\t%f\n",temp_service->retry_check_interval);
 		fprintf(fp,"\tmax_check_attempts\t%d\n",temp_service->max_check_attempts);
 		fprintf(fp,"\tis_volatile\t%d\n",temp_service->is_volatile);
 		fprintf(fp,"\tparallelize_check\t%d\n",temp_service->parallelize_check);
@@ -10518,8 +10554,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"n");
 		fprintf(fp,"\n");
 		fprintf(fp,"\tnotifications_enabled\t%d\n",temp_service->notifications_enabled);
-		fprintf(fp,"\tnotification_interval\t%d\n",temp_service->notification_interval);
-		fprintf(fp,"\tfirst_notification_delay\t%d\n",temp_service->first_notification_delay);
+		fprintf(fp,"\tnotification_interval\t%f\n",temp_service->notification_interval);
+		fprintf(fp,"\tfirst_notification_delay\t%f\n",temp_service->first_notification_delay);
 		fprintf(fp,"\tstalking_options\t");
 		x=0;
 		if(temp_service->stalk_on_ok==TRUE)
@@ -10570,6 +10606,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tdependent_host_name\t%s\n",temp_servicedependency->dependent_host_name);
 		if(temp_servicedependency->dependent_service_description)
 			fprintf(fp,"\tdependent_service_description\t%s\n",temp_servicedependency->dependent_service_description);
+		if(temp_servicedependency->dependency_period)
+			fprintf(fp,"\tdependency_period\t%s\n",temp_servicedependency->dependency_period);
 		fprintf(fp,"\tinherits_parent\t%d\n",temp_servicedependency->inherits_parent);
 		if(temp_servicedependency->have_notification_dependency_options==TRUE){
 			fprintf(fp,"\tnotification_failure_options\t");
@@ -10619,7 +10657,7 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tservice_description\t%s\n",temp_serviceescalation->service_description);
 		fprintf(fp,"\tfirst_notification\t%d\n",temp_serviceescalation->first_notification);
 		fprintf(fp,"\tlast_notification\t%d\n",temp_serviceescalation->last_notification);
-		fprintf(fp,"\tnotification_interval\t%d\n",temp_serviceescalation->notification_interval);
+		fprintf(fp,"\tnotification_interval\t%f\n",temp_serviceescalation->notification_interval);
 		if(temp_serviceescalation->escalation_period)
 			fprintf(fp,"\tescalation_period\t%s\n",temp_serviceescalation->escalation_period);
 		if(temp_serviceescalation->have_escalation_options==TRUE){
@@ -10651,6 +10689,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\thost_name\t%s\n",temp_hostdependency->host_name);
 		if(temp_hostdependency->dependent_host_name)
 			fprintf(fp,"\tdependent_host_name\t%s\n",temp_hostdependency->dependent_host_name);
+		if(temp_hostdependency->dependency_period)
+			fprintf(fp,"\tdependency_period\t%s\n",temp_hostdependency->dependency_period);
 		fprintf(fp,"\tinherits_parent\t%d\n",temp_hostdependency->inherits_parent);
 		if(temp_hostdependency->have_notification_dependency_options==TRUE){
 			fprintf(fp,"\tnotification_failure_options\t");
@@ -10694,7 +10734,7 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\thost_name\t%s\n",temp_hostescalation->host_name);
 		fprintf(fp,"\tfirst_notification\t%d\n",temp_hostescalation->first_notification);
 		fprintf(fp,"\tlast_notification\t%d\n",temp_hostescalation->last_notification);
-		fprintf(fp,"\tnotification_interval\t%d\n",temp_hostescalation->notification_interval);
+		fprintf(fp,"\tnotification_interval\t%f\n",temp_hostescalation->notification_interval);
 		if(temp_hostescalation->escalation_period)
 			fprintf(fp,"\tescalation_period\t%s\n",temp_hostescalation->escalation_period);
 		if(temp_hostescalation->have_escalation_options==TRUE){
@@ -10843,6 +10883,7 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_servicedependency->dependent_hostgroup_name);
 		my_free((void **)&this_servicedependency->dependent_host_name);
 		my_free((void **)&this_servicedependency->dependent_service_description);
+		my_free((void **)&this_servicedependency->dependency_period);
 		my_free((void **)&this_servicedependency);
 	        }
 	xodtemplate_servicedependency_list=NULL;
@@ -10975,6 +11016,7 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_hostdependency->dependent_hostgroup_name);
 		my_free((void **)&this_hostdependency->host_name);
 		my_free((void **)&this_hostdependency->dependent_host_name);
+		my_free((void **)&this_hostdependency->dependency_period);
 		my_free((void **)&this_hostdependency);
 	        }
 	xodtemplate_hostdependency_list=NULL;

@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Last Modified:   03-30-2006
  *
  * License:
  *
@@ -410,7 +410,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
 		fprintf(fp,"\tcheck_period=%s\n",(temp_host->check_period==NULL)?"":temp_host->check_period);
-		fprintf(fp,"\tcheck_interval=%d\n",temp_host->check_interval);
+		fprintf(fp,"\tcheck_interval=%f\n",temp_host->check_interval);
+		fprintf(fp,"\tretry_interval=%f\n",temp_host->retry_interval);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_host->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_host->should_be_scheduled);
@@ -476,8 +477,8 @@ int xsddefault_save_status_data(void){
 		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
 		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
 		fprintf(fp,"\tcheck_period=%s\n",(temp_service->check_period==NULL)?"":temp_service->check_period);
-		fprintf(fp,"\tcheck_interval=%d\n",temp_service->check_interval);
-		fprintf(fp,"\tretry_interval=%d\n",temp_service->retry_interval);
+		fprintf(fp,"\tcheck_interval=%f\n",temp_service->check_interval);
+		fprintf(fp,"\tretry_interval=%f\n",temp_service->retry_interval);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
 		fprintf(fp,"\thas_been_checked=%d\n",temp_service->has_been_checked);
 		fprintf(fp,"\tshould_be_scheduled=%d\n",temp_service->should_be_scheduled);

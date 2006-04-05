@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-27-2006
+ * Last Modified:   03-30-2006
  *
  * License:
  *
@@ -1462,6 +1462,7 @@ int check_service_dependencies(service *svc,int dependency_type){
 	servicedependency *temp_dependency=NULL;
 	service *temp_service=NULL;
 	int state=STATE_OK;
+	time_t current_time=0L;
 
 #ifdef DEBUG0
 	printf("check_service_dependencies() start\n");
@@ -1477,6 +1478,11 @@ int check_service_dependencies(service *svc,int dependency_type){
 		/* find the service we depend on... */
 		if((temp_service=temp_dependency->master_service_ptr)==NULL)
 			continue;
+
+		/* skip this dependency if it has a timeperiod and the current time isn't valid */
+		time(&current_time);
+		if(temp_dependency->dependency_period!=NULL && check_time_against_period(current_time,temp_dependency->dependency_period_ptr)==ERROR)
+			return FALSE;
 
 		/* get the status to use (use last hard state if its currently in a soft state) */
 		if(temp_service->state_type==SOFT_STATE && soft_state_dependencies==FALSE)
@@ -1517,6 +1523,7 @@ int check_host_dependencies(host *hst,int dependency_type){
 	hostdependency *temp_dependency=NULL;
 	host *temp_host=NULL;
 	int state=HOST_UP;
+	time_t current_time=0L;
 
 #ifdef DEBUG0
 	printf("check_host_dependencies() start\n");
@@ -1532,6 +1539,11 @@ int check_host_dependencies(host *hst,int dependency_type){
 		/* find the host we depend on... */
 		if((temp_host=temp_dependency->master_host_ptr)==NULL)
 			continue;
+
+		/* skip this dependency if it has a timeperiod and the current time isn't valid */
+		time(&current_time);
+		if(temp_dependency->dependency_period!=NULL && check_time_against_period(current_time,temp_dependency->dependency_period_ptr)==ERROR)
+			return FALSE;
 
 		/* get the status to use (use last hard state if its currently in a soft state) */
 		if(temp_host->state_type==SOFT_STATE && soft_state_dependencies==FALSE)

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-10-2006
+ * Last Modified:   03-30-2006
  *
  * License:
  *
@@ -186,8 +186,8 @@ typedef struct xodtemplate_host_struct{
 	char      *host_groups;
 	char      *check_command;
 	char      *check_period;
-	int       check_interval;
-	int       retry_interval;
+	double    check_interval;
+	double    retry_interval;
 	int       max_check_attempts;
 	int       active_checks_enabled;
 	int       passive_checks_enabled;
@@ -209,8 +209,8 @@ typedef struct xodtemplate_host_struct{
 	int       notify_on_flapping;
 	int       notifications_enabled;
 	char      *notification_period;
-	int       notification_interval;
-	int       first_notification_delay;
+	double    notification_interval;
+	double    first_notification_delay;
 	int       stalk_on_up;
 	int       stalk_on_down;
 	int       stalk_on_unreachable;
@@ -316,8 +316,8 @@ typedef struct xodtemplate_service_struct{
 	char       *service_groups;
 	char       *check_command;
 	int        max_check_attempts;
-        int        normal_check_interval;
-        int        retry_check_interval;
+        double     normal_check_interval;
+        double     retry_check_interval;
         char       *check_period;
         int        active_checks_enabled;
         int        passive_checks_enabled;
@@ -342,8 +342,8 @@ typedef struct xodtemplate_service_struct{
 	int        notify_on_flapping;
 	int        notifications_enabled;
 	char       *notification_period;
-	int        notification_interval;
-	int        first_notification_delay;
+	double     notification_interval;
+	double     first_notification_delay;
 	char       *contact_groups;
 	int        stalk_on_ok;
 	int        stalk_on_unknown;
@@ -446,6 +446,7 @@ typedef struct xodtemplate_servicedependency_struct{
 	char       *hostgroup_name;
 	char       *dependent_servicegroup_name;
 	char       *dependent_hostgroup_name;
+	char       *dependency_period;
 	int        inherits_parent;
 	int        fail_notify_on_ok;
 	int        fail_notify_on_unknown;
@@ -466,6 +467,7 @@ typedef struct xodtemplate_servicedependency_struct{
 	int        have_hostgroup_name;
 	int        have_dependent_servicegroup_name;
 	int        have_dependent_hostgroup_name;
+	int        have_dependency_period;
 
 	int        have_inherits_parent;
 	int        have_notification_dependency_options;
@@ -490,7 +492,7 @@ typedef struct xodtemplate_serviceescalation_struct{
 	char      *hostgroup_name;
 	int       first_notification;
 	int       last_notification;
-	int       notification_interval;
+	double    notification_interval;
 	char      *escalation_period;
 	int       escalate_on_warning;
 	int       escalate_on_unknown;
@@ -527,6 +529,7 @@ typedef struct xodtemplate_hostdependency_struct{
 	char      *dependent_host_name;
 	char      *hostgroup_name;
 	char      *dependent_hostgroup_name;
+	char      *dependency_period;
 	int       inherits_parent;
 	int       fail_notify_on_up;
 	int       fail_notify_on_down;
@@ -541,6 +544,7 @@ typedef struct xodtemplate_hostdependency_struct{
 	int       have_dependent_host_name;
 	int       have_hostgroup_name;
 	int       have_dependent_hostgroup_name;
+	int       have_dependency_period;
 
 	int       have_inherits_parent;
 	int       have_notification_dependency_options;
@@ -563,7 +567,7 @@ typedef struct xodtemplate_hostescalation_struct{
 	char      *hostgroup_name;
 	int       first_notification;
 	int       last_notification;
-	int       notification_interval;
+	double    notification_interval;
 	char      *escalation_period;
 	int       escalate_on_down;
 	int       escalate_on_unreachable;

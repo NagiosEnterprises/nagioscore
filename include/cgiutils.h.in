@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2006  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-28-2006
+ * Last Modified: 03-30-2006
  *
  * License:
  * 
@@ -460,7 +460,7 @@ void strip(char *);                                		/* strips newlines, carriag
 void sanitize_plugin_output(char *);                            /* strips HTML and bad characters from plugin output */
 
 void get_time_string(time_t *,char *,int,int);			/* gets a date/time string */
-void get_interval_time_string(int,char *,int);			/* gets a time string for an interval of time */
+void get_interval_time_string(double,char *,int);		/* gets a time string for an interval of time */
 void get_expire_time_string(time_t *,char *,int);		/* gets a date/time string in the format used for Expire: tags*/
 
 char * my_strtok(char *,char *);				/* replacement for strtok() function - doesn't skip multiple tokens */

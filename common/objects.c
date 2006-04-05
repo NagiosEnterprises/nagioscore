@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-27-2006
+ * Last Modified: 03-30-2006
  *
  * License:
  *
@@ -801,7 +801,7 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int check_interval, int retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notification_interval, int first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *temp_host=NULL;
 	host *new_host=NULL;
 	int result=OK;
@@ -977,7 +977,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	/* duplicate non-string vars */
 	new_host->max_attempts=max_attempts;
 	new_host->check_interval=check_interval;
-	new_host->retry_interval=(retry_interval==0)?1:retry_interval;
+	new_host->retry_interval=retry_interval;
 	new_host->notification_interval=notification_interval;
 	new_host->first_notification_delay=first_notification_delay;
 	new_host->notify_on_recovery=(notify_up>0)?TRUE:FALSE;
@@ -1120,7 +1120,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	printf("\tNotify On Down:           %s\n",(new_host->notify_on_down==1)?"yes":"no");
 	printf("\tNotify On Unreachable:    %s\n",(new_host->notify_on_unreachable==1)?"yes":"no");
 	printf("\tNotify On Recovery:       %s\n",(new_host->notify_on_recovery==1)?"yes":"no");
-	printf("\tNotification Interval:    %d\n",new_host->notification_interval);
+	printf("\tNotification Interval:    %f\n",new_host->notification_interval);
 	printf("\tNotification Time Period: %s\n",(new_host->notification_period==NULL)?"N/A":new_host->notification_period);
 #endif
 #ifdef DEBUG0
@@ -2040,7 +2040,7 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, int check_interval, int retry_interval, int notification_interval, int first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notify_recovery, int notify_unknown, int notify_warning, int notify_critical, int notify_flapping, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_ok, int flap_detection_on_warning, int flap_detection_on_unknown, int flap_detection_on_critical, int stalk_on_ok, int stalk_on_warning, int stalk_on_unknown, int stalk_on_critical, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess_over_service){
 	service *new_service=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -2297,10 +2297,10 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	printf("\tHost:                     %s\n",new_service->host_name);
 	printf("\tDescription:              %s\n",new_service->description);
 	printf("\tCommand:                  %s\n",new_service->service_check_command);
-	printf("\tCheck Interval:           %d\n",new_service->check_interval);
-	printf("\tRetry Interval:           %d\n",new_service->retry_interval);
+	printf("\tCheck Interval:           %f\n",new_service->check_interval);
+	printf("\tRetry Interval:           %f\n",new_service->retry_interval);
 	printf("\tMax attempts:             %d\n",new_service->max_attempts);
-	printf("\tNotification Interval:    %d\n",new_service->notification_interval);
+	printf("\tNotification Interval:    %f\n",new_service->notification_interval);
 	printf("\tNotification Time Period: %s\n",new_service->notification_period);
 	printf("\tNotify On Warning:        %s\n",(new_service->notify_on_warning==1)?"yes":"no");
 	printf("\tNotify On Critical:       %s\n",(new_service->notify_on_critical==1)?"yes":"no");
@@ -2472,7 +2472,7 @@ command *add_command(char *name,char *value){
 
 
 /* add a new service escalation to the list in memory */
-serviceescalation *add_serviceescalation(char *host_name,char *description,int first_notification,int last_notification, int notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery){
+serviceescalation *add_serviceescalation(char *host_name,char *description, int first_notification, int last_notification, double notification_interval, char *escalation_period, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_recovery){
 	serviceescalation *new_serviceescalation=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -2632,7 +2632,7 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 
 /* adds a service dependency definition */
-servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending){
+servicedependency *add_service_dependency(char *dependent_host_name, char *dependent_service_description, char *host_name, char *service_description, int dependency_type, int inherits_parent, int fail_on_ok, int fail_on_warning, int fail_on_unknown, int fail_on_critical, int fail_on_pending, char *dependency_period){
 	servicedependency *new_servicedependency=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -2664,6 +2664,12 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	new_servicedependency->service_description=NULL;
 	new_servicedependency->next=NULL;
 	new_servicedependency->nexthash=NULL;
+#ifdef NSCORE
+	new_servicedependency->master_service_ptr=NULL;
+	new_servicedependency->dependent_service_ptr=NULL;
+	new_servicedependency->dependency_period=NULL;
+#endif
+
 
 	/* duplicate vars */
 	if((new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
@@ -2674,6 +2680,10 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 		result=ERROR;
 	if((new_servicedependency->service_description=(char *)strdup(service_description))==NULL)
 		result=ERROR;
+	if(dependency_period){
+		if((new_servicedependency->dependency_period=(char *)strdup(dependency_period))==NULL)
+			result=ERROR;
+		}
 
 	new_servicedependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
 	new_servicedependency->inherits_parent=(inherits_parent>0)?TRUE:FALSE;
@@ -2685,9 +2695,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 #ifdef NSCORE
 	new_servicedependency->circular_path_checked=FALSE;
 	new_servicedependency->contains_circular_path=FALSE;
-
-	new_servicedependency->master_service_ptr;
-	new_servicedependency->dependent_service_ptr;
 #endif
 
 	/* add new servicedependency to servicedependency chained hash list */
@@ -2731,7 +2738,7 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 
 
 /* adds a host dependency definition */
-hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending){
+hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, int dependency_type, int inherits_parent, int fail_on_up, int fail_on_down, int fail_on_unreachable, int fail_on_pending, char *dependency_period){
 	hostdependency *new_hostdependency=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -2759,14 +2766,24 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	/* initialize vars */
 	new_hostdependency->dependent_host_name=NULL;
 	new_hostdependency->host_name=NULL;
+	new_hostdependency->dependency_period=NULL;
 	new_hostdependency->next=NULL;
 	new_hostdependency->nexthash=NULL;
+#ifdef NSCORE
+	new_hostdependency->master_host_ptr=NULL;
+	new_hostdependency->dependent_host_ptr=NULL;
+	new_hostdependency->dependency_period_ptr=NULL;
+#endif
 
 	/* duplicate vars */
 	if((new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
 		result=ERROR;
 	if((new_hostdependency->host_name=(char *)strdup(host_name))==NULL)
 		result=ERROR;
+	if(dependency_period){
+		if((new_hostdependency->dependency_period=(char *)strdup(dependency_period))==NULL)
+			result=ERROR;
+		}
 
 	new_hostdependency->dependency_type=(dependency_type==EXECUTION_DEPENDENCY)?EXECUTION_DEPENDENCY:NOTIFICATION_DEPENDENCY;
 	new_hostdependency->inherits_parent=(inherits_parent>0)?TRUE:FALSE;
@@ -2777,9 +2794,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 #ifdef NSCORE
 	new_hostdependency->circular_path_checked=FALSE;
 	new_hostdependency->contains_circular_path=FALSE;
-
-	new_hostdependency->master_host_ptr=NULL;
-	new_hostdependency->dependent_host_ptr=NULL;
 #endif
 
 	/* add new hostdependency to hostdependency chained hash list */
@@ -2822,7 +2836,7 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 
 
 /* add a new host escalation to the list in memory */
-hostescalation *add_hostescalation(char *host_name,int first_notification,int last_notification, int notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery){
+hostescalation *add_hostescalation(char *host_name,int first_notification,int last_notification, double notification_interval, char *escalation_period, int escalate_on_down, int escalate_on_unreachable, int escalate_on_recovery){
 	hostescalation *new_hostescalation=NULL;
 	int result=OK;
 #ifdef NSCORE

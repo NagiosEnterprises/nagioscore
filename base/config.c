@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-27-2006
+ * Last Modified: 03-30-2006
  *
  * License:
  *
@@ -2736,6 +2736,20 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		/* find the timeperiod */
+		if(temp_sd->dependency_period!=NULL){
+		        temp_timeperiod=find_timeperiod(temp_sd->dependency_period);
+			if(temp_timeperiod==NULL){
+				asprintf(&temp_buffer,"Error: Dependency period '%s' specified in service dependency for service '%s' on host '%s' is not defined anywhere!",temp_sd->dependency_period,temp_sd->dependent_service_description,temp_sd->dependent_host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the timeperiod pointer for later */
+			temp_sd->dependency_period_ptr=temp_timeperiod;
+		        }
 	        }
 
 	if(verify_config==TRUE)
@@ -2844,6 +2858,20 @@ int pre_flight_object_check(int *w, int *e){
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 			errors++;
+		        }
+
+		/* find the timeperiod */
+		if(temp_hd->dependency_period!=NULL){
+		        temp_timeperiod=find_timeperiod(temp_hd->dependency_period);
+			if(temp_timeperiod==NULL){
+				asprintf(&temp_buffer,"Error: Dependency period '%s' specified in host dependency for host '%s' is not defined anywhere!",temp_hd->dependency_period,temp_hd->dependent_host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the timeperiod pointer for later */
+			temp_hd->dependency_period_ptr=temp_timeperiod;
 		        }
 	        }
 

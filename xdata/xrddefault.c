@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-10-2006
+ * Last Modified:   03-30-2006
  *
  * License:
  *
@@ -337,7 +337,8 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tmax_attempts=%d\n",temp_host->max_attempts);
 		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_host->current_event_id);
 		fprintf(fp,"\tlast_event_id=%lu\n",temp_host->last_event_id);
-		fprintf(fp,"\tnormal_check_interval=%d\n",temp_host->check_interval);
+		fprintf(fp,"\tnormal_check_interval=%f\n",temp_host->check_interval);
+		fprintf(fp,"\tretry_check_interval=%f\n",temp_host->check_interval);
 		fprintf(fp,"\tstate_type=%d\n",temp_host->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_host->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_host->last_hard_state_change);
@@ -397,8 +398,8 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"\tmax_attempts=%d\n",temp_service->max_attempts);
 		fprintf(fp,"\tcurrent_event_id=%lu\n",temp_service->current_event_id);
 		fprintf(fp,"\tlast_event_id=%lu\n",temp_service->last_event_id);
-		fprintf(fp,"\tnormal_check_interval=%d\n",temp_service->check_interval);
-		fprintf(fp,"\tretry_check_interval=%d\n",temp_service->retry_interval);
+		fprintf(fp,"\tnormal_check_interval=%f\n",temp_service->check_interval);
+		fprintf(fp,"\tretry_check_interval=%f\n",temp_service->retry_interval);
 		fprintf(fp,"\tstate_type=%d\n",temp_service->state_type);
 		fprintf(fp,"\tlast_state_change=%lu\n",temp_service->last_state_change);
 		fprintf(fp,"\tlast_hard_state_change=%lu\n",temp_service->last_hard_state_change);
@@ -1105,8 +1106,12 @@ int xrddefault_read_state_information(void){
 							        }
 						        }
 						else if(!strcmp(var,"normal_check_interval")){
-							if(temp_host->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && atoi(val)>=0)
-								temp_host->check_interval=atoi(val);
+							if(temp_host->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && strtod(val,NULL)>=0)
+								temp_host->check_interval=strtod(val,NULL);
+						        }
+						else if(!strcmp(var,"retry_check_interval")){
+							if(temp_host->modified_attributes & MODATTR_RETRY_CHECK_INTERVAL && strtod(val,NULL)>=0)
+								temp_host->retry_interval=strtod(val,NULL);
 						        }
 						else if(!strcmp(var,"max_attempts")){
 							if(temp_host->modified_attributes & MODATTR_MAX_CHECK_ATTEMPTS && atoi(val)>=1){
@@ -1327,12 +1332,12 @@ int xrddefault_read_state_information(void){
 							        }
 						        }
 						else if(!strcmp(var,"normal_check_interval")){
-							if(temp_service->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && atoi(val)>=0)
-								temp_service->check_interval=atoi(val);
+							if(temp_service->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && strtod(val,NULL)>=0)
+								temp_service->check_interval=strtod(val,NULL);
 						        }
 						else if(!strcmp(var,"retry_check_interval")){
-							if(temp_service->modified_attributes & MODATTR_RETRY_CHECK_INTERVAL && atoi(val)>=0)
-								temp_service->retry_interval=atoi(val);
+							if(temp_service->modified_attributes & MODATTR_RETRY_CHECK_INTERVAL && strtod(val,NULL)>=0)
+								temp_service->retry_interval=strtod(val,NULL);
 						        }
 						else if(!strcmp(var,"max_attempts")){
 							if(temp_service->modified_attributes & MODATTR_MAX_CHECK_ATTEMPTS && atoi(val)>=1){

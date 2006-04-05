@@ -3,7 +3,7 @@
  * AVAIL.C -  Nagios Availability CGI
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 04-03-2006
  *
  * License:
  * 
@@ -535,7 +535,7 @@ int main(int argc, char **argv){
 				printf("</select>\n");
 			        }
 			else{
-				printf("<input type='hidden' name=initialassumedhoststate' value='%d'>",initial_assumed_host_state);
+				printf("<input type='hidden' name='initialassumedhoststate' value='%d'>",initial_assumed_host_state);
 				printf("<select name='initialassumedservicestate'>\n");
 				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_service_state==AS_NO_DATA)?"SELECTED":"");
 				printf("<option value=%d %s>Current State\n",AS_CURRENT_STATE,(initial_assumed_service_state==AS_CURRENT_STATE)?"SELECTED":"");

@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-27-2006
+ * Last Modified: 03-30-2006
  *
  * License:
  *
@@ -186,13 +186,13 @@ struct host_struct{
 	char    *address;
         hostsmember *parent_hosts;
 	char    *host_check_command;
-	int     check_interval;
-	int     retry_interval;
+	double  check_interval;
+	double  retry_interval;
 	int     max_attempts;
 	char    *event_handler;
 	contactgroupsmember *contact_groups;
-	int     notification_interval;
-	int     first_notification_delay;
+	double  notification_interval;
+	double  first_notification_delay;
 	int	notify_on_down;
 	int	notify_on_unreachable;
 	int     notify_on_recovery;
@@ -367,13 +367,13 @@ struct service_struct{
 	char    *display_name;
         char    *service_check_command;
 	char    *event_handler;
-	int	check_interval;
-	int     retry_interval;
+	double	check_interval;
+	double  retry_interval;
 	int	max_attempts;
 	int     parallelize;
 	contactgroupsmember *contact_groups;
-	int	notification_interval;
-	int     first_notification_delay;
+	double	notification_interval;
+	double  first_notification_delay;
 	int     notify_on_unknown;
 	int	notify_on_warning;
 	int	notify_on_critical;
@@ -479,7 +479,7 @@ typedef struct serviceescalation_struct{
 	char    *description;
 	int     first_notification;
 	int     last_notification;
-	int     notification_interval;
+	double  notification_interval;
 	char    *escalation_period;
 	int     escalate_on_recovery;
 	int     escalate_on_warning;
@@ -502,6 +502,7 @@ typedef struct servicedependency_struct{
 	char    *dependent_service_description;
 	char    *host_name;
 	char    *service_description;
+	char    *dependency_period;
 	int     inherits_parent;
 	int     fail_on_ok;
 	int     fail_on_warning;
@@ -514,6 +515,7 @@ typedef struct servicedependency_struct{
 
 	service *master_service_ptr;
 	service *dependent_service_ptr;
+	timeperiod *dependency_period_ptr;
 #endif
 	struct servicedependency_struct *next;
 	struct servicedependency_struct *nexthash;
@@ -525,7 +527,7 @@ typedef struct hostescalation_struct{
 	char    *host_name;
 	int     first_notification;
 	int     last_notification;
-	int     notification_interval;
+	double  notification_interval;
 	char    *escalation_period;
 	int     escalate_on_recovery;
 	int     escalate_on_down;
@@ -545,6 +547,7 @@ typedef struct hostdependency_struct{
 	int     dependency_type;
 	char    *dependent_host_name;
 	char    *host_name;
+	char    *dependency_period;
 	int     inherits_parent;
 	int     fail_on_up;
 	int     fail_on_down;
@@ -556,6 +559,7 @@ typedef struct hostdependency_struct{
 
 	host    *master_host_ptr;
 	host    *dependent_host_ptr;
+	timeperiod *dependency_period_ptr;
 #endif
 	struct hostdependency_struct *next;
 	struct hostdependency_struct *nexthash;
@@ -612,7 +616,7 @@ contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,i
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
-host *add_host(char *,char *,char *,char *,char *,int,int,int,int,int,int,int,int,int,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,char *,double,double,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
@@ -625,14 +629,14 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);  
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */
 command *add_command(char *,char *);									/* adds a command definition */
-service *add_service(char *,char *,char *,char *,int,int,int,int,int,int,int,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
+service *add_service(char *,char *,char *,char *,int,int,int,double,double,double,double,char *,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
-serviceescalation *add_serviceescalation(char *,char *,int,int,int,char *,int,int,int,int);             /* adds a service escalation definition */
+serviceescalation *add_serviceescalation(char *,char *,int,int,double,char *,int,int,int,int);          /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
 customvariablesmember *add_custom_variable_to_service(service *,char *,char *);                         /* adds a custom variable to a service definition */
-servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int,int);     /* adds a service dependency definition */
-hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int);                             /* adds a host dependency definition */
-hostescalation *add_hostescalation(char *,int,int,int,char *,int,int,int);                              /* adds a host escalation definition */
+servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int,int,char *);     /* adds a service dependency definition */
+hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int,char *);                             /* adds a host dependency definition */
+hostescalation *add_hostescalation(char *,int,int,double,char *,int,int,int);                           /* adds a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
 

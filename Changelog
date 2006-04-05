@@ -80,6 +80,9 @@ Pre-alpha changes since 02/15/2006...
      - Added cached_service_check_horizon option for enabling use of cached service check results
      - Added enable_predictive_service_dependency_checks for enabling predictive checks of dependent services
 
+* Dependency changes:
+     - Host and service dependencies can now have a timeperiod during which they're valid (dependency_period directive)
+
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions
@@ -89,4 +92,6 @@ Pre-alpha changes since 02/15/2006...
      - Added global event_id and notification_id vars that are at least unique during a single run of Nagios
      - Default is now to check for orphaned services, rather than not
      - Renamed service_reaper_frequency to check_result_reaper_frequency
+     - Fractional notification and check intervals are now supported (e.g. "3.5" minutes)
+ 
 

@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-26-2006
+ * Last Modified: 03-30-2006
  *
  * License:
  *
@@ -277,6 +277,8 @@
 #define CMD_DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS     155
 #define CMD_ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS       156
 #define CMD_DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS      157
+
+#define CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL            158
 
 
 

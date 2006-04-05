@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-26-2006
+ * Last Modified:   03-30-2006
  *
  * License:
  *
@@ -453,6 +453,8 @@ int process_external_command1(char *cmd){
 
 	else if(!strcmp(command_id,"CHANGE_NORMAL_HOST_CHECK_INTERVAL"))
 		command_type=CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL;
+	else if(!strcmp(command_id,"CHANGE_RETRY_HOST_CHECK_INTERVAL"))
+		command_type=CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL;
 
 	else if(!strcmp(command_id,"CHANGE_MAX_HOST_CHECK_ATTEMPTS"))
 		command_type=CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS;
@@ -1075,6 +1077,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 		break;
 
 	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
 	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
 	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
 	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
@@ -2622,7 +2625,8 @@ int cmd_change_object_int_var(int cmd,char *args){
 	char *svc_description=NULL;
 	char *temp_ptr=NULL;
 	int intval=0;
-	int old_intval=0;
+	double dval=0.0;
+	double old_dval=0.0;
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	unsigned long attr=0L;
@@ -2664,20 +2668,21 @@ int cmd_change_object_int_var(int cmd,char *args){
 	intval=(int)strtol(temp_ptr,NULL,0);
 	if(intval<0 || (intval==0 && errno==EINVAL))
 		return ERROR;
+	dval=(int)strtod(temp_ptr,NULL);
 
 	switch(cmd){
 
 	case CMD_CHANGE_NORMAL_HOST_CHECK_INTERVAL:
 
 		/* save the old check interval */
-		old_intval=temp_host->check_interval;
+		old_dval=temp_host->check_interval;
 
 		/* modify the check interval */
-		temp_host->check_interval=intval;
+		temp_host->check_interval=dval;
 		attr=MODATTR_NORMAL_CHECK_INTERVAL;
 
 		/* schedule a host check if previous interval was 0 (checks were not regularly scheduled) */
-		if(old_intval==0 && temp_host->checks_enabled==TRUE){
+		if(old_dval==0 && temp_host->checks_enabled==TRUE){
 
 			/* set the host check flag */
 			temp_host->should_be_scheduled=TRUE;
@@ -2698,6 +2703,13 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 		break;
 
+	case CMD_CHANGE_RETRY_HOST_CHECK_INTERVAL:
+
+		temp_host->retry_interval=dval;
+		attr=MODATTR_RETRY_CHECK_INTERVAL;
+
+		break;
+
 	case CMD_CHANGE_MAX_HOST_CHECK_ATTEMPTS:
 
 		temp_host->max_attempts=intval;
@@ -2712,14 +2724,14 @@ int cmd_change_object_int_var(int cmd,char *args){
 	case CMD_CHANGE_NORMAL_SVC_CHECK_INTERVAL:
 
 		/* save the old check interval */
-		old_intval=temp_service->check_interval;
+		old_dval=temp_service->check_interval;
 
 		/* modify the check interval */
-		temp_service->check_interval=intval;
+		temp_service->check_interval=dval;
 		attr=MODATTR_NORMAL_CHECK_INTERVAL;
 
 		/* schedule a service check if previous interval was 0 (checks were not regularly scheduled) */
-		if(old_intval==0 && temp_service->checks_enabled==TRUE && temp_service->check_interval!=0){
+		if(old_dval==0 && temp_service->checks_enabled==TRUE && temp_service->check_interval!=0){
 
 			/* set the service check flag */
 			temp_service->should_be_scheduled=TRUE;
@@ -2742,7 +2754,7 @@ int cmd_change_object_int_var(int cmd,char *args){
 
 	case CMD_CHANGE_RETRY_SVC_CHECK_INTERVAL:
 
-		temp_service->retry_interval=intval;
+		temp_service->retry_interval=dval;
 		attr=MODATTR_RETRY_CHECK_INTERVAL;
 
 		break;

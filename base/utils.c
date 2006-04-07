@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-21-2006
+ * Last Modified:   04-07-2006
  *
  * License:
  *
@@ -4766,8 +4766,10 @@ void * service_result_worker_thread(void *arg){
 				write_to_log("service_result_worker_thread(): poll(): EFAULT",logging_options,NULL);
 				break;
 			case EINTR:
-				/* this should never happen */
+				/* this can happen when running under a debugger like gdb */
+				/*
 				write_to_log("service_result_worker_thread(): poll(): EINTR (impossible)",logging_options,NULL);
+				*/
 				break;
 			default:
 				write_to_log("service_result_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);

@@ -3,10 +3,11 @@ Nagios 2.x Change Log
 #####################
 
 
-2.2 - ??/??/2006
-----------------
+2.2 - 04/07/2006
+------------------
 * Minor bug fix in availability CGI
 * Bug fix with temporary file location used for retention data
+* Fix for segfault that occurred in 2.1 during service flapping notifications
 
 
 

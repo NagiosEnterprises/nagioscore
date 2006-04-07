@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2006
+ * Last Modified:   04-07-2006
  *
  * License:
  *
@@ -274,6 +274,17 @@ int check_service_notification_viability(service *svc, int type){
 		return ERROR;
 	        }
 
+	/* find the host this service is associated with */
+	temp_host=find_host(svc->host_name);
+
+	/* if we couldn't find the host, return an error */
+	if(temp_host==NULL){
+#ifdef DEBUG4
+		printf("\tCouldn't find the host associated with this service, so we won't send a notification!\n");
+#endif
+		return ERROR;
+	        }
+
 	/* see if the service can have notifications sent out at this time */
 	if(check_time_against_period(current_time,svc->notification_period_ptr)==ERROR){
 #ifdef DEBUG4
@@ -358,9 +369,6 @@ int check_service_notification_viability(service *svc, int type){
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
 
-	/* find the host this service is associated with */
-	temp_host=find_host(svc->host_name);
-
 	/* has this problem already been acknowledged? */
 	if(svc->problem_has_been_acknowledged==TRUE){
 #ifdef DEBUG4
@@ -368,16 +376,6 @@ int check_service_notification_viability(service *svc, int type){
 #endif
 		return ERROR;
 	        }
-
-#ifdef REMOVED_041403
-	/* do not send a recovery notification if we shouldn't (this flag was set by the check logic) */
-	if(svc->current_state==STATE_OK && svc->no_recovery_notification==TRUE){
-#ifdef DEBUG4
-		printf("\tRecovery notifications should not be sent out for this service!\n");
-#endif
-		return ERROR;
-	        }
-#endif
 
 	/* check service notification dependencies */
 	if(check_service_dependencies(svc,NOTIFICATION_DEPENDENCY)==DEPENDENCIES_FAILED){
@@ -449,29 +447,10 @@ int check_service_notification_viability(service *svc, int type){
 	if(svc->current_state==STATE_OK)
 		return OK;
 
-#ifdef REMOVED_042103
-	/* don't send notifications if the host was down or unreachable at last service check */
-	/* removed this 4/21/03 because it doesn't make much sense... */
-	if(svc->host_problem_at_last_check==TRUE){
-#ifdef DEBUG4
-		printf("\tThe host associated with this service had problems at last check, so notifications won't be sent out!\n");
-#endif
-		return ERROR;
-	        }
-#endif
-
 	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
 	if(svc->no_more_notifications==TRUE){
 #ifdef DEBUG4
 		printf("\tWe shouldn't re-notify contacts about this service problem!\n");
-#endif
-		return ERROR;
-	        }
-
-	/* if we couldn't find the host, return an error */
-	if(temp_host==NULL){
-#ifdef DEBUG4
-		printf("\tCouldn't find the host associated with this service, so we won't send a notification!\n");
 #endif
 		return ERROR;
 	        }

@@ -6,6 +6,7 @@ Nagios 2.x Change Log
 2.2 - ??/??/2006
 ----------------
 * Minor bug fix in availability CGI
+* Bug fix with temporary file location used for retention data
 
 
 

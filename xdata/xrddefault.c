@@ -2,8 +2,8 @@
  *
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-07-2005
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   04-07-2006
  *
  * License:
  *
@@ -117,17 +117,23 @@ int xrddefault_grab_config_info(char *main_config_file){
 		if(temp_ptr==NULL)
 			continue;
 
-		/* skip lines that don't specify the host config file location */
-		if(strcmp(temp_ptr,"xrddefault_retention_file") && strcmp(temp_ptr,"state_retention_file"))
-			continue;
+		/* temp file definition */
+		if(!strcmp(temp_ptr,"temp_file")){
+			temp_ptr=my_strtok(NULL,"\n");
+			if(temp_ptr==NULL)
+				continue;
+			strncpy(xrddefault_temp_file,temp_ptr,sizeof(xrddefault_temp_file)-1);
+			xrddefault_temp_file[sizeof(xrddefault_temp_file)-1]='\x0';
+			}
 
-		/* get the retention file name */
-		temp_ptr=my_strtok(NULL,"\n");
-		if(temp_ptr==NULL)
-			continue;
-
-		strncpy(xrddefault_retention_file,temp_ptr,sizeof(xrddefault_retention_file)-1);
-		xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
+		/* retention file location */
+		else if(!strcmp(temp_ptr,"xrddefault_retention_file") || !strcmp(temp_ptr,"state_retention_file")){
+			temp_ptr=my_strtok(NULL,"\n");
+			if(temp_ptr==NULL)
+				continue;
+			strncpy(xrddefault_retention_file,temp_ptr,sizeof(xrddefault_retention_file)-1);
+			xrddefault_retention_file[sizeof(xrddefault_retention_file)-1]='\x0';
+			}
 	        }
 
 	/* free memory and close the file */

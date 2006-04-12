@@ -2,7 +2,7 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 11-05-2004
+ * Last Modified: 04-12-2006
  *
  *****************************************/
 

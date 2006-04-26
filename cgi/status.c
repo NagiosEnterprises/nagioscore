@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 04-26-2006
  *
  * License:
  * 
@@ -1647,6 +1647,24 @@ void show_service_detail(void){
 				printf("<TD ALIGN=center valign=center><A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_status->host_name));
 				printf("&service=%s'><IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='This service is currently in a period of scheduled downtime' TITLE='This service is currently in a period of scheduled downtime'></A></TD>",url_encode(temp_status->description),url_images_path,SCHEDULED_DOWNTIME_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT);
 			        }
+			if(temp_service->notes_url!=NULL){
+				printf("<TD align=center valign=center>");
+				printf("<A HREF='");
+				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->notes_url);
+				printf("' TARGET='_blank'>");
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Service Notes","View Extra Service Notes");
+				printf("</A>");
+				printf("</TD>\n");
+				}
+			if(temp_service->action_url!=NULL){
+				printf("<TD align=center valign=center>");
+				printf("<A HREF='");
+				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->action_url);
+				printf("' TARGET='_blank'>");
+				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Service Actions","Perform Extra Service Actions");
+				printf("</A>");
+				printf("</TD>\n");
+				}
 			if(temp_service->icon_image!=NULL){
 				printf("<TD ALIGN=center valign=center>");
 				printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_service->host_name));

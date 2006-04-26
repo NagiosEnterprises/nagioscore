@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 04-26-2006
  *
  * License:
  * 
@@ -1659,6 +1659,24 @@ void show_service_detail(void){
 			        }
 			temp_serviceextinfo=find_serviceextinfo(temp_service->host_name,temp_service->description);
 			if(temp_serviceextinfo!=NULL){
+				if(temp_serviceextinfo->notes_url!=NULL){
+					printf("<TD align=center valign=center>");
+					printf("<A HREF='");
+					print_extra_service_url(temp_service->host_name,temp_service->description,temp_serviceextinfo->notes_url);
+					printf("' TARGET='_blank'>");
+					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,NOTES_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extra Service Notes","View Extra Service Notes");
+					printf("</A>");
+					printf("</TD>\n");
+					}
+				if(temp_serviceextinfo->action_url!=NULL){
+					printf("<TD align=center valign=center>");
+					printf("<A HREF='");
+					print_extra_service_url(temp_service->host_name,temp_service->description,temp_serviceextinfo->action_url);
+					printf("' TARGET='_blank'>");
+					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,ACTION_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"Perform Extra Service Actions","Perform Extra Service Actions");
+					printf("</A>");
+					printf("</TD>\n");
+					}
 				if(temp_serviceextinfo->icon_image!=NULL){
 					printf("<TD ALIGN=center valign=center>");
 					printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_service->host_name));

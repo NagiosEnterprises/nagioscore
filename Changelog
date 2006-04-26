@@ -6,6 +6,7 @@ Nagios 2.x Change Log
 2.3 - ??/??/2006
 ----------------
 * Bug fix for negative HTTP content_length header in CGIs
+* Added missing links for notes_url and action_url to service column of status detail page
 
 
 2.2 - 04/07/2006

@@ -3,12 +3,12 @@
  * NAGIOS.C - Core Program Code For Nagios
  *
  * Program: Nagios
- * Version: 1.3
+ * Version: 1.4
  * License: GPL
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   11-17-2005
+ * Last Modified:   05-03-2006
  *
  * Description:
  *
@@ -366,7 +366,7 @@ int main(int argc, char **argv){
 
 	if(daemon_mode==FALSE){
 		printf("\nNagios %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)\n");
+		printf("Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }

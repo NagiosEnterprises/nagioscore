@@ -57,7 +57,7 @@ Each service definition has a &lt;<i>contact_groups</i>&gt; option that specifie
 </p>
 
 <p>
-Each host may belong to one or more host groups.  Each host group has a &lt;<i>contact_groups</i>&gt; option that specifies what contact groups receive notifications for hosts in that particular host group.  When Nagios sends out a host notification, it will notify contacts that are members of all the contact groups that that should be notified for any and all host groups that the host is a member of.  Nagios removes any duplicate contacts from the notification list before it does anything.
+Each host definition has a &lt;<i>contact_groups</i>&gt; option that specifies what contact groups receive notifications for that particular host.  When Nagios sends out a host notification, it will notify contacts that are members of all the contact groups that that should be notified for that host.  Nagios removes any duplicate contacts from the notification list before it does anything.
 </p>
 
 
@@ -188,9 +188,9 @@ using them...
 </p>
 <p>
 <ul>
-<li><a href="http://www.gnokii.org">Gnokii</a> (SMS software for contacting Nokia phones via GSM network)
-<li><a href="http://www.qpage.org" target="_top">QuickPage</a> (alphanumeric pager software)
-<li><a href="http://sendpage.cpoint.net/" target="_top">Sendpage</a> (paging software)
+<li><a href="http://www.gnokii.org/">Gnokii</a> (SMS software for contacting Nokia phones via GSM network)
+<li><a href="http://www.qpage.org/" target="_top">QuickPage</a> (alphanumeric pager software)
+<li><a href="http://www.sendpage.org/" target="_top">Sendpage</a> (paging software)
 <li><a href="http://www.smsclient.org/" target="_top">SMS Client</a> (command line utility for 
 sending messages to pagers and mobile phones)
 </ul>

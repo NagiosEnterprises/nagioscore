@@ -123,7 +123,7 @@ The command definition for the <i>submit_check_result</i> command looks somethin
 <pre>
 define command{
 	command_name	submit_check_result
-	command_line	/usr/local/nagios/libexec/eventhandlers/submit_check_result $HOSTNAME$ '$SERVICEDESC$' $SERVICESTATE$ '$SERVICEOUTPUT$'
+	command_line	/usr/local/nagios/libexec/eventhandlers/submit_check_result $HOSTNAME$ '$SERVICEDESC$' $SERVICESTATEID$ '$SERVICEOUTPUT$'
 	}
 </pre>
 </font>

@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-20-2002
+ * Last Modified: 05-13-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,22 +102,70 @@
 #undef HAVE_STRTOUL
 #undef HAVE_INITGROUPS
 #undef HAVE_GETLOADAVG
-#undef HAVE_SYS_LOADAVG_H
-#undef HAVE_SYS_SYSCTL_H
-#undef HAVE_LINUX_SYSCTL_H
-#undef HAVE_LIMITS_H
-#undef HAVE_SYS_RESOURCE_H
-#undef HAVE_GETOPT_H
-#undef HAVE_PWD_H
-#undef HAVE_GRP_H
 #undef HAVE_TM_ZONE
 #undef HAVE_TZNAME
-
 #undef USE_PROC
 
 #define SOCKET_SIZE_TYPE ""
 #define GETGROUPS_T ""
 #define RETSIGTYPE ""
+
+
+/* needed for the time_t structures we use later... */
+/* this include must come before sys/resource.h or we can have problems on some OSes */
+#undef TIME_WITH_SYS_TIME
+#undef HAVE_SYS_TIME_H
+#if TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+
+
+#undef HAVE_SYS_LOADAVG_H
+#ifdef HAVE_SYS_LOADAVG_H
+#include <sys/loadavg.h>
+#endif
+
+#undef HAVE_SYS_SYSCTL_H
+#ifdef HAVE_SYS_SYSCTL_H
+#include <sys/sysctl.h>
+#endif
+
+#undef HAVE_LINUX_SYSCTL_H
+#ifdef HAVE_LINUX_SYSCTL_H
+#include <linux/sysctl.h>
+#endif
+
+#undef HAVE_LIMITS_H
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
+#undef HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
+#undef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+
+#undef HAVE_PWD_H
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+ 
+#undef HAVE_GRP_H
+#ifdef HAVE_GRP_H
+#include <grp.h>
+#endif
 
 #undef HAVE_STRINGS_H
 #undef HAVE_STRING_H
@@ -173,20 +221,6 @@
 #undef HAVE_ERRNO_H
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
-
-/* needed for the time_t structures we use later... */
-#undef TIME_WITH_SYS_TIME
-#undef HAVE_SYS_TIME_H
-#if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
 #endif
 
 #undef HAVE_SYS_IPC_H

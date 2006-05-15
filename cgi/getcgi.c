@@ -2,7 +2,7 @@
  *
  * GETCGI.C -  Nagios CGI Input Routines
  *
- * Last Modified: 05-12-2006
+ * Last Modified: 05-15-2006
  *
  *****************************************/
 
@@ -169,8 +169,13 @@ char **getcgivars(void){
 			printf("getcgivars(): No Content-Length was sent with the POST request.\n") ;
 			exit(1);
 		        }
-		if(content_length<0 || content_length>=(INT_MAX-1))
-			content_length=0;
+
+		/* suspicious content length */
+		if((content_length<0) || (content_length>=INT_MAX-1)){
+			printf("getcgivars(): Suspicious Content-Length was sent with the POST request.\n");
+			exit(1);
+			}
+
 		if(!(cgiinput=(char *)malloc(content_length+1))){
 			printf("getcgivars(): Could not allocate memory for CGI input.\n");
 			exit(1);

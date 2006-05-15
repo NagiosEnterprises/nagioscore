@@ -3,6 +3,11 @@ Nagios Change Log
 ###################
 
 
+1.4.1 - 05/15/2006
+------------------
+* Bug fix for HTTP content_length header integer overflow in CGIs
+
+
 1.4 - 05/03/2006
 ----------------
 * Bug fix for negative HTTP content_length header in CGIs

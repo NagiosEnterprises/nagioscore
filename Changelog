@@ -3,6 +3,11 @@ Nagios 2.x Change Log
 #####################
 
 
+2.3.2 - ??/??/2006
+------------------
+* Fix for missing <limits.h> include that prevented CGI compilation under Solaris
+
+
 2.3.1 - 05/15/2006
 ------------------
 * Bug fix for HTTP content_length header integer overflow in CGIs

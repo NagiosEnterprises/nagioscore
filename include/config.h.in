@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-23-2005
+ * Last Modified: 05-16-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -118,6 +118,11 @@
 #undef HAVE_SYS_RESOURCE_H
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
+#endif
+
+#undef HAVE_LIMITS_H
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
 #endif
 
 #undef HAVE_PWD_H

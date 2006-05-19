@@ -3,9 +3,12 @@ Nagios 2.x Change Log
 #####################
 
 
-2.3.2 - ??/??/2006
-------------------
+2.4 - ??/??/2006
+----------------
 * Fix for missing <limits.h> include that prevented CGI compilation under Solaris
+* Better error message reporting in the command CGI (cmd.cgi)
+* Fix for order of recovery/flapping notifications immediately after end of host/service flapping
+
 
 
 2.3.1 - 05/15/2006
@@ -13,10 +16,12 @@ Nagios 2.x Change Log
 * Bug fix for HTTP content_length header integer overflow in CGIs
 
 
+
 2.3 - 05/03/2006
 ----------------
 * Bug fix for negative HTTP content_length header in CGIs
 * Added missing links for notes_url and action_url to service column of status detail page
+
 
 
 2.2 - 04/07/2006

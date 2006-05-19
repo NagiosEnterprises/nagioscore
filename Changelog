@@ -18,6 +18,7 @@ Pre-alpha changes since 02/15/2006...
 
 * Notification changes:
      - Added first_notification_delay to host and object definitions to delay first notification
+     - Notifications are now sent out when flap detection is disabled for flapping hosts/services ($NOTIFICATIONTYPE$ macro = "FLAPPINGDISABLED")
 
 * Object changes: 
      - Added ability to use multiple template names (separated by commas) in object definitions
@@ -93,5 +94,6 @@ Pre-alpha changes since 02/15/2006...
      - Default is now to check for orphaned services, rather than not
      - Renamed service_reaper_frequency to check_result_reaper_frequency
      - Fractional notification and check intervals are now supported (e.g. "3.5" minutes)
+     - Backslash chars are now used to escape command arguments that contain \ or ! characters
  
 

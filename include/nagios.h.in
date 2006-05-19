@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-26-2006
+ * Last Modified: 05-18-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -321,6 +321,7 @@ extern "C" {
 #define NOTIFICATION_ACKNOWLEDGEMENT    1
 #define NOTIFICATION_FLAPPINGSTART      2
 #define NOTIFICATION_FLAPPINGSTOP       3
+#define NOTIFICATION_FLAPPINGDISABLED   4
 
 
 

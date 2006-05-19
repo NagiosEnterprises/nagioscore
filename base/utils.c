@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-05-2006
+ * Last Modified:   05-17-2006
  *
  * License:
  *
@@ -2751,6 +2751,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 	register int x=0;
 	register int y=0;
 	register int arg_index=0;
+	register int escaped=FALSE;
 
 #ifdef DEBUG0
 	printf("get_raw_command_line() start\n");
@@ -2799,10 +2800,23 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 			/* get the next argument */
 			/* can't use strtok(), as that's used in process_macros... */
 			for(arg_index++,y=0;y<sizeof(temp_arg)-1;arg_index++){
-				if(cmd[arg_index]=='!' || cmd[arg_index]=='\x0')
+				
+				/* backslashes escape */
+				if(cmd[arg_index]=='\\' && escaped==FALSE){
+					escaped=TRUE;
+					continue;
+					}
+
+				/* end of argument */
+				if((cmd[arg_index]=='!' && escaped==FALSE) || cmd[arg_index]=='\x0')
 					break;
+
+				/* normal of escaped char */
 				temp_arg[y]=cmd[arg_index];
 				y++;
+
+				/* clear escaped flag */
+				escaped=FALSE;
 				}
 			temp_arg[y]='\x0';
 

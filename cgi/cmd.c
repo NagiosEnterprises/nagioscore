@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 05-18-2006
  *
  * License:
  * 
@@ -1346,7 +1346,6 @@ void request_command_data(int cmd){
 	printf("</div>\n");
 	printf("</p>\n");
 
-
 	printf("<P><DIV CLASS='infoMessage'>Please enter all required information before committing the command.<br>Required fields are marked in red.<br>Failure to supply all required values will result in an error.</DIV></P>");
 
 	return;
@@ -1354,7 +1353,7 @@ void request_command_data(int cmd){
 
 
 void commit_command_data(int cmd){
-	int error=FALSE;
+	char *error_string=NULL;
 	int result=OK;
 	int authorized=FALSE;
 	service *temp_service;
@@ -1372,9 +1371,15 @@ void commit_command_data(int cmd){
 	case CMD_ADD_HOST_COMMENT:
 	case CMD_ACKNOWLEDGE_HOST_PROBLEM:
 
-		/* make sure we have some host name, author name, and comment data... */
-		if(!strcmp(host_name,"") || !strcmp(comment_author,"") || !strcmp(comment_data,""))
-			error=TRUE;
+		/* make sure we have author name, and comment data... */
+		if(!strcmp(comment_author,"")){
+			if(!error_string)
+				error_string=strdup("Author was not entered");
+			}
+		if(!strcmp(comment_data,"")){
+			if(!error_string)
+				error_string=strdup("Comment was not entered");
+			}
 
 		/* clean up the comment data */
 		clean_comment_data(comment_author);
@@ -1389,9 +1394,15 @@ void commit_command_data(int cmd){
 	case CMD_ADD_SVC_COMMENT:
 	case CMD_ACKNOWLEDGE_SVC_PROBLEM:
 
-		/* make sure we have some host name and service description, author name, and comment data... */
-		if(!strcmp(host_name,"") || !strcmp(service_desc,"") || !strcmp(comment_author,"") || !strcmp(comment_data,""))
-			error=TRUE;
+		/* make sure we have author name, and comment data... */
+		if(!strcmp(comment_author,"")){
+			if(!error_string) 
+				error_string=strdup("Author was not entered");
+			}
+		if(!strcmp(comment_data,"")){
+			if(!error_string)
+				error_string=strdup("Comment was not entered");
+			}
 
 		/* clean up the comment data */
 		clean_comment_data(comment_author);
@@ -1407,8 +1418,10 @@ void commit_command_data(int cmd){
 	case CMD_DEL_SVC_COMMENT:
 
 		/* check the sanity of the comment id */
-		if(comment_id==0)
-			error=TRUE;
+		if(comment_id==0){
+			if(!error_string)
+				error_string=strdup("Comment id cannot be 0");
+			}
 
 		/* find the comment */
 		if(cmd==CMD_DEL_HOST_COMMENT)
@@ -1437,8 +1450,10 @@ void commit_command_data(int cmd){
 	case CMD_DEL_SVC_DOWNTIME:
 
 		/* check the sanity of the downtime id */
-		if(downtime_id==0)
-			error=TRUE;
+		if(downtime_id==0){
+			if(!error_string)
+				error_string=strdup("Downtime id cannot be 0");
+			}
 
 		/* find the downtime entry */
 		if(cmd==CMD_DEL_HOST_DOWNTIME)
@@ -1482,13 +1497,17 @@ void commit_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_SVC:
 	case CMD_STOP_OBSESSING_OVER_SVC:
 
-		/* make sure we have some host name and service description... */
-		if(!strcmp(host_name,"") || !strcmp(service_desc,""))
-			error=TRUE;
-
 		/* make sure we have author name and comment data... */
-		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME && (!strcmp(comment_author,"") || !strcmp(comment_data,"")))
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME){
+			if(!strcmp(comment_data,"")){
+				if(!error_string)
+					error_string=strdup("Comment was not entered");
+				}
+			else if(!strcmp(comment_author,"")){
+				if(!error_string)
+					error_string=strdup("Author was not entered");
+				}
+			}
 
 		/* see if the user is authorized to issue a command... */
 		temp_service=find_service(host_name,service_desc);
@@ -1496,12 +1515,16 @@ void commit_command_data(int cmd){
 			authorized=TRUE;
 
 		/* make sure we have passive check info (if necessary) */
-		if(cmd==CMD_PROCESS_SERVICE_CHECK_RESULT && !strcmp(plugin_output,""))
-			error=TRUE;
+		if(cmd==CMD_PROCESS_SERVICE_CHECK_RESULT && !strcmp(plugin_output,"")){
+			if(!error_string)
+				error_string=strdup("Plugin output cannot be blank");
+			}
 
 		/* make sure we have a notification delay (if necessary) */
-		if(cmd==CMD_DELAY_SVC_NOTIFICATION && notification_delay<=0)
-			error=TRUE;
+		if(cmd==CMD_DELAY_SVC_NOTIFICATION && notification_delay<=0){
+			if(!error_string)
+				error_string=strdup("Notification delay must be greater than 0");
+			}
 
 		/* clean up the comment data if scheduling downtime */
 		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME){
@@ -1510,12 +1533,16 @@ void commit_command_data(int cmd){
 		        }
 
 		/* make sure we have check time (if necessary) */
-		if(cmd==CMD_SCHEDULE_SVC_CHECK && start_time==(time_t)0)
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_SVC_CHECK && start_time==(time_t)0){
+			if(!error_string)
+				error_string=strdup("Start time must be non-zero");
+			}
 
 		/* make sure we have start/end times for downtime (if necessary) */
-		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || end_time<start_time))
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || end_time<start_time)){
+			if(!error_string)
+				error_string=strdup("Start or end time not valid");
+			}
 
 		break;
 		
@@ -1575,13 +1602,17 @@ void commit_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
 
-		/* make sure we have some host name... */
-		if(!strcmp(host_name,""))
-			error=TRUE;
-
 		/* make sure we have author name and comment data... */
-		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME && (!strcmp(comment_author,"") || !strcmp(comment_data,"")))
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME){
+			if(!strcmp(comment_data,"")){
+				if(!error_string)
+					error_string=strdup("Comment was not entered");
+				}
+			else if(!strcmp(comment_author,"")){
+				if(!error_string)
+					error_string=strdup("Author was not entered");
+				}
+			}
 
 		/* see if the user is authorized to issue a command... */
 		temp_host=find_host(host_name);
@@ -1595,20 +1626,28 @@ void commit_command_data(int cmd){
 		        }
 
 		/* make sure we have a notification delay (if necessary) */
-		if(cmd==CMD_DELAY_HOST_NOTIFICATION && notification_delay<=0)
-			error=TRUE;
+		if(cmd==CMD_DELAY_HOST_NOTIFICATION && notification_delay<=0){
+			if(!error_string)
+				error_string=strdup("Notification delay must be greater than 0");
+			}
 
 		/* make sure we have start/end times for downtime (if necessary) */
-		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time))
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time)){
+			if(!error_string)
+				error_string=strdup("Start or end time not valid");
+			}
 
 		/* make sure we have check time (if necessary) */
-		if((cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_HOST_SVC_CHECKS)&& start_time==(time_t)0)
-			error=TRUE;
+		if((cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_HOST_SVC_CHECKS)&& start_time==(time_t)0){
+			if(!error_string)
+				error_string=strdup("Start time must be non-zero");
+			}
 
 		/* make sure we have passive check info (if necessary) */
-		if(cmd==CMD_PROCESS_HOST_CHECK_RESULT && !strcmp(plugin_output,""))
-			error=TRUE;
+		if(cmd==CMD_PROCESS_HOST_CHECK_RESULT && !strcmp(plugin_output,"")){
+			if(!error_string)
+				error_string=strdup("Plugin output cannot be blank");
+			}
 
 		break;
 
@@ -1621,17 +1660,23 @@ void commit_command_data(int cmd){
 	case CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME:
 	case CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME:
 
-		/* make sure we have some hostgroup name... */
-		if(!strcmp(hostgroup_name,""))
-			error=TRUE;
-
 		/* make sure we have author and comment data */
-		if((cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME) && (!strcmp(comment_author,"") || !strcmp(comment_data,"")))
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME) {
+			if(!strcmp(comment_data,"")){
+				if(!error_string)
+					error_string=strdup("Comment was not entered");
+				}
+			else if(!strcmp(comment_author,"")){
+				if(!error_string)
+					error_string=strdup("Author was not entered");
+				}
+			}
 
 		/* make sure we have start/end times for downtime */
-		if((cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME) && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time))
-			error=TRUE;
+		if((cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME) && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time)){
+			if(!error_string)
+				error_string=strdup("Start or end time not valid");
+			}
 
 		/* see if the user is authorized to issue a command... */
 		temp_hostgroup=find_hostgroup(hostgroup_name);
@@ -1655,17 +1700,23 @@ void commit_command_data(int cmd){
 	case CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME:
 	case CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME:
 
-		/* make sure we have some servicegroup name... */
-		if(!strcmp(servicegroup_name,""))
-			error=TRUE;
-
 		/* make sure we have author and comment data */
-		if((cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) && (!strcmp(comment_author,"") || !strcmp(comment_data,"")))
-			error=TRUE;
+		if(cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) {
+			if(!strcmp(comment_data,"")){
+				if(!error_string)
+					error_string=strdup("Comment was not entered");
+				}
+			else if(!strcmp(comment_author,"")){
+				if(!error_string)
+					error_string=strdup("Author was not entered");
+				}
+			}
 
 		/* make sure we have start/end times for downtime */
-		if((cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time))
-			error=TRUE;
+		if((cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) && (start_time==(time_t)0 || end_time==(time_t)0 || start_time>end_time)){
+			if(!error_string)
+				error_string=strdup("Start or end time not valid");
+			}
 
 		/* see if the user is authorized to issue a command... */
 
@@ -1676,7 +1727,7 @@ void commit_command_data(int cmd){
 		break;
 
 	default:
-		error=TRUE;
+		if(!error_string) error_string = strdup("An error occurred while processing your command!");
 	        }
 
 
@@ -1709,12 +1760,13 @@ void commit_command_data(int cmd){
 	        }
 
 	/* some error occurred (data was probably missing) */
-	else if(error==TRUE){
+	else if(error_string){
 		if(content_type==WML_CONTENT)
-			printf("<p>An error occurred while processing your command!</p>\n");
+			printf("<p>%s</p>\n", error_string);
 		else{
-			printf("<P><DIV CLASS='errorMessage'>An error occurred while processing your command.</DIV></P>\n");
-			printf("<P><DIV CLASS='errorDescription'>Go back and verify that you entered all required information correctly.<BR>\n");
+			printf("<P><DIV CLASS='errorMessage'>%s</DIV></P>\n", error_string);
+			free(error_string);
+			printf("<P><DIV CLASS='errorDescription'>Go <A HREF='javascript:window.history.go(-1)'>back</A> and verify that you entered all required information correctly.<BR>\n");
 			printf("<A HREF='javascript:window.history.go(-2)'>Return from whence you came</A></DIV></P>\n");
 		        }
 	        }

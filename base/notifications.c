@@ -151,6 +151,8 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTART");
 		else if(type==NOTIFICATION_FLAPPINGSTOP)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTOP");
+		else if(type==NOTIFICATION_FLAPPINGDISABLED)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGDISABLED");
 		else if(svc->current_state==STATE_OK)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("RECOVERY");
 		else
@@ -342,7 +344,7 @@ int check_service_notification_viability(service *svc, int type){
 	/****************************************/
 
 	/* flapping notifications only have to pass three general filters */
-	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP || type==NOTIFICATION_FLAPPINGDISABLED){
 
 		/* don't send a notification if we're not supposed to... */
 		if(svc->notify_on_flapping==FALSE){
@@ -524,7 +526,7 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
 	/****************************************/
 
-	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP || type==NOTIFICATION_FLAPPINGDISABLED){
 
 		if(cntct->notify_on_service_flapping==FALSE){
 #ifdef DEBUG4
@@ -667,6 +669,9 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 					break;
 				case NOTIFICATION_FLAPPINGSTOP:
 					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				case NOTIFICATION_FLAPPINGDISABLED:
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				default:
 					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
@@ -956,6 +961,8 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTART");
 		else if(type==NOTIFICATION_FLAPPINGSTOP)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTOP");
+		else if(type==NOTIFICATION_FLAPPINGDISABLED)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGDISABLED");
 		else if(hst->current_state==HOST_UP)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("RECOVERY");
 		else
@@ -1135,7 +1142,7 @@ int check_host_notification_viability(host *hst, int type){
 	/*****************************************/
 
 	/* flapping notifications only have to pass three general filters */
-	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP || type==NOTIFICATION_FLAPPINGDISABLED){
 
 		/* don't send a notification if we're not supposed to... */
 		if(hst->notify_on_flapping==FALSE){
@@ -1292,7 +1299,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	/*** SPECIAL CASE FOR FLAPPING ALERTS ***/
 	/****************************************/
 
-	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP){
+	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP || type==NOTIFICATION_FLAPPINGDISABLED){
 
 		if(cntct->notify_on_host_flapping==FALSE){
 #ifdef DEBUG4
@@ -1432,7 +1439,11 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				case NOTIFICATION_FLAPPINGSTOP:
-					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);					break;
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGSTOP (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				case NOTIFICATION_FLAPPINGDISABLED:
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					break;
 				default:
 					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;

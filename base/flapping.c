@@ -372,15 +372,15 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,SERVICE_FLAPPING,svc,percent_change,high_threshold,low_threshold,NULL);
 #endif
 
+	/* send a notification */
+	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
+
 	/* should we send a recovery notification? */
 	if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
 		service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL);
 
 	/* clear the recovery notification flag */
 	svc->check_flapping_recovery_notification=FALSE;
-
-	/* send a notification */
-	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("clear_service_flap() end\n");
@@ -459,15 +459,15 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,HOST_FLAPPING,hst,percent_change,high_threshold,low_threshold,NULL);
 #endif
 
+	/* send a notification */
+	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
+
 	/* should we send a recovery notification? */
 	if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
 		host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
 
 	/* clear the recovery notification flag */
 	hst->check_flapping_recovery_notification=FALSE;
-
-	/* send a notification */
-	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL,NULL);
 
 #ifdef DEBUG0
 	printf("clear_host_flap() end\n");
@@ -516,6 +516,8 @@ void disable_flap_detection_routines(void){
 
 	/* update program status */
 	update_program_status(FALSE);
+
+	/* should we send FLAPPINGDISABLED notifications out or log anything for flapping hosts/services here? */
 
 #ifdef DEBUG0
 	printf("disable_flap_detection() end\n");
@@ -594,6 +596,16 @@ void disable_host_flap_detection(host *hst){
 		/* send data to event broker */
 		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,HOST_FLAPPING,hst,hst->percent_state_change,0.0,0.0,NULL);
 #endif
+
+		/* send a notification */
+		host_notification(hst,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL);
+
+		/* should we send a recovery notification? */
+		if(hst->check_flapping_recovery_notification==TRUE && hst->current_state==HOST_UP)
+			host_notification(hst,NOTIFICATION_NORMAL,NULL,NULL);
+
+		/* clear the recovery notification flag */
+		hst->check_flapping_recovery_notification=FALSE;
 	        }
 
 	/* reset the percent change indicator */
@@ -678,6 +690,16 @@ void disable_service_flap_detection(service *svc){
 		/* send data to event broker */
 		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,SERVICE_FLAPPING,svc,svc->percent_state_change,0.0,0.0,NULL);
 #endif
+
+		/* send a notification */
+		service_notification(svc,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL);
+
+		/* should we send a recovery notification? */
+		if(svc->check_flapping_recovery_notification==TRUE && svc->current_state==STATE_OK)
+			service_notification(svc,NOTIFICATION_NORMAL,NULL,NULL);
+
+		/* clear the recovery notification flag */
+		svc->check_flapping_recovery_notification=FALSE;
 	        }
 
 	/* reset the percent change indicator */

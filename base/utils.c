@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-17-2006
+ * Last Modified:   05-20-2006
  *
  * License:
  *
@@ -4702,7 +4702,7 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 /* gets one line of input from an mmap()'ed file */
 char *mmap_fgets(mmapfile *temp_mmapfile){
 	char *buf=NULL;
-	unsigned long x=0;
+	unsigned long x=0L;
 	int len=0;
 
 	if(temp_mmapfile==NULL)
@@ -4714,21 +4714,21 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 
 	/* find the end of the string (or buffer) */
 	for(x=temp_mmapfile->current_position;x<temp_mmapfile->file_size;x++){
-		if(*(char *)((char *)temp_mmapfile->mmap_buf+x)=='\n'){
+		if(*((char *)(temp_mmapfile->mmap_buf)+x)=='\n'){
 			x++;
 			break;
 			}
 	        }
 
 	/* calculate length of line we just read */
-	len=(int)x-temp_mmapfile->current_position;
+	len=(int)(x-temp_mmapfile->current_position);
 
 	/* allocate memory for the new line */
 	if((buf=(char *)malloc(len+1))==NULL)
 		return NULL;
 
 	/* copy string to newly allocated memory and terminate the string */
-	memcpy(buf,(char *)((char *)temp_mmapfile->mmap_buf+temp_mmapfile->current_position),len);
+	memcpy(buf,((char *)(temp_mmapfile->mmap_buf)+temp_mmapfile->current_position),len);
 	buf[len]='\x0';
 
 	/* update the current position */

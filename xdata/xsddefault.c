@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2006
+ * Last Modified:   05-20-2006
  *
  * License:
  *
@@ -639,8 +639,13 @@ int xsddefault_save_status_data(void){
 
 /* read all program, host, and service status information */
 int xsddefault_read_status_data(char *config_file,int options){
+#ifdef BAD_MMAP
 	char *input=NULL;
 	mmapfile *thefile=NULL;
+#else
+	char input[2048]="";
+	FILE *fp=NULL;
+#endif
 	int data_type=XSDDEFAULT_NO_DATA;
 	hoststatus *temp_hoststatus=NULL;
 	servicestatus *temp_servicestatus=NULL;
@@ -673,18 +678,29 @@ int xsddefault_read_status_data(char *config_file,int options){
 		return ERROR;
 
 	/* open the status file for reading */
+#ifdef BAD_MMAP
 	if((thefile=mmap_fopen(xsddefault_status_log))==NULL)
 		return ERROR;
+#else
+	if((fp=fopen(xsddefault_status_log,"r"))==NULL)
+		return ERROR;
+#endif
 
 	/* read all lines in the status file */
 	while(1){
 
+#ifdef BAD_MMAP
 		/* free memory */
 		my_free((void **)&input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
 			break;
+#else
+		strcpy(input,"");
+		if(fgets(input,sizeof(input),fp)==NULL)
+			break;
+#endif
 
 		strip(input);
 
@@ -1116,8 +1132,12 @@ int xsddefault_read_status_data(char *config_file,int options){
 	        }
 
 	/* free memory and close the file */
+#ifdef BAD_MMAP
 	my_free((void **)&input);
 	mmap_fclose(thefile);
+#else
+	fclose(fp);
+#endif
 
 	/* free memory */
 	my_free((void **)&xsddefault_status_log);

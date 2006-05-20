@@ -2,8 +2,8 @@
  *
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
- * Copyright (c) 2001-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-04-2004
+ * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-20-2006
  *
  * License:
  *
@@ -494,11 +494,16 @@ int xdddefault_save_downtime_data(void){
 
 /* read the downtime file */
 int xdddefault_read_downtime_data(char *main_config_file){
+#ifdef BAD_MMAP
 	char *input=NULL;
+	mmapfile *thefile;
+#else
+	char input[2048]="";
+	FILE *fp=NULL;
+#endif
 	int data_type=XDDDEFAULT_NO_DATA;
 	char *var;
 	char *val;
-	mmapfile *thefile;
 	unsigned long downtime_id=0;
 	time_t entry_time=0L;
 	time_t start_time=0L;
@@ -519,17 +524,28 @@ int xdddefault_read_downtime_data(char *main_config_file){
 #endif
 
 	/* open the downtime file */
+#ifdef BAD_MMAP
 	if((thefile=mmap_fopen(xdddefault_downtime_file))==NULL)
 		return ERROR;
+#else
+	if((fp=fopen(xdddefault_downtime_file,"r"))==NULL)
+		return ERROR;
+#endif
 
 	while(1){
 
+#ifdef BAD_MMAP
 		/* free memory */
 		free(input);
 
 		/* get the next line */
 		if((input=mmap_fgets(thefile))==NULL)
 			break;
+#else
+		strcpy(input,"");
+		if(fgets(input,sizeof(input),fp)==NULL)
+			break;
+#endif
 
 		strip(input);
 
@@ -637,8 +653,12 @@ int xdddefault_read_downtime_data(char *main_config_file){
 	        }
 
 	/* free memory and close the file */
+#ifdef BAD_MMAP
 	free(input);
 	mmap_fclose(thefile);
+#else
+	fclose(fp);
+#endif
 
 	return OK;
         }

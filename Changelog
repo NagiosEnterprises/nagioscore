@@ -8,7 +8,7 @@ Nagios 2.x Change Log
 * Fix for missing <limits.h> include that prevented CGI compilation under Solaris
 * Better error message reporting in the command CGI (cmd.cgi)
 * Fix for order of recovery/flapping notifications immediately after end of host/service flapping
-* Bug fix for potential crash (SIGBUS) of CGIs in mmap_fgets()
+* Bug fix for potential crash (SIGBUS) of CGIs when reading mmap()'ed status, comment, and downtime files
 
 
 

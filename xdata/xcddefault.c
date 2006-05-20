@@ -2,8 +2,8 @@
  *
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
- * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-31-2004
+ * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-20-2006
  *
  * License:
  *
@@ -484,8 +484,13 @@ int xcddefault_save_comment_data(void){
 
 /* read the comment file */
 int xcddefault_read_comment_data(char *main_config_file){
+#ifdef BAD_MMAP
 	char *input=NULL;
 	mmapfile *thefile;
+#else
+	char input[2048]="";
+	FILE *fp=NULL;
+#endif
 	int data_type=XCDDEFAULT_NO_DATA;
 	char *var;
 	char *val;
@@ -508,18 +513,29 @@ int xcddefault_read_comment_data(char *main_config_file){
 		return ERROR;
 
 	/* open the comment file for reading */
+#ifdef BAD_MMAP
 	if((thefile=mmap_fopen(xcddefault_comment_file))==NULL)
 		return ERROR;
+#else
+	if((fp=fopen(xcddefault_comment_file,"r"))==NULL)
+		return ERROR;
+#endif
 
 	/* read all lines in the comment file */
 	while(1){
 
+#ifdef BAD_MMAP
 		/* free memory */
 		free(input);
 
 		/* read the next line */
 		if((input=mmap_fgets(thefile))==NULL)
 			break;
+#else
+		strcpy(input,"");
+		if(fgets(input,sizeof(input),fp)==NULL)
+			break;
+#endif
 
 		strip(input);
 
@@ -618,8 +634,12 @@ int xcddefault_read_comment_data(char *main_config_file){
 	        }
 
 	/* free memory and close the file */
+#ifdef BAD_MMAP
 	free(input);
 	mmap_fclose(thefile);
+#else
+	fclose(fp);
+#endif
 
 	return OK;
         }

@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-10-2006
+ * Last Modified: 05-21-2006
  *
  * License:
  *
@@ -40,6 +40,9 @@ extern double   low_service_flap_threshold;
 extern double   high_service_flap_threshold;
 extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
+
+extern host     *host_list;
+extern service  *service_list;
 
 
 /******************************************************************/
@@ -484,6 +487,8 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 
 /* enables flap detection on a program wide basis */
 void enable_flap_detection_routines(void){
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 
 #ifdef DEBUG0
 	printf("enable_flap_detection() start\n");
@@ -494,6 +499,12 @@ void enable_flap_detection_routines(void){
 
 	/* update program status */
 	update_program_status(FALSE);
+
+	/* check for flapping */
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
+		check_for_host_flapping(temp_host,FALSE,FALSE);
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next)
+		check_for_service_flapping(temp_service,FALSE);
 
 #ifdef DEBUG0
 	printf("enable_flap_detection() end\n");
@@ -506,6 +517,8 @@ void enable_flap_detection_routines(void){
 
 /* disables flap detection on a program wide basis */
 void disable_flap_detection_routines(void){
+	host *temp_host=NULL;
+	service *temp_service=NULL;
 
 #ifdef DEBUG0
 	printf("disable_flap_detection() start\n");
@@ -517,7 +530,11 @@ void disable_flap_detection_routines(void){
 	/* update program status */
 	update_program_status(FALSE);
 
-	/* should we send FLAPPINGDISABLED notifications out or log anything for flapping hosts/services here? */
+	/* handle the details... */
+	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next)
+		handle_host_flap_detection_disabled(temp_host);
+	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next)
+		handle_service_flap_detection_disabled(temp_service);
 
 #ifdef DEBUG0
 	printf("disable_flap_detection() end\n");
@@ -540,15 +557,21 @@ void enable_host_flap_detection(host *hst){
 	if(hst->flap_detection_enabled==TRUE)
 		return;
 
+	/* REMOVED 05/21/06 EG - we should still keep track of PSC for future use */
+#ifdef REMOVED_05212006
 	/* reset the archived state history */
 	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
 		hst->state_history[x]=hst->current_state;
 
 	/* reset percent state change indicator */
 	hst->percent_state_change=0.0;
+#endif
 
 	/* set the flap detection enabled flag */
 	hst->flap_detection_enabled=TRUE;
+
+	/* check for flapping */
+	check_for_host_flapping(hst,FALSE,FALSE);
 
 	/* update host status */
 	update_host_status(hst,FALSE);
@@ -564,7 +587,6 @@ void enable_host_flap_detection(host *hst){
 
 /* disables flap detection for a specific host */
 void disable_host_flap_detection(host *hst){
-	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("disable_host_flap_detection() start\n");
@@ -576,6 +598,25 @@ void disable_host_flap_detection(host *hst){
 
 	/* set the flap detection enabled flag */
 	hst->flap_detection_enabled=FALSE;
+
+	/* handle the details... */
+	handle_host_flap_detection_disabled(hst);
+
+#ifdef DEBUG0
+	printf("disable_host_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+/* handles the details for a host when flap detection is disabled (globally or per-host) */
+void handle_host_flap_detection_disabled(host *hst){
+	char *temp_buffer=NULL;
+
+#ifdef DEBUG0
+	printf("host_host_flap_detection_disabled() start\n");
+#endif
 
 	/* if the host was flapping, remove the flapping indicator */
 	if(hst->is_flapping==TRUE){
@@ -608,18 +649,21 @@ void disable_host_flap_detection(host *hst){
 		hst->check_flapping_recovery_notification=FALSE;
 	        }
 
+	/* REMOVED 05/21/06 EG - we should still keep track of PSC for future use */
 	/* reset the percent change indicator */
+#ifdef REMOVED_05212006
 	hst->percent_state_change=0.0;
+#endif
 
 	/* update host status */
 	update_host_status(hst,FALSE);
 
 #ifdef DEBUG0
-	printf("disable_host_flap_detection() end\n");
+	printf("host_host_flap_detection_disabled() end\n");
 #endif
 
 	return;
-        }
+	}
 
 
 /* enables flap detection for a specific service */
@@ -634,15 +678,21 @@ void enable_service_flap_detection(service *svc){
 	if(svc->flap_detection_enabled==TRUE)
 		return;
 
+	/* REMOVED 05/21/06 EG - we should still keep track of PSC for future use */
+#ifdef REMOVED_05212006
 	/* reset the archived state history */
 	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
 		svc->state_history[x]=svc->current_state;
 
 	/* reset percent state change indicator */
 	svc->percent_state_change=0.0;
+#endif
 
 	/* set the flap detection enabled flag */
 	svc->flap_detection_enabled=TRUE;
+
+	/* check for flapping */
+	check_for_service_flapping(svc,FALSE);
 
 	/* update service status */
 	update_service_status(svc,FALSE);
@@ -658,7 +708,6 @@ void enable_service_flap_detection(service *svc){
 
 /* disables flap detection for a specific service */
 void disable_service_flap_detection(service *svc){
-	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("disable_service_flap_detection() start\n");
@@ -670,6 +719,25 @@ void disable_service_flap_detection(service *svc){
 
 	/* set the flap detection enabled flag */
 	svc->flap_detection_enabled=FALSE;
+
+	/* handle the details... */
+	handle_service_flap_detection_disabled(svc);
+
+#ifdef DEBUG0
+	printf("disable_service_flap_detection() end\n");
+#endif
+
+	return;
+        }
+
+
+/* handles the details for a service when flap detection is disabled (globally or per-service) */
+void handle_service_flap_detection_disabled(service *svc){
+	char *temp_buffer=NULL;
+
+#ifdef DEBUG0
+	printf("host_service_flap_detection_disabled() start\n");
+#endif
 
 	/* if the service was flapping, remove the flapping indicator */
 	if(svc->is_flapping==TRUE){
@@ -702,19 +770,21 @@ void disable_service_flap_detection(service *svc){
 		svc->check_flapping_recovery_notification=FALSE;
 	        }
 
+	/* REMOVED 05/21/06 EG - we should still keep track of PSC for future use */
 	/* reset the percent change indicator */
+#ifdef REMOVED_05212006
 	svc->percent_state_change=0.0;
+#endif
 
 	/* update service status */
 	update_service_status(svc,FALSE);
 
 #ifdef DEBUG0
-	printf("disable_service_flap_detection() end\n");
+	printf("host_service_flap_detection_disabled() end\n");
 #endif
 
 	return;
-        }
-
+	}
 
 
 

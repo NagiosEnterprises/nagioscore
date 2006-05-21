@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-18-2006
+ * Last Modified: 05-21-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -616,6 +616,8 @@ void enable_host_flap_detection(host *);			/* enables flap detection for a parti
 void disable_host_flap_detection(host *);			/* disables flap detection for a particular host */
 void enable_service_flap_detection(service *);			/* enables flap detection for a particular service */
 void disable_service_flap_detection(service *);			/* disables flap detection for a particular service */
+void handle_host_flap_detection_disabled(host *);		/* handles the details when flap detection is disabled globally or on a per-host basis */
+void handle_service_flap_detection_disabled(service *);		/* handles the details when flap detection is disabled globally or on a per-service basis */
 
 
 /**** Route/Host Check Functions ****/

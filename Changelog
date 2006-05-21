@@ -18,7 +18,8 @@ Pre-alpha changes since 02/15/2006...
 
 * Notification changes:
      - Added first_notification_delay to host and object definitions to delay first notification
-     - Notifications are now sent out when flap detection is disabled for flapping hosts/services ($NOTIFICATIONTYPE$ macro = "FLAPPINGDISABLED")
+     - Notifications are now sent out when flap detection is disabled on a host/service-specific
+       or program-wide basis ($NOTIFICATIONTYPE$ macro = "FLAPPINGDISABLED")
 
 * Object changes: 
      - Added ability to use multiple template names (separated by commas) in object definitions
@@ -50,6 +51,10 @@ Pre-alpha changes since 02/15/2006...
 * Flapping changes:
      - Added flap_detection_options directive to host and service definitions to control which
        states (i.e. OK, WARNING, UNKNOWN, and/or CRITICAL) are used in flap detection logic
+     - Percent state change and state history are now retained and recorded even when host/service
+       flap detection is disabled.
+     - Hosts and services are immediately check for flapping when flap detection is enabled program-wide.
+     - Hosts/services that are flapping when flap detection is disabled program-wide are now logged
 
 * External command changes:
      - Added PROCESS_FILE external command to allow processing of external commands found in

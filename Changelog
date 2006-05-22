@@ -20,6 +20,10 @@ Pre-alpha changes since 02/15/2006...
      - Added first_notification_delay to host and object definitions to delay first notification
      - Notifications are now sent out when flap detection is disabled on a host/service-specific
        or program-wide basis ($NOTIFICATIONTYPE$ macro = "FLAPPINGDISABLED")
+     - Notifications can now be sent out when scheduled downtime starts, ends, and is cancelled.  The
+       $NOTIFICATIONTYPE$ macro will be set to "DOWNTIMESTART", "DOWNTIMEEND", or "DOWNTIMECANCELLED",
+       respectively.  In order to receive downtime notifications, specify 's' or 'downtime' in contact, host,
+       and/or service notification options.
 
 * Object changes: 
      - Added ability to use multiple template names (separated by commas) in object definitions

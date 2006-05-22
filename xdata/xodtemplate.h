@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2006
+ * Last Modified:   05-21-2006
  *
  * License:
  *
@@ -117,6 +117,7 @@ typedef struct xodtemplate_contact_struct{
 	int       notify_on_host_unreachable;
 	int       notify_on_host_recovery;
 	int       notify_on_host_flapping;
+	int       notify_on_host_downtime;
 	char      *service_notification_period;
 	char      *service_notification_commands;
 	int       notify_on_service_unknown;
@@ -124,6 +125,7 @@ typedef struct xodtemplate_contact_struct{
 	int       notify_on_service_critical;
 	int       notify_on_service_recovery;
 	int       notify_on_service_flapping;
+	int       notify_on_service_downtime;
 	int       host_notifications_enabled;
 	int       service_notifications_enabled;
 	int       can_submit_commands;
@@ -207,6 +209,7 @@ typedef struct xodtemplate_host_struct{
 	int       notify_on_unreachable;
 	int       notify_on_recovery;
 	int       notify_on_flapping;
+	int       notify_on_downtime;
 	int       notifications_enabled;
 	char      *notification_period;
 	double    notification_interval;
@@ -340,6 +343,7 @@ typedef struct xodtemplate_service_struct{
 	int        notify_on_critical;
 	int        notify_on_recovery;
 	int        notify_on_flapping;
+	int        notify_on_downtime;
 	int        notifications_enabled;
 	char       *notification_period;
 	double     notification_interval;

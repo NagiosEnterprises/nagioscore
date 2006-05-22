@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-26-2006
+ * Last Modified: 05-21-2006
  *
  * License:
  *
@@ -860,10 +860,11 @@ void remove_event(timed_event *event, timed_event **event_list, timed_event **ev
 
 		for(temp_event=*event_list;temp_event!=NULL;temp_event=temp_event->next){
 			if(temp_event->next==event){
-				temp_event->next->next->prev=temp_event;
 				temp_event->next=temp_event->next->next;
 				if(temp_event->next==NULL)
 					*event_list_tail=temp_event;
+				else
+					temp_event->next->prev=temp_event;
 				event->next=NULL;
 				event->prev=NULL;
 				break;

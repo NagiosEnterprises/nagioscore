@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-30-2006
+ * Last Modified: 05-21-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -556,6 +556,10 @@ void display_hosts(void){
 			printf("%sFlapping",(options)?", ":"");
 			options=1;
 		        }
+		if(temp_host->notify_on_downtime==TRUE){
+			printf("%sDowntime",(options)?", ":"");
+			options=1;
+		        }
 		if(options==0)
 			printf("None");
 		printf("</TD>\n");
@@ -912,6 +916,10 @@ void display_contacts(void){
 			printf("%sFlapping",(options)?", ":"");
 			options=1;
 		        }
+		if(temp_contact->notify_on_service_downtime==TRUE){
+			printf("%sDowntime",(options)?", ":"");
+			options=1;
+		        }
 		if(!options)
 			printf("None");
 		printf("</TD>\n");
@@ -932,6 +940,10 @@ void display_contacts(void){
 		        }
 		if(temp_contact->notify_on_host_flapping==TRUE){
 			printf("%sFlapping",(options)?", ":"");
+			options=1;
+		        }
+		if(temp_contact->notify_on_host_downtime==TRUE){
+			printf("%sDowntime",(options)?", ":"");
 			options=1;
 		        }
 		if(!options)
@@ -1242,6 +1254,10 @@ void display_services(void){
 	                }
 		if(temp_service->notify_on_flapping==TRUE){
 			printf("%sFlapping",(options)?", ":"");
+			options=1;
+	                }
+		if(temp_service->notify_on_downtime==TRUE){
+			printf("%sDowntime",(options)?", ":"");
 			options=1;
 	                }
 		if(!options)

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-07-2006
+ * Last Modified:   05-21-2006
  *
  * License:
  *
@@ -153,6 +153,12 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTOP");
 		else if(type==NOTIFICATION_FLAPPINGDISABLED)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGDISABLED");
+		else if(type==NOTIFICATION_DOWNTIMESTART)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("DOWNTIMESTART");
+		else if(type==NOTIFICATION_DOWNTIMEEND)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("DOWNTIMEEND");
+		else if(type==NOTIFICATION_DOWNTIMECANCELLED)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("DOWNTIMECANCELLED");
 		else if(svc->current_state==STATE_OK)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("RECOVERY");
 		else
@@ -368,6 +374,34 @@ int check_service_notification_viability(service *svc, int type){
 
 
 	/****************************************/
+	/*** SPECIAL CASE FOR DOWNTIME ALERTS ***/
+	/****************************************/
+
+	/* downtime notifications only have to pass three general filters */
+	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMEEND){
+
+		/* don't send a notification if we're not supposed to... */
+		if(svc->notify_on_downtime==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about DOWNTIME events for this service!\n");
+#endif
+			return ERROR;
+	                }
+
+		/* don't send notifications during scheduled downtime (for service only, not host) */
+		if(svc->scheduled_downtime_depth>0){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about DOWNTIME events during scheduled downtime!\n");
+#endif
+			return ERROR;
+		        }
+
+		/* downtime viability test passed, so the notification can be sent out */
+		return OK;
+	        }
+
+
+	/****************************************/
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
 
@@ -538,6 +572,22 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 		return OK;
 	        }
 
+	/****************************************/
+	/*** SPECIAL CASE FOR DOWNTIME ALERTS ***/
+	/****************************************/
+
+	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
+
+		if(cntct->notify_on_service_downtime==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify this contact about DOWNTIME service events!\n");
+#endif
+			return ERROR;
+		        }
+
+		return OK;
+	        }
+
 	/*************************************/
 	/*** ACKS AND NORMAL NOTIFICATIONS ***/
 	/*************************************/
@@ -672,6 +722,15 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 					break;
 				case NOTIFICATION_FLAPPINGDISABLED:
 					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				case NOTIFICATION_DOWNTIMESTART:
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				case NOTIFICATION_DOWNTIMEEND:
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
+					break;
+				case NOTIFICATION_DOWNTIMECANCELLED:
+					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
 					break;
 				default:
 					asprintf(&temp_buffer,"SERVICE NOTIFICATION: %s;%s;%s;%s;%s;%s\n",cntct->name,svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],command_name_ptr,macro_x[MACRO_SERVICEOUTPUT]);
@@ -963,6 +1022,12 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGSTOP");
 		else if(type==NOTIFICATION_FLAPPINGDISABLED)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("FLAPPINGDISABLED");
+		else if(type==NOTIFICATION_DOWNTIMESTART)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("DOWNTIMESTART");
+		else if(type==NOTIFICATION_DOWNTIMEEND)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("DOWNTIMEEND");
+		else if(type==NOTIFICATION_DOWNTIMECANCELLED)
+			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("DOWNTIMECANCELLED");
 		else if(hst->current_state==HOST_UP)
 			macro_x[MACRO_NOTIFICATIONTYPE]=(char *)strdup("RECOVERY");
 		else
@@ -1165,6 +1230,34 @@ int check_host_notification_viability(host *hst, int type){
 	        }
 
 
+	/*****************************************/
+	/*** SPECIAL CASE FOR DOWNTIME ALERTS ***/
+	/*****************************************/
+
+	/* flapping notifications only have to pass three general filters */
+	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
+
+		/* don't send a notification if we're not supposed to... */
+		if(hst->notify_on_downtime==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about DOWNTIME events for this host!\n");
+#endif
+			return ERROR;
+	                }
+
+		/* don't send notifications during scheduled downtime */
+		if(hst->scheduled_downtime_depth>0){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify about DOWNTIME events during scheduled downtime!\n");
+#endif
+			return ERROR;
+		        }
+
+		/* downtime viability test passed, so the notification can be sent out */
+		return OK;
+	        }
+
+
 	/****************************************/
 	/*** NORMAL NOTIFICATIONS ***************/
 	/****************************************/
@@ -1312,6 +1405,23 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	        }
 
 
+	/****************************************/
+	/*** SPECIAL CASE FOR DOWNTIME ALERTS ***/
+	/****************************************/
+
+	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
+
+		if(cntct->notify_on_host_downtime==FALSE){
+#ifdef DEBUG4
+			printf("\tWe shouldn't notify this contact about DOWNTIME host events!\n");
+#endif
+			return ERROR;
+		        }
+
+		return OK;
+	        }
+
+
 	/*************************************/
 	/*** ACKS AND NORMAL NOTIFICATIONS ***/
 	/*************************************/
@@ -1443,6 +1553,15 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 					break;
 				case NOTIFICATION_FLAPPINGDISABLED:
 					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;FLAPPINGDISABLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				case NOTIFICATION_DOWNTIMESTART:
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMESTART (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				case NOTIFICATION_DOWNTIMEEND:
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMEEND (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
+					break;
+				case NOTIFICATION_DOWNTIMECANCELLED:
+					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;DOWNTIMECANCELLED (%s);%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);
 					break;
 				default:
 					asprintf(&temp_buffer,"HOST NOTIFICATION: %s;%s;%s;%s;%s\n",cntct->name,hst->name,macro_x[MACRO_HOSTSTATE],command_name_ptr,macro_x[MACRO_HOSTOUTPUT]);

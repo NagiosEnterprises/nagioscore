@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2006
+ * Last Modified:   05-23-2006
  *
  * License:
  *
@@ -450,6 +450,7 @@ int xrddefault_save_state_information(void){
 
 		fprintf(fp,"contact {\n");
 		fprintf(fp,"\tcontact_name=%s\n",temp_contact->name);
+		fprintf(fp,"\tmodified_attributes=%lu\n",temp_contact->modified_attributes);
 		fprintf(fp,"\tmodified_host_attributes=%lu\n",temp_contact->modified_host_attributes);
 		fprintf(fp,"\tmodified_service_attributes=%lu\n",temp_contact->modified_service_attributes);
 		fprintf(fp,"\tlast_host_notification=%lu\n",temp_contact->last_host_notification);

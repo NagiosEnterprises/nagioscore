@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-04-2006
+ * Last Modified:   05-23-2006
  *
  * License:
  *
@@ -724,7 +724,7 @@ void broker_contact_notification_method_data(int type, int flags, int attr, int 
 
 
 /* sends adaptive programs updates to broker */
-void broker_adaptive_program_data(int type, int flags, int attr, int command_type, unsigned long modhattr, unsigned long modhattrs, unsigned long modsattr, unsigned long modsattrs, char *gheh, char *gseh, struct timeval *timestamp){
+void broker_adaptive_program_data(int type, int flags, int attr, int command_type, unsigned long modhattr, unsigned long modhattrs, unsigned long modsattr, unsigned long modsattrs, struct timeval *timestamp){
 	nebstruct_adaptive_program_data ds;
 
 	if(!(event_broker_options & BROKER_ADAPTIVE_DATA))
@@ -741,8 +741,6 @@ void broker_adaptive_program_data(int type, int flags, int attr, int command_typ
 	ds.modified_host_attributes=modhattrs;
 	ds.modified_service_attribute=modsattr;
 	ds.modified_service_attributes=modsattrs;
-	ds.global_host_event_handler=gheh;
-	ds.global_service_event_handler=gseh;
 
 	/* make callbacks */
 	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_PROGRAM_DATA,(void *)&ds);

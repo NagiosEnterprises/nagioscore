@@ -2998,7 +2998,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cmd,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,global_host_event_handler,global_service_event_handler,NULL);
+		broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cmd,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
 #endif
 
 		/* update program status */
@@ -3013,7 +3013,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cmd,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,global_host_event_handler,global_service_event_handler,NULL);
+		broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cmd,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
 #endif
 
 		/* update program status */
@@ -3236,17 +3236,18 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 /* temporarily disables a service check */
 void disable_service_checks(service *svc){
 	timed_event *temp_event=NULL;
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_service_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* checks are already disabled */
 	if(svc->checks_enabled==FALSE)
 		return;
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=attr;
 
 	/* disable the service check... */
 	svc->checks_enabled=FALSE;
@@ -3264,6 +3265,11 @@ void disable_service_checks(service *svc){
 		my_free((void **)&temp_event);
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
+
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
 
@@ -3280,17 +3286,18 @@ void disable_service_checks(service *svc){
 void enable_service_checks(service *svc){
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_service_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* checks are already enabled */
 	if(svc->checks_enabled==TRUE)
 		return;
+
+	/* set the attribute modified flag */
+	svc->modified_attributes|=attr;
 
 	/* enable the service check... */
 	svc->checks_enabled=TRUE;
@@ -3313,6 +3320,11 @@ void enable_service_checks(service *svc){
 	if(svc->should_be_scheduled==TRUE)
 		schedule_service_check(svc,svc->next_check,FALSE);
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
+
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
 
@@ -3327,21 +3339,27 @@ void enable_service_checks(service *svc){
 
 /* enable notifications on a program-wide basis */
 void enable_all_notifications(void){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_all_notifications() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
-	modified_service_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
-
 	/* bail out if we're already set... */
 	if(enable_notifications==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	/* update notification status */
 	enable_notifications=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log */
 	update_program_status(FALSE);
@@ -3356,21 +3374,27 @@ void enable_all_notifications(void){
 
 /* disable notifications on a program-wide basis */
 void disable_all_notifications(void){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_all_notifications() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
-	modified_service_process_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
-
 	/* bail out if we're already set... */
 	if(enable_notifications==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	/* update notification status */
 	enable_notifications=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log */
 	update_program_status(FALSE);
@@ -3385,16 +3409,26 @@ void disable_all_notifications(void){
 
 /* enables notifications for a service */
 void enable_service_notifications(service *svc){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_service_notifications() start\n");
 #endif
 
+	/* no change */
+	if(svc->notifications_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* enable the service notifications... */
 	svc->notifications_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
@@ -3409,13 +3443,23 @@ void enable_service_notifications(service *svc){
 
 /* disables notifications for a service */
 void disable_service_notifications(service *svc){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_service_notifications() start\n");
 #endif
 
+	/* no change */
+	if(svc->notifications_enabled==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	svc->modified_attributes|=attr;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* disable the service notifications... */
 	svc->notifications_enabled=FALSE;
@@ -3433,16 +3477,26 @@ void disable_service_notifications(service *svc){
 
 /* enables notifications for a host */
 void enable_host_notifications(host *hst){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_host_notifications() start\n");
 #endif
 
+	/* no change */
+	if(hst->notifications_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* enable the host notifications... */
 	hst->notifications_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new host state */
 	update_host_status(hst,FALSE);
@@ -3457,16 +3511,26 @@ void enable_host_notifications(host *hst){
 
 /* disables notifications for a host */
 void disable_host_notifications(host *hst){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_host_notifications() start\n");
 #endif
 
+	/* no change */
+	if(hst->notifications_enabled==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* disable the host notifications... */
 	hst->notifications_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new host state */
 	update_host_status(hst,FALSE);
@@ -3826,20 +3890,26 @@ void remove_service_acknowledgement(service *svc){
 
 /* starts executing service checks */
 void start_executing_service_checks(void){
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_executing_service_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already executing services */
 	if(execute_service_checks==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=attr;
+
 	/* set the service check execution flag */
 	execute_service_checks=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -3856,20 +3926,26 @@ void start_executing_service_checks(void){
 
 /* stops executing service checks */
 void stop_executing_service_checks(void){
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_executing_service_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already not executing services */
 	if(execute_service_checks==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=attr;
+
 	/* set the service check execution flag */
 	execute_service_checks=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -3885,20 +3961,26 @@ void stop_executing_service_checks(void){
 
 /* starts accepting passive service checks */
 void start_accepting_passive_service_checks(void){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_accepting_passive_service_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already accepting passive services */
 	if(accept_passive_service_checks==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=attr;
+
 	/* set the service check flag */
 	accept_passive_service_checks=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -3914,20 +3996,26 @@ void start_accepting_passive_service_checks(void){
 
 /* stops accepting passive service checks */
 void stop_accepting_passive_service_checks(void){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_accepting_passive_service_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already not accepting passive services */
 	if(accept_passive_service_checks==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_service_process_attributes|=attr;
+
 	/* set the service check flag */
 	accept_passive_service_checks=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -3943,16 +4031,26 @@ void stop_accepting_passive_service_checks(void){
 
 /* enables passive service checks for a particular service */
 void enable_passive_service_checks(service *svc){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_passive_service_checks() start\n");
 #endif
 
+	/* no change */
+	if(svc->accept_passive_service_checks==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* set the passive check flag */
 	svc->accept_passive_service_checks=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -3968,16 +4066,26 @@ void enable_passive_service_checks(service *svc){
 
 /* disables passive service checks for a particular service */
 void disable_passive_service_checks(service *svc){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_passive_service_checks() start\n");
 #endif
 
+	/* no change */
+	if(svc->accept_passive_service_checks==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* set the passive check flag */
 	svc->accept_passive_service_checks=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -3993,20 +4101,26 @@ void disable_passive_service_checks(service *svc){
 
 /* starts executing host checks */
 void start_executing_host_checks(void){
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_executing_host_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already executing hosts */
 	if(execute_host_checks==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+
 	/* set the host check execution flag */
 	execute_host_checks=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4023,20 +4137,26 @@ void start_executing_host_checks(void){
 
 /* stops executing host checks */
 void stop_executing_host_checks(void){
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_executing_host_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already not executing hosts */
 	if(execute_host_checks==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+
 	/* set the host check execution flag */
 	execute_host_checks=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4052,20 +4172,26 @@ void stop_executing_host_checks(void){
 
 /* starts accepting passive host checks */
 void start_accepting_passive_host_checks(void){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_accepting_passive_host_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already accepting passive hosts */
 	if(accept_passive_host_checks==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+
 	/* set the host check flag */
 	accept_passive_host_checks=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4081,20 +4207,26 @@ void start_accepting_passive_host_checks(void){
 
 /* stops accepting passive host checks */
 void stop_accepting_passive_host_checks(void){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_accepting_passive_host_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
-
 	/* bail out if we're already not accepting passive hosts */
 	if(accept_passive_host_checks==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+
 	/* set the host check flag */
 	accept_passive_host_checks=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4110,16 +4242,26 @@ void stop_accepting_passive_host_checks(void){
 
 /* enables passive host checks for a particular host */
 void enable_passive_host_checks(host *hst){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_passive_host_checks() start\n");
 #endif
 
+	/* no change */
+	if(hst->accept_passive_host_checks==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* set the passive check flag */
 	hst->accept_passive_host_checks=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -4135,16 +4277,26 @@ void enable_passive_host_checks(host *hst){
 
 /* disables passive host checks for a particular host */
 void disable_passive_host_checks(host *hst){
+	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_passive_host_checks() start\n");
 #endif
+	
+	/* no change */
+	if(hst->accept_passive_host_checks==FALSE)
+		return;
 
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_PASSIVE_CHECKS_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* set the passive check flag */
 	hst->accept_passive_host_checks=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -4159,17 +4311,27 @@ void disable_passive_host_checks(host *hst){
 
 /* enables event handlers on a program-wide basis */
 void start_using_event_handlers(void){
+	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_using_event_handlers() start\n");
 #endif
 
+	/* no change */
+	if(enable_event_handlers==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
-	modified_service_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
 
 	/* set the event handler flag */
 	enable_event_handlers=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4184,17 +4346,27 @@ void start_using_event_handlers(void){
 
 /* disables event handlers on a program-wide basis */
 void stop_using_event_handlers(void){
+	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_using_event_handlers() start\n");
 #endif
 
+	/* no change */
+	if(enable_event_handlers==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
-	modified_service_process_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
 
 	/* set the event handler flag */
 	enable_event_handlers=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4209,16 +4381,26 @@ void stop_using_event_handlers(void){
 
 /* enables the event handler for a particular service */
 void enable_service_event_handler(service *svc){
+	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_service_event_handler() start\n");
 #endif
 
+	/* no change */
+	if(svc->event_handler_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* set the event handler flag */
 	svc->event_handler_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -4234,16 +4416,26 @@ void enable_service_event_handler(service *svc){
 
 /* disables the event handler for a particular service */
 void disable_service_event_handler(service *svc){
+	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_service_event_handler() start\n");
 #endif
 
+	/* no change */
+	if(svc->event_handler_enabled==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* set the event handler flag */
 	svc->event_handler_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -4258,16 +4450,26 @@ void disable_service_event_handler(service *svc){
 
 /* enables the event handler for a particular host */
 void enable_host_event_handler(host *hst){
+	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_host_event_handler() start\n");
 #endif
 
+	/* no change */
+	if(hst->event_handler_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* set the event handler flag */
 	hst->event_handler_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -4282,16 +4484,26 @@ void enable_host_event_handler(host *hst){
 
 /* disables the event handler for a particular host */
 void disable_host_event_handler(host *hst){
+	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_host_event_handler() start\n");
 #endif
 
+	/* no change */
+	if(hst->event_handler_enabled==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_EVENT_HANDLER_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* set the event handler flag */
 	hst->event_handler_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -4307,17 +4519,18 @@ void disable_host_event_handler(host *hst){
 /* disables checks of a particular host */
 void disable_host_checks(host *hst){
 	timed_event *temp_event=NULL;
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_host_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* checks are already disabled */
 	if(hst->checks_enabled==FALSE)
 		return;
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=attr;
 
 	/* set the host check flag */
 	hst->checks_enabled=FALSE;
@@ -4335,6 +4548,11 @@ void disable_host_checks(host *hst){
 		my_free((void **)&temp_event);
 	        }
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
+
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
@@ -4350,17 +4568,18 @@ void disable_host_checks(host *hst){
 void enable_host_checks(host *hst){
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
+	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_host_checks() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_ACTIVE_CHECKS_ENABLED;
-
 	/* checks are already enabled */
 	if(hst->checks_enabled==TRUE)
 		return;
+
+	/* set the attribute modified flag */
+	hst->modified_attributes|=attr;
 
 	/* set the host check flag */
 	hst->checks_enabled=TRUE;
@@ -4383,6 +4602,11 @@ void enable_host_checks(host *hst){
 	if(hst->should_be_scheduled==TRUE)
 		schedule_host_check(hst,hst->next_check,FALSE);
 
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
+
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
@@ -4397,16 +4621,26 @@ void enable_host_checks(host *hst){
 
 /* start obsessing over service check results */
 void start_obsessing_over_service_checks(void){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
         printf("start_obsessing_over_service_checks() start\n");
 #endif
 
+	/* no change */
+	if(obsess_over_services==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	modified_service_process_attributes|=attr;
 
 	/* set the service obsession flag */
 	obsess_over_services=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4422,16 +4656,26 @@ void start_obsessing_over_service_checks(void){
 
 /* stop obsessing over service check results */
 void stop_obsessing_over_service_checks(void){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
         printf("stop_obsessing_over_service_checks() start\n");
 #endif
 
+	/* no change */
+	if(obsess_over_services==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	modified_service_process_attributes|=attr;
 
 	/* set the service obsession flag */
 	obsess_over_services=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4447,16 +4691,26 @@ void stop_obsessing_over_service_checks(void){
 
 /* start obsessing over host check results */
 void start_obsessing_over_host_checks(void){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
         printf("start_obsessing_over_host_checks() start\n");
 #endif
 
+	/* no change */
+	if(obsess_over_hosts==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	modified_host_process_attributes|=attr;
 
 	/* set the host obsession flag */
 	obsess_over_hosts=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4472,16 +4726,26 @@ void start_obsessing_over_host_checks(void){
 
 /* stop obsessing over host check results */
 void stop_obsessing_over_host_checks(void){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
         printf("stop_obsessing_over_host_checks() start\n");
 #endif
 
+	/* no change */
+	if(obsess_over_hosts==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	modified_host_process_attributes|=attr;
 
 	/* set the host obsession flag */
 	obsess_over_hosts=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4497,16 +4761,26 @@ void stop_obsessing_over_host_checks(void){
 
 /* enables service freshness checking */
 void enable_service_freshness_checks(void){
+	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_service_freshness_checks() start\n");
 #endif
 
+	/* no change */
+	if(check_service_freshness==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+	modified_service_process_attributes|=attr;
 
 	/* set the freshness check flag */
 	check_service_freshness=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4521,16 +4795,26 @@ void enable_service_freshness_checks(void){
 
 /* disables service freshness checking */
 void disable_service_freshness_checks(void){
+	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_service_freshness_checks() start\n");
 #endif
 
+	/* no change */
+	if(check_service_freshness==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_service_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+	modified_service_process_attributes|=attr;
 
 	/* set the freshness check flag */
 	check_service_freshness=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,MODATTR_NONE,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4545,16 +4829,26 @@ void disable_service_freshness_checks(void){
 
 /* enables host freshness checking */
 void enable_host_freshness_checks(void){
+	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_host_freshness_checks() start\n");
 #endif
 
+	/* no change */
+	if(check_host_freshness==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+	modified_host_process_attributes|=attr;
 
 	/* set the freshness check flag */
 	check_host_freshness=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4569,16 +4863,26 @@ void enable_host_freshness_checks(void){
 
 /* disables host freshness checking */
 void disable_host_freshness_checks(void){
+	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_host_freshness_checks() start\n");
 #endif
 
+	/* no change */
+	if(check_host_freshness==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_FRESHNESS_CHECKS_ENABLED;
+	modified_host_process_attributes|=attr;
 
 	/* set the freshness check flag */
 	check_host_freshness=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,MODATTR_NONE,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log with the program info */
 	update_program_status(FALSE);
@@ -4593,20 +4897,26 @@ void disable_host_freshness_checks(void){
 
 /* enable failure prediction on a program-wide basis */
 void enable_all_failure_prediction(void){
+	unsigned long attr=MODATTR_FAILURE_PREDICTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_all_failure_prediction() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
-	modified_service_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
-
 	/* bail out if we're already set... */
 	if(enable_failure_prediction==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	enable_failure_prediction=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log */
 	update_program_status(FALSE);
@@ -4621,20 +4931,26 @@ void enable_all_failure_prediction(void){
 
 /* disable failure prediction on a program-wide basis */
 void disable_all_failure_prediction(void){
+	unsigned long attr=MODATTR_FAILURE_PREDICTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_all_failure_prediction() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
-	modified_service_process_attributes|=MODATTR_FAILURE_PREDICTION_ENABLED;
-
 	/* bail out if we're already set... */
 	if(enable_failure_prediction==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	enable_failure_prediction=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log */
 	update_program_status(FALSE);
@@ -4649,20 +4965,26 @@ void disable_all_failure_prediction(void){
 
 /* enable performance data on a program-wide basis */
 void enable_performance_data(void){
+	unsigned long attr=MODATTR_PERFORMANCE_DATA_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_performance_data() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
-	modified_service_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
-
 	/* bail out if we're already set... */
 	if(process_performance_data==TRUE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	process_performance_data=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log */
 	update_program_status(FALSE);
@@ -4677,20 +4999,26 @@ void enable_performance_data(void){
 
 /* disable performance data on a program-wide basis */
 void disable_performance_data(void){
+	unsigned long attr=MODATTR_PERFORMANCE_DATA_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_performance_data() start\n");
 #endif
 
-	/* set the attribute modified flag */
-	modified_host_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
-	modified_service_process_attributes|=MODATTR_PERFORMANCE_DATA_ENABLED;
-
 	/* bail out if we're already set... */
 	if(process_performance_data==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	process_performance_data=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update the status log */
 	update_program_status(FALSE);
@@ -4705,16 +5033,26 @@ void disable_performance_data(void){
 
 /* start obsessing over a particular service */
 void start_obsessing_over_service(service *svc){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_obsessing_over_service() start\n");
 #endif
 
+	/* no change */
+	if(svc->obsess_over_service==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* set the obsess over service flag */
 	svc->obsess_over_service=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -4729,16 +5067,26 @@ void start_obsessing_over_service(service *svc){
 
 /* stop obsessing over a particular service */
 void stop_obsessing_over_service(service *svc){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_obsessing_over_service() start\n");
 #endif
 
+	/* no change */
+	if(svc->obsess_over_service==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	svc->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	svc->modified_attributes|=attr;
 
 	/* set the obsess over service flag */
 	svc->obsess_over_service=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
@@ -4753,16 +5101,26 @@ void stop_obsessing_over_service(service *svc){
 
 /* start obsessing over a particular host */
 void start_obsessing_over_host(host *hst){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("start_obsessing_over_host() start\n");
 #endif
 
+	/* no change */
+	if(hst->obsess_over_host==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* set the obsess over host flag */
 	hst->obsess_over_host=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
@@ -4777,16 +5135,26 @@ void start_obsessing_over_host(host *hst){
 
 /* stop obsessing over a particular host */
 void stop_obsessing_over_host(host *hst){
+	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
 
 #ifdef DEBUG0
 	printf("stop_obsessing_over_host() start\n");
 #endif
 
+	/* no change */
+	if(hst->obsess_over_host==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	hst->modified_attributes|=MODATTR_OBSESSIVE_HANDLER_ENABLED;
+	hst->modified_attributes|=attr;
 
 	/* set the obsess over host flag */
 	hst->obsess_over_host=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);

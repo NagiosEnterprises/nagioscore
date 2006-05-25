@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2006
+ * Last Modified:   05-25-2006
  *
  * License:
  *
@@ -3635,16 +3635,26 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 
 /* enables host notifications for a contact */
 void enable_contact_host_notifications(contact *cntct){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_contact_host_notifications() start\n");
 #endif
 
+	/* no change */
+	if(cntct->host_notifications_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	cntct->modified_host_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	cntct->modified_host_attributes|=attr;
 
 	/* enable the host notifications... */
 	cntct->host_notifications_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cntct,CMD_NONE,MODATTR_NONE,cntct->modified_attributes,attr,cntct->modified_host_attributes,MODATTR_NONE,cntct->modified_service_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
@@ -3660,16 +3670,26 @@ void enable_contact_host_notifications(contact *cntct){
 
 /* disables host notifications for a contact */
 void disable_contact_host_notifications(contact *cntct){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_contact_host_notifications() start\n");
 #endif
 
+	/* no change */
+	if(cntct->host_notifications_enabled==FALSE)
+		return;
+
 	/* set the attribute modified flag */
-	cntct->modified_host_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	cntct->modified_host_attributes|=attr;
 
 	/* enable the host notifications... */
 	cntct->host_notifications_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cntct,CMD_NONE,MODATTR_NONE,cntct->modified_attributes,attr,cntct->modified_host_attributes,MODATTR_NONE,cntct->modified_service_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
@@ -3685,16 +3705,26 @@ void disable_contact_host_notifications(contact *cntct){
 
 /* enables service notifications for a contact */
 void enable_contact_service_notifications(contact *cntct){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_contact_service_notifications() start\n");
 #endif
 
+	/* no change */
+	if(cntct->service_notifications_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	cntct->modified_service_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	cntct->modified_service_attributes|=attr;
 
 	/* enable the host notifications... */
 	cntct->service_notifications_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cntct,CMD_NONE,MODATTR_NONE,cntct->modified_attributes,MODATTR_NONE,cntct->modified_host_attributes,attr,cntct->modified_service_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
@@ -3710,16 +3740,26 @@ void enable_contact_service_notifications(contact *cntct){
 
 /* disables service notifications for a contact */
 void disable_contact_service_notifications(contact *cntct){
+	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_contact_service_notifications() start\n");
 #endif
 
+	/* no change */
+	if(cntct->service_notifications_enabled==TRUE)
+		return;
+
 	/* set the attribute modified flag */
-	cntct->modified_service_attributes|=MODATTR_NOTIFICATIONS_ENABLED;
+	cntct->modified_service_attributes|=attr;
 
 	/* enable the host notifications... */
 	cntct->service_notifications_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_contact_data(NEBTYPE_ADAPTIVECONTACT_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cntct,CMD_NONE,MODATTR_NONE,cntct->modified_attributes,MODATTR_NONE,cntct->modified_host_attributes,attr,cntct->modified_service_attributes,NULL);
+#endif
 
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);

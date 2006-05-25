@@ -3,7 +3,7 @@
  * NEBSTRUCTS.H - Event broker includes for Nagios
  *
  * Copyright (c) 2003-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-27-2006
+ * Last Modified: 05-25-2006
  *
  * License:
  *
@@ -377,8 +377,6 @@ typedef struct nebstruct_adaptive_program_data_struct{
 	unsigned long   modified_host_attributes;
 	unsigned long   modified_service_attribute;
 	unsigned long   modified_service_attributes;
-	char            *global_host_event_handler;
-	char            *global_service_event_handler;
         }nebstruct_adaptive_program_data;
 
 
@@ -408,6 +406,24 @@ typedef struct nebstruct_adaptive_service_data_struct{
 	unsigned long   modified_attributes;
 	void            *object_ptr;
         }nebstruct_adaptive_service_data;
+
+
+/* adaptive contact data structure */
+typedef struct nebstruct_adaptive_contact_data_struct{
+	int             type;
+	int             flags;
+	int             attr;
+	struct timeval  timestamp;
+
+	int             command_type;
+	unsigned long   modified_attribute;
+	unsigned long   modified_attributes;
+	unsigned long   modified_host_attribute;
+	unsigned long   modified_host_attributes;
+	unsigned long   modified_service_attribute;
+	unsigned long   modified_service_attributes;
+	void            *object_ptr;
+        }nebstruct_adaptive_contact_data;
 
 
 /* external command data structure */

@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-23-2006
+ * Last Modified:   05-25-2006
  *
  * License:
  *
@@ -129,6 +129,7 @@
 #define NEBTYPE_ADAPTIVEPROGRAM_UPDATE           1300
 #define NEBTYPE_ADAPTIVEHOST_UPDATE              1301
 #define NEBTYPE_ADAPTIVESERVICE_UPDATE           1302
+#define NEBTYPE_ADAPTIVECONTACT_UPDATE           1303
 
 #define NEBTYPE_EXTERNALCOMMAND_START            1400
 #define NEBTYPE_EXTERNALCOMMAND_END              1401
@@ -182,7 +183,7 @@
 #ifdef USE_EVENT_BROKER
 struct timeval get_broker_timestamp(struct timeval *);
 void broker_program_state(int,int,int,struct timeval *);
-void broker_timed_event(int,int,int,timed_event *event,struct timeval *);
+void broker_timed_event(int,int,int,timed_event *,struct timeval *);
 void broker_log_data(int,int,int,char *,unsigned long,time_t,struct timeval *);
 void broker_event_handler(int,int,int,int,void *,int,int,struct timeval,struct timeval,double,int,int,int,char *,char *,char *,struct timeval *);
 void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
@@ -202,11 +203,12 @@ void broker_contact_notification_method_data(int,int,int,int,int,struct timeval,
 void broker_adaptive_program_data(int,int,int,int,unsigned long,unsigned long,unsigned long,unsigned long,struct timeval *);
 void broker_adaptive_host_data(int,int,int,host *,int,unsigned long,unsigned long,struct timeval *);
 void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsigned long,struct timeval *);
+void broker_adaptive_contact_data(int,int,int,contact *,int,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long, struct timeval *);
 void broker_external_command(int,int,int,int,time_t,char *,char *,struct timeval *);
 void broker_aggregated_status_data(int,int,int,struct timeval *);
 void broker_retention_data(int,int,int,struct timeval *);
 void broker_acknowledgement_data(int,int,int,int,void *,char *,char *,int,int,int,struct timeval *);
-void broker_statechange_data(int,int,int,int,void *,int,int,int,int,struct timeval *timestamp);
+void broker_statechange_data(int,int,int,int,void *,int,int,int,int,struct timeval *);
 #endif
 
 

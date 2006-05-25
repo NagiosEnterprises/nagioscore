@@ -93,6 +93,11 @@ Pre-alpha changes since 02/15/2006...
 * Dependency changes:
      - Host and service dependencies can now have a timeperiod during which they're valid (dependency_period directive)
 
+* Event broker changes:
+     - Updated NEB API version
+     - Modified adaptive program status callback
+     - Added adaptive contact status callback
+
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions

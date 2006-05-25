@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-23-2006
+ * Last Modified:   05-25-2006
  *
  * License:
  *
@@ -794,6 +794,35 @@ void broker_adaptive_service_data(int type, int flags, int attr, service *svc, i
 
 	/* make callbacks */
 	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_SERVICE_DATA,(void *)&ds);
+
+	return;
+        }
+
+
+/* sends adaptive contact updates to broker */
+void broker_adaptive_contact_data(int type, int flags, int attr, contact *cntct, int command_type, unsigned long modattr, unsigned long modattrs, unsigned long modhattr, unsigned long modhattrs, unsigned long modsattr, unsigned long modsattrs, struct timeval *timestamp){
+	nebstruct_adaptive_contact_data ds;
+
+	if(!(event_broker_options & BROKER_ADAPTIVE_DATA))
+		return;
+
+	/* fill struct with relevant data */
+	ds.type=type;
+	ds.flags=flags;
+	ds.attr=attr;
+	ds.timestamp=get_broker_timestamp(timestamp);
+
+	ds.command_type=command_type;
+	ds.modified_attribute=modattr;
+	ds.modified_attributes=modattrs;
+	ds.modified_host_attribute=modhattr;
+	ds.modified_host_attributes=modhattrs;
+	ds.modified_service_attribute=modsattr;
+	ds.modified_service_attributes=modsattrs;
+	ds.object_ptr=(void *)cntct;
+
+	/* make callbacks */
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_CONTACT_DATA,(void *)&ds);
 
 	return;
         }

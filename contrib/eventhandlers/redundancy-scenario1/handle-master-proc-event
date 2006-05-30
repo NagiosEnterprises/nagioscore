@@ -2,7 +2,7 @@
 
 # REDUNDANCY EVENT HANDLER SCRIPT
 # Written By: Ethan Galstad (nagios@nagios.org)
-# Last Modified: 02-18-2002
+# Last Modified: 05-30-2006
 #
 # This is an example script for implementing redundancy.
 # Read the HTML documentation on redundant monitoring for more
@@ -31,8 +31,7 @@ HARD)
 		`$eventhandlerdir/enable_active_service_checks`
 		;;
 
-	WARNING)
-	UNKNOWN)
+	WARNING|UNKNOWN)
 
 		# The master Nagios process may or may not
 		# be running.. We won't do anything here, but

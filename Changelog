@@ -9,6 +9,7 @@ Nagios 2.x Change Log
 * Better error message reporting in the command CGI (cmd.cgi)
 * Fix for order of recovery/flapping notifications immediately after end of host/service flapping
 * Bug fix for potential crash (SIGBUS) of CGIs when reading mmap()'ed status, comment, and downtime files
+* Added 'install-unstripped' option to Makefile to allow installing unstripped binaries for debugging
 
 
 

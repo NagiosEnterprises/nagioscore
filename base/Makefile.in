@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 11-25-2005
+# Last Modified: 05-30-2006
 ############################
 
 
@@ -181,10 +181,19 @@ distclean: clean
 devclean: distclean
 
 install:
+	 $(MAKE) install-basic
+	 $(MAKE) strip-post-install
+
+install-unstripped:
+	 $(MAKE) install-basic
+
+install-basic:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 774 $(INSTALL_OPTS) @nagios_name@ $(DESTDIR)$(BINDIR)
-	$(STRIP) $(DESTDIR)$(BINDIR)/@nagios_name@
 	$(INSTALL) -m 774 $(INSTALL_OPTS) @nagiostats_name@ $(DESTDIR)$(BINDIR)
+
+strip-post-install:
+	$(STRIP) $(DESTDIR)$(BINDIR)/@nagios_name@
 	$(STRIP) $(DESTDIR)$(BINDIR)/@nagiostats_name@
 
 

@@ -170,6 +170,7 @@ define host{
 	parents				server-backbone
 	check_command			check-host-alive
 	max_check_attempts		5
+	check_period			24x7
 	process_perf_data		0
 	retain_nonstatus_information	0
 	contact_groups			router-admins
@@ -242,6 +243,12 @@ This directive is used to determine whether or not active checks (either regular
 <td valign="top"><strong>passive_checks_enabled <a href="#retention_notes" class="RetentionNotes">*</a></strong>:</td>
 <td>
 This directive is used to determine whether or not passive checks are enabled for this host. Values: 0 = disable passive host checks, 1 = enable passive host checks.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>check_period</strong>:</td>
+<td>
+This directive is used to specify the short name of the <a href="#timeperiod">time period</a> during which active checks of this host can be made.
 </td>
 </tr>
 <tr>

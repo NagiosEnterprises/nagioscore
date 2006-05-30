@@ -65,6 +65,9 @@ install:
 	for file in images/logos/*.*; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/images/logos; done
 
+install-unstripped:
+	$(MAKE) install
+
 
 
 

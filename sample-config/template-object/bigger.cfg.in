@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 08-12-2005
+# Last Modified: 05-30-2006
 #
 ################################################################################
 
@@ -176,6 +176,7 @@ define host{
 	address			192.168.1.2
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
@@ -192,6 +193,7 @@ define host{
 	address			192.168.1.3
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
@@ -208,6 +210,7 @@ define host{
 	address			192.168.1.4
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
@@ -224,6 +227,7 @@ define host{
 	address			192.168.1.5
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	120
 	notification_period	24x7
 	notification_options	d,u,r
@@ -240,6 +244,7 @@ define host{
 	address			192.169.1.6
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	480
 	notification_period	24x7
 	notification_options	d,u,r
@@ -257,6 +262,7 @@ define host{
 	parents			router1
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	480
 	notification_period	24x7
 	notification_options	d,u,r
@@ -273,6 +279,7 @@ define host{
 	address			192.168.1.230
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
@@ -289,6 +296,7 @@ define host{
 	address			192.168.1.231
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
@@ -305,6 +313,7 @@ define host{
 	address			192.168.1.232
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
@@ -321,6 +330,7 @@ define host{
 	address			192.168.1.233
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
@@ -337,6 +347,7 @@ define host{
 	address			192.168.1.234
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
@@ -353,6 +364,7 @@ define host{
 	address			192.168.1.254
 	check_command		check-host-alive
 	max_check_attempts	20
+	check_period		24x7
 	notification_interval	60
 	notification_period	24x7
 	notification_options	d,u,r
@@ -369,6 +381,7 @@ define host{
 	address			192.168.1.100
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	480
 	notification_period	workhours
 	contact_groups		printer-admins
@@ -384,6 +397,7 @@ define host{
 	address			192.168.1.101
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	480
 	notification_period	workhours
 	contact_groups		printer-admins
@@ -399,6 +413,7 @@ define host{
 	address			192.168.1.102
 	check_command		check-host-alive
 	max_check_attempts	10
+	check_period		24x7
 	notification_interval	480
 	notification_period	workhours
 	contact_groups		printer-admins

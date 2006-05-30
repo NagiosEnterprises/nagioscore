@@ -3,7 +3,7 @@
 #
 # MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
 #
-# Last Modified: 03-21-2006
+# Last Modified: 05-30-2006
 #
 #
 # NOTE: This config file is intended to be used to test a Nagios installation
@@ -199,6 +199,7 @@ define host{
         address                 127.0.0.1
         check_command           check-host-alive
         max_check_attempts      10
+        check_period		24x7
         notification_interval   120
         notification_period     24x7
         notification_options    d,r

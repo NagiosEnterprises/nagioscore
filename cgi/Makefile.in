@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 03-01-2006
+# Last Modified: 05-31-2006
 ###############################
 
 
@@ -183,9 +183,20 @@ distclean: clean
 devclean: distclean
 
 install:
+	$(MAKE) install-basic
+	$(MAKE) strip-post-install
+
+install-unstripped:
+	$(MAKE) install-basic
+
+install-basic:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CGIDIR)
 	for file in *.cgi; do \
 		$(INSTALL) -m 775 $(INSTALL_OPTS) $$file $(DESTDIR)$(CGIDIR); \
+	done
+
+strip-post-install:
+	for file in *.cgi; do \
 		$(STRIP) $(DESTDIR)$(CGIDIR)/$$file; \
 	done
 

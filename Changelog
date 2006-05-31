@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.4 - 05/??/2006
+2.4 - 05/31/2006
 ----------------
 * Fix for missing <limits.h> include that prevented CGI compilation under Solaris
 * Better error message reporting in the command CGI (cmd.cgi)

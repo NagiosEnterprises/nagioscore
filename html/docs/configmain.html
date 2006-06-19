@@ -53,6 +53,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#object_cache_file">Object cache file</a><br>
 <a href="#resource_file">Resource file</a><br>
 <a href="#temp_file">Temp file</a><br>
+<a href="#temp_path">Temp path</a><br>
 <br>
 <a href="#status_file">Status file</a><br>
 <a href="#aggregate_status_updates">Aggregated status updates option</a><br>
@@ -75,8 +76,6 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#command_check_interval">External command check interval</a><br>
 <a href="#command_file">External command file</a><br>
 <br>
-<a href="#comment_file">Comment file</a><br>
-<a href="#downtime_file">Downtime file</a><br>
 <a href="#lock_file">Lock file</a><br>
 <br>
 <a href="#retain_state_information">State retention option</a><br>
@@ -341,6 +340,32 @@ This is a temporary file that Nagios periodically creates to use when updating c
 </p>
 
 <p>
+<a name="temp_path"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Temp Path</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>temp_path=&lt;dir_name&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>temp_path=/tmp</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This is a directory that Nagios can use as scratch space for creating temporary files used during the monitoring process.  You should run <b>tmpwatch</b>, or a similiar utility, on this directory occassionally to delete files older than 24 hours.
+</p>
+
+<p>
 <a name="status_file"></a>
 <a name="status_log"></a>
 <table border="0" width="100%" class="Default">
@@ -364,7 +389,7 @@ This is a temporary file that Nagios periodically creates to use when updating c
 </p>
 
 <p>
-This is the file that Nagios uses to store the current status of all monitored services.  The status of all hosts associated with the service you monitor are also recorded here.  This file is used by the CGIs so that current monitoring status can be reported via a web interface.  The CGIs must have read access to this file in order to function properly.  This file is deleted every time Nagios stops and recreated when it starts.
+This is the file that Nagios uses to store the current status, comment, and downtime information.  This file is used by the CGIs so that current monitoring status can be reported via a web interface.  The CGIs must have read access to this file in order to function properly.  This file is deleted every time Nagios stops and recreated when it starts.
 </p>
 
 
@@ -836,60 +861,6 @@ This is the file that Nagios will check for external commands to process.  The <
 
 
 <p>
-<a name="downtime_file"></a>
-<table border="0" width="100%" class="Default">
-<tr>
-<td bgcolor="#cbcbcb"><strong>Downtime File</strong></td>
-</tr>
-</table>
-</p>
-
-<p>
-<table border="0" class="Default">
-<tr>
-<td>Format:</td>
-<td><strong>downtime_file=&lt;file_name&gt;</strong></td>
-</tr>
-<tr>
-<td>Example:</td>
-<td><font color="red"><strong>downtime_file=/usr/local/nagios/var/downtime.dat</strong></font></td>
-</tr>
-</table>
-</p>
-
-<p>
-This is the file that Nagios will use for storing scheduled host and service <a href="downtime.html">downtime</a> information.  Comments can be viewed and added for both hosts and services through the <a href="cgis.html#extinfo_cgi">extended information CGI</a>.
-</p>
-
-
-<p>
-<a name="comment_file"></a>
-<table border="0" width="100%" class="Default">
-<tr>
-<td bgcolor="#cbcbcb"><strong>Comment File</strong></td>
-</tr>
-</table>
-</p>
-
-<p>
-<table border="0" class="Default">
-<tr>
-<td>Format:</td>
-<td><strong>comment_file=&lt;file_name&gt;</strong></td>
-</tr>
-<tr>
-<td>Example:</td>
-<td><font color="red"><strong>comment_file=/usr/local/nagios/var/comment.dat</strong></font></td>
-</tr>
-</table>
-</p>
-
-<p>
-This is the file that Nagios will use for storing service and host comments.  Comments can be viewed and added for both hosts and services through the <a href="cgis.html#extinfo_cgi">extended information CGI</a>.
-</p>
-
-
-<p>
 <a name="lock_file"></a>
 <table border="0" width="100%" class="Default">
 <tr>
@@ -943,8 +914,8 @@ This option determines whether or not Nagios will retain state information for h
 </p>
 <p>
 <ul>
-<li>0 = Don't retain state information (default)
-<li>1 = Retain state information
+<li>0 = Don't retain state information
+<li>1 = Retain state information (default)
 </ul>
 </p>
 
@@ -972,7 +943,7 @@ This option determines whether or not Nagios will retain state information for h
 </p>
 
 <p>
-This is the file that Nagios will use for storing service and host state information before it shuts down.  When Nagios is restarted it will use the information stored in this file for setting the initial states of services and hosts before it starts monitoring anything.  This file is deleted after Nagios reads in initial state information when it (re)starts.  In order to make Nagios retain state information between program restarts, you must enable the <a href="#retain_state_information">retain_state_information</a> option.
+This is the file that Nagios will use for storing status, downtime, and comment information before it shuts down.  When Nagios is restarted it will use the information stored in this file for setting the initial states of services and hosts before it starts monitoring anything.   In order to make Nagios retain state information between program restarts, you must enable the <a href="#retain_state_information">retain_state_information</a> option.
 </p>
 
 

@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 06-19-2006
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -154,7 +154,7 @@ int main(void){
 				printf("<A HREF='%s?host=%s'>View History For %s</A><BR>\n",HISTORY_CGI,(find_all==TRUE)?"all":url_encode(query_host_name),(find_all==TRUE)?"All Hosts":"This Host");
 #ifdef USE_TRENDS
 				if(find_all==FALSE)
-					printf("<A HREF='%s?host=%s'>View Trends For This Host</A><BR>\n",HISTORY_CGI,url_encode(query_host_name));
+					printf("<A HREF='%s?host=%s'>View Trends For This Host</A><BR>\n",TRENDS_CGI,url_encode(query_host_name));
 #endif
 	                        }
 			else if(query_type==FIND_SERVICE){

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-12-2006
+ * Last Modified: 06-19-2006
  *
  * Description:
  *
@@ -385,9 +385,9 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 		snprintf(file,sizeof(file),"%s/%s",dirname,dirfile->d_name);
 		file[sizeof(file)-1]='\x0';
 
-		/* process this if it's a config file... */
+		/* process this if it's a non-hidden config file... */
 		x=strlen(dirfile->d_name);
-		if(x>4 && !strcmp(dirfile->d_name+(x-4),".cfg")){
+		if(x>4 && dirfile->d_name[0]!='.' && !strcmp(dirfile->d_name+(x-4),".cfg")){
 
 #ifdef _DIRENT_HAVE_D_TYPE
 			/* only process normal files and symlinks */

@@ -3,6 +3,13 @@ Nagios 2.x Change Log
 #####################
 
 
+2.5 - ??/??/2006
+----------------
+* Bug fix for excluding hidden files from config file processing
+* Bug fix for incorrect links to trends CGI from notification CGI
+
+
+
 2.4 - 05/31/2006
 ----------------
 * Fix for missing <limits.h> include that prevented CGI compilation under Solaris

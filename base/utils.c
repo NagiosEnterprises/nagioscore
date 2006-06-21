@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2006
+ * Last Modified:   06-20-2006
  *
  * License:
  *
@@ -3413,12 +3413,14 @@ void sighandler(int sig){
 		printf("%s\n",temp_buffer);
 #endif
 
+#ifdef REMOVED_06202006
 		/* remove the lock file if we're in daemon mode */
 		if(daemon_mode==TRUE)
 			unlink(lock_file);
 
 		/* close and delete the external command file FIFO */
 		close_command_file();
+#endif
 	        }
 
 	return;

@@ -7,6 +7,8 @@ Nagios 2.x Change Log
 ----------------
 * Bug fix for excluding hidden files from config file processing
 * Bug fix for incorrect links to trends CGI from notification CGI
+* Hopefully faster shutdown during host checks
+* Lock file is now closed just prior to shutdown, instead of when SIGINT is received
 
 
 

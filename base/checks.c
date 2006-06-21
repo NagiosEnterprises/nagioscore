@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2006
+ * Last Modified:   06-20-2006
  *
  * License:
  *
@@ -35,6 +35,9 @@
 #ifdef EMBEDDEDPERL
 #include "../include/epn_nagios.h"
 #endif
+
+extern int      sigshutdown;
+extern int      sigrestart;
 
 extern char     *temp_file;
 
@@ -2040,6 +2043,11 @@ int check_host(host *hst, int propagation_options, int check_options){
 	printf("check_host() start\n");
 #endif
 
+	/* ADDED 06/20/2006 EG */
+	/* bail out if signal encountered */
+	if(sigrestart==TRUE || sigshutdown==TRUE)
+		return hst->current_state;
+
 	/* high resolution time for broker */
 	gettimeofday(&start_time,NULL);
 
@@ -2085,6 +2093,16 @@ int check_host(host *hst, int propagation_options, int check_options){
 		/* retry the host check as many times as necessary or allowed... */
 		for(hst->current_attempt=1;hst->current_attempt<=max_check_attempts;hst->current_attempt++){
 			
+			/* ADDED 06/20/2006 EG */
+			/* bail out if signal encountered - use old state */
+			if(sigrestart==TRUE || sigshutdown==TRUE){
+				hst->current_attempt=1;
+				hst->current_state=old_state;
+				free(hst->plugin_output);
+				hst->plugin_output=(char *)old_plugin_output;
+				return hst->current_state;
+				}
+
 			/* check the host */
 			result=run_host_check(hst,check_options);
 
@@ -2170,6 +2188,16 @@ int check_host(host *hst, int propagation_options, int check_options){
 	else{
 
 		for(hst->current_attempt=1;hst->current_attempt<=hst->max_attempts;hst->current_attempt++){
+
+			/* ADDED 06/20/2006 EG */
+			/* bail out if signal encountered - use old state */
+			if(sigrestart==TRUE || sigshutdown==TRUE){
+				hst->current_attempt=1;
+				hst->current_state=old_state;
+				free(hst->plugin_output);
+				hst->plugin_output=(char *)old_plugin_output;
+				return hst->current_state;
+				}
 
 			/* run the host check */
 			result=run_host_check(hst,check_options);

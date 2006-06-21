@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2006
+ * Last Modified:   06-20-2006
  *
  * License:
  *
@@ -3253,9 +3253,11 @@ void sighandler(int sig){
 	char *temp_buffer=NULL;
 
 
+#ifdef REMOVED_06202006
 	/* if shutdown is already true, we're in a signal trap loop! */
 	if(sigshutdown==TRUE)
 		exit(ERROR);
+#endif
 
 	if(sig<0)
 		sig=-sig;
@@ -3288,13 +3290,6 @@ void sighandler(int sig){
 		printf("%s\n",temp_buffer);
 #endif
 		my_free((void **)&temp_buffer);
-
-		/* remove the lock file if we're in daemon mode */
-		if(daemon_mode==TRUE)
-			unlink(lock_file);
-
-		/* close and delete the external command file FIFO */
-		close_command_file();
 	        }
 
 	return;

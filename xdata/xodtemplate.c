@@ -112,8 +112,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	char *input=NULL;
 	char *var=NULL;
 	char *val=NULL;
-	struct timeval tv[12];
-	double runtime[12];
+	struct timeval tv[13];
+	double runtime[13];
 #endif
 	mmapfile *thefile=NULL;
 	int result=OK;
@@ -284,12 +284,17 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		if(test_scheduling==TRUE)
 			gettimeofday(&tv[7],NULL);
 
+		if(result==OK)
+			result=xodtemplate_inherit_object_properties();
+		if(test_scheduling==TRUE)
+			gettimeofday(&tv[8],NULL);
+
 
 		/* sort objects */
 		if(result==OK)
 			result=xodtemplate_sort_objects();
 		if(test_scheduling==TRUE)
-			gettimeofday(&tv[8],NULL);
+			gettimeofday(&tv[9],NULL);
 	        }
 
 	if(result==OK){
@@ -308,7 +313,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[9],NULL);
+		gettimeofday(&tv[10],NULL);
 
 #endif
 
@@ -317,14 +322,14 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		result=xodtemplate_register_objects();
 #ifdef NSCORE
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[10],NULL);
+		gettimeofday(&tv[11],NULL);
 #endif
 
 	/* cleanup */
 	xodtemplate_free_memory();
 #ifdef NSCORE
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[11],NULL);
+		gettimeofday(&tv[12],NULL);
 #endif
 
 	/* free memory */
@@ -345,6 +350,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			runtime[7]=(double)((double)(tv[8].tv_sec-tv[7].tv_sec)+(double)((tv[8].tv_usec-tv[7].tv_usec)/1000.0)/1000.0);
 			runtime[8]=(double)((double)(tv[9].tv_sec-tv[8].tv_sec)+(double)((tv[9].tv_usec-tv[8].tv_usec)/1000.0)/1000.0);
 			runtime[9]=(double)((double)(tv[10].tv_sec-tv[9].tv_sec)+(double)((tv[10].tv_usec-tv[9].tv_usec)/1000.0)/1000.0);
+			runtime[10]=(double)((double)(tv[11].tv_sec-tv[10].tv_sec)+(double)((tv[11].tv_usec-tv[10].tv_usec)/1000.0)/1000.0);
 		        }
 		else{
 			runtime[1]=0.0;
@@ -355,10 +361,11 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 			runtime[6]=0.0;
 			runtime[7]=0.0;
 			runtime[8]=0.0;
-			runtime[9]=(double)((double)(tv[10].tv_sec-tv[1].tv_sec)+(double)((tv[10].tv_usec-tv[1].tv_usec)/1000.0)/1000.0);
+			runtime[9]=0.0;
+			runtime[10]=(double)((double)(tv[10].tv_sec-tv[1].tv_sec)+(double)((tv[10].tv_usec-tv[1].tv_usec)/1000.0)/1000.0);
 		        }
-		runtime[10]=(double)((double)(tv[11].tv_sec-tv[10].tv_sec)+(double)((tv[11].tv_usec-tv[10].tv_usec)/1000.0)/1000.0);
-		runtime[11]=(double)((double)(tv[11].tv_sec-tv[0].tv_sec)+(double)((tv[11].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
+		runtime[11]=(double)((double)(tv[12].tv_sec-tv[11].tv_sec)+(double)((tv[12].tv_usec-tv[11].tv_usec)/1000.0)/1000.0);
+		runtime[12]=(double)((double)(tv[12].tv_sec-tv[0].tv_sec)+(double)((tv[12].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
 
 		printf("Timing information on object configuration processing is listed\n");
 		printf("below.  You can use this information to see if precaching your\n");
@@ -375,14 +382,15 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		printf("Dup Services:         %.6lf sec *\n",runtime[4]);
 		printf("Recomb Servicegroups: %.6lf sec *\n",runtime[5]);
 		printf("Duplicate:            %.6lf sec *\n",runtime[6]);
-		printf("Sort:                 %.6lf sec *\n",runtime[7]);
-/*		printf("Cache:                %.6lf sec\n",runtime[8]);*/
-		printf("Register:             %.6lf sec\n",runtime[9]);
-		printf("Free:                 %.6lf sec\n",runtime[10]);
+		printf("Inherit:              %.6lf sec *\n",runtime[7]);
+		printf("Sort:                 %.6lf sec *\n",runtime[8]);
+/*		printf("Cache:                %.6lf sec\n",runtime[9]);*/
+		printf("Register:             %.6lf sec\n",runtime[10]);
+		printf("Free:                 %.6lf sec\n",runtime[11]);
 		printf("                      ============\n");
-		printf("TOTAL:                %.6lf sec\n",runtime[11]);
+		printf("TOTAL:                %.6lf sec\n",runtime[12]);
 		if(use_precached_objects==FALSE)
-			printf("Est Precache Savings: %.6lf sec *\n",runtime[11]-runtime[0]-runtime[9]-runtime[10]);
+			printf("Est Precache Savings: %.6lf sec *\n",runtime[12]-runtime[0]-runtime[10]-runtime[11]);
 		printf("\n\n");
 	        }
 #endif
@@ -5518,6 +5526,123 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 
 	return OK;
         }
+
+#endif
+
+
+/******************************************************************/
+/***************** OBJECT RESOLUTION FUNCTIONS ********************/
+/******************************************************************/
+
+#ifdef NSCORE
+
+/* inherit object properties */
+int xodtemplate_inherit_object_properties(void){
+	xodtemplate_host *temp_host=NULL;
+	xodtemplate_service *temp_service=NULL;
+	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
+	xodtemplate_hostescalation *temp_hostescalation=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_inherit_object_properties() start\n");
+#endif
+
+	/* services inherit some properties from their associated host... */
+	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
+		
+		/* find the host */
+		if(temp_service->have_contact_groups==FALSE || temp_service->have_notification_interval==FALSE || temp_service->have_notification_period==FALSE){
+			if((temp_host=xodtemplate_find_real_host(temp_service->host_name))==NULL)
+				continue;
+			}
+		else
+			continue;
+
+		/* services inherit contact groups from host if not already specified */
+		if(temp_service->have_contact_groups==FALSE && temp_host->have_contact_groups==TRUE && temp_host->contact_groups!=NULL){
+			temp_service->contact_groups=(char *)strdup(temp_host->contact_groups);
+			temp_service->have_contact_groups=TRUE;
+			}
+
+		/* services inherit notification interval from host if not already specified */
+		if(temp_service->have_notification_interval==FALSE && temp_host->have_notification_interval==TRUE){
+			temp_service->notification_interval=temp_host->notification_interval;
+			temp_service->have_notification_interval=TRUE;
+			}
+
+		/* services inherit notification period from host if not already specified */
+		if(temp_service->have_notification_period==FALSE && temp_host->have_notification_period==TRUE && temp_host->notification_period!=NULL){
+			temp_service->notification_period=(char *)strdup(temp_host->notification_period);
+			temp_service->have_notification_period=TRUE;
+			}
+		}
+
+	/* service escalations inherit some properties from their associated service... */
+	for(temp_serviceescalation=xodtemplate_serviceescalation_list;temp_serviceescalation!=NULL;temp_serviceescalation=temp_serviceescalation->next){
+
+		/* find the service */
+		if(temp_serviceescalation->have_contact_groups==FALSE || temp_serviceescalation->have_notification_interval==FALSE || temp_serviceescalation->have_escalation_period==FALSE){
+			if((temp_service=xodtemplate_find_real_service(temp_serviceescalation->host_name,temp_serviceescalation->service_description))==NULL)
+				continue;
+			}
+		else
+			continue;
+		
+		/* service escalations inherit contact groups from service if not already specified */
+		if(temp_serviceescalation->have_contact_groups==FALSE && temp_service->have_contact_groups==TRUE && temp_service->contact_groups!=NULL){
+			temp_serviceescalation->contact_groups=(char *)strdup(temp_service->contact_groups);
+			temp_serviceescalation->have_contact_groups=TRUE;
+			}
+
+		/* service escalations inherit notification interval from service if not already defined */
+		if(temp_serviceescalation->have_notification_interval==FALSE && temp_service->have_notification_interval==TRUE){
+			temp_serviceescalation->notification_interval=temp_service->notification_interval;
+			temp_serviceescalation->have_notification_interval=TRUE;
+			}
+
+		/* service escalations inherit escalation period from service if not already defined */
+		if(temp_serviceescalation->have_escalation_period==FALSE && temp_service->have_notification_period==TRUE && temp_service->notification_period!=NULL){
+			temp_serviceescalation->escalation_period=(char *)strdup(temp_service->notification_period);
+			temp_serviceescalation->have_escalation_period=TRUE;
+			}
+		}
+
+	/* host escalations inherit some properties from their associated host... */
+	for(temp_hostescalation=xodtemplate_hostescalation_list;temp_hostescalation!=NULL;temp_hostescalation=temp_hostescalation->next){
+
+		/* find the host */
+		if(temp_hostescalation->have_contact_groups==FALSE || temp_hostescalation->have_notification_interval==FALSE || temp_hostescalation->have_escalation_period==FALSE){
+			if((temp_host=xodtemplate_find_real_host(temp_hostescalation->host_name))==NULL)
+				continue;
+			}
+		else
+			continue;
+		
+		/* host escalations inherit contact groups from service if not already specified */
+		if(temp_hostescalation->have_contact_groups==FALSE && temp_host->have_contact_groups==TRUE && temp_host->contact_groups!=NULL){
+			temp_hostescalation->contact_groups=(char *)strdup(temp_host->contact_groups);
+			temp_hostescalation->have_contact_groups=TRUE;
+			}
+
+		/* host escalations inherit notification interval from host if not already defined */
+		if(temp_hostescalation->have_notification_interval==FALSE && temp_host->have_notification_interval==TRUE){
+			temp_hostescalation->notification_interval=temp_host->notification_interval;
+			temp_hostescalation->have_notification_interval=TRUE;
+			}
+
+		/* host escalations inherit escalation period from host if not already defined */
+		if(temp_hostescalation->have_escalation_period==FALSE && temp_host->have_notification_period==TRUE && temp_host->notification_period!=NULL){
+			temp_hostescalation->escalation_period=(char *)strdup(temp_host->notification_period);
+			temp_hostescalation->have_escalation_period=TRUE;
+			}
+		}
+
+#ifdef DEBUG0
+	printf("xodtemplate_inherit_object_properties() end\n");
+#endif
+
+	return OK;
+	}
 
 #endif
 

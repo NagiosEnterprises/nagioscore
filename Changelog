@@ -35,6 +35,9 @@ Pre-alpha changes since 02/15/2006...
      - Added optional display_name directive to host and service definitions
      - Removed serviceextinfo definitions and merged variables with service definitions
      - Removed hostextinfo definitions and merged variables with host definitions
+     - Services inherit contactgroups, notification interval, and notification period from associated host if not specified
+     - Service escalations inherit contactgroups, notification interval, and escalation period from associated service if not specified
+     - Host escalations inherit contactgroups, notification interval, and escalation period from associated host if not specified
 
 * Performance optimizations:
      - Added ability to precache object config files

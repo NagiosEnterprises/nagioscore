@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-19-2006
+ * Last Modified: 07-06-2006
  *
  * Description:
  *
@@ -5466,6 +5466,8 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	/* string defaults */
 	new_serviceextinfo->host_name=NULL;
 	new_serviceextinfo->have_host_name=this_serviceextinfo->have_host_name;
+	new_serviceextinfo->service_description=NULL;
+	new_serviceextinfo->have_service_description=this_serviceextinfo->have_service_description;
 	new_serviceextinfo->hostgroup_name=NULL;
 	new_serviceextinfo->have_hostgroup_name=this_serviceextinfo->have_hostgroup_name;
 	new_serviceextinfo->notes=NULL;

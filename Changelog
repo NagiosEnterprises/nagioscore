@@ -9,6 +9,7 @@ Nagios 2.x Change Log
 * Bug fix for incorrect links to trends CGI from notification CGI
 * Hopefully faster shutdown during host checks
 * Lock file is now closed just prior to shutdown, instead of when SIGINT is received
+* Bug fix for segfault during startup due to extended service definition duplication
 
 
 

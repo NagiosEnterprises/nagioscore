@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-06-2006
+ * Last Modified: 07-10-2006
  *
  * Description:
  *
@@ -11211,7 +11211,8 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 			        }
 
 			/* free memory allocated to compiled regexp */
-			regfree(&preg);
+			if(use_regexp_service==TRUE)
+				regfree(&preg);
 		        }
 
 		/* use standard matching... */

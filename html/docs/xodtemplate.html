@@ -1112,6 +1112,9 @@ This directive is the short name used to identify the command.  It is referenced
 <p>
 This directive is used to define what is actually executed by Nagios when the command is used for service or host checks, notifications, or <a href="eventhandlers.html">event handlers</a>. Before the command line is executed, all valid <a href="macros.html">macros</a> are replaced with their respective values.  See the documentation on macros for determining when you can use different macros.  Note that the command line is <i>not</i> surrounded in quotes.  Also, if you want to pass a dollar sign ($) on the command line, you have to escape it with another dollar sign.
 </p>
+<p><strong>NOTE</strong>: You may not include a <b>semicolon</b> (;) in the <i>command_line</i> directive, because everything after it will be ignored as a config file comment.  You can work around this limitation by setting one of the <a href="macros.html#user"><b>$USER$</b> macros in your <a
+href="configmain.html#resource_file">resource file</a> to a semicolon and then referencing the appropriate $USER$ macro in the <i>command_line</i> directive in place of the semicolon.
+</p>
 <p>
 If you want to pass arguments to commands during runtime, you can use <a href="macros.html#arg"><b>$ARGn$</b> macros</a> in the <i>command_line</i> directive of the command definition and then seperate individual arguments from the command name (and from each other) using bang (!) characters in the object definition directive (host check command, service event handler command, etc) that references the command.  More information on how arguments in command definitions are processed during runtime can be found in the documentation on <a href="macros.html">macros</a>.
 </p>

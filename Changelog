@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.5 - ??/??/2006
+2.5 - 07/13/2006
 ----------------
 * Bug fix for excluding hidden files from config file processing
 * Bug fix for incorrect links to trends CGI from notification CGI
@@ -11,6 +11,7 @@ Nagios 2.x Change Log
 * Lock file is now closed just prior to shutdown, instead of when SIGINT is received
 * Bug fix for segfault during startup due to extended service definition duplication
 * Bug fix for segfault with wildcards in servicegroup members
+* Bug fix for segfault when p1.pl file was missing and embedded Perl interpreter was enabled
 
 
 

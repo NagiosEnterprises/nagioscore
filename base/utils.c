@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   06-20-2006
+ * Last Modified:   07-13-2006
  *
  * License:
  *
@@ -4543,20 +4543,44 @@ int init_embedded_perl(char **env){
 	int exitstatus = 0;
 	char buffer[MAX_INPUT_BUFFER];
 	int argc = 2;
+	struct stat stat_buf;
 
-	embedding[1]=p1_file;
+	/* make sure the P1 file exists... */
+	if(p1_file==NULL || stat(p1_file,&stat_buf)!=0){
 
-	use_embedded_perl=TRUE;
-
-	PERL_SYS_INIT3(&argc,&embedding,&env);
-
-	if((my_perl=perl_alloc())==NULL){
 		use_embedded_perl=FALSE;
-		snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
+
+		snprintf(buffer,sizeof(buffer),"Error: p1.pl file required for embedded Perl interpreter is missing!\n");
 		buffer[sizeof(buffer)-1]='\x0';
 		write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
-		return ERROR;
-                }
+		}
+
+	else{
+
+		embedding[1]=p1_file;
+
+		use_embedded_perl=TRUE;
+
+		PERL_SYS_INIT3(&argc,&embedding,&env);
+
+		if((my_perl=perl_alloc())==NULL){
+			use_embedded_perl=FALSE;
+			snprintf(buffer,sizeof(buffer),"Error: Could not allocate memory for embedded Perl interpreter!\n");
+			buffer[sizeof(buffer)-1]='\x0';
+			write_to_logs_and_console(buffer,NSLOG_RUNTIME_ERROR,TRUE);
+			}
+		}
+
+	/* a fatal error occurred... */
+	if(use_embedded_perl==FALSE){
+
+		snprintf(buffer,sizeof(buffer),"Bailing out due to errors encountered while initializing the embedded Perl interpreter. (PID=%d)\n",(int)getpid());
+		buffer[sizeof(buffer)-1]='\x0';
+		write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
+
+		cleanup();
+		exit(ERROR);
+		}
 
 	perl_construct(my_perl);
 	exitstatus=perl_parse(my_perl,xs_init,2,embedding,env);

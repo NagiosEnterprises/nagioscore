@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-21-2006
+ * Last Modified: 07-18-2006
  *
  * License:
  *
@@ -1254,6 +1254,14 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 
 
 
+/* adds a contact to a host */
+contactsmember *add_contact_to_host(host *hst, char *contact_name){
+
+	return add_contact_to_object(&hst->contacts,contact_name);
+        }
+
+
+
 /* adds a custom variable to a host */
 customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, char *varvalue){
 
@@ -2376,6 +2384,14 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 
 
 
+/* adds a contact to a service */
+contactsmember *add_contact_to_service(service *svc, char *contact_name){
+
+	return add_contact_to_object(&svc->contacts,contact_name);
+        }
+
+
+
 /* adds a custom variable to a service */
 customvariablesmember *add_custom_variable_to_service(service *svc, char *varname, char *varvalue){
 
@@ -2632,6 +2648,14 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 
 	return new_contactgroupsmember;
 	}
+
+
+
+/* adds a contact to a service escalation */
+contactsmember *add_contact_to_serviceescalation(serviceescalation *se, char *contact_name){
+
+	return add_contact_to_object(&se->contacts,contact_name);
+        }
 
 
 
@@ -2993,6 +3017,81 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 
 
 
+/* adds a contact to a host escalation */
+contactsmember *add_contact_to_hostescalation(hostescalation *he, char *contact_name){
+
+	return add_contact_to_object(&he->contacts,contact_name);
+        }
+
+
+
+/* adds a contact to an object */
+contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contactname){
+	contactsmember *new_contactsmember=NULL;
+#ifdef NSCORE
+	char *temp_buffer=NULL;
+#endif
+
+#ifdef DEBUG0
+	printf("add_contact_to_object() start\n");
+#endif
+
+	/* make sure we have the data we need */
+	if(object_ptr==NULL){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: Contact object is NULL\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		return NULL;
+	        }
+
+	if(contactname==NULL || !strcmp(contactname,"")){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: Contact name is NULL\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		return NULL;
+	        }
+
+	/* allocate memory for a new member */
+	if((new_contactsmember=malloc(sizeof(contactsmember)))==NULL){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: Could not allocate memory for contact\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		return NULL;
+	        }
+	if((new_contactsmember->contact_name=(char *)strdup(contactname))==NULL){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: Could not allocate memory for contact name\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		my_free((void **)&new_contactsmember);
+		return NULL;
+	        }
+
+	/* set initial values */
+#ifdef NSCORE
+	new_contactsmember->contact_ptr=NULL;
+#endif
+
+	/* add the new contact to the head of the contact list */
+	new_contactsmember->next=*object_ptr;
+	*object_ptr=new_contactsmember;
+
+#ifdef DEBUG0
+	printf("add_contact_to_object() end\n");
+#endif
+
+	return new_contactsmember;
+        }
+
+
+
 /* adds a custom variable to an object */
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **object_ptr, char *varname, char *varvalue){
 	customvariablesmember *new_customvariablesmember=NULL;
@@ -3000,7 +3099,7 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	char *temp_buffer=NULL;
 #endif
 
-#ifdef DEBUD0
+#ifdef DEBUG0
 	printf("add_custom_variable_to_object() start\n");
 #endif
 
@@ -3063,7 +3162,7 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	new_customvariablesmember->next=*object_ptr;
 	*object_ptr=new_customvariablesmember;
 
-#ifdef DEBUD0
+#ifdef DEBUG0
 	printf("add_custom_variable_to_object() end\n");
 #endif
 
@@ -3670,7 +3769,7 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
         }
 
 
-/*  tests whether a contact is a member of a particular contactgroup */
+/*  tests whether a contact is a member of a particular contactgroup - used only by the CGIs */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
 	contactgroupmember *temp_contactgroupmember=NULL;
 
@@ -3745,13 +3844,18 @@ int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
 
 /*  tests whether a contact is a contact for a particular host */
 int is_contact_for_host(host *hst, contact *cntct){
+#ifdef REMOVED_07182006
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+#endif
+	contactsmember *temp_contactsmember=NULL;
+	contact *temp_contact=NULL;
 	
 	if(hst==NULL || cntct==NULL){
 		return FALSE;
 	        }
 
+#ifdef REMOVED_07182006
 	/* search all contact groups of this host */
 	for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
@@ -3767,6 +3871,19 @@ int is_contact_for_host(host *hst, contact *cntct){
 		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
 			return TRUE;
 	        }
+#endif
+
+	/* search all contacts of this host */
+	for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+		temp_contact=temp_contactsmember->contact_ptr;
+#else
+		temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+
+		if(temp_contact==cntct)
+			return TRUE;
+		}
 
 	return FALSE;
         }
@@ -3775,14 +3892,19 @@ int is_contact_for_host(host *hst, contact *cntct){
 
 /* tests whether or not a contact is an escalated contact for a particular host */
 int is_escalated_contact_for_host(host *hst, contact *cntct){
+#ifdef REMOVED_07182006
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+#endif
+	contactsmember *temp_contactsmember=NULL;
+	contact *temp_contact=NULL;
 	hostescalation *temp_hostescalation=NULL;
 
 
 	/* search all host escalations */
 	for(temp_hostescalation=get_first_hostescalation_by_host(hst->name);temp_hostescalation!=NULL;temp_hostescalation=get_next_hostescalation_by_host(hst->name,temp_hostescalation)){
 
+#ifdef REMOVED_07182006
 		/* search all the contact groups in this escalation... */
 		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
@@ -3799,7 +3921,21 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
 				return TRUE;
 		        }
-	         }
+#endif
+
+		/* search all contacts of this host escalation */
+		for(temp_contactsmember=temp_hostescalation->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+			temp_contact=temp_contactsmember->contact_ptr;
+#else
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+
+			if(temp_contact==cntct)
+				return TRUE;
+			}
+		
+		}
 
 	return FALSE;
         }
@@ -3807,12 +3943,17 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 
 /*  tests whether a contact is a contact for a particular service */
 int is_contact_for_service(service *svc, contact *cntct){
+#ifdef REMOVED_07182006
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+#endif
+	contactsmember *temp_contactsmember=NULL;
+	contact *temp_contact=NULL;
 
 	if(svc==NULL || cntct==NULL)
 		return FALSE;
 
+#ifdef REMOVED_07182006
 	/* search all contact groups of this service */
 	for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
@@ -3827,7 +3968,21 @@ int is_contact_for_service(service *svc, contact *cntct){
 
 		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
 			return TRUE;
+
 	        }
+#endif
+
+	/* search all contacts of this service */
+	for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+		temp_contact=temp_contactsmember->contact_ptr;
+#else
+		temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+		
+		if(temp_contact==cntct)
+			return TRUE;
+		}
 
 	return FALSE;
         }
@@ -3837,12 +3992,17 @@ int is_contact_for_service(service *svc, contact *cntct){
 /* tests whether or not a contact is an escalated contact for a particular service */
 int is_escalated_contact_for_service(service *svc, contact *cntct){
 	serviceescalation *temp_serviceescalation=NULL;
+#ifdef REMOVED_07182006
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+#endif
+	contactsmember *temp_contactsmember=NULL;
+	contact *temp_contact=NULL;
 
 	/* search all the service escalations */
 	for(temp_serviceescalation=get_first_serviceescalation_by_service(svc->host_name,svc->description);temp_serviceescalation!=NULL;temp_serviceescalation=get_next_serviceescalation_by_service(svc->host_name,svc->description,temp_serviceescalation)){
 
+#ifdef REMOVED_07182006
 		/* search all the contact groups in this escalation... */
 		for(temp_contactgroupsmember=temp_serviceescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
@@ -3859,6 +4019,20 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
 				return TRUE;
 		        }
+#endif
+
+		/* search all contacts of this service escalation */
+		for(temp_contactsmember=temp_serviceescalation->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+#ifdef NSCORE
+			temp_contact=temp_contactsmember->contact_ptr;
+#else
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+#endif
+
+			if(temp_contact==cntct)
+				return TRUE;
+			}
+		
 	        }
 
 	return FALSE;

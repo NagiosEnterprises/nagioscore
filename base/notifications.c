@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-21-2006
+ * Last Modified:   07-18-2006
  *
  * License:
  *
@@ -868,9 +868,12 @@ int should_service_notification_be_escalated(service *svc){
 /* given a service, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_service(service *svc, int *escalated){
 	serviceescalation *temp_se=NULL;
+#ifdef REMOVED_07182006
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroupmember *temp_contactgroupmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+#endif
+	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 
 #ifdef DEBUG0
@@ -890,6 +893,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 			if(is_valid_escalation_for_service_notification(svc,temp_se)==FALSE)
 				continue;
 
+#ifdef REMOVED_07182006
 			/* find each contact group in this escalation entry */
 			for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
@@ -900,6 +904,14 @@ int create_notification_list_from_service(service *svc, int *escalated){
 					add_notification(temp_contact);
 					}
 			        }
+#endif
+
+			/* find each contact in this escalation entry */
+			for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+				add_notification(temp_contact);
+				}
 		        }
 	        }
 
@@ -909,6 +921,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
+#ifdef REMOVED_07182006
 		/* find all contacts for this service */
 		for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
@@ -918,6 +931,14 @@ int create_notification_list_from_service(service *svc, int *escalated){
 					continue;
 				add_notification(temp_contact);
 				}
+			}
+#endif
+
+		/* find all contacts for this service */
+		for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+				continue;
+			add_notification(temp_contact);
 			}
 	        }
 
@@ -1690,9 +1711,12 @@ int should_host_notification_be_escalated(host *hst){
 /* given a host, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_host(host *hst, int *escalated){
 	hostescalation *temp_he=NULL;
+#ifdef REMOVED_07182006
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroupmember *temp_contactgroupmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
+#endif
+	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 
 #ifdef DEBUG0
@@ -1712,6 +1736,7 @@ int create_notification_list_from_host(host *hst, int *escalated){
 			if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 				continue;
 
+#ifdef REMOVED_07182006
 			/* find each contact group in this escalation entry */
 			for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
@@ -1722,6 +1747,14 @@ int create_notification_list_from_host(host *hst, int *escalated){
 					add_notification(temp_contact);
 					}
 			        }
+#endif
+
+			/* find each contact in this escalation entry */
+			for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+				if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+					continue;
+				add_notification(temp_contact);
+			        }
 		        }
 	        }
 
@@ -1731,6 +1764,7 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
+#ifdef REMOVED_07182006
 		/* get all contacts for this host */
 		for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
@@ -1740,6 +1774,13 @@ int create_notification_list_from_host(host *hst, int *escalated){
 					continue;
 				add_notification(temp_contact);
 				}
+			}
+#endif
+		/* get all contacts for this host */
+		for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
+				continue;
+			add_notification(temp_contact);
 			}
 	        }
 

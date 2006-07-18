@@ -3,7 +3,7 @@
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-21-2006
+ * Last Modified: 07-18-2006
  *
  * This CGI program will display various configuration information.
  *
@@ -402,7 +402,7 @@ int process_cgivars(void){
 void display_hosts(void){
 	host *temp_host;
 	hostsmember *temp_hostsmember;
-	contactgroupsmember *temp_contactgroupsmember;
+	contactsmember *temp_contactsmember;
 	int options=0;
 	int odd=0;
 	char time_string[16];
@@ -433,7 +433,7 @@ void display_hosts(void){
 	printf("<TH CLASS='data'>Enable Passive Checks</TH>\n");
 	printf("<TH CLASS='data'>Check Freshness</TH>\n");
 	printf("<TH CLASS='data'>Freshness Threshold</TH>\n");
-	printf("<TH CLASS='data'>Default Contact Groups</TH>\n");
+	printf("<TH CLASS='data'>Default Contacts</TH>\n");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
 	printf("<TH CLASS='data'>First Notification Delay</TH>");
 	printf("<TH CLASS='data'>Notification Options</TH>");
@@ -522,13 +522,13 @@ void display_hosts(void){
 
 		printf("<TD CLASS='%s'>",bg_class);
 
-		/* find all the contact groups for this host... */
-		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+		/* find all the contacts for this host... */
+		for(temp_contactsmember=temp_host->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
-			if(temp_contactgroupsmember!=temp_host->contact_groups)
+			if(temp_contactsmember!=temp_host->contacts)
 				printf(", ");
 
-			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contacts#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
 		        }
 		printf("</TD>\n");
 
@@ -1088,7 +1088,7 @@ void display_contactgroups(void){
 
 void display_services(void){
 	service *temp_service;
-	contactgroupsmember *temp_contactgroupsmember;
+	contactsmember *temp_contactsmember;
 	char command_line[MAX_INPUT_BUFFER];
 	char *command_name="";
 	int options;
@@ -1130,7 +1130,7 @@ void display_services(void){
 	printf("<TH CLASS='data'>Enable Passive Checks</TH>\n");
 	printf("<TH CLASS='data'>Check Freshness</TH>\n");
 	printf("<TH CLASS='data'>Freshness Threshold</TH>\n");
-	printf("<TH CLASS='data'>Default Contact Groups</TH>\n");
+	printf("<TH CLASS='data'>Default Contacts</TH>\n");
 	printf("<TH CLASS='data'>Enable Notifications</TH>\n");
 	printf("<TH CLASS='data'>Notification Interval</TH>\n");
 	printf("<TH CLASS='data'>First Notification Delay</TH>\n");
@@ -1213,12 +1213,12 @@ void display_services(void){
 		printf("</TD>\n");
 
 		printf("<TD CLASS='%s'>",bg_class);
-		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+		for(temp_contactsmember=temp_service->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
-			if(temp_contactgroupsmember!=temp_service->contact_groups)
+			if(temp_contactsmember!=temp_service->contacts)
 				printf(", ");
 
-			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contacts#%s'>%s</A>",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
 	                }
 		if(temp_service->contact_groups==NULL)
 			printf("&nbsp;");
@@ -1641,7 +1641,7 @@ void display_servicedependencies(void){
 
 void display_serviceescalations(void){
 	serviceescalation *temp_se;
-	contactgroupsmember *temp_contactgroupsmember;
+	contactsmember *temp_contactsmember;
 	int options=FALSE;
 	int odd=0;
 	char *bg_class="";
@@ -1667,7 +1667,7 @@ void display_serviceescalations(void){
 	printf("<TR>\n");
 	printf("<TH CLASS='data'>Host</TH>");
 	printf("<TH CLASS='data'>Description</TH>");
-	printf("<TH CLASS='data'>Contact Groups</TH>");
+	printf("<TH CLASS='data'>Contacts</TH>");
 	printf("<TH CLASS='data'>First Notification</TH>");
 	printf("<TH CLASS='data'>Last Notification</TH>");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
@@ -1695,12 +1695,12 @@ void display_serviceescalations(void){
 		printf("%s'>%s</A></TD>\n",url_encode(temp_se->description),temp_se->description);
 
 		printf("<TD CLASS='%s'>",bg_class);
-		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+		for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
-			if(temp_contactgroupsmember!=temp_se->contact_groups)
+			if(temp_contactsmember!=temp_se->contacts)
 				printf(", ");
 
-			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contacts#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
 		        }
 		printf("</TD>\n");
 
@@ -1851,7 +1851,7 @@ void display_hostdependencies(void){
 
 void display_hostescalations(void){
 	hostescalation *temp_he;
-	contactgroupsmember *temp_contactgroupsmember;
+	contactsmember *temp_contactsmember;
 	int options=FALSE;
 	int odd=0;
 	char *bg_class="";
@@ -1873,7 +1873,7 @@ void display_hostescalations(void){
 	printf("<TABLE BORDER=0 CLASS='data'>\n");
 	printf("<TR>\n");
 	printf("<TH CLASS='data'>Host</TH>");
-	printf("<TH CLASS='data'>Contact Groups</TH>");
+	printf("<TH CLASS='data'>Contacts</TH>");
 	printf("<TH CLASS='data'>First Notification</TH>");
 	printf("<TH CLASS='data'>Last Notification</TH>");
 	printf("<TH CLASS='data'>Notification Interval</TH>");
@@ -1898,12 +1898,12 @@ void display_hostescalations(void){
 		printf("<TD CLASS='%s'><A HREF='%s?type=hosts#%s'>%s</A></TD>",bg_class,CONFIG_CGI,url_encode(temp_he->host_name),temp_he->host_name);
 
 		printf("<TD CLASS='%s'>",bg_class);
-		for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
+		for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
-			if(temp_contactgroupsmember!=temp_he->contact_groups)
+			if(temp_contactsmember!=temp_he->contacts)
 				printf(", ");
 
-			printf("<A HREF='%s?type=contactgroups#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactgroupsmember->group_name),temp_contactgroupsmember->group_name);
+			printf("<A HREF='%s?type=contacts#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_contactsmember->contact_name),temp_contactsmember->contact_name);
 		        }
 		printf("</TD>\n");
 

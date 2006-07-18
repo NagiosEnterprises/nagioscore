@@ -5510,11 +5510,6 @@ void * command_file_worker_thread(void *arg){
 				/* should we shutdown? */
 				pthread_testcancel();
 	                        }
-
-#ifdef REMOVED_09032003
-			/* rewind file pointer (fix for FreeBSD, may already be taken care of due to clearerr() call before reading begins) */
-			rewind(command_file_fp);
-#endif
 		        }
 	        }
 

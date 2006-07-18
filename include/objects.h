@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-21-2006
+ * Last Modified: 07-18-2006
  *
  * License:
  *
@@ -148,6 +148,59 @@ typedef struct commandsmember_struct{
 	}commandsmember;
 
 
+/* CONTACT structure */
+struct contact_struct{
+	char	*name;
+	char	*alias;
+	char	*email;
+	char	*pager;
+	char    *address[MAX_CONTACT_ADDRESSES];
+	commandsmember *host_notification_commands;
+	commandsmember *service_notification_commands;	
+	int     notify_on_service_unknown;
+	int     notify_on_service_warning;
+	int     notify_on_service_critical;
+	int     notify_on_service_recovery;
+	int     notify_on_service_flapping;
+	int     notify_on_service_downtime;
+	int 	notify_on_host_down;
+	int	notify_on_host_unreachable;
+	int	notify_on_host_recovery;
+	int     notify_on_host_flapping;
+	int     notify_on_host_downtime;
+	char	*host_notification_period;
+	char	*service_notification_period;
+	int     host_notifications_enabled;
+	int     service_notifications_enabled;
+	int     can_submit_commands;
+	int     retain_status_information;
+	int     retain_nonstatus_information;
+	customvariablesmember *custom_variables;
+#ifdef NSCORE
+	time_t  last_host_notification;
+	time_t  last_service_notification;
+	unsigned long modified_attributes;
+	unsigned long modified_host_attributes;
+	unsigned long modified_service_attributes;
+
+	timeperiod *host_notification_period_ptr;
+	timeperiod *service_notification_period_ptr;
+#endif
+	struct	contact_struct *next;
+	struct	contact_struct *nexthash;
+        };
+
+
+/* CONTACTSMEMBER structure */
+typedef struct contactsmember_struct{
+	char    *contact_name;
+#ifdef NSCORE
+	contact *contact_ptr;
+#endif
+	struct contactsmember_struct *next;
+        }contactsmember;
+
+
 /* HOSTSMEMBER structure */
 typedef struct hostsmember_struct{
 	char    *host_name;
@@ -191,6 +244,7 @@ struct host_struct{
 	int     max_attempts;
 	char    *event_handler;
 	contactgroupsmember *contact_groups;
+	contactsmember *contacts;
 	double  notification_interval;
 	double  first_notification_delay;
 	int	notify_on_down;
@@ -319,50 +373,6 @@ typedef struct servicegroup_struct{
 	}servicegroup;
 
 
-/* CONTACT structure */
-struct contact_struct{
-	char	*name;
-	char	*alias;
-	char	*email;
-	char	*pager;
-	char    *address[MAX_CONTACT_ADDRESSES];
-	commandsmember *host_notification_commands;
-	commandsmember *service_notification_commands;	
-	int     notify_on_service_unknown;
-	int     notify_on_service_warning;
-	int     notify_on_service_critical;
-	int     notify_on_service_recovery;
-	int     notify_on_service_flapping;
-	int     notify_on_service_downtime;
-	int 	notify_on_host_down;
-	int	notify_on_host_unreachable;
-	int	notify_on_host_recovery;
-	int     notify_on_host_flapping;
-	int     notify_on_host_downtime;
-	char	*host_notification_period;
-	char	*service_notification_period;
-	int     host_notifications_enabled;
-	int     service_notifications_enabled;
-	int     can_submit_commands;
-	int     retain_status_information;
-	int     retain_nonstatus_information;
-	customvariablesmember *custom_variables;
-#ifdef NSCORE
-	time_t  last_host_notification;
-	time_t  last_service_notification;
-	unsigned long modified_attributes;
-	unsigned long modified_host_attributes;
-	unsigned long modified_service_attributes;
-
-	timeperiod *host_notification_period_ptr;
-	timeperiod *service_notification_period_ptr;
-#endif
-	struct	contact_struct *next;
-	struct	contact_struct *nexthash;
-        };
-
-
-
 /* SERVICE structure */
 struct service_struct{
 	char	*host_name;
@@ -375,6 +385,7 @@ struct service_struct{
 	int	max_attempts;
 	int     parallelize;
 	contactgroupsmember *contact_groups;
+	contactsmember *contacts;
 	double	notification_interval;
 	double  first_notification_delay;
 	int     notify_on_unknown;
@@ -490,6 +501,7 @@ typedef struct serviceescalation_struct{
 	int     escalate_on_unknown;
 	int     escalate_on_critical;
 	contactgroupsmember *contact_groups;
+	contactsmember *contacts;
 #ifdef NSCORE
 	service *service_ptr;
 	timeperiod *escalation_period_ptr;
@@ -537,6 +549,7 @@ typedef struct hostescalation_struct{
 	int     escalate_on_down;
 	int     escalate_on_unreachable;
 	contactgroupsmember *contact_groups;
+	contactsmember *contacts;
 #ifdef NSCORE
 	host    *host_ptr;
 	timeperiod *escalation_period_ptr;
@@ -623,6 +636,7 @@ customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *); 
  host *add_host(char *,char *,char *,char *,char *,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
+contactsmember *add_contact_to_host(host *,char *);                                                     /* adds a contact to a host definition */
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
@@ -635,13 +649,18 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* a
 command *add_command(char *,char *);									/* adds a command definition */
 service *add_service(char *,char *,char *,char *,int,int,int,double,double,double,double,char *,int,int,int,int,int,int,int,int,char *,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,int,int,int);	/* adds a service definition */
 contactgroupsmember *add_contactgroup_to_service(service *,char *);					/* adds a contact group to a service definition */
+contactsmember *add_contact_to_service(service *,char *);                                               /* adds a contact to a host definition */
 serviceescalation *add_serviceescalation(char *,char *,int,int,double,char *,int,int,int,int);          /* adds a service escalation definition */
 contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *,char *);                 /* adds a contact group to a service escalation definition */
+contactsmember *add_contact_to_serviceescalation(serviceescalation *,char *);                           /* adds a contact to a service escalation definition */
 customvariablesmember *add_custom_variable_to_service(service *,char *,char *);                         /* adds a custom variable to a service definition */
 servicedependency *add_service_dependency(char *,char *,char *,char *,int,int,int,int,int,int,int,char *);     /* adds a service dependency definition */
 hostdependency *add_host_dependency(char *,char *,int,int,int,int,int,int,char *);                             /* adds a host dependency definition */
 hostescalation *add_hostescalation(char *,int,int,double,char *,int,int,int);                           /* adds a host escalation definition */
+contactsmember *add_contact_to_hostescalation(hostescalation *,char *);                                 /* adds a contact to a host escalation definition */
 contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *,char *);                       /* adds a contact group to a host escalation definition */
+
+contactsmember *add_contact_to_object(contactsmember **,char *);                                        /* adds a contact to an object */ 
 customvariablesmember *add_custom_variable_to_object(customvariablesmember **,char *,char *);           /* adds a custom variable to an object */
 
 

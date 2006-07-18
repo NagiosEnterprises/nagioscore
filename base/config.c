@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-30-2006
+ * Last Modified: 07-18-2006
  *
  * License:
  *
@@ -1883,6 +1883,7 @@ int pre_flight_object_check(int *w, int *e){
 	contactgroup *temp_contactgroup=NULL;
 	contactgroupmember *temp_contactgroupmember=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
+	contactsmember *temp_contactsmember=NULL;
 	host *temp_host=NULL;
 	host *temp_host2=NULL;
 	hostsmember *temp_hostsmember=NULL;
@@ -2000,6 +2001,7 @@ int pre_flight_object_check(int *w, int *e){
 		/* reset the found flag */
 		found=FALSE;
 
+#ifdef REMOVED_07182006
 		/* check for valid contactgroups */
 		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
@@ -2023,10 +2025,35 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
+#endif
+
+		/* check for valid contacts */
+		for(temp_contactsmember=temp_service->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+
+			if(temp_contact==NULL){
+				asprintf(&temp_buffer,"Error: Contact '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_service->description,temp_service->host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact pointer for later */
+			temp_contactsmember->contact_ptr=temp_contact;
+			}
+
+		/* check to see if there is at least one contact */
+		if(temp_service->contacts==NULL){
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no default contact(s) defined!",temp_service->description,temp_service->host_name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
+			warnings++;
+		        }
 
 		/* verify service check timeperiod */
 		if(temp_service->check_period==NULL){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s'  has no check time period defined!",temp_service->description,temp_service->host_name);
+			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s' has no check time period defined!",temp_service->description,temp_service->host_name);
 			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 			warnings++;
@@ -2127,25 +2154,6 @@ int pre_flight_object_check(int *w, int *e){
 
 		found=FALSE;
 
-#ifdef REMOVED_061303
-		/* make sure each host is a member of at least one hostgroup */
-		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-			temp_hostgroupmember=find_hostgroupmember(temp_host->name,temp_hostgroup);
-			if(temp_hostgroupmember!=NULL){
-				found=TRUE;
-				break;
-			        }
-		        }
-
-		/* we couldn't find the host in any host groups */
-		if(found==FALSE){
-			asprintf(&temp_buffer,"Warning: Host '%s' is not a member of any host groups!",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
-			warnings++;
-		        }
-#endif
-
 		/* check the event handler command */
 		if(temp_host->event_handler!=NULL){
 
@@ -2206,6 +2214,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_host->check_period_ptr=temp_timeperiod;
 		        }
 
+#ifdef REMOVED_07182006
 		/* check all contact groups */
 		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 
@@ -2221,12 +2230,38 @@ int pre_flight_object_check(int *w, int *e){
 			/* save the group pointer for later */
 			temp_contactgroupsmember->group_ptr=temp_contactgroup;
 			}
+
 		/* check to see if there is at least one contact group */
 		if(temp_host->contact_groups==NULL){
-			asprintf(&temp_buffer,"Error: Host '%s'  has no default contact group(s) defined!",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+			asprintf(&temp_buffer,"Warning: Host '%s' has no default contact group(s) defined!",temp_host->name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
-			errors++;
+			warnings++;
+		        }
+#endif
+
+		/* check all contacts */
+		for(temp_contactsmember=temp_host->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+
+			if(temp_contact==NULL){
+				asprintf(&temp_buffer,"Error: Contact '%s' specified in host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_host->name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact pointer for later */
+			temp_contactsmember->contact_ptr=temp_contact;
+			}
+
+		/* check to see if there is at least one contact */
+		if(temp_host->contacts==NULL){
+			asprintf(&temp_buffer,"Warning: Host '%s' has no default contact(s) defined!",temp_host->name);
+			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
+			warnings++;
 		        }
 
 		/* check notification timeperiod */
@@ -2480,6 +2515,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contact->host_notification_period_ptr=temp_timeperiod;
 		        }
 
+#ifdef REMOVED_07182006
 		found=FALSE;
 
 		/* make sure the contact belongs to at least one contact group */
@@ -2498,6 +2534,7 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			warnings++;
 		        }
+#endif
 	
 		/* check for sane host recovery options */
 		if(temp_contact->notify_on_host_recovery==TRUE && temp_contact->notify_on_host_down==FALSE && temp_contact->notify_on_host_unreachable==FALSE){
@@ -2548,6 +2585,7 @@ int pre_flight_object_check(int *w, int *e){
 
 		found=FALSE;
 
+#ifdef REMOVED_07182006
 		/* make sure each contactgroup is used in at least one host or service definition or escalation */
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
@@ -2603,6 +2641,7 @@ int pre_flight_object_check(int *w, int *e){
 			my_free((void **)&temp_buffer);
 			warnings++;
 			}
+#endif
 
 		/* check all the group members */
 		for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
@@ -2671,6 +2710,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_se->escalation_period_ptr=temp_timeperiod;
 		        }
 
+#ifdef REMOVED_07182006
 		/* find the contact groups */
 		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			
@@ -2685,6 +2725,23 @@ int pre_flight_object_check(int *w, int *e){
 
 			/* save the group pointer for later */
 			temp_contactgroupsmember->group_ptr=temp_contactgroup;
+		        }
+#endif
+
+		/* find the contacts */
+		for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+			
+			/* find the contact */
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+			if(temp_contact==NULL){
+				asprintf(&temp_buffer,"Error: Contact '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_se->description,temp_se->host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact pointer for later */
+			temp_contactsmember->contact_ptr=temp_contact;
 		        }
 	        }
 
@@ -2795,6 +2852,7 @@ int pre_flight_object_check(int *w, int *e){
 			temp_he->escalation_period_ptr=temp_timeperiod;
 		        }
 
+#ifdef REMOVED_07182006
 		/* find the contact groups */
 		for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
 			
@@ -2809,6 +2867,23 @@ int pre_flight_object_check(int *w, int *e){
 
 			/* save the group pointer for later */
 			temp_contactgroupsmember->group_ptr=temp_contactgroup;
+		        }
+#endif
+
+		/* find the contacts */
+		for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
+			
+			/* find the contact*/
+			temp_contact=find_contact(temp_contactsmember->contact_name);
+			if(temp_contact==NULL){
+				asprintf(&temp_buffer,"Error: Contact '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactsmember->contact_name,temp_he->host_name);
+				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+				errors++;
+			        }
+
+			/* save the contact pointer for later */
+			temp_contactsmember->contact_ptr=temp_contact;
 		        }
 	        }
 

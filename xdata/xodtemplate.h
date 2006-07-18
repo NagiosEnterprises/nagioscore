@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-21-2006
+ * Last Modified:   07-18-2006
  *
  * License:
  *
@@ -205,6 +205,7 @@ typedef struct xodtemplate_host_struct{
 	int       flap_detection_on_down;
 	int       flap_detection_on_unreachable;
 	char      *contact_groups;
+	char      *contacts;
 	int       notify_on_down;
 	int       notify_on_unreachable;
 	int       notify_on_recovery;
@@ -243,6 +244,7 @@ typedef struct xodtemplate_host_struct{
 	int       have_check_period;
 	int       have_event_handler;
 	int       have_contact_groups;
+	int       have_contacts;
 	int       have_notification_period;
 	int       have_failure_prediction_options;
 	int       have_notes;
@@ -349,6 +351,7 @@ typedef struct xodtemplate_service_struct{
 	double     notification_interval;
 	double     first_notification_delay;
 	char       *contact_groups;
+	char       *contacts;
 	int        stalk_on_ok;
 	int        stalk_on_unknown;
 	int        stalk_on_warning;
@@ -375,6 +378,7 @@ typedef struct xodtemplate_service_struct{
 	int        have_event_handler;
 	int        have_notification_period;
 	int        have_contact_groups;
+	int        have_contacts;
 	int        have_failure_prediction_options;
 	int        have_notes;
 	int        have_notes_url;
@@ -503,6 +507,7 @@ typedef struct xodtemplate_serviceescalation_struct{
 	int       escalate_on_critical;
 	int       escalate_on_recovery;
 	char      *contact_groups;
+	char      *contacts;
 
 	int       have_host_name;
 	int       have_service_description;
@@ -510,6 +515,7 @@ typedef struct xodtemplate_serviceescalation_struct{
 	int       have_hostgroup_name;
 	int       have_escalation_period;
 	int       have_contact_groups;
+	int       have_contacts;
 
 	int       have_first_notification;
 	int       have_last_notification;
@@ -577,11 +583,13 @@ typedef struct xodtemplate_hostescalation_struct{
 	int       escalate_on_unreachable;
 	int       escalate_on_recovery;
 	char      *contact_groups;
+	char      *contacts;
 
 	int       have_host_name;
 	int       have_hostgroup_name;
 	int       have_escalation_period;
 	int       have_contact_groups;
+	int       have_contacts;
 
 	int       have_first_notification;
 	int       have_last_notification;
@@ -708,8 +716,10 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 #ifdef NSCORE
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
-xodtemplate_contactlist *xodtemplate_expand_contacts(char *);
-int xodtemplate_expand_contacts2(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
+xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *,char *);
+int xodtemplate_expand_contactgroups(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
+int xodtemplate_expand_contacts(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
+int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist **,xodtemplate_contactgroup *);
 int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **,char *);
 xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
 int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
@@ -763,6 +773,7 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *,char *);
 int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *,char *);
 
 int xodtemplate_recombobulate_contactgroups(void);
+int xodtemplate_recombobulate_object_contacts(void);
 int xodtemplate_recombobulate_hostgroups(void);
 int xodtemplate_recombobulate_servicegroups(void);
 

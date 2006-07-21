@@ -1,9 +1,9 @@
- /*****************************************************************************
+/*****************************************************************************
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-18-2006
+ * Last Modified: 07-21-2006
  *
  * Description:
  *
@@ -5850,6 +5850,7 @@ int xodtemplate_resolve_objects(void){
 int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_timeperiod *template_timeperiod=NULL;
 	int x;
 #ifdef NSCORE
@@ -5875,7 +5876,8 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_timeperiod=xodtemplate_find_timeperiod(temp_ptr);
 		if(template_timeperiod==NULL){
@@ -5919,6 +5921,7 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 int xodtemplate_resolve_command(xodtemplate_command *this_command){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_command *template_command=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -5943,7 +5946,8 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_command=xodtemplate_find_command(temp_ptr);
 		if(template_command==NULL){
@@ -5982,6 +5986,7 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_contactgroup *template_contactgroup=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -6006,7 +6011,8 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_contactgroup=xodtemplate_find_contactgroup(temp_ptr);
 		if(template_contactgroup==NULL){
@@ -6047,6 +6053,7 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_hostgroup *template_hostgroup=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -6071,7 +6078,8 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_hostgroup=xodtemplate_find_hostgroup(temp_ptr);
 		if(template_hostgroup==NULL){
@@ -6120,6 +6128,7 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_servicegroup *template_servicegroup=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -6144,7 +6153,8 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_servicegroup=xodtemplate_find_servicegroup(temp_ptr);
 		if(template_servicegroup==NULL){
@@ -6191,6 +6201,7 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_servicedependency){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_servicedependency *template_servicedependency=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -6215,7 +6226,8 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_servicedependency=xodtemplate_find_servicedependency(temp_ptr);
 		if(template_servicedependency==NULL){
@@ -6313,6 +6325,7 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_serviceescalation){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_serviceescalation *template_serviceescalation=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -6337,7 +6350,8 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_serviceescalation=xodtemplate_find_serviceescalation(temp_ptr);
 		if(template_serviceescalation==NULL){
@@ -6425,6 +6439,7 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_contact *template_contact=NULL;
 	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
@@ -6452,7 +6467,8 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_contact=xodtemplate_find_contact(temp_ptr);
 		if(template_contact==NULL){
@@ -6584,6 +6600,7 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 int xodtemplate_resolve_host(xodtemplate_host *this_host){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_host *template_host=NULL;
 	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
@@ -6610,7 +6627,8 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_host=xodtemplate_find_host(temp_ptr);
 		if(template_host==NULL){
@@ -6856,6 +6874,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 int xodtemplate_resolve_service(xodtemplate_service *this_service){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_service *template_service=NULL;
 	xodtemplate_customvariablesmember *this_customvariablesmember=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
@@ -6882,7 +6901,8 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_service=xodtemplate_find_service(temp_ptr);
 		if(template_service==NULL){
@@ -7121,6 +7141,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdependency){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_hostdependency *template_hostdependency=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -7145,7 +7166,8 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_hostdependency=xodtemplate_find_hostdependency(temp_ptr);
 		if(template_hostdependency==NULL){
@@ -7221,6 +7243,7 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostescalation){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_hostescalation *template_hostescalation=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -7245,7 +7268,8 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_hostescalation=xodtemplate_find_hostescalation(temp_ptr);
 		if(template_hostescalation==NULL){
@@ -7322,6 +7346,7 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_hostextinfo *template_hostextinfo=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -7346,7 +7371,8 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_hostextinfo=xodtemplate_find_hostextinfo(temp_ptr);
 		if(template_hostextinfo==NULL){
@@ -7436,6 +7462,7 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_serviceextinfo){
 	char *temp_ptr=NULL;
 	char *template_names=NULL;
+	char *template_name_ptr=NULL;
 	xodtemplate_serviceextinfo *template_serviceextinfo=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -7460,7 +7487,8 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 		return ERROR;
 
 	/* apply all templates */
-	for(temp_ptr=strtok(template_names,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
+	template_name_ptr=template_names;
+	for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
 
 		template_serviceextinfo=xodtemplate_find_serviceextinfo(temp_ptr);
 		if(template_serviceextinfo==NULL){

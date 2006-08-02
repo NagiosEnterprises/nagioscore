@@ -3,7 +3,7 @@
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
  * Copyright (c) 2000-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-12-2005
+ * Last Modified: 08-01-2005
  *
  * License:
  *
@@ -211,7 +211,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 	/* unschedule all downtime entries that were triggered by this one */
 	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
 		if(temp_downtime->triggered_by==downtime_id)
-			unschedule_downtime(ANY_DOWNTIME,downtime_id);
+			unschedule_downtime(ANY_DOWNTIME,temp_downtime->downtime_id);
 	        }
 
 	return OK;

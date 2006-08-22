@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-26-2006
+ * Last Modified: 08-22-2006
  *
  * License:
  * 
@@ -431,8 +431,13 @@ int main(void){
 		sound=service_unknown_sound;
 	else if(problem_services_unknown==0 && problem_services_warning==0 && problem_services_critical==0 && problem_hosts_down==0 && problem_hosts_unreachable==0 && normal_sound!=NULL)
 		sound=normal_sound;
-	if(sound!=NULL)
-		printf("<EMBED SRC='%s%s' HIDDEN=TRUE AUTOSTART=TRUE>",url_media_path,sound);
+	if(sound!=NULL){
+		printf("<object type=\"application/x-mplayer2\" height=\"-\" width=\"0\">");
+		printf("<param name=\"filename\" value=\"%s%s\">",url_media_path,sound);
+		printf("<param name=\"autostart\" value=\"1\">");
+		printf("<param name=\"playcount\" value=\"1\">");
+		printf("</object>");
+		}
 
 
 	/* bottom portion of screen - service or hostgroup detail */

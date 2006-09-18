@@ -2288,8 +2288,9 @@ int set_custom_macro_environment_vars(int set){
 #endif
 
 	/* set each of the custom host environment variables */
-	for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
+	for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
 		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
+		}
 
 	/* set each of the custom service environment variables */
 	for(temp_customvariablesmember=macro_custom_service_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
@@ -3253,11 +3254,10 @@ void sighandler(int sig){
 	char *temp_buffer=NULL;
 
 
-#ifdef REMOVED_06202006
 	/* if shutdown is already true, we're in a signal trap loop! */
-	if(sigshutdown==TRUE)
+	/* changed 09/07/06 to only exit on segfaults */
+	if(sigshutdown==TRUE && sig==SIGSEGV)
 		exit(ERROR);
-#endif
 
 	if(sig<0)
 		sig=-sig;

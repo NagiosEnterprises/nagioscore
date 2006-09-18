@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-18-2006
+ * Last Modified: 09-11-2006
  *
  * License:
  *
@@ -893,6 +893,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->display_name=NULL;
 	new_host->parent_hosts=NULL;
 	new_host->contact_groups=NULL;
+	new_host->contacts=NULL;
 	new_host->notes=NULL;
 	new_host->notes_url=NULL;
 	new_host->action_url=NULL;
@@ -2120,6 +2121,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->icon_image=NULL;
 	new_service->icon_image_alt=NULL;
 	new_service->contact_groups=NULL;
+	new_service->contacts=NULL;
 	new_service->custom_variables=NULL;
 #ifdef NSCORE
 	new_service->plugin_output=NULL;
@@ -2522,6 +2524,7 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 	new_serviceescalation->description=NULL;
 	new_serviceescalation->escalation_period=NULL;
 	new_serviceescalation->contact_groups=NULL;
+	new_serviceescalation->contacts=NULL;
 	new_serviceescalation->next=NULL;
 	new_serviceescalation->nexthash=NULL;
 #ifdef NSCORE
@@ -2893,6 +2896,7 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	new_hostescalation->host_name=NULL;
 	new_hostescalation->escalation_period=NULL;
 	new_hostescalation->contact_groups=NULL;
+	new_hostescalation->contacts=NULL;
 	new_hostescalation->next=NULL;
 	new_hostescalation->nexthash=NULL;
 #ifdef NSCORE
@@ -4212,6 +4216,8 @@ int free_object_data(void){
 	contactgroupmember *next_contactgroupmember=NULL;
 	contactgroupsmember *this_contactgroupsmember=NULL;
 	contactgroupsmember *next_contactgroupsmember=NULL;
+	contactsmember *this_contactsmember=NULL;
+	contactsmember *next_contactsmember=NULL;
 	customvariablesmember *this_customvariablesmember=NULL;
 	customvariablesmember *next_customvariablesmember=NULL;
 	service *this_service=NULL;
@@ -4286,6 +4292,15 @@ int free_object_data(void){
 			my_free((void **)&this_contactgroupsmember->group_name);
 			my_free((void **)&this_contactgroupsmember);
 			this_contactgroupsmember=next_contactgroupsmember;
+			}
+
+		/* free memory for contacts */
+		this_contactsmember=this_host->contacts;
+		while(this_contactsmember!=NULL){
+			next_contactsmember=this_contactsmember->next;
+			my_free((void **)&this_contactsmember->contact_name);
+			my_free((void **)&this_contactsmember);
+			this_contactsmember=next_contactsmember;
 			}
 
 		/* free memory for custom variables */
@@ -4491,6 +4506,15 @@ int free_object_data(void){
 			this_contactgroupsmember=next_contactgroupsmember;
 	                }
 
+		/* free memory for contacts */
+		this_contactsmember=this_service->contacts;
+		while(this_contactsmember!=NULL){
+			next_contactsmember=this_contactsmember->next;
+			my_free((void **)&this_contactsmember->contact_name);
+			my_free((void **)&this_contactsmember);
+			this_contactsmember=next_contactsmember;
+			}
+
 		/* free memory for custom variables */
 		this_customvariablesmember=this_service->custom_variables;
 		while(this_customvariablesmember!=NULL){
@@ -4567,6 +4591,15 @@ int free_object_data(void){
 			this_contactgroupsmember=next_contactgroupsmember;
 		        }
 
+		/* free memory for contacts */
+		this_contactsmember=this_serviceescalation->contacts;
+		while(this_contactsmember!=NULL){
+			next_contactsmember=this_contactsmember->next;
+			my_free((void **)&this_contactsmember->contact_name);
+			my_free((void **)&this_contactsmember);
+			this_contactsmember=next_contactsmember;
+			}
+
 		next_serviceescalation=this_serviceescalation->next;
 		my_free((void **)&this_serviceescalation->host_name);
 		my_free((void **)&this_serviceescalation->description);
@@ -4636,6 +4669,15 @@ int free_object_data(void){
 			my_free((void **)&this_contactgroupsmember);
 			this_contactgroupsmember=next_contactgroupsmember;
 		        }
+
+		/* free memory for contacts */
+		this_contactsmember=this_hostescalation->contacts;
+		while(this_contactsmember!=NULL){
+			next_contactsmember=this_contactsmember->next;
+			my_free((void **)&this_contactsmember->contact_name);
+			my_free((void **)&this_contactsmember);
+			this_contactsmember=next_contactsmember;
+			}
 
 		next_hostescalation=this_hostescalation->next;
 		my_free((void **)&this_hostescalation->host_name);

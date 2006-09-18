@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-11-2006
+# Last Modified: 09-18-2006
 #
 ##############################################################################
 
@@ -176,22 +176,6 @@ command_check_interval=-1
 # time its contents are processed.
 
 command_file=@localstatedir@/rw/nagios.cmd
-
-
-
-# COMMENT FILE
-# This is the file that Nagios will use for storing host and service
-# comments.
-
-comment_file=@localstatedir@/comments.dat
-
-
-
-# DOWNTIME FILE
-# This is the file that Nagios will use for storing host and service
-# downtime data.
-
-downtime_file=@localstatedir@/downtime.dat
 
 
 
@@ -440,7 +424,7 @@ max_concurrent_checks=0
 # This is the frequency (in seconds!) that Nagios will process
 # the results of host and service checks.
 
-check_reaper_frequency=10
+check_result_reaper_frequency=10
 
 
 

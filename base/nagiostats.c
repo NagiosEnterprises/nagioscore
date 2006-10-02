@@ -5,9 +5,9 @@
  * Program: Nagiostats
  * Version: 3.0prealpha-05202006
  * License: GPL
- * Copyright (c) 2003-2005 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2006 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   05-20-2006
+ * Last Modified:   10-02-2006
  *
  * License:
  *
@@ -531,7 +531,7 @@ int display_stats(void){
 	printf("Active Service Checks:                %d\n",active_service_checks);
 	printf("Passive Service Checks:               %d\n",passive_service_checks);
 	printf("Total Service State Change:           %.3f / %.3f / %.3f %%\n",min_service_state_change,max_service_state_change,average_service_state_change);
-	printf("Active Service Latency:               %.3f / %.3f / %.3f %%\n",min_active_service_latency,max_active_service_latency,average_active_service_latency);
+	printf("Active Service Latency:               %.3f / %.3f / %.3f sec\n",min_active_service_latency,max_active_service_latency,average_active_service_latency);
 	printf("Active Service Execution Time:        %.3f / %.3f / %.3f sec\n",min_active_service_execution_time,max_active_service_execution_time,average_active_service_execution_time);
 	printf("Active Service State Change:          %.3f / %.3f / %.3f %%\n",min_active_service_state_change,max_active_service_state_change,average_active_service_state_change);
 	printf("Active Services Last 1/5/15/60 min:   %d / %d / %d / %d\n",active_services_checked_last_1min,active_services_checked_last_5min,active_services_checked_last_15min,active_services_checked_last_1hour);
@@ -547,7 +547,7 @@ int display_stats(void){
 	printf("Active Host Checks:                   %d\n",active_host_checks);
 	printf("Passive Host Checks:                  %d\n",passive_host_checks);
 	printf("Total Host State Change:              %.3f / %.3f / %.3f %%\n",min_host_state_change,max_host_state_change,average_host_state_change);
-	printf("Active Host Latency:                  %.3f / %.3f / %.3f %%\n",min_active_host_latency,max_active_host_latency,average_active_host_latency);
+	printf("Active Host Latency:                  %.3f / %.3f / %.3f sec\n",min_active_host_latency,max_active_host_latency,average_active_host_latency);
 	printf("Active Host Execution Time:           %.3f / %.3f / %.3f sec\n",min_active_host_execution_time,max_active_host_execution_time,average_active_host_execution_time);
 	printf("Active Host State Change:             %.3f / %.3f / %.3f %%\n",min_active_host_state_change,max_active_host_state_change,average_active_host_state_change);
 	printf("Active Hosts Last 1/5/15/60 min:      %d / %d / %d / %d\n",active_hosts_checked_last_1min,active_hosts_checked_last_5min,active_hosts_checked_last_15min,active_hosts_checked_last_1hour);

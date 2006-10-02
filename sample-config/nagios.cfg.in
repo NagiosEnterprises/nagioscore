@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 09-18-2006
+# Last Modified: 09-30-2006
 #
 ##############################################################################
 
@@ -434,8 +434,8 @@ check_result_reaper_frequency=10
 # This is useful for testing the new logic and seeing how well
 # it performs in comparison to the older logic.
 # Values:
-#  0 = Use new Nagios 3.x logic
-#  1 = Use old Nagios 2.x logic (default)
+#  0 = Use new Nagios 3.x logic (default)
+#  1 = Use old Nagios 2.x logic
 
 use_old_host_check_logic=0
 

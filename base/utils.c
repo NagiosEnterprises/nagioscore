@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-13-2006
+ * Last Modified:   09-30-2006
  *
  * License:
  *
@@ -5811,7 +5811,7 @@ int reset_variables(void){
 	max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
 
 	use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
-	use_old_host_check_logic=TRUE;
+	use_old_host_check_logic=DEFAULT_USE_OLD_HOST_CHECK_LOGIC;
 	cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
 	cached_service_check_horizon=DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
 	enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;

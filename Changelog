@@ -7,6 +7,7 @@ Nagios 2.x Change Log
 ----------------
 * Fix for unscheduled triggered downtime entries
 * Fix for embedded audio in tac and status CGIs
+* Fixed bug in nagiostats utility when reporting host/service check latency
 
 
 

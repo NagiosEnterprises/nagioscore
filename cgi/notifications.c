@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Nagios Notifications CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 06-19-2006
+ * Last Modified: 10-09-2006
  *
  * This CGI program will display the notification events for 
  * a given host or contact or for all contacts/hosts.
@@ -553,7 +553,7 @@ void display_notifications(void){
 			/* get the host name */
 			temp_buffer=(char *)strtok(NULL,";");
 			snprintf(host_name,sizeof(host_name),"%s",(temp_buffer==NULL)?"":temp_buffer);
-			host_name[sizeof(host_name)]='\x0';
+			host_name[sizeof(host_name)-1]='\x0';
 
 			/* get the service name */
 			if(notification_type==SERVICE_NOTIFICATION){

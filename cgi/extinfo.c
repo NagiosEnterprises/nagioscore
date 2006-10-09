@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 10-09-2006
  *
  * License:
  * 
@@ -351,8 +351,11 @@ int main(void){
 			        }
 
 			if(display_type==DISPLAY_SERVICE_INFO){
-				if(temp_service->icon_image!=NULL)
-					printf("<img src='%s%s' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_service->icon_image,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt);
+				if(temp_service->icon_image!=NULL){
+					printf("<img src='%s",url_logo_images_path);
+					print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->icon_image);
+					printf("' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt,(temp_service->icon_image_alt==NULL)?"":temp_service->icon_image_alt);
+					}
 				if(temp_service->icon_image_alt!=NULL)
 					printf("<font size=-1><i>( %s )</i><font>\n",temp_service->icon_image_alt);
 				if(temp_service->notes!=NULL)
@@ -360,8 +363,11 @@ int main(void){
 			        }
 
 			if(display_type==DISPLAY_HOST_INFO){
-				if(temp_host->icon_image!=NULL)
-					printf("<img src='%s%s' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",url_logo_images_path,temp_host->icon_image,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+				if(temp_host->icon_image!=NULL){
+					printf("<img src='%s",url_logo_images_path);
+					print_extra_host_url(temp_host->name,temp_host->icon_image);
+					printf("' border=0 alt='%s' title='%s'><BR CLEAR=ALL>",(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt,(temp_host->icon_image_alt==NULL)?"":temp_host->icon_image_alt);
+					}
 				if(temp_host->icon_image_alt!=NULL)
 					printf("<font size=-1><i>( %s )</i><font>\n",temp_host->icon_image_alt);
 				if(temp_host->notes!=NULL)
@@ -2873,8 +2879,8 @@ int sort_data(int s_type, int s_option){
 
 
 int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, sortdata *temp_sortdata){
-	hoststatus *temp_hststatus;
-	servicestatus *temp_svcstatus;
+	hoststatus *temp_hststatus=NULL;
+	servicestatus *temp_svcstatus=NULL;
 	time_t last_check[2];
 	time_t next_check[2];
 	int current_attempt[2];
@@ -2889,6 +2895,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		status[0]=temp_svcstatus->status;
 		host_name[0]=temp_svcstatus->host_name;
 		service_description[0]=temp_svcstatus->description;
+		current_attempt[0]=temp_svcstatus->current_attempt;
 	        }
 	else{
 		temp_hststatus=new_sortdata->hststatus;
@@ -2897,6 +2904,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		status[0]=temp_hststatus->status;
 		host_name[0]=temp_hststatus->host_name;
 		service_description[0]="";
+		current_attempt[0]=temp_hststatus->current_attempt;
 	        }
 	if(temp_sortdata->is_service==TRUE){
 		temp_svcstatus=temp_sortdata->svcstatus;
@@ -2905,6 +2913,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		status[1]=temp_svcstatus->status;
 		host_name[1]=temp_svcstatus->host_name;
 		service_description[1]=temp_svcstatus->description;
+		current_attempt[1]=temp_svcstatus->current_attempt;
 	        }
 	else{
 		temp_hststatus=temp_sortdata->hststatus;
@@ -2913,6 +2922,7 @@ int compare_sortdata_entries(int s_type, int s_option, sortdata *new_sortdata, s
 		status[1]=temp_hststatus->status;
 		host_name[1]=temp_hststatus->host_name;
 		service_description[1]="";
+		current_attempt[1]=temp_hststatus->current_attempt;
 	        }
 
 	if(s_type==SORT_ASCENDING){

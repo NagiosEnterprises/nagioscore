@@ -3824,12 +3824,16 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	for(hostlist_item=check_hostlist;hostlist_item!=NULL;hostlist_item=hostlist_item->next){
 		run_async_check=TRUE;
 		temp_host=(host *)hostlist_item->object_ptr;
+		printf("ASYNC1: %s\n",temp_host->name);
+		printf("  ** CURRENTTIME: %lu  LASTHOSTCHECK: %lu  CACHEDTIMEHORIZON: %lu  USECACHEDRESULT: %d  ISEXECUTING: %d\n",current_time,temp_host->last_check,check_timestamp_horizon,use_cached_result,temp_host->is_executing);
 		if(use_cached_result==TRUE && ((current_time-temp_host->last_check)<=check_timestamp_horizon))
 			run_async_check=FALSE;
 		if(temp_host->is_executing==TRUE)
 			run_async_check=FALSE;
-		if(run_async_check==TRUE)
+		if(run_async_check==TRUE){
 			run_async_host_check_3x(temp_host,CHECK_OPTION_NONE,0.0,FALSE,NULL,NULL);
+			printf("ASYNC2: %s\n",temp_host->name);
+			}
 	        }
 	free_objectlist(&check_hostlist);
 

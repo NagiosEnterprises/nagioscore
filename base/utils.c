@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-30-2006
+ * Last Modified:   10-09-2006
  *
  * License:
  *
@@ -2458,7 +2458,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 							/*
 							 * XXXX need pipe open to send the compilation failure message back to Nag ?
 							 */
-			POPs ;
+			(void) POPs ;
 
 			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
 #ifdef DEBUG1

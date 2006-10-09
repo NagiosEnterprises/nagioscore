@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-12-2006
+ * Last Modified:   10-09-2006
  *
  * License:
  *
@@ -24,6 +24,7 @@
 
 #include "../include/config.h"
 #include "../include/common.h"
+#include "../include/comments.h"
 #include "../include/downtime.h"
 #include "../include/statusdata.h"
 #include "../include/nagios.h"

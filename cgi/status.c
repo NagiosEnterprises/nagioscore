@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-22-2006
+ * Last Modified: 10-09-2006
  *
  * License:
  * 
@@ -1603,7 +1603,9 @@ void show_service_detail(void){
 					if(temp_hostextinfo->icon_image!=NULL){
 						printf("<TD align=center valign=center>");
 						printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
-						printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
+						printf("<IMG SRC='%s",url_logo_images_path);
+						print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->icon_image);
+						printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 						printf("</A>");
 						printf("</TD>\n");
 					        }
@@ -1686,7 +1688,9 @@ void show_service_detail(void){
 					printf("<TD ALIGN=center valign=center>");
 					printf("<A HREF='%s?type=%d&host=%s",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_service->host_name));
 					printf("&service=%s'>",url_encode(temp_service->description));
-					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_serviceextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt);
+					printf("<IMG SRC='%s",url_logo_images_path);
+					print_extra_service_url(temp_service->host_name,temp_service->description,temp_serviceextinfo->icon_image);
+					printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt,(temp_serviceextinfo->icon_image_alt==NULL)?"":temp_serviceextinfo->icon_image_alt);
 					printf("</A>");
 					printf("</TD>\n");
 				        }
@@ -2066,7 +2070,9 @@ void show_host_detail(void){
 				if(temp_hostextinfo->icon_image!=NULL){
 					printf("<TD align=center valign=center>");
 					printf("<A HREF='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name));
-					printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
+					printf("<IMG SRC='%s",url_logo_images_path);
+					print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->icon_image);
+					printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 					printf("</A>");
 					printf("</TD>\n");
 				        }
@@ -2822,7 +2828,9 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 			if(temp_hostextinfo->icon_image!=NULL){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
+				printf("<IMG SRC='%s",url_logo_images_path);
+				print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->icon_image);
+				printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 				printf("</A>");
 				printf("<TD>\n");
 			        }
@@ -3159,7 +3167,9 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 			printf("<TD CLASS='status%s' WIDTH=5></TD>\n",status_bg_class);
 			printf("<TD CLASS='status%s' ALIGN=right>",status_bg_class);
 			printf("<a href='%s?type=%d&host=%s'>",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(hststatus->host_name));
-			printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
+			printf("<IMG SRC='%s",url_logo_images_path);
+			print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->icon_image);
+			printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 			printf("</A>");
 			printf("</TD>\n");
 	                }
@@ -3759,7 +3769,9 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			if(temp_hostextinfo->icon_image!=NULL){
 				printf("<TD align=center valign=center>");
 				printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
-				printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_logo_images_path,temp_hostextinfo->icon_image,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
+				printf("<IMG SRC='%s",url_logo_images_path);
+				print_extra_host_url(temp_hostextinfo->host_name,temp_hostextinfo->icon_image);
+				printf("' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt,(temp_hostextinfo->icon_image_alt==NULL)?"":temp_hostextinfo->icon_image_alt);
 				printf("</A>");
 				printf("<TD>\n");
 			        }

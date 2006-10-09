@@ -3,7 +3,7 @@
  * COMMENTS.C - Comment functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-21-2006
+ * Last Modified: 10-09-2006
  *
  * License:
  *
@@ -58,7 +58,7 @@ comment     **comment_hashlist=NULL;
 
 /* initializes comment data */
 int initialize_comment_data(char *config_file){
-	int result;
+	int result=OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
@@ -71,7 +71,7 @@ int initialize_comment_data(char *config_file){
 
 /* removes old/invalid comments */
 int cleanup_comment_data(char *config_file){
-	int result;
+	int result=OK;
 	
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
@@ -90,8 +90,8 @@ int cleanup_comment_data(char *config_file){
 
 /* adds a new host or service comment */
 int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
-	int result;
-	unsigned long new_comment_id;
+	int result=OK;
+	unsigned long new_comment_id=0L;
 
 	if(type==HOST_COMMENT)
 		result=add_new_host_comment(entry_type,host_name,entry_time,author_name,comment_data,persistent,source,expires,expire_time,&new_comment_id);
@@ -112,8 +112,8 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 
 /* adds a new host comment */
 int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
-	int result;
-	unsigned long new_comment_id;
+	int result=OK;
+	unsigned long new_comment_id=0L;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
@@ -135,8 +135,8 @@ int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, cha
 
 /* adds a new service comment */
 int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id){
-	int result;
-	unsigned long new_comment_id;
+	int result=OK;
+	unsigned long new_comment_id=0L;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
@@ -164,11 +164,11 @@ int add_new_service_comment(int entry_type, char *host_name, char *svc_descripti
 
 /* deletes a host or service comment */
 int delete_comment(int type, unsigned long comment_id){
-	int result;
+	int result=OK;
 	comment *this_comment=NULL;
 	comment *last_comment=NULL;
 	comment *next_comment=NULL;
-	int hashslot;
+	int hashslot=0;
 	comment *this_hash=NULL;
 	comment *last_hash=NULL;
 
@@ -237,10 +237,10 @@ int delete_comment(int type, unsigned long comment_id){
 
 /* deletes a host comment */
 int delete_host_comment(unsigned long comment_id){
-	int result;
+	int result=OK;
 
 	/* delete the comment from memory */
-	delete_comment(HOST_COMMENT,comment_id);
+	result=delete_comment(HOST_COMMENT,comment_id);
 	
 	return result;
         }
@@ -249,10 +249,10 @@ int delete_host_comment(unsigned long comment_id){
 
 /* deletes a service comment */
 int delete_service_comment(unsigned long comment_id){
-	int result;
+	int result=OK;
 	
 	/* delete the comment from memory */
-	delete_comment(SERVICE_COMMENT,comment_id);
+	result=delete_comment(SERVICE_COMMENT,comment_id);
 	
 	return result;
         }
@@ -260,7 +260,7 @@ int delete_service_comment(unsigned long comment_id){
 
 /* deletes all comments for a particular host or service */
 int delete_all_comments(int type, char *host_name, char *svc_description){
-	int result;
+	int result=OK;
 
 	if(type==HOST_COMMENT)
 		result=delete_all_host_comments(host_name);
@@ -273,7 +273,7 @@ int delete_all_comments(int type, char *host_name, char *svc_description){
 
 /* deletes all comments for a particular host */
 int delete_all_host_comments(char *host_name){
-	int result;
+	int result=OK;
 	comment *temp_comment=NULL;
 
 	if(host_name==NULL)
@@ -296,7 +296,7 @@ int delete_all_host_comments(char *host_name){
 
 /* deletes all comments for a particular service */
 int delete_all_service_comments(char *host_name, char *svc_description){
-	int result;
+	int result=OK;
 	comment *temp_comment=NULL;
 	comment *next_comment=NULL;
 
@@ -327,7 +327,7 @@ int delete_all_service_comments(char *host_name, char *svc_description){
 
 /* checks for an expired comment (and removes it) */
 int check_for_expired_comment(unsigned long comment_id){
-	comment *temp_comment;
+	comment *temp_comment=NULL;
 
 	/* check all comments */
 	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -354,7 +354,7 @@ int check_for_expired_comment(unsigned long comment_id){
 
 
 int read_comment_data(char *main_config_file){
-	int result;
+	int result=OK;
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XCDDEFAULT
@@ -372,8 +372,9 @@ int read_comment_data(char *main_config_file){
 
 /* adds comment to hash list in memory */
 int add_comment_to_hashlist(comment *new_comment){
-	comment *temp_comment, *lastpointer;
-	int hashslot;
+	comment *temp_comment=NULL;
+	comment *lastpointer=NULL;
+	int hashslot=0;
 
 	/* initialize hash list */
 	if(comment_hashlist==NULL){
@@ -417,7 +418,7 @@ int add_comment_to_hashlist(comment *new_comment){
 
 /* adds a host comment to the list in memory */
 int add_host_comment(int entry_type, char *host_name, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source){
-	int result;
+	int result=OK;
 
 	result=add_comment(HOST_COMMENT,entry_type,host_name,NULL,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
 
@@ -428,7 +429,7 @@ int add_host_comment(int entry_type, char *host_name, time_t entry_time, char *a
 
 /* adds a service comment to the list in memory */
 int add_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source){
-	int result;
+	int result=OK;
 
 	result=add_comment(SERVICE_COMMENT,entry_type,host_name,svc_description,entry_time,author,comment_data,comment_id,persistent,expires,expire_time,source);
 
@@ -546,8 +547,8 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 
 /* frees memory allocated for the comment data */
 void free_comment_data(void){
-	comment *this_comment;
-	comment *next_comment;
+	comment *this_comment=NULL;
+	comment *next_comment=NULL;
 
 	/* free memory for the comment list */
 	for(this_comment=comment_list;this_comment!=NULL;this_comment=next_comment){
@@ -576,7 +577,7 @@ void free_comment_data(void){
 
 /* get the number of comments associated with a particular host */
 int number_of_host_comments(char *host_name){
-	comment *temp_comment;
+	comment *temp_comment=NULL;
 	int total_comments=0;
 
 	if(host_name==NULL)
@@ -593,7 +594,7 @@ int number_of_host_comments(char *host_name){
 
 /* get the number of comments associated with a particular service */
 int number_of_service_comments(char *host_name, char *svc_description){
-	comment *temp_comment;
+	comment *temp_comment=NULL;
 	int total_comments=0;
 
 	if(host_name==NULL || svc_description==NULL)
@@ -660,7 +661,7 @@ comment *find_host_comment(unsigned long comment_id){
 
 /* find a comment by id */
 comment *find_comment(unsigned long comment_id, int comment_type){
-	comment *temp_comment;
+	comment *temp_comment=NULL;
 
 	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=temp_comment->next){
 		if(temp_comment->comment_id==comment_id && temp_comment->comment_type==comment_type)

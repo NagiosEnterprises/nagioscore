@@ -2,8 +2,8 @@
  *
  * NEBCALLBACKS.H - Include file for event broker modules
  *
- * Copyright (c) 2002-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-16-2005
+ * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   10-09-2006
  *
  * License:
  *
@@ -74,8 +74,9 @@
 
 /***** CALLBACK FUNCTIONS *****/
 
-int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *));
-int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *));
+int neb_register_callback(int, void *, int, int (*callback_func)(int,void *));
+int neb_deregister_callback(int, int (*callback_func)(int,void *));
+int neb_deregister_module_callbacks(nebmodule *);
 
 #ifdef __cplusplus
 }

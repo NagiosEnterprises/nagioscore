@@ -56,6 +56,7 @@ Pre-alpha changes since 02/15/2006...
      - Added $HOSTDISPLAYNAME$ and $SERVICEDISPLAYNAME$ macros
      - Custom host/service/contact macros accessible via $_HOST<varname>$, $_SERVICE<varname>, or $_CONTACT<varname>$.
        On-demand host/service macros for custom vars are working.  Custom vars are also set as environment vars.
+     - On-demand service macros can contain and empty host name field.  In this case, the name of the current host will be used.
 
 * Flapping changes:
      - Added flap_detection_options directive to host and service definitions to control which

@@ -926,6 +926,7 @@ int grab_on_demand_macro(char *str){
 	servicegroup *temp_servicegroup=NULL;
 	servicegroupmember *temp_servicegroupmember=NULL;
 	char *ptr=NULL;
+	char *host_name=NULL;
 	int return_val=ERROR;
 
 #ifdef DEBUG0
@@ -935,15 +936,16 @@ int grab_on_demand_macro(char *str){
 	/* clear the on-demand macro */
 	my_free((void **)&macro_ondemand);
 
-	/* get the first argument */
+	/* save a copy of the macro */
 	if((macro=(char *)strdup(str))==NULL)
 		return ERROR;
 
-	/* get the host name */
+	/* get the first argument (host name) */
 	if((ptr=strchr(macro,':'))==NULL){
 		my_free((void **)&macro);
 		return ERROR;
 	        }
+
 	/* terminate the macro name at the first arg's delimiter */
 	ptr[0]='\x0';
 	first_arg=ptr+1;
@@ -1024,8 +1026,14 @@ int grab_on_demand_macro(char *str){
 			return ERROR;
 	                }
 
+		/* if first arg (host name) is blank, it means refer to the "current" host, so look to other macros for help... */
+		if(!strcmp(first_arg,""))
+			host_name=macro_x[MACRO_HOSTNAME];
+		else
+			host_name=first_arg;
+
 		/* process a service macro */
-		temp_service=find_service(first_arg, second_arg);
+		temp_service=find_service(host_name,second_arg);
 		if(temp_service!=NULL)
 			return_val=grab_on_demand_service_macro(temp_service,macro);
 

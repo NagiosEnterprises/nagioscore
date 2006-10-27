@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2006
+ * Last Modified:   10-27-2006
  *
  * License:
  *
@@ -4402,8 +4402,8 @@ mmapfile *mmap_fopen(char *filename){
 		return NULL;
 	        }
 
-	/* mmap() the file */
-	if((mmap_buf=(void *)mmap(0,statbuf.st_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
+	/* mmap() the file  - allocate one extra byte for processing zero-byte files */
+	if((mmap_buf=(void *)mmap(0,statbuf.st_size+1,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
 		close(fd);
 		free(new_mmapfile);
 		return NULL;

@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-02-2006
+ * Last Modified: 10-26-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -193,7 +193,7 @@ extern "C" {
 
 #define DEFAULT_AGGRESSIVE_HOST_CHECKING	0	/* don't use "aggressive" host checking */
 #define DEFAULT_CHECK_EXTERNAL_COMMANDS		0 	/* don't check for external commands */
-#define DEFAULT_CHECK_ORPHANED_SERVICES		0	/* don't check for orphaned services */
+#define DEFAULT_CHECK_ORPHANED_SERVICES		1	/* don't check for orphaned services */
 #define DEFAULT_ENABLE_FLAP_DETECTION           0       /* don't enable flap detection */
 #define DEFAULT_PROCESS_PERFORMANCE_DATA        0       /* don't process performance data */
 #define DEFAULT_CHECK_SERVICE_FRESHNESS         1       /* check service result freshness */

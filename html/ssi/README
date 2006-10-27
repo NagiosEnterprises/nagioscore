@@ -1,0 +1,47 @@
+==========================
+NAGIOS CGI SSI FILE README
+==========================
+
+This folder may contain optional header and footer files that will 
+be added to the CGI HTML output.  The files you put can contain server
+side include (SSI) statements.
+
+There are two types of header and footer files - common headers/footers
+and CGI-specific headers/footers.  Common header/footer files (if present)
+will be included in the output of ALL CGIs.  CGI-specific header/footer
+files (if present) will be included in the output of the CGI they are 
+intended for.  
+
+The order in which headers/footers are included with regards to the CGI
+output and each other is shown below:
+
+1. COMMON HEADER
+2. CGI-SPECIFIC HEADER
+3. CGI OUTPUT
+4. CGI-SPECIFIC FOOTER
+5. COMMON FOOTER
+
+The header/footer files you create must be named exactly as shown below
+in order to be included in the CGI output:
+
+Common headers/footers:
+
+	common-header.ssi
+	common-footer.ssi
+
+CGI-specific header/footers:
+	<cginame>-header.ssi
+	<cginame>-footer.ssi
+
+
+Some examples of CGI-specific header/footer file names are shown below:
+
+	tac-header.ssi
+	tac-footer.ssi
+	status-header.ssi
+	status-footer.ssi
+	avail-header.ssi
+	avail-footer.ssi
+	notifications-header.ssi
+	notifications-footer.ssi
+

@@ -2383,7 +2383,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
         pid_t pid=0;
 	int status=0;
 	int result=0;
-	char buffer[MAX_INPUT_BUFFER]="";
+	char buffer1[MAX_INPUT_BUFFER]="";
 	char *temp_buffer=NULL;
 	int fd[2];
 	FILE *fp=NULL;
@@ -2420,25 +2420,27 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 #ifdef EMBEDDEDPERL
 
+	/* have "filename" component of command */
 	strncpy(fname,cmd,strcspn(cmd," "));
 	fname[strcspn(cmd," ")] = '\x0';
 
-	/* have "filename" component of command. Check for PERL */
+	isperl=FALSE;
+	strcpy(buffer,"");
+
+	/* open the file, check if its a Perl plugin and see if we can use epn  */
 	fp=fopen(fname,"r");
 	if(fp==NULL)
-		strcpy(buffer,"");
 	else{
 		fgets(buffer,80,fp);
 		fclose(fp);
 	        }
 
-	isperl=FALSE;
 
 	if(strstr(buffer,"/bin/perl")!=NULL){
 
-		isperl = TRUE;
-		args[0] = fname;
-		args[2] = "";
+		isperl=TRUE;
+		args[0]=fname;
+		args[2]="";
 
 		if(strchr(cmd,' ')==NULL)
 			args[3]="";
@@ -2462,32 +2464,30 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		SPAGAIN;
 
-		if ( SvTRUE(ERRSV) ) {
-							/*
-							 * XXXX need pipe open to send the compilation failure message back to Nag ?
-							 */
+		if( SvTRUE(ERRSV) ){
+			/*
+			 * XXXX need pipe open to send the compilation failure message back to Nag ?
+			 */
 			(void) POPs ;
 
 			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
 #ifdef DEBUG1
-			printf("embedded perl failed to  compile %s, compile error %s\n",fname,buffer);
+			printf("embedded perl failed to compile %s, compile error %s\n",fname,buffer);
 #endif
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 
 			return STATE_UNKNOWN;
-
 			}
 		else{
 			plugin_hndlr_cr=newSVsv(POPs);
 #ifdef DEBUG1
-			printf("embedded perl successfully compiled  %s and returned plugin handler (Perl subroutine code ref)\n",fname);
+			printf("embedded perl successfully compiled %s and returned plugin handler (Perl subroutine code ref)\n",fname);
 #endif
 
 			PUTBACK ;
 			FREETMPS ;
 			LEAVE ;
-
 			}
 		}
 #endif 
@@ -2573,7 +2573,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 			perl_output=POPpx ;
 			strip(perl_output);
-			strncpy(buffer, perl_output, sizeof(buffer));
+			strncpy(buffer,perl_output,sizeof(buffer));
 			buffer[sizeof(buffer)-1]='\x0';
 			status=POPi ;
 
@@ -2582,7 +2582,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			LEAVE;                                    
 
 #ifdef DEBUG0
-			printf("embedded perl ran command %s with output %d, %s\n",fname, status, buffer);
+			printf("embedded perl ran command %s with output %d, %s\n",fname,status,buffer);
 #endif
 
 			/* write the output back to the parent process */

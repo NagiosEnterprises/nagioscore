@@ -4653,8 +4653,8 @@ mmapfile *mmap_fopen(char *filename){
 		return NULL;
 	        }
 
-	/* mmap() the file */
-	if((mmap_buf=(void *)mmap(0,statbuf.st_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
+	/* mmap() the file - allocate one extra byte for processing zero-byte files */
+	if((mmap_buf=(void *)mmap(0,statbuf.st_size+1,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
 		close(fd);
 		my_free((void **)&new_mmapfile);
 		return NULL;

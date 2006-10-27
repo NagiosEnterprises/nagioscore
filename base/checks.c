@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-30-2006
+ * Last Modified:   10-27-2006
  *
  * License:
  *
@@ -265,11 +265,12 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	double old_latency=0.0;
 #ifdef EMBEDDEDPERL
 	char fname[512];
-	char *args[5] = {"",DO_CLEAN, "", "", NULL };
-	char *perl_plugin_output ;
-	int isperl;
+	char *args[5]={"",DO_CLEAN, "", "", NULL };
+	char *perl_plugin_output;
 	SV *plugin_hndlr_cr;
 	STRLEN n_a ;
+	int count ;
+	int use_epn=FALSE;
 #ifdef aTHX
 	dTHX;
 #endif
@@ -368,25 +369,19 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	svc->latency=old_latency;
 
 #ifdef EMBEDDEDPERL
+
+	/* get"filename" component of command */
 	strncpy(fname,processed_command,strcspn(processed_command," "));
-	fname[strcspn(processed_command," ")] = '\x0';
+	fname[strcspn(processed_command," ")]='\x0';
 
-	/* have "filename" component of command. Check for PERL */
-	fp=fopen(fname, "r");
-	if(fp==NULL)
-		strcpy(raw_command,"");
-	else{
-		fgets(raw_command,80,fp);
-		fclose(fp);
-	        }
+	/* should we use the embedded Perl interpreter to run this script? */
+	use_epn=file_uses_embedded_perl(fname);
 
-	isperl=FALSE;
+	/* if yes, do some initialization */
+	if(use_epn==TRUE){
 
-	if(strstr(raw_command,"/bin/perl")!=NULL){
-
-		isperl = TRUE;
-		args[0] = fname;
-		args[2] = "";
+		args[0]=fname;
+		args[2]="";
 
 		if(strchr(processed_command,' ')==NULL)
 			args[3]="";
@@ -408,7 +403,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 		SPAGAIN ;
 
-		if ( SvTRUE(ERRSV) ) {
+		if( SvTRUE(ERRSV) ){
 
 			/*
 			 * if SvTRUE(ERRSV)
@@ -447,8 +442,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* free check result memory */
 			free_check_result(&check_result_info);
 
-			return ;
-
+			return;
 			}
 		else{
 
@@ -461,8 +455,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			PUTBACK ;
 			FREETMPS ;
 			LEAVE ;
-
-
 			}
 		}
 #endif
@@ -511,9 +503,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 			/******** BEGIN EMBEDDED PERL INTERPRETER EXECUTION ********/
 #ifdef EMBEDDEDPERL
-			if(isperl){
-
-				int count ;
+			if(use_epn==TRUE){
 
 				/* execute our previously compiled script - from call_pv("Embed::Persistent::eval_file",..) */
 				/* NB. args[2] is _now_ a code ref (to the Perl subroutine corresp to the plugin) returned by eval_file() */
@@ -574,10 +564,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				/* return with plugin exit status - not really necessary... */
 				_exit(pclose_result);
 			        }
-			
-			/* Not a perl command. Use popen...  */
 #endif
 			/******** END EMBEDDED PERL INTERPRETER EXECUTION ********/
+
      
 			/* run the plugin check command */
 			fp=popen(processed_command,"r");

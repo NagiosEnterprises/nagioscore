@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-09-2006
+ * Last Modified:   10-27-2006
  *
  * License:
  *
@@ -35,7 +35,7 @@
 
 #ifdef EMBEDDEDPERL
 #include "../include/epn_nagios.h"
-static PerlInterpreter *my_perl = NULL;
+static PerlInterpreter *my_perl=NULL;
 int use_embedded_perl=TRUE;
 #endif
 
@@ -194,6 +194,9 @@ extern double   low_host_flap_threshold;
 extern double   high_host_flap_threshold;
 
 extern int      use_large_installation_tweaks;
+
+extern int      enable_embedded_perl;
+extern int      use_embedded_perl_implicitly;
 
 extern int      date_format;
 
@@ -2383,7 +2386,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
         pid_t pid=0;
 	int status=0;
 	int result=0;
-	char buffer1[MAX_INPUT_BUFFER]="";
+	char buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer=NULL;
 	int fd[2];
 	FILE *fp=NULL;
@@ -2393,10 +2396,12 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 	int dbuf_chunk=1024;
 #ifdef EMBEDDEDPERL
 	char fname[512];
-	char *args[5] = {"",DO_CLEAN, "", "", NULL };
-	int isperl;
+	char *args[5]={"",DO_CLEAN, "", "", NULL };
 	SV *plugin_hndlr_cr;
 	STRLEN n_a ;
+	char *perl_output;
+	int count;
+	int use_epn=FALSE;
 #ifdef aTHX
 	dTHX;
 #endif
@@ -2420,25 +2425,16 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 #ifdef EMBEDDEDPERL
 
-	/* have "filename" component of command */
+	/* get"filename" component of command */
 	strncpy(fname,cmd,strcspn(cmd," "));
-	fname[strcspn(cmd," ")] = '\x0';
+	fname[strcspn(cmd," ")]='\x0';
 
-	isperl=FALSE;
-	strcpy(buffer,"");
+	/* should we use the embedded Perl interpreter to run this script? */
+	use_epn=file_uses_embedded_perl(fname);
 
-	/* open the file, check if its a Perl plugin and see if we can use epn  */
-	fp=fopen(fname,"r");
-	if(fp==NULL)
-	else{
-		fgets(buffer,80,fp);
-		fclose(fp);
-	        }
+	/* if yes, do some initialization */
+	if(use_epn==TRUE){
 
-
-	if(strstr(buffer,"/bin/perl")!=NULL){
-
-		isperl=TRUE;
 		args[0]=fname;
 		args[2]="";
 
@@ -2466,13 +2462,13 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		if( SvTRUE(ERRSV) ){
 			/*
-			 * XXXX need pipe open to send the compilation failure message back to Nag ?
+			 * XXXX need pipe open to send the compilation failure message back to Nagios ?
 			 */
 			(void) POPs ;
 
 			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
 #ifdef DEBUG1
-			printf("embedded perl failed to compile %s, compile error %s\n",fname,buffer);
+			printf("embedded perl failed to compile %s, compile error %s\n",fname,temp_buffer);
 #endif
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
@@ -2549,10 +2545,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		/******** BEGIN EMBEDDED PERL CODE EXECUTION ********/
 
 #ifdef EMBEDDEDPERL
-		if(isperl){
-
-			char *perl_output ;
-			int count ;
+		if(use_epn==TRUE){
 
 			/* execute our previously compiled script - by call_pv("Embed::Persistent::eval_file",..) */
 			ENTER;
@@ -2596,10 +2589,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 			_exit(status);
 		        }
-
-		/* Not a perl command. Use popen... */
 #endif  
-
 		/******** END EMBEDDED PERL CODE EXECUTION ********/
 
 
@@ -4945,6 +4935,58 @@ int deinit_embedded_perl(void){
         }
 
 
+/* checks to see if we should run a script using the embedded Perl interpreter */
+int file_uses_embedded_perl(char *fname){
+	int use_epn=FALSE;
+#ifdef EMBEDDEDPERL
+	FILE *fp=NULL;
+	char line1[80]="";
+	char line2[80]="";
+	int is_perl=FALSE;
+	int use_epn=FALSE;
+	int found_epn_directive=FALSE;
+
+	if(enable_embedded_perl==TRUE){
+
+		/* open the file, check if its a Perl script and see if we can use epn  */
+		fp=fopen(fname,"r");
+		if(fp!=NULL){
+
+			/* grab the first line - we should see Perl */
+			fgets(line1,80,fp);
+
+			/* yep, its a Perl script... */
+			if(strstr(line1,"/bin/perl")!=NULL){
+
+				isperl=TRUE;
+
+				/* second line MAY tell us explicity whether or not to use embedded Perl */
+				if(fgets(line2,80,fp)){
+					if(strstr(buffer,"#USE_EPN")==buffer){
+						use_epn=TRUE;
+						found_epn_directive=TRUE;
+						}
+					else if(strstr(buffer,"#NO_EPN")==buffer){
+						use_epn=FALSE;
+						found_epn_directive=TRUE;
+						}
+					}
+
+				/* if the plugin didn't tell us whether or not to use embedded Perl, use implicit value */
+				if(found_epn_directive==FALSE)
+					use_epn=(use_embedded_perl_implicitly==TRUE)?TRUE:FALSE;
+				}
+
+			fclose(fp);
+			}
+		}
+#endif
+
+	return use_epn;
+	}
+
+
+
 
 
 /******************************************************************/
@@ -5889,6 +5931,9 @@ int reset_variables(void){
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
 
 	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
+
+        enable_embedded_perl=DEFAULT_ENABLE_EMBEDDED_PERL;
+	use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
 
 	date_format=DATE_FORMAT_US;
 

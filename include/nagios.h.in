@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-30-2006
+ * Last Modified: 10-27-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -228,6 +228,9 @@ extern "C" {
 #define DEFAULT_USE_LARGE_INSTALLATION_TWEAKS                   0       /* don't use tweaks for large Nagios installations */
 
 #define DEFAULT_USE_OLD_HOST_CHECK_LOGIC			0	/* use new (Nagios 3.x) host check logic */
+
+#define DEFAULT_ENABLE_EMBEDDED_PERL                            1       /* enable embedded Perl interpreter (if compiled in) */
+#define DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY                    1       /* by default, embedded Perl is used for Perl plugins that don't explicitly disable it */
 
 
 
@@ -710,6 +713,7 @@ void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
 int init_embedded_perl(char **);			/* initialized embedded perl interpreter */
 int deinit_embedded_perl(void);				/* cleans up embedded perl */
+int file_uses_embedded_perl(char *);			/* tests whether or not the embedded perl interpreter should be used on a file */
 int dbuf_init(dbuf *,int);
 int dbuf_free(dbuf *);
 int dbuf_strcat(dbuf *,char *);

@@ -213,6 +213,10 @@ double          high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 int             use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 
+int             enable_embedded_perl=DEFAULT_ENABLE_EMBEDDED_PERL;
+int             use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
+int             embedded_perl_initialized=FALSE;
+
 int             date_format=DATE_FORMAT_US;
 
 int             command_file_fd;
@@ -666,12 +670,15 @@ int main(int argc, char **argv){
 			        }
 
 			/* initialize embedded Perl interpreter */
-			if(sigrestart==FALSE){
+			if(embedded_perl_initialized==FALSE){
+				if(enable_embedded_perl==TRUE){
 #ifdef EMBEDDEDPERL
-				init_embedded_perl(env);
+					init_embedded_perl(env);
 #else
-				init_embedded_perl(NULL);
+					init_embedded_perl(NULL);
 #endif
+					embedded_perl_initialized=TRUE;
+					}
 			        }
 
 		        /* handle signals (interrupts) */

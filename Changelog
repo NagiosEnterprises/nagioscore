@@ -106,6 +106,14 @@ Pre-alpha changes since 02/15/2006...
      - Modified adaptive program status callback
      - Added adaptive contact status callback
 
+* Embedded Perl changes:
+     - Added 'enable_embedded_perl' option to main config file to control whether epn is enabled/disabled
+     - Added support for perl plugins to specify whether or not they should be run under the epn...  The
+       second line of a perl plugin may start with '#USE_EPN' or '#NO_EPN' to explicity indicate that it
+       should be run under the epn.
+     - Added 'use_embedded_perl_implicitly' option to main config file to determine whether or not perl
+       plugins will use the epn if they don't explicitly allow/disalow it
+
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions

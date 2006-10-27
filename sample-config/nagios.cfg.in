@@ -197,7 +197,6 @@ temp_file=@localstatedir@/nagios.tmp
 
 
 
-
 # TEMP PATH
 # This is path where Nagios can create temp files for service check
 # results, etc.
@@ -228,7 +227,6 @@ event_broker_options=-1
 
 #broker_module=/somewhere/module1.o
 #broker_module=/somewhere/module2.o arg1 arg2=3 debug=0
-
 
 
 
@@ -518,7 +516,6 @@ auto_rescheduling_interval=30
 
 
 
-
 # AUTO-RESCHEDULING WINDOW
 # This option determines the "window" of time (in seconds) that
 # Nagios will look at when automatically rescheduling checks.
@@ -752,7 +749,6 @@ process_performance_data=0
 
 
 
-
 # HOST AND SERVICE PERFORMANCE DATA FILE MODES
 # This option determines whether or not the host and service
 # performance data files are opened in write ("w") or append ("a")
@@ -942,6 +938,28 @@ p1_file=@bindir@/p1.pl
 
 
 
+# EMBEDDED PERL INTERPRETER OPTION
+# This option determines whether or not the embedded Perl interpreter
+# will be enabled during runtime.  This option has no effect if Nagios
+# has not been compiled with support for embedded Perl.
+# Values: 0 = disable interpreter, 1 = enable interpreter
+
+enable_embedded_perl=1
+
+
+
+# EMBEDDED PERL USAGE OPTION
+# This option determines whether or not Nagios will process Perl plugins
+# and scripts with the embedded Perl interpreter if the plugins/scripts
+# do not explicitly indicate whether or not it is okay to do so.  The
+# second line of Perl plugins/scripts can optionally start with either
+# '#USE_EPN' or '#NO_EPN' (without quotes) to explicitly tell Nagios whether
+# or not to run them with the embedded Perl interpreter.
+
+use_embedded_perl_implicitly=1
+
+
+
 # ILLEGAL OBJECT NAME CHARACTERS
 # This option allows you to specify illegal characters that cannot
 # be used in host names, service descriptions, or names of other
@@ -995,7 +1013,6 @@ use_true_regexp_matching=0
 
 
 
-
 # ADMINISTRATOR EMAIL/PAGER ADDRESSES
 # The email and pager address of a global administrator (likely you).
 # Nagios never uses these values itself, but you can access them by
@@ -1004,7 +1021,6 @@ use_true_regexp_matching=0
 
 admin_email=@nagios_user@
 admin_pager=page@nagios_user@
-
 
 
 

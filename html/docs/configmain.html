@@ -2567,18 +2567,18 @@ This option allows you to specify the command that should be executed to process
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>check_for_orphaned_services=0</strong></font></td>
+<td><font color="red"><strong>check_for_orphaned_services=1</strong></font></td>
 </tr>
 </table>
 </p>
 
 <p>
-This option allows you to enable or disable checks for orphaned service checks. Orphaned service checks are checks which ahve been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the service, it is not rescheduled in the event queue.  This can cause service checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a service check.  If this option is enabled and Nagios finds that results for a particular service check have not come back, it will log an error message and reschedule the service check.  If you start seeing service checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned services.
+This option allows you to enable or disable checks for orphaned service checks. Orphaned service checks are checks which have been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the service, it is not rescheduled in the event queue.  This can cause service checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a service check.  If this option is enabled and Nagios finds that results for a particular service check have not come back, it will log an error message and reschedule the service check.  If you start seeing service checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned services.
 </p>
 <p>
 <ul>
-<li>0 = Don't check for orphaned service checks (default)
-<li>1 = Check for orphaned service checks
+<li>0 = Don't check for orphaned service checks
+<li>1 = Check for orphaned service checks (default)
 </ul>
 </p>
 

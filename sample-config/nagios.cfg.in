@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 09-30-2006
+# Last Modified: 10-26-2006
 #
 ##############################################################################
 
@@ -809,18 +809,21 @@ obsess_over_services=0
 
 
 
-# ORPHANED SERVICE CHECK OPTION
-# This determines whether or not Nagios will periodically 
-# check for orphaned services.  Since service checks are not
-# rescheduled until the results of their previous execution 
+# ORPHANED HOST/SERVICE CHECK OPTIONS
+# These options determine whether or not Nagios will periodically 
+# check for orphaned host service checks.  Since service checks are
+# not rescheduled until the results of their previous execution 
 # instance are processed, there exists a possibility that some
-# checks may never get rescheduled.  This seems to be a rare
+# checks may never get rescheduled.  A similar situation exists for
+# host checks, although the exact scheduling details differ a bit
+# from service checks.  Orphaned checks seem to be a rare
 # problem and should not happen under normal circumstances.
 # If you have problems with service checks never getting
-# rescheduled, you might want to try enabling this option.
+# rescheduled, make sure you have orphaned service checks enabled.
 # Values: 1 = enable checks, 0 = disable checks
 
-check_for_orphaned_services=0
+check_for_orphaned_services=1
+check_for_orphaned_hosts=1
 
 
 
@@ -993,23 +996,15 @@ use_true_regexp_matching=0
 
 
 
-# ADMINISTRATOR EMAIL ADDRESS
-# The email address of the administrator of *this* machine (the one
-# doing the monitoring).  Nagios never uses this value itself, but
-# you can access this value by using the $ADMINEMAIL$ macro in your
-# notification commands.
-
-admin_email=@nagios_user@
-
-
-
-# ADMINISTRATOR PAGER NUMBER/ADDRESS
-# The pager number/address for the administrator of *this* machine.
-# Nagios never uses this value itself, but you can access this
-# value by using the $ADMINPAGER$ macro in your notification
+# ADMINISTRATOR EMAIL/PAGER ADDRESSES
+# The email and pager address of a global administrator (likely you).
+# Nagios never uses these values itself, but you can access them by
+# using the $ADMINEMAIL$ and $ADMINPAGER$ macros in your notification
 # commands.
 
+admin_email=@nagios_user@
 admin_pager=page@nagios_user@
+
 
 
 
@@ -1017,7 +1012,8 @@ admin_pager=page@nagios_user@
 # This option determines whether or not Nagios is allowed to create
 # a core dump when it runs as a daemon.  Note that it is generally
 # considered bad form to allow this, but it may be useful for
-# debugging purposes.
+# debugging purposes.  Enabling this option doesn't guarantee that
+# a core file will be produced, but that's just life...
 # Values: 1 - Allow core dumps
 #         0 - Do not allow core dumps (default)
 

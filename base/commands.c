@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-25-2006
+ * Last Modified:   10-26-2006
  *
  * License:
  *
@@ -682,6 +682,16 @@ int process_external_command1(char *cmd){
 		command_type=CMD_PROCESS_FILE;
 
 	
+
+	/****************************/
+	/****** CUSTOM COMMANDS *****/
+	/****************************/
+
+	else if(command_id[0]=='_')
+		command_type=CMD_CUSTOM_COMMAND;
+
+
+
 	/**** UNKNOWN COMMAND ****/
 	else{
 		/* log the bad external command */
@@ -1099,6 +1109,16 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 
 	case CMD_PROCESS_FILE:
 		cmd_process_external_commands_from_file(cmd,args);
+		break;
+
+
+		/*************************/
+		/**** CUSTOM COMMANDS ****/
+		/*************************/
+
+
+	case CMD_CUSTOM_COMMAND:
+		/* custom commands aren't handled internally by Nagios, but may be by NEB modules */
 		break;
 
 	default:

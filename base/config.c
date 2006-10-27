@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2006
+ * Last Modified: 10-26-2006
  *
  * License:
  *
@@ -48,9 +48,13 @@ extern char     *macro_user[MAX_USER_MACROS];
 
 extern char     *global_host_event_handler;
 extern char     *global_service_event_handler;
+extern command  *global_host_event_handler_ptr;
+extern command  *global_service_event_handler_ptr;
 
 extern char     *ocsp_command;
 extern char     *ochp_command;
+extern command  *ocsp_command_ptr;
+extern command  *ochp_command_ptr;
 
 extern char     *illegal_object_chars;
 extern char     *illegal_output_chars;
@@ -1742,6 +1746,9 @@ int pre_flight_check(void){
 			errors++;
 		        }
 
+		/* save the pointer to the command for later */
+		global_host_event_handler_ptr=temp_command;
+
 		my_free((void **)&buf);
 	        }
 	if(global_service_event_handler!=NULL){
@@ -1759,6 +1766,9 @@ int pre_flight_check(void){
 			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		/* save the pointer to the command for later */
+		global_service_event_handler_ptr=temp_command;
 
 		my_free((void **)&buf);
 	        }
@@ -1787,6 +1797,9 @@ int pre_flight_check(void){
 			errors++;
 		        }
 
+		/* save the pointer to the command for later */
+		ocsp_command_ptr=temp_command;
+
 		my_free((void **)&buf);
 	        }
 	if(ochp_command!=NULL){
@@ -1803,6 +1816,9 @@ int pre_flight_check(void){
 			my_free((void **)&temp_buffer);
 			errors++;
 		        }
+
+		/* save the pointer to the command for later */
+		ochp_command_ptr=temp_command;
 
 		my_free((void **)&buf);
 	        }

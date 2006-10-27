@@ -69,6 +69,8 @@ Pre-alpha changes since 02/15/2006...
 * External command changes:
      - Added PROCESS_FILE external command to allow processing of external commands found in
        an external (regular) file.  Very useful for passive checks with long output or scripting.
+     - Custom commands can now be submitted to Nagios.  Custom command names are prefixed with an underscore
+       and are not processed internally by the Nagios daemon.  They may, however, be processed by NEB modules.
 
 * Status data changes:
      - Contact status information is now saved (although it is not processed by the old CGIs)

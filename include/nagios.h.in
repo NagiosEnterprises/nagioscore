@@ -203,7 +203,7 @@ extern "C" {
 #define DEFAULT_LOG_PASSIVE_CHECKS				1	/* log passive service checks */
 
 #define DEFAULT_AGGRESSIVE_HOST_CHECKING			0	/* don't use "aggressive" host checking */
-#define DEFAULT_CHECK_EXTERNAL_COMMANDS				0 	/* don't check for external commands */
+#define DEFAULT_CHECK_EXTERNAL_COMMANDS				1 	/* check for external commands */
 #define DEFAULT_CHECK_ORPHANED_SERVICES				1	/* check for orphaned services */
 #define DEFAULT_CHECK_ORPHANED_HOSTS            		1       /* check for orphaned hosts */
 #define DEFAULT_ENABLE_FLAP_DETECTION           		0       /* don't enable flap detection */

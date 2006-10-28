@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 10-26-2006
+# Last Modified: 10-27-2006
 #
 ##############################################################################
 
@@ -141,10 +141,10 @@ nagios_group=@nagios_grp@
 # for external commands (in the command file defined below).  By default
 # Nagios will *not* check for external commands, just to be on the
 # cautious side.  If you want to be able to use the CGI command interface
-# you will have to enable this.  Setting this value to 0 disables command
-# checking (the default), other values enable it.
+# you will have to enable this.
+# Values: 0 = disable commands, 1 = enable commands
 
-check_external_commands=0
+check_external_commands=1
 
 
 

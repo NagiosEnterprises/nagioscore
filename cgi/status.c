@@ -4523,3 +4523,335 @@ void show_filters(void){
 
 	return;
         }
+
+
+
+void get_service_states_by_host(char *host){
+	servicestatus *temp_servicestatus;
+	service *temp_service;
+	hoststatus *temp_hoststatus;
+	host *temp_host;
+	int problem=TRUE;
+
+
+	/* check all services */
+	for(temp_servicestatus=servicestatus_list;temp_servicestatus!=NULL;temp_servicestatus=temp_servicestatus->next){
+
+		/* make sure this service is for this host */
+		if(strcmp(temp_servicestatus->host_name,host->name))
+			continue;
+
+		/* see if user is authorized to view this service */
+		temp_service=find_service(temp_servicestatus->host_name,temp_servicestatus->description);
+		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
+			continue;
+
+		/******** CHECK FEATURES *******/
+
+		/* check flapping */
+		if(temp_servicestatus->flap_detection_enabled==FALSE)
+			flap_disabled_services++;
+		else if(temp_servicestatus->is_flapping==TRUE)
+			flapping_services++;
+
+		/* check notifications */
+		if(temp_servicestatus->notifications_enabled==FALSE)
+			notification_disabled_services++;
+
+		/* check event handler */
+		if(temp_servicestatus->event_handler_enabled==FALSE)
+			event_handler_disabled_services++;
+
+		/* active check execution */
+		if(temp_servicestatus->checks_enabled==FALSE)
+			active_checks_disabled_services++;
+
+		/* passive check acceptance */
+		if(temp_servicestatus->accept_passive_service_checks==FALSE)
+			passive_checks_disabled_services++;
+
+
+		/********* CHECK STATUS ********/
+
+		problem=TRUE;
+
+		if(temp_servicestatus->status==SERVICE_OK){
+			if(temp_servicestatus->checks_enabled==FALSE)
+				services_ok_disabled++;
+			else
+				services_ok_unacknowledged++;
+			services_ok++;
+		        }
+
+		else if(temp_servicestatus->status==SERVICE_WARNING){
+			temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+			if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)){
+				services_warning_host_problem++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->scheduled_downtime_depth>0){
+				services_warning_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->problem_has_been_acknowledged==TRUE){
+				services_warning_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->checks_enabled==FALSE){
+				services_warning_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				services_warning_unacknowledged++;
+			services_warning++;
+		        }
+
+		else if(temp_servicestatus->status==SERVICE_UNKNOWN){
+			temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+			if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)){
+				services_unknown_host_problem++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->scheduled_downtime_depth>0){
+				services_unknown_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->problem_has_been_acknowledged==TRUE){
+				services_unknown_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->checks_enabled==FALSE){
+				services_unknown_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				services_unknown_unacknowledged++;
+			services_unknown++;
+		        }
+
+		else if(temp_servicestatus->status==SERVICE_CRITICAL){
+			temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+			if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)){
+				services_critical_host_problem++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->scheduled_downtime_depth>0){
+				services_critical_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->problem_has_been_acknowledged==TRUE){
+				services_critical_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->checks_enabled==FALSE){
+				services_critical_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				services_critical_unacknowledged++;
+			services_critical++;
+		        }
+
+		else if(temp_servicestatus->status==SERVICE_PENDING){
+			if(temp_servicestatus->checks_enabled==FALSE)
+				services_pending_disabled++;
+			services_pending++;
+		        }
+
+
+		/* get health stats */
+		if(temp_servicestatus->status==SERVICE_OK)
+			total_service_health+=2;
+
+		else if(temp_servicestatus->status==SERVICE_WARNING || temp_servicestatus->status==SERVICE_UNKNOWN)
+			total_service_health++;
+
+		if(temp_servicestatus->status!=SERVICE_PENDING)
+			potential_service_health+=2;
+
+
+		/* calculate execution time and latency stats */
+		if(temp_servicestatus->check_type==SERVICE_CHECK_ACTIVE){
+
+			total_active_service_checks++;
+
+			if(min_service_latency==-1.0 || temp_servicestatus->latency<min_service_latency)
+				min_service_latency=temp_servicestatus->latency;
+			if(max_service_latency==-1.0 || temp_servicestatus->latency>max_service_latency)
+				max_service_latency=temp_servicestatus->latency;
+
+			if(min_service_execution_time==-1.0 || temp_servicestatus->execution_time<min_service_execution_time)
+				min_service_execution_time=temp_servicestatus->execution_time;
+			if(max_service_execution_time==-1.0 || temp_servicestatus->execution_time>max_service_execution_time)
+				max_service_execution_time=temp_servicestatus->execution_time;
+
+			total_service_latency+=temp_servicestatus->latency;
+			total_service_execution_time+=temp_servicestatus->execution_time;
+		        }
+		else
+			total_passive_service_checks++;
+
+
+		total_services++;
+	        }
+
+
+
+	/* check all hosts */
+	for(temp_hoststatus=hoststatus_list;temp_hoststatus!=NULL;temp_hoststatus=temp_hoststatus->next){
+
+		/* see if user is authorized to view this host */
+		temp_host=find_host(temp_hoststatus->host_name);
+		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
+			continue;
+
+		/******** CHECK FEATURES *******/
+
+		/* check flapping */
+		if(temp_hoststatus->flap_detection_enabled==FALSE)
+			flap_disabled_hosts++;
+		else if(temp_hoststatus->is_flapping==TRUE)
+			flapping_hosts++;
+
+		/* check notifications */
+		if(temp_hoststatus->notifications_enabled==FALSE)
+			notification_disabled_hosts++;
+
+		/* check event handler */
+		if(temp_hoststatus->event_handler_enabled==FALSE)
+			event_handler_disabled_hosts++;
+
+		/* active check execution */
+		if(temp_hoststatus->checks_enabled==FALSE)
+			active_checks_disabled_hosts++;
+
+		/* passive check acceptance */
+		if(temp_hoststatus->accept_passive_host_checks==FALSE)
+			passive_checks_disabled_hosts++;
+
+
+		/********* CHECK STATUS ********/
+
+		problem=TRUE;
+
+		if(temp_hoststatus->status==HOST_UP){
+			if(temp_hoststatus->checks_enabled==FALSE)
+				hosts_up_disabled++;
+			else
+				hosts_up_unacknowledged++;
+			hosts_up++;
+		        }
+
+		else if(temp_hoststatus->status==HOST_DOWN){
+			if(temp_hoststatus->scheduled_downtime_depth>0){
+				hosts_down_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->problem_has_been_acknowledged==TRUE){
+				hosts_down_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->checks_enabled==FALSE){
+				hosts_down_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				hosts_down_unacknowledged++;
+			hosts_down++;
+		        }
+
+		else if(temp_hoststatus->status==HOST_UNREACHABLE){
+			if(temp_hoststatus->scheduled_downtime_depth>0){
+				hosts_unreachable_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->problem_has_been_acknowledged==TRUE){
+				hosts_unreachable_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->checks_enabled==FALSE){
+				hosts_unreachable_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				hosts_unreachable_unacknowledged++;
+			hosts_unreachable++;
+		        }
+		
+		else if(temp_hoststatus->status==HOST_PENDING){
+			if(temp_hoststatus->checks_enabled==FALSE)
+				hosts_pending_disabled++;
+			hosts_pending++;
+		        }
+
+		/* get health stats */
+		if(temp_hoststatus->status==HOST_UP)
+			total_host_health++;
+
+		if(temp_hoststatus->status!=HOST_PENDING)
+			potential_host_health++;
+
+		/* check type stats */
+		if(temp_hoststatus->check_type==HOST_CHECK_ACTIVE){
+
+			total_active_host_checks++;
+
+			if(min_host_latency==-1.0 || temp_hoststatus->latency<min_host_latency)
+				min_host_latency=temp_hoststatus->latency;
+			if(max_host_latency==-1.0 || temp_hoststatus->latency>max_host_latency)
+				max_host_latency=temp_hoststatus->latency;
+
+			if(min_host_execution_time==-1.0 || temp_hoststatus->execution_time<min_host_execution_time)
+				min_host_execution_time=temp_hoststatus->execution_time;
+			if(max_host_execution_time==-1.0 || temp_hoststatus->execution_time>max_host_execution_time)
+				max_host_execution_time=temp_hoststatus->execution_time;
+
+			total_host_latency+=temp_hoststatus->latency;
+			total_host_execution_time+=temp_hoststatus->execution_time;
+		        }
+		else
+			total_passive_host_checks++;
+
+		total_hosts++;
+	        }
+
+
+	/* calculate service health */
+	if(potential_service_health==0)
+		percent_service_health=0.0;
+	else
+		percent_service_health=((double)total_service_health/(double)potential_service_health)*100.0;
+
+	/* calculate host health */
+	if(potential_host_health==0)
+		percent_host_health=0.0;
+	else
+		percent_host_health=((double)total_host_health/(double)potential_host_health)*100.0;
+
+	/* calculate service latency */
+	if(total_service_latency==0L)
+		average_service_latency=0.0;
+	else
+		average_service_latency=((double)total_service_latency/(double)total_active_service_checks);
+
+	/* calculate host latency */
+	if(total_host_latency==0L)
+		average_host_latency=0.0;
+	else
+		average_host_latency=((double)total_host_latency/(double)total_active_host_checks);
+
+	/* calculate service execution time */
+	if(total_service_execution_time==0.0)
+		average_service_execution_time=0.0;
+	else
+		average_service_execution_time=((double)total_service_execution_time/(double)total_active_service_checks);
+
+	/* calculate host execution time */
+	if(total_host_execution_time==0.0)
+		average_host_execution_time=0.0;
+	else
+		average_host_execution_time=((double)total_host_execution_time/(double)total_active_host_checks);
+
+	return;
+        }
+

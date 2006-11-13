@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-27-2006
+ * Last Modified:   11-12-2006
  *
  * License:
  *
@@ -4942,8 +4942,6 @@ int file_uses_embedded_perl(char *fname){
 	FILE *fp=NULL;
 	char line1[80]="";
 	char line2[80]="";
-	int is_perl=FALSE;
-	int use_epn=FALSE;
 	int found_epn_directive=FALSE;
 
 	if(enable_embedded_perl==TRUE){
@@ -4958,15 +4956,13 @@ int file_uses_embedded_perl(char *fname){
 			/* yep, its a Perl script... */
 			if(strstr(line1,"/bin/perl")!=NULL){
 
-				isperl=TRUE;
-
 				/* second line MAY tell us explicity whether or not to use embedded Perl */
 				if(fgets(line2,80,fp)){
-					if(strstr(buffer,"#USE_EPN")==buffer){
+					if(strstr(line2,"#USE_EPN")!=NULL){
 						use_epn=TRUE;
 						found_epn_directive=TRUE;
 						}
-					else if(strstr(buffer,"#NO_EPN")==buffer){
+					else if(strstr(line2,"#NO_EPN")!=NULL){
 						use_epn=FALSE;
 						found_epn_directive=TRUE;
 						}

@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2006
+ * Last Modified: 11-12-2006
  *
  * License:
  *
@@ -1561,7 +1561,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata){
 	int result;
 
 	/* read program status */
-	result=read_all_status_data(DEFAULT_CGI_CONFIG_FILE,READ_PROGRAM_STATUS);
+	result=read_all_status_data(get_cgi_config_location(),READ_PROGRAM_STATUS);
 
 	printf("<TABLE CLASS='infoBox' BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
 	printf("<TR><TD CLASS='infoBox'>\n");

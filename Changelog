@@ -116,6 +116,9 @@ Pre-alpha changes since 02/15/2006...
      - Added 'use_embedded_perl_implicitly' option to main config file to determine whether or not perl
        plugins will use the epn if they don't explicitly allow/disalow it
 
+* CGI changes:
+     - Hostgroup and servicegroup summaries now show important/unimportant problem breakdowns like the TAC CGI
+
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-15-2006
+ * Last Modified: 10-16-2006
  *
  * License:
  * 
@@ -447,6 +447,8 @@ int main(void){
 			show_servicegroup_summaries();
 		else if(group_style_type==STYLE_GRID)
 			show_servicegroup_grids();
+		else if(group_style_type==STYLE_HOST_DETAIL)
+			show_host_detail();
 		else
 			show_service_detail();
 	        }
@@ -1762,6 +1764,7 @@ void show_host_detail(void){
 	char *status_bg_class="";
 	hoststatus *temp_status=NULL;
 	hostgroup *temp_hostgroup=NULL;
+	servicegroup *temp_servicegroup=NULL;
 	host *temp_host=NULL;
 	hostsort *temp_hostsort=NULL;
 	int odd=0;
@@ -2372,7 +2375,7 @@ void show_servicegroup_summaries(void){
 	printf("<table border=1 CLASS='status'>\n");
 
 	printf("<TR>\n");
-	printf("<TH CLASS='status'>Service Group</TH><TH CLASS='status'>Host Status Totals</TH><TH CLASS='status'>Service Status Totals</TH>\n");
+	printf("<TH CLASS='status'>Service Group</TH><TH CLASS='status'>Host Status Summary</TH><TH CLASS='status'>Service Status Summary</TH>\n");
 	printf("</TR>\n");
 
 	/* display status summary for all servicegroups */
@@ -2473,18 +2476,27 @@ void show_servicegroup_summary(servicegroup *temp_servicegroup,int odd){
 /* shows host total summary information for a specific servicegroup */
 void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup){
 	servicegroupmember *temp_member;
-	int total_up=0;
-	int total_down=0;
-	int total_unreachable=0;
-	int total_pending=0;
-	hoststatus *temp_hoststatus;
-	host *temp_host;
-	host *last_host;
+	int hosts_up=0;
+	int hosts_down=0;
+	int hosts_unreachable=0;
+	int hosts_pending=0;
+	int hosts_down_scheduled=0;
+	int hosts_down_acknowledged=0;
+	int hosts_down_disabled=0;
+	int hosts_down_unacknowledged=0;
+	int hosts_unreachable_scheduled=0;
+	int hosts_unreachable_acknowledged=0;
+	int hosts_unreachable_disabled=0;
+	int hosts_unreachable_unacknowledged=0;
+	hoststatus *temp_hoststatus=NULL;
+	host *temp_host=NULL;
+	host *last_host=NULL;
+	int problem=FALSE;
 
-	last_host=NULL;
+	/* find all the hosts that belong to the servicegroup */
 	for(temp_member=temp_servicegroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
-		/* find the host */
+		/* find the host... */
 		temp_host=find_host(temp_member->host_name);
 		if(temp_host==NULL)
 			continue;
@@ -2506,34 +2518,126 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup){
 		if(passes_host_properties_filter(temp_hoststatus)==FALSE)
 			continue;
 
+		problem=TRUE;
+
 		if(temp_hoststatus->status==HOST_UP)
-			total_up++;
-		else if(temp_hoststatus->status==HOST_DOWN)
-			total_down++;
-		else if(temp_hoststatus->status==HOST_UNREACHABLE)
-			total_unreachable++;
+			hosts_up++;
+
+		else if(temp_hoststatus->status==HOST_DOWN){
+			if(temp_hoststatus->scheduled_downtime_depth>0){
+				hosts_down_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->problem_has_been_acknowledged==TRUE){
+				hosts_down_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->checks_enabled==FALSE){
+				hosts_down_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				hosts_down_unacknowledged++;
+			hosts_down++;
+		        }
+
+		else if(temp_hoststatus->status==HOST_UNREACHABLE){
+			if(temp_hoststatus->scheduled_downtime_depth>0){
+				hosts_unreachable_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->problem_has_been_acknowledged==TRUE){
+				hosts_unreachable_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_hoststatus->checks_enabled==FALSE){
+				hosts_unreachable_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				hosts_unreachable_unacknowledged++;
+			hosts_unreachable++;
+		        }
+
 		else
-			total_pending++;
+			hosts_pending++;
 
 		last_host=temp_host;
 	        }
 
-	printf("<TABLE BORDER=0>\n");
+	printf("<TABLE BORDER='0'>\n");
 
-	if(total_up>0)
-		printf("<TR><TD CLASS='miniStatusUP'><A HREF='%s?servicegroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UP,host_properties,total_up);
-	if(total_down>0)
-		printf("<TR><TD CLASS='miniStatusDOWN'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,host_properties,total_down);
-	if(total_unreachable>0)
-		printf("<TR><TD CLASS='miniStatusUNREACHABLE'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,host_properties,total_unreachable);
-	if(total_pending>0)
-		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_PENDING,host_properties,total_pending);
+	if(hosts_up>0){
+		printf("<TR>");
+		printf("<TD CLASS='miniStatusUP'><A HREF='%s?servicegroup=%s&style=detail&&hoststatustypes=%d&hostprops=%lu'>%d UP</A></TD>",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UP,host_properties,hosts_up);
+		printf("</TR>\n");
+		}
+
+	if(hosts_down>0){
+		printf("<TR>\n");
+		printf("<TD CLASS='miniStatusDOWN'><TABLE BORDER='0'>\n");
+		printf("<TR>\n");
+
+		printf("<TD CLASS='miniStatusDOWN'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d DOWN</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,host_properties,hosts_down);
+
+		printf("<TD><TABLE BORDER='0'>\n");
+
+		if(hosts_down_unacknowledged>0)
+			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,HOST_NO_SCHEDULED_DOWNTIME|HOST_STATE_UNACKNOWLEDGED|HOST_CHECKS_ENABLED,hosts_down_unacknowledged);
+
+		if(hosts_down_scheduled>0)
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,HOST_SCHEDULED_DOWNTIME,hosts_down_scheduled);
+
+		if(hosts_down_acknowledged>0)
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,HOST_STATE_ACKNOWLEDGED,hosts_down_acknowledged);
+
+		if(hosts_down_disabled>0)
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_DOWN,HOST_CHECKS_DISABLED,hosts_down_disabled);
+
+		printf("</TABLE></TD>\n");
+		
+		printf("</TR>\n");
+		printf("</TABLE></TD>\n");
+		printf("</TR>\n");
+		}
+
+	if(hosts_unreachable>0){
+		printf("<TR>\n");
+		printf("<TD CLASS='miniStatusUNREACHABLE'><TABLE BORDER='0'>\n");
+		printf("<TR>\n");
+
+		printf("<TD CLASS='miniStatusUNREACHABLE'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d UNREACHABLE</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,host_properties,hosts_unreachable);
+
+		printf("<TD><TABLE BORDER='0'>\n");
+
+		if(hosts_unreachable_unacknowledged>0)
+			printf("<tr><td width=100%% class='hostImportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Unhandled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,HOST_NO_SCHEDULED_DOWNTIME|HOST_STATE_UNACKNOWLEDGED|HOST_CHECKS_ENABLED,hosts_unreachable_unacknowledged);
+
+		if(hosts_unreachable_scheduled>0)
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,HOST_SCHEDULED_DOWNTIME,hosts_unreachable_scheduled);
+
+		if(hosts_unreachable_acknowledged>0)
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,HOST_STATE_ACKNOWLEDGED,hosts_unreachable_acknowledged);
+
+		if(hosts_unreachable_disabled>0)
+			printf("<tr><td width=100%% class='hostUnimportantProblem'><a href='%s?servicegroup=%s&style=hostdetail&hoststatustypes=%d&hostprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_UNREACHABLE,HOST_CHECKS_DISABLED,hosts_unreachable_disabled);
+
+		printf("</TABLE></TD>\n");
+		
+		printf("</TR>\n");
+		printf("</TABLE></TD>\n");
+		printf("</TR>\n");
+		}
+
+	if(hosts_pending>0)
+		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?servicegroup=%s&style=detail&hoststatustypes=%d&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),HOST_PENDING,host_properties,hosts_pending);
 
 	printf("</TABLE>\n");
 
-	if((total_up + total_down + total_unreachable + total_pending)==0)
+	if((hosts_up + hosts_down + hosts_unreachable + hosts_pending)==0)
 		printf("No matching hosts");
 
+	return;
 	return;
         }
 
@@ -2541,18 +2645,34 @@ void show_servicegroup_host_totals_summary(servicegroup *temp_servicegroup){
 
 /* shows service total summary information for a specific servicegroup */
 void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup){
-	servicegroupmember *temp_member;
-	int total_ok=0;
-	int total_warning=0;
-	int total_unknown=0;
-	int total_critical=0;
-	int total_pending=0;
-	servicestatus *temp_servicestatus;
-	service *temp_service;
-	hoststatus *temp_hoststatus;
+	int services_ok=0;
+	int services_warning=0;
+	int services_unknown=0;
+	int services_critical=0;
+	int services_pending=0;
+	int services_warning_host_problem=0;
+	int services_warning_scheduled=0;
+	int services_warning_acknowledged=0;
+	int services_warning_disabled=0;
+	int services_warning_unacknowledged=0;
+	int services_unknown_host_problem=0;
+	int services_unknown_scheduled=0;
+	int services_unknown_acknowledged=0;
+	int services_unknown_disabled=0;
+	int services_unknown_unacknowledged=0;
+	int services_critical_host_problem=0;
+	int services_critical_scheduled=0;
+	int services_critical_acknowledged=0;
+	int services_critical_disabled=0;
+	int services_critical_unacknowledged=0;
+	servicegroupmember *temp_member=NULL;
+	servicestatus *temp_servicestatus=NULL;
+	hoststatus *temp_hoststatus=NULL;
+	service *temp_service=NULL;
+	int problem=FALSE;
 
 
-	/* check all services... */
+	/* find all the services that belong to the servicegroup */
 	for(temp_member=temp_servicegroup->members;temp_member!=NULL;temp_member=temp_member->next){
 
 		/* find the service */
@@ -2586,37 +2706,189 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup){
 		if(passes_service_properties_filter(temp_servicestatus)==FALSE)
 			continue;
 
-		if(temp_servicestatus->status==SERVICE_CRITICAL)
-			total_critical++;
-		else if(temp_servicestatus->status==SERVICE_WARNING)
-			total_warning++;
-		else if(temp_servicestatus->status==SERVICE_UNKNOWN)
-			total_unknown++;
-		else if(temp_servicestatus->status==SERVICE_OK)
-			total_ok++;
+		problem=TRUE;
+
+		if(temp_servicestatus->status==SERVICE_OK)
+			services_ok++;
+
+		else if(temp_servicestatus->status==SERVICE_WARNING){
+			temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+			if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)){
+				services_warning_host_problem++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->scheduled_downtime_depth>0){
+				services_warning_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->problem_has_been_acknowledged==TRUE){
+				services_warning_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->checks_enabled==FALSE){
+				services_warning_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				services_warning_unacknowledged++;
+			services_warning++;
+		        }
+
+		else if(temp_servicestatus->status==SERVICE_UNKNOWN){
+			temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+			if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)){
+				services_unknown_host_problem++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->scheduled_downtime_depth>0){
+				services_unknown_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->problem_has_been_acknowledged==TRUE){
+				services_unknown_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->checks_enabled==FALSE){
+				services_unknown_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				services_unknown_unacknowledged++;
+			services_unknown++;
+		        }
+
+		else if(temp_servicestatus->status==SERVICE_CRITICAL){
+			temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+			if(temp_hoststatus!=NULL && (temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)){
+				services_critical_host_problem++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->scheduled_downtime_depth>0){
+				services_critical_scheduled++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->problem_has_been_acknowledged==TRUE){
+				services_critical_acknowledged++;
+				problem=FALSE;
+			        }
+			if(temp_servicestatus->checks_enabled==FALSE){
+				services_critical_disabled++;
+				problem=FALSE;
+			        }
+			if(problem==TRUE)
+				services_critical_unacknowledged++;
+			services_critical++;
+		        }
+
 		else if(temp_servicestatus->status==SERVICE_PENDING)
-			total_pending++;
-		else
-			total_ok++;
+			services_pending++;
 	        }
 
 
 	printf("<TABLE BORDER=0>\n");
 
-	if(total_ok>0)
-		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?servicegroup=%s&style=detail&&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_OK,host_status_types,service_properties,host_properties,total_ok);
-	if(total_warning>0)
-		printf("<TR><TD CLASS='miniStatusWARNING'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,total_warning);
-	if(total_unknown>0)
-		printf("<TR><TD CLASS='miniStatusUNKNOWN'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,total_unknown);
-	if(total_critical>0)
-		printf("<TR><TD CLASS='miniStatusCRITICAL'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,total_critical);
-	if(total_pending>0)
-		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_PENDING,host_status_types,service_properties,host_properties,total_pending);
+	if(services_ok>0)
+		printf("<TR><TD CLASS='miniStatusOK'><A HREF='%s?servicegroup=%s&style=detail&&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d OK</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_OK,host_status_types,service_properties,host_properties,services_ok);
+
+	if(services_warning>0){
+		printf("<TR>\n");
+		printf("<TD CLASS='miniStatusWARNING'><TABLE BORDER='0'>\n");
+		printf("<TR>\n");
+
+		printf("<TD CLASS='miniStatusWARNING'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,services_warning);
+
+		printf("<TD><TABLE BORDER='0'>\n");
+
+		if(services_warning_unacknowledged>0)
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,HOST_UP|HOST_PENDING,SERVICE_NO_SCHEDULED_DOWNTIME|SERVICE_STATE_UNACKNOWLEDGED|SERVICE_CHECKS_ENABLED,services_warning_unacknowledged);
+
+		if(services_warning_host_problem>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,HOST_DOWN|HOST_UNREACHABLE,services_warning_host_problem);
+
+		if(services_warning_scheduled>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,SERVICE_SCHEDULED_DOWNTIME,services_warning_scheduled);
+
+		if(services_warning_acknowledged>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,SERVICE_STATE_ACKNOWLEDGED,services_warning_acknowledged);
+
+		if(services_warning_disabled>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_WARNING,SERVICE_CHECKS_DISABLED,services_warning_disabled);
+
+		printf("</TABLE></TD>\n");
+		
+		printf("</TR>\n");
+		printf("</TABLE></TD>\n");
+		printf("</TR>\n");
+		}
+
+	if(services_unknown>0){
+		printf("<TR>\n");
+		printf("<TD CLASS='miniStatusUNKNOWN'><TABLE BORDER='0'>\n");
+		printf("<TR>\n");
+
+		printf("<TD CLASS='miniStatusUNKNOWN'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,services_unknown);
+
+		printf("<TD><TABLE BORDER='0'>\n");
+
+		if(services_unknown_unacknowledged>0)
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,HOST_UP|HOST_PENDING,SERVICE_NO_SCHEDULED_DOWNTIME|SERVICE_STATE_UNACKNOWLEDGED|SERVICE_CHECKS_ENABLED,services_unknown_unacknowledged);
+
+		if(services_unknown_host_problem>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,HOST_DOWN|HOST_UNREACHABLE,services_unknown_host_problem);
+
+		if(services_unknown_scheduled>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,SERVICE_SCHEDULED_DOWNTIME,services_unknown_scheduled);
+
+		if(services_unknown_acknowledged>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,SERVICE_STATE_ACKNOWLEDGED,services_unknown_acknowledged);
+
+		if(services_unknown_disabled>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_UNKNOWN,SERVICE_CHECKS_DISABLED,services_unknown_disabled);
+
+		printf("</TABLE></TD>\n");
+		
+		printf("</TR>\n");
+		printf("</TABLE></TD>\n");
+		printf("</TR>\n");
+		}
+
+	if(services_critical>0){
+		printf("<TR>\n");
+		printf("<TD CLASS='miniStatusCRITICAL'><TABLE BORDER='0'>\n");
+		printf("<TR>\n");
+
+		printf("<TD CLASS='miniStatusCRITICAL'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A>&nbsp:</TD>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,services_critical);
+
+		printf("<TD><TABLE BORDER='0'>\n");
+
+		if(services_critical_unacknowledged>0)
+			printf("<tr><td width=100%% class='serviceImportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%d'>%d Unhandled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,HOST_UP|HOST_PENDING,SERVICE_NO_SCHEDULED_DOWNTIME|SERVICE_STATE_UNACKNOWLEDGED|SERVICE_CHECKS_ENABLED,services_critical_unacknowledged);
+
+		if(services_critical_host_problem>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d'>%d on Problem Hosts</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,HOST_DOWN|HOST_UNREACHABLE,services_critical_host_problem);
+
+		if(services_critical_scheduled>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Scheduled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,SERVICE_SCHEDULED_DOWNTIME,services_critical_scheduled);
+
+		if(services_critical_acknowledged>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Acknowledged</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,SERVICE_STATE_ACKNOWLEDGED,services_critical_acknowledged);
+
+		if(services_critical_disabled>0)
+			printf("<tr><td width=100%% class='serviceUnimportantProblem'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&serviceprops=%d'>%d Disabled</a></td></tr>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_CRITICAL,SERVICE_CHECKS_DISABLED,services_critical_disabled);
+
+		printf("</TABLE></TD>\n");
+		
+		printf("</TR>\n");
+		printf("</TABLE></TD>\n");
+		printf("</TR>\n");
+		}
+
+	if(services_pending>0)
+		printf("<TR><TD CLASS='miniStatusPENDING'><A HREF='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d PENDING</A></TD></TR>\n",STATUS_CGI,url_encode(temp_servicegroup->group_name),SERVICE_PENDING,host_status_types,service_properties,host_properties,services_pending);
 
 	printf("</TABLE>\n");
 
-	if((total_ok + total_warning + total_unknown + total_critical + total_pending)==0)
+	if((services_ok + services_warning + services_unknown + services_critical + services_pending)==0)
 		printf("No matching services");
 
 	return;
@@ -3597,9 +3869,9 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 	int services_critical_acknowledged=0;
 	int services_critical_disabled=0;
 	int services_critical_unacknowledged=0;
-	servicestatus *temp_servicestatus;
-	hoststatus *temp_hoststatus;
-	host *temp_host;
+	servicestatus *temp_servicestatus=NULL;
+	hoststatus *temp_hoststatus=NULL;
+	host *temp_host=NULL;
 	int problem=FALSE;
 
 
@@ -3613,6 +3885,11 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 
 		/* see if this service is associated with a host in the specified hostgroup */
 		if(is_host_member_of_hostgroup(temp_hostgroup,temp_host)==FALSE)
+			continue;
+
+		/* find the status of the associated host */
+		temp_hoststatus=find_hoststatus(temp_servicestatus->host_name);
+		if(temp_hoststatus==NULL)
 			continue;
 
 		/* find the status of the associated host */
@@ -3725,7 +4002,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 		printf("<TD CLASS='miniStatusWARNING'><TABLE BORDER='0'>\n");
 		printf("<TR>\n");
 
-		printf("<TD CLASS='miniStatusWARNING'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A></TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,services_warning);
+		printf("<TD CLASS='miniStatusWARNING'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d WARNING</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_WARNING,host_status_types,service_properties,host_properties,services_warning);
 
 		printf("<TD><TABLE BORDER='0'>\n");
 
@@ -3756,7 +4033,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 		printf("<TD CLASS='miniStatusUNKNOWN'><TABLE BORDER='0'>\n");
 		printf("<TR>\n");
 
-		printf("<TD CLASS='miniStatusUNKNOWN'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A></TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,services_unknown);
+		printf("<TD CLASS='miniStatusUNKNOWN'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d UNKNOWN</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_UNKNOWN,host_status_types,service_properties,host_properties,services_unknown);
 
 		printf("<TD><TABLE BORDER='0'>\n");
 
@@ -3787,7 +4064,7 @@ void show_hostgroup_service_totals_summary(hostgroup *temp_hostgroup){
 		printf("<TD CLASS='miniStatusCRITICAL'><TABLE BORDER='0'>\n");
 		printf("<TR>\n");
 
-		printf("<TD CLASS='miniStatusCRITICAL'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A>&nbsp:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,services_critical);
+		printf("<TD CLASS='miniStatusCRITICAL'><A HREF='%s?hostgroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</A>&nbsp;:</TD>\n",STATUS_CGI,url_encode(temp_hostgroup->group_name),SERVICE_CRITICAL,host_status_types,service_properties,host_properties,services_critical);
 
 		printf("<TD><TABLE BORDER='0'>\n");
 

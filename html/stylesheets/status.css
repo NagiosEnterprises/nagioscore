@@ -95,4 +95,9 @@ TD.hostTotals { font-family: arial,serif;  font-size: 8pt;  text-align: center; 
 .miniStatusDOWN { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838;  text-align: center; }
 .miniStatusUNREACHABLE { font-family: arial,serif;  font-size: 8pt;  background-color: #F83838;  text-align: center; }
 
+.hostImportantProblem { text-align: left;  font-family: arial;  font-size: 8pt;  background-color: #ff0000;  color: black; text-decoration: blink; }
+.hostUnimportantProblem { text-align: left;  font-family: arial;  font-size: 8pt;  background-color: #ffcccc;  color: black; }
+
+.serviceImportantProblem { text-align: left;  font-family: arial;  font-size: 8pt;  background-color: #ff0000;  color: black; text-decoration: blink; }
+.serviceUnimportantProblem { text-align: left;  font-family: arial;  font-size: 8pt;  background-color: #ffcccc;  color: black; }
 

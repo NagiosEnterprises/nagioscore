@@ -118,6 +118,7 @@ Pre-alpha changes since 02/15/2006...
 
 * CGI changes:
      - Hostgroup and servicegroup summaries now show important/unimportant problem breakdowns like the TAC CGI
+     - Minor layout changes to host and service detail views in extinfo CGI
 
 * Misc changes:
      - More information given when testing scheduling (-s command line option)

@@ -1396,6 +1396,46 @@ char * html_encode(char *input){
 
 
 
+
+/* changes newlines to <BR> tags for web viewing */
+char * newline2br(char *input){
+	char *output=NULL;
+	int len=0;
+	int x,y;
+
+	if(input==NULL)
+		return NULL;
+
+	len=strlen(input);
+
+	/* we need up to twice the space to do the conversion */
+	output=(char *)malloc((len*2)+1);
+
+	for(x=0,y=0;x<=len;x++){
+
+		/* end of string */
+		if((char)input[x]==(char)'\x0'){
+			output[y]='\x0';
+			break;
+		        }
+
+		if((char)input[x]=='\\' && (char)input[x+1]=='n'){
+			strcpy(&output[y],"<BR>");
+			y+=4;
+			x++;
+			}
+
+		else
+			output[y++]=input[x];
+	        }
+
+	output[y]='\x0';
+
+	return output;
+        }
+
+
+
 /* determines the log file we should use (from current time) */
 void get_log_archive_to_use(int archive,char *buffer,int buffer_length){
 	struct tm *t;

@@ -27,8 +27,8 @@ TH.data { font-family: arial,serif;  font-size: 10pt;  background-color: white; 
 
 .commandTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 
-TABLE.command { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB;  padding: 2; }
-.command { font-family: arial,serif;  font-size: 10pt; }
+TABLE.command { font-family: arial,serif;  font-size: 10pt;  background-color: #DBDBDB; padding: 3; }
+.command { font-family: arial,serif;  font-size: 10pt; padding: 2; }
 
 .commentTitle { font-family: arial,serif;  text-align: center;  font-weight: bold;  font-size: 12pt; }
 DIV.commentNav { font-family: arial,serif;  font-size: 10pt;  text-align: center; }
@@ -61,11 +61,11 @@ TH.downtime { font-family: arial,serif;  font-size: 10pt;  background-color: whi
 .flapdetectionENABLED { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
 .flapdetectionDISABLED { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
 
-.notflapping { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.flapping { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.notflapping { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
+.flapping { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
 
-.downtimeACTIVE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-.downtimeINACTIVE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
+.downtimeACTIVE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
+.downtimeINACTIVE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
 
 .processOK { font-family: arial,serif;  font-size: 10pt;  background-color: #33FF00;  font-weight: bold; }
 .processUNKNOWN { font-family: arial,serif;  font-size: 10pt;  background-color: #FF9900;  font-weight: bold; }
@@ -75,14 +75,14 @@ TH.downtime { font-family: arial,serif;  font-size: 10pt;  background-color: whi
 .modeACTIVE { font-family: arial,serif;  font-size: 10pt;  background-color: #33FF00;  font-weight: bold; }
 .modeSTANDBY { font-family: arial,serif;  font-size: 10pt;  background-color: #FFFF00;  font-weight: bold; }
 
-.hostUP { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.hostDOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-.hostUNREACHABLE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.hostUP { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
+.hostDOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
+.hostUNREACHABLE { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
 
-.serviceOK { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.serviceWARNING { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FFFF00;  font-weight: bold; }
-.serviceUNKNOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FF9900;  font-weight: bold; }
-.serviceCRITICAL { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.serviceOK { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
+.serviceWARNING { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FFFF00;  font-weight: bold; float: left; }
+.serviceUNKNOWN { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #FF9900;  font-weight: bold; float: left; }
+.serviceCRITICAL { font-family: arial,serif;  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
 
 .commandPanel { font-family: arial,serif;  background-color: white; }
 .commentPanel { font-family: arial,serif;  background-color: white; }

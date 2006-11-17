@@ -2,7 +2,7 @@
  *
  * CGIUTILS.H - Header file for common CGI functions
  * Copyright (c) 1999-2006  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-30-2006
+ * Last Modified: 11-16-2006
  *
  * License:
  * 
@@ -469,6 +469,7 @@ int my_free(void **);                                   	/* my wrapper for free(
 
 char * url_encode(char *);		        		/* encodes a string in proper URL format */
 char * html_encode(char *);					/* encodes a string in HTML format (for what the user sees) */
+char * newline2br(char *);					/* changes newline characters to <BR> tags for web viewing */
 
 void get_time_breakdown(unsigned long,int *,int *,int *,int *);	/* given total seconds, get days, hours, minutes, seconds */
 

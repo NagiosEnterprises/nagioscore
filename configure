@@ -8211,10 +8211,9 @@ perl subst sample-config/cgi.cfg
 perl subst sample-config/resource.cfg
 perl subst sample-config/httpd.conf
 
-perl subst sample-config/template-object/minimal.cfg
-perl subst sample-config/template-object/bigger.cfg
-perl subst sample-config/template-object/checkcommands.cfg
-perl subst sample-config/template-object/misccommands.cfg
+perl subst sample-config/template-object/localhost.cfg
+perl subst sample-config/template-object/commands.cfg
+
 
 
 

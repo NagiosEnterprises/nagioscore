@@ -312,5 +312,3 @@ define service{
         }
 
 
-
-# EOF

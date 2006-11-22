@@ -36,6 +36,7 @@ cfg_file=@sysconfdir@/commands.cfg
 # Host and service definitions for monitoring this machine
 cfg_file=@sysconfdir@/localhost.cfg
 
+
 # You can split other types of object definitions across several
 # config files if you wish (as done here), or keep them all in a
 # single config file.
@@ -1031,5 +1032,4 @@ daemon_dumps_core=0
 
 
 
-# EOF (End of file)
 

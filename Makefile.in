@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 05-30-2006
+# Last Modified: 11-21-2006
 ###############################
 
 
@@ -217,10 +217,8 @@ install-config:
 	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/nagios.cfg $(DESTDIR)$(CFGDIR)/nagios.cfg-sample
 	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/cgi.cfg $(DESTDIR)$(CFGDIR)/cgi.cfg-sample
 	$(INSTALL) -m 660 $(INSTALL_OPTS) sample-config/resource.cfg $(DESTDIR)$(CFGDIR)/resource.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/bigger.cfg $(DESTDIR)$(CFGDIR)/bigger.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/minimal.cfg $(DESTDIR)$(CFGDIR)/minimal.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/checkcommands.cfg $(DESTDIR)$(CFGDIR)/checkcommands.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/misccommands.cfg $(DESTDIR)$(CFGDIR)/misccommands.cfg-sample
+	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/localhost.cfg $(DESTDIR)$(CFGDIR)/localhost.cfg-sample
+	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/commands.cfg $(DESTDIR)$(CFGDIR)/commands.cfg-sample
 
 	@echo ""
 	@echo "*** Sample config file installed ***"

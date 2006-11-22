@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 10-26-2006
+# Last Modified: 11-21-2006
 #
 ##############################################################################
 
@@ -30,20 +30,16 @@ log_file=@localstatedir@/nagios.log
 # This can be very useful if you want to keep command definitions 
 # separate from host and contact definitions...
 
-# Plugin commands (service and host check commands)
-# Arguments are likely to change between different releases of the
-# plugins, so you should use the same config file provided with the
-# plugin release rather than the one provided with Nagios.
-cfg_file=@sysconfdir@/checkcommands.cfg
+# Command definitions
+cfg_file=@sysconfdir@/commands.cfg
 
-# Misc commands (notification and event handler commands, etc)
-cfg_file=@sysconfdir@/misccommands.cfg
+# Host and service definitions for monitoring this machine
+cfg_file=@sysconfdir@/localhost.cfg
+
 
 # You can split other types of object definitions across several
 # config files if you wish (as done here), or keep them all in a
 # single config file.
-
-cfg_file=@sysconfdir@/minimal.cfg
 
 #cfg_file=@sysconfdir@/contactgroups.cfg
 #cfg_file=@sysconfdir@/contacts.cfg
@@ -145,7 +141,6 @@ check_external_commands=0
 # NOTE: Setting this value to -1 causes Nagios to check the external
 # command file as often as possible.
 
-#command_check_interval=1
 #command_check_interval=15s
 command_check_interval=-1
 
@@ -950,6 +945,4 @@ admin_pager=page@nagios_user@
 daemon_dumps_core=0
 
 
-
-# EOF (End of file)
 

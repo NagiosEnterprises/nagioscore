@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 05-05-2005
+# Last Modified: 11-21-2006
 #
 #################################################################
 
@@ -92,7 +92,7 @@ use_authentication=1
 # access pages without authentication.  This allows people within a
 # secure domain (i.e., behind a firewall) to see the current status
 # without authenticating.  You may want to use this to avoid basic
-# authentication if you are not using a sercure server since basic
+# authentication if you are not using a secure server since basic
 # authentication transmits passwords in the clear.
 #
 # Important:  Do not define a default username unless you are

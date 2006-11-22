@@ -20,23 +20,10 @@ on how to include multiple object config files.
 FILE DESCRIPTIONS:
 ------------------
 
-  minimal.cfg		- This is a minimalistic object config file that
+  localhost.cfg		- This is a minimalistic object config file that
 			  should be easier for new users to understand.
 			  It contains all types of object definitions you
 			  need to get started (hosts, services, etc..)
 
-  bigger.cfg            - A larger object config file than the minimalistic
-			  one provided above.  This file shows more detail
-			  one how you can configure objects, etc.  The two
-			  command configuration files (described below) are
-			  necessary to complete the definitions found in this
-			  file.
-
-  misccommands.cfg 	- This file contains sample notification commands, 
-			  performance data commands, etc.
-
-  checkcommands.cfg	- This file contains sample command definitions for
-			  host and service checks.  These definitions are 
-			  highly volatile, as plugin arguments can change 
-			  between plugin releases!
-
+  commands.cfg		- This file contains sample command definitions for
+			  host and service checks, notifications, etc.

@@ -12,6 +12,7 @@ Nagios 2.x Change Log
 * Fixed error when reading empty (zero byte) config files
 * Default is now to check for orphaned service checks (Francois Caen)
 * Fixed bug with non-standard CGI config file location in status data (Carson Gaspar)
+* Fixed bugs and simplified examples in sample config files (Mark Young)
 
 
 

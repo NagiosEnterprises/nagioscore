@@ -1,0 +1,315 @@
+###############################################################################
+# MINIMAL.CFG
+#
+# MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
+#
+# Last Modified: 11-21-2006
+#
+#
+# NOTE: This config file is intended to be used to test a Nagios installation
+#       that has been compiled with support for the template-based object
+#       configuration files.
+#
+#       This config file is intended to servce as an *extremely* simple 
+#       example of how you can create your object configuration file(s).
+#       If you're interested in more complex object configuration files for
+#       Nagios, look in the sample-config/template-object/ subdirectory of
+#       the distribution.
+#
+###############################################################################
+
+
+
+###############################################################################
+###############################################################################
+#
+# TIME PERIODS
+#
+###############################################################################
+###############################################################################
+
+# This defines a timeperiod where all times are valid for checks, 
+# notifications, etc.  The classic "24x7" support nightmare. :-)
+
+define timeperiod{
+        timeperiod_name 24x7
+        alias           24 Hours A Day, 7 Days A Week
+        sunday          00:00-24:00
+        monday          00:00-24:00
+        tuesday         00:00-24:00
+        wednesday       00:00-24:00
+        thursday        00:00-24:00
+        friday          00:00-24:00
+        saturday        00:00-24:00
+        }
+
+
+# 'workhours' timeperiod definition
+define timeperiod{
+	timeperiod_name	workhours
+	alias		"Normal" Working Hours
+	monday		09:00-17:00
+	tuesday		09:00-17:00
+	wednesday	09:00-17:00
+	thursday	09:00-17:00
+	friday		09:00-17:00
+	}
+
+
+# 'nonworkhours' timeperiod definition
+define timeperiod{
+	timeperiod_name	nonworkhours
+	alias		Non-Work Hours
+	sunday		00:00-24:00
+	monday		00:00-09:00,17:00-24:00
+	tuesday		00:00-09:00,17:00-24:00
+	wednesday	00:00-09:00,17:00-24:00
+	thursday	00:00-09:00,17:00-24:00
+	friday		00:00-09:00,17:00-24:00
+	saturday	00:00-24:00
+	}
+
+
+# 'none' timeperiod definition
+define timeperiod{
+	timeperiod_name	none
+	alias		No Time Is A Good Time
+	}
+
+
+
+###############################################################################
+###############################################################################
+#
+# COMMANDS
+#
+###############################################################################
+###############################################################################
+
+# NOTE: Sample command definitions can now be found in the sample commands.cfg 
+#       file
+
+
+
+
+###############################################################################
+###############################################################################
+#
+# CONTACTS
+#
+###############################################################################
+###############################################################################
+
+# In this simple config file, a single contact will receive all alerts.
+# This assumes that you have an account (or email alias) called
+# "@nagios_user@-admin" on the local host.
+
+define contact{
+        contact_name                    @nagios_user@-admin
+        alias                           Nagios Admin
+        service_notification_period     24x7
+        host_notification_period        24x7
+        service_notification_options    w,u,c,r
+        host_notification_options       d,r
+        service_notification_commands   notify-by-email
+        host_notification_commands      host-notify-by-email
+        email                           @nagios_user@-admin@localhost
+        }
+
+
+
+###############################################################################
+###############################################################################
+#
+# CONTACT GROUPS
+#
+###############################################################################
+###############################################################################
+
+# We only have one contact in this simple configuration file, so there is
+# no need to create more than one contact group.
+
+define contactgroup{
+        contactgroup_name       admins
+        alias                   Nagios Administrators
+        members                 @nagios_user@-admin
+        }
+
+
+
+###############################################################################
+###############################################################################
+#
+# HOSTS
+#
+###############################################################################
+###############################################################################
+
+# Generic host definition template - This is NOT a real host, just a template!
+
+define host{
+        name                            generic-host    ; The name of this host template
+        notifications_enabled           1       	; Host notifications are enabled
+        event_handler_enabled           1       	; Host event handler is enabled
+        flap_detection_enabled          1       	; Flap detection is enabled
+        failure_prediction_enabled      1       	; Failure prediction is enabled
+        process_perf_data               1       	; Process performance data
+        retain_status_information       1       	; Retain status information across program restarts
+        retain_nonstatus_information    1       	; Retain non-status information across program restarts
+	notification_period		24x7		; Send host notifications at any time
+        register                        0       	; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
+        }
+
+
+# Linux host definition template - This is NOT a real host, just a template!
+
+define host{
+	name				linux-server	; The name of this host template
+	use				generic-host	; This template inherits other values from the generic-host template
+	check_period			24x7		; By default, Linux hosts are checked round the clock
+	max_check_attempts		10		; Check each Linux host 10 times (max)
+        check_command           	check-host-alive ; Default command to check Linux hosts
+	notification_period		workhours	; Linux admins hate to be woken up, so we only notify during the day
+							; Note that the notification_period variable is being overridden from
+							; the value that is inherited from the generic-host template!
+	notification_interval		120		; Resend notification every 2 hours
+	notification_options		d,u,r		; Only send notifications for specific host states
+	contact_groups			admins		; Notifications get sent to the admins by default
+
+
+
+# Since this is a simple configuration file, we only monitor one host - the
+# local host (this machine).
+
+define host{
+        use                     linux-server            ; Name of host template to use
+							; This host definition will inherit all variables that are defined
+							; in (or inherited by) the linux-server host template definition.
+        host_name               localhost
+        alias                   localhost
+        address                 127.0.0.1
+        }
+
+
+
+###############################################################################
+###############################################################################
+#
+# HOST GROUPS
+#
+###############################################################################
+###############################################################################
+
+# We only have one host in our simple config file, so there is no need to
+# create more than one hostgroup.
+
+define hostgroup{
+        hostgroup_name  test
+        alias           Test Servers
+        members         localhost
+        }
+
+
+
+###############################################################################
+###############################################################################
+#
+# SERVICES
+#
+###############################################################################
+###############################################################################
+
+# Generic service definition template - This is NOT a real service, just a template!
+
+define service{
+        name                            generic-service 	; The 'name' of this service template
+        active_checks_enabled           1       		; Active service checks are enabled
+        passive_checks_enabled          1    		   	; Passive service checks are enabled/accepted
+        parallelize_check               1       		; Active service checks should be parallelized (disabling this can lead to major performance problems)
+        obsess_over_service             1       		; We should obsess over this service (if necessary)
+        check_freshness                 0       		; Default is to NOT check service 'freshness'
+        notifications_enabled           1       		; Service notifications are enabled
+        event_handler_enabled           1       		; Service event handler is enabled
+        flap_detection_enabled          1       		; Flap detection is enabled
+        failure_prediction_enabled      1       		; Failure prediction is enabled
+        process_perf_data               1       		; Process performance data
+        retain_status_information       1       		; Retain status information across program restarts
+        retain_nonstatus_information    1       		; Retain non-status information across program restarts
+        is_volatile                     0       		; The service is not volatile
+        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+        }
+
+define service{
+	name				local-service 		; The name of this service template
+	use				generic-service		; Inherit default values from the generic-service definition
+        check_period                    24x7
+        max_check_attempts              4
+        normal_check_interval           5
+        retry_check_interval            1
+        contact_groups                  admins
+	notification_options		w,u,c,r
+        notification_interval           960
+        notification_period             24x7
+        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+	}
+
+
+# Define a service to "ping" the local machine
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             PING
+	check_command			check_ping!100.0,20%!500.0,60%
+        }
+
+
+# Define a service to check the disk space of the root partition
+# on the local machine.  Warning if < 20% free, critical if
+# < 10% free space on partition.
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             Root Partition
+	check_command			check_local_disk!20%!10%!/
+        }
+
+
+
+# Define a service to check the number of currently logged in
+# users on the local machine.  Warning if > 20 users, critical
+# if > 50 users.
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             Current Users
+	check_command			check_local_users!20!50
+        }
+
+
+# Define a service to check the number of currently running procs
+# on the local machine.  Warning if > 250 processes, critical if
+# > 400 users.
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             Total Processes
+	check_command			check_local_procs!250!400!RSZDT
+        }
+
+
+
+# Define a service to check the load on the local machine. 
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             Current Load
+	check_command			check_local_load!5.0,4.0,3.0!10.0,6.0,4.0
+        }
+
+
+

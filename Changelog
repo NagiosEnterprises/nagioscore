@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.6 - ??/??/2006
+2.6 - 11/27/2006
 ----------------
 * Fix for unscheduled triggered downtime entries
 * Fix for embedded audio in tac and status CGIs

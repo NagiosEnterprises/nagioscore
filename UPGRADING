@@ -1,14 +1,17 @@
-Upgrading to Nagios 2.0
------------------------
+UPGRADING TO NAGIOS 2.6
+=======================
 
+For Nagios 2.x Users:
+---------------------
+If you're upgrading from an earlier version of Nagios 2.x, upgrading is
+pretty simple.  Nothing has changed with the configuration files, so you
+can simply recompile and install the new binaries and web interface and 
+you'll be good to go.
+
+
+For Nagios 1.x Users:
+---------------------
 If you're upgrading from Nagios 1.0, there will be a few modifications
 that you'll need to make to your config files.  Read the "What's New"
 section of the HTML documentation for more information.
-
-
-
-
-
-
-
 

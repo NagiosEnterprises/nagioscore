@@ -1,20 +1,10 @@
 ###############################################################################
-# MINIMAL.CFG
+# LOCALHOST.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING THIS MACHINE
 #
-# MINIMALISTIC OBJECT CONFIG FILE (Template-Based Object File Format)
+# Last Modified: 11-27-2006
 #
-# Last Modified: 11-21-2006
-#
-#
-# NOTE: This config file is intended to be used to test a Nagios installation
-#       that has been compiled with support for the template-based object
-#       configuration files.
-#
-#       This config file is intended to servce as an *extremely* simple 
+# NOTE: This config file is intended to servce as an *extremely* simple 
 #       example of how you can create your object configuration file(s).
-#       If you're interested in more complex object configuration files for
-#       Nagios, look in the sample-config/template-object/ subdirectory of
-#       the distribution.
 #
 ###############################################################################
 
@@ -175,7 +165,8 @@ define host{
 	notification_interval		120		; Resend notification every 2 hours
 	notification_options		d,u,r		; Only send notifications for specific host states
 	contact_groups			admins		; Notifications get sent to the admins by default
-
+	register			0		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
+	}
 
 
 # Since this is a simple configuration file, we only monitor one host - the
@@ -239,17 +230,20 @@ define service{
         register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
         }
 
+
+# Local service definition template - This is NOT a real service, just a template!
+
 define service{
 	name				local-service 		; The name of this service template
 	use				generic-service		; Inherit default values from the generic-service definition
-        check_period                    24x7
-        max_check_attempts              4
-        normal_check_interval           5
-        retry_check_interval            1
-        contact_groups                  admins
-	notification_options		w,u,c,r
-        notification_interval           960
-        notification_period             24x7
+        check_period                    24x7			; The service can be checked at any time of the day
+        max_check_attempts              4			; Re-check the service up to 4 times in order to determine its final (hard) state
+        normal_check_interval           5			; Check the service every 5 minutes under normal conditions
+        retry_check_interval            1			; Re-check the service every minute until a hard state can be determined
+        contact_groups                  admins			; Notifications get sent out to everyone in the 'admins' group
+	notification_options		w,u,c,r			; Send notifications about warning, unknown, critical, and recovery events
+        notification_interval           60			; Re-notify about service problems every hour
+        notification_period             24x7			; Notifications can be sent out at any time
         register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
 	}
 

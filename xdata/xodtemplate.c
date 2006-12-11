@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-10-2006
+ * Last Modified: 12-11-2006
  *
  * Description:
  *
@@ -5062,6 +5062,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->dependent_hostgroup_name=NULL;
 	new_servicedependency->host_name=NULL;
 	new_servicedependency->dependent_host_name=NULL;
+	new_servicedependency->service_description=NULL;
+	new_servicedependency->dependent_service_description=NULL;
 
 	new_servicedependency->has_been_resolved=temp_servicedependency->has_been_resolved;
 	new_servicedependency->register_object=temp_servicedependency->register_object;

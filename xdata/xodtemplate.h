@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   07-18-2006
+ * Last Modified:   12-11-2006
  *
  * License:
  *
@@ -716,20 +716,20 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 #ifdef NSCORE
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
-xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *,char *);
-int xodtemplate_expand_contactgroups(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
-int xodtemplate_expand_contacts(xodtemplate_contactlist **,xodtemplate_contactlist **,char *);
-int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist **,xodtemplate_contactgroup *);
+xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *,char *,int,int);
+int xodtemplate_expand_contactgroups(xodtemplate_contactlist **,xodtemplate_contactlist **,char *,int,int);
+int xodtemplate_expand_contacts(xodtemplate_contactlist **,xodtemplate_contactlist **,char *,int,int);
+int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist **,xodtemplate_contactgroup *,int,int);
 int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **,char *);
-xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *);
-int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
-int xodtemplate_expand_hosts(xodtemplate_hostlist **,xodtemplate_hostlist **,char *);
-int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **,xodtemplate_hostgroup *);
+xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *,int,int);
+int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *,int,int);
+int xodtemplate_expand_hosts(xodtemplate_hostlist **,xodtemplate_hostlist **,char *,int,int);
+int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **,xodtemplate_hostgroup *,int,int);
 int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **,char *);
-xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *);
-int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,xodtemplate_servicelist **,char *);
-int xodtemplate_expand_services(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,char *);
-int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **,xodtemplate_servicegroup *);
+xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *,int,int);
+int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,int,int);
+int xodtemplate_expand_services(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,char *,int,int);
+int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **,xodtemplate_servicegroup *,int,int);
 int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **,char *,char *);
 #endif
 

@@ -687,7 +687,8 @@ AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE")
 
 
 dnl Package directory for Solaris pkgmk (and other OSs, eventually)
-VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
+dnl VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
+VERSION=$PKG_VERSION
 PACKDIR=`pwd`/pkg
 AC_SUBST(PACKDIR)
 AC_SUBST(VERSION)

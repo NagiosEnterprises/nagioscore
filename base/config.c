@@ -2372,12 +2372,14 @@ int pre_flight_object_check(int *w, int *e){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking host groups...\n");
+#ifdef REMOVED_12112006
 	if(hostgroup_list==NULL){
 		asprintf(&temp_buffer,"Error: There are no host groups defined!");
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 		errors++;
 	        }
+#endif
 	for(temp_hostgroup=hostgroup_list,total_objects=0;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next,total_objects++){
 
 		/* check all group members */

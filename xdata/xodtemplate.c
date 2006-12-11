@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-21-2006
+ * Last Modified: 12-11-2006
  *
  * Description:
  *
@@ -4176,7 +4176,7 @@ int xodtemplate_duplicate_services(void){
 			continue;
 
 		/* get list of hosts */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_service->hostgroup_name,temp_service->host_name);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_service->hostgroup_name,temp_service->host_name,temp_service->_config_file,temp_service->_start_line);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand hostgroups and/or hosts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
@@ -4266,7 +4266,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of hosts */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostescalation->hostgroup_name,temp_hostescalation->host_name);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostescalation->hostgroup_name,temp_hostescalation->host_name,temp_hostescalation->_config_file,temp_hostescalation->_start_line);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand hostgroups and/or hosts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
@@ -4317,7 +4317,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of hosts */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceescalation->hostgroup_name,temp_serviceescalation->host_name);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceescalation->hostgroup_name,temp_serviceescalation->host_name,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand hostgroups and/or hosts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
@@ -4369,7 +4369,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of services */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,temp_serviceescalation->host_name,temp_serviceescalation->service_description);
+		temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,temp_serviceescalation->host_name,temp_serviceescalation->service_description,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand services specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
@@ -4422,7 +4422,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of services */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_serviceescalation->servicegroup_name,NULL,NULL);
+		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_serviceescalation->servicegroup_name,NULL,NULL,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand servicegroups specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
@@ -4475,7 +4475,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of master host names */
-		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->hostgroup_name,temp_hostdependency->host_name);
+		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->hostgroup_name,temp_hostdependency->host_name,temp_hostdependency->_config_file,temp_hostdependency->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand master hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
@@ -4486,7 +4486,7 @@ int xodtemplate_duplicate_objects(void){
 		        }
 
 		/* get list of dependent host names */
-		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->dependent_hostgroup_name,temp_hostdependency->dependent_host_name);
+		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostdependency->dependent_hostgroup_name,temp_hostdependency->dependent_host_name,temp_hostdependency->_config_file,temp_hostdependency->_start_line);
 		if(dependent_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand dependent hostgroups and/or hosts specified in host dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostdependency->_config_file),temp_hostdependency->_start_line);
@@ -4534,7 +4534,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of master host names */
-		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->hostgroup_name,temp_servicedependency->host_name);
+		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->hostgroup_name,temp_servicedependency->host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 		if(master_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
@@ -4545,7 +4545,7 @@ int xodtemplate_duplicate_objects(void){
 		        }
 
 		/* get list of dependent host names */
-		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_host_name);
+		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 		if(dependent_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand dependent hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
@@ -4594,7 +4594,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of services */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->servicegroup_name,temp_servicedependency->host_name,temp_servicedependency->service_description);
+		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->servicegroup_name,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
@@ -4646,7 +4646,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of services */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->dependent_servicegroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description);
+		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->dependent_servicegroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
 		if(temp_servicelist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
@@ -4697,7 +4697,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of hosts */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostextinfo->hostgroup_name,temp_hostextinfo->host_name);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostextinfo->hostgroup_name,temp_hostextinfo->host_name,temp_hostextinfo->_config_file,temp_hostextinfo->_start_line);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand hostgroups and/or hosts specified in extended host info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostextinfo->_config_file),temp_hostextinfo->_start_line);
@@ -4747,7 +4747,7 @@ int xodtemplate_duplicate_objects(void){
 			continue;
 
 		/* get list of hosts */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_serviceextinfo->hostgroup_name,temp_serviceextinfo->host_name,temp_serviceextinfo->_config_file,temp_serviceextinfo->_start_line);
 		if(temp_hostlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand hostgroups and/or hosts specified in extended service info (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceextinfo->_config_file),temp_serviceextinfo->_start_line);
@@ -5330,6 +5330,8 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->have_dependent_host_name=temp_servicedependency->have_dependent_host_name;
 	new_servicedependency->dependency_period=NULL;
 	new_servicedependency->have_dependency_period=temp_servicedependency->have_dependency_period;
+	new_servicedependency->service_description=NULL;
+	new_servicedependency->dependent_service_description=NULL;
 
 	/* duplicate strings */
 	if(temp_servicedependency->host_name!=NULL && (new_servicedependency->host_name=(char *)strdup(master_host_name))==NULL)
@@ -7637,7 +7639,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 			continue;
 
 		/* get list of contacts in the contactgroup */
-		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(NULL,temp_contactgroup->members);
+		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(NULL,temp_contactgroup->members,temp_contactgroup->_config_file,temp_contactgroup->_start_line);
 
 		/* add all members to the contact group */
 		if(temp_contactlist==NULL){
@@ -7700,7 +7702,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 			continue;
 
 		/* get list of contacts for this host */
-		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_host->contact_groups,temp_host->contacts);
+		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_host->contact_groups,temp_host->contacts,temp_host->_config_file,temp_host->_start_line);
 		if(temp_contactlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in host (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_host->_config_file),temp_host->_start_line);
@@ -7741,7 +7743,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 			continue;
 
 		/* get list of contacts for this service */
-		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_service->contact_groups,temp_service->contacts);
+		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_service->contact_groups,temp_service->contacts,temp_service->_config_file,temp_service->_start_line);
 		if(temp_contactlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in service (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_service->_config_file),temp_service->_start_line);
@@ -7782,7 +7784,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 			continue;
 
 		/* get list of contacts for this host escalation */
-		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_hostescalation->contact_groups,temp_hostescalation->contacts);
+		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_hostescalation->contact_groups,temp_hostescalation->contacts,temp_hostescalation->_config_file,temp_hostescalation->_start_line);
 		if(temp_contactlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in host escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_hostescalation->_config_file),temp_hostescalation->_start_line);
@@ -7823,7 +7825,7 @@ int xodtemplate_recombobulate_object_contacts(void){
 			continue;
 
 		/* get list of contacts for this service escalation */
-		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_serviceescalation->contact_groups,temp_serviceescalation->contacts);
+		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_serviceescalation->contact_groups,temp_serviceescalation->contacts,temp_serviceescalation->_config_file,temp_serviceescalation->_start_line);
 		if(temp_contactlist==NULL){
 #ifdef NSCORE
 			asprintf(&temp_buffer,"Error: Could not expand contacts specified in service escalation (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_serviceescalation->_config_file),temp_serviceescalation->_start_line);
@@ -7942,7 +7944,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* get list of hosts in the hostgroup */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,temp_hostgroup->members);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,temp_hostgroup->members,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
 
 		/* add all members to the host group */
 		if(temp_hostlist==NULL){
@@ -7982,7 +7984,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* get list of hosts in the (sub)hostgroup */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostgroup->hostgroup_members,NULL);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostgroup->hostgroup_members,NULL,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
 
 		/* add all members to the host group */
 		if(temp_hostlist==NULL){
@@ -8131,7 +8133,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 				strip(service_description);
 
 				/* get list of services in the servicegroup */
-				temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,host_name,service_description);
+				temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,host_name,service_description,temp_servicegroup->_config_file,temp_servicegroup->_start_line);
 
 				/* add all members to the service group */
 				if(temp_servicelist==NULL){
@@ -8200,7 +8202,7 @@ int xodtemplate_recombobulate_servicegroups(void){
 			continue;
 
 		/* get list of services in the servicegroup */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicegroup->servicegroup_members,NULL,NULL);
+		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicegroup->servicegroup_members,NULL,NULL,temp_servicegroup->_config_file,temp_servicegroup->_start_line);
 
 		/* add all members to the service group */
 		if(temp_servicelist==NULL){
@@ -11879,7 +11881,7 @@ void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *item,xodtempla
 #ifdef NSCORE
 
 /* expands a comma-delimited list of contactgroups and/or contacts to member contact names */
-xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *contactgroups, char *contacts){
+xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *contactgroups, char *contacts, int _config_file, int _start_line){
 	xodtemplate_contactlist *temp_list=NULL;
 	xodtemplate_contactlist *reject_list=NULL;
 	xodtemplate_contactlist *list_ptr=NULL;
@@ -11894,7 +11896,7 @@ xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *con
 	if(contactgroups!=NULL){
 
 		/* expand contact */
-		result=xodtemplate_expand_contactgroups(&temp_list,&reject_list,contactgroups);
+		result=xodtemplate_expand_contactgroups(&temp_list,&reject_list,contactgroups,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_contactlist(temp_list);
 			xodtemplate_free_contactlist(reject_list);
@@ -11919,7 +11921,7 @@ xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *con
 	if(contacts!=NULL){
 
 		/* expand contacts */
-		result=xodtemplate_expand_contacts(&temp_list,&reject_list,contacts);
+		result=xodtemplate_expand_contacts(&temp_list,&reject_list,contacts,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_contactlist(temp_list);
 			xodtemplate_free_contactlist(reject_list);
@@ -11950,7 +11952,7 @@ xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *con
 
 
 /* expands contactgroups */
-int xodtemplate_expand_contactgroups(xodtemplate_contactlist **list, xodtemplate_contactlist **reject_list, char *contactgroups){
+int xodtemplate_expand_contactgroups(xodtemplate_contactlist **list, xodtemplate_contactlist **reject_list, char *contactgroups, int _config_file, int _start_line){
 	char *contactgroup_names=NULL;
 	char *temp_ptr=NULL;
 	xodtemplate_contactgroup *temp_contactgroup=NULL;
@@ -12013,7 +12015,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_contactlist **list, xodtemplate
 					continue;
 
 				/* add contactgroup members to list */
-				xodtemplate_add_contactgroup_members_to_contactlist(list,temp_contactgroup);
+				xodtemplate_add_contactgroup_members_to_contactlist(list,temp_contactgroup,_config_file,_start_line);
 		                } 
 
 			/* free memory allocated to compiled regexp */
@@ -12035,7 +12037,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_contactlist **list, xodtemplate
 						continue;
 
 					/* add contactgroup to list */
-					xodtemplate_add_contactgroup_members_to_contactlist(list,temp_contactgroup);
+					xodtemplate_add_contactgroup_members_to_contactlist(list,temp_contactgroup,_config_file,_start_line);
 				        }
 			        }
 
@@ -12055,14 +12057,14 @@ int xodtemplate_expand_contactgroups(xodtemplate_contactlist **list, xodtemplate
 					found_match=TRUE;
 
 					/* add contactgroup members to proper list */
-					xodtemplate_add_contactgroup_members_to_contactlist((reject_item==TRUE)?reject_list:list,temp_contactgroup);
+					xodtemplate_add_contactgroup_members_to_contactlist((reject_item==TRUE)?reject_list:list,temp_contactgroup,_config_file,_start_line);
 				        }
 			        }
 		        }
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not find any contactgroup matching '%s'\n",temp_ptr);
+			asprintf(&temp_buffer,"Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 #endif
@@ -12086,7 +12088,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_contactlist **list, xodtemplate
 
 
 /* expands contacts */
-int xodtemplate_expand_contacts(xodtemplate_contactlist **list, xodtemplate_contactlist **reject_list, char *contacts){
+int xodtemplate_expand_contacts(xodtemplate_contactlist **list, xodtemplate_contactlist **reject_list, char *contacts, int _config_file, int _start_line){
 	char *contact_names=NULL;
 	char *temp_ptr=NULL;
 	xodtemplate_contact *temp_contact=NULL;
@@ -12199,7 +12201,7 @@ int xodtemplate_expand_contacts(xodtemplate_contactlist **list, xodtemplate_cont
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not find any contact matching '%s'\n",temp_ptr);
+			asprintf(&temp_buffer,"Error: Could not find any contact matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 #endif
@@ -12223,7 +12225,7 @@ int xodtemplate_expand_contacts(xodtemplate_contactlist **list, xodtemplate_cont
 
 
 /* adds members of a contactgroups to the list of expanded (accepted) or rejected contacts */
-int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist **list, xodtemplate_contactgroup *temp_contactgroup){
+int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist **list, xodtemplate_contactgroup *temp_contactgroup,int _config_file, int _start_line){
 	char *group_members=NULL;
 	char *member_name=NULL;
 	char *member_ptr=NULL;
@@ -12232,8 +12234,12 @@ int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist 
 		return ERROR;
 
 	/* skip contactgroups with no defined members */
-	if(temp_contactgroup->members==NULL)
+	if(temp_contactgroup->members==NULL){
+#ifdef NSCORE
+		printf("Warning: Specified contactgroup '%s' has no members (config file '%s', starting on line %d)\n",temp_contactgroup->contactgroup_name,xodtemplate_config_file_name(_config_file),_start_line);
+#endif
 		return OK;
+		}
 
 	/* save a copy of the members */
 	if((group_members=(char *)strdup(temp_contactgroup->members))==NULL)
@@ -12292,7 +12298,7 @@ int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **list, char 
 
 
 /* expands a comma-delimited list of hostgroups and/or hosts to member host names */
-xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, char *hosts){
+xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, char *hosts, int _config_file, int _start_line){
 	xodtemplate_hostlist *temp_list=NULL;
 	xodtemplate_hostlist *reject_list=NULL;
 	xodtemplate_hostlist *list_ptr=NULL;
@@ -12307,7 +12313,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, 
 	if(hostgroups!=NULL){
 
 		/* expand host */
-		result=xodtemplate_expand_hostgroups(&temp_list,&reject_list,hostgroups);
+		result=xodtemplate_expand_hostgroups(&temp_list,&reject_list,hostgroups,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_hostlist(temp_list);
 			xodtemplate_free_hostlist(reject_list);
@@ -12332,7 +12338,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, 
 	if(hosts!=NULL){
 
 		/* expand hosts */
-		result=xodtemplate_expand_hosts(&temp_list,&reject_list,hosts);
+		result=xodtemplate_expand_hosts(&temp_list,&reject_list,hosts,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_hostlist(temp_list);
 			xodtemplate_free_hostlist(reject_list);
@@ -12363,7 +12369,7 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, 
 
 
 /* expands hostgroups */
-int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list, char *hostgroups){
+int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list, char *hostgroups, int _config_file, int _start_line){
 	char *hostgroup_names=NULL;
 	char *temp_ptr=NULL;
 	xodtemplate_hostgroup *temp_hostgroup=NULL;
@@ -12426,7 +12432,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 					continue;
 
 				/* add hostgroup members to list */
-				xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
+				xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup,_config_file,_start_line);
 		                } 
 
 			/* free memory allocated to compiled regexp */
@@ -12448,7 +12454,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 						continue;
 
 					/* add hostgroup to list */
-					xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup);
+					xodtemplate_add_hostgroup_members_to_hostlist(list,temp_hostgroup,_config_file,_start_line);
 				        }
 			        }
 
@@ -12468,14 +12474,14 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 					found_match=TRUE;
 
 					/* add hostgroup members to proper list */
-					xodtemplate_add_hostgroup_members_to_hostlist((reject_item==TRUE)?reject_list:list,temp_hostgroup);
+					xodtemplate_add_hostgroup_members_to_hostlist((reject_item==TRUE)?reject_list:list,temp_hostgroup,_config_file,_start_line);
 				        }
 			        }
 		        }
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not find any hostgroup matching '%s'\n",temp_ptr);
+			asprintf(&temp_buffer,"Error: Could not find any hostgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 #endif
@@ -12499,7 +12505,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_hostlist **list, xodtemplate_hostl
 
 
 /* expands hosts */
-int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list, char *hosts){
+int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist **reject_list, char *hosts, int _config_file, int _start_line){
 	char *host_names=NULL;
 	char *temp_ptr=NULL;
 	xodtemplate_host *temp_host=NULL;
@@ -12612,7 +12618,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist *
 
 		if(found_match==FALSE){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not find any host matching '%s'\n",temp_ptr);
+			asprintf(&temp_buffer,"Error: Could not find any host matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 #endif
@@ -12635,7 +12641,7 @@ int xodtemplate_expand_hosts(xodtemplate_hostlist **list, xodtemplate_hostlist *
 
 
 /* adds members of a hostgroups to the list of expanded (accepted) or rejected hosts */
-int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, xodtemplate_hostgroup *temp_hostgroup){
+int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, xodtemplate_hostgroup *temp_hostgroup, int _config_file, int _start_line){
 	char *group_members=NULL;
 	char *member_name=NULL;
 	char *member_ptr=NULL;
@@ -12644,8 +12650,12 @@ int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **list, x
 		return ERROR;
 
 	/* skip hostgroups with no defined members */
-	if(temp_hostgroup->members==NULL)
+	if(temp_hostgroup->members==NULL){
+#ifdef NSCORE
+		printf("Warning: Specified hostgroup '%s' has no members (config file '%s', starting on line %d)\n",temp_hostgroup->hostgroup_name,xodtemplate_config_file_name(_config_file),_start_line);
+#endif
 		return OK;
+		}
 
 	/* save a copy of the members */
 	if((group_members=(char *)strdup(temp_hostgroup->members))==NULL)
@@ -12703,7 +12713,7 @@ int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **list, char *host_nam
 
 
 /* expands a comma-delimited list of servicegroups and/or service descriptions */
-xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *servicegroups, char *host_name, char *services){
+xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *servicegroups, char *host_name, char *services, int _config_file, int _start_line){
 	xodtemplate_servicelist *temp_list=NULL;
 	xodtemplate_servicelist *reject_list=NULL;
 	xodtemplate_servicelist *list_ptr=NULL;
@@ -12718,7 +12728,7 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 	if(servicegroups!=NULL){
 
 		/* expand services */
-		result=xodtemplate_expand_servicegroups(&temp_list,&reject_list,servicegroups);
+		result=xodtemplate_expand_servicegroups(&temp_list,&reject_list,servicegroups,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_servicelist(temp_list);
 			xodtemplate_free_servicelist(reject_list);
@@ -12742,7 +12752,7 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 	if(host_name!=NULL && services!=NULL){
 
 		/* expand services */
-		result=xodtemplate_expand_services(&temp_list,&reject_list,host_name,services);
+		result=xodtemplate_expand_services(&temp_list,&reject_list,host_name,services,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_servicelist(temp_list);
 			xodtemplate_free_servicelist(reject_list);
@@ -12772,7 +12782,7 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 
 
 /* expands servicegroups */
-int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate_servicelist **reject_list, char *servicegroups){
+int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate_servicelist **reject_list, char *servicegroups, int _config_file, int _start_line){
 	xodtemplate_servicegroup  *temp_servicegroup=NULL;
 	regex_t preg;
 	char *servicegroup_names=NULL;
@@ -12836,7 +12846,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 					continue;
 
 				/* add servicegroup members to list */
-				xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
+				xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup,_config_file,_start_line);
 			        }
 
 			/* free memory allocated to compiled regexp */
@@ -12858,7 +12868,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 						continue;
 
 					/* add servicegroup to list */
-					xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup);
+					xodtemplate_add_servicegroup_members_to_servicelist(list,temp_servicegroup,_config_file,_start_line);
 				        }
 			        }
 
@@ -12877,7 +12887,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 					found_match=TRUE;
 
 					/* add servicegroup members to list */
-					xodtemplate_add_servicegroup_members_to_servicelist((reject_item==TRUE)?reject_list:list,temp_servicegroup);
+					xodtemplate_add_servicegroup_members_to_servicelist((reject_item==TRUE)?reject_list:list,temp_servicegroup,_config_file,_start_line);
 				        }
 			        }
 		        }
@@ -12885,7 +12895,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 		/* we didn't find a matching servicegroup */
 		if(found_match==FALSE){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not find any servicegroup matching '%s'\n",temp_ptr);
+			asprintf(&temp_buffer,"Error: Could not find any servicegroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 #endif
@@ -12908,7 +12918,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 
 
 /* expands services (host name is not expanded) */
-int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_servicelist **reject_list, char *host_name, char *services){
+int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_servicelist **reject_list, char *host_name, char *services, int _config_file, int _start_line){
 	char *service_names=NULL;
 	char *temp_ptr=NULL;
 	xodtemplate_service *temp_service=NULL;
@@ -13062,7 +13072,7 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 		/* we didn't find a match */
 		if(found_match==FALSE){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not find a service matching host name '%s' and description '%s'\n",host_name,temp_ptr);
+			asprintf(&temp_buffer,"Error: Could not find a service matching host name '%s' and description '%s' (config file '%s', starting on line %d)\n",host_name,temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 			my_free((void **)&temp_buffer);
 #endif
@@ -13086,7 +13096,7 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 
 
 /* adds members of a servicegroups to the list of expanded services */
-int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **list, xodtemplate_servicegroup *temp_servicegroup){
+int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **list, xodtemplate_servicegroup *temp_servicegroup, int _config_file, int _start_line){
 	char *group_members=NULL;
 	char *member_name=NULL;
 	char *host_name=NULL;
@@ -13096,8 +13106,12 @@ int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist 
 		return ERROR;
 
 	/* skip servicegroups with no defined members */
-	if(temp_servicegroup->members==NULL)
+	if(temp_servicegroup->members==NULL){
+#ifdef NSCORE
+		printf("Warning: Specified servicegroup '%s' has no members (config file '%s', starting on line %d)\n",temp_servicegroup->servicegroup_name,xodtemplate_config_file_name(_config_file),_start_line);
+#endif
 		return OK;
+		}
 
 	/* save a copy of the members */
 	if((group_members=(char *)strdup(temp_servicegroup->members))==NULL)

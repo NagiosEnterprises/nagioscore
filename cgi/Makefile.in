@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios CGIs
 #
-# Last Modified: 05-31-2006
+# Last Modified: 12-11-2006
 ###############################
 
 
@@ -26,7 +26,7 @@ CGIEXTRAS=@CGIEXTRAS@
 
 CP=@CP@
 CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@ -DNSCGI
+CFLAGS=@CFLAGS@ @DEFS@ @GLIB_INCLUDE@ -DNSCGI
 
 # Compiler flags for optimization (overrides default)
 #CFLAGS=-O3 -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCGI
@@ -37,7 +37,7 @@ CFLAGS=@CFLAGS@ @DEFS@ -DNSCGI
 #CFLAGS+=$(CFLAGS_WARN) $(CFLAGS_DEBUG)
 
 LDFLAGS=@LDFLAGS@
-LIBS=@LIBS@
+LIBS=@LIBS@ @GLIB_LIBS@
 
 CGIS=avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi notifications.cgi outages.cgi showlog.cgi status.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
 

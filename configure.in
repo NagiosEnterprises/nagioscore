@@ -318,7 +318,7 @@ AC_SUBST(XDDC)
 AC_SUBST(XDDH)
 
 
-dnl Option GD library and include paths
+dnl Optional GD library and include paths
 AC_ARG_WITH(gd-lib,--with-gd-lib=DIR sets location of the gd library,[
 	LDFLAGS="${LDFLAGS} -L${withval}"
 	LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
@@ -482,6 +482,16 @@ if test x$TRYGD = xyep; then
 		AC_DEFINE_UNQUOTED(USE_HISTOGRAM)
 	        CGIEXTRAS="$CGIEXTRAS histogram.cgi"
 	fi
+fi
+
+dnl Try and locate glib
+GLIB_INCLUDE=`pkg-config --cflags glib-2.0`
+AC_SUBST(GLIB_INCLUDE)
+GLIB_LIBS=`pkg-config --libs glib-2.0`
+AC_SUBST(GLIB_LIBS)
+if test x$GLIB_LIBS != x; then
+	AC_DEFINE_UNQUOTED(HAVE_GLIB)
+	AC_DEFINE_UNQUOTED(HAVE_GLIB_H)
 fi
 
 

@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT SET_MAKE STRIP CPP EGREP SNPRINTF_O SOCKETLIBS THREADLIBS nagios_user nagios_grp INSTALL_OPTS command_user command_grp COMMAND_OPTS MAIL_PROG init_dir lockfile XSDC XSDH XCDC XCDH XRDC XRDH XODC XODH XPDC XPDH XDDC XDDH htmurl cgiurl BROKER_LDFLAGS BROKERLIBS MOD_CFLAGS MOD_LDFLAGS BROKER_O BROKER_H nagios_name nagiostats_name PATH_TO_TRACEROUTE PACKDIR VERSION CGIEXTRAS GDLIBS PERLLIBS PERLDIR PERLXSI_O BASEEXTRALIBS INITDIR INSTALLPERLSTUFF PERL LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT SET_MAKE STRIP CPP EGREP SNPRINTF_O SOCKETLIBS THREADLIBS nagios_user nagios_grp INSTALL_OPTS command_user command_grp COMMAND_OPTS MAIL_PROG init_dir lockfile XSDC XSDH XCDC XCDH XRDC XRDH XODC XODH XPDC XPDH XDDC XDDH GLIB_INCLUDE GLIB_LIBS htmurl cgiurl BROKER_LDFLAGS BROKERLIBS MOD_CFLAGS MOD_LDFLAGS BROKER_O BROKER_H nagios_name nagiostats_name PATH_TO_TRACEROUTE PACKDIR VERSION CGIEXTRAS GDLIBS PERLLIBS PERLDIR PERLXSI_O BASEEXTRALIBS INITDIR INSTALLPERLSTUFF PERL LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -6080,6 +6080,21 @@ _ACEOF
 	fi
 fi
 
+GLIB_INCLUDE=`pkg-config --cflags glib-2.0`
+
+GLIB_LIBS=`pkg-config --libs glib-2.0`
+
+if test x$GLIB_LIBS != x; then
+	cat >>confdefs.h <<_ACEOF
+#define HAVE_GLIB 1
+_ACEOF
+
+	cat >>confdefs.h <<_ACEOF
+#define HAVE_GLIB_H 1
+_ACEOF
+
+fi
+
 
 
 # Check whether --with-cgiurl or --without-cgiurl was given.
@@ -6947,7 +6962,7 @@ _ACEOF
 
 
 
-VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
+VERSION=$PKG_VERSION
 PACKDIR=`pwd`/pkg
 
 
@@ -7683,6 +7698,8 @@ s,@XPDC@,$XPDC,;t t
 s,@XPDH@,$XPDH,;t t
 s,@XDDC@,$XDDC,;t t
 s,@XDDH@,$XDDH,;t t
+s,@GLIB_INCLUDE@,$GLIB_INCLUDE,;t t
+s,@GLIB_LIBS@,$GLIB_LIBS,;t t
 s,@htmurl@,$htmurl,;t t
 s,@cgiurl@,$cgiurl,;t t
 s,@BROKER_LDFLAGS@,$BROKER_LDFLAGS,;t t

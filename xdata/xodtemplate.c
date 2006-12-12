@@ -76,6 +76,11 @@ extern int test_scheduling;
 extern int use_precached_objects;
 #endif
 
+#ifdef HAVE_GLIB
+static GHashTable* service_hashtable=0;
+static GHashTable* host_hashtable=0;
+#endif
+
 xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
 xodtemplate_command *xodtemplate_command_list=NULL;
 xodtemplate_contactgroup *xodtemplate_contactgroup_list=NULL;
@@ -2376,6 +2381,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_servicedependency->fail_execute_on_warning=FALSE;
 					temp_servicedependency->fail_execute_on_critical=FALSE;
 				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_servicedependency->fail_execute_on_ok=TRUE;
+					temp_servicedependency->fail_execute_on_unknown=TRUE;
+					temp_servicedependency->fail_execute_on_warning=TRUE;
+					temp_servicedependency->fail_execute_on_critical=TRUE;
+				        }
 				else{
 #ifdef NSCORE
 					asprintf(&temp_buffer,"Error: Invalid execution dependency option '%s' in servicedependency definition.\n",temp_ptr);
@@ -2405,6 +2416,13 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_servicedependency->fail_notify_on_warning=FALSE;
 					temp_servicedependency->fail_notify_on_critical=FALSE;
 					temp_servicedependency->fail_notify_on_pending=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_servicedependency->fail_notify_on_ok=TRUE;
+					temp_servicedependency->fail_notify_on_unknown=TRUE;
+					temp_servicedependency->fail_notify_on_warning=TRUE;
+					temp_servicedependency->fail_notify_on_critical=TRUE;
+					temp_servicedependency->fail_notify_on_pending=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -2528,6 +2546,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_serviceescalation->escalate_on_unknown=FALSE;
 					temp_serviceescalation->escalate_on_critical=FALSE;
 					temp_serviceescalation->escalate_on_recovery=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_serviceescalation->escalate_on_warning=TRUE;
+					temp_serviceescalation->escalate_on_unknown=TRUE;
+					temp_serviceescalation->escalate_on_critical=TRUE;
+					temp_serviceescalation->escalate_on_recovery=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -2663,6 +2687,13 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_host_flapping=FALSE;
 					temp_contact->notify_on_host_downtime=FALSE;
 				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_contact->notify_on_host_down=TRUE;
+					temp_contact->notify_on_host_unreachable=TRUE;
+					temp_contact->notify_on_host_recovery=TRUE;
+					temp_contact->notify_on_host_flapping=TRUE;
+					temp_contact->notify_on_host_downtime=TRUE;
+				        }
 				else{
 #ifdef NSCORE
 					asprintf(&temp_buffer,"Error: Invalid host notification option '%s' in contact definition.\n",temp_ptr);
@@ -2695,6 +2726,14 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_contact->notify_on_service_recovery=FALSE;
 					temp_contact->notify_on_service_flapping=FALSE;
 					temp_contact->notify_on_service_downtime=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_contact->notify_on_service_unknown=TRUE;
+					temp_contact->notify_on_service_warning=TRUE;
+					temp_contact->notify_on_service_critical=TRUE;
+					temp_contact->notify_on_service_recovery=TRUE;
+					temp_contact->notify_on_service_flapping=TRUE;
+					temp_contact->notify_on_service_downtime=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -2798,6 +2837,12 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			if((temp_host->name=(char *)strdup(value))==NULL)
 				result=ERROR;
+#ifdef HAVE_GLIB
+			/* init hash table if necessary and add service to hash table */
+			if(host_hashtable==0)
+				host_hashtable=g_hash_table_new(&g_str_hash,&g_str_equal);
+			g_hash_table_insert(host_hashtable,temp_host->name,temp_host);
+#endif
 		        }
 		else if(!strcmp(variable,"host_name")){
 			if((temp_host->host_name=(char *)strdup(value))==NULL)
@@ -2993,6 +3038,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_host->flap_detection_on_down=FALSE;
 					temp_host->flap_detection_on_unreachable=FALSE;
 				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_host->flap_detection_on_up=TRUE;
+					temp_host->flap_detection_on_down=TRUE;
+					temp_host->flap_detection_on_unreachable=TRUE;
+				        }
 				else{
 #ifdef NSCORE
 					asprintf(&temp_buffer,"Error: Invalid flap detection option '%s' in host definition.\n",temp_ptr);
@@ -3022,6 +3072,13 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_host->notify_on_recovery=FALSE;
 					temp_host->notify_on_flapping=FALSE;
 					temp_host->notify_on_downtime=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_host->notify_on_down=TRUE;
+					temp_host->notify_on_unreachable=TRUE;
+					temp_host->notify_on_recovery=TRUE;
+					temp_host->notify_on_flapping=TRUE;
+					temp_host->notify_on_downtime=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -3058,6 +3115,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_host->stalk_on_up=FALSE;
 					temp_host->stalk_on_down=FALSE;
 					temp_host->stalk_on_unreachable=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_host->stalk_on_up=TRUE;
+					temp_host->stalk_on_down=TRUE;
+					temp_host->stalk_on_unreachable=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -3210,6 +3272,13 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			if((temp_service->name=(char *)strdup(value))==NULL)
 				result=ERROR;
+
+#ifdef HAVE_GLIB
+			/* init hash table if necessary and add service to hash table */
+			if(service_hashtable==0)
+				service_hashtable=g_hash_table_new(&g_str_hash,&g_str_equal);
+			g_hash_table_insert(service_hashtable,temp_service->name,temp_service);
+#endif
 		        }
 		else if(!strcmp(variable,"host") || !strcmp(variable,"hosts") || !strcmp(variable,"host_name")){
 			if(strcmp(value,XODTEMPLATE_NULL)){
@@ -3409,6 +3478,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_service->flap_detection_on_unknown=FALSE;
 					temp_service->flap_detection_on_critical=FALSE;
 				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_service->flap_detection_on_ok=TRUE;
+					temp_service->flap_detection_on_warning=TRUE;
+					temp_service->flap_detection_on_unknown=TRUE;
+					temp_service->flap_detection_on_critical=TRUE;
+				        }
 				else{
 #ifdef NSCORE
 					asprintf(&temp_buffer,"Error: Invalid flap detection option '%s' in service definition.\n",temp_ptr);
@@ -3441,6 +3516,14 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_service->notify_on_recovery=FALSE;
 					temp_service->notify_on_flapping=FALSE;
 					temp_service->notify_on_downtime=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_service->notify_on_unknown=TRUE;
+					temp_service->notify_on_warning=TRUE;
+					temp_service->notify_on_critical=TRUE;
+					temp_service->notify_on_recovery=TRUE;
+					temp_service->notify_on_flapping=TRUE;
+					temp_service->notify_on_downtime=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -3480,6 +3563,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_service->stalk_on_warning=FALSE;
 					temp_service->stalk_on_unknown=FALSE;
 					temp_service->stalk_on_critical=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_service->stalk_on_ok=TRUE;
+					temp_service->stalk_on_warning=TRUE;
+					temp_service->stalk_on_unknown=TRUE;
+					temp_service->stalk_on_critical=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -3634,6 +3723,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_hostdependency->fail_notify_on_unreachable=FALSE;
 					temp_hostdependency->fail_notify_on_pending=FALSE;
 				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_hostdependency->fail_notify_on_up=TRUE;
+					temp_hostdependency->fail_notify_on_down=TRUE;
+					temp_hostdependency->fail_notify_on_unreachable=TRUE;
+					temp_hostdependency->fail_notify_on_pending=TRUE;
+				        }
 				else{
 #ifdef NSCORE
 					asprintf(&temp_buffer,"Error: Invalid notification dependency option '%s' in hostdependency definition.\n",temp_ptr);
@@ -3660,6 +3755,12 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_hostdependency->fail_execute_on_down=FALSE;
 					temp_hostdependency->fail_execute_on_unreachable=FALSE;
 					temp_hostdependency->fail_execute_on_pending=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_hostdependency->fail_execute_on_up=TRUE;
+					temp_hostdependency->fail_execute_on_down=TRUE;
+					temp_hostdependency->fail_execute_on_unreachable=TRUE;
+					temp_hostdependency->fail_execute_on_pending=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -3766,6 +3867,11 @@ int xodtemplate_add_object_property(char *input, int options){
 					temp_hostescalation->escalate_on_down=FALSE;
 					temp_hostescalation->escalate_on_unreachable=FALSE;
 					temp_hostescalation->escalate_on_recovery=FALSE;
+				        }
+				else if(!strcmp(temp_ptr,"a") || !strcmp(temp_ptr,"all")){
+					temp_hostescalation->escalate_on_down=TRUE;
+					temp_hostescalation->escalate_on_unreachable=TRUE;
+					temp_hostescalation->escalate_on_recovery=TRUE;
 				        }
 				else{
 #ifdef NSCORE
@@ -8487,6 +8593,15 @@ xodtemplate_host *xodtemplate_find_host(char *name){
 	if(name==NULL)
 		return NULL;
 
+#ifdef HAVE_GLIB
+	/* do a hashtable lookup */
+	/* NOTE: In my testing (with 3k services), this did not offer much of a speedup, but I only tested the daemon - not the CGIs... EG 12/11/2006 */
+	if(host_hashtable==0)
+		return NULL;
+	else
+		return g_hash_table_lookup(host_hashtable,name);
+#else
+
 	for(temp_host=xodtemplate_host_list;temp_host!=NULL;temp_host=temp_host->next){
 		if(temp_host->name==NULL)
 			continue;
@@ -8495,6 +8610,7 @@ xodtemplate_host *xodtemplate_find_host(char *name){
 	        }
 
 	return temp_host;
+#endif
         }
 
 
@@ -8594,6 +8710,15 @@ xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *name){
 xodtemplate_service *xodtemplate_find_service(char *name){
 	xodtemplate_service *temp_service=NULL;
 
+#ifdef HAVE_GLIB
+	/* do a hashtable lookup */
+	/* NOTE: In my testing (with 3k services), this did not offer much of a speedup, but I only tested the daemon - not the CGIs... EG 12/11/2006 */
+	if(service_hashtable==0)
+		return NULL;
+	else
+		return g_hash_table_lookup(service_hashtable,name);
+#else
+
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
 		if(temp_service->name==NULL)
 			continue;
@@ -8602,6 +8727,7 @@ xodtemplate_service *xodtemplate_find_service(char *name){
 	        }
 
 	return temp_service;
+#endif
         }
 
 

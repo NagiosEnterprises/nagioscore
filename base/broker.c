@@ -3,7 +3,7 @@
  * BROKER.C - Event broker routines for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-25-2006
+ * Last Modified:   12-12-2006
  *
  * License:
  *
@@ -237,17 +237,18 @@ void broker_event_handler(int type, int flags, int attr, int eventhandler_type, 
 
 
 /* send host check data to broker */
-void broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *long_output, char *perfdata, struct timeval *timestamp){
+int broker_host_check(int type, int flags, int attr, host *hst, int check_type, int state, int state_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, char *output, char *long_output, char *perfdata, struct timeval *timestamp){
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
 	nebstruct_host_check_data ds;
+	int return_code=OK;
 
 	if(!(event_broker_options & BROKER_HOST_CHECKS))
-		return;
+		return OK;
 	
 	if(hst==NULL)
-		return;
+		return ERROR;
 
 	/* get command name/args */
 	if(cmd!=NULL){
@@ -283,28 +284,29 @@ void broker_host_check(int type, int flags, int attr, host *hst, int check_type,
 	ds.perf_data=perfdata;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_HOST_CHECK_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_HOST_CHECK_DATA,(void *)&ds);
 
 	/* free data */
 	my_free((void **)&command_buf);
 
-	return;
+	return return_code;
         }
 
 
 
 /* send service check data to broker */
-void broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp){
+int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp){
 	char *command_buf=NULL;
 	char *command_name=NULL;
 	char *command_args=NULL;
 	nebstruct_service_check_data ds;
+	int return_code=OK;
 
 	if(!(event_broker_options & BROKER_SERVICE_CHECKS))
-		return;
+		return OK;
 	
 	if(svc==NULL)
-		return;
+		return ERROR;
 
 	/* get command name/args */
 	if(cmd!=NULL){
@@ -341,12 +343,12 @@ void broker_service_check(int type, int flags, int attr, service *svc, int check
 	ds.perf_data=svc->perf_data;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_SERVICE_CHECK_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_SERVICE_CHECK_DATA,(void *)&ds);
 
 	/* free data */
 	my_free((void **)&command_buf);
 
-	return;
+	return return_code;
         }
 
 

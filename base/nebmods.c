@@ -3,7 +3,7 @@
  * NEBMODS.C - Event Broker Module Functions
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-05-2006
+ * Last Modified:   12-12-2006
  *
  * License:
  *
@@ -547,9 +547,18 @@ int neb_make_callbacks(int callback_type, void *data){
 #ifdef DEBUG
 		printf("Callback type %d resulted in return code of %d\n",callback_type,cbresult);
 #endif
+
+		/* module wants to cancel callbacks to other modules (and potentially cancel the default Nagios handling of an event) */
+		if(cbresult==NEBERROR_CALLBACKCANCEL)
+			break;
+
+		/* module wants to override default Nagios handling of an event */
+		/* not sure if we should bail out here just because one module wants to override things - what about other modules? EG 12/11/2006 */
+		else if(cbresult==NEBERROR_CALLBACKOVERRIDE)
+			break;
 	        }
 
-	return OK;
+	return cbresult;
         }
 
 

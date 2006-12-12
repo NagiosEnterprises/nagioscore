@@ -107,6 +107,7 @@ Pre-alpha changes since 02/15/2006...
      - Updated NEB API version
      - Modified adaptive program status callback
      - Added adaptive contact status callback
+     - Added host/service precheck callbacks to allow modules to cancel/override internal host/service checks
 
 * Embedded Perl changes:
      - Added 'enable_embedded_perl' option to main config file to control whether epn is enabled/disabled

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-27-2006
+ * Last Modified:   12-12-2006
  *
  * License:
  *
@@ -36,6 +36,10 @@
 
 #ifdef EMBEDDEDPERL
 #include "../include/epn_nagios.h"
+#endif
+
+#ifdef USE_EVENT_BROKER
+#include "../include/neberrors.h"
 #endif
 
 extern int      sigshutdown;
@@ -263,6 +267,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	mode_t old_umask;
 	char *output_file=NULL;
 	double old_latency=0.0;
+#ifdef USE_EVENT_BROKER
+	int neb_result=OK;
+#endif
 #ifdef EMBEDDEDPERL
 	char fname[512];
 	char *args[5]={"",DO_CLEAN, "", "", NULL };
@@ -290,6 +297,27 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		return ERROR;
 
 	/******** GOOD TO GO FOR A REAL SERVICE CHECK AT THIS POINT ********/
+
+#ifdef USE_EVENT_BROKER
+	/* initialize start/end times */
+	start_time.tv_sec=0L;
+	start_time.tv_usec=0L;
+	end_time.tv_sec=0L;
+	end_time.tv_usec=0L;
+
+	/* send data to event broker */
+	neb_result=broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,0,FALSE,0,NULL,NULL);
+
+	/* neb module wants to cancel the service check - the check will be rescheduled for a later time by the scheduling logic */
+	if(neb_result==NEBERROR_CALLBACKCANCEL)
+		return ERROR;
+
+	/* neb module wants to override the service check - perhaps it will check the service itself */
+	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
+	if(neb_result==NEBERROR_CALLBACKOVERRIDE)
+		return OK;
+#endif
+
 
 #ifdef DEBUG3
 	printf("\tChecking service '%s' on host '%s'...\n",svc->description,svc->host_name);
@@ -360,12 +388,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
 	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,0,FALSE,0,processed_command,NULL);
 #endif
 
-	/* reset latency (permanent value will be set later */
+	/* reset latency (permanent value will be set later) */
 	svc->latency=old_latency;
 
 #ifdef EMBEDDEDPERL
@@ -2863,13 +2889,15 @@ int execute_sync_host_check_3x(host *hst){
 	char raw_command[MAX_COMMAND_BUFFER]="";
 	char *temp_buffer=NULL;
 	time_t current_time;
-	time_t start_time;
-	struct timeval start_time_hires;
-	struct timeval end_time_hires;
+	struct timeval start_time;
+	struct timeval end_time;
 	char *temp_ptr;
 	int early_timeout=FALSE;
 	double exectime;
 	char *temp_plugin_output=NULL;
+#ifdef USE_EVENT_BROKER
+	int neb_result=OK;
+#endif
 		
 
 #ifdef DEBUG0
@@ -2880,6 +2908,26 @@ int execute_sync_host_check_3x(host *hst){
 	printf("EXECUTE_SYNC_HOST_CHECK: %s\n",hst->name);
 #endif
 
+#ifdef USE_EVENT_BROKER
+	/* initialize start/end times */
+	start_time.tv_sec=0L;
+	start_time.tv_usec=0L;
+	end_time.tv_sec=0L;
+	end_time.tv_usec=0L;
+
+	/* send data to event broker */
+	neb_result=broker_host_check(NEBTYPE_HOSTCHECK_SYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
+
+	/* neb module wants to cancel the host check - return the current state of the host */
+	if(neb_result==NEBERROR_CALLBACKCANCEL)
+		return hst->current_state;
+
+	/* neb module wants to override the host check - perhaps it will check the host itself */
+	/* NOTE: if a module does this, it must check the status of the host and populate the data structures BEFORE it returns from the callback! */
+	if(neb_result==NEBERROR_CALLBACKOVERRIDE)
+		return hst->current_state;
+#endif
+
 	/* grab the host macros */
 	clear_volatile_macros();
 	grab_host_macros(hst);
@@ -2887,11 +2935,10 @@ int execute_sync_host_check_3x(host *hst){
 	grab_summary_macros(NULL);
 
 	/* high resolution start time for event broker */
-	gettimeofday(&start_time_hires,NULL);
+	gettimeofday(&start_time,NULL);
 
 	/* get the last host check time */
-	time(&start_time);
-	hst->last_check=start_time;
+	time(&hst->last_check);
 
 	/* get the raw command line */
 	get_raw_command_line(hst->check_command_ptr,hst->host_check_command,raw_command,sizeof(raw_command),0);
@@ -2901,9 +2948,9 @@ int execute_sync_host_check_3x(host *hst){
 			
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	end_time_hires.tv_sec=0L;
-	end_time_hires.tv_usec=0L;
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->host_check_command,0.0,0.0,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
+	end_time.tv_sec=0L;
+	end_time.tv_usec=0L;
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time,end_time,hst->host_check_command,0.0,0.0,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
 #ifdef DEBUG3
@@ -2973,11 +3020,11 @@ int execute_sync_host_check_3x(host *hst){
 		return_result=HOST_DOWN;
 
 	/* high resolution end time for event broker */
-	gettimeofday(&end_time_hires,NULL);
+	gettimeofday(&end_time,NULL);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_RAW_END,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time_hires,end_time_hires,hst->host_check_command,0.0,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_RAW_END,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time,end_time,hst->host_check_command,0.0,exectime,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
 #ifdef DEBUG3
@@ -3070,6 +3117,9 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 	char *output_file=NULL;
 	double old_latency=0.0;
 	int result=OK;
+#ifdef USE_EVENT_BROKER
+	int neb_result=OK;
+#endif
 
 	/* make sure we have a host */
 	if(hst==NULL)
@@ -3084,6 +3134,26 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 		return ERROR;
 
 	/******** GOOD TO GO FOR A REAL HOST CHECK AT THIS POINT ********/
+
+#ifdef USE_EVENT_BROKER
+	/* initialize start/end times */
+	start_time.tv_sec=0L;
+        start_time.tv_usec=0L;
+	end_time.tv_sec=0L;
+	end_time.tv_usec=0L;
+
+	/* send data to event broker */
+	neb_result=broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
+
+	/* neb module wants to cancel the host check - the check will be rescheduled for a later time by the scheduling logic */
+	if(neb_result==NEBERROR_CALLBACKCANCEL)
+		return ERROR;
+
+	/* neb module wants to override the host check - perhaps it will check the host itself */
+	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
+	if(neb_result==NEBERROR_CALLBACKOVERRIDE)
+		return OK;
+#endif
 
 #ifdef DEBUG3
 	printf("\tChecking host '%s'...\n",hst->name);
@@ -3165,8 +3235,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
 	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,processed_command,NULL,NULL,NULL,NULL);
 #endif
 

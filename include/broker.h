@@ -3,7 +3,7 @@
  * BROKER.H - Event broker includes for Nagios
  *
  * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-25-2006
+ * Last Modified:   12-12-2006
  *
  * License:
  *
@@ -102,11 +102,14 @@
 #define NEBTYPE_SERVICECHECK_PROCESSED           701
 #define NEBTYPE_SERVICECHECK_RAW_START           702   /* NOT IMPLEMENTED */
 #define NEBTYPE_SERVICECHECK_RAW_END             703   /* NOT IMPLEMENTED */
+#define NEBTYPE_SERVICECHECK_ASYNC_PRECHECK      704
 
 #define NEBTYPE_HOSTCHECK_INITIATE               800   /* a check of the route to the host has been initiated */
 #define NEBTYPE_HOSTCHECK_PROCESSED              801   /* the processed/final result of a host check */
 #define NEBTYPE_HOSTCHECK_RAW_START              802   /* the start of a "raw" host check */
 #define NEBTYPE_HOSTCHECK_RAW_END                803   /* a finished "raw" host check */
+#define NEBTYPE_HOSTCHECK_ASYNC_PRECHECK         804
+#define NEBTYPE_HOSTCHECK_SYNC_PRECHECK          805
 
 #define NEBTYPE_COMMENT_ADD                      900
 #define NEBTYPE_COMMENT_DELETE                   901
@@ -188,8 +191,8 @@ void broker_log_data(int,int,int,char *,unsigned long,time_t,struct timeval *);
 void broker_event_handler(int,int,int,int,void *,int,int,struct timeval,struct timeval,double,int,int,int,char *,char *,char *,struct timeval *);
 void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
 void broker_system_command(int,int,int,struct timeval,struct timeval,double,int,int,int,char *,char *,struct timeval *);
-void broker_host_check(int,int,int,host *,int,int,int,struct timeval,struct timeval,char *,double,double,int,int,int,char *,char *,char *,char *,struct timeval *);
-void broker_service_check(int,int,int,service *,int,struct timeval,struct timeval,char *,double,double,int,int,int,char *,struct timeval *);
+int broker_host_check(int,int,int,host *,int,int,int,struct timeval,struct timeval,char *,double,double,int,int,int,char *,char *,char *,char *,struct timeval *);
+int broker_service_check(int,int,int,service *,int,struct timeval,struct timeval,char *,double,double,int,int,int,char *,struct timeval *);
 void broker_comment_data(int,int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
 void broker_downtime_data(int,int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
 void broker_flapping_data(int,int,int,int,void *,double,double,double,struct timeval *);

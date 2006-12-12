@@ -2,8 +2,8 @@
  *
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
- * Copyright (c) 1999-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-19-2004
+ * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   12-12-2006
  *
  * License:
  *
@@ -558,6 +558,8 @@ int run_host_event_handler(host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
+	end_time.tv_sec=0L;
+	end_time.tv_usec=0L;
 	broker_event_handler(NEBTYPE_EVENTHANDLER_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,hst->event_handler,NULL,NULL,NULL);
 #endif
 

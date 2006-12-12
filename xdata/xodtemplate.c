@@ -77,8 +77,8 @@ extern int use_precached_objects;
 #endif
 
 #ifdef HAVE_GLIB
-static GHashTable* service_hashtable=0;
-static GHashTable* host_hashtable=0;
+static GHashTable* service_hashtable=NULL;
+static GHashTable* host_hashtable=NULL;
 #endif
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list=NULL;
@@ -2839,7 +2839,7 @@ int xodtemplate_add_object_property(char *input, int options){
 				result=ERROR;
 #ifdef HAVE_GLIB
 			/* init hash table if necessary and add service to hash table */
-			if(host_hashtable==0)
+			if(host_hashtable==NULL)
 				host_hashtable=g_hash_table_new(&g_str_hash,&g_str_equal);
 			g_hash_table_insert(host_hashtable,temp_host->name,temp_host);
 #endif
@@ -3275,7 +3275,7 @@ int xodtemplate_add_object_property(char *input, int options){
 
 #ifdef HAVE_GLIB
 			/* init hash table if necessary and add service to hash table */
-			if(service_hashtable==0)
+			if(service_hashtable==NULL)
 				service_hashtable=g_hash_table_new(&g_str_hash,&g_str_equal);
 			g_hash_table_insert(service_hashtable,temp_service->name,temp_service);
 #endif
@@ -8596,7 +8596,7 @@ xodtemplate_host *xodtemplate_find_host(char *name){
 #ifdef HAVE_GLIB
 	/* do a hashtable lookup */
 	/* NOTE: In my testing (with 3k services), this did not offer much of a speedup, but I only tested the daemon - not the CGIs... EG 12/11/2006 */
-	if(host_hashtable==0)
+	if(host_hashtable==NULL)
 		return NULL;
 	else
 		return g_hash_table_lookup(host_hashtable,name);
@@ -8713,7 +8713,7 @@ xodtemplate_service *xodtemplate_find_service(char *name){
 #ifdef HAVE_GLIB
 	/* do a hashtable lookup */
 	/* NOTE: In my testing (with 3k services), this did not offer much of a speedup, but I only tested the daemon - not the CGIs... EG 12/11/2006 */
-	if(service_hashtable==0)
+	if(service_hashtable==NULL)
 		return NULL;
 	else
 		return g_hash_table_lookup(service_hashtable,name);

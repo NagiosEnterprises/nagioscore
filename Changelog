@@ -3,6 +3,11 @@ Nagios 2.x Change Log
 #####################
 
 
+2.7 - ??/??/????
+----------------
+* p1.pl now sets environment var (NAGIOS_PLUGIN) to indicate patch of plugin that is executing
+
+
 2.6 - 11/27/2006
 ----------------
 * Fix for unscheduled triggered downtime entries

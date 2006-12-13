@@ -188,6 +188,7 @@ package $package;
 sub hndlr {
 	\@ARGV = \@_ ;
 	local \$^W = 1 ;
+ 	\$ENV{NAGIOS_PLUGIN} = '$filename' ;
 
 								# <<< START of PLUGIN (first line of plugin is line 8 in the text) >>>
 $sub

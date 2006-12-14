@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 11-21-2006
+# Last Modified: 12-13-2006
 #
 ##############################################################################
 
@@ -607,6 +607,40 @@ use_retained_program_state=1
 # value to 1.  If not, set this value to 0.
 
 use_retained_scheduling_info=0
+
+
+
+# RETAINED ATTRIBUTE MASKS (ADVANCED FEATURE)
+# The following variables are used to specify specific host and
+# service attributes that should *not* be retained by Nagios during
+# program restarts.
+#
+# The values of the masks are bitwise ANDs of values specified
+# by the "MODATTR_" definitions found in include/common.h.  
+# For example, if you do not want the current enabled/disabled state
+# of flap detection and event handlers for hosts to be retained, you
+# would use a value of 24 for the host attribute mask...
+# MODATTR_EVENT_HANDLER_ENABLED (8) + MODATTR_FLAP_DETECTION_ENABLED (16) = 24
+
+# This mask determines what host attributes are not retained
+retained_host_attribute_mask=0
+
+# This mask determines what service attributes are not retained
+retained_service_attribute_mask=0
+
+# These two masks determine what process attributes are not retained.
+# There are two masks, because some process attributes have host and service
+# options.  For example, you can disable active host checks, but leave active
+# service checks enabled.
+retained_process_host_attribute_mask=0
+retained_process_service_attribute_mask=0
+
+# These two masks determine what contact attributes are not retained.
+# There are two masks, because some contact attributes have host and
+# service options.  For example, you can disable host notifications for
+# a contact, but leave service notifications enabled for them.
+retained_contact_host_attribute_mask=0
+retained_contact_service_attribute_mask=0
 
 
 

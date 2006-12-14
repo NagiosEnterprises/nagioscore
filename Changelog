@@ -57,6 +57,7 @@ Pre-alpha changes since 02/15/2006...
      - Custom host/service/contact macros accessible via $_HOST<varname>$, $_SERVICE<varname>, or $_CONTACT<varname>$.
        On-demand host/service macros for custom vars are working.  Custom vars are also set as environment vars.
      - On-demand service macros can contain and empty host name field.  In this case, the name of the current host will be used.
+     - $HOSTNOTES$ and $SERVICENOTES$ macros may now contain macros themselves
 
 * Flapping changes:
      - Added flap_detection_options directive to host and service definitions to control which
@@ -80,6 +81,7 @@ Pre-alpha changes since 02/15/2006...
 * Retention data changes:
      - Contact status information is now retained across program restarts
      - Comment and downtime IDs are now stored across program restarts, should be unique unless reset
+     - Added retained_host/service_attribute_mask variables to control what host/service attribs are retained globally
 
 * Downtime changes:
      - Scheduled downtime entries are now stored in the status and retention files

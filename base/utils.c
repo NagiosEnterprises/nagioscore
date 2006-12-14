@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-12-2006
+ * Last Modified:   12-13-2006
  *
  * License:
  *
@@ -145,6 +145,12 @@ extern int      use_retained_scheduling_info;
 extern int      retention_scheduling_horizon;
 extern unsigned long modified_host_process_attributes;
 extern unsigned long modified_service_process_attributes;
+extern unsigned long retained_host_attribute_mask;
+extern unsigned long retained_service_attribute_mask;
+extern unsigned long retained_contact_host_attribute_mask;
+extern unsigned long retained_contact_service_attribute_mask;
+extern unsigned long retained_process_host_attribute_mask;
+extern unsigned long retained_process_service_attribute_mask;
 
 extern unsigned long next_comment_id;
 extern unsigned long next_downtime_id;
@@ -675,7 +681,7 @@ int grab_service_macros(service *svc){
 	strip(macro_x[MACRO_SERVICENOTES]);
 	*/
 
-	/* notes and action URL macros may themselves contain macros, so process them... */
+	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_SERVICEACTIONURL]!=NULL){
 		process_macros(macro_x[MACRO_SERVICEACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
@@ -685,6 +691,11 @@ int grab_service_macros(service *svc){
 		process_macros(macro_x[MACRO_SERVICENOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_SERVICENOTESURL]);
 		macro_x[MACRO_SERVICENOTESURL]=(char *)strdup(temp_buffer);
+	        }
+	if(macro_x[MACRO_SERVICENOTES]!=NULL){
+		process_macros(macro_x[MACRO_SERVICENOTES],temp_buffer,sizeof(temp_buffer),0);
+		my_free((void **)&macro_x[MACRO_SERVICENOTES]);
+		macro_x[MACRO_SERVICENOTES]=(char *)strdup(temp_buffer);
 	        }
 
 #ifdef DEBUG0
@@ -894,7 +905,7 @@ int grab_host_macros(host *hst){
 	strip(macro_x[MACRO_HOSTNOTES]);
 	*/
 
-	/* notes and action URL macros may themselves contain macros, so process them... */
+	/* notes, notes URL and action URL macros may themselves contain macros, so process them... */
 	if(macro_x[MACRO_HOSTACTIONURL]!=NULL){
 		process_macros(macro_x[MACRO_HOSTACTIONURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
@@ -904,6 +915,11 @@ int grab_host_macros(host *hst){
 		process_macros(macro_x[MACRO_HOSTNOTESURL],temp_buffer,sizeof(temp_buffer),URL_ENCODE_MACRO_CHARS);
 		my_free((void **)&macro_x[MACRO_HOSTNOTESURL]);
 		macro_x[MACRO_HOSTNOTESURL]=(char *)strdup(temp_buffer);
+	        }
+	if(macro_x[MACRO_HOSTNOTES]!=NULL){
+		process_macros(macro_x[MACRO_HOSTNOTES],temp_buffer,sizeof(temp_buffer),0);
+		my_free((void **)&macro_x[MACRO_HOSTNOTES]);
+		macro_x[MACRO_HOSTNOTES]=(char *)strdup(temp_buffer);
 	        }
 
 #ifdef DEBUG0
@@ -1319,6 +1335,13 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	if(!strcmp(macro,"HOSTNOTES")){
 		if(hst->notes)
 			macro_ondemand=(char *)strdup(hst->notes);
+
+		/* notes macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),0);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(temp_buffer);
+		        }
 	        }
 
 	/* custom variables */
@@ -1561,6 +1584,13 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else if(!strcmp(macro,"SERVICENOTES")){
 		if(svc->notes)
 			macro_ondemand=(char *)strdup(svc->notes);
+
+		/* notes macros may themselves contain macros, so process them... */
+		if(macro_ondemand!=NULL){
+			process_macros(macro_ondemand,temp_buffer,sizeof(temp_buffer),0);
+			my_free((void **)&macro_ondemand);
+			macro_ondemand=(char *)strdup(temp_buffer);
+		        }
 	        }
 
 	/* custom variables */
@@ -5872,6 +5902,12 @@ int reset_variables(void){
 	retention_scheduling_horizon=DEFAULT_RETENTION_SCHEDULING_HORIZON;
 	modified_host_process_attributes=MODATTR_NONE;
 	modified_service_process_attributes=MODATTR_NONE;
+	retained_host_attribute_mask=0L;
+	retained_service_attribute_mask=0L;
+	retained_process_host_attribute_mask=0L;
+	retained_process_service_attribute_mask=0L;
+	retained_contact_host_attribute_mask=0L;
+	retained_contact_service_attribute_mask=0L;
 
 	command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 	check_reaper_interval=DEFAULT_CHECK_REAPER_INTERVAL;

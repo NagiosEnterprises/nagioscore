@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   09-30-2006
+ * Last Modified:   12-13-2006
  *
  * Description:
  *
@@ -154,6 +154,12 @@ int             use_retained_scheduling_info=FALSE;
 int             retention_scheduling_horizon=DEFAULT_RETENTION_SCHEDULING_HORIZON;
 unsigned long   modified_host_process_attributes=MODATTR_NONE;
 unsigned long   modified_service_process_attributes=MODATTR_NONE;
+unsigned long   retained_host_attribute_mask=0L;
+unsigned long   retained_service_attribute_mask=0L;
+unsigned long   retained_contact_host_attribute_mask=0L;
+unsigned long   retained_contact_service_attribute_mask=0L;
+unsigned long   retained_process_host_attribute_mask=0L;
+unsigned long   retained_process_service_attribute_mask=0L;
 
 unsigned long   next_comment_id=0L;
 unsigned long   next_downtime_id=0L;

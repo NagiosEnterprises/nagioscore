@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-27-2006
+ * Last Modified: 12-13-2006
  *
  * License:
  *
@@ -130,6 +130,12 @@ extern int      retention_update_interval;
 extern int      use_retained_program_state;
 extern int      use_retained_scheduling_info;
 extern int      retention_scheduling_horizon;
+extern unsigned long retained_host_attribute_mask;
+extern unsigned long retained_service_attribute_mask;
+extern unsigned long retained_contact_host_attribute_mask;
+extern unsigned long retained_contact_service_attribute_mask;
+extern unsigned long retained_process_host_attribute_mask;
+extern unsigned long retained_process_service_attribute_mask;
 
 extern int      log_rotation_method;
 
@@ -692,6 +698,24 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tretention_scheduling_horizon set to %d\n",retention_scheduling_horizon);
 #endif
 		        }
+
+		else if(!strcmp(variable,"retained_host_attribute_mask"))
+			retained_host_attribute_mask=strtoul(value,NULL,0);
+
+		else if(!strcmp(variable,"retained_service_attribute_mask"))
+			retained_service_attribute_mask=strtoul(value,NULL,0);
+
+		else if(!strcmp(variable,"retained_process_host_attribute_mask"))
+			retained_process_host_attribute_mask=strtoul(value,NULL,0);
+
+		else if(!strcmp(variable,"retained_process_service_attribute_mask"))
+			retained_process_service_attribute_mask=strtoul(value,NULL,0);
+
+		else if(!strcmp(variable,"retained_contact_host_attribute_mask"))
+			retained_contact_host_attribute_mask=strtoul(value,NULL,0);
+
+		else if(!strcmp(variable,"retained_contact_service_attribute_mask"))
+			retained_contact_service_attribute_mask=strtoul(value,NULL,0);
 
 		else if(!strcmp(variable,"obsess_over_services")){
 

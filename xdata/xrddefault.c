@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-23-2006
+ * Last Modified:   12-13-2006
  *
  * License:
  *
@@ -75,6 +75,13 @@ extern unsigned long  next_notification_id;
 
 extern unsigned long  modified_host_process_attributes;
 extern unsigned long  modified_service_process_attributes;
+
+extern unsigned long  retained_host_attribute_mask;
+extern unsigned long  retained_service_attribute_mask;
+extern unsigned long  retained_contact_host_attribute_mask;
+extern unsigned long  retained_contact_service_attribute_mask;
+extern unsigned long  retained_process_host_attribute_mask;
+extern unsigned long  retained_process_service_attribute_mask;
 
 
 char *xrddefault_retention_file=NULL;
@@ -234,10 +241,18 @@ int xrddefault_save_state_information(void){
 	scheduled_downtime *temp_downtime=NULL;
 	int x=0;
 	int fd=0;
+	unsigned long host_attribute_mask=0L;
+	unsigned long service_attribute_mask=0L;
+	unsigned long contact_attribute_mask=0L;
+	unsigned long contact_host_attribute_mask=0L;
+	unsigned long contact_service_attribute_mask=0L;
+	unsigned long process_host_attribute_mask=0L;
+	unsigned long process_service_attribute_mask=0L;
 
 #ifdef DEBUG0
 	printf("xrddefault_save_state_information() start\n");
 #endif
+
 
 	/* make sure we have everything */
 	if(xrddefault_retention_file==NULL || xrddefault_temp_file==NULL){
@@ -271,6 +286,15 @@ int xrddefault_save_state_information(void){
 		return ERROR;
 	        }
 
+	/* what attributes should be masked out? */
+	/* NOTE: host/service/contact-specific values may be added in the future, but for now we only have global masks */
+	process_host_attribute_mask=retained_process_host_attribute_mask;
+	process_service_attribute_mask=retained_process_host_attribute_mask;
+	host_attribute_mask=retained_host_attribute_mask;
+	service_attribute_mask=retained_host_attribute_mask;
+	contact_host_attribute_mask=retained_contact_host_attribute_mask;
+	contact_service_attribute_mask=retained_contact_service_attribute_mask;
+
 	/* write version info to status file */
 	fprintf(fp,"########################################\n");
 	fprintf(fp,"#      NAGIOS STATE RETENTION FILE\n");
@@ -289,8 +313,8 @@ int xrddefault_save_state_information(void){
 
 	/* save program state information */
 	fprintf(fp,"program {\n");
-	fprintf(fp,"\tmodified_host_attributes=%lu\n",modified_host_process_attributes);
-	fprintf(fp,"\tmodified_service_attributes=%lu\n",modified_service_process_attributes);
+	fprintf(fp,"\tmodified_host_attributes=%lu\n",(modified_host_process_attributes & !process_host_attribute_mask));
+	fprintf(fp,"\tmodified_service_attributes=%lu\n",(modified_service_process_attributes & !process_service_attribute_mask));
 	fprintf(fp,"\tenable_notifications=%d\n",enable_notifications);
 	fprintf(fp,"\tactive_service_checks_enabled=%d\n",execute_service_checks);
 	fprintf(fp,"\tpassive_service_checks_enabled=%d\n",accept_passive_service_checks);
@@ -317,7 +341,7 @@ int xrddefault_save_state_information(void){
 
 		fprintf(fp,"host {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_host->name);
-		fprintf(fp,"\tmodified_attributes=%lu\n",temp_host->modified_attributes);
+		fprintf(fp,"\tmodified_attributes=%lu\n",(temp_host->modified_attributes & !host_attribute_mask));
 		fprintf(fp,"\tcheck_command=%s\n",(temp_host->host_check_command==NULL)?"":temp_host->host_check_command);
 		fprintf(fp,"\tcheck_period=%s\n",(temp_host->check_period==NULL)?"":temp_host->check_period);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_host->event_handler==NULL)?"":temp_host->event_handler);
@@ -383,7 +407,7 @@ int xrddefault_save_state_information(void){
 		fprintf(fp,"service {\n");
 		fprintf(fp,"\thost_name=%s\n",temp_service->host_name);
 		fprintf(fp,"\tservice_description=%s\n",temp_service->description);
-		fprintf(fp,"\tmodified_attributes=%lu\n",temp_service->modified_attributes);
+		fprintf(fp,"\tmodified_attributes=%lu\n",(temp_service->modified_attributes & !service_attribute_mask));
 		fprintf(fp,"\tcheck_command=%s\n",(temp_service->service_check_command==NULL)?"":temp_service->service_check_command);
 		fprintf(fp,"\tcheck_period=%s\n",(temp_service->check_period==NULL)?"":temp_service->check_period);
 		fprintf(fp,"\tevent_handler=%s\n",(temp_service->event_handler==NULL)?"":temp_service->event_handler);
@@ -450,9 +474,9 @@ int xrddefault_save_state_information(void){
 
 		fprintf(fp,"contact {\n");
 		fprintf(fp,"\tcontact_name=%s\n",temp_contact->name);
-		fprintf(fp,"\tmodified_attributes=%lu\n",temp_contact->modified_attributes);
-		fprintf(fp,"\tmodified_host_attributes=%lu\n",temp_contact->modified_host_attributes);
-		fprintf(fp,"\tmodified_service_attributes=%lu\n",temp_contact->modified_service_attributes);
+		fprintf(fp,"\tmodified_attributes=%lu\n",(temp_contact->modified_attributes & !contact_attribute_mask));
+		fprintf(fp,"\tmodified_host_attributes=%lu\n",(temp_contact->modified_host_attributes & !contact_host_attribute_mask));
+		fprintf(fp,"\tmodified_service_attributes=%lu\n",(temp_contact->modified_service_attributes & !contact_service_attribute_mask));
 		fprintf(fp,"\tlast_host_notification=%lu\n",temp_contact->last_host_notification);
 		fprintf(fp,"\tlast_service_notification=%lu\n",temp_contact->last_service_notification);
 		fprintf(fp,"\thost_notifications_enabled=%d\n",temp_contact->host_notifications_enabled);
@@ -573,6 +597,13 @@ int xrddefault_read_state_information(void){
 	int fixed=FALSE;
 	unsigned long triggered_by=0;
 	unsigned long duration=0L;
+	unsigned long host_attribute_mask=0L;
+	unsigned long service_attribute_mask=0L;
+	unsigned long contact_attribute_mask=0L;
+	unsigned long contact_host_attribute_mask=0L;
+	unsigned long contact_service_attribute_mask=0L;
+	unsigned long process_host_attribute_mask=0L;
+	unsigned long process_service_attribute_mask=0L;
 
 #ifdef DEBUG0
 	printf("xrddefault_read_state_information() start\n");
@@ -592,6 +623,14 @@ int xrddefault_read_state_information(void){
 	if((thefile=mmap_fopen(xrddefault_retention_file))==NULL)
 		return ERROR;
 
+	/* what attributes should be masked out? */
+	/* NOTE: host/service/contact-specific values may be added in the future, but for now we only have global masks */
+	process_host_attribute_mask=retained_process_host_attribute_mask;
+	process_service_attribute_mask=retained_process_host_attribute_mask;
+	host_attribute_mask=retained_host_attribute_mask;
+	service_attribute_mask=retained_host_attribute_mask;
+	contact_host_attribute_mask=retained_contact_host_attribute_mask;
+	contact_service_attribute_mask=retained_contact_service_attribute_mask;
 
 	/* read all lines in the retention file */
 	while(1){
@@ -838,10 +877,20 @@ int xrddefault_read_state_information(void){
 				break;
 
 			case XRDDEFAULT_PROGRAMSTATUS_DATA:
-				if(!strcmp(var,"modified_host_attributes"))
+				if(!strcmp(var,"modified_host_attributes")){
+
 					modified_host_process_attributes=strtoul(val,NULL,10);
-				else if(!strcmp(var,"modified_service_attributes"))
+
+					/* mask out attributes we don't want to retain */
+					modified_host_process_attributes&=!process_host_attribute_mask;
+					}
+				else if(!strcmp(var,"modified_service_attributes")){
+
 					modified_service_process_attributes=strtoul(val,NULL,10);
+
+					/* mask out attributes we don't want to retain */
+					modified_service_process_attributes&=!process_service_attribute_mask;
+					}
 				if(use_retained_program_state==TRUE){
 					if(!strcmp(var,"enable_notifications")){
 						if(modified_host_process_attributes & MODATTR_NOTIFICATIONS_ENABLED)
@@ -944,8 +993,13 @@ int xrddefault_read_state_information(void){
 					temp_host=find_host(host_name);
 				        }
 				else if(temp_host!=NULL){
-					if(!strcmp(var,"modified_attributes"))
+					if(!strcmp(var,"modified_attributes")){
+
 						temp_host->modified_attributes=strtoul(val,NULL,10);
+
+						/* mask out attributes we don't want to retain */
+						temp_host->modified_attributes&=!host_attribute_mask;
+						}
 					if(temp_host->retain_status_information==TRUE){
 						if(!strcmp(var,"has_been_checked"))
 							temp_host->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
@@ -1165,8 +1219,13 @@ int xrddefault_read_state_information(void){
 					temp_service=find_service(host_name,service_description);
 				        }
 				else if(temp_service!=NULL){
-					if(!strcmp(var,"modified_attributes"))
+					if(!strcmp(var,"modified_attributes")){
+
 						temp_service->modified_attributes=strtoul(val,NULL,10);
+
+						/* mask out attributes we don't want to retain */
+						temp_service->modified_attributes&=!service_attribute_mask;
+						}
 					if(temp_service->retain_status_information==TRUE){
 						if(!strcmp(var,"has_been_checked"))
 							temp_service->has_been_checked=(atoi(val)>0)?TRUE:FALSE;
@@ -1386,12 +1445,26 @@ int xrddefault_read_state_information(void){
 					temp_contact=find_contact(contact_name);
 				        }
 				else if(temp_contact!=NULL){
-					if(!strcmp(var,"modified_attributes"))
+					if(!strcmp(var,"modified_attributes")){
+
 						temp_contact->modified_attributes=strtoul(val,NULL,10);
-					if(!strcmp(var,"modified_host_attributes"))
+
+						/* mask out attributes we don't want to retain */
+						temp_contact->modified_attributes&=!contact_attribute_mask;
+						}
+					if(!strcmp(var,"modified_host_attributes")){
+
 						temp_contact->modified_host_attributes=strtoul(val,NULL,10);
-					if(!strcmp(var,"modified_service_attributes"))
+
+						/* mask out attributes we don't want to retain */
+						temp_contact->modified_host_attributes&=!contact_host_attribute_mask;
+						}
+					if(!strcmp(var,"modified_service_attributes")){
 						temp_contact->modified_service_attributes=strtoul(val,NULL,10);
+
+						/* mask out attributes we don't want to retain */
+						temp_contact->modified_service_attributes&=!contact_service_attribute_mask;
+						}
 					if(temp_contact->retain_status_information==TRUE){
 						if(!strcmp(var,"last_host_notification"))
 							temp_contact->last_host_notification=strtoul(val,NULL,10);

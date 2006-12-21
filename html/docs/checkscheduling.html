@@ -73,7 +73,7 @@ There are also four configuration options in the <a href="configmain.html">main 
 
 <p>
 <ul>
-<li><a href="configmain.html#inter_check_delay_method"><i>inter_check_delay_method</i></a>
+<li><a href="configmain.html#service_inter_check_delay_method"><i>service_inter_check_delay_method</i></a>
 <li><a href="configmain.html#service_interleave_factor"><i>service_interleave_factor</i></a>
 <li><a href="configmain.html#max_concurrent_checks"><i>max_concurrent_checks</i></a>
 <li><a href="configmain.html#service_reaper_frequency"><i>service_reaper_frequency</i></a>
@@ -108,11 +108,11 @@ Even though service checks are initially scheduled to balance the load on both t
 </p>
 
 <p>
-As mentioned before, Nagios attempts to equalize the load placed on the machine that is running Nagios by equally spacing out initial service checks.  The spacing between consecutive service checks is called the inter-check delay.  By giving a value to the <a href="configmain.html#inter_check_delay_method">inter_check_delay_method</a> variable in the main config file, you can modify how this delay is calculated.  I will discuss how the "smart" calculation works, as this is the setting you will want to use for normal operation.
+As mentioned before, Nagios attempts to equalize the load placed on the machine that is running Nagios by equally spacing out initial service checks.  The spacing between consecutive service checks is called the inter-check delay.  By giving a value to the <a href="configmain.html#service_inter_check_delay_method">service_inter_check_delay_method</a> variable in the main config file, you can modify how this delay is calculated.  I will discuss how the "smart" calculation works, as this is the setting you will want to use for normal operation.
 </p>
 
 <p>
-When using the "smart" setting of the <i>inter_check_delay_method</i> variable, Nagios will calculate an inter-check delay value by using the following calculation:
+When using the "smart" setting of the <i>service_inter_check_delay_method</i> variable, Nagios will calculate an inter-check delay value by using the following calculation:
 </p>
 
 <p>

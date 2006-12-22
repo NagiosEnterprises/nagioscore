@@ -209,6 +209,8 @@ extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
 extern circular_buffer service_result_buffer;
 extern circular_buffer event_broker_buffer;
+extern unsigned long   external_command_buffer_slots;
+extern unsigned long   check_result_buffer_slots;
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
@@ -3807,7 +3809,7 @@ int read_svc_message(service_message *message){
 		service_result_buffer.buffer[service_result_buffer.tail]=NULL;
 
 		/* adjust tail counter and number of items */
-		service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
+		service_result_buffer.tail=(service_result_buffer.tail + 1) % check_result_buffer_slots;
 		service_result_buffer.items--;
 
 		result=0;
@@ -4622,7 +4624,7 @@ int init_service_result_worker_thread(void){
 	service_result_buffer.tail=0;
 	service_result_buffer.items=0;
 	service_result_buffer.overflow=0L;
-	service_result_buffer.buffer=(void **)malloc(SERVICE_BUFFER_SLOTS*sizeof(service_message **));
+	service_result_buffer.buffer=(void **)malloc(check_result_buffer_slots*sizeof(service_message **));
 	if(service_result_buffer.buffer==NULL)
 		return ERROR;
 
@@ -4668,7 +4670,7 @@ void cleanup_service_result_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
-	for(x=service_result_buffer.tail;x!=service_result_buffer.head;x=(x+1) % SERVICE_BUFFER_SLOTS){
+	for(x=service_result_buffer.tail;x!=service_result_buffer.head;x=(x+1) % check_result_buffer_slots){
 		free(((service_message **)service_result_buffer.buffer)[x]);
 		((service_message **)service_result_buffer.buffer)[x]=NULL;
 	        }
@@ -4688,7 +4690,7 @@ int init_command_file_worker_thread(void){
 	external_command_buffer.tail=0;
 	external_command_buffer.items=0;
 	external_command_buffer.overflow=0L;
-	external_command_buffer.buffer=(void **)malloc(COMMAND_BUFFER_SLOTS*sizeof(char **));
+	external_command_buffer.buffer=(void **)malloc(external_command_buffer_slots*sizeof(char **));
 	if(external_command_buffer.buffer==NULL)
 		return ERROR;
 
@@ -4734,7 +4736,7 @@ void cleanup_command_file_worker_thread(void *arg){
 	int x;
 
 	/* release memory allocated to circular buffer */
-	for(x=external_command_buffer.tail;x!=external_command_buffer.head;x=(x+1) % COMMAND_BUFFER_SLOTS){
+	for(x=external_command_buffer.tail;x!=external_command_buffer.head;x=(x+1) % external_command_buffer_slots){
 		free(((char **)external_command_buffer.buffer)[x]);
 		((char **)external_command_buffer.buffer)[x]=NULL;
 	        }
@@ -4814,7 +4816,7 @@ void * service_result_worker_thread(void *arg){
 		pthread_mutex_unlock(&service_result_buffer.buffer_lock);
 
 		/* process data in the pipe (one message max) if there's some free space in the circular buffer */
-		if(buffer_items<SERVICE_BUFFER_SLOTS){
+		if(buffer_items<check_result_buffer_slots){
 
 			/* clear the message buffer */
 			memset((void *)&message,0,sizeof(service_message));
@@ -4879,21 +4881,21 @@ void * service_result_worker_thread(void *arg){
 
 				/* handle overflow conditions */
 				/* NOTE: This should never happen (see check above) - child processes will instead block trying to write messages to the pipe... */
-				if(service_result_buffer.items==SERVICE_BUFFER_SLOTS){
+				if(service_result_buffer.items==check_result_buffer_slots){
 
 					/* record overflow */
 					service_result_buffer.overflow++;
 
 					/* update tail pointer */
-					service_result_buffer.tail=(service_result_buffer.tail + 1) % SERVICE_BUFFER_SLOTS;
+					service_result_buffer.tail=(service_result_buffer.tail + 1) % check_result_buffer_slots;
 				        }
 
 				/* save the data to the buffer */
 				((service_message **)service_result_buffer.buffer)[service_result_buffer.head]=new_message;
 
 				/* increment the head counter and items */
-				service_result_buffer.head=(service_result_buffer.head + 1) % SERVICE_BUFFER_SLOTS;
-				if(service_result_buffer.items<SERVICE_BUFFER_SLOTS)
+				service_result_buffer.head=(service_result_buffer.head + 1) % check_result_buffer_slots;
+				if(service_result_buffer.items<check_result_buffer_slots)
 					service_result_buffer.items++;
 
 				/* release lock on buffer */
@@ -4951,11 +4953,11 @@ void * command_file_worker_thread(void *arg){
 		pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 #ifdef DEBUG_CFWT
-		printf("(CFWT) BUFFER ITEMS: %d/%d\n",buffer_items,COMMAND_BUFFER_SLOTS);
+		printf("(CFWT) BUFFER ITEMS: %d/%d\n",buffer_items,external_command_buffer_slots);
 #endif
 
 		/* process all commands in the file (named pipe) if there's some space in the buffer */
-		if(buffer_items<COMMAND_BUFFER_SLOTS){
+		if(buffer_items<external_command_buffer_slots){
 
 			/* clear EOF condition from prior run (FreeBSD fix) */
 			clearerr(command_file_fp);
@@ -4968,7 +4970,7 @@ void * command_file_worker_thread(void *arg){
 #endif
 
 				/* submit the external command for processing (retry if buffer is full) */
-				while((result=submit_external_command(input_buffer,&buffer_items))==ERROR && buffer_items==COMMAND_BUFFER_SLOTS){
+				while((result=submit_external_command(input_buffer,&buffer_items))==ERROR && buffer_items==external_command_buffer_slots){
 
 					/* wait a bit */
 					tv.tv_sec=0;
@@ -4980,11 +4982,11 @@ void * command_file_worker_thread(void *arg){
 				        }
 
 #ifdef DEBUG_CFWT
-				printf("(CFWT) RES: %d, BUFFER_ITEMS: %d/%d\n",result,buffer_items,COMMAND_BUFFER_SLOTS);
+				printf("(CFWT) RES: %d, BUFFER_ITEMS: %d/%d\n",result,buffer_items,external_command_buffer_slots);
 #endif
 
 				/* bail if the circular buffer is full */
-				if(buffer_items==COMMAND_BUFFER_SLOTS)
+				if(buffer_items==external_command_buffer_slots)
 					break;
 
 				/* should we shutdown? */
@@ -5019,13 +5021,13 @@ int submit_external_command(char *cmd, int *buffer_items){
 	/* obtain a lock for writing to the buffer */
 	pthread_mutex_lock(&external_command_buffer.buffer_lock);
 
-	if(external_command_buffer.items<COMMAND_BUFFER_SLOTS){
+	if(external_command_buffer.items<external_command_buffer_slots){
 
 		/* save the line in the buffer */
 		((char **)external_command_buffer.buffer)[external_command_buffer.head]=strdup(cmd);
 
 		/* increment the head counter and items */
-		external_command_buffer.head=(external_command_buffer.head + 1) % COMMAND_BUFFER_SLOTS;
+		external_command_buffer.head=(external_command_buffer.head + 1) % external_command_buffer_slots;
 		external_command_buffer.items++;
 	        }
 
@@ -5437,6 +5439,9 @@ int reset_variables(void){
 	high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
+
+	external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
+	check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
 	date_format=DATE_FORMAT_US;
 

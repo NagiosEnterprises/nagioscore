@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 11-21-2006
+# Last Modified: 12-21-2006
 #
 ##############################################################################
 
@@ -155,6 +155,16 @@ command_check_interval=-1
 # time its contents are processed.
 
 command_file=@localstatedir@/rw/nagios.cmd
+
+
+
+# EXTERNAL COMMAND BUFFER SLOTS
+# This settings is used to tweak the number of items or "slots" that
+# the Nagios daemon should allocate to the buffer that holds incoming 
+# external commands before they are processed.  As external commands 
+# are processed by the daemon, they are removed from the buffer.  
+
+external_command_buffer_slots=4096
 
 
 
@@ -412,6 +422,15 @@ max_concurrent_checks=0
 
 service_reaper_frequency=10
 
+
+
+# CHECK RESULT BUFFER SLOTS
+# This settings is used to tweak the number of items or "slots" that
+# the Nagios daemon should allocate to the buffer that holds 
+# service check results before they are processed.  As check results
+# are processed by the daemon, they are removed from the buffer.  
+
+check_result_buffer_slots=4096
 
 
 

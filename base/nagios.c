@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   11-27-2006
+ * Last Modified:   12-21-2006
  *
  * Description:
  *
@@ -207,6 +207,8 @@ service_message svc_msg;
 circular_buffer  external_command_buffer;
 circular_buffer  service_result_buffer;
 pthread_t worker_threads[TOTAL_WORKER_THREADS];
+unsigned long   external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
+unsigned long   check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
 
 

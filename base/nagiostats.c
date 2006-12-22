@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2006 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   11-27-2006
+ * Last Modified:   12-21-2006
  *
  * License:
  *
@@ -49,6 +49,7 @@ char *status_version=NULL;
 time_t program_start=0L;
 int status_service_entries=0;
 int status_host_entries=0;
+unsigned long nagios_pid=0L;
 
 double min_service_state_change=0.0;
 int have_min_service_state_change=FALSE;
@@ -139,6 +140,11 @@ int active_hosts_checked_last_5min=0;
 int active_hosts_checked_last_15min=0;
 int active_hosts_checked_last_1hour=0;
 
+unsigned long max_external_command_buffer_slots=0L;
+unsigned long used_external_command_buffer_slots=0L;
+unsigned long max_check_result_buffer_slots=0L;
+unsigned long used_check_result_buffer_slots=0L;
+
 
 
 int display_mrtg_values(void);
@@ -213,7 +219,7 @@ int main(int argc, char **argv){
 
 	if(mrtg_mode==FALSE){
 		printf("\nNagios Stats %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 2003-2005 Ethan Galstad (www.nagios.org)\n");
+		printf("Copyright (c) 2003-2006 Ethan Galstad (www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -255,6 +261,17 @@ int main(int argc, char **argv){
 		printf("                    Percentages are rounded, times are in milliseconds.\n");
 		printf("\n");
 		printf("MRTG DATA VARIABLES (-d option):\n");
+		printf(" PROGRUNTIME        string with time Nagios process has been running.\n");
+		printf(" PROGRUNTIMETT      time Nagios process has been running (time_t format).\n");
+		printf(" STATUSFILEAGE      string with age of status data file.\n");
+		printf(" STATUSFILEAGETT    string with age of status data file (time_t format).\n");
+		printf(" NAGIOSVERSION      string with Nagios version.\n");
+		printf(" NAGIOSPID          pid number of Nagios deamon.\n");
+		printf(" NAGIOSVERPID       string with Nagios version and PID.\n");
+		printf(" MAXCMDBUF          number of external command buffer slots available.\n");
+		printf(" USEDCMDBUF         number of external command buffer slots currently in use.\n");
+		printf(" MAXCHKBUF          number of check result buffer slots available.\n");
+		printf(" USEDCHKBUF         number of check result buffer slots currently in use.\n");
 		printf(" NUMSERVICES        total number of services.\n");
 		printf(" NUMHOSTS           total number of hosts.\n");
 		printf(" NUMSVCOK           number of services OK.\n");
@@ -284,10 +301,10 @@ int main(int argc, char **argv){
 		printf(" xxxACTHSTPSC       MIN/MAX/AVG active host check %% state change.\n");
 		printf(" xxxPSVHSTPSC       MIN/MAX/AVG passive host check %% state change.\n");
 		printf(" xxxHSTPSC          MIN/MAX/AVG host check %% state change.\n");
-		printf(" NUMACTHSTCHKxM    number of active host checks in last 1/5/15/60 minutes.\n");
-		printf(" NUMPSVHSTCHKxM    number of passive host checks in last 1/5/15/60 minutes.\n");
-		printf(" NUMACTSVCCHKxM    number of active service checks in last 1/5/15/60 minutes.\n");
-		printf(" NUMPSVSVCCHKxM    number of passive service checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMACTHSTCHKxM     number of active host checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMPSVHSTCHKxM     number of passive host checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMACTSVCCHKxM     number of active service checks in last 1/5/15/60 minutes.\n");
+		printf(" NUMPSVSVCCHKxM     number of passive service checks in last 1/5/15/60 minutes.\n");
 
 		printf("\n");
 		printf(" Note: Replace x's in MRTG variable names with 'MIN', 'MAX', 'AVG', or the\n");
@@ -324,11 +341,54 @@ int main(int argc, char **argv){
 
 int display_mrtg_values(void){
 	char *temp_ptr;
+	time_t current_time;
+	unsigned long time_difference;
+	int days;
+	int hours;
+	int minutes;
+	int seconds;
+
+	time(&current_time);
 
 	/* process all variables */
 	for(temp_ptr=strtok(mrtg_variables,",");temp_ptr!=NULL;temp_ptr=strtok(NULL,",")){
 
-		if(!strcmp(temp_ptr,"NUMSERVICES"))
+		if(!strcmp(temp_ptr,"PROGRUNTIME")){
+			time_difference=(current_time-program_start);
+			get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
+			printf("%dd %dh %dm %ds\n",days,hours,minutes,seconds);
+			}
+		else if(!strcmp(temp_ptr,"PROGRUNTIMETT")){
+			time_difference=(current_time-program_start);
+			printf("%lu\n",time_difference);
+			}
+		else if(!strcmp(temp_ptr,"STATUSFILEAGE")){
+			time_difference=(current_time-status_creation_date);
+			get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
+			printf("%dd %dh %dm %ds\n",days,hours,minutes,seconds);
+			}
+		else if(!strcmp(temp_ptr,"STATUSFILEAGETT")){
+			time_difference=(current_time-status_creation_date);
+			printf("%lu\n",time_difference);
+			}
+		else if(!strcmp(temp_ptr,"NAGIOSVERSION"))
+			printf("%s\n",status_version);
+		else if(!strcmp(temp_ptr,"NAGIOSPID"))
+			printf("%lu\n",nagios_pid);
+		else if(!strcmp(temp_ptr,"NAGIOSVERPID"))
+			printf("Nagios %s (pid=%lu)\n",status_version,nagios_pid);
+
+
+		else if(!strcmp(temp_ptr,"MAXCMDBUF"))
+			printf("%lu\n",max_external_command_buffer_slots);
+		else if(!strcmp(temp_ptr,"USEDCMDBUF"))
+			printf("%lu\n",used_external_command_buffer_slots);
+		else if(!strcmp(temp_ptr,"MAXCHKBUF"))
+			printf("%lu\n",max_check_result_buffer_slots);
+		else if(!strcmp(temp_ptr,"USEDCHKBUF"))
+			printf("%lu\n",used_check_result_buffer_slots);
+
+		else if(!strcmp(temp_ptr,"NUMSERVICES"))
 			printf("%d\n",status_service_entries);
 		else if(!strcmp(temp_ptr,"NUMHOSTS"))
 			printf("%d\n",status_host_entries);
@@ -524,6 +584,9 @@ int display_stats(void){
 	time_difference=(current_time-program_start);
 	get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
 	printf("Program Running Time:                 %dd %dh %dm %ds\n",days,hours,minutes,seconds);
+	printf("Nagios PID:                           %lu\n",nagios_pid);
+	printf("Used/Max External Command Buffers:    %lu / %lu\n",used_external_command_buffer_slots,max_external_command_buffer_slots);
+	printf("Used/Max Check Result Buffers:        %lu / %lu\n",used_check_result_buffer_slots,max_check_result_buffer_slots);
 	printf("\n");
 	printf("Total Services:                       %d\n",status_service_entries);
 	printf("Services Checked:                     %d\n",services_checked);
@@ -897,6 +960,16 @@ int read_status_file(void){
 			case STATUS_PROGRAM_DATA:
 				if(!strcmp(var,"program_start"))
 					program_start=strtoul(val,NULL,10);
+				else if(!strcmp(var,"max_external_command_buffer_slots"))
+					max_external_command_buffer_slots=strtoul(val,NULL,10);
+				else if(!strcmp(var,"used_external_command_buffer_slots"))
+					used_external_command_buffer_slots=strtoul(val,NULL,10);
+				else if(!strcmp(var,"max_check_result_buffer_slots"))
+					max_check_result_buffer_slots=strtoul(val,NULL,10);
+				else if(!strcmp(var,"used_check_result_buffer_slots"))
+					used_check_result_buffer_slots=strtoul(val,NULL,10);
+				else if(!strcmp(var,"nagios_pid"))
+					nagios_pid=strtoul(val,NULL,10);
 				break;
 
 			case STATUS_HOST_DATA:

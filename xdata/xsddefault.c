@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2006
+ * Last Modified:   12-21-2006
  *
  * License:
  *
@@ -85,6 +85,11 @@ extern int enable_flap_detection;
 extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
+
+extern unsigned long external_command_buffer_slots;
+extern unsigned long check_result_buffer_slots;
+extern circular_buffer external_command_buffer;
+extern circular_buffer service_result_buffer;
 
 extern char *macro_x[MACRO_X_COUNT];
 
@@ -362,6 +367,10 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
 	fprintf(fp,"\tglobal_host_event_handler=%s\n",(global_host_event_handler==NULL)?"":global_host_event_handler);
 	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
+	fprintf(fp,"\tmax_external_command_buffer_slots=%lu\n",external_command_buffer_slots);
+	fprintf(fp,"\tused_external_command_buffer_slots=%lu\n",external_command_buffer.items);
+	fprintf(fp,"\tmax_check_result_buffer_slots=%lu\n",check_result_buffer_slots);
+	fprintf(fp,"\tused_check_result_buffer_slots=%lu\n",service_result_buffer.items);
 	fprintf(fp,"\t}\n\n");
 
 

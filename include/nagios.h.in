@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-26-2006
+ * Last Modified: 12-21-2006
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -479,8 +479,8 @@ typedef struct mmapfile_struct{
 
 
 /* slots in circular buffers */
-#define COMMAND_BUFFER_SLOTS              1024
-#define SERVICE_BUFFER_SLOTS		  1024
+#define DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS   4096
+#define DEFAULT_CHECK_RESULT_BUFFER_SLOTS	4096
 
 /* worker threads */
 #define TOTAL_WORKER_THREADS              2

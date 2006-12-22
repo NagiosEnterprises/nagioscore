@@ -548,8 +548,8 @@ typedef struct dbuf_struct{
 /******************* THREAD STUFF ********************/
 
 /* slots in circular buffers */
-#define COMMAND_BUFFER_SLOTS              1024
-#define CHECK_RESULT_BUFFER_SLOTS	  1024
+#define DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS     4096
+#define DEFAULT_CHECK_RESULT_BUFFER_SLOTS	  4096
 
 /* worker threads */
 #define TOTAL_WORKER_THREADS              2

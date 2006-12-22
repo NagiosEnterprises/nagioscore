@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-29-2006
+ * Last Modified: 12-21-2006
  *
  * License:
  *
@@ -81,6 +81,8 @@ extern int      execute_host_checks;
 extern int      use_large_installation_tweaks;
 
 extern int      time_change_threshold;
+
+extern unsigned long check_result_buffer_slots;
 
 timed_event *event_list_low=NULL;
 timed_event *event_list_low_tail=NULL;
@@ -639,7 +641,7 @@ void display_scheduling_info(void){
 	/***** MAX REAPER INTERVAL RECOMMENDATION *****/
 
 	/* assume a 100% (2x) check burst for check reaper */
-	max_reaper_interval=floor((double)CHECK_RESULT_BUFFER_SLOTS/scheduling_info.service_inter_check_delay);
+	max_reaper_interval=floor((double)check_result_buffer_slots/scheduling_info.service_inter_check_delay);
 	if(max_reaper_interval<2.0)
 		max_reaper_interval=2.0;
 	if(max_reaper_interval>30.0)

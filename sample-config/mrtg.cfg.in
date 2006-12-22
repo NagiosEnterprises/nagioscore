@@ -1,0 +1,116 @@
+###################################################################
+# MRTG Graphs: Nagios @VERSION@ Statistics
+#
+# You can add the following entries to your MRTG config file to
+# begin graphing several Nagios statistics which can be useful for
+# debugging and trending purposes.  The nagiostats binary (which is
+# included as part of the Nagios distribution) is used to generate
+# the data.
+###################################################################
+
+# Service Latency and Execution Time
+Target[nagios-a]: `@bindir@/nagiostats --mrtg --data=AVGACTSVCLAT,AVGACTSVCEXT,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-a]: 100000
+Title[nagios-a]: Average Service Check Latency and Execution Time
+PageTop[nagios-a]: <H1>Average Service Check Latency and Execution Time</H1>
+Options[nagios-a]: growright,gauge,nopercent
+YLegend[nagios-a]: Milliseconds
+ShortLegend[nagios-a]: &nbsp;
+LegendI[nagios-a]: &nbsp;Latency:
+LegendO[nagios-a]: &nbsp;Execution Time:
+Legend1[nagios-a]: Latency
+Legend2[nagios-a]: Execution Time
+Legend3[nagios-a]: Maximal 5 Minute Latency
+Legend4[nagios-a]: Maximal 5 Minute Execution Time
+
+# Service Percent State Change
+Target[nagios-b]: `@bindir@/nagiostats --mrtg --data=AVGACTSVCPSC,AVGPSVSVCPSC,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-b]: 100
+Title[nagios-b]: Average Service Check State Change
+PageTop[nagios-b]: <H1>Average Service Check State Change</H1>
+Options[nagios-b]: growright,gauge,nopercent
+YLegend[nagios-b]: Percent
+ShortLegend[nagios-b]: &nbsp;
+LegendI[nagios-b]: &nbsp;Active Check % Change:
+LegendO[nagios-b]: &nbsp;Passive Check % Change:
+Legend1[nagios-b]: State Change
+Legend2[nagios-b]: State Change
+Legend3[nagios-b]: Maximal 5 Minute State Change
+Legend4[nagios-b]: Maximal 5 Minute State Change
+
+# Host Latency and Execution Time
+Target[nagios-c]: `@bindir@/nagiostats --mrtg --data=AVGACTHSTLAT,AVGACTHSTEXT,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-c]: 100000
+Title[nagios-c]: Average Host Check Latency and Execution Time
+PageTop[nagios-c]: <H1>Average Host Check Latency and Execution Time</H1>
+Options[nagios-c]: growright,gauge,nopercent
+YLegend[nagios-c]: Milliseconds
+ShortLegend[nagios-c]: &nbsp;
+LegendI[nagios-c]: &nbsp;Latency:
+LegendO[nagios-c]: &nbsp;Execution Time:
+Legend1[nagios-c]: Latency
+Legend2[nagios-c]: Execution Time
+Legend3[nagios-c]: Maximal 5 Minute Latency
+Legend4[nagios-c]: Maximal 5 Minute Execution Time
+
+# Host Percent State Change
+Target[nagios-d]: `@bindir@/nagiostats --mrtg --data=AVGACTHSTPSC,AVGPSVHSTPSC,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-d]: 100
+Title[nagios-d]: Average Host Check State Change
+PageTop[nagios-d]: <H1>Average Host Check State Change</H1>
+Options[nagios-d]: growright,gauge,nopercent
+YLegend[nagios-d]: Percent
+ShortLegend[nagios-d]: &nbsp;
+LegendI[nagios-d]: &nbsp;Active Check % Change:
+LegendO[nagios-d]: &nbsp;Passive Check % Change:
+Legend1[nagios-d]: State Change
+Legend2[nagios-d]: State Change
+Legend3[nagios-d]: Maximal 5 Minute State Change
+Legend4[nagios-d]: Maximal 5 Minute State Change
+
+# Hosts/Services Actively Checked in Last 5 Minutes
+Target[nagios-e]: `@bindir@/nagiostats --mrtg --data=NUMACTHSTCHK5M,NUMACTSVCCHK5M,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-e]: 7000
+Title[nagios-e]: Objects Actively Checked in Last 5 Minutes
+PageTop[nagios-e]: <H1>Objects Actively Checked in Last 5 Minutes</H1>
+Options[nagios-e]: growright,gauge,nopercent
+YLegend[nagios-e]: Percent
+ShortLegend[nagios-e]: &nbsp;
+LegendI[nagios-e]: &nbsp;Hosts:
+LegendO[nagios-e]: &nbsp;Services:
+
+# Hosts/Services Passively Checked in Last 5 Minutes
+Target[nagios-f]: `@bindir@/nagiostats --mrtg --data=NUMPSVHSTCHK5M,NUMPSVSVCCHK5M,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-f]: 7000
+Title[nagios-f]: Objects Passively Checked Last 5 Minutes
+PageTop[nagios-f]: <H1>Objects Passively Checked Last 5 Minutes</H1>
+Options[nagios-f]: growright,gauge,nopercent
+YLegend[nagios-f]: Percent
+ShortLegend[nagios-f]: &nbsp;
+LegendI[nagios-f]: &nbsp;Hosts:
+LegendO[nagios-f]: &nbsp;Services:
+
+
+# Used/Avail External Command Buffers
+Target[nagios-g]: `@bindir@/nagiostats --mrtg --data=MAXCMDBUF,USEDCMDBUF,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-g]: 7000
+Title[nagios-g]: External Command Buffers
+PageTop[nagios-g]: <H1>External Command Buffers</H1>
+Options[nagios-g]: growright,gauge,nopercent
+YLegend[nagios-g]: Percent
+ShortLegend[nagios-g]: &nbsp;
+LegendI[nagios-g]: &nbsp;Avail:
+LegendO[nagios-g]: &nbsp;Used:
+
+
+# Used/Avail Check Result buffers
+Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=MAXCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-h]: 7000
+Title[nagios-h]: Check Result Buffers
+PageTop[nagios-h]: <H1>Check Result Buffers</H1>
+Options[nagios-h]: growright,gauge,nopercent
+YLegend[nagios-h]: Percent
+ShortLegend[nagios-h]: &nbsp;
+LegendI[nagios-h]: &nbsp;Avail:
+LegendO[nagios-h]: &nbsp;Used:
+

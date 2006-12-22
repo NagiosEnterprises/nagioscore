@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-26-2006
+ * Last Modified:   12-21-2006
  *
  * License:
  *
@@ -89,6 +89,7 @@ passive_check_result    *passive_check_result_list_tail=NULL;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
+extern unsigned long   external_command_buffer_slots;
 
 
 
@@ -147,7 +148,7 @@ int check_for_external_commands(void){
 		my_free((void **)&((char **)external_command_buffer.buffer)[external_command_buffer.tail]);
 
 		/* adjust tail counter and number of items */
-		external_command_buffer.tail=(external_command_buffer.tail + 1) % COMMAND_BUFFER_SLOTS;
+		external_command_buffer.tail=(external_command_buffer.tail + 1) % external_command_buffer_slots;
 		external_command_buffer.items--;
 
 		/* release the lock on the buffer */

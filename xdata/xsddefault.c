@@ -88,6 +88,11 @@ extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
 
+extern unsigned long external_command_buffer_slots;
+extern unsigned long check_result_buffer_slots;
+extern circular_buffer external_command_buffer;
+extern circular_buffer check_result_buffer;
+
 extern char *macro_x[MACRO_X_COUNT];
 
 extern host *host_list;
@@ -399,6 +404,10 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tnext_downtime_id=%lu\n",next_downtime_id);
 	fprintf(fp,"\tnext_event_id=%lu\n",next_event_id);
 	fprintf(fp,"\tnext_notification_id=%lu\n",next_notification_id);
+	fprintf(fp,"\tmax_external_command_buffer_slots=%lu\n",external_command_buffer_slots);
+	fprintf(fp,"\tused_external_command_buffer_slots=%lu\n",external_command_buffer.items);
+	fprintf(fp,"\tmax_check_result_buffer_slots=%lu\n",check_result_buffer_slots);
+	fprintf(fp,"\tused_check_result_buffer_slots=%lu\n",check_result_buffer.items);
 	fprintf(fp,"\t}\n\n");
 
 

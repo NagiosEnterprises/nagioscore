@@ -189,6 +189,8 @@ extern hostescalation   *hostescalation_list;
 extern host		**host_hashlist;
 extern service		**service_hashlist;
 
+extern unsigned long   external_command_buffer_slots;
+extern unsigned long   check_result_buffer_slots;
 
 
 
@@ -1530,6 +1532,12 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\tuse_embedded_perl_implicitly set to %s\n",(use_embedded_perl_implicitly==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
+
+		else if(!strcmp(variable,"external_command_buffer_slots"))
+			external_command_buffer_slots=strtoul(value,NULL,0);
+
+		else if(!strcmp(variable,"check_result_buffer_slots"))
+			check_result_buffer_slots=strtoul(value,NULL,0);
 
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){

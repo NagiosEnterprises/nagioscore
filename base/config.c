@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-21-2006
+ * Last Modified: 12-26-2006
  *
  * License:
  *
@@ -189,8 +189,8 @@ extern hostescalation   *hostescalation_list;
 extern host		**host_hashlist;
 extern service		**service_hashlist;
 
-extern unsigned long   external_command_buffer_slots;
-extern unsigned long   check_result_buffer_slots;
+extern int      external_command_buffer_slots;
+extern int      check_result_buffer_slots;
 
 
 
@@ -1534,10 +1534,10 @@ int read_main_config_file(char *main_config_file){
 		        }
 
 		else if(!strcmp(variable,"external_command_buffer_slots"))
-			external_command_buffer_slots=strtoul(value,NULL,0);
+			external_command_buffer_slots=atoi(value);
 
 		else if(!strcmp(variable,"check_result_buffer_slots"))
-			check_result_buffer_slots=strtoul(value,NULL,0);
+			check_result_buffer_slots=atoi(value);
 
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){

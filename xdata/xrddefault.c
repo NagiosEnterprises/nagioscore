@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-13-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -604,6 +604,8 @@ int xrddefault_read_state_information(void){
 	unsigned long contact_service_attribute_mask=0L;
 	unsigned long process_host_attribute_mask=0L;
 	unsigned long process_service_attribute_mask=0L;
+	int remove_comment=FALSE;
+	int ack=FALSE;
 
 #ifdef DEBUG0
 	printf("xrddefault_read_state_information() start\n");
@@ -800,7 +802,28 @@ int xrddefault_read_state_information(void){
 
 				/* delete the comment if necessary */
 				/* it seems a bit backwards to add and then immediately delete the comment, but its necessary to track comment deletions in the event broker */
-				if(persistent==FALSE || (find_host(host_name)==NULL) || (data_type==XRDDEFAULT_SERVICECOMMENT_DATA && find_service(host_name,service_description)==NULL))
+				remove_comment=FALSE;
+				/* host no longer exists */
+				if((temp_host=find_host(host_name))==NULL)
+					remove_comment=TRUE;
+				/* service no longer exists */
+				else if(data_type==XRDDEFAULT_SERVICECOMMENT_DATA && (temp_service=find_service(host_name,service_description))==NULL)
+					remove_comment=TRUE;
+				/* acknowledgement comments get deleted if they're not persistent and the original problem is no longer acknowledged */
+				else if(entry_type==ACKNOWLEDGEMENT_COMMENT){
+					ack=FALSE;
+					if(data_type==XRDDEFAULT_HOSTCOMMENT_DATA)
+						ack=temp_host->problem_has_been_acknowledged;
+					else
+						ack=temp_service->problem_has_been_acknowledged;
+					if(ack==FALSE && persistent==FALSE)
+						remove_comment=TRUE;
+					}
+				/* non-persistent comments don't last past restarts UNLESS they're acks (see above) */
+				else if(persistent==FALSE)
+					remove_comment=TRUE;
+				
+				if(remove_comment==TRUE)
 					delete_comment((data_type==XRDDEFAULT_HOSTCOMMENT_DATA)?HOST_COMMENT:SERVICE_COMMENT,comment_id);
 
 				/* free temp memory */

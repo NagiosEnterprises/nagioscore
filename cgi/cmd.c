@@ -3,7 +3,7 @@
  * CMD.C -  Nagios Command CGI
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-18-2006
+ * Last Modified: 12-26-2006
  *
  * License:
  * 
@@ -940,7 +940,7 @@ void request_command_data(int cmd){
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>",(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)?" Comment":"");
-		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
+		printf("<INPUT TYPE='checkbox' NAME='persistent' %s>",(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
 		printf("<INPUT TYPE'TEXT' NAME='com_author' VALUE='%s'>",comment_author);
@@ -966,7 +966,7 @@ void request_command_data(int cmd){
 			printf("</b></td></tr>\n");
 		        }
 		printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>",(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM)?" Comment":"");
-		printf("<INPUT TYPE='checkbox' NAME='persistent' CHECKED>");
+		printf("<INPUT TYPE='checkbox' NAME='persistent' %s",(cmd==CMD_ACKNOWLEDGE_SVC_PROBLEM)?"":"CHECKED");
 		printf("</b></td></tr>\n");
 		printf("<tr><td CLASS='optBoxRequiredItem'>Author (Your Name):</td><td><b>");
 		printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s'>",comment_author);
@@ -2351,7 +2351,7 @@ void show_command_help(cmd){
 		printf("This command is used to acknowledge a host problem.  When a host problem is acknowledged, future notifications about problems are temporarily disabled until the host changes from its current state.\n");
 		printf("If you want acknowledgement to disable notifications until the host recovers, check the 'Sticky Acknowledgement' checkbox.\n");
 		printf("Contacts for this host will receive a notification about the acknowledgement, so they are aware that someone is working on the problem.  Additionally, a comment will also be added to the host.\n");
-		printf("Make sure to enter your name and fill in a brief description of what you are doing in the comment field.  If you would like the host comment to be retained between restarts of Nagios, check\n");
+		printf("Make sure to enter your name and fill in a brief description of what you are doing in the comment field.  If you would like the host comment to remain once the acknowledgement is removed, check\n");
 		printf("the 'Persistent Comment' checkbox.  If you do not want an acknowledgement notification sent out to the appropriate contacts, uncheck the 'Send Notification' checkbox.\n");
 		break;
 
@@ -2359,7 +2359,7 @@ void show_command_help(cmd){
 		printf("This command is used to acknowledge a service problem.  When a service problem is acknowledged, future notifications about problems are temporarily disabled until the service changes from its current state.\n");
 		printf("If you want acknowledgement to disable notifications until the service recovers, check the 'Sticky Acknowledgement' checkbox.\n");
 		printf("Contacts for this service will receive a notification about the acknowledgement, so they are aware that someone is working on the problem.  Additionally, a comment will also be added to the service.\n");
-		printf("Make sure to enter your name and fill in a brief description of what you are doing in the comment field.  If you would like the service comment to be retained between restarts of Nagios, check\n");
+		printf("Make sure to enter your name and fill in a brief description of what you are doing in the comment field.  If you would like the service comment to remain once the acknowledgement is removed, check\n");
 		printf("the 'Persistent Comment' checkbox.  If you do not want an acknowledgement notification sent out to the appropriate contacts, uncheck the 'Send Notification' checkbox.\n");
 		break;
 
@@ -2430,14 +2430,12 @@ void show_command_help(cmd){
 
 	case CMD_REMOVE_HOST_ACKNOWLEDGEMENT:
 		printf("This command is used to remove an acknowledgement for a particular host problem.  Once the acknowledgement is removed, notifications may start being\n");
-		printf("sent out about the host problem.  Note: Removing the acknowledgement does <i>not</i> remove the host comment that was originally associated\n");
-		printf("with the acknowledgement.  You'll have to remove that as well if that's what you want.\n");
+		printf("sent out about the host problem. \n");
 		break;
 
 	case CMD_REMOVE_SVC_ACKNOWLEDGEMENT:
 		printf("This command is used to remove an acknowledgement for a particular service problem.  Once the acknowledgement is removed, notifications may start being\n");
-		printf("sent out about the service problem.  Note: Removing the acknowledgement does <i>not</i> remove the service comment that was originally associated\n");
-		printf("with the acknowledgement.  You'll have to remove that as well if that's what you want.\n");
+		printf("sent out about the service problem.\n");
 		break;
 
 	case CMD_PROCESS_SERVICE_CHECK_RESULT:

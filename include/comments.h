@@ -3,7 +3,7 @@
  * COMMENTS.H - Header file for comment functions
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -95,7 +95,10 @@ int delete_host_comment(unsigned long);                             /* deletes a
 int delete_service_comment(unsigned long);                          /* deletes a service comment */
 int delete_all_comments(int,char *,char *);                         /* deletes all comments for a particular host or service */
 int delete_all_host_comments(char *);                               /* deletes all comments for a specific host */
+int delete_host_acknowledgement_comments(host *);                   /* deletes all non-persistent ack comments for a specific host */
 int delete_all_service_comments(char *,char *);                     /* deletes all comments for a specific service */
+int delete_service_acknowledgement_comments(service *);             /* deletes all non-persistent ack comments for a specific service */
+
 int check_for_expired_comment(unsigned long);                       /* expires a comment */
 #endif
 

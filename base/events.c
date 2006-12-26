@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-21-2006
+ * Last Modified: 12-26-2006
  *
  * License:
  *
@@ -82,7 +82,7 @@ extern int      use_large_installation_tweaks;
 
 extern int      time_change_threshold;
 
-extern unsigned long check_result_buffer_slots;
+extern int      check_result_buffer_slots;
 
 timed_event *event_list_low=NULL;
 timed_event *event_list_low_tail=NULL;

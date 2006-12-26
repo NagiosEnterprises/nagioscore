@@ -3,7 +3,7 @@
  * SEHANDLERS.C - Service and host event and state handlers for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-12-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -693,12 +693,20 @@ int handle_host_state(host *hst){
 
 		/* reset the acknowledgement flag if necessary */
 		if(hst->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
+
 			hst->problem_has_been_acknowledged=FALSE;
 			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_host_acknowledgement_comments(hst);
 		        }
 		else if(hst->acknowledgement_type==ACKNOWLEDGEMENT_STICKY && hst->current_state==HOST_UP){
+
 			hst->problem_has_been_acknowledged=FALSE;
 			hst->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_host_acknowledgement_comments(hst);
 		        }
 
 		/* reset the next and last notification times */

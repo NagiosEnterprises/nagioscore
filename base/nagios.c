@@ -248,8 +248,8 @@ dbuf            check_result_dbuf;
 circular_buffer external_command_buffer;
 circular_buffer check_result_buffer;
 pthread_t       worker_threads[TOTAL_WORKER_THREADS];
-unsigned long   external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
-unsigned long   check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
+int             external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
+int             check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
 
 

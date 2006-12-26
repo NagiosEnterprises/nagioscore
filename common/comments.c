@@ -285,10 +285,23 @@ int delete_all_host_comments(char *host_name){
 			delete_comment(HOST_COMMENT,temp_comment->comment_id);
 	        }
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result=xcddefault_delete_all_host_comments(host_name);
-#endif
+	return result;
+        }
+
+
+/* deletes all non-persistent acknowledgement comments for a particular host */
+int delete_host_acknowledgement_comments(host *hst){
+	int result=OK;
+	comment *temp_comment=NULL;
+
+	if(hst==NULL)
+		return ERROR;
+	
+	/* delete comments from memory */
+	for(temp_comment=get_first_comment_by_host(hst->name);temp_comment!=NULL;temp_comment=get_next_comment_by_host(hst->name,temp_comment)){
+		if(temp_comment->comment_type==HOST_COMMENT && temp_comment->entry_type==ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent==FALSE)
+			delete_comment(HOST_COMMENT,temp_comment->comment_id);
+	        }
 
 	return result;
         }
@@ -310,10 +323,25 @@ int delete_all_service_comments(char *host_name, char *svc_description){
 			delete_comment(SERVICE_COMMENT,temp_comment->comment_id);
 	        }
 
-	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
-#ifdef USE_XCDDEFAULT
-	result=xcddefault_delete_all_service_comments(host_name,svc_description);
-#endif
+	return result;
+        }
+
+
+/* deletes all non-persistent acknowledgement comments for a particular service */
+int delete_service_acknowledgement_comments(service *svc){
+	int result=OK;
+	comment *temp_comment=NULL;
+	comment *next_comment=NULL;
+
+	if(svc==NULL)
+		return ERROR;
+	
+	/* delete comments from memory */
+	for(temp_comment=comment_list;temp_comment!=NULL;temp_comment=next_comment){
+		next_comment=temp_comment->next;
+		if(temp_comment->comment_type==SERVICE_COMMENT && !strcmp(temp_comment->host_name,svc->host_name) && !strcmp(temp_comment->service_description,svc->description)  && temp_comment->entry_type==ACKNOWLEDGEMENT_COMMENT && temp_comment->persistent==FALSE)
+			delete_comment(SERVICE_COMMENT,temp_comment->comment_id);
+	        }
 
 	return result;
         }

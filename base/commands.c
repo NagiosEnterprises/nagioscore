@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-21-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -89,7 +89,7 @@ passive_check_result    *passive_check_result_list_tail=NULL;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
-extern unsigned long   external_command_buffer_slots;
+extern int             external_command_buffer_slots;
 
 
 
@@ -3920,6 +3920,9 @@ void remove_host_acknowledgement(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
+	/* remove any non-persistant comments associated with the ack */
+	delete_host_acknowledgement_comments(hst);
+
 #ifdef DEBUG0
 	printf("remove_host_acknowledgement() end\n");
 #endif
@@ -3940,6 +3943,9 @@ void remove_service_acknowledgement(service *svc){
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
+
+	/* remove any non-persistant comments associated with the ack */
+	delete_service_acknowledgement_comments(svc);
 
 #ifdef DEBUG0
 	printf("remove_service_acknowledgement() end\n");

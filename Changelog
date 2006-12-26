@@ -88,6 +88,7 @@ Pre-alpha changes since 02/15/2006...
 
 * Comment changes:
      - Comments are now stored in the status and retention files
+     - Non-persistent acknowledgement comments are now deleted when the acknowledgement is removed (instead of when Nagios restarts)
 
 * Host check logic changes:
      - Most host checks are now run asynchronously, in parallel!

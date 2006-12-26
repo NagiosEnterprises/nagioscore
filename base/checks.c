@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-12-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -934,12 +934,20 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		temp_service->no_more_notifications=FALSE;
 
 		if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_NORMAL){
+
 			temp_service->problem_has_been_acknowledged=FALSE;
 			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_service_acknowledgement_comments(temp_service);
 		        }
 		else if(temp_service->acknowledgement_type==ACKNOWLEDGEMENT_STICKY && temp_service->current_state==STATE_OK){
+
 			temp_service->problem_has_been_acknowledged=FALSE;
 			temp_service->acknowledgement_type=ACKNOWLEDGEMENT_NONE;
+
+			/* remove any non-persistant comments associated with the ack */
+			delete_service_acknowledgement_comments(temp_service);
 		        }
 
 		/* do NOT reset current notification number!!! */

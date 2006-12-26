@@ -92,25 +92,25 @@ LegendO[nagios-f]: &nbsp;Services:
 
 
 # Used/Avail External Command Buffers
-Target[nagios-g]: `@bindir@/nagiostats --mrtg --data=MAXCMDBUF,USEDCMDBUF,PROGRUNTIME,NAGIOSVERPID`
+Target[nagios-g]: `@bindir@/nagiostats --mrtg --data=TOTCMDBUF,USEDCMDBUF,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-g]: 7000
 Title[nagios-g]: External Command Buffers
 PageTop[nagios-g]: <H1>External Command Buffers</H1>
 Options[nagios-g]: growright,gauge,nopercent
 YLegend[nagios-g]: Percent
 ShortLegend[nagios-g]: &nbsp;
-LegendI[nagios-g]: &nbsp;Avail:
+LegendI[nagios-g]: &nbsp;Total:
 LegendO[nagios-g]: &nbsp;Used:
 
 
 # Used/Avail Check Result buffers
-Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=MAXCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
+Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=TOTCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-h]: 7000
 Title[nagios-h]: Check Result Buffers
 PageTop[nagios-h]: <H1>Check Result Buffers</H1>
 Options[nagios-h]: growright,gauge,nopercent
 YLegend[nagios-h]: Percent
 ShortLegend[nagios-h]: &nbsp;
-LegendI[nagios-h]: &nbsp;Avail:
+LegendI[nagios-h]: &nbsp;Total:
 LegendO[nagios-h]: &nbsp;Used:
 

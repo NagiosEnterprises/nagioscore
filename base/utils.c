@@ -236,8 +236,8 @@ extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
 extern circular_buffer check_result_buffer;
 extern circular_buffer event_broker_buffer;
-extern unsigned long   external_command_buffer_slots;
-extern unsigned long   check_result_buffer_slots;
+extern int             external_command_buffer_slots;
+extern int             check_result_buffer_slots;
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno

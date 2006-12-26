@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-21-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -4973,7 +4973,9 @@ int file_uses_embedded_perl(char *fname){
 #ifdef EMBEDDEDPERL
 	FILE *fp=NULL;
 	char line1[80]="";
-	char line2[80]="";
+	char linen[80]="";
+	int line=0;
+	char *ptr=NULL;
 	int found_epn_directive=FALSE;
 
 	if(enable_embedded_perl==TRUE){
@@ -4988,18 +4990,39 @@ int file_uses_embedded_perl(char *fname){
 			/* yep, its a Perl script... */
 			if(strstr(line1,"/bin/perl")!=NULL){
 
-				/* second line MAY tell us explicity whether or not to use embedded Perl */
-				if(fgets(line2,80,fp)){
-					if(strstr(line2,"#USE_EPN")!=NULL){
-						use_epn=TRUE;
-						found_epn_directive=TRUE;
-						}
-					else if(strstr(line2,"#NO_EPN")!=NULL){
-						use_epn=FALSE;
-						found_epn_directive=TRUE;
-						}
-					}
+				/* epn directives must be found in first ten lines of plugin */
+				for(line=1;line<10;line++){
 
+					if(fgets(linen,80,fp)){
+
+						/* line contains Nagios directives */
+						if(strstr(linen,"# nagios:")){
+
+							ptr=strtok(linen,":");
+
+							/* process each directive */
+							for(ptr=strtok(NULL,",");ptr!=NULL;ptr=strtok(NULL,",")){
+
+								if(!strcmp(ptr,"+epn")){
+									use_epn=TRUE;
+									found_epn_directive=TRUE;
+									}
+								else if(!strcmp(ptr,"-epn")){
+									use_epn=FALSE;
+									found_epn_directive=TRUE;
+									}
+								}
+							}
+
+						if(found_epn_directive==TRUE)
+							break;
+						}
+
+					/* EOF */
+					else
+						break;
+					}
+					
 				/* if the plugin didn't tell us whether or not to use embedded Perl, use implicit value */
 				if(found_epn_directive==FALSE)
 					use_epn=(use_embedded_perl_implicitly==TRUE)?TRUE:FALSE;

@@ -2,8 +2,8 @@
  *
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-02-2007
  *
  * License:
  *
@@ -5053,6 +5053,7 @@ int init_check_result_worker_thread(void){
 	check_result_buffer.head=0;
 	check_result_buffer.tail=0;
 	check_result_buffer.items=0;
+	check_result_buffer.high=0;
 	check_result_buffer.overflow=0L;
 	check_result_buffer.buffer=(void **)malloc(check_result_buffer_slots*sizeof(check_result **));
 	if(check_result_buffer.buffer==NULL)
@@ -5122,6 +5123,7 @@ int init_command_file_worker_thread(void){
 	external_command_buffer.head=0;
 	external_command_buffer.tail=0;
 	external_command_buffer.items=0;
+	external_command_buffer.high=0;
 	external_command_buffer.overflow=0L;
 	external_command_buffer.buffer=(void **)malloc(external_command_buffer_slots*sizeof(char **));
 	if(external_command_buffer.buffer==NULL)
@@ -5525,6 +5527,8 @@ int buffer_check_result(check_result *info){
 	check_result_buffer.head=(check_result_buffer.head + 1) % check_result_buffer_slots;
 	if(check_result_buffer.items<check_result_buffer_slots)
 		check_result_buffer.items++;
+	if(check_result_buffer.items>check_result_buffer.high)
+		check_result_buffer.high=check_result_buffer.items;
 	
 #ifdef DEBUG_CHECK_IPC
 	printf("BUFFER OK.  TOTAL ITEMS=%d\n",check_result_buffer.items);
@@ -5643,6 +5647,8 @@ int submit_external_command(char *cmd, int *buffer_items){
 		/* increment the head counter and items */
 		external_command_buffer.head=(external_command_buffer.head + 1) % external_command_buffer_slots;
 		external_command_buffer.items++;
+		if(external_command_buffer.items>external_command_buffer.high)
+			external_command_buffer.high=external_command_buffer.items;
 	        }
 
 	/* buffer was full */

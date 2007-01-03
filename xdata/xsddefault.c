@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2006
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-02-2007
  *
  * License:
  *
@@ -323,6 +323,10 @@ int xsddefault_save_status_data(void){
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
+	int used_check_result_buffer_slots=0;
+	int high_check_result_buffer_slots=0;
+	int used_external_command_buffer_slots=0;
+	int high_external_command_buffer_slots=0;
 
 	/* open a safe temp file for output */
 	if(xsddefault_temp_file==NULL)
@@ -359,6 +363,18 @@ int xsddefault_save_status_data(void){
 
 		return ERROR;
 	        }
+
+	/* get number of items in the check result buffer */
+	pthread_mutex_lock(&check_result_buffer.buffer_lock);
+	used_check_result_buffer_slots=check_result_buffer.items;
+	high_check_result_buffer_slots=check_result_buffer.high;
+	pthread_mutex_unlock(&check_result_buffer.buffer_lock);
+
+	/* get number of items in the command buffer */
+	pthread_mutex_lock(&external_command_buffer.buffer_lock);
+	used_external_command_buffer_slots=external_command_buffer.items;
+	high_external_command_buffer_slots=external_command_buffer.high;
+	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 	/* write version info to status file */
 	fprintf(fp,"########################################\n");
@@ -405,9 +421,11 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tnext_event_id=%lu\n",next_event_id);
 	fprintf(fp,"\tnext_notification_id=%lu\n",next_notification_id);
 	fprintf(fp,"\ttotal_external_command_buffer_slots=%d\n",external_command_buffer_slots);
-	fprintf(fp,"\tused_external_command_buffer_slots=%d\n",external_command_buffer.items);
+	fprintf(fp,"\tused_external_command_buffer_slots=%d\n",used_external_command_buffer_slots);
+	fprintf(fp,"\thigh_external_command_buffer_slots=%d\n",high_external_command_buffer_slots);
 	fprintf(fp,"\ttotal_check_result_buffer_slots=%d\n",check_result_buffer_slots);
-	fprintf(fp,"\tused_check_result_buffer_slots=%d\n",check_result_buffer.items);
+	fprintf(fp,"\tused_check_result_buffer_slots=%d\n",used_check_result_buffer_slots);
+	fprintf(fp,"\thigh_check_result_buffer_slots=%d\n",high_check_result_buffer_slots);
 	fprintf(fp,"\t}\n\n");
 
 

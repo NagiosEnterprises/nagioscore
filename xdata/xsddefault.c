@@ -2,8 +2,8 @@
  *
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-21-2006
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-02-2007
  *
  * License:
  *
@@ -86,8 +86,8 @@ extern int enable_failure_prediction;
 extern int process_performance_data;
 extern int aggregate_status_updates;
 
-extern unsigned long external_command_buffer_slots;
-extern unsigned long check_result_buffer_slots;
+extern int external_command_buffer_slots;
+extern int check_result_buffer_slots;
 extern circular_buffer external_command_buffer;
 extern circular_buffer service_result_buffer;
 
@@ -300,6 +300,10 @@ int xsddefault_save_status_data(void){
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
+	int used_check_result_buffer_slots=0;
+	int high_check_result_buffer_slots=0;
+	int used_external_command_buffer_slots=0;
+	int high_external_command_buffer_slots=0;
 
 	/* open a safe temp file for output */
 	snprintf(xsddefault_aggregate_temp_file,sizeof(xsddefault_aggregate_temp_file)-1,"%sXXXXXX",xsddefault_temp_file);
@@ -326,6 +330,18 @@ int xsddefault_save_status_data(void){
 
 		return ERROR;
 	        }
+
+	/* get number of items in the check result buffer */
+	pthread_mutex_lock(&service_result_buffer.buffer_lock);
+	used_check_result_buffer_slots=service_result_buffer.items;
+	high_check_result_buffer_slots=service_result_buffer.high;
+	pthread_mutex_unlock(&service_result_buffer.buffer_lock);
+
+	/* get number of items in the command buffer */
+	pthread_mutex_lock(&external_command_buffer.buffer_lock);
+	used_external_command_buffer_slots=external_command_buffer.items;
+	high_external_command_buffer_slots=external_command_buffer.high;
+	pthread_mutex_unlock(&external_command_buffer.buffer_lock);
 
 	/* write version info to status file */
 	fprintf(fp,"########################################\n");
@@ -367,10 +383,12 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tprocess_performance_data=%d\n",process_performance_data);
 	fprintf(fp,"\tglobal_host_event_handler=%s\n",(global_host_event_handler==NULL)?"":global_host_event_handler);
 	fprintf(fp,"\tglobal_service_event_handler=%s\n",(global_service_event_handler==NULL)?"":global_service_event_handler);
-	fprintf(fp,"\tmax_external_command_buffer_slots=%lu\n",external_command_buffer_slots);
-	fprintf(fp,"\tused_external_command_buffer_slots=%lu\n",external_command_buffer.items);
-	fprintf(fp,"\tmax_check_result_buffer_slots=%lu\n",check_result_buffer_slots);
-	fprintf(fp,"\tused_check_result_buffer_slots=%lu\n",service_result_buffer.items);
+	fprintf(fp,"\ttotal_external_command_buffer_slots=%d\n",external_command_buffer_slots);
+	fprintf(fp,"\tused_external_command_buffer_slots=%d\n",used_external_command_buffer_slots);
+	fprintf(fp,"\thigh_external_command_buffer_slots=%d\n",high_external_command_buffer_slots);
+	fprintf(fp,"\ttotal_check_result_buffer_slots=%d\n",check_result_buffer_slots);
+	fprintf(fp,"\tused_check_result_buffer_slots=%d\n",used_check_result_buffer_slots);
+	fprintf(fp,"\thigh_check_result_buffer_slots=%d\n",high_check_result_buffer_slots);
 	fprintf(fp,"\t}\n\n");
 
 

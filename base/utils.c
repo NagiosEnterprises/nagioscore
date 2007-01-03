@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   10-27-2006
+ * Last Modified:   12-26-2006
  *
  * License:
  *
@@ -209,8 +209,8 @@ extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
 extern circular_buffer service_result_buffer;
 extern circular_buffer event_broker_buffer;
-extern unsigned long   external_command_buffer_slots;
-extern unsigned long   check_result_buffer_slots;
+extern int             external_command_buffer_slots;
+extern int             check_result_buffer_slots;
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
@@ -4623,6 +4623,7 @@ int init_service_result_worker_thread(void){
 	service_result_buffer.head=0;
 	service_result_buffer.tail=0;
 	service_result_buffer.items=0;
+	service_result_buffer.high=0;
 	service_result_buffer.overflow=0L;
 	service_result_buffer.buffer=(void **)malloc(check_result_buffer_slots*sizeof(service_message **));
 	if(service_result_buffer.buffer==NULL)
@@ -4689,6 +4690,7 @@ int init_command_file_worker_thread(void){
 	external_command_buffer.head=0;
 	external_command_buffer.tail=0;
 	external_command_buffer.items=0;
+	external_command_buffer.high=0;
 	external_command_buffer.overflow=0L;
 	external_command_buffer.buffer=(void **)malloc(external_command_buffer_slots*sizeof(char **));
 	if(external_command_buffer.buffer==NULL)
@@ -4897,6 +4899,8 @@ void * service_result_worker_thread(void *arg){
 				service_result_buffer.head=(service_result_buffer.head + 1) % check_result_buffer_slots;
 				if(service_result_buffer.items<check_result_buffer_slots)
 					service_result_buffer.items++;
+				if(service_result_buffer.items>service_result_buffer.high)
+					service_result_buffer.high=service_result_buffer.items;
 
 				/* release lock on buffer */
 				pthread_mutex_unlock(&service_result_buffer.buffer_lock);
@@ -5029,6 +5033,8 @@ int submit_external_command(char *cmd, int *buffer_items){
 		/* increment the head counter and items */
 		external_command_buffer.head=(external_command_buffer.head + 1) % external_command_buffer_slots;
 		external_command_buffer.items++;
+		if(external_command_buffer.items>external_command_buffer.high)
+			external_command_buffer.high=external_command_buffer.items;
 	        }
 
 	/* buffer was full */

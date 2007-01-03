@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-21-2006
+ * Last Modified: 01-02-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -460,6 +460,7 @@ typedef struct circular_buffer_struct{
 	int             tail;
 	int             head;
 	int             items;
+	int		high;		/* highest number of items that has ever been stored in buffer */
 	unsigned long   overflow;
 	pthread_mutex_t buffer_lock;
         }circular_buffer;

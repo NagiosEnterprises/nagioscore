@@ -5,7 +5,7 @@
  * Program: Nagios
  * Version: 2.6
  * License: GPL
- * Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)
+ * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
  * Last Modified:   12-21-2006
@@ -207,8 +207,8 @@ service_message svc_msg;
 circular_buffer  external_command_buffer;
 circular_buffer  service_result_buffer;
 pthread_t worker_threads[TOTAL_WORKER_THREADS];
-unsigned long   external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
-unsigned long   check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
+int              external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
+int              check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
 
 
@@ -286,7 +286,7 @@ int main(int argc, char **argv){
 
 	if(daemon_mode==FALSE){
 		printf("\nNagios %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 1999-2006 Ethan Galstad (http://www.nagios.org)\n");
+		printf("Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }

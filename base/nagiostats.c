@@ -5,9 +5,9 @@
  * Program: Nagiostats
  * Version: 2.6
  * License: GPL
- * Copyright (c) 2003-2006 Ethan Galstad (nagios@nagios.org)
+ * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   12-21-2006
+ * Last Modified:   01-02-2007
  *
  * License:
  *
@@ -140,10 +140,12 @@ int active_hosts_checked_last_5min=0;
 int active_hosts_checked_last_15min=0;
 int active_hosts_checked_last_1hour=0;
 
-unsigned long max_external_command_buffer_slots=0L;
-unsigned long used_external_command_buffer_slots=0L;
-unsigned long max_check_result_buffer_slots=0L;
-unsigned long used_check_result_buffer_slots=0L;
+int total_external_command_buffer_slots=0;
+int used_external_command_buffer_slots=0;
+int high_external_command_buffer_slots=0;
+int total_check_result_buffer_slots=0;
+int used_check_result_buffer_slots=0;
+int high_check_result_buffer_slots=0;
 
 
 
@@ -219,7 +221,7 @@ int main(int argc, char **argv){
 
 	if(mrtg_mode==FALSE){
 		printf("\nNagios Stats %s\n",PROGRAM_VERSION);
-		printf("Copyright (c) 2003-2006 Ethan Galstad (www.nagios.org)\n");
+		printf("Copyright (c) 2003-2007 Ethan Galstad (www.nagios.org)\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
 	        }
@@ -268,10 +270,12 @@ int main(int argc, char **argv){
 		printf(" NAGIOSVERSION      string with Nagios version.\n");
 		printf(" NAGIOSPID          pid number of Nagios deamon.\n");
 		printf(" NAGIOSVERPID       string with Nagios version and PID.\n");
-		printf(" MAXCMDBUF          number of external command buffer slots available.\n");
+		printf(" TOTCMDBUF          total number of external command buffer slots available.\n");
 		printf(" USEDCMDBUF         number of external command buffer slots currently in use.\n");
-		printf(" MAXCHKBUF          number of check result buffer slots available.\n");
+		printf(" HIGHCMDBUF         highest number of external command buffer slots ever in use.\n");
+		printf(" TOTCHKBUF          total number of check result buffer slots available.\n");
 		printf(" USEDCHKBUF         number of check result buffer slots currently in use.\n");
+		printf(" HIGHCHKBUF         highest number of check result buffer slots ever in use.\n");
 		printf(" NUMSERVICES        total number of services.\n");
 		printf(" NUMHOSTS           total number of hosts.\n");
 		printf(" NUMSVCOK           number of services OK.\n");
@@ -379,14 +383,18 @@ int display_mrtg_values(void){
 			printf("Nagios %s (pid=%lu)\n",status_version,nagios_pid);
 
 
-		else if(!strcmp(temp_ptr,"MAXCMDBUF"))
-			printf("%lu\n",max_external_command_buffer_slots);
+		else if(!strcmp(temp_ptr,"TOTCMDBUF"))
+			printf("%d\n",total_external_command_buffer_slots);
 		else if(!strcmp(temp_ptr,"USEDCMDBUF"))
-			printf("%lu\n",used_external_command_buffer_slots);
-		else if(!strcmp(temp_ptr,"MAXCHKBUF"))
-			printf("%lu\n",max_check_result_buffer_slots);
+			printf("%d\n",used_external_command_buffer_slots);
+		else if(!strcmp(temp_ptr,"HIGHCMDBUF"))
+			printf("%d\n",high_external_command_buffer_slots);
+		else if(!strcmp(temp_ptr,"TOTCHKBUF"))
+			printf("%d\n",total_check_result_buffer_slots);
 		else if(!strcmp(temp_ptr,"USEDCHKBUF"))
-			printf("%lu\n",used_check_result_buffer_slots);
+			printf("%d\n",used_check_result_buffer_slots);
+		else if(!strcmp(temp_ptr,"HIGHCHKBUF"))
+			printf("%d\n",high_check_result_buffer_slots);
 
 		else if(!strcmp(temp_ptr,"NUMSERVICES"))
 			printf("%d\n",status_service_entries);
@@ -585,8 +593,8 @@ int display_stats(void){
 	get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
 	printf("Program Running Time:                 %dd %dh %dm %ds\n",days,hours,minutes,seconds);
 	printf("Nagios PID:                           %lu\n",nagios_pid);
-	printf("Used/Max External Command Buffers:    %lu / %lu\n",used_external_command_buffer_slots,max_external_command_buffer_slots);
-	printf("Used/Max Check Result Buffers:        %lu / %lu\n",used_check_result_buffer_slots,max_check_result_buffer_slots);
+	printf("Used/High/Total Command Buffers:      %d / %d / %d\n",used_external_command_buffer_slots,high_external_command_buffer_slots,total_external_command_buffer_slots);
+	printf("Used/High/Total Check Result Buffers: %d / %d / %d\n",used_check_result_buffer_slots,high_check_result_buffer_slots,total_check_result_buffer_slots);
 	printf("\n");
 	printf("Total Services:                       %d\n",status_service_entries);
 	printf("Services Checked:                     %d\n",services_checked);
@@ -960,14 +968,18 @@ int read_status_file(void){
 			case STATUS_PROGRAM_DATA:
 				if(!strcmp(var,"program_start"))
 					program_start=strtoul(val,NULL,10);
-				else if(!strcmp(var,"max_external_command_buffer_slots"))
-					max_external_command_buffer_slots=strtoul(val,NULL,10);
+				else if(!strcmp(var,"total_external_command_buffer_slots"))
+					total_external_command_buffer_slots=atoi(val);
 				else if(!strcmp(var,"used_external_command_buffer_slots"))
-					used_external_command_buffer_slots=strtoul(val,NULL,10);
-				else if(!strcmp(var,"max_check_result_buffer_slots"))
-					max_check_result_buffer_slots=strtoul(val,NULL,10);
+					used_external_command_buffer_slots=atoi(val);
+				else if(!strcmp(var,"high_external_command_buffer_slots"))
+					high_external_command_buffer_slots=atoi(val);
+				else if(!strcmp(var,"total_check_result_buffer_slots"))
+					total_check_result_buffer_slots=atoi(val);
 				else if(!strcmp(var,"used_check_result_buffer_slots"))
-					used_check_result_buffer_slots=strtoul(val,NULL,10);
+					used_check_result_buffer_slots=atoi(val);
+				else if(!strcmp(var,"high_check_result_buffer_slots"))
+					high_check_result_buffer_slots=atoi(val);
 				else if(!strcmp(var,"nagios_pid"))
 					nagios_pid=strtoul(val,NULL,10);
 				break;

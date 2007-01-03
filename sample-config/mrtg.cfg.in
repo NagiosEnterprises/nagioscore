@@ -92,7 +92,7 @@ LegendO[nagios-f]: &nbsp;Services:
 
 
 # Used/Avail External Command Buffers
-Target[nagios-g]: `@bindir@/nagiostats --mrtg --data=MAXCMDBUF,USEDCMDBUF,PROGRUNTIME,NAGIOSVERPID`
+Target[nagios-g]: `@bindir@/nagiostats --mrtg --data=TOTCMDBUF,USEDCMDBUF,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-g]: 7000
 Title[nagios-g]: External Command Buffers
 PageTop[nagios-g]: <H1>External Command Buffers</H1>
@@ -104,7 +104,7 @@ LegendO[nagios-g]: &nbsp;Used:
 
 
 # Used/Avail Check Result buffers
-Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=MAXCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
+Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=TOTCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-h]: 7000
 Title[nagios-h]: Check Result Buffers
 PageTop[nagios-h]: <H1>Check Result Buffers</H1>

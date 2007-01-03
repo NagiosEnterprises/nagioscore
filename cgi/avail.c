@@ -2,8 +2,8 @@
  *
  * AVAIL.C -  Nagios Availability CGI
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-03-2006
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-02-2007
  *
  * License:
  * 
@@ -431,8 +431,8 @@ int main(int argc, char **argv){
 #endif
 #ifdef USE_HISTOGRAM
 				printf("<a href='%s?host=%s",HISTOGRAM_CGI,url_encode(host_name));
-#endif
 				printf("&service=%s&t1=%lu&t2=%lu&assumestateretention=%s'>View Alert Histogram For This Service</a><BR>\n",url_encode(svc_description),t1,t2,(assume_state_retention==TRUE)?"yes":"no");
+#endif
 				printf("<A HREF='%s?host=%s&",HISTORY_CGI,url_encode(host_name));
 				printf("service=%s'>View Alert History This Service</A><BR>\n",url_encode(svc_description));
 				printf("<A HREF='%s?host=%s&",NOTIFICATIONS_CGI,url_encode(host_name));

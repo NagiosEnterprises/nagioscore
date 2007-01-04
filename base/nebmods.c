@@ -531,6 +531,7 @@ int neb_make_callbacks(int callback_type, void *data){
 	nebcallback *temp_callback=NULL;
 	int (*callbackfunc)(int,void *);
 	register int cbresult=0;
+	int total_callbacks=0;
 
 	/* make sure callback list is initialized */
 	if(neb_callback_list==NULL)
@@ -540,12 +541,21 @@ int neb_make_callbacks(int callback_type, void *data){
 	if(callback_type<0 || callback_type>=NEBCALLBACK_NUMITEMS)
 		return ERROR;
 
+#ifdef DEBUG
+	for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=temp_callback->next)
+		total_callbacks++;
+	printf("CALLBACKS[%d]=%d\n",callback_type,total_callbacks);
+	total_callbacks=0;
+#endif
+
 	/* make the callbacks... */
 	for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=temp_callback->next){
 		callbackfunc=temp_callback->callback_func;
 		cbresult=callbackfunc(callback_type,data);
+
 #ifdef DEBUG
-		printf("Callback type %d resulted in return code of %d\n",callback_type,cbresult);
+		total_callbacks++;
+		printf("  -> CALLBACK[%d]=%d\n",total_callbacks,cbresult);
 #endif
 
 		/* module wants to cancel callbacks to other modules (and potentially cancel the default Nagios handling of an event) */

@@ -2,8 +2,8 @@
  *
  * OBJECTS.C - Object addition and search functions for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 09-11-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-04-2007
  *
  * License:
  *
@@ -4119,7 +4119,7 @@ int check_for_circular_servicedependency_path(servicedependency *root_dep, servi
 	for(temp_sd=servicedependency_list;temp_sd!=NULL;temp_sd=temp_sd->next){
 
 		/* only check parent dependencies */
-		if(dep->master_service_ptr==temp_sd->dependent_service_ptr)
+		if(dep->master_service_ptr!=temp_sd->dependent_service_ptr)
 			continue;
 
 		if(check_for_circular_servicedependency_path(root_dep,temp_sd,dependency_type)==TRUE)
@@ -4170,7 +4170,7 @@ int check_for_circular_hostdependency_path(hostdependency *root_dep, hostdepende
 	for(temp_hd=hostdependency_list;temp_hd!=NULL;temp_hd=temp_hd->next){
 
 		/* only check parent dependencies */
-		if(dep->master_host_ptr==temp_hd->dependent_host_ptr)
+		if(dep->master_host_ptr!=temp_hd->dependent_host_ptr)
 			continue;
 
 		if(check_for_circular_hostdependency_path(root_dep,temp_hd,dependency_type)==TRUE)

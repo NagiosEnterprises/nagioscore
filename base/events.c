@@ -2,8 +2,8 @@
  *
  * EVENTS.C - Timed event functions for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2007
  *
  * License:
  *
@@ -910,9 +910,9 @@ int event_execution_loop(void){
 	sleep_event.recurring=FALSE;
 	sleep_event.event_interval=0L;
 	sleep_event.compensate_for_time_change=FALSE;
-	sleep_event.timing_func=FALSE;
-	sleep_event.event_data=FALSE;
-	sleep_event.event_args=FALSE;
+	sleep_event.timing_func=NULL;
+	sleep_event.event_data=NULL;
+	sleep_event.event_args=NULL;
 
 	while(1){
 
@@ -1307,7 +1307,7 @@ int handle_timed_event(timed_event *event){
 #endif
 
 		/* process scheduled downtime info */
-		handle_scheduled_downtime((scheduled_downtime *)event->event_data);
+		handle_scheduled_downtime_by_id((unsigned long)event->event_data);
 		break;
 
 	case EVENT_SFRESHNESS_CHECK:

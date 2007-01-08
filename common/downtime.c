@@ -2,8 +2,8 @@
  *
  * DOWNTIME.C - Scheduled downtime functions for Nagios
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 08-01-2006
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-08-2007
  *
  * License:
  *
@@ -119,7 +119,6 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 /* unschedules a host or service downtime */
 int unschedule_downtime(int type,unsigned long downtime_id){
 	scheduled_downtime *temp_downtime=NULL;
-	scheduled_downtime *event_downtime=NULL;
 	host *hst=NULL;
 	service *svc=NULL;
 	timed_event *temp_event=NULL;
@@ -196,10 +195,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){
 		if(temp_event->event_type!=EVENT_SCHEDULED_DOWNTIME)
 			continue;
-		event_downtime=(scheduled_downtime *)temp_event->event_data;
-		if(event_downtime->type!=temp_downtime->type)
-			continue;
-		if(event_downtime->downtime_id==downtime_id)
+		if(((unsigned long)temp_event->event_data)==downtime_id)
 			break;
 	        }
 	if(temp_event!=NULL)
@@ -275,10 +271,25 @@ int register_downtime(int type, unsigned long downtime_id){
 
 	/* only non-triggered downtime is scheduled... */
 	if(temp_downtime->triggered_by==0)
-		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,(void *)temp_downtime,NULL);
+		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,(void *)temp_downtime->downtime_id,NULL);
 
 	return OK;
         }
+
+
+
+/* handles scheduled downtime (id passed from timed event queue) */
+int handle_scheduled_downtime_by_id(unsigned long downtime_id){
+	scheduled_downtime *temp_downtime=NULL;
+
+	/* find the downtime entry */
+	if((temp_downtime=find_downtime(ANY_DOWNTIME,downtime_id))==NULL)
+		return ERROR;
+
+	/* handle the downtime */
+	return handle_scheduled_downtime(temp_downtime);
+	}
+	
 
 
 /* handles scheduled host or service downtime */
@@ -309,7 +320,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			return ERROR;
 	        }
 
-	/* if downtime if flexible and host/svc is in an ok state, don't do anything right now (wait for event handler to kill it off) */
+	/* if downtime if flexible and host/svc is in an ok state, don't do anything right now (wait for event handler to kick it off) */
 	/* start_flex_downtime variable is set to TRUE by event handler functions */
 	if(temp_downtime->fixed==FALSE){
 
@@ -390,18 +401,18 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 					svc->pending_flex_downtime--;
 			        }
 		        }
-
-		/* delete downtime entry from the log */
-		if(temp_downtime->type==HOST_DOWNTIME)
-			delete_host_downtime(temp_downtime->downtime_id);
-		else
-			delete_service_downtime(temp_downtime->downtime_id);
-
 		/* handle (stop) downtime that is triggered by this one */
 		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){
 			if(this_downtime->triggered_by==temp_downtime->downtime_id)
 				handle_scheduled_downtime(this_downtime);
 		        }
+
+		/* delete downtime entry */
+		if(temp_downtime->type==HOST_DOWNTIME)
+			delete_host_downtime(temp_downtime->downtime_id);
+		else
+			delete_service_downtime(temp_downtime->downtime_id);
+
 	        }
 
 	/* else we are just starting the scheduled downtime */
@@ -454,7 +465,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 			event_time=(time_t)((unsigned long)time(NULL)+temp_downtime->duration);
 		else
 			event_time=temp_downtime->end_time;
-		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,(void *)temp_downtime,NULL);
+		schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,(void *)temp_downtime->downtime_id,NULL);
 
 		/* handle (start) downtime that is triggered by this one */
 		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){

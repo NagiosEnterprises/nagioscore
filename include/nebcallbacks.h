@@ -2,8 +2,8 @@
  *
  * NEBCALLBACKS.H - Include file for event broker modules
  *
- * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-25-2006
+ * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-06-2007
  *
  * License:
  *
@@ -35,7 +35,7 @@
 
 /***** CALLBACK TYPES *****/
 
-#define NEBCALLBACK_NUMITEMS                          333    /* total number of callback types we have */
+#define NEBCALLBACK_NUMITEMS                          33    /* total number of callback types we have */
 
 #define NEBCALLBACK_RESERVED0                         0     /* reserved for future use */
 #define NEBCALLBACK_RESERVED1                         1

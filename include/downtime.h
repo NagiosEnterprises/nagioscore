@@ -76,6 +76,7 @@ int unschedule_downtime(int,unsigned long);
 
 int register_downtime(int,unsigned long);
 int handle_scheduled_downtime(scheduled_downtime *);
+int handle_scheduled_downtime_by_id(unsigned long);
 
 int check_pending_flex_host_downtime(host *);
 int check_pending_flex_service_downtime(service *);

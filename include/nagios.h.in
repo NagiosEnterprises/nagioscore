@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-02-2007
+ * Last Modified: 01-08-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -439,19 +439,6 @@ typedef struct passive_check_result_struct{
 	time_t check_time;
 	struct passive_check_result_struct *next;
 	}passive_check_result;
-
-
-/* SCHEDULED_DOWNTIME_ENTRY structure */
-typedef struct scheduled_downtime_entry_struct{
-	int type;
-	void *object;
-	time_t start_time;
-	time_t end_time;
-	int is_in_effect;
-	int fixed;
-	unsigned long duration;
-	int comment_id;
-	}scheduled_downtime_entry;
 
 
 /* CIRCULAR_BUFFER structure - used by worker threads */

@@ -2,8 +2,8 @@
  *
  * DOWNTIME.H - Header file for scheduled downtime functions
  *
- * Copyright (c) 2001-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   11-25-2005
+ * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-08-2007
  *
  * License:
  *
@@ -76,6 +76,7 @@ int unschedule_downtime(int,unsigned long);
 
 int register_downtime(int,unsigned long);
 int handle_scheduled_downtime(scheduled_downtime *);
+int handle_scheduled_downtime_by_id(unsigned long);
 
 int check_pending_flex_host_downtime(host *);
 int check_pending_flex_service_downtime(service *);

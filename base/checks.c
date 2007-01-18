@@ -31,7 +31,7 @@
 #include "../include/perfdata.h"
 
 /*#define DEBUG_CHECKS*/
-#define DEBUG_HOST_CHECKS 1
+/*#define DEBUG_HOST_CHECKS 1*/
 
 
 #ifdef EMBEDDEDPERL

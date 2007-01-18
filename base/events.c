@@ -913,6 +913,8 @@ int event_execution_loop(void){
 	sleep_event.timing_func=NULL;
 	sleep_event.event_data=NULL;
 	sleep_event.event_args=NULL;
+	sleep_event.next=NULL;
+	sleep_event.prev=NULL;
 
 	while(1){
 
@@ -1146,7 +1148,6 @@ int event_execution_loop(void){
 			sleep((unsigned int)delay.tv_sec);
 #endif
 		        }
-
 	        }
 
 #ifdef DEBUG0

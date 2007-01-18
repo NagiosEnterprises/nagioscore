@@ -82,6 +82,8 @@ Pre-alpha changes since 02/15/2006...
      - Contact status information is now retained across program restarts
      - Comment and downtime IDs are now stored across program restarts, should be unique unless reset
      - Added retained_host/service_attribute_mask variables to control what host/service attribs are retained globally
+     - Added retained_process_host/service_attribute_mask variables to control what process attribs are retained
+     - Added retained_contact_host/service_attribute_mask variables to control what contact attribs are retained globally
 
 * Downtime changes:
      - Scheduled downtime entries are now stored in the status and retention files

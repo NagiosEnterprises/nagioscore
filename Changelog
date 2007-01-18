@@ -11,6 +11,7 @@ Nagios 2.x Change Log
 * Minor patches to availability and status CGIs
 * Minor documentation updates
 * Fix for segfault during expiration or deletion of scheduled downtime
+* Fix for scheduling immediate service check through WAP interface
 
 
 

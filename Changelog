@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.7 - 01/??/2007
+2.7 - 01/19/2007
 ----------------
 * p1.pl now sets environment var (NAGIOS_PLUGIN) to indicate patch of plugin that is executing
 * Updated nagiostats with new MRTG vars for tracking buffer usage
@@ -12,6 +12,7 @@ Nagios 2.x Change Log
 * Minor documentation updates
 * Fix for segfault during expiration or deletion of scheduled downtime
 * Fix for scheduling immediate service check through WAP interface
+* Fix for leading whitespace before comments in object config files
 
 
 

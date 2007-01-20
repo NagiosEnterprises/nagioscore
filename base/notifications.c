@@ -2,8 +2,8 @@
  *
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-07-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-19-2007
  *
  * License:
  *
@@ -1637,7 +1637,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 
 		/* else use the shortest of all valid escalation intervals */
 		else if(temp_se->notification_interval<interval_to_use)
-			interval_to_use=svc->notification_interval;
+			interval_to_use=temp_se->notification_interval;
 #ifdef DEBUG4
 		printf("\t\tNew interval: %d\n",interval_to_use);
 #endif

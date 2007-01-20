@@ -3,6 +3,12 @@ Nagios 2.x Change Log
 #####################
 
 
+2.7.1 - ??/??/2007
+------------------
+* Bug fix for calculating notification interval with service escalations
+
+
+
 2.7 - 01/19/2007
 ----------------
 * p1.pl now sets environment var (NAGIOS_PLUGIN) to indicate patch of plugin that is executing

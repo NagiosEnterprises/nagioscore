@@ -281,14 +281,10 @@ int read_main_config_file(char *main_config_file){
 
 		current_line=thefile->current_line;
 
-		/* skip blank lines */
-		if(input[0]=='\x0' || input[0]=='\n' || input[0]=='\r')
-			continue;
-
 		strip(input);
 
-		/* skip comments */
-		if(input[0]=='#' || input[0]==';')
+		/* skip blank lines and comments */
+		if(input[0]=='\x0' || input[0]=='#')
 			continue;
 
 #ifdef DEBUG1

@@ -2,8 +2,8 @@
  *
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
- * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-11-2006
+ * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-19-2007
  *
  * Description:
  *
@@ -725,21 +725,22 @@ int xodtemplate_process_config_file(char *filename, int options){
 
 		current_line++;
 
-		/* skip empty lines */
-		if(input[0]=='#' || input[0]==';' || input[0]=='\r' || input[0]=='\n')
-			continue;
-
 		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
-		for(x=0;input[x]!='\x0';x++)
-			if(input[x]==';')
-				break;
+		for(x=0;input[x]!='\x0';x++){
+			if(input[x]==';'){
+				if(x==0)
+					break;
+				else if(input[x-1]!='\\')
+					break;
+				}
+			}
 		input[x]='\x0';
 
 		/* strip input */
 		strip(input);
 
-		/* skip blank lines */
-		if(input[0]=='\x0')
+		/* skip empty lines */
+		if(input[0]=='\x0' || input[0]=='#')
 			continue;
 
 		/* this is the start of an object definition */

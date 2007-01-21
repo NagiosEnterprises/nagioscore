@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-02-2007
+ * Last Modified:   01-19-2007
  *
  * License:
  *
@@ -3794,18 +3794,20 @@ int write_check_result(check_result *info){
 		return 0;
 
 	asprintf(&buf,
-		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%s\n%d=%f\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
+		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%d\n%d=%s\n%d=%f\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
 		 ,1,info->object_check_type
 		 ,2,(info->host_name==NULL)?"":info->host_name
 		 ,3,(info->service_description==NULL)?"":info->service_description
 		 ,4,info->check_type
-		 ,5,(info->output_file==NULL)?"":info->output_file
-		 ,6,info->latency
-		 ,7,info->start_time.tv_sec,info->start_time.tv_usec
-		 ,8,info->finish_time.tv_sec,info->finish_time.tv_usec
-		 ,9,info->early_timeout
-		 ,10,info->exited_ok
-		 ,11,info->return_code
+		 ,5,info->scheduled_check
+		 ,6,info->reschedule_check
+		 ,7,(info->output_file==NULL)?"":info->output_file
+		 ,8,info->latency
+		 ,9,info->start_time.tv_sec,info->start_time.tv_usec
+		 ,10,info->finish_time.tv_sec,info->finish_time.tv_usec
+		 ,11,info->early_timeout
+		 ,12,info->exited_ok
+		 ,13,info->return_code
 		);
 
 	if(buf==NULL)
@@ -5404,6 +5406,8 @@ int handle_check_result_input2(check_result *info, char *buf){
 		/* reinitialize check result structure */
 		info->object_check_type=SERVICE_CHECK;
 		info->check_type=SERVICE_CHECK_ACTIVE;
+		info->scheduled_check=FALSE;
+		info->reschedule_check=FALSE;
 		info->start_time.tv_sec=0;
 		info->start_time.tv_usec=0;
 		info->latency=0.0;
@@ -5440,12 +5444,18 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->check_type=atoi(val);
 		break;
 	case 5:
-		info->output_file=(char *)strdup(val);
+		info->scheduled_check=atoi(val);
 		break;
 	case 6:
-		info->latency=strtod(val,NULL);
+		info->reschedule_check=atoi(val);
 		break;
 	case 7:
+		info->output_file=(char *)strdup(val);
+		break;
+	case 8:
+		info->latency=strtod(val,NULL);
+		break;
+	case 9:
 		if((ptr1=strtok(val,"."))==NULL)
 			return ERROR;
 		if((ptr2=strtok(NULL,"\n"))==NULL)
@@ -5453,7 +5463,7 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->start_time.tv_sec=strtoul(ptr1,NULL,0);
 		info->start_time.tv_usec=strtoul(ptr2,NULL,0);
 		break;
-	case 8:
+	case 10:
 		if((ptr1=strtok(val,"."))==NULL)
 			return ERROR;
 		if((ptr2=strtok(NULL,"\n"))==NULL)
@@ -5461,13 +5471,13 @@ int handle_check_result_input2(check_result *info, char *buf){
 		info->finish_time.tv_sec=strtoul(ptr1,NULL,0);
 		info->finish_time.tv_usec=strtoul(ptr2,NULL,0);
 		break;
-	case 9:
+	case 11:
 		info->early_timeout=atoi(val);
 		break;
-	case 10:
+	case 12:
 		info->exited_ok=atoi(val);
 		break;
-	case 11:
+	case 13:
 		info->return_code=atoi(val);
 		break;
 	default:

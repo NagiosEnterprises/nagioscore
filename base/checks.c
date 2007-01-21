@@ -2,8 +2,8 @@
  *
  * CHECKS.C - Service and host check functions for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-19-2007
  *
  * License:
  *
@@ -207,7 +207,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 	int time_is_valid=TRUE;
 
 	/* attempt to run the check */
-	result=run_async_service_check(svc,check_options,latency,TRUE,&time_is_valid,&preferred_time);
+	result=run_async_service_check(svc,check_options,latency,TRUE,TRUE,&time_is_valid,&preferred_time);
 
 	/* an error occurred, so reschedule the check */
 	if(result==ERROR){
@@ -250,7 +250,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 
 
 /* forks a child process to run a service check, but does not wait for the service check result */
-int run_async_service_check(service *svc, int check_options, double latency, int reschedule_check, int *time_is_valid, time_t *preferred_time){
+int run_async_service_check(service *svc, int check_options, double latency, int scheduled_check, int reschedule_check, int *time_is_valid, time_t *preferred_time){
 	char raw_command[MAX_COMMAND_BUFFER]="";
 	char processed_command[MAX_COMMAND_BUFFER]="";
 	char output_buffer[MAX_INPUT_BUFFER]="";
@@ -376,6 +376,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	check_result_info.host_name=(char *)strdup(svc->host_name);
 	check_result_info.service_description=(char *)strdup(svc->description);
 	check_result_info.check_type=SERVICE_CHECK_ACTIVE;
+	check_result_info.scheduled_check=scheduled_check;
+	check_result_info.reschedule_check=reschedule_check;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
 	check_result_info.start_time=start_time;
 	check_result_info.finish_time=start_time;
@@ -715,8 +717,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 /* handles asynchronous service check results */
 int handle_async_service_check_result(service *temp_service, check_result *queued_check_result){
 	host *temp_host=NULL;
+	time_t next_service_check=0L;
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
+	int reschedule_check=FALSE;
 	char *temp_buffer=NULL;
 	int state_change=FALSE;
 	int hard_state_change=FALSE;
@@ -748,10 +752,11 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 #ifdef DEBUG3
 	printf("\n\tFound check result for service '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
-	printf("\t\tCheck Type:    %s\n",(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
-	printf("\t\tExited OK?:    %s\n",(queued_check_result->exited_ok==TRUE)?"Yes":"No");
-	printf("\t\tReturn Status: %d\n",queued_check_result->return_code);
-	printf("\t\tPlugin Output: '%s'\n",queued_check_result->output);
+	printf("\t\tCheck Type:        %s\n",(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
+	printf("\t\tScheduled Check?   %s\n",(queued_check_result->scheduled_check==TRUE)?"Yes":"No");
+	printf("\t\tReschedule Check?  %s\n",(queued_check_result->reschedule_check==TRUE)?"Yes":"No");
+	printf("\t\tExited OK?:        %s\n",(queued_check_result->exited_ok==TRUE)?"Yes":"No");
+	printf("\t\tReturn Status:     %d\n",queued_check_result->return_code);
 #endif
 
 	/* decrement the number of service checks still out there... */
@@ -780,6 +785,9 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* was this check passive or active? */
 	temp_service->check_type=(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
+
+	/* should we reschedule the next service check? NOTE: This may be overridden later... */
+	reschedule_check=queued_check_result->reschedule_check;
 
 	/* save the old service status info */
 	temp_service->last_state=temp_service->current_state;
@@ -923,8 +931,11 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	        }
 
 	/* a state change occurred... */
-	/* reset last and next notification times and acknowledgement flag if necessary */
+	/* reset last and next notification times and acknowledgement flag if necessary, misc other stuff */
 	if(state_change==TRUE || hard_state_change==TRUE){
+
+		/* reschedule the service check */
+		reschedule_check=TRUE;
 
 		/* reset notification times */
 		temp_service->last_notification=(time_t)0;
@@ -1046,8 +1057,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		temp_service->notified_on_critical=FALSE;
 		temp_service->no_more_notifications=FALSE;
 
-		if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
-			temp_service->next_check=(time_t)(temp_service->last_check+(temp_service->check_interval*interval_length));
+		if(reschedule_check==TRUE)
+			next_service_check=(time_t)(temp_service->last_check+(temp_service->check_interval*interval_length));
 	        }
 
 
@@ -1134,8 +1145,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			if(route_result!=HOST_UP){
 
 				/* the host is not up, so reschedule the next service check at regular interval */
-				if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
-					temp_service->next_check=(time_t)(temp_service->last_check+(temp_service->check_interval*interval_length));
+				if(reschedule_check==TRUE)
+					next_service_check=(time_t)(temp_service->last_check+(temp_service->check_interval*interval_length));
 
 				/* log the problem as a hard state if the host just went down */
 				if(hard_state_change==TRUE){
@@ -1157,8 +1168,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 				/* run the service event handler to handle the soft state */
 				handle_service_event(temp_service);
 
-				if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
-					temp_service->next_check=(time_t)(temp_service->last_check+(temp_service->retry_interval*interval_length));
+				if(reschedule_check==TRUE)
+					next_service_check=(time_t)(temp_service->last_check+(temp_service->retry_interval*interval_length));
 			        }
 
 			/* perform dependency checks on the second to last check of the service */
@@ -1209,8 +1220,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			temp_service->last_hard_state=temp_service->current_state;
 
 			/* reschedule the next check at the regular interval */
-			if(temp_service->check_type==SERVICE_CHECK_ACTIVE)
-				temp_service->next_check=(time_t)(temp_service->last_check+(temp_service->check_interval*interval_length));
+			if(reschedule_check==TRUE)
+				next_service_check=(time_t)(temp_service->last_check+(temp_service->check_interval*interval_length));
 		        }
 
 
@@ -1219,11 +1230,18 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			obsessive_compulsive_service_check_processor(temp_service);
 	        }
 
-	/* reschedule the next service check ONLY for active checks */
-	if(temp_service->check_type==SERVICE_CHECK_ACTIVE){
+	/* reschedule the next service check ONLY for active, scheduled checks */
+	if(reschedule_check==TRUE){
+
+#ifdef DEBUG3
+		printf("Rescheduling '%s/%s' @ %lu\n",temp_service->host_name,temp_service->description,(unsigned long)next_service_check);
+#endif		
 
 		/* default is to reschedule service check unless a test below fails... */
 		temp_service->should_be_scheduled=TRUE;
+
+		/* next check time was calculated above */
+		temp_service->next_check=next_service_check;
 
 		/* make sure we don't get ourselves into too much trouble... */
 		if(current_time>temp_service->next_check)
@@ -1298,7 +1316,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		if(temp_service->is_executing==TRUE)
 			run_async_check=FALSE;
 		if(run_async_check==TRUE)
-			run_async_service_check(temp_service,CHECK_OPTION_NONE,0.0,FALSE,NULL,NULL);
+			run_async_service_check(temp_service,CHECK_OPTION_NONE,0.0,FALSE,FALSE,NULL,NULL);
 	        }
 	free_objectlist(&check_servicelist);
 
@@ -1323,8 +1341,8 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 	printf("schedule_service_check() start\n");
 #endif
 
-	/* don't schedule a check if active checks are disabled */
-	if((execute_service_checks==FALSE || svc->checks_enabled==FALSE) && forced==FALSE)
+	/* don't schedule a check if active checks of this service are disabled */
+	if(svc->checks_enabled==FALSE && forced==FALSE)
 		return;
 
 	/* allocate memory for a new event item */
@@ -1342,14 +1360,17 @@ void schedule_service_check(service *svc,time_t check_time,int forced){
 	use_original_event=FALSE;
 	found=FALSE;
 
-	/* see if there are any other scheduled checks of this service in the queue */
-	if(use_large_installation_tweaks==FALSE){
-		for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+#ifdef PERFORMANCE_INCREASE_BUT_VERY_BAD_IDEA_INDEED
+	/* WARNING! 1/19/07 on-demand async service checks will end up causing mutliple scheduled checks of a service to appear in the queue if the code below is skipped */
+	/* if(use_large_installation_tweaks==FALSE)... skip code below */
+#endif
 
-			if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data){
-				found=TRUE;
-				break;
-				}
+	/* see if there are any other scheduled checks of this service in the queue */
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+
+		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data){
+			found=TRUE;
+			break;
 			}
 		}
 
@@ -2494,8 +2515,8 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 	printf("schedule_host_check() start\n");
 #endif
 
-	/* don't schedule a check if active checks are disabled */
-	if((execute_host_checks==FALSE || hst->checks_enabled==FALSE) && forced==FALSE)
+	/* don't schedule a check if active checks of this host are disabled */
+	if(hst->checks_enabled==FALSE && forced==FALSE)
 		return;
 
 	/* allocate memory for a new event item */
@@ -2512,13 +2533,16 @@ void schedule_host_check(host *hst,time_t check_time,int forced){
 	use_original_event=FALSE;
 	found=FALSE;
 
+#ifdef PERFORMANCE_INCREASE_BUT_VERY_BAD_IDEA_INDEED
+	/* WARNING! 1/19/07 on-demand async host checks will end up causing mutliple scheduled checks of a host to appear in the queue if the code below is skipped */
+	/* if(use_large_installation_tweaks==FALSE)... skip code below */
+#endif
+
 	/* see if there are any other scheduled checks of this host in the queue */
-	if(use_large_installation_tweaks==FALSE){
-		for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
-			if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
-				found=TRUE;
-				break;
-				}
+	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
+		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
+			found=TRUE;
+			break;
 			}
 		}
 
@@ -2862,7 +2886,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 	host_result=execute_sync_host_check_3x(hst);
 
 	/* process the host check result */
-	process_host_check_result_3x(hst,host_result,old_plugin_output,check_options,use_cached_result,check_timestamp_horizon);
+	process_host_check_result_3x(hst,host_result,old_plugin_output,check_options,FALSE,use_cached_result,check_timestamp_horizon);
 
 	/* free memory */
 	my_free((void **)&old_plugin_output);
@@ -3064,7 +3088,7 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 #endif
 
 	/* attempt to run the check */
-	result=run_async_host_check_3x(hst,check_options,latency,TRUE,&time_is_valid,&preferred_time);
+	result=run_async_host_check_3x(hst,check_options,latency,TRUE,TRUE,&time_is_valid,&preferred_time);
 
 	/* an error occurred, so reschedule the check */
 	if(result==ERROR){
@@ -3109,7 +3133,7 @@ int run_scheduled_host_check_3x(host *hst, int check_options, double latency){
 
 /* perform an asynchronous check of a host */
 /* scheduled host checks will use this, as will some checks that result from on-demand checks... */
-int run_async_host_check_3x(host *hst, int check_options, double latency, int reschedule_check, int *time_is_valid, time_t *preferred_time){
+int run_async_host_check_3x(host *hst, int check_options, double latency, int scheduled_check, int reschedule_check, int *time_is_valid, time_t *preferred_time){
 	char raw_command[MAX_COMMAND_BUFFER]="";
 	char processed_command[MAX_COMMAND_BUFFER]="";
 	char output_buffer[MAX_INPUT_BUFFER]="";
@@ -3230,6 +3254,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 	check_result_info.host_name=(char *)strdup(hst->name);
 	check_result_info.service_description=NULL;
 	check_result_info.check_type=HOST_CHECK_ACTIVE;
+	check_result_info.scheduled_check=scheduled_check;
+	check_result_info.reschedule_check=reschedule_check;
 	check_result_info.output_file=(check_result_info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
 	check_result_info.latency=latency;
 	check_result_info.start_time=start_time;
@@ -3404,6 +3430,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int re
 int handle_async_host_check_result_3x(host *temp_host, check_result *queued_check_result){
 	struct timeval tv;
 	int result=STATE_OK;
+	int reschedule_check=FALSE;
 	char *old_plugin_output=NULL;
 	char *temp_buffer=NULL;
 	char *temp_ptr=NULL;
@@ -3420,12 +3447,14 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 #ifdef DEBUG_HOST_CHECKS
 	printf("\tFound check result for host '%s'\n",temp_host->name);
-	printf("\t\tCheck Type:    %s\n",(queued_check_result->check_type==HOST_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
-	printf("\t\tExited OK?:    %s\n",(queued_check_result->exited_ok==TRUE)?"Yes":"No");
-	printf("\t\tExec Time:     %.3f\n",temp_host->execution_time);
-	printf("\t\tLatency:       %.3f\n",temp_host->latency);
-	printf("\t\tReturn Status: %d\n",queued_check_result->return_code);
-	printf("\t\tOutput File:   '%s'\n",queued_check_result->output_file);
+	printf("\t\tCheck Type:         %s\n",(queued_check_result->check_type==HOST_CHECK_ACTIVE)?"ACTIVE":"PASSIVE");
+	printf("\t\tScheduled Check?:   %s\n",(queued_check_result->scheduled_check==TRUE)?"Yes":"No");
+	printf("\t\tReschedule Check?:  %s\n",(queued_check_result->reschedule_check==TRUE)?"Yes":"No");
+	printf("\t\tExited OK?:         %s\n",(queued_check_result->exited_ok==TRUE)?"Yes":"No");
+	printf("\t\tExec Time:          %.3f\n",temp_host->execution_time);
+	printf("\t\tLatency:            %.3f\n",temp_host->latency);
+	printf("\t\tReturn Status:      %d\n",queued_check_result->return_code);
+	printf("\t\tOutput File:        '%s'\n",queued_check_result->output_file);
 #endif
 
 	/* decrement the number of host checks still out there... */
@@ -3438,6 +3467,9 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 	/* was this check passive or active? */
 	temp_host->check_type=(queued_check_result->check_type==HOST_CHECK_ACTIVE)?HOST_CHECK_ACTIVE:HOST_CHECK_PASSIVE;
+
+	/* should we reschedule the next check of the host? NOTE: this might be overridden later... */
+	reschedule_check=queued_check_result->reschedule_check;
 
 	/* check latency is passed to us for both active and passive checks */
 	temp_host->latency=queued_check_result->latency;
@@ -3552,7 +3584,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	/******************* PROCESS THE CHECK RESULTS ******************/
 
 	/* process the host check result */
-	process_host_check_result_3x(temp_host,result,old_plugin_output,CHECK_OPTION_NONE,TRUE,cached_host_check_horizon);
+	process_host_check_result_3x(temp_host,result,old_plugin_output,CHECK_OPTION_NONE,reschedule_check,TRUE,cached_host_check_horizon);
 
 	/* free memory */
 	my_free((void **)&old_plugin_output);
@@ -3578,7 +3610,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 
 /* processes the result of a synchronous or asynchronous host check */
-int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_output, int check_options, int use_cached_result, unsigned long check_timestamp_horizon){
+int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_output, int check_options, int reschedule_check, int use_cached_result, unsigned long check_timestamp_horizon){
 	hostsmember *temp_hostsmember=NULL;
 	host *child_host=NULL;
 	host *parent_host=NULL;
@@ -3621,6 +3653,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				hst->state_type=SOFT_STATE;
 
 			/* reschedule the next check of the host at the normal interval */
+			reschedule_check=TRUE;
 			next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 
 			/* propagate checks to immediate parents if they are not already UP */
@@ -3658,13 +3691,19 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				else
 					hst->state_type=SOFT_STATE;
 
-				/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
-				if(hst->state_type==SOFT_STATE)
-					next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
+				/* reschedule the next check if the host state changed */
+				if(hst->last_state!=hst->current_state || (use_old_host_check_logic==FALSE && hst->last_hard_state!=hst->current_state)){
 
-				/* host has maxed out on retries (or was previously in a hard problem state), so reschedule the next check at the normal interval */
-				else
-					next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
+					reschedule_check=TRUE;
+
+					/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
+					if(hst->state_type==SOFT_STATE)
+						next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
+
+					/* host has maxed out on retries (or was previously in a hard problem state), so reschedule the next check at the normal interval */
+					else
+						next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
+					}
 
 				/* make a determination of the host's state */
 				hst->current_state=determine_host_reachability(hst);
@@ -3680,7 +3719,8 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				hst->current_attempt=1;
 
 				/* schedule another check at the normal interval */
-				next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
+				if(reschedule_check==TRUE)
+					next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 			        }
 
 		        }
@@ -3701,7 +3741,8 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 			hst->state_type=HARD_STATE;
 
 			/* reschedule the next check at the normal interval */
-			next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
+			if(reschedule_check==TRUE)
+				next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 		        }
 
 		/***** HOST IS NOW DOWN/UNREACHABLE *****/
@@ -3714,6 +3755,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				hst->state_type=HARD_STATE;
 
 				/* host has maxed out on retries, so reschedule the next check at the normal interval */
+				reschedule_check=TRUE;
 				next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 
 				/* we need to run SYNCHRONOUS checks of all parent hosts to accurately determine the state of this host */
@@ -3766,6 +3808,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					hst->state_type=SOFT_STATE;
 
 					/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
+					reschedule_check=TRUE;
 					next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
 
 					/* make a preliminary determination of the host's state */
@@ -3782,6 +3825,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					hst->current_attempt=1;
 
 					/* schedule a re-check of the host at the normal interval */
+					reschedule_check=TRUE;
 					next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 				        }
 
@@ -3844,8 +3888,8 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	/* check to see if the associated host is flapping */
 	check_for_host_flapping(hst,TRUE,TRUE);
 
-	/* reschedule the next check of the host ONLY for active checks */
-	if(hst->check_type==HOST_CHECK_ACTIVE){
+	/* reschedule the next check of the host ONLY for scheduled, active checks */
+	if(reschedule_check==TRUE){
 
 		/* default is to reschedule host check unless a test below fails... */
 		hst->should_be_scheduled=TRUE;
@@ -3898,7 +3942,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 		if(temp_host->is_executing==TRUE)
 			run_async_check=FALSE;
 		if(run_async_check==TRUE){
-			run_async_host_check_3x(temp_host,CHECK_OPTION_NONE,0.0,FALSE,NULL,NULL);
+			run_async_host_check_3x(temp_host,CHECK_OPTION_NONE,0.0,FALSE,FALSE,NULL,NULL);
 #ifdef DEBUG_HOST_CHECKS
 			printf("ASYNC2: %s\n",temp_host->name);
 #endif

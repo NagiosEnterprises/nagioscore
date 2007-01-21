@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   01-19-2007
  *
  * License:
  *
@@ -5392,6 +5392,8 @@ void process_passive_checks(void){
 				info.service_description=NULL;
 				if(temp_pcr->service_description)
 					info.service_description=(char *)strdup(temp_pcr->service_description);
+				info.scheduled_check=FALSE;
+				info.reschedule_check=FALSE;
 				info.output_file=(info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
 				info.latency=temp_pcr->latency;
 				info.start_time.tv_sec=temp_pcr->check_time;

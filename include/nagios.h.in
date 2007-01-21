@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-08-2007
+ * Last Modified: 01-19-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -447,6 +447,8 @@ typedef struct check_result_struct{
 	char *host_name;                                /* host name */
 	char *service_description;                      /* service description */
 	int check_type;					/* was this an active or passive service check? */
+	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
+	int reschedule_check;                           /* should we reschedule the next check */
 	char *output_file;                              /* what file is the output stored in? */
 	FILE *output_file_fp;
 	int output_file_fd;
@@ -865,13 +867,13 @@ int handle_host_state(host *);               			/* top level host state handler 
 int check_host_check_viability_3x(host *,int,int *,time_t *);
 int adjust_host_check_attempt_3x(host *);
 int determine_host_reachability(host *);
-int process_host_check_result_3x(host *,int,char *,int,int,unsigned long);
+int process_host_check_result_3x(host *,int,char *,int,int,int,unsigned long);
 
 int perform_on_demand_host_check_3x(host *,int *,int,int,unsigned long);
 int run_sync_host_check_3x(host *,int *,int,int,unsigned long);
 int execute_sync_host_check_3x(host *);
 int run_scheduled_host_check_3x(host *,int,double);
-int run_async_host_check_3x(host *,int,double,int,int *,time_t *);
+int run_async_host_check_3x(host *,int,double,int,int,int *,time_t *);
 int handle_async_host_check_result_3x(host *,check_result *);
 
 
@@ -887,7 +889,7 @@ int reap_check_results(void);
 /***** SERVICE CHECK FUNCTIONS *****/
 int check_service_check_viability_3x(service *,int,int *,time_t *);
 int run_scheduled_service_check(service *,int,double);
-int run_async_service_check(service *,int,double,int,int *,time_t *);
+int run_async_service_check(service *,int,double,int,int,int *,time_t *);
 int handle_async_service_check_result(service *,check_result *);
 
 

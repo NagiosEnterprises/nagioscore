@@ -138,5 +138,7 @@ Pre-alpha changes since 02/15/2006...
      - Fractional notification and check intervals are now supported (e.g. "3.5" minutes)
      - Backslash chars are now used to escape command arguments that contain \ or ! characters
      - Added 'external_command_buffer_slots' and 'check_result_buffer_slots' variables to specify size of internal buffers
+     - Added check statistics to status file, available via nagiostats for graphing in MRTG
+
  
 

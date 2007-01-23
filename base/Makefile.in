@@ -1,7 +1,7 @@
 ############################
 # Makefile for Nagios
 #
-# Last Modified: 12-11-2006
+# Last Modified: 01-22-2007
 ############################
 
 
@@ -125,7 +125,7 @@ OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATA
 all: nagios nagiostats
 
 
-######## REQUIRED LIBRARIES ##########
+######## REQUIRED FILES ##########
 
 objects-base.o: $(SRC_COMMON)/objects.c $(SRC_INCLUDE)/objects.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/objects.c
@@ -162,6 +162,7 @@ retention-base.o: sretention.c $(SRC_INCLUDE)/sretention.h
 
 xretention-base.o: $(SRC_XDATA)/$(XRDC) $(SRC_XDATA)/$(XRDH)
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XRDC)
+
 
 
 ########## NAGIOS ##########

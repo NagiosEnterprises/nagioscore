@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-19-2007
+ * Last Modified:   01-22-2007
  *
  * License:
  *
@@ -159,6 +159,8 @@ extern unsigned long next_notification_id;
 
 extern int      log_rotation_method;
 
+extern time_t   program_start;
+
 extern time_t   last_command_check;
 extern time_t	last_command_status_update;
 extern time_t   last_log_rotation;
@@ -238,6 +240,8 @@ extern circular_buffer check_result_buffer;
 extern circular_buffer event_broker_buffer;
 extern int             external_command_buffer_slots;
 extern int             check_result_buffer_slots;
+
+extern check_stats    check_statistics[MAX_CHECK_STATS_TYPES];
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
@@ -5704,6 +5708,134 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 	return result;
         }
 
+
+
+/******************************************************************/
+/********************** CHECK STATS FUNCTIONS *********************/
+/******************************************************************/
+
+/* initialize check statistics data structures */
+int init_check_stats(void){
+	int x=0;
+	int y=0;
+
+	for(x=0;x<MAX_CHECK_STATS_TYPES;x++){
+		check_statistics[x].current_bucket=0;
+		for(y=0;y<CHECK_STATS_BUCKETS;y++)
+			check_statistics[x].bucket[y]=0;
+		check_statistics[x].overflow_bucket=0;
+		for(y=0;y<3;y++)
+			check_statistics[x].minute_stats[y]=0;
+		}
+
+	return OK;
+	}
+
+
+/* records stats for a given type of check */
+int update_check_stats(int check_type, time_t check_time){
+	unsigned long minutes=0L;
+	int this_bucket=0;
+	int x=0;
+	
+	if(check_type<0 || check_type>=MAX_CHECK_STATS_TYPES)
+		return ERROR;
+
+	minutes=((unsigned long)check_time-(unsigned long)program_start) / 60;
+	this_bucket=minutes % CHECK_STATS_BUCKETS;
+
+	if(this_bucket!=check_statistics[check_type].current_bucket){
+		check_statistics[check_type].overflow_bucket=check_statistics[check_type].bucket[this_bucket];
+		check_statistics[check_type].current_bucket=this_bucket;
+		check_statistics[check_type].bucket[this_bucket]=0;
+		}
+
+	check_statistics[check_type].bucket[this_bucket]++;
+
+#ifdef DEBUG_CHECK_STATS
+	printf("TYPE[%d].BUCKET[%d]=%d\n",check_type,this_bucket,check_statistics[check_type].bucket[this_bucket]);
+	printf("   ");
+	for(x=0;x<CHECK_STATS_BUCKETS;x++)
+		printf("[%d] ",check_statistics[check_type].bucket[x]);
+	printf(" (%d)\n",check_statistics[check_type].overflow_bucket);
+	generate_check_stats();
+#endif
+
+	return OK;
+	}
+
+
+/* generate 1/5/15 minute stats for a given type of check */
+int generate_check_stats(void){
+	int x=0;
+	int this_bucket=0;
+	int last_bucket=0;
+	int this_bucket_value=0;
+	int last_bucket_value=0;
+	int bucket_value=0;
+	int seconds=0;
+	int check_type=0;
+	float this_bucket_weight=0.0;
+	float last_bucket_weight=0.0;
+	int left_value=0;
+	int right_value=0;
+
+
+	seconds=((unsigned long)time(NULL)-(unsigned long)program_start) % 60;
+	this_bucket_weight=(seconds/60.0);
+	last_bucket_weight=((60-seconds)/60.0);
+
+	for(check_type=0;check_type<MAX_CHECK_STATS_TYPES;check_type++){
+
+		for(x=0;x<3;x++)
+			check_statistics[check_type].minute_stats[x]=0;
+
+		for(x=0;x<CHECK_STATS_BUCKETS;x++){
+			
+			this_bucket=(check_statistics[check_type].current_bucket + CHECK_STATS_BUCKETS - x) % CHECK_STATS_BUCKETS;
+			last_bucket=(this_bucket + CHECK_STATS_BUCKETS - 1) % CHECK_STATS_BUCKETS;
+
+			this_bucket_value=check_statistics[check_type].bucket[this_bucket];
+			if(last_bucket==check_statistics[check_type].current_bucket)
+				last_bucket_value=check_statistics[check_type].overflow_bucket;
+			else
+				last_bucket_value=check_statistics[check_type].bucket[last_bucket];
+
+			if(x==0){
+				right_value=this_bucket_value;
+				left_value=(int)round(last_bucket_value * last_bucket_weight);
+				bucket_value=(int)(this_bucket_value + round(last_bucket_value * last_bucket_weight));
+				}
+			else{
+				right_value=(int)round(this_bucket_value * this_bucket_weight);
+				left_value=(int)round(last_bucket_value * last_bucket_weight);
+				bucket_value=(int)(round(this_bucket_value * this_bucket_weight) + round(last_bucket_value * last_bucket_weight));
+				}
+
+			/* 1 minute stats */
+			if(x==0)
+				check_statistics[check_type].minute_stats[0]=bucket_value;
+		
+			/* 5 minute stats */
+			if(x<5)
+				check_statistics[check_type].minute_stats[1]+=bucket_value;
+
+			/* 15 minute stats */
+			if(x<15)
+				check_statistics[check_type].minute_stats[2]+=bucket_value;
+
+#ifdef DEBUG_CHECK_STATS
+			printf("X=%d, THIS[%d]=%d, LAST[%d]=%d, 1/5/15=%d,%d,%d  L=%d R=%d\n",x,this_bucket,this_bucket_value,last_bucket,last_bucket_value,check_statistics[check_type].minute_stats[0],check_statistics[check_type].minute_stats[1],check_statistics[check_type].minute_stats[2],left_value,right_value);
+#endif
+			}
+
+#ifdef DEBUG_CHECK_STATS
+		printf("   1/5/15 = %d, %d, %d (seconds=%d, this_weight=%f, last_weight=%f)\n",check_statistics[check_type].minute_stats[0],check_statistics[check_type].minute_stats[1],check_statistics[check_type].minute_stats[2],seconds,this_bucket_weight,last_bucket_weight);
+#endif
+		}
+
+	return OK;
+	}
 
 
 /******************************************************************/

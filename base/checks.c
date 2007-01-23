@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-19-2007
+ * Last Modified:   01-22-2007
  *
  * License:
  *
@@ -396,6 +396,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* reset latency (permanent value will be set later) */
 	svc->latency=old_latency;
 
+	/* update check statistics */
+	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_SERVICE_CHECKS:ACTIVE_ONDEMAND_SERVICE_CHECKS,start_time.tv_sec);
+
 #ifdef EMBEDDEDPERL
 
 	/* get"filename" component of command */
@@ -785,6 +788,10 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* was this check passive or active? */
 	temp_service->check_type=(queued_check_result->check_type==SERVICE_CHECK_ACTIVE)?SERVICE_CHECK_ACTIVE:SERVICE_CHECK_PASSIVE;
+
+	/* update check statistics for passive checks */
+	if(queued_check_result->check_type==SERVICE_CHECK_PASSIVE)
+		update_check_stats(PASSIVE_SERVICE_CHECKS,queued_check_result->start_time.tv_sec);
 
 	/* should we reschedule the next service check? NOTE: This may be overridden later... */
 	reschedule_check=queued_check_result->reschedule_check;
@@ -1311,10 +1318,18 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	for(servicelist_item=check_servicelist;servicelist_item!=NULL;servicelist_item=servicelist_item->next){
 		run_async_check=TRUE;
 		temp_service=(service *)servicelist_item->object_ptr;
-		if((current_time-temp_service->last_check)<=cached_service_check_horizon)
+
+		/* we can get by with a cached state, so don't check the service */
+		if((current_time-temp_service->last_check)<=cached_service_check_horizon){
 			run_async_check=FALSE;
+
+			/* update check statistics */
+			update_check_stats(ACTIVE_CACHED_SERVICE_CHECKS,current_time);
+			}
+
 		if(temp_service->is_executing==TRUE)
 			run_async_check=FALSE;
+
 		if(run_async_check==TRUE)
 			run_async_service_check(temp_service,CHECK_OPTION_NONE,0.0,FALSE,FALSE,NULL,NULL);
 	        }
@@ -2834,6 +2849,10 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 #ifdef DEBUG_HOST_CHECKS
 			printf("* USED CACHED STATE: %s\n",hst->name);
 #endif
+
+			/* update check statistics */
+			update_check_stats(ACTIVE_CACHED_HOST_CHECKS,current_time);
+
 			return OK;
 	                }
 	        }
@@ -2843,6 +2862,9 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 #endif
 
 	/******** GOOD TO GO FOR A REAL HOST CHECK AT THIS POINT ********/
+
+	/* update check statistics */
+	update_check_stats(ACTIVE_ONDEMAND_HOST_CHECKS,current_time);
 
 	/* reset host check latency, since on-demand checks have none */
 	hst->latency=0.0;
@@ -3275,6 +3297,9 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	/* reset latency (permanent value for this check will get set later) */
 	hst->latency=old_latency;
 
+	/* update check statistics */
+	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_HOST_CHECKS:ACTIVE_ONDEMAND_HOST_CHECKS,start_time.tv_sec);
+
 	/* fork a child process */
 	pid=fork();
 
@@ -3468,6 +3493,10 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	/* was this check passive or active? */
 	temp_host->check_type=(queued_check_result->check_type==HOST_CHECK_ACTIVE)?HOST_CHECK_ACTIVE:HOST_CHECK_PASSIVE;
 
+	/* update check statistics for passive results */
+	if(queued_check_result->check_type==HOST_CHECK_PASSIVE)
+		update_check_stats(PASSIVE_HOST_CHECKS,queued_check_result->start_time.tv_sec);
+
 	/* should we reschedule the next check of the host? NOTE: this might be overridden later... */
 	reschedule_check=queued_check_result->reschedule_check;
 
@@ -3634,6 +3663,9 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 	/* get the current time */
 	time(&current_time);
+
+	/* default next check time */
+	next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 
 	/******* HOST IS DOWN/UNREACHABLE INITIALLY *******/
 	if(hst->current_state!=HOST_UP){

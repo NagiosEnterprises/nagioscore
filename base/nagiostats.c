@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   01-02-2007
+ * Last Modified:   01-23-2007
  *
  * License:
  *
@@ -140,6 +140,38 @@ int active_hosts_checked_last_5min=0;
 int active_hosts_checked_last_15min=0;
 int active_hosts_checked_last_1hour=0;
 
+int active_host_checks_last_1min=0;
+int active_host_checks_last_5min=0;
+int active_host_checks_last_15min=0;		
+int active_ondemand_host_checks_last_1min=0;
+int active_ondemand_host_checks_last_5min=0;
+int active_ondemand_host_checks_last_15min=0;
+int active_scheduled_host_checks_last_1min=0;
+int active_scheduled_host_checks_last_5min=0;
+int active_scheduled_host_checks_last_15min=0;
+int passive_host_checks_last_1min=0;
+int passive_host_checks_last_5min=0;
+int passive_host_checks_last_15min=0;
+int active_cached_host_checks_last_1min=0;
+int active_cached_host_checks_last_5min=0;
+int active_cached_host_checks_last_15min=0;
+
+int active_service_checks_last_1min=0;
+int active_service_checks_last_5min=0;
+int active_service_checks_last_15min=0;		
+int active_ondemand_service_checks_last_1min=0;
+int active_ondemand_service_checks_last_5min=0;
+int active_ondemand_service_checks_last_15min=0;
+int active_scheduled_service_checks_last_1min=0;
+int active_scheduled_service_checks_last_5min=0;
+int active_scheduled_service_checks_last_15min=0;
+int passive_service_checks_last_1min=0;
+int passive_service_checks_last_5min=0;
+int passive_service_checks_last_15min=0;
+int active_cached_service_checks_last_1min=0;
+int active_cached_service_checks_last_5min=0;
+int active_cached_service_checks_last_15min=0;
+
 int total_external_command_buffer_slots=0;
 int used_external_command_buffer_slots=0;
 int high_external_command_buffer_slots=0;
@@ -263,52 +295,62 @@ int main(int argc, char **argv){
 		printf("                    Percentages are rounded, times are in milliseconds.\n");
 		printf("\n");
 		printf("MRTG DATA VARIABLES (-d option):\n");
-		printf(" PROGRUNTIME        string with time Nagios process has been running.\n");
-		printf(" PROGRUNTIMETT      time Nagios process has been running (time_t format).\n");
-		printf(" STATUSFILEAGE      string with age of status data file.\n");
-		printf(" STATUSFILEAGETT    string with age of status data file (time_t format).\n");
-		printf(" NAGIOSVERSION      string with Nagios version.\n");
-		printf(" NAGIOSPID          pid number of Nagios deamon.\n");
-		printf(" NAGIOSVERPID       string with Nagios version and PID.\n");
-		printf(" TOTCMDBUF          total number of external command buffer slots available.\n");
-		printf(" USEDCMDBUF         number of external command buffer slots currently in use.\n");
-		printf(" HIGHCMDBUF         highest number of external command buffer slots ever in use.\n");
-		printf(" TOTCHKBUF          total number of check result buffer slots available.\n");
-		printf(" USEDCHKBUF         number of check result buffer slots currently in use.\n");
-		printf(" HIGHCHKBUF         highest number of check result buffer slots ever in use.\n");
-		printf(" NUMSERVICES        total number of services.\n");
-		printf(" NUMHOSTS           total number of hosts.\n");
-		printf(" NUMSVCOK           number of services OK.\n");
-		printf(" NUMSVCWARN         number of services WARNING.\n");
-		printf(" NUMSVCUNKN         number of services UNKNOWN.\n");
-		printf(" NUMSVCCRIT         number of services CRITICAL.\n");
-		printf(" NUMSVCPROB         number of service problems (WARNING, UNKNOWN or CRITIAL).\n");
-		printf(" NUMSVCCHECKED      number of services that have been checked since start.\n");
-		printf(" NUMSVCSCHEDULED    number of services that are currently scheduled to be checked.\n");
-		printf(" NUMSVCFLAPPING     number of services that are currently flapping.\n");
-		printf(" NUMSVCDOWNTIME     number of services that are currently in downtime.\n");
-		printf(" NUMHSTUP           number of hosts UP.\n");
-		printf(" NUMHSTDOWN         number of hosts DOWN.\n");
-		printf(" NUMHSTUNR          number of hosts UNREACHABLE.\n");
-		printf(" NUMHSTPROB         number of host problems (DOWN or UNREACHABLE).\n");
-		printf(" NUMHSTCHECKED      number of hosts that have been checked since start.\n");
-		printf(" NUMHSTSCHEDULED    number of hosts that are currently scheduled to be checked.\n");
-		printf(" NUMHSTFLAPPING     number of hosts that are currently flapping.\n");
-		printf(" NUMHSTDOWNTIME     number of hosts that are currently in downtime.\n");
-		printf(" xxxACTSVCLAT       MIN/MAX/AVG active service check latency (ms).\n");
-		printf(" xxxACTSVCEXT       MIN/MAX/AVG active service check execution time (ms).\n");
-		printf(" xxxACTSVCPSC       MIN/MAX/AVG active service check %% state change.\n");
-		printf(" xxxPSVSVCPSC       MIN/MAX/AVG passive service check %% state change.\n");
-		printf(" xxxSVCPSC          MIN/MAX/AVG service check %% state change.\n");
-		printf(" xxxACTHSTLAT       MIN/MAX/AVG active host check latency (ms).\n");
-		printf(" xxxACTHSTEXT       MIN/MAX/AVG active host check execution time (ms).\n");
-		printf(" xxxACTHSTPSC       MIN/MAX/AVG active host check %% state change.\n");
-		printf(" xxxPSVHSTPSC       MIN/MAX/AVG passive host check %% state change.\n");
-		printf(" xxxHSTPSC          MIN/MAX/AVG host check %% state change.\n");
-		printf(" NUMACTHSTCHKxM     number of active host checks in last 1/5/15/60 minutes.\n");
-		printf(" NUMPSVHSTCHKxM     number of passive host checks in last 1/5/15/60 minutes.\n");
-		printf(" NUMACTSVCCHKxM     number of active service checks in last 1/5/15/60 minutes.\n");
-		printf(" NUMPSVSVCCHKxM     number of passive service checks in last 1/5/15/60 minutes.\n");
+		printf(" PROGRUNTIME          string with time Nagios process has been running.\n");
+		printf(" PROGRUNTIMETT        time Nagios process has been running (time_t format).\n");
+		printf(" STATUSFILEAGE        string with age of status data file.\n");
+		printf(" STATUSFILEAGETT      string with age of status data file (time_t format).\n");
+		printf(" NAGIOSVERSION        string with Nagios version.\n");
+		printf(" NAGIOSPID            pid number of Nagios deamon.\n");
+		printf(" NAGIOSVERPID         string with Nagios version and PID.\n");
+		printf(" TOTCMDBUF            total number of external command buffer slots available.\n");
+		printf(" USEDCMDBUF           number of external command buffer slots currently in use.\n");
+		printf(" HIGHCMDBUF           highest number of external command buffer slots ever in use.\n");
+		printf(" TOTCHKBUF            total number of check result buffer slots available.\n");
+		printf(" USEDCHKBUF           number of check result buffer slots currently in use.\n");
+		printf(" HIGHCHKBUF           highest number of check result buffer slots ever in use.\n");
+		printf(" NUMSERVICES          total number of services.\n");
+		printf(" NUMHOSTS             total number of hosts.\n");
+		printf(" NUMSVCOK             number of services OK.\n");
+		printf(" NUMSVCWARN           number of services WARNING.\n");
+		printf(" NUMSVCUNKN           number of services UNKNOWN.\n");
+		printf(" NUMSVCCRIT           number of services CRITICAL.\n");
+		printf(" NUMSVCPROB           number of service problems (WARNING, UNKNOWN or CRITIAL).\n");
+		printf(" NUMSVCCHECKED        number of services that have been checked since start.\n");
+		printf(" NUMSVCSCHEDULED      number of services that are currently scheduled to be checked.\n");
+		printf(" NUMSVCFLAPPING       number of services that are currently flapping.\n");
+		printf(" NUMSVCDOWNTIME       number of services that are currently in downtime.\n");
+		printf(" NUMHSTUP             number of hosts UP.\n");
+		printf(" NUMHSTDOWN           number of hosts DOWN.\n");
+		printf(" NUMHSTUNR            number of hosts UNREACHABLE.\n");
+		printf(" NUMHSTPROB           number of host problems (DOWN or UNREACHABLE).\n");
+		printf(" NUMHSTCHECKED        number of hosts that have been checked since start.\n");
+		printf(" NUMHSTSCHEDULED      number of hosts that are currently scheduled to be checked.\n");
+		printf(" NUMHSTFLAPPING       number of hosts that are currently flapping.\n");
+		printf(" NUMHSTDOWNTIME       number of hosts that are currently in downtime.\n");
+		printf(" NUMHSTACTCHKxM       number of hosts actively checked in last 1/5/15/60 minutes.\n");
+		printf(" NUMHSTPSVCHKxM       number of hosts passively checked in last 1/5/15/60 minutes.\n");
+		printf(" NUMSVCACTCHKxM       number of services actively checked in last 1/5/15/60 minutes.\n");
+		printf(" NUMSVCPSVCHKxM       number of services passively checked in last 1/5/15/60 minutes.\n");
+		printf(" xxxACTSVCLAT         MIN/MAX/AVG active service check latency (ms).\n");
+		printf(" xxxACTSVCEXT         MIN/MAX/AVG active service check execution time (ms).\n");
+		printf(" xxxACTSVCPSC         MIN/MAX/AVG active service check %% state change.\n");
+		printf(" xxxPSVSVCPSC         MIN/MAX/AVG passive service check %% state change.\n");
+		printf(" xxxSVCPSC            MIN/MAX/AVG service check %% state change.\n");
+		printf(" xxxACTHSTLAT         MIN/MAX/AVG active host check latency (ms).\n");
+		printf(" xxxACTHSTEXT         MIN/MAX/AVG active host check execution time (ms).\n");
+		printf(" xxxACTHSTPSC         MIN/MAX/AVG active host check %% state change.\n");
+		printf(" xxxPSVHSTPSC         MIN/MAX/AVG passive host check %% state change.\n");
+		printf(" xxxHSTPSC            MIN/MAX/AVG host check %% state change.\n");
+		printf(" NUMACTHSTCHECKSxM    number of total active host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMOACTHSTCHECKSxM   number of on-demand active host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMCACHEDHSTCHECKSxM number of cached host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMSACTHSTCHECKSxM   number of scheduled active host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMPSVHSTCHECKSxM    number of passive host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMACTSVCCHECKSxM    number of total active service checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMOACTSVCCHECKSxM   number of on-demand active service checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMCACHEDSVCCHECKSxM number of cached service checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMSACTSVCCHECKSxM   number of scheduled active service checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMPSVSVCCHECKSxM    number of passive service checks occuring in last 1/5/15 minutes.\n");
 
 		printf("\n");
 		printf(" Note: Replace x's in MRTG variable names with 'MIN', 'MAX', 'AVG', or the\n");
@@ -482,44 +524,108 @@ int display_mrtg_values(void){
 			printf("%d\n",(int)average_host_state_change);
 
 		/* active host checks over time */
-		else if(!strcmp(temp_ptr,"NUMACTHSTCHK1M"))
+		else if(!strcmp(temp_ptr,"NUMHSTACTCHK1M"))
 			printf("%d\n",active_hosts_checked_last_1min);
-		else if(!strcmp(temp_ptr,"NUMACTHSTCHK5M"))
+		else if(!strcmp(temp_ptr,"NUMHSTACTCHK5M"))
 			printf("%d\n",active_hosts_checked_last_5min);
-		else if(!strcmp(temp_ptr,"NUMACTHSTCHK15M"))
+		else if(!strcmp(temp_ptr,"NUMHSTACTCHK15M"))
 			printf("%d\n",active_hosts_checked_last_15min);
-		else if(!strcmp(temp_ptr,"NUMACTHSTCHK60M"))
+		else if(!strcmp(temp_ptr,"NUMHSTACTCHK60M"))
 			printf("%d\n",active_hosts_checked_last_1hour);
 
 		/* passive host checks over time */
-		else if(!strcmp(temp_ptr,"NUMPSVHSTCHK1M"))
+		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK1M"))
 			printf("%d\n",passive_hosts_checked_last_1min);
-		else if(!strcmp(temp_ptr,"NUMPSVHSTCHK5M"))
+		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK5M"))
 			printf("%d\n",passive_hosts_checked_last_5min);
-		else if(!strcmp(temp_ptr,"NUMPSVHSTCHK15M"))
+		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK15M"))
 			printf("%d\n",passive_hosts_checked_last_15min);
-		else if(!strcmp(temp_ptr,"NUMPSVHSTCHK60M"))
+		else if(!strcmp(temp_ptr,"NUMHSTPSVCHK60M"))
 			printf("%d\n",passive_hosts_checked_last_1hour);
 
 		/* active service checks over time */
-		else if(!strcmp(temp_ptr,"NUMACTSVCCHK1M"))
+		else if(!strcmp(temp_ptr,"NUMSVCACTCHK1M"))
 			printf("%d\n",active_services_checked_last_1min);
-		else if(!strcmp(temp_ptr,"NUMACTSVCCHK5M"))
+		else if(!strcmp(temp_ptr,"NUMSVCACTCHK5M"))
 			printf("%d\n",active_services_checked_last_5min);
-		else if(!strcmp(temp_ptr,"NUMACTSVCCHK15M"))
+		else if(!strcmp(temp_ptr,"NUMSVCACTCHK15M"))
 			printf("%d\n",active_services_checked_last_15min);
-		else if(!strcmp(temp_ptr,"NUMACTSVCCHK60M"))
+		else if(!strcmp(temp_ptr,"NUMSVCACTCHK60M"))
 			printf("%d\n",active_services_checked_last_1hour);
 
 		/* passive service checks over time */
-		else if(!strcmp(temp_ptr,"NUMPSVSVCCHK1M"))
+		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK1M"))
 			printf("%d\n",passive_services_checked_last_1min);
-		else if(!strcmp(temp_ptr,"NUMPSVSVCCHK5M"))
+		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK5M"))
 			printf("%d\n",passive_services_checked_last_5min);
-		else if(!strcmp(temp_ptr,"NUMPSVSVCCHK15M"))
+		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK15M"))
 			printf("%d\n",passive_services_checked_last_15min);
-		else if(!strcmp(temp_ptr,"NUMPSVSVCCHK60M"))
+		else if(!strcmp(temp_ptr,"NUMSVCPSVCHK60M"))
 			printf("%d\n",passive_services_checked_last_1hour);
+
+		/* host check statistics */
+		else if(!strcmp(temp_ptr,"NUMACTHSTCHECKS1M"))
+			printf("%d\n",active_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMACTHSTCHECKS5M"))
+			printf("%d\n",active_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMACTHSTCHECKS15M"))
+			printf("%d\n",active_host_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMOACTHSTCHECKS1M"))
+			printf("%d\n",active_ondemand_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMOACTHSTCHECKS5M"))
+			printf("%d\n",active_ondemand_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMOACTHSTCHECKS15M"))
+			printf("%d\n",active_ondemand_host_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS1M"))
+			printf("%d\n",active_scheduled_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS5M"))
+			printf("%d\n",active_scheduled_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS15M"))
+			printf("%d\n",active_scheduled_host_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS1M"))
+			printf("%d\n",passive_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS5M"))
+			printf("%d\n",passive_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS15M"))
+			printf("%d\n",passive_host_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMCACHEDHSTCHECKS1M"))
+			printf("%d\n",active_cached_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMCACHEDHSTCHECKS5M"))
+			printf("%d\n",active_cached_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMCACHEDHSTCHECKS15M"))
+			printf("%d\n",active_cached_host_checks_last_15min);
+
+		/* service check statistics */
+		else if(!strcmp(temp_ptr,"NUMACTSVCCHECKS1M"))
+			printf("%d\n",active_service_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMACTSVCCHECKS5M"))
+			printf("%d\n",active_service_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMACTSVCCHECKS15M"))
+			printf("%d\n",active_service_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMOACTSVCCHECKS1M"))
+			printf("%d\n",active_ondemand_service_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMOACTSVCCHECKS5M"))
+			printf("%d\n",active_ondemand_service_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMOACTSVCCHECKS15M"))
+			printf("%d\n",active_ondemand_service_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMSACTSVCCHECKS1M"))
+			printf("%d\n",active_scheduled_service_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMSACTSVCCHECKS5M"))
+			printf("%d\n",active_scheduled_service_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMSACTSVCCHECKS15M"))
+			printf("%d\n",active_scheduled_service_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMPSVSVCCHECKS1M"))
+			printf("%d\n",passive_service_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMPSVSVCCHECKS5M"))
+			printf("%d\n",passive_service_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMPSVSVCCHECKS15M"))
+			printf("%d\n",passive_service_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS1M"))
+			printf("%d\n",active_cached_service_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS5M"))
+			printf("%d\n",active_cached_service_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS15M"))
+			printf("%d\n",active_cached_service_checks_last_15min);
 
 		/* service states */
 		else if(!strcmp(temp_ptr,"NUMSVCOK"))
@@ -582,53 +688,66 @@ int display_stats(void){
 	time(&current_time);
 
 	printf("CURRENT STATUS DATA\n");
-	printf("----------------------------------------------------\n");
-	printf("Status File:                          %s\n",status_file);
+	printf("------------------------------------------------------\n");
+	printf("Status File:                            %s\n",status_file);
 	time_difference=(current_time-status_creation_date);
 	get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
-	printf("Status File Age:                      %dd %dh %dm %ds\n",days,hours,minutes,seconds);
-	printf("Status File Version:                  %s\n",status_version);
+	printf("Status File Age:                        %dd %dh %dm %ds\n",days,hours,minutes,seconds);
+	printf("Status File Version:                    %s\n",status_version);
 	printf("\n");
 	time_difference=(current_time-program_start);
 	get_time_breakdown(time_difference,&days,&hours,&minutes,&seconds);
-	printf("Program Running Time:                 %dd %dh %dm %ds\n",days,hours,minutes,seconds);
-	printf("Nagios PID:                           %lu\n",nagios_pid);
-	printf("Used/High/Total Command Buffers:      %d / %d / %d\n",used_external_command_buffer_slots,high_external_command_buffer_slots,total_external_command_buffer_slots);
-	printf("Used/High/Total Check Result Buffers: %d / %d / %d\n",used_check_result_buffer_slots,high_check_result_buffer_slots,total_check_result_buffer_slots);
+	printf("Program Running Time:                   %dd %dh %dm %ds\n",days,hours,minutes,seconds);
+	printf("Nagios PID:                             %lu\n",nagios_pid);
+	printf("Used/High/Total Command Buffers:        %d / %d / %d\n",used_external_command_buffer_slots,high_external_command_buffer_slots,total_external_command_buffer_slots);
+	printf("Used/High/Total Check Result Buffers:   %d / %d / %d\n",used_check_result_buffer_slots,high_check_result_buffer_slots,total_check_result_buffer_slots);
 	printf("\n");
-	printf("Total Services:                       %d\n",status_service_entries);
-	printf("Services Checked:                     %d\n",services_checked);
-	printf("Services Scheduled:                   %d\n",services_scheduled);
-	printf("Active Service Checks:                %d\n",active_service_checks);
-	printf("Passive Service Checks:               %d\n",passive_service_checks);
-	printf("Total Service State Change:           %.3f / %.3f / %.3f %%\n",min_service_state_change,max_service_state_change,average_service_state_change);
-	printf("Active Service Latency:               %.3f / %.3f / %.3f sec\n",min_active_service_latency,max_active_service_latency,average_active_service_latency);
-	printf("Active Service Execution Time:        %.3f / %.3f / %.3f sec\n",min_active_service_execution_time,max_active_service_execution_time,average_active_service_execution_time);
-	printf("Active Service State Change:          %.3f / %.3f / %.3f %%\n",min_active_service_state_change,max_active_service_state_change,average_active_service_state_change);
-	printf("Active Services Last 1/5/15/60 min:   %d / %d / %d / %d\n",active_services_checked_last_1min,active_services_checked_last_5min,active_services_checked_last_15min,active_services_checked_last_1hour);
-	printf("Passive Service State Change:         %.3f / %.3f / %.3f %%\n",min_passive_service_state_change,max_passive_service_state_change,average_passive_service_state_change);
-	printf("Passive Services Last 1/5/15/60 min:  %d / %d / %d / %d\n",passive_services_checked_last_1min,passive_services_checked_last_5min,passive_services_checked_last_15min,passive_services_checked_last_1hour);
-	printf("Services Ok/Warn/Unk/Crit:            %d / %d / %d / %d\n",services_ok,services_warning,services_unknown,services_critical);
-	printf("Services Flapping:                    %d\n",services_flapping);
-	printf("Services In Downtime:                 %d\n",services_in_downtime);
+	printf("Total Services:                         %d\n",status_service_entries);
+	printf("Services Checked:                       %d\n",services_checked);
+	printf("Services Scheduled:                     %d\n",services_scheduled);
+	printf("Services Actively Checked:              %d\n",active_service_checks);
+	printf("Services Passively Checked:             %d\n",passive_service_checks);
+	printf("Total Service State Change:             %.3f / %.3f / %.3f %%\n",min_service_state_change,max_service_state_change,average_service_state_change);
+	printf("Active Service Latency:                 %.3f / %.3f / %.3f sec\n",min_active_service_latency,max_active_service_latency,average_active_service_latency);
+	printf("Active Service Execution Time:          %.3f / %.3f / %.3f sec\n",min_active_service_execution_time,max_active_service_execution_time,average_active_service_execution_time);
+	printf("Active Service State Change:            %.3f / %.3f / %.3f %%\n",min_active_service_state_change,max_active_service_state_change,average_active_service_state_change);
+	printf("Active Services Last 1/5/15/60 min:     %d / %d / %d / %d\n",active_services_checked_last_1min,active_services_checked_last_5min,active_services_checked_last_15min,active_services_checked_last_1hour);
+	printf("Passive Service State Change:           %.3f / %.3f / %.3f %%\n",min_passive_service_state_change,max_passive_service_state_change,average_passive_service_state_change);
+	printf("Passive Services Last 1/5/15/60 min:    %d / %d / %d / %d\n",passive_services_checked_last_1min,passive_services_checked_last_5min,passive_services_checked_last_15min,passive_services_checked_last_1hour);
+	printf("Services Ok/Warn/Unk/Crit:              %d / %d / %d / %d\n",services_ok,services_warning,services_unknown,services_critical);
+	printf("Services Flapping:                      %d\n",services_flapping);
+	printf("Services In Downtime:                   %d\n",services_in_downtime);
 	printf("\n");
-	printf("Total Hosts:                          %d\n",status_host_entries);
-	printf("Hosts Checked:                        %d\n",hosts_checked);
-	printf("Hosts Scheduled:                      %d\n",hosts_scheduled);
-	printf("Active Host Checks:                   %d\n",active_host_checks);
-	printf("Passive Host Checks:                  %d\n",passive_host_checks);
-	printf("Total Host State Change:              %.3f / %.3f / %.3f %%\n",min_host_state_change,max_host_state_change,average_host_state_change);
-	printf("Active Host Latency:                  %.3f / %.3f / %.3f sec\n",min_active_host_latency,max_active_host_latency,average_active_host_latency);
-	printf("Active Host Execution Time:           %.3f / %.3f / %.3f sec\n",min_active_host_execution_time,max_active_host_execution_time,average_active_host_execution_time);
-	printf("Active Host State Change:             %.3f / %.3f / %.3f %%\n",min_active_host_state_change,max_active_host_state_change,average_active_host_state_change);
-	printf("Active Hosts Last 1/5/15/60 min:      %d / %d / %d / %d\n",active_hosts_checked_last_1min,active_hosts_checked_last_5min,active_hosts_checked_last_15min,active_hosts_checked_last_1hour);
-	printf("Passive Host State Change:            %.3f / %.3f / %.3f %%\n",min_passive_host_state_change,max_passive_host_state_change,average_passive_host_state_change);
-	printf("Passive Hosts Last 1/5/15/60 min:     %d / %d / %d / %d\n",passive_hosts_checked_last_1min,passive_hosts_checked_last_5min,passive_hosts_checked_last_15min,passive_hosts_checked_last_1hour);
-	printf("Hosts Up/Down/Unreach:                %d / %d / %d\n",hosts_up,hosts_down,hosts_unreachable);
-	printf("Hosts Flapping:                       %d\n",hosts_flapping);
-	printf("Hosts In Downtime:                    %d\n",hosts_in_downtime);
+	printf("Total Hosts:                            %d\n",status_host_entries);
+	printf("Hosts Checked:                          %d\n",hosts_checked);
+	printf("Hosts Scheduled:                        %d\n",hosts_scheduled);
+	printf("Hosts Actively Checked:                 %d\n",active_host_checks);
+	printf("Host Passively Checked:                 %d\n",passive_host_checks);
+	printf("Total Host State Change:                %.3f / %.3f / %.3f %%\n",min_host_state_change,max_host_state_change,average_host_state_change);
+	printf("Active Host Latency:                    %.3f / %.3f / %.3f sec\n",min_active_host_latency,max_active_host_latency,average_active_host_latency);
+	printf("Active Host Execution Time:             %.3f / %.3f / %.3f sec\n",min_active_host_execution_time,max_active_host_execution_time,average_active_host_execution_time);
+	printf("Active Host State Change:               %.3f / %.3f / %.3f %%\n",min_active_host_state_change,max_active_host_state_change,average_active_host_state_change);
+	printf("Active Hosts Last 1/5/15/60 min:        %d / %d / %d / %d\n",active_hosts_checked_last_1min,active_hosts_checked_last_5min,active_hosts_checked_last_15min,active_hosts_checked_last_1hour);
+	printf("Passive Host State Change:              %.3f / %.3f / %.3f %%\n",min_passive_host_state_change,max_passive_host_state_change,average_passive_host_state_change);
+	printf("Passive Hosts Last 1/5/15/60 min:       %d / %d / %d / %d\n",passive_hosts_checked_last_1min,passive_hosts_checked_last_5min,passive_hosts_checked_last_15min,passive_hosts_checked_last_1hour);
+	printf("Hosts Up/Down/Unreach:                  %d / %d / %d\n",hosts_up,hosts_down,hosts_unreachable);
+	printf("Hosts Flapping:                         %d\n",hosts_flapping);
+	printf("Hosts In Downtime:                      %d\n",hosts_in_downtime);
+	printf("\n");
+	printf("Active Host Checks Last 1/5/15 min:     %d / %d / %d\n",active_host_checks_last_1min,active_host_checks_last_5min,active_host_checks_last_15min);
+	printf("   Scheduled:                           %d / %d / %d\n",active_scheduled_host_checks_last_1min,active_scheduled_host_checks_last_5min,active_scheduled_host_checks_last_15min);
+	printf("   On-demand:                           %d / %d / %d\n",active_ondemand_host_checks_last_1min,active_ondemand_host_checks_last_5min,active_ondemand_host_checks_last_15min);
+	printf("   Cached:                              %d / %d / %d\n",active_cached_host_checks_last_1min,active_cached_host_checks_last_5min,active_cached_host_checks_last_15min);
+	printf("Passive Host Checks Last 1/5/15 min:    %d / %d / %d\n",passive_host_checks_last_1min,passive_host_checks_last_5min,passive_host_checks_last_15min);
+
+	printf("Active Service Checks Last 1/5/15 min:  %d / %d / %d\n",active_service_checks_last_1min,active_service_checks_last_5min,active_service_checks_last_15min);
+	printf("   Scheduled:                           %d / %d / %d\n",active_scheduled_service_checks_last_1min,active_scheduled_service_checks_last_5min,active_scheduled_service_checks_last_15min);
+	printf("   On-demand:                           %d / %d / %d\n",active_ondemand_service_checks_last_1min,active_ondemand_service_checks_last_5min,active_ondemand_service_checks_last_15min);
+	printf("   Cached:                              %d / %d / %d\n",active_cached_service_checks_last_1min,active_cached_service_checks_last_5min,active_cached_service_checks_last_15min);
+	printf("Passive Service Checks Last 1/5/15 min: %d / %d / %d\n",passive_service_checks_last_1min,passive_service_checks_last_5min,passive_service_checks_last_15min);
 	printf("\n");
 	printf("\n");
+
 
 	/*
 	printf("CURRENT COMMENT DATA\n");
@@ -685,12 +804,13 @@ int read_config_file(void){
 
 int read_status_file(void){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+	FILE *fp=NULL;
 	int data_type=STATUS_NO_DATA;
-	char *var;
-	char *val;
+	char *var=NULL;
+	char *val=NULL;
+	char *temp_ptr=NULL;
 	time_t current_time;
-	unsigned long time_difference;
+	unsigned long time_difference=0L;
 
 	double execution_time=0.0;
 	double latency=0.0;
@@ -740,6 +860,13 @@ int read_status_file(void){
 				break;
 
 			case STATUS_PROGRAM_DATA:
+				active_host_checks_last_1min=active_scheduled_host_checks_last_1min+active_ondemand_host_checks_last_1min+active_cached_host_checks_last_1min;
+				active_host_checks_last_5min=active_scheduled_host_checks_last_5min+active_ondemand_host_checks_last_5min+active_cached_host_checks_last_5min;
+				active_host_checks_last_15min=active_scheduled_host_checks_last_15min+active_ondemand_host_checks_last_15min+active_cached_host_checks_last_15min;
+
+				active_service_checks_last_1min=active_scheduled_service_checks_last_1min+active_ondemand_service_checks_last_1min+active_cached_service_checks_last_1min;
+				active_service_checks_last_5min=active_scheduled_service_checks_last_5min+active_ondemand_service_checks_last_5min+active_cached_service_checks_last_5min;
+				active_service_checks_last_15min=active_scheduled_service_checks_last_15min+active_ondemand_service_checks_last_15min+active_cached_service_checks_last_15min;
 				break;
 
 			case STATUS_HOST_DATA:
@@ -982,6 +1109,70 @@ int read_status_file(void){
 					high_check_result_buffer_slots=atoi(val);
 				else if(!strcmp(var,"nagios_pid"))
 					nagios_pid=strtoul(val,NULL,10);
+				else if(!strcmp(var,"active_scheduled_host_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						active_scheduled_host_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_scheduled_host_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_scheduled_host_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"active_ondemand_host_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						active_ondemand_host_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_ondemand_host_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_ondemand_host_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"cached_host_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						active_cached_host_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_cached_host_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_cached_host_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"passive_host_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						passive_host_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						passive_host_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						passive_host_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"active_scheduled_service_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						active_scheduled_service_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_scheduled_service_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_scheduled_service_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"active_ondemand_service_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						active_ondemand_service_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_ondemand_service_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_ondemand_service_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"cached_service_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						active_cached_service_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_cached_service_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						active_cached_service_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"passive_service_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						passive_service_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						passive_service_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						passive_service_checks_last_15min=atoi(temp_ptr);
+					}
 				break;
 
 			case STATUS_HOST_DATA:

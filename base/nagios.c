@@ -251,6 +251,8 @@ pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 int             external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
 int             check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
+check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
+
 
 
 /* Following main() declaration required by older versions of Perl ut 5.00503 */
@@ -749,6 +751,9 @@ int main(int argc, char **argv){
 
 		        /* initialize the event timing loop */
 			init_timing_loop();
+			
+			/* initialize check statistics */
+			init_check_stats();
 
 			/* update all status data (with retained information) */
 			update_all_status_data();

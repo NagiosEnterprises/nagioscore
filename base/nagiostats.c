@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   01-23-2007
+ * Last Modified:   01-24-2007
  *
  * License:
  *
@@ -171,6 +171,10 @@ int passive_service_checks_last_15min=0;
 int active_cached_service_checks_last_1min=0;
 int active_cached_service_checks_last_5min=0;
 int active_cached_service_checks_last_15min=0;
+
+int external_commands_last_1min=0;
+int external_commands_last_5min=0;
+int external_commands_last_15min=0;
 
 int total_external_command_buffer_slots=0;
 int used_external_command_buffer_slots=0;
@@ -351,6 +355,7 @@ int main(int argc, char **argv){
 		printf(" NUMCACHEDSVCCHECKSxM number of cached service checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMSACTSVCCHECKSxM   number of scheduled active service checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMPSVSVCCHECKSxM    number of passive service checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMEXTCMDSxM         number of external commands processed in last 1/5/15 minutes.\n");
 
 		printf("\n");
 		printf(" Note: Replace x's in MRTG variable names with 'MIN', 'MAX', 'AVG', or the\n");
@@ -627,6 +632,14 @@ int display_mrtg_values(void){
 		else if(!strcmp(temp_ptr,"NUMCACHEDSVCCHECKS15M"))
 			printf("%d\n",active_cached_service_checks_last_15min);
 
+		/* external command stats */
+		else if(!strcmp(temp_ptr,"NUMEXTCMDS1M"))
+			printf("%d\n",external_commands_last_1min);
+		else if(!strcmp(temp_ptr,"NUMEXTCMDS5M"))
+			printf("%d\n",external_commands_last_5min);
+		else if(!strcmp(temp_ptr,"NUMEXTCMDS15M"))
+			printf("%d\n",external_commands_last_15min);
+
 		/* service states */
 		else if(!strcmp(temp_ptr,"NUMSVCOK"))
 			printf("%d\n",services_ok);
@@ -745,6 +758,8 @@ int display_stats(void){
 	printf("   On-demand:                           %d / %d / %d\n",active_ondemand_service_checks_last_1min,active_ondemand_service_checks_last_5min,active_ondemand_service_checks_last_15min);
 	printf("   Cached:                              %d / %d / %d\n",active_cached_service_checks_last_1min,active_cached_service_checks_last_5min,active_cached_service_checks_last_15min);
 	printf("Passive Service Checks Last 1/5/15 min: %d / %d / %d\n",passive_service_checks_last_1min,passive_service_checks_last_5min,passive_service_checks_last_15min);
+	printf("\n");
+	printf("External Commands Last 1/5/15 min:      %d / %d / %d\n",external_commands_last_1min,external_commands_last_5min,external_commands_last_15min);
 	printf("\n");
 	printf("\n");
 
@@ -1172,6 +1187,14 @@ int read_status_file(void){
 						passive_service_checks_last_5min=atoi(temp_ptr);
 					if((temp_ptr=strtok(NULL,",")))
 						passive_service_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"external_command_stats")){
+					if((temp_ptr=strtok(val,",")))
+						external_commands_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						external_commands_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						external_commands_last_15min=atoi(temp_ptr);
 					}
 				break;
 

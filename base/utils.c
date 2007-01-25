@@ -5726,6 +5726,7 @@ int init_check_stats(void){
 		check_statistics[x].overflow_bucket=0;
 		for(y=0;y<3;y++)
 			check_statistics[x].minute_stats[y]=0;
+		check_statistics[x].last_update=(time_t)0L;
 		}
 
 	return OK;
@@ -5734,32 +5735,82 @@ int init_check_stats(void){
 
 /* records stats for a given type of check */
 int update_check_stats(int check_type, time_t check_time){
+	time_t current_time;
 	unsigned long minutes=0L;
+	int new_current_bucket=0;
 	int this_bucket=0;
 	int x=0;
 	
 	if(check_type<0 || check_type>=MAX_CHECK_STATS_TYPES)
 		return ERROR;
 
-	minutes=((unsigned long)check_time-(unsigned long)program_start) / 60;
-	this_bucket=minutes % CHECK_STATS_BUCKETS;
+	time(&current_time);
 
-	if(this_bucket!=check_statistics[check_type].current_bucket){
-		check_statistics[check_type].overflow_bucket=check_statistics[check_type].bucket[this_bucket];
-		check_statistics[check_type].current_bucket=this_bucket;
-		check_statistics[check_type].bucket[this_bucket]=0;
+	if((unsigned long)check_time==0L){
+#ifdef DEBUG_CHECK_STATS
+		printf("TYPE[%d] CHECK TIME==0!\n",check_type);
+#endif
+		check_time=current_time;
 		}
 
-	check_statistics[check_type].bucket[this_bucket]++;
+	/* do some sanity checks on the age of the stats data before we start... */
+	/* get the new current bucket number */
+	minutes=((unsigned long)check_time-(unsigned long)program_start) / 60;
+	new_current_bucket=minutes % CHECK_STATS_BUCKETS;
+
+	/* its been more than 15 minutes since stats were updated, so clear the stats */
+	if((((unsigned long)current_time - (unsigned long)check_statistics[check_type].last_update) / 60) > CHECK_STATS_BUCKETS){
+		for(x=0;x<CHECK_STATS_BUCKETS;x++)
+			check_statistics[check_type].bucket[x]=0;
+		check_statistics[check_type].overflow_bucket=0;
+#ifdef DEBUG_CHECK_STATS
+		printf("CLEARING ALL: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n",check_type,(unsigned long)current_time,(unsigned long)check_statistics[check_type].last_update);
+#endif
+		}
+
+	/* different current bucket number than last time */
+	else if(new_current_bucket!=check_statistics[check_type].current_bucket){
+
+		/* clear stats in buckets between last current bucket and new current bucket - stats haven't been updated in a while */
+		for(x=check_statistics[check_type].current_bucket;x<(CHECK_STATS_BUCKETS * 2);x++){
+
+			this_bucket=(x + CHECK_STATS_BUCKETS + 1) % CHECK_STATS_BUCKETS;
+			
+			if(this_bucket==new_current_bucket)
+				break;
+	
+#ifdef DEBUG_CHECK_STATS			
+			printf("CLEARING BUCKET %d, (NEW=%d, OLD=%d)\n",this_bucket,new_current_bucket,check_statistics[check_type].current_bucket);
+#endif
+
+			/* clear old bucket value */
+			check_statistics[check_type].bucket[this_bucket]=0;
+			}
+
+		/* update the current bucket number, push old value to overflow bucket */
+		check_statistics[check_type].overflow_bucket=check_statistics[check_type].bucket[new_current_bucket];
+		check_statistics[check_type].current_bucket=new_current_bucket;
+		check_statistics[check_type].bucket[new_current_bucket]=0;
+		}
+#ifdef DEBUG_CHECK_STATS
+	else
+		printf("NO CLEARING NEEDED\n");
+#endif
+
+
+	/* increment the value of the current bucket */
+	check_statistics[check_type].bucket[new_current_bucket]++;
 
 #ifdef DEBUG_CHECK_STATS
-	printf("TYPE[%d].BUCKET[%d]=%d\n",check_type,this_bucket,check_statistics[check_type].bucket[this_bucket]);
+	printf("TYPE[%d].BUCKET[%d]=%d\n",check_type,new_current_bucket,check_statistics[check_type].bucket[new_current_bucket]);
 	printf("   ");
 	for(x=0;x<CHECK_STATS_BUCKETS;x++)
 		printf("[%d] ",check_statistics[check_type].bucket[x]);
 	printf(" (%d)\n",check_statistics[check_type].overflow_bucket);
-	generate_check_stats();
 #endif
+
+	/* record last update time */
+	check_statistics[check_type].last_update=current_time;
 
 	return OK;
 	}
@@ -5767,13 +5818,16 @@ int update_check_stats(int check_type, time_t check_time){
 
 /* generate 1/5/15 minute stats for a given type of check */
 int generate_check_stats(void){
+	time_t current_time;
 	int x=0;
+	int new_current_bucket=0;
 	int this_bucket=0;
 	int last_bucket=0;
 	int this_bucket_value=0;
 	int last_bucket_value=0;
 	int bucket_value=0;
 	int seconds=0;
+	int minutes=0;
 	int check_type=0;
 	float this_bucket_weight=0.0;
 	float last_bucket_weight=0.0;
@@ -5781,31 +5835,93 @@ int generate_check_stats(void){
 	int right_value=0;
 
 
-	seconds=((unsigned long)time(NULL)-(unsigned long)program_start) % 60;
+	time(&current_time);
+
+	/* do some sanity checks on the age of the stats data before we start... */
+	/* get the new current bucket number */
+	minutes=((unsigned long)current_time-(unsigned long)program_start) / 60;
+	new_current_bucket=minutes % CHECK_STATS_BUCKETS;
+	for(check_type=0;check_type<MAX_CHECK_STATS_TYPES;check_type++){
+
+		/* its been more than 15 minutes since stats were updated, so clear the stats */
+		if((((unsigned long)current_time - (unsigned long)check_statistics[check_type].last_update) / 60) > CHECK_STATS_BUCKETS){
+			for(x=0;x<CHECK_STATS_BUCKETS;x++)
+				check_statistics[check_type].bucket[x]=0;
+			check_statistics[check_type].overflow_bucket=0;
+#ifdef DEBUG_CHECK_STATS
+			printf("GEN CLEARING ALL: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n",check_type,(unsigned long)current_time,(unsigned long)check_statistics[check_type].last_update);
+#endif
+			}
+
+		/* different current bucket number than last time */
+		else if(new_current_bucket!=check_statistics[check_type].current_bucket){
+
+			/* clear stats in buckets between last current bucket and new current bucket - stats haven't been updated in a while */
+			for(x=check_statistics[check_type].current_bucket;x<(CHECK_STATS_BUCKETS*2);x++){
+
+				this_bucket=(x + CHECK_STATS_BUCKETS + 1) % CHECK_STATS_BUCKETS;
+
+				if(this_bucket==new_current_bucket)
+					break;
+				
+#ifdef DEBUG_CHECK_STATS			
+				printf("GEN CLEARING BUCKET %d, (NEW=%d, OLD=%d), CURRENT=%lu, LASTUPDATE=%lu\n",this_bucket,new_current_bucket,check_statistics[check_type].current_bucket,(unsigned long)current_time,(unsigned long)check_statistics[check_type].last_update);
+#endif
+
+				/* clear old bucket value */
+				check_statistics[check_type].bucket[this_bucket]=0;
+				}
+
+			/* update the current bucket number, push old value to overflow bucket */
+			check_statistics[check_type].overflow_bucket=check_statistics[check_type].bucket[new_current_bucket];
+			check_statistics[check_type].current_bucket=new_current_bucket;
+			check_statistics[check_type].bucket[new_current_bucket]=0;
+			}
+#ifdef DEBUG_CHECK_STATS
+		else
+			printf("GEN NO CLEARING NEEDED: TYPE[%d], CURRENT=%lu, LASTUPDATE=%lu\n",check_type,(unsigned long)current_time,(unsigned long)check_statistics[check_type].last_update);
+#endif
+
+		/* update last check time */
+		check_statistics[check_type].last_update=current_time;
+		}
+
+	/* determine weights to use for this/last buckets */
+	seconds=((unsigned long)current_time-(unsigned long)program_start) % 60;
 	this_bucket_weight=(seconds/60.0);
 	last_bucket_weight=((60-seconds)/60.0);
 
+	/* update statistics for all check types */
 	for(check_type=0;check_type<MAX_CHECK_STATS_TYPES;check_type++){
 
+		/* clear the old statistics */
 		for(x=0;x<3;x++)
 			check_statistics[check_type].minute_stats[x]=0;
 
+		/* loop through each bucket */
 		for(x=0;x<CHECK_STATS_BUCKETS;x++){
 			
+			/* which buckets should we use for this/last bucket? */
 			this_bucket=(check_statistics[check_type].current_bucket + CHECK_STATS_BUCKETS - x) % CHECK_STATS_BUCKETS;
 			last_bucket=(this_bucket + CHECK_STATS_BUCKETS - 1) % CHECK_STATS_BUCKETS;
 
+			/* raw/unweighted value for this bucket */
 			this_bucket_value=check_statistics[check_type].bucket[this_bucket];
+
+			/* raw/unweighted value for last bucket - use overflow bucket if last bucket is current bucket */
 			if(last_bucket==check_statistics[check_type].current_bucket)
 				last_bucket_value=check_statistics[check_type].overflow_bucket;
 			else
 				last_bucket_value=check_statistics[check_type].bucket[last_bucket];
 
+			/* determine value by weighting this/last buckets... */
+			/* if this is the current bucket, use its full value + weighted % of last bucket */
 			if(x==0){
 				right_value=this_bucket_value;
 				left_value=(int)round(last_bucket_value * last_bucket_weight);
 				bucket_value=(int)(this_bucket_value + round(last_bucket_value * last_bucket_weight));
 				}
+			/* otherwise use weighted % of this and last bucket */
 			else{
 				right_value=(int)round(this_bucket_value * this_bucket_weight);
 				left_value=(int)round(last_bucket_value * last_bucket_weight);
@@ -5824,13 +5940,15 @@ int generate_check_stats(void){
 			if(x<15)
 				check_statistics[check_type].minute_stats[2]+=bucket_value;
 
-#ifdef DEBUG_CHECK_STATS
+#ifdef DEBUG_CHECK_STATS2
 			printf("X=%d, THIS[%d]=%d, LAST[%d]=%d, 1/5/15=%d,%d,%d  L=%d R=%d\n",x,this_bucket,this_bucket_value,last_bucket,last_bucket_value,check_statistics[check_type].minute_stats[0],check_statistics[check_type].minute_stats[1],check_statistics[check_type].minute_stats[2],left_value,right_value);
 #endif
+			/* record last update time */
+			check_statistics[check_type].last_update=current_time;
 			}
 
 #ifdef DEBUG_CHECK_STATS
-		printf("   1/5/15 = %d, %d, %d (seconds=%d, this_weight=%f, last_weight=%f)\n",check_statistics[check_type].minute_stats[0],check_statistics[check_type].minute_stats[1],check_statistics[check_type].minute_stats[2],seconds,this_bucket_weight,last_bucket_weight);
+		printf("TYPE[%d]   1/5/15 = %d, %d, %d (seconds=%d, this_weight=%f, last_weight=%f)\n",check_type,check_statistics[check_type].minute_stats[0],check_statistics[check_type].minute_stats[1],check_statistics[check_type].minute_stats[2],seconds,this_bucket_weight,last_bucket_weight);
 #endif
 		}
 

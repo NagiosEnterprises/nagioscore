@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-23-2007
+ * Last Modified: 01-24-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -534,17 +534,18 @@ typedef struct dbuf_struct{
         }dbuf;
 
 
-#define ACTIVE_SCHEDULED_SERVICE_CHECKS 0
-#define ACTIVE_ONDEMAND_SERVICE_CHECKS  1
-#define PASSIVE_SERVICE_CHECKS          2
-#define ACTIVE_SCHEDULED_HOST_CHECKS    3
-#define ACTIVE_ONDEMAND_HOST_CHECKS     4
-#define PASSIVE_HOST_CHECKS             5
-#define ACTIVE_CACHED_HOST_CHECKS       6
-#define ACTIVE_CACHED_SERVICE_CHECKS    7
-#define MAX_CHECK_STATS_TYPES           8
+#define ACTIVE_SCHEDULED_SERVICE_CHECK_STATS 0
+#define ACTIVE_ONDEMAND_SERVICE_CHECK_STATS  1
+#define PASSIVE_SERVICE_CHECK_STATS          2
+#define ACTIVE_SCHEDULED_HOST_CHECK_STATS    3
+#define ACTIVE_ONDEMAND_HOST_CHECK_STATS     4
+#define PASSIVE_HOST_CHECK_STATS             5
+#define ACTIVE_CACHED_HOST_CHECK_STATS       6
+#define ACTIVE_CACHED_SERVICE_CHECK_STATS    7
+#define EXTERNAL_COMMAND_STATS               8
+#define MAX_CHECK_STATS_TYPES                9
 
-#define CHECK_STATS_BUCKETS             15
+#define CHECK_STATS_BUCKETS                  15
 
 /* used for tracking host and service check statistics */
 typedef struct check_stats_struct{
@@ -552,6 +553,7 @@ typedef struct check_stats_struct{
 	int bucket[CHECK_STATS_BUCKETS];
 	int overflow_bucket;
 	int minute_stats[3];
+	time_t last_update;
         }check_stats;
 
 

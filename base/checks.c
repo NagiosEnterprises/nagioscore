@@ -397,7 +397,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	svc->latency=old_latency;
 
 	/* update check statistics */
-	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_SERVICE_CHECKS:ACTIVE_ONDEMAND_SERVICE_CHECKS,start_time.tv_sec);
+	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_SERVICE_CHECK_STATS:ACTIVE_ONDEMAND_SERVICE_CHECK_STATS,start_time.tv_sec);
 
 #ifdef EMBEDDEDPERL
 
@@ -791,7 +791,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* update check statistics for passive checks */
 	if(queued_check_result->check_type==SERVICE_CHECK_PASSIVE)
-		update_check_stats(PASSIVE_SERVICE_CHECKS,queued_check_result->start_time.tv_sec);
+		update_check_stats(PASSIVE_SERVICE_CHECK_STATS,queued_check_result->start_time.tv_sec);
 
 	/* should we reschedule the next service check? NOTE: This may be overridden later... */
 	reschedule_check=queued_check_result->reschedule_check;
@@ -1324,7 +1324,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			run_async_check=FALSE;
 
 			/* update check statistics */
-			update_check_stats(ACTIVE_CACHED_SERVICE_CHECKS,current_time);
+			update_check_stats(ACTIVE_CACHED_SERVICE_CHECK_STATS,current_time);
 			}
 
 		if(temp_service->is_executing==TRUE)
@@ -2851,7 +2851,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 #endif
 
 			/* update check statistics */
-			update_check_stats(ACTIVE_CACHED_HOST_CHECKS,current_time);
+			update_check_stats(ACTIVE_CACHED_HOST_CHECK_STATS,current_time);
 
 			return OK;
 	                }
@@ -2864,7 +2864,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 	/******** GOOD TO GO FOR A REAL HOST CHECK AT THIS POINT ********/
 
 	/* update check statistics */
-	update_check_stats(ACTIVE_ONDEMAND_HOST_CHECKS,current_time);
+	update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
 
 	/* reset host check latency, since on-demand checks have none */
 	hst->latency=0.0;
@@ -3298,7 +3298,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	hst->latency=old_latency;
 
 	/* update check statistics */
-	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_HOST_CHECKS:ACTIVE_ONDEMAND_HOST_CHECKS,start_time.tv_sec);
+	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_HOST_CHECK_STATS:ACTIVE_ONDEMAND_HOST_CHECK_STATS,start_time.tv_sec);
 
 	/* fork a child process */
 	pid=fork();
@@ -3495,7 +3495,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 	/* update check statistics for passive results */
 	if(queued_check_result->check_type==HOST_CHECK_PASSIVE)
-		update_check_stats(PASSIVE_HOST_CHECKS,queued_check_result->start_time.tv_sec);
+		update_check_stats(PASSIVE_HOST_CHECK_STATS,queued_check_result->start_time.tv_sec);
 
 	/* should we reschedule the next check of the host? NOTE: this might be overridden later... */
 	reschedule_check=queued_check_result->reschedule_check;

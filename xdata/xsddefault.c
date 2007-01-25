@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-23-2007
+ * Last Modified:   01-24-2007
  *
  * License:
  *
@@ -431,14 +431,15 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\ttotal_check_result_buffer_slots=%d\n",check_result_buffer_slots);
 	fprintf(fp,"\tused_check_result_buffer_slots=%d\n",used_check_result_buffer_slots);
 	fprintf(fp,"\thigh_check_result_buffer_slots=%d\n",high_check_result_buffer_slots);
-	fprintf(fp,"\tactive_scheduled_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_SCHEDULED_HOST_CHECKS].minute_stats[0],check_statistics[ACTIVE_SCHEDULED_HOST_CHECKS].minute_stats[1],check_statistics[ACTIVE_SCHEDULED_HOST_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tactive_ondemand_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_ONDEMAND_HOST_CHECKS].minute_stats[0],check_statistics[ACTIVE_ONDEMAND_HOST_CHECKS].minute_stats[1],check_statistics[ACTIVE_ONDEMAND_HOST_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tpassive_host_check_stats=%d,%d,%d\n",check_statistics[PASSIVE_HOST_CHECKS].minute_stats[0],check_statistics[PASSIVE_HOST_CHECKS].minute_stats[1],check_statistics[PASSIVE_HOST_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tactive_scheduled_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECKS].minute_stats[0],check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECKS].minute_stats[1],check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tactive_ondemand_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECKS].minute_stats[0],check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECKS].minute_stats[1],check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tpassive_service_check_stats=%d,%d,%d\n",check_statistics[PASSIVE_SERVICE_CHECKS].minute_stats[0],check_statistics[PASSIVE_SERVICE_CHECKS].minute_stats[1],check_statistics[PASSIVE_SERVICE_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tcached_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_CACHED_HOST_CHECKS].minute_stats[0],check_statistics[ACTIVE_CACHED_HOST_CHECKS].minute_stats[1],check_statistics[ACTIVE_CACHED_HOST_CHECKS].minute_stats[2]);
-	fprintf(fp,"\tcached_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_CACHED_SERVICE_CHECKS].minute_stats[0],check_statistics[ACTIVE_CACHED_SERVICE_CHECKS].minute_stats[1],check_statistics[ACTIVE_CACHED_SERVICE_CHECKS].minute_stats[2]);
+	fprintf(fp,"\tactive_scheduled_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tactive_ondemand_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tpassive_host_check_stats=%d,%d,%d\n",check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[0],check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[1],check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tactive_scheduled_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tactive_ondemand_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tpassive_service_check_stats=%d,%d,%d\n",check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[0],check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[1],check_statistics[PASSIVE_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tcached_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tcached_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\texternal_command_stats=%d,%d,%d\n",check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[0],check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[1],check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[2]);
 	fprintf(fp,"\t}\n\n");
 
 

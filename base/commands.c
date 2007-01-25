@@ -707,6 +707,9 @@ int process_external_command1(char *cmd){
 		return ERROR;
 	        }
 
+	/* update statistics for external commands */
+	update_check_stats(EXTERNAL_COMMAND_STATS,time(NULL));
+
 	/* log the external command */
 	asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args);
 	if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT){

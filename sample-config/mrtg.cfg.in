@@ -74,7 +74,7 @@ MaxBytes[nagios-e]: 7000
 Title[nagios-e]: Hosts/Services Actively Checked in Last 5 Minutes
 PageTop[nagios-e]: <H1>Hosts/Services Actively Checked in Last 5 Minutes</H1>
 Options[nagios-e]: growright,gauge,nopercent
-YLegend[nagios-e]: Percent
+YLegend[nagios-e]: Total
 ShortLegend[nagios-e]: &nbsp;
 LegendI[nagios-e]: &nbsp;Hosts:
 LegendO[nagios-e]: &nbsp;Services:
@@ -85,7 +85,7 @@ MaxBytes[nagios-f]: 7000
 Title[nagios-f]: Hosts/Services Passively Checked Last 5 Minutes
 PageTop[nagios-f]: <H1>Hosts/Services Passively Checked Last 5 Minutes</H1>
 Options[nagios-f]: growright,gauge,nopercent
-YLegend[nagios-f]: Percent
+YLegend[nagios-f]: Total
 ShortLegend[nagios-f]: &nbsp;
 LegendI[nagios-f]: &nbsp;Hosts:
 LegendO[nagios-f]: &nbsp;Services:
@@ -97,19 +97,19 @@ MaxBytes[nagios-g]: 7000
 Title[nagios-g]: External Command Buffers
 PageTop[nagios-g]: <H1>External Command Buffers</H1>
 Options[nagios-g]: growright,gauge,nopercent
-YLegend[nagios-g]: Percent
+YLegend[nagios-g]: Buffers
 ShortLegend[nagios-g]: &nbsp;
 LegendI[nagios-g]: &nbsp;Total:
 LegendO[nagios-g]: &nbsp;Used:
 
 
-# Used/Avail Check Result buffers
+# Used/Avail Check Result Buffers
 Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=TOTCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-h]: 7000
 Title[nagios-h]: Check Result Buffers
 PageTop[nagios-h]: <H1>Check Result Buffers</H1>
 Options[nagios-h]: growright,gauge,nopercent
-YLegend[nagios-h]: Percent
+YLegend[nagios-h]: Buffers
 ShortLegend[nagios-h]: &nbsp;
 LegendI[nagios-h]: &nbsp;Total:
 LegendO[nagios-h]: &nbsp;Used:
@@ -120,7 +120,7 @@ MaxBytes[nagios-i]: 7000
 Title[nagios-i]: Active Host Checks
 PageTop[nagios-i]: <H1>Active Host Checks</H1>
 Options[nagios-i]: growright,gauge,nopercent
-YLegend[nagios-i]: Percent
+YLegend[nagios-i]: Checks
 ShortLegend[nagios-i]: &nbsp;
 LegendI[nagios-i]: &nbsp;Scheduled Checks:
 LegendO[nagios-i]: &nbsp;On-Demand Checks:
@@ -131,7 +131,7 @@ MaxBytes[nagios-j]: 7000
 Title[nagios-j]: Active Service Checks
 PageTop[nagios-j]: <H1>Active Service Checks</H1>
 Options[nagios-j]: growright,gauge,nopercent
-YLegend[nagios-j]: Percent
+YLegend[nagios-j]: Checks
 ShortLegend[nagios-j]: &nbsp;
 LegendI[nagios-j]: &nbsp;Scheduled Checks:
 LegendO[nagios-j]: &nbsp;On-Demand Checks:
@@ -142,7 +142,7 @@ MaxBytes[nagios-k]: 7000
 Title[nagios-k]: Passive Host/Service Checks
 PageTop[nagios-k]: <H1>Passive Host/Service Checks</H1>
 Options[nagios-k]: growright,gauge,nopercent
-YLegend[nagios-k]: Percent
+YLegend[nagios-k]: Checks
 ShortLegend[nagios-k]: &nbsp;
 LegendI[nagios-k]: &nbsp;Host Checks:
 LegendO[nagios-k]: &nbsp;Service Checks:
@@ -153,7 +153,18 @@ MaxBytes[nagios-l]: 7000
 Title[nagios-l]: Cached Host/Service Checks
 PageTop[nagios-l]: <H1>Cached Host/Service Checks</H1>
 Options[nagios-l]: growright,gauge,nopercent
-YLegend[nagios-l]: Percent
+YLegend[nagios-l]: Checks
 ShortLegend[nagios-l]: &nbsp;
 LegendI[nagios-l]: &nbsp;Host Checks:
 LegendO[nagios-l]: &nbsp;Service Checks:
+
+# External Commands
+Target[nagios-m]: `@bindir@/nagiostats --mrtg --data=NUMEXTCMDS5M,0,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-m]: 7000
+Title[nagios-m]: External Commands
+PageTop[nagios-m]: <H1>External Commands</H1>
+Options[nagios-m]: growright,gauge,nopercent
+YLegend[nagios-m]: Commands
+ShortLegend[nagios-m]: &nbsp;
+LegendI[nagios-m]: &nbsp;Commands:
+LegendO[nagios-m]: &nbsp;

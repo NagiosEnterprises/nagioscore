@@ -2,8 +2,8 @@
  *
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
- * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-21-2006
+ * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-23-2007
  *
  * License:
  *
@@ -217,9 +217,12 @@ void check_for_host_flapping(host *hst, int update, int actual_check){
 		/* get the last recorded state */
 		last_state_history_value=hst->state_history[(hst->state_history_index==0)?MAX_STATE_HISTORY_ENTRIES-1:hst->state_history_index-1];
 
+		/* NOTE TO SELF 01/23/07 - does this ever evaluate to false?  I don't think so, which probably makes this code pointless... */
 		/* if we haven't had a state change since our last recorded state, bail out */
+#ifdef REMOVED_01232007
 		if(last_state_history_value==hst->current_state)
 			return;
+#endif
 	        }
 
 	/* what thresholds should we use (global or host-specific)? */

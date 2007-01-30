@@ -3,7 +3,7 @@
  * FLAPPING.C - State flap detection and handling routines for Nagios
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-23-2007
+ * Last Modified: 01-29-2007
  *
  * License:
  *
@@ -43,6 +43,9 @@ extern double   high_host_flap_threshold;
 
 extern host     *host_list;
 extern service  *service_list;
+
+extern unsigned long    modified_host_process_attributes;
+extern unsigned long    modified_service_process_attributes;
 
 
 /******************************************************************/
@@ -492,13 +495,27 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 void enable_flap_detection_routines(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	unsigned long attr=MODATTR_FLAP_DETECTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_flap_detection() start\n");
 #endif
 
+	/* bail out if we're already set */
+	if(enable_flap_detection==TRUE)
+		return;
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	/* set flap detection flag */
 	enable_flap_detection=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update program status */
 	update_program_status(FALSE);
@@ -522,13 +539,27 @@ void enable_flap_detection_routines(void){
 void disable_flap_detection_routines(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
+	unsigned long attr=MODATTR_FLAP_DETECTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_flap_detection() start\n");
 #endif
 
+	/* bail out if we're already set */
+	if(enable_flap_detection==FALSE)
+		return;
+
+	/* set the attribute modified flag */
+	modified_host_process_attributes|=attr;
+	modified_service_process_attributes|=attr;
+
 	/* set flap detection flag */
 	enable_flap_detection=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
+#endif
 
 	/* update program status */
 	update_program_status(FALSE);
@@ -550,7 +581,7 @@ void disable_flap_detection_routines(void){
 
 /* enables flap detection for a specific host */
 void enable_host_flap_detection(host *hst){
-	register int x=0;
+	unsigned long attr=MODATTR_FLAP_DETECTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_host_flap_detection() start\n");
@@ -560,18 +591,16 @@ void enable_host_flap_detection(host *hst){
 	if(hst->flap_detection_enabled==TRUE)
 		return;
 
-	/* REMOVED 05/21/06 EG - we should still keep track of PSC for future use */
-#ifdef REMOVED_05212006
-	/* reset the archived state history */
-	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-		hst->state_history[x]=hst->current_state;
-
-	/* reset percent state change indicator */
-	hst->percent_state_change=0.0;
-#endif
+	/* set the attribute modified flag */
+	hst->modified_attributes|=attr;
 
 	/* set the flap detection enabled flag */
 	hst->flap_detection_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* check for flapping */
 	check_for_host_flapping(hst,FALSE,FALSE);
@@ -590,6 +619,7 @@ void enable_host_flap_detection(host *hst){
 
 /* disables flap detection for a specific host */
 void disable_host_flap_detection(host *hst){
+	unsigned long attr=MODATTR_FLAP_DETECTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_host_flap_detection() start\n");
@@ -599,8 +629,16 @@ void disable_host_flap_detection(host *hst){
 	if(hst->flap_detection_enabled==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	hst->modified_attributes|=attr;
+
 	/* set the flap detection enabled flag */
 	hst->flap_detection_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
+#endif
 
 	/* handle the details... */
 	handle_host_flap_detection_disabled(hst);
@@ -671,7 +709,7 @@ void handle_host_flap_detection_disabled(host *hst){
 
 /* enables flap detection for a specific service */
 void enable_service_flap_detection(service *svc){
-	int x;
+	unsigned long attr=MODATTR_FLAP_DETECTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("enable_service_flap_detection() start\n");
@@ -681,18 +719,16 @@ void enable_service_flap_detection(service *svc){
 	if(svc->flap_detection_enabled==TRUE)
 		return;
 
-	/* REMOVED 05/21/06 EG - we should still keep track of PSC for future use */
-#ifdef REMOVED_05212006
-	/* reset the archived state history */
-	for(x=0;x<MAX_STATE_HISTORY_ENTRIES;x++)
-		svc->state_history[x]=svc->current_state;
-
-	/* reset percent state change indicator */
-	svc->percent_state_change=0.0;
-#endif
+	/* set the attribute modified flag */
+	svc->modified_attributes|=attr;
 
 	/* set the flap detection enabled flag */
 	svc->flap_detection_enabled=TRUE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* check for flapping */
 	check_for_service_flapping(svc,FALSE);
@@ -711,6 +747,7 @@ void enable_service_flap_detection(service *svc){
 
 /* disables flap detection for a specific service */
 void disable_service_flap_detection(service *svc){
+	unsigned long attr=MODATTR_FLAP_DETECTION_ENABLED;
 
 #ifdef DEBUG0
 	printf("disable_service_flap_detection() start\n");
@@ -720,8 +757,16 @@ void disable_service_flap_detection(service *svc){
 	if(svc->flap_detection_enabled==FALSE)
 		return;
 
+	/* set the attribute modified flag */
+	svc->modified_attributes|=attr;
+
 	/* set the flap detection enabled flag */
 	svc->flap_detection_enabled=FALSE;
+
+#ifdef USE_EVENT_BROKER
+	/* send data to event broker */
+	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
+#endif
 
 	/* handle the details... */
 	handle_service_flap_detection_disabled(svc);

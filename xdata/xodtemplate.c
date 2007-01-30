@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-19-2007
+ * Last Modified: 01-26-2007
  *
  * Description:
  *
@@ -383,27 +383,28 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		printf("below.  You can use this information to see if precaching your\n");
 		printf("object configuration would be useful.\n\n");
 
-		printf("Object Config Source: %s\n\n",(use_precached_objects==TRUE)?"Pre-cached config file":"Object config files");
+		printf("Object Config Source: %s\n\n",(use_precached_objects==TRUE)?"Pre-cached config file":"Config files (uncached)");
 
-		printf("OBJECT CONFIG PROCESSING TIMES       (* = Potential for precache savings)\n");
+		printf("OBJECT CONFIG PROCESSING TIMES      (* = Potential for precache savings with -u option)\n");
 		printf("----------------------------------\n");
 		printf("Read:                 %.6lf sec\n",runtime[0]);
-		printf("Resolve:              %.6lf sec *\n",runtime[1]);
-		printf("Recomb Contactgroups: %.6lf sec *\n",runtime[2]);
-		printf("Recomb Hostgroups:    %.6lf sec *\n",runtime[3]);
-		printf("Dup Services:         %.6lf sec *\n",runtime[4]);
-		printf("Recomb Servicegroups: %.6lf sec *\n",runtime[5]);
-		printf("Duplicate:            %.6lf sec *\n",runtime[6]);
-		printf("Inherit:              %.6lf sec *\n",runtime[7]);
-		printf("Recomb Contacts:      %.6lf sec *\n",runtime[8]);
-		printf("Sort:                 %.6lf sec *\n",runtime[9]);
+		printf("Resolve:              %.6lf sec  *\n",runtime[1]);
+		printf("Recomb Contactgroups: %.6lf sec  *\n",runtime[2]);
+		printf("Recomb Hostgroups:    %.6lf sec  *\n",runtime[3]);
+		printf("Dup Services:         %.6lf sec  *\n",runtime[4]);
+		printf("Recomb Servicegroups: %.6lf sec  *\n",runtime[5]);
+		printf("Duplicate:            %.6lf sec  *\n",runtime[6]);
+		printf("Inherit:              %.6lf sec  *\n",runtime[7]);
+		printf("Recomb Contacts:      %.6lf sec  *\n",runtime[8]);
+		printf("Sort:                 %.6lf sec  *\n",runtime[9]);
 /*		printf("Cache:                %.6lf sec\n",runtime[10]);*/
 		printf("Register:             %.6lf sec\n",runtime[11]);
 		printf("Free:                 %.6lf sec\n",runtime[12]);
 		printf("                      ============\n");
-		printf("TOTAL:                %.6lf sec\n",runtime[13]);
+		printf("TOTAL:                %.6lf sec  ",runtime[13]);
 		if(use_precached_objects==FALSE)
-			printf("Est Precache Savings: %.6lf sec *\n",runtime[13]-runtime[12]-runtime[11]-runtime[0]);
+			printf("* = %.6lf sec (%.2f%%) estimated savings",runtime[13]-runtime[12]-runtime[11]-runtime[0],((runtime[13]-runtime[12]-runtime[11]-runtime[0])/runtime[13])*100.0);
+		printf("\n");
 		printf("\n\n");
 	        }
 #endif

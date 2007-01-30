@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-22-2007
+ * Last Modified:   01-29-2007
  *
  * License:
  *
@@ -335,32 +335,24 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				if(found_macro_x==TRUE)
 					x=0;
 
-				/* on-demand host macros */
-				else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
-
-					grab_on_demand_macro(temp_buffer);
-					selected_macro=macro_ondemand;
-
-					/* output/perfdata macros get cleaned */
-					if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGHOSTOUTPUT:")==temp_buffer  || strstr(temp_buffer,"HOSTPERFDATA:")){
-						clean_macro=TRUE;
-						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-					        }
+				/* argv macros */
+				else if(strstr(temp_buffer,"ARG")==temp_buffer){
+					arg_index=atoi(temp_buffer+3);
+					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
+						selected_macro=macro_argv[arg_index-1];
+					else
+						selected_macro=NULL;
 				        }
 
-				/* on-demand service macros */
-				else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
-
-					grab_on_demand_macro(temp_buffer);
-					selected_macro=macro_ondemand;
-
-					/* output/perfdata macros get cleaned */
-					if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGSERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
-						clean_macro=TRUE;
-						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
-					        }
+				/* user macros */
+				else if(strstr(temp_buffer,"USER")==temp_buffer){
+					user_index=atoi(temp_buffer+4);
+					if(user_index>=1 && user_index<=MAX_USER_MACROS)
+						selected_macro=macro_user[user_index-1];
+					else
+						selected_macro=NULL;
 				        }
-				
+
 				/* custom host variable macros */
 				else if(strstr(temp_buffer,"_HOST")==temp_buffer){
 					selected_macro=NULL;
@@ -400,24 +392,6 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					        }
 				         }
 
-				/* argv macros */
-				else if(strstr(temp_buffer,"ARG")==temp_buffer){
-					arg_index=atoi(temp_buffer+3);
-					if(arg_index>=1 && arg_index<=MAX_COMMAND_ARGUMENTS)
-						selected_macro=macro_argv[arg_index-1];
-					else
-						selected_macro=NULL;
-				        }
-
-				/* user macros */
-				else if(strstr(temp_buffer,"USER")==temp_buffer){
-					user_index=atoi(temp_buffer+4);
-					if(user_index>=1 && user_index<=MAX_USER_MACROS)
-						selected_macro=macro_user[user_index-1];
-					else
-						selected_macro=NULL;
-				        }
-
 				/* contact address macros */
 				else if(strstr(temp_buffer,"CONTACTADDRESS")==temp_buffer){
 					address_index=atoi(temp_buffer+14);
@@ -427,6 +401,32 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 						selected_macro=NULL;
 				        }
 
+				/* on-demand host macros */
+				else if(strstr(temp_buffer,"HOST") && strstr(temp_buffer,":")){
+
+					grab_on_demand_macro(temp_buffer);
+					selected_macro=macro_ondemand;
+
+					/* output/perfdata macros get cleaned */
+					if(strstr(temp_buffer,"HOSTOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGHOSTOUTPUT:")==temp_buffer  || strstr(temp_buffer,"HOSTPERFDATA:")){
+						clean_macro=TRUE;
+						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+					        }
+				        }
+
+				/* on-demand service macros */
+				else if(strstr(temp_buffer,"SERVICE") && strstr(temp_buffer,":")){
+
+					grab_on_demand_macro(temp_buffer);
+					selected_macro=macro_ondemand;
+
+					/* output/perfdata macros get cleaned */
+					if(strstr(temp_buffer,"SERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"LONGSERVICEOUTPUT:")==temp_buffer || strstr(temp_buffer,"SERVICEPERFDATA:")){
+						clean_macro=TRUE;
+						options&=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
+					        }
+				        }
+				
 				/* an escaped $ is done by specifying two $$ next to each other */
 				else if(!strcmp(temp_buffer,"")){
 #ifdef TEST_MACROS
@@ -502,6 +502,8 @@ int grab_service_macros(service *svc){
 	int minutes=0;
 	int seconds=0;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *buf1=NULL;
+	char *buf2=NULL;
 	
 #ifdef DEBUG0
 	printf("grab_service_macros() start\n");
@@ -637,18 +639,27 @@ int grab_service_macros(service *svc){
 	my_free((void **)&macro_x[MACRO_LASTSERVICEEVENTID]);
 	asprintf(&macro_x[MACRO_LASTSERVICEEVENTID],"%lu",svc->last_event_id);
 
-	/* find one servicegroup (there may be none or several) this service is associated with */
-	/* cache servicegroup pointer after first lookup */
-	if(svc->first_servicegroup_ptr==NULL){
-		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-			if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+	/* find all servicegroups this service is associated with */
+	/* NOTE 01/29/07 EG this should be optimized - each service should have links to all servicegroups it belongs to */
+	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+
+			/* save first/primary servicegroup for later */
+			if(svc->first_servicegroup_ptr==NULL)
 				svc->first_servicegroup_ptr=temp_servicegroup;
-				break;
-				}
+
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
+			my_free((void **)&buf2);
+			buf2=buf1;
 			}
 		}
+	my_free((void **)&macro_x[MACRO_SERVICEGROUPNAMES]);
+	if(buf2){
+		macro_x[MACRO_SERVICEGROUPNAMES]=(char *)strdup(buf2);
+		my_free((void **)&buf2);
+		}
 
-	/* get the servicegroup name */
+	/* get the first/primary servicegroup name */
 	my_free((void **)&macro_x[MACRO_SERVICEGROUPNAME]);
 	if(svc->first_servicegroup_ptr)
 		macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(svc->first_servicegroup_ptr->group_name);
@@ -724,6 +735,8 @@ int grab_host_macros(host *hst){
 	int minutes=0;
 	int seconds=0;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *buf1=NULL;
+	char *buf2=NULL;
 
 #ifdef DEBUG0
 	printf("grab_host_macros() start\n");
@@ -861,15 +874,24 @@ int grab_host_macros(host *hst){
 	my_free((void **)&macro_x[MACRO_LASTHOSTEVENTID]);
 	asprintf(&macro_x[MACRO_LASTHOSTEVENTID],"%lu",hst->last_event_id);
 
-	/* find one hostgroup (there may be none or several) this host is associated with */
-	/* cache pointer after first lookup */
-	if(hst->first_hostgroup_ptr==NULL){
-		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-			if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+	/* find all hostgroups this host is associated with */
+	/* NOTE 01/29/07 EG this should be optimized - each host should have links to all hostgroups it belongs to */
+	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+		if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+
+			/* save first/primary hostgroup for later */
+			if(hst->first_hostgroup_ptr==NULL)
 				hst->first_hostgroup_ptr=temp_hostgroup;
-				break;
-				}
+
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
+			my_free((void **)&buf2);
+			buf2=buf1;
 			}
+		}
+	my_free((void **)&macro_x[MACRO_HOSTGROUPNAMES]);
+	if(buf2){
+		macro_x[MACRO_HOSTGROUPNAMES]=(char *)strdup(buf2);
+		my_free((void **)&buf2);
 		}
 
 	/* get the hostgroup name */
@@ -1132,6 +1154,8 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *buf1=NULL;
+	char *buf2=NULL;
 	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
@@ -1297,6 +1321,28 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"LASTHOSTEVENTID"))
 		asprintf(&macro_ondemand,"%lu",hst->last_event_id);
 
+	/* get the hostgroup names */
+	else if(!strcmp(macro,"HOSTGROUPNAMES")){
+
+		/* find all hostgroups this host is associated with */
+		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+			if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+
+				/* save first/primary hostgroup for later */
+				if(hst->first_hostgroup_ptr==NULL)
+					hst->first_hostgroup_ptr=temp_hostgroup;
+
+				asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
+				my_free((void **)&buf2);
+				buf2=buf1;
+				}
+			}
+		if(buf2){
+			macro_ondemand=(char *)strdup(buf2);
+			my_free((void **)&buf2);
+			}
+		}
+
 	/* get the hostgroup name */
 	else if(!strcmp(macro,"HOSTGROUPNAME")){
 		if(hst->first_hostgroup_ptr)
@@ -1386,6 +1432,8 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
+	char *buf1=NULL;
+	char *buf2=NULL;
 	time_t current_time=0L;
 	unsigned long duration=0L;
 	int days=0;
@@ -1546,6 +1594,28 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	/* get the event id macro */
 	else if(!strcmp(macro,"LASTSERVICEEVENTID"))
 		asprintf(&macro_ondemand,"%lu",svc->last_event_id);
+
+	/* get the servicegroup names */
+	else if(!strcmp(macro,"SERVICEGROUPNAMES")){
+
+		/* find all hostgroups this host is associated with */
+		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+			if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+
+				/* save first/primary group for later */
+				if(svc->first_servicegroup_ptr==NULL)
+					svc->first_servicegroup_ptr=temp_servicegroup;
+
+				asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
+				my_free((void **)&buf2);
+				buf2=buf1;
+				}
+			}
+		if(buf2){
+			macro_ondemand=(char *)strdup(buf2);
+			my_free((void **)&buf2);
+			}
+		}
 
 	/* get the servicegroup name */
 	else if(!strcmp(macro,"SERVICEGROUPNAME")){
@@ -2216,6 +2286,8 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_LASTHOSTEVENTID,"LASTHOSTEVENTID");
 	add_macrox_name(MACRO_SERVICEEVENTID,"SERVICEEVENTID");
 	add_macrox_name(MACRO_LASTSERVICEEVENTID,"LASTSERVICEEVENTID");
+	add_macrox_name(MACRO_HOSTGROUPNAMES,"HOSTGROUPNAMES");
+	add_macrox_name(MACRO_SERVICEGROUPNAMES,"SERVICEGROUPNAMES");
 
 #ifdef DEBUG0
 	printf("init_macrox_names() end\n");
@@ -2292,7 +2364,7 @@ int set_macrox_environment_vars(int set){
 		/* others don't */
 		else
 			set_macro_environment_var(macro_x_names[x],macro_x[x],set);
-	        }
+		}
 
 #ifdef DEBUG0
 	printf("set_macrox_environment_vars() end\n");
@@ -2381,6 +2453,7 @@ int set_macro_environment_var(char *name, char *value, int set){
 
 	/* set or unset the environment variable */
 	if(set==TRUE){
+
 #ifdef HAVE_SETENV
 		setenv(env_macro_name,(value==NULL)?"":value,1);
 #else

@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-26-2007
  *
  * License:
  *
@@ -1934,13 +1934,13 @@ int pre_flight_check(void){
 
 		printf("Timing information on configuration verification is listed below.\n\n");
 
-		printf("CONFIG VERIFICATION TIMES\n");
+		printf("CONFIG VERIFICATION TIMES          (* = Potential for speedup with -x option)\n");
 		printf("----------------------------------\n");
 		printf("Object Relationships: %.6lf sec\n",runtime[0]);
-		printf("Circular Paths:       %.6lf sec\n",runtime[1]);
+		printf("Circular Paths:       %.6lf sec  *\n",runtime[1]);
 		printf("Misc:                 %.6lf sec\n",runtime[2]);
 		printf("                      ============\n");
-		printf("TOTAL:                %.6lf sec\n",runtime[3]);
+		printf("TOTAL:                %.6lf sec  * = %.6lf sec (%.1f%%) estimated savings\n",runtime[3],runtime[1],(runtime[1]/runtime[3])*100.0);
 		printf("\n\n");
 	        }
 

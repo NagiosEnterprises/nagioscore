@@ -45,7 +45,7 @@ extern "C" {
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				112	/* size of macro_x[] array */
+#define MACRO_X_COUNT				116	/* size of macro_x[] array */
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -159,6 +159,10 @@ extern "C" {
 #define MACRO_LASTSERVICEEVENTID                109
 #define MACRO_HOSTGROUPNAMES                    110
 #define MACRO_SERVICEGROUPNAMES                 111
+#define MACRO_HOSTACKAUTHORNAME                 112
+#define MACRO_HOSTACKAUTHORALIAS                113
+#define MACRO_SERVICEACKAUTHORNAME              114
+#define MACRO_SERVICEACKAUTHORALIAS             115
 
 
 

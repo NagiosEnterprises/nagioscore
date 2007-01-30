@@ -56,8 +56,9 @@ extern char            *generic_summary;
 
 /* notify contacts about a service problem or recovery */
 int service_notification(service *svc, int type, char *ack_author, char *ack_data){
-	host *temp_host;
-	notification *temp_notification;
+	host *temp_host=NULL;
+	notification *temp_notification=NULL;
+	contact *temp_contact=NULL;
 	time_t current_time;
 	struct timeval start_time;
 	struct timeval end_time;
@@ -135,12 +136,29 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
+
 			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHOR]);
 			if(ack_author)
 				macro_x[MACRO_SERVICEACKAUTHOR]=(char *)strdup(ack_author);
+
 			my_free((void **)macro_x[MACRO_SERVICEACKCOMMENT]);
 			if(ack_data)
 				macro_x[MACRO_SERVICEACKCOMMENT]=(char *)strdup(ack_data);
+
+			/* see if we can find the contact */
+			if((temp_contact=find_contact(ack_author))==NULL){
+				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+					if(!strcmp(temp_contact->alias,ack_author))
+						break;
+					}
+				}
+
+			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORNAME]);
+			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORALIAS]);
+			if(temp_contact!=NULL){
+				macro_x[MACRO_SERVICEACKAUTHORNAME]=(char *)strdup(temp_contact->name);
+				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
+				}
 	                }
 
 		/* set the notification type macro */
@@ -960,7 +978,8 @@ int create_notification_list_from_service(service *svc, int *escalated){
 
 /* notify all contacts for a host that the entire host is down or up */
 int host_notification(host *hst, int type, char *ack_author, char *ack_data){
-	notification *temp_notification;
+	notification *temp_notification=NULL;
+	contact *temp_contact=NULL;
 	time_t current_time;
 	struct timeval start_time;
 	struct timeval end_time;
@@ -1025,12 +1044,29 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 
 		/* if this is an acknowledgement, get the acknowledgement macros */
 		if(type==NOTIFICATION_ACKNOWLEDGEMENT){
+
 			my_free((void **)&macro_x[MACRO_HOSTACKAUTHOR]);
 			if(ack_author)
 				macro_x[MACRO_HOSTACKAUTHOR]=(char *)strdup(ack_author);
+
 			my_free((void **)&macro_x[MACRO_HOSTACKCOMMENT]);
 			if(ack_data)
 				macro_x[MACRO_HOSTACKCOMMENT]=(char *)strdup(ack_data);
+
+			/* see if we can find the contact */
+			if((temp_contact=find_contact(ack_author))==NULL){
+				for(temp_contact=contact_list;temp_contact!=NULL;temp_contact=temp_contact->next){
+					if(!strcmp(temp_contact->alias,ack_author))
+						break;
+					}
+				}
+
+			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORNAME]);
+			my_free((void **)&macro_x[MACRO_SERVICEACKAUTHORALIAS]);
+			if(temp_contact!=NULL){
+				macro_x[MACRO_SERVICEACKAUTHORNAME]=(char *)strdup(temp_contact->name);
+				macro_x[MACRO_SERVICEACKAUTHORALIAS]=(char *)strdup(temp_contact->alias);
+				}
 	                }
 
 		/* set the notification type macro */

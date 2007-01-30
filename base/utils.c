@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-29-2007
+ * Last Modified:   01-30-2007
  *
  * License:
  *
@@ -494,6 +494,7 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 int grab_service_macros(service *svc){
 	servicegroup *temp_servicegroup=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
+	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
 	time_t current_time=0L;
 	unsigned long duration=0L;
@@ -640,18 +641,14 @@ int grab_service_macros(service *svc){
 	asprintf(&macro_x[MACRO_LASTSERVICEEVENTID],"%lu",svc->last_event_id);
 
 	/* find all servicegroups this service is associated with */
-	/* NOTE 01/29/07 EG this should be optimized - each service should have links to all servicegroups it belongs to */
-	for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-		if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+	for(temp_objectlist=svc->servicegroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
 
-			/* save first/primary servicegroup for later */
-			if(svc->first_servicegroup_ptr==NULL)
-				svc->first_servicegroup_ptr=temp_servicegroup;
+		if((temp_servicegroup=(servicegroup *)temp_objectlist->object_ptr)==NULL)
+			continue;
 
-			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
-			my_free((void **)&buf2);
-			buf2=buf1;
-			}
+		asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
+		my_free((void **)&buf2);
+		buf2=buf1;
 		}
 	my_free((void **)&macro_x[MACRO_SERVICEGROUPNAMES]);
 	if(buf2){
@@ -661,13 +658,13 @@ int grab_service_macros(service *svc){
 
 	/* get the first/primary servicegroup name */
 	my_free((void **)&macro_x[MACRO_SERVICEGROUPNAME]);
-	if(svc->first_servicegroup_ptr)
-		macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(svc->first_servicegroup_ptr->group_name);
+	if(svc->servicegroups_ptr)
+		macro_x[MACRO_SERVICEGROUPNAME]=(char *)strdup(((servicegroup *)svc->servicegroups_ptr->object_ptr)->group_name);
 	
 	/* get the servicegroup alias */
 	my_free((void **)&macro_x[MACRO_SERVICEGROUPALIAS]);
-	if(svc->first_servicegroup_ptr)
-		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(svc->first_servicegroup_ptr->alias);
+	if(svc->servicegroups_ptr)
+		macro_x[MACRO_SERVICEGROUPALIAS]=(char *)strdup(((servicegroup *)svc->servicegroups_ptr->object_ptr)->alias);
 
 	/* get the action url */
 	my_free((void **)&macro_x[MACRO_SERVICEACTIONURL]);
@@ -727,6 +724,7 @@ int grab_service_macros(service *svc){
 int grab_host_macros(host *hst){
 	hostgroup *temp_hostgroup=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
+	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
 	time_t current_time=0L;
 	unsigned long duration=0L;
@@ -875,18 +873,14 @@ int grab_host_macros(host *hst){
 	asprintf(&macro_x[MACRO_LASTHOSTEVENTID],"%lu",hst->last_event_id);
 
 	/* find all hostgroups this host is associated with */
-	/* NOTE 01/29/07 EG this should be optimized - each host should have links to all hostgroups it belongs to */
-	for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-		if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+	for(temp_objectlist=hst->hostgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
 
-			/* save first/primary hostgroup for later */
-			if(hst->first_hostgroup_ptr==NULL)
-				hst->first_hostgroup_ptr=temp_hostgroup;
+		if((temp_hostgroup=(hostgroup *)temp_objectlist->object_ptr)==NULL)
+			continue;
 
-			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
-			my_free((void **)&buf2);
-			buf2=buf1;
-			}
+		asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
+		my_free((void **)&buf2);
+		buf2=buf1;
 		}
 	my_free((void **)&macro_x[MACRO_HOSTGROUPNAMES]);
 	if(buf2){
@@ -896,13 +890,13 @@ int grab_host_macros(host *hst){
 
 	/* get the hostgroup name */
 	my_free((void **)&macro_x[MACRO_HOSTGROUPNAME]);
-	if(hst->first_hostgroup_ptr)
-		macro_x[MACRO_HOSTGROUPNAME]=(char *)strdup(hst->first_hostgroup_ptr->group_name);
+	if(hst->hostgroups_ptr)
+		macro_x[MACRO_HOSTGROUPNAME]=(char *)strdup(((hostgroup *)hst->hostgroups_ptr->object_ptr)->group_name);
 	
 	/* get the hostgroup alias */
 	my_free((void **)&macro_x[MACRO_HOSTGROUPALIAS]);
-	if(hst->first_hostgroup_ptr)
-		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(hst->first_hostgroup_ptr->alias);
+	if(hst->hostgroups_ptr)
+		macro_x[MACRO_HOSTGROUPALIAS]=(char *)strdup(((hostgroup *)hst->hostgroups_ptr->object_ptr)->alias);
 
 	/* get the action url */
 	my_free((void **)&macro_x[MACRO_HOSTACTIONURL]);
@@ -1152,6 +1146,7 @@ int grab_on_demand_macro(char *str){
 int grab_on_demand_host_macro(host *hst, char *macro){
 	hostgroup *temp_hostgroup=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
+	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 	char *buf1=NULL;
@@ -1175,17 +1170,6 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-hst->last_state_change);
-
-	/* find one hostgroup (there may be none or several) this host is associated with */
-	/* cache pointer after first lookup */
-	if(hst->first_hostgroup_ptr==NULL){
-		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-			if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
-				hst->first_hostgroup_ptr=temp_hostgroup;
-				break;
-				}
-			}
-		}
 
 	/* get the host display name */
 	if(!strcmp(macro,"HOSTDISPLAYNAME")){
@@ -1325,17 +1309,14 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else if(!strcmp(macro,"HOSTGROUPNAMES")){
 
 		/* find all hostgroups this host is associated with */
-		for(temp_hostgroup=hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
-			if(is_host_member_of_hostgroup(temp_hostgroup,hst)==TRUE){
+		for(temp_objectlist=hst->hostgroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
 
-				/* save first/primary hostgroup for later */
-				if(hst->first_hostgroup_ptr==NULL)
-					hst->first_hostgroup_ptr=temp_hostgroup;
+			if((temp_hostgroup=(hostgroup *)temp_objectlist->object_ptr)==NULL)
+				continue;
 
-				asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
-				my_free((void **)&buf2);
-				buf2=buf1;
-				}
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_hostgroup->group_name);
+			my_free((void **)&buf2);
+			buf2=buf1;
 			}
 		if(buf2){
 			macro_ondemand=(char *)strdup(buf2);
@@ -1345,14 +1326,14 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 
 	/* get the hostgroup name */
 	else if(!strcmp(macro,"HOSTGROUPNAME")){
-		if(hst->first_hostgroup_ptr)
-			macro_ondemand=(char *)strdup(hst->first_hostgroup_ptr->group_name);
+		if(hst->hostgroups_ptr)
+			macro_ondemand=(char *)strdup(((hostgroup *)hst->hostgroups_ptr->object_ptr)->group_name);
 	        }
 	
 	/* get the hostgroup alias */
 	else if(!strcmp(macro,"HOSTGROUPALIAS")){
-		if(hst->first_hostgroup_ptr)
-			macro_ondemand=(char *)strdup(hst->first_hostgroup_ptr->alias);
+		if(hst->hostgroups_ptr)
+			macro_ondemand=(char *)strdup(((hostgroup *)hst->hostgroups_ptr->object_ptr)->alias);
 	        }
 
 	/* action url */
@@ -1430,6 +1411,7 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 int grab_on_demand_service_macro(service *svc, char *macro){
 	servicegroup *temp_servicegroup=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
+	objectlist *temp_objectlist=NULL;
 	char *customvarname=NULL;
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 	char *buf1=NULL;
@@ -1453,16 +1435,6 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	time(&current_time);
 	duration=(unsigned long)(current_time-svc->last_state_change);
-
-	/* find one servicegroup (there may be none or several) this service is associated with */
-	if(svc->first_servicegroup_ptr==NULL){
-		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-			if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
-				svc->first_servicegroup_ptr=temp_servicegroup;
-				break;
-				}
-			}
-		}
 
 	/* get the service display name */
 	if(!strcmp(macro,"SERVICEDISPLAYNAME")){
@@ -1598,18 +1570,15 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	/* get the servicegroup names */
 	else if(!strcmp(macro,"SERVICEGROUPNAMES")){
 
-		/* find all hostgroups this host is associated with */
-		for(temp_servicegroup=servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
-			if(is_service_member_of_servicegroup(temp_servicegroup,svc)==TRUE){
+		/* find all servicegroups this service is associated with */
+		for(temp_objectlist=svc->servicegroups_ptr;temp_objectlist!=NULL;temp_objectlist=temp_objectlist->next){
 
-				/* save first/primary group for later */
-				if(svc->first_servicegroup_ptr==NULL)
-					svc->first_servicegroup_ptr=temp_servicegroup;
+			if((temp_servicegroup=(servicegroup *)temp_objectlist->object_ptr)==NULL)
+				continue;
 
-				asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
-				my_free((void **)&buf2);
-				buf2=buf1;
-				}
+			asprintf(&buf1,"%s%s%s",(buf2)?buf2:"",(buf2)?",":"",temp_servicegroup->group_name);
+			my_free((void **)&buf2);
+			buf2=buf1;
 			}
 		if(buf2){
 			macro_ondemand=(char *)strdup(buf2);
@@ -1619,14 +1588,14 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 
 	/* get the servicegroup name */
 	else if(!strcmp(macro,"SERVICEGROUPNAME")){
-		if(svc->first_servicegroup_ptr)
-			macro_ondemand=(char *)strdup(svc->first_servicegroup_ptr->group_name);
+		if(svc->servicegroups_ptr)
+			macro_ondemand=(char *)strdup(((servicegroup *)svc->servicegroups_ptr->object_ptr)->group_name);
 	        }
 	
 	/* get the servicegroup alias */
 	else if(!strcmp(macro,"SERVICEGROUPALIAS")){
-		if(svc->first_servicegroup_ptr)
-			macro_ondemand=(char *)strdup(svc->first_servicegroup_ptr->alias);
+		if(svc->servicegroups_ptr)
+			macro_ondemand=(char *)strdup(((servicegroup *)svc->servicegroups_ptr->object_ptr)->alias);
 	        }
 
 	/* action url */

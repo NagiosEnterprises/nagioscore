@@ -2,8 +2,8 @@
  *
  * OBJECTS.H - Header file for object addition/search functions
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-18-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 01-30-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        9999    /* set to 3 once Nagios 3.x development stabilizes... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        3    /* increment when changes are made to data structures... */
 
 
 
@@ -71,6 +71,12 @@
 typedef struct host_struct host;
 typedef struct service_struct service;
 typedef struct contact_struct contact;
+
+/* OBJECT LIST STRUCTURE */
+typedef struct objectlist_struct{
+	void      *object_ptr;
+	struct objectlist_struct *next;
+        }objectlist;
 
 /* TIMERANGE structure */
 typedef struct timerange_struct{
@@ -345,7 +351,7 @@ struct host_struct{
 	command *check_command_ptr;
 	timeperiod *check_period_ptr;
 	timeperiod *notification_period_ptr;
-	hostgroup *first_hostgroup_ptr;
+	objectlist *hostgroups_ptr;
 #endif
 	struct  host_struct *next;
 	struct  host_struct *nexthash;
@@ -481,7 +487,7 @@ struct service_struct{
 	char *check_command_args;
 	timeperiod *check_period_ptr;
 	timeperiod *notification_period_ptr;
-	servicegroup *first_servicegroup_ptr;
+	objectlist *servicegroups_ptr;
 #endif
 	struct service_struct *next;
 	struct service_struct *nexthash;
@@ -582,12 +588,6 @@ typedef struct hostdependency_struct{
 	struct hostdependency_struct *nexthash;
         }hostdependency;
 
-
-/* OBJECT LIST STRUCTURE */
-typedef struct objectlist_struct{
-	void      *object_ptr;
-	struct objectlist_struct *next;
-        }objectlist;
 
 
 

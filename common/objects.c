@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-04-2007
+ * Last Modified: 01-30-2007
  *
  * License:
  *
@@ -911,7 +911,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->check_command_ptr=NULL;
 	new_host->check_period_ptr=NULL;
 	new_host->notification_period_ptr=NULL;
-	new_host->first_hostgroup_ptr=NULL;
+	new_host->hostgroups_ptr=NULL;
 #endif
 	new_host->next=NULL;
 	new_host->nexthash=NULL;
@@ -2135,7 +2135,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->check_command_args=NULL;
 	new_service->check_period_ptr=NULL;
 	new_service->notification_period_ptr=NULL;
-	new_service->first_servicegroup_ptr=NULL;
+	new_service->servicegroups_ptr=NULL;
 #endif
 	new_service->next=NULL;
 	new_service->nexthash=NULL;
@@ -4321,6 +4321,8 @@ int free_object_data(void){
 		my_free((void **)&this_host->plugin_output);
 		my_free((void **)&this_host->long_plugin_output);
 		my_free((void **)&this_host->perf_data);
+
+		free_objectlist(&this_host->hostgroups_ptr);
 #endif
 		my_free((void **)&this_host->check_period);
 		my_free((void **)&this_host->host_check_command);
@@ -4536,6 +4538,8 @@ int free_object_data(void){
 
 		my_free((void **)&this_service->event_handler_args);
 		my_free((void **)&this_service->check_command_args);
+
+		free_objectlist(&this_service->servicegroups_ptr);
 #endif
 		my_free((void **)&this_service->notification_period);
 		my_free((void **)&this_service->check_period);

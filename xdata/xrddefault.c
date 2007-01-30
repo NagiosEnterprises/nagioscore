@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-29-2007
+ * Last Modified:   01-30-2007
  *
  * License:
  *
@@ -310,8 +310,6 @@ int xrddefault_save_state_information(void){
 	fprintf(fp,"\tcreated=%lu\n",current_time);
 	fprintf(fp,"\tversion=%s\n",PROGRAM_VERSION);
 	fprintf(fp,"\t}\n\n");
-
-	printf("MHA: %lu, PHAM: %lu/%lu, BOTH: %lu\n",modified_host_process_attributes,process_host_attribute_mask,~process_host_attribute_mask,(modified_host_process_attributes & ~process_host_attribute_mask));
 
 	/* save program state information */
 	fprintf(fp,"program {\n");

@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-26-2007
+ * Last Modified: 01-30-2007
  *
  * License:
  *
@@ -2421,6 +2421,10 @@ int pre_flight_object_check(int *w, int *e){
 				errors++;
 			        }
 
+			/* save a pointer to this hostgroup for faster host/group membership lookups later */
+			else
+				add_object_to_objectlist(&temp_host->hostgroups_ptr,(void *)temp_hostgroup);
+
 			/* save host pointer for later */
 			temp_hostgroupmember->host_ptr=temp_host;
 		        }
@@ -2459,6 +2463,10 @@ int pre_flight_object_check(int *w, int *e){
 				my_free((void **)&temp_buffer);
 				errors++;
 			        }
+
+			/* save a pointer to this servicegroup for faster service/group membership lookups later */
+			else
+				add_object_to_objectlist(&temp_service->servicegroups_ptr,(void *)temp_servicegroup);
 
 			/* save service pointer for later */
 			temp_servicegroupmember->service_ptr=temp_service;

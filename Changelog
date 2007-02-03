@@ -10,8 +10,8 @@ lag development for a while.
 	- Ethan 02/21/2006
 
 
-Pre-alpha changes since 02/15/2006...
--------------------------------------
+Nagios 3.0a1 - Changes Since Nagios 2.x
+---------------------------------------
 
 * Adaptive monitoring:
      - Check timeperiod can now be modified on-the-fly
@@ -39,6 +39,7 @@ Pre-alpha changes since 02/15/2006...
      - Service escalations inherit contactgroups, notification interval, and escalation period from associated service if not specified
      - Host escalations inherit contactgroups, notification interval, and escalation period from associated host if not specified
      - Host, service, host escalation, and service escalation definitions now support a 'contacts' directive, along with 'contact_groups'
+     - Service dependencies with blank dependent host/hostgroup names will create "same host" dependencies
 
 
 * Performance optimizations:
@@ -129,7 +130,7 @@ Pre-alpha changes since 02/15/2006...
 * Misc changes:
      - More information given when testing scheduling (-s command line option)
      - Removed fixed length restrictions for host names and service descriptions
-     - Plugin output length restriction bumped up to 2K
+     - Plugin output length restriction bumped up to 4K
      - Added temp_path directive to main config file for specifying temp directory
      - Multiline output support for system commands via my_system()
      - Added global event_id and notification_id vars that are at least unique during a single run of Nagios

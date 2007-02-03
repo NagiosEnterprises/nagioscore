@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-22-2007
+ * Last Modified:   01-31-2007
  *
  * License:
  *
@@ -666,7 +666,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
 
-#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
+#ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
 		if(use_large_installation_tweaks==FALSE)
@@ -3407,7 +3407,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
 
-#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
+#ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
 		if(use_large_installation_tweaks==FALSE)

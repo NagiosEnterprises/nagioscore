@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-30-2007
+ * Last Modified:   01-31-2007
  *
  * License:
  *
@@ -2714,7 +2714,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		/* clear environment variables */
 		set_all_macro_environment_vars(FALSE);
 
-#ifndef USE_MEMORY_PERFORMANCE_TWEAKS
+#ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
 		if(use_large_installation_tweaks==FALSE)

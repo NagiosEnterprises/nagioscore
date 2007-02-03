@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-29-2007
+ * Last Modified: 01-30-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -35,7 +35,7 @@ extern "C" {
 
 #define MAX_COMMAND_ARGUMENTS			32	/* maximum number of $ARGx$ macros */
 
-#define MAX_PLUGIN_OUTPUT_LENGTH                2048    /* max length of plugin output (including perf data) */
+#define MAX_PLUGIN_OUTPUT_LENGTH                4096    /* max length of plugin output (including perf data) */
 
 
 

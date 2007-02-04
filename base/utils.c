@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-31-2007
+ * Last Modified:   02-04-2007
  *
  * License:
  *
@@ -2738,6 +2738,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		/* return execution time in milliseconds */
 		*exectime=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000)/1000.0);
+		if(*exectime<0.0)
+			*exectime=0.0;
 
 		/* get the exit code returned from the program */
 		result=WEXITSTATUS(status);

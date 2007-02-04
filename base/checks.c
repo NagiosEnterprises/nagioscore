@@ -775,6 +775,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 	/* update the execution time for this check (millisecond resolution) */
 	temp_service->execution_time=(double)((double)(queued_check_result->finish_time.tv_sec-queued_check_result->start_time.tv_sec)+(double)((queued_check_result->finish_time.tv_usec-queued_check_result->start_time.tv_usec)/1000.0)/1000.0);
+	if(temp_service->execution_time<0.0)
+		temp_service->execution_time=0.0;
 
 	/* clear the freshening flag (it would have been set if this service was determined to be stale) */
 	temp_service->is_being_freshened=FALSE;
@@ -2293,6 +2295,8 @@ int check_host(host *hst, int propagation_options, int check_options){
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	execution_time=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000.0)/1000.0);
+	if(execution_time<0.0)
+		execution_time=0.0;
 	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,execution_time,0,FALSE,0,NULL,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
@@ -3505,6 +3509,8 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 	/* update the execution time for this check (millisecond resolution) */
 	temp_host->execution_time=(double)((double)(queued_check_result->finish_time.tv_sec-queued_check_result->start_time.tv_sec)+(double)((queued_check_result->finish_time.tv_usec-queued_check_result->start_time.tv_usec)/1000.0)/1000.0);
+	if(temp_host->execution_time<0.0)
+		temp_host->execution_time=0.0;
 
 	/* set the checked flag */
 	temp_host->has_been_checked=TRUE;

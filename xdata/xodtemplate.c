@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-03-2007
+ * Last Modified: 02-04-2007
  *
  * Description:
  *
@@ -4351,6 +4351,7 @@ int xodtemplate_duplicate_objects(void){
 	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
 	char *host_name=NULL;
+	char *service_descriptions=NULL;
 	int first_item=FALSE;
 	int same_host_dependency=FALSE;
 #ifdef NSCORE
@@ -4455,7 +4456,7 @@ int xodtemplate_duplicate_objects(void){
 			        }
 
 			/* duplicate service escalation definition */
-			result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,this_hostlist->host_name,NULL);
+			result=xodtemplate_duplicate_serviceescalation(temp_serviceescalation,this_hostlist->host_name,temp_serviceescalation->service_description);
 
 			/* exit on error */
 			if(result==ERROR){
@@ -4550,9 +4551,11 @@ int xodtemplate_duplicate_objects(void){
 
 				my_free((void **)&temp_serviceescalation->host_name);
 				temp_serviceescalation->host_name=(char *)strdup(this_servicelist->host_name);
+
 				my_free((void **)&temp_serviceescalation->service_description);
 				temp_serviceescalation->service_description=(char *)strdup(this_servicelist->service_description);
-				if(temp_serviceescalation->service_description==NULL){
+
+				if(temp_serviceescalation->host_name==NULL || temp_serviceescalation->service_description==NULL){
 					xodtemplate_free_servicelist(temp_servicelist);
 					return ERROR;
 				        }
@@ -4635,38 +4638,258 @@ int xodtemplate_duplicate_objects(void){
 	        }
 
 
-	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE HOSTGROUP AND/OR HOST NAMES (MASTER AND DEPENDENT) ******/
+
+	/****** PROCESS SERVICE DEPENDENCIES WITH MASTER SERVICEGROUPS *****/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
-		/* defaults */
-		same_host_dependency=FALSE;
+		/* expand master servicegroups into a list of services */
+		if(temp_servicedependency->servicegroup_name){
 
-		/* skip service dependencies without enough data */
-		if(temp_servicedependency->hostgroup_name==NULL && temp_servicedependency->dependent_hostgroup_name==NULL && temp_servicedependency->host_name==NULL && temp_servicedependency->dependent_host_name==NULL)
-			continue;
-
-		/* get list of master host names */
-		master_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->hostgroup_name,temp_servicedependency->host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
-		if(master_hostlist==NULL){
+			temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->servicegroup_name,NULL,NULL,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
+			if(temp_servicelist==NULL){
 #ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
+				asprintf(&temp_buffer,"Error: Could not expand master servicegroups specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
 #endif
-			return ERROR;
+				return ERROR;
+				}
+
+			/* if dependency also has master host, hostgroup, and/or service, we must split that off to another definition */
+			if(temp_servicedependency->host_name!=NULL || temp_servicedependency->hostgroup_name!=NULL || temp_servicedependency->service_description!=NULL){
+
+				/* duplicate everything except master servicegroup */
+				xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->hostgroup_name,NULL,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_servicegroup_name);
+
+				/* clear values in this definition */
+				temp_servicedependency->have_host_name=FALSE;
+				temp_servicedependency->have_service_description=FALSE;
+				temp_servicedependency->have_hostgroup_name=FALSE;
+				my_free((void **)&temp_servicedependency->host_name);
+				my_free((void **)&temp_servicedependency->service_description);
+				my_free((void **)&temp_servicedependency->hostgroup_name);
+				}
+
+			/* duplicate service dependency entries */
+			first_item=TRUE;
+			for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
+
+				/* just in case */
+				if(this_servicelist->host_name==NULL || this_servicelist->service_description==NULL)
+					continue;
+
+				/* if this is the first duplication, use the existing entry */
+				if(first_item==TRUE){
+
+					my_free((void **)&temp_servicedependency->host_name);
+					temp_servicedependency->host_name=(char *)strdup(this_servicelist->host_name);
+
+					my_free((void **)&temp_servicedependency->service_description);
+					temp_servicedependency->service_description=(char *)strdup(this_servicelist->service_description);
+
+					/* clear the master servicegroup */
+					temp_servicedependency->have_servicegroup_name=FALSE;
+					my_free((void **)&temp_servicedependency->servicegroup_name);
+				
+					if(temp_servicedependency->host_name==NULL || temp_servicedependency->service_description==NULL){
+						xodtemplate_free_servicelist(temp_servicelist);
+						return ERROR;
+						}
+
+					first_item=FALSE;
+					continue;
+					}
+
+				/* duplicate service dependency definition */
+				result=xodtemplate_duplicate_servicedependency(temp_servicedependency,this_servicelist->host_name,this_servicelist->service_description,NULL,NULL,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_servicegroup_name);
+
+				/* exit on error */
+				if(result==ERROR){
+					xodtemplate_free_servicelist(temp_servicelist);
+					return ERROR;
+					}
+				}
+
+			/* free memory we used for service list */
+			xodtemplate_free_servicelist(temp_servicelist);
+			}
+		}
+
+
+	/****** PROCESS SERVICE DEPENDENCY MASTER HOSTS/HOSTGROUPS/SERVICES *****/
+	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
+
+		
+		/* expand master hosts/hostgroups into a list of host names */
+		if(temp_servicedependency->host_name!=NULL || temp_servicedependency->hostgroup_name!=NULL){
+
+			temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->hostgroup_name,temp_servicedependency->host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
+			if(temp_hostlist==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Could not expand master hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+				}
+
+			/* save service descriptions for later */
+			if(temp_servicedependency->service_description)
+				service_descriptions=(char *)strdup(temp_servicedependency->service_description);
+
+			/* for each host, expand master services */
+			first_item=TRUE;
+			for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
+
+				temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,this_hostlist->host_name,service_descriptions,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
+				if(temp_servicelist==NULL){
+#ifdef NSCORE
+					asprintf(&temp_buffer,"Error: Could not expand master services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+					my_free((void **)&temp_buffer);
+#endif
+					return ERROR;
+					}
+
+				/* duplicate service dependency entries */
+				for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
+					
+					/* just in case */
+					if(this_servicelist->host_name==NULL || this_servicelist->service_description==NULL)
+						continue;
+
+					/* if this is the first duplication, use the existing entry */
+					if(first_item==TRUE){
+
+						my_free((void **)&temp_servicedependency->host_name);
+						temp_servicedependency->host_name=(char *)strdup(this_servicelist->host_name);
+
+						my_free((void **)&temp_servicedependency->service_description);
+						temp_servicedependency->service_description=(char *)strdup(this_servicelist->service_description);
+
+						if(temp_servicedependency->host_name==NULL || temp_servicedependency->service_description==NULL){
+							xodtemplate_free_servicelist(temp_servicelist);
+							return ERROR;
+							}
+
+						first_item=FALSE;
+						continue;
+						}
+
+					/* duplicate service dependency definition */
+					result=xodtemplate_duplicate_servicedependency(temp_servicedependency,this_servicelist->host_name,this_servicelist->service_description,NULL,NULL,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_servicegroup_name);
+
+					/* exit on error */
+					if(result==ERROR){
+						xodtemplate_free_servicelist(temp_servicelist);
+						return ERROR;
+						}
+					}
+
+				/* free memory we used for service list */
+				xodtemplate_free_servicelist(temp_servicelist);
+				}
+
+			/* free service descriptions */
+			my_free((void **)&service_descriptions);
+
+			/* free memory we used for host list */
+			xodtemplate_free_hostlist(temp_hostlist);
 		        }
+		}
 
-		/* get list of dependent host names */
-		dependent_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
-		if(dependent_hostlist==NULL){
 
-			/* there were no hosts/hostgroups to expand, so use the same hosts in the dependency */
-			/* ADDED 02/03/2007 EG */
-			if(temp_servicedependency->dependent_hostgroup_name==NULL  && temp_servicedependency->dependent_host_name==NULL)
-				same_host_dependency=TRUE;
+	/****** PROCESS SERVICE DEPENDENCIES WITH DEPENDENT SERVICEGROUPS *****/
+	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
-			/* else an error occurred */
-			else{
+		/* expand dependent servicegroups into a list of services */
+		if(temp_servicedependency->dependent_servicegroup_name){
+
+			temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->dependent_servicegroup_name,NULL,NULL,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
+			if(temp_servicelist==NULL){
+#ifdef NSCORE
+				asprintf(&temp_buffer,"Error: Could not expand dependent servicegroups specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+				my_free((void **)&temp_buffer);
+#endif
+				return ERROR;
+				}
+
+			/* if dependency also has dependent host, hostgroup, and/or service, we must split that off to another definition */
+			if(temp_servicedependency->dependent_host_name!=NULL || temp_servicedependency->dependent_hostgroup_name!=NULL || temp_servicedependency->dependent_service_description!=NULL){
+
+				/* duplicate everything except dependent servicegroup */
+				xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->hostgroup_name,temp_servicedependency->servicegroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,temp_servicedependency->dependent_hostgroup_name,NULL);
+
+				/* clear values in this definition */
+				temp_servicedependency->have_dependent_host_name=FALSE;
+				temp_servicedependency->have_dependent_service_description=FALSE;
+				temp_servicedependency->have_dependent_hostgroup_name=FALSE;
+				my_free((void **)&temp_servicedependency->dependent_host_name);
+				my_free((void **)&temp_servicedependency->dependent_service_description);
+				my_free((void **)&temp_servicedependency->dependent_hostgroup_name);
+				}
+
+			/* duplicate service dependency entries */
+			first_item=TRUE;
+			for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
+
+				/* just in case */
+				if(this_servicelist->host_name==NULL || this_servicelist->service_description==NULL)
+					continue;
+
+				/* if this is the first duplication, use the existing entry */
+				if(first_item==TRUE){
+
+					my_free((void **)&temp_servicedependency->dependent_host_name);
+					temp_servicedependency->dependent_host_name=(char *)strdup(this_servicelist->host_name);
+
+					my_free((void **)&temp_servicedependency->dependent_service_description);
+					temp_servicedependency->dependent_service_description=(char *)strdup(this_servicelist->service_description);
+
+					/* clear the dependent servicegroup */
+					temp_servicedependency->have_dependent_servicegroup_name=FALSE;
+					my_free((void **)&temp_servicedependency->dependent_servicegroup_name);
+				
+					if(temp_servicedependency->dependent_host_name==NULL || temp_servicedependency->dependent_service_description==NULL){
+						xodtemplate_free_servicelist(temp_servicelist);
+						return ERROR;
+						}
+
+					first_item=FALSE;
+					continue;
+					}
+
+				/* duplicate service dependency definition */
+				result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,NULL,NULL,this_servicelist->host_name,this_servicelist->service_description,NULL,NULL);
+
+				/* exit on error */
+				if(result==ERROR){
+					xodtemplate_free_servicelist(temp_servicelist);
+					return ERROR;
+					}
+				}
+
+			/* free memory we used for service list */
+			xodtemplate_free_servicelist(temp_servicelist);
+			}
+		}
+
+
+	/****** PROCESS SERVICE DEPENDENCY DEPENDENT HOSTS/HOSTGROUPS/SERVICES *****/
+	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
+
+		/* ADDED 02/04/2007 - special case for "same host" dependencies */
+		if(temp_servicedependency->dependent_host_name==NULL && temp_servicedependency->dependent_hostgroup_name==NULL){
+			if(temp_servicedependency->host_name)
+				temp_servicedependency->dependent_host_name=(char *)strdup(temp_servicedependency->host_name);
+			}
+
+		/* expand dependent hosts/hostgroups into a list of host names */
+		if(temp_servicedependency->dependent_host_name!=NULL || temp_servicedependency->dependent_hostgroup_name!=NULL){
+
+			temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_servicedependency->dependent_hostgroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
+			if(temp_hostlist==NULL){
 #ifdef NSCORE
 				asprintf(&temp_buffer,"Error: Could not expand dependent hostgroups and/or hosts specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
 				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
@@ -4674,161 +4897,72 @@ int xodtemplate_duplicate_objects(void){
 #endif
 				return ERROR;
 				}
-		        }
 
-		/* duplicate the dependency definitions */
-		first_item=TRUE;
-		for(temp_hostlist=master_hostlist;temp_hostlist!=NULL;temp_hostlist=temp_hostlist->next){
+			/* save service descriptions for later */
+			if(temp_servicedependency->dependent_service_description)
+				service_descriptions=(char *)strdup(temp_servicedependency->dependent_service_description);
 
-			/* special case for same host dependencies */
-			/* ADDED 02/03/2007 EG */
-			if(same_host_dependency==TRUE){
+			/* for each host, expand dependent services */
+			first_item=TRUE;
+			for(this_hostlist=temp_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
 
-				/* existing definition gets first name */
-				if(first_item==TRUE){
-					my_free((void **)&temp_servicedependency->host_name);
-					my_free((void **)&temp_servicedependency->dependent_host_name);
-					temp_servicedependency->host_name=(char *)strdup(temp_hostlist->host_name);
-					temp_servicedependency->dependent_host_name=(char *)strdup(temp_hostlist->host_name);
-					first_item=FALSE;
-					continue;
+				temp_servicelist=xodtemplate_expand_servicegroups_and_services(NULL,this_hostlist->host_name,service_descriptions,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
+				if(temp_servicelist==NULL){
+#ifdef NSCORE
+					asprintf(&temp_buffer,"Error: Could not expand dependent services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
+					write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+					my_free((void **)&temp_buffer);
+#endif
+					return ERROR;
 					}
-				else
-					result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_hostlist->host_name,temp_servicedependency->service_description,temp_hostlist->host_name,temp_servicedependency->dependent_service_description);
-				}
 
-			/* otherwise usual case... */
-			else{
+				/* duplicate service dependency entries */
+				for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
+					
+					/* just in case */
+					if(this_servicelist->host_name==NULL || this_servicelist->service_description==NULL)
+						continue;
 
-				for(this_hostlist=dependent_hostlist;this_hostlist!=NULL;this_hostlist=this_hostlist->next){
-
-					/* existing definition gets first name */
+					/* if this is the first duplication, use the existing entry */
 					if(first_item==TRUE){
-						my_free((void **)&temp_servicedependency->host_name);
+
 						my_free((void **)&temp_servicedependency->dependent_host_name);
-						temp_servicedependency->host_name=(char *)strdup(temp_hostlist->host_name);
-						temp_servicedependency->dependent_host_name=(char *)strdup(this_hostlist->host_name);
+						temp_servicedependency->dependent_host_name=(char *)strdup(this_servicelist->host_name);
+
+						my_free((void **)&temp_servicedependency->dependent_service_description);
+						temp_servicedependency->dependent_service_description=(char *)strdup(this_servicelist->service_description);
+
+						if(temp_servicedependency->dependent_host_name==NULL || temp_servicedependency->dependent_service_description==NULL){
+							xodtemplate_free_servicelist(temp_servicelist);
+							return ERROR;
+							}
+
 						first_item=FALSE;
 						continue;
 						}
-					else
-						result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_hostlist->host_name,temp_servicedependency->service_description,this_hostlist->host_name,temp_servicedependency->dependent_service_description);
-					
+
+					/* duplicate service dependency definition */
+					result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,NULL,NULL,this_servicelist->host_name,this_servicelist->service_description,NULL,NULL);
+
 					/* exit on error */
-					if(result==ERROR)
+					if(result==ERROR){
+						xodtemplate_free_servicelist(temp_servicelist);
 						return ERROR;
+						}
 					}
-			        }
-		        }
 
-		/* free memory used to store host lists */
-		xodtemplate_free_hostlist(master_hostlist);
-		xodtemplate_free_hostlist(dependent_hostlist);
-	        }
-
-
-	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE MASTER DESCRIPTIONS ******/
-	/* THIS MUST BE DONE AFTER DUPLICATING FOR MULTIPLE HOST NAMES (SEE ABOVE) */
-	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
-
-		/* skip servicedependencies without enough data */
-		if(temp_servicedependency->service_description==NULL || temp_servicedependency->host_name==NULL)
-			continue;
-
-		/* get list of services */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->servicegroup_name,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
-		if(temp_servicelist==NULL){
-#ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not expand services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-#endif
-			return ERROR;
-		        }
-
-		/* duplicate service escalation entries */
-		first_item=TRUE;
-		for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
-
-			/* if this is the first duplication, use the existing entry */
-			if(first_item==TRUE){
-
-				my_free((void **)&temp_servicedependency->service_description);
-				temp_servicedependency->service_description=(char *)strdup(this_servicelist->service_description);
-				if(temp_servicedependency->service_description==NULL){
-					xodtemplate_free_servicelist(temp_servicelist);
-					return ERROR;
-				        }
-
-				first_item=FALSE;
-				continue;
-			        }
-
-			/* duplicate service escalation definition */
-			result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,this_servicelist->service_description,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description);
-
-			/* exit on error */
-			if(result==ERROR){
+				/* free memory we used for service list */
 				xodtemplate_free_servicelist(temp_servicelist);
-				return ERROR;
-		                }
+				}
+
+			/* free service descriptions */
+			my_free((void **)&service_descriptions);
+
+			/* free memory we used for host list */
+			xodtemplate_free_hostlist(temp_hostlist);
 		        }
+		}
 
-		/* free memory we used for service list */
-		xodtemplate_free_servicelist(temp_servicelist);
-	        }
-
-
-	/****** DUPLICATE SERVICE DEPENDENCY DEFINITIONS WITH MULTIPLE DEPENDENCY DESCRIPTIONS ******/
-	/* THIS MUST BE DONE AFTER DUPLICATING FOR MULTIPLE HOST NAMES (SEE ABOVE) */
-	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
-
-		/* skip servicedependencies without enough data */
-		if(temp_servicedependency->dependent_service_description==NULL || temp_servicedependency->dependent_host_name==NULL)
-			continue;
-
-		/* get list of services */
-		temp_servicelist=xodtemplate_expand_servicegroups_and_services(temp_servicedependency->dependent_servicegroup_name,temp_servicedependency->dependent_host_name,temp_servicedependency->dependent_service_description,temp_servicedependency->_config_file,temp_servicedependency->_start_line);
-		if(temp_servicelist==NULL){
-#ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not expand services specified in service dependency (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(temp_servicedependency->_config_file),temp_servicedependency->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-#endif
-			return ERROR;
-		        }
-
-		/* duplicate service escalation entries */
-		first_item=TRUE;
-		for(this_servicelist=temp_servicelist;this_servicelist!=NULL;this_servicelist=this_servicelist->next){
-
-			/* if this is the first duplication, use the existing entry */
-			if(first_item==TRUE){
-
-				my_free((void **)&temp_servicedependency->dependent_service_description);
-				temp_servicedependency->dependent_service_description=(char *)strdup(this_servicelist->service_description);
-				if(temp_servicedependency->dependent_service_description==NULL){
-					xodtemplate_free_servicelist(temp_servicelist);
-					return ERROR;
-				        }
-
-				first_item=FALSE;
-				continue;
-			        }
-
-			/* duplicate service escalation definition */
-			result=xodtemplate_duplicate_servicedependency(temp_servicedependency,temp_servicedependency->host_name,temp_servicedependency->service_description,temp_servicedependency->dependent_host_name,this_servicelist->service_description);
-
-			/* exit on error */
-			if(result==ERROR){
-				xodtemplate_free_servicelist(temp_servicelist);
-				return ERROR;
-		                }
-		        }
-
-		/* free memory we used for service list */
-		xodtemplate_free_servicelist(temp_servicelist);
-	        }
 
 
 	/****** DUPLICATE HOSTEXTINFO DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
@@ -5178,7 +5312,7 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation->hostgroup_name=NULL;
 	new_hostescalation->have_hostgroup_name=temp_hostescalation->have_hostgroup_name;
 	new_hostescalation->host_name=NULL;
-	new_hostescalation->have_host_name=temp_hostescalation->have_host_name;
+	new_hostescalation->have_host_name=(host_name)?TRUE:FALSE;
 	new_hostescalation->contact_groups=NULL;
 	new_hostescalation->have_contact_groups=temp_hostescalation->have_contact_groups;
 	new_hostescalation->contacts=NULL;
@@ -5187,8 +5321,9 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation->have_escalation_period=temp_hostescalation->have_escalation_period;
 
 	/* allocate memory for and copy string members of hostescalation definition */
-	if(temp_hostescalation->host_name!=NULL && (new_hostescalation->host_name=(char *)strdup(host_name))==NULL)
+	if(host_name!=NULL && (new_hostescalation->host_name=(char *)strdup(host_name))==NULL)
 		error=TRUE;
+
 	if(temp_hostescalation->template!=NULL && (new_hostescalation->template=(char *)strdup(temp_hostescalation->template))==NULL)
 		error=TRUE;
 	if(temp_hostescalation->name!=NULL && (new_hostescalation->name=(char *)strdup(temp_hostescalation->name))==NULL)
@@ -5267,13 +5402,13 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 
 	/* string defaults */
 	new_serviceescalation->servicegroup_name=NULL;
-	new_serviceescalation->have_servicegroup_name=temp_serviceescalation->have_servicegroup_name;
+	new_serviceescalation->have_servicegroup_name=FALSE;
 	new_serviceescalation->hostgroup_name=NULL;
-	new_serviceescalation->have_hostgroup_name=temp_serviceescalation->have_hostgroup_name;
+	new_serviceescalation->have_hostgroup_name=FALSE;
 	new_serviceescalation->host_name=NULL;
-	new_serviceescalation->have_host_name=temp_serviceescalation->have_host_name;
+	new_serviceescalation->have_host_name=(host_name)?TRUE:FALSE;
 	new_serviceescalation->service_description=NULL;
-	new_serviceescalation->have_service_description=temp_serviceescalation->have_service_description;
+	new_serviceescalation->have_service_description=(svc_description)?TRUE:FALSE;
 	new_serviceescalation->contact_groups=NULL;
 	new_serviceescalation->have_contact_groups=temp_serviceescalation->have_contact_groups;
 	new_serviceescalation->contacts=NULL;
@@ -5284,15 +5419,12 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	/* allocate memory for and copy string members of serviceescalation definition */
 	if(host_name!=NULL && (new_serviceescalation->host_name=(char *)strdup(host_name))==NULL)
 		error=TRUE;
-	else if(temp_serviceescalation->host_name!=NULL && (new_serviceescalation->host_name=(char *)strdup(temp_serviceescalation->host_name))==NULL)
+	if(svc_description!=NULL && (new_serviceescalation->service_description=(char *)strdup(svc_description))==NULL)
 		error=TRUE;
+
 	if(temp_serviceescalation->template!=NULL && (new_serviceescalation->template=(char *)strdup(temp_serviceescalation->template))==NULL)
 		error=TRUE;
 	if(temp_serviceescalation->name!=NULL && (new_serviceescalation->name=(char *)strdup(temp_serviceescalation->name))==NULL)
-		error=TRUE;
-	if(svc_description!=NULL && (new_serviceescalation->service_description=(char *)strdup(svc_description))==NULL)
-		error=TRUE;
-	else if(temp_serviceescalation->service_description!=NULL && (new_serviceescalation->service_description=(char *)strdup(temp_serviceescalation->service_description))==NULL)
 		error=TRUE;
 	if(temp_serviceescalation->contact_groups!=NULL && (new_serviceescalation->contact_groups=(char *)strdup(temp_serviceescalation->contact_groups))==NULL)
 		error=TRUE;
@@ -5303,12 +5435,12 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 
 	if(error==TRUE){
 		my_free((void **)&new_serviceescalation->host_name);
-		my_free((void **)&new_serviceescalation->template);
-		my_free((void **)&new_serviceescalation->name);
 		my_free((void **)&new_serviceescalation->service_description);
 		my_free((void **)&new_serviceescalation->contact_groups);
 		my_free((void **)&new_serviceescalation->contacts);
 		my_free((void **)&new_serviceescalation->escalation_period);
+		my_free((void **)&new_serviceescalation->template);
+		my_free((void **)&new_serviceescalation->name);
 		my_free((void **)&new_serviceescalation);
 #ifdef DEBUG1
 		printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
@@ -5370,9 +5502,9 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 
 	/* string defaults */
 	new_hostdependency->hostgroup_name=NULL;
-	new_hostdependency->have_hostgroup_name=temp_hostdependency->have_hostgroup_name;
+	new_hostdependency->have_hostgroup_name=FALSE;
 	new_hostdependency->dependent_hostgroup_name=NULL;
-	new_hostdependency->have_dependent_hostgroup_name=temp_hostdependency->have_dependent_hostgroup_name;
+	new_hostdependency->have_dependent_hostgroup_name=FALSE;
 	new_hostdependency->host_name=NULL;
 	new_hostdependency->have_host_name=temp_hostdependency->have_host_name;
 	new_hostdependency->dependent_host_name=NULL;
@@ -5381,11 +5513,12 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	new_hostdependency->have_dependency_period=temp_hostdependency->have_dependency_period;
 
 	/* allocate memory for and copy string members of hostdependency definition */
+	if(master_host_name!=NULL && (new_hostdependency->host_name=(char *)strdup(master_host_name))==NULL)
+		error=TRUE;
+       	if(dependent_host_name!=NULL && (new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+		error=TRUE;
+
 	if(temp_hostdependency->dependency_period!=NULL && (new_hostdependency->dependency_period=(char *)strdup(temp_hostdependency->dependency_period))==NULL)
-		error=TRUE;
-	if(temp_hostdependency->host_name!=NULL && (new_hostdependency->host_name=(char *)strdup(master_host_name))==NULL)
-		error=TRUE;
-       	if(temp_hostdependency->dependent_host_name!=NULL && (new_hostdependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
 		error=TRUE;
 	if(temp_hostdependency->template!=NULL && (new_hostdependency->template=(char *)strdup(temp_hostdependency->template))==NULL)
 		error=TRUE;
@@ -5432,7 +5565,7 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 
 
 /* duplicates a service dependency definition */
-int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_servicedependency, char *master_host_name, char *master_service_description, char *dependent_host_name, char *dependent_service_description){
+int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_servicedependency, char *master_host_name, char *master_service_description, char *master_hostgroup_name, char *master_servicegroup_name, char *dependent_host_name, char *dependent_service_description, char *dependent_hostgroup_name, char *dependent_servicegroup_name){
 	xodtemplate_servicedependency *new_servicedependency=NULL;
 	int error=FALSE;
 
@@ -5458,32 +5591,47 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->_start_line=temp_servicedependency->_start_line;
 
 	/* string defaults */
-	new_servicedependency->servicegroup_name=NULL;
-	new_servicedependency->have_servicegroup_name=temp_servicedependency->have_servicegroup_name;
-	new_servicedependency->hostgroup_name=NULL;
-	new_servicedependency->have_hostgroup_name=temp_servicedependency->have_hostgroup_name;
-	new_servicedependency->dependent_servicegroup_name=NULL;
-	new_servicedependency->have_dependent_servicegroup_name=temp_servicedependency->have_dependent_servicegroup_name;
-	new_servicedependency->dependent_hostgroup_name=NULL;
-	new_servicedependency->have_dependent_hostgroup_name=temp_servicedependency->have_dependent_hostgroup_name;
 	new_servicedependency->host_name=NULL;
-	new_servicedependency->have_host_name=temp_servicedependency->have_host_name;
+	new_servicedependency->have_host_name=(master_host_name)?TRUE:FALSE;
+	new_servicedependency->service_description=NULL;
+	new_servicedependency->have_service_description=(master_service_description)?TRUE:FALSE;
+	new_servicedependency->hostgroup_name=NULL;
+	new_servicedependency->have_hostgroup_name=(master_hostgroup_name)?TRUE:FALSE;
+	new_servicedependency->servicegroup_name=NULL;
+	new_servicedependency->have_servicegroup_name=(master_servicegroup_name)?TRUE:FALSE;
+
 	new_servicedependency->dependent_host_name=NULL;
-	new_servicedependency->have_dependent_host_name=temp_servicedependency->have_dependent_host_name;
+	new_servicedependency->have_dependent_host_name=(dependent_host_name)?TRUE:FALSE;
+	new_servicedependency->dependent_service_description=NULL;
+	new_servicedependency->have_dependent_service_description=(dependent_service_description)?TRUE:FALSE;
+	new_servicedependency->dependent_hostgroup_name=NULL;
+	new_servicedependency->have_dependent_hostgroup_name=(dependent_hostgroup_name)?TRUE:FALSE;
+	new_servicedependency->dependent_servicegroup_name=NULL;
+	new_servicedependency->have_dependent_servicegroup_name=(dependent_servicegroup_name)?TRUE:FALSE;
+
 	new_servicedependency->dependency_period=NULL;
 	new_servicedependency->have_dependency_period=temp_servicedependency->have_dependency_period;
 	new_servicedependency->service_description=NULL;
 	new_servicedependency->dependent_service_description=NULL;
 
 	/* duplicate strings */
-	if(temp_servicedependency->host_name!=NULL && (new_servicedependency->host_name=(char *)strdup(master_host_name))==NULL)
+	if(master_host_name!=NULL && (new_servicedependency->host_name=(char *)strdup(master_host_name))==NULL)
 		error=TRUE;
-	if(temp_servicedependency->service_description!=NULL && (new_servicedependency->service_description=(char *)strdup(master_service_description))==NULL)
+	if(master_service_description!=NULL && (new_servicedependency->service_description=(char *)strdup(master_service_description))==NULL)
 		error=TRUE;
-       	if(temp_servicedependency->dependent_host_name!=NULL && (new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+	if(master_hostgroup_name!=NULL && (new_servicedependency->hostgroup_name=(char *)strdup(master_hostgroup_name))==NULL)
 		error=TRUE;
-	if(temp_servicedependency->dependent_service_description!=NULL && (new_servicedependency->dependent_service_description=(char *)strdup(dependent_service_description))==NULL)
+	if(master_servicegroup_name!=NULL && (new_servicedependency->servicegroup_name=(char *)strdup(master_servicegroup_name))==NULL)
 		error=TRUE;
+       	if(dependent_host_name!=NULL && (new_servicedependency->dependent_host_name=(char *)strdup(dependent_host_name))==NULL)
+		error=TRUE;
+	if(dependent_service_description!=NULL && (new_servicedependency->dependent_service_description=(char *)strdup(dependent_service_description))==NULL)
+		error=TRUE;
+	if(dependent_hostgroup_name!=NULL && (new_servicedependency->dependent_hostgroup_name=(char *)strdup(dependent_hostgroup_name))==NULL)
+		error=TRUE;
+	if(dependent_servicegroup_name!=NULL && (new_servicedependency->dependent_servicegroup_name=(char *)strdup(dependent_servicegroup_name))==NULL)
+		error=TRUE;
+
 	if(temp_servicedependency->dependency_period!=NULL && (new_servicedependency->dependency_period=(char *)strdup(temp_servicedependency->dependency_period))==NULL)
 		error=TRUE;
 	if(temp_servicedependency->template!=NULL && (new_servicedependency->template=(char *)strdup(temp_servicedependency->template))==NULL)
@@ -5494,8 +5642,13 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	if(error==TRUE){
 		my_free((void **)&new_servicedependency->host_name);
 		my_free((void **)&new_servicedependency->service_description);
+		my_free((void **)&new_servicedependency->hostgroup_name);
+		my_free((void **)&new_servicedependency->servicegroup_name);
 		my_free((void **)&new_servicedependency->dependent_host_name);
 		my_free((void **)&new_servicedependency->dependent_service_description);
+		my_free((void **)&new_servicedependency->dependent_hostgroup_name);
+		my_free((void **)&new_servicedependency->dependent_servicegroup_name);
+		my_free((void **)&new_servicedependency->dependency_period);
 		my_free((void **)&new_servicedependency->template);
 		my_free((void **)&new_servicedependency->name);
 		my_free((void **)&new_servicedependency);
@@ -12960,8 +13113,10 @@ int xodtemplate_expand_servicegroups(xodtemplate_servicelist **list, xodtemplate
 	printf("xodtemplate_expand_servicegroups() start\n");
 #endif
 
-	if(list==NULL || servicegroups==NULL)
+	if(list==NULL)
 		return ERROR;
+	if(servicegroups==NULL)
+		return OK;
 
 	/* allocate memory for servicegroup name list */
 	if((servicegroup_names=(char *)strdup(servicegroups))==NULL)
@@ -13098,8 +13253,10 @@ int xodtemplate_expand_services(xodtemplate_servicelist **list, xodtemplate_serv
 	printf("xodtemplate_expand_services() start\n");
 #endif
 
-	if(list==NULL || host_name==NULL || services==NULL)
+	if(list==NULL)
 		return ERROR;
+	if(host_name==NULL || services==NULL)
+		return OK;
 
 	/* should we use regular expression matching for the host name? */
 	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(host_name,"*") || strstr(host_name,"?")))

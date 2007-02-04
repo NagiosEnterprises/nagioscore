@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-30-2007
+ * Last Modified: 02-04-2007
  *
  * License:
  *
@@ -2675,9 +2675,17 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 #endif
 
 	/* make sure we have what we need */
-	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (dependent_service_description==NULL || !strcmp(dependent_service_description,"")) || (host_name==NULL || !strcmp(host_name,"")) || (service_description==NULL || !strcmp(service_description,""))){
+	if((host_name==NULL || !strcmp(host_name,"")) || (service_description==NULL || !strcmp(service_description,""))){
 #ifdef NSCORE
-		asprintf(&temp_buffer,"Error: NULL service description/host name in service dependency definition\n");
+		asprintf(&temp_buffer,"Error: NULL master service description/host name in service dependency definition\n");
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+#endif
+		return NULL;
+	        }
+	if((dependent_host_name==NULL || !strcmp(dependent_host_name,"")) || (dependent_service_description==NULL || !strcmp(dependent_service_description,""))){
+#ifdef NSCORE
+		asprintf(&temp_buffer,"Error: NULL dependent service description/host name in service dependency definition\n");
 		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
 		my_free((void **)&temp_buffer);
 #endif

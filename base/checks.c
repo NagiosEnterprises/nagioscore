@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-31-2007
+ * Last Modified:   02-04-2007
  *
  * License:
  *
@@ -3536,57 +3536,68 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	my_free((void **)&temp_host->long_plugin_output);
 	my_free((void **)&temp_host->perf_data);
 
+	/* parse check output file to get: (1) short output, (2) long output, (3) perf data */
+	if(queued_check_result->output_file){
+		read_check_output_from_file(queued_check_result->output_file,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,TRUE);
+#ifdef DEBUG_CHECK_IPC
+		printf("\n");
+		printf("PARSED CHECK OUTPUT...\n");
+		printf("OUTPUT FILE: %s\n",queued_check_result->output_file);
+		printf("SHORT: %s\n",(temp_host->plugin_output==NULL)?"NULL":temp_host->plugin_output);
+		printf("LONG: %s\n",(temp_host->long_plugin_output==NULL)?"NULL":temp_host->long_plugin_output);
+		printf("PERF: %s\n",(temp_host->perf_data==NULL)?"NULL":temp_host->perf_data);
+		printf("\n");
+#endif
+		}
+
 	/* get the unprocessed return code */
+	/* NOTE: for passive checks, this is the final/processed state */
 	result=queued_check_result->return_code;
 
-	/* if there was some error running the command, just skip it (this shouldn't be happening) */
-	if(queued_check_result->exited_ok==FALSE){
+	printf("RETURNCODE1: %d, HOST: %s\n",result,temp_host->name);
 
-		asprintf(&temp_buffer,"Warning:  Check of host '%s' did not exit properly!\n",temp_host->name);
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+	/* adjust return code (active checks only) */
+	if(queued_check_result->check_type==HOST_CHECK_ACTIVE){
 
-		temp_host->plugin_output=(char *)strdup("(Host check did not exit properly)");
+		/* if there was some error running the command, just skip it (this shouldn't be happening) */
+		if(queued_check_result->exited_ok==FALSE){
 
-		result=STATE_CRITICAL;
-	        }
+			asprintf(&temp_buffer,"Warning:  Check of host '%s' did not exit properly!\n",temp_host->name);
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
-	/* make sure the return code is within bounds */
-	else if(queued_check_result->return_code<0 || queued_check_result->return_code>3){
+			my_free((void **)&temp_host->plugin_output);
+			my_free((void **)&temp_host->long_plugin_output);
+			my_free((void **)&temp_host->perf_data);
 
-		asprintf(&temp_buffer,"Warning: Return code of %d for check of host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_host->name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
-		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
-		my_free((void **)&temp_buffer);
+			temp_host->plugin_output=(char *)strdup("(Host check did not exit properly)");
 
-		asprintf(&temp_host->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result->return_code,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" - plugin may be missing":"");
+			result=STATE_CRITICAL;
+			}
 
-		result=STATE_CRITICAL;
-	        }
+		/* make sure the return code is within bounds */
+		else if(queued_check_result->return_code<0 || queued_check_result->return_code>3){
 
-	/* else the return code is okay... */
-	else{
+			asprintf(&temp_buffer,"Warning: Return code of %d for check of host '%s' was out of bounds.%s\n",queued_check_result->return_code,temp_host->name,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" Make sure the plugin you're trying to run actually exists.":"");
+			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
 
-		/* parse check output file to get: (1) short output, (2) long output, (3) perf data */
-		if(queued_check_result->output_file){
-			read_check_output_from_file(queued_check_result->output_file,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,TRUE);
-#ifdef DEBUG_CHECK_IPC
-			printf("\n");
-			printf("PARSED CHECK OUTPUT...\n");
-			printf("OUTPUT FILE: %s\n",queued_check_result->output_file);
-			printf("SHORT: %s\n",(temp_host->plugin_output==NULL)?"NULL":temp_host->plugin_output);
-			printf("LONG: %s\n",(temp_host->long_plugin_output==NULL)?"NULL":temp_host->long_plugin_output);
-			printf("PERF: %s\n",(temp_host->perf_data==NULL)?"NULL":temp_host->perf_data);
-			printf("\n");
-#endif
-		        }
-	        }
+			my_free((void **)&temp_host->plugin_output);
+			my_free((void **)&temp_host->long_plugin_output);
+			my_free((void **)&temp_host->perf_data);
 
-	/* a NULL host check command means we should assume the host is UP */
-	if(temp_host->host_check_command==NULL){
-		my_free((void **)&temp_host->plugin_output);
-		temp_host->plugin_output=(char *)strdup("(Host assumed to be UP)");
-		result=STATE_OK;
-	        }
+			asprintf(&temp_host->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result->return_code,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" - plugin may be missing":"");
+			
+			result=STATE_CRITICAL;
+			}
+
+		/* a NULL host check command means we should assume the host is UP */
+		if(temp_host->host_check_command==NULL){
+			my_free((void **)&temp_host->plugin_output);
+			temp_host->plugin_output=(char *)strdup("(Host assumed to be UP)");
+			result=STATE_OK;
+			}
+		}
 
 	/* make sure we have some data */
 	if(temp_host->plugin_output==NULL || !strcmp(temp_host->plugin_output,"")){
@@ -3600,17 +3611,28 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 			*temp_ptr=':';
 	        }
 
-	/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be STATE_OK) */
-	if(use_aggressive_host_checking==FALSE && result==STATE_WARNING)
+
+	/* translate return code to basic UP/DOWN state - the DOWN/UNREACHABLE state determination is made later */
+	/* NOTE: only do this for active checks - passive check results already have the final state */
+	if(queued_check_result->check_type==HOST_CHECK_ACTIVE){
+
+		/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be STATE_OK) */
+		if(use_aggressive_host_checking==FALSE && result==STATE_WARNING)
 		result=STATE_OK;
 
-	if(result==STATE_OK)
-		result=HOST_UP;
-	else
-		result=HOST_DOWN;
+		/* OK states means the host is UP */
+		if(result==STATE_OK)
+			result=HOST_UP;
+
+		/* any problem state indicates the host is not UP */
+		else
+			result=HOST_DOWN;
+		}
 
 
 	/******************* PROCESS THE CHECK RESULTS ******************/
+
+	printf("RETURNCODE2: %d, HOST: %s\n",result,temp_host->name);
 
 	/* process the host check result */
 	process_host_check_result_3x(temp_host,result,old_plugin_output,CHECK_OPTION_NONE,reschedule_check,TRUE,cached_host_check_horizon);
@@ -3747,6 +3769,9 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				/* set the state type */
 				hst->state_type=HARD_STATE;
 
+				/* set the state */
+				hst->current_state=new_state;
+
 				/* reset the current attempt */
 				hst->current_attempt=1;
 
@@ -3821,6 +3846,12 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 							hst->current_state=HOST_UNREACHABLE;
 				                }
 				        }
+
+				/* set the host state for passive checks */
+				else{
+					/* set the state */
+					hst->current_state=new_state;
+					}
 				
 				/* propagate checks to immediate children if they are not UNREACHABLE */
 				/* we do this because we may now be blocking the route to child hosts */
@@ -3852,6 +3883,9 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 					/* set the state type */
 					hst->state_type=HARD_STATE;
+
+					/* set the state */
+					hst->current_state=new_state;
 
 					/* reset the current attempt */
 					hst->current_attempt=1;

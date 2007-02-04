@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-19-2007
+ * Last Modified:   02-04-2007
  *
  * License:
  *
@@ -2213,6 +2213,10 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* make sure we have all required data */
 	if(host_name==NULL || output==NULL)
+		return ERROR;
+
+	/* make sure we have a reasonable return code */
+	if(return_code<0 || return_code>2)
 		return ERROR;
 
 	/* find the host by its name or address */

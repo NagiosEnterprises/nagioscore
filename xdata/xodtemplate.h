@@ -166,6 +166,10 @@ typedef struct xodtemplate_contactgroup_struct{
 	char      *contactgroup_name;
 	char      *alias;
         char      *members;
+	char      *contactgroup_members;
+
+	int       have_members;
+	int       have_contactgroup_members;
 
 	int       has_been_resolved;
 	int       register_object;

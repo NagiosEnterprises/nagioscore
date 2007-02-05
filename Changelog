@@ -28,8 +28,8 @@ Nagios 3.0a1 - Changes Since Nagios 2.x
 * Object changes: 
      - Added ability to use multiple template names (separated by commas) in object definitions
      - Added ability to null out optional character directives in object definitions (using 'null' without quotes)
-     - Added hostgroup_members and servicegroup_members directives to hostgroup and servicegroup definitions,
-       respectively, for allowing including host or service members from "sub" groups.
+     - Added hostg/service/contactgroup_members directives to host/service/contactgroup definitions,
+       respectively, for allowing including host, service, or contact members from "sub" groups.
      - Added support for custom variables in host, service, and contact definitions
      - Added host_notifications_enabled, service_notifications_enabled, can_submit_commands to contact definitions
      - Added optional display_name directive to host and service definitions

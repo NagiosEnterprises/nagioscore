@@ -1130,6 +1130,9 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_contactgroup->contactgroup_name=NULL;
 		new_contactgroup->alias=NULL;
 		new_contactgroup->members=NULL;
+		new_contactgroup->have_members=FALSE;
+		new_contactgroup->contactgroup_members=NULL;
+		new_contactgroup->have_contactgroup_members=FALSE;
 		new_contactgroup->has_been_resolved=FALSE;
 		new_contactgroup->register_object=TRUE;
 
@@ -2108,8 +2111,36 @@ int xodtemplate_add_object_property(char *input, int options){
 				result=ERROR;
 		        }
 		else if(!strcmp(variable,"members")){
-			if((temp_contactgroup->members=(char *)strdup(value))==NULL)
-				result=ERROR;
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if(temp_contactgroup->members==NULL)
+					temp_contactgroup->members=(char *)strdup(value);
+				else{
+					temp_contactgroup->members=(char *)realloc(temp_contactgroup->members,strlen(temp_contactgroup->members)+strlen(value)+2);
+					if(temp_contactgroup->members!=NULL){
+						strcat(temp_contactgroup->members,",");
+						strcat(temp_contactgroup->members,value);
+				                }
+			                } 
+				if(temp_contactgroup->members==NULL)
+					result=ERROR;
+			        }
+			temp_contactgroup->have_members=TRUE;
+		        }
+		else if(!strcmp(variable,"contactgroup_members")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if(temp_contactgroup->contactgroup_members==NULL)
+					temp_contactgroup->contactgroup_members=(char *)strdup(value);
+				else{
+					temp_contactgroup->contactgroup_members=(char *)realloc(temp_contactgroup->contactgroup_members,strlen(temp_contactgroup->contactgroup_members)+strlen(value)+2);
+					if(temp_contactgroup->contactgroup_members!=NULL){
+						strcat(temp_contactgroup->contactgroup_members,",");
+						strcat(temp_contactgroup->contactgroup_members,value);
+				                }
+			                }
+				if(temp_contactgroup->contactgroup_members==NULL)
+					result=ERROR;
+			        }
+			temp_contactgroup->have_contactgroup_members=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_contactgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -6330,8 +6361,16 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 			this_contactgroup->contactgroup_name=(char *)strdup(template_contactgroup->contactgroup_name);
 		if(this_contactgroup->alias==NULL && template_contactgroup->alias!=NULL)
 			this_contactgroup->alias=(char *)strdup(template_contactgroup->alias);
-		if(this_contactgroup->members==NULL && template_contactgroup->members!=NULL)
-			this_contactgroup->members=(char *)strdup(template_contactgroup->members);
+		if(this_contactgroup->have_members==FALSE && template_contactgroup->have_members==TRUE){
+			if(this_contactgroup->members==NULL && template_contactgroup->members!=NULL)
+				this_contactgroup->members=(char *)strdup(template_contactgroup->members);
+			this_contactgroup->have_members=TRUE;
+		        }
+		if(this_contactgroup->have_contactgroup_members==FALSE && template_contactgroup->have_contactgroup_members==TRUE){
+			if(this_contactgroup->contactgroup_members==NULL && template_contactgroup->contactgroup_members!=NULL)
+				this_contactgroup->contactgroup_members=(char *)strdup(template_contactgroup->contactgroup_members);
+			this_contactgroup->have_contactgroup_members=TRUE;
+		        }
 	        }
 
 	my_free((void **)&template_names);
@@ -7934,7 +7973,7 @@ int xodtemplate_recombobulate_contactgroups(void){
 			continue;
 
 		/* get list of contacts in the contactgroup */
-		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(NULL,temp_contactgroup->members,temp_contactgroup->_config_file,temp_contactgroup->_start_line);
+		temp_contactlist=xodtemplate_expand_contactgroups_and_contacts(temp_contactgroup->contactgroup_members,temp_contactgroup->members,temp_contactgroup->_config_file,temp_contactgroup->_start_line);
 
 		/* add all members to the contact group */
 		if(temp_contactlist==NULL){
@@ -8231,7 +8270,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
 
-		if(temp_hostgroup->members==NULL)
+		if(temp_hostgroup->members==NULL && temp_hostgroup->hostgroup_members==NULL)
 			continue;
 
 		/* skip hostgroups that shouldn't be registered */
@@ -8239,7 +8278,7 @@ int xodtemplate_recombobulate_hostgroups(void){
 			continue;
 
 		/* get list of hosts in the hostgroup */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(NULL,temp_hostgroup->members,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
+		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostgroup->hostgroup_members,temp_hostgroup->members,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
 
 		/* add all members to the host group */
 		if(temp_hostlist==NULL){
@@ -8251,45 +8290,6 @@ int xodtemplate_recombobulate_hostgroups(void){
 			return ERROR;
 	                }
 		my_free((void **)&temp_hostgroup->members);
-		for(this_hostlist=temp_hostlist;this_hostlist;this_hostlist=this_hostlist->next){
-
-			/* add this host to the hostgroup members directive */
-			if(temp_hostgroup->members==NULL)
-				temp_hostgroup->members=(char *)strdup(this_hostlist->host_name);
-			else{
-				new_members=(char *)realloc(temp_hostgroup->members,strlen(temp_hostgroup->members)+strlen(this_hostlist->host_name)+2);
-				if(new_members!=NULL){
-					temp_hostgroup->members=new_members;
-					strcat(temp_hostgroup->members,",");
-					strcat(temp_hostgroup->members,this_hostlist->host_name);
-				        }
-			        }
-	                }
-		xodtemplate_free_hostlist(temp_hostlist);
-	        }
-
-	/* include (sub)hostgroup members */
-	for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup;temp_hostgroup=temp_hostgroup->next){
-
-		if(temp_hostgroup->hostgroup_members==NULL)
-			continue;
-
-		/* skip hostgroups that shouldn't be registered */
-		if(temp_hostgroup->register_object==FALSE)
-			continue;
-
-		/* get list of hosts in the (sub)hostgroup */
-		temp_hostlist=xodtemplate_expand_hostgroups_and_hosts(temp_hostgroup->hostgroup_members,NULL,temp_hostgroup->_config_file,temp_hostgroup->_start_line);
-
-		/* add all members to the host group */
-		if(temp_hostlist==NULL){
-#ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not expand member hostgroups '%s' specified in hostgroup (config file '%s', starting on line %d)\n",temp_hostgroup->hostgroup_members,xodtemplate_config_file_name(temp_hostgroup->_config_file),temp_hostgroup->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-#endif
-			return ERROR;
-	                }
 		for(this_hostlist=temp_hostlist;this_hostlist;this_hostlist=this_hostlist->next){
 
 			/* add this host to the hostgroup members directive */
@@ -11748,6 +11748,7 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_contactgroup->contactgroup_name);
 		my_free((void **)&this_contactgroup->alias);
 		my_free((void **)&this_contactgroup->members);
+		my_free((void **)&this_contactgroup->contactgroup_members);
 		my_free((void **)&this_contactgroup);
 	        }
 	xodtemplate_contactgroup_list=NULL;

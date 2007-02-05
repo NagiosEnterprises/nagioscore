@@ -3560,8 +3560,6 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	/* NOTE: for passive checks, this is the final/processed state */
 	result=queued_check_result->return_code;
 
-	printf("RETURNCODE1: %d, HOST: %s\n",result,temp_host->name);
-
 	/* adjust return code (active checks only) */
 	if(queued_check_result->check_type==HOST_CHECK_ACTIVE){
 
@@ -3637,8 +3635,6 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 
 	/******************* PROCESS THE CHECK RESULTS ******************/
-
-	printf("RETURNCODE2: %d, HOST: %s\n",result,temp_host->name);
 
 	/* process the host check result */
 	process_host_check_result_3x(temp_host,result,old_plugin_output,CHECK_OPTION_NONE,reschedule_check,TRUE,cached_host_check_horizon);

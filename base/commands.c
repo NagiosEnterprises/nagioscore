@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-04-2007
+ * Last Modified:   02-08-2007
  *
  * License:
  *
@@ -5371,7 +5371,7 @@ void process_passive_checks(void){
 						info.output_file_fd=-1;
 				                }
 					umask(old_umask);
-					
+	
 					/* write check output */
 					if(info.output_file_fp)
 						fputs(output,info.output_file_fp);

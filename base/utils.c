@@ -4718,6 +4718,7 @@ mmapfile *mmap_fopen(char *filename){
 	void *mmap_buf=NULL;
 	struct stat statbuf;
 	int mode=O_RDONLY;
+	unsigned long file_size=0L;
 
 	if(filename==NULL)
 		return NULL;
@@ -4739,17 +4740,26 @@ mmapfile *mmap_fopen(char *filename){
 		return NULL;
 	        }
 
-	/* mmap() the file - allocate one extra byte for processing zero-byte files */
-	if((mmap_buf=(void *)mmap(0,statbuf.st_size+1,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
-		close(fd);
-		my_free((void **)&new_mmapfile);
-		return NULL;
-	        }
+	/* get file size */
+	file_size=(unsigned long)statbuf.st_size;
+
+	/* only mmap() if we have a file greater than 0 bytes */
+	if(file_size>0){
+
+		/* mmap() the file - allocate one extra byte for processing zero-byte files */
+		if((mmap_buf=(void *)mmap(0,file_size,PROT_READ,MAP_PRIVATE,fd,0))==MAP_FAILED){
+			close(fd);
+			my_free((void **)&new_mmapfile);
+			return NULL;
+			}
+		}
+	else
+		mmap_buf=NULL;
 
 	/* populate struct info for later use */
 	new_mmapfile->path=(char *)strdup(filename);
 	new_mmapfile->fd=fd;
-	new_mmapfile->file_size=(unsigned long)(statbuf.st_size);
+	new_mmapfile->file_size=(unsigned long)file_size;
 	new_mmapfile->current_position=0L;
 	new_mmapfile->current_line=0L;
 	new_mmapfile->mmap_buf=mmap_buf;
@@ -4765,7 +4775,8 @@ int mmap_fclose(mmapfile *temp_mmapfile){
 		return ERROR;
 
 	/* un-mmap() the file */
-	munmap(temp_mmapfile->mmap_buf,temp_mmapfile->file_size);
+	if(temp_mmapfile->file_size>0L)
+		munmap(temp_mmapfile->mmap_buf,temp_mmapfile->file_size);
 
 	/* close the file */
 	close(temp_mmapfile->fd);
@@ -4785,6 +4796,10 @@ char *mmap_fgets(mmapfile *temp_mmapfile){
 	int len=0;
 
 	if(temp_mmapfile==NULL)
+		return NULL;
+
+	/* size of file is 0 bytes */
+	if(temp_mmapfile->file_size==0L)
 		return NULL;
 
 	/* we've reached the end of the file */

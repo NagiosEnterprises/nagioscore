@@ -2,7 +2,7 @@
  *
  * Nagios Config Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-11-2006
+ * Last Modified: 02-08-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -189,7 +189,12 @@
 #include <fcntl.h>
 #endif
 
+#ifdef NSCORE
 #undef HAVE_GLIB_H
+#endif
+#ifdef NSCGI
+#undef HAVE_GLIB_H
+#endif
 #ifdef HAVE_GLIB_H
 #include <glib.h>
 #endif

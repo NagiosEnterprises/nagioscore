@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-05-2007
+ * Last Modified: 02-07-2007
  *
  * Description:
  *
@@ -7771,9 +7771,11 @@ int xodtemplate_recombobulate_contactgroups(void){
 		if(temp_contact->contact_groups==NULL || temp_contact->contact_name==NULL)
 			continue;
 
-		/* process the list of contactgroups */
-		if((contactgroup_names=(char *)strdup(temp_contact->contact_groups))==NULL)
+		/* preprocess the contactgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
+		if((contactgroup_names=xodtemplate_process_contactgroup_names(temp_contact->contact_groups,temp_contact->_config_file,temp_contact->_start_line))==NULL)
 			continue;
+
+		/* process the list of contactgroups */
 		for(temp_ptr=strtok(contactgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
@@ -8072,9 +8074,11 @@ int xodtemplate_recombobulate_hostgroups(void){
 		if(temp_host->register_object==FALSE)
 			continue;
 
-		/* process the list of hostgroups */
-		if((hostgroup_names=(char *)strdup(temp_host->host_groups))==NULL)
+		/* preprocess the hostgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
+		if((hostgroup_names=xodtemplate_process_hostgroup_names(temp_host->host_groups,temp_host->_config_file,temp_host->_start_line))==NULL)
 			continue;
+
+		/* process the list of hostgroups */
 		for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
@@ -8192,9 +8196,11 @@ int xodtemplate_recombobulate_servicegroups(void){
 		if(temp_service->register_object==FALSE)
 			continue;
 
-		/* process the list of servicegroups */
-		if((servicegroup_names=(char *)strdup(temp_service->service_groups))==NULL)
+		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
+		if((servicegroup_names=xodtemplate_process_servicegroup_names(temp_service->service_groups,temp_service->_config_file,temp_service->_start_line))==NULL)
 			continue;
+
+		/* process the list of servicegroups */
 		for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
 
 			/* strip trailing spaces */
@@ -11888,12 +11894,13 @@ void xodtemplate_remove_contactlist_item(xodtemplate_contactlist *item,xodtempla
 		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
 			if(temp_item->next==item){
 				temp_item->next=item->next;
-				my_free((void **)&item->contact_name);
-				my_free((void **)&item);
 				break;
 			        }
 		        }
 	        }
+
+	my_free((void **)&item->contact_name);
+	my_free((void **)&item);
 
 #ifdef DEBUG0
 	printf("xodtemplate_remove_contactlist_item() end\n");
@@ -11952,12 +11959,13 @@ void xodtemplate_remove_hostlist_item(xodtemplate_hostlist *item,xodtemplate_hos
 		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
 			if(temp_item->next==item){
 				temp_item->next=item->next;
-				my_free((void **)&item->host_name);
-				my_free((void **)&item);
 				break;
 			        }
 		        }
 	        }
+
+	my_free((void **)&item->host_name);
+	my_free((void **)&item);
 
 #ifdef DEBUG0
 	printf("xodtemplate_remove_hostlist_item() end\n");
@@ -12016,16 +12024,83 @@ void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *item,xodtempla
 		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
 			if(temp_item->next==item){
 				temp_item->next=item->next;
-				my_free((void **)&item->host_name);
-				my_free((void **)&item->service_description);
-				my_free((void **)&item);
 				break;
 			        }
 		        }
 	        }
 
+	my_free((void **)&item->host_name);
+	my_free((void **)&item->service_description);
+	my_free((void **)&item);
+
 #ifdef DEBUG0
 	printf("xodtemplate_remove_servicelist_item() end\n");
+#endif
+
+	return;
+        }
+
+
+/* frees memory allocated to a temporary member list */
+int xodtemplate_free_memberlist(xodtemplate_memberlist **temp_list){
+	xodtemplate_memberlist *this_memberlist=NULL;
+	xodtemplate_memberlist *next_memberlist=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_memberlist() start\n");
+#endif
+
+	/* free memory allocated to member name list */
+	for(this_memberlist=*temp_list;this_memberlist!=NULL;this_memberlist=next_memberlist){
+		next_memberlist=this_memberlist->next;
+		my_free((void **)&this_memberlist->name1);
+		my_free((void **)&this_memberlist->name2);
+		my_free((void **)this_memberlist);
+	        }
+
+	*temp_list=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_free_memberlist() end\n");
+#endif
+
+	return OK;
+        }
+
+
+/* remove an entry from the member list */
+void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *item,xodtemplate_memberlist **list){
+	xodtemplate_memberlist *temp_item=NULL;
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_memberlist_item() start\n");
+#endif
+
+	if(item==NULL || list==NULL)
+		return;
+
+	if(*list==NULL)
+		return;
+
+	if(*list==item)
+		*list=item->next;
+
+	else{
+
+		for(temp_item=*list;temp_item!=NULL;temp_item=temp_item->next){
+			if(temp_item->next==item){
+				temp_item->next=item->next;
+				break;
+			        }
+		        }
+	        }
+
+	my_free((void **)&item->name1);
+	my_free((void **)&item->name2);
+	my_free((void **)&item);
+
+#ifdef DEBUG0
+	printf("xodtemplate_remove_memberlist_item() end\n");
 #endif
 
 	return;
@@ -12062,6 +12137,8 @@ xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *con
 			return NULL;
 		        }
 
+#ifdef REMOVED_02062007
+		/* 02/06/07 EG Don't remove rejects yet, they may appear in the expanded contact list later */
 		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
 		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
 			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
@@ -12071,9 +12148,9 @@ xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *con
 			                }
 		                }
 	                }
-
 		xodtemplate_free_contactlist(reject_list);
 		reject_list=NULL;
+#endif
 	        }
 
 	/* process contact names */
@@ -12479,6 +12556,8 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, 
 			return NULL;
 		        }
 
+#ifdef REMOVED_02062007
+		/* 02/06/07 EG Don't remove rejects yet, they may appear in the expanded contact list later */
 		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
 		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
 			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
@@ -12488,9 +12567,9 @@ xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups, 
 			                }
 		                }
 	                }
-
 		xodtemplate_free_hostlist(reject_list);
 		reject_list=NULL;
+#endif
 	        }
 
 	/* process host names */
@@ -12894,6 +12973,8 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 			return NULL;
 		        }
 
+#ifdef REMOVED_02062007
+		/* 02/06/07 EG Don't remove rejects yet, they may appear in the expanded contact list later */
 		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
 		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
 			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
@@ -12905,6 +12986,7 @@ xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *ser
 	                }
 		xodtemplate_free_servicelist(reject_list);
 		reject_list=NULL;
+#endif
 	        }
 
 	/* process service names */
@@ -13336,6 +13418,661 @@ int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **list, char 
 	new_item->host_name=(char *)strdup(host_name);
 	new_item->service_description=(char *)strdup(description);
 	if(new_item->host_name==NULL || new_item->service_description==NULL){
+		my_free((void **)&new_item);
+		return ERROR;
+	        }
+
+	/* add new item to head of list */
+	new_item->next=*list;
+	*list=new_item;
+
+	return OK;
+        }
+
+
+
+
+/* returns a comma-delimited list of hostgroup names */
+char * xodtemplate_process_hostgroup_names(char *hostgroups, int _config_file, int _start_line){
+	xodtemplate_memberlist *temp_list=NULL;
+	xodtemplate_memberlist *reject_list=NULL;
+	xodtemplate_memberlist *list_ptr=NULL;
+	xodtemplate_memberlist *reject_ptr=NULL;
+	xodtemplate_memberlist *this_list=NULL;
+	char *buf=NULL;
+	int result=OK;
+
+#ifdef DEBUG0
+	printf("xodtemplate_process_hostgroup_names() start\n");
+#endif
+
+	/* process list of hostgroups... */
+	if(hostgroups!=NULL){
+
+		/* split group names into two lists */
+		result=xodtemplate_get_hostgroup_names(&temp_list,&reject_list,hostgroups,_config_file,_start_line);
+		if(result!=OK){
+			xodtemplate_free_memberlist(&temp_list);
+			xodtemplate_free_memberlist(&reject_list);
+			return NULL;
+		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
+					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+
+		xodtemplate_free_memberlist(&reject_list);
+		reject_list=NULL;
+	        }
+
+	/* generate the list of group members */
+	for(this_list=temp_list;this_list!=NULL;this_list=this_list->next){
+		if(buf==NULL){
+			buf=(char *)malloc(strlen(this_list->name1)+1);
+			strcpy(buf,this_list->name1);
+			}
+		else{
+			buf=(char *)realloc(buf,strlen(buf)+strlen(this_list->name1)+2);
+			strcat(buf,",");
+			strcat(buf,this_list->name1);
+			}
+		}
+
+	xodtemplate_free_memberlist(&temp_list);
+
+#ifdef DEBUG0
+	printf("xodtemplate_process_hostgroup_names() end\n");
+#endif
+
+	return buf;
+        }
+
+
+
+/* return a list of hostgroup names */
+int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_memberlist **reject_list, char *hostgroups, int _config_file, int _start_line){
+	char *hostgroup_names=NULL;
+	char *temp_ptr=NULL;
+	xodtemplate_hostgroup *temp_hostgroup=NULL;
+	regex_t preg;
+	int found_match=TRUE;
+	int reject_item=FALSE;
+	int use_regexp=FALSE;
+#ifdef NSCORE
+	char *temp_buffer=NULL;
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_get_hostgroup_names() start\n");
+#endif
+
+	if(list==NULL || hostgroups==NULL)
+		return ERROR;
+
+	/* allocate memory for hostgroup name list */
+	if((hostgroup_names=(char *)strdup(hostgroups))==NULL)
+		return ERROR;
+
+	for(temp_ptr=strtok(hostgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		found_match=FALSE;
+		reject_item=FALSE;
+		
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+		else
+			use_regexp=FALSE;
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
+
+			/* compile regular expression */
+			if(regcomp(&preg,temp_ptr,0)){
+				my_free((void **)&hostgroup_names);
+				return ERROR;
+		                }
+			
+			/* test match against all hostgroup names */
+			for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){
+
+				if(temp_hostgroup->hostgroup_name==NULL)
+					continue;
+
+				/* skip this hostgroup if it did not match the expression */
+				if(regexec(&preg,temp_hostgroup->hostgroup_name,0,NULL,0))
+					continue;
+
+				found_match=TRUE;
+
+				/* dont' add hostgroups that shouldn't be registered */
+				if(temp_hostgroup->register_object==FALSE)
+					continue;
+
+				/* add hostgroup to list */
+				xodtemplate_add_member_to_memberlist(list,temp_hostgroup->hostgroup_name,NULL);
+		                } 
+
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+		        }
+		
+		/* use standard matching... */
+		else{
+
+			/* return a list of all hostgroups */
+			if(!strcmp(temp_ptr,"*")){
+
+				found_match=TRUE;
+
+				for(temp_hostgroup=xodtemplate_hostgroup_list;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next){	
+
+					/* dont' add hostgroups that shouldn't be registered */
+					if(temp_hostgroup->register_object==FALSE)
+						continue;
+
+					/* add hostgroup to list */
+					xodtemplate_add_member_to_memberlist(list,temp_hostgroup->hostgroup_name,NULL);
+				        }
+			        }
+
+			/* else this is just a single hostgroup... */
+			else{
+			
+				/* this hostgroup should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+			        	}
+
+				/* find the hostgroup */
+				temp_hostgroup=xodtemplate_find_real_hostgroup(temp_ptr);
+				if(temp_hostgroup!=NULL){
+
+					found_match=TRUE;
+
+					/* add hostgroup members to proper list */
+					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_hostgroup->hostgroup_name,NULL);
+				        }
+			        }
+		        }
+
+		if(found_match==FALSE){
+#ifdef NSCORE
+			asprintf(&temp_buffer,"Error: Could not find any hostgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
+#endif
+			break;
+	                }
+	        }
+
+	/* free memory */
+	my_free((void **)&hostgroup_names);
+
+#ifdef DEBUG0
+	printf("xodtemplate_get_hostgroup_names() end\n");
+#endif
+
+	if(found_match==FALSE)
+		return ERROR;
+
+	return OK;
+        }
+
+
+
+/* returns a comma-delimited list of contactgroup names */
+char * xodtemplate_process_contactgroup_names(char *contactgroups, int _config_file, int _start_line){
+	xodtemplate_memberlist *temp_list=NULL;
+	xodtemplate_memberlist *reject_list=NULL;
+	xodtemplate_memberlist *list_ptr=NULL;
+	xodtemplate_memberlist *reject_ptr=NULL;
+	xodtemplate_memberlist *this_list=NULL;
+	char *buf=NULL;
+	int result=OK;
+
+#ifdef DEBUG0
+	printf("xodtemplate_process_contactgroup_names() start\n");
+#endif
+
+	/* process list of contactgroups... */
+	if(contactgroups!=NULL){
+
+		/* split group names into two lists */
+		result=xodtemplate_get_contactgroup_names(&temp_list,&reject_list,contactgroups,_config_file,_start_line);
+		if(result!=OK){
+			xodtemplate_free_memberlist(&temp_list);
+			xodtemplate_free_memberlist(&reject_list);
+			return NULL;
+		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
+					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+
+		xodtemplate_free_memberlist(&reject_list);
+		reject_list=NULL;
+	        }
+
+	/* generate the list of group members */
+	for(this_list=temp_list;this_list!=NULL;this_list=this_list->next){
+		if(buf==NULL){
+			buf=(char *)malloc(strlen(this_list->name1)+1);
+			strcpy(buf,this_list->name1);
+			}
+		else{
+			buf=(char *)realloc(buf,strlen(buf)+strlen(this_list->name1)+2);
+			strcat(buf,",");
+			strcat(buf,this_list->name1);
+			}
+		}
+
+	xodtemplate_free_memberlist(&temp_list);
+
+#ifdef DEBUG0
+	printf("xodtemplate_process_contactgroup_names() end\n");
+#endif
+
+	return buf;
+        }
+
+
+
+/* return a list of contactgroup names */
+int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplate_memberlist **reject_list, char *contactgroups, int _config_file, int _start_line){
+	char *contactgroup_names=NULL;
+	char *temp_ptr=NULL;
+	xodtemplate_contactgroup *temp_contactgroup=NULL;
+	regex_t preg;
+	int found_match=TRUE;
+	int reject_item=FALSE;
+	int use_regexp=FALSE;
+#ifdef NSCORE
+	char *temp_buffer=NULL;
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_get_contactgroup_names() start\n");
+#endif
+
+	if(list==NULL || contactgroups==NULL)
+		return ERROR;
+
+	/* allocate memory for contactgroup name list */
+	if((contactgroup_names=(char *)strdup(contactgroups))==NULL)
+		return ERROR;
+
+	for(temp_ptr=strtok(contactgroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		found_match=FALSE;
+		reject_item=FALSE;
+		
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+		else
+			use_regexp=FALSE;
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
+
+			/* compile regular expression */
+			if(regcomp(&preg,temp_ptr,0)){
+				my_free((void **)&contactgroup_names);
+				return ERROR;
+		                }
+			
+			/* test match against all contactgroup names */
+			for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
+
+				if(temp_contactgroup->contactgroup_name==NULL)
+					continue;
+
+				/* skip this contactgroup if it did not match the expression */
+				if(regexec(&preg,temp_contactgroup->contactgroup_name,0,NULL,0))
+					continue;
+
+				found_match=TRUE;
+
+				/* dont' add contactgroups that shouldn't be registered */
+				if(temp_contactgroup->register_object==FALSE)
+					continue;
+
+				/* add contactgroup to list */
+				xodtemplate_add_member_to_memberlist(list,temp_contactgroup->contactgroup_name,NULL);
+		                } 
+
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+		        }
+		
+		/* use standard matching... */
+		else{
+
+			/* return a list of all contactgroups */
+			if(!strcmp(temp_ptr,"*")){
+
+				found_match=TRUE;
+
+				for(temp_contactgroup=xodtemplate_contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){	
+
+					/* dont' add contactgroups that shouldn't be registered */
+					if(temp_contactgroup->register_object==FALSE)
+						continue;
+
+					/* add contactgroup to list */
+					xodtemplate_add_member_to_memberlist(list,temp_contactgroup->contactgroup_name,NULL);
+				        }
+			        }
+
+			/* else this is just a single contactgroup... */
+			else{
+			
+				/* this contactgroup should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+			        	}
+
+				/* find the contactgroup */
+				temp_contactgroup=xodtemplate_find_real_contactgroup(temp_ptr);
+				if(temp_contactgroup!=NULL){
+
+					found_match=TRUE;
+
+					/* add contactgroup members to proper list */
+					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_contactgroup->contactgroup_name,NULL);
+				        }
+			        }
+		        }
+
+		if(found_match==FALSE){
+#ifdef NSCORE
+			asprintf(&temp_buffer,"Error: Could not find any contactgroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
+#endif
+			break;
+	                }
+	        }
+
+	/* free memory */
+	my_free((void **)&contactgroup_names);
+
+#ifdef DEBUG0
+	printf("xodtemplate_get_contactgroup_names() end\n");
+#endif
+
+	if(found_match==FALSE)
+		return ERROR;
+
+	return OK;
+        }
+
+
+
+/* returns a comma-delimited list of servicegroup names */
+char * xodtemplate_process_servicegroup_names(char *servicegroups, int _config_file, int _start_line){
+	xodtemplate_memberlist *temp_list=NULL;
+	xodtemplate_memberlist *reject_list=NULL;
+	xodtemplate_memberlist *list_ptr=NULL;
+	xodtemplate_memberlist *reject_ptr=NULL;
+	xodtemplate_memberlist *this_list=NULL;
+	char *buf=NULL;
+	int result=OK;
+
+#ifdef DEBUG0
+	printf("xodtemplate_process_servicegroup_names() start\n");
+#endif
+
+	/* process list of servicegroups... */
+	if(servicegroups!=NULL){
+
+		/* split group names into two lists */
+		result=xodtemplate_get_servicegroup_names(&temp_list,&reject_list,servicegroups,_config_file,_start_line);
+		if(result!=OK){
+			xodtemplate_free_memberlist(&temp_list);
+			xodtemplate_free_memberlist(&reject_list);
+			return NULL;
+		        }
+
+		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
+		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
+			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
+				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
+					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
+					break;
+			                }
+		                }
+	                }
+
+		xodtemplate_free_memberlist(&reject_list);
+		reject_list=NULL;
+	        }
+
+	/* generate the list of group members */
+	for(this_list=temp_list;this_list!=NULL;this_list=this_list->next){
+		if(buf==NULL){
+			buf=(char *)malloc(strlen(this_list->name1)+1);
+			strcpy(buf,this_list->name1);
+			}
+		else{
+			buf=(char *)realloc(buf,strlen(buf)+strlen(this_list->name1)+2);
+			strcat(buf,",");
+			strcat(buf,this_list->name1);
+			}
+		}
+
+	xodtemplate_free_memberlist(&temp_list);
+
+#ifdef DEBUG0
+	printf("xodtemplate_process_servicegroup_names() end\n");
+#endif
+
+	return buf;
+        }
+
+
+
+/* return a list of servicegroup names */
+int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplate_memberlist **reject_list, char *servicegroups, int _config_file, int _start_line){
+	char *servicegroup_names=NULL;
+	char *temp_ptr=NULL;
+	xodtemplate_servicegroup *temp_servicegroup=NULL;
+	regex_t preg;
+	int found_match=TRUE;
+	int reject_item=FALSE;
+	int use_regexp=FALSE;
+#ifdef NSCORE
+	char *temp_buffer=NULL;
+#endif
+
+#ifdef DEBUG0
+	printf("xodtemplate_get_servicegroup_names() start\n");
+#endif
+
+	if(list==NULL || servicegroups==NULL)
+		return ERROR;
+
+	/* allocate memory for servicegroup name list */
+	if((servicegroup_names=(char *)strdup(servicegroups))==NULL)
+		return ERROR;
+
+	for(temp_ptr=strtok(servicegroup_names,",");temp_ptr;temp_ptr=strtok(NULL,",")){
+
+		found_match=FALSE;
+		reject_item=FALSE;
+		
+		/* strip trailing spaces */
+		strip(temp_ptr);
+
+		/* should we use regular expression matching? */
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+			use_regexp=TRUE;
+		else
+			use_regexp=FALSE;
+
+		/* use regular expression matching */
+		if(use_regexp==TRUE){
+
+			/* compile regular expression */
+			if(regcomp(&preg,temp_ptr,0)){
+				my_free((void **)&servicegroup_names);
+				return ERROR;
+		                }
+			
+			/* test match against all servicegroup names */
+			for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){
+
+				if(temp_servicegroup->servicegroup_name==NULL)
+					continue;
+
+				/* skip this servicegroup if it did not match the expression */
+				if(regexec(&preg,temp_servicegroup->servicegroup_name,0,NULL,0))
+					continue;
+
+				found_match=TRUE;
+
+				/* dont' add servicegroups that shouldn't be registered */
+				if(temp_servicegroup->register_object==FALSE)
+					continue;
+
+				/* add servicegroup to list */
+				xodtemplate_add_member_to_memberlist(list,temp_servicegroup->servicegroup_name,NULL);
+		                } 
+
+			/* free memory allocated to compiled regexp */
+			regfree(&preg);
+		        }
+		
+		/* use standard matching... */
+		else{
+
+			/* return a list of all servicegroups */
+			if(!strcmp(temp_ptr,"*")){
+
+				found_match=TRUE;
+
+				for(temp_servicegroup=xodtemplate_servicegroup_list;temp_servicegroup!=NULL;temp_servicegroup=temp_servicegroup->next){	
+
+					/* dont' add servicegroups that shouldn't be registered */
+					if(temp_servicegroup->register_object==FALSE)
+						continue;
+
+					/* add servicegroup to list */
+					xodtemplate_add_member_to_memberlist(list,temp_servicegroup->servicegroup_name,NULL);
+				        }
+			        }
+
+			/* else this is just a single servicegroup... */
+			else{
+			
+				/* this servicegroup should be excluded (rejected) */
+				if(temp_ptr[0]=='!'){
+					reject_item=TRUE;
+					temp_ptr++;
+			        	}
+
+				/* find the servicegroup */
+				temp_servicegroup=xodtemplate_find_real_servicegroup(temp_ptr);
+				if(temp_servicegroup!=NULL){
+
+					found_match=TRUE;
+
+					/* add servicegroup members to proper list */
+					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_servicegroup->servicegroup_name,NULL);
+				        }
+			        }
+		        }
+
+		if(found_match==FALSE){
+#ifdef NSCORE
+			asprintf(&temp_buffer,"Error: Could not find any servicegroup matching '%s' (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(_config_file),_start_line);
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+			my_free((void **)&temp_buffer);
+#endif
+			break;
+	                }
+	        }
+
+	/* free memory */
+	my_free((void **)&servicegroup_names);
+
+#ifdef DEBUG0
+	printf("xodtemplate_get_servicegroup_names() end\n");
+#endif
+
+	if(found_match==FALSE)
+		return ERROR;
+
+	return OK;
+        }
+
+
+
+/* adds a member to a list */
+int xodtemplate_add_member_to_memberlist(xodtemplate_memberlist **list, char *name1, char *name2){
+	xodtemplate_memberlist *temp_item=NULL;
+	xodtemplate_memberlist *new_item=NULL;
+	int error=FALSE;
+
+	if(list==NULL)
+		return ERROR;
+	if(name1==NULL)
+		return ERROR;
+
+	/* skip this member if its already in the list */
+	for(temp_item=*list;temp_item;temp_item=temp_item->next){
+		if(!strcmp(temp_item->name1,name1)){
+			if(temp_item->name2==NULL){
+				if(name2==NULL)
+					break;
+				}
+			else if(name2!=NULL && !strcmp(temp_item->name2,name2))
+				break;
+			}
+		}
+	if(temp_item)
+		return OK;
+
+	/* allocate memory for a new list item */
+	if((new_item=(xodtemplate_memberlist *)malloc(sizeof(xodtemplate_memberlist)))==NULL)
+		return ERROR;
+
+	/* save the member name(s) */
+	new_item->name1=NULL;
+	new_item->name2=NULL;
+	if(name1){
+		if((new_item->name1=(char *)strdup(name1))==NULL)
+			error=TRUE;
+		}
+	if(name2){
+		if((new_item->name2=(char *)strdup(name2))==NULL)
+			error=TRUE;
+		}
+
+	if(error==TRUE){
+		my_free((void **)&new_item->name1);
+		my_free((void **)&new_item->name2);
 		my_free((void **)&new_item);
 		return ERROR;
 	        }

@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-07-2007
+ * Last Modified:   02-10-2007
  *
  * License:
  *
@@ -727,39 +727,33 @@ int xodtemplate_process_config_dir(char *,int);             /* process all files
 #ifdef NSCORE
 char *xodtemplate_config_file_name(int);                    /* returns the name of a numbered config file */
 
-xodtemplate_contactlist *xodtemplate_expand_contactgroups_and_contacts(char *,char *,int,int);
-int xodtemplate_expand_contactgroups(xodtemplate_contactlist **,xodtemplate_contactlist **,char *,int,int);
-int xodtemplate_expand_contacts(xodtemplate_contactlist **,xodtemplate_contactlist **,char *,int,int);
-int xodtemplate_add_contactgroup_members_to_contactlist(xodtemplate_contactlist **,xodtemplate_contactgroup *,int,int);
-int xodtemplate_add_contact_to_contactlist(xodtemplate_contactlist **,char *);
-xodtemplate_hostlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *,int,int);
-int xodtemplate_expand_hostgroups(xodtemplate_hostlist **,xodtemplate_hostlist **,char *,int,int);
-int xodtemplate_expand_hosts(xodtemplate_hostlist **,xodtemplate_hostlist **,char *,int,int);
-int xodtemplate_add_hostgroup_members_to_hostlist(xodtemplate_hostlist **,xodtemplate_hostgroup *,int,int);
-int xodtemplate_add_host_to_hostlist(xodtemplate_hostlist **,char *);
-xodtemplate_servicelist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *,int,int);
-int xodtemplate_expand_servicegroups(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,int,int);
-int xodtemplate_expand_services(xodtemplate_servicelist **,xodtemplate_servicelist **,char *,char *,int,int);
-int xodtemplate_add_servicegroup_members_to_servicelist(xodtemplate_servicelist **,xodtemplate_servicegroup *,int,int);
-int xodtemplate_add_service_to_servicelist(xodtemplate_servicelist **,char *,char *);
+xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *,char *,int,int);
+int xodtemplate_expand_contactgroups(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
+int xodtemplate_expand_contacts(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
+int xodtemplate_add_contactgroup_members_to_memberlist(xodtemplate_memberlist **,xodtemplate_contactgroup *,int,int);
 
+xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *,char *,int,int);
+int xodtemplate_expand_hostgroups(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
+int xodtemplate_expand_hosts(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
+int xodtemplate_add_hostgroup_members_to_memberlist(xodtemplate_memberlist **,xodtemplate_hostgroup *,int,int);
+
+xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *,char *,char *,int,int);
+int xodtemplate_expand_servicegroups(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
+int xodtemplate_expand_services(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,char *,int,int);
+int xodtemplate_add_servicegroup_members_to_memberlist(xodtemplate_memberlist **,xodtemplate_servicegroup *,int,int);
+
+char *xodtemplate_process_contactgroup_names(char *,int,int);
+int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
 
 char *xodtemplate_process_hostgroup_names(char *,int,int);
 int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
-char *xodtemplate_process_contactgroup_names(char *,int,int);
-int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
+
 char *xodtemplate_process_servicegroup_names(char *,int,int);
 int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **,xodtemplate_memberlist **,char *,int,int);
-#endif
 
-int xodtemplate_free_contactlist(xodtemplate_contactlist *);
-void xodtemplate_remove_contactlist_item(xodtemplate_contactlist *,xodtemplate_contactlist **);
-int xodtemplate_free_hostlist(xodtemplate_hostlist *);
-void xodtemplate_remove_hostlist_item(xodtemplate_hostlist *,xodtemplate_hostlist **);
-int xodtemplate_free_servicelist(xodtemplate_servicelist *);
-void xodtemplate_remove_servicelist_item(xodtemplate_servicelist *,xodtemplate_servicelist **);
 int xodtemplate_free_memberlist(xodtemplate_memberlist **);
 void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *,xodtemplate_memberlist **);
+#endif
 
 int xodtemplate_begin_object_definition(char *,int,int,int);
 int xodtemplate_add_object_property(char *,int);

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-08-2007
+ * Last Modified:   02-09-2007
  *
  * License:
  *
@@ -80,6 +80,8 @@ extern int      accept_passive_host_checks;
 extern int      execute_host_checks;
 extern int      obsess_over_services;
 extern int      obsess_over_hosts;
+
+extern int      translate_passive_host_checks;
 
 extern int      check_service_freshness;
 extern int      check_host_freshness;
@@ -3762,6 +3764,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					}
 
 				/* make a determination of the host's state */
+				hst->current_state=new_state;
 				hst->current_state=determine_host_reachability(hst);
 			        }
 
@@ -3773,6 +3776,11 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 				/* set the state */
 				hst->current_state=new_state;
+
+				/* translate host state between DOWN/UNREACHABLE for passive checks (if enabled) */
+				/* make a determination of the host's state */
+				if(translate_passive_host_checks==TRUE)
+					hst->current_state=determine_host_reachability(hst);
 
 				/* reset the current attempt */
 				hst->current_attempt=1;
@@ -3853,6 +3861,12 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				else{
 					/* set the state */
 					hst->current_state=new_state;
+
+					/* translate host state between DOWN/UNREACHABLE for passive checks (if enabled) */
+					/* make a determination of the host's state */
+					if(translate_passive_host_checks==TRUE)
+						hst->current_state=determine_host_reachability(hst);
+
 					}
 				
 				/* propagate checks to immediate children if they are not UNREACHABLE */
@@ -3863,7 +3877,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				        }
 			        }
 
-			/***** RETRY THE CHECK *****/
+			/***** MAX ATTEMPTS > 1 *****/
 			else{
 
 				/* active checks are the normal case... */
@@ -3877,6 +3891,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
 
 					/* make a preliminary determination of the host's state */
+					hst->current_state=new_state;
 					hst->current_state=determine_host_reachability(hst);
 				        }
 
@@ -3888,6 +3903,11 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 					/* set the state */
 					hst->current_state=new_state;
+
+					/* translate host state between DOWN/UNREACHABLE for passive checks (if enabled) */
+					/* make a determination of the host's state */
+					if(translate_passive_host_checks==TRUE)
+						hst->current_state=determine_host_reachability(hst);
 
 					/* reset the current attempt */
 					hst->current_attempt=1;
@@ -4109,8 +4129,12 @@ int determine_host_reachability(host *hst){
 	host *parent_host=NULL;
 	hostsmember *temp_hostsmember=NULL;
 
+	/* host is UP - no translation needed */
+	if(hst->current_state==HOST_UP)
+		state=HOST_UP;
+
 	/* host has no parents, so it is DOWN */
-	if(hst->parent_hosts==NULL)
+	else if(hst->parent_hosts==NULL)
 		state=HOST_DOWN;
 
 	/* check all parent hosts to see if we're DOWN or UNREACHABLE */

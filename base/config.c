@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 01-30-2007
+ * Last Modified: 02-09-2007
  *
  * License:
  *
@@ -148,6 +148,8 @@ extern int      enable_event_handlers;
 extern int      obsess_over_services;
 extern int      obsess_over_hosts;
 extern int      enable_failure_prediction;
+
+extern int      translate_passive_host_checks;
 
 extern int      aggregate_status_updates;
 extern int      status_update_interval;
@@ -742,6 +744,21 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tobsess_over_hosts set to %s\n",(obsess_over_hosts==TRUE)?"TRUE":"FALSE");
+#endif
+		        }
+
+		else if(!strcmp(variable,"translate_passive_host_checks")){
+
+			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
+				strcpy(error_message,"Illegal value for translate_passive_host_checks");
+				error=TRUE;
+				break;
+			        }
+
+			translate_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
+
+#ifdef DEBUG1
+			printf("\t\ttranslate_passive_host_checks set to %s\n",(translate_passive_host_checks==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 

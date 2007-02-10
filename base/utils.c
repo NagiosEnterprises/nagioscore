@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-04-2007
+ * Last Modified:   02-09-2007
  *
  * License:
  *
@@ -184,6 +184,8 @@ extern int      obsess_over_services;
 extern int      obsess_over_hosts;
 extern int      enable_failure_prediction;
 extern int      process_performance_data;
+
+extern int      translate_passive_host_checks;
 
 extern int      aggregate_status_updates;
 extern int      status_update_interval;
@@ -6315,6 +6317,8 @@ int reset_variables(void){
 	high_host_flap_threshold=DEFAULT_HIGH_HOST_FLAP_THRESHOLD;
 
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
+
+	translate_passive_host_checks=DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 
 	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 

@@ -100,6 +100,8 @@ Nagios 3.0a1 - Changes Since Nagios 2.x
      - Added enable_predictive_host_dependency_checks for enabling predictive checks of dependent hosts
      - Added retry_interval to host definitions
      - Added check_for_orphaned_hosts option and support for orphaned host checks
+     - Passive host check states can now be translated from their original DOWN/UNREACHABLE state if the
+       new translate_passive_host_results option is enabled
 
 * Service check logic changes:
      - 'parallelize' option in service definitions deprecated/no longer used

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 12-21-2006
+# Last Modified: 02-09-2007
 #
 ##############################################################################
 
@@ -845,12 +845,54 @@ obsess_over_services=0
 # OBSESSIVE COMPULSIVE SERVICE PROCESSOR COMMAND
 # This is the command that is run for every service check that is
 # processed by Nagios.  This command is executed only if the
-# obsess_over_service option (above) is set to 1.  The command 
+# obsess_over_services option (above) is set to 1.  The command 
 # argument is the short name of a command definition that you
 # define in your host configuration file. Read the HTML docs for
 # more information on implementing distributed monitoring.
 
 #ocsp_command=somecommand
+
+
+
+# OBSESS OVER HOST CHECKS OPTION
+# This determines whether or not Nagios will obsess over host
+# checks and run the ochp_command defined below.  Unless you're
+# planning on implementing distributed monitoring, do not enable
+# this option.  Read the HTML docs for more information on
+# implementing distributed monitoring.
+# Values: 1 = obsess over hosts, 0 = do not obsess (default)
+
+obsess_over_hosts=0
+
+
+
+# OBSESSIVE COMPULSIVE HOST PROCESSOR COMMAND
+# This is the command that is run for every host check that is
+# processed by Nagios.  This command is executed only if the
+# obsess_over_hosts option (above) is set to 1.  The command 
+# argument is the short name of a command definition that you
+# define in your host configuration file. Read the HTML docs for
+# more information on implementing distributed monitoring.
+
+#ochp_command=somecommand
+
+
+
+# TRANSLATE PASSIVE HOST CHECKS OPTIONS
+# This determines whether or not Nagios will translate
+# DOWN/UNREACHABLE passive host check results into their proper
+# state for this instance of Nagios.  This option is useful
+# if you have distributed or failover monitoring setup.  In
+# these cases your other Nagios servers probably have a different
+# "view" of the network, with regards to the parent/child relationship
+# of hosts.  If a distributed monitoring server thinks a host
+# is DOWN, it may actually be UNREACHABLE from the point of
+# this Nagios instance.  Enabling this option will tell Nagios
+# to translate any DOWN or UNREACHABLE host states it receives
+# passively into the correct state from the view of this server.
+# Values: 1 = perform translation, 0 = do not translate (default)
+
+translate_passive_host_checks=0
 
 
 

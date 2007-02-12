@@ -3,9 +3,10 @@ Nagios 2.x Change Log
 #####################
 
 
-2.7.1 - ??/??/2007
+2.8 - ??/??/2007
 ------------------
 * Bug fix for calculating notification interval with service escalations
+* Bug fix for using servicegroups in service dependency definitions
 
 
 

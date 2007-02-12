@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 11-27-2006
+# Last Modified: 02-12-2007
 ###############################
 
 
@@ -103,10 +103,9 @@ all:
 	@echo "     - Relevant snippets from your config files"
 	@echo "     - Relevant error messages from the Nagios log file"
 	@echo ""
-	@echo "For those of you who are interested in contract support or"
-	@echo "consulting services for Nagios, please visit:"
+	@echo "For more information on obtaining support for Nagios, visit:"
 	@echo ""
-	@echo "       http://www.nagios.org/contractsupport"
+	@echo "       http://www.nagios.org/support/"
 	@echo ""
 	@echo "*************************************************************"
 	@echo ""
@@ -144,7 +143,6 @@ clean:
 	cd $(SRC_MODULE) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ *.*~ */*~ */*.*~ */*/*~ */*/*.*~
-	rm -f config.log config.status config.cache
 
 distclean: clean
 	cd $(SRC_BASE) && $(MAKE) $@
@@ -158,6 +156,7 @@ distclean: clean
 	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
 	rm -f daemon-init pkginfo
 	rm -f Makefile subst
+	rm -f config.log config.status config.cache
 
 devclean: distclean
 

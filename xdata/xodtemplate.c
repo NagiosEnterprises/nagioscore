@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-10-2007
+ * Last Modified: 02-12-2007
  *
  * Description:
  *
@@ -12191,7 +12191,7 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 					continue;
 
 				/* add contact to list */
-				xodtemplate_add_member_to_memberlist(list,temp_contact->contact_name);
+				xodtemplate_add_member_to_memberlist(list,temp_contact->contact_name,NULL);
 		                } 
 
 			/* free memory allocated to compiled regexp */
@@ -12216,7 +12216,7 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 						continue;
 
 					/* add contact to list */
-					xodtemplate_add_member_to_memberlist(list,temp_contact->contact_name);
+					xodtemplate_add_member_to_memberlist(list,temp_contact->contact_name,NULL);
 				        }
 			        }
 
@@ -12236,7 +12236,7 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 					found_match=TRUE;
 
 					/* add contact to list */
-					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_ptr,temp_contact->contact_name);
+					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_ptr,NULL);
 				        }
 			        }
 		        }
@@ -12296,7 +12296,7 @@ int xodtemplate_add_contactgroup_members_to_memberlist(xodtemplate_memberlist **
 		strip(member_name);
 
 		/* add contact to the list */
-		xodtemplate_add_member_to_memberlist(list,member_name);
+		xodtemplate_add_member_to_memberlist(list,member_name,NULL);
 	        }
 
 	my_free((void **)&group_members);
@@ -12577,7 +12577,7 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 					continue;
 
 				/* add host to list */
-				xodtemplate_add_member_to_memberlist(list,temp_host->host_name);
+				xodtemplate_add_member_to_memberlist(list,temp_host->host_name,NULL);
 		                } 
 
 			/* free memory allocated to compiled regexp */
@@ -12602,7 +12602,7 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 						continue;
 
 					/* add host to list */
-					xodtemplate_add_member_to_memberlist(list,temp_host->host_name);
+					xodtemplate_add_member_to_memberlist(list,temp_host->host_name,NULL);
 				        }
 			        }
 
@@ -12622,7 +12622,7 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 					found_match=TRUE;
 
 					/* add host to list */
-					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_ptr,temp_host->host_name);
+					xodtemplate_add_member_to_memberlist((reject_item==TRUE)?reject_list:list,temp_ptr,NULL);
 				        }
 			        }
 		        }
@@ -12681,7 +12681,7 @@ int xodtemplate_add_hostgroup_members_to_memberlist(xodtemplate_memberlist **lis
 		strip(member_name);
 
 		/* add host to the list */
-		xodtemplate_add_member_to_memberlist(list,member_name);
+		xodtemplate_add_member_to_memberlist(list,member_name,NULL);
 	        }
 
 	my_free((void **)&group_members);

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-09-2007
+ * Last Modified:   02-15-2007
  *
  * License:
  *
@@ -117,6 +117,7 @@ extern int      max_service_check_spread;
 
 extern int      command_check_interval;
 extern int      check_reaper_interval;
+extern int      max_check_reaper_time;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
 extern int      auto_rescheduling_interval;
@@ -6267,6 +6268,7 @@ int reset_variables(void){
 
 	command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 	check_reaper_interval=DEFAULT_CHECK_REAPER_INTERVAL;
+        max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
 	service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	auto_rescheduling_interval=DEFAULT_AUTO_RESCHEDULING_INTERVAL;

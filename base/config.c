@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-09-2007
+ * Last Modified: 02-15-2007
  *
  * License:
  *
@@ -104,6 +104,7 @@ extern int      max_parallel_service_checks;
 
 extern int      command_check_interval;
 extern int      check_reaper_interval;
+extern int      max_check_reaper_time;
 extern int      service_freshness_check_interval;
 extern int      host_freshness_check_interval;
 extern int      auto_rescheduling_interval;
@@ -1103,6 +1104,20 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tcheck_result_reaper_interval set to %d\n",check_reaper_interval);
+#endif
+		        }
+
+		else if(!strcmp(variable,"max_check_result_reaper_time")){
+
+			max_check_reaper_time=atoi(value);
+			if(max_check_reaper_time<1){
+				strcpy(error_message,"Illegal value for max_check_result_reaper_time");
+				error=TRUE;
+				break;
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tmax_check_result_reaper_time set to %d\n",max_check_reaper_time);
 #endif
 		        }
 

@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 02-09-2007
+# Last Modified: 02-16-2007
 #
 ##############################################################################
 
@@ -431,6 +431,18 @@ check_result_reaper_frequency=10
 
 
 
+
+# MAX CHECK RESULT REAPER TIME
+# This is the max amount of time (in seconds) that  a single
+# check result reaper event will be allowed to run before 
+# returning control back to Nagios so it can perform other
+# duties.
+
+max_check_result_reaper_time=30
+
+
+
+
 # CHECK RESULT BUFFER SLOTS
 # This settings is used to tweak the number of items or "slots" that
 # the Nagios daemon should allocate to the buffer that holds host and
@@ -456,7 +468,7 @@ use_old_host_check_logic=0
 
 # CACHED HOST CHECK HORIZON
 # This option determines the maximum amount of time (in seconds)
-# that the state of a previously checked host is considered current.
+# that the state of a previous host check is considered current.
 # Cached host states (from host checks that were performed more
 # recently that the timeframe specified by this value) can immensely
 # improve performance in regards to the host check logic.
@@ -471,7 +483,7 @@ cached_host_check_horizon=15
 
 # CACHED SERVICE CHECK HORIZON
 # This option determines the maximum amount of time (in seconds)
-# that the state of a previously checked service is considered current.
+# that the state of a previous service check is considered current.
 # Cached service states (from service checks that were performed more
 # recently that the timeframe specified by this value) can immensely
 # improve performance in regards to predictive dependency checks.

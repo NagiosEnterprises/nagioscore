@@ -7,6 +7,7 @@ Nagios 2.x Change Log
 ------------------
 * Bug fix for calculating notification interval with service escalations
 * Bug fix for using servicegroups in service dependency definitions
+* Bug fix for bad date format submission in command CGI
 
 
 

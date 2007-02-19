@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-12-2007
+ * Last Modified: 02-18-2007
  *
  * Description:
  *
@@ -11836,6 +11836,13 @@ int xodtemplate_free_memory(void){
 	my_free((void **)&xodtemplate_config_files);
 	xodtemplate_current_config_file=0;
 
+#ifdef HAVE_GLIB
+	/* free hash table memory */
+	g_hash_table_destroy(host_hashtable);
+	host_hashtable=NULL;
+	g_hash_table_destroy(service_hashtable);
+	service_hashtable=NULL;
+#endif
 
 #ifdef DEBUG0
 	printf("xodtemplate_free_memory() end\n");

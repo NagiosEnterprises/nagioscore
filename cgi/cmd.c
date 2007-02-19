@@ -2,8 +2,8 @@
  *
  * CMD.C -  Nagios Command CGI
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 12-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 02-19-2007
  *
  * License:
  * 
@@ -1535,7 +1535,7 @@ void commit_command_data(int cmd){
 		/* make sure we have check time (if necessary) */
 		if(cmd==CMD_SCHEDULE_SVC_CHECK && start_time==(time_t)0){
 			if(!error_string)
-				error_string=strdup("Start time must be non-zero");
+				error_string=strdup("Start time must be non-zero or bad format has been submitted.");
 			}
 
 		/* make sure we have start/end times for downtime (if necessary) */
@@ -1640,7 +1640,7 @@ void commit_command_data(int cmd){
 		/* make sure we have check time (if necessary) */
 		if((cmd==CMD_SCHEDULE_HOST_CHECK || cmd==CMD_SCHEDULE_HOST_SVC_CHECKS)&& start_time==(time_t)0){
 			if(!error_string)
-				error_string=strdup("Start time must be non-zero");
+				error_string=strdup("Start time must be non-zero or bad format has been submitted.");
 			}
 
 		/* make sure we have passive check info (if necessary) */
@@ -2673,6 +2673,7 @@ void show_command_help(cmd){
 /* converts a time string to a UNIX timestamp, respecting the date_format option */
 int string_to_time(char *buffer, time_t *t){
 	struct tm lt;
+	int ret=0;
 
 
 	/* Initialize some variables just in case they don't get parsed
@@ -2689,12 +2690,16 @@ int string_to_time(char *buffer, time_t *t){
 	lt.tm_wday=0;
 	lt.tm_yday=0;
 
+
 	if(date_format==DATE_FORMAT_EURO)
-		sscanf(buffer,"%02d-%02d-%04d %02d:%02d:%02d",&lt.tm_mday,&lt.tm_mon,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
+		ret=sscanf(buffer,"%02d-%02d-%04d %02d:%02d:%02d",&lt.tm_mday,&lt.tm_mon,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
 	else if(date_format==DATE_FORMAT_ISO8601 || date_format==DATE_FORMAT_STRICT_ISO8601)
-		sscanf(buffer,"%04d-%02d-%02d%*[ T]%02d:%02d:%02d",&lt.tm_year,&lt.tm_mon,&lt.tm_mday,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
+		ret=sscanf(buffer,"%04d-%02d-%02d%*[ T]%02d:%02d:%02d",&lt.tm_year,&lt.tm_mon,&lt.tm_mday,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
 	else
-		sscanf(buffer,"%02d-%02d-%04d %02d:%02d:%02d",&lt.tm_mon,&lt.tm_mday,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
+		ret=sscanf(buffer,"%02d-%02d-%04d %02d:%02d:%02d",&lt.tm_mon,&lt.tm_mday,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
+
+	if (ret!=6)
+		return ERROR;
 
 	lt.tm_mon--;
 	lt.tm_year-=1900;

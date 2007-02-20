@@ -145,7 +145,7 @@ function switchdot(name,on){
     <td nowrap><a href="@cgiurl@/status.cgi?host=all&servicestatustypes=28" target="main" onMouseOver="switchdot('svcproblems-dot',1)" onMouseOut="switchdot('svcproblems-dot',0)" class="NavBarItem">Service Problems</a></td>
   </tr>
   <tr> 
-    <td width13></td>
+    <td width=13></td>
     <td nowrap><img src="images/greendot.gif" width="13" height="14" name="svcproblemsu-dot" align="absmiddle"><a href="@cgiurl@/status.cgi?host=all&type=detail&servicestatustypes=16&hoststatustypes=3&serviceprops=42&servicestatustypes=28" target="main" onMouseOver="switchdot('svcproblemsu-dot',1)" onMouseOut="switchdot('svcproblemsu-dot',0)" class="NavBarItem">Unhandled</a></td>
   </tr>
   <tr> 
@@ -153,7 +153,7 @@ function switchdot(name,on){
     <td nowrap><a href="@cgiurl@/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12" target="main" onMouseOver="switchdot('hostproblems-dot',1)" onMouseOut="switchdot('hostproblems-dot',0)" class="NavBarItem">Host Problems</a></td>
   </tr>
   <tr> 
-    <td width13></td>
+    <td width=13></td>
     <td nowrap><img src="images/greendot.gif" width="13" height="14" name="hostproblemsu-dot" align="absmiddle"><a href="@cgiurl@/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&hostprops=42" target="main" onMouseOver="switchdot('hostproblemsu-dot',1)" onMouseOut="switchdot('hostproblemsu-dot',0)" class="NavBarItem">Unhandled</a></td>
   </tr>
   <tr> 

@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,11 +17,17 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Tuning Nagios For Maximum Performance</h2>
 </div>
 </p>
 
 <hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="largeinstalltweaks.html">Large Installation Tweaks</a>, <a href="faststartup.html">Fast Startup Options</a>, <a href="mrtggraphs.html">Graphing Performance Info</a>
+</p>
 
 <p>
 <strong><u>Introduction</u></strong>
@@ -35,6 +41,16 @@ So you've finally got Nagios up and running and you want to know how you can twe
 
 <p>
 <ol>
+
+<li><b>Check Result Reaper Frequency</b>. <br><br>
+
+<li><b>Max Reaper Time</b>. <br><br>
+
+<li><b>Use large installation tweaks</b>.  Enabling the <a href="configmain.html#use_large_installation_tweaks">use_large_installation_tweaks</a> option may provide you with better performance.  Read more about what this option does <a href="largeinstalltweaks.html">here</a>.<br><br>
+
+<li><b>Graph performance statistics with MRTG</b>.  In order to keep track of how well your Nagios installation handles load over time and how your configuration changes affect it, you should be graphing several important statistics with <a href="mrtggraphs.html">MRTG</a>.</li><br><br>
+
+<li><b>Adjust buffer slots</b>.  You may need to adjust the values of the <a href="configmain.html#check_result_buffer_slots">check_result_buffer_slots</a> and <a href="configmain.html#external_command_buffer_slots">external_command_buffer_slots</a> options.  Graphing buffer slot statistics with <a href="mrtggraphs.html">MRTG</a> (see above) is critical in determining what values you should use for these options.</li><br><br>
 
 <li><b>Use aggregated status updates</b>.  Enabling aggregated status updates (with the <a href="configmain.html#aggregate_status_updates">aggregate_status_updates</a> option) will greatly reduce the load on your monitoring host because it won't be constantly trying to update the <a href="configmain.html#status_file">status log</a>.  This is especially recommended if you are monitoring a large number of services.  The main trade-off with using aggregated status updates is that changes in the states of hosts and services will not be reflected immediately in the status file.  This may or may not be a big concern for you.<br><br>
 
@@ -51,7 +67,7 @@ So you've finally got Nagios up and running and you want to know how you can twe
 
 <li><b>Optimize host check commands</b>.  If you're checking host states using the check_ping plugin you'll find that host checks will be performed much faster if you break up the checks.  Instead of specifying a <i>max_attempts</i> value of 1 in the host definition and having the check_ping plugin send 10 ICMP packets to the host, it would be much faster to set the <i>max_attempts</i> value to 10 and only send out 1 ICMP packet each time.  This is due to the fact that Nagios can often determine the status of a host after executing the plugin once, so you want to make the first check as fast as possible.  This method does have its pitfalls in some situations (i.e. hosts that are slow to respond may be assumed to be down), but I you'll see faster host checks if you use it.  Another option would be to use a faster plugin (i.e. check_fping) as the <i>host_check_command</i> instead of check_ping.<br><br>
 
-<li><b>Don't schedule regular host checks</b>.  Do NOT schedule regular checks of hosts unless absolutely necessary.  There are not many reasons to do this, as host checks are performed on-demand as needed.  To disable regular checks of a host, set the <i>check_interval</i> directive in the <a href="xodtemplate.html#host">host definition</a> to 0.  If you do need to have regularly scheduled host checks, try to use a longer check interval and make sure your host checks are optimized (see above).<br><br>
+<li><b>Don't schedule regular host checks</b>.  Do NOT schedule regular checks of hosts unless absolutely necessary.  There are not many reasons to do this, as host checks are performed on-demand as needed.  To disable regular checks of a host, set the <i>check_interval</i> directive in the <a href="objectdefinitions.html#host">host definition</a> to 0.  If you do need to have regularly scheduled host checks, try to use a longer check interval and make sure your host checks are optimized (see above).<br><br>
 
 <li><b>Don't use agressive host checking</b>.  Unless you're having problems with Nagios recognizing host recoveries, I would recommend <i>not</i> enabling the <a href="configmain.html#use_agressive_host_checking">use_aggressive_host_checking</a> option.  With this option turned off host checks will execute much faster, resulting in speedier processing of service check results.  However, host recoveries can be missed under certain circumstances when this it turned off.  For example, if a host recovers and all of the services associated with that host stay in non-OK states (and don't "wobble" between different non-OK states), Nagios may miss the fact that the host has recovered.  A few people may need to enable this option, but the majority don't and I would recommend <i>not</i> using it unless you find it necessary...
 <br><br>

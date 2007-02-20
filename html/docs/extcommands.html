@@ -5,7 +5,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -15,6 +15,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">External Commands</h2>
 </div>
 </p>
@@ -22,28 +23,39 @@
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="commandfile.html">Command File Permissions</a>, <a href="passivechecks.html">Passive Checks</a>
+</p>
+
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 
 <p>
-Nagios can process commands from external applications (including CGIs - see the <a href="cgis.html#cmd_cgi">command CGI</a> for an example) and alter various aspects of its monitoring functions based on the commands it receives.
+Nagios can process commands from external applications (including the CGIs) and alter various aspects of its monitoring functions based on the commands it receives.  External applications can submit commands by writing to the <a href="configmain.html#command_file">command file</a>, which is periodically processed by the Nagios daemon.
 </p>
+
+<img src="images/externalcommands.png" border="0" style="float: right;">
 
 <p>
 <strong><u>Enabling External Commands</u></strong>
 </p>
 
 <p>
-By default, Nagios <i>does not</i> check for or process any external commands.  If you want to enable external command processing, you'll have to do the following...
+In order to have Nagios process external commands, make sure you do the following:
 </p>
 
 <p>
 <ul>
-<li>Enable external command checking with the <a href="configmain.html#check_external_commands">check_external_commands</a> option
-<li>Set the frequency of command checks with the <a href="configmain.html#command_check_interval">command_check_interval</a> option
-<li>Specify the location of the command file with the <a href="configmain.html#command_file">command_file</a> option.  Its best to put the external command file in its own directory (i.e. <i>/usr/local/nagios/var/rw</i>).
-<li>Setup proper permissions on the directory containing the external command file.  Details on how to do this can be found <a href="commandfile.html">here</a>.
+<li>Enable external command checking with the <a href="configmain.html#check_external_commands">check_external_commands</a> option.
+<li>Set the frequency of command checks with the <a href="configmain.html#command_check_interval">command_check_interval</a> option.
+<li>Specify the location of the command file with the <a href="configmain.html#command_file">command_file</a> option.
+<li><a href="commandfile.html">Setup proper permissions</a> on the directory containing the external command file.
 </ul>
+</p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip:  Its best to put the external command file in its own directory (i.e. <i>/usr/local/nagios/var/rw</i>) in order to set restrictive permissions on the file. (<a href="commandfile.html">Read more</a>)
 </p>
 
 <p>
@@ -74,19 +86,13 @@ External commands that are written to the <a href="configmain.html#command_file"
 </p>
 
 <p>
-<font color="red">
-<strong>
+<pre>
 [<i>time</i>] <i>command_id</i>;<i>command_arguments</i>
-</strong>
-</font>
+</pre>
 </p>
 
 <p>
-...where <i>time</i> is the time (in <i>time_t</i> format) that the external application or CGI committed the external command to the command file.  Some of the commands that are available are described in the table below, along with their <i>command_id</i> and a description of their <i>command_arguments</i>.
-</p>
-
-<p>
-<strong><u>Implemented Commands</u></strong>
+...where <i>time</i> is the time (in <i>time_t</i> format) that the external application submitted the external command to the command file.  The values for the <i>command_id</i> and <i>command_arguments</i> arguments will depend on what command is being submitted to Nagios.
 </p>
 
 <p>

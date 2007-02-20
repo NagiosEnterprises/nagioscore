@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,6 +17,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">State Stalking</h2>
 </div>
 </p>
@@ -24,11 +25,16 @@
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="volatileservices.html">Volatile Services</a>
+</p>
+
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 
 <p>
-State "stalking" is a feature which is probably not going to used by most users.  When enabled, it allows you to log changes in service and host checks even if the state of the host or service does not change.  When stalking is enabled for a particular host or service, Nagios will watch that service very carefully and log any changes it sees.  As you'll see, it can be very helpful to you in later analysis of the log files.
+State "stalking" is a feature which is probably not going to used by most users.  When enabled, it allows you to log changes in the output service and host checks even if the state of the host or service does not change.  When stalking is enabled for a particular host or service, Nagios will watch that host or service very carefully and log any changes it sees in the output of check results.  As you'll see, it can be very helpful to you in later analysis of the log files.
 </p>
 
 <p>
@@ -45,15 +51,15 @@ If you enable stalking for one or more states of a particular host or service, N
 
 <p>
 <table border="1" class="Default">
-<tr><td><b>Service Check #:</b></td><td><b>Service State:</b></td><td><b>Service Check Output:</b></td></tr>
-<tr><td>x</td><td>OK</td><td>RAID array optimal</td></tr>
-<tr><td>x+1</td><td>OK</td><td>RAID array optimal</td></tr>
-<tr><td>x+2</td><td>WARNING</td><td>RAID array degraded (1 drive bad, 1 hot spare rebuilding)</td></tr>
-<tr><td>x+3</td><td>CRITICAL</td><td>RAID array degraded (2 drives bad, 1 host spare online, 1 hot spare rebuilding)</td></tr>
-<tr><td>x+4</td><td>CRIICAL</td><td>RAID array degraded (3 drives bad, 2 hot spares online)</td></tr>
-<tr><td>x+5</td><td>CRITICAL</td><td>RAID array failed</td></tr>
-<tr><td>x+6</td><td>CRITICAL</td><td>RAID array failed</td></tr>
-<tr><td>x+7</td><td>CRITICAL</td><td>RAID array failed</td></tr>
+<tr><th>Service Check #:</th><th>Service State:</th><th>Service Check Output:</th><th>Logged Normally</th><th>Logged With Stalking</th></tr>
+<tr><td>x</td><td>OK</td><td>RAID array optimal</td><td>-</td><td>-</td></tr>
+<tr><td>x+1</td><td>OK</td><td>RAID array optimal</td><td>-</td><td>-</td></tr>
+<tr><td>x+2</td><td>WARNING</td><td>RAID array degraded (1 drive bad, 1 hot spare rebuilding)</td><td><img src="images/checkmark.png" alt="Yes"></td><td><img src="images/checkmark.png" alt="Yes"></td></tr>
+<tr><td>x+3</td><td>CRITICAL</td><td>RAID array degraded (2 drives bad, 1 host spare online, 1 hot spare rebuilding)</td><td><img src="images/checkmark.png" alt="Yes"></td><td><img src="images/checkmark.png" alt="Yes"></td></tr>
+<tr><td>x+4</td><td>CRITICAL</td><td>RAID array degraded (3 drives bad, 2 hot spares online)</td><td>-</td><td><img src="images/checkmark.png" alt="Yes"></td></tr>
+<tr><td>x+5</td><td>CRITICAL</td><td>RAID array failed</td><td>-</td><td><img src="images/checkmark.png" alt="Yes"></td></tr>
+<tr><td>x+6</td><td>CRITICAL</td><td>RAID array failed</td><td>-</td><td>-</td></tr>
+<tr><td>x+7</td><td>CRITICAL</td><td>RAID array failed</td><td>-</td><td>-</td></tr>
 </table>
 </p>
 
@@ -62,7 +68,7 @@ Given this sequence of checks, you would normally only see two log entries for t
 </p>
 
 <p>
-For whatever reason, you may like to have the complete history of this catasrophe in your log files.  Perhaps to help explain to your manager how quickly the situation got out of control, perhaps just to laugh at over a couple of drinks at the local pub, whatever...
+For whatever reason, you may like to have the complete history of this catastrophe in your log files.  Perhaps to help explain to your manager how quickly the situation got out of control, perhaps just to laugh at it over a couple of drinks at the local pub...
 </p>
 
 <p>
@@ -70,7 +76,7 @@ Well, if you had enabled stalking of this service for CRITICAL states, you would
 </p>
 
 <p>
-A similiar example of stalking might be on a service that checks your web server.  If the check_http plugin first returns a WARNING state because of a 404 error and on subsequent checks returns a WARNING state because of a particular pattern not being found, you might want to know that.  If you didn't enable state stalking for WARNING states of the service, only the first WARNING state event (the 404 error) would be logged and you wouldn't have any idea (looking back in the archived logs) that future problems were not due to a 404, but rather a missing pattern in the returned web page.
+A similiar example of stalking might be on a service that checks your web server.  If the check_http plugin first returns a WARNING state because of a 404 error and on subsequent checks returns a WARNING state because of a particular pattern not being found, you might want to know that.  If you didn't enable state stalking for WARNING states of the service, only the first WARNING state event (the 404 error) would be logged and you wouldn't have any idea (looking back in the archived logs) that future WARNING states were not due to a 404, but rather some text pattern that could not be found in the returned web page.
 </p>
 
 <p>
@@ -95,6 +101,15 @@ You can enable state stalking for hosts and services by using the <i>stalking_op
 
 
 <p>
+<strong><u>How Does Stalking Differ From Volatile Services?</u></strong>
+</p>
+
+<p>
+<a href="volatileservices.html">Volatile services</a> are similar, but will cause notifications and event handlers to run. Stalking is purely for logging purposes.
+</p>
+
+
+<p>
 <strong><u>Caveats</u></strong>
 </p>
 
@@ -103,7 +118,7 @@ You should be aware that there are some potential pitfalls with enabling stalkin
 </p>
 
 <p>
-As a general rule, I would suggest that you <i>not</i> enable stalking for hosts and services without thinking things through.  Still, its there if you need and want it.
+As a general rule, I would suggest that you <i>not</i> enable stalking for hosts and services without thinking things through.  Still, it's there if you need and want it.
 </p>
 
 

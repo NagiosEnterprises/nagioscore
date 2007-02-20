@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,11 +17,17 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Volatile Services</h2>
 </div>
 </p>
 
 <hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="stalking.html">State Stalking</a>
+</p>
 
 <p>
 <strong><u>Introduction</u></strong>
@@ -41,8 +47,8 @@ Volatile services are useful for monitoring...
 
 <p>
 <ul>
-<li>things that automatically reset themselves to an "OK" state each time they are checked
-<li>events such as security alerts which require attention every time there is a problem (and not just the first time)
+<li>Things that automatically reset themselves to an "OK" state each time they are checked
+<li>Events such as security alerts which require attention every time there is a problem (and not just the first time)
 </ul>
 </p>
 
@@ -56,14 +62,18 @@ Volatile services differ from "normal" services in three important ways.  <i>Eac
 
 <p>
 <ul>
-<li>the non-OK service state is logged
-<li>contacts are notified about the problem (if that's <a href="notifications.html">what should be done</a>)
-<li>the <a href="eventhandlers.html">event handler</a> for the service is run (if one has been defined)
+<li>The non-OK service state is logged
+<li>Contacts are notified about the problem (if that's <a href="notifications.html">what should be done</a>).  Note: Notification intervals are ignored for volatile services.
+<li>The <a href="eventhandlers.html">event handler</a> for the service is run (if one has been defined)
 </ul>
 </p>
 
 <p>
 These events normally only occur for services when they are in a non-OK state and a hard state change has just occurred.  In other words, they only happen the first time that a service goes into a non-OK state.  If future checks of the service result in the same non-OK state, no hard state change occurs and none of the events mentioned take place again.
+</p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip:  If you are only interested in logging, consider using <a href="stalking.html">stalking</a> options instead.
 </p>
 
 <p>
@@ -108,7 +118,6 @@ Create a shell script in the <i>/usr/local/nagios/libexec/eventhandlers</i> dire
 </p>
 
 <p>
-<font size=-1>
 <pre>
 	#!/bin/sh
  
@@ -128,7 +137,6 @@ Create a shell script in the <i>/usr/local/nagios/libexec/eventhandlers</i> dire
 	# append the command to the end of the command file
 	`$echocmd $cmdline >> $CommandFile`
 </pre>
-</font> 
 </p>
 
 <p>

@@ -12,7 +12,7 @@
 
         .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; text-align: center; }
 		
-        .Title { font-family: verdana,arial,serif; font-size: 10pt; font-weight: bold; text-align: center;}
+        .Title { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; text-align: center;}
 
 -->      
 </STYLE>
@@ -27,7 +27,7 @@
 </div>
 </P>
 <P class="Title">
-Version 2.0 Documentation
+Nagios 3.x Documentation
 </p>
 <P class="PageTitle">
 Table of Contents
@@ -42,119 +42,132 @@ Table of Contents
 <a href="about.html#requirements"><strong>System requirements</strong></a><br>
 <a href="about.html#licensing"><strong>Licensing</strong></a><br>
 <a href="about.html#downloading"><strong>Downloading the latest version</strong></a><br>
-<a href="about.html#othermonitors"><strong>Other monitoring utilities</strong></a><br>
 </ul>
 
 <strong>Release Notes</strong>
 <ul>
 <a href="whatsnew.html"><font color="red"><strong>What's new in this version</strong></font></a><br>
-<a href="whatsnew.html#changelog"><strong>Change log</strong></a><br>
 </ul>
 
 <strong>Support</strong>
 <ul>
-<a href="http://www.nagios.org/support/"><strong>Self-service and commercial support</strong></a><br>
+<a href="http://www.nagios.org/support/"><strong>Support options</strong></a><br>
 </ul>
 
 <strong>Getting Started</strong>
 <ul>
-<a href="beginners.html"><strong>Advice for beginners</strong></a><br>
+* <a href="beginners.html"><strong>Advice for beginners</strong></a><br>
 </ul>
 
 <strong>Installing Nagios</strong>
 <ul>
-<a href="installing.html"><strong>Compiling and installing Nagios</strong></a><br>
-<a href="installweb.html"><strong>Setting up the web interface</strong></a><br>
+* <a href="installing.html"><strong>Compiling and installing Nagios</strong></a><br>
+* <a href="installweb.html"><strong>Setting up the web interface</strong></a><br>
 </ul>
 
 <strong>Configuring Nagios</strong>
 <ul>
 <a href="config.html"><strong>Configuration overview</strong></a><br>
 <a href="configmain.html"><strong>Main configuration file options</strong></a><br>
-<a href="configobject.html"><strong>Object configuration file options</strong></a><br>
-<a href="configcgi.html"><strong>CGI configuration file options</strong></a><br>
-<a href="cgiauth.html"><strong>Configuring authorization for the CGIs</strong></strong></a><br>
+<a href="configobject.html"><strong>Object configuration overview</strong></a><br>
+<a href="objectdefinitions.html"><strong>Object definitions</strong></a><br>
+* <a href="configcgi.html"><strong>CGI configuration file options</strong></a><br>
+* <a href="cgiauth.html"><strong>Configuring authorization for the CGIs</strong></strong></a><br>
 </ul>
 
 <strong>Running Nagios</strong>
 <ul>
-<a href="verifyconfig.html"><strong>Verifying the configuration</strong></a><br>
-<a href="starting.html"><strong>Starting Nagios</strong></a><br>
-<a href="stoprestart.html"><strong>Stopping and restarting Nagios</strong></a><br>
+* <a href="verifyconfig.html"><strong>Verifying the configuration</strong></a><br>
+* <a href="starting.html"><strong>Starting Nagios</strong></a><br>
+* <a href="stoprestart.html"><strong>Stopping and restarting Nagios</strong></a><br>
 </ul>
 
-<strong>Nagios Plugins</strong>
+<strong>The Basics</strong>
 <ul>
-<a href="plugins.html"><strong>Standard plugins</strong></a><br>
-<a href="plugins.html#howto"><strong>Writing your own plugins</strong></a><br>
+<a href="plugins.html"><strong>Plugins</strong></a><br>
+<a href="macros.html"><strong>Macros and how they work</strong></a><br>
+<a href="macrolist.html"><strong>Standard macros available in Nagios</strong></a><br>
+<a href="hostchecks.html"><strong>Host checks</strong></a><br>
+<a href="servicechecks.html"><strong>Service checks</strong></a><br>
+* <a href="parallelization.html"><strong>Host and service check parallelization</strong></a><br>
+<a href="activechecks.html"><strong>Active checks</strong></a><br>
+* <a href="passivechecks.html"><strong>Passive checks</strong></a><br>
+* <a href="indirectchecks.html"><strong>Indirect host and service checks</strong></a><br>
+* <a href="checkscheduling.html"><strong>Check scheduling</strong></a><br>
+* <a href="statetypes.html"><strong>State types</strong></a><br>
+* <a href="timeperiods.html"><strong>Time periods</strong></a><br>
+* <a href="networkreachability.html"><strong>Host reachability</strong></a><br>
+* <a href="networkoutages.html"><strong>Network outages</strong></a><br>
+* <a href="notifications.html"><strong>Notifications</strong></a><br>
+<br>
+* <a href="cgis.html"><strong>Information on the CGIs</strong></a><br>
+* <a href="cgiincludes.html"><strong>Custom CGI headers and footers</strong></a>
+</ul>
+
+<strong>Advanced Topics</strong>
+<ul>
+* <a href="extcommands.html"><strong>External commands</strong></a><br>
+* <a href="eventhandlers.html"><strong>Event handlers</strong></a><br>
+<a href="volatileservices.html"><strong>Volatile services</strong></a><br>
+<a href="freshness.html"><strong>Service and host result freshness checks</strong></a><br>
+* <a href="distributed.html"><strong>Distributed monitoring</strong></a><br>
+* <a href="redundancy.html"><strong>Redundant and failover monitoring</strong></a><br>
+<a href="flapping.html"><strong>Detection and handling of state flapping</strong></a><br>
+* <a href="escalations.html"><strong>Notification escalations</strong></a><br>
+* <a href="clusters.html"><strong>Monitoring service and host clusters</strong></a><br>
+* <a href="dependencies.html"><strong>Host and service dependencies</strong></a><br>
+<a href="stalking.html"><strong>State stalking</strong></a><br>
+* <a href="perfdata.html"><strong>Performance data</strong></a><br>
+<a href="downtime.html"><strong>Scheduled host and service downtime</strong></a><br>
+<a href="embeddedperl.html"><strong>Using the embedded Perl interpreter</strong></a><br>
+* <a href="adaptive.html"><strong>Adaptive monitoring</strong></a><br>
+<a href="dependencychecks.html"><strong>Predictive dependency checks</strong></a><br>
+<a href="cachedchecks.html"><strong>Cached checks</strong></a><br>
+<a href="passivestatetranslation.html"><strong>Passive host state translation</strong></a><br>
+<br>
+<a href="objectinheritance.html"><strong>Object inheritance</strong></a><br>
+<a href="objecttricks.html"><strong>Time-saving tips for object definitions</strong></a><br>
 </ul>
 
 <strong>Nagios Addons</strong>
 <ul>
 <table border="0" cellspacing="0" cellpadding="0" class="Default">
 <tr>
-<td><a href="addons.html#nrpe"><strong>NRPE</strong></a></td>
+<td>* <a href="addons.html#nrpe"><strong>NRPE</strong></a></td>
 <td>- Daemon and plugin for executing plugins on remote hosts</td>
 </tr>
 <tr>
-<td><a href="addons.html#nsca"><strong>NSCA</strong></a></td>
+<td>* <a href="addons.html#nsca"><strong>NSCA</strong></a></td>
 <td>- Daemon and client program for sending passive check results across the network</td>
 </tr>
 </table>
 </ul>
 
-<strong>Theory Of Operation</strong>
-<ul>
-<a href="networkreachability.html"><strong>Determing status and reachability of network hosts</strong></a><br>
-<a href="networkoutages.html"><strong>Network outages</strong></a><br>
-<a href="notifications.html"><strong>Notifications</strong></a><br>
-<a href="plugintheory.html"><strong>Plugin theory</strong></a><br>
-<a href="checkscheduling.html"><strong>Service check scheduling</strong></a><br>
-<a href="statetypes.html"><strong>State types</strong></a><br>
-<a href="timeperiods.html"><strong>Time periods</strong></a><br>
-</ul>
-
-<strong>Advanced Topics</strong>
-<ul>
-<a href="eventhandlers.html"><strong>Event handlers</strong></a><br>
-<a href="extcommands.html"><strong>External commands</strong></a><br>
-<a href="indirectchecks.html"><strong>Indirect host and service checks</strong></a><br>
-<a href="passivechecks.html"><strong>Passive service checks</strong></a><br>
-<a href="volatileservices.html"><strong>Volatile services</strong></a><br>
-<a href="freshness.html"><strong>Service and host result freshness checks</strong></a><br>
-<a href="distributed.html"><strong>Distributed monitoring</strong></a><br>
-<a href="redundancy.html"><strong>Redundant and failover monitoring</strong></a><br>
-<a href="flapping.html"><strong>Detection and handling of state flapping</strong></a><br>
-<a href="parallelization.html"><strong>Service check parallelization</strong></a><br>
-<a href="escalations.html"><strong>Notification escalations</strong></a><br>
-<a href="clusters.html"><strong>Monitoring service and host clusters</strong></a><br>
-<a href="dependencies.html"><strong>Host and service dependencies</strong></a><br>
-<a href="stalking.html"><strong>State stalking</strong></a><br>
-<a href="perfdata.html"><strong>Performance data</strong></a><br>
-<a href="downtime.html"><strong>Scheduled host and service downtime</strong></a><br>
-<a href="embeddedperl.html"><strong>Using the embedded Perl interpreter</strong></a><br>
-<a href="adaptive.html"><strong>Adaptive monitoring</strong></a><br>
-<a href="templaterecursion.html"><strong>Object inheritance</strong></a><br>
-<a href="templatetricks.html"><strong>Time-saving tips for object definitions</strong></a><br>
-</ul>
-
 <strong>Integration With Other Software</strong>
 <ul>
-<a href="int-snmptrap.html"><strong>SNMP Traps</strong></a><br>
-<a href="int-tcpwrappers.html"><strong>TCP Wrappers</strong></a><br>
+* <a href="int-snmptrap.html"><strong>SNMP Traps</strong></a><br>
+* <a href="int-tcpwrappers.html"><strong>TCP Wrappers</strong></a><br>
 </ul>
 
 
-<strong>Miscellaneous</strong>
+<strong>Security and Performance Tuning</strong>
 <ul>
-<a href="security.html"><strong>Securing Nagios</strong></a><br>
-<a href="tuning.html"><strong>Tuning Nagios for maximum performance</strong></a><br>
+* <a href="security.html"><strong>Securing Nagios</strong></a><br>
+* <a href="tuning.html"><strong>Tuning Nagios for maximum performance</strong></a><br>
+<a href="faststartup.html"><strong>Fast startup options</strong></a><br>
+<a href="largeinstalltweaks.html"><strong>Large installation tweaks</strong></a><br>
 <a href="nagiostats.html"><strong>Using the nagiostats utility</strong></a><br>
-<a href="macros.html"><strong>Using macros in commands</strong></a><br>
-<a href="cgis.html"><strong>Information on the CGIs</strong></a><br>
-<a href="cgiincludes.html"><strong>Custom CGI headers and footers</strong></a>
+* <a href="mrtggraphs.html"><strong>Graphing Nagios performance statistics</strong></a><br>
 </ul>
+
+<strong>Development</strong>
+<ul>
+<a href="pluginapi.html"><strong>Plugin API</strong></a><br>
+<a href="epnplugins.html"><strong>Developing Plugins For Use With Embedded Perl</strong></a><br>
+</ul>
+
 </P>
+
 
 <hr>
 

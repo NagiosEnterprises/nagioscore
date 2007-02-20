@@ -206,7 +206,7 @@ As mentioned before, service dependencies are <i>not</i> inherited by default.  
 </p>
 
 <p>
-If you <i>do</i> wish to make service dependencies inheritable, you must use the <i>inherits_parent</i> directive in the <a href="xodtemplate.html#servicedependency">service dependency</a> definition.  When this directive is enabled, it indicates that the dependency inherits dependencies of the service <i>that is being depended upon</i> (also referred to as the master service). In other words, if the master service is dependent upon other services and any one of those dependencies fail, this dependency will also fail. 
+If you <i>do</i> wish to make service dependencies inheritable, you must use the <i>inherits_parent</i> directive in the <a href="objectdefinitions.html#servicedependency">service dependency</a> definition.  When this directive is enabled, it indicates that the dependency inherits dependencies of the service <i>that is being depended upon</i> (also referred to as the master service). In other words, if the master service is dependent upon other services and any one of those dependencies fail, this dependency will also fail. 
 </p>
 
 <p>
@@ -249,7 +249,7 @@ As you'd probably expect, host dependencies work in a similiar fashion to servic
 </p>
 
 <p>
-<strong>BEWARE!</strong>  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="xodtemplate.html#host">host</a> definitions) for most cases, rather than host dependencies.
+<strong>BEWARE!</strong>  Do not confuse host dependencies with parent/child host relationships.  You should be using parent/child host relationships (defined with the <i>parents</i> directive in <a href="objectdefinitions.html#host">host</a> definitions) for most cases, rather than host dependencies.
 </p>
 
 <p>

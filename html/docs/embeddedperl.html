@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,6 +17,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Using The Embedded Perl Interpreter</h2>
 </div>
 </p>
@@ -24,18 +25,42 @@
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="epnplugins.html">Developing Plugins For Use With Embedded Perl</a>
+</p>
+
+
+<table border="0" class="Default">
+<tr>
+<td valign="top">
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 
 <p>
-Stephen Davies has contributed code that allows you to compile Nagios with an embedded Perl interpreter.  This may be of interest to you if you rely heavily on plugins written in Perl.
+Nagios can be compiled with support for an embedded Perl interpreter.  This allows Nagios to execute Perl plugins much more efficiently that it otherwise would, so it may be of interest to you if you rely heavily on plugins written in Perl.
 </p>
+
 <p>
-Stanley Hopcroft has worked with the embedded Perl interpreter quite a bit and has commented on the advantages/disadvanges of using it.  He has also given several helpful hints on creating Perl plugins that work properly with the embedded interpreter.  The majority of this documentation comes from his comments.
+Without the embedded Perl interpreter, Nagios executes Perl (and non-Perl) plugins by forking and executing the plugins as an external command.  When the embedded Perl interpreter is used, Nagios can execute Perl plugins by simply making a library call.
 </p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip: The embedded Perl interpreter works with all Perl scripts that Nagios executes - not just plugins.  This documentation discusses the embedded Perl interpreter in relation to plugins used for host and service checks, but it applies just the same to other types of Perl scripts you may be using for other types of commands (e.g. notification scripts, event handler scripts, etc.).
+</p>
+
+
+<p>
+Stephen Davies contributed the original embedded Perl interpreter code several years back.  Stanley Hopcroft has been the primary person helping to improve the embedded Perl interpreter code quite a bit and has commented on the advantages/disadvanges of using it.  He has also given several helpful hints on creating Perl plugins that work properly with the embedded interpreter.
+</p>
+
 <p>
 It should be noted that "ePN", as used in this documentation, refers to embedded Perl Nagios, or if you prefer, Nagios compiled with an embedded Perl interpreter.
 </p>
+</td>
+<td valign="top"><img src="images/epn.png" border="0"></td>
+</tr>
+</table>
 
 <p>
 <strong><u>Advantages</u></strong>
@@ -87,265 +112,93 @@ The disadvantages of ePN (embedded Perl Nagios) are much the same as Apache mod_
 
 
 <p>
-<strong><u>Target Audience</u></strong>
+<strong><u>Using The Embedded Perl Interpreter</u></strong>
 </p>
 
 <p>
-<ul>
-
-<li>Average Perl developers; those with an appreciation of the languages powerful features without knowledge of internals or an in depth knowledge of those features.<br><br>
-
-<li>Those with a utilitarian appreciation rather than a great depth of understanding.<br><br>
-
-<li>If you are happy with Perl objects, name management, data structures, and the debugger, that's probably sufficient.<br><br>
-
-</ul>
-</p>
-
-
-<p>
-<strong><u>Things you should do when developing a Perl Plugin (ePN or not)</u></strong>
-</p>
-
-<p>
-<ul>
-
-<li>Always always generate some output<br><br>
-
-<li>Use 'use utils' and import the stuff it exports ($TIMEOUT %ERRORS &amp;print_revision &amp;support)<br><br>
-
-<li>Have a look at how the standard Perl plugins do their stuff e.g.<br><br>
-
-<ul>
-<li>Always exit with $ERRORS{CRITICAL}, $ERRORS{OK}, etc.
-<li>Use getopt to read command line arguments
-<li>Manage timeouts
-<li>Call print_usage (supplied by you) when there are no command line arguments
-<li>Use standard switch names (eg H 'host', V 'version')
-</ul>
-
-</ul>
-</p>
-
-
-<p>
-<strong><u>Things you must do to develop a Perl plugin for ePN</u></strong>
+If you want to use the embedded Perl interpreter to run your Perl plugins and scripts, here's what you'll need to do:
 </p>
 
 <p>
 <ol>
-
-
-<li>&lt;DATA&gt; can not be used; use here documents instead e.g.<br><br>
-<dir>
-<pre>
-my $data = &lt;&lt;DATA;
-portmapper 100000
-portmap 100000
-sunrpc 100000
-rpcbind 100000
-rstatd 100001
-rstat 100001
-rup 100001
-..
-DATA
-
-%prognum = map { my($a, $b) = split; ($a, $b) } split(/\n/, $data) ;
-</pre>
-</dir>
-
-<li>BEGIN blocks will not work as you expect. May be best to avoid.<br><br>
-
-<li>Ensure that it is squeaky clean at compile time i.e.<br><br>
-<ul>
-<li>use strict
-<li>use perl -w (other switches [T notably] may not help)
-<li>use perl -c
-</ul>
-
-<br><br>
-
-<li>Avoid lexical variables (my) with global scope as a means of passing __variable__ data into subroutines. In fact this is __fatal__ if the subroutine is called by the plugin more than once when the check is run.  Such subroutines act as 'closures' that lock the global lexicals first value into subsequent calls of the subroutine. If however, your global
-is read-only (a complicated structure for example) this is not a problem. What Bekman <a href="http://perl.apache.org/guide/">recommends you do instead</a>, is any of the following:<br><br>
-
-<ul>
-<li>make the subroutine anonymous and call it via a code ref e.g.<br><br>
-<dir>
-<pre>
-turn this                     into  
-
-my $x = 1 ;                   my $x = 1 ;
-sub a { .. Process $x ... }   $a_cr = sub { ... Process $x ... } ;
-.                             .
-.                             .
-a ;                           &amp;$a_cr ;
-$x = 2                        $x = 2 ;
-a ;                           &amp;$a_cr ;
-
-# anon closures __always__ rebind the current lexical value
-</pre>
-</dir>
-
-<li>put the global lexical and the subroutine using it in their own package (as an object or a module)
-
-<li>pass info to subs as references or aliases (\$lex_var or $_[n])
-
-<li>replace lexicals with package globals and exclude them from 'use strict' objections with 'use vars qw(global1 global2 ..)'
-</ul>
-
-<br>
-
-<li>Be aware of where you can get more information.<br><br>
-<dir>
-<p>
-Useful information can be had from the usual suspects (the O'Reilly books, plus Damien Conways "Object Oriented Perl") but for the really useful stuff in the right context start at Stas Bekman's mod_perl guide at <a href="http://perl.apache.org/guide/">http://perl.apache.org/guide/</a>.
-</p>
-<p>
-This wonderful book sized document has nothing whatsoever about Nagios, but all about writing Perl programs for the embedded Perl interpreter in Apache (ie Doug MacEacherns mod_perl).
-</p>
-<p>
-The perlembed manpage is essential for context and encouragement.
-</p>
-<p>
-On the basis that Lincoln Stein and Doug MacEachern know a thing or two about Perl and embedding Perl, their book 'Writing Apache Modules with Perl and C' is almost certainly worth looking at.
-</p>
-</dir>
-
-<li>Be aware that your plugin may return strange values with an ePN and that this is likely to be caused by the problem in item #4 above<br><br>
-
-
-<li>Be prepared to debug via:<br><br>
-<ul>
-<li>having a test ePN and 
-<li>adding print statements to your plugin to display variable values to STDERR (can't use STDOUT)
-<li>adding print statements to p1.pl to display what ePN thinks your plugin is before it tries to run it (vi)
-<li>running the ePN in foreground mode (probably in conjunction with the former recommendations)
-<li>use the 'Deparse' module on your plugin to see how the parser has optimised it and what the interpreter will actually get. (see 'Constants in Perl' by Sean M. Burke, The Perl Journal, Fall 2001)
-</ul>
-
-<br>
-
-<dir>
-perl -MO::Deparse &lt;your_program&gt;
-</dir>
-
-<br>
-
-<li>Be aware of what ePN is transforming your plugin too, and if all else fails try and debug the transformed version.<br><br>
-
-<dir>
-<p>
-As you can see below p1.pl rewrites your plugin as a subroutine called 'hndlr' in the package named 'Embed::&lt;something_related_to_your_plugin_file_name&gt;'.
-</p>
-<p>
-Your plugin may be expecting command line arguments in @ARGV so pl.pl also assigns @_ to @ARGV.
-</p>
-<p>
-This in turn gets 'eval' ed and if the eval raises an error (any parse error and run error), the plugin gets chucked out.
-</p>
-<p>
-The following output shows how a test ePN transformed the <i>check_rpc</i> plugin before attempting to execute it. Most of the code from the actual plugin is not shown, as we are interested in only the transformations that the ePN has made to the plugin).  For clarity, transformations are shown in red:
-</p>
-
-<dir>
-<p>
-<pre>
-<font color="red">
-                package main;
-                use subs 'CORE::GLOBAL::exit';
-                sub CORE::GLOBAL::exit { die "ExitTrap: $_[0] 
-(Embed::check_5frpc)"; }
-                package Embed::check_5frpc; sub hndlr { shift(@_);
-@ARGV=@_;</font>
-#! /usr/bin/perl -w
-#
-# check_rpc plugin for Nagios
-#
-# usage:
-#    check_rpc host service
-#
-# Check if an rpc serice is registered and running
-# using rpcinfo - $proto $host $prognum 2>&1 |";
-#
-# Use these hosts.cfg entries as examples
-#
-# command[check_nfs]=/some/path/libexec/check_rpc $HOSTADDRESS$ nfs
-# service[check_nfs]=NFS;24x7;3;5;5;unix-admin;60;24x7;1;1;1;;check_rpc
-#
-# initial version: 3 May 2000 by Truongchinh Nguyen and Karl DeBisschop
-# current status: $Revision$
-#
-# Copyright Notice: GPL
-#
-<i>... rest of plugin code goes here (it was removed for brevity) ...</i>
-<font color="red">}</font>
-</pre>
-</p>
-</dir>
-
-</dir>
-
-<br>
-
-<li>Don't use 'use diagnostics' in a plugin run by your production ePN.  I think it causes__all__ the Perl plugins to return CRITICAL.<br><br>
-
-<li>Consider using a mini embedded Perl C program to check your plugin.  This is not sufficient to guarantee your plugin will perform Ok with an ePN but if the plugin fails this test it will ceratinly fail with your ePN.  <font color="red">[ A sample mini ePN is included in the <i>contrib/</i> directory of the Nagios distribution for use in testing Perl plugins.  Change to the contrib/ directory and type 'make mini_epn' to compile it.  It must be executed from the same directory that the p1.pl file resides in (this file is distributed with Nagios). ]</font> <br><br>
-
-
+<li>Compile Nagios with support for the embedded Perl interpreter (see instructions below).</li><br><br>
+<li>Enable the <a href="configmain.html#enable_embedded_perl">enable_embedded_perl</a> option in the main configuration file.</li><br><br>
+<li>Set the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> option to fit your needs.  This option determines whether or not the Perl interpreter should be used by default for individual Perl plugins and scripts.</li><br><br>
+<li>Optionally enable or disable certain Perl plugins and scripts from being run using the embedded Perl interpreter.  This can be useful if certain Perl scripts have problems being running under the Perl interpreter. See instructions below for more information on doing this.</li>
 </ol>
 </p>
 
 
 <p>
-<strong><u>Compiling Nagios With The Embedded Perl Interpreter</u></strong>
+<strong><u>Compiling Nagios With Embedded Perl</u></strong>
 </p>
 
-<p>
-Okay, you can breathe again now.  So do you <i>still</i> want to compile Nagios with the embedded Perl interpreter? ;-)
-</p>
 
 <p>
-If you want to compile Nagios with the embedded Perl interpreter you need to rerun the configure script with the addition of the <font color="red"><i>--enable-embedded-perl</i></font> option.  If you want the embedded interpreter to cache internally compiled scripts, add the <font color="red"><i>--with-perlcache</i></font> option as well.  Example:
+If you want to use the embedded Perl interpreter, you'll first need to compile Nagios with support for it.
+To do this, simply run the configure script with the addition of the <font color="red"><i>--enable-embedded-perl</i></font> option.  If you want the embedded interpreter to cache internally compiled scripts, add the <font color="red"><i>--with-perlcache</i></font> option as well.  Example:
 </p>
 
 <p>
 <font color="red">
 <strong>
 <pre>
-	./configure --enable-embedded-perl --with-perlcache <i>...other options...</i>
+	./configure --enable-embedded-perl --with-perlcache <i>otheroptions...</i>
 </pre>
 </strong>
 </font>
 </p>
 
 <p>
-Once you've rerun the configure script with the new options, make sure to recompile Nagios.  You can check to make sure that Nagios has been compile with the embedded Perl interpreter by executing it with the <i>-m</i> command-line argument.  Output from executing the command will look something like this (notice that the embedded perl interpreter is listed in the options section):
+Once you've rerun the configure script with the new options, make sure to recompile Nagios.
+</p>
+
+
+<p>
+<strong><u>Plugin-Specific Use of the Perl Interpreter</u></strong>
 </p>
 
 <p>
+Beginning with Nagios 3, you can specify which Perl plugins or scripts should or should not be run under the embedded Perl interpreter.  This is particularly useful if you have troublesome Perl scripts which do not work well with the Perl interpreter.
+</p>
+
+<p>
+To <i>explicitly</i> tell Nagios whether or not to use the embedded Perl interpreter for a particular perl script, add one of the following entries to your Perl script/plugin...
+</p>
+
+<p>
+To tell Nagios to use the Perl interpreter for a particular script, add this line to the Perl script:
+<dir>
 <pre>
-	[nagios@firestore ]# ./nagios -m
-
-	Nagios 1.0a0
-	Copyright (c) 1999-2001 Ethan Galstad (nagios@nagios.org)
-	Last Modified: 07-03-2001
-	License: GPL
-
-	External Data I/O
-	-----------------
-	Object Data:      DEFAULT
-	Status Data:      DEFAULT
-	Retention Data:   DEFAULT
-	Comment Data:     DEFAULT
-	Downtime Data:    DEFAULT
-	Performance Data: DEFAULT
-
-
-	Options
-	-------
-	* Embedded Perl compiler (With caching)
-
+# nagios: +epn
 </pre>
+</dir>
+</p>
+
+<p>
+To tell Nagios to NOT use the embedded Perl interpreter for a particular script, add this line to the Perl script:
+<dir>
+<pre>
+# nagios: -epn
+</pre>
+</dir>
+</p>
+
+<p>
+Either line must be located within the first 10 lines of a script for Nagios to detect it.
+</p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip: If you do not <i>explicitly</i> use the method above to tell Nagios whether an individual plugin can be run under the Perl interpreter, Nagios will make will a decision for you.  This decision process is controlled by the <a href="configmain.html#use_embedded_perl_implicitly">use_embedded_perl_implicitly</a> variable.  If the value is set to 1, all Perl plugins/scripts (that do not explicitly enable/disable the ePN) will be run under the Perl interpreter.  If the value is 0, they will NOT be run under the Perl interpreter.
+</p>
+
+
+<p>
+<strong><u>Developing Plugins For Use With Embedded Perl</u></strong>
+</p>
+
+<p>
+Information on developing plugins for use with the embedded Perl interpreter can be found <a href="epnplugins.html">here</a>.
 </p>
 
 

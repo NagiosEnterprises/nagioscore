@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,34 +17,28 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Scheduled Downtime</h2>
 </div>
 </p>
+
 <hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="notifications.html">Notifications</a>
+</p>
 
 <p>
 <strong><u>Introduction</u></strong>
 </p>
 
 <p>
-Nagios allows you to schedule periods of planned downtime for hosts and service that you're monitoring.  This is useful in the event that you actually know you're going to be taking a server down for an upgrade, etc.  When a host a service is in a period of scheduled downtime, notifications for that host or service will be suppressed.
+Nagios allows you to schedule periods of planned downtime for hosts and service that you're monitoring.  This is useful in the event that you actually know you're going to be taking a server down for an upgrade, etc.
 </p>
 
-<p>
-<strong><u>Downtime File</u></strong>
-</p>
+<img src="images/downtime.png" border="0" style="float: right;">
 
-<p>
-Scheduled host and service downtime is stored in the file you specify by the <a href="configmain.html#downtime_file">downtime_file</a> directive in your main configuration file.
-</p>
-
-<p>
-<strong><u>Downtime Retention</u></strong>
-</p>
-
-<p>
-Scheduled host and service downtime is automatically preserved across program restarts.  When Nagios starts up, it will scan the <a href="configmain.html#downtime_file">downtime file</a>, delete any old or invalid entries, and schedule downtime for all valid host and service entries.
-</p>
 
 <p>
 <strong><u>Scheduling Downtime</u></strong>
@@ -71,7 +65,7 @@ When you schedule downtime for a host or service through the web interface you'l
 </p>
 
 <p>
-"Flexible" downtime is intended for times when you know that a host or service is going to be down for X minutes (or hours), but you don't know exactly when that'll start.  When you schedule flexible downtime, Nagios will start the scheduled downtime sometime between the start and end times you specified.  The downtime will last for as long as the duration you specified when you scheduled the downtime.  This assumes that the host or service for which you scheduled flexible downtime either goes down (or becomes unreachable) or goes into a non-OK state sometime between the start and end times you specified.  The time at which a host or service transitions to a problem state determines the time at which Nagios actually starts the downtime.  The downtime will then last for the duration you specified, even if the host or service recovers before the downtime expires.  This is done for a very good reason.  As we all know, you can think you've got a problem fixed (and restart a server) ten times before it actually works right.  Smart, eh?
+"Flexible" downtime is intended for times when you know that a host or service is going to be down for X minutes (or hours), but you don't know exactly when that'll start.  When you schedule flexible downtime, Nagios will start the scheduled downtime sometime between the start and end times you specified.  The downtime will last for as long as the duration you specified when you scheduled the downtime.  This assumes that the host or service for which you scheduled flexible downtime either goes down (or becomes unreachable) or goes into a non-OK state sometime between the start and end times you specified.  The time at which a host or service transitions to a problem state determines the time at which Nagios actually starts the downtime.  The downtime will then last for the duration you specified, even if the host or service recovers before the downtime expires.  This is done for a very good reason.  As we all know, you might think you've got a problem fixed, but then have to restart a server ten times before it actually works right.  Smart, eh?
 </p>
 
 <p>
@@ -88,7 +82,13 @@ When scheduling host or service downtime you have the option of making it "trigg
 </p>
 
 <p>
-When a host or service is in a period of scheduled downtime, Nagios will not allow notifications to be sent out for the host or service.  suppression of notifications is accomplished by adding an additional filter to the <a href="notifications.html">notification logic</a>.  You will <i>not</i> see an icon in the CGIs indicating that notifications for that host/service are disabled.  When the scheduled downtime has passed, Nagios will allow notifications to be sent out for the host or service as it normally would.
+When a host or service is in a period of scheduled downtime, Nagios will not allow normal notifications to be sent out for the host or service.  However, a "DOWNTIMESTART" notification will get sent out for the host or service, which will serve to put any admins on notice that they won't receive upcoming problem alerts.
+</p>
+<p>
+When the scheduled downtime is over, Nagios will allow normal notifications to be sent out for the host or service again.  A "DOWNTIMEEND" notification will get sent out notifying admins that the scheduled downtime is over, and they will start receiving normal alerts again.
+</p>
+<p>
+If the scheduled downtime is cancelled prematurely (before it expires), a "DOWNTIMECANCELLED" notification will get sent out to the appropriate admins.  
 </p>
 
 <p>

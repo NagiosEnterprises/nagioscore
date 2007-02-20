@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>Configuring Nagios</title>
+<title>Configuration Overview</title>
 
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,24 +17,38 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Configuring Nagios</h2>
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Configuration Overview</h2>
 </div>
 </p>
+
 <hr>
 
 <p>
-<strong><u>Configuration Overview</u></strong>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="configmain.html">Main Configuration File</a>, <a href="configobject.html">Object Configuration Overview</a>, <a href="configcgi.html">CGI Configuration File</a>
 </p>
+
 <p>
-There are several different configuration files that you're going to need to create or edit before you start monitoring anything.  They are described below...
+<strong><u>Introduction</u></strong>
 </p>
+
+<p>
+There are several different configuration files that you're going to need to create or edit before you start monitoring anything.  Be patient!  Configuring Nagios can take quite a while, especially if you're first-time user.  Once you figure out how things work, it'll all be well worth your time. :-)
+</p>
+
+<p>
+<img src="images/note.gif" border="0" align="bottom"> Note: Sample configuration files are created for you when you compile Nagios.  You can find these same files in the <i>sample-config/</i> subdirectory of the Nagios source code distribution.
+</p>
+
+<img src="images/configoverview.png" border="0" style="float: right">
 
 <p>
 <strong><u>Main Configuration File</u></strong>
 </p>
 
 <p>
-The main configuration file (usually <i>/usr/local/nagios/etc/nagios.cfg</i>) contains a number of directives that affect how Nagios operates.  This config file is read by both the Nagios process and the CGIs.  This is the first configuration file you're going to want to create or edit.
+The main configuration file contains a number of directives that affect how the Nagios daemon operates.  This config file is read by both the Nagios daemon and the CGIs.  This is where you're going to want to get started in your configuration adventures.
 </p>
 
 <p>
@@ -42,19 +56,15 @@ Documentation for the main configuration file can be found <a href="configmain.h
 </p>
 
 <p>
-A sample main configuration file is generated automatically when you run the <b>configure</b> script before compiling the binaries.  Look for it either in the distribution directory or the etc/ subdirectory of your installation.  When you <a href="installing.html">install</a> the sample config files using the <b>make install-config</b> command, a sample main configuration file will be placed into your settings directory (usually /usr/local/nagios/etc). The default name of the main configuration file is <b>nagios.cfg</b>.
-</p>
-
-<p>
 <strong><u>Resource File(s)</u></strong>
 </p>
 
 <p>
-Resource files can be used to store user-defined <a href="macros.html">macros</a>.  Resource files can also contain other information (like database connection settings), although this will depend on how you've compiled Nagios.  The main point of having resource files is to use them to store sensitive configuration information and not make them available to the CGIs.
+Resource files can be used to store user-defined macros.  The main point of having resource files is to use them to store sensitive configuration information (like passwords), without making them available to the CGIs.
 </p>
 
 <p>
-You can specify one or more optional resource files by using the <a href="configmain.html#resource_file">resource_file</a> directive in the <a href="configmain.html">main configuration file</a>.
+You can specify one or more optional resource files by using the <a href="configmain.html#resource_file">resource_file</a> directive in your main configuration file.
 </p>
 
 <p>
@@ -62,11 +72,15 @@ You can specify one or more optional resource files by using the <a href="config
 </p>
 
 <p>
-Object definition files are used to define hosts, services, hostgroups, contacts, contactgroups, commands, etc.  This is where you define what things you want monitor and how you want to monitor them.
+Object definition files are used to define hosts, services, hostgroups, contacts, contactgroups, commands, etc.  This is where you define all the things you want monitor and how you want to monitor them.
 </p>
 
 <p>
-Documentation for the object definition files can be found <a href="configobject.html">here</a>.
+You can specify one or more object definition files by using the <a href="configmain.html#cfg_file">cfg_file</a> and/or <a href="configmain.html#cfg_dir">cfg_dir</a> directives in your main configuration file.
+</p>
+
+<p>
+An introduction to object definitions, and how they relate to each other, can be found <a href="configobject.html">here</a>.
 </p>
 
 <p>
@@ -74,16 +88,13 @@ Documentation for the object definition files can be found <a href="configobject
 </p>
 
 <p>
-The CGI configuration file (usually <i>/usr/local/nagios/etc/cgi.cfg</i>) contains a number of directives that affect the operation of the <a href="cgis.html">CGIs</a>.
+The CGI configuration file contains a number of directives that affect the operation of the <a href="cgis.html">CGIs</a>.  It also contains a reference the main configuration file, so the CGIs know how you've configured Nagios and where your object defintions are stored.
 </p>
 
 <p>
 Documentation for the CGI configuration file can be found <a href="configcgi.html">here</a>.
 </p>
 
-<p>
-A sample CGI configuration file is generated automatically when you run the <b>configure</b> script before compiling the binaries. When you <a href="installing.html">install</a> the sample config files using the <b>make install-config</b> command, the CGI configuration file will be placed in the same directory as the main and host config files (usually /usr/local/nagios/etc).  The default name of the CGI configuration file is <b>cgi.cfg</b>.
-</p>
 
 <hr>
 

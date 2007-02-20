@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>Object Definitions</title>
+<title>Object Configuration Overview</title>
 
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,17 +17,24 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Object Definitions</h2>
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Object Configuration Overview</h2>
 </div>
 </p>
+
 <hr>
 
 <p>
-<strong><u>What is Object Data?</u></strong>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="config.html">Configuration Overview</a>, <a href="objectdefinitions.html">Object Definitions</a>
 </p>
 
 <p>
-Object data is simply a generic term I use to describe various data definitions you need in order to monitor anything.  Types of object definitions include:
+<strong><u>What Are Objects?</u></strong>
+</p>
+
+<p>
+Objects are all the elements that are involved in the monitoring and notification logic.  Types of objects include:
 </p>
 
 <p>
@@ -40,31 +47,152 @@ Object data is simply a generic term I use to describe various data definitions 
 <li>Contact Groups
 <li>Commands
 <li>Time Periods
-<li>Service Escalations
-<li>Service Dependencies
-<li>Host Escalations
-<li>Host Dependencies
-<li>Extended Host Information
-<li>Extended Service Information
+<li>Notification Escalations
+<li>Notification and Execution Dependencies
 </ul>
 </p>
 
 <p>
-<strong><u>Where Is Object Data Defined?</u></strong>
+More information on what objects are and how they relate to each other can be found <a href="#objectoverview">below</a>.
 </p>
 
 <p>
-Object data is defined in one or more configuration files that you specify using the <a href="configmain.html#cfg_file">cfg_file</a> and/or <a href="configmain.html#cfg_dir">cfg_dir</a> directives in the <a href="configmain.html">main configuration file</a>.  You can include multiple object configuration files and/or directories by using multiple <i>cfg_file</i> and/or <i>cfg_dir</i> directives.
+<strong><u>Where Are Objects Defined?</u></strong>
 </p>
 
 <p>
-<strong><u>How Is Object Data Defined?</u></strong>
+Objects are defined in one or more configuration files that you specify using the <a href="configmain.html#cfg_file">cfg_file</a> and/or <a href="configmain.html#cfg_dir">cfg_dir</a> directives in the main configuration file.
+</p>
+
+<p>
+<strong><u>How Are Objects Defined?</u></strong>
 </p>
 
 </p>
-Object definitions are defined in a template format.  <a href="xodtemplate.html">Click here</a> for more information on defining object data using this method.
+Objects are defined in a flexible template format, which can make it much easier to manage your Nagios configuration in the long term.  Basic information on how to define objects in your configuration files can be found <a href="objectdefinitions.html">here</a>.  
+</p>
+<p>
+Once you get familiar with the basics of how to define objects, you should read up on <a href="objectinheritance.html">object inheritance</a>, as it will make your configuration more robust for the future.  Seasoned users can exploit some advanced features of object definitions as described in the documentation on <a href="objecttricks.html">object tricks</a>.
 </p>
 
+<a name="objectoverview"></a>
+<p>
+<strong><u>Objects Explained</u></strong>
+</p>
+
+<p>
+Some of the main object types are explained in greater detail below...
+</p>
+
+<table border="0" class="Default">
+
+<tr>
+<td valign="top">
+<p>
+<b>Hosts</b> are one of the central objects in the monitoring logic.  Important attributes of hosts are as follows:
+</p>
+<p>
+<ul>
+<li>Hosts are usually physical devices on your network (servers, workstations, routers, switches, printers, etc).</li>
+<li>Hosts have an address of some kind (e.g. an IP or MAC address).</li>
+<li>Hosts have one or more more services associated with them.</li>
+<li>Hosts can have parent/child relationships with other hosts, often representing real-world network connections, which is used in the <a href="networkreachability.html">network reachability</a> logic.</li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/objects-hosts.png" border="0" alt="Hosts">
+</td>
+</tr>
+
+</table>
+
+<table border="0" class="Default">
+
+<tr>
+<td valign="top">
+<p>
+<b>Services</b> are one of the central objects in the monitoring logic.  Services are associated with hosts and can be:
+</p>
+<p>
+<ul>
+<li>Attributes of a host (CPU load, disk usage, uptime, etc.)</li>
+<li>Services provided by the host (HTTP, POP3, FTP, SSH, etc.)</li>
+<li>Other things associated with the host (DNS records, etc.)</li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/objects-services.png" border="0" alt="Services">
+</td>
+</tr>
+
+</table>
+
+<table border="0" class="Default">
+
+<tr>
+<td valign="top">
+<p>
+<b>Contacts</b> are people involved in the notification process:
+</p>
+<p>
+<ul>
+<li>Contacts have one or more notification methods (cellphone, pager, email, instant messaging, etc.)</li>
+<li>Contacts receive notifications for hosts and service they are responsible for</li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/objects-contacts.png" border="0" alt="Contacts">
+</td>
+</tr>
+
+</table>
+
+<table border="0" class="Default">
+
+<tr>
+<td valign="top">
+<p>
+<b>Timeperiods</b> are are used to control:
+</p>
+<p>
+<ul>
+<li>When hosts and services can be monitored</li>
+<li>When contacts can receive notifications</li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/objects-timeperiods.png" border="0" alt="Timeperiods">
+</td>
+</tr>
+
+</table>
+
+<table border="0" class="Default">
+
+<tr>
+<td valign="top">
+<p>
+<b>Commands</b> are used to tell Nagios what programs, scripts, etc. it should execute to perform:
+</p>
+<p>
+<ul>
+<li>Host and service checks</li>
+<li>Notifications</li>
+<li>Event handlers</li>
+<li>and more...</li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/objects-commands.png" border="0" alt="Commands">
+</td>
+</tr>
+
+</table>
 
 <hr>
 

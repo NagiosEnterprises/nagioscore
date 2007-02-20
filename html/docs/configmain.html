@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,10 +17,16 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Main Configuration File Options</h2>
 </div>
 </p>
+
 <hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+</p>
 
 <p>
 <strong><u>Notes</u></strong>
@@ -37,20 +43,21 @@ When creating and/or editing configuration files, keep the following in mind:
 </p>
 
 <p>
-<strong><u>Sample Configuration</u></strong>
+<strong><u>Sample Configuration File</u></strong>
 </p>
 <p>
-A sample main configuration file is created in the base directory of the Nagios distribution when you run the configure script.  The default name of the main configuration file is <b>nagios.cfg</b> - its usually placed in the <b>etc/</b> subdirectory of you Nagios installation (i.e. <i>/usr/local/nagios/etc/</i>).
+<img src="images/tip.gif" border="0" align="bottom"> Tip: A sample main configuration file is created in the base directory of the Nagios distribution when you run the configure script.  The default name of the main configuration file is <b>nagios.cfg</b> - its usually placed in the <b>etc/</b> subdirectory of you Nagios installation (i.e. <i>/usr/local/nagios/etc/</i>).
 </p>
 
 <p>
-<strong><u>Index</u></strong>
+<strong><u>Configuration File Variables</u></strong>
 </p>
 <p>
 <a href="#log_file">Log file</a><br>
 <a href="#cfg_file">Object configuration file</a><br>
 <a href="#cfg_dir">Object configuration directory</a><br>
 <a href="#object_cache_file">Object cache file</a><br>
+<a href="#precached_object_file">Precached object file</a><br>
 <a href="#resource_file">Resource file</a><br>
 <a href="#temp_file">Temp file</a><br>
 <a href="#temp_path">Temp path</a><br>
@@ -75,6 +82,7 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#check_external_commands">External command check option</a><br>
 <a href="#command_check_interval">External command check interval</a><br>
 <a href="#command_file">External command file</a><br>
+<a href="#external_command_buffer_slots">External command buffer slots option</a><br>
 <br>
 <a href="#lock_file">Lock file</a><br>
 <br>
@@ -83,6 +91,9 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#retention_update_interval">Automatic state retention update interval</a><br>
 <a href="#use_retained_program_state">Use retained program state option</a><br>
 <a href="#use_retained_scheduling_info">Use retained scheduling info option</a><br>
+<a href="#retained_host_attribute_mask">Retained host/service attribute masks</a><br>
+<a href="#retained_process_host_attribute_mask">Retained process attribute masks</a><br>
+<a href="#retained_contact_host_attribute_mask">Retained contact attribute masks</a><br>
 <br>
 <a href="#use_syslog">Syslog logging option</a><br>
 <a href="#log_notifications">Notification logging option</a><br>
@@ -101,7 +112,9 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#max_service_check_spread">Maximum service check spread</a><br>
 <a href="#service_interleave_factor">Service interleave factor</a><br>
 <a href="#max_concurrent_checks">Maximum concurrent service checks</a><br>
-<a href="#service_reaper_frequency">Service reaper frequency</a><br>
+<a href="#check_result_reaper_frequency">Check result reaper frequency</a><br>
+<a href="#max_check_result_reaper_time">Maximum check result reaper time</a><br>
+<a href="#check_result_buffer_slots">Check result buffer slots</a><br>
 <a href="#host_inter_check_delay_method">Host inter-check delay method</a><br>
 <a href="#max_host_check_spread">Maximum host check spread</a><br>
 <a href="#interval_length">Timing interval length</a><br>
@@ -110,6 +123,13 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#auto_rescheduling_window">Auto-rescheduling window</a><br>
 <br>
 <a href="#use_aggressive_host_checking">Aggressive host checking option</a><br>
+<a href="#translate_passive_host_checks">Translate passive host checks option</a><br>
+<a href="#enable_predictive_host_dependency_checks">Predictive host dependency checks option</a><br>
+<a href="#enable_predictive_service_dependency_checks">Predictive service dependency checks option</a><br>
+<a href="#cached_host_check_horizon">Cached host check horizon</a><br>
+<a href="#cached_service_check_horizon">Cached service check horizon</a><br>
+<br>
+<a href="#use_large_installation_tweaks">Large installation tweaks option</a><br>
 <br>
 <a href="#enable_flap_detection">Flap detection option</a><br>
 <a href="#low_service_flap_threshold">Low service flap threshold</a><br>
@@ -147,11 +167,15 @@ A sample main configuration file is created in the base directory of the Nagios 
 <a href="#service_perfdata_file_processing_command">Service performance data file processing command</a><br>
 <br>
 <a href="#check_for_orphaned_services">Orphaned service check option</a><br>
+<a href="#check_for_orphaned_host">Orphaned host check option</a><br>
 <br>
 <a href="#check_service_freshness">Service freshness checking option</a><br>
 <a href="#service_freshness_check_interval">Service freshness check interval</a><br>
 <a href="#check_host_freshness">Host freshness checking option</a><br>
 <a href="#host_freshness_check_interval">Host freshness check interval</a><br>
+<br>
+<a href="#enable_embedded_perl">Embedded Perl interpreter option</a><br>
+<a href="#use_embedded_perl_implicitly">Embedded Perl implicit use option</a><br>
 <br>
 <a href="#date_format">Date format</a><br>
 <br>
@@ -283,6 +307,34 @@ This directive is used to specify a directory which contains <a href="configobje
 
 <p>
 This directive is used to specify a file in which a cached copy of <a href="configobject.html">object definitions</a> should be stored.  The cache file is (re)created every time Nagios is (re)started and is used by the CGIs.   It is intended to speed up config file caching in the CGIs and allow you to edit the source <a href="#cfg_file">object config files</a> while Nagios is running without affecting the output displayed in the CGIs.
+</p>
+
+
+<a name="precached_object_file"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Precached Object File</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>precached_object_file=&lt;file_name&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td>
+<font color="red"><strong>precached_object_file=/usr/local/nagios/var/objects.precache</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+This directive is used to specify a file in which a pre-processed, pre-cached copy of <a href="configobject.html">object definitions</a> should be stored.  This file can be used to drastically improve startup times in large/complex Nagios installations.  Read more information on how to speed up start times <a href="faststartup.html">here</a>.
 </p>
 
 
@@ -861,6 +913,33 @@ This is the file that Nagios will check for external commands to process.  The <
 
 
 <p>
+<a name="external_command_buffer_slots"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>External Command Buffer Slots</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>external_command_buffer_slots=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>external_command_buffer_slots=512</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+Note: This is an advanced feature. This option determines how many buffer slots Nagios will reserve for caching external commands that have been read from the external command file by a worker thread, but have not yet been processed by the main thread of the Nagios deamon.  Each slot can hold one external command, so this option essentially determines how many commands can be buffered.  For installations where you process a large number of passive checks (e.g. <a href="distributed.html">distributed setups</a>), you may need to increase this number.  You should consider using MRTG to graph Nagios' usage of external command buffers.  You can read more on how to configure graphing <a href="mrtggraphs.html">here</a>.
+</p>
+
+
+<p>
 <a name="lock_file"></a>
 <table border="0" width="100%" class="Default">
 <tr>
@@ -1037,6 +1116,117 @@ This setting determines whether or not Nagios will retain scheduling info (next 
 <li>0 = Don't use retained scheduling info
 <li>1 = Use retained scheduling info (default)
 </ul>
+</p>
+
+
+<p>
+<a name="retained_host_attribute_mask"></a>
+<a name="retained_service_attribute_mask"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Retained Host and Service Attribute Masks</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td>
+<strong>retained_host_attribute_mask=&lt;number&gt;</strong><br>
+<strong>retained_service_attribute_mask=&lt;number&gt;</strong>
+</td>
+</tr>
+<tr>
+<td>Example:</td>
+<td>
+<font color="red"><strong>retained_host_attribute_mask=0</strong></font><br>
+<font color="red"><strong>retained_service_attribute_mask=0</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+WARNING: This is an advanced feature.  You'll need to read the Nagios source code to use this option effectively.
+</p>
+<p>
+These options determine which host or service attributes are NOT retained across program restarts.  The values for these options are a bitwise AND of values specified by the "MODATTR_" definitions in the include/common.h source code file.  By default, all host and service attributes are retained.
+</p>
+
+
+<p>
+<a name="retained_process_host_attribute_mask"></a>
+<a name="retained_process_service_attribute_mask"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Retained Process Attribute Masks</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td>
+<strong>retained_process_host_attribute_mask=&lt;number&gt;</strong><br>
+<strong>retained_process_service_attribute_mask=&lt;number&gt;</strong>
+</td>
+</tr>
+<tr>
+<td>Example:</td>
+<td>
+<font color="red"><strong>retained_process_host_attribute_mask=0</strong></font><br>
+<font color="red"><strong>retained_process_service_attribute_mask=0</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+WARNING: This is an advanced feature.  You'll need to read the Nagios source code to use this option effectively.
+</p>
+<p>
+These options determine which process attributes are NOT retained across program restarts.  There are two masks because there are often separate host and service process attributes that can be changed.  For example, host checks can be disabled at the program level, while service checks are still enabled.  The values for these options are a bitwise AND of values specified by the "MODATTR_" definitions in the include/common.h source code file.  By default, all process attributes are retained.
+</p>
+
+
+<p>
+<a name="retained_contact_host_attribute_mask"></a>
+<a name="retained_contact_service_attribute_mask"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Retained Contact Attribute Masks</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td>
+<strong>retained_contact_host_attribute_mask=&lt;number&gt;</strong><br>
+<strong>retained_contact_service_attribute_mask=&lt;number&gt;</strong>
+</td>
+</tr>
+<tr>
+<td>Example:</td>
+<td>
+<font color="red"><strong>retained_contact_host_attribute_mask=0</strong></font><br>
+<font color="red"><strong>retained_contact_service_attribute_mask=0</strong></font>
+</td>
+</tr>
+</table>
+</p>
+
+<p>
+WARNING: This is an advanced feature.  You'll need to read the Nagios source code to use this option effectively.
+</p>
+<p>
+These options determine which contact attributes are NOT retained across program restarts.  There are two masks because there are often separate host and service contact attributes that can be changed.  The values for these options are a bitwise AND of values specified by the "MODATTR_" definitions in the include/common.h source code file.  By default, all process attributes are retained.
 </p>
 
 
@@ -1513,10 +1703,10 @@ This option allows you to specify the maximum number of service checks that can 
 
 
 <p>
-<a name="service_reaper_frequency"></a>
+<a name="check_result_reaper_frequency"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Service Reaper Frequency</strong></td>
+<td bgcolor="#cbcbcb"><strong>Check Result Reaper Frequency</strong></td>
 </tr>
 </table>
 </p>
@@ -1525,15 +1715,70 @@ This option allows you to specify the maximum number of service checks that can 
 <table border="0" class="Default">
 <tr>
 <td>Format:</td>
-<td><strong>service_reaper_frequency=&lt;frequency_in_seconds&gt;</strong></td>
+<td><strong>check_result_reaper_frequency=&lt;frequency_in_seconds&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>service_reaper_frequency=10</strong></font></td>
+<td><font color="red"><strong>check_result_reaper_frequency=5</strong></font></td>
 </tr>
 </table>
 </p>
-This option allows you to control the frequency <i>in seconds</i> of service "reaper" events.  "Reaper" events process the results from <a href="parallelization.html">parallelized service checks</a> that have finished executing.  These events consitute the core of the monitoring logic in Nagios.
+This option allows you to control the frequency <i>in seconds</i> of check result "reaper" events.  "Reaper" events process the results from host and service checks that have finished executing.  These events consitute the core of the monitoring logic in Nagios.
+</p>
+
+
+
+<a href="#max_check_result_reaper_time">Maximum check result reaper time</a><br>
+<p>
+<a name="max_check_result_reaper_time"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Maximum Check Result Reaper Time</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>max_check_result_reaper_time=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>max_check_result_reaper_time=30</strong></font></td>
+</tr>
+</table>
+</p>
+This option allows you to control the maximum amount of time <i>in seconds</i> that host and service check result "reaper" events are allowed to run.  "Reaper" events process the results from host and service checks that have finished executing.  If there are a lot of results to process, reaper events may take a long time to finish, which might delay timely execution of new host and service checks.  This variable allows you to limit the amount of time that an individual reaper event will run before it hands control back over to Nagios for other portions of the monitoring logic.
+</p>
+
+
+
+<p>
+<a name="check_result_buffer_slots"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Check Result Buffer Slots</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>check_result_buffer_slots=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>check_result_buffer_slots=512</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+Note: This is an advanced feature. This option determines how many buffer slots Nagios will reserve for caching host and service check results that have not yet been processed by the main thread of the Nagios deamon.  Each slot can hold one check result.  For large installations where Nagios is actively executing or passively accepting a lot of host and service checks, you may need to increase this number.  You should consider using MRTG to graph Nagios' usage of check result buffers.  You can read more on how to configure graphing <a href="mrtggraphs.html">here</a>.
 </p>
 
 
@@ -1736,6 +1981,191 @@ Nagios tries to be smart about how and when it checks the status of hosts.  In g
 <ul>
 <li>0 = Don't use aggressive host checking (default)
 <li>1 = Use aggressive host checking
+</ul>
+</p>
+
+
+
+
+<p>
+<a name="translate_passive_host_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Translate Passive Host Checks Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>translate_passive_host_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>translate_passive_host_checks=1</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether or not Nagios will DOWN/UNREACHABLE passive host check results to their "correct" state from the viewpoint of the local Nagios instance.  This can be very useful in distributed and failover monitoring installations.  More information on passive check state translation can be found <a href="passivestatetranslation.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Disable check translation (default)
+<li>1 = Enable check translation
+</ul>
+</p>
+
+
+
+
+<p>
+<a name="enable_predictive_host_dependency_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Predictive Host Dependency Checks Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>enable_predictive_host_dependency_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>enable_predictive_host_dependency_checks=1</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether or not Nagios will execute predictive checks of hosts that are being dependended upon (as defined in <a href="objectdefinitions.html#hostdependency">host dependencies</a>) for a particular host when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Disable predictive checks
+<li>1 = Enable predictive checks (default)
+</ul>
+</p>
+
+
+
+<p>
+<a name="enable_predictive_service_dependency_checks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Predictive Service Dependency Checks Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>enable_predictive_service_dependency_checks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>enable_predictive_service_dependency_checks=1</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether or not Nagios will execute predictive checks of services that are being dependended upon (as defined in <a href="objectdefinitions.html#servicedependency">service dependencies</a>) for a particular service when it changes state.  Predictive checks help ensure that the dependency logic is as accurate as possible.  More information on how predictive checks work can be found <a href="dependencychecks.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Disable predictive checks
+<li>1 = Enable predictive checks (default)
+</ul>
+</p>
+
+
+
+
+<p>
+<a name="cached_host_check_horizon"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Cached Host Check Horizon</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>cached_host_check_horizon=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>cached_host_check_horizon=15</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines the maximum amount of time (in seconds) that the state of a previous host check is considered current.  Cached host states (from host checks that were performed more recently than the time specified by this value) can improve host check performance immensely.  Too high of a value for this option may result in (temporarily) inaccurate host states, while a low value may result in a performance hit for host checks.  Use a value of 0 if you want to disable host check caching.  More information on cached checks can be found <a href="cachedchecks.html">here</a>.
+</p>
+
+
+
+
+<p>
+<a name="cached_service_check_horizon"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Cached Service Check Horizon</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>cached_service_check_horizon=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>cached_service_check_horizon=15</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines the maximum amount of time (in seconds) that the state of a previous service check is considered current.  Cached service states (from service checks that were performed more recently than the time specified by this value) can improve service check performance when a lot of <a href="objectdefinitions.html#servicedependency">service dependencies</a> are used.  Too high of a value for this option may result in inaccuracies in the service dependency logic.  Use a value of 0 if you want to disable service check caching.  More information on cached checks can be found <a href="cachedchecks.html">here</a>.
+</p>
+
+
+
+
+<p>
+<a name="use_large_installation_tweaks"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Large Installation Tweaks Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>use_large_installation_tweaks=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>use_large_installation_tweaks=0</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether or not the Nagios daemon will take several shortcuts to improve performance.  These shortcuts result in the loss of a few features, but larger installations will likely see a lot of benefit from doing so.  More information on what optimizations are taken when you enable this option can be found <a href="largeinstalltweaks.html">here</a>.
+</p>
+<p>
+<ul>
+<li>0 = Don't use tweaks (default)
+<li>1 = Use tweaks
 </ul>
 </p>
 
@@ -2145,7 +2575,7 @@ This value determines whether or not Nagios will "obsess" over service checks re
 </p>
 
 <p>
-This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="configobject.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_services">obsess_over_services</a> option is enabled globally and if the <i>obsess_over_service</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> service check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="configobject.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ocsp_timeout">ocsp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_services">obsess_over_services</a> option is enabled globally and if the <i>obsess_over_service</i> directive in the <a href="objectdefinitions.html#service">service definition</a> is enabled.
 </p>
 
 
@@ -2203,7 +2633,7 @@ This value determines whether or not Nagios will "obsess" over host checks resul
 </p>
 
 <p>
-This option allows you to specify a command to be run after <i>every</i> host check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ochp_timeout">ochp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_hosts">obsess_over_hosts</a> option is enabled globally and if the <i>obsess_over_host</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> host check, which can be useful in <a href="distributed.html">distributed monitoring</a>.  This command is executed after any <a href="eventhandlers.html">event handler</a> or <a href="notifications.html">notification</a> commands.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The maximum amount of time that this command can run is controlled by the <a href="#ochp_timeout">ochp_timeout</a> option.   More information on distributed monitoring can be found <a href="distributed.html">here</a>.  This command is only executed if the <a href="#obsess_over_hosts">obsess_over_hosts</a> option is enabled globally and if the <i>obsess_over_host</i> directive in the <a href="objectdefinitions.html#host">host definition</a> is enabled.
 </p>
 
 
@@ -2259,7 +2689,7 @@ This value determines whether or not Nagios will process host and service check 
 </tr>
 </table>
 </p>
-This option allows you to specify a command to be run after <i>every</i> host check to process host <a href="perfdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> host check to process host <a href="perfdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#host">host definition</a> is enabled.
 </p>
 
 
@@ -2284,7 +2714,7 @@ This option allows you to specify a command to be run after <i>every</i> host ch
 </tr>
 </table>
 </p>
-This option allows you to specify a command to be run after <i>every</i> service check to process service <a href="perdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> service check to process service <a href="perdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#service">service definition</a> is enabled.
 </p>
 
 
@@ -2309,7 +2739,7 @@ This option allows you to specify a command to be run after <i>every</i> service
 </tr>
 </table>
 </p>
-This option allows you to specify a file to which host <a href="perdata.html">performance data</a> will be written after every host check.  Data will be written to the performance file as specified by the <a href="#host_perfdata_file_template">host_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+This option allows you to specify a file to which host <a href="perdata.html">performance data</a> will be written after every host check.  Data will be written to the performance file as specified by the <a href="#host_perfdata_file_template">host_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#host">host definition</a> is enabled.
 </p>
 
 
@@ -2334,7 +2764,7 @@ This option allows you to specify a file to which host <a href="perdata.html">pe
 </tr>
 </table>
 </p>
-This option allows you to specify a file to which service <a href="perdata.html">performance data</a> will be written after every service check.  Data will be written to the performance file as specified by the <a href="#service_perfdata_file_template">service_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+This option allows you to specify a file to which service <a href="perdata.html">performance data</a> will be written after every service check.  Data will be written to the performance file as specified by the <a href="#service_perfdata_file_template">service_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="objectdefinitions.html#service">service definition</a> is enabled.
 </p>
 
 
@@ -2521,7 +2951,7 @@ This option allows you to specify the interval (in seconds) at which the <a href
 </tr>
 </table>
 </p>
-This option allows you to specify the command that should be executed to process the <a href="#host_perfdata_file">host performance data file</a>.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#host_perfdata_file_processing_interval">host_perfdata_file_processing_interval</a> directive.
+This option allows you to specify the command that should be executed to process the <a href="#host_perfdata_file">host performance data file</a>.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#host_perfdata_file_processing_interval">host_perfdata_file_processing_interval</a> directive.
 </p>
 
 
@@ -2546,7 +2976,7 @@ This option allows you to specify the command that should be executed to process
 </tr>
 </table>
 </p>
-This option allows you to specify the command that should be executed to process the <a href="#service_perfdata_file">service performance data file</a>.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#service_perfdata_file_processing_interval">service_perfdata_file_processing_interval</a> directive.
+This option allows you to specify the command that should be executed to process the <a href="#service_perfdata_file">service performance data file</a>.  The <i>command</i> argument is the short name of a <a href="objectdefinitions.html#command">command definition</a> that you define in your object configuration file.  The interval at which this command is executed is determined by the <a href="#service_perfdata_file_processing_interval">service_perfdata_file_processing_interval</a> directive.
 </p>
 
 
@@ -2579,6 +3009,39 @@ This option allows you to enable or disable checks for orphaned service checks. 
 <ul>
 <li>0 = Don't check for orphaned service checks
 <li>1 = Check for orphaned service checks (default)
+</ul>
+</p>
+
+
+<p>
+<a name="check_for_orphaned_hosts"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Orphaned Host Check Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>check_for_orphaned_hosts=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>check_for_orphaned_hosts=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option allows you to enable or disable checks for orphaned hoste checks. Orphaned host checks are checks which have been executed and have been removed from the event queue, but have not had any results reported in a long time.  Since no results have come back in for the host, it is not rescheduled in the event queue.  This can cause host checks to stop being executed.  Normally it is very rare for this to happen - it might happen if an external user or process killed off the process that was being used to execute a host check.  If this option is enabled and Nagios finds that results for a particular host check have not come back, it will log an error message and reschedule the host check.  If you start seeing host checks that never seem to get rescheduled, enable this option and see if you notice any log messages about orphaned hosts.
+</p>
+<p>
+<ul>
+<li>0 = Don't check for orphaned host checks
+<li>1 = Check for orphaned host checks (default)
 </ul>
 </p>
 
@@ -2704,6 +3167,60 @@ This setting determines how often (in seconds) Nagios will periodically check th
 
 
 <p>
+<a name="enable_embedded_perl"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Embedded Perl Interpreter Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>enable_embedded_perl=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>enable_embedded_perl=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This setting determines whether or not the embedded Perl interpreter is enabled on a program-wide basis.  Nagios must be compiled with support for embedded Perl for this option to have an effect.  More information on the embedded Perl interpreter can be found <a href="embeddedperl.html">here</a>.
+</p>
+
+
+<p>
+<a name="use_embedded_perl_implicitly"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Embedded Perl Implicit Use Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>use_embedded_perl_implicitly=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>use_embedded_perl_implicitly=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This setting determines whether or not the embedded Perl interpreter should be used for Perl plugins/scripts that do not explicitly enable/disable it.  Nagios must be compiled with support for embedded Perl for this option to have an effect.  More information on the embedded Perl interpreter and the effect of this setting can be found <a href="embeddedperl.html">here</a>.
+</p>
+
+
+<p>
 <a name="date_format"></a>
 <table border="0" width="100%" class="Default">
 <tr>
@@ -2816,7 +3333,7 @@ This option allows you to specify illegal characters that should be stripped fro
 </p>
 
 <p>
-This option determines whether or not various directives in your <a href="configobject.html">object definitions</a> will be processed as regular expressions.  More information on how this works can be found <a href="templatetricks.html">here</a>.
+This option determines whether or not various directives in your <a href="configobject.html">object definitions</a> will be processed as regular expressions.  More information on how this works can be found <a href="objecttricks.html">here</a>.
 </p>
 <p>
 <ul>
@@ -2849,7 +3366,7 @@ This option determines whether or not various directives in your <a href="config
 </p>
 
 <p>
-If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if the contain a <b>*</b> or <b>?</b> wildcard character.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="templatetricks.html">here</a>.
+If you've enabled regular expression matching of various object directives using the <a href="#use_regexp_matching">use_regexp_matching</a> option, this option will determine when object directives are treated as regular expressions.  If this option is disabled (the default), directives will only be treated as regular expressions if the contain a <b>*</b> or <b>?</b> wildcard character.  If this option is enabled, all appropriate directives will be treated as regular expression - be careful when enabling this!  More information on how this works can be found <a href="objecttricks.html">here</a>.
 </p>
 <p>
 <ul>

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-09-2007
+ * Last Modified:   02-22-2007
  *
  * License:
  *
@@ -2049,8 +2049,9 @@ int check_host(host *hst, int propagation_options, int check_options){
 			if(sigrestart==TRUE || sigshutdown==TRUE){
 				hst->current_attempt=1;
 				hst->current_state=old_state;
-				free(hst->plugin_output);
-				hst->plugin_output=(char *)old_plugin_output;
+				if(hst->plugin_output)
+					free(hst->plugin_output);
+				hst->plugin_output=(char *)strdup(old_plugin_output);
 				return hst->current_state;
 				}
 
@@ -2145,8 +2146,9 @@ int check_host(host *hst, int propagation_options, int check_options){
 			if(sigrestart==TRUE || sigshutdown==TRUE){
 				hst->current_attempt=1;
 				hst->current_state=old_state;
-				free(hst->plugin_output);
-				hst->plugin_output=(char *)old_plugin_output;
+				if(hst->plugin_output!=NULL)
+					free(hst->plugin_output);
+				hst->plugin_output=(char *)strdup(old_plugin_output);
 				return hst->current_state;
 				}
 

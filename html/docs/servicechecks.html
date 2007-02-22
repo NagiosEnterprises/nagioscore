@@ -73,6 +73,18 @@ You can define <a href="objectdefinitions.html#servicedependency">service execut
 </p>
 
 <p>
+<strong><u>Parallelization of Service Checks</u></strong>
+</p>
+
+<p>
+Scheduled service checks are run in parallel.  When Nagios needs to run a scheduled service check, it will initiate the service check and then return to doing other work (running host checks, etc).  The service check runs in a child process that was fork()ed from the main Nagios daemon.  When the service check has completed, the child process will inform the main Nagios process (its parent) of the check results.  The main Nagios process then handles the check results and takes appropriate action (running event handlers, sending notifications, etc.).
+</p>
+
+<p>
+On-demand service checks are also run in parallel if needed.  As mentioned earlier, Nagios can forgo the actual execution of an on-demand service check if it can use the cached results from a relatively recent service check.
+</p>
+
+<p>
 <strong><u>Service States</u></strong>
 </p>
 

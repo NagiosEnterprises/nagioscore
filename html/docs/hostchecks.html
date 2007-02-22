@@ -95,7 +95,15 @@ Scheduled host checks are run in parallel.  When Nagios needs to run a scheduled
 </p>
 
 <p>
-On-demand host check are also run in parallel, with one noteable exception...
+On-demand host checks are also run in parallel if needed.  As mentioned earlier, Nagios can forgo the actual execution of an on-demand host check if it can use the cached results from a relatively recent host check.
+</p>
+
+<p>
+When Nagios processes the results of scheduled and on-demand host checks, it may initiate (secondary) checks of other hosts.  These checks can be initated for two reasons: <a href="dependencychecks.html">predictive dependency checks</a> and to determining the status of the host using the <a href="networkreachability.html">network reachability</a> logic.  The secondary checks that are initiated are usually run in parallel.  However, there is one big exception that you should be aware of, as it can have negative effect on performance...
+</p>
+
+<p>
+<img src="images/note.gif" border="0" align="bottom"> Hosts which have their <i>max_check_attempts</i> value set to <b>1</b> can cause serious performance problems.  The reason?  If Nagios needs to determine their true state using the <a href="networkreachability.html">network reachability</a> logic (to see if they're DOWN or UNREACHABLE), it will have to launch <b>serial</b> checks of all of the host's immediate parents.   Just to reiterate, those checks are run <i>serially</i>, rather than in parallel, so it can cause a big performance hit.  For this reason, I would recommend that you always use a value greater than 1 for the <i>max_check_attempts</i> directives in your host definitions.
 </p>
 
 <p>

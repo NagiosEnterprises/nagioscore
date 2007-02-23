@@ -5,7 +5,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -15,6 +15,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Authentication And Authorization In The CGIs</h2>
 </div>
 </p>
@@ -22,35 +23,27 @@
 <hr>
 
 <p>
-<strong><u>Notes</u></strong>
-</p>
-<p>
-Throughout these instructions I will be assuming that you are running the <a href="http://httpd.apache.org/">Apache</a> web server on your machine.  If you are running some other web server, you will have to make some adjustments.
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="configcgi.html">CGI Configuration File Options</a>, <a href="cgis.html">Information on the CGIs</a>
 </p>
 
 <p>
-<a name="definitions"></a>
-<strong><u>Definitions</u></strong>
+<strong><u>Introduction</u></strong>
 </p>
+
 <p>
-Throughout these instructions I will be using the following terms, so you should understand what they mean...
+This documentation describes how the Nagios CGIs decide who has access to view monitoring and configuration information, and who can submit commands to the Nagios daemon through the web interface. 
 </p>
+
+<p>
+Before continuing, it is important that you understand the meaning of and difference between authenticated users and authenticated contacts:
+</p>
+
 <p>
 <ul>
-<li>An <i>authenticated user</i> is an someone who has authenticated to the web server with a username and password and has been granted access to the Nagios web interface.
-<li>An <i>authenticated contact</i> is an authenticated user whose username matches the short name of a contact definition in your <a href="configobject.html">object configuration file(s)</a>.
+<li>An <b>authenticated user</b> is an someone who has authenticated to the web server with a username and password and has been granted access to the Nagios web interface.
+<li>An <b>authenticated contact</b> is an authenticated user whose username matches the short name of a <a href="objectdefinitions.html#contact">contact definition</a>.
 </ul>
-</p>
-
-<p>
-<strong><u>Index</u></strong>
-</p>
-<p>
-<a href="#config_web_users">Setting up authenticated users</a><br>
-<a href="#enable_cgi_auth">Enabling authentication/authorization functionality in the CGIs</a><br>
-<a href="#default_rights">Default permissions to CGI information</a><br>
-<a href="#additional_rights">Granting additional permissions to CGI information</a><br>
-<a href="#secure_web_servers">Authentication on secure web servers</a><br>
 </p>
 
 
@@ -71,7 +64,9 @@ Running the following command will create a new file called <i>htpasswd.users</i
 </p>
 
 <p>
-<font color="red"><strong>htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin</strong></font>
+<pre>
+htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+</pre>
 </p>
 
 <p>
@@ -79,7 +74,9 @@ Continue adding more users until you've created an account for everyone you want
 </p>
 
 <p>
-<font color="red"><strong>htpasswd /usr/local/nagios/etc/htpasswd.users &lt;username&gt;</strong></font>
+<pre>
+htpasswd /usr/local/nagios/etc/htpasswd.users &lt;username&gt;
+</pre>
 </p>
 
 <p>
@@ -97,7 +94,9 @@ The next thing you need to do is make sure that the CGIs are configured to use t
 </p>
 
 <p>
-<font color="red"><strong>use_authentication=1</strong></font>
+<pre>
+use_authentication=1
+</pre>
 </p>
 
 <p>
@@ -273,10 +272,10 @@ If you are confused about the authorization needed to access various information
 </p>
 
 <p>
-If your web server is located in a secure domain (i.e., behind a firewall) or if you are using SSL, you can define a default username that can be used to access the CGIs.  This is done by defining the <a href="configcgi.html#default_user_name">default_user_name</a> option in the <a href="configcgi.html">CGI configuration file</a>.  By defining a default username that can access the CGIs, you can allow users to access the CGIs without necessarily having to authenticate to the web server..   You may want to use this to avoid having to use basic web authentication, as basic authentication transmits passwords in clear text over the Internet.
+If your web server is located in a secure domain (i.e., behind a firewall) or if you are using SSL, you can define a default username that can be used to access the CGIs.  This is done by defining the <a href="configcgi.html#default_user_name">default_user_name</a> option in the <a href="configcgi.html">CGI configuration file</a>.  By defining a default username that can access the CGIs, you can allow users to access the CGIs without necessarily having to authenticate to the web server.   You may want to use this to avoid having to use basic web authentication, as basic authentication transmits passwords in clear text over the Internet.
 </p>
 <p>
-<strong>Important:</strong>  Do <i>not</i> define a default username unless you are running a secure web server and are sure that everyone who has access to the CGIs has been authenticated in some manner!  If you define this variable, anyone who has not authenticated to the web server will inherit all rights you assign to this user!
+<strong>Important:</strong>  Do <i>not</i> define a default username unless you are running a secure web server and are sure that everyone who has access to the CGIs has been authenticated in some manner.  If you define this variable, anyone who has not authenticated to the web server will inherit all rights you assign to this user!
 </p>
 
 <hr>

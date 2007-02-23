@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,66 +17,42 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Verifying Your Nagios Configuration</h2>
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Verifying Your Configuration</h2>
 </div>
 </p>
+
 <hr>
 
 <p>
-<strong><u>Verifying The Configuration From The Command Line</u></strong>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="config.html">Configuration Overview</a>, <a href="startstop.html">Starting and Stopping Nagios</a>
 </p>
 
 <p>
-Once you've entered all the necessary data into the <a href="config.html">configuration files</a>, its time to do a sanity check. Everyone make mistakes from time to time, so its best to verify what you've entered.  Nagios automatically runs a "pre-flight check" before before it starts monitoring, but you also have the option of running this check
-manually before attempting to start Nagios.  In order to do this, you must start Nagios with the <b>-v</b> command
-line argument as follows...
-</p>
-<p>
-<strong><font color="red">/usr/local/nagios/bin/nagios -v &lt;main_config_file&gt;</font></strong>
+<strong><u>Verifying Your Configuration</u></strong>
 </p>
 
 <p>
-Note that you should be entering the path/filename of your <i>main</i> configuration file (i.e. <i>/usr/local/nagios/etc/nagios.cfg</i>) as the second argument.  Nagios will read your <a href="configmain.html">main configuration file</a> and all <a href="configobject.html">object configuration files</a> and verify that they contain valid data.
+Every time your modify you <a href="config.html">configuration files</a>, you should run a sanity check on them.  It is important to do this before you (re)start Nagios, as Nagios will shut down if your configuration contains errors.
 </p>
 
 <p>
-<strong><u>Relationships Verified During The Pre-Flight Check</u></strong>
+In order to verify your configuration, run Nagios with the <b>-v</b> command line option like so:
 </p>
 
 <p>
-During the "pre-flight check", Nagios verifies that you have defined the data relationships necessary for 
-monitoring.  Objects are all related and need to be setup properly in order for things to run.  This is a list of the basic things that Nagios attempts to check before it will start monitoring...
+<pre>
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+</pre>
 </p>
 
 <p>
-<ol>
-<li>Verify that all contacts are a member of at least one contact group.
-<li>Verify that all contacts specified in each contact group are valid.
-<li>Verify that all hosts are a member of at least one host group.
-<li>Verify that all hosts specified in each host group are valid.
-<li>Verify that all hosts have at least one service associated with them.
-<li>Verify that all commands used in service and host checks are valid.
-<li>Verify that all commands used in service and host event handlers are valid.
-<li>Verify that all commands used in contact service and host notifications are valid.
-<li>Verify that all notification time periods specified for services, hosts, and contact are valid.
-<li>Verify that all service check time periods specified for services are valid.
-</ol>
+If you've forgotten to enter some critical data or misconfigured things, Nagios will spit out a warning or error message that should point you to the location of the problem.  Error messages generally print out the line in the configuration file that seems to be the source of the problem.  On errors, Nagios will often exit the pre-flight check and return to the command prompt after printing only the first error that it has encountered.  This is done so that one error does not cascade into multiple errors as the remainder of the configuration data is verified.  If you get any error messages you'll need to go and edit your configuration files to remedy the problem.  Warning messages can <i>generally</i> be safely ignored, since they are only recommendations and not requirements.
 </p>
 
 <p>
-<strong><u>Fixing Configuration Errors</u></strong>
-</p>
-
-<p>
-If you've forgotten to enter some critical data or just plain screwed things up, Nagios will spit out a warning or error message that should point you to the location of the problem.  Error messages generally print out the line in the configuration file that seems to be the source of the problem.  On errors, Nagios will often exit the pre-flight check and return to the command prompt after printing only the first error that it has encountered.  This is done so that one error does not cascade into multiple errors as the remainder of the configuration data is verified.  If you get any error messages you'll need to go and edit your configuration files to remedy the problem.  Warning messages can <i>generally</i> be safely ignored, since they are only recommendations and not requirements.
-</p>
-
-<p>
-<strong><u>Where To Go From Here</u></strong>
-</p>
-
-<p>
-Once you've verified your configuration files and fixed any errors, you can be reasonably sure that Nagios will start monitoring the services you've specified.  On to <a href="starting.html">starting Nagios</a>!
+Once you've verified your configuration files and fixed any errors you can go ahead and <a href="startstop.html">(re)start Nagios</a>.
 </p>
 
 <hr>

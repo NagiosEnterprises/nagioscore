@@ -26,8 +26,8 @@ Legend4[nagios-a]: Maximal 5 Minute Execution Time
 # Service Percent State Change
 Target[nagios-b]: `@bindir@/nagiostats --mrtg --data=AVGACTSVCPSC,AVGPSVSVCPSC,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-b]: 100
-Title[nagios-b]: Average Service Check State Change
-PageTop[nagios-b]: <H1>Average Service Check State Change</H1>
+Title[nagios-b]: Average Service State Change
+PageTop[nagios-b]: <H1>Average Service State Change</H1>
 Options[nagios-b]: growright,gauge,nopercent
 YLegend[nagios-b]: Percent
 ShortLegend[nagios-b]: &nbsp;
@@ -56,8 +56,8 @@ Legend4[nagios-c]: Maximal 5 Minute Execution Time
 # Host Percent State Change
 Target[nagios-d]: `@bindir@/nagiostats --mrtg --data=AVGACTHSTPSC,AVGPSVHSTPSC,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-d]: 100
-Title[nagios-d]: Average Host Check State Change
-PageTop[nagios-d]: <H1>Average Host Check State Change</H1>
+Title[nagios-d]: Average Host State Change
+PageTop[nagios-d]: <H1>Average Host State Change</H1>
 Options[nagios-d]: growright,gauge,nopercent
 YLegend[nagios-d]: Percent
 ShortLegend[nagios-d]: &nbsp;
@@ -68,22 +68,22 @@ Legend2[nagios-d]: State Change
 Legend3[nagios-d]: Maximal 5 Minute State Change
 Legend4[nagios-d]: Maximal 5 Minute State Change
 
-# Hosts/Services Actively Checked in Last 5 Minutes
+# Hosts/Services Actively Checked
 Target[nagios-e]: `@bindir@/nagiostats --mrtg --data=NUMHSTACTCHK5M,NUMSVCACTCHK5M,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-e]: 7000
-Title[nagios-e]: Hosts/Services Actively Checked in Last 5 Minutes
-PageTop[nagios-e]: <H1>Hosts/Services Actively Checked in Last 5 Minutes</H1>
+Title[nagios-e]: Hosts/Services Actively Checked
+PageTop[nagios-e]: <H1>Hosts/Services Actively Checked</H1>
 Options[nagios-e]: growright,gauge,nopercent
 YLegend[nagios-e]: Total
 ShortLegend[nagios-e]: &nbsp;
 LegendI[nagios-e]: &nbsp;Hosts:
 LegendO[nagios-e]: &nbsp;Services:
 
-# Hosts/Services Passively Checked in Last 5 Minutes
+# Hosts/Services Passively Checked
 Target[nagios-f]: `@bindir@/nagiostats --mrtg --data=NUMHSTPSVCHK5M,NUMSVCPSVCHK5M,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-f]: 7000
-Title[nagios-f]: Hosts/Services Passively Checked Last 5 Minutes
-PageTop[nagios-f]: <H1>Hosts/Services Passively Checked Last 5 Minutes</H1>
+Title[nagios-f]: Hosts/Services Passively Checked
+PageTop[nagios-f]: <H1>Hosts/Services Passively Checked</H1>
 Options[nagios-f]: growright,gauge,nopercent
 YLegend[nagios-f]: Total
 ShortLegend[nagios-f]: &nbsp;

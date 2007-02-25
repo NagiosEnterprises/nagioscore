@@ -122,6 +122,38 @@ I'll describe what a few of the sample MRTG graphs mean and what they can be use
 <tr>
 <td valign="top">
 <p>
+<b>Hosts/Services Actively Checked</b> - This graph shows how many (of the total number of) hosts and services were <i>last</i> checked actively over time.  Useful for understanding:
+</p>
+<p>
+<ul>
+<li><a href="activechecks.html">Active checks</a></li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-activelychecked.png" border="0" alt="Hosts/Services Actively Checked">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
+<b>Hosts/Services Passively Checked</b> - This graph shows how many (of the total number of) hosts and services were <i>last</i> checked passively over time.  Useful for understanding:
+</p>
+<p>
+<ul>
+<li><a href="passivechecks.html">Passive checks</a></li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-passivelychecked.png" border="0" alt="Hosts/Services Passively Checked">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
 <b>Average Service Check Latency and Execution Time</b> - This graph shows average service check latency and execution times over time.  Useful for understanding:
 </p>
 <p>
@@ -150,6 +182,22 @@ Consistently high latencies can be an indication that one of more of the followi
 <tr>
 <td valign="top">
 <p>
+<b>Average Service State Change</b> - This graph shows the average percent state change (a measure of volatility) for services over time, broken down by services that were last checked either actively or passively.  Useful for understanding:
+</p>
+<p>
+<ul>
+<li><a href="flapping.html">Flap detection</a></li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-servicestatechange.png" border="0" alt="Average Service State Change">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
 <b>Average Host Check Latency and Execution Time</b> - This graph shows average host check latency and execution times over time.  Useful for understanding:
 </p>
 <p>
@@ -172,6 +220,62 @@ Consistently high latencies can be an indication that one of more of the followi
 </td>
 <td valign="top">
 <img src="images/mrtg-hostperfstats.png" border="0" alt="Average Host Check Latency and Execution Time">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
+<b>Average Host State Change</b> - This graph shows the average percent state change (a measure of volatility) for hosts over time, broken down by hosts that were last checked either actively or passively.  Useful for understanding:
+</p>
+<p>
+<ul>
+<li><a href="flapping.html">Flap detection</a></li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-hoststatechange.png" border="0" alt="Average Host State Change">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
+<b>Check Result Buffers</b> - This graph shows how may check result buffer slots are in use over time.  If the number of used buffers is near the number of available buffers on a regular basis, it is likely you need to increase the available <a href="configmain.html#check_result_buffer_slots">check result buffer slots</a>.  Each buffer slot can hold one host or service check results.   Buffers are used for temporarily holding check results before they are processed by the Nagios daemon.
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-checkbuffers.png" border="0" alt="Check Result Buffers">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
+<b>External Commands</b> - This graph shows how may external commands have been processed by the Nagios daemon over time. Unless you're processing a large number of external commands (as in the case with distributed monitoring setups), this graph may appear mostly empty. Monitoring external commands can be useful for understanding the impacts of:
+</p>
+<p>
+<ul>
+<li><a href="passivechecks.html">Passive checks</a></li>
+<li><a href="distributed.html">Distributed monitoring</a></li>
+<li><a href="redundant.html">Redundant/failover monitoring</a></li>
+</ul>
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-externalcommands.png" border="0" alt="External Commands">
+</td>
+</tr>
+
+<tr>
+<td valign="top">
+<p>
+<b>External Command Buffers</b> - This graph shows how may external command buffer slots are in use over time.  If the number of used buffers is near the number of available buffers on a regular basis, it is likely you need to increase the available <a href="configmain.html#external_command_buffer_slots">external command buffer slots</a>.  Each buffer slot can hold one external command.   Buffers are used for temporarily holding external commands from the time they are read from the <a href="configmain.html#command_file">external command file</a> to the time they are processed by the Nagios daemon.
+</p>
+</td>
+<td valign="top">
+<img src="images/mrtg-commandbuffers.png" border="0" alt="External Command Buffers">
 </td>
 </tr>
 

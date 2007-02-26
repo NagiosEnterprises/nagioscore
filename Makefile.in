@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 02-12-2007
+# Last Modified: 02-25-2007
 ###############################
 
 
@@ -25,6 +25,7 @@ LOGDIR=@localstatedir@
 CFGDIR=@sysconfdir@
 BINDIR=@bindir@
 CGIDIR=@sbindir@
+LIBEXECDIR=@libexecdir@
 HTMLDIR=@datadir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
@@ -182,6 +183,7 @@ install-unstripped:
 	$(MAKE) install-basic
 
 install-basic:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LIBEXECDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LOGDIR)/archives
 	if [ $(INSTALLPERLSTUFF) = yes ]; then \
@@ -242,21 +244,7 @@ install-daemoninit:
 	@echo ""
 	@echo "*** Init script installed ***"
 	@echo ""
-	@echo "You can continue with installing Nagios as follows (type 'make'"
-	@echo "without any arguments for a list of all possible options):"
-	@echo ""
-	@echo "  make install-commandmode"
-	@echo "     - This installs and configures permissions on the"
-	@echo "       directory for holding the external command file"
-	@echo ""
-	@echo "  make install-config"
-	@echo "     - This installs *SAMPLE* config files in $(DESTDIR)$(CFGDIR)"
-	@echo "       You'll have to modify these sample files before you can"
-	@echo "       use Nagios.  Read the HTML documentation for more info"
-	@echo "       on doing this.  Pay particular attention to the docs on"
-	@echo "       object configuration files, as they determine what/how"
-	@echo "       things get monitored!"
-	@echo ""
+
 
 install-commandmode:
 	$(INSTALL) -m 775 $(COMMAND_OPTS) -d $(DESTDIR)$(LOGDIR)/rw
@@ -265,17 +253,7 @@ install-commandmode:
 	@echo ""
 	@echo "*** External command directory configured ***"
 	@echo ""
-	@echo "You can continue with installing Nagios as follows (type 'make'"
-	@echo "without any arguments for a list of all possible options):"
-	@echo ""
-	@echo "  make install-config"
-	@echo "     - This installs *SAMPLE* config files in $(DESTDIR)$(CFGDIR)"
-	@echo "       You'll have to modify these sample files before you can"
-	@echo "       use Nagios.  Read the HTML documentation for more info"
-	@echo "       on doing this.  Pay particular attention to the docs on"
-	@echo "       object configuration files, as they determine what/how"
-	@echo "       things get monitored!"
-	@echo ""
+
 
 fullinstall: install install-init install-commandmode
 

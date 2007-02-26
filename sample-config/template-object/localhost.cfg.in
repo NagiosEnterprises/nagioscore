@@ -1,9 +1,9 @@
 ###############################################################################
 # LOCALHOST.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING THIS MACHINE
 #
-# Last Modified: 11-27-2006
+# Last Modified: 02-25-2007
 #
-# NOTE: This config file is intended to servce as an *extremely* simple 
+# NOTE: This config file is intended to serve as an *extremely* simple 
 #       example of how you can create your object configuration file(s).
 #
 ###############################################################################
@@ -20,7 +20,6 @@
 
 # This defines a timeperiod where all times are valid for checks, 
 # notifications, etc.  The classic "24x7" support nightmare. :-)
-
 define timeperiod{
         timeperiod_name 24x7
         alias           24 Hours A Day, 7 Days A Week
@@ -37,26 +36,12 @@ define timeperiod{
 # 'workhours' timeperiod definition
 define timeperiod{
 	timeperiod_name	workhours
-	alias		"Normal" Working Hours
+	alias		Normal Work Hours
 	monday		09:00-17:00
 	tuesday		09:00-17:00
 	wednesday	09:00-17:00
 	thursday	09:00-17:00
 	friday		09:00-17:00
-	}
-
-
-# 'nonworkhours' timeperiod definition
-define timeperiod{
-	timeperiod_name	nonworkhours
-	alias		Non-Work Hours
-	sunday		00:00-24:00
-	monday		00:00-09:00,17:00-24:00
-	tuesday		00:00-09:00,17:00-24:00
-	wednesday	00:00-09:00,17:00-24:00
-	thursday	00:00-09:00,17:00-24:00
-	friday		00:00-09:00,17:00-24:00
-	saturday	00:00-24:00
 	}
 
 
@@ -76,8 +61,7 @@ define timeperiod{
 ###############################################################################
 ###############################################################################
 
-# NOTE: Sample command definitions can now be found in the sample commands.cfg 
-#       file
+# NOTE: Sample command definitions can now be found in the sample commands.cfg file
 
 
 
@@ -91,11 +75,9 @@ define timeperiod{
 ###############################################################################
 
 # In this simple config file, a single contact will receive all alerts.
-# This assumes that you have an account (or email alias) called
-# "@nagios_user@-admin" on the local host.
 
 define contact{
-        contact_name                    @nagios_user@-admin
+        contact_name                    nagiosadmin
         alias                           Nagios Admin
         service_notification_period     24x7
         host_notification_period        24x7
@@ -103,7 +85,7 @@ define contact{
         host_notification_options       d,r
         service_notification_commands   notify-by-email
         host_notification_commands      host-notify-by-email
-        email                           @nagios_user@-admin@localhost
+        email                           @nagios_user@@localhost     ; <--- Change this to your email address
         }
 
 
@@ -122,7 +104,7 @@ define contact{
 define contactgroup{
         contactgroup_name       admins
         alias                   Nagios Administrators
-        members                 @nagios_user@-admin
+        members                 nagiosadmin
         }
 
 
@@ -162,7 +144,7 @@ define host{
 	notification_period		workhours	; Linux admins hate to be woken up, so we only notify during the day
 							; Note that the notification_period variable is being overridden from
 							; the value that is inherited from the generic-host template!
-	notification_interval		120		; Resend notification every 2 hours
+	notification_interval		120		; Resend notifications every 2 hours
 	notification_options		d,u,r		; Only send notifications for specific host states
 	contact_groups			admins		; Notifications get sent to the admins by default
 	register			0		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
@@ -196,8 +178,8 @@ define host{
 # create more than one hostgroup.
 
 define hostgroup{
-        hostgroup_name  test
-        alias           Test Servers
+        hostgroup_name  allservers
+        alias           All Servers
         members         localhost
         }
 

@@ -2,10 +2,7 @@
 SAMPLE OBJECT CONFIG FILE README
 ================================
 
-This directory contains sample object definition config files for
-use with the TEMPLATE-BASED object configuration file format.  This is
-now the only type of file format supported by Nagios "out of the box".
-
+This directory contains sample object definition config files.
 Sample config files have a .cfg extension.  Ignore any files with
 a .in extension, as they are templates used to generate the sample
 config files.

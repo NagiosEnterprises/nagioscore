@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,85 +17,158 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Determining Status and Reachability of Network Hosts</h2>
 </div>
 </p>
+
 <hr>
 
 <p>
-<strong><u>Monitoring Services on Down or Unreachable Hosts</u></strong>
-</p>
-<p>
-The main purpose of Nagios is to monitor services that run on or are provided by physical hosts or devices on your network.  It should be obvious that if a host or device on your network goes down, all services that it offers will also go down with it.  Similarly, if a host becomes unreachable, Nagios will not be able to monitor the services associated with that host.
-</p>
-<p>
-Nagios recognizes this fact and attempts to check for such a scenario when there are problems with a service.  
-Whenever a service check results in a non-OK status level, Nagios will attempt to check and see if the host that the service is running on is "alive".  Typically this is done by pinging the host and seeing if any response is received.  If the host check commmand returns a non-OK state, Nagios assumes that there is a problem with the host.  In this situation Nagios will "silence" all potential alerts for services running on the host and just notify the appropriate contacts that the host is down or unreachable. If the host check command returns an OK state, Nagios will recognize that the host is alive and will send out an alert for the service that is misbehaving.
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="passivestatetranslation.html">Passive Host State Translation</a>
 </p>
 
 <p>
-<strong><u>Local Hosts</u></strong>
-</p>
-<p>
-"Local" hosts are hosts that reside on the same network segment as the host running Nagios - no routers or firewalls lay between them.  <a href="#figure1">Figure 1</a> shows an example network layout.  Host A is running Nagios and monitoring all other hosts and routers depicted in the diagram.  Hosts B, C, D, E and F are all considered to be "local" hosts in relation to host A.
-</p>
-<p>
-The &lt;<i>parents</i>&gt; option in the host definition for a "local" host should be left blank, as local hosts have no depencies or "parents" - that's why they're local.
+<strong><u>Introduction</u></strong>
 </p>
 
 <p>
-<strong><u>Monitoring Local Hosts</u></strong>
-</p>
-<p>
-Checking hosts that are on your local network is fairly simple.  Short of someone accidentally (or intentially) unplugging the network cable from one of your hosts, there isn't too much that can go wrong as far as checking network connectivity is concerned.  There are no routers or external networks between the host doing the monitoring and the other hosts on the local network.
-</p>
-<p>
-If Nagios needs to check to see if a local host is "alive" it will simply run the host check command for that host.  If the command returns an OK state, Nagios assumes the host is up.  If the command returns any other status level, Nagios will assume the host is down.
+If you've ever work in tech support, you've undoubtably had users tell you "the Internet is down".  As a techie, you're pretty sure that no one pulled the power cord from the Internet.  Something must be going wrong somewhere between the user's chair and the Internet.
 </p>
 
 <p>
-<a name="figure1"></a>
-<strong>Figure 1.</strong><br>
-<img src="images/physical-network.png" border=1><br clear="all">
+Assuming its a technical problem, you begin to search for the problem.  Perhaps the user's computer is turned off, maybe their network cable is unplugged, or perhaps your organization's core router just took a dive.  Whatever the problem might be, one thing is most certain - the Internet isn't down.  It just happens to be unreachable for that user.
 </p>
 
 <p>
-<strong><u>Remote Hosts</u></strong>
+Nagios is able to determine whether the hosts you're monitoring are in a DOWN or UNREACHABLE state.  These are very different (although related) states and can help you quickly determine the root cause of network problems.  Here's how the reachability logic works to distinguish between these two states...
 </p>
+
+
 <p>
-"Remote" hosts are hosts that reside on a different network segment than the host running Nagios.  In the figure above, hosts G, H, I, J, K, L and M are all considered to be "remote" hosts in relation to host A.
-</p>
-<p>
-Notice that some hosts are "farther away" than others.  Hosts H, I and J are one hop further away from host A than host G (the router) is.  From this observation we can construct a host dependency tree as show below in <a href="#figure2">Figure 2</a>. This tree diagram will help us in deciding how to configure each host in Nagios.
-</p>
-<p>
-The <b>&lt;parents&gt;</b> option in the host definition for a "remote" host should be the short name(s) of the host(s) directly above it in the tree diagram (as show below).  For example, the parent host for host H would be host G.  The parent host for host G is host F.  Host F has no parent host, since it is on the network segment as host A - it is a "local" host.
+<strong><u>Example Network</u></strong>
 </p>
 
 <p>
-<a name="figure2"></a>
-<strong>Figure 2.</strong><br>
-<img src="images/network-heirarchy.png" border=1><br clear="all">
+Take a look at the simple network diagram below.  For this example, lets assume you're monitoring all the hosts (server, routers, switches, etc) that are pictured.  Nagios is installed and running on the <i>Nagios</i> host.
 </p>
 
 <p>
-<strong><u>Monitoring Remote Hosts</u></strong>
-</p>
-<p>
-Checking the status of remote hosts is a bit more complicated that for local hosts.  If Nagios cannot monitor services on a remote host, it needs to determine whether the remote host is down or whether it is unreachable.  Luckily, the 
-<b>&lt;parents&gt;</b> option allows Nagios to do this.
-</p>
-<p>
-If a host check command for a remote host returns a non-OK state, Nagios will "walk" the depency tree (as shown in the figure above) until it reaches the top (or until a parent host check results in an OK state).  By doing this, Nagios is able to determine if a service problem is the result of a down host, an down network link, or just a plain old service failure.
+<img src="images/reachability1.png" border="0">
 </p>
 
 <p>
-<strong><u>DOWN vs. UNREACHABLE Notification Types</u></strong>
+<strong><u>Defining Parent/Child Relationships</u></strong>
 </p>
 
 <p>
-I get lots of email from people asking why Nagios is sending notifications out about hosts that are unreachable.  The answer is because you configured it to do that.  If you want to disable UNREACHABLE notifications for hosts, modify the <i>notification_options</i> argument of your host definitions to not include the <i>u</i> (unreachable) option.  More information can be found in <a href="faqs.html#unreachable_notifications">this FAQ</a>.
+In order for Nagios to be able to distinguish between DOWN and UNREACHABLE states for the hosts that are being monitored, you'll need to tell Nagios how those hosts are connected to each other - from the standpoint of the Nagios daemon.  To do this, trace the path that a data packet would take from the Nagios daemon to each individual host.  Each switch, router, and server the packet encounters or passes through is considered a "hop" and will require that you define a parent/child host relationship in Nagios.  Here's what the host parent/child relationships look like from the viewpoint of Nagios:
 </p>
+
+<p>
+<img src="images/reachability2.png" border="0">
+</p>
+
+
+<p>
+Now that you know what the parent/child relationships look like for hosts that are being monitored, how do you configure Nagios to reflect them?  The <i>parents</i> directive in your <a href="objectdefinitions.html#host">host definitions</a> allows you to do this.  Here's what the (abbreviated) host definitions with parent/child relationships would look like for this example:
+</p>
+
+<p>
+<pre>
+define host{
+	host_name		Nagios   ; <-- The local host has no parent - it is the topmost host
+	}
+
+define host{
+	host_name		Switch1
+	parents		Nagios
+	}
+	
+define host{
+	host_name		Web
+	parents		Switch1
+	}
+	
+define host{
+	host_name		FTP
+	parents		Switch1
+	}
+	
+define host{
+	host_name		Router1
+	parents		Switch1
+	}
+	
+define host{
+	host_name		Switch2
+	parents		Router1
+	}
+	
+define host{
+	host_name		Wkstn1
+	parents		Switch2
+	}
+	
+define host{
+	host_name		HPLJ2605
+	parents		Switch2
+	}
+	
+define host{
+	host_name		Router2
+	parents		Router1
+	}
+	
+define host{
+	host_name		somewebsite.com
+	parents		Router2
+	}
+</pre>
+</p>
+
+<p>
+<strong><u>Reachability Logic in Action</u></strong>
+</p>
+
+<p>
+Now that you're configured Nagios with the proper parent/child relationships for your hosts, let's see what happen when problems arise.  Assume that two hosts - <i>Web</i> and <i>Router1</i> - go offline...
+</p>
+
+<p>
+<img src="images/reachability3.png" border="0">
+</p>
+
+<p>
+When hosts change state (i.e. from UP to DOWN), the host reachability logic in Nagios kicks in.  The reachability logic will initiate parallel checks of the parents and children of whatever hosts change state.  This allows Nagios to quickly determine the current status of your network infrastructure when changes occur.
+</p>
+
+<p>
+<img src="images/reachability4.png" border="0">
+</p>
+
+<p>
+In this example, Nagios will determine that <i>Web</i> and <i>Router1</i> are both in DOWN states because the "path" to those hosts is not being blocked.
+</p>
+
+<p>
+Nagios will determine that all the hosts "beneath" <i>Router1</i> are all in an UNREACHABLE state because Nagios can't reach them.  <i>Router1</i> is DOWN and is blocking the path to those other hosts.  Those hosts might be running fine, or they might be offline - Nagios doesn't know because it can't reach them.  Hence Nagios considers them to be UNREACHABLE instead of DOWN.
+</p>
+
+<p>
+<strong><u>UNREACHABLE States and Notifications</u></strong>
+</p>
+
+<p>
+By default, Nagios will notify contacts about both DOWN and UNREACHABLE host states.  As an admin/tech, you might not want to get notifications about hosts that are UNREACHABLE.  You know your network structure, and if Nagios notifies you that your router/firewall is down, you know that everything behind it is unreachable.
+</p>
+
+<p>
+If you want to spare yourself from a flood of UNREACHABLE notifications during network outages, you can exclude it from the <i>notification_options</i> directive in your <a href="objectdefinitions.html#host">host</a>, <a href="objectdefinitions.html#service">service</a>, and/or <a href="objectdefinitions.html#contact">contact</a> definitions.
+</p>
+
+
 
 <hr>
 

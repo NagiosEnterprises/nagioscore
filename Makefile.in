@@ -228,7 +228,7 @@ install-init: install-daemoninit
 
 install-daemoninit:
 	$(INSTALL) -m 755 -d $(INIT_OPTS) $(DESTDIR)$(INIT_DIR)
-	$(INSTALL) -m 774 $(INIT_OPTS) daemon-init $(DESTDIR)$(INIT_DIR)/nagios
+	$(INSTALL) -m 755 $(INIT_OPTS) daemon-init $(DESTDIR)$(INIT_DIR)/nagios
 
 	@echo ""
 	@echo "*** Init script installed ***"

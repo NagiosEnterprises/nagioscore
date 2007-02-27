@@ -74,18 +74,28 @@ define timeperiod{
 ###############################################################################
 ###############################################################################
 
-# In this simple config file, a single contact will receive all alerts.
+# Generic contact definition template - This is NOT a real contact, just a template!
+
+define host{
+        name                            generic-contact    	; The name of this contact template
+        service_notification_period     24x7			; service notifications can be sent anytime
+        host_notification_period        24x7			; host notifications can be sent anytime
+        service_notification_options    w,u,c,r,f,s		; send notifications for all service states, flapping events, and scheduled downtime events
+        host_notification_options       d,u,r,f,s		; send notifications for all host states, flapping events, and scheduled downtime events
+        service_notification_commands   notify-service-by-email	; send service notifications via email
+        host_notification_commands      notify-host-by-email	; send host notifications via email
+        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL CONTACT, JUST A TEMPLATE!
+        }
+
+
+# Just one contact defined by default - the Nagios admin (that's you)
 
 define contact{
-        contact_name                    nagiosadmin
-        alias                           Nagios Admin
-        service_notification_period     24x7
-        host_notification_period        24x7
-        service_notification_options    w,u,c,r
-        host_notification_options       d,r
-        service_notification_commands   notify-by-email
-        host_notification_commands      host-notify-by-email
-        email                           @nagios_user@@localhost     ; <--- Change this to your email address
+        contact_name                    nagiosadmin		; Short name of user
+	use				generic-contact		; Inherit default values from generic-contact template (defined above)
+        alias                           Nagios Admin		; Full name of user
+
+        email                           @nagios_user@@localhost	; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
         }
 
 
@@ -139,6 +149,8 @@ define host{
 	name				linux-server	; The name of this host template
 	use				generic-host	; This template inherits other values from the generic-host template
 	check_period			24x7		; By default, Linux hosts are checked round the clock
+	check_interval			5		; Actively check the host every 5 minutes
+	retry_interval			1		; Schedule host check retries at 1 minute intervals
 	max_check_attempts		10		; Check each Linux host 10 times (max)
         check_command           	check-host-alive ; Default command to check Linux hosts
 	notification_period		workhours	; Linux admins hate to be woken up, so we only notify during the day

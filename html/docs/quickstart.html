@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>Quickstart Guide To Installing Nagios</title>
+<title>Quickstart Installation Guide</title>
 
 <STYLE type="text/css">
 <!--
@@ -18,7 +18,7 @@
 <p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
-<h2 class="PageTitle">Quickstart Guide To Installing Nagios</h2>
+<h2 class="PageTitle">Quickstart Installation Guide</h2>
 </div>
 </p>
 
@@ -34,7 +34,7 @@
 </p>
 
 <p>
-This guide is intended to provide you with simple instructions on how to install Nagios from source (code) and have it monitoring your local machine inside of 15 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
+This guide is intended to provide you with simple instructions on how to install Nagios from source (code) and have it monitoring your local machine inside of 20 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
 </p>
 
 <p>
@@ -78,42 +78,16 @@ You can still install and use Nagios without the GD library if you need to, as i
 </p>
 
 <p>
-<strong><u>1) Download Nagios and the Plugins</u></strong>
+<strong><u>1) Create Account Information</u></strong>
 </p>
 
 <p>
-Create a directory for storing the downloads.
-</p>
-
-<p>
-<pre>
-mkdir ~/downloads
-cd ~/downloads
-</pre>
-</p>
-
-<p>
-Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).
+Login as root using <i>su -l</i> or <i>sudo -s</i>.
 </p>
 
 <p>
 <pre>
-wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a1.tar.gz
-wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.6.tar.gz
-</pre>
-</p>
-
-<p>
-<strong><u>2) Create Account Information</u></strong>
-</p>
-
-<p>
-Login as root using <i>su</i> or <i>sudo -s</i>.
-</p>
-
-<p>
-<pre>
-su
+su -l
 </pre>
 </p>
 
@@ -137,6 +111,32 @@ Create a new <i>nagcmd</i> group for allowing external commands to be submitted 
 /usr/sbin/groupadd nagcmd
 /usr/sbin/usermod -G nagcmd nagios
 /usr/sbin/usermod -G nagcmd apache
+</pre>
+</p>
+
+<p>
+<strong><u>2) Download Nagios and the Plugins</u></strong>
+</p>
+
+<p>
+Create a directory for storing the downloads.
+</p>
+
+<p>
+<pre>
+mkdir ~/downloads
+cd ~/downloads
+</pre>
+</p>
+
+<p>
+Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).
+</p>
+
+<p>
+<pre>
+wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a1.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.6.tar.gz
 </pre>
 </p>
 
@@ -205,7 +205,21 @@ Don't start Nagios yet - there's still more that needs to be done...
 </p>
 
 <p>
-<strong><u>4) Configure the Web Interface</u></strong>
+<strong><u>4) Customize Configuration</u></strong>
+</p>
+
+<p>
+Edit the <i>localhost.cfg</i> config file and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
+</p>
+
+<p>
+<pre>
+vi /usr/local/nagios/etc/localhost.cfg
+</pre>
+</p>
+
+<p>
+<strong><u>5) Configure the Web Interface</u></strong>
 </p>
 
 <p>
@@ -241,7 +255,7 @@ service httpd restart
 
 
 <p>
-<strong><u>5) Compile and Install the Nagios Plugins</u></strong>
+<strong><u>6) Compile and Install the Nagios Plugins</u></strong>
 </p>
 
 <p>
@@ -269,7 +283,7 @@ make install
 </p>
 
 <p>
-<strong><u>6) Start Nagios</u></strong>
+<strong><u>7) Start Nagios</u></strong>
 </p>
 
 <p>
@@ -293,7 +307,7 @@ service nagios start
 </p>
 
 <p>
-<strong><u>6) Login to the Web Interface</u></strong>
+<strong><u>8) Login to the Web Interface</u></strong>
 </p>
 
 <p>
@@ -307,15 +321,55 @@ http://localhost/nagios/
 </p>
 
 <p>
-Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.
+Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: If you get an "" error while attempting to view the CGIs, its likely due to the fact that SELinux is installed on your system
+<img src="images/note.gif" border="0" align="bottom"> Note: If you get "Internal Server Error" error messages while attempting to view the CGIs, its likely due to the fact that SELinux is installed on your system.  See below for  information on fixing this.
 </p>
 
 <p>
-<strong><u>7) You're Done</u></strong>
+<strong><u>9) Modify SELinux Settings</u></strong>
+</p>
+
+<p>
+If you don't get any errors when access the CGIs, you can skip this step.  Fedora ships with SELinux (Security Enhanced Linux) installed and in Enforcing mode by default.  This can result in "Internal Server Error" messages when you attempt to access the Nagios CGIs.
+</p>
+
+<p>
+See if SELinux is in Enforcing mode.
+</p>
+
+<p>
+<pre>
+getenforce
+</pre>
+</p>
+
+<p>
+Put SELinux into Permissive mode.
+</p>
+
+<p>
+<pre>
+setenforce 0
+</pre>
+</p>
+
+<p>
+The Nagios CGIs should work now.  To make this change permanent, you'll have to modify <i>/etc/selinux/config</i>.  For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
+</p>
+
+<p>
+<strong><u>10) Other Modifications</u></strong>
+</p>
+
+<p>
+Make sure your machine's firewall rules are configured to allow access to the web server if you want to access the Nagios interface remotely.
+</p>
+
+<p>
+<strong><u>11) You're Done</u></strong>
 </p>
 
 <p>
@@ -323,7 +377,7 @@ Congratulations!  You sucessfully installed Nagios.
 </p>
 
 <p>
-Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so start reading the sections of the documentation under "Configuring Nagios" and "The Basics" in the <a href="toc.html">table of contents</a>.
+Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so start reading...
 </p>
 
 <hr>

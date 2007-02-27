@@ -2,7 +2,7 @@
 #
 # CGI.CFG - Sample CGI Configuration File for Nagios @VERSION@
 #
-# Last Modified: 11-21-2006
+# Last Modified: 02-26-2007
 #
 #################################################################
 
@@ -113,7 +113,7 @@ use_authentication=1
 # not use authorization.  You may use an asterisk (*) to
 # authorize any user who has authenticated to the web server.
 
-#authorized_for_system_information=nagiosadmin
+authorized_for_system_information=nagiosadmin
 
 
 
@@ -125,7 +125,7 @@ use_authentication=1
 # an asterisk (*) to authorize any user who has authenticated
 # to the web server.
 
-#authorized_for_configuration_information=nagiosadmin
+authorized_for_configuration_information=nagiosadmin
 
 
 
@@ -138,7 +138,7 @@ use_authentication=1
 # You may use an asterisk (*) to authorize any user who has
 # authenticated to the web server.
 
-#authorized_for_system_commands=nagiosadmin
+authorized_for_system_commands=nagiosadmin
 
 
 
@@ -151,8 +151,8 @@ use_authentication=1
 # to authorize any user who has authenticated to the web server.
 
 
-#authorized_for_all_services=nagiosadmin
-#authorized_for_all_hosts=nagiosadmin
+authorized_for_all_services=nagiosadmin
+authorized_for_all_hosts=nagiosadmin
 
 
 
@@ -165,8 +165,8 @@ use_authentication=1
 # authorization).  You may use an asterisk (*) to authorize any
 # user who has authenticated to the web server.
 
-#authorized_for_all_service_commands=nagiosadmin
-#authorized_for_all_host_commands=nagiosadmin
+authorized_for_all_service_commands=nagiosadmin
+authorized_for_all_host_commands=nagiosadmin
 
 
 

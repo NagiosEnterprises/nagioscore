@@ -21,25 +21,18 @@ log_file=@localstatedir@/nagios.log
 
 
 # OBJECT CONFIGURATION FILE(S)
-# This is the configuration file in which you define hosts, host
-# groups, contacts, contact groups, services, etc.  I guess it would
-# be better called an object definition file, but for historical
-# reasons it isn't.  You can split object definitions into several
-# different config files by using multiple cfg_file statements here.
-# Nagios will read and process all the config files you define.
-# This can be very useful if you want to keep command definitions 
-# separate from host and contact definitions...
+# These are the object configuration files in which you define hosts,
+# host groups, contacts, contact groups, services, etc.
 
 # Command definitions
 cfg_file=@sysconfdir@/commands.cfg
 
-# Host and service definitions for monitoring this machine
+# Host and service definitions, etc. for monitoring this machine
 cfg_file=@sysconfdir@/localhost.cfg
 
 
-# You can split other types of object definitions across several
-# config files if you wish (as done here), or keep them all in a
-# single config file.
+# You can split your object definitions across several config files
+# if you wish (as shown below), or keep them all in a single config file.
 
 #cfg_file=@sysconfdir@/contactgroups.cfg
 #cfg_file=@sysconfdir@/contacts.cfg
@@ -49,11 +42,6 @@ cfg_file=@sysconfdir@/localhost.cfg
 #cfg_file=@sysconfdir@/hosts.cfg
 #cfg_file=@sysconfdir@/services.cfg
 #cfg_file=@sysconfdir@/timeperiods.cfg
-
-# Extended host/service info definitions are now stored along with
-# other object definitions:
-#cfg_file=@sysconfdir@/hostextinfo.cfg
-#cfg_file=@sysconfdir@/serviceextinfo.cfg
 
 # You can also tell Nagios to process all config files (with a .cfg
 # extension) in a particular directory by using the cfg_dir
@@ -258,7 +246,7 @@ log_archive_path=@localstatedir@/archives
 
 # LOGGING OPTIONS
 # If you want messages logged to the syslog facility, as well as the
-# NetAlarm log file set this option to 1.  If not, set it to 0.
+# Nagios log file set this option to 1.  If not, set it to 0.
 
 use_syslog=1
 
@@ -638,7 +626,7 @@ use_retained_program_state=1
 # If you want to use retained scheduling info, set this
 # value to 1.  If not, set this value to 0.
 
-use_retained_scheduling_info=0
+use_retained_scheduling_info=1
 
 
 
@@ -987,7 +975,7 @@ aggregate_status_updates=1
 # service status data.  If you are not using aggregated
 # status data updates, this option has no effect.
 
-status_update_interval=15
+status_update_interval=10
 
 
 
@@ -1003,7 +991,7 @@ status_update_interval=15
 # Values: 1 = enable flap detection
 #         0 = disable flap detection (default)
 
-enable_flap_detection=0
+enable_flap_detection=1
 
 
 
@@ -1054,10 +1042,9 @@ enable_embedded_perl=1
 # EMBEDDED PERL USAGE OPTION
 # This option determines whether or not Nagios will process Perl plugins
 # and scripts with the embedded Perl interpreter if the plugins/scripts
-# do not explicitly indicate whether or not it is okay to do so.  The
-# second line of Perl plugins/scripts can optionally start with either
-# '#USE_EPN' or '#NO_EPN' (without quotes) to explicitly tell Nagios whether
-# or not to run them with the embedded Perl interpreter.
+# do not explicitly indicate whether or not it is okay to do so. Read
+# the HTML documentation on the embedded Perl interpreter for more 
+# information on how this option works.
 
 use_embedded_perl_implicitly=1
 
@@ -1122,8 +1109,8 @@ use_true_regexp_matching=0
 # using the $ADMINEMAIL$ and $ADMINPAGER$ macros in your notification
 # commands.
 
-admin_email=@nagios_user@
-admin_pager=page@nagios_user@
+admin_email=@nagios_user@@localhost
+admin_pager=page@nagios_user@@localhost
 
 
 

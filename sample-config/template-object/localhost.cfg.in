@@ -1,7 +1,7 @@
 ###############################################################################
 # LOCALHOST.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING THIS MACHINE
 #
-# Last Modified: 02-25-2007
+# Last Modified: 02-27-2007
 #
 # NOTE: This config file is intended to serve as an *extremely* simple 
 #       example of how you can create your object configuration file(s).
@@ -76,7 +76,7 @@ define timeperiod{
 
 # Generic contact definition template - This is NOT a real contact, just a template!
 
-define host{
+define contact{
         name                            generic-contact    	; The name of this contact template
         service_notification_period     24x7			; service notifications can be sent anytime
         host_notification_period        24x7			; host notifications can be sent anytime
@@ -300,4 +300,53 @@ define service{
 	check_command			check_local_load!5.0,4.0,3.0!10.0,6.0,4.0
         }
 
+
+
+# Define a service to check the swap usage the local machine. 
+# Critical if less than 10% of swap is free, warning if less than 20% is free
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             Swap Usage
+	check_command			check_local_swap!20!10
+        }
+
+
+
+# Define a service to check SSH on the local machine.
+# Disable notifications for this service by default, as not all users may have SSH enabled.
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             SSH
+	check_command			check_ssh
+	notifications_enabled		0
+        }
+
+
+
+# Define a service to check HTTP on the local machine.
+# Disable notifications for this service by default, as not all users may have HTTP enabled.
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             HTTP
+	check_command			check_http
+	notifications_enabled		0
+        }
+
+
+# Define a service to check DHCP server availability.
+# Disable notifications for this service by default, as not all users may be using DHCP
+
+define service{
+        use                             local-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             DHCP
+	check_command			check_dhcp
+	notifications_enabled		0
+        }
 

@@ -100,18 +100,18 @@ define command{
         }
 
 
+# 'check_local_swap' command definition
+define command{
+	name		check_local_swap
+	command_name	check_local_swap
+	command_line	$USER1$/check_swap -w $ARG1$ -c $ARG2$
+	}
+
 
 ################################################################################
 # NOTE:  The following 'check_...' commands are used to monitor services on
 #        both local and remote hosts.
 ################################################################################
-
-# 'check_dns' command definition
-define command{
-        command_name    check_dns
-        command_line    $USER1$/check_dns -H www.yahoo.com -s $HOSTADDRESS$
-        }
-
 
 # 'check_ftp' command definition
 define command{
@@ -130,15 +130,24 @@ define command{
 # 'check_http' command definition
 define command{
         command_name    check_http
-        command_line    $USER1$/check_http -H $HOSTADDRESS$
+        command_line    $USER1$/check_http -I $HOSTADDRESS$ $ARG1$
         }
 
 
-# 'check_nntp' command definition
+# 'check_ssh' command definition
 define command{
-        command_name    check_nntp
-        command_line    $USER1$/check_nntp -H $HOSTADDRESS$
-        }
+	name		check_ssh
+	command_name	check_ssh
+	command_line	$USER1$/check_ssh $ARG1$ $HOSTADDRESS$
+	}
+
+
+# 'check_dhcp' command definition
+define command{
+	name		check_dhcp
+	command_name	check_dhcp
+	command_line	$USER1$/check_dhcp $ARG1$
+	}
 
 
 # 'check_ping' command definition
@@ -167,13 +176,6 @@ define command{
 	command_name	check_tcp
 	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$
 	}
-
-
-# 'check_telnet' command definition
-define command{
-        command_name    check_telnet
-        command_line    $USER1$/check_tcp -H $HOSTADDRESS$ -p 23
-        }
 
 
 # 'check_udp' command definition

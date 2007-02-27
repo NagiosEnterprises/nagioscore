@@ -204,35 +204,24 @@ install-basic:
 	@echo "       directory for holding the external command file"
 	@echo ""
 	@echo "  make install-config"
-	@echo "     - This installs *SAMPLE* config files in $(DESTDIR)$(CFGDIR)"
-	@echo "       You'll have to modify these sample files before you can"
-	@echo "       use Nagios.  Read the HTML documentation for more info"
-	@echo "       on doing this.  Pay particular attention to the docs on"
-	@echo "       object configuration files, as they determine what/how"
-	@echo "       things get monitored!"
+	@echo "     - This installs sample config files in $(DESTDIR)$(CFGDIR)"
 	@echo ""
 
 
 install-config:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CFGDIR)
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/nagios.cfg $(DESTDIR)$(CFGDIR)/nagios.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/cgi.cfg $(DESTDIR)$(CFGDIR)/cgi.cfg-sample
-	$(INSTALL) -m 660 $(INSTALL_OPTS) sample-config/resource.cfg $(DESTDIR)$(CFGDIR)/resource.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/localhost.cfg $(DESTDIR)$(CFGDIR)/localhost.cfg-sample
-	$(INSTALL) -m 664 $(INSTALL_OPTS) sample-config/template-object/commands.cfg $(DESTDIR)$(CFGDIR)/commands.cfg-sample
+	$(INSTALL) -b -m 664 $(INSTALL_OPTS) sample-config/nagios.cfg $(DESTDIR)$(CFGDIR)/nagios.cfg
+	$(INSTALL) -b -m 664 $(INSTALL_OPTS) sample-config/cgi.cfg $(DESTDIR)$(CFGDIR)/cgi.cfg
+	$(INSTALL) -b -m 660 $(INSTALL_OPTS) sample-config/resource.cfg $(DESTDIR)$(CFGDIR)/resource.cfg
+	$(INSTALL) -b -m 664 $(INSTALL_OPTS) sample-config/template-object/localhost.cfg $(DESTDIR)$(CFGDIR)/localhost.cfg
+	$(INSTALL) -b -m 664 $(INSTALL_OPTS) sample-config/template-object/commands.cfg $(DESTDIR)$(CFGDIR)/commands.cfg
 
 	@echo ""
-	@echo "*** Sample config file installed ***"
+	@echo "*** Sample config files installed ***"
 	@echo ""
 	@echo "Remember, these are *SAMPLE* config files.  You'll need to read"
 	@echo "the documentation for more information on how to actually define"
 	@echo "services, hosts, etc. to fit your particular needs."
-	@echo ""
-	@echo "If you have questions about configuring Nagios properly, please:"
-	@echo "       - Look at the sample config files"
-	@echo "       - Read the HTML documentation"
-	@echo "       - Read the FAQs online at http://www.nagios.org/faqs"
-	@echo "*BEFORE* you post a question to one of the mailing lists."
 	@echo ""
 
 install-init: install-daemoninit

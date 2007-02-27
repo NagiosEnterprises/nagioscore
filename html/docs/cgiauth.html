@@ -53,24 +53,11 @@ Before continuing, it is important that you understand the meaning of and differ
 </p>
 
 <p>
-If you haven't done so already, you'll need to add the appropriate entries to your web server config file to enable basic authentication for the CGI and HTML portions of the Nagios web interface.  Instructions for doing so can be found <a href="installweb.html">here</a>.
+Assuming you configured your web server as described in the <a href="quickstart.html">quickstart guide</a>, it should require that you authenticate before accessing the Nagios CGIs.  You should also have one user account (<i>nagiosadmin</i>) that can access the CGIs.
 </p>
 
 <p>
-Now that you've configured your web server to require authentication for the Nagios web interface, you'll need to specify who has access.  This is done by using the <b>htpasswd</b> command supplied with Apache.
-</p>
-<p>
-Running the following command will create a new file called <i>htpasswd.users</i> in the <i>/usr/local/nagios/etc</i> directory. It will also create an username/password entry for <i>nagiosadmin</i>.  You will be asked to provide a password that will be used when <i>nagiosadmin</i> authenticates to the web server.
-</p>
-
-<p>
-<pre>
-htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
-</pre>
-</p>
-
-<p>
-Continue adding more users until you've created an account for everyone you want to access the CGIs.  Use the following command to add additional users, replacing &lt;username&gt; with the actual username you want to add. 
+As you define more <a href="objectdefinitions.html#contact">contacts</a> for receiving host and service notifications, you'll most likely want to let them access the Nagios web interface.  You can use the following command to add additional users who can authenticate to the CGIs.  Replace &lt;username&gt; with the actual username you want to add.  In most cases, the username should match the short name of a <a href="objectdefinitions.html#contact">contact</a> that has been defined.
 </p>
 
 <p>
@@ -78,11 +65,6 @@ Continue adding more users until you've created an account for everyone you want
 htpasswd /usr/local/nagios/etc/htpasswd.users &lt;username&gt;
 </pre>
 </p>
-
-<p>
-Okay, so you're done with the first part of what needs to be done.  At this point you should be prompted for a username and password if you point your web browser to the Nagios web interface.  If you have problems getting user authentication to work at this point, read your webserver documentation for more info.
-</p>
-
 
 <p>
 <a name="enable_cgi_auth"></a>

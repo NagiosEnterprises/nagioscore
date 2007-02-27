@@ -82,7 +82,7 @@ You can still install and use Nagios without the GD library if you need to, as i
 </p>
 
 <p>
-Login as root using <i>su -l</i> or <i>sudo -s</i>.
+Become the root user.  You may have to use <i>sudo -s</i> on Ubuntu and other distros.
 </p>
 
 <p>
@@ -103,7 +103,7 @@ Create a new <i>nagios</i> user account and give it a password.
 </p>
 
 <p>
-Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.
+Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.  Ubuntu and other distros may require <i>www-data</i> or <i>httpd</i> to be used instead of <i>apache</i>.  Use the name of the account that your web server runs under.
 </p>
 
 <p>

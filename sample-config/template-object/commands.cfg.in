@@ -123,7 +123,7 @@ define command{
 # 'check_hpjd' command definition
 define command{
         command_name    check_hpjd
-        command_line    $USER1$/check_hpjd -H $HOSTADDRESS$ -C public
+        command_line    $USER1$/check_hpjd -H $HOSTADDRESS$ $ARG1$
         }
 
 

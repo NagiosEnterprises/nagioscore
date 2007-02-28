@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Monitoring Network Printers</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Monitoring Network Printers</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="monitoring-generic.html">Monitoring Generic Services and Protocols</a>
+</p>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<img src="images/printer.png" border="0" style="float: right">
+
+<p>
+This document describes how you can monitor the status of networked printers.  Specifically, HP printers that have internal/external JetDirect cards/devices, or other print servers (like the Troy PocketPro 100S or the Netgear PS101) that support the JetDirect protocol.
+</p>
+
+<p>
+The <i>check_hpjd</i> plugin (which is part of the standard Nagios plugins distribution) allows you to monitor the status of JetDirect-capable printers which have SNMP enabled.  The plugin is capable of detecting the following printer states:
+</p>
+
+<p>
+<ul>
+<li>Paper Jam</li>
+<li>Out of Paper</li>
+<li>Printer Offline</li>
+<li>Intervention Required</li>
+<li>Toner Low</li>
+<li>Insufficient Memory</li>
+<li>Open Door</li>
+<li>Output Tray is Full</li>
+<li>and more...</li>
+</ul>
+</p>
+
+<p>
+<img src="images/note.gif" border="0" align="bottom"> Notes:
+</p>
+
+<p>
+<ul>
+<li>These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.</li><br><br>
+<li>For your convenience, the configuration examples given below can be found in a sample <i>printer.cfg</i> config file that gets installed when you following the quickstart guide.  After reading these instructions, just edit the <i>printer.cfg</i> file to custom the host name, IP address, etc. and uncomment the reference to the <i>printer.cfg</i> file in the <i>nagios.cfg</i> file.</li><br><br>
+<li>The <i>check_hpjd</i> plugin will only get compiled and installed if you have the net-snmp and net-snmp-utils packages installed on your system.  Make sure the plugin exists in <i>/usr/local/nagios/libexec</i> before you continue.  If it doesn't, install net-snmp and net-snmp-utils and recompile/reinstall the Nagios plugins.</li>
+</ul>
+</p>
+
+
+<p>
+<strong><u>Creating Required Definitions</u></strong>
+</p>
+
+<p>
+You'll need to create some <a href="objectdefinitions.html">object definitions</a> in order to monitor a new printer.  These definitions can be placed in their own file or added to an already exiting object configuration file.
+</p>
+
+<p>
+First, its best practice to create a new template for each different type of host you'll be monitoring.  Let's create a new template for printers.
+</p>
+
+<p>
+<pre>
+define host{
+	name			generic-printer	; The name of this host template
+	use			generic-host	; Inherit default values from the generic-host template
+	check_period		24x7		; By default, printers are monitored round the clock
+	check_interval		5		; Actively check the printer every 5 minutes
+	retry_interval		1		; Schedule host check retries at 1 minute intervals
+	max_check_attempts		10		; Check each printer 10 times (max)
+	check_command		check-host-alive	; Default command to check if printers are "alive"
+	notification_period	workhours		; Printers are only used during the workday
+	notification_interval	30		; Resend notifications every 30 minutes
+	notification_options	d,r		; Only send notifications for specific host states
+	contact_groups		admins		; Notifications get sent to the admins by default
+	register			0		; DONT REGISTER THIS - ITS JUST A TEMPLATE
+	}
+</pre>
+</p>
+
+<p>
+Notice that the printer template definition is inheriting default values from the <i>generic-host</i> template, which is defined in the sample <i>localhost.cfg</i> file.
+</p>
+
+<p>
+Next, define a new <a href="objectdefinitions.html#host">host</a> for the printer that references the newly created <i>generic-printer</i> host template.
+</p>
+
+<p>
+<pre>
+define host{
+	use		generic-printer	; Inherit default values from a template
+	host_name		hplj2605dn	; The name we're giving to this printer
+	alias		HP LaserJet 2605dn	; A longer name associated with the printer
+	address		192.168.1.30	; IP address of the printer
+	hostgroups	allhosts		; Host groups this printer is associated with
+	}
+</pre>
+</p>
+
+<p>
+Add an optional <a href="objectdefinitions.html#hostgroup">hostgroup</a> for printers.  This is useful if you create additional printers in the future and want to view them together in the CGIs.  It can also be useful for <a href="objecttricks.html">object definition tricks</a> that you can use to manage larger configurations later on.
+</p>
+
+<p>
+<pre>
+define hostgroup{
+	hostgroup_name	laserjet-printers		; The name of the hostgroup
+	alias		HP LaserJet Printers	; Long name of the group
+	members		hplj2605dn		; Comma separated list of hosts that belong to this group
+	}
+</pre>
+</p>
+
+<p>
+The <i>hplj2605dn</i> host will be a member of two hostgroups - <i>allhosts</i> (which is referenced in the host definition and defined in <i>localhost.cfg</i>) and <i>laserjet-printers</i> (which is defined above).
+</p>
+
+<p>
+Now its time to define some <a href="objectdefinitions.html#service">services</a> that should be associated with the printer.  As mentioned earlier, the <i>check_hpjd</i> plugin allows you to monitor the current state of the printer. Let's use that plugin to define a service.  Before we do that, it should be noted that there is already a <a href="objectdefinitions.html#command">command definition</a> for using the <i>check_hpjd</i> plugin in service checks that has been defined in the <i>commands.cfg</i> file.  That command definition looks like this...
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_hpjd
+	command_line	$USER1$/check_hpjd -H $HOSTADDRESS$ $ARG1$
+	}
+</pre>
+</p>
+
+
+<p>
+Let's create a service called <i>Printer Status</i> as follows...
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service		; Inherit values from a template
+	host_name			hplj2605dn		; The name of the host the service is associated with
+	service_description	Printer Status		; The service description
+	check_command		check_hpjd!-C public	; The command used to monitor the service
+	normal_check_interval	10	; Check the service every 10 minutes under normal conditions
+	retry_check_interval	1	; Re-check the service every minute until its final/hard state is determined
+	}
+</pre>
+</p>
+
+<p>
+Notice that the <i>check_command</i> directive is passing "-C public" to the <i>check_hpjd</i> command.  That argument gets put into the <i>$ARG1$</i> macro in the command definition and tells the plugin that it should use an SNMP community string of "public" when checking the status of the printer.
+</p>
+
+<p>
+That's it!  You've just configured a new printer that should be monitored by Nagios.  Now you just have to:
+</p>
+
+<p>
+<ul>
+<li><a href="verifyconfig.html">Verify your configuration</a></li>
+<li><a href="stopstart.html">Restart Nagios</a></li>
+</ul>
+</p>
+
+
+
+<hr>
+
+</body>
+</html>

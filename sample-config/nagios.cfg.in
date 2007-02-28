@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 02-16-2007
+# Last Modified: 02-28-2007
 #
 ##############################################################################
 
@@ -23,6 +23,8 @@ log_file=@localstatedir@/nagios.log
 # OBJECT CONFIGURATION FILE(S)
 # These are the object configuration files in which you define hosts,
 # host groups, contacts, contact groups, services, etc.
+# You can split your object definitions across several config files
+# if you wish (as shown below), or keep them all in a single config file.
 
 # Command definitions
 cfg_file=@sysconfdir@/commands.cfg
@@ -30,18 +32,9 @@ cfg_file=@sysconfdir@/commands.cfg
 # Host and service definitions, etc. for monitoring this machine
 cfg_file=@sysconfdir@/localhost.cfg
 
+# Sample definitions for monitoring a network printer
+#cfg_file=@sysconfdir@/printer.cfg
 
-# You can split your object definitions across several config files
-# if you wish (as shown below), or keep them all in a single config file.
-
-#cfg_file=@sysconfdir@/contactgroups.cfg
-#cfg_file=@sysconfdir@/contacts.cfg
-#cfg_file=@sysconfdir@/dependencies.cfg
-#cfg_file=@sysconfdir@/escalations.cfg
-#cfg_file=@sysconfdir@/hostgroups.cfg
-#cfg_file=@sysconfdir@/hosts.cfg
-#cfg_file=@sysconfdir@/services.cfg
-#cfg_file=@sysconfdir@/timeperiods.cfg
 
 # You can also tell Nagios to process all config files (with a .cfg
 # extension) in a particular directory by using the cfg_dir

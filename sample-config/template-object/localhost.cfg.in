@@ -190,8 +190,8 @@ define host{
 # create more than one hostgroup.
 
 define hostgroup{
-        hostgroup_name  allservers
-        alias           All Servers
+        hostgroup_name  allhosts
+        alias           All Hosts
         members         localhost
         }
 
@@ -222,7 +222,15 @@ define service{
         retain_status_information       1       		; Retain status information across program restarts
         retain_nonstatus_information    1       		; Retain non-status information across program restarts
         is_volatile                     0       		; The service is not volatile
-        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+        check_period                    24x7			; The service can be checked at any time of the day
+        max_check_attempts              3			; Re-check the service up to 3 times in order to determine its final (hard) state
+        normal_check_interval           10			; Check the service every 10 minutes under normal conditions
+        retry_check_interval            2			; Re-check the service every two minutes until a hard state can be determined
+        contact_groups                  admins			; Notifications get sent out to everyone in the 'admins' group
+	notification_options		w,u,c,r			; Send notifications about warning, unknown, critical, and recovery events
+        notification_interval           60			; Re-notify about service problems every hour
+        notification_period             24x7			; Notifications can be sent out at any time
+         register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
         }
 
 
@@ -231,14 +239,9 @@ define service{
 define service{
 	name				local-service 		; The name of this service template
 	use				generic-service		; Inherit default values from the generic-service definition
-        check_period                    24x7			; The service can be checked at any time of the day
         max_check_attempts              4			; Re-check the service up to 4 times in order to determine its final (hard) state
         normal_check_interval           5			; Check the service every 5 minutes under normal conditions
         retry_check_interval            1			; Re-check the service every minute until a hard state can be determined
-        contact_groups                  admins			; Notifications get sent out to everyone in the 'admins' group
-	notification_options		w,u,c,r			; Send notifications about warning, unknown, critical, and recovery events
-        notification_interval           60			; Re-notify about service problems every hour
-        notification_period             24x7			; Notifications can be sent out at any time
         register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
 	}
 
@@ -335,18 +338,6 @@ define service{
         host_name                       localhost
         service_description             HTTP
 	check_command			check_http
-	notifications_enabled		0
-        }
-
-
-# Define a service to check DHCP server availability.
-# Disable notifications for this service by default, as not all users may be using DHCP
-
-define service{
-        use                             local-service         ; Name of service template to use
-        host_name                       localhost
-        service_description             DHCP
-	check_command			check_dhcp
 	notifications_enabled		0
         }
 

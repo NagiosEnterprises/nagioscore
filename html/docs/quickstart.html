@@ -279,8 +279,24 @@ Compile and install the plugins.
 ./configure
 make
 make install
+make install-root
 </pre>
 </p>
+
+<p>
+The permissions on the plugins will need to be fixed at this point (I believe this is a bug with the plugin distribution), so run the following commands in order.
+</p>
+
+<p>
+<pre>
+chown nagios /usr/local/nagios/libexec/*
+chown root.nagios /usr/local/nagios/libexec/check_dhcp
+chown root.nagios /usr/local/nagios/libexec/check_icmp
+chmod 4550 /usr/local/nagios/libexec/check_dhcp
+chmod 4550 /usr/local/nagios/libexec/check_icmp
+</pre>
+</p>
+
 
 <p>
 <strong><u>7) Start Nagios</u></strong>

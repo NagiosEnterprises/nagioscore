@@ -127,6 +127,13 @@ define command{
         }
 
 
+# 'check_snmp' command definition
+define command{
+        command_name    check_snmp
+        command_line    $USER1$/check_snmp -H $HOSTADDRESS$ $ARG1$
+        }
+
+
 # 'check_http' command definition
 define command{
         command_name    check_http

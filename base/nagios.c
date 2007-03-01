@@ -170,6 +170,9 @@ int             log_rotation_method=LOG_ROTATION_NONE;
 
 int             sigshutdown=FALSE;
 int             sigrestart=FALSE;
+static char     *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
+int             caught_signal=FALSE;
+int             sig_id=0;
 
 int             restarting=FALSE;
 
@@ -257,6 +260,7 @@ check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 
 
+
 /* Following main() declaration required by older versions of Perl ut 5.00503 */
 #ifdef EMBEDDEDPERL
 int main(int argc, char **argv, char **env){
@@ -268,7 +272,7 @@ int main(int argc, char **argv){
 	char *buffer=NULL;
 	int display_license=FALSE;
 	int display_help=FALSE;
-	int c;
+	int c=0,x=0;
 
 
 #ifdef HAVE_GETOPT_H
@@ -806,6 +810,29 @@ int main(int argc, char **argv){
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */
 			event_execution_loop();
+
+			/* 03/01/2007 EG Moved from sighandler() to prevent FUTEX locking problems under NPTL */
+			/* did we catch a signal? */
+			if(caught_signal==TRUE){
+
+				if(sig_id<0)
+					sig_id=-sig_id;
+
+				for(x=0;sigs[x]!=(char *)NULL;x++);
+				sig_id%=x;
+
+				if(sig_id==SIGHUP)
+					asprintf(&buffer,"Caught SIGHUP, restarting...\n");
+				else
+					asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id]);
+
+#ifdef DEBUG2
+				printf("%s\n",buffer);
+#endif
+
+				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
+				my_free((void **)&buffer);
+				}
 
 #ifdef USE_EVENT_BROKER
 			/* send program data to broker */

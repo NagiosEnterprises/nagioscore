@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-15-2007
+ * Last Modified:   03-01-2007
  *
  * License:
  *
@@ -83,6 +83,8 @@ extern int      use_true_regexp_matching;
 
 extern int      sigshutdown;
 extern int      sigrestart;
+extern int      caught_signal;
+extern int      sig_id;
 
 extern int      daemon_mode;
 extern int      daemon_dumps_core;
@@ -244,7 +246,7 @@ extern circular_buffer event_broker_buffer;
 extern int             external_command_buffer_slots;
 extern int             check_result_buffer_slots;
 
-extern check_stats    check_statistics[MAX_CHECK_STATS_TYPES];
+extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
@@ -3334,48 +3336,26 @@ void reset_sighandler(void){
 
 /* handle signals */
 void sighandler(int sig){
-	static char *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
-	int i=0;
-	char *temp_buffer=NULL;
-
 
 	/* if shutdown is already true, we're in a signal trap loop! */
 	/* changed 09/07/06 to only exit on segfaults */
 	if(sigshutdown==TRUE && sig==SIGSEGV)
 		exit(ERROR);
 
+	caught_signal=TRUE;
+
 	if(sig<0)
 		sig=-sig;
 
-	for(i=0;sigs[i]!=(char *)NULL;i++);
-
-	sig%=i;
+	sig_id=sig;
 
 	/* we received a SIGHUP, so restart... */
-	if(sig==SIGHUP){
-
+	if(sig==SIGHUP)
 		sigrestart=TRUE;
 
-		asprintf(&temp_buffer,"Caught SIGHUP, restarting...\n");
-		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
-#ifdef DEBUG2
-		printf("%s\n",temp_buffer);
-#endif
-		my_free((void **)&temp_buffer);
-	        }
-
 	/* else begin shutting down... */
-	else if(sig<16){
-
+	else if(sig<16)
 		sigshutdown=TRUE;
-
-		asprintf(&temp_buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
-		write_to_all_logs(temp_buffer,NSLOG_PROCESS_INFO);
-#ifdef DEBUG2
-		printf("%s\n",temp_buffer);
-#endif
-		my_free((void **)&temp_buffer);
-	        }
 
 	return;
         }

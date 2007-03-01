@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-22-2007
+ * Last Modified:   03-01-2007
  *
  * License:
  *
@@ -180,6 +180,10 @@ int reap_check_results(void){
 		/* break out if we've been here too long (max_check_reaper_time seconds) */
 		time(&current_time);
 		if((int)(current_time-reaper_start_time)>max_check_reaper_time)
+			break;
+
+		/* bail out if we encountered a signal */
+		if(sigshutdown==TRUE || sigrestart==TRUE)
 			break;
 	        }
 
@@ -392,7 +396,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,0,FALSE,0,processed_command,NULL);
+	broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,service_check_timeout,FALSE,0,processed_command,NULL);
 #endif
 
 	/* reset latency (permanent value will be set later) */
@@ -2005,7 +2009,7 @@ int check_host(host *hst, int propagation_options, int check_options){
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
-	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,0,FALSE,0,NULL,NULL,NULL,NULL,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
 #endif
 
 	/* make sure we return the original host state unless it changes... */

@@ -2,8 +2,8 @@
  *
  * XPDDEFAULT.C - Default performance data routines
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   09-07-2006
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-01-2007
  *
  * License:
  *
@@ -297,7 +297,7 @@ int xpddefault_initialize_performance_data(char *config_file){
 		        }
 
 		/* save the command pointer for later */
-		xpddefault_host_perfdata_file_processing_command_ptr=temp_command;
+		xpddefault_service_perfdata_file_processing_command_ptr=temp_command;
 	        }
 
 	/* periodically process the host perfdata file */

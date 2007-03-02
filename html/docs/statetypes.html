@@ -6,8 +6,8 @@
 
 <STYLE type="text/css">
 <!--
-        .PageTitle { font-family: arial,serif; font-size: large; }
-        .Default { font-family: arial,serif; font-size: small; }
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,6 +17,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">State Types</h2>
 </div>
 </p>
@@ -24,130 +25,109 @@
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="hostchecks.html">Host Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="eventhandlers.html">Event Handlers</a>, <a href="notifications.html">Notifications</a>
+</p>
+
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 <p>
-The current state of services and hosts is determined by two components: the status of the service or host (i.e. OK, WARNING, UP, DOWN, etc.) and the <i>type</i> of state it is in.  There are two state types in Nagios - "soft" states and "hard" states.  State types are a crucial part of Nagios' monitoring logic.  They are used to determine when <a href="eventhandlers.html">event handlers</a> are executed and when notifications are sent out.
+The current state of monitored services and hosts is determined by two components:
+</p>
+
+<p>
+<ul>
+<li>The status of the service or host (i.e. OK, WARNING, UP, DOWN, etc.)</li>
+<li>Tye <i>type</i> of state the service or host is in</li>
+</ul>
+</p>
+
+
+<p>
+There are two state types in Nagios - SOFT states and HARD states.  These state types are a crucial part of the monitoring logic, as they are used to determine when <a href="eventhandlers.html">event handlers</a> are executed and when <a href="notifications.html">notifications</a> are initially sent out.
+</p>
+
+<p>
+This document describes the difference between SOFT and HARD states, how they occur, and what happens when they occur.
 </p>
 
 <p>
 <strong><u>Service and Host Check Retries</u></strong>
 </p>
+
 <p>
-In order to prevent false alarms, Nagios allows you to define how many times a service or host check will be retried before the service or host is considered to have a real problem.  The maximum number of retries before a service or host check is considered to have a real problem is controlled by the &lt;<i>max_check)attempts</i>&gt; option in the service and host definitions, respectively.  Depending on what attempt a service or host check is currently on determines what type of state it is is.  There are a few exceptions to this in the service monitoring logic, but we'll ignore those for now.  Let's take a look at the different service state types...
+In order to prevent false alarms from transient problems, Nagios allows you to define how many times a service or host should be (re)checked before it is considered to have a "real" problem.  This is controlled by the <i>max_check_attempts</i> option in the host and service definitions.  Understanding how hosts and services are (re)checked in order to determine if a real problem exists is important in understanding how state types work.
 </p>
 
 <p>
 <strong><u>Soft States</u></strong>
 </p>
+
 <p>
-Soft states occur for services and hosts in the following situations...
+Soft states occur in the following situations...
 </p>
+
 <p>
 <ul>
-<li>When a service or host check results in a non-OK state and it has not yet been (re)checked the number of times specified by the &lt;<i>max_check_attempts</i>&gt; option in the service or host definition.  Let's call this a soft error state...
-<li>When a service or host recovers from a soft error state.  This is considered to be a soft recovery.
+<li>When a service or host check results in a non-OK or non-UP state and the service check has not yet been (re)checked the number of times specified by the <i>max_check_attempts</i> directive in the service or host definition.  This is called a soft error.
+<li>When a service or host recovers from a soft error.  This is considered a soft recovery.
 </ul>
 </p>
 
 <p>
-<strong><u>Soft State Events</u></strong>
+The following things occur when hosts or services experience SOFT error or recoveries:
 </p>
-<p>
-What happens when a service or host is in a soft error state or experiences a soft recovery?
-</p>
+
 <p>
 <ul>
-<li>The soft error or recovery is logged if you enabled the <a href="configmain.html#log_service_retries">log_service_retries</a> or <a href="configmain.html#log_host_retries">log_host_retries</a> options in the main configuration file.
-<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the soft error or recovery for the service or host.  (Before any event handler is executed, the <b>$HOSTSTATETYPE$</b> or <b>$SERVICESTATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>SOFT</b>").
-<li>Nagios does <i>not</i> send out notifications to any contacts because there is (or was) no "real" problem with the service or host.  
+<li>The SOFT state is logged.
+<li>Event handlers are executed to handle the SOFT state.
 </ul>
 </p>
+
 <p>
-As can be seen, the only important thing that really happens during a soft state is the execution of event handlers.  Using event handlers can be particularly useful if you want to try and proactively fix a problem before it turns into a hard state.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.
+SOFT states are only logged if you enabled the <a href="configmain.html#log_service_retries">log_service_retries</a> or <a href="configmain.html#log_host_retries">log_host_retries</a> options in your main configuration file.
 </p>
 
-
+<p>
+The only important thing that really happens during a soft state is the execution of event handlers.  Using event handlers can be particularly useful if you want to try and proactively fix a problem before it turns into a HARD state. 
+The <a href="macrolist.html#hoststatetype">$HOSTSTATETYPE$</a> or <a href="macrolist.html#servicestatetype">$SERVICESTATETYPE$</a> macros will have a value of "<i>SOFT</i>" when event handlers are executed, which allows your event handler scripts to know when they should take corrective action.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.
+</p>
 
 <p>
 <strong><u>Hard States</u></strong>
 </p>
+
 <p>
-Hard states occur for <i>services</i> in the following situations (hard host states are discussed later)...
+Hard states occur for hosts and services in the following situations:
 </p>
+
 <p>
 <ul>
-<li>When a service check results in a non-OK state and it has been (re)checked the number of times specified by the &lt;<i>max_check_attempts</i>&gt; option in the service definition.  This is a hard error state.
-<li>When a service recovers from a hard error state.  This is considered to be a hard recovery.
-<li>When a service check results in a non-OK state and its corresponding host is either DOWN or UNREACHABLE.  This is an exception to the general monitoring logic, but makes perfect sense.  If the host isn't up why should we try and recheck the service?
+<li>When a host or service check results in a non-UP or non-OK state and it has been (re)checked the number of times specified by the <i>max_check_attempts</i> option in the host or service definition.  This is a hard error state.
+<li>When a host or service transitions from one hard error state to another error state (e.g. WARNING to CRITICAL).</li>
+<li>When a service check results in a non-OK state and its corresponding host is either DOWN or UNREACHABLE.
+<li>When a host or service recovers from a hard error state.  This is considered to be a hard recovery.
 </ul>
 </p>
 
 <p>
-Hard states occur for <i>hosts</i> in the following situations...
+The following things occur when hosts or services experience HARD errors or recoveries:
 </p>
+
 <p>
 <ul>
-<li>When a host check results in a non-OK state and it has been (re)checked the number of times specified by the &lt;<i>max_check_attempts</i>&gt; option in the host definition.  This is a hard error state.
-<li>When a host recovers from a hard error state.  This is considered to be a hard recovery.
+<li>The HARD state is logged.
+<li>Event handlers are executed to handle the HARD state.
+<li>Contacts are notifified of the host or service problem or recovery.
 </ul>
 </p>
 
 <p>
-<strong><u>Hard State Changes</u></strong>
-</p>
-<p>
-Before I discuss what happens when a host or service is in a hard state, you need to know about hard state changes.  Hard state changes occur when a service or host...
-</p>
-<p>
-<ul>
-<li>changes from a hard OK state to a hard non-OK state
-<li>changes from a hard non-OK state to a hard OK-state
-<li>changes from a hard non-OK state of some kind to a hard non-OK state of another kind (i.e. from a hard WARNING state to a hard UNKNOWN state)
-</ul>
+The <a href="macrolist.html#hoststatetype">$HOSTSTATETYPE$</a> or <a href="macrolist.html#servicestatetype">$SERVICESTATETYPE$</a> macros will have a value of "<i>HARD</i>" when event handlers are executed, which allows your event handler scripts to know when they should take corrective action.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.
 </p>
 
-<p>
-<strong><u>Hard State Events</u></strong>
-</p>
-<p>
-What happens when a service or host is in a hard error state or experiences a hard recovery?  Well, that depends on whether or not a hard state change (as described above) has occurred.
-</p>
-
-<p>
-If a hard state change has occurred <i>and</i> the service or host is in a non-OK state the following things will occur..
-</p>
-<p>
-<ul>
-<li>The hard service or host problem is logged.
-<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the hard problem for the service or host.  (Before any event handler is executed, the <b>$HOSTSTATETYPE$</b> or <b>$SERVICESTATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>HARD</b>").
-<li>Contacts will be notified of the service or host problem (if the <a href="notifications.html">notification logic</a> allows it).
-</ul>
-</p>
-
-<p>
-If a hard state change has occurred <i>and</i> the service or host is in an OK state the following things will occur..
-</p>
-<p>
-<ul>
-<li>The hard service or host recovery is logged.
-<li><a href="eventhandlers.html">Event handlers</a> are executed (if you defined any) to handle the hard recovery for the service or host.  (Before any event handler is executed, the <b>$HOSTSTATETYPE$</b> or <b>$SERVICESTATETYPE$</b> <a href="macros.html">macro</a> is set to "<b>HARD</b>").
-<li>Contacts will be notified of the service or host recovery (if the <a href="notifications.html">notification logic</a> allows it).
-</ul>
-</p>
-
-<p>
-If a hard state change has NOT occurred <i>and</i> the service or host is in a non-OK state the following things will occur..
-</p>
-<p>
-<ul>
-<li>Contacts will be re-notified of the service or host problem (if the <a href="notifications.html">notification logic</a> allows it).
-</ul>
-</p>
-
-<p>
-If a hard state change has NOT occurred <i>and</i> the service or host is in an OK state nothing happens.  This is because the service or host is in an OK state and was the last time it was checked as well.
-</p>
 
 <hr>
 

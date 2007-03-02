@@ -7,7 +7,7 @@
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,6 +17,7 @@
 
 <p>
 <div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
 <h2 class="PageTitle">Notification Escalations</h2>
 </div>
 </p>
@@ -24,27 +25,22 @@
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="notifications.html">Notifications</a>, <a href="timeperiods.html">Time Periods</a>
+</p>
+
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 
+<img src="images/objects-contacts.png" border="0" style="float: right;">
+
 <p>
-Nagios supports <i>optional</i> escalation of contact notifications for hosts and services.  I'll explain quickly how they work, although they should be fairly self-explanatory...
+Nagios supports optional escalation of contact notifications for hosts and services.  Escalation of host and service notifications is accomplished by defining <a href="objectdefinitions.html#hostescalation">host escalations</a> and <a href="objectdefinitions.html#serviceescalation">service escalations</a> in your <a href="configobject.html">object configuration file(s)</a>.
 </p>
 
 <p>
-<strong><u>Service Notification Escalations</u></strong>
-</p>
-
-<p>
-Escalation of service notifications is accomplished by defining <a href="objectdefinitions.html#serviceescalation">service escalations</a> in your <a href="configobject.html">object configuration file</a>.  Service escalation definitions are used to escalate notifications for a particular service.
-</p>
-
-<p>
-<strong><u>Host Notification Escalations</u></strong>
-</p>
-
-<p>
-Escalation of host notifications is accomplished by defining <a href="objectdefinitions.html#hostescalation">host escalations</a> in your <a href="configobject.html">object configuration file</a>.  The examples I provide below all use service escalation definitions, but host escalations work the same way (except for the fact that they are used for host notifications and not service notifications).
+<img src="images/note.gif" border="0" align="bottom"> Note: The examples I provide below all make use of service escalation definitions, but host escalations work the same way.  Except, of course, that they're for hosts instead of services. :-)
 </p>
 
 <p>
@@ -56,8 +52,6 @@ Notifications are escalated <i>if and only if</i> one or more escalation definit
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -77,8 +71,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -94,8 +86,6 @@ When defining notification escalations, it is important to keep in mind that any
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -115,8 +105,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -132,8 +120,6 @@ Notification escalation definitions can have notification ranges that overlap.  
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -153,8 +139,6 @@ define serviceescalation{
 	contact_groups		on-call-support
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -178,8 +162,6 @@ Recovery notifications are slightly different than problem notifications when it
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -199,8 +181,6 @@ define serviceescalation{
 	contact_groups		on-call-support
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -216,8 +196,6 @@ You can change the frequency at which escalated notifications are sent out for a
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -237,8 +215,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -250,8 +226,6 @@ Since it is possible to have overlapping escalation definitions for a particular
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -271,8 +245,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers,everyone
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -284,8 +256,6 @@ One last note about notification intervals deals with intervals of 0.  An interv
 </p>
 
 <p>
-<font color="red">
-<strong>
 <pre>
 define serviceescalation{
 	host_name		webserver
@@ -314,8 +284,6 @@ define serviceescalation{
 	contact_groups		nt-admins,managers
 	}
 </pre>	
-</strong>
-</font>
 </p>
 
 <p>
@@ -327,15 +295,15 @@ In the example above, the maximum number of problem notifications that could be 
 </p>
 
 <p>
-Under normal circumstances, escalations can be used at any time that a notification could normally be sent out for the service.  This "notification time window" is determined by the <i>notification_period</i> directive in the <a href="objectdefinitions.html#service">service definition</a>.
+Under normal circumstances, escalations can be used at any time that a notification could normally be sent out for the host or service.  This "notification time window" is determined by the <i>notification_period</i> directive in the <a href="objectdefinitions.html#host">host</a> or <a href="objectdefinitions.html#service">service</a> definition.
 </p>
 
 <p>
-You can optionally restrict escalations so that they are only used during specific time periods by using the <i>escalation_period</i> directive in the <a href="objectdefinitions.html#serviceescalation">service escalation</a> definition.  If you use the <i>escalation_period</i> directive to specify a <a href="objectdefinitions.html#timeperiod">timeperiod</a> during which the escalation can be used, the escalation will only be used during that time.  If you do not specify any <i>escalation_period</i> directive, the escalation can be used at any time within the "notification time window" for the service.
+You can optionally restrict escalations so that they are only used during specific time periods by using the <i>escalation_period</i> directive in the host or service escalation definition.  If you use the <i>escalation_period</i> directive to specify a <a href="timeperiods.html">timeperiod</a> during which the escalation can be used, the escalation will only be used during that time.  If you do not specify any <i>escalation_period</i> directive, the escalation can be used at any time within the "notification time window" for the host or service.
 </p>
 
 <p>
-Note that the notification is still subject to the normal time restrictions imposed by the <i>notification_period</i> directive in the service escalation, so the timeperiod you specify in the escalation should be a subset of that larger "notification time window".
+<img src="images/note.gif" border="0" align="bottom"> Note: Escalated notifications are still subject to the normal time restrictions imposed by the <i>notification_period</i> directive in a host or service definition, so the timeperiod you specify in an escalation definition should be a subset of that larger "notification time window".
 </p>
 
 <p>
@@ -343,7 +311,7 @@ Note that the notification is still subject to the normal time restrictions impo
 </p>
 
 <p>
-If you would like to restrict the escalation definition so that it is only used when the service is in a particular state, you can use the <i>escalation_options</i> directive in the <a href="objectdefinitions.html#serviceescalation">service escalation</a> definition.  If you do not use the <i>escalation_options</i> directive, the escalation can be used when the service is in any state.
+If you would like to restrict the escalation definition so that it is only used when the host or service is in a particular state, you can use the <i>escalation_options</i> directive in the host or service escalation definition.  If you do not use the <i>escalation_options</i> directive, the escalation can be used when the host or service is in any state.
 </p>
 
 <hr>

@@ -24,7 +24,7 @@
 
 <p>
 <img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="commandfile.html">Command File Permissions</a>, <a href="passivechecks.html">Passive Checks</a>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="passivechecks.html">Passive Checks</a>, <a href="adaptive.html">Adaptive Monitoring</a>
 </p>
 
 <p>
@@ -50,12 +50,8 @@ In order to have Nagios process external commands, make sure you do the followin
 <li>Enable external command checking with the <a href="configmain.html#check_external_commands">check_external_commands</a> option.
 <li>Set the frequency of command checks with the <a href="configmain.html#command_check_interval">command_check_interval</a> option.
 <li>Specify the location of the command file with the <a href="configmain.html#command_file">command_file</a> option.
-<li><a href="commandfile.html">Setup proper permissions</a> on the directory containing the external command file.
+<li>Setup proper permissions on the directory containing the external command file, as described in the <a href="quickstart.html">quickstart guide</a>.
 </ul>
-</p>
-
-<p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip:  Its best to put the external command file in its own directory (i.e. <i>/usr/local/nagios/var/rw</i>) in order to set restrictive permissions on the file. (<a href="commandfile.html">Read more</a>)
 </p>
 
 <p>

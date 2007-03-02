@@ -76,7 +76,7 @@ Soft states occur in the following situations...
 </p>
 
 <p>
-The following things occur when hosts or services experience SOFT error or recoveries:
+The following things occur when hosts or services experience SOFT state changes:
 </p>
 
 <p>
@@ -113,7 +113,7 @@ Hard states occur for hosts and services in the following situations:
 </p>
 
 <p>
-The following things occur when hosts or services experience HARD errors or recoveries:
+The following things occur when hosts or services experience HARD state changes:
 </p>
 
 <p>
@@ -127,6 +127,30 @@ The following things occur when hosts or services experience HARD errors or reco
 <p>
 The <a href="macrolist.html#hoststatetype">$HOSTSTATETYPE$</a> or <a href="macrolist.html#servicestatetype">$SERVICESTATETYPE$</a> macros will have a value of "<i>HARD</i>" when event handlers are executed, which allows your event handler scripts to know when they should take corrective action.  More information on event handlers can be found <a href="eventhandlers.html">here</a>.
 </p>
+
+
+<p>
+<strong><u>Example</u></strong>
+</p>
+
+<p>
+Here's an example of how state types are determined, when state changes occur, and when event handlers and notifications are sent out.  The table below shows consecutive checks of a service over time.  The service has a <i>max_check_attempts</i> value of 3.
+</p>
+
+<table border="1" class="Default">
+<tr><th>Time</th><th>Check #</th><th>State</th><th>State Type</th><th>State Change</th><th>Notes</th></tr>
+<tr><td>0</td><td>1</td><td>OK</td><td>HARD</td><td>No</td><td>Initial state of the service</td></tr>
+<tr><td>1</td><td>1</td><td>CRITICAL</td><td>SOFT</td><td>Yes</td><td>First detection of a non-OK state.  Event handlers execute.</td></tr>
+<tr><td>2</td><td>2</td><td>WARNING</td><td>SOFT</td><td>Yes</td><td>Service continues to be in a non-OK state.  Event handlers execute.</td></tr>
+<tr><td>3</td><td>3</td><td>CRITICAL</td><td>HARD</td><td>Yes</td><td>Max check attempts has been reached, so service goes into a HARD state.  Event handlers execute and a problem notification is sent out.  Check # is reset to 1 immediately after this happens.</td></tr>
+<tr><td>4</td><td>1</td><td>WARNING</td><td>HARD</td><td>Yes</td><td>Service changes to a HARD WARNING state.  Event handlers execute and a problem notification is sent out.</td></tr>
+<tr><td>5</td><td>1</td><td>WARNING</td><td>HARD</td><td>No</td><td>Service stabilizes in a HARD problem state.  Depending on what the notification interval for the service is, another notification might be sent out.</td></tr>
+<tr><td>6</td><td>1</td><td>OK</td><td>HARD</td><td>Yes</td><td>Service experiences a HARD recovery.  Event handlers execute and a recovery notification is sent out.</td></tr>
+<tr><td>7</td><td>1</td><td>OK</td><td>HARD</td><td>No</td><td>Service is still OK.</td></tr>
+<tr><td>8</td><td>1</td><td>UNKNOWN</td><td>SOFT</td><td>Yes</td><td>Service is detected as changing to a SOFT non-OK state.  Event handlers execute.</td></tr>
+<tr><td>9</td><td>2</td><td>OK</td><td>SOFT</td><td>Yes</td><td>Service experiences a SOFT recovery.  Event handlers execute, but notification are not sent, as this wasn't a "real" problem.  State type is set HARD and check # is reset to 1 immediately after this happens.</td></tr>
+<tr><td>10</td><td>1</td><td>OK</td><td>HARD</td><td>No</td><td>Service stabilizes in an OK state.</td></tr>
+</table>
 
 
 <hr>

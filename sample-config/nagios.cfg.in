@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 02-28-2007
+# Last Modified: 03-01-2007
 #
 ##############################################################################
 
@@ -34,6 +34,9 @@ cfg_file=@sysconfdir@/localhost.cfg
 
 # Sample definitions for monitoring a network printer
 #cfg_file=@sysconfdir@/printer.cfg
+
+# Sample definitions for monitoring a switch/router
+#cfg_file=@sysconfdir@/switch.cfg
 
 
 # You can also tell Nagios to process all config files (with a .cfg

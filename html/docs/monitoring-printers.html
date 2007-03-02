@@ -64,7 +64,7 @@ The <i>check_hpjd</i> plugin (which is part of the standard Nagios plugins distr
 <p>
 <ul>
 <li>These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.</li><br><br>
-<li>For your convenience, the configuration examples given below can be found in a sample <i>printer.cfg</i> config file that gets installed when you following the quickstart guide.  After reading these instructions, just edit the <i>printer.cfg</i> file to custom the host name, IP address, etc. and uncomment the reference to the <i>printer.cfg</i> file in the <i>nagios.cfg</i> file.</li><br><br>
+<li>For your convenience, the configuration examples given below can be found in a sample <i>printer.cfg</i> config file that gets installed when you following the quickstart guide.  After reading these instructions, just edit the <i>printer.cfg</i> file to customize the host name, IP address, etc. and uncomment the reference to the <i>printer.cfg</i> file in the <i>nagios.cfg</i> file.</li><br><br>
 <li>The <i>check_hpjd</i> plugin will only get compiled and installed if you have the net-snmp and net-snmp-utils packages installed on your system.  Make sure the plugin exists in <i>/usr/local/nagios/libexec</i> before you continue.  If it doesn't, install net-snmp and net-snmp-utils and recompile/reinstall the Nagios plugins.</li>
 </ul>
 </p>
@@ -140,6 +140,10 @@ The <i>hplj2605dn</i> host will be a member of two hostgroups - <i>allhosts</i> 
 </p>
 
 <p>
+<strong><u>Monitoring Printer Status</u></strong>
+</p>
+
+<p>
 Now its time to define some <a href="objectdefinitions.html#service">services</a> that should be associated with the printer.  As mentioned earlier, the <i>check_hpjd</i> plugin allows you to monitor the current state of the printer. Let's use that plugin to define a service.  Before we do that, it should be noted that there is already a <a href="objectdefinitions.html#command">command definition</a> for using the <i>check_hpjd</i> plugin in service checks that has been defined in the <i>commands.cfg</i> file.  That command definition looks like this...
 </p>
 
@@ -175,14 +179,7 @@ Notice that the <i>check_command</i> directive is passing "-C public" to the <i>
 </p>
 
 <p>
-That's it!  You've just configured a new printer that should be monitored by Nagios.  Now you just have to:
-</p>
-
-<p>
-<ul>
-<li><a href="verifyconfig.html">Verify your configuration</a></li>
-<li><a href="stopstart.html">Restart Nagios</a></li>
-</ul>
+That's it!  You've just configured a new printer that should be monitored by Nagios.  If you modify your configuration files to monitor a new printer, make sure you <a href="verifyconfig.html">verify your configuration</a> and <a href="stopstart.html">restart Nagios</a>.
 </p>
 
 

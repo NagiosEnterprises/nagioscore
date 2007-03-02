@@ -102,9 +102,15 @@ define command{
 
 # 'check_local_swap' command definition
 define command{
-	name		check_local_swap
 	command_name	check_local_swap
 	command_line	$USER1$/check_swap -w $ARG1$ -c $ARG2$
+	}
+
+
+# 'check_local_mrtgtraf' command definition
+define command{
+	command_name	check_local_mrtgtraf
+	command_line	$USER1$/check_mrtgtraf -F $ARG1$ -a $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$
 	}
 
 
@@ -143,7 +149,6 @@ define command{
 
 # 'check_ssh' command definition
 define command{
-	name		check_ssh
 	command_name	check_ssh
 	command_line	$USER1$/check_ssh $ARG1$ $HOSTADDRESS$
 	}
@@ -151,7 +156,6 @@ define command{
 
 # 'check_dhcp' command definition
 define command{
-	name		check_dhcp
 	command_name	check_dhcp
 	command_line	$USER1$/check_dhcp $ARG1$
 	}

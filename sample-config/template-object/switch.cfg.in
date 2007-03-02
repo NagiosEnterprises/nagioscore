@@ -1,0 +1,106 @@
+###############################################################################
+# SWITCH.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING A SWITCH
+#
+# Last Modified: 03-01-2007
+#
+# NOTE: This config file assumes that you are using the sample configuration
+#	files that get installed with the Nagios quickstart guide:
+#		commands.cfg
+#		localhost.cfg
+#
+###############################################################################
+
+
+# Define a template for switches that we can reuse
+define host{
+	name			generic-switch	; The name of this host template
+	use			generic-host	; Inherit default values from the generic-host template
+	check_period		24x7		; By default, switches are monitored round the clock
+	check_interval		5		; Switches are checked every 5 minutes
+	retry_interval		1		; Schedule host check retries at 1 minute intervals
+	max_check_attempts	10		; Check each switch 10 times (max)
+	check_command		check-host-alive	; Default command to check if routers are "alive"
+	notification_period	24x7		; Send notifications at any time
+	notification_interval	30		; Resend notifications every 30 minutes
+	notification_options	d,r		; Only send notifications for specific host states
+	contact_groups		admins		; Notifications get sent to the admins by default
+	register		0		; DONT REGISTER THIS - ITS JUST A TEMPLATE
+	}
+
+
+
+# Define the switch that we'll be monitoring
+
+define host{
+	use		generic-switch		; Inherit default values from a template
+	host_name	linksys-srw224p		; The name we're giving to this switch
+	alias		Linksys SRW224P Switch	; A longer name associated with the switch
+	address		192.168.1.253		; IP address of the switch
+	hostgroups	allhosts		; Host groups this switch is associated with
+	}
+
+
+
+# Create a new hostgroup for switches
+
+define hostgroup{
+	hostgroup_name	switches		; The name of the hostgroup
+	alias		Network Switches	; Long name of the group
+	members		linksys-srw224p		; Comma separated list of hosts that belong to this group
+	}
+
+
+
+# Create a service to PING to switch
+
+define service{
+	use			generic-service	; Inherit values from a template
+	host_name		linksys-srw224p	; The name of the host the service is associated with
+	service_description	PING		; The service description
+	check_command		check_ping!200.0,20%!600.0,60%	; The command used to monitor the service
+	normal_check_interval	5		; Check the service every 5 minutes under normal conditions
+	retry_check_interval	1		; Re-check the service every minute until its final/hard state is determined
+	}
+
+
+# Monitor uptime via SNMP
+
+define service{
+	use			generic-service	; Inherit values from a template
+	host_name		linksys-srw224p
+	service_description	Uptime	
+	check_command		check_snmp!-C public -o sysUpTime.0
+	}
+
+
+
+# Monitor Port 1 status via SNMP
+
+define service{
+	use			generic-service	; Inherit values from a template
+	host_name		linksys-srw224p
+	service_description	Port 1 Link Status
+	check_command		check_snmp!-C public -o ifOperStatus.1 -r 1 -m RFC1213-MIB
+	}
+
+
+
+# Monitor bandwidth via MRTG logs
+
+define service{
+	use			generic-service	; Inherit values from a template
+	host_name		linksys-srw224p
+	service_description	Port 1 Bandwidth Usage
+	check_command		check_local_mrtgtraf!/var/lib/mrtg/192.168.1.253_1.log!AVG!1000000,1000000!5000000,5000000!10
+	}
+
+
+
+
+
+
+
+
+
+
+

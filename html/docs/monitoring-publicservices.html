@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Monitoring Publicly Available Services</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Monitoring Publicly Available Services</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
+</p>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+This document describes how you can monitor publicly available services, applications and protocols.  By "public" I mean services that are accessible across the network - either the local network or the greater Internet.  Examples of public services include HTTP, POP3, IMAP, FTP, and SSH.  There are many more public services that you probably use on a daily basis.  These services and applications, as well as their underlying protocols, can usually be monitored by Nagios without any special access requirements.
+</p>
+
+<p>
+Private services, in contrast, cannot be monitored with Nagios without an intermediary agent of some kind.    Examples of private services associated with hosts are things like CPU load, memory usage, disk usage, current user count, process information, etc.  These private services or attributes of hosts are not usually exposed to external clients.  This situation requires that an intermediary monitoring agent be installed on any host that you need to monitor such information on.  More information on monitoring private services on different types of hosts can be found in the documentation on:
+</p>
+
+<p>
+<ul>
+<li><a href="monitoring-windows.html">Monitoring Windows machines</a></li>
+<li><a href="monitoring-netware.html">Monitoring Netware servers</a></li>
+<li><a href="monitoring-linux.html">Monitoring Linux/Unix machines</a></li>
+</ul>
+</p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip: Occassionally you will find that information on private services and applications can be monitoring with SNMP.  The SNMP agent allows you to remotely monitor otherwise private (and inaccessible) information about the host.  For more information about monitoring services using SNMP, check out the documentation on <a href="monitoring-routers.html">monitoring switches and routers</a>.
+</p>
+
+<p>
+<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.
+</p>
+
+
+<p>
+<strong><u>Creating A Host Definition</u></strong>
+</p>
+
+<p>
+Before you can monitor a service, you first need to define a <a href="objectdefinitions.html#host">host</a> that is associated with the service.  If you have already created a host definition, you can skip this step.
+</p>
+
+<p>
+For this example, lets say you want to monitor a variety of services on a remote host.  Let's call that host <i>remotehost</i>.  The host definition can be placed in its own file or added to an already exiting object configuration file.  Here's what the host definition for <i>remotehost</i> might look like:  
+</p>
+
+
+<p>
+<pre>
+define host{
+	use		generic-host		; Inherit default values from a template
+	host_name		remotehost		; The name we're giving to this host
+	alias		Some Remote Host	; A longer name associated with the host
+	address		192.168.1.50		; IP address of the host
+	hostgroups	allhosts			; Host groups this host is associated with
+	}
+</pre>
+</p>
+
+<p>
+Now that a definition has been added for the host that will be monitored, we can start defining services that should be monitored.  As with host definitions, service definitions can be placed in any object configuration file.
+</p>
+
+
+
+<hr>
+
+</body>
+</html>

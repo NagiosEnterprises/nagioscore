@@ -63,7 +63,7 @@ Private services, in contrast, cannot be monitored with Nagios without an interm
 </p>
 
 <p>
-When you find yourself needing to monitor a particular application, service, or protocol, chances are good that a <a href="plugins.html">plugin</a> exists to monitor it.  The official Nagios plugins distribution comes with plugins that can be used to monitor a variety of services and protocols.  There are also a large number of contributed plugins that can be found in the <i>contrib/</i> subdirectory of the plugin distribution.   Lastly, the <a href="http://www.nagiosexchange.org">NagiosExchange.org</a> website hosts a number of additional plugins that have been written by users.
+When you find yourself needing to monitor a particular application, service, or protocol, chances are good that a <a href="plugins.html">plugin</a> exists to monitor it.  The official Nagios plugins distribution comes with plugins that can be used to monitor a variety of services and protocols.  There are also a large number of contributed plugins that can be found in the <i>contrib/</i> subdirectory of the plugin distribution.   The <a href="http://www.nagiosexchange.org">NagiosExchange.org</a> website hosts a number of additional plugins that have been written by users, so check it out when you have a chance.
 </p>
 
 <p>
@@ -71,7 +71,7 @@ If you don't happen to find an appropriate plugin for monitoring what you need, 
 </p>
 
 <p>
-I'll walk you through monitoring some basic services that you'll probably use sooner or later.  Each of these services can be monitored using one of the plugin that gets installed as part of the Nagios plugins distribution.  Let's get started...
+I'll walk you through monitoring some basic services that you'll probably use sooner or later.  Each of these services can be monitored using one of the plugins that gets installed as part of the Nagios plugins distribution.  Let's get started...
 </p>
 
 
@@ -169,9 +169,103 @@ define service{
 <strong><u>Monitoring FTP</u></strong>
 </p>
 
+<p>
+When you need to monitor FTP servers, you can use the <i>check_ftp</i> plugin.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_ftp</i> plugin, which looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_ftp
+	command_line	$USER1$/check_ftp -H $HOSTADDRESS$ $ARG1$
+	}
+</pre>
+</p>
+
+<p>
+A simple service definition for monitoring the FTP server on <i>remotehost</i> would look like this:
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	FTP
+	check_command	check_ftp
+	}
+</pre>
+</p>
+
+<p>
+This service definition will monitor the FTP service and generate alerts if the FTP server doesn't respond within 10 seconds.
+</p>
+
+<p>
+A more advanced service definition is shown below.  This service will check the FTP server running on port 1023 on <i>remotehost</i>.  It will generate an alert if the server doesn't respond within 5 seconds or if the server response doesn't contain the string "Pure-FTPd [TLS]".
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	Special FTP 
+	check_command	check_ftp!-p 1023 -t 5 -e "Pure-FTPd [TLS]"
+	}
+</pre>
+</p>
+
 
 <p>
 <strong><u>Monitoring SSH</u></strong>
+</p>
+
+<p>
+When you need to monitor SSH servers, you can use the <i>check_ssh</i> plugin.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_ssh</i> plugin, which looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_ssh
+	command_line	$USER1$/check_ssh $ARG1$ $HOSTADDRESS$
+	}
+</pre>
+</p>
+
+<p>
+A simple service definition for monitoring the SSH server on <i>remotehost</i> would look like this:
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	SSH
+	check_command	check_ssh
+	}
+</pre>
+</p>
+
+<p>
+This service definition will monitor the SSH service and generate alerts if the SSH server doesn't respond within 10 seconds.
+</p>
+
+<p>
+A more advanced service definition is shown below.  This service will check the SSH server and generate an alert if the server doesn't respond within 5 seconds or if the server version string string doesn't match "OpenSSH_4.2".
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	SSH Version Check 
+	check_command	check_ssh!-t 5 -r "OpenSSH_4.2"
+	}
+</pre>
 </p>
 
 
@@ -179,14 +273,155 @@ define service{
 <strong><u>Monitoring SMTP</u></strong>
 </p>
 
+<p>
+The <i>check_smtp</i> plugin can be using for monitoring your email servers.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_smtp</i> plugin, which looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_smtp
+	command_line	$USER1$/check_smtp -H $HOSTADDRESS$ $ARG1$
+	}
+</pre>
+</p>
+
+<p>
+A simple service definition for monitoring the SMTP server on <i>remotehost</i> would look like this:
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	SMTP
+	check_command	check_smtp
+	}
+</pre>
+</p>
+
+<p>
+This service definition will monitor the SMTP service and generate alerts if the SMTP server doesn't respond within 10 seconds.
+</p>
+
+<p>
+A more advanced service definition is shown below.  This service will check the SMTP server and generate an alert if the server doesn't respond within 5 seconds or if the response from the server doesn't contain "mygreatmailserver.com".
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	SMTP Response Check 
+	check_command	check_smtp!-t 5 -e "mygreatmailserver.com"
+	}
+</pre>
+</p>
+
 
 <p>
 <strong><u>Monitoring POP3</u></strong>
 </p>
 
+<p>
+The <i>check_pop</i> plugin can be using for monitoring the POP3 service on your email servers.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_pop</i> plugin, which looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_pop
+	command_line	$USER1$/check_pop -H $HOSTADDRESS$ $ARG1$
+	}
+</pre>
+</p>
+
+<p>
+A simple service definition for monitoring the POP3 service on <i>remotehost</i> would look like this:
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	POP3
+	check_command	check_pop
+	}
+</pre>
+</p>
+
+<p>
+This service definition will monitor the POP3 service and generate alerts if the POP3 server doesn't respond within 10 seconds.
+</p>
+
+<p>
+A more advanced service definition is shown below.  This service will check the POP3 service and generate an alert if the server doesn't respond within 5 seconds or if the response from the server doesn't contain "mygreatmailserver.com".
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	POP3 Response Check 
+	check_command	check_pop!-t 5 -e "mygreatmailserver.com"
+	}
+</pre>
+</p>
+
 
 <p>
 <strong><u>Monitoring IMAP</u></strong>
+</p>
+
+<p>
+The <i>check_imap</i> plugin can be using for monitoring IMAP4 service on your email servers.  The <i>commands.cfg</i> file contains a command definition for using the <i>check_imap</i> plugin, which looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_imap
+	command_line	$USER1$/check_imap -H $HOSTADDRESS$ $ARG1$
+	}
+</pre>
+</p>
+
+<p>
+A simple service definition for monitoring the IMAP4 service on <i>remotehost</i> would look like this:
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	IMAP
+	check_command	check_imap
+	}
+</pre>
+</p>
+
+<p>
+This service definition will monitor the IMAP4 service and generate alerts if the IMAP server doesn't respond within 10 seconds.
+</p>
+
+<p>
+A more advanced service definition is shown below.  This service will check the IAMP4 service and generate an alert if the server doesn't respond within 5 seconds or if the response from the server doesn't contain "mygreatmailserver.com".
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	IMAP4 Response Check 
+	check_command	check_imap!-t 5 -e "mygreatmailserver.com"
+	}
+</pre>
 </p>
 
 <hr>

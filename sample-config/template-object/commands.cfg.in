@@ -5,7 +5,7 @@
 # provided some comments here, but things may not be so clear without further
 # explanation, so make sure to read the HTML documentation!
 # 
-# Last Modified: 02-26-2007
+# Last Modified: 03-03-2007
 #
 ################################################################################
 
@@ -122,7 +122,7 @@ define command{
 # 'check_ftp' command definition
 define command{
         command_name    check_ftp
-        command_line    $USER1$/check_ftp -H $HOSTADDRESS$
+        command_line    $USER1$/check_ftp -H $HOSTADDRESS$ $ARG1$
         }
 
 
@@ -171,28 +171,35 @@ define command{
 # 'check_pop' command definition
 define command{
         command_name    check_pop
-        command_line    $USER1$/check_pop -H $HOSTADDRESS$
+        command_line    $USER1$/check_pop -H $HOSTADDRESS$ $ARG1$
+        }
+
+
+# 'check_imap' command definition
+define command{
+        command_name    check_imap
+        command_line    $USER1$/check_imap -H $HOSTADDRESS$ $ARG1$
         }
 
 
 # 'check_smtp' command definition
 define command{
         command_name    check_smtp
-        command_line    $USER1$/check_smtp -H $HOSTADDRESS$
+        command_line    $USER1$/check_smtp -H $HOSTADDRESS$ $ARG1$
         }
 
 
 # 'check_tcp' command definition
 define command{
 	command_name	check_tcp
-	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$
+	command_line	$USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
 	}
 
 
 # 'check_udp' command definition
 define command{
 	command_name	check_udp
-	command_line	$USER1$/check_udp -H $HOSTADDRESS$ -p $ARG1$
+	command_line	$USER1$/check_udp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
 	}
 
 

@@ -50,11 +50,28 @@ Private services, in contrast, cannot be monitored with Nagios without an interm
 </p>
 
 <p>
-<img src="images/tip.gif" border="0" align="bottom"> Tip: Occassionally you will find that information on private services and applications can be monitoring with SNMP.  The SNMP agent allows you to remotely monitor otherwise private (and inaccessible) information about the host.  For more information about monitoring services using SNMP, check out the documentation on <a href="monitoring-routers.html">monitoring switches and routers</a>.
+<img src="images/tip.gif" border="0" align="bottom"> Tip: Occassionally you will find that information on private services and applications can be monitored with SNMP.  The SNMP agent allows you to remotely monitor otherwise private (and inaccessible) information about the host.  For more information about monitoring services using SNMP, check out the documentation on <a href="monitoring-routers.html">monitoring switches and routers</a>.
 </p>
 
 <p>
 <img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.
+</p>
+
+
+<p>
+<strong><u>Plugins For Monitoring Services</u></strong>
+</p>
+
+<p>
+When you find yourself needing to monitor a particular application, service, or protocol, chances are good that a <a href="plugins.html">plugin</a> exists to monitor it.  The official Nagios plugins distribution comes with plugins that can be used to monitor a variety of services and protocols.  There are also a large number of contributed plugins that can be found in the <i>contrib/</i> subdirectory of the plugin distribution.   Lastly, the <a href="http://www.nagiosexchange.org">NagiosExchange.org</a> website hosts a number of additional plugins that have been written by users.
+</p>
+
+<p>
+If you don't happen to find an appropriate plugin for monitoring what you need, you can always write your own.  Plugins are easy to write, so don't let this thought scare you off.  Read the documentation on <a href="pluginapi.html">developing plugins</a> for more information.
+</p>
+
+<p>
+I'll walk you through monitoring some basic services that you'll probably use sooner or later.  Each of these services can be monitored using one of the plugin that gets installed as part of the Nagios plugins distribution.  Let's get started...
 </p>
 
 
@@ -70,7 +87,6 @@ Before you can monitor a service, you first need to define a <a href="objectdefi
 For this example, lets say you want to monitor a variety of services on a remote host.  Let's call that host <i>remotehost</i>.  The host definition can be placed in its own file or added to an already exiting object configuration file.  Here's what the host definition for <i>remotehost</i> might look like:  
 </p>
 
-
 <p>
 <pre>
 define host{
@@ -78,7 +94,7 @@ define host{
 	host_name		remotehost		; The name we're giving to this host
 	alias		Some Remote Host	; A longer name associated with the host
 	address		192.168.1.50		; IP address of the host
-	hostgroups	allhosts			; Host groups this host is associated with
+	hostgroups		allhosts		; Host groups this host is associated with
 	}
 </pre>
 </p>
@@ -88,6 +104,90 @@ Now that a definition has been added for the host that will be monitored, we can
 </p>
 
 
+<p>
+<strong><u>Monitoring HTTP</u></strong>
+</p>
+
+<p>
+Chances are you're going to want to monitor web servers at some point - either yours or someone else's.   The <i>check_http</i> plugin is designed to do just that.  It understands the HTTP protocol and can monitor response time, error codes, strings in the returned HTML, server certificates, and much more.
+</p>
+
+<p>
+The <i>commands.cfg</i> file contains a command definition for using the <i>check_http</i> plugin.  It looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	name		check_http
+	command_name	check_http
+	command_line	$USER1$/check_http -I $HOSTADDRESS$ $ARG1$
+	}
+</pre>
+</p>
+
+<p>
+A simple service definition for monitoring the HTTP service on the <i>remotehost</i> machine might look like this:
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	HTTP
+	check_command	check_http
+	}
+</pre>
+</p>
+
+<p>
+This simple service definition will monitor the HTTP service running on <i>remotehost</i>.  It will produce alerts if the web server doesn't respond within 10 seconds or if it returns HTTP errors codes (403, 404, etc.).  That's all you need for basic monitoring.  Pretty simple, huh?
+</p>
+
+<p>
+<img src="images/tip.gif" border="0" align="bottom"> Tip: For more advanced monitoring, run the <i>check_http</i> plugin manually with <i>--help</i> as a command-line argument to see all the options you can give the plugin.  This <i>--help</i> syntax works with all of the plugins I'll cover in this document.
+</p>
+
+<p>
+A more advanced definition for monitoring the HTTP service is shown below.  This service definition will check to see if the /download/index.php URI contains the string "latest-version.tar.gz". It will produce an error if the string isn't found, the URI isn't valid, or the web server takes longer than 5 seconds to respond.
+</p>
+
+<p>
+<pre>
+define service{
+	use		generic-service		; Inherit default values from a template
+	host_name		remotehost
+	service_description	Product Download Link
+	check_command	check_http!-u /download/index.php -t 5 -s "latest-version.tar.gz"
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring FTP</u></strong>
+</p>
+
+
+<p>
+<strong><u>Monitoring SSH</u></strong>
+</p>
+
+
+<p>
+<strong><u>Monitoring SMTP</u></strong>
+</p>
+
+
+<p>
+<strong><u>Monitoring POP3</u></strong>
+</p>
+
+
+<p>
+<strong><u>Monitoring IMAP</u></strong>
+</p>
 
 <hr>
 

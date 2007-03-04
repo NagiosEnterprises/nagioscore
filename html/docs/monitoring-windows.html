@@ -1,0 +1,363 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Monitoring Windows Machines</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Monitoring Windows Machines</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>, <a href="monitoring-publicservices.html">Monitoring Publicly Available Services</a>
+</p>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+This document describes how you can monitor "private" services and attributes of Windows machines, such as: 
+</p>
+
+<p>
+<ul>
+<li>Memory usage</li>
+<li>CPU load</li>
+<li>Disk usage</li>
+<li>Service states</li>
+<li>Running processes</li>
+<li>etc.</li>
+</ul>
+</p>
+
+<p>
+Public services that are offered by Windows machines (HTTP, FTP, POP3, etc.) can be monitored easily by following the documentation on <a href="monitoring-publicservices.html">monitoring publicly available services</a>.
+</p>
+
+<p>
+<img src="images/note.gif" border="0" align="bottom"> Note: These instructions assume that you've installed Nagios according to the <a href="quickstart.html">quickstart guide</a>.  The sample configuration entries below reference objects that are defined in the sample <i>commands.cfg</i> and <i>localhost.cfg</i> config files.
+</p>
+
+<p>
+<strong><u>Installing the Windows Agent</u></strong>
+</p>
+
+<p>
+Before you can begin monitoring private services and attributes of Windows machines, you'll need to install an agent on those machines.  I recommend using the NSClient++ addon, which can be found at <a href="http://sourceforge.net/projects/nscplus">http://sourceforge.net/projects/nscplus</a>.  These instructions will take you through a basic installation of the NSClient++ addon, as well as the configuration of Nagios for monitoring the Windows machine.
+</p>
+
+<p>
+1. Download the latest stable version of the NSClient++ addon from <a href="http://sourceforge.net/projects/nscplus">http://sourceforge.net/projects/nscplus</a>
+</p>
+
+<p>
+2. Unzip the NSClient++ files into a new C:\NSClient++ directory
+</p>
+
+<p>
+3. Open a command prompt and change to the C:\NSClient++ directory
+</p>
+
+<p>
+4. Register the NSClient++ system service with the following command:
+</p>
+
+<p>
+<pre>
+	nsclient++ /install
+</pre>
+</p>
+
+<p>
+5. Install the NSClient++ systray with the following command:
+</p>
+
+<p>
+<pre>
+	nsclient++ SysTray
+</pre>
+</p>
+
+<p>
+6. Open the services manager and make sure the NSClientpp service is allowed to interact with the desktop (see the 'Log On' tab of the services manager).  If it isn't already allowed to interact with the desktop, check the box to allow it to.
+</p>
+
+<p>
+<img src="images/nscpp.png" border="0">
+</p>
+
+<p>
+7. Edit the NSC.INI file (located in the C:\NSClient++ directory)  and uncomment the allowed_hosts option.  Add the IP address of the Nagios server to this line, or leave it blank to allow all hosts to connect.
+</p>
+
+<p>
+8. Start the NSClient++ service with the following command:
+</p>
+
+<p>
+<pre>
+	nsclient++ /start
+</pre>
+</p>
+
+<p>
+9. If installed properly, a new icon should appear in your system tray.  It will be a yellow circle with a black 'M' inside.
+</p>
+
+<p>
+10. Success! The Windows server can now be added to the Nagios monitoring configuration...
+</p>
+
+
+<p>
+<strong><u>Nagios Host Configuration</u></strong>
+</p>
+
+<p>
+You'll need to create some <a href="objectdefinitions.html">object definitions</a> in your Nagios configuration files in order to monitor a new Windows machine.  These definitions can be placed in their own file or added to an already exiting object configuration file.
+</p>
+
+<p>
+First, its best practice to create a new template for each different type of host you'll be monitoring.  Let's create a new template for Windows server.
+</p>
+
+<p>
+<pre>
+define host{
+	name			windows-server	; The name of this host template
+	use			generic-host	; Inherit default values from the generic-host template
+	check_period		24x7		; By default, Windows servers are monitored round the clock
+	check_interval		5		; Actively check the server every 5 minutes
+	retry_interval		1		; Schedule host check retries at 1 minute intervals
+	max_check_attempts		10		; Check each server 10 times (max)
+	check_command		check-host-alive	; Default command to check if servers are "alive"
+	notification_period	24x7		; Send notification out at any time - day or night
+	notification_interval	30		; Resend notifications every 30 minutes
+	notification_options	d,r		; Only send notifications for specific host states
+	contact_groups		admins		; Notifications get sent to the admins by default
+	register			0		; DONT REGISTER THIS - ITS JUST A TEMPLATE
+	}
+</pre>
+</p>
+
+<p>
+Notice that the Windows server template definition is inheriting default values from the <i>generic-host</i> template, which is defined in the sample <i>localhost.cfg</i> file.
+</p>
+
+<p>
+Next, define a new <a href="objectdefinitions.html#host">host</a> for the Windows machine that references the newly created <i>windows-server</i> host template.
+</p>
+
+<p>
+<pre>
+define host{
+	use		windows-server	; Inherit default values from a template
+	host_name		winserver	; The name we're giving to this host
+	alias		My Windows Server	; A longer name associated with the host
+	address		192.168.1.2	; IP address of the host
+	hostgroups	allhosts		; Host groups this server is associated with
+	}
+</pre>
+</p>
+
+<p>
+Add an optional <a href="objectdefinitions.html#hostgroup">hostgroup</a> for Windows servers.  This is useful if you create additional servers in the future and want to view them together in the CGIs.  It can also be useful for <a href="objecttricks.html">object definition tricks</a> that you can use to manage larger configurations later on.
+</p>
+
+<p>
+<pre>
+define hostgroup{
+	hostgroup_name	windows-servers		; The name of the hostgroup
+	alias		Windows Servers	; Long name of the group
+	members		winserver		; Comma separated list of hosts that belong to this group
+	}
+</pre>
+</p>
+
+<p>
+The <i>winserver</i> host will be a member of two hostgroups - <i>allhosts</i> (which is referenced in the host definition and defined in <i>localhost.cfg</i>) and <i>windows-servers</i> (which is defined above).
+</p>
+
+<p>
+<strong><u>Monitoring Services</u></strong>
+</p>
+
+<p>
+Now that the NSCLient++ addon has been installed on the Windows machine and you've configured a host definition for the machine in Nagios, you can addon some service definitions for things you want to monitor.  All of the service examples I'll cover use the <i>check_nt</i> plugin to talk to the NSClient++ addon on the Windows machine.  The <i>check_nt</i> plugin is included in the Nagios plugins distribution and a command definition for using the plugin has been defined in the <i>commands.cfg</i> file.  It looks like this:
+</p>
+
+<p>
+<pre>
+define command{
+	command_name	check_nt
+	command_line	$USER1$/check_nt -H $HOSTADDRESS$ -p 12489 -v $ARG1$ $ARG2$
+	}
+</pre>
+</p>
+
+<p>
+Now let's go over some example service definitions for monitoring different aspects of the Windows machine...
+</p>
+
+<p>
+<strong><u>Monitoring NSCLient++ Version</u></strong>
+</p>
+
+<p>
+The following service definition will allow you to monitor the version of the NSClient++ addon that is running on the Windows server.  This is useful when it comes time to upgrade your Windows servers to a newer version of the addon.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	NSClient++ Version
+	check_command		check_nt!CLIENTVERSION
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring Uptime</u></strong>
+</p>
+
+<p>
+The following service definition will allow you to monitor the uptime of the Windows server.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	Uptime
+	check_command		check_nt!UPTIME
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring CPU Load</u></strong>
+</p>
+
+<p>
+The following service definition will monitor the CPU utilization on the Windows server and generate a CRITICAL alert if the 5-minute CPU load is 90% or more or a WARNING alert if the 5-minute load is 80% or greater.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	CPU Load
+	check_command		check_nt!CPULOAD!-l 5,80,90
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring Memory Usage</u></strong>
+</p>
+
+<p>
+The following service definition will monitor memory usage on the Windows server and generate a CRITICAL alert if memory usage is 90% or more or a WARNING alert if memory usage is 80% or greater.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	Memory Usage
+	check_command		check_nt!MEMUSE!-w 80 -c 90
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring Disk Usage</u></strong>
+</p>
+
+<p>
+The following service definition will monitor usage of the C:\ drive on the Windows server and generate a CRITICAL alert if disk usage is 90% or more or a WARNING alert if disk usage is 80% or greater.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	C:\ Drive Space
+	check_command		check_nt!USEDDISKSPACE!-l c -w 80 -c 90
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring A Windows Service</u></strong>
+</p>
+
+<p>
+The following service definition will monitoring the W3SVC service state on the Windows machine and generate a CRITICAL alert if the service is stopped.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	W3SVC
+	check_command		check_nt!SERVICESTATE!-d SHOWALL -l W3SVC
+	}
+</pre>
+</p>
+
+
+<p>
+<strong><u>Monitoring A Windows Process</u></strong>
+</p>
+
+<p>
+The following service definition will monitoring the Explorer.exe process on the Windows machine and generate a CRITICAL alert if the process is not running.
+</p>
+
+<p>
+<pre>
+define service{
+	use			generic-service
+	host_name			winserver
+	service_description	Explorer
+	check_command		check_nt!PROCSTATE!-d SHOWALL -l Explorer.exe
+	}
+</pre>
+</p>
+
+
+<hr>
+
+</body>
+</html>

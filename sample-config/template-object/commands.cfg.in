@@ -203,6 +203,12 @@ define command{
 	}
 
 
+# 'check_nt' command definition
+define command{
+	command_name	check_nt
+	command_line	$USER1$/check_nt -H $HOSTADDRESS$ -p 12489 -v $ARG1$ -p 12489 $ARG2$
+	}
+
 
 
 ################################################################################

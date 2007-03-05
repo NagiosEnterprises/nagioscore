@@ -3,7 +3,7 @@ Nagios 2.x Change Log
 #####################
 
 
-2.8 - ??/??/2007
+2.8 - 03/??/2007
 ------------------
 * Bug fix for calculating notification interval with service escalations
 * Bug fix for using servicegroups in service dependency definitions
@@ -11,6 +11,7 @@ Nagios 2.x Change Log
 * Possible segfault fix during restarts when daemon was performing host checks
 * Fix for missing check timeout in event broker calls
 * Fix for handling signals under NPTL
+* Added error messages for passive service checks that don't correspond to a defined service
 
 
 

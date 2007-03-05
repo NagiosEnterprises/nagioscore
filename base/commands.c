@@ -2,8 +2,8 @@
  *
  * COMMANDS.C - External command functions for Nagios
  *
- * Copyright (c) 1999-2005 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2005
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-05-2007
  *
  * License:
  *
@@ -1793,6 +1793,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	char *real_host_name=NULL;
+	char temp_buffer[MAX_INPUT_BUFFER]="";
 
 #ifdef DEBUG0
 	printf("process_passive_service_check() start\n");
@@ -1819,12 +1820,24 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	        }
 
 	/* we couldn't find the host */
-	if(real_host_name==NULL)
+	if(real_host_name==NULL){
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n",svc_description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
 		return ERROR;
+		}
 
 	/* make sure the service exists */
-	if((temp_service=find_service(real_host_name,svc_description))==NULL)
+	if((temp_service=find_service(real_host_name,svc_description))==NULL){
+
+		snprintf(temp_buffer,sizeof(temp_buffer),"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n",svc_description,host_name);
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+
 		return ERROR;
+		}
 
 	/* skip this is we aren't accepting passive checks for this service */
 	if(temp_service->accept_passive_service_checks==FALSE)
@@ -1943,7 +1956,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	char temp_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char old_plugin_output[MAX_PLUGINOUTPUT_LENGTH]="";
 	char *temp_ptr;
-	char temp_buffer[MAX_INPUT_BUFFER];
+	char temp_buffer[MAX_INPUT_BUFFER]="";
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() start\n");

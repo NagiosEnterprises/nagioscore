@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-08-2007
+ * Last Modified:   03-05-2007
  *
  * License:
  *
@@ -2053,6 +2053,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	char *real_host_name=NULL;
 	struct timeval tv;
 	int result=OK;
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("process_passive_service_check() start\n");
@@ -2079,12 +2080,20 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	        }
 
 	/* we couldn't find the host */
-	if(real_host_name==NULL)
+	if(real_host_name==NULL){
+		asprintf(&temp_buffer,"Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n",svc_description,host_name);
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
+		}
 
 	/* make sure the service exists */
-	if((temp_service=find_service(real_host_name,svc_description))==NULL)
+	if((temp_service=find_service(real_host_name,svc_description))==NULL){
+		asprintf(&temp_buffer,"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n",svc_description,host_name);
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
+		}
 
 	/* skip this is we aren't accepting passive checks for this service */
 	if(temp_service->accept_passive_service_checks==FALSE)
@@ -2202,6 +2211,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	char *real_host_name=NULL;
 	struct timeval tv;
 	int result=OK;
+	char *temp_buffer=NULL;
 
 #ifdef DEBUG0
 	printf("process_passive_host_check() start\n");
@@ -2232,8 +2242,12 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	        }
 
 	/* we couldn't find the host */
-	if(temp_host==NULL)
+	if(temp_host==NULL){
+		asprintf(&temp_buffer,"Warning:  Passive check result was received for host '%s', but the host could not be found!\n",host_name);
+		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
+		my_free((void **)&temp_buffer);
 		return ERROR;
+		}
 
 	/* skip this is we aren't accepting passive checks for this host */
 	if(temp_host->accept_passive_host_checks==FALSE)

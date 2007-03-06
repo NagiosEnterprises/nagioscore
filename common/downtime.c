@@ -208,10 +208,18 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 		delete_service_downtime(downtime_id);
 
 	/* unschedule all downtime entries that were triggered by this one */
-	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
-		if(temp_downtime->triggered_by==downtime_id)
-			unschedule_downtime(ANY_DOWNTIME,temp_downtime->downtime_id);
-	        }
+	while(1){
+
+		for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+			if(temp_downtime->triggered_by==downtime_id){
+				unschedule_downtime(ANY_DOWNTIME,temp_downtime->downtime_id);
+				break;
+				}
+			}
+
+		if(temp_downtime==NULL)
+			break;
+		}
 
 	return OK;
         }
@@ -407,18 +415,27 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 					svc->pending_flex_downtime--;
 			        }
 		        }
+
 		/* handle (stop) downtime that is triggered by this one */
-		for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){
-			if(this_downtime->triggered_by==temp_downtime->downtime_id)
-				handle_scheduled_downtime(this_downtime);
-		        }
+		while(1){
+
+			/* list contents might change by recursive calls, so we use this inefficient method to prevent segfaults */
+			for(this_downtime=scheduled_downtime_list;this_downtime!=NULL;this_downtime=this_downtime->next){
+				if(this_downtime->triggered_by==temp_downtime->downtime_id){
+					handle_scheduled_downtime(this_downtime);
+					break;
+					}
+				}
+
+			if(this_downtime==NULL)
+				break;
+			}
 
 		/* delete downtime entry */
 		if(temp_downtime->type==HOST_DOWNTIME)
 			delete_host_downtime(temp_downtime->downtime_id);
 		else
 			delete_service_downtime(temp_downtime->downtime_id);
-
 	        }
 
 	/* else we are just starting the scheduled downtime */

@@ -83,7 +83,6 @@ exec_prefix=@exec_prefix@
 NagiosBin=@bindir@/nagios
 NagiosCfgFile=@sysconfdir@/nagios.cfg
 NagiosStatusFile=@localstatedir@/status.dat
-NagiosTempFile=@localstatedir@/nagios.tmp
 NagiosRetentionFile=@localstatedir@/retention.dat
 NagiosCommandFile=@localstatedir@/rw/nagios.cmd
 NagiosVarDir=@localstatedir@
@@ -154,7 +153,7 @@ case "$1" in
  		    echo ' done.'
  		fi
 
-		rm -f $NagiosStatusFile $NagiosTempFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
+		rm -f $NagiosStatusFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
 		;;
 
 	status)
@@ -169,8 +168,7 @@ case "$1" in
 			$0 stop
 			$0 start
 		else
-			#$NagiosBin -v $NagiosCfgFile
-			echo " FAILED!  Restart aborted.  Check your Nagios configuration."
+			echo " CONFIG ERROR!  Restart aborted.  Check your Nagios configuration."
 			exit 1
 		fi
 		;;
@@ -194,8 +192,7 @@ case "$1" in
 				fi
 			fi
 		else
-			#$NagiosBin -v $NagiosCfgFile
-			echo " FAILED!  Reload aborted.  Check your Nagios configuration."
+			echo " CONFIG ERROR!  Reload aborted.  Check your Nagios configuration."
 			exit 1
 		fi
 		;;

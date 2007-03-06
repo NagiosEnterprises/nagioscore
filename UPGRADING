@@ -1,11 +1,16 @@
-Upgrading to Nagios 2.0
+Upgrading to Nagios 3.x
 -----------------------
 
-If you're upgrading from Nagios 1.0, there will be a few modifications
-that you'll need to make to your config files.  Read the "What's New"
-section of the HTML documentation for more information.
+The HTML documentation covers what you need to know in order
+to upgrade from Nagios 2.x  You can find the documentation in
+the following subdirectory:
 
+	html/docs
 
+Make sure to read the following sections:
+
+- "What's New" (whatsnew.html)
+- "Upgrading Nagios" (upgrading.html)
 
 
 

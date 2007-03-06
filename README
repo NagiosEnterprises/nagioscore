@@ -1,4 +1,4 @@
-Nagios 2.0 README
+Nagios 3.x README
 -----------------
 
 
@@ -17,13 +17,8 @@ Features:
 5) Web output (current status, notifications, problem history, log file, etc.)
 6) Automatic log file rotation/archiving
 
-For quick and dirty installation instructions, read the INSTALL file.  For
-more complete instructions and program documentation, use a web browser to
-read the HTML files in the html/docs directory.  If this is your first time
-using Nagios I would highly recommend reading the HTML documentation.
-
-For instructions on upgrading to the current version of Nagios, read the
-UPGRADING file carefully.
+For installation instructions, use a web browser to read the HTML documentation
+in the html/docs subdirectory.  
 
 Visit the Nagios homepage at http://www.nagios.org for online
 documentation, new releases, bug reports, information on the mailing

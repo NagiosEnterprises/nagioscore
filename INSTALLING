@@ -1,113 +1,17 @@
-Nagios Alpha Quick-and-Dirty Installation Instructions
---------------------------------------------------------
+Nagios Installation Instructions
+--------------------------------
 
-I would highly recommend using a web browser to read the documentation and
-installation instructions in the html/docs directory.  They provide a
-much better overview of how to configure Nagios.
+A quickstart installation guide can now be found in the HTML
+documentation.  You can find the quickstart guide (quickstart.html)
+in the following subdirectory:
 
+	html/docs/
 
-*** IMPORTANT ***
-Plugins are not distributed with the core Nagios distribution. However, 
-plugins are required if you actually want to use Nagios.  You'll have to
-download any plugins you want to use from the main website, compile them,
-and install them before you can actually start using Nagios.  Plugins
-can be obtained from the downloads page at http://www.nagios.org/.
+The quickstart covers all the basic steps you need to follow
+to install Nagios, the Nagios plugins, and start out monitoring
+the machine that Nagios is installed on.
 
-
-Compiling The Binaries
-----------------------
-
-1) Run the configure script to initialize variables and create a Makefile, etc.
-
-   	./configure --prefix=PREFIX --with-cgiurl=CGIURL --with-htmurl=HTMURL --with-nagios-user=SOMEUSER --with-nagios-group=SOMEGROUP
-
-   a) Replace PREFIX with the base directory under which Nagios should be
-      installed.  Default is '/usr/local/nagios'
-	
-   b) Replace CGIURL with the base URL that you will be using to access the
-      CGIs.  Do NOT include a trailing slash.  Default is '/nagios/cgi-bin'
-
-   c) Replace HTMURL with the base URL that you will be using to access the
-      html documentation and main interface.  Default is '/nagios'
-
-   d) Replace SOMEUSER with the name of the user on your system that will 
-      be given permissions to the Nagios directories and files.  Default
-      is 'nagios'
-
-   e) Replace SOMEGROUP with the name of the group on your system that
-      will be given permissions to the Nagios directories and files.
-      Default is 'nagios'
-
-
-   Notes:
-	There are also --with-command-user and --with-command-group options
-        that can be specified.  These are used when installing the directory
-        that will hold the external command file.  For more information on 
-        external commands, read the HTML documentation.
-
-
-2) Compile Nagios and the CGIs with the following command:
-
-	make all
+Good luck!
 
 
 
-Installing The Binaries
------------------------
-
-1) Install the binaries and HTML documentations with the following command:
-
-	make install
-
-
-
-Creating And Installing Sample Config Files
--------------------------------------------
-
-Sample main, resource and CGI configuration files are automatically
-created	in your distribution distribution directory after you run the
-configure script.  The files are named 'nagios.cfg', 'resource.cfg'
-and 'cgi.cfg' respectively.
-
-1) If you want, you can install the sample config files into the
-   {prefix}/etc directory with the following command:
-
-	make install-config
-
-
-
-Installing The Init Script
---------------------------
-
-1) If you want to install and init script for starting Nagios, use the
-   following command:
-
-	make install-init
-
-
-
-Everything Else
----------------
-
-1)  You'll have to download and install plugins for use with Nagios.  Plugins
-    can be obtained from the downloads page at http://www.nagios.org of from
-    the SourceForge project page at http://nagiosplug.sourceforge.net
-
-2)  You'll have to edit your main, host, resource, and CGI config files in order
-    to fit your system setup and define what hosts and service you want to
-    monitor.  Read the HTML docs on how to do this and look at the sample
-    config files.
-
-3)  If you plan on using the CGIs, you'll have to read the HTML documentation
-    on configuring you web server properly and CGI authentication  and
-    authorization.  These are a must to read!
-
-
-
-That's it!  If you have problems or questions, read all of the HTML
-documentation, particularly the sections on the configuration files and CGI
-authentication before reporting problems.  Unless you feel that your 
-problem can only be answered by me, try posting a message to the
-appropriate mailing list.
-
-	-- Ethan Galstad (nagios@nagios.org)

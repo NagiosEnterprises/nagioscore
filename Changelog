@@ -2,16 +2,11 @@
 Nagios 3.x Change Log
 #####################
 
-NOTE:
-This change log isn't very detailed (or organized) as of yet.  Nagios
-3.0 development is just getting started, so documentation, etc. will
-lag development for a while.
-
-	- Ethan 02/21/2006
 
 
-Nagios 3.0a1 - Changes Since Nagios 2.x
----------------------------------------
+Nagios 3.0a1 - 03/06/2007
+-------------------------
+Changes Since Nagios 2.x:
 
 * Adaptive monitoring:
      - Check timeperiod can now be modified on-the-fly

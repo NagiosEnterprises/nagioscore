@@ -2,8 +2,8 @@
  *
  * XDDDEFAULT.C - Default scheduled downtime data routines for Nagios
  *
- * Copyright (c) 2001-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-05-2007
  *
  * License:
  *
@@ -250,8 +250,11 @@ int xdddefault_delete_downtime(int type, unsigned long downtime_id){
 /* writes downtime data to file */
 int xdddefault_save_downtime_data(void){
 
+	/* don't update the status file now (too inefficent), let aggregated status updates do it */
+#ifdef REMOVED_03052007
 	/* update the main status log */
 	update_all_status_data();
+#endif
 
 	return OK;
         }

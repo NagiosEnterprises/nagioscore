@@ -2,8 +2,8 @@
  *
  * XCDDEFAULT.C - Default external comment data routines for Nagios
  *
- * Copyright (c) 2000-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-26-2006
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-05-2007
  *
  * License:
  *
@@ -178,8 +178,11 @@ int xcddefault_delete_service_comment(unsigned long comment_id){
 /* writes comment data to file */
 int xcddefault_save_comment_data(void){
 
+	/* don't update the status file now (too inefficent), let aggregated status updates do it */
+#ifdef REMOVED_03052007
 	/* update the main status log */
 	update_all_status_data();
+#endif
 
 	return OK;
         }

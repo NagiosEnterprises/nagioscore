@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-26-2007
+ * Last Modified: 03-06-2007
  *
  * Description:
  *
@@ -4677,6 +4677,10 @@ int xodtemplate_duplicate_objects(void){
 	/****** PROCESS SERVICE DEPENDENCIES WITH MASTER SERVICEGROUPS *****/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
+		/* skip templates */
+		if(temp_servicedependency->register_object==0)
+			continue;
+
 		/* expand master servicegroups into a list of services */
 		if(temp_servicedependency->servicegroup_name){
 
@@ -4754,7 +4758,10 @@ int xodtemplate_duplicate_objects(void){
 	/****** PROCESS SERVICE DEPENDENCY MASTER HOSTS/HOSTGROUPS/SERVICES *****/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
-		
+		/* skip templates */
+		if(temp_servicedependency->register_object==0)
+			continue;
+
 		/* expand master hosts/hostgroups into a list of host names */
 		if(temp_servicedependency->host_name!=NULL || temp_servicedependency->hostgroup_name!=NULL){
 
@@ -4851,6 +4858,10 @@ int xodtemplate_duplicate_objects(void){
 	/****** PROCESS SERVICE DEPENDENCIES WITH DEPENDENT SERVICEGROUPS *****/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
 
+		/* skip templates */
+		if(temp_servicedependency->register_object==0)
+			continue;
+
 		/* expand dependent servicegroups into a list of services */
 		if(temp_servicedependency->dependent_servicegroup_name){
 
@@ -4935,6 +4946,10 @@ int xodtemplate_duplicate_objects(void){
 
 	/****** PROCESS SERVICE DEPENDENCY DEPENDENT HOSTS/HOSTGROUPS/SERVICES *****/
 	for(temp_servicedependency=xodtemplate_servicedependency_list;temp_servicedependency!=NULL;temp_servicedependency=temp_servicedependency->next){
+
+		/* skip templates */
+		if(temp_servicedependency->register_object==0)
+			continue;
 
 		/* ADDED 02/04/2007 - special case for "same host" dependencies */
 		if(temp_servicedependency->dependent_host_name==NULL && temp_servicedependency->dependent_hostgroup_name==NULL){

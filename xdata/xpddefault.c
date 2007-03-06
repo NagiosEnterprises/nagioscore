@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2007
+ * Last Modified:   03-06-2007
  *
  * License:
  *
@@ -716,9 +716,8 @@ int xpddefault_process_host_perfdata_file(void){
 	if(xpddefault_host_perfdata_file_processing_command==NULL)
 		return OK;
 
-	/* close the performance data files */
+	/* close the performance data file */
 	xpddefault_close_host_perfdata_file();
-	xpddefault_close_service_perfdata_file();
 
 	/* update macros */
 	clear_volatile_macros();
@@ -750,8 +749,7 @@ int xpddefault_process_host_perfdata_file(void){
 		my_free((void **)&temp_buffer);
 	        }
 
-	/* re-open the performance data files */
-	xpddefault_open_service_perfdata_file();
+	/* re-open the performance data file */
 	xpddefault_open_host_perfdata_file();
 
 	return result;
@@ -772,8 +770,7 @@ int xpddefault_process_service_perfdata_file(void){
 	if(xpddefault_service_perfdata_file_processing_command==NULL)
 		return OK;
 
-	/* close the performance data files */
-	xpddefault_close_host_perfdata_file();
+	/* close the performance data file */
 	xpddefault_close_service_perfdata_file();
 
 	/* update macros */
@@ -806,9 +803,8 @@ int xpddefault_process_service_perfdata_file(void){
 		my_free((void **)&temp_buffer);
 	        }
 
-	/* re-open the performance data files */
+	/* re-open the performance data file */
 	xpddefault_open_service_perfdata_file();
-	xpddefault_open_host_perfdata_file();
 
 	return result;
         }

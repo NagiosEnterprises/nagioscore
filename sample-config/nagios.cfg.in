@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-01-2007
+# Last Modified: 03-06-2007
 #
 ##############################################################################
 
@@ -31,6 +31,9 @@ cfg_file=@sysconfdir@/commands.cfg
 
 # Host and service definitions, etc. for monitoring this machine
 cfg_file=@sysconfdir@/localhost.cfg
+
+# Sample definitions for monitoring a Windows machine
+#cfg_file=@sysconfdir@/windows.cfg
 
 # Sample definitions for monitoring a network printer
 #cfg_file=@sysconfdir@/printer.cfg

@@ -744,6 +744,7 @@ perl subst sample-config/mrtg.cfg
 
 perl subst sample-config/template-object/localhost.cfg
 perl subst sample-config/template-object/commands.cfg
+perl subst sample-config/template-object/windows.cfg
 perl subst sample-config/template-object/printer.cfg
 perl subst sample-config/template-object/switch.cfg
 

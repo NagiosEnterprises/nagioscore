@@ -279,7 +279,6 @@ Compile and install the plugins.
 ./configure
 make
 make install
-make install-root
 </pre>
 </p>
 
@@ -341,7 +340,7 @@ Click on the "Service Detail" navbar link to see details of what's being monitor
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: If you get "Internal Server Error" error messages while attempting to view the CGIs, it's likely due to the fact that SELinux is installed on your system.  See below for  information on fixing this.
+<img src="images/note.gif" border="0" align="bottom"> Note: If you get "Internal Server Error" error messages while attempting to view the CGIs, it's likely due to the fact that SELinux is installed and enabled on your system.  See below for  information on fixing this.
 </p>
 
 <p>
@@ -389,11 +388,17 @@ Make sure your machine's firewall rules are configured to allow access to the we
 </p>
 
 <p>
-Congratulations!  You sucessfully installed Nagios.
+Congratulations!  You sucessfully installed Nagios.  Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so check out the following docs...
 </p>
 
 <p>
-Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so start reading...
+<ul>
+<li><a href="monitoring-windows.html">Monitoring Windows machines</a></li>
+<li><a href="monitoring-linux.html">Monitoring Linux/Unix machines</a></li>
+<li><a href="monitoring-netware.html">Monitoring Netware servers</a></li>
+<li><a href="monitoring-routers.html">Monitoring routers/switches</a></li>
+<li><a href="monitoring-publicservices.html">Monitoring publicly available services (HTTP, FTP, SSH, etc.)</a></li>
+</ul>
 </p>
 
 <hr>

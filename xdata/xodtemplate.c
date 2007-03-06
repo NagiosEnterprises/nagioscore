@@ -11889,9 +11889,11 @@ int xodtemplate_free_memory(void){
 
 #ifdef HAVE_GLIB
 	/* free hash table memory */
-	g_hash_table_destroy(host_hashtable);
+	if(host_hashtable)
+		g_hash_table_destroy(host_hashtable);
 	host_hashtable=NULL;
-	g_hash_table_destroy(service_hashtable);
+	if(service_hashtable)
+		g_hash_table_destroy(service_hashtable);
 	service_hashtable=NULL;
 #endif
 

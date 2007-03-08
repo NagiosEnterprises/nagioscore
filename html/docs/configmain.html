@@ -72,8 +72,7 @@ The default name of the main configuration file is <b>nagios.cfg</b> - it is usu
 <a href="#temp_path">Temp path</a><br>
 <br>
 <a href="#status_file">Status file</a><br>
-<a href="#aggregate_status_updates">Aggregated status updates option</a><br>
-<a href="#status_update_interval">Aggregated status data update interval</a><br>
+<a href="#status_update_interval">Status file update interval</a><br>
 <br>
 <a href="#nagios_user">Nagios user</a><br>
 <a href="#nagios_group">Nagios group</a><br>
@@ -370,7 +369,7 @@ This directive is used to specify a file in which a pre-processed, pre-cached co
 </p>
 
 <p>
-This is used to specify an optional resource file that can contain $USERn$ <a href="macros.html">macro</a> definitions.  $USERn$ macros are useful for storing usernames, passwords, and items commonly used in command definitions (like directory paths).  The CGIs will <i>not</i> attempt to read resource files, so you can set restrictive permissions (600 or 660) on them to protect sensitive information.  You can include multiple resource files by adding multiple resource_file statements to the main config file - Nagios will process them all.  See the sample resource.cfg file in the base of the Nagios directory for an example of how to define $USERn$ macros.
+This is used to specify an optional resource file that can contain $USERn$ <a href="macros.html">macro</a> definitions.  $USERn$ macros are useful for storing usernames, passwords, and items commonly used in command definitions (like directory paths).  The CGIs will <i>not</i> attempt to read resource files, so you can set restrictive permissions (600 or 660) on them to protect sensitive information.  You can include multiple resource files by adding multiple resource_file statements to the main config file - Nagios will process them all.  See the sample resource.cfg file in the <i>sample-config/</i> subdirectory of the Nagios distribution for an example of how to define $USERn$ macros.
 </p>
 
 
@@ -455,44 +454,10 @@ This is the file that Nagios uses to store the current status, comment, and down
 
 
 <p>
-<a name="aggregate_status_updates"></a>
-<table border="0" width="100%" class="Default">
-<tr>
-<td bgcolor="#cbcbcb"><strong>Aggregated Status Updates Option</strong></td>
-</tr>
-</table>
-</p>
-
-<p>
-<table border="0" class="Default">
-<tr>
-<td>Format:</td>
-<td><strong>aggregate_status_updates=&lt;0/1&gt;</strong></td>
-</tr>
-<tr>
-<td>Example:</td>
-<td><font color="red"><strong>aggregate_status_updates=1</strong></font></td>
-</tr>
-</table>
-</p>
-
-<p>
-This option determines whether or not Nagios will aggregate updates of host, service, and program status data.  If you do not enable this option, status data is updated every time a host or service checks occurs.  This can result in high CPU loads and file I/O if you are monitoring a lot of services.  If you want Nagios to only update status data (in the <a href="#status_file">status file</a>) every few seconds (as determined by the <a href="#status_update_interval">status_update_interval</a> option), enable this option.  If you want immediate updates, disable it.  I would highly recommend using aggregated updates (even at short intervals) unless you have good reason not to.  Values are as follows:
-</p>
-<p>
-<ul>
-<li>0 = Disable aggregated updates
-<li>1 = Enabled aggregated updates (default)
-</ul>
-</p>
-
-
-
-<p>
 <a name="status_update_interval"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Aggregated Status Update Interval</strong></td>
+<td bgcolor="#cbcbcb"><strong>Status File Update Interval</strong></td>
 </tr>
 </table>
 </p>
@@ -511,7 +476,7 @@ This option determines whether or not Nagios will aggregate updates of host, ser
 </p>
 
 <p>
-This setting determines how often (in seconds) that Nagios will update status data in the <a href="#status_file">status file</a>.  The minimum update interval is five seconds.  If you have disabled aggregated status updates (with the <a href="#aggregate_status_updates">aggregate_status_updates</a> option), this option has no effect.
+This setting determines how often (in seconds) that Nagios will update status data in the <a href="#status_file">status file</a>.  The minimum update interval is 1 second.
 </p>
 
 

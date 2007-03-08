@@ -3,10 +3,15 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0a2 - ??/??/2007
+------------------
+- Added warning about aggregate_status_updates directive being deprecated.
 
-Nagios 3.0a1 - 03/06/2007
--------------------------
-Changes Since Nagios 2.x:
+
+
+3.0a1 - 03/06/2007
+------------------
+Here are all the changes since Nagios 2.x:
 
 * Adaptive monitoring:
      - Check timeperiod can now be modified on-the-fly

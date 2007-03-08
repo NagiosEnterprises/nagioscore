@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-15-2007
+ * Last Modified: 03-07-2007
  *
  * License:
  *
@@ -1310,7 +1310,13 @@ int read_main_config_file(char *main_config_file){
 
 		else if(!strcmp(variable,"aggregate_status_updates")){
 
-			aggregate_status_updates=(atoi(value)>0)?TRUE:FALSE;
+			/* DEPRECATED - ALL UPDATED ARE AGGREGATED AS OF NAGIOS 3.X */
+			/*aggregate_status_updates=(atoi(value)>0)?TRUE:FALSE;*/
+
+			asprintf(&temp_buffer,"Warning: aggregate_status_updates directive ignored.  All status file updates are now aggregated.");
+			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
+			my_free((void **)&temp_buffer);
+
 #ifdef DEBUG1
 			printf("\t\taggregate_status_updates to %s\n",(aggregate_status_updates==TRUE)?"TRUE":"FALSE");
 #endif

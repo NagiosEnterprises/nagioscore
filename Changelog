@@ -3,6 +3,11 @@ Nagios 2.x Change Log
 #####################
 
 
+2.9 - ??/??/3007
+----------------
+* Fix for incorrect performance data file write/append mode options
+
+
 2.8 - 03/08/2007
 ------------------
 * Bug fix for calculating notification interval with service escalations

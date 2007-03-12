@@ -2,8 +2,8 @@
  *
  * XPDDEFAULT.C - Default performance data routines
  *
- * Copyright (c) 2000-2004 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-05-2004
+ * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   03-12-2007
  *
  * License:
  *
@@ -297,14 +297,14 @@ int xpddefault_grab_config_info(char *config_file){
 			xpddefault_service_perfdata_file=strdup(value);
 
 		else if(!strcmp(variable,"host_perfdata_file_mode")){
-			if(!strstr(value,"w"))
+			if(strstr(value,"w"))
 				xpddefault_host_perfdata_file_append=FALSE;
 			else
 				xpddefault_host_perfdata_file_append=TRUE;
 		        }
 
 		else if(!strcmp(variable,"service_perfdata_file_mode")){
-			if(!strstr(value,"w"))
+			if(strstr(value,"w"))
 				xpddefault_service_perfdata_file_append=FALSE;
 			else
 				xpddefault_service_perfdata_file_append=TRUE;

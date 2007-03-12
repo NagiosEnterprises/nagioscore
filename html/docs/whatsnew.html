@@ -241,6 +241,8 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<li><b>Escaped command arguments</b> - You can now pass bang (!) characters in your command arguments by escaping them with a backslash (\).  If you need to include backslashes in your command arguments, they should also be escaped with a backslash.</li>
 	<li><b>Multiline system command output</b> - Nagios will now read multiple lines out output from system commands it runs (notification scripts, etc.), up to 4K.  This matches the limits on plugin output mentioned earliar.  Output from system commands is not directly processed by Nagios, but support for it is there nonetheless.</li>
 	<li><b>Better scheduling information</b> - More detailed information is given when Nagios is executed with the -s command line option.  This information can be used to help <a href="faststartup.html">reduce</a> the time it takes to start/restart Nagios.</li>
+	<li><b>Aggregated status file updates</b> - The old <i>aggregate_status_updates</i> option has been removed.  All status file updates are now aggregated at a minimum interval of 1 second.</li>
+	<li><b>New performance data file mode</b> - A new "p" option has been added to the <a href="configmain.html#host_perfdata_file_mode">host_perfdata_file_mode</a> and <a href="configmain.html#service_perfdata_file_mode">service_perfdata_file_mode</a> options.  This new mode will open the file in non-blocking read/write mode, which is useful for pipes.</li>
 	</ul>
 </li>
 <br>

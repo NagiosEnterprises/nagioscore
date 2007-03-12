@@ -2813,12 +2813,13 @@ This option determines what (and how) data is written to the <a href="#service_p
 </tr>
 </table>
 </p>
-This option determines whether the <a href="#host_perfdata_file">host performance data file</a> is opened in write or append mode.  Unless the file is a named pipe, you will probably want to use the default mode of append.
+This option determines how the <a href="#host_perfdata_file">host performance data file</a> is opened.  Unless the file is a named pipe you'll probably want to use the default mode of append.
 </p>
 <p>
 <ul>
 <li>a = Open file in append mode (default)
 <li>w = Open file in write mode
+<li>p = Open in non-blocking read/write mode (useful when writing to pipes)
 </ul>
 </p>
 
@@ -2844,12 +2845,13 @@ This option determines whether the <a href="#host_perfdata_file">host performanc
 </tr>
 </table>
 </p>
-This option determines whether the <a href="#service_perfdata_file">service performance data file</a> is opened in write or append mode.  Unless the file is a named pipe, you will probably want to use the default mode of append.
+This option determines how the <a href="#service_perfdata_file">service performance data file</a> is opened.  Unless the file is a named pipe you'll probably want to use the default mode of append.
 </p>
 <p>
 <ul>
 <li>a = Open file in append mode (default)
 <li>w = Open file in write mode
+<li>p = Open in non-blocking read/write mode (useful when writing to pipes)
 </ul>
 </p>
 

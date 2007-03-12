@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-06-2007
+ * Last Modified:   03-12-2007
  *
  * License:
  *
@@ -51,6 +51,8 @@ char    *xpddefault_service_perfdata_file=NULL;
 
 int     xpddefault_host_perfdata_file_append=TRUE;
 int     xpddefault_service_perfdata_file_append=TRUE;
+int     xpddefault_host_perfdata_file_pipe=FALSE;
+int     xpddefault_service_perfdata_file_pipe=FALSE;
 
 unsigned long xpddefault_host_perfdata_file_processing_interval=0L;
 unsigned long xpddefault_service_perfdata_file_processing_interval=0L;
@@ -62,6 +64,8 @@ command *xpddefault_service_perfdata_file_processing_command_ptr=NULL;
 
 FILE    *xpddefault_host_perfdata_fp=NULL;
 FILE    *xpddefault_service_perfdata_fp=NULL;
+int     xpddefault_host_perfdata_fd=-1;
+int     xpddefault_service_perfdata_fd=-1;
 
 extern char *macro_x[MACRO_X_COUNT];
 
@@ -159,14 +163,18 @@ int xpddefault_grab_config_directives(char *input){
 		xpddefault_service_perfdata_file=(char *)strdup(varvalue);
 
 	else if(!strcmp(varname,"host_perfdata_file_mode")){
-		if(!strstr(varvalue,"w"))
+		if(strstr(varvalue,"p")!=NULL)
+			xpddefault_host_perfdata_file_pipe=TRUE;
+		else if(strstr(varvalue,"w")!=NULL)
 			xpddefault_host_perfdata_file_append=FALSE;
 		else
 			xpddefault_host_perfdata_file_append=TRUE;
 	        }
 
 	else if(!strcmp(varname,"service_perfdata_file_mode")){
-		if(!strstr(varvalue,"w"))
+		if(strstr(varvalue,"p")!=NULL)
+			xpddefault_service_perfdata_file_pipe=TRUE;
+		else if(strstr(varvalue,"w")!=NULL)
 			xpddefault_service_perfdata_file_append=FALSE;
 		else
 			xpddefault_service_perfdata_file_append=TRUE;
@@ -515,7 +523,13 @@ int xpddefault_open_host_perfdata_file(void){
 
 	if(xpddefault_host_perfdata_file!=NULL){
 
-		xpddefault_host_perfdata_fp=fopen(xpddefault_host_perfdata_file,(xpddefault_host_perfdata_file_append==TRUE)?"a":"w");
+		if(xpddefault_host_perfdata_file_pipe==TRUE) {
+			/* must open read-write to avoid failure if the other end isn't ready yet */
+			xpddefault_host_perfdata_fd=open(xpddefault_host_perfdata_file,O_NONBLOCK | O_RDWR);
+			xpddefault_host_perfdata_fp=fdopen(xpddefault_host_perfdata_fd,"w");
+			}
+		else
+			xpddefault_host_perfdata_fp=fopen(xpddefault_host_perfdata_file,(xpddefault_host_perfdata_file_append==TRUE)?"a":"w");
 
 		if(xpddefault_host_perfdata_fp==NULL){
 			asprintf(&buffer,"Warning: File '%s' could not be opened - host performance data will not be written to file!\n",xpddefault_host_perfdata_file);
@@ -534,8 +548,13 @@ int xpddefault_open_service_perfdata_file(void){
 	char *buffer=NULL;
 
 	if(xpddefault_service_perfdata_file!=NULL){
-
-		xpddefault_service_perfdata_fp=fopen(xpddefault_service_perfdata_file,(xpddefault_service_perfdata_file_append==TRUE)?"a":"w");
+		if(xpddefault_service_perfdata_file_pipe==TRUE) {
+			/* must open read-write to avoid failure if the other end isn't ready yet */
+			xpddefault_service_perfdata_fd=open(xpddefault_service_perfdata_file,O_NONBLOCK | O_RDWR);
+			xpddefault_service_perfdata_fp=fdopen(xpddefault_service_perfdata_fd,"w");
+			}
+		else
+			xpddefault_service_perfdata_fp=fopen(xpddefault_service_perfdata_file,(xpddefault_service_perfdata_file_append==TRUE)?"a":"w");
 
 		if(xpddefault_service_perfdata_fp==NULL){
 			asprintf(&buffer,"Warning: File '%s' could not be opened - service performance data will not be written to file!\n",xpddefault_service_perfdata_file);
@@ -554,6 +573,10 @@ int xpddefault_close_host_perfdata_file(void){
 
 	if(xpddefault_host_perfdata_fp!=NULL)
 		fclose(xpddefault_host_perfdata_fp);
+	if(xpddefault_host_perfdata_fd>0){
+		close(xpddefault_host_perfdata_fd);
+		xpddefault_host_perfdata_fd=-1;
+		}
 
 	return OK;
         }
@@ -564,6 +587,10 @@ int xpddefault_close_service_perfdata_file(void){
 
 	if(xpddefault_service_perfdata_fp!=NULL)
 		fclose(xpddefault_service_perfdata_fp);
+	if(xpddefault_service_perfdata_fd>0){
+		close(xpddefault_service_perfdata_fd);
+		xpddefault_service_perfdata_fd=-1;
+		}
 
 	return OK;
         }

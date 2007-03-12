@@ -5,7 +5,9 @@ Nagios 3.x Change Log
 
 3.0a2 - ??/??/2007
 ------------------
-- Added warning about aggregate_status_updates directive being deprecated.
+* Added warning about aggregate_status_updates directive being deprecated.
+* Added new "p" option to host/service_perfdata_file_mode directives for pipes.
+* Fix for incorrect performance data file write/append mode options
 
 
 

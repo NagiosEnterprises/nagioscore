@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-06-2007
+# Last Modified: 03-07-2007
 #
 ##############################################################################
 
@@ -100,6 +100,16 @@ resource_file=@sysconfdir@/resource.cfg
 #  restarts.
 
 status_file=@localstatedir@/status.dat
+
+
+
+# STATUS FILE UPDATE INTERVAL
+# Combined with the aggregate_status_updates option,
+# this option determines the frequency (in seconds) that
+# Nagios will periodically dump program, host, and 
+# service status data.
+
+status_update_interval=10
 
 
 
@@ -950,31 +960,6 @@ check_host_freshness=0
 # disabled host freshness checking, this option has no effect.
 
 host_freshness_check_interval=60
-
-
-
-# AGGREGATED STATUS UPDATES
-# This option determines whether or not Nagios will 
-# aggregate updates of host, service, and program status
-# data.  Normally, status data is updated immediately when
-# a change occurs.  This can result in high CPU loads if
-# you are monitoring a lot of services.  If you want Nagios
-# to only refresh status data every few seconds, disable
-# this option.
-# Values: 1 = enable aggregate updates, 0 = disable aggregate updates
-
-aggregate_status_updates=1
-
-
-
-# AGGREGATED STATUS UPDATE INTERVAL
-# Combined with the aggregate_status_updates option,
-# this option determines the frequency (in seconds!) that
-# Nagios will periodically dump program, host, and 
-# service status data.  If you are not using aggregated
-# status data updates, this option has no effect.
-
-status_update_interval=10
 
 
 

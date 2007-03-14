@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-07-2007
+# Last Modified: 03-14-2007
 #
 ##############################################################################
 
@@ -810,8 +810,9 @@ process_performance_data=0
 # HOST AND SERVICE PERFORMANCE DATA FILE MODES
 # This option determines whether or not the host and service
 # performance data files are opened in write ("w") or append ("a")
-# mode.  Unless you are the files are named pipes, you will probably
-# want to use the default mode of append ("a").
+# mode. If you want to use named pipes, you should use the special
+# pipe ("p") mode which avoid blocking at startup, otherwise you will
+# likely want the defult append ("a") mode.
 
 #host_perfdata_file_mode=a
 #service_perfdata_file_mode=a

@@ -1,7 +1,7 @@
 ###################################
 # Makefile for NEB examples
 #
-# Last Modified: 08-15-2003
+# Last Modified: 03-13-2007
 ###################################
 
 
@@ -25,14 +25,8 @@ CP=@CP@
 
 all:	helloworld.o
 
-mod1.o: mod1.c
-	$(CC) $(CFLAGS) -o mod1.o mod1.c $(LDFLAGS) $(LIBS)
-
-mod2.o: mod2.c
-	$(CC) $(CFLAGS) -o mod2.o mod2.c $(LDFLAGS) $(LIBS)
-
 helloworld.o: helloworld.c
-	$(CC) $(CFLAGS) -o helloworld.o helloworld.c $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -o helloworld.o -c helloworld.c $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -f helloworld.o

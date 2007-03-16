@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-06-2007
+ * Last Modified: 03-16-2007
  *
  * Description:
  *
@@ -12086,7 +12086,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_memberlist **list, xodtemplate_
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 		else
 			use_regexp=FALSE;
@@ -12095,7 +12095,7 @@ int xodtemplate_expand_contactgroups(xodtemplate_memberlist **list, xodtemplate_
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&contactgroup_names);
 				return ERROR;
 		                }
@@ -12222,14 +12222,14 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 
 		/* use regular expression matching */
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&contact_names);
 				return ERROR;
 		                }
@@ -12472,7 +12472,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_memberlist **list, xodtemplate_mem
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 		else
 			use_regexp=FALSE;
@@ -12481,7 +12481,7 @@ int xodtemplate_expand_hostgroups(xodtemplate_memberlist **list, xodtemplate_mem
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&hostgroup_names);
 				return ERROR;
 		                }
@@ -12608,14 +12608,14 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 
 		/* use regular expression matching */
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&host_names);
 				return ERROR;
 		                }
@@ -12859,7 +12859,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_memberlist **list, xodtemplate_
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 		else
 			use_regexp=FALSE;
@@ -12868,7 +12868,7 @@ int xodtemplate_expand_servicegroups(xodtemplate_memberlist **list, xodtemplate_
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&servicegroup_names);
 				return ERROR;
 		                }
@@ -12986,12 +12986,12 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 		return OK;
 
 	/* should we use regular expression matching for the host name? */
-	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(host_name,"*") || strstr(host_name,"?")))
+	if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(host_name,"*") || strstr(host_name,"?") || strstr(host_name,"+") || strstr(host_name,"\\.")))
 		use_regexp_host=TRUE;
 
 	/* compile regular expression for host name */
 	if(use_regexp_host==TRUE){
-		if(regcomp(&preg2,host_name,0))
+		if(regcomp(&preg2,host_name,REG_EXTENDED))
 			return ERROR;
 	        }
 
@@ -13011,14 +13011,14 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 		strip(temp_ptr);
 
 		/* should we use regular expression matching for the service description? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp_service=TRUE;
 		else
 			use_regexp_service=FALSE;
 
 		/* compile regular expression for service description */
 		if(use_regexp_service==TRUE){
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				if(use_regexp_host==TRUE)
 					regfree(&preg2);
 				my_free((void **)&service_names);
@@ -13293,7 +13293,7 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 		else
 			use_regexp=FALSE;
@@ -13302,7 +13302,7 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&hostgroup_names);
 				return ERROR;
 		                }
@@ -13492,7 +13492,7 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 		else
 			use_regexp=FALSE;
@@ -13501,7 +13501,7 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&contactgroup_names);
 				return ERROR;
 		                }
@@ -13691,7 +13691,7 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 		strip(temp_ptr);
 
 		/* should we use regular expression matching? */
-		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?")))
+		if(use_regexp_matches==TRUE && (use_true_regexp_matching==TRUE || strstr(temp_ptr,"*") || strstr(temp_ptr,"?") || strstr(temp_ptr,"+") || strstr(temp_ptr,"\\.")))
 			use_regexp=TRUE;
 		else
 			use_regexp=FALSE;
@@ -13700,7 +13700,7 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 		if(use_regexp==TRUE){
 
 			/* compile regular expression */
-			if(regcomp(&preg,temp_ptr,0)){
+			if(regcomp(&preg,temp_ptr,REG_EXTENDED)){
 				my_free((void **)&servicegroup_names);
 				return ERROR;
 		                }

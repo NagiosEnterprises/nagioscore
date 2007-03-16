@@ -8,6 +8,8 @@ Nagios 3.x Change Log
 * Added warning about aggregate_status_updates directive being deprecated.
 * Added new "p" option to host/service_perfdata_file_mode directives for pipes.
 * Fix for incorrect performance data file write/append mode options
+* Regular expression matching in object config files now also triggered by '+' and '\.'
+* Added support for extended regular expression matching in object config files
 
 
 

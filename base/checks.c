@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2006
+ * Last Modified:   03-19-2006
  *
  * License:
  *
@@ -2424,7 +2424,7 @@ int run_host_check(host *hst, int check_options){
 		printf("\tNo host check command specified, so no check will be done (host state assumed to be unchanged)!\n");
 #endif
 
-		return HOST_UP;
+		return hst->current_state;
 	        }
 
 	/* grab the host macros */

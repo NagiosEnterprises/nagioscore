@@ -6,6 +6,7 @@ Nagios 2.x Change Log
 2.9 - ??/??/3007
 ----------------
 * Fix for incorrect performance data file write/append mode options
+* Fix for current status of hosts with no host check command defined
 
 
 2.8 - 03/08/2007

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 02-04-2007
+ * Last Modified: 03-19-2007
  *
  * License:
  *
@@ -1002,7 +1002,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->event_handler_enabled=(event_handler_enabled>0)?TRUE:FALSE;
 	new_host->failure_prediction_enabled=(failure_prediction_enabled>0)?TRUE:FALSE;
 	new_host->x_2d=x_2d;
-	new_host->y_3d=y_2d;
+	new_host->y_2d=y_2d;
 	new_host->have_2d_coords=(have_2d_coords>0)?TRUE:FALSE;
 	new_host->x_3d=x_3d;
 	new_host->y_3d=y_3d;

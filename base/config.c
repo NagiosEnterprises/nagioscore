@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-07-2007
+ * Last Modified: 03-19-2007
  *
  * License:
  *
@@ -1189,7 +1189,7 @@ int read_main_config_file(char *main_config_file){
 			check_orphaned_services=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
-			printf("\t\tcheck_orphaned_services set to %s\n",(check_orphaned_services==TRUE)?"TRUE":"FALSE");
+			printf("\t\tcheck_for_orphaned_services set to %s\n",(check_orphaned_services==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 
@@ -1204,7 +1204,7 @@ int read_main_config_file(char *main_config_file){
 			check_orphaned_hosts=(atoi(value)>0)?TRUE:FALSE;
 
 #ifdef DEBUG1
-			printf("\t\tcheck_orphaned_hosts set to %s\n",(check_orphaned_host==TRUE)?"TRUE":"FALSE");
+			printf("\t\tcheck_for_orphaned_hosts set to %s\n",(check_orphaned_hosts==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 

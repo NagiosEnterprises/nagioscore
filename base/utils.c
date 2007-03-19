@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-01-2007
+ * Last Modified:   03-19-2007
  *
  * License:
  *
@@ -2845,7 +2845,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 	printf("get_raw_command_line() start\n");
 #endif
 #ifdef DEBUG1
-	printf("\tInput: %s\n",cmd);
+	printf("\tInput: %s\n",cmd_ptr);
 #endif
 
 	/* clear the argv macros */

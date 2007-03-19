@@ -10,6 +10,10 @@ Nagios 3.x Change Log
 * Fix for incorrect performance data file write/append mode options
 * Regular expression matching in object config files now also triggered by '+' and '\.'
 * Added support for extended regular expression matching in object config files
+* Fix for incorrect processing of y_2d coordinates for host objects in statusmap layout
+* Fix for current status of hosts with no check command defined
+* Documentation bug fixes
+* More documentation updates
 
 
 

@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-16-2007
+ * Last Modified: 03-19-2007
  *
  * Description:
  *
@@ -2826,7 +2826,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* add the custom variable */
 			if(xodtemplate_add_custom_variable_to_contact(temp_contact,customvarname,customvarvalue)==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not add custom variable '%s' for contact.\n",varname);
+				printf("Error: Could not add custom variable '%s' for contact.\n",customvarname);
 #endif
 				my_free((void **)&customvarname);
 				my_free((void **)&customvarvalue);
@@ -3262,7 +3262,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* add the custom variable */
 			if(xodtemplate_add_custom_variable_to_host(temp_host,customvarname,customvarvalue)==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not add custom variable '%s' for host.\n",varname);
+				printf("Error: Could not add custom variable '%s' for host.\n",customvarname);
 #endif
 				my_free((void **)&customvarname);
 				my_free((void **)&customvarvalue);
@@ -3657,7 +3657,7 @@ int xodtemplate_add_object_property(char *input, int options){
 			/* add the custom variable */
 			if(xodtemplate_add_custom_variable_to_service(temp_service,customvarname,customvarvalue)==NULL){
 #ifdef DEBUG1
-				printf("Error: Could not add custom variable '%s' for service.\n",varname);
+				printf("Error: Could not add custom variable '%s' for service.\n",customvarname);
 #endif
 				my_free((void **)&customvarname);
 				my_free((void **)&customvarvalue);

@@ -47,10 +47,10 @@ Nagios allows you to enable predictive dependency checks for hosts and services 
 The image below shows a basic diagram of hosts that are being monitored by Nagios, along with their parent/child relationships and dependencies.
 </p>
 <p>
-The <i>Switch1</i> host in this example has just changed state from an UP state to a problem state.  Nagios needs to determine whether the host is DOWN or UNREACHABLE, so it will launch parallel checks of <i>Switch1</i>'s immediate parents (<i>Firewall1</i>) and children (<i>Comp1</i>, <i>Comp2</i>, and <i>Switch2</i>).  This is a normal function of the <a href="networkreachability.html">host reachability</a> logic.
+The <i>Switch2</i> host in this example has just changed state from an UP state to a problem state.  Nagios needs to determine whether the host is DOWN or UNREACHABLE, so it will launch parallel checks of <i>Switch2</i>'s immediate parents (<i>Firewall1</i>) and children (<i>Comp1</i>, <i>Comp2</i>, and <i>Switch3</i>).  This is a normal function of the <a href="networkreachability.html">host reachability</a> logic.
 </p>
 <p>
-You will also notice that <i>Switch1</i> is depending on <i>Monitor1</i> and <i>File1</i> for either notifications or check execution (which one is unimportant in this example).  If predictive host dependency checks are enabled, Nagios will launch parallel checks of <i>Monitor1</i> and <i>File1</i> at the same time it launches checks of <i>Switch1</i>'s immediate parents and children.  Nagios does this because it knows that it will have to test the dependency logic in the near future (e.g. for purposes of notification) and it wants to make sure it has the most current status information for the hosts that take part in the dependency.
+You will also notice that <i>Switch2</i> is depending on <i>Monitor1</i> and <i>File1</i> for either notifications or check execution (which one is unimportant in this example).  If predictive host dependency checks are enabled, Nagios will launch parallel checks of <i>Monitor1</i> and <i>File1</i> at the same time it launches checks of <i>Switch2</i>'s immediate parents and children.  Nagios does this because it knows that it will have to test the dependency logic in the near future (e.g. for purposes of notification) and it wants to make sure it has the most current status information for the hosts that take part in the dependency.
 </p>
 
 <p>

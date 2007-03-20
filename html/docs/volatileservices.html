@@ -85,32 +85,39 @@ If you combine the features of volatile services and <a href="passivechecks.html
 </p>
 
 <p>
-How about an example... Let's say you're running <a href="http://sourceforge.net/projects/sentrytools/">PortSentry</a> to detect port scans on your machine and automatically firewall potential intruders.  If you want to let Nagios know about port scans, you could do the following..
+How about an example... Let's say you're running <a href="http://sourceforge.net/projects/sentrytools/">PortSentry</a> to detect port scans on your machine and automatically firewall potential intruders.  If you want to let Nagios know about port scans, you could do the following...
 </p>
 
 <p>
-<font color="red"><b>In Nagios:</b></font>
-</p>
-
-<p>
-<ul>
-<li>Configure a service called <i>Port Scans</i> and associate it with the host that PortSentry is running on.
-<li>Set the <i>max_check_attempts</i> option in the service definition to 1.  This will tell Nagios to immediate force the service into a <a href="statetypes.html">hard state</a> when a non-OK state is reported.
-<li>Either set the <i>active_checks_enabled</i> option to 0 or set the <i>check_time</i> option in the service definition to a <a href="timeperiods.html">timeperiod</a> that contains <i>no</i> valid time ranges.  Doing either of these will prevent Nagios from ever actively checking the service.  Even though the service check will get scheduled, it will never actually be checked.
-</ul>
-</p>
-
-<p>
-<font color="red"><b>In PortSentry:</b></font>
+<b>Nagios Configuration:</b>
 </p>
 
 <p>
 <ul>
-<li>Edit your PortSentry configuration file (portsentry.conf), define a command for the <B>KILL_RUN_CMD</b> directive as follows:<br><br>
- <font color="red">KILL_RUN_CMD="/usr/local/Nagios/libexec/eventhandlers/submit_check_result <i>&lt;host_name&gt;</i> 'Port Scans' 2 'Port scan from host $TARGET$ on port $PORT$.  Host has been firewalled.'"</font>
-<br><br>
-Make sure to replace <i>&lt;host_name&gt;</i> with the short name of the host that the service is associated with.
+<li>Create a service definition called <i>Port Scans</i> and associate it with the host that PortSentry is running on.
+<li>Set the <i>max_check_attempts</i> directive in the service definition to 1.  This will tell Nagios to immediate force the service into a <a href="statetypes.html">hard state</a> when a non-OK state is reported.
+<li>Set the <i>active_checks_enabled</i> directive in the service definition to 0. This prevents Nagios from actively checking the service.
+<li>Set the <i>passive_checks_enabled</i> directive in the service definition to 1. This enables passive checks for the service.
+<li>Set this <i>is_volatile</i> directive in the service definition to 1.</li>
 </ul>
+</p>
+
+<p>
+<b>PortSentry Configuration:</b>
+</p>
+
+<p>
+Edit your PortSentry configuration file (portsentry.conf) and define a command for the <i>KILL_RUN_CMD</i> directive as follows:
+</p>
+<pre>
+KILL_RUN_CMD="/usr/local/Nagios/libexec/eventhandlers/submit_check_result host_name 'Port Scans' 2 'Port scan from host $TARGET$ on port $PORT$.  Host has been firewalled.'"
+</pre>
+<p>
+Make sure to replace <i>host_name</i> with the short name of the host that the service is associated with.
+</p>
+
+<p>
+<b>Port Scan Script:</b>
 </p>
 
 <p>
@@ -140,20 +147,20 @@ Create a shell script in the <i>/usr/local/nagios/libexec/eventhandlers</i> dire
 </p>
 
 <p>
-Note that if you are running PortSentry as root, you will have to make additions to the script to reset file ownership and permissions so that Nagios and the CGIs can read/modify the command file.  Details on permissions/ownership of the command file can be found <a href="faqs.html#command_file_permissions">here</a>.
-</p>
-
-<p>
-So what happens when PortSentry detects a port scan on the machine?
+What will happen when PortSentry detects a port scan on the machine in the future?
 </p>
 
 <p>
 <ul>
-<li>It blocks the host (this is a function of the PortSentry software)
-<li>It executes the <i>submit_check_result</i> shell script to send the security alert info to Nagios
-<li>Nagios reads the command file, recognized the port scan entry as a passive service check
-<li>Nagios processes the results of the service by logging the CRITICAL state, sending notifications to contacts (if configured to do so), and executes the event handler for the <i>Port Scans</i> service (if one is defined)
+<li>PortSentry will firewall the host (this is a function of the PortSentry software)
+<li>PortSentry will execute the <i>submit_check_result</i> shell script and send a passive check result to Nagios
+<li>Nagios will read the external command file and see the passive service check submitted by PortSentry
+<li>Nagios will put the <i>Port Scans</i> service in a hard CRITICAL state and send notifications to contacts 
 </ul>
+</p>
+
+<p>
+Pretty neat, huh?
 </p>
 
 <hr>

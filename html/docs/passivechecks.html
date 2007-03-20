@@ -2,12 +2,12 @@
 
 <html>
 <head>
-<title>Passive Host and Service Checks</title>
+<title>Passive Checks</title>
 
 <STYLE type="text/css">
 <!--
         .Default { font-family: verdana,arial,serif; font-size: 8pt; }
-        .PageTitle { font-family: verdana,arial,serif; font-size: 12pt; font-weight: bold; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
 -->      
 </STYLE>
 
@@ -17,22 +17,39 @@
 
 <p>
 <div align="center">
-<h2 class="PageTitle">Passive Host and Service Checks</h2>
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Passive Checks</h2>
 </div>
 </p>
 
 <hr>
 
 <p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="activechecks.html">Active Checks</a>, <a href="servicechecks.html">Service Checks</a>, <a href="hostchecks.html">Host Checks</a>
+</p>
+
+<p>
 <strong><u>Introduction</u></strong>
 </p>
 
 <p>
-On of the features of Nagios is that is can process host and service check results that are submitted by external applications.  Host and service checks which are performed and submitted to Nagios by external apps are called <i>passive</i> checks.   Passive checks can be contrasted with <i>active</i> checks, which are host or service checks that have been initiated by Nagios.
+In most cases you'll use Nagios to monitor your hosts and services using regularly scheduled <a href="activechecks.html">active checks</a>.  Active checks can be used to "poll" a device or service for status information every so often.  Nagios also supports a way to monitor hosts and services passively instead of actively.  They key features of passive checks are as follows:
 </p>
 
 <p>
-<strong><u>Why The Need For Passive Checks?</u></strong>
+<ul>
+<li>Passive checks are initiated and performed external applications/processes</li>
+<li>Passive check results are submitted to Nagios for processing</li>
+</ul>
+</p>
+
+<p>
+The major difference between active and passive checks is that active checks are initiated and performed by Nagios, while passive checks are performed by external applications.
+</p>
+
+<p>
+<strong><u>Uses For Passive Checks</u></strong>
 </p>
 
 <p>
@@ -41,54 +58,83 @@ Passive checks are useful for monitoring services that are:
 
 <p>
 <ul>
-<li>located behind a firewall, and can therefore not be checked actively from the host running Nagios
-<li>asynchronous in nature and can therefore not be actively checked in a reliable manner (e.g. SNMP traps, security alerts, etc.)
+<li>Asynchronous in nature and cannot be monitored effectively by polling their status on a regularly scheduled basis
+<li>Located behind a firewall and cannot be checked actively from the monitoring host
 </ul>
 </p>
 
 <p>
-Passive host and service checks are also useful when configured a <a href="distributed.html">distributed monitoring setup</a>.
+Examples of asynchronous services that lend themselves to being monitored passively include SNMP traps and security alerts.  You never know how many (if any) traps or alerts you'll receive in a given time frame, so it's not feasible to just monitor their status every few minutes.
+</p>
+ 
+<p>
+Passive checks are also used when configuring <a href="distributed.html">distributed</a> or <a href="redundancy.html">redundant</a> monitoring installations.
 </p>
 
 <p>
-<strong><u>Passive Service Checks vs. Passive Host Checks</u></strong>
+<strong><u>How Passive Checks Work</u></strong>
+</p>
+
+<img src="images/passivechecks.png" border="0" style="float: right; padding: 0 0 10px 10px;">
+
+<p>
+Here's how passive checks work in more detail...
 </p>
 
 <p>
-Passive host and service checks function in a similiar manner, but there are some important limitations in regards to passive host checks.  Read <a href="#hostchecks">below</a> for more information about the limitations with passive host checks.
+<ol>
+<li>An external application checks the status of a host or service.</li><br><br>
+<li>The external application writes the results of the check to the <a href="configmain.html#command_file">external command file</a>.</li><br><br>
+<li>The next time Nagios reads the external command file it will place the results of all passive checks into a queue for later processing.  The same queue that is used for storing results from active checks is also used to store the results from passive checks.</li><br><br>
+<li>Nagios will periodically execute a <a href="configmain.html#check_result_reaper_frequency">check result reaper event</a> and scan the check result queue.  Each service check result that is found in the queue is processed in the same manner - regardless of whether the check was active or passive.  Nagios may send out notifications, log alerts, etc. depending on the check result information.</li><br><br>
+</ol>
 </p>
 
 <p>
-<strong><u>How Do Passive Service Checks Work?</u></strong>
+The processing of active and passive check results is essentially identical.  This allows for seamless integration of status information from external applications with Nagios.
+</p>
+
+<br clear="all">
+
+<p>
+<strong><u>Enabling Passive Checks</u></strong>
 </p>
 
 <p>
-The only real difference between active and passive checks is that active checks are initiated by Nagios, while passive checks are performed by external applications.  Once an external application has performed a service check (either actively or by having received an synchronous event like an SNMP trap or security alert), it submits the results of the service "check" to Nagios through the <a href="configmain.html#command_file">external command file</a>.
+In order to enable passive checks in Nagios, you'll need to do the following:
 </p>
 
 <p>
-The next time Nagios processes the contents of the external command file, it will place the results of all passive service checks into a queue for later processing.  The same queue that is used for storing results from active checks is also used to store the results from passive checks.
+<ul>
+<li>Set <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> directive is set to 1.</li>
+<li>Set the <i>passive_checks_enabled</i> directive in your host and service definitions is set to 1.</li>
+</ul>
 </p>
 
 <p>
-Nagios will periodically execute a <a href="configmain.html#service_reaper_frequency">service reaper event</a> and scan the service check result queue.  Each service check result, regardless of whether the check was active or passive, is processed in the same manner.  The service check logic is exactly the same for both types of checks.  This provides a seamless method for handling both active and passive service check results. 
+If you want to disable processing of passive checks on a global basis, set the <a href="configmain.html#accept_passive_service_checks">accept_passive_service_checks</a> directive to 0.
 </p>
 
 <p>
-<strong><u>How Do External Apps Submit Service Check Results?</u></strong>
+If you would like to disable passive checks for just a few hosts or services, use the <i>passive_checks_enabled</i> directive in the host and/or service definitions to do so.
+</p>
+
+
+<p>
+<strong><u>Submitting Passive Service Check Results</u></strong>
 </p>
 
 <p>
-External applications can submit service check results to Nagios by writing a PROCESS_SERVICE_CHECK_RESULT <a href="extcommands.html">external command</a> to the <a href="configmain.html#command_file">external command file</a>.  
+External applications can submit passive service check results to Nagios by writing a PROCESS_SERVICE_CHECK_RESULT <a href="extcommands.html">external command</a> to the external command file.  
 </p>
 
 <p>
 The format of the command is as follows:
 </p>
 
-<p>
-<font color="red"><strong>[&lt;timestamp&gt;] PROCESS_SERVICE_CHECK_RESULT;&lt;host_name&gt;;&lt;description&gt;;&lt;return_code&gt;;&lt;plugin_output&gt;</strong></font>
-</p>
+<pre>
+[&lt;timestamp&gt;] PROCESS_SERVICE_CHECK_RESULT;&lt;host_name&gt;;&lt;svc_description&gt;;&lt;return_code&gt;;&lt;plugin_output&gt;
+</pre>
 
 <p>
 where...
@@ -98,84 +144,37 @@ where...
 <ul>
 <li><i>timestamp</i> is the time in time_t format (seconds since the UNIX epoch) that the service check was perfomed (or submitted). Please note the single space after the right bracket. 
 <li><i>host_name</i> is the short name of the host associated with the service in the service definition
-<li><i>description</i> is the description of the service as specified in the service definition
+<li><i>svc_description</i> is the description of the service as specified in the service definition
 <li><i>return_code</i> is the return code of the check (0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN)
 <li><i>plugin_output</i> is the text output of the service check (i.e. the plugin output)
 </ul>
 </p>
 
 <p>
-Note that in order to submit service checks to Nagios, a service must have already been defined in the <a href="configobject.html">object configuration file</a>!  Nagios will ignore all check results for services that had not been configured before it was last (re)started.
+<img src="images/note.gif" border="0" align="bottom"> 
+Note: A service must be defined in Nagios before you can submit passive check results for it!  Nagios will ignore all check results for services that had not been configured before it was last (re)started.
 </p>
 
 <p>
-If you only want passive results to be provided for a specific service (i.e. active checks should not be performed), simply set the <i>active_checks_enabled</i> member of the service definition to 0.  This will prevent Nagios from ever actively performing a check of the service.  Make sure that the <i>passive_checks_enabled</i> member of the service definition is set to 1.  If it isn't, Nagios won't process passive checks for the service!
-</p>
-
-<p>
+<img src="images/tip.gif" border="0" align="bottom"> 
 An example shell script of how to submit passive service check results to Nagios can be found in the documentation on <a href="volatileservices.html">volatile services</a>.
 </p>
 
 <p>
-<strong><u>Submitting Passive Service Check Results From Remote Hosts</u></strong>
+<strong><u>Submitting Passive Host Check Results</u></strong>
 </p>
 
 <p>
-If an application that resides on the same host as Nagios is sending passive service check results, it can simply write the results directly to the external command file as outlined above.  However, applications on remote hosts can't do this so easily.  In order to allow remote hosts to send passive service check results to the host that runs Nagios, I've developed the <a href="addons.html#nsca">nsca</a> addon.  The addon consists of a daemon that runs on the Nagios hosts and a client that is executed from remote hosts.  The daemon will listen for connections from remote clients, perform some basic validation on the results being submitted, and then write the check results directly into the external command file (as described above).  More information on the nsca addon can be found <a href="addons.html#nsca">here</a>...
-</p>
-
-<p>
-<strong><u>Using Both Active And Passive Service Checks</u></strong>
-</p>
-
-<p>
-Unless you're implementing a <a href="distributed.html">distributed monitoring</a> environment with the central server accepting only passive service checks (and not performing any active checks), you'll probably be using both types of checks in your setup.  As mentioned before, active checks are more suited for services that lend themselves to periodic checks (availability of an FTP or web server, etc), whereas passive checks are better off at handling asynchronous events that occur at variable intervals (security alerts, etc.).
-</p>
-
-<p>
-The image below gives a visual representation of how active and passive service checks can both be used to monitor network resources (click on the image for a larger version).
-</p>
-
-<p>
-The orange bubbles on the right side of the image are third-party applications that submit passive check results to Nagios' external command file.  One of the applications resides on the same host as Nagios, so it can write directly to the command file.  The other application resides on a remote host and makes used of the nsca client program and daemon to transfer the passive check results to Nagios.
-</p>
-
-<p>
-The items on the left side of the image represent active service checks that Nagios is performing.  I've shown how the checks can be made for local resources (disk usage, etc.), "exposed" resources on remote hosts (web server, FTP server, etc.), and "private" resources on remote hosts (remote host disk usage, processor load, etc.).  In this example, the private resources on the remote hosts are actually checked by making use of the <a href="addons.html#nrpe">nrpe</a> addon, which facilitates the execution of plugins on remote hosts.
-</p>
-
-<p>
-<a href="images/activepassive.png"><img src="images/activepassive.png" border=1 width=200 height=250></a>
-</p>
-
-<a name="hostchecks"></a>
-<p>
-<strong><u>How Do Passive Host Checks Work?</u></strong>
-</p>
-
-<p>
-Passive host checks work in a similiar manner to passive service checks. Once an external application has performed a host check, it submits the results of that host "check" to Nagios through the <a href="configmain.html#command_file">external command file</a>.  The next time Nagios processes the contents of the external command file, it will process the host check result that was submitted.
-</p>
-
-<p>
-<strong>WARNING!</strong>  Passive host checks have some limitations.  Unlike active host checks, Nagios does not attempt to determine whether or host is DOWN or UNREACHABLE with passive checks.  Rather, Nagios takes the passive check result to be the actual state the host is in and doesn't try to determine the actual state.  In contrast, Nagios attempts to determine the proper status (DOWN or UNREACHABLE) for hosts that are not UP when the host check is active (initiated by Nagios).  This can cause problems if you are submitting passive checks from a remote host or you have a <a href="distributed.html">distributed monitoring setup</a> where the parent/child host relationships are different.  See the documentation on <a href="networkreachability.html">host reachability</a> for more information on how DOWN and UNREACHABLE states are determined for active host checks.
-</p>
-
-<p>
-<strong><u>How Do External Apps Submit Host Check Results?</u></strong>
-</p>
-
-<p>
-External applications can submit host check results to Nagios by writing a PROCESS_HOST_CHECK_RESULT <a href="extcommands.html">external command</a> to the <a href="configmain.html#command_file">external command file</a>.  
+External applications can submit passive host check results to Nagios by writing a PROCESS_HOST_CHECK_RESULT external command to the external command file.  
 </p>
 
 <p>
 The format of the command is as follows:
 </p>
 
-<p>
-<font color="red"><strong>[&lt;timestamp&gt;]&nbsp;PROCESS_HOST_CHECK_RESULT;&lt;host_name&gt;;&lt;host_status&gt;;&lt;plugin_output&gt;</strong></font>
-</p>
+<pre>
+[&lt;timestamp&gt;]&nbsp;PROCESS_HOST_CHECK_RESULT;&lt;host_name&gt;;&lt;host_status&gt;;&lt;plugin_output&gt;
+</pre>
 
 <p>
 where...
@@ -191,17 +190,38 @@ where...
 </p>
 
 <p>
-Note that in order to submit host checks to Nagios, a host must have already been defined in the <a href="configobject.html">object configuration file</a>!  Nagios will ignore all check results for hosts that had not been configured before it was last (re)started.
+<img src="images/note.gif" border="0" align="bottom"> 
+Note: A host must be defined in Nagios before you can submit passive check results for it!  Nagios will ignore all check results for hosts that had not been configured before it was last (re)started.
 </p>
 
 <p>
-<strong><u>Submitting Passive Host Check Results From Remote Hosts</u></strong>
+<strong><u>Passive Checks and Host States</u></strong>
 </p>
 
 <p>
-If an application that resides on the same host as Nagios is sending passive service check results, it can simply write the results directly to the external command file as outlined above.  However, applications on remote hosts can't do this so easily.  In order to allow remote hosts to send passive host check results to the host that runs Nagios, you can use the <a href="addons.html#nsca">nsca</a> addon.  The addon consists of a daemon that runs on the Nagios hosts and a client that is executed from remote hosts.  The daemon will listen for connections from remote clients, perform some basic validation on the results being submitted, and then write the check results directly into the external command file (as described above).  More information on the nsca addon can be found <a href="addons.html#nsca">here</a>.
+Unlike with active host checks, Nagios does not (by default) attempt to determine whether or host is DOWN or UNREACHABLE with passive checks.  Rather, Nagios takes the passive check result to be the actual state the host is in and doesn't try to determine the host's actual state using the <a href="networkreachability.html">reachability logic</a>.  This can cause problems if you are submitting passive checks from a remote host or you have a <a href="distributed.html">distributed monitoring setup</a> where the parent/child host relationships are different. 
 </p>
 
+<p>
+You can tell Nagios to translate DOWN/UNREACHABLE passive check result states to their "proper" state by using the <a href="configmain.html#translate_passive_host_checks">translate_passive_host_checks</a> variable.  More information on how this works can be found <a href="passivestatetranslation.html">here</a>.
+</p>
+
+
+<p>
+<strong><u>Submitting Passive Check Results From Remote Hosts</u></strong>
+</p>
+
+<img src="images/nsca.png" border="0" style="float: right; padding: 0 0 10px 10px;">
+
+<p>
+If an application that resides on the same host as Nagios is sending passive host or service check results, it can simply write the results directly to the external command file as outlined above.  However, applications on remote hosts can't do this so easily.
+</p>
+
+<p>
+In order to allow remote hosts to send passive check results to the monitoring host, I've developed the <a href="addons.html#nsca">NSCA</a> addon.  The NSCA addon consists of a daemon that runs on the Nagios hosts and a client that is executed from remote hosts.  The daemon will listen for connections from remote clients, perform some basic validation on the results being submitted, and then write the check results directly into the external command file (as described above).  More information on the NSCA addon can be found <a href="addons.html#nsca">here</a>.
+</p>
+
+<br clear="all">
 
 <hr>
 

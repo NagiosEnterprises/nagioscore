@@ -130,7 +130,7 @@ Let's take an example.  Say you have 1,000 services that each have a normal chec
 </p>
 
 <p>
-As discussed above, the inter-check delay helps to equalize the load that Nagios imposes on the local host.  What about remote hosts?  Is it necessary to equalize load on remote hosts?  Why?  Yes, it is important and yes, Nagios can help out with this.  Equalizing load on remote hosts is especially important with the advent of <a href="parallelization.html">service check parallelization</a>.  If you monitor a large number of services on a remote host and the checks were not spread out, the remote host might think that it was the victim of a SYN attack if there were a lot of open connections on the same port.  Plus, attempting to equalize the load on hosts is just a nice thing to do...
+As discussed above, the inter-check delay helps to equalize the load that Nagios imposes on the local host.  What about remote hosts?  Is it necessary to equalize load on remote hosts?  Why?  Yes, it is important and yes, Nagios can help out with this.  Equalizing load on remote hosts is especially important with the advent of service check parallelization.  If you monitor a large number of services on a remote host and the checks were not spread out, the remote host might think that it was the victim of a SYN attack if there were a lot of open connections on the same port.  Plus, attempting to equalize the load on hosts is just a nice thing to do...
 </p>
 
 <p>

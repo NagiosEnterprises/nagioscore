@@ -12,6 +12,7 @@ Nagios 3.x Change Log
 * Added support for extended regular expression matching in object config files
 * Fix for incorrect processing of y_2d coordinates for host objects in statusmap layout
 * Fix for current status of hosts with no check command defined
+* SIGSEGV signals should now be logged again (broken in 3.0a1)
 * Documentation bug fixes
 * More documentation updates
 

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-19-2007
+ * Last Modified:   03-22-2007
  *
  * License:
  *
@@ -83,6 +83,7 @@ extern int      use_true_regexp_matching;
 
 extern int      sigshutdown;
 extern int      sigrestart;
+extern char     **sigs;
 extern int      caught_signal;
 extern int      sig_id;
 
@@ -3336,6 +3337,8 @@ void reset_sighandler(void){
 
 /* handle signals */
 void sighandler(int sig){
+	char *buffer=NULL;
+	int x=0;
 
 	/* if shutdown is already true, we're in a signal trap loop! */
 	/* changed 09/07/06 to only exit on segfaults */
@@ -3347,7 +3350,21 @@ void sighandler(int sig){
 	if(sig<0)
 		sig=-sig;
 
+	for(x=0;sigs[x]!=(char *)NULL;x++);
+	sig%=x;
+
 	sig_id=sig;
+
+	/* log errors about segfaults now, as we might not get a chance to later */
+	/* all other signals are logged at a later point in main() to prevent problems with NPTL */
+	if(sig==SIGSEGV){
+		asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
+#ifdef DEBUG2
+		printf("%s\n",buffer);
+#endif
+		write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
+		my_free((void **)&buffer);
+		}
 
 	/* we received a SIGHUP, so restart... */
 	if(sig==SIGHUP)

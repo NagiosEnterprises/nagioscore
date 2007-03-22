@@ -142,7 +142,7 @@ int             log_rotation_method=LOG_ROTATION_NONE;
 
 int             sigshutdown=FALSE;
 int             sigrestart=FALSE;
-static char     *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
+char            *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
 int             caught_signal=FALSE;
 int             sig_id=0;
 
@@ -715,18 +715,13 @@ int main(int argc, char **argv){
 			event_execution_loop();
 
 			/* 03/01/2007 EG Moved from sighandler() to prevent FUTEX locking problems under NPTL */
+			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't loose them */
 			/* did we catch a signal? */
 			if(caught_signal==TRUE){
 
-				if(sig_id<0)
-					sig_id=-sig_id;
-
-				for(x=0;sigs[x]!=(char *)NULL;x++);
-				sig_id%=x;
-
 				if(sig_id==SIGHUP)
 					snprintf(buffer,sizeof(buffer),"Caught SIGHUP, restarting...\n");
-				else
+				else if(sig_id!=SIGSEGV)
 					snprintf(buffer,sizeof(buffer),"Caught SIG%s, shutting down...\n",sigs[sig_id]);
 				buffer[sizeof(buffer)-1]='\x0';
 

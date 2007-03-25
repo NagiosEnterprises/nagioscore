@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-19-2007
+ * Last Modified: 03-25-2007
  *
  * License:
  *
@@ -249,6 +249,7 @@ int read_main_config_file(char *main_config_file){
 	int command_check_interval_is_seconds=FALSE;
 	char *modptr=NULL;
 	char *argptr=NULL;
+	DIR *tmpdir=NULL;
 
 #ifdef DEBUG0
 	printf("read_main_config_file() start\n");
@@ -403,6 +404,13 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 				}
+
+			if((tmpdir=opendir((char *)value))==NULL){
+				strcpy(error_message,"Temp path is not a valid directory");
+				error=TRUE;
+				break;
+				}
+			closedir(tmpdir);
 
 			my_free((void **)&temp_path);
 			if((temp_path=(char *)strdup(value))){

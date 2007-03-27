@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-05-2007
+ * Last Modified:   03-27-2007
  *
  * License:
  *
@@ -2884,7 +2884,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 	case CMD_CHANGE_GLOBAL_HOST_EVENT_HANDLER:
 	case CMD_CHANGE_GLOBAL_SVC_EVENT_HANDLER:
 
-		if((charval=my_strtok(args,";"))==NULL)
+		if((charval=my_strtok(args,"\n"))==NULL)
 			return ERROR;
 		
 		break;
@@ -2919,7 +2919,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 			break;
 		        }
 
-		if((charval=my_strtok(NULL,";"))==NULL)
+		if((charval=my_strtok(NULL,"\n"))==NULL)
 			return ERROR;
 	        }
 

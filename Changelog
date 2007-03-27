@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0a2 - 03/??/2007
+3.0a2 - 03/27/2007
 ------------------
 * Added warning about aggregate_status_updates directive being deprecated.
 * Added new "p" option to host/service_perfdata_file_mode directives for pipes.
@@ -14,8 +14,7 @@ Nagios 3.x Change Log
 * Fix for current status of hosts with no check command defined
 * SIGSEGV signals should now be logged again (broken in 3.0a1)
 * Added warning for invalid temp_path directory
-* Documentation bug fixes
-* More documentation updates
+* Documentation bug fixes and updates
 
 
 

@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Quickstart Notes - openSUSE</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Quickstart Notes - openSUSE</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
+</p>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+If you're installing Nagios on openSUSE, there are a few things that you'll need to do differently than described in the <a href="quickstart.html">quickstart installation guide</a>.  This document is intended to act as a supplement to the quickstart and only contains portions of quickstart guide that differ for openSUSE.  That means you'll have to use this document in conjunction with the quickstart.
+</p>
+
+<p>
+These instructions were written based on an <b>openSUSE 10.2</b> installation.
+</p>
+
+<p>
+The installation notes for openSUSE differ from the quickstart installation guide because of the following:
+</p>
+
+<p>
+<ul>
+<li>Adding a new user account does not automatically create a corresponding group by the same name
+<li>openSUSE uses Apache 2, so binaries and directories are different</li>
+<li>The Apache web server runs as the <i>wwwrun</i> user
+<li>openSUSE does not ship with SELinux</li>
+</ul>
+</p>
+
+<p>
+Commands and file names that differ from the quickstart installation guide are highlighted in red.  Only sections of the quickstart that differ for openSUSE are included below.
+</p>
+
+<p>
+<strong><u>Required Packages</u></strong>
+</p>
+
+<p>
+Make sure you've installed the following packages on your openSUSE installation before continuing.  You can use <i>yast</i> to install packages under openSUSE.
+</p>
+
+<p>
+<ul>
+<li>apache2</li>
+<li>C/C++ development libraries</li>
+</ul>
+</p>
+
+<p>
+<a name="step1"></a>
+<strong><u>1) Create Account Information</u></strong>
+</p>
+
+<p>
+Become the root user.
+</p>
+
+<p>
+<pre>
+su -l
+</pre>
+</p>
+
+<p>
+Create a new <i>nagios</i> user account and give it a password.
+</p>
+
+<p>
+<pre>
+/usr/sbin/useradd nagios
+passwd nagios
+</pre>
+</p>
+
+<p>
+Create a new <i>nagios</i> group.  Add the nagios user to the group.
+</p>
+
+<p>
+<font color="red">
+<pre>
+/usr/sbin/groupadd nagios
+/usr/sbin/usermod -G nagios nagios
+</pre>
+</font>
+</p>
+
+<p>
+Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.
+</p>
+
+<p>
+<pre>
+/usr/sbin/groupadd nagcmd
+/usr/sbin/usermod -G nagcmd nagios
+<font color="red">/usr/sbin/usermod -G nagcmd wwwrun</font>
+</pre>
+</p>
+
+<p>
+<a name="step5"></a>
+<strong><u>5) Configure the Web Interface</u></strong>
+</p>
+
+<p>
+Copy the sample web config file to the Apache conf.d directory.
+</p>
+
+<p>
+<font color="red">
+<pre>
+cp sample-config/httpd.conf /etc/apache2/conf.d/nagios.conf
+</pre>
+</font>
+</p>
+
+<p>
+Create a <i>nagiosadmin</i> account for logging into the Nagios web interface.  Remember the password you assign to this account - you'll need it later.
+</p>
+
+<p>
+<font color="red">
+<pre>
+htpasswd2 -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+</pre>
+</font>
+</p>
+
+<p>
+Restart Apache to make the new settings take effect.
+</p>
+
+<p>
+<font color="red">
+<pre>
+service apache2 restart
+</pre>
+</font>
+</p>
+
+<p>
+<strong><u>9) Modify SELinux Settings</u></strong>
+</p>
+
+<p>
+openSUSE doesn't ship with SELinux (Security Enhanced Linux), so you don't need to modify enforcement settings as described in the quickstart guide.
+</p>
+
+<p>
+<strong><u>10) Other Modifications</u></strong>
+</p>
+
+<p>
+Make sure your machine's firewall rules are configured to allow access to the web server if you want to access the Nagios interface remotely.
+</p>
+
+<p>
+You can do this by:
+</p>
+
+<p>
+<ul>
+<li>Opening the control center</li>
+<li>Select 'Open Administrator Settings' to open the YaST administrator control center</li>
+<li>Select 'Firewall' from the 'Security and Users' category</li>
+<li>Click the 'Allowed Services' option in the Firewall Configuration window
+<li>Add 'HTTP Server' to the allowed services list for the 'External Zone'</li>
+<li>Click 'Next' and 'Accept' to activate the new firewall settings</li>
+</ul>
+</p>
+
+
+<hr>
+
+</body>
+</html>

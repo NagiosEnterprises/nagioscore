@@ -38,10 +38,6 @@ This guide is intended to provide you with simple instructions on how to install
 </p>
 
 <p>
-<img src="images/note.gif" border="0" align="bottom"> Note: These instructions were written based on a standard Fedora Core 6 Linux distribution.  Naming conventions, commands, etc. vary across different Linux distros and UNIX variants, so the instructions provided here may have to be altered a bit for your situation.  If you're having trouble using these instructions, you can find OS/distribution-specific installation guides, HOWTOs, and other helpful installation documentation on the <a href="http://www.nagioscommunity.org/wiki/">NagiosCommunity.org wiki</a>.
-</p>
-
-<p>
 <strong><u>What You'll End Up With</u></strong>
 </p>
 
@@ -55,6 +51,30 @@ If you follow these instructions, here's what you'll end up with:
 <li>Nagios will be configured to monitor a few aspects of your local system (CPU load, disk usage, etc.)</li>
 <li>The Nagios web interface will be accessible at http://localhost/nagios/</li>
 </ul>
+</p>
+
+<p>
+<strong><u>Distro/OS-Specific Instructions</u></strong>
+</p>
+
+<p>
+Naming conventions, commands, directory names, etc. can vary widely across different Linux distros and UNIX variants, so the instructions provided here may have to be altered a bit for your particular situation.  
+</p>
+
+<p>
+These instructions were written based on a standard <b>Fedora Core 6</b> Linux distribution.
+</p>
+
+<p>
+I have written notes on the differences in installing Nagios on different Linux distributions and other UNIX variants.  Click one of the links below to find instructions tailored for your particular operating system or distro.
+</p>
+<p>
+<ul>
+<li><a href="quickstart-opensuse.html">openSUSE</a></li>
+</ul>
+</p>
+<p>
+If you're having trouble using these instructions, you can find OS/distribution-specific installation guides, HOWTOs, and other helpful installation documentation on the <a href="http://www.nagioscommunity.org/wiki/">NagiosCommunity.org wiki</a>.
 </p>
 
 <p>
@@ -82,7 +102,7 @@ You can still install and use Nagios without the GD library if you need to, as i
 </p>
 
 <p>
-Become the root user.  You may have to use <i>sudo -s</i> on Ubuntu and other distros.
+Become the root user.  You may have to use <i>sudo -s</i> on Ubuntu/Debian and other distros.
 </p>
 
 <p>
@@ -136,7 +156,7 @@ Download the source code tarballs of both Nagios and the Nagios plugins (visit <
 <p>
 <pre>
 wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a2.tar.gz
-wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.6.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
 </pre>
 </p>
 
@@ -265,8 +285,8 @@ Extract the Nagios plugins source code tarball.
 <p>
 <pre>
 cd ~/downloads
-tar xzf nagios-plugins-1.4.6.tar.gz
-cd nagios-plugins-1.4.6
+tar xzf nagios-plugins-1.4.7.tar.gz
+cd nagios-plugins-1.4.7
 </pre>
 </p>
 
@@ -276,23 +296,9 @@ Compile and install the plugins.
 
 <p>
 <pre>
-./configure
+./configure --with-nagios-user=nagios --with-nagios-group=nagios
 make
 make install
-</pre>
-</p>
-
-<p>
-The permissions on the plugins will need to be fixed at this point (I believe this is a bug with the plugin distribution), so run the following commands in order.
-</p>
-
-<p>
-<pre>
-chown nagios /usr/local/nagios/libexec/*
-chown root.nagios /usr/local/nagios/libexec/check_dhcp
-chown root.nagios /usr/local/nagios/libexec/check_icmp
-chmod 4550 /usr/local/nagios/libexec/check_dhcp
-chmod 4550 /usr/local/nagios/libexec/check_icmp
 </pre>
 </p>
 

@@ -71,6 +71,7 @@ I have written notes on the differences in installing Nagios on different Linux 
 <p>
 <ul>
 <li><a href="quickstart-opensuse.html">openSUSE</a></li>
+<li><a href="quickstart-ubuntu.html">Ubuntu</a></li>
 </ul>
 </p>
 <p>
@@ -89,12 +90,11 @@ During portions of the installation you'll need to have <b>root</b> access to yo
 <ul>
 <li>C compiler and C libraries (gcc and glibc)</li>
 <li>Web server (Apache)</li>
-<li>GD library (gd-devel)</li>
 </ul>
 </p>
 
 <p>
-You can still install and use Nagios without the GD library if you need to, as it is only used by a few of the CGIs for generating graphics. Let's get started!
+The Nagios CGIs (web interface) use Boutell's GD library (<a href="http://www.boutell.com/gd/">http://www.boutell.com/gd/</a>) for generating graphics.  Most modern distros include this library by default.  You can still use Nagios without the GD library, but if you find yourself missing out on the graphics you'll need to install the GD library and recompile/reinstall Nagios.
 </p>
 
 <p>
@@ -210,17 +210,6 @@ make install-commandmode
 </p>
 
 <p>
-Add Nagios to the list of system services and have it automatically start when the system boots.
-</p>
-
-<p>
-<pre>
-chkconfig --add nagios
-chconfig nagios on
-</pre>
-</p>
-
-<p>
 Don't start Nagios yet - there's still more that needs to be done...
 </p>
 
@@ -308,6 +297,17 @@ make install
 </p>
 
 <p>
+Add Nagios to the list of system services and have it automatically start when the system boots.
+</p>
+
+<p>
+<pre>
+chkconfig --add nagios
+chconfig nagios on
+</pre>
+</p>
+
+<p>
 Verify the sample Nagios configuration files.
 </p>
 
@@ -387,6 +387,10 @@ The Nagios CGIs should work now.  To make this change permanent, you'll have to 
 
 <p>
 Make sure your machine's firewall rules are configured to allow access to the web server if you want to access the Nagios interface remotely.
+</p>
+
+<p>
+Configuring email notifications is out of the scope of this documentation.  While Nagios is currently configured to send you email notifications, your system may not yet have a mail program properly installed or configured.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your system to send email messages to external addresses.  More information on notifications can be found <a href="notifications.html">here</a>.
 </p>
 
 <p>

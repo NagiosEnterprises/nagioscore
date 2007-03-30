@@ -3,6 +3,13 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0a3 - ??/??/2007
+------------------
+* Configure script fix for no mail program found/installed on system
+* Documentation updates
+
+
+
 3.0a2 - 03/27/2007
 ------------------
 * Added warning about aggregate_status_updates directive being deprecated.

@@ -1,0 +1,256 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>Quickstart Notes - Ubuntu</title>
+
+<STYLE type="text/css">
+<!--
+        .Default { font-family: verdana,arial,serif; font-size: 8pt; }
+        .PageTitle { font-family: verdana,arial,serif; font-size: 16pt; font-weight: bold; }
+-->      
+</STYLE>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="black" class="Default">
+
+<p>
+<div align="center">
+<img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
+<h2 class="PageTitle">Quickstart Notes - Ubuntu</h2>
+</div>
+</p>
+
+<hr>
+
+<p>
+<img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
+</p>
+
+<p>
+<strong><u>Introduction</u></strong>
+</p>
+
+<p>
+If you're installing Nagios on Ubuntu, there are a few things that you'll need to do differently than described in the <a href="quickstart.html">quickstart installation guide</a>.  This document is intended to act as a supplement to the quickstart guide and only contains portions of the quickstart guide that differ for Ubuntu.  That means you'll have to use this document in conjunction with the quickstart.
+</p>
+
+<p>
+These instructions were written based on an <b>Ubuntu 6.10</b> (desktop) installation.
+</p>
+
+<p>
+The installation notes for Ubuntu differ from the quickstart installation guide because of the following:
+</p>
+
+<p>
+<ul>
+<li>The directory path for Apache 2 config files is different</li>
+<li>The Apache web server runs as the <i>www-data</i> user
+<li>Ubuntu requires a different method for starting services
+<li>Ubuntu does not ship with SELinux</li>
+</ul>
+</p>
+
+<p>
+Commands and file names that differ from the quickstart installation guide are highlighted in red.  Only sections of the quickstart that differ for Ubuntu are included below.
+</p>
+
+<p>
+<strong><u>Required Packages</u></strong>
+</p>
+
+<p>
+Make sure you've installed the following packages on your Ubuntu installation before continuing. 
+</p>
+
+<p>
+<ul>
+<li>Apache 2</li>
+<li>GCC compiler and development libraries</li>
+<li>GD development libraries</li>
+</ul>
+</p>
+
+<p>
+You can use <i>apt-get</i> to install these packages by running the following commands:
+</p>
+
+<p>
+<font color="red">
+<pre>
+sudo apt-get install apache2
+sudo apt-get install build-essential
+sudo apt-get install libgd2-dev
+</pre>
+</font>
+</p>
+
+<p>
+<a name="step1"></a>
+<strong><u>1) Create Account Information</u></strong>
+</p>
+
+<p>
+Become the root user.
+</p>
+
+<p>
+<font color="red">
+<pre>
+sudo -s
+</pre>
+</font>
+</p>
+
+<p>
+Create a new <i>nagios</i> user account and give it a password.
+</p>
+
+<p>
+<pre>
+/usr/sbin/useradd nagios
+passwd nagios
+</pre>
+</p>
+
+<p>
+Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.
+</p>
+
+<p>
+<pre>
+/usr/sbin/groupadd nagcmd
+/usr/sbin/usermod -G nagcmd nagios
+<font color="red">/usr/sbin/usermod -G nagcmd www-data</font>
+</pre>
+</p>
+
+<p>
+<a name="step5"></a>
+<strong><u>5) Configure the Web Interface</u></strong>
+</p>
+
+<p>
+Copy the sample web config file to the Apache conf.d directory.
+</p>
+
+<p>
+<font color="red">
+<pre>
+cp sample-config/httpd.conf /etc/apache2/conf.d/nagios.conf
+</pre>
+</font>
+</p>
+
+<p>
+Create a <i>nagiosadmin</i> account for logging into the Nagios web interface.  Remember the password you assign to this account - you'll need it later.
+</p>
+
+<p>
+<pre>
+htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+</pre>
+</p>
+
+<p>
+Restart Apache to make the new settings take effect.
+</p>
+
+<p>
+<font color="red">
+<pre>
+/etc/init.d/apache2 reload
+</pre>
+</font>
+</p>
+
+<p>
+<strong><u>7) Start Nagios</u></strong>
+</p>
+
+<p>
+Configure Nagios to automatically start when the system boots.
+</p>
+
+<p>
+<font color="red">
+<pre>
+ln -s /etc/init.d/nagios /etc/rcS.d/S99nagios
+</pre>
+</font>
+</p>
+
+<p>
+Verify the sample Nagios configuration files.
+</p>
+
+<p>
+<pre>
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+</pre>
+</p>
+
+<p>
+If there are no errors, start Nagios.
+</p>
+
+<p>
+<font color="red">
+<pre>
+/etc/init.d/nagios start
+</pre>
+</font>
+</p>
+
+<p>
+<strong><u>9) Modify SELinux Settings</u></strong>
+</p>
+
+<p>
+Ubuntu doesn't ship with SELinux (Security Enhanced Linux), so you don't need to modify enforcement settings as described in the quickstart guide.
+</p>
+
+<p>
+<strong><u>10) Other Modifications</u></strong>
+</p>
+
+<p>
+Ubuntu doesn't ship with firewall settings that block remote access to the Apache web server, so you shouldn't need to modify anything to access your Nagios interface remotely.
+</p>
+
+<p>
+If you want to receive email notifications for Nagios alerts, you need to install the mailx (Postfix) package.
+</p>
+
+<p>
+<font color="red">
+<pre>
+sudo apt-get install mailx
+</pre>
+</font>
+</p>
+
+<p>
+You'll have to edit the Nagios email notification commands found in <i>/usr/local/nagios/etc/commands.cfg</i> and change any '/bin/mail' references to '/usr/bin/mail'.  Once you do that you'll need to restart Nagios to make the configuration changes live.
+</p>
+
+<p>
+<font color="red">
+<pre>
+sudo /etc/init.d/nagios restart
+</pre>
+</font>
+</p>
+
+<p>
+Configuring email notifications is out of the scope of this documentation.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your Ubuntu system to send email messages to external addresses.
+</p>
+
+
+<hr>
+
+</body>
+</html>

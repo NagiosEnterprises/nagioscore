@@ -34,7 +34,7 @@
 </p>
 
 <p>
-If you're installing Nagios on openSUSE, there are a few things that you'll need to do differently than described in the <a href="quickstart.html">quickstart installation guide</a>.  This document is intended to act as a supplement to the quickstart and only contains portions of quickstart guide that differ for openSUSE.  That means you'll have to use this document in conjunction with the quickstart.
+If you're installing Nagios on openSUSE, there are a few things that you'll need to do differently than described in the <a href="quickstart.html">quickstart installation guide</a>.  This document is intended to act as a supplement to the quickstart guide and only contains the portions of the guide that differ for openSUSE.  That means you'll have to use this document in conjunction with the quickstart.
 </p>
 
 <p>
@@ -48,7 +48,8 @@ The installation notes for openSUSE differ from the quickstart installation guid
 <p>
 <ul>
 <li>Adding a new user account does not automatically create a corresponding group by the same name
-<li>openSUSE uses Apache 2, so binaries and directories are different</li>
+<li>The directory path for Apache 2 config files is different</li>
+<li>The names of Apache 2 utilities differ</li>
 <li>The Apache web server runs as the <i>wwwrun</i> user
 <li>openSUSE does not ship with SELinux</li>
 </ul>
@@ -194,6 +195,10 @@ You can do this by:
 <li>Add 'HTTP Server' to the allowed services list for the 'External Zone'</li>
 <li>Click 'Next' and 'Accept' to activate the new firewall settings</li>
 </ul>
+</p>
+
+<p>
+Configuring email notifications is out of the scope of this documentation.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your openSUSE system to send email messages to external addresses.
 </p>
 
 

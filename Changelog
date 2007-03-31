@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Configure script fix for no mail program found/installed on system
 * Fix for compilation warnings about implicit declaration of round() - may (strangely enough) also
   fix segfaults that were occuring on some systems
+* Added detection of Apache conf.d directory and 'make install-webconf' functionality
 * Documentation updates
 
 

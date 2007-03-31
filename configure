@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT SET_MAKE STRIP CPP EGREP SNPRINTF_O SOCKETLIBS THREADLIBS nagios_user nagios_grp INSTALL_OPTS command_user command_grp COMMAND_OPTS MAIL_PROG init_dir lockfile XSDC XSDH XCDC XCDH XRDC XRDH XODC XODH XPDC XPDH XDDC XDDH GLIB_INCLUDE GLIB_LIBS htmurl cgiurl BROKER_LDFLAGS BROKERLIBS MOD_CFLAGS MOD_LDFLAGS BROKER_O BROKER_H nagios_name nagiostats_name PATH_TO_TRACEROUTE PACKDIR VERSION CGIEXTRAS GDLIBS PERLLIBS PERLDIR PERLXSI_O BASEEXTRALIBS INITDIR INSTALLPERLSTUFF PERL LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT SET_MAKE STRIP CPP EGREP SNPRINTF_O SOCKETLIBS THREADLIBS nagios_user nagios_grp INSTALL_OPTS command_user command_grp COMMAND_OPTS MAIL_PROG HTTPD_CONF init_dir lockfile XSDC XSDH XCDC XCDH XRDC XRDH XODC XODH XPDC XPDH XDDC XDDH GLIB_INCLUDE GLIB_LIBS htmurl cgiurl BROKER_LDFLAGS BROKERLIBS MOD_CFLAGS MOD_LDFLAGS BROKER_O BROKER_H nagios_name nagiostats_name PATH_TO_TRACEROUTE PACKDIR VERSION CGIEXTRAS GDLIBS PERLLIBS PERLDIR PERLXSI_O BASEEXTRALIBS INITDIR INSTALLPERLSTUFF PERL LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -867,6 +867,7 @@ Optional Packages:
 --with-command-user=<user> sets user name for command access
 --with-command-group=<grp> sets group name for command access
 --with-mail=<path_to_mail> sets path to equivalent program to mail
+--with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory
 --with-init-dir=<path> sets directory to place init script into
 --with-lockfile=<path> sets path and file name for lock file
 --with-gd-lib=DIR sets location of the gd library
@@ -5479,6 +5480,28 @@ if test x$MAIL_PROG=x; then
 fi
 
 
+HTTP_CONF=no
+
+# Check whether --with-httpd_conf or --without-httpd_conf was given.
+if test "${with_httpd_conf+set}" = set; then
+  withval="$with_httpd_conf"
+  HTTPD_CONF=$withval
+else
+  HTTPD_CONF=no
+fi;
+if test HTTPD_CONF=no; then
+	if test -d /etc/httpd/conf.d; then
+		HTTPD_CONF="/etc/httpd/conf.d"
+	elif test -d /etc/apache2/conf.d; then
+		HTTPD_CONF="/etc/apache2/conf.d"
+	elif test -d /etc/apache/conf.d; then
+		HTTPD_CONF="/etc/apache/conf.d"
+	else
+		HTTPD_CONF="/etc/httpd/conf.d"
+	fi
+fi
+
+
 init_dir=/etc/rc.d/init.d
 if test -d /etc/rc.d/init.d; then
 	init_dir="/etc/rc.d/init.d"
@@ -7687,6 +7710,7 @@ s,@command_user@,$command_user,;t t
 s,@command_grp@,$command_grp,;t t
 s,@COMMAND_OPTS@,$COMMAND_OPTS,;t t
 s,@MAIL_PROG@,$MAIL_PROG,;t t
+s,@HTTPD_CONF@,$HTTPD_CONF,;t t
 s,@init_dir@,$init_dir,;t t
 s,@lockfile@,$lockfile,;t t
 s,@XSDC@,$XSDC,;t t
@@ -8281,6 +8305,10 @@ echo "$as_me:$LINENO: result:                 Lock file:  $lockfile" >&5
 echo "${ECHO_T}                Lock file:  $lockfile" >&6
 echo "$as_me:$LINENO: result:            Init directory:  $init_dir" >&5
 echo "${ECHO_T}           Init directory:  $init_dir" >&6
+echo "$as_me:$LINENO: result:   Apache conf.d directory:  $HTTPD_CONF" >&5
+echo "${ECHO_T}  Apache conf.d directory:  $HTTPD_CONF" >&6
+echo "$as_me:$LINENO: result:              Mail program:  $MAIL_PROG" >&5
+echo "${ECHO_T}             Mail program:  $MAIL_PROG" >&6
 echo "$as_me:$LINENO: result:                   Host OS:  $host_os" >&5
 echo "${ECHO_T}                  Host OS:  $host_os" >&6
 

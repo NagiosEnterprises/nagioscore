@@ -1,7 +1,7 @@
 ###############################
 # Makefile for Nagios
 #
-# Last Modified: 02-25-2007
+# Last Modified: 03-31-2007
 ###############################
 
 
@@ -30,6 +30,7 @@ HTMLDIR=@datadir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
 COMMAND_OPTS=@COMMAND_OPTS@
+HTTPD_CONF=@HTTPD_CONF@
 INIT_DIR=@init_dir@
 INIT_OPTS=-o root -g root
 CGICFGDIR=$(CGIDIR)
@@ -227,6 +228,13 @@ install-config:
 	@echo "services, hosts, etc. to fit your particular needs."
 	@echo ""
 
+install-webconf:
+	$(INSTALL) -m 644 sample-config/httpd.conf $(HTTPD_CONF)/nagios.conf
+
+	@echo ""
+	@echo "*** Nagios/Apache conf file installed ***"
+	@echo ""
+
 install-init: install-daemoninit
 
 install-daemoninit:
@@ -247,7 +255,7 @@ install-commandmode:
 	@echo ""
 
 
-fullinstall: install install-init install-commandmode
+fullinstall: install install-init install-commandmode install-webconf
 
 # Uninstall is too destructive if base install directory is /usr, etc.
 #uninstall:

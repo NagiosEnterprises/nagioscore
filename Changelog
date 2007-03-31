@@ -6,6 +6,8 @@ Nagios 3.x Change Log
 3.0a3 - ??/??/2007
 ------------------
 * Configure script fix for no mail program found/installed on system
+* Fix for compilation warnings about implicit declaration of round() - may (strangely enough) also
+  fix segfaults that were occuring on some systems
 * Documentation updates
 
 

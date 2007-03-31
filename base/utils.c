@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-22-2007
+ * Last Modified:   03-31-2007
  *
  * License:
  *
@@ -2941,7 +2941,7 @@ int get_raw_command_line2(command *cmd_ptr, char *cmd_args, char **full_command,
 	printf("get_raw_command_line() start\n");
 #endif
 #ifdef DEBUG1
-	printf("\tInput: %s\n",cmd);
+	printf("\tInput: %s\n",cmd_ptr);
 #endif
 
 	/* clear the argv macros */
@@ -5981,14 +5981,14 @@ int generate_check_stats(void){
 			/* if this is the current bucket, use its full value + weighted % of last bucket */
 			if(x==0){
 				right_value=this_bucket_value;
-				left_value=(int)round(last_bucket_value * last_bucket_weight);
-				bucket_value=(int)(this_bucket_value + round(last_bucket_value * last_bucket_weight));
+				left_value=(int)floor(last_bucket_value * last_bucket_weight);
+				bucket_value=(int)(this_bucket_value + floor(last_bucket_value * last_bucket_weight));
 				}
 			/* otherwise use weighted % of this and last bucket */
 			else{
-				right_value=(int)round(this_bucket_value * this_bucket_weight);
-				left_value=(int)round(last_bucket_value * last_bucket_weight);
-				bucket_value=(int)(round(this_bucket_value * this_bucket_weight) + round(last_bucket_value * last_bucket_weight));
+				right_value=(int)ceil(this_bucket_value * this_bucket_weight);
+				left_value=(int)floor(last_bucket_value * last_bucket_weight);
+				bucket_value=(int)(ceil(this_bucket_value * this_bucket_weight) + floor(last_bucket_value * last_bucket_weight));
 				}
 
 			/* 1 minute stats */

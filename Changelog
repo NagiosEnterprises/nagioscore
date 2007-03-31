@@ -9,6 +9,7 @@ Nagios 3.x Change Log
 * Fix for compilation warnings about implicit declaration of round() - may (strangely enough) also
   fix segfaults that were occuring on some systems
 * Added detection of Apache conf.d directory and 'make install-webconf' functionality
+* Configure script option bug fixes for cygwin and embedded perl
 * Documentation updates
 
 

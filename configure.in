@@ -650,6 +650,22 @@ fi
 USEPERL=no;
 INSTALLPERLSTUFF=no;
 AC_ARG_ENABLE(embedded-perl,--enable-embedded-perl will enable embedded Perl interpreter,[
+	USEPERL=$enableval
+	]
+	,USEPERL=no)
+
+PERLCACHE=no;
+AC_ARG_WITH(perlcache,--with-perlcache turns on cacheing of internally compiled Perl scripts,[
+	PERLCACHE=$withval
+	]
+	,[
+	AC_DEFINE(DO_CLEAN,"1")
+	PERLCACHE=no;
+	])
+
+dnl Is embedded Perl being compiled in?
+if test x$USEPERL = xyes; then
+
 	AC_DEFINE_UNQUOTED(EMBEDDEDPERL)
 	PERLLIBS="`perl -MExtUtils::Embed -e ldopts`" 
 	PERLDIR="`perl -MConfig -e 'print $Config{installsitearch}'`" 
@@ -660,24 +676,16 @@ AC_ARG_ENABLE(embedded-perl,--enable-embedded-perl will enable embedded Perl int
 	OBJS="${OBJS} ${PERLXSI_O}"
 	echo "creating base/perlxsi.c"
 	perl -MExtUtils::Embed -e xsinit -- -o base/perlxsi.c
-	])
 
-PERLCACHE=no;
-AC_ARG_WITH(perlcache,--with-perlcache turns on cacheing of internally compiled Perl scripts,[
-	AC_DEFINE(DO_CLEAN,"0")
-	PERLCACHE=yes;
-	]
-	,[
-	AC_DEFINE(DO_CLEAN,"1")
-	PERLCACHE=no;
-	])
-
-dnl Is embedded Perl being compiled in?
-if test x$USEPERL = xyes; then
 	echo "Embedded Perl interpreter will be compiled in..."
+
+	dnl Is caching enabled?
 	if test x$PERLCACHE = xyes; then
+		AC_DEFINE(DO_CLEAN,"0")
+		PERLCACHE=yes;
 		echo "Internally compiled Perl scripts will be cached..."
 	else
+		AC_DEFINE(DO_CLEAN,"1")
 		echo "Internally compiled Perl scripts will NOT be cached..."
 	fi
 fi
@@ -694,11 +702,15 @@ fi
 dnl Option for compiling under CYGWIN
 nagios_name=nagios
 nagiostats_name=nagiostats
+cygwin=no
 AC_ARG_ENABLE(cygwin,--enable-cygwin enables building under the CYGWIN environment,[
+	cygwin=$enableval
+	])
+if test x$cygwin = xyes; then
 	CFLAGS="${CFLAGS} -DCYGWIN" 
 	nagios_name=nagios.exe;
 	nagiostats_name=nagiostats.exe;
-	])
+fi
 AC_SUBST(nagios_name)
 AC_SUBST(nagiostats_name)
 

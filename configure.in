@@ -153,6 +153,10 @@ AC_ARG_WITH(mail,--with-mail=<path_to_mail> sets path to equivalent program to m
 if test MAIL_PROG=no; then
 	AC_PATH_PROG(MAIL_PROG,mail) 
 fi 
+dnl Fix for systems that don't (yet) have mail/mailx installed...
+if test x$MAIL_PROG=x; then
+	MAIL_PROG="/bin/mail"
+fi
 AC_SUBST(MAIL_PROG)
 
 dnl Check for location of init scripts

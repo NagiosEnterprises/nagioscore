@@ -4884,6 +4884,9 @@ echo "${ECHO_T}no" >&6
 fi
 
 fi
+if test x$MAIL_PROG=x; then
+	MAIL_PROG="/bin/mail"
+fi
 
 
 init_dir=/etc/rc.d/init.d

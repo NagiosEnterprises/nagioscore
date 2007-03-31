@@ -9,6 +9,7 @@ Nagios 2.x Change Log
 * Fix for current status of hosts with no host check command defined
 * SIGSEGV signals should now be logged again (broken in 2.8)
 * Configure script fix for no mail program found/installed on system
+* Configure script option bug fixes for cygwin and embedded perl
 
 
 

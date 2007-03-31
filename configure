@@ -6239,6 +6239,34 @@ INSTALLPERLSTUFF=no;
 if test "${enable_embedded_perl+set}" = set; then
   enableval="$enable_embedded_perl"
 
+	USEPERL=$enableval
+
+
+else
+  USEPERL=no
+fi;
+
+PERLCACHE=no;
+
+# Check whether --with-perlcache or --without-perlcache was given.
+if test "${with_perlcache+set}" = set; then
+  withval="$with_perlcache"
+
+	PERLCACHE=$withval
+
+
+else
+
+	cat >>confdefs.h <<\_ACEOF
+#define DO_CLEAN "1"
+_ACEOF
+
+	PERLCACHE=no;
+
+fi;
+
+if test x$USEPERL = xyes; then
+
 	cat >>confdefs.h <<_ACEOF
 #define EMBEDDEDPERL 1
 _ACEOF
@@ -6253,36 +6281,20 @@ _ACEOF
 	echo "creating base/perlxsi.c"
 	perl -MExtUtils::Embed -e xsinit -- -o base/perlxsi.c
 
-fi;
+	echo "Embedded Perl interpreter will be compiled in..."
 
-PERLCACHE=no;
-
-# Check whether --with-perlcache or --without-perlcache was given.
-if test "${with_perlcache+set}" = set; then
-  withval="$with_perlcache"
-
-	cat >>confdefs.h <<\_ACEOF
+		if test x$PERLCACHE = xyes; then
+		cat >>confdefs.h <<\_ACEOF
 #define DO_CLEAN "0"
 _ACEOF
 
-	PERLCACHE=yes;
-
-
-else
-
-	cat >>confdefs.h <<\_ACEOF
+		PERLCACHE=yes;
+		echo "Internally compiled Perl scripts will be cached..."
+	else
+		cat >>confdefs.h <<\_ACEOF
 #define DO_CLEAN "1"
 _ACEOF
 
-	PERLCACHE=no;
-
-fi;
-
-if test x$USEPERL = xyes; then
-	echo "Embedded Perl interpreter will be compiled in..."
-	if test x$PERLCACHE = xyes; then
-		echo "Internally compiled Perl scripts will be cached..."
-	else
 		echo "Internally compiled Perl scripts will NOT be cached..."
 	fi
 fi
@@ -6300,15 +6312,19 @@ fi
 
 nagios_name=nagios
 nagiostats_name=nagiostats
+cygwin=no
 # Check whether --enable-cygwin or --disable-cygwin was given.
 if test "${enable_cygwin+set}" = set; then
   enableval="$enable_cygwin"
 
+	cygwin=$enableval
+
+fi;
+if test x$cygwin = xyes; then
 	CFLAGS="${CFLAGS} -DCYGWIN"
 	nagios_name=nagios.exe;
 	nagiostats_name=nagiostats.exe;
-
-fi;
+fi
 
 
 

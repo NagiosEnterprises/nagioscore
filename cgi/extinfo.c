@@ -2,8 +2,8 @@
  *
  * EXTINFO.C -  Nagios Extended Information CGI
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-09-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-01-2007
  *
  * License:
  * 
@@ -53,6 +53,9 @@ extern int              obsess_over_hosts;
 extern int              enable_flap_detection;
 extern int              enable_failure_prediction;
 extern int              process_performance_data;
+
+extern int              buffer_stats[2][3];
+extern int              program_stats[MAX_CHECK_STATS_TYPES][3];
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];
@@ -2136,13 +2139,13 @@ void show_performance_data(void){
 
 	printf("<DIV CLASS='dataTitle'>Program-Wide Performance Information</DIV>\n");
 
-	printf("<table border=0 cellpadding=10>\n");
+	printf("<table border='0' cellpadding='10'>\n");
 
 
 	/***** ACTIVE SERVICE CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Active Service Checks:</div></td>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Services Actively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 
 	/* fake this so we don't divide by zero for just showing the table */
@@ -2153,7 +2156,7 @@ void show_performance_data(void){
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
-	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
+	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Services Checked</th></tr>\n");
 	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_service_checks_1min,(double)(((double)active_service_checks_1min*100.0)/(double)total_active_service_checks));
 	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_service_checks_5min,(double)(((double)active_service_checks_5min*100.0)/(double)total_active_service_checks));
 	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_service_checks_15min,(double)(((double)active_service_checks_15min*100.0)/(double)total_active_service_checks));
@@ -2190,7 +2193,7 @@ void show_performance_data(void){
 	/***** PASSIVE SERVICE CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Passive Service Checks:</div></td>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Services Passively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 	
 
@@ -2202,7 +2205,7 @@ void show_performance_data(void){
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
-	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
+	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Services Checked</th></tr>\n");
 	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_service_checks_1min,(double)(((double)passive_service_checks_1min*100.0)/(double)total_passive_service_checks));
 	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_service_checks_5min,(double)(((double)passive_service_checks_5min*100.0)/(double)total_passive_service_checks));
 	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_service_checks_15min,(double)(((double)passive_service_checks_15min*100.0)/(double)total_passive_service_checks));
@@ -2233,7 +2236,7 @@ void show_performance_data(void){
 	/***** ACTIVE HOST CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Active Host Checks:</div></td>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Hosts Actively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 
 	/* fake this so we don't divide by zero for just showing the table */
@@ -2244,7 +2247,7 @@ void show_performance_data(void){
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
-	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
+	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Hosts Checked</th></tr>\n");
 	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_host_checks_1min,(double)(((double)active_host_checks_1min*100.0)/(double)total_active_host_checks));
 	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_host_checks_5min,(double)(((double)active_host_checks_5min*100.0)/(double)total_active_host_checks));
 	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",active_host_checks_15min,(double)(((double)active_host_checks_15min*100.0)/(double)total_active_host_checks));
@@ -2281,7 +2284,7 @@ void show_performance_data(void){
 	/***** PASSIVE HOST CHECKS *****/
 
 	printf("<tr>\n");
-	printf("<td valign=center><div class='perfTypeTitle'>Passive Host Checks:</div></td>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Hosts Passively Checked:</div></td>\n");
 	printf("<td valign=top>\n");
 	
 
@@ -2293,7 +2296,7 @@ void show_performance_data(void){
 	printf("<TR><TD class='stateInfoTable1'>\n");
 	printf("<TABLE BORDER=0>\n");
 
-	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Checks Completed</th></tr>\n");
+	printf("<tr class='data'><th class='data'>Time Frame</th><th class='data'>Hosts Checked</th></tr>\n");
 	printf("<tr><td class='dataVar'>&lt;= 1 minute:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_host_checks_1min,(double)(((double)passive_host_checks_1min*100.0)/(double)total_passive_host_checks));
 	printf("<tr><td class='dataVar'>&lt;= 5 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_host_checks_5min,(double)(((double)passive_host_checks_5min*100.0)/(double)total_passive_host_checks));
 	printf("<tr><td class='dataVar'>&lt;= 15 minutes:</td><td class='dataVal'>%d (%.1f%%)</td></tr>",passive_host_checks_15min,(double)(((double)passive_host_checks_15min*100.0)/(double)total_passive_host_checks));
@@ -2319,6 +2322,64 @@ void show_performance_data(void){
 
 	printf("</td>\n");
 	printf("</tr>\n");
+
+
+
+	/***** CHECK STATS *****/
+
+	printf("<tr>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Check Statistics:</div></td>\n");
+	printf("<td valign=top colspan='2'>\n");
+	
+
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable1'>\n");
+	printf("<TABLE BORDER=0>\n");
+
+	printf("<tr class='data'><th class='data'>Type</th><th class='data'>Last 1 Min</th><th class='data'>Last 5 Min</th><th class='data'>Last 15 Min</th></tr>\n");
+	printf("<tr><td class='dataVar'>Active Scheduled Host Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[ACTIVE_SCHEDULED_HOST_CHECK_STATS][0],program_stats[ACTIVE_SCHEDULED_HOST_CHECK_STATS][1],program_stats[ACTIVE_SCHEDULED_HOST_CHECK_STATS][2]);
+	printf("<tr><td class='dataVar'>Active On-Demand Host Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[ACTIVE_ONDEMAND_HOST_CHECK_STATS][0],program_stats[ACTIVE_ONDEMAND_HOST_CHECK_STATS][1],program_stats[ACTIVE_ONDEMAND_HOST_CHECK_STATS][2]);
+	printf("<tr><td class='dataVar'>Cached Host Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[ACTIVE_CACHED_HOST_CHECK_STATS][0],program_stats[ACTIVE_CACHED_HOST_CHECK_STATS][1],program_stats[ACTIVE_CACHED_HOST_CHECK_STATS][2]);
+	printf("<tr><td class='dataVar'>Passive Host Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[PASSIVE_HOST_CHECK_STATS][0],program_stats[PASSIVE_HOST_CHECK_STATS][1],program_stats[PASSIVE_HOST_CHECK_STATS][2]);
+
+	printf("<tr><td class='dataVar'>Active Scheduled Service Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS][0],program_stats[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS][1],program_stats[ACTIVE_SCHEDULED_SERVICE_CHECK_STATS][2]);
+	printf("<tr><td class='dataVar'>Active On-Demand Service Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS][0],program_stats[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS][1],program_stats[ACTIVE_ONDEMAND_SERVICE_CHECK_STATS][2]);
+	printf("<tr><td class='dataVar'>Cached Service Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[ACTIVE_CACHED_SERVICE_CHECK_STATS][0],program_stats[ACTIVE_CACHED_SERVICE_CHECK_STATS][1],program_stats[ACTIVE_CACHED_SERVICE_CHECK_STATS][2]);
+	printf("<tr><td class='dataVar'>Passive Service Checks</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[PASSIVE_SERVICE_CHECK_STATS][0],program_stats[PASSIVE_SERVICE_CHECK_STATS][1],program_stats[PASSIVE_SERVICE_CHECK_STATS][2]);
+
+	printf("<tr><td class='dataVar'>External Commands</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",program_stats[EXTERNAL_COMMAND_STATS][0],program_stats[EXTERNAL_COMMAND_STATS][1],program_stats[EXTERNAL_COMMAND_STATS][2]);
+
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
+
+	printf("</td>\n");
+	printf("</tr>\n");
+
+
+
+	/***** BUFFER STATS *****/
+
+	printf("<tr>\n");
+	printf("<td valign=center><div class='perfTypeTitle'>Buffer Usage:</div></td>\n");
+	printf("<td valign=top colspan='2'>\n");
+	
+
+	printf("<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>\n");
+	printf("<TR><TD class='stateInfoTable1'>\n");
+	printf("<TABLE BORDER=0>\n");
+
+	printf("<tr class='data'><th class='data'>Type</th><th class='data'>In Use</th><th class='data'>Max Used</th><th class='data'>Total Available</th></tr>\n");
+	printf("<tr><td class='dataVar'>Check Results</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",buffer_stats[1][1],buffer_stats[1][2],buffer_stats[1][0]);
+	printf("<tr><td class='dataVar'>External Commands&nbsp;</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",buffer_stats[0][1],buffer_stats[0][2],buffer_stats[0][0]);
+
+	printf("</TABLE>\n");
+	printf("</TD></TR>\n");
+	printf("</TABLE>\n");
+
+	printf("</td>\n");
+	printf("</tr>\n");
+
 
 
 	printf("</table>\n");

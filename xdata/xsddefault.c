@@ -65,6 +65,8 @@ int enable_flap_detection;
 int enable_failure_prediction;
 int process_performance_data;
 int nagios_pid;
+int buffer_stats[2][3];
+int program_stats[MAX_CHECK_STATS_TYPES][3];
 #endif
 
 #ifdef NSCORE
@@ -692,6 +694,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 	servicestatus *temp_servicestatus=NULL;
 	char *var=NULL;
 	char *val=NULL;
+	char *ptr=NULL;
 	int result=0;
 	/* comment and downtime vars */
 	unsigned long comment_id=0;
@@ -711,7 +714,15 @@ int xsddefault_read_status_data(char *config_file,int options){
 	int fixed=FALSE;
 	unsigned long triggered_by=0;
 	unsigned long duration=0L;
+	int x=0;
 
+
+	/* initialize some vars */
+	for(x=0;x<MAX_CHECK_STATS_TYPES;x++){
+		program_stats[x][0]=0;
+		program_stats[x][1]=0;
+		program_stats[x][2]=0;
+		}
 
 	/* grab configuration data */
 	result=xsddefault_grab_config_info(config_file);
@@ -917,6 +928,54 @@ int xsddefault_read_status_data(char *config_file,int options){
 					enable_failure_prediction=(atoi(val)>0)?TRUE:FALSE;
 				else if(!strcmp(var,"process_performance_data"))
 					process_performance_data=(atoi(val)>0)?TRUE:FALSE;
+
+				else if (!strcmp(var,"total_external_command_buffer_slots"))
+					buffer_stats[0][0]=atoi(val);
+				else if (!strcmp(var,"used_external_command_buffer_slots"))
+					buffer_stats[0][1]=atoi(val);
+				else if (!strcmp(var,"high_external_command_buffer_slots"))
+					buffer_stats[0][2]=atoi(val);
+				else if (!strcmp(var,"total_check_result_buffer_slots"))
+					buffer_stats[1][0]=atoi(val);
+				else if (!strcmp(var,"used_check_result_buffer_slots"))
+					buffer_stats[1][1]=atoi(val);
+				else if (!strcmp(var,"high_check_result_buffer_slots"))
+					buffer_stats[1][2]=atoi(val);
+
+
+				else if (strstr(var,"_stats")){
+
+					x=-1;
+					if(!strcmp(var,"active_scheduled_host_check_stats"))
+						x=ACTIVE_SCHEDULED_HOST_CHECK_STATS;
+					if(!strcmp(var,"active_ondemand_host_check_stats"))
+						x=ACTIVE_ONDEMAND_HOST_CHECK_STATS;
+					if(!strcmp(var,"passive_host_check_stats"))
+						x=PASSIVE_HOST_CHECK_STATS;
+					if(!strcmp(var,"active_scheduled_service_check_stats"))
+						x=ACTIVE_SCHEDULED_SERVICE_CHECK_STATS;
+					if(!strcmp(var,"active_ondemand_service_check_stats"))
+						x=ACTIVE_ONDEMAND_SERVICE_CHECK_STATS;
+					if(!strcmp(var,"passive_service_check_stats"))
+						x=PASSIVE_SERVICE_CHECK_STATS;
+					if(!strcmp(var,"cached_host_check_stats"))
+						x=ACTIVE_CACHED_HOST_CHECK_STATS;
+					if(!strcmp(var,"cached_service_check_stats"))
+						x=ACTIVE_CACHED_SERVICE_CHECK_STATS;
+					if(!strcmp(var,"external_command_stats"))
+						x=EXTERNAL_COMMAND_STATS;
+
+					if(x>=0){
+						if((ptr=strtok(val,","))){
+							program_stats[x][0]=atoi(ptr);
+							if((ptr=strtok(NULL,","))){
+								program_stats[x][1]=atoi(ptr);
+								if((ptr=strtok(NULL,"\n")))
+									program_stats[x][2]=atoi(ptr);
+								}
+							}
+						}
+					}
 				break;
 
 			case XSDDEFAULT_HOSTSTATUS_DATA:

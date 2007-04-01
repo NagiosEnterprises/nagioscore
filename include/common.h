@@ -2,7 +2,7 @@
  *
  * Nagios Common Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-26-2006
+ * Last Modified: 04-01-2007
  *
  * License:
  *
@@ -345,6 +345,21 @@
 
 #define LOG_VERSION_1           "1.0"
 #define LOG_VERSION_2           "2.0"
+
+
+
+/*************************** CHECK STATISTICS ****************************/
+
+#define ACTIVE_SCHEDULED_SERVICE_CHECK_STATS 0
+#define ACTIVE_ONDEMAND_SERVICE_CHECK_STATS  1
+#define PASSIVE_SERVICE_CHECK_STATS          2
+#define ACTIVE_SCHEDULED_HOST_CHECK_STATS    3
+#define ACTIVE_ONDEMAND_HOST_CHECK_STATS     4
+#define PASSIVE_HOST_CHECK_STATS             5
+#define ACTIVE_CACHED_HOST_CHECK_STATS       6
+#define ACTIVE_CACHED_SERVICE_CHECK_STATS    7
+#define EXTERNAL_COMMAND_STATS               8
+#define MAX_CHECK_STATS_TYPES                9
 
 
 /************************* GENERAL DEFINITIONS  **************************/

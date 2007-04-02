@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-02-2007
+ * Last Modified: 04-02-2007
  *
  * License:
  *
@@ -1821,6 +1821,100 @@ void print_extra_service_url(char *host_name, char *svc_description, char *url){
 	return;
         }
 
+
+/* prints the additional notes or action url for a hostgroup (with macros substituted) */
+void print_extra_hostgroup_url(char *group_name, char *url){
+	char input_buffer[MAX_INPUT_BUFFER]="";
+	char output_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer;
+	int in_macro=FALSE;
+	hostgroup *temp_hostgroup=NULL;
+
+	if(group_name==NULL || url==NULL)
+		return;
+
+	temp_hostgroup=find_hostgroup(group_name);
+	if(temp_hostgroup==NULL){
+		printf("%s",url);
+		return;
+	        }
+
+	strncpy(input_buffer,url,sizeof(input_buffer)-1);
+	output_buffer[sizeof(input_buffer)-1]='\x0';
+
+	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
+
+		if(in_macro==FALSE){
+			if(strlen(output_buffer)+strlen(temp_buffer)<sizeof(output_buffer)-1){
+				strncat(output_buffer,temp_buffer,sizeof(output_buffer)-strlen(output_buffer)-1);
+				output_buffer[sizeof(output_buffer)-1]='\x0';
+			        }
+			in_macro=TRUE;
+			}
+		else{
+
+			if(strlen(output_buffer)+strlen(temp_buffer) < sizeof(output_buffer)-1){
+
+				if(!strcmp(temp_buffer,"HOSTGROUPNAME"))
+					strncat(output_buffer,url_encode(temp_hostgroup->group_name),sizeof(output_buffer)-strlen(output_buffer)-1);
+			        }
+
+			in_macro=FALSE;
+		        }
+	        }
+
+	printf("%s",output_buffer);
+
+	return;
+        }
+
+
+
+/* prints the additional notes or action url for a servicegroup (with macros substituted) */
+void print_extra_servicegroup_url(char *group_name, char *url){
+	char input_buffer[MAX_INPUT_BUFFER]="";
+	char output_buffer[MAX_INPUT_BUFFER]="";
+	char *temp_buffer;
+	int in_macro=FALSE;
+	servicegroup *temp_servicegroup=NULL;
+
+	if(group_name==NULL || url==NULL)
+		return;
+
+	temp_servicegroup=find_servicegroup(group_name);
+	if(temp_servicegroup==NULL){
+		printf("%s",url);
+		return;
+	        }
+
+	strncpy(input_buffer,url,sizeof(input_buffer)-1);
+	output_buffer[sizeof(input_buffer)-1]='\x0';
+
+	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
+
+		if(in_macro==FALSE){
+			if(strlen(output_buffer)+strlen(temp_buffer)<sizeof(output_buffer)-1){
+				strncat(output_buffer,temp_buffer,sizeof(output_buffer)-strlen(output_buffer)-1);
+				output_buffer[sizeof(output_buffer)-1]='\x0';
+			        }
+			in_macro=TRUE;
+			}
+		else{
+
+			if(strlen(output_buffer)+strlen(temp_buffer) < sizeof(output_buffer)-1){
+
+				if(!strcmp(temp_buffer,"SERVICEGROUPNAME"))
+					strncat(output_buffer,url_encode(temp_servicegroup->group_name),sizeof(output_buffer)-strlen(output_buffer)-1);
+			        }
+
+			in_macro=FALSE;
+		        }
+	        }
+
+	printf("%s",output_buffer);
+
+	return;
+        }
 
 
 

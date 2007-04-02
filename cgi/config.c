@@ -2,8 +2,8 @@
  *
  * CONFIG.C - Nagios Configuration CGI (View Only)
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 07-18-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-02-2007
  *
  * This CGI program will display various configuration information.
  *
@@ -727,6 +727,9 @@ void display_hostgroups(void){
 	printf("<TH CLASS='data'>Group Name</TH>");
 	printf("<TH CLASS='data'>Description</TH>");
 	printf("<TH CLASS='data'>Host Members</TH>");
+	printf("<TH CLASS='data'>Notes</TH>");
+	printf("<TH CLASS='data'>Notes URL</TH>");
+	printf("<TH CLASS='data'>Action URL</TH>");
 	printf("</TR>\n");
 
 	/* check all the hostgroups... */
@@ -757,6 +760,12 @@ void display_hostgroups(void){
 			printf("<A HREF='%s?type=hosts#%s'>%s</A>\n",CONFIG_CGI,url_encode(temp_hostgroupmember->host_name),temp_hostgroupmember->host_name);
 		        }
 		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->notes==NULL)?"&nbsp;":temp_hostgroup->notes);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->notes_url==NULL)?"&nbsp;":temp_hostgroup->notes_url);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_hostgroup->action_url==NULL)?"&nbsp;":temp_hostgroup->action_url);
 
 		printf("</TR>\n");
 	        }
@@ -792,6 +801,9 @@ void display_servicegroups(void){
 	printf("<TH CLASS='data'>Group Name</TH>");
 	printf("<TH CLASS='data'>Description</TH>");
 	printf("<TH CLASS='data'>Service Members</TH>");
+	printf("<TH CLASS='data'>Notes</TH>");
+	printf("<TH CLASS='data'>Notes URL</TH>");
+	printf("<TH CLASS='data'>Action URL</TH>");
 	printf("</TR>\n");
 
 	/* check all the servicegroups... */
@@ -824,6 +836,12 @@ void display_servicegroups(void){
 		        }
 
 		printf("</TD>\n");
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->notes==NULL)?"&nbsp;":temp_servicegroup->notes);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->notes_url==NULL)?"&nbsp;":temp_servicegroup->notes_url);
+
+		printf("<TD CLASS='%s'>%s</TD>",bg_class,(temp_servicegroup->action_url==NULL)?"&nbsp;":temp_servicegroup->action_url);
 
 		printf("</TR>\n");
 	        }

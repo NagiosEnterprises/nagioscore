@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-10-2007
+ * Last Modified:   04-02-2007
  *
  * License:
  *
@@ -301,9 +301,15 @@ typedef struct xodtemplate_hostgroup_struct{
 	char      *alias;
 	char      *members;
 	char      *hostgroup_members;
+	char      *notes;
+	char      *notes_url;
+	char      *action_url;
 
 	int       have_members;
 	int       have_hostgroup_members;
+	int       have_notes;
+	int       have_notes_url;
+	int       have_action_url;
 
 	int       has_been_resolved;
 	int       register_object;
@@ -433,9 +439,15 @@ typedef struct xodtemplate_servicegroup_struct{
 	char      *alias;
 	char      *members;
 	char      *servicegroup_members;
+	char      *notes;
+	char      *notes_url;
+	char      *action_url;
 
 	int       have_members;
 	int       have_servicegroup_members;
+	int       have_notes;
+	int       have_notes_url;
+	int       have_action_url;
 
 	int       has_been_resolved;
 	int       register_object;

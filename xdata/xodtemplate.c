@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-19-2007
+ * Last Modified: 04-02-2007
  *
  * Description:
  *
@@ -1165,9 +1165,15 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_hostgroup->hostgroup_name=NULL;
 		new_hostgroup->alias=NULL;
 		new_hostgroup->members=NULL;
+		new_hostgroup->notes=NULL;
+		new_hostgroup->notes_url=NULL;
+		new_hostgroup->action_url=NULL;
 		new_hostgroup->have_members=FALSE;
 		new_hostgroup->hostgroup_members=NULL;
 		new_hostgroup->have_hostgroup_members=FALSE;
+		new_hostgroup->have_notes=FALSE;
+		new_hostgroup->have_notes_url=FALSE;
+		new_hostgroup->have_action_url=FALSE;
 		new_hostgroup->has_been_resolved=FALSE;
 		new_hostgroup->register_object=TRUE;
 
@@ -1199,9 +1205,15 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_servicegroup->servicegroup_name=NULL;
 		new_servicegroup->alias=NULL;
 		new_servicegroup->members=NULL;
+		new_servicegroup->notes=NULL;
+		new_servicegroup->notes_url=NULL;
+		new_servicegroup->action_url=NULL;
 		new_servicegroup->have_members=FALSE;
 		new_servicegroup->servicegroup_members=NULL;
 		new_servicegroup->have_servicegroup_members=FALSE;
+		new_servicegroup->have_notes=FALSE;
+		new_servicegroup->have_notes_url=FALSE;
+		new_servicegroup->have_action_url=FALSE;
 		new_servicegroup->has_been_resolved=FALSE;
 		new_servicegroup->register_object=TRUE;
 
@@ -2217,6 +2229,27 @@ int xodtemplate_add_object_property(char *input, int options){
 			        }
 			temp_hostgroup->have_hostgroup_members=TRUE;
 		        }
+		else if(!strcmp(variable,"notes")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_hostgroup->notes=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_hostgroup->have_notes=TRUE;
+		        }
+		else if(!strcmp(variable,"notes_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_hostgroup->notes_url=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_hostgroup->have_notes_url=TRUE;
+		        }
+		else if(!strcmp(variable,"action_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_hostgroup->action_url=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_hostgroup->have_action_url=TRUE;
+		        }
 		else if(!strcmp(variable,"register"))
 			temp_hostgroup->register_object=(atoi(value)>0)?TRUE:FALSE;
 		else{
@@ -2292,6 +2325,27 @@ int xodtemplate_add_object_property(char *input, int options){
 					result=ERROR;
 			        }
 			temp_servicegroup->have_servicegroup_members=TRUE;
+		        }
+		else if(!strcmp(variable,"notes")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_servicegroup->notes=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_servicegroup->have_notes=TRUE;
+		        }
+		else if(!strcmp(variable,"notes_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_servicegroup->notes_url=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_servicegroup->have_notes_url=TRUE;
+		        }
+		else if(!strcmp(variable,"action_url")){
+			if(strcmp(value,XODTEMPLATE_NULL)){
+				if((temp_servicegroup->action_url=(char *)strdup(value))==NULL)
+					result=ERROR;
+			        }
+			temp_servicegroup->have_action_url=TRUE;
 		        }
 		else if(!strcmp(variable,"register"))
 			temp_servicegroup->register_object=(atoi(value)>0)?TRUE:FALSE;
@@ -6471,6 +6525,22 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 
 		xodtemplate_get_inherited_string(&template_hostgroup->have_members,&template_hostgroup->members,&this_hostgroup->have_members,&this_hostgroup->members);
 		xodtemplate_get_inherited_string(&template_hostgroup->have_hostgroup_members,&template_hostgroup->hostgroup_members,&this_hostgroup->have_hostgroup_members,&this_hostgroup->hostgroup_members);
+
+		if(this_hostgroup->have_notes==FALSE && template_hostgroup->have_notes==TRUE){
+			if(this_hostgroup->notes==NULL && template_hostgroup->notes!=NULL)
+				this_hostgroup->notes=(char *)strdup(template_hostgroup->notes);
+			this_hostgroup->have_notes=TRUE;
+		        }
+		if(this_hostgroup->have_notes_url==FALSE && template_hostgroup->have_notes_url==TRUE){
+			if(this_hostgroup->notes_url==NULL && template_hostgroup->notes_url!=NULL)
+				this_hostgroup->notes_url=(char *)strdup(template_hostgroup->notes_url);
+			this_hostgroup->have_notes_url=TRUE;
+		        }
+		if(this_hostgroup->have_action_url==FALSE && template_hostgroup->have_action_url==TRUE){
+			if(this_hostgroup->action_url==NULL && template_hostgroup->action_url!=NULL)
+				this_hostgroup->action_url=(char *)strdup(template_hostgroup->action_url);
+			this_hostgroup->have_action_url=TRUE;
+		        }
 	        }
 
 	my_free((void **)&template_names);
@@ -6539,6 +6609,22 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 
 		xodtemplate_get_inherited_string(&template_servicegroup->have_members,&template_servicegroup->members,&this_servicegroup->have_members,&this_servicegroup->members);
 		xodtemplate_get_inherited_string(&template_servicegroup->have_servicegroup_members,&template_servicegroup->servicegroup_members,&this_servicegroup->have_servicegroup_members,&this_servicegroup->servicegroup_members);
+
+		if(this_servicegroup->have_notes==FALSE && template_servicegroup->have_notes==TRUE){
+			if(this_servicegroup->notes==NULL && template_servicegroup->notes!=NULL)
+				this_servicegroup->notes=(char *)strdup(template_servicegroup->notes);
+			this_servicegroup->have_notes=TRUE;
+		        }
+		if(this_servicegroup->have_notes_url==FALSE && template_servicegroup->have_notes_url==TRUE){
+			if(this_servicegroup->notes_url==NULL && template_servicegroup->notes_url!=NULL)
+				this_servicegroup->notes_url=(char *)strdup(template_servicegroup->notes_url);
+			this_servicegroup->have_notes_url=TRUE;
+		        }
+		if(this_servicegroup->have_action_url==FALSE && template_servicegroup->have_action_url==TRUE){
+			if(this_servicegroup->action_url==NULL && template_servicegroup->action_url!=NULL)
+				this_servicegroup->action_url=(char *)strdup(template_servicegroup->action_url);
+			this_servicegroup->have_action_url=TRUE;
+		        }
 	        }
 
 	my_free((void **)&template_names);
@@ -9208,7 +9294,7 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		return OK;
 
 	/* add the  host group */
-	new_hostgroup=add_hostgroup(this_hostgroup->hostgroup_name,this_hostgroup->alias);
+	new_hostgroup=add_hostgroup(this_hostgroup->hostgroup_name,this_hostgroup->alias,this_hostgroup->notes,this_hostgroup->notes_url,this_hostgroup->action_url);
 
 	/* return with an error if we couldn't add the hostgroup */
 	if(new_hostgroup==NULL){
@@ -9270,7 +9356,7 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		return OK;
 
 	/* add the  service group */
-	new_servicegroup=add_servicegroup(this_servicegroup->servicegroup_name,this_servicegroup->alias);
+	new_servicegroup=add_servicegroup(this_servicegroup->servicegroup_name,this_servicegroup->alias,this_servicegroup->notes,this_servicegroup->notes_url,this_servicegroup->action_url);
 
 	/* return with an error if we couldn't add the servicegroup */
 	if(new_servicegroup==NULL){
@@ -11075,6 +11161,12 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\talias\t%s\n",temp_hostgroup->alias);
 		if(temp_hostgroup->members)
 			fprintf(fp,"\tmembers\t%s\n",temp_hostgroup->members);
+		if(temp_hostgroup->notes)
+			fprintf(fp,"\tnotes\t%s\n",temp_hostgroup->notes);
+		if(temp_hostgroup->notes_url)
+			fprintf(fp,"\tnotes_url\t%s\n",temp_hostgroup->notes_url);
+		if(temp_hostgroup->action_url)
+			fprintf(fp,"\taction_url\t%s\n",temp_hostgroup->action_url);
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -11089,6 +11181,12 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\talias\t%s\n",temp_servicegroup->alias);
 		if(temp_servicegroup->members)
 			fprintf(fp,"\tmembers\t%s\n",temp_servicegroup->members);
+		if(temp_servicegroup->notes)
+			fprintf(fp,"\tnotes\t%s\n",temp_servicegroup->notes);
+		if(temp_servicegroup->notes_url)
+			fprintf(fp,"\tnotes_url\t%s\n",temp_servicegroup->notes_url);
+		if(temp_servicegroup->action_url)
+			fprintf(fp,"\taction_url\t%s\n",temp_servicegroup->action_url);
 		fprintf(fp,"\t}\n\n");
 	        }
 
@@ -11661,6 +11759,9 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_hostgroup->alias);
 		my_free((void **)&this_hostgroup->members);
 		my_free((void **)&this_hostgroup->hostgroup_members);
+		my_free((void **)&this_hostgroup->notes);
+		my_free((void **)&this_hostgroup->notes_url);
+		my_free((void **)&this_hostgroup->action_url);
 		my_free((void **)&this_hostgroup);
 	        }
 	xodtemplate_hostgroup_list=NULL;
@@ -11674,6 +11775,9 @@ int xodtemplate_free_memory(void){
 		my_free((void **)&this_servicegroup->alias);
 		my_free((void **)&this_servicegroup->members);
 		my_free((void **)&this_servicegroup->servicegroup_members);
+		my_free((void **)&this_servicegroup->notes);
+		my_free((void **)&this_servicegroup->notes_url);
+		my_free((void **)&this_servicegroup->action_url);
 		my_free((void **)&this_servicegroup);
 	        }
 	xodtemplate_servicegroup_list=NULL;

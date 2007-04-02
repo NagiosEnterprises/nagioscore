@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-01-2007
+ * Last Modified: 04-02-2007
  *
  * License:
  * 
@@ -346,11 +346,15 @@ int main(void){
 				printf("<DIV CLASS='data'>Hostgroup</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_hostgroup->alias);
 				printf("<DIV CLASS='dataTitle'>(%s)</DIV>\n",temp_hostgroup->group_name);
+				if(temp_hostgroup->notes!=NULL)
+					printf("<p>%s</p>\n",temp_hostgroup->notes);
 			        }
 			if(display_type==DISPLAY_SERVICEGROUP_INFO){
 				printf("<DIV CLASS='data'>Servicegroup</DIV>\n");
 				printf("<DIV CLASS='dataTitle'>%s</DIV>\n",temp_servicegroup->alias);
 				printf("<DIV CLASS='dataTitle'>(%s)</DIV>\n",temp_servicegroup->group_name);
+				if(temp_servicegroup->notes!=NULL)
+					printf("<p>%s</p>\n",temp_servicegroup->notes);
 			        }
 
 			if(display_type==DISPLAY_SERVICE_INFO){
@@ -417,6 +421,44 @@ int main(void){
 				print_extra_service_url(temp_service->host_name,temp_service->description,temp_service->notes_url);
 				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Service' title='View Additional Notes For This Service'></A>\n",url_images_path,NOTES_ICON);
 				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Service Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+			        }
+			printf("</TABLE>\n");
+	                }
+
+		if(display_type==DISPLAY_HOSTGROUP_INFO){
+			printf("<TABLE BORDER='0'>\n");
+			if(temp_hostgroup->action_url!=NULL && strcmp(temp_hostgroup->action_url,"")){
+				printf("<TR><TD ALIGN='right'>\n");
+				printf("<A HREF='");
+				print_extra_hostgroup_url(temp_hostgroup->group_name,temp_hostgroup->action_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Hostgroup' title='Perform Additional Actions On This Hostgroup'></A>\n",url_images_path,ACTION_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Hostgroup Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+				printf("</TD></TR>\n");
+			        }
+			if(temp_hostgroup->notes_url!=NULL && strcmp(temp_hostgroup->notes_url,"")){
+				printf("<TR><TD ALIGN='right'>\n");
+				printf("<A HREF='");
+				print_extra_hostgroup_url(temp_hostgroup->group_name,temp_hostgroup->notes_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Hostgroup' title='View Additional Notes For This Hostgroup'></A>\n",url_images_path,NOTES_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Hostgroup Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+				printf("</TD></TR>\n");
+			        }
+			printf("</TABLE>\n");
+	                }
+
+		else if(display_type==DISPLAY_SERVICEGROUP_INFO){
+			printf("<TABLE BORDER='0'>\n");
+			if(temp_servicegroup->action_url!=NULL && strcmp(temp_servicegroup->action_url,"")){
+				printf("<A HREF='");
+				print_extra_servicegroup_url(temp_servicegroup->group_name,temp_servicegroup->action_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='Perform Additional Actions On This Servicegroup' title='Perform Additional Actions On This Servicegroup'></A>\n",url_images_path,ACTION_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Servicegroup Actions</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
+			        }
+			if(temp_servicegroup->notes_url!=NULL && strcmp(temp_servicegroup->notes_url,"")){
+				printf("<A HREF='");
+				print_extra_servicegroup_url(temp_servicegroup->group_name,temp_servicegroup->notes_url);
+				printf("' TARGET='_blank'><img src='%s%s' border=0 alt='View Additional Notes For This Servicegroup' title='View Additional Notes For This Servicegroup'></A>\n",url_images_path,NOTES_ICON);
+				printf("<BR CLEAR=ALL><FONT SIZE=-1><I>Extra Servicegroup Notes</I></FONT><BR CLEAR=ALL><BR CLEAR=ALL>\n");
 			        }
 			printf("</TABLE>\n");
 	                }

@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-19-2007
+ * Last Modified: 04-02-2007
  *
  * License:
  *
@@ -1272,7 +1272,7 @@ customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, cha
 
 
 /* add a new host group to the list in memory */
-hostgroup *add_hostgroup(char *name,char *alias){
+hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, char *action_url){
 	hostgroup *new_hostgroup=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -1311,6 +1311,9 @@ hostgroup *add_hostgroup(char *name,char *alias){
 	new_hostgroup->group_name=NULL;
 	new_hostgroup->alias=NULL;
 	new_hostgroup->members=NULL;
+	new_hostgroup->notes=NULL;
+	new_hostgroup->notes_url=NULL;
+	new_hostgroup->action_url=NULL;
 	new_hostgroup->next=NULL;
 	new_hostgroup->nexthash=NULL;
 
@@ -1319,6 +1322,18 @@ hostgroup *add_hostgroup(char *name,char *alias){
 		result=ERROR;
 	if((new_hostgroup->alias=(char *)strdup(alias))==NULL)
 		result=ERROR;
+	if(notes){
+		if((new_hostgroup->notes=(char *)strdup(notes))==NULL)
+			result=ERROR;
+		}
+	if(notes_url){
+		if((new_hostgroup->notes_url=(char *)strdup(notes_url))==NULL)
+			result=ERROR;
+		}
+	if(action_url){
+		if((new_hostgroup->action_url=(char *)strdup(action_url))==NULL)
+			result=ERROR;
+		}
 
 	/* add new hostgroup to hostgroup chained hash list */
 	if(result==OK){
@@ -1440,7 +1455,7 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 
 
 /* add a new service group to the list in memory */
-servicegroup *add_servicegroup(char *name,char *alias){
+servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes_url, char *action_url){
 	servicegroup *new_servicegroup=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -1479,6 +1494,9 @@ servicegroup *add_servicegroup(char *name,char *alias){
 	new_servicegroup->group_name=NULL;
 	new_servicegroup->alias=NULL;
 	new_servicegroup->members=NULL;
+	new_servicegroup->notes=NULL;
+	new_servicegroup->notes_url=NULL;
+	new_servicegroup->action_url=NULL;
 	new_servicegroup->next=NULL;
 	new_servicegroup->nexthash=NULL;
 
@@ -1487,6 +1505,18 @@ servicegroup *add_servicegroup(char *name,char *alias){
 		result=ERROR;
 	if((new_servicegroup->alias=(char *)strdup(alias))==NULL)
 		result=ERROR;
+	if(notes){
+		if((new_servicegroup->notes=(char *)strdup(notes))==NULL)
+			result=ERROR;
+		}
+	if(notes_url){
+		if((new_servicegroup->notes_url=(char *)strdup(notes_url))==NULL)
+			result=ERROR;
+		}
+	if(action_url){
+		if((new_servicegroup->action_url=(char *)strdup(action_url))==NULL)
+			result=ERROR;
+		}
 
 	/* add new servicegroup to servicegroup chained hash list */
 	if(result==OK){
@@ -4373,6 +4403,9 @@ int free_object_data(void){
 		next_hostgroup=this_hostgroup->next;
 		my_free((void **)&this_hostgroup->group_name);
 		my_free((void **)&this_hostgroup->alias);
+		my_free((void **)&this_hostgroup->notes);
+		my_free((void **)&this_hostgroup->notes_url);
+		my_free((void **)&this_hostgroup->action_url);
 		my_free((void **)&this_hostgroup);
 		this_hostgroup=next_hostgroup;
 		}
@@ -4403,6 +4436,9 @@ int free_object_data(void){
 		next_servicegroup=this_servicegroup->next;
 		my_free((void **)&this_servicegroup->group_name);
 		my_free((void **)&this_servicegroup->alias);
+		my_free((void **)&this_servicegroup->notes);
+		my_free((void **)&this_servicegroup->notes_url);
+		my_free((void **)&this_servicegroup->action_url);
 		my_free((void **)&this_servicegroup);
 		this_servicegroup=next_servicegroup;
 		}

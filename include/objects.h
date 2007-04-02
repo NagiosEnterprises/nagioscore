@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-06-2007
+ * Last Modified: 04-02-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        300     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        301     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -233,6 +233,9 @@ typedef struct hostgroup_struct{
 	char 	*group_name;
 	char    *alias;
 	hostgroupmember *members;
+	char    *notes;
+	char    *notes_url;
+	char    *action_url;
 	struct	hostgroup_struct *next;
 	struct	hostgroup_struct *nexthash;
 	}hostgroup;
@@ -375,6 +378,9 @@ typedef struct servicegroup_struct{
 	char 	*group_name;
 	char    *alias;
 	servicegroupmember *members;
+	char    *notes;
+	char    *notes_url;
+	char    *action_url;
 	struct	servicegroup_struct *next;
 	struct	servicegroup_struct *nexthash;
 	}servicegroup;
@@ -641,9 +647,9 @@ contactsmember *add_contact_to_host(host *,char *);                             
 customvariablesmember *add_custom_variable_to_host(host *,char *,char *);                               /* adds a custom variable to a host definition */
 timeperiod *add_timeperiod(char *,char *);								/* adds a timeperiod definition */
 timerange *add_timerange_to_timeperiod(timeperiod *,int,unsigned long,unsigned long);			/* adds a timerange to a timeperiod definition */
-hostgroup *add_hostgroup(char *,char *);								/* adds a hostgroup definition */
+hostgroup *add_hostgroup(char *,char *,char *,char *,char *);						/* adds a hostgroup definition */
 hostgroupmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
-servicegroup *add_servicegroup(char *,char *);                                                          /* adds a servicegroup definition */
+servicegroup *add_servicegroup(char *,char *,char *,char *,char *);                                     /* adds a servicegroup definition */
 servicegroupmember *add_service_to_servicegroup(servicegroup *,char *,char *);                          /* adds a service to a servicegroup definition */
 contactgroup *add_contactgroup(char *,char *);								/* adds a contactgroup definition */
 contactgroupmember *add_contact_to_contactgroup(contactgroup *,char *);					/* adds a contact to a contact group definition */

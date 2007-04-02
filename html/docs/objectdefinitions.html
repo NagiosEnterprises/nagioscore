@@ -479,6 +479,9 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
 <tr><td></td><td class="Required">members</td><td class="Required"><i>hosts</i></td></tr>
 <tr><td></td><td class="Optional">hostgroup_members</td><td class="Optional"><i>hostgroups</i></td></tr>
+<tr><td></td><td class="Optional">notes</td><td class="Optional"><i>note_string</i></td></tr>
+<tr><td></td><td class="Optional">notes_url</td><td class="Optional"><i>url</i></td></tr>
+<tr><td></td><td class="Optional">action_url</td><td class="Optional"><i>url</i></td></tr>
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
@@ -520,6 +523,24 @@ This is a list of the <i>short names</i> of <a href="#host">hosts</a> that shoul
 <td valign="top"><strong>hostgroup_members</strong>:</td>
 <td>
 This optional directive can be used to include hosts from other "sub" host groups in this host group.  Specify a comma-delimited list of short names of other host groups whose members should be included in this group.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>notes</strong>:</td>
+<td>
+This directive is used to define an optional string of notes pertaining to the host.  If you specify a note here, you will see the it in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified host).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>notes_url</strong>:</td>
+<td>
+This variable is used to define an optional URL that can be used to provide more information about the host group.  If you specify an URL, you will see a link that says "Extra Hostgroup Notes" in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified host group).  Any valid URL can be used.  If you plan on using relative paths, the base path will the the same as what is used to access the CGIs (i.e. <i>/cgi-bin/nagios/</i>).  This can be very useful if you want to make detailed information on the host group, emergency contact methods, etc. available to other support staff.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>action_url</strong>:</td>
+<td>
+This directive is used to define an optional URL that can be used to provide more actions to be performed on the host group.  If you specify an URL, you will see a link that says "Extra Hostgroup Actions" in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified host group).  Any valid URL can be used.  If you plan on using relative paths, the base path will the the same as what is used to access the CGIs (i.e. <i>/cgi-bin/nagios/</i>).
 </td>
 </tr>
 </table>
@@ -870,6 +891,9 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">alias</td><td class="Required"><i>alias</i></td></tr>
 <tr><td></td><td class="Required">members</td><td class="Required"><i>services</i></td></tr>
 <tr><td></td><td class="Optional">servicegroup_members</td><td class="Optional"><i>servicegroups</i></td></tr>
+<tr><td></td><td class="Optional">notes</td><td class="Optional"><i>note_string</i></td></tr>
+<tr><td></td><td class="Optional">notes_url</td><td class="Optional"><i>url</i></td></tr>
+<tr><td></td><td class="Optional">action_url</td><td class="Optional"><i>url</i></td></tr>
 
 <tr><td>&nbsp;&nbsp;&nbsp;</td><td colspan=2 class="Definition">}</td></tr>
 </table>
@@ -916,6 +940,24 @@ members=&lt;host1&gt;,&lt;service1&gt;,&lt;host2&gt;,&lt;service2&gt;,...,&lt;ho
 <td valign="top"><strong>servicegroup_members</strong>:</td>
 <td>
 This optional directive can be used to include services from other "sub" service groups in this service group.  Specify a comma-delimited list of short names of other service groups whose members should be included in this group.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>notes</strong>:</td>
+<td>
+This directive is used to define an optional string of notes pertaining to the service group.  If you specify a note here, you will see the it in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified service group).
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>notes_url</strong>:</td>
+<td>
+This directive is used to define an optional URL that can be used to provide more information about the service group.  If you specify an URL, you will see a link that says "Extra Servicegroup Notes" in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified service group).  Any valid URL can be used.  If you plan on using relative paths, the base path will the the same as what is used to access the CGIs (i.e. <i>/cgi-bin/nagios/</i>).  This can be very useful if you want to make detailed information on the service group, emergency contact methods, etc. available to other support staff.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>action_url</strong>:</td>
+<td>
+This directive is used to define an optional URL that can be used to provide more actions to be performed on the service group.  If you specify an URL, you will see a link that says "Extra Servicegroup Actions" in the <a href="cgis.html#extinfo_cgi">extended information</a> CGI (when you are viewing information about the specified service group).  Any valid URL can be used.  If you plan on using relative paths, the base path will the the same as what is used to access the CGIs (i.e. <i>/cgi-bin/nagios/</i>).
 </td>
 </tr>
 </table>

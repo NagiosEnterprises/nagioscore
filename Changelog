@@ -11,6 +11,7 @@ Nagios 3.x Change Log
 * Added detection of Apache conf.d directory and 'make install-webconf' functionality
 * Configure script option bug fixes for cygwin and embedded perl
 * Added buffer stats and check statistics to performance information in extinfo CGI
+* Hostgroup and servicegroup definitions now have notes, notes_url, and action_url directives
 * Documentation updates
 
 

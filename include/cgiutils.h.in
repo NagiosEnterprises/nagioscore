@@ -1,8 +1,8 @@
 /************************************************************************
  *
  * CGIUTILS.H - Header file for common CGI functions
- * Copyright (c) 1999-2006  Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-16-2006
+ * Copyright (c) 1999-2007  Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-02-2007
  *
  * License:
  * 
@@ -479,6 +479,8 @@ int determine_archive_to_use_from_time(time_t);
 
 void print_extra_host_url(char *,char *);
 void print_extra_service_url(char *,char *,char *);
+void print_extra_hostgroup_url(char *,char *);
+void print_extra_servicegroup_url(char *,char *);
 
 void display_info_table(char *,int,authdata *);
 void display_nav_table(char *,int);

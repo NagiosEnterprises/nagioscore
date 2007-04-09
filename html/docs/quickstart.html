@@ -232,12 +232,12 @@ vi /usr/local/nagios/etc/localhost.cfg
 </p>
 
 <p>
-Copy the sample web config file to the Apache conf.d directory.
+Install the Nagios web config file in the Apache conf.d directory.
 </p>
 
 <p>
 <pre>
-cp sample-config/httpd.conf /etc/httpd/conf.d/nagios.conf
+make install-webconf
 </pre>
 </p>
 
@@ -378,7 +378,21 @@ setenforce 0
 </p>
 
 <p>
-The Nagios CGIs should work now.  To make this change permanent, you'll have to modify <i>/etc/selinux/config</i>.  For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
+The Nagios CGIs should work now.  To make this change permanent, you'll have to modify <i>/etc/selinux/config</i>. 
+</p>
+
+<p>
+Instead of disabling SELinux or setting it to permissive mode, you can use the following command to run the CGIs under SELinux enforcing/targeted mode:
+</p>
+
+<p>
+<pre>
+chcon -R -t httpd_sys_content_t /usr/local/nagios
+</pre>
+</p>
+
+<p>
+For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
 </p>
 
 <p>

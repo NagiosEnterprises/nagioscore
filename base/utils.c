@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-31-2007
+ * Last Modified:   04-09-2007
  *
  * License:
  *
@@ -2483,11 +2483,11 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 	dbuf output_dbuf;
 	int dbuf_chunk=1024;
 #ifdef EMBEDDEDPERL
-	char fname[512];
+	char fname[512]="";
 	char *args[5]={"",DO_CLEAN, "", "", NULL };
 	SV *plugin_hndlr_cr;
 	STRLEN n_a ;
-	char *perl_output;
+	char *perl_output=NULL;
 	int count;
 	int use_epn=FALSE;
 #ifdef aTHX
@@ -2654,7 +2654,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 			perl_output=POPpx ;
 			strip(perl_output);
-			strncpy(buffer,perl_output,sizeof(buffer));
+			strncpy(buffer,(perl_output==NULL)?"":perl_output,sizeof(buffer));
 			buffer[sizeof(buffer)-1]='\x0';
 			status=POPi ;
 

@@ -3,7 +3,7 @@
  * STATUS.C -  Nagios Status CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-08-2007
+ * Last Modified: 04-09-2007
  *
  * License:
  * 
@@ -1550,7 +1550,7 @@ void show_service_detail(void){
 				printf("<TD ALIGN=LEFT>\n");
 				printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 				printf("<TR>\n");
-				printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_status->host_name);
+				printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,temp_status->host_name);
 				printf("</TR>\n");
 				printf("</TABLE>\n");
 				printf("</TD>\n");
@@ -2009,7 +2009,7 @@ void show_host_detail(void){
 			printf("<TD ALIGN=LEFT>\n");
 			printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 			printf("<TR>\n");
-			printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_status->host_name);
+			printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,temp_status->host_name);
 			printf("</TR>\n");
 			printf("</TABLE>\n");
 			printf("</TD>\n");
@@ -3406,7 +3406,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 
 	printf("<TABLE BORDER=0 WIDTH=100%% cellpadding=0 cellspacing=0>\n");
 	printf("<TR CLASS='status%s'>\n",status_bg_class);
-	printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),hststatus->host_name);
+	printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,hststatus->host_name);
 
 	if(temp_host->icon_image!=NULL){
 		printf("<TD CLASS='status%s' WIDTH=5></TD>\n",status_bg_class);

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-19-2007
+ * Last Modified:   04-09-2007
  *
  * License:
  *
@@ -277,9 +277,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	int neb_result=OK;
 #endif
 #ifdef EMBEDDEDPERL
-	char fname[512];
+	char fname[512]="";
 	char *args[5]={"",DO_CLEAN, "", "", NULL };
-	char *perl_plugin_output;
+	char *perl_plugin_output=NULL;
 	SV *plugin_hndlr_cr;
 	STRLEN n_a ;
 	int count ;

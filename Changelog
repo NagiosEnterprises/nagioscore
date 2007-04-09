@@ -10,7 +10,9 @@ Nagios 2.x Change Log
 * SIGSEGV signals should now be logged again (broken in 2.8)
 * Configure script fix for no mail program found/installed on system
 * Configure script option bug fixes for cygwin and embedded perl
+* Host/service plugin output and perfdata should now be HTML escaped in CGIs
 * Patch for incorrect time down percentage in availability CGI
+* Updated init script to fix a race condition during restarts
 
 
 

@@ -32,12 +32,6 @@
 status_nagios ()
 {
 
-	if test ! -f $NagiosRunFile; then
-		echo "No lock file found in $NagiosRunFile"
-		return 1
-	fi
-
-	NagiosPID=`head -n 1 $NagiosRunFile`
 	if test -x $NagiosCGI/daemonchk.cgi; then
 		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile; then
 		        return 0
@@ -45,7 +39,7 @@ status_nagios ()
 			return 1
 		fi
 	else
-		if ps -p $NagiosPID; then
+		if ps -p $NagiosPID > /dev/null 2>&1; then
 		        return 0
 		else
 			return 1
@@ -55,18 +49,34 @@ status_nagios ()
 	return 1
 }
 
+printstatus_nagios()
+{
+
+	if status_nagios $1 $2; then
+		echo "nagios (pid $NagiosPID) is running..."
+	else
+		echo "nagios is not running"
+	fi
+}
+
 
 killproc_nagios ()
 {
 
+	kill $2 $NagiosPID
+
+}
+
+
+pid_nagios ()
+{
+
 	if test ! -f $NagiosRunFile; then
 		echo "No lock file found in $NagiosRunFile"
-		return 1
+		exit 1
 	fi
 
 	NagiosPID=`head -n 1 $NagiosRunFile`
-	kill $2 $NagiosPID
-
 }
 
 
@@ -111,7 +121,7 @@ fi
 case "$1" in
 
 	start)
-		echo "Starting network monitor: nagios"
+		echo -n "Starting nagios:"
 		$NagiosBin -v $NagiosCfgFile > /dev/null 2>&1;
 		if [ $? -eq 0 ]; then
 			su - $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
@@ -120,8 +130,7 @@ case "$1" in
 			chown $NagiosUser:$NagiosGroup $NagiosRunFile
 			$NagiosBin -d $NagiosCfgFile
 			if [ -d $NagiosLockDir ]; then touch $NagiosLockDir/$NagiosLockFile; fi
-			#sleep 1
-			#status_nagios nagios
+			echo " done."
 			exit 0
 		else
 			echo "CONFIG ERROR!  Start aborted.  Check your Nagios configuration."
@@ -130,7 +139,9 @@ case "$1" in
 		;;
 
 	stop)
-		echo "Stopping network monitor: nagios"
+		echo -n "Stopping nagios: "
+
+		pid_nagios
 		killproc_nagios nagios
 
  		# now we have to wait for nagios to exit and remove its
@@ -138,10 +149,10 @@ case "$1" in
  		# happen, and then the exiting nagios will remove the
  		# new NagiosRunFile, allowing multiple nagios daemons
  		# to (sooner or later) run - John Sellens
-		echo -n 'Waiting for nagios to exit .'
+		#echo -n 'Waiting for nagios to exit .'
  		for i in 1 2 3 4 5 6 7 8 9 10 ; do
  		    if status_nagios > /dev/null; then
- 			echo -n ' .'
+ 			echo -n '.'
  			sleep 1
  		    else
  			break
@@ -149,16 +160,17 @@ case "$1" in
  		done
  		if status_nagios > /dev/null; then
  		    echo ''
- 		    echo 'Warning - running nagios did not exit in time'
+ 		    echo 'Warning - nagios did not exit in a timely manner'
  		else
- 		    echo ' done.'
+ 		    echo 'done.'
  		fi
 
 		rm -f $NagiosStatusFile $NagiosTempFile $NagiosRunFile $NagiosLockDir/$NagiosLockFile $NagiosCommandFile
 		;;
 
 	status)
-		status_nagios nagios
+		pid_nagios
+		printstatus_nagios nagios
 		;;
 
 	restart)
@@ -183,7 +195,7 @@ case "$1" in
 			if test ! -f $NagiosRunFile; then
 				$0 start
 			else
-				NagiosPID=`head -n 1 $NagiosRunFile`
+				pid_nagios
 				if status_nagios > /dev/null; then
 					printf "Reloading nagios configuration..."
 					killproc_nagios nagios -HUP

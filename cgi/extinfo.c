@@ -2,8 +2,8 @@
  *
  * EXTINFO.C -  Nagios Extended Information CGI
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 10-09-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-08-2007
  *
  * License:
  * 
@@ -995,9 +995,9 @@ void show_host_info(void){
 
 		printf("<TR><TD CLASS='dataVar'>Host Status:</td><td CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></td></tr>\n",bg_class,state_string,(temp_hoststatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->plugin_output==NULL)?"":temp_hoststatus->plugin_output);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->plugin_output==NULL)?"":html_encode(temp_hoststatus->plugin_output));
 
-		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->perf_data==NULL)?"":temp_hoststatus->perf_data);
+		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_hoststatus->perf_data==NULL)?"":html_encode(temp_hoststatus->perf_data));
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d</TD></TR>\n",temp_hoststatus->current_attempt,temp_hoststatus->max_attempts);
 
@@ -1305,9 +1305,9 @@ void show_service_info(void){
 			}
 		printf("<TR><TD CLASS='dataVar'>Current Status:</TD><TD CLASS='dataVal'><DIV CLASS='%s'>&nbsp;&nbsp;%s&nbsp;&nbsp;%s&nbsp;&nbsp;</DIV></TD></TR>\n",bg_class,state_string,(temp_svcstatus->problem_has_been_acknowledged==TRUE)?"(Has been acknowledged)":"");
 
-		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->plugin_output==NULL)?"":temp_svcstatus->plugin_output);
+		printf("<TR><TD CLASS='dataVar'>Status Information:</TD><TD CLASS='dataVal'>%s</TD></TR>\n",(temp_svcstatus->plugin_output==NULL)?"":html_encode(temp_svcstatus->plugin_output));
 
-		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_svcstatus->perf_data==NULL)?"":temp_svcstatus->perf_data);
+		printf("<TR><TD CLASS='dataVar'>Performance Data:</td><td CLASS='dataVal'>%s</td></tr>\n",(temp_svcstatus->perf_data==NULL)?"":html_encode(temp_svcstatus->perf_data));
 
 		printf("<TR><TD CLASS='dataVar'>Current Attempt:</TD><TD CLASS='dataVal'>%d/%d</TD></TR>\n",temp_svcstatus->current_attempt,temp_svcstatus->max_attempts);
 

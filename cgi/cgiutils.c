@@ -2,8 +2,8 @@
  *
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 11-12-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-08-2007
  *
  * License:
  *
@@ -1366,13 +1366,33 @@ char * html_encode(char *input){
 			y++;
 		        }
 
+#ifdef NOT_SO_SURE_ABOUT_THIS
 		/* spaces are encoded as non-breaking spaces */
-		else if((char)input[x]<=(char)' '){
+		else if((char)input[x]==(char)' '){
 
 			encoded_html_string[y]='\x0';
 			if((int)strlen(encoded_html_string)<(output_len-6)){
 				strcat(encoded_html_string,"&nbsp;");
 				y+=6;
+			        }
+		        }
+#endif
+
+		else if((char)input[x]==(char)'<'){
+
+			encoded_html_string[y]='\x0';
+			if((int)strlen(encoded_html_string)<(output_len-4)){
+				strcat(encoded_html_string,"&lt;");
+				y+=4;
+			        }
+		        }
+
+		else if((char)input[x]==(char)'>'){
+
+			encoded_html_string[y]='\x0';
+			if((int)strlen(encoded_html_string)<(output_len-4)){
+				strcat(encoded_html_string,"&gt;");
+				y+=4;
 			        }
 		        }
 

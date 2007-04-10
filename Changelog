@@ -13,7 +13,7 @@ Nagios 3.x Change Log
 * Added buffer stats and check statistics to performance information in extinfo CGI
 * Hostgroup and servicegroup definitions now have notes, notes_url, and action_url directives
 * Patch for incorrect time down percentage in availability CGI
-* Host/service plugin output and perfdata should now be HTML escaped in CGIs
+* Command definitions and host/service plugin perfdata with HTML should now be escaped in CGIs
 * Updated init script to fix a race condition during restarts
 * Documentation updates
 

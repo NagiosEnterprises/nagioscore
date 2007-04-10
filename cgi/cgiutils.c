@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-08-2007
+ * Last Modified: 04-10-2007
  *
  * License:
  *
@@ -1414,6 +1414,16 @@ char * html_encode(char *input){
 	return &encoded_html_string[0];
         }
 
+
+
+
+/* strips HTML from plugin output */
+char * strip_plugin_html(char *input){
+
+	/* TODO */
+
+	return input;
+	}
 
 
 

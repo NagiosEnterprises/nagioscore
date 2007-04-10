@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2007
+ * Last Modified:   04-10-2007
  *
  * License:
  *
@@ -648,7 +648,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				check_result_info.exited_ok=FALSE;
 			        }
 			else{
-				check_result_info.return_code=WEXITSTATUS(pclose_result);
+				if(WEXITSTATUS(pclose_result)==0 && WIFSIGNALED(pclose_result))
+					check_result_info.return_code=128+WTERMSIG(pclose_result);
+				else
+					check_result_info.return_code=WEXITSTATUS(pclose_result);
 			        }
 
 			/* write check result to message queue */

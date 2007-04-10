@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-09-2007
+ * Last Modified:   04-10-2007
  *
  * License:
  *
@@ -2707,8 +2707,11 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			/* report an error if we couldn't close the command */
 			if(status==-1)
 				result=STATE_CRITICAL;
-			else
+			else{
+				if(WEXITSTATUS(status)==0 && WIFSIGNALED(status))
+					result=128+WTERMSIG(status);
 				result=WEXITSTATUS(status);
+				}
 		        }
 
 		/* close pipe for writing */

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-19-2006
+ * Last Modified:   04-10-2006
  *
  * License:
  *
@@ -523,6 +523,15 @@ void run_service_check(service *svc){
 				svc_msg.exited_ok=FALSE;
 				svc_msg.early_timeout=FALSE;
 			        }
+			else if(WEXITSTATUS(pclose_result)==0 && WIFSIGNALED(pclose_result)){
+				snprintf(svc_msg.output,sizeof(svc_msg.output)-1,"(Plugin received signal %d!)\n",WTERMSIG(pclose_result));
+				svc_msg.output[sizeof(svc_msg.output)-1]='\x0';
+				svc_msg.exited_ok=TRUE;
+				svc_msg.early_timeout=FALSE;
+				/* like bash */
+				pclose_result=128+WTERMSIG(pclose_result);
+				svc_msg.return_code=pclose_result;
+				}
 
 			/* write check result to message queue */
 			write_svc_message(&svc_msg);

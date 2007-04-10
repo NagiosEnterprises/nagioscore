@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-22-2007
+ * Last Modified:   04-10-2007
  *
  * License:
  *
@@ -2837,8 +2837,15 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char *ou
 			/* report an error if we couldn't close the command */
 			if(status==-1)
 				result=STATE_CRITICAL;
-			else
+			else {
 				result=WEXITSTATUS(status);
+				if(result==0 && WIFSIGNALED(status)){
+					/* like bash */
+					result=128+WTERMSIG(status);
+					snprintf(buffer,sizeof(buffer)-1,"(Command received signal %d!)\n",WTERMSIG(status));
+					buffer[sizeof(buffer)-1]='\x0';
+					}
+				}
 
 			/* write the output back to the parent process */
 			write(fd[1],buffer,strlen(buffer)+1);

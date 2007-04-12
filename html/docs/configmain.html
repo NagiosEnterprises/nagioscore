@@ -767,7 +767,7 @@ This is the directory where Nagios should place log files that have been rotated
 </p>
 
 <p>
-This option determines whether or not Nagios will check the <a href="#command_file">command file</a> for  commands that should be executed.  This option must be enabled if you plan on using the <a href="cgis.html#command_cgi">command CGI</a> to issue commands via the web interface.  Third party programs can also issue commands to Nagios by writing to the command file, provided proper rights to the file have been granted as outlined in <a href="faqs.html#command_file_permissions">this FAQ</a>.  More information on external commands can be found <a href="extcommands.html">here</a>.
+This option determines whether or not Nagios will check the <a href="#command_file">command file</a> for  commands that should be executed.  This option must be enabled if you plan on using the <a href="cgis.html#command_cgi">command CGI</a> to issue commands via the web interface.  More information on external commands can be found <a href="extcommands.html">here</a>.
 </p>
 <p>
 <ul>
@@ -2313,7 +2313,7 @@ This option allows you to specify a command to be run after <i>every</i> host ch
 </tr>
 </table>
 </p>
-This option allows you to specify a command to be run after <i>every</i> service check to process service <a href="perdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+This option allows you to specify a command to be run after <i>every</i> service check to process service <a href="perfdata.html">performance data</a> that may be returned from the check.  The <i>command</i> argument is the short name of a <a href="xodtemplate.html#command">command definition</a> that you define in your object configuration file.  This command is only executed if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
 </p>
 
 
@@ -2338,7 +2338,7 @@ This option allows you to specify a command to be run after <i>every</i> service
 </tr>
 </table>
 </p>
-This option allows you to specify a file to which host <a href="perdata.html">performance data</a> will be written after every host check.  Data will be written to the performance file as specified by the <a href="#host_perfdata_file_template">host_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
+This option allows you to specify a file to which host <a href="perfdata.html">performance data</a> will be written after every host check.  Data will be written to the performance file as specified by the <a href="#host_perfdata_file_template">host_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#host">host definition</a> is enabled.
 </p>
 
 
@@ -2363,7 +2363,7 @@ This option allows you to specify a file to which host <a href="perdata.html">pe
 </tr>
 </table>
 </p>
-This option allows you to specify a file to which service <a href="perdata.html">performance data</a> will be written after every service check.  Data will be written to the performance file as specified by the <a href="#service_perfdata_file_template">service_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
+This option allows you to specify a file to which service <a href="perfdata.html">performance data</a> will be written after every service check.  Data will be written to the performance file as specified by the <a href="#service_perfdata_file_template">service_perfdata_file_template</a> option.  Performance data is only written to this file if the <a href="#process_performance_data">process_performance_data</a> option is enabled globally and if the <i>process_perf_data</i> directive in the <a href="xodtemplate.html#service">service definition</a> is enabled.
 </p>
 
 

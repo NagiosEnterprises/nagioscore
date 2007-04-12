@@ -129,7 +129,7 @@ This is the most important CGI included with Nagios.  It allows you to view the 
 <td align=left valign=top width="50%">
 <p>
 <strong>Description:</strong><br>
-This CGI creates a map of all hosts that you have defined on your network.  The CGI uses Thomas Boutell's <a href="http://www.boutell.com/gd">gd</a> library (version 1.6.3 or higher) to create a PNG image of your network layout.  The coordinates used when drawing each host (along with the optional pretty icons) are taken from <a href="configextinfo.html">extended host information</a> definitions.  If you'd prefer to let the CGI automatically generate drawing coordinates for you, use the <a href="configcgi.html#default_statusmap_layout">default_statusmap_layout</a> directive to specify a layout algorithm that should be used.  If you can't seem to find this CGI, or if you have get errors when trying to compile or run it, read <a href="faqs.html#gd_library_problems">this FAQ</a>.
+This CGI creates a map of all hosts that you have defined on your network.  The CGI uses Thomas Boutell's <a href="http://www.boutell.com/gd">gd</a> library (version 1.6.3 or higher) to create a PNG image of your network layout.  The coordinates used when drawing each host (along with the optional pretty icons) are taken from <a href="configextinfo.html">extended host information</a> definitions.  If you'd prefer to let the CGI automatically generate drawing coordinates for you, use the <a href="configcgi.html#default_statusmap_layout">default_statusmap_layout</a> directive to specify a layout algorithm that should be used.
 </p>
 <p>
 <strong>Authorization Requirements:</strong><br>
@@ -404,7 +404,6 @@ This CGI allows you to send commands to the Nagios process.  Although this CGI h
 <p>
 <ul>
 <li>If you have chosen not to <a href="configcgi.html#use_authentication">use authentication</a> with the CGIs, this CGI will <i>not</i> allow anyone to issue commands to Nagios.  This is done for your own protection.  I would suggest removing this CGI altogether if you decide not to use authentication with the CGIs.
-<li>In order for the CGI to issue commands to Nagios, you will have to set the proper file and directory permissions as described in <a href="faqs.html#command_file_permissions">this FAQ</a>.
 </ul>
 </p>
 </td>
@@ -616,7 +615,7 @@ This CGI is used to display host and service notifications that have been sent t
 <td align=left valign=top width="50%">
 <p>
 <strong>Description:</strong><br>
-This CGI is used to create a graph of host or service states over an arbitrary period of time.  In order for this CGI to be of much use, you should enable <a href="configmain.html#log_rotation_method">log rotation</a> and keep archived logs in the path specified by the <a href="configmain.html#log_archive_path">log_archive_path</a> directive.  The CGI uses Thomas Boutell's <a href="http://www.boutell.com/gd">gd</a> library (version 1.6.3 or higher) to create the trends image.  If you can't seem to find this CGI or if you have get errors when trying to compile or run it, read <a href="faqs.html#gd_library_problems">this FAQ</a>.
+This CGI is used to create a graph of host or service states over an arbitrary period of time.  In order for this CGI to be of much use, you should enable <a href="configmain.html#log_rotation_method">log rotation</a> and keep archived logs in the path specified by the <a href="configmain.html#log_archive_path">log_archive_path</a> directive.  The CGI uses Thomas Boutell's <a href="http://www.boutell.com/gd">gd</a> library (version 1.6.3 or higher) to create the trends image.
 </p>
 <p>
 <strong>Authorization Requirements:</strong><br>
@@ -706,7 +705,7 @@ This CGI is used to report on the availability of hosts and services over a user
 <td align=left valign=top width="50%">
 <p>
 <strong>Description:</strong><br>
-This CGI is used to report on the availability of hosts and services over a user-specified period of time.  In order for this CGI to be of much use, you should enable <a href="configmain.html#log_rotation_method">log rotation</a> and keep archived logs in the path specified by the <a href="configmain.html#log_archive_path">log_archive_path</a> directive.    The CGI uses Thomas Boutell's <a href="http://www.boutell.com/gd">gd</a> library (version 1.6.3 or higher) to create the histogram image.  If you can't seem to find this CGI or if you have get errors when trying to compile or run it, read <a href="faqs.html#gd_library_problems">this FAQ</a>.
+This CGI is used to report on the availability of hosts and services over a user-specified period of time.  In order for this CGI to be of much use, you should enable <a href="configmain.html#log_rotation_method">log rotation</a> and keep archived logs in the path specified by the <a href="configmain.html#log_archive_path">log_archive_path</a> directive.    The CGI uses Thomas Boutell's <a href="http://www.boutell.com/gd">gd</a> library (version 1.6.3 or higher) to create the histogram image.
 </p>
 <p>
 <strong>Authorization Requirements:</strong><br>

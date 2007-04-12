@@ -60,7 +60,7 @@ Before you can even think about implementing redundancy with Nagios, you need to
 <ul>
 <li>Implementing <a href="eventhandlers.html">event handlers</a> for hosts and services
 <li>Issuing <a href="extcommands.html">external commands</a> to Nagios via shell scripts
-<li>Executing plugins on <a href="faqs.html#remote_host_monitoring">remote hosts</a> using either the <a href="addons.html#nrpe">nrpe addon</a> or some other method
+<li>Executing plugins on remote hosts using either the <a href="addons.html#nrpe">nrpe addon</a> or some other method
 <li>Checking the status of the Nagios process with the <a href="plugins.html#check_nagios">check_nagios</a> plugin
 </ul>
 </p>
@@ -148,7 +148,7 @@ I will assume that you have the master host (host A) setup to monitor services o
 <p>
 <ul>
 <li>The host definition for host A (in the host E configuration file) should have a host <a href="eventhandlers.html">event handler</a> defined.  Lets say the name of the host event handler is <font color="red">handle-master-host-event</font>.
-<li>The configuration file on host E should have a service defined to check the status of the Nagios process on host A.  Lets assume that you define this service check to run the <i>check_nagios</i> plugin on host A.  This can be done by using one of the methods described in <a href="faqs.html#remote_host_monitoring">this FAQ</a>.
+<li>The configuration file on host E should have a service defined to check the status of the Nagios process on host A.  Lets assume that you define this service check to run the <i>check_nagios</i> plugin on host A (using NRPE, SSH, etc.).
 <li>The service definition for the Nagios process check on host A should have an <a href="eventhandlers.html">event handler</a> defined.  Lets say the name of the service event handler is <font color="red">handle-master-proc-event</font>.
 </ul>
 </p>

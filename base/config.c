@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-25-2007
+ * Last Modified: 04-11-2007
  *
  * License:
  *
@@ -1808,6 +1808,7 @@ int pre_flight_check(void){
 	int errors=0;
 	struct timeval tv[4];
 	double runtime[4];
+	int temp_path_fd=-1;
 
 #ifdef DEBUG0
 	printf("pre_flight_check() start\n");
@@ -1939,6 +1940,20 @@ int pre_flight_check(void){
 	/**************************************************/
 	if(verify_config==TRUE)
 		printf("Checking misc settings...\n");
+
+	/* check if we can write to temp_path */
+       	asprintf(&buf,"%s/nagiosXXXXXX",temp_path);
+       	if((temp_path_fd=mkstemp(buf))==-1){
+       		asprintf(&temp_buffer,"\tError: Unable to write to temp_path ('%s') - %s\n",temp_path,strerror(errno));
+		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		errors++;
+		my_free((void **)&temp_buffer);
+		}
+	else{
+		close(temp_path_fd);
+		remove(buf);
+		}
+	my_free((void **)&buf);
 
 	/* warn if user didn't specify any illegal macro output chars */
 	if(illegal_output_chars==NULL){

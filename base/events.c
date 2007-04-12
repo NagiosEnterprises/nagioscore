@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-05-2007
+ * Last Modified: 04-11-2007
  *
  * License:
  *
@@ -1084,7 +1084,9 @@ int event_execution_loop(void){
 				/* remove the first event from the timing loop */
 				temp_event=event_list_low;
 				event_list_low=event_list_low->next;
-				event_list_low->prev=NULL;
+				/* we may have just removed the only item from the list */
+				if(event_list_low!=NULL)
+					event_list_low->prev=NULL;
 
 				/* handle the event */
 				handle_timed_event(temp_event);

@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-10-2007
+ * Last Modified:   04-17-2007
  *
  * Description:
  *
@@ -140,7 +140,6 @@ time_t          last_command_status_update=0L;
 time_t          last_log_rotation=0L;
 
 int             use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
-int             use_old_host_check_logic=DEFAULT_USE_OLD_HOST_CHECK_LOGIC;
 unsigned long   cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
 unsigned long   cached_service_check_horizon=DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
 int             enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;

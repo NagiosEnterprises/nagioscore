@@ -235,8 +235,6 @@ extern "C" {
 
 #define DEFAULT_USE_LARGE_INSTALLATION_TWEAKS                   0       /* don't use tweaks for large Nagios installations */
 
-#define DEFAULT_USE_OLD_HOST_CHECK_LOGIC			0	/* use new (Nagios 3.x) host check logic */
-
 #define DEFAULT_ENABLE_EMBEDDED_PERL                            1       /* enable embedded Perl interpreter (if compiled in) */
 #define DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY                    1       /* by default, embedded Perl is used for Perl plugins that don't explicitly disable it */
 
@@ -888,10 +886,6 @@ int set_macro_environment_var(char *,char *,int);
 
 
 /***** HOST CHECK FUNCTIONS FOR 2.X *****/
-int verify_route_to_host(host *,int);                	   	/* on-demand check of whether a host is up, down, or unreachable */
-int run_scheduled_host_check(host *);				/* runs a scheduled host check */
-int check_host(host *,int,int);                      	   	/* checks if a host is up or down */
-int run_host_check(host *,int);                 		/* runs a host check */
 int handle_host_state(host *);               			/* top level host state handler */
 
 

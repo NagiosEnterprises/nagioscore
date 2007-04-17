@@ -119,7 +119,6 @@ extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
 
 extern int      use_aggressive_host_checking;
-extern int      use_old_host_check_logic;
 extern unsigned long cached_host_check_horizon;
 extern unsigned long cached_service_check_horizon;
 extern int      enable_predictive_host_dependency_checks;
@@ -911,13 +910,6 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tuse_aggressive_host_checking set to %s\n",(use_aggressive_host_checking==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
-
-		else if(!strcmp(variable,"use_old_host_check_logic")){
-			use_old_host_check_logic=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tuse_old_host_check_logic set to %s\n",(use_old_host_check_logic==TRUE)?"TRUE":"FALSE");
 #endif
 		        }
 

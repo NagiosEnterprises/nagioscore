@@ -13,6 +13,7 @@ Nagios 3.x Change Log
 * Added check_result_path option to set path used to store check results
 * Added max_check_result_file_age option to control processing of check results in older files
 * Added new --with-temp-dir option to configure script
+* Removed legacy 2.x host check logic and use_old_host_check_logic option
 
 
 

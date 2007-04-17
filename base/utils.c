@@ -136,7 +136,6 @@ extern int      check_host_freshness;
 extern int      auto_reschedule_checks;
 
 extern int      use_aggressive_host_checking;
-extern int      use_old_host_check_logic;
 extern unsigned long cached_host_check_horizon;
 extern unsigned long cached_service_check_horizon;
 extern int      enable_predictive_host_dependency_checks;
@@ -6021,7 +6020,6 @@ int reset_variables(void){
 	max_host_check_spread=DEFAULT_HOST_CHECK_SPREAD;
 
 	use_aggressive_host_checking=DEFAULT_AGGRESSIVE_HOST_CHECKING;
-	use_old_host_check_logic=DEFAULT_USE_OLD_HOST_CHECK_LOGIC;
 	cached_host_check_horizon=DEFAULT_CACHED_HOST_CHECK_HORIZON;
 	cached_service_check_horizon=DEFAULT_CACHED_SERVICE_CHECK_HORIZON;
 	enable_predictive_host_dependency_checks=DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;

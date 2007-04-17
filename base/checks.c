@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-10-2007
+ * Last Modified:   04-17-2007
  *
  * License:
  *
@@ -47,12 +47,11 @@ extern int      sigrestart;
 
 extern char     *temp_file;
 extern char     *temp_path;
+extern char     *check_result_path;
 
 extern int      interval_length;
 
 extern int      command_check_interval;
-
-extern int      ipc_pipe[2];
 
 extern int      log_initial_states;
 
@@ -101,6 +100,7 @@ extern hostdependency    *hostdependency_list;
 extern unsigned long   next_event_id;
 
 extern check_result    check_result_info;
+extern check_result    *check_result_list;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 
@@ -118,7 +118,7 @@ extern int      use_embedded_perl;
 
 /* reaps host and service check results */
 int reap_check_results(void){
-	check_result queued_check_result;
+	check_result *queued_check_result=NULL;
 	service *temp_service=NULL;
 	host *temp_host=NULL;
 	char *temp_buffer=NULL;
@@ -136,46 +136,56 @@ int reap_check_results(void){
 	/* get the start time */
 	time(&reaper_start_time);
 
+	/* process files in the check result queue */
+	process_check_result_queue(check_result_path);
+
 	/* read all check results that have come in... */
-	while(read_check_result(&queued_check_result)>0){
+	while((queued_check_result=read_check_result())){
 
 		/* service check */
-		if(queued_check_result.object_check_type==SERVICE_CHECK){
+		if(queued_check_result->object_check_type==SERVICE_CHECK){
 
 			/* make sure the service exists */
-			if((temp_service=find_service(queued_check_result.host_name,queued_check_result.service_description))==NULL){
+			if((temp_service=find_service(queued_check_result->host_name,queued_check_result->service_description))==NULL){
 
-				asprintf(&temp_buffer,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result.service_description,queued_check_result.host_name);
+				asprintf(&temp_buffer,"Warning: Check result queue contained results for service '%s' on host '%s', but the service could not be found!  Perhaps you forgot to define the service in your config files?\n",queued_check_result->service_description,queued_check_result->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 				my_free((void **)&temp_buffer);
 
-				free_check_result(&queued_check_result);
+				free_check_result(queued_check_result);
+				my_free((void **)&queued_check_result);
 				continue;
 		                }
 
 			/* process the check result */
-			handle_async_service_check_result(temp_service,&queued_check_result);
+			handle_async_service_check_result(temp_service,queued_check_result);
 		        }
 
 		/* host check */
 		else{
-			if((temp_host=find_host(queued_check_result.host_name))==NULL){
+			if((temp_host=find_host(queued_check_result->host_name))==NULL){
 
 				/* make sure the host exists */
-				asprintf(&temp_buffer,"Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result.host_name);
+				asprintf(&temp_buffer,"Warning: Check result queue contained results for host '%s', but the host could not be found!  Perhaps you forgot to define the host in your config files?\n",queued_check_result->host_name);
 				write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 				my_free((void **)&temp_buffer);
 
-				free_check_result(&queued_check_result);
+				free_check_result(queued_check_result);
+				my_free((void **)&queued_check_result);
 				continue;
 		                }
 
 			/* process the check result */
-			handle_async_host_check_result_3x(temp_host,&queued_check_result);
+			handle_async_host_check_result_3x(temp_host,queued_check_result);
 		        }
 
+		/* delete the file that contains the check results */
+		/* files can contain multiple check results - in this case, the file will be removed when the first check result is processed */
+		unlink(queued_check_result->output_file);
+
 		/* free allocated memory */
-		free_check_result(&queued_check_result);
+		free_check_result(queued_check_result);
+		my_free((void **)&queued_check_result);
 
 		/* break out if we've been here too long (max_check_reaper_time seconds) */
 		time(&current_time);
@@ -273,6 +283,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	mode_t old_umask;
 	char *output_file=NULL;
 	double old_latency=0.0;
+	dbuf checkresult_dbuf;
+	int dbuf_chunk=1024;
 #ifdef USE_EVENT_BROKER
 	int neb_result=OK;
 #endif
@@ -361,7 +373,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
+	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
 	check_result_info.output_file_fd=mkstemp(output_file);
 #ifdef DEBUG_CHECK_IPC
 	printf("OUTPUT FILE: %s\n",output_file);
@@ -390,9 +402,36 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	check_result_info.early_timeout=FALSE;
 	check_result_info.exited_ok=TRUE;
 	check_result_info.return_code=STATE_OK;
+	check_result_info.output=NULL;
 
 	/* free memory */
 	my_free((void **)&output_file);
+
+	/* write start of check result file */
+	/* if things go really bad later on down the line, the user will at least have a partial file to help debug missing output results */
+	if(check_result_info.output_file_fp){
+		
+		fprintf(check_result_info.output_file_fp,"### Active Check Result File ###\n");
+		fprintf(check_result_info.output_file_fp,"file_time=%lu\n",(unsigned long)check_result_info.start_time.tv_sec);
+		fprintf(check_result_info.output_file_fp,"\n");
+
+		fprintf(check_result_info.output_file_fp,"### Nagios Service Check Result ###\n");
+		fprintf(check_result_info.output_file_fp,"# Time: %s",ctime(&check_result_info.start_time.tv_sec));
+		fprintf(check_result_info.output_file_fp,"host_name=%s\n",check_result_info.host_name);
+		fprintf(check_result_info.output_file_fp,"service_description=%s\n",check_result_info.service_description);
+		fprintf(check_result_info.output_file_fp,"check_type=%d\n",check_result_info.check_type);
+		fprintf(check_result_info.output_file_fp,"scheduled_check=%d\n",check_result_info.scheduled_check);
+		fprintf(check_result_info.output_file_fp,"reschedule_check=%d\n",check_result_info.reschedule_check);
+		fprintf(check_result_info.output_file_fp,"latency=%f\n",svc->latency);
+		fprintf(check_result_info.output_file_fp,"start_time=%lu.%lu\n",check_result_info.start_time.tv_sec,check_result_info.start_time.tv_usec);
+
+		/* flush output or it'll get written again when we fork() */
+		fflush(check_result_info.output_file_fp);
+		}
+	
+	/* initialize dynamic buffer for storing plugin output */
+	dbuf_init(&checkresult_dbuf,dbuf_chunk);
+
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -458,23 +497,42 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			printf("embedded perl failed to compile %s, compile error %s - skipping plugin\n",fname,perl_plugin_output);
 #endif
 
-			/* write the first line of plugin output to temp file */
-			if(check_result_info.output_file_fp && perl_plugin_output)
-				fputs(perl_plugin_output,check_result_info.output_file_fp);
+			/* save plugin output */
+			if(perl_plugin_output!=NULL)
+				dbuf_strcat(&checkresult_dbuf,output_buffer);
 
-			/* close the temp file */
-			if(check_result_info.output_file_fp)
-				fclose(check_result_info.output_file_fp);
+			/* escape newlines in output */
+			temp_buffer=escape_newlines(checkresult_dbuf.buf);
+			my_free((void **)&checkresult_dbuf.buf);
+			checkresult_dbuf.buf=temp_buffer;
 
 			/* get the check finish time */
 			gettimeofday(&end_time,NULL);
 
 			/* record check result info */
+			check_result_info.exited_ok=FALSE;
 			check_result_info.return_code=pclose_result;
 			check_result_info.finish_time=end_time;
 
-			/* write check results to message queue */
-			write_check_result(&check_result_info);
+			/* write check result to file */
+			if(check_result_info.output_file_fp){
+
+				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
+				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
+				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
+				fprintf(check_result_info.output_file_fp,"output=%s\n",checkresult_dbuf.buf);
+
+				/* close the temp file */
+				fclose(check_result_info.output_file_fp);
+				close(check_result_info.output_file_fd);
+
+				/* move check result to queue directory */
+				move_check_result_to_queue(check_result_info.output_file);
+				}
+
+			/* free memory */
+			dbuf_free(&checkresult_dbuf);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
@@ -531,9 +589,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* become the process group leader */
 			setpgid(0,0);
 
-			/* close read end of IPC pipe */
-			close(ipc_pipe[0]);
-
 			/* catch plugins that don't finish in a timely manner */
 			signal(SIGALRM,service_check_sighandler);
 			alarm(service_check_timeout);
@@ -568,16 +623,17 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				LEAVE;
 
 #ifdef DEBUG1
-				printf("embedded perl ran %s, plugin output was %d, %s\n",fname, pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
+				printf("embedded perl ran %s, plugin output was %d, %s\n",fname,pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
 #endif
-				
-				/* write the plugin output to temp file */
-				if(check_result_info.output_file_fp && perl_plugin_output)
-					fputs(perl_plugin_output,check_result_info.output_file_fp);
 
-				/* close the temp file */
-				if(check_result_info.output_file_fp)
-					fclose(check_result_info.output_file_fp);
+				/* get perl plugin output */
+				if(perl_plugin_output!=NULL)
+					dbuf_strcat(&checkresult_dbuf,output_buffer);
+
+				/* escape newlines in output */
+				temp_buffer=escape_newlines(checkresult_dbuf.buf);
+				my_free((void **)&checkresult_dbuf.buf);
+				checkresult_dbuf.buf=temp_buffer;
 
 				/* reset the alarm */
 				alarm(0);
@@ -589,14 +645,31 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				check_result_info.return_code=pclose_result;
 				check_result_info.finish_time=end_time;
 
-				/* write check results to message queue */
-				write_check_result(&check_result_info);
+				/* write check result to file */
+				if(check_result_info.output_file_fp){
+
+					fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+					fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
+					fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
+					fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
+					fprintf(check_result_info.output_file_fp,"output=%s\n",checkresult_dbuf.buf);
+
+					/* close the temp file */
+					fclose(check_result_info.output_file_fp);
+					close(check_result_info.output_file_fd);
+					
+					/* move check result to queue directory */
+					move_check_result_to_queue(ccheck_result_info.output_file);
+					}
+
+				/* free memory */
+				my_free((void **)&checkresult_file);
+
+				/* free memory */
+				dbuf_free(&checkresult_dbuf);
 
 				/* free check result memory */
 				free_check_result(&check_result_info);
-
-				/* close write end of IPC pipe */
-				close(ipc_pipe[1]);
 
 				/* return with plugin exit status - not really necessary... */
 				_exit(pclose_result);
@@ -613,23 +686,17 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* initialize buffer */
 			strcpy(output_buffer,"");
 
-			/* write the first line of plugin output to temp file */
-			fgets(output_buffer,sizeof(output_buffer)-1,fp);
-			if(check_result_info.output_file_fp)
-				fputs(output_buffer,check_result_info.output_file_fp);
+			/* get all lines of plugin output */
+			while(fgets(output_buffer,sizeof(output_buffer)-1,fp))
+				dbuf_strcat(&checkresult_dbuf,output_buffer);
 
-			/* write additional output to temp file */
-			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
-				if(check_result_info.output_file_fp)
-					fputs(output_buffer,check_result_info.output_file_fp);
-			        }
+			/* escape newlines in output */
+			temp_buffer=escape_newlines(checkresult_dbuf.buf);
+			my_free((void **)&checkresult_dbuf.buf);
+			checkresult_dbuf.buf=temp_buffer;
 
 			/* close the process */
 			pclose_result=pclose(fp);
-
-			/* close the temp file */
-			if(check_result_info.output_file_fp)
-				fclose(check_result_info.output_file_fp);
 
 			/* reset the alarm */
 			alarm(0);
@@ -654,23 +721,34 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 					check_result_info.return_code=WEXITSTATUS(pclose_result);
 			        }
 
-			/* write check result to message queue */
-			write_check_result(&check_result_info);
+			/* write check result to file */
+			if(check_result_info.output_file_fp){
+
+				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
+				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
+				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
+				fprintf(check_result_info.output_file_fp,"output=%s\n",checkresult_dbuf.buf);
+
+				/* close the temp file */
+				fclose(check_result_info.output_file_fp);
+				close(check_result_info.output_file_fd);
+
+				/* move check result to queue directory */
+				move_check_result_to_queue(check_result_info.output_file);
+				}
+
+			/* free memory */
+			dbuf_free(&checkresult_dbuf);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
-
-			/* close write end of IPC pipe */
-			close(ipc_pipe[1]);
 
 			/* return with plugin exit status - not really necessary... */
 			_exit(pclose_result);
 		        }
 
 		/* NOTE: this code is never reached if large install tweaks are enabled... */
-
-		/* close write end of IPC pipe */
-		close(ipc_pipe[1]);
 
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
@@ -690,8 +768,10 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	else if(pid>0){
 
 		/* parent should close output file */
-		if(check_result_info.output_file_fp)
+		if(check_result_info.output_file_fp){
 			fclose(check_result_info.output_file_fp);
+			close(check_result_info.output_file_fd);
+			}
 
 		/* should this be done in first child process (after spawning grandchild) as well? */
 		/* free memory allocated for IPC functionality */
@@ -848,19 +928,18 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* else the return code is okay... */
 	else{
 
-		/* parse check output file to get: (1) short output, (2) long output, (3) perf data */
-		if(queued_check_result->output_file){
-			read_check_output_from_file(queued_check_result->output_file,&temp_service->plugin_output,&temp_service->long_plugin_output,&temp_service->perf_data,TRUE);
+		/* parse check output to get: (1) short output, (2) long output, (3) perf data */
+		parse_check_output(queued_check_result->output,&temp_service->plugin_output,&temp_service->long_plugin_output,&temp_service->perf_data,FALSE,TRUE);
+
 #ifdef DEBUG_CHECK_IPC
-			printf("\n");
-			printf("PARSED CHECK OUTPUT...\n");
-			printf("OUTPUT FILE: %s\n",queued_check_result->output_file);
-			printf("SHORT: %s\n",(temp_service->plugin_output==NULL)?"NULL":temp_service->plugin_output);
-			printf("LONG: %s\n",(temp_service->long_plugin_output==NULL)?"NULL":temp_service->long_plugin_output);
-			printf("PERF: %s\n",(temp_service->perf_data==NULL)?"NULL":temp_service->perf_data);
-			printf("\n");
+		printf("\n");
+		printf("PARSED CHECK OUTPUT...\n");
+		printf("OUTPUT FILE: %s\n",queued_check_result->output_file);
+		printf("SHORT: %s\n",(temp_service->plugin_output==NULL)?"NULL":temp_service->plugin_output);
+		printf("LONG: %s\n",(temp_service->long_plugin_output==NULL)?"NULL":temp_service->long_plugin_output);
+		printf("PERF: %s\n",(temp_service->perf_data==NULL)?"NULL":temp_service->perf_data);
+		printf("\n");
 #endif
-		        }
 
 		/* make sure the plugin output isn't null */
 		if(temp_service->plugin_output==NULL)
@@ -3186,6 +3265,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	char *output_file=NULL;
 	double old_latency=0.0;
 	int result=OK;
+	dbuf checkresult_dbuf;
+	int dbuf_chunk=1024;
 #ifdef USE_EVENT_BROKER
 	int neb_result=OK;
 #endif
@@ -3270,7 +3351,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
+	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
 	check_result_info.output_file_fd=mkstemp(output_file);
 #ifdef DEBUG_CHECK_IPC
 	printf("OUTPUT FILE: %s\n",output_file);
@@ -3300,9 +3381,34 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	check_result_info.early_timeout=FALSE;
 	check_result_info.exited_ok=TRUE;
 	check_result_info.return_code=STATE_OK;
+	check_result_info.output=NULL;
 
 	/* free memory */
 	my_free((void **)&output_file);
+
+	/* write initial check info to file */
+	/* if things go bad later on, the user will at least have something to go on when debugging... */
+	if(check_result_info.output_file_fp){
+		
+		fprintf(check_result_info.output_file_fp,"### Active Check Result File ###\n");
+		fprintf(check_result_info.output_file_fp,"file_time=%lu\n",(unsigned long)check_result_info.start_time.tv_sec);
+		fprintf(check_result_info.output_file_fp,"\n");
+
+		fprintf(check_result_info.output_file_fp,"### Nagios Host Check Result ###\n");
+		fprintf(check_result_info.output_file_fp,"# Time: %s",ctime(&check_result_info.start_time.tv_sec));
+		fprintf(check_result_info.output_file_fp,"host_name=%s\n",check_result_info.host_name);
+		fprintf(check_result_info.output_file_fp,"check_type=%d\n",check_result_info.check_type);
+		fprintf(check_result_info.output_file_fp,"scheduled_check=%d\n",check_result_info.scheduled_check);
+		fprintf(check_result_info.output_file_fp,"reschedule_check=%d\n",check_result_info.reschedule_check);
+		fprintf(check_result_info.output_file_fp,"latency=%f\n",hst->latency);
+		fprintf(check_result_info.output_file_fp,"start_time=%lu.%lu\n",check_result_info.start_time.tv_sec,check_result_info.start_time.tv_usec);
+
+		/* flush buffer or we'll end up writing twice when we fork() */
+		fflush(check_result_info.output_file_fp);
+		}
+	
+	/* initialize dynamic buffer for storing plugin output */
+	dbuf_init(&checkresult_dbuf,dbuf_chunk);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -3348,9 +3454,6 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			/* become the process group leader */
 			setpgid(0,0);
 
-			/* close read end of IPC pipe */
-			close(ipc_pipe[0]);
-
 			/* catch plugins that don't finish in a timely manner */
 			signal(SIGALRM,host_check_sighandler);
 			alarm(host_check_timeout);
@@ -3363,23 +3466,17 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			/* initialize buffer */
 			strcpy(output_buffer,"");
 
-			/* write the first line of plugin output to temp file */
-			fgets(output_buffer,sizeof(output_buffer)-1,fp);
-			if(check_result_info.output_file_fp)
-				fputs(output_buffer,check_result_info.output_file_fp);
+			/* get all lines of plugin output */
+			while(fgets(output_buffer,sizeof(output_buffer)-1,fp))
+				dbuf_strcat(&checkresult_dbuf,output_buffer);
 
-			/* write additional output to temp file */
-			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
-				if(check_result_info.output_file_fp)
-					fputs(output_buffer,check_result_info.output_file_fp);
-			        }
+			/* escape newlines in output */
+			temp_buffer=escape_newlines(checkresult_dbuf.buf);
+			my_free((void **)&checkresult_dbuf.buf);
+			checkresult_dbuf.buf=temp_buffer;
 
 			/* close the process */
 			pclose_result=pclose(fp);
-
-			/* close the temp file */
-			if(check_result_info.output_file_fp)
-				fclose(check_result_info.output_file_fp);
 
 			/* reset the alarm */
 			alarm(0);
@@ -3401,23 +3498,34 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 				check_result_info.return_code=WEXITSTATUS(pclose_result);
 			        }
 
-			/* write check result to message queue */
-			write_check_result(&check_result_info);
+			/* write check result to file */
+			if(check_result_info.output_file_fp){
+
+				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
+				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
+				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
+				fprintf(check_result_info.output_file_fp,"output=%s\n",checkresult_dbuf.buf);
+
+				/* close the temp file */
+				fclose(check_result_info.output_file_fp);
+				close(check_result_info.output_file_fd);
+
+				/* move check result to queue directory */
+				move_check_result_to_queue(check_result_info.output_file);
+				}
+
+			/* free memory */
+			dbuf_free(&checkresult_dbuf);
 
 			/* free check result memory */
 			free_check_result(&check_result_info);
-
-			/* close write end of IPC pipe */
-			close(ipc_pipe[1]);
 
 			/* return with plugin exit status - not really necessary... */
 			_exit(pclose_result);
 		        }
 
 		/* NOTE: this code is never reached if large install tweaks are enabled... */
-
-		/* close write end of IPC pipe */
-		close(ipc_pipe[1]);
 
 		/* unset environment variables */
 		set_all_macro_environment_vars(FALSE);
@@ -3437,8 +3545,10 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	else if(pid>0){
 
 		/* parent should close output file */
-		if(check_result_info.output_file_fp)
+		if(check_result_info.output_file_fp){
 			fclose(check_result_info.output_file_fp);
+			close(check_result_info.output_file_fd);
+			}
 
 		/* should this be done in first child process (after spawning grandchild) as well? */
 		/* free memory allocated for IPC functionality */
@@ -3553,19 +3663,18 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	my_free((void **)&temp_host->long_plugin_output);
 	my_free((void **)&temp_host->perf_data);
 
-	/* parse check output file to get: (1) short output, (2) long output, (3) perf data */
-	if(queued_check_result->output_file){
-		read_check_output_from_file(queued_check_result->output_file,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,TRUE);
+	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
+	parse_check_output(queued_check_result->output,&temp_host->plugin_output,&temp_host->long_plugin_output,&temp_host->perf_data,FALSE,TRUE);
+
 #ifdef DEBUG_CHECK_IPC
-		printf("\n");
-		printf("PARSED CHECK OUTPUT...\n");
-		printf("OUTPUT FILE: %s\n",queued_check_result->output_file);
-		printf("SHORT: %s\n",(temp_host->plugin_output==NULL)?"NULL":temp_host->plugin_output);
-		printf("LONG: %s\n",(temp_host->long_plugin_output==NULL)?"NULL":temp_host->long_plugin_output);
-		printf("PERF: %s\n",(temp_host->perf_data==NULL)?"NULL":temp_host->perf_data);
-		printf("\n");
+	printf("\n");
+	printf("PARSED CHECK OUTPUT...\n");
+	printf("OUTPUT FILE: %s\n",queued_check_result->output_file);
+	printf("SHORT: %s\n",(temp_host->plugin_output==NULL)?"NULL":temp_host->plugin_output);
+	printf("LONG: %s\n",(temp_host->long_plugin_output==NULL)?"NULL":temp_host->long_plugin_output);
+	printf("PERF: %s\n",(temp_host->perf_data==NULL)?"NULL":temp_host->perf_data);
+	printf("\n");
 #endif
-		}
 
 	/* get the unprocessed return code */
 	/* NOTE: for passive checks, this is the final/processed state */

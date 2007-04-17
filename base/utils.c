@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-10-2007
+ * Last Modified:   04-17-2007
  *
  * License:
  *
@@ -47,6 +47,8 @@ extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;
 extern char     *temp_path;
+extern char     *check_result_path;
+extern char     *check_result_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
@@ -173,7 +175,6 @@ extern int      verify_config;
 extern int      test_scheduling;
 
 extern check_result check_result_info;
-extern int      ipc_pipe[2];
 
 extern int      max_parallel_service_checks;
 extern int      currently_running_service_checks;
@@ -238,14 +239,16 @@ extern char     *tzname[2];
 #endif
 #endif
 
-extern dbuf     check_result_dbuf;
+extern check_result    *check_result_list;
+extern unsigned long   max_check_result_file_age;
+
+extern dbuf            check_result_dbuf;
 
 extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
 extern circular_buffer check_result_buffer;
 extern circular_buffer event_broker_buffer;
 extern int             external_command_buffer_slots;
-extern int             check_result_buffer_slots;
 
 extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
@@ -3388,14 +3391,6 @@ void service_check_sighandler(int sig){
 	/* get the current time */
 	gettimeofday(&end_time,NULL);
 
-	/* write plugin check results to temp file */
-	if(check_result_info.output_file_fp){
-		fputs("(Service Check Timed Out)",check_result_info.output_file_fp);
-		fclose(check_result_info.output_file_fp);
-	        }
-	if(check_result_info.output_file_fd>0)
-		close(check_result_info.output_file_fd);
-
 #ifdef SERVICE_CHECK_TIMEOUTS_RETURN_UNKNOWN
 	check_result_info.return_code=STATE_UNKNOWN;
 #else
@@ -3404,11 +3399,25 @@ void service_check_sighandler(int sig){
 	check_result_info.finish_time=end_time;
 	check_result_info.early_timeout=TRUE;
 
-	/* write check result to message queue */
-	write_check_result(&check_result_info);
+	/* write check result to file */
+	if(check_result_info.output_file_fp){
 
-	/* close write end of IPC pipe */
-	close(ipc_pipe[1]);
+		fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+		fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
+		fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
+		fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
+		fprintf(check_result_info.output_file_fp,"output=%s\n","(Service Check Timed Out)");
+
+		/* close the temp file */
+		fclose(check_result_info.output_file_fp);
+		close(check_result_info.output_file_fd);
+
+		/* move check result to queue directory */
+		move_check_result_to_queue(check_result_info.output_file);
+		}
+
+	/* free check result memory */
+	free_check_result(&check_result_info);
 
 	/* try to kill the command that timed out by sending termination signal to our process group */
 	/* we also kill ourselves while doing this... */
@@ -3426,23 +3435,29 @@ void host_check_sighandler(int sig){
 	/* get the current time */
 	gettimeofday(&end_time,NULL);
 
-	/* write plugin check results to temp file */
-	if(check_result_info.output_file_fp){
-		fputs("(Host Check Timed Out)",check_result_info.output_file_fp);
-		fclose(check_result_info.output_file_fp);
-	        }
-	if(check_result_info.output_file_fd>0)
-		close(check_result_info.output_file_fd);
-
 	check_result_info.return_code=STATE_CRITICAL;
 	check_result_info.finish_time=end_time;
 	check_result_info.early_timeout=TRUE;
 
-	/* write check result to message queue */
-	write_check_result(&check_result_info);
+	/* write check result to file */
+	if(check_result_info.output_file_fp){
 
-	/* close write end of IPC pipe */
-	close(ipc_pipe[1]);
+		fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+		fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
+		fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
+		fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
+		fprintf(check_result_info.output_file_fp,"output=%s\n","(Host Check Timed Out)");
+
+		/* close the temp file */
+		fclose(check_result_info.output_file_fp);
+		close(check_result_info.output_file_fd);
+
+		/* move check result to queue directory */
+		move_check_result_to_queue(check_result_info.output_file);
+		}
+
+	/* free check result memory */
+	free_check_result(&check_result_info);
 
 	/* try to kill the command that timed out by sending termination signal to our process group */
 	/* we also kill ourselves while doing this... */
@@ -3756,161 +3771,393 @@ int drop_privileges(char *user, char *group){
 /************************* IPC FUNCTIONS **************************/
 /******************************************************************/
 
-/* reads a host/service check result from the circular buffer */
-int read_check_result(check_result *info){
+/* move check result to queue directory */
+int move_check_result_to_queue(char *checkresult_file){
+	char *output_file=NULL;
 	char *temp_buffer=NULL;
+	int output_file_fd=-1;
+	mode_t new_umask=077;
+	mode_t old_umask;
 	int result=0;
-	check_result *buffered_result=NULL;
 
-#ifdef DEBUG0
-	printf("read_check_result() start\n");
-#endif
+	/* save the file creation mask */
+	old_umask=umask(new_umask);
 
-	if(info==NULL)
-		return -1;
+	/* create a safe temp file */
+	asprintf(&output_file,"%s/cXXXXXX",check_result_path);
+	output_file_fd=mkstemp(output_file);
 
-	/* clear the message buffer */
-	memset((void *)info,0,sizeof(check_result));
+	/* file created okay */
+	if(output_file_fd>0){
 
-	/* get a lock on the buffer */
-	pthread_mutex_lock(&check_result_buffer.buffer_lock);
+		/* move the original file */
+		result=my_rename(checkresult_file,output_file);
 
-	/* handle detected overflows */
-	if(check_result_buffer.overflow>0){
+		/* close the file */
+		close(output_file_fd);
 
-		/* log the warning */
-		asprintf(&temp_buffer,"Warning: Overflow detected in check result buffer - %lu check result(s) lost.\n",check_result_buffer.overflow);
+		/* delete the original file */
+		if(result==0)
+			unlink(checkresult_file);
+		}
+	else
+		result=-1;
+
+	/* reset the file creation mask */
+	umask(old_umask);
+
+	/* log a warning on errors */
+	if(result!=0){
+		asprintf(&temp_buffer,"Warning: Unable to move file '%s' to check results queue.\n",checkresult_file);
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
+		}
 
-		/* reset overflow counter */
-		check_result_buffer.overflow=0;
-	        }
+	/* free memory */
+	my_free((void **)&output_file);
 
-	/* there are no items in the buffer */
-	if(check_result_buffer.items==0)
-		result=0;
-
-	/* return the result from the tail of the buffer */
-	else{
-
-		buffered_result=((check_result **)check_result_buffer.buffer)[check_result_buffer.tail];
-		
-		/* copy result to user-supplied structure */
-		memcpy(info,buffered_result,sizeof(check_result));
-		info->host_name=NULL;
-		if(buffered_result->host_name)
-			info->host_name=(char *)strdup(buffered_result->host_name);
-		info->service_description=NULL;
-		if(buffered_result->service_description)
-			info->service_description=(char *)strdup(buffered_result->service_description);
-		info->output_file=NULL;
-		if(buffered_result->output_file)
-			info->output_file=(char *)strdup(buffered_result->output_file);
-
-		/* free memory */
-		free_check_result(buffered_result);
-
-		/* free memory allocated for buffer slot */
-		my_free((void **)&check_result_buffer.buffer[check_result_buffer.tail]);
-		check_result_buffer.buffer[check_result_buffer.tail]=NULL;
-
-		/* adjust tail counter and number of items */
-		check_result_buffer.tail=(check_result_buffer.tail + 1) % check_result_buffer_slots;
-		check_result_buffer.items--;
-
-		result=1;
-	        }
-
-	/* release the lock on the buffer */
-	pthread_mutex_unlock(&check_result_buffer.buffer_lock);
-
-#ifdef DEBUG0
-	printf("read_check_result() end\n");
-#endif
-
-	return result;
+	return OK;
 	}
 
 
-/* writes host/service check result info to the message pipe */
-int write_check_result(check_result *info){
-	char *buf=NULL;
-	int tbytes=0;
-	int buflen=0;
-	struct timeval tv;
-	int write_result=0;
 
-#ifdef DEBUG0
-	printf("write_check_result() start\n");
-#endif
+/* processes files in the check result queue directory */
+int process_check_result_queue(char *dirname){
+	char file[MAX_FILENAME_LENGTH];
+	DIR *dirp=NULL;
+	struct dirent *dirfile=NULL;
+	register int x=0;
+	struct stat stat_buf;
+	char *temp_buffer=NULL;
+	int result=OK;
 
-	if(info==NULL)
-		return 0;
-
-	asprintf(&buf,
-		 "%d=%d\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%d\n%d=%s\n%d=%f\n%d=%lu.%lu\n%d=%lu.%lu\n%d=%d\n%d=%d\n%d=%d\n\n"
-		 ,1,info->object_check_type
-		 ,2,(info->host_name==NULL)?"":info->host_name
-		 ,3,(info->service_description==NULL)?"":info->service_description
-		 ,4,info->check_type
-		 ,5,info->scheduled_check
-		 ,6,info->reschedule_check
-		 ,7,(info->output_file==NULL)?"":info->output_file
-		 ,8,info->latency
-		 ,9,info->start_time.tv_sec,info->start_time.tv_usec
-		 ,10,info->finish_time.tv_sec,info->finish_time.tv_usec
-		 ,11,info->early_timeout
-		 ,12,info->exited_ok
-		 ,13,info->return_code
-		);
-
-	if(buf==NULL)
-		return 0;
-
-#ifdef DEBUG_CHECK_IPC
-	printf("WRITING CHECK RESULT FOR: %s/%s\n",info->host_name,info->service_description);
-	printf("%s",buf);
-#endif
-
-	buflen=strlen(buf);
-
-	while(tbytes<buflen){
-
-		/* try to write everything we have left */
-		write_result=write(ipc_pipe[1],buf+tbytes,buflen-tbytes);
-
-		/* some kind of error occurred */
-		if(write_result==-1){
-
-			/* pipe is full - wait a bit and retry */
-			if(errno==EAGAIN){
-				tv.tv_sec=0;
-				tv.tv_usec=250;
-				select(0,NULL,NULL,NULL,&tv);
-				continue;
-			        }
-
-			/* unless we encountered a recoverable error, bail out */
-			if(errno!=EAGAIN && errno!=EINTR){
-				my_free((void **)&buf);
-				return -1;
-			        }
-		        }
-
-		/* update the number of bytes we've written */
-		tbytes+=write_result;
+	/* open the directory for reading */
+	dirp=opendir(dirname);
+        if(dirp==NULL){
+		asprintf(&temp_buffer,"Error: Could not open check result queue directory '%s' for reading.\n",dirname);
+		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
+		my_free((void **)&temp_buffer);
+		return ERROR;
 	        }
 
-	/* free memory */
-	my_free((void **)&buf);
+	/* process all files in the directory... */
+	while((dirfile=readdir(dirp))!=NULL){
 
-#ifdef DEBUG0
-	printf("write_check_result() end\n");
+		/* create /path/to/file */
+		snprintf(file,sizeof(file),"%s/%s",dirname,dirfile->d_name);
+		file[sizeof(file)-1]='\x0';
+
+		/* process this if it's a check result file... */
+		x=strlen(dirfile->d_name);
+		if(x==7 && dirfile->d_name[0]=='c'){
+
+#ifdef _DIRENT_HAVE_D_TYPE
+			/* only process normal files (not symlinks) */
+			if(dirfile->d_type==DT_UNKNOWN){
+				x=stat(file,&stat_buf);
+				if(x==0){
+					if(!S_ISREG(stat_buf.st_mode))
+						continue;
+				        }
+			        }
+			else{
+				if(dirfile->d_type!=DT_REG)
+					continue;
+			        }
 #endif
 
-	return tbytes;
-        }
+			/* process the file */
+			result=process_check_result_file(file);
+
+			/* break out if we encountered an error */
+			if(result==ERROR)
+				break;
+		        }
+		}
+
+	closedir(dirp);
+
+	return result;
+
+	}
+
+
+
+
+/* reads check result(s) from a file */
+int process_check_result_file(char *fname){
+	mmapfile *thefile=NULL;
+	char *input=NULL;
+	char *var=NULL;
+	char *val=NULL;
+	int delete_file=FALSE;
+	time_t current_time;
+	check_result *new_cr=NULL;
+
+	if(fname==NULL)
+		return ERROR;
+
+	time(&current_time);
+
+	/* open the file for reading */
+	if((thefile=mmap_fopen(fname))==NULL){
+
+		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
+		unlink(fname);
+
+		return ERROR;
+	        }
+
+	/* read in all lines from the file */
+	while(1){
+
+		/* free memory */
+		my_free((void **)&input);
+
+		/* read the next line */
+		if((input=mmap_fgets(thefile))==NULL)
+			break;
+
+		/* skip comments */
+		if(input[0]=='#')
+			continue;
+
+		/* whitespace indicates end of record */
+		else if(input[0]=='\x0'){
+
+			/* we have something... */
+			if(new_cr){
+
+				/* do we have the minimum amount of data? */
+				if(new_cr->host_name!=NULL && new_cr->output!=NULL){
+
+					/* add check result to list in memory */
+					add_check_result_to_list(new_cr);
+
+					/* reset pointer */
+					new_cr=NULL;
+					}
+
+				/* discard partial input */
+				else{
+					free_check_result(new_cr);
+					init_check_result(new_cr);
+					new_cr->output_file=(char *)strdup(fname);
+					}
+				}
+			}
+
+		if((var=my_strtok(input,"="))==NULL)
+			continue;
+		if((val=my_strtok(NULL,"\n"))==NULL)
+			continue;
+
+		/* found the file time */
+		if(!strcmp(var,"file_time")){
+
+			/* file is too old - ignore check results it contains and delete it */
+			/* this will only work as intended if file_time comes before check results */
+			if(max_check_result_file_age>0 && (current_time-(strtoul(val,NULL,0))>max_check_result_file_age)){
+				delete_file=TRUE;
+				break;
+				}
+			}
+
+		/* else we have check result data */
+		else{
+
+			/* allocate new check result if necessary */
+			if(new_cr==NULL){
+
+				if((new_cr=(check_result *)malloc(sizeof(check_result)))==NULL)
+					continue;
+
+				/* init values */
+				init_check_result(new_cr);
+				new_cr->output_file=(char *)strdup(fname);
+				}
+
+			if(!strcmp(var,"host_name"))
+				new_cr->host_name=(char *)strdup(val);
+			else if(!strcmp(var,"service_description")){
+				new_cr->service_description=(char *)strdup(val);
+				new_cr->object_check_type=SERVICE_CHECK;
+				}
+			else if(!strcmp(var,"check_type"))
+				new_cr->check_type=atoi(val);
+			else if(!strcmp(var,"scheduled_check"))
+				new_cr->scheduled_check=atoi(val);
+			else if(!strcmp(var,"reschedule_check"))
+				new_cr->reschedule_check=atoi(val);
+			else if(!strcmp(var,"latency"))
+				new_cr->latency=strtod(val,NULL);
+			else if(!strcmp(var,"start_time")){
+				if((var=my_strtok(val,"."))==NULL)
+					continue;
+				if((val=my_strtok(NULL,"\n"))==NULL)
+					continue;
+				new_cr->start_time.tv_sec=strtoul(var,NULL,0);
+				new_cr->start_time.tv_usec=strtoul(val,NULL,0);
+				}
+			else if(!strcmp(var,"finish_time")){
+				if((var=my_strtok(val,"."))==NULL)
+					continue;
+				if((val=my_strtok(NULL,"\n"))==NULL)
+					continue;
+				new_cr->finish_time.tv_sec=strtoul(var,NULL,0);
+				new_cr->finish_time.tv_usec=strtoul(val,NULL,0);
+				}
+			else if(!strcmp(var,"early_timeout"))
+				new_cr->early_timeout=atoi(val);
+			else if(!strcmp(var,"exited_ok"))
+				new_cr->exited_ok=atoi(val);
+			else if(!strcmp(var,"return_code"))
+				new_cr->return_code=atoi(val);
+			else if(!strcmp(var,"output"))
+				new_cr->output=(char *)strdup(val);
+			}
+	        }
+
+	/* we have something */
+	if(new_cr){
+
+		/* do we have the minimum amount of data? */
+		if(new_cr->host_name!=NULL && new_cr->output!=NULL){
+
+			/* add check result to list in memory */
+			add_check_result_to_list(new_cr);
+
+			/* reset pointer */
+			new_cr=NULL;
+			}
+
+		/* discard partial input */
+		/* free memory for current check result record */
+		else{
+			free_check_result(new_cr);
+			my_free((void **)&new_cr);
+			}
+		}
+
+	/* free memory and close file */
+	my_free((void **)&input);
+	mmap_fclose(thefile);
+
+	/* delete the file if it's too old */
+	/* other files are deleted later (when results are processed) */
+	if(delete_file==TRUE)
+		unlink(fname);
+
+	return OK;
+	}
+
+
+
+
+/* reads the first host/service check result from the list in memory */
+check_result *read_check_result(void){
+	check_result *first_cr=NULL;
+
+	if(check_result_list==NULL)
+		return NULL;
+
+	first_cr=check_result_list;
+	check_result_list=check_result_list->next;
+	
+	return first_cr;
+	}
+
+
+
+/* initializes a host/service check result */
+int init_check_result(check_result *info){
+
+	if(info==NULL)
+		return ERROR;
+
+	/* reset vars */
+	info->object_check_type=HOST_CHECK;
+	info->host_name=NULL;
+	info->service_description=NULL;
+	info->check_type=HOST_CHECK_ACTIVE;
+	info->scheduled_check=FALSE;
+	info->reschedule_check=FALSE;
+	info->output_file_fp=NULL;
+	info->output_file_fd=-1;
+	info->latency=0.0;
+	info->start_time.tv_sec=0;
+	info->start_time.tv_usec=0;
+	info->finish_time.tv_sec=0;
+	info->finish_time.tv_usec=0;
+	info->early_timeout=FALSE;
+	info->exited_ok=TRUE;
+	info->return_code=0;
+	info->output=NULL;
+	info->next=NULL;
+
+	return OK;
+	}
+
+
+
+
+/* adds a new host/service check result to the list in memory */
+int add_check_result_to_list(check_result *new_cr){
+	check_result *temp_cr=NULL;
+	check_result *last_cr=NULL;
+
+	if(new_cr==NULL)
+		return ERROR;
+
+	/* add to list, sorted by finish time (asc) */
+
+	/* find insertion point */
+	last_cr=check_result_list;
+	for(temp_cr=check_result_list;temp_cr!=NULL;temp_cr=temp_cr->next){
+		if(temp_cr->finish_time.tv_sec >= new_cr->finish_time.tv_sec){
+			if(temp_cr->finish_time.tv_sec > new_cr->finish_time.tv_sec)
+				break;
+			else if(temp_cr->finish_time.tv_usec >= new_cr->finish_time.tv_usec)
+				break;
+			}
+		last_cr=temp_cr;
+		}
+
+	/* item goes at head of list */
+	if(check_result_list==NULL || temp_cr==check_result_list){
+		new_cr->next=check_result_list;
+		check_result_list=new_cr;
+		}
+
+	/* item goes in middle or at end of list */
+	else{
+		new_cr->next=temp_cr;
+		last_cr->next=new_cr;
+		}
+
+	return OK;
+	}
+
+
+
+
+/* frees all memory associated with the check result list */
+int free_check_result_list(void){
+	check_result *this_cr=NULL;
+	check_result *next_cr=NULL;
+
+	for(this_cr=check_result_list;this_cr!=NULL;this_cr=next_cr){
+		next_cr=this_cr->next;
+		free_check_result(this_cr);
+		my_free((void **)&this_cr);
+		}
+
+	check_result_list=NULL;
+
+	return OK;
+	}
+
+
 
 
 /* frees memory associated with a host/service check result */
@@ -3922,81 +4169,7 @@ int free_check_result(check_result *info){
 	my_free((void **)&info->host_name);
 	my_free((void **)&info->service_description);
 	my_free((void **)&info->output_file);
-
-	return OK;
-        }
-
-
-
-/* grabs plugin output and perfdata from a file */
-int read_check_output_from_file(char *fname, char **short_output, char **long_output, char **perf_data, int escape_newlines){
-	mmapfile *thefile=NULL;
-	char *input=NULL;
-	int dbuf_chunk=1024;
-	dbuf db;
-
-	/* initialize values */
-	if(short_output)
-		*short_output=NULL;
-	if(long_output)
-		*long_output=NULL;
-	if(perf_data)
-		*perf_data=NULL;
-
-	/* no file name */
-	if(fname==NULL || !strcmp(fname,"")){
-		if(short_output)
-			*short_output=(char *)strdup("(Check result file missing - no plugin output!)");
-		return ERROR;
-	        }
-
-	/* open the file for reading */
-	if((thefile=mmap_fopen(fname))==NULL){
-
-		if(short_output)
-			*short_output=(char *)strdup("(Cannot read check result file (file may be empty) - no plugin output!)");
-
-		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
-		unlink(fname);
-
-		return ERROR;
-	        }
-
-	/* initialize dynamic buffer (1KB chunk size) */
-	dbuf_init(&db,dbuf_chunk);
-
-	/* read in all lines from the config file */
-	while(1){
-
-		/* free memory */
-		my_free((void **)&input);
-
-		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
-			break;
-
-		/* save the new input */
-		dbuf_strcat(&db,input);
-	        }
-
-	/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
-	if(db.used_size>MAX_PLUGIN_OUTPUT_LENGTH)
-		db.buf[MAX_PLUGIN_OUTPUT_LENGTH]='\x0';
-
-	/* parse the output: short and long output, and perf data */
-	parse_check_output(db.buf,short_output,long_output,perf_data,escape_newlines,FALSE);
-
-	/* free dynamic buffer */
-	dbuf_free(&db);
-
-	/* free memory and close file */
-	my_free((void **)&input);
-	mmap_fclose(thefile);
-
-#ifndef DEBUG_CHECK_IPC
-	/* remove the file */
-	unlink(fname);
-#endif
+	my_free((void **)&info->output);
 
 	return OK;
         }
@@ -4587,6 +4760,43 @@ char *get_url_encoded_string(char *input){
 
 
 
+/* escapes newlines in a string */
+char *escape_newlines(char *rawbuf){
+	char *newbuf=NULL;
+	register int x,y;
+	
+	if(rawbuf==NULL)
+		return NULL;
+
+	/* allocate enough memory to escape all chars if necessary */
+	if((newbuf=malloc((strlen(rawbuf)*2)+1))==NULL)
+		return NULL;
+
+	for(x=0,y=0;rawbuf[x]!=(char)'\x0';x++){
+		
+		/* escape backslashes */
+		if(rawbuf[x]=='\\'){
+			newbuf[y++]='\\';
+			newbuf[y++]='\\';
+			}
+
+		/* escape newlines */
+		else if(rawbuf[x]=='\n'){
+			newbuf[y++]='\\';
+			newbuf[y++]='n';
+			}
+
+		else
+			newbuf[y++]=rawbuf[x];
+		}
+	newbuf[y]='\x0';
+
+	return newbuf;
+	}
+
+
+
+
 /* compares strings */
 int compare_strings(char *val1a, char *val2a){
 
@@ -5116,76 +5326,6 @@ int file_uses_embedded_perl(char *fname){
 /************************ THREAD FUNCTIONS ************************/
 /******************************************************************/
 
-/* initializes service result worker thread */
-int init_check_result_worker_thread(void){
-	int result=0;
-	sigset_t newmask;
-
-	/* initialize circular buffer */
-	check_result_buffer.head=0;
-	check_result_buffer.tail=0;
-	check_result_buffer.items=0;
-	check_result_buffer.high=0;
-	check_result_buffer.overflow=0L;
-	check_result_buffer.buffer=(void **)malloc(check_result_buffer_slots*sizeof(check_result **));
-	if(check_result_buffer.buffer==NULL)
-		return ERROR;
-
-	/* initialize mutex */
-	pthread_mutex_init(&check_result_buffer.buffer_lock,NULL);
-
-	/* new thread should block all signals */
-	sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK,&newmask,NULL);
-
-	/* create worker thread */
-	result=pthread_create(&worker_threads[CHECK_RESULT_WORKER_THREAD],NULL,check_result_worker_thread,NULL);
-
-	/* main thread should unblock all signals */
-	pthread_sigmask(SIG_UNBLOCK,&newmask,NULL);
-
-#ifdef DEBUG1
-	printf("SERVICE CHECK THREAD: %lu\n",(unsigned long)worker_threads[CHECK_RESULT_WORKER_THREAD]);
-#endif
-
-	if(result)
-		return ERROR;
-
-	return OK;
-        }
-
-
-/* shutdown the service result worker thread */
-int shutdown_check_result_worker_thread(void){
-
-	/* tell the worker thread to exit */
-	pthread_cancel(worker_threads[CHECK_RESULT_WORKER_THREAD]);
-
-	/* wait for the worker thread to exit */
-	pthread_join(worker_threads[CHECK_RESULT_WORKER_THREAD],NULL);
-
-	return OK;
-        }
-
-
-/* clean up resources used by service result worker thread */
-void cleanup_check_result_worker_thread(void *arg){
-	register int x=0;
-
-	/* release memory allocated to circular buffer */
-	for(x=check_result_buffer.tail;x!=check_result_buffer.head;x=(x+1) % check_result_buffer_slots){
-		my_free((void **)&((check_result **)check_result_buffer.buffer)[x]);
-		((check_result **)check_result_buffer.buffer)[x]=NULL;
-	        }
-	my_free((void **)&check_result_buffer.buffer);
-
-	/* free memory allocated to dynamic buffer */
-	dbuf_free(&check_result_dbuf);
-
-	return;
-        }
-
-
 /* initializes command file worker thread */
 int init_command_file_worker_thread(void){
 	int result=0;
@@ -5250,374 +5390,6 @@ void cleanup_command_file_worker_thread(void *arg){
 	my_free((void **)&external_command_buffer.buffer);
 
 	return;
-        }
-
-
-/* check result worker thread - artificially increases buffer of IPC pipe */
-void * check_result_worker_thread(void *arg){	
-	struct pollfd pfd;
-	int pollval=0;
-	struct timeval tv;
-	int buffer_items=0;
-	char buf[512];
-	int dbuf_chunk=2048;
-	int result=0;
-	check_result info;
-
-	/* specify cleanup routine */
-	pthread_cleanup_push(cleanup_check_result_worker_thread,NULL);
-
-	/* set cancellation info */
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,NULL);
-	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
-
-	/* initialize dynamic buffer (2KB chunk size) */
-	dbuf_init(&check_result_dbuf,dbuf_chunk);
-
-	/* clear the check result structure */
-	memset((void *)&info,0,sizeof(check_result));
-
-	/* initialize check result structure */
-	info.object_check_type=SERVICE_CHECK;
-	info.host_name=NULL;
-	info.service_description=NULL;
-	info.check_type=SERVICE_CHECK_ACTIVE;
-	info.output_file=NULL;
-	info.latency=0.0;
-	info.start_time.tv_sec=0;
-	info.start_time.tv_usec=0;
-	info.finish_time.tv_sec=0;
-	info.finish_time.tv_usec=0;
-	info.early_timeout=FALSE;
-	info.exited_ok=TRUE;
-	info.return_code=STATE_OK;
-
-	while(1){
-
-		/* should we shutdown? */
-		pthread_testcancel();
-
-		/* wait for data to arrive */
-		/* select seems to not work, so we have to use poll instead */
-		pfd.fd=ipc_pipe[0];
-		pfd.events=POLLIN;
-		pollval=poll(&pfd,1,500);
-
-		/* loop if no data */
-		if(pollval==0)
-			continue;
-
-		/* check for errors */
-		if(pollval==-1){
-
-			switch(errno){
-			case EBADF:
-				write_to_log("check_result_worker_thread(): poll(): EBADF",logging_options,NULL);
-				break;
-			case ENOMEM:
-				write_to_log("check_result_worker_thread(): poll(): ENOMEM",logging_options,NULL);
-				break;
-			case EFAULT:
-				write_to_log("check_result_worker_thread(): poll(): EFAULT",logging_options,NULL);
-				break;
-			case EINTR:
-				/* this can happen when we're running Nagios under a debugger like gdb */
-				/* REMOVED 03/11/2006 EG */
-				/*
-				write_to_log("check_result_worker_thread(): poll(): EINTR (impossible). Perhaps we're running under gdb?",logging_options,NULL);
-				*/
-				break;
-			default:
-				write_to_log("check_result_worker_thread(): poll(): Unknown errno value.",logging_options,NULL);
-				break;
-			        }
-
-			continue;
-		        }
-
-		/* should we shutdown? */
-		pthread_testcancel();
-
-		/* get number of items in the buffer */
-		pthread_mutex_lock(&check_result_buffer.buffer_lock);
-		buffer_items=check_result_buffer.items;
-		pthread_mutex_unlock(&check_result_buffer.buffer_lock);
-
-		/* process data in the pipe (one message max) if there's some free space in the circular buffer */
-		if(buffer_items<check_result_buffer_slots){
-
-			/* read all data from client */
-			while(1){
-
-				result=read(ipc_pipe[0],buf,sizeof(buf)-1);
-
-				/* handle errors */
-				if(result==-1){
-
-#ifdef DEBUG_CHECK_IPC
-					switch(errno){
-					case EAGAIN:
-						printf("EAGAIN: %d\n",errno);
-						break;
-					case EINTR:
-						printf("EINTR\n");
-						break;
-					case EIO:
-						printf("EIO\n");
-						break;
-					case EINVAL:
-						printf("EINVAL\n");
-						break;
-					case EBADF:
-						printf("EBADF\n");
-						break;
-					default:
-						printf("UNKNOWN: %d\n",errno);
-						break;
-					        }
-#endif
-
-					/* bail out on hard errors */
-					if(errno!=EINTR)
-						break;
-					else
-						continue;
-				        }
-
-				/* zero bytes read means we lost the connection */
-				if(result==0)
-					break;
-
-				/* append data we just read to dynamic buffer */
-				buf[result]='\x0';
-				dbuf_strcat(&check_result_dbuf,buf);
-
-				/* check for completed lines of input */
-				handle_check_result_input1(&info,&check_result_dbuf);
-                               }
-		        }
-
-		/* no free space in the buffer, so wait a bit */
-		else{
-			tv.tv_sec=0;
-			tv.tv_usec=500;
-			select(0,NULL,NULL,NULL,&tv);
-		        }
-	        }
-
-	/* should never be reached... */
-
-	/* removes cleanup handler */
-	pthread_cleanup_pop(0);
-
-	return NULL;
-        }
-
-
-
-/* top-level check result input handler */
-int handle_check_result_input1(check_result *info, dbuf *db){
-	char *buf=NULL;
-	register int x=0;
-	
-
-	if(db==NULL)
-		return OK;
-	if(db->buf==NULL)
-		return OK;
-
-	/* search for complete lines of input */
-	for(x=0;db->buf[x]!='\x0';x++){
-
-		/* we found the end of a line */
-		if(db->buf[x]=='\n'){
-
-			/* handle this line of input */
-			db->buf[x]='\x0';
-			if((buf=(char *)strdup(db->buf))){
-
-				handle_check_result_input2(info,buf);
-
-				my_free((void **)&buf);
-				buf=NULL;
-			        }
-		
-			/* shift data back to front of buffer and adjust counters */
-			memmove((void *)&db->buf[0],(void *)&db->buf[x+1],(size_t)((int)db->used_size-x-1));
-			db->used_size-=(x+1);
-			db->buf[db->used_size]='\x0';
-			x=-1;
-		        }
-	        }
-
-	return OK;
-        }
-
-
-
-/* low-level check result input handler */
-int handle_check_result_input2(check_result *info, char *buf){
-	char *var=NULL;
-	char *val=NULL;
-	char *ptr1=NULL;
-	char *ptr2=NULL;
-
-	if(info==NULL || buf==NULL)
-		return ERROR;
-
-	strip(buf);
-
-	/* input is finished, so buffer this check result */
-	if(!strcmp(buf,"")){
-
-		/* buffer check result */
-		buffer_check_result(info);
-
-		/* reinitialize check result structure */
-		info->object_check_type=SERVICE_CHECK;
-		info->check_type=SERVICE_CHECK_ACTIVE;
-		info->scheduled_check=FALSE;
-		info->reschedule_check=FALSE;
-		info->start_time.tv_sec=0;
-		info->start_time.tv_usec=0;
-		info->latency=0.0;
-		info->finish_time.tv_sec=0;
-		info->finish_time.tv_usec=0;
-		info->early_timeout=FALSE;
-		info->exited_ok=TRUE;
-		info->return_code=STATE_OK;
-
-		/* free check result memory */
-		free_check_result(info);
-
-		return OK;
-	        }
-
-	/* get var/val pair */
-	if((var=strtok(buf,"="))==NULL)
-		return ERROR;
-	if((val=strtok(NULL,"\n"))==NULL)
-		return ERROR;
-
-	/* handle the data */
-	switch(atoi(var)){
-	case 1:
-		info->object_check_type=atoi(val);
-		break;
-	case 2:
-		info->host_name=(char *)strdup(val);
-		break;
-	case 3:
-		info->service_description=(char *)strdup(val);
-		break;
-	case 4:
-		info->check_type=atoi(val);
-		break;
-	case 5:
-		info->scheduled_check=atoi(val);
-		break;
-	case 6:
-		info->reschedule_check=atoi(val);
-		break;
-	case 7:
-		info->output_file=(char *)strdup(val);
-		break;
-	case 8:
-		info->latency=strtod(val,NULL);
-		break;
-	case 9:
-		if((ptr1=strtok(val,"."))==NULL)
-			return ERROR;
-		if((ptr2=strtok(NULL,"\n"))==NULL)
-			return ERROR;
-		info->start_time.tv_sec=strtoul(ptr1,NULL,0);
-		info->start_time.tv_usec=strtoul(ptr2,NULL,0);
-		break;
-	case 10:
-		if((ptr1=strtok(val,"."))==NULL)
-			return ERROR;
-		if((ptr2=strtok(NULL,"\n"))==NULL)
-			return ERROR;
-		info->finish_time.tv_sec=strtoul(ptr1,NULL,0);
-		info->finish_time.tv_usec=strtoul(ptr2,NULL,0);
-		break;
-	case 11:
-		info->early_timeout=atoi(val);
-		break;
-	case 12:
-		info->exited_ok=atoi(val);
-		break;
-	case 13:
-		info->return_code=atoi(val);
-		break;
-	default:
-		return ERROR;
-	        }
-
-	return OK;
-        }
-
-
-
-/* saves a host/service check result info structure to the circular buffer */
-int buffer_check_result(check_result *info){
-	check_result *new_info=NULL;
-
-	if(info==NULL)
-		return ERROR;
-
-#ifdef DEBUG_CHECK_IPC
-	printf("BUFFERING CHECK RESULT FOR: HOST=%s, SVC=%s\n",(info->host_name==NULL)?"":info->host_name,(info->service_description==NULL)?"":info->service_description);
-#endif
-
-	/* allocate memory for the result */
-	if((new_info=(check_result *)malloc(sizeof(check_result)))==NULL)
-		return ERROR;
-	
-	/* copy the original check result info */
-	memcpy(new_info,info,sizeof(check_result));
-	new_info->host_name=NULL;
-	if(info->host_name)
-		new_info->host_name=(char *)strdup(info->host_name);
-	new_info->service_description=NULL;
-	if(info->service_description)
-		new_info->service_description=(char *)strdup(info->service_description);
-	new_info->output_file=NULL;
-	if(info->output_file)
-		new_info->output_file=(char *)strdup(info->output_file);
-
-	/* obtain a lock for writing to the buffer */
-	pthread_mutex_lock(&check_result_buffer.buffer_lock);
-
-	/* handle overflow conditions */
-	/* NOTE: This should never happen - child processes will instead block trying to write messages to the pipe... */
-	if(check_result_buffer.items==check_result_buffer_slots){
-
-		/* record overflow */
-		check_result_buffer.overflow++;
-
-		/* update tail pointer */
-		check_result_buffer.tail=(check_result_buffer.tail + 1) % check_result_buffer_slots;
-	        }
-
-	/* save the data to the buffer */
-	((check_result **)check_result_buffer.buffer)[check_result_buffer.head]=new_info;
-
-	/* increment the head counter and items */
-	check_result_buffer.head=(check_result_buffer.head + 1) % check_result_buffer_slots;
-	if(check_result_buffer.items<check_result_buffer_slots)
-		check_result_buffer.items++;
-	if(check_result_buffer.items>check_result_buffer.high)
-		check_result_buffer.high=check_result_buffer.items;
-	
-#ifdef DEBUG_CHECK_IPC
-	printf("BUFFER OK.  TOTAL ITEMS=%d\n",check_result_buffer.items);
-#endif
-
-	/* release lock on buffer */
-	pthread_mutex_unlock(&check_result_buffer.buffer_lock);
-
-	return OK;
         }
 
 
@@ -6089,6 +5861,9 @@ void free_memory(void){
 	/* free memory allocated to comments */
 	free_comment_data();
 
+	/* free check result list */
+	free_check_result_list();
+
 	/* free memory for the high priority event list */
 	this_event=event_list_high;
 	while(this_event!=NULL){
@@ -6150,6 +5925,7 @@ void free_memory(void){
 	my_free((void **)&log_file);
 	my_free((void **)&temp_file);
 	my_free((void **)&temp_path);
+	my_free((void **)&check_result_path);
 	my_free((void **)&command_file);
 	my_free((void **)&lock_file);
 	my_free((void **)&auth_file);
@@ -6202,6 +5978,7 @@ int reset_variables(void){
 	log_file=(char *)strdup(DEFAULT_LOG_FILE);
 	temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
 	temp_path=(char *)strdup(DEFAULT_TEMP_PATH);
+	check_result_path=(char *)strdup(DEFAULT_CHECK_RESULT_PATH);
 	command_file=(char *)strdup(DEFAULT_COMMAND_FILE);
 	lock_file=(char *)strdup(DEFAULT_LOCK_FILE);
 	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);
@@ -6269,6 +6046,7 @@ int reset_variables(void){
 	command_check_interval=DEFAULT_COMMAND_CHECK_INTERVAL;
 	check_reaper_interval=DEFAULT_CHECK_REAPER_INTERVAL;
         max_check_reaper_time=DEFAULT_MAX_REAPER_TIME;
+	max_check_result_file_age=DEFAULT_MAX_CHECK_RESULT_AGE;
 	service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 	auto_rescheduling_interval=DEFAULT_AUTO_RESCHEDULING_INTERVAL;
@@ -6328,7 +6106,6 @@ int reset_variables(void){
 	use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
 
 	external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
-	check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
 	date_format=DATE_FORMAT_US;
 

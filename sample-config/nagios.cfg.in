@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 03-14-2007
+# Last Modified: 04-17-2007
 #
 ##############################################################################
 
@@ -200,10 +200,10 @@ temp_file=@localstatedir@/nagios.tmp
 
 
 # TEMP PATH
-# This is path where Nagios can create temp files for service check
-# results, etc.
+# This is path where Nagios can create temp files for service and
+# host check results, etc.
 
-temp_path=/tmp
+temp_path=@TMPDIR@
 
 
 
@@ -440,13 +440,22 @@ max_check_result_reaper_time=30
 
 
 
-# CHECK RESULT BUFFER SLOTS
-# This settings is used to tweak the number of items or "slots" that
-# the Nagios daemon should allocate to the buffer that holds host and
-# service check results before they are processed.  As check results
-# are processed by the daemon, they are removed from the buffer.  
+# CHECK RESULT PATH
+# This is directory where Nagios stores the results of host and
+# service checks that have not yet been processed.
 
-check_result_buffer_slots=4096
+check_result_path=@CHECKRESULTDIR@
+
+
+
+
+# MAX CHECK RESULT FILE AGE
+# This option determines the maximum age (in seconds) which check
+# result files are considered to be valid.  Files older than this 
+# threshold will be mercilessly deleted without further processing.
+
+max_check_result_file_age=3600
+
 
 
 

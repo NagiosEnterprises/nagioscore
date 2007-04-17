@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-10-2007
+ * Last Modified: 04-17-2007
  *
  * License:
  *
@@ -876,6 +876,36 @@ void strip(char *buffer){
 	}
 
 
+/* unescapes newlines in a string */
+char *unescape_newlines(char *rawbuf){
+	register int x,y;
+
+	for(x=0,y=0;rawbuf[x]!=(char)'\x0';x++){
+
+		if(rawbuf[x]=='\\'){
+
+			/* unescape newlines */
+			if(rawbuf[x+1]=='n'){
+				rawbuf[y++]='\n';
+				x++;
+				}
+
+			/* unescape backslashes and other stuff */
+			else{
+				rawbuf[y++]=rawbuf[x+1];
+				x++;
+				}
+
+			}
+		else
+			rawbuf[y++]=rawbuf[x];
+		}
+	rawbuf[y]='\x0';
+
+	return rawbuf;
+	}
+
+
 /* strips HTML and bad stuff from plugin output */
 void sanitize_plugin_output(char *buffer){
 	int x=0;
@@ -1438,8 +1468,8 @@ char * newline2br(char *input){
 
 	len=strlen(input);
 
-	/* we need up to twice the space to do the conversion */
-	output=(char *)malloc((len*2)+1);
+	/* we need up to four times the space to do the conversion */
+	output=(char *)malloc((len*4)+1);
 
 	for(x=0,y=0;x<=len;x++){
 
@@ -1449,10 +1479,10 @@ char * newline2br(char *input){
 			break;
 		        }
 
-		if((char)input[x]=='\\' && (char)input[x+1]=='n'){
+		/*if((char)input[x]=='\\' && (char)input[x+1]=='n'){*/
+		if((char)input[x]=='\n'){
 			strcpy(&output[y],"<BR>");
 			y+=4;
-			x++;
 			}
 
 		else

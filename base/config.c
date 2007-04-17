@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-11-2007
+ * Last Modified: 04-17-2007
  *
  * License:
  *
@@ -35,6 +35,7 @@ extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;
 extern char     *temp_path;
+extern char     *check_result_path;
 extern char     *lock_file;
 extern char	*log_archive_path;
 extern char     *auth_file;
@@ -192,8 +193,9 @@ extern hostescalation   *hostescalation_list;
 extern host		**host_hashlist;
 extern service		**service_hashlist;
 
-extern int      external_command_buffer_slots;
-extern int      check_result_buffer_slots;
+extern int              external_command_buffer_slots;
+
+extern unsigned long    max_check_result_file_age;
 
 
 
@@ -428,6 +430,42 @@ int read_main_config_file(char *main_config_file){
 			printf("\t\ttemp_path set to '%s'\n",temp_path);
 #endif
 			}
+
+		else if(!strcmp(variable,"check_result_path")){
+
+			if(strlen(value)>MAX_FILENAME_LENGTH-1){
+				strcpy(error_message,"Check result path is too long");
+				error=TRUE;
+				break;
+				}
+
+			if((tmpdir=opendir((char *)value))==NULL){
+				strcpy(error_message,"Check result path is not a valid directory");
+				error=TRUE;
+				break;
+				}
+			closedir(tmpdir);
+
+			my_free((void **)&temp_path);
+			if((temp_path=(char *)strdup(value))){
+				strip(temp_path);
+				/* make sure we don't have a trailing slash */
+				if(temp_path[strlen(temp_path)-1]=='/')
+					temp_path[strlen(temp_path)-1]='\x0';
+			        }
+
+#ifdef DEBUG1
+			printf("\t\tcheck_result_path set to '%s'\n",check_result_path);
+#endif
+			}
+
+		else if(!strcmp(variable,"max_check_result_file_age")){
+
+			max_check_result_file_age=strtoul(value,NULL,0);
+#ifdef DEBUG1
+			printf("\t\tmax_check_result_file_age set to %lu\n",max_check_result_file_age);
+#endif
+		        }
 
 		else if(!strcmp(variable,"lock_file")){
 
@@ -1578,9 +1616,6 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"external_command_buffer_slots"))
 			external_command_buffer_slots=atoi(value);
 
-		else if(!strcmp(variable,"check_result_buffer_slots"))
-			check_result_buffer_slots=atoi(value);
-
 		/*** AUTH_FILE VARIABLE USED BY EMBEDDED PERL INTERPRETER ***/
 		else if(!strcmp(variable,"auth_file")){
 
@@ -1945,6 +1980,20 @@ int pre_flight_check(void){
        	asprintf(&buf,"%s/nagiosXXXXXX",temp_path);
        	if((temp_path_fd=mkstemp(buf))==-1){
        		asprintf(&temp_buffer,"\tError: Unable to write to temp_path ('%s') - %s\n",temp_path,strerror(errno));
+		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
+		errors++;
+		my_free((void **)&temp_buffer);
+		}
+	else{
+		close(temp_path_fd);
+		remove(buf);
+		}
+	my_free((void **)&buf);
+
+	/* check if we can write to check_result_path */
+       	asprintf(&buf,"%s/nagiosXXXXXX",check_result_path);
+       	if((temp_path_fd=mkstemp(buf))==-1){
+       		asprintf(&temp_buffer,"\tError: Unable to write to check_result_path ('%s') - %s\n",check_result_path,strerror(errno));
 		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
 		errors++;
 		my_free((void **)&temp_buffer);

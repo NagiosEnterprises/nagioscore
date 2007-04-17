@@ -23,6 +23,7 @@ Legend2[nagios-a]: Execution Time
 Legend3[nagios-a]: Maximal 5 Minute Latency
 Legend4[nagios-a]: Maximal 5 Minute Execution Time
 
+
 # Service Percent State Change
 Target[nagios-b]: `@bindir@/nagiostats --mrtg --data=AVGACTSVCPSC,AVGPSVSVCPSC,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-b]: 100
@@ -37,6 +38,7 @@ Legend1[nagios-b]: State Change
 Legend2[nagios-b]: State Change
 Legend3[nagios-b]: Maximal 5 Minute State Change
 Legend4[nagios-b]: Maximal 5 Minute State Change
+
 
 # Host Latency and Execution Time
 Target[nagios-c]: `@bindir@/nagiostats --mrtg --data=AVGACTHSTLAT,AVGACTHSTEXT,PROGRUNTIME,NAGIOSVERPID`
@@ -53,6 +55,7 @@ Legend2[nagios-c]: Execution Time
 Legend3[nagios-c]: Maximal 5 Minute Latency
 Legend4[nagios-c]: Maximal 5 Minute Execution Time
 
+
 # Host Percent State Change
 Target[nagios-d]: `@bindir@/nagiostats --mrtg --data=AVGACTHSTPSC,AVGPSVHSTPSC,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-d]: 100
@@ -68,6 +71,7 @@ Legend2[nagios-d]: State Change
 Legend3[nagios-d]: Maximal 5 Minute State Change
 Legend4[nagios-d]: Maximal 5 Minute State Change
 
+
 # Hosts/Services Actively Checked
 Target[nagios-e]: `@bindir@/nagiostats --mrtg --data=NUMHSTACTCHK5M,NUMSVCACTCHK5M,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-e]: 7000
@@ -78,6 +82,7 @@ YLegend[nagios-e]: Total
 ShortLegend[nagios-e]: &nbsp;
 LegendI[nagios-e]: &nbsp;Hosts:
 LegendO[nagios-e]: &nbsp;Services:
+
 
 # Hosts/Services Passively Checked
 Target[nagios-f]: `@bindir@/nagiostats --mrtg --data=NUMHSTPSVCHK5M,NUMSVCPSVCHK5M,PROGRUNTIME,NAGIOSVERPID`
@@ -103,17 +108,6 @@ LegendI[nagios-g]: &nbsp;Total:
 LegendO[nagios-g]: &nbsp;Used:
 
 
-# Used/Avail Check Result Buffers
-Target[nagios-h]: `@bindir@/nagiostats --mrtg --data=TOTCHKBUF,USEDCHKBUF,PROGRUNTIME,NAGIOSVERPID`
-MaxBytes[nagios-h]: 7000
-Title[nagios-h]: Check Result Buffers
-PageTop[nagios-h]: <H1>Check Result Buffers</H1>
-Options[nagios-h]: growright,gauge,nopercent
-YLegend[nagios-h]: Buffers
-ShortLegend[nagios-h]: &nbsp;
-LegendI[nagios-h]: &nbsp;Total:
-LegendO[nagios-h]: &nbsp;Used:
-
 # Active Host Checks
 Target[nagios-i]: `@bindir@/nagiostats --mrtg --data=NUMSACTHSTCHECKS5M,NUMOACTHSTCHECKS5M,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-i]: 7000
@@ -124,6 +118,7 @@ YLegend[nagios-i]: Checks
 ShortLegend[nagios-i]: &nbsp;
 LegendI[nagios-i]: &nbsp;Scheduled Checks:
 LegendO[nagios-i]: &nbsp;On-Demand Checks:
+
 
 # Active Service Checks
 Target[nagios-j]: `@bindir@/nagiostats --mrtg --data=NUMSACTSVCCHECKS5M,NUMOACTSVCCHECKS5M,PROGRUNTIME,NAGIOSVERPID`
@@ -136,6 +131,7 @@ ShortLegend[nagios-j]: &nbsp;
 LegendI[nagios-j]: &nbsp;Scheduled Checks:
 LegendO[nagios-j]: &nbsp;On-Demand Checks:
 
+
 # Passive Host/Service Checks
 Target[nagios-k]: `@bindir@/nagiostats --mrtg --data=NUMPSVHSTCHECKS5M,NUMPSVSVCCHECKS5M,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-k]: 7000
@@ -147,6 +143,7 @@ ShortLegend[nagios-k]: &nbsp;
 LegendI[nagios-k]: &nbsp;Host Checks:
 LegendO[nagios-k]: &nbsp;Service Checks:
 
+
 # Cached Host/Service Checks
 Target[nagios-l]: `@bindir@/nagiostats --mrtg --data=NUMCACHEDHSTCHECKS5M,NUMCACHEDSVCCHECKS5M,PROGRUNTIME,NAGIOSVERPID`
 MaxBytes[nagios-l]: 7000
@@ -157,6 +154,7 @@ YLegend[nagios-l]: Checks
 ShortLegend[nagios-l]: &nbsp;
 LegendI[nagios-l]: &nbsp;Host Checks:
 LegendO[nagios-l]: &nbsp;Service Checks:
+
 
 # External Commands
 Target[nagios-m]: `@bindir@/nagiostats --mrtg --data=NUMEXTCMDS5M,0,PROGRUNTIME,NAGIOSVERPID`

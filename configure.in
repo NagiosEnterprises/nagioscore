@@ -218,7 +218,7 @@ if test x$MAIL_PROG=x; then
 fi
 AC_SUBST(MAIL_PROG)
 
-dnl Check for location of mail program
+dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
 AC_ARG_WITH(httpd_conf,--with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory,HTTPD_CONF=$withval,HTTPD_CONF=no) 
 if test HTTPD_CONF=no; then
@@ -233,6 +233,22 @@ if test HTTPD_CONF=no; then
 	fi
 fi 
 AC_SUBST(HTTPD_CONF)
+
+dnl Location of check result path
+CHECKRESULTDIR=no
+AC_ARG_WITH(checkresult-dir,--with-checkresult-dir=<path> sets path to check results spool directory,CHECKRESULTDIR=$withval,CHECKRESULTDIR=no) 
+if test CHECKRESULTDIR=no; then
+	CHECKRESULTDIR="/var/spool/nagios/checkresults"
+fi 
+AC_SUBST(CHECKRESULTDIR)
+
+dnl Location of check result path
+TMPDIR=no
+AC_ARG_WITH(temp-dir,--with-temp-dir=<path> sets path to temp directory,TMPDIR=$withval,TMPDIR=no) 
+if test TMPDIR=no; then
+	TMPDIR="/tmp"
+fi 
+AC_SUBST(TMPDIR)
 
 dnl Check for location of init scripts
 init_dir=/etc/rc.d/init.d

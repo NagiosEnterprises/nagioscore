@@ -122,7 +122,8 @@ The default name of the main configuration file is <b>nagios.cfg</b> - it is usu
 <a href="#max_concurrent_checks">Maximum concurrent service checks</a><br>
 <a href="#check_result_reaper_frequency">Check result reaper frequency</a><br>
 <a href="#max_check_result_reaper_time">Maximum check result reaper time</a><br>
-<a href="#check_result_buffer_slots">Check result buffer slots</a><br>
+<a href="#check_result_path">Check result path</a><br>
+<a href="#max_check_result_file_age">Maximum check result file age</a><br>
 <a href="#host_inter_check_delay_method">Host inter-check delay method</a><br>
 <a href="#max_host_check_spread">Maximum host check spread</a><br>
 <a href="#interval_length">Timing interval length</a><br>
@@ -1730,10 +1731,10 @@ This option allows you to control the maximum amount of time <i>in seconds</i> t
 
 
 <p>
-<a name="check_result_buffer_slots"></a>
+<a name="check_result_path"></a>
 <table border="0" width="100%" class="Default">
 <tr>
-<td bgcolor="#cbcbcb"><strong>Check Result Buffer Slots</strong></td>
+<td bgcolor="#cbcbcb"><strong>Check Result Path</strong></td>
 </tr>
 </table>
 </p>
@@ -1742,19 +1743,45 @@ This option allows you to control the maximum amount of time <i>in seconds</i> t
 <table border="0" class="Default">
 <tr>
 <td>Format:</td>
-<td><strong>check_result_buffer_slots=&lt;#&gt;</strong></td>
+<td><strong>check_result_path=&lt;path&gt;</strong></td>
 </tr>
 <tr>
 <td>Example:</td>
-<td><font color="red"><strong>check_result_buffer_slots=512</strong></font></td>
+<td><font color="red"><strong>check_result_path=/var/spool/nagios/checkresults</strong></font></td>
 </tr>
 </table>
 </p>
 
 <p>
-Note: This is an advanced feature. This option determines how many buffer slots Nagios will reserve for caching host and service check results that have not yet been processed by the main thread of the Nagios deamon.  Each slot can hold one check result.  For large installations where Nagios is actively executing or passively accepting a lot of host and service checks, you may need to increase this number.  You should consider using MRTG to graph Nagios' usage of check result buffers.  You can read more on how to configure graphing <a href="mrtggraphs.html">here</a>.
+This options determines which directory Nagios will use to temporarily store host and service check results before they are processed.  This directory should not be used to store any other files, as Nagios will periodically clean this directory of old file (see the <a href="#max_check_result_file_age">max_check_result_file_age</a> option for more information).
 </p>
 
+
+<p>
+<a name="max_check_result_file_age"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Max Check Result File Age</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>max_check_result_file_age=&lt;seconds&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>max_check_result_file_age=3600</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This options determines the maximum age in seconds that Nagios will consider check result files found in the <a href="#check_result_path">check_result_path</a> directory to be valid.  Check result files that are older that this threshold will be deleted by Nagios and the check results they contain will not be processed.  By using a value of zero (0) with this option, Nagios will process all check result files - even if they're older than your hardware :-).
+</p>
 
 <p>
 <a name="host_inter_check_delay_method"></a>

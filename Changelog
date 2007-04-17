@@ -3,6 +3,19 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0a4 - ??/??/2007
+------------------
+* Fix for segfault fix when low priority event queue's only item is removed
+* Added test for writeability of temp directory during configuration test
+* Fix for unescaping backslashes in plugin output in the CGIs
+* Removed check_result_buffer_slots option from main configuration file
+* New IPC method for passing host/service check results back to main daemon
+* Added check_result_path option to set path used to store check results
+* Added max_check_result_file_age option to control processing of check results in older files
+* Added new --with-temp-dir option to configure script
+
+
+
 3.0a3 - 04/10/2007
 ------------------
 * Configure script fix for no mail program found/installed on system

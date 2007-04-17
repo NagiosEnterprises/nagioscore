@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-01-2007
+ * Last Modified: 04-17-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -183,6 +183,7 @@ extern "C" {
 #define DEFAULT_COMMAND_CHECK_INTERVAL				-1	/* interval to check for external commands (default = as often as possible) */
 #define DEFAULT_CHECK_REAPER_INTERVAL				10	/* interval in seconds to reap host and service check results */
 #define DEFAULT_MAX_REAPER_TIME                 		30      /* maximum number of seconds to spend reaping service checks before we break out for a while */
+#define DEFAULT_MAX_CHECK_RESULT_AGE				3600    /* maximum number of seconds that a check result file is considered to be valid */
 #define DEFAULT_MAX_PARALLEL_SERVICE_CHECKS 			0	/* maximum number of service checks we can have running at any given time (0=unlimited) */
 #define DEFAULT_RETENTION_UPDATE_INTERVAL			60	/* minutes between auto-save of retention data */
 #define DEFAULT_RETENTION_SCHEDULING_HORIZON    		900     /* max seconds between program restarts that we will preserve scheduling information */
@@ -465,6 +466,8 @@ typedef struct check_result_struct{
 	int early_timeout;                              /* did the service check timeout? */
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
+	char *output;	                                /* plugin output */
+	struct check_result_struct *next;
 	}check_result;
 
 
@@ -568,13 +571,11 @@ typedef struct check_stats_struct{
 
 /* slots in circular buffers */
 #define DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS     4096
-#define DEFAULT_CHECK_RESULT_BUFFER_SLOTS	  4096
 
 /* worker threads */
-#define TOTAL_WORKER_THREADS              2
+#define TOTAL_WORKER_THREADS              1
 
 #define COMMAND_WORKER_THREAD		  0
-#define CHECK_RESULT_WORKER_THREAD 	  1
 
 
 
@@ -599,13 +600,14 @@ void display_scheduling_info(void);				/* displays service check scheduling info
 
 
 /**** IPC Functions ****/
-int write_check_result(check_result *);                 	/* writes a host/service check result to the message pipe */
-int read_check_result(check_result *);                  	/* reads a host/service check result from the message pipe */
-int handle_check_result_input1(check_result *,dbuf *);
-int handle_check_result_input2(check_result *,char *);
-int buffer_check_result(check_result *);                	/* buffers a host/service check result in circular buffer */
+int move_check_result_to_queue(char *);
+int process_check_result_queue(char *);
+int process_check_result_file(char *);
+int add_check_result_to_list(check_result *);
+check_result *read_check_result(void);                  	/* reads a host/service check result from the list in memory */
+int free_check_result_list(void);
+int init_check_result(check_result *);
 int free_check_result(check_result *);                  	/* frees memory associated with a host/service check result */
-int read_check_output_from_file(char *,char **,char **,char **,int);
 int parse_check_output(char *,char **,char **,char **,int,int);
 int open_command_file(void);					/* creates the external command file as a named pipe (FIFO) and opens it for reading */
 int close_command_file(void);					/* closes and deletes the external command file (FIFO) */
@@ -722,6 +724,7 @@ char *my_strsep(char **,const char *);		     	/* Solaris doesn't have strsep(), 
 int my_free(void **);                                   /* my wrapper for free() */
 char *get_url_encoded_string(char *);			/* URL encode a string */
 int compare_strings(char *,char *);                     /* compares two strings for equality */
+char *escape_newlines(char *);
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
 int get_raw_command_line(command *,char *,char *,int,int);    	/* given a raw command line, determine the actual command to run */

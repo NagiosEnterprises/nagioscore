@@ -26,6 +26,8 @@ while ($f = shift @ARGV) {
 		s|\@libexecdir\@|@libexecdir@|g; # put all --with-vars before directories
 		s|\@localstatedir\@|@localstatedir@|g;
 		s|\@sysconfdir\@|@sysconfdir@|g;
+		s|\@TMPDIR\@|@TMPDIR@|g;
+		s|\@CHECKRESULTDIR\@|@CHECKRESULTDIR@|g;
 		s|\@datadir\@|@datadir@|g;
 		s|\@sbindir\@|@sbindir@|g;
 		s|\@bindir\@|@bindir@|g;

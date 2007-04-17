@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   02-08-2007
+ * Last Modified:   04-15-2007
  *
  * License:
  *
@@ -65,7 +65,7 @@ int enable_flap_detection;
 int enable_failure_prediction;
 int process_performance_data;
 int nagios_pid;
-int buffer_stats[2][3];
+int buffer_stats[1][3];
 int program_stats[MAX_CHECK_STATS_TYPES][3];
 #endif
 
@@ -91,9 +91,7 @@ extern int process_performance_data;
 extern int aggregate_status_updates;
 
 extern int external_command_buffer_slots;
-extern int check_result_buffer_slots;
 extern circular_buffer external_command_buffer;
-extern circular_buffer check_result_buffer;
 
 extern char *macro_x[MACRO_X_COUNT];
 
@@ -327,8 +325,6 @@ int xsddefault_save_status_data(void){
 	time_t current_time;
 	int fd=0;
 	FILE *fp=NULL;
-	int used_check_result_buffer_slots=0;
-	int high_check_result_buffer_slots=0;
 	int used_external_command_buffer_slots=0;
 	int high_external_command_buffer_slots=0;
 
@@ -367,12 +363,6 @@ int xsddefault_save_status_data(void){
 
 		return ERROR;
 	        }
-
-	/* get number of items in the check result buffer */
-	pthread_mutex_lock(&check_result_buffer.buffer_lock);
-	used_check_result_buffer_slots=check_result_buffer.items;
-	high_check_result_buffer_slots=check_result_buffer.high;
-	pthread_mutex_unlock(&check_result_buffer.buffer_lock);
 
 	/* get number of items in the command buffer */
 	pthread_mutex_lock(&external_command_buffer.buffer_lock);
@@ -430,9 +420,6 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\ttotal_external_command_buffer_slots=%d\n",external_command_buffer_slots);
 	fprintf(fp,"\tused_external_command_buffer_slots=%d\n",used_external_command_buffer_slots);
 	fprintf(fp,"\thigh_external_command_buffer_slots=%d\n",high_external_command_buffer_slots);
-	fprintf(fp,"\ttotal_check_result_buffer_slots=%d\n",check_result_buffer_slots);
-	fprintf(fp,"\tused_check_result_buffer_slots=%d\n",used_check_result_buffer_slots);
-	fprintf(fp,"\thigh_check_result_buffer_slots=%d\n",high_check_result_buffer_slots);
 	fprintf(fp,"\tactive_scheduled_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_SCHEDULED_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp,"\tactive_ondemand_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_ONDEMAND_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp,"\tpassive_host_check_stats=%d,%d,%d\n",check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[0],check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[1],check_statistics[PASSIVE_HOST_CHECK_STATS].minute_stats[2]);
@@ -935,12 +922,6 @@ int xsddefault_read_status_data(char *config_file,int options){
 					buffer_stats[0][1]=atoi(val);
 				else if (!strcmp(var,"high_external_command_buffer_slots"))
 					buffer_stats[0][2]=atoi(val);
-				else if (!strcmp(var,"total_check_result_buffer_slots"))
-					buffer_stats[1][0]=atoi(val);
-				else if (!strcmp(var,"used_check_result_buffer_slots"))
-					buffer_stats[1][1]=atoi(val);
-				else if (!strcmp(var,"high_check_result_buffer_slots"))
-					buffer_stats[1][2]=atoi(val);
 
 
 				else if (strstr(var,"_stats")){
@@ -997,10 +978,14 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_hoststatus->status=atoi(val);
 					else if(!strcmp(var,"last_hard_state"))
 						temp_hoststatus->last_hard_state=atoi(val);
-					else if(!strcmp(var,"plugin_output"))
+					else if(!strcmp(var,"plugin_output")){
 						temp_hoststatus->plugin_output=(char *)strdup(val);
-					else if(!strcmp(var,"long_plugin_output"))
+						unescape_newlines(temp_hoststatus->plugin_output);
+						}
+					else if(!strcmp(var,"long_plugin_output")){
 						temp_hoststatus->long_plugin_output=(char *)strdup(val);
+						unescape_newlines(temp_hoststatus->long_plugin_output);
+						}
 					else if(!strcmp(var,"performance_data"))
 						temp_hoststatus->perf_data=(char *)strdup(val);
 					else if(!strcmp(var,"current_attempt"))
@@ -1111,10 +1096,14 @@ int xsddefault_read_status_data(char *config_file,int options){
 						temp_servicestatus->last_time_unknown=strtoul(val,NULL,10);
 					else if(!strcmp(var,"last_time_critical"))
 						temp_servicestatus->last_time_critical=strtoul(val,NULL,10);
-					else if(!strcmp(var,"plugin_output"))
+					else if(!strcmp(var,"plugin_output")){
 						temp_servicestatus->plugin_output=(char *)strdup(val);
-					else if(!strcmp(var,"long_plugin_output"))
+						unescape_newlines(temp_servicestatus->plugin_output);
+						}
+					else if(!strcmp(var,"long_plugin_output")){
 						temp_servicestatus->long_plugin_output=(char *)strdup(val);
+						unescape_newlines(temp_servicestatus->long_plugin_output);
+						}
 					else if(!strcmp(var,"performance_data"))
 						temp_servicestatus->perf_data=(char *)strdup(val);
 					else if(!strcmp(var,"last_check"))

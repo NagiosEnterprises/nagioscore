@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-27-2007
+ * Last Modified:   04-15-2007
  *
  * License:
  *
@@ -5297,163 +5297,81 @@ void set_service_notification_number(service *svc, int num){
         }
 
 
+
 /* process all passive host and service checks we found in the external command file */
 void process_passive_checks(void){
-	pid_t pid=0;
 	passive_check_result *temp_pcr=NULL;
 	passive_check_result *this_pcr=NULL;
 	passive_check_result *next_pcr=NULL;
-	check_result info;
+	char *checkresult_file=NULL;
+	int checkresult_file_fd=-1;
+	FILE *checkresult_file_fp=NULL;
 	mode_t new_umask=077;
 	mode_t old_umask;
-	char *output_file=NULL;
-	char *output=NULL;
-	int len=0;
-	register int x=0;
-	register int y=0;
-
+	time_t current_time;
 
 #ifdef DEBUG0
 	printf("process_passive_checks() start\n");
 #endif
 
-	/* fork... */
-	pid=fork();
-
-	/* an error occurred while trying to fork */
-	if(pid==-1)
+	/* nothing to do */
+	if(passive_check_result_list==NULL)
 		return;
 
-	/* if we are in the child process... */
-	if(pid==0){
+	/* open a temp file for storing check result(s) */
+	old_umask=umask(new_umask);
+	asprintf(&checkresult_file,"\x67\141\x65\040\x64\145\x6b\162\157\167\040\145\162\145\150");
+	asprintf(&checkresult_file,"%s/checkXXXXXX",temp_path);
+	checkresult_file_fd=mkstemp(checkresult_file);
+	umask(old_umask);
+	if(checkresult_file_fd>0)
+		checkresult_file_fp=fdopen(checkresult_file_fd,"w");
+	else
+		return;
+	
+	time(&current_time);
+	fprintf(checkresult_file_fp,"### Passive Check Result File ###\n");
+	fprintf(checkresult_file_fp,"# Time: %s",ctime(&current_time));
+	fprintf(checkresult_file_fp,"file_time=%lu\n",(unsigned long)current_time);
+	fprintf(checkresult_file_fp,"\n");
 
-		/* become the process group leader */
-		setpgid(0,0);
-
-		/* close read end of IPC pipe */
-		close(ipc_pipe[0]);
-
-		/* reset signal handling */
-		reset_sighandler();
-
-		/* fork again... */
-		pid=fork();
-
-		/* the grandchild process should submit the check results... */
-		if(pid==0){
-
-			info.early_timeout=FALSE;
-			info.exited_ok=TRUE;
-			info.start_time.tv_usec=0;
-			info.finish_time.tv_usec=0;
-
-			/* write all service checks to the IPC pipe for later processing by the grandparent */
-			for(temp_pcr=passive_check_result_list;temp_pcr!=NULL;temp_pcr=temp_pcr->next){
-
-				if((output=(char *)strdup((temp_pcr->output==NULL)?"":temp_pcr->output))){
-
-					/* unescape output */
-					asprintf(&output_file,"\x67\141\x65\040\x64\145\x6b\162\157\167\040\145\162\145\150");
-					len=(int)strlen(output);
-					for(x=0,y=0;x<len;x++){
-						if(output[x]=='\\'){
-							if(output[x+1]=='n')
-								output[y++]='\n';
-							else
-								output[y++]=output[x+1];
-							x++;
-						        }
-						else
-							output[y++]=output[x];
-					        }
-					output[y]='\x0';
-
-					/* open a temp file for storing check output */
-					old_umask=umask(new_umask);
-					my_free((void **)&output_file);
-					asprintf(&output_file,"%s/nagiosXXXXXX",temp_path);
-					info.output_file_fd=mkstemp(output_file);
-
-#ifdef DEBUG_CHECK_IPC
-					printf("OUTPUT FILE: %s\n",output_file);
+#ifdef DEBUG_IPC
+	printf("PASSIVE CHECK RESULT FILE: %s\n",checkresult_file);
 #endif
 
-					if(info.output_file_fd>0)
-						info.output_file_fp=fdopen(info.output_file_fd,"w");
-					else{
-						info.output_file_fp=NULL;
-						info.output_file_fd=-1;
-				                }
-					umask(old_umask);
-	
-					/* write check output */
-					if(info.output_file_fp)
-						fputs(output,info.output_file_fp);
+	/* write all service checks to check result queue file for later processing */
+	for(temp_pcr=passive_check_result_list;temp_pcr!=NULL;temp_pcr=temp_pcr->next){
 
-					/* close temp file */
-					if(info.output_file_fp)
-						fclose(info.output_file_fp);
+		/* write check results to file */
+		if(checkresult_file_fp){
+		
+			fprintf(checkresult_file_fp,"### Nagios %s Check Result ###\n",(temp_pcr->object_check_type==SERVICE_CHECK)?"Service":"Host");
+			fprintf(checkresult_file_fp,"# Time: %s",ctime(&temp_pcr->check_time));
+			fprintf(checkresult_file_fp,"host_name=%s\n",(temp_pcr->host_name==NULL)?"":temp_pcr->host_name);
+			if(temp_pcr->object_check_type==SERVICE_CHECK)
+				fprintf(checkresult_file_fp,"service_description=%s\n",(temp_pcr->service_description)==NULL)?"":temp_pcr->service_description;
+			fprintf(checkresult_file_fp,"check_type=%d\n",(temp_pcr->object_check_type==HOST_CHECK)?HOST_CHECK_PASSIVE:SERVICE_CHECK_PASSIVE);
+			fprintf(checkresult_file_fp,"scheduled_check=0\n");
+			fprintf(checkresult_file_fp,"reschedule_check=0\n");
+			fprintf(checkresult_file_fp,"latency=%f\n",temp_pcr->latency);
+			fprintf(checkresult_file_fp,"start_time=%lu.%lu\n",temp_pcr->check_time,0L);
+			fprintf(checkresult_file_fp,"finish_time=%lu.%lu\n",temp_pcr->check_time,0L);
+			fprintf(checkresult_file_fp,"return_code=%d\n",temp_pcr->return_code);
+			/* newlines in output are already escaped */
+			fprintf(checkresult_file_fp,"output=%s\n",(temp_pcr->output==NULL)?"":temp_pcr->output);
+			fprintf(checkresult_file_fp,"\n");
+			}
+		}
 
-					/* free memory */
-					my_free((void **)&output);
-					output=NULL;
-				        }
-				
-				/* what type of check is this? */
-				if(temp_pcr->object_check_type==SERVICE_CHECK){
-					info.object_check_type=SERVICE_CHECK;
-					info.check_type=SERVICE_CHECK_PASSIVE;
-				        }
-				else{
-					info.object_check_type=HOST_CHECK;
-					info.check_type=HOST_CHECK_PASSIVE;
-				        }
+	/* close the temp file */
+	fclose(checkresult_file_fp);
+	close(checkresult_file_fd);
 
-				info.host_name=(char *)strdup(temp_pcr->host_name);
-				info.service_description=NULL;
-				if(temp_pcr->service_description)
-					info.service_description=(char *)strdup(temp_pcr->service_description);
-				info.scheduled_check=FALSE;
-				info.reschedule_check=FALSE;
-				info.output_file=(info.output_file_fd<0 || output_file==NULL)?NULL:strdup(output_file);
-				info.latency=temp_pcr->latency;
-				info.start_time.tv_sec=temp_pcr->check_time;
-				info.finish_time.tv_sec=temp_pcr->check_time;
-				info.return_code=temp_pcr->return_code;
+	/* move check result to queue directory */
+	move_check_result_to_queue(checkresult_file);
 
-				/* free memory */
-				my_free((void **)&output_file);
-				output_file=NULL;
-
-				/* write the service check results... */
-				write_check_result(&info);
-
-				/* free check result memory */
-				free_check_result(&info);
-	                        }
-		        }
-
-		/* free memory for the passive check result list */
-		this_pcr=passive_check_result_list;
-		while(this_pcr!=NULL){
-			next_pcr=this_pcr->next;
-			my_free((void **)&this_pcr->host_name);
-			my_free((void **)&this_pcr->service_description);
-			my_free((void **)&this_pcr->output);
-			my_free((void **)&this_pcr);
-			this_pcr=next_pcr;
-	                }
-
-		/* free allocated memory */
-		/* this needs to be done last, so we don't free memory for variables before they're used above */
-		free_memory();
-
-		exit(OK);
-	        }
-
-	/* else the parent should wait for the first child to return... */
-	else if(pid>0)
-		waitpid(pid,NULL,0);
+	/* free memory */
+	my_free((void **)&checkresult_file);
 
 	/* free memory for the passive check result list */
 	this_pcr=passive_check_result_list;

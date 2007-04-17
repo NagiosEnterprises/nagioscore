@@ -177,7 +177,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<li>Add ability to precache object config files and exclude circular path detection checks from verification process.  This can speed up Nagios start time immensely in large environments!  Read more <a href="faststartup.html">here</a>.</li>
 	<li>A new <a href="configmain.html#use_large_installation_tweaks">use_large_installation_tweaks</a> option has been added that should improve performance in large Nagios installations.  Read more about this <a href="largeinstalltweaks.html">here</a>.</li>
 	<li>A number of internal improvements have been made with regards to how Nagios deals with internal data structures and object (e.g. host and service) relationships.  These improvements should result in a speedup for larger installations.</li>
-	<li>New <a href="configmain.html#check_result_buffer_slots">check_result_buffer_slots</a> and <a href="configmain.html#external_command_buffer_slots">external_command_buffer_slots</a> options have been added to allow you to more easily scale Nagios in large environments.  For best results you should consider using <a href="mrtggraphs.html">MRTG to graph</a> Nagios' usage of buffer slots over time.</li>
+	<li>New <a href="configmain.html#external_command_buffer_slots">external_command_buffer_slots</a> option has been added to allow you to more easily scale Nagios in large environments.  For best results you should consider using <a href="mrtggraphs.html">MRTG to graph</a> Nagios' usage of buffer slots over time.</li>
 	</ul>
 </li>
 <br>
@@ -209,6 +209,14 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<li>Added a new <a href="configmain.html#enable_predictive_host_dependency_checks">enable_predictive_host_dependency_checks</a> option to control whether or not Nagios will initiate predictive check of hosts that are being depended upon (in dependency definitions).  Predictive checks help ensure that the dependency logic is as accurate as possible. (<a href="dependencychecks.html">Read more</a>)</li>
 	<li>A new cached host check feature has been implemented that can significantly improve performance for many people Instead of executing a plugin to check the status of a host, Nagios can often use a cached host check result instead.  More information on this can be found <a href="cachedchecks.html">here</a>.</li>
 	<li>Passive host checks that have a DOWN or UNREACHABLE result can now be automatically translated to their proper state from the point of view of the Nagios instance that receives them.  This is very useful in failover and distributed monitoring setups.  More information on passive host check state translation can be found <a href="passivestatetranslation.html">here</a>.</li>
+	</ul>
+</li>
+<br>
+
+<li><b>IPC</b>:<br>
+	<ul>
+	<li>The IPC mechanism that is used to transfer host/service check results back to the Nagios daemon from (grand)child processes has changed!  This should help to reduce load/latency issues related to processing large numbers of passive checks in distributed monitoring environments.</li>
+	<li>Check results are now transferred by writing check results to files in directory specified by the <a href="configmain.html#check_result_path">check_result_path</a> option.  Files that are older that the <a href="configmain.html#max_check_result_file_age">max_check_result_file_age</a> option will be mercilessly deleted without further processing.</li>
 	</ul>
 </li>
 <br>

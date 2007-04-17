@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   04-10-2007
+ * Last Modified:   04-15-2007
  *
  * License:
  *
@@ -179,9 +179,6 @@ int external_commands_last_15min=0;
 int total_external_command_buffer_slots=0;
 int used_external_command_buffer_slots=0;
 int high_external_command_buffer_slots=0;
-int total_check_result_buffer_slots=0;
-int used_check_result_buffer_slots=0;
-int high_check_result_buffer_slots=0;
 
 
 
@@ -436,12 +433,6 @@ int display_mrtg_values(void){
 			printf("%d\n",used_external_command_buffer_slots);
 		else if(!strcmp(temp_ptr,"HIGHCMDBUF"))
 			printf("%d\n",high_external_command_buffer_slots);
-		else if(!strcmp(temp_ptr,"TOTCHKBUF"))
-			printf("%d\n",total_check_result_buffer_slots);
-		else if(!strcmp(temp_ptr,"USEDCHKBUF"))
-			printf("%d\n",used_check_result_buffer_slots);
-		else if(!strcmp(temp_ptr,"HIGHCHKBUF"))
-			printf("%d\n",high_check_result_buffer_slots);
 
 		else if(!strcmp(temp_ptr,"NUMSERVICES"))
 			printf("%d\n",status_service_entries);
@@ -713,7 +704,6 @@ int display_stats(void){
 	printf("Program Running Time:                   %dd %dh %dm %ds\n",days,hours,minutes,seconds);
 	printf("Nagios PID:                             %lu\n",nagios_pid);
 	printf("Used/High/Total Command Buffers:        %d / %d / %d\n",used_external_command_buffer_slots,high_external_command_buffer_slots,total_external_command_buffer_slots);
-	printf("Used/High/Total Check Result Buffers:   %d / %d / %d\n",used_check_result_buffer_slots,high_check_result_buffer_slots,total_check_result_buffer_slots);
 	printf("\n");
 	printf("Total Services:                         %d\n",status_service_entries);
 	printf("Services Checked:                       %d\n",services_checked);
@@ -1116,12 +1106,6 @@ int read_status_file(void){
 					used_external_command_buffer_slots=atoi(val);
 				else if(!strcmp(var,"high_external_command_buffer_slots"))
 					high_external_command_buffer_slots=atoi(val);
-				else if(!strcmp(var,"total_check_result_buffer_slots"))
-					total_check_result_buffer_slots=atoi(val);
-				else if(!strcmp(var,"used_check_result_buffer_slots"))
-					used_check_result_buffer_slots=atoi(val);
-				else if(!strcmp(var,"high_check_result_buffer_slots"))
-					high_check_result_buffer_slots=atoi(val);
 				else if(!strcmp(var,"nagios_pid"))
 					nagios_pid=strtoul(val,NULL,10);
 				else if(!strcmp(var,"active_scheduled_host_check_stats")){

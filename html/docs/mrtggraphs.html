@@ -184,7 +184,6 @@ Consistently high latencies can be an indication that one of more of the followi
 <p>
 <ul>
 <li><a href="configmain.html#max_concurrent_checks">max_concurrent_checks</a></li>
-<li><a href="configmain.html#check_result_buffer_slots">check_result_buffer_slots</a></li>
 <li><a href="configmain.html#check_result_reaper_frequency">check_result_reaper_frequency</a></li>
 <li><a href="configmain.html#max_check_result_reaper_time">max_check_result_reaper_time</a></li>
 </ul>
@@ -228,7 +227,6 @@ Consistently high latencies can be an indication that one of more of the followi
 <p>
 <ul>
 <li><a href="configmain.html#max_concurrent_checks">max_concurrent_checks</a></li>
-<li><a href="configmain.html#check_result_buffer_slots">check_result_buffer_slots</a></li>
 <li><a href="configmain.html#check_result_reaper_frequency">check_result_reaper_frequency</a></li>
 <li><a href="configmain.html#max_check_result_reaper_time">max_check_result_reaper_time</a></li>
 </ul>
@@ -252,17 +250,6 @@ Consistently high latencies can be an indication that one of more of the followi
 </td>
 <td valign="top">
 <img src="images/mrtg-hoststatechange.png" border="0" alt="Average Host State Change">
-</td>
-</tr>
-
-<tr>
-<td valign="top">
-<p>
-<b>Check Result Buffers</b> - This graph shows how may check result buffer slots are in use over time.  If the number of used buffers is near the number of available buffers on a regular basis, it is likely you need to increase the available <a href="configmain.html#check_result_buffer_slots">check result buffer slots</a>.  Each buffer slot can hold one host or service check results.   Buffers are used for temporarily holding check results before they are processed by the Nagios daemon.
-</p>
-</td>
-<td valign="top">
-<img src="images/mrtg-checkbuffers.png" border="0" alt="Check Result Buffers">
 </td>
 </tr>
 

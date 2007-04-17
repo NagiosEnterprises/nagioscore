@@ -59,6 +59,7 @@ char		*log_file=NULL;
 char            *command_file=NULL;
 char            *temp_file=NULL;
 char            *temp_path=NULL;
+char            *check_result_path=NULL;
 char            *lock_file=NULL;
 char            *log_archive_path=NULL;
 char            *p1_file=NULL;    /**** EMBEDDED PERL ****/
@@ -186,8 +187,6 @@ int             use_precached_objects=FALSE;
 int             daemon_mode=FALSE;
 int             daemon_dumps_core=TRUE;
 
-int             ipc_pipe[2];
-
 int             max_parallel_service_checks=DEFAULT_MAX_PARALLEL_SERVICE_CHECKS;
 int             currently_running_service_checks=0;
 int             currently_running_host_checks=0;
@@ -247,6 +246,8 @@ extern serviceescalation *serviceescalation_list;
 notification    *notification_list;
 
 check_result    check_result_info;
+check_result    *check_result_list=NULL;
+unsigned long	max_check_result_file_age=DEFAULT_MAX_CHECK_RESULT_AGE;
 
 dbuf            check_result_dbuf;
 
@@ -254,7 +255,6 @@ circular_buffer external_command_buffer;
 circular_buffer check_result_buffer;
 pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 int             external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
-int             check_result_buffer_slots=DEFAULT_CHECK_RESULT_BUFFER_SLOTS;
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
@@ -768,37 +768,6 @@ int main(int argc, char **argv){
 			log_host_states(INITIAL_STATES,NULL);
 			log_service_states(INITIAL_STATES,NULL);
 
-			/* create pipe used for service check IPC */
-			if(pipe(ipc_pipe)){
-
-				asprintf(&buffer,"Error: Could not initialize service check IPC pipe...\n");
-				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE);
-				my_free((void **)&buffer);
-
-#ifdef USE_EVENT_BROKER
-				/* send program data to broker */
-				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-#endif
-				cleanup();
-				exit(ERROR);
-			        }
-
-			/* initialize check result worker thread */
-			result=init_check_result_worker_thread();
-			if(result!=OK){
-
-				asprintf(&buffer,"Bailing out due to errors encountered while trying to initialize check result worker thread... (PID=%d)\n",(int)getpid());
-				write_to_logs_and_console(buffer,NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE);
-				my_free((void **)&buffer);
-
-#ifdef USE_EVENT_BROKER
-				/* send program data to broker */
-				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-#endif
-				cleanup();
-				exit(ERROR);
-		                }
-
 			/* reset the restart flag */
 			sigrestart=FALSE;
 
@@ -861,13 +830,6 @@ int main(int argc, char **argv){
 			/* cleanup embedded perl interpreter */
 			if(sigrestart==FALSE)
 				deinit_embedded_perl();
-
-			/* cleanup worker threads */
-			shutdown_check_result_worker_thread();
-
-			/* close the original pipe used for IPC (we'll create a new one if restarting) */
-			close(ipc_pipe[0]);
-			close(ipc_pipe[1]);
 
 			/* shutdown stuff... */
 			if(sigshutdown==TRUE){

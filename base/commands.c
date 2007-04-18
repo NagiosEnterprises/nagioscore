@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-15-2007
+ * Last Modified:   04-18-2007
  *
  * License:
  *
@@ -5349,7 +5349,7 @@ void process_passive_checks(void){
 			fprintf(checkresult_file_fp,"# Time: %s",ctime(&temp_pcr->check_time));
 			fprintf(checkresult_file_fp,"host_name=%s\n",(temp_pcr->host_name==NULL)?"":temp_pcr->host_name);
 			if(temp_pcr->object_check_type==SERVICE_CHECK)
-				fprintf(checkresult_file_fp,"service_description=%s\n",(temp_pcr->service_description)==NULL)?"":temp_pcr->service_description;
+				fprintf(checkresult_file_fp,"service_description=%s\n",(temp_pcr->service_description==NULL)?"":temp_pcr->service_description);
 			fprintf(checkresult_file_fp,"check_type=%d\n",(temp_pcr->object_check_type==HOST_CHECK)?HOST_CHECK_PASSIVE:SERVICE_CHECK_PASSIVE);
 			fprintf(checkresult_file_fp,"scheduled_check=0\n");
 			fprintf(checkresult_file_fp,"reschedule_check=0\n");

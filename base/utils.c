@@ -251,6 +251,10 @@ extern int             external_command_buffer_slots;
 
 extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
+extern char            *debug_file;
+extern int             debug_level;
+extern unsigned long   max_debug_file_size;
+
 /* from GNU defines errno as a macro, since it's a per-thread variable */
 #ifndef errno
 extern int errno;
@@ -5922,6 +5926,7 @@ void free_memory(void){
 
 	/* free file/path variables */
 	my_free((void **)&log_file);
+	my_free((void **)&debug_file);
 	my_free((void **)&temp_file);
 	my_free((void **)&temp_path);
 	my_free((void **)&check_result_path);
@@ -5983,6 +5988,7 @@ int reset_variables(void){
 	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);
 	p1_file=(char *)strdup(DEFAULT_P1_FILE);
 	log_archive_path=(char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
+	debug_file=(char *)strdup(DEFAULT_DEBUG_FILE);
 
 	nagios_user=(char *)strdup(DEFAULT_NAGIOS_USER);
 	nagios_group=(char *)strdup(DEFAULT_NAGIOS_GROUP);
@@ -6104,6 +6110,9 @@ int reset_variables(void){
 	use_embedded_perl_implicitly=DEFAULT_USE_EMBEDDED_PERL_IMPLICITLY;
 
 	external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
+
+	debug_level=DEFAULT_DEBUG_LEVEL;
+	max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 	date_format=DATE_FORMAT_US;
 

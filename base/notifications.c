@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   01-19-2007
+ * Last Modified:   04-17-2007
  *
  * License:
  *
@@ -66,36 +66,21 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 	int result=OK;
 	int contacts_notified=0;
 
-#ifdef DEBUG0
-	printf("service_notification() start\n");
-#endif
-
 	/* get the current time */
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
 
-#ifdef DEBUG4
-	printf("\nSERVICE NOTIFICATION ATTEMPT: Service '%s' on host '%s'\n",svc->description,svc->host_name);
-	printf("\tType: %d\n",type);
-	printf("\tCurrent time: %s",ctime(&current_time));
-#endif
-
-	/* find the host this service is associated with */
-	temp_host=find_host(svc->host_name);
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Service Notification Attempt\n\tHost: '%s'\n\tService: '%s'\n\tType: %d\n\tAck Author: %s\n\tAck Data: %s\n\tCurrent State: %d\n\tLast Notification: %s",svc->host_name,svc->description,type,(ack_author==NULL)?"(null)":ack_author,(ack_data==NULL)?"(null)":ack_data,svc->current_state,ctime(&svc->last_notification));
 
 	/* if we couldn't find the host, return an error */
-	if(temp_host==NULL){
-#ifdef DEBUG4
-		printf("\tCouldn't find the host associated with this service, so we won't send a notification!\n");
-#endif
+	if((temp_host=svc->host_ptr)==NULL){
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Couldn't find the host associated with this service, so we won't send a notification!\n");
 		return ERROR;
 	        }
 
 	/* check the viability of sending out a service notification */
 	if(check_service_notification_viability(svc,type)==ERROR){
-#ifdef DEBUG4
-		printf("\tSending out a notification for this service is not viable at this time.\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Sending out a notification for this service is not viable at this time.\n");
 		return OK;
 	        }
 
@@ -105,10 +90,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		/* increase the current notification number */
 		svc->current_notification_number++;
 
-#ifdef DEBUG4
-		printf("\tCurrent notification number: %d\n",svc->current_notification_number);
-#endif
-
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Current notification number: %d\n",svc->current_notification_number);
 	        }
 
 	/* save and increase the current notification id */
@@ -987,25 +969,16 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 	int result=OK;
 	int contacts_notified=0;
 
-#ifdef DEBUG0
-	printf("host_notification() start\n");
-#endif
-
 	/* get the current time */
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
 
-#ifdef DEBUG4
-	printf("\nHOST NOTIFICATION ATTEMPT: Host '%s'\n",hst->name);
-	printf("\tType: %d\n",type);
-	printf("\tCurrent time: %s",ctime(&current_time));
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Host Notification Attempt\n\tHost: '%s'\n\tType: %d\n\tAck Author: %s\n\tAck Data: %s\n\tCurrent State: %d\n\tLast Notification: %s",hst->name,type,(ack_author==NULL)?"(null)":ack_author,(ack_data==NULL)?"(null)":ack_data,hst->current_state,ctime(&hst->last_host_notification));
+
 
 	/* check viability of sending out a host notification */
 	if(check_host_notification_viability(hst,type)==ERROR){
-#ifdef DEBUG4
-		printf("\tSending out a notification for this host is not viable at this time.\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Sending out a notification for this host is not viable at this time.\n");
 		return OK;
 	        }
 
@@ -1015,9 +988,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		/* increment the current notification number */
 		hst->current_notification_number++;
 
-#ifdef DEBUG4
-		printf("\tCurrent notification number: %d\n",hst->current_notification_number);
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Current notification number: %d\n",hst->current_notification_number);
 	        }
 
 	/* save and increase the current notification id */

@@ -1121,4 +1121,30 @@ daemon_dumps_core=0
 
 
 
+# DEBUG LEVEL
+# This option determines how much (if any) debugging information will
+# be written to the debug file.
+# Values: -1 = Everything
+#          0 = Nothing
+
+debug_level=0
+
+
+
+# DEBUG FILE
+# This option determines where Nagios should write debugging information.
+
+debug_file=@localstatedir@/nagios.debug
+
+
+
+# MAX DEBUG FILE SIZE
+# This option determines the maximum size (in bytes) of the debug file.  If
+# the file grows larger than this size, it will be renamed with a .old
+# extension.  If a file already exists with a .old extension it will
+# automatically be deleted.  This helps ensure your disk space usage doesn't
+# get out of control when debugging Nagios.
+
+max_debug_file_size=1000000
+
 

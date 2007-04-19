@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-02-2007
+ * Last Modified: 04-19-2007
  *
  * Description:
  *
@@ -1579,10 +1579,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		new_service->have_failure_prediction_options=FALSE;
 		new_service->max_check_attempts=-2;
 		new_service->have_max_check_attempts=FALSE;
-		new_service->normal_check_interval=5.0;
-		new_service->have_normal_check_interval=FALSE;
-		new_service->retry_check_interval=1.0;
-		new_service->have_retry_check_interval=FALSE;
+		new_service->check_interval=5.0;
+		new_service->have_check_interval=FALSE;
+		new_service->retry_interval=1.0;
+		new_service->have_retry_interval=FALSE;
 		new_service->active_checks_enabled=TRUE;
 		new_service->have_active_checks_enabled=FALSE;
 		new_service->passive_checks_enabled=TRUE;
@@ -3490,13 +3490,13 @@ int xodtemplate_add_object_property(char *input, int options){
 			temp_service->max_check_attempts=atoi(value);
 			temp_service->have_max_check_attempts=TRUE;
 		        }
-		else if(!strcmp(variable,"normal_check_interval")){
-			temp_service->normal_check_interval=strtod(value,NULL);
-			temp_service->have_normal_check_interval=TRUE;
+		else if(!strcmp(variable,"check_interval") || !strcmp(variable,"normal_check_interval")){
+			temp_service->check_interval=strtod(value,NULL);
+			temp_service->have_check_interval=TRUE;
 		        }
-		else if(!strcmp(variable,"retry_check_interval")){
-			temp_service->retry_check_interval=strtod(value,NULL);
-			temp_service->have_retry_check_interval=TRUE;
+		else if(!strcmp(variable,"retry_interval") || !strcmp(variable,"retry_check_interval")){
+			temp_service->retry_interval=strtod(value,NULL);
+			temp_service->have_retry_interval=TRUE;
 		        }
 		else if(!strcmp(variable,"active_checks_enabled")){
 			temp_service->active_checks_enabled=(atoi(value)>0)?TRUE:FALSE;
@@ -5345,10 +5345,10 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	/* duplicate non-string members */
 	new_service->max_check_attempts=temp_service->max_check_attempts;
 	new_service->have_max_check_attempts=temp_service->have_max_check_attempts;
-	new_service->normal_check_interval=temp_service->normal_check_interval;
-	new_service->have_normal_check_interval=temp_service->have_normal_check_interval;
-	new_service->retry_check_interval=temp_service->retry_check_interval;
-	new_service->have_retry_check_interval=temp_service->have_retry_check_interval;
+	new_service->check_interval=temp_service->check_interval;
+	new_service->have_check_interval=temp_service->have_check_interval;
+	new_service->retry_interval=temp_service->retry_interval;
+	new_service->have_retry_interval=temp_service->have_retry_interval;
 	new_service->active_checks_enabled=temp_service->active_checks_enabled;
 	new_service->have_active_checks_enabled=temp_service->have_active_checks_enabled;
 	new_service->passive_checks_enabled=temp_service->passive_checks_enabled;
@@ -7352,13 +7352,13 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 			this_service->max_check_attempts=template_service->max_check_attempts;
 			this_service->have_max_check_attempts=TRUE;
 	                }
-		if(this_service->have_normal_check_interval==FALSE && template_service->have_normal_check_interval==TRUE){
-			this_service->normal_check_interval=template_service->normal_check_interval;
-			this_service->have_normal_check_interval=TRUE;
+		if(this_service->have_check_interval==FALSE && template_service->have_check_interval==TRUE){
+			this_service->check_interval=template_service->check_interval;
+			this_service->have_check_interval=TRUE;
 	                }
-		if(this_service->have_retry_check_interval==FALSE && template_service->have_retry_check_interval==TRUE){
-			this_service->retry_check_interval=template_service->retry_check_interval;
-			this_service->have_retry_check_interval=TRUE;
+		if(this_service->have_retry_interval==FALSE && template_service->have_retry_interval==TRUE){
+			this_service->retry_interval=template_service->retry_interval;
+			this_service->have_retry_interval=TRUE;
 	                }
 		if(this_service->have_active_checks_enabled==FALSE && template_service->have_active_checks_enabled==TRUE){
 			this_service->active_checks_enabled=template_service->active_checks_enabled;
@@ -9796,7 +9796,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		return OK;
 
 	/* add the service */
-	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->normal_check_interval,this_service->retry_check_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notify_on_downtime,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->notes,this_service->notes_url,this_service->action_url,this_service->icon_image,this_service->icon_image_alt,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
+	new_service=add_service(this_service->host_name,this_service->service_description,this_service->display_name,this_service->check_period,this_service->max_check_attempts,this_service->parallelize_check,this_service->passive_checks_enabled,this_service->check_interval,this_service->retry_interval,this_service->notification_interval,this_service->first_notification_delay,this_service->notification_period,this_service->notify_on_recovery,this_service->notify_on_unknown,this_service->notify_on_warning,this_service->notify_on_critical,this_service->notify_on_flapping,this_service->notify_on_downtime,this_service->notifications_enabled,this_service->is_volatile,this_service->event_handler,this_service->event_handler_enabled,this_service->check_command,this_service->active_checks_enabled,this_service->flap_detection_enabled,this_service->low_flap_threshold,this_service->high_flap_threshold,this_service->flap_detection_on_ok,this_service->flap_detection_on_warning,this_service->flap_detection_on_unknown,this_service->flap_detection_on_critical,this_service->stalk_on_ok,this_service->stalk_on_warning,this_service->stalk_on_unknown,this_service->stalk_on_critical,this_service->process_perf_data,this_service->failure_prediction_enabled,this_service->failure_prediction_options,this_service->check_freshness,this_service->freshness_threshold,this_service->notes,this_service->notes_url,this_service->action_url,this_service->icon_image,this_service->icon_image_alt,this_service->retain_status_information,this_service->retain_nonstatus_information,this_service->obsess_over_service);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service==NULL){
@@ -11406,8 +11406,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tnotification_period\t%s\n",temp_service->notification_period);
 		if(temp_service->failure_prediction_options)
 			fprintf(fp,"\tfailure_prediction_options\t%s\n",temp_service->failure_prediction_options);
-		fprintf(fp,"\tnormal_check_interval\t%f\n",temp_service->normal_check_interval);
-		fprintf(fp,"\tretry_check_interval\t%f\n",temp_service->retry_check_interval);
+		fprintf(fp,"\tcheck_interval\t%f\n",temp_service->check_interval);
+		fprintf(fp,"\tretry_interval\t%f\n",temp_service->retry_interval);
 		fprintf(fp,"\tmax_check_attempts\t%d\n",temp_service->max_check_attempts);
 		fprintf(fp,"\tis_volatile\t%d\n",temp_service->is_volatile);
 		fprintf(fp,"\tparallelize_check\t%d\n",temp_service->parallelize_check);

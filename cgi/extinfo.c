@@ -3,7 +3,7 @@
  * EXTINFO.C -  Nagios Extended Information CGI
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-10-2007
+ * Last Modified: 04-19-2007
  *
  * License:
  * 
@@ -54,7 +54,7 @@ extern int              enable_flap_detection;
 extern int              enable_failure_prediction;
 extern int              process_performance_data;
 
-extern int              buffer_stats[2][3];
+extern int              buffer_stats[1][3];
 extern int              program_stats[MAX_CHECK_STATS_TYPES][3];
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
@@ -2412,7 +2412,6 @@ void show_performance_data(void){
 	printf("<TABLE BORDER=0>\n");
 
 	printf("<tr class='data'><th class='data'>Type</th><th class='data'>In Use</th><th class='data'>Max Used</th><th class='data'>Total Available</th></tr>\n");
-	printf("<tr><td class='dataVar'>Check Results</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",buffer_stats[1][1],buffer_stats[1][2],buffer_stats[1][0]);
 	printf("<tr><td class='dataVar'>External Commands&nbsp;</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td><td class='dataVal'>%d</td></tr>",buffer_stats[0][1],buffer_stats[0][2],buffer_stats[0][0]);
 
 	printf("</TABLE>\n");

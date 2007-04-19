@@ -257,6 +257,10 @@ int             external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SL
 
 check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
+char            *debug_file;
+int             debug_level=DEFAULT_DEBUG_LEVEL;
+unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
+
 
 
 
@@ -606,6 +610,9 @@ int main(int argc, char **argv){
 			/* read in the configuration files (main and resource config files) */
 			result=read_main_config_file(config_file);
 
+			/* open debug log */
+			open_debug_log();
+
 			/* drop privileges */
 			if(drop_privileges(nagios_user,nagios_group)==ERROR){
 
@@ -845,6 +852,9 @@ int main(int argc, char **argv){
 
 			/* clean up after ourselves */
 			cleanup();
+
+			/* close debug log */
+			close_debug_log();
 
 	                }while(sigrestart==TRUE && sigshutdown==FALSE);
 

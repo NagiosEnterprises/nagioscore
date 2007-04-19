@@ -577,7 +577,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td></td><td class="Required">check_command</td><td class="Required"><i>command_name</i></td></tr>
 <tr><td></td><td class="Required">max_check_attempts</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Required">check_interval</td><td class="Required">#</td></tr>
-<tr><td></td><td class="Required">check_interval</td><td class="Required">#</td></tr>
+<tr><td></td><td class="Required">retry_interval</td><td class="Required">#</td></tr>
 <tr><td></td><td class="Optional">active_checks_enabled</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">passive_checks_enabled</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Required">check_period</td><td class="Required"><i>timeperiod_name</i></td></tr>
@@ -621,7 +621,7 @@ define service{
 	check_command		check-disk!/dev/sda1
 	max_check_attempts	5
 	check_interval	5
-	check_interval	3
+	retry_interval	3
 	check_period		24x7
 	notification_interval	30
 	notification_period	24x7

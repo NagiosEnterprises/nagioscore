@@ -993,6 +993,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		temp_service->current_attempt=temp_service->current_attempt+1;
 
 
+	log_debug_info(DEBUGL_CHECKS,2,"ST: %s  CA: %d  MA: %d  CS: %d  LS: %d  LHS: %d\n",(temp_service->state_type==SOFT_STATE)?"SOFT":"HARD",temp_service->current_attempt,temp_service->max_attempts,temp_service->current_state,temp_service->last_state,temp_service->last_hard_state);
+
 #ifdef DEBUG_CHECKS
 	printf("SERVICE '%s' on HOST '%s'\n",temp_service->description,temp_service->host_name);
 	printf("%s",ctime(&temp_service->last_check));

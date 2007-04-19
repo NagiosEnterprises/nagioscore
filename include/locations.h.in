@@ -24,6 +24,7 @@
 #define DEFAULT_STATUS_FILE			"@localstatedir@/status.dat"
 #define DEFAULT_LOG_FILE			"@localstatedir@/nagios.log"
 #define DEFAULT_LOG_ARCHIVE_PATH		"@localstatedir@/archives/"
+#define DEFAULT_DEBUG_FILE                      "@localstatedir@/nagios.debug"
 #define DEFAULT_COMMENT_FILE			"@localstatedir@/comments.dat"
 #define DEFAULT_DOWNTIME_FILE			"@localstatedir@/downtime.dat"
 #define DEFAULT_RETENTION_FILE			"@localstatedir@/retention.dat"

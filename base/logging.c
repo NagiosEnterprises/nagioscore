@@ -2,8 +2,8 @@
  *
  * LOGGING.C - Log file functions for use with Nagios
  *
- * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 03-26-2006
+ * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified: 04-17-2007
  *
  * License:
  *
@@ -52,6 +52,11 @@ extern time_t   last_log_rotation;
 extern int      log_rotation_method;
 
 extern int      daemon_mode;
+
+extern char     *debug_file;
+extern int      debug_level;
+extern unsigned long max_debug_file_size;
+FILE            *debug_file_fp=NULL;
 
 
 
@@ -493,3 +498,79 @@ int write_log_file_info(time_t *timestamp){
 
 	return OK;
         }
+
+
+/* opens the debug log for writing */
+int open_debug_log(void){
+
+	/* don't do anything if we're not debugging */
+	if(debug_level==DEBUGL_NONE)
+		return OK;
+
+	if((debug_file_fp=fopen(debug_file,"a+"))==NULL)
+		return ERROR;
+
+	return OK;
+	}
+
+
+/* closes the debug log */
+int close_debug_log(void){
+
+	if(debug_file_fp!=NULL)
+		fclose(debug_file_fp);
+	
+	debug_file_fp=NULL;
+
+	return OK;
+	}
+
+
+/* write to the debug log */
+int log_debug_info(int level, int verbosity, const char *fmt, ...){
+	va_list ap;
+	char *temp_path=NULL;
+
+	if(!(debug_level==DEBUGL_ALL || (level & debug_level)))
+		return OK;
+
+	/*if(verbosity>debug_verbosity)*/
+	if(verbosity>2)
+		return OK;
+
+	if(debug_file_fp==NULL)
+		return ERROR;
+
+	va_start(ap,fmt);
+	vfprintf(debug_file_fp,fmt,ap);
+	va_end(ap);
+
+	/* flush, so we don't have problems tailing or when fork()ing */
+	fflush(debug_file_fp);
+
+	/* if file has grown beyond max, rotate it */
+	if((unsigned long)ftell(debug_file_fp)>max_debug_file_size){
+
+		/* close the file */
+		close_debug_log();
+		
+		/* rotate the log file */
+		asprintf(&temp_path,"%s.old",debug_file);
+		if(temp_path){
+
+			/* unlink the old debug file */
+			unlink(temp_path);
+
+			/* rotate the debug file */
+			my_rename(debug_file,temp_path);
+
+			/* free memory */
+			my_free((void **)&temp_path);
+			}
+
+		/* open a new file */
+		open_debug_log();
+		}
+
+	return OK;
+	}

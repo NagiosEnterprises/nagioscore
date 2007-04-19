@@ -3,7 +3,7 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-02-2007
+ * Last Modified:   04-19-2007
  *
  * License:
  *
@@ -331,8 +331,8 @@ typedef struct xodtemplate_service_struct{
 	char       *service_groups;
 	char       *check_command;
 	int        max_check_attempts;
-        double     normal_check_interval;
-        double     retry_check_interval;
+        double     check_interval;
+        double     retry_interval;
         char       *check_period;
         int        active_checks_enabled;
         int        passive_checks_enabled;
@@ -397,8 +397,8 @@ typedef struct xodtemplate_service_struct{
 	int        have_icon_image_alt;
 
 	int        have_max_check_attempts;
-	int        have_normal_check_interval;
-	int        have_retry_check_interval;
+	int        have_check_interval;
+	int        have_retry_interval;
         int        have_active_checks_enabled;
         int        have_passive_checks_enabled;
         int        have_parallelize_check;

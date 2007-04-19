@@ -196,6 +196,10 @@ extern int              external_command_buffer_slots;
 
 extern unsigned long    max_check_result_file_age;
 
+extern char             *debug_file;
+extern int              debug_level;
+extern unsigned long    max_debug_file_size;
+
 
 
 /******************************************************************/
@@ -355,6 +359,40 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tlog_file set to '%s'\n",log_file);
+#endif
+			}
+
+		else if(!strcmp(variable,"debug_level")){
+
+			debug_level=atoi(value);
+
+#ifdef DEBUG1
+			printf("\t\tdebug_level set to '%d'\n",debug_level);
+#endif
+			}
+
+		else if(!strcmp(variable,"debug_file")){
+
+			if(strlen(value)>MAX_FILENAME_LENGTH-1){
+				strcpy(error_message,"Debug log file is too long");
+				error=TRUE;
+				break;
+				}
+
+			my_free((void **)&debug_file);
+			debug_file=(char *)strdup(value);
+
+#ifdef DEBUG1
+			printf("\t\tdebug_file set to '%s'\n",debug_file);
+#endif
+			}
+
+		else if(!strcmp(variable,"max_debug_file_size")){
+
+			max_debug_file_size=strtoul(value,NULL,0);
+
+#ifdef DEBUG1
+			printf("\t\tmax_debug_file_size set to '%lu'\n",max_debug_file_size);
 #endif
 			}
 

@@ -2281,6 +2281,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 
 	/* update check statistics */
 	update_check_stats(ACTIVE_ONDEMAND_HOST_CHECK_STATS,current_time);
+	update_check_stats(SERIAL_HOST_CHECK_STATS,start_time.tv_sec);
 
 	/* reset host check latency, since on-demand checks have none */
 	hst->latency=0.0;
@@ -2742,6 +2743,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	/* update check statistics */
 	update_check_stats((scheduled_check==TRUE)?ACTIVE_SCHEDULED_HOST_CHECK_STATS:ACTIVE_ONDEMAND_HOST_CHECK_STATS,start_time.tv_sec);
+	update_check_stats(PARALLEL_HOST_CHECK_STATS,start_time.tv_sec);
 
 	/* fork a child process */
 	pid=fork();

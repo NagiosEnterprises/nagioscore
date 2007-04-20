@@ -359,7 +359,9 @@
 #define ACTIVE_CACHED_HOST_CHECK_STATS       6
 #define ACTIVE_CACHED_SERVICE_CHECK_STATS    7
 #define EXTERNAL_COMMAND_STATS               8
-#define MAX_CHECK_STATS_TYPES                9
+#define PARALLEL_HOST_CHECK_STATS            9
+#define SERIAL_HOST_CHECK_STATS              10
+#define MAX_CHECK_STATS_TYPES                11
 
 
 /************************* GENERAL DEFINITIONS  **************************/

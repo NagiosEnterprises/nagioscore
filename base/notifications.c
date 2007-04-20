@@ -66,11 +66,13 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 	int result=OK;
 	int contacts_notified=0;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"service_notification()\n");
+
 	/* get the current time */
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
 
-	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Service Notification Attempt\n\tHost: '%s'\n\tService: '%s'\n\tType: %d\n\tAck Author: %s\n\tAck Data: %s\n\tCurrent State: %d\n\tLast Notification: %s",svc->host_name,svc->description,type,(ack_author==NULL)?"(null)":ack_author,(ack_data==NULL)?"(null)":ack_data,svc->current_state,ctime(&svc->last_notification));
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Service Notification Attempt ** Host: '%s', Service: '%s', Type: %d, Current State: %d, Last Notification: %s",svc->host_name,svc->description,type,svc->current_state,ctime(&svc->last_notification));
 
 	/* if we couldn't find the host, return an error */
 	if((temp_host=svc->host_ptr)==NULL){
@@ -80,9 +82,11 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 
 	/* check the viability of sending out a service notification */
 	if(check_service_notification_viability(svc,type)==ERROR){
-		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Sending out a notification for this service is not viable at this time.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test failed.  No notification will be sent out.\n");
 		return OK;
 	        }
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test passed.\n");
 
 	/* if this is just a normal notification... */
 	if(type==NOTIFICATION_NORMAL){
@@ -90,12 +94,14 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		/* increase the current notification number */
 		svc->current_notification_number++;
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Current notification number: %d\n",svc->current_notification_number);
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Current notification number: %d\n",svc->current_notification_number);
 	        }
 
 	/* save and increase the current notification id */
 	svc->current_notification_id=next_notification_id;
 	next_notification_id++;
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Creating list of contacts to be notified.\n");
 
 	/* create the contact notification list for this service */
 	create_notification_list_from_service(svc,&escalated);
@@ -204,10 +210,7 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 				/* calculate the next acceptable re-notification time */
 				svc->next_notification=get_next_service_notification_time(svc,current_time);
 
-#ifdef DEBUG4
-				printf("\tCurrent Time: %s",ctime(&current_time));
-				printf("\tNext acceptable notification time: %s",ctime(&svc->next_notification));
-#endif
+				log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were notified.  Next possible notification time: %s",ctime(&svc->next_notification));
 
 				/* update the last notification time for this service (this is needed for rescheduling later notifications) */
 				svc->last_notification=current_time;
@@ -225,9 +228,8 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 			else
 				svc->current_notification_number--;
 		        }
-#ifdef DEBUG4
-		printf("\tAPPROPRIATE CONTACTS HAVE BEEN NOTIFIED\n");
-#endif
+
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.",contacts_notified);
 	        }
 
 	/* there were no contacts, so no notification really occurred... */
@@ -236,9 +238,8 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 		/* readjust current notification number, since one didn't go out */
 		if(type==NOTIFICATION_NORMAL)
 			svc->current_notification_number--;
-#ifdef DEBUG4
-		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
-#endif
+
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were found for notification purposes.  No notification was sent out.\n");
 	        }
 
 	/* get the time we finished */
@@ -252,10 +253,6 @@ int service_notification(service *svc, int type, char *ack_author, char *ack_dat
 	/* update the status log with the service information */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("service_notification() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -267,18 +264,14 @@ int check_service_notification_viability(service *svc, int type){
 	time_t current_time;
 	time_t timeperiod_start;
 	
-#ifdef DEBUG0
-	printf("check_service_notification_viability() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_service_notification_viability()\n");
 
 	/* get current time */
 	time(&current_time);
 
 	/* are notifications enabled? */
 	if(enable_notifications==FALSE){
-#ifdef DEBUG4
-		printf("\tNotifications are disabled, so service notifications (problems and acknowledments) will not be sent out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are disabled, so service notifications (problems and acknowledments) will not be sent out.\n");
 		return ERROR;
 	        }
 
@@ -287,17 +280,14 @@ int check_service_notification_viability(service *svc, int type){
 
 	/* if we couldn't find the host, return an error */
 	if(temp_host==NULL){
-#ifdef DEBUG4
-		printf("\tCouldn't find the host associated with this service, so we won't send a notification!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Couldn't find the host associated with this service, so we won't send a notification.\n");
 		return ERROR;
 	        }
 
 	/* see if the service can have notifications sent out at this time */
 	if(check_time_against_period(current_time,svc->notification_period_ptr)==ERROR){
-#ifdef DEBUG4
-		printf("\tThis service shouldn't have notifications sent out at this time!\n");
-#endif
+
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This service shouldn't have notifications sent out at this time.\n");
 
 		/* calculate the next acceptable notification time, once the next valid time range arrives... */
 		if(type==NOTIFICATION_NORMAL){
@@ -311,6 +301,8 @@ int check_service_notification_viability(service *svc, int type){
 			/* else use the next valid notification time */
 			else
 				svc->next_notification=timeperiod_start;
+
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Next possible notification time: %s\n",ctime(&svc->next_notification));
 		        }
 
 		return ERROR;
@@ -318,9 +310,7 @@ int check_service_notification_viability(service *svc, int type){
 
 	/* are notifications temporarily disabled for this service? */
 	if(svc->notifications_enabled==FALSE){
-#ifdef DEBUG4
-		printf("\tNotifications are temporarily disabled for this service, so we won't send one out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are temporarily disabled for this service, so we won't send one out.\n");
 		return ERROR;
 	        }
 
@@ -334,9 +324,7 @@ int check_service_notification_viability(service *svc, int type){
 
 		/* don't send an acknowledgement if there isn't a problem... */
 		if(svc->current_state==STATE_OK){
-#ifdef DEBUG4
-			printf("\tThe service is currently OK, so we won't send an acknowledgement!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"The service is currently OK, so we won't send an acknowledgement.\n");
 			return ERROR;
 	                }
 
@@ -354,17 +342,13 @@ int check_service_notification_viability(service *svc, int type){
 
 		/* don't send a notification if we're not supposed to... */
 		if(svc->notify_on_flapping==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about FLAPPING events for this service!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about FLAPPING events for this service.\n");
 			return ERROR;
 	                }
 
 		/* don't send notifications during scheduled downtime */
 		if(svc->scheduled_downtime_depth>0 || temp_host->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about FLAPPING events during scheduled downtime!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about FLAPPING events during scheduled downtime.\n");
 			return ERROR;
 		        }
 
@@ -382,17 +366,13 @@ int check_service_notification_viability(service *svc, int type){
 
 		/* don't send a notification if we're not supposed to... */
 		if(svc->notify_on_downtime==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about DOWNTIME events for this service!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about DOWNTIME events for this service.\n");
 			return ERROR;
 	                }
 
 		/* don't send notifications during scheduled downtime (for service only, not host) */
 		if(svc->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about DOWNTIME events during scheduled downtime!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about DOWNTIME events during scheduled downtime.\n");
 			return ERROR;
 		        }
 
@@ -407,75 +387,55 @@ int check_service_notification_viability(service *svc, int type){
 
 	/* has this problem already been acknowledged? */
 	if(svc->problem_has_been_acknowledged==TRUE){
-#ifdef DEBUG4
-		printf("\tThis service problem has already been acknowledged, so we won't send a notification out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This service problem has already been acknowledged, so we won't send a notification out.\n");
 		return ERROR;
 	        }
 
 	/* check service notification dependencies */
 	if(check_service_dependencies(svc,NOTIFICATION_DEPENDENCY)==DEPENDENCIES_FAILED){
-#ifdef DEBUG4
-		printf("\tService notification dependencies for this service have failed, so we won't sent a notification out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Service notification dependencies for this service have failed, so we won't sent a notification out.\n");
 		return ERROR;
 	        }
 
 	/* check host notification dependencies */
 	if(check_host_dependencies(temp_host,NOTIFICATION_DEPENDENCY)==DEPENDENCIES_FAILED){
-#ifdef DEBUG4
-		printf("\tHost notification dependencies for this service have failed, so we won't sent a notification out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Host notification dependencies for this service have failed, so we won't sent a notification out.\n");
 		return ERROR;
 	        }
 
 	/* see if we should notify about problems with this service */
 	if(svc->current_state==STATE_UNKNOWN && svc->notify_on_unknown==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify about UNKNOWN states for this service!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about UNKNOWN states for this service.\n");
 		return ERROR;
 	        }
 	if(svc->current_state==STATE_WARNING && svc->notify_on_warning==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify about WARNING states for this service!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about WARNING states for this service.\n");
 		return ERROR;
 	        }
 	if(svc->current_state==STATE_CRITICAL && svc->notify_on_critical==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify about CRITICAL states for this service!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about CRITICAL states for this service.\n");
 		return ERROR;
 	        }
 	if(svc->current_state==STATE_OK){
 		if(svc->notify_on_recovery==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about RECOVERY states for this service!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about RECOVERY states for this service.\n");
 			return ERROR;
 		        }
 		if(!(svc->notified_on_unknown==TRUE || svc->notified_on_warning==TRUE || svc->notified_on_critical==TRUE)){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about this recovery\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about this recovery.\n");
 			return ERROR;
 		        }
 	        }
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
 	if(current_time < (time_t)(svc->last_hard_state_change + (svc->first_notification_delay*interval_length))){
-#ifdef DEBUG4
-		printf("\tEnough time has not elapsed since the host since the service changed state, so we should not notify about this yet!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Enough time has not elapsed since the host since the service changed state, so we should not notify about this yet\n");
 		return ERROR;
 	        }
 
 	/* if this service is currently flapping, don't send the notification */
 	if(svc->is_flapping==TRUE){
-#ifdef DEBUG4
-		printf("\tThis service is currently flapping, so we won't send notifications!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This service is currently flapping, so we won't send notifications.\n");
 		return ERROR;
 	        }
 
@@ -485,48 +445,34 @@ int check_service_notification_viability(service *svc, int type){
 
 	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
 	if(svc->no_more_notifications==TRUE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't re-notify contacts about this service problem!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't re-notify contacts about this service problem.\n");
 		return ERROR;
 	        }
 
 	/* if the host is down or unreachable, don't notify contacts about service failures */
 	if(temp_host->current_state!=HOST_UP){
-#ifdef DEBUG4
-		printf("\tThe host is either down or unreachable, so we won't notify contacts about this service!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"The host is either down or unreachable, so we won't notify contacts about this service.\n");
 		return ERROR;
 	        }
 	
 	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */
 	if((current_time < svc->next_notification) && svc->is_volatile==FALSE){
-#ifdef DEBUG4
-		printf("\tWe haven't waited long enough to re-notify contacts about this service!\n");
-		printf("\tNext valid notification time: %s",ctime(&svc->next_notification));
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We haven't waited long enough to re-notify contacts about this service.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Next valid notification time: %s",ctime(&svc->next_notification));
 		return ERROR;
 	        }
 
 	/* if this service is currently in a scheduled downtime period, don't send the notification */
 	if(svc->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-		printf("\tThis service is currently in a scheduled downtime, so we won't send notifications!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This service is currently in a scheduled downtime, so we won't send notifications.\n");
 		return ERROR;
 	        }
 
 	/* if this host is currently in a scheduled downtime period, don't send the notification */
 	if(temp_host->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-		printf("\tThe host this service is associated with is currently in a scheduled downtime, so we won't send notifications!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"The host this service is associated with is currently in a scheduled downtime, so we won't send notifications.\n");
 		return ERROR;
 	        }
-
-#ifdef DEBUG0
-	printf("check_service_notification_viability() end\n");
-#endif
 
 	return OK;
         }
@@ -536,23 +482,19 @@ int check_service_notification_viability(service *svc, int type){
 /* check viability of sending out a service notification to a specific contact (contact-specific filters) */
 int check_contact_service_notification_viability(contact *cntct, service *svc, int type){
 
-#ifdef DEBUG0
-	printf("check_contact_service_notification_viability() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_contact_service_notification_viability()\n");
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Checking service notification viability for contact '%s'...\n",cntct->name);
 
 	/* are notifications enabled? */
 	if(cntct->service_notifications_enabled==FALSE){
-#ifdef DEBUG4
-		printf("\tService notifications are disabled for this contact!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Service notifications are disabled for this contact.\n");
 		return ERROR;
 	        }
 
 	/* see if the contact can be notified at this time */
 	if(check_time_against_period(time(NULL),cntct->service_notification_period_ptr)==ERROR){
-#ifdef DEBUG4
-		printf("\tThis contact shouldn't be notified at this time!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"This contact shouldn't be notified at this time.\n");
 		return ERROR;
 	        }
 
@@ -563,9 +505,7 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP || type==NOTIFICATION_FLAPPINGDISABLED){
 
 		if(cntct->notify_on_service_flapping==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify this contact about FLAPPING service events!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about FLAPPING service events.\n");
 			return ERROR;
 		        }
 
@@ -579,9 +519,7 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
 
 		if(cntct->notify_on_service_downtime==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify this contact about DOWNTIME service events!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about DOWNTIME service events.\n");
 			return ERROR;
 		        }
 
@@ -594,47 +532,34 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 
 	/* see if we should notify about problems with this service */
 	if(svc->current_state==STATE_UNKNOWN && cntct->notify_on_service_unknown==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify this contact about UNKNOWN service states!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about UNKNOWN service states.\n");
 		return ERROR;
 	        }
 
 	if(svc->current_state==STATE_WARNING && cntct->notify_on_service_warning==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify this contact about WARNING service states!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about WARNING service states.\n");
 		return ERROR;
 	        }
 
 	if(svc->current_state==STATE_CRITICAL && cntct->notify_on_service_critical==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify this contact about CRITICAL service states!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about CRITICAL service states.\n");
 		return ERROR;
 	        }
 
 	if(svc->current_state==STATE_OK){
 
 		if(cntct->notify_on_service_recovery==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify this contact about RECOVERY service states!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about RECOVERY service states.\n");
 			return ERROR;
 		        }
 
 		if(!((svc->notified_on_unknown==TRUE && cntct->notify_on_service_unknown==TRUE) || (svc->notified_on_warning==TRUE && cntct->notify_on_service_warning==TRUE) || (svc->notified_on_critical==TRUE && cntct->notify_on_service_critical==TRUE))){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about this recovery\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify about this recovery.\n");
 			return ERROR;
 		        }
-
 	        }
 
-#ifdef DEBUG0
-	printf("check_contact_service_notification_viability() end\n");
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Service notification viability for contact '%s' PASSED.\n",cntct->name);
 
 	return OK;
         }
@@ -654,17 +579,16 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 	struct timeval method_start_time,method_end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("notify_contact_of_service() start\n");
-#endif
-#ifdef DEBUG4
-	printf("\tNotify user %s\n",cntct->name);
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"notify_contact_of_service()\n");
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Attempting to notifying contact '%s'...\n",cntct->name);
 
 	/* check viability of notifying this user */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
 	if(check_contact_service_notification_viability(cntct,svc,type)==ERROR)
 		return ERROR;
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Notifying contact '%s'\n",cntct->name);
 
 	/* get start time */
 	gettimeofday(&start_time,NULL);
@@ -703,10 +627,8 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 		/* run the notification command */
 		if(strcmp(processed_command,"")){
 
-#ifdef DEBUG4
-			printf("\tRaw Command:       %s\n",raw_command);
-			printf("\tProcessed Command: %s\n",processed_command);
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw notification command: %s\n",raw_command);
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed notification command: %s\n",processed_command);
 
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
@@ -771,10 +693,6 @@ int notify_contact_of_service(contact *cntct, service *svc, int type, char *ack_
 	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,cntct,ack_author,ack_data,escalated,NULL);
 #endif
 
-#ifdef DEBUG0
-	printf("notify_contact_of_service() end\n");
-#endif
-
 	return OK;
         }
 
@@ -785,9 +703,7 @@ int is_valid_escalation_for_service_notification(service *svc,serviceescalation 
 	time_t current_time=0L;
 	service *temp_service=NULL;
 
-#ifdef DEBUG0
-	printf("is_valid_escalation_for_service_notification() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"is_valid_escalation_for_service_notification()\n");
 
 	/* get the current time */
 	time(&current_time);
@@ -825,41 +741,27 @@ int is_valid_escalation_for_service_notification(service *svc,serviceescalation 
 	else if(svc->current_state==STATE_CRITICAL && se->escalate_on_critical==FALSE)
 		return FALSE;
 
-#ifdef DEBUG0
-	printf("is_valid_escalation_for_service_notification() end\n");
-#endif
-
 	return TRUE;
         }
 
 
 /* checks to see whether a service notification should be escalation */
 int should_service_notification_be_escalated(service *svc){
-	serviceescalation *temp_se;
+	serviceescalation *temp_se=NULL;
 
-#ifdef DEBUG0
-	printf("should_service_notification_be_escalated() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"should_service_notification_be_escalated()\n");
 
 	/* search the service escalation list */
 	for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
 
 		/* we found a matching entry, so escalate this notification! */
 		if(is_valid_escalation_for_service_notification(svc,temp_se)==TRUE){
-#ifdef DEBUG4
-			printf("\tService notification WILL BE escalated\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Service notification WILL be escalated.\n");
 			return TRUE;
 		        }
 	        }
 
-#ifdef DEBUG4
-	printf("\tService notification will NOT be escalated\n");
-#endif
-
-#ifdef DEBUG0
-	printf("should_service_notification_be_escalated() end\n");
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,1,"Service notification will NOT be escalated.\n");
 
 	return FALSE;
         }
@@ -868,17 +770,10 @@ int should_service_notification_be_escalated(service *svc){
 /* given a service, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_service(service *svc, int *escalated){
 	serviceescalation *temp_se=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *temp_contactgroupsmember=NULL;
-	contactgroupmember *temp_contactgroupmember=NULL;
-	contactgroup *temp_contactgroup=NULL;
-#endif
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 
-#ifdef DEBUG0
-	printf("create_notification_list_from_service() end\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_service()\n");
 
 	/* should this notification be escalated? */
 	if(should_service_notification_be_escalated(svc)==TRUE){
@@ -893,18 +788,7 @@ int create_notification_list_from_service(service *svc, int *escalated){
 			if(is_valid_escalation_for_service_notification(svc,temp_se)==FALSE)
 				continue;
 
-#ifdef REMOVED_07182006
-			/* find each contact group in this escalation entry */
-			for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
-					continue;
-				for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
-					if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
-						continue;
-					add_notification(temp_contact);
-					}
-			        }
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from service escalation to notification list.\n");
 
 			/* find each contact in this escalation entry */
 			for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -921,19 +805,6 @@ int create_notification_list_from_service(service *svc, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
-#ifdef REMOVED_07182006
-		/* find all contacts for this service */
-		for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
-				continue;
-			for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
-				if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
-					continue;
-				add_notification(temp_contact);
-				}
-			}
-#endif
-
 		/* find all contacts for this service */
 		for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
@@ -941,10 +812,6 @@ int create_notification_list_from_service(service *svc, int *escalated){
 			add_notification(temp_contact);
 			}
 	        }
-
-#ifdef DEBUG0
-	printf("create_notification_list_from_service() end\n");
-#endif
 
 	return OK;
         }
@@ -973,14 +840,16 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 	time(&current_time);
 	gettimeofday(&start_time,NULL);
 
-	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Host Notification Attempt\n\tHost: '%s'\n\tType: %d\n\tAck Author: %s\n\tAck Data: %s\n\tCurrent State: %d\n\tLast Notification: %s",hst->name,type,(ack_author==NULL)?"(null)":ack_author,(ack_data==NULL)?"(null)":ack_data,hst->current_state,ctime(&hst->last_host_notification));
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Host Notification Attempt ** Host: '%s', Type: %d, Current State: %d, Last Notification: %s",hst->name,type,hst->current_state,ctime(&hst->last_host_notification));
 
 
 	/* check viability of sending out a host notification */
 	if(check_host_notification_viability(hst,type)==ERROR){
-		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Sending out a notification for this host is not viable at this time.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test failed.  No notification will be sent out.\n");
 		return OK;
 	        }
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test passed.\n");
 
 	/* if this is just a normal notification... */
 	if(type==NOTIFICATION_NORMAL){
@@ -988,12 +857,14 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		/* increment the current notification number */
 		hst->current_notification_number++;
 
-		log_debug_info(DEBUGL_NOTIFICATIONS,0,"Current notification number: %d\n",hst->current_notification_number);
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Current notification number: %d\n",hst->current_notification_number);
 	        }
 
 	/* save and increase the current notification id */
 	hst->current_notification_id=next_notification_id;
 	next_notification_id++;
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Creating list of contacts to be notified.\n");
 
 	/* create the contact notification list for this host */
 	create_notification_list_from_host(hst,&escalated);
@@ -1101,10 +972,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 				/* calculate the next acceptable re-notification time */
 				hst->next_host_notification=get_next_host_notification_time(hst,current_time);
 
-#ifdef DEBUG4
-				printf("\tCurrent Time: %s",ctime(&current_time));
-				printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
-#endif
+				log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were notified.  Next possible notification time: %s",ctime(&hst->next_host_notification));
 
 				/* update the last notification time for this host (this is needed for scheduling the next problem notification) */
 				hst->last_host_notification=current_time;
@@ -1121,9 +989,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 				hst->current_notification_number--;
 		        }
 
-#ifdef DEBUG4
-		printf("\tAPPROPRIATE CONTACTS HAVE BEEN NOTIFIED\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"%d contacts were notified.",contacts_notified);
 	        }
 
 	/* there were no contacts, so no notification really occurred... */
@@ -1133,9 +999,7 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 		if(type==NOTIFICATION_NORMAL)
 			hst->current_notification_number--;
 
-#ifdef DEBUG4
-		printf("\tTHERE WERE NO CONTACTS TO BE NOTIFIED!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,0,"No contacts were found for notification purposes.  No notification was sent out.\n");
 	        }
 
 	/* get the time we finished */
@@ -1163,26 +1027,21 @@ int check_host_notification_viability(host *hst, int type){
 	time_t current_time;
 	time_t timeperiod_start;
 
-#ifdef DEBUG0
-	printf("check_host_notification_viability() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_host_notification_viability()\n");
 
 	/* get current time */
 	time(&current_time);
 
 	/* are notifications enabled? */
 	if(enable_notifications==FALSE){
-#ifdef DEBUG4
-		printf("\tNotifications are disabled, so host notifications (problems or acknowledgements) will not be sent out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are disabled, so host notifications (problems or acknowledgements) will not be sent out.\n");
 		return ERROR;
 	        }
 
 	/* see if the host can have notifications sent out at this time */
 	if(check_time_against_period(current_time,hst->notification_period_ptr)==ERROR){
-#ifdef DEBUG4
-		printf("\tThis host shouldn't have notifications sent out at this time!\n");
-#endif
+
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This host shouldn't have notifications sent out at this time.\n");
 
 		/* if this is a normal notification, calculate the next acceptable notification time, once the next valid time range arrives... */
 		if(type==NOTIFICATION_NORMAL){
@@ -1196,6 +1055,8 @@ int check_host_notification_viability(host *hst, int type){
 			/* else use the next valid notification time */
 			else
 				hst->next_host_notification=timeperiod_start;
+
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Next possible notification time: %s\n",ctime(&hst->next_host_notification));
 		        }
 
 		return ERROR;
@@ -1204,7 +1065,7 @@ int check_host_notification_viability(host *hst, int type){
 	/* are notifications temporarily disabled for this host? */
 	if(hst->notifications_enabled==FALSE){
 #ifdef DEBUG4
-		printf("\tNotifications are temporarily disabled for this host, so we won't send one out!\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are temporarily disabled for this host, so we won't send one out.\n");
 #endif
 		return ERROR;
 	        }
@@ -1219,9 +1080,7 @@ int check_host_notification_viability(host *hst, int type){
 
 		/* don't send an acknowledgement if there isn't a problem... */
 		if(hst->current_state==HOST_UP){
-#ifdef DEBUG4
-			printf("\tThe host is currently UP, so we won't send an acknowledgement!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"The host is currently UP, so we won't send an acknowledgement.\n");
 			return ERROR;
 	                }
 
@@ -1239,17 +1098,13 @@ int check_host_notification_viability(host *hst, int type){
 
 		/* don't send a notification if we're not supposed to... */
 		if(hst->notify_on_flapping==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about FLAPPING events for this host!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about FLAPPING events for this host.\n");
 			return ERROR;
 	                }
 
 		/* don't send notifications during scheduled downtime */
 		if(hst->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about FLAPPING events during scheduled downtime!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about FLAPPING events during scheduled downtime.\n");
 			return ERROR;
 		        }
 
@@ -1267,16 +1122,14 @@ int check_host_notification_viability(host *hst, int type){
 
 		/* don't send a notification if we're not supposed to... */
 		if(hst->notify_on_downtime==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about DOWNTIME events for this host!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about DOWNTIME events for this host.\n");
 			return ERROR;
 	                }
 
 		/* don't send notifications during scheduled downtime */
 		if(hst->scheduled_downtime_depth>0){
 #ifdef DEBUG4
-			printf("\tWe shouldn't notify about DOWNTIME events during scheduled downtime!\n");
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about DOWNTIME events during scheduled downtime!\n");
 #endif
 			return ERROR;
 		        }
@@ -1292,45 +1145,33 @@ int check_host_notification_viability(host *hst, int type){
 
 	/* has this problem already been acknowledged? */
 	if(hst->problem_has_been_acknowledged==TRUE){
-#ifdef DEBUG4
-		printf("\tThis host problem has already been acknowledged, so we won't send a notification out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This host problem has already been acknowledged, so we won't send a notification out!\n");
 		return ERROR;
 	        }
 
 	/* check notification dependencies */
 	if(check_host_dependencies(hst,NOTIFICATION_DEPENDENCY)==DEPENDENCIES_FAILED){
-#ifdef DEBUG4
-		printf("\tNotification dependencies for this host have failed, so we won't sent a notification out!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notification dependencies for this host have failed, so we won't sent a notification out!\n");
 		return ERROR;
 	        }
 
 	/* see if we should notify about problems with this host */
 	if(hst->current_state==HOST_UNREACHABLE && hst->notify_on_unreachable==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify about UNREACHABLE status for this host!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about UNREACHABLE status for this host.\n");
 		return ERROR;
 	        }
 	if(hst->current_state==HOST_DOWN && hst->notify_on_down==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify about DOWN states for this host!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about DOWN states for this host.\n");
 		return ERROR;
 	        }
 	if(hst->current_state==HOST_UP){
 
 		if(hst->notify_on_recovery==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about RECOVERY states for this host!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about RECOVERY states for this host.\n");
 			return ERROR;
 		       }
 		if(!(hst->notified_on_down==TRUE || hst->notified_on_unreachable==TRUE)){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about this recovery\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about this recovery.\n");
 			return ERROR;
 		        }
 
@@ -1338,17 +1179,13 @@ int check_host_notification_viability(host *hst, int type){
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */
 	if(current_time < (time_t)(hst->last_hard_state_change + (hst->first_notification_delay*interval_length))){
-#ifdef DEBUG4
-		printf("\tEnough time has not elapsed since the host since the host changed state, so we should not notify about this yet!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the host since the host changed state, so we shouldn't notify about this yet.\n");
 		return ERROR;
 	        }
 
 	/* if this host is currently flapping, don't send the notification */
 	if(hst->is_flapping==TRUE){
-#ifdef DEBUG4
-		printf("\tThis host is currently flapping, so we won't send notifications!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This host is currently flapping, so we won't send notifications.\n");
 		return ERROR;
 	        }
 
@@ -1358,34 +1195,22 @@ int check_host_notification_viability(host *hst, int type){
 
 	/* if this host is currently in a scheduled downtime period, don't send the notification */
 	if(hst->scheduled_downtime_depth>0){
-#ifdef DEBUG4
-		printf("\tThis host is currently in a scheduled downtime, so we won't send notifications!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"This host is currently in a scheduled downtime, so we won't send notifications.\n");
 		return ERROR;
 	        }
 
 	/* check if we shouldn't renotify contacts about the host problem */
 	if(hst->no_more_notifications==TRUE){
-
-#ifdef DEBUG4
-		printf("\tWe shouldn't re-notify contacts about this host problem!!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't re-notify contacts about this host problem.\n");
 		return ERROR;
 	        }
 
 	/* check if its time to re-notify the contacts about the host... */
 	if(current_time < hst->next_host_notification){
-
-#ifdef DEBUG4
-		printf("\tIts not yet time to re-notify the contacts about this host problem...\n");
-		printf("\tNext acceptable notification time: %s",ctime(&hst->next_host_notification));
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Its not yet time to re-notify the contacts about this host problem...\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Next acceptable notification time: %s",ctime(&hst->next_host_notification));
 		return ERROR;
 	        }
-
-#ifdef DEBUG0
-	printf("check_host_notification_viability() end\n");
-#endif
 
 	return OK;
         }
@@ -1395,23 +1220,19 @@ int check_host_notification_viability(host *hst, int type){
 /* checks the viability of notifying a specific contact about a host */
 int check_contact_host_notification_viability(contact *cntct, host *hst, int type){
 
-#ifdef DEBUG0
-	printf("check_contact_host_notification_viability() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_contact_host_notification_viability()\n");
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Checking host notification viability for contact '%s'...\n",cntct->name);
 
 	/* are notifications enabled? */
 	if(cntct->host_notifications_enabled==FALSE){
-#ifdef DEBUG4
-		printf("\tHost notifications are disabled for this contact!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Host notifications are disabled for this contact.\n");
 		return ERROR;
 	        }
 
 	/* see if the contact can be notified at this time */
 	if(check_time_against_period(time(NULL),cntct->host_notification_period_ptr)==ERROR){
-#ifdef DEBUG4
-		printf("\tThis contact shouldn't be notified at this time!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"This contact shouldn't be notified at this time.\n");
 		return ERROR;
 	        }
 
@@ -1423,9 +1244,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	if(type==NOTIFICATION_FLAPPINGSTART || type==NOTIFICATION_FLAPPINGSTOP || type==NOTIFICATION_FLAPPINGDISABLED){
 
 		if(cntct->notify_on_host_flapping==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify this contact about FLAPPING host events!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about FLAPPING host events.\n");
 			return ERROR;
 		        }
 
@@ -1440,9 +1259,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 	if(type==NOTIFICATION_DOWNTIMESTART || type==NOTIFICATION_DOWNTIMEEND || type==NOTIFICATION_DOWNTIMECANCELLED){
 
 		if(cntct->notify_on_host_downtime==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify this contact about DOWNTIME host events!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about DOWNTIME host events.\n");
 			return ERROR;
 		        }
 
@@ -1456,40 +1273,30 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 
 	/* see if we should notify about problems with this host */
 	if(hst->current_state==HOST_DOWN && cntct->notify_on_host_down==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify this contact about DOWN states!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about DOWN states.\n");
 		return ERROR;
 	        }
 
 	if(hst->current_state==HOST_UNREACHABLE && cntct->notify_on_host_unreachable==FALSE){
-#ifdef DEBUG4
-		printf("\tWe shouldn't notify this contact about UNREACHABLE states!\n");
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about UNREACHABLE states,\n");
 		return ERROR;
 	        }
 
 	if(hst->current_state==HOST_UP){
 
 		if(cntct->notify_on_host_recovery==FALSE){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify this contact about RECOVERY states!\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify this contact about RECOVERY states.\n");
 			return ERROR;
 		        }
 
 		if(!((hst->notified_on_down==TRUE && cntct->notify_on_host_down==TRUE) || (hst->notified_on_unreachable==TRUE && cntct->notify_on_host_unreachable==TRUE))){
-#ifdef DEBUG4
-			printf("\tWe shouldn't notify about this recovery\n");
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"We shouldn't notify about this recovery.\n");
 			return ERROR;
 		        }
 
 	        }
 
-#ifdef DEBUG0
-	printf("check_contact_host_notification_viability() end\n");
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Host notification viability for contact '%s' PASSED.\n",cntct->name);
 
 	return OK;
         }
@@ -1512,17 +1319,16 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 	struct timeval method_end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("notify_contact_of_host() start\n");
-#endif
-#ifdef DEBUG4
-	printf("\tNotify user %s\n",cntct->name);
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"notify_contact_of_host()\n");
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Attempting to notifying contact '%s'...\n",cntct->name);
 
 	/* check viability of notifying this user about the host */
 	/* acknowledgements are no longer excluded from this test - added 8/19/02 Tom Bertelson */
 	if(check_contact_host_notification_viability(cntct,hst,type)==ERROR)
 		return ERROR;
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Notifying contact '%s'\n",cntct->name);
 
 	/* get start time */
 	gettimeofday(&start_time,NULL);
@@ -1561,11 +1367,8 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 		/* run the notification command */
 		if(strcmp(processed_command,"")){
 
-
-#ifdef DEBUG4
-			printf("\tRaw Command:       %s\n",raw_command);
-			printf("\tProcessed Command: %s\n",processed_command);
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Raw Command: %s\n",raw_command);
+			log_debug_info(DEBUGL_NOTIFICATIONS,2,"Processed Command: %s\n",processed_command);
 
 			/* log the notification to program log file */
 			if(log_notifications==TRUE){
@@ -1630,10 +1433,6 @@ int notify_contact_of_host(contact *cntct, host *hst, int type, char *ack_author
 	broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_END,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,cntct,ack_author,ack_data,escalated,NULL);
 #endif
 
-#ifdef DEBUG0
-	printf("notify_contact_of_host() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1644,9 +1443,7 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 	time_t current_time=0L;
 	host *temp_host=NULL;
 
-#ifdef DEBUG0
-	printf("is_valid_host_escalation_for_host_notification() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"is_valid_escalation_for_host_notification()\n");
 
 	/* get the current time */
 	time(&current_time);
@@ -1682,10 +1479,6 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 	else if(hst->current_state==HOST_UNREACHABLE && he->escalate_on_unreachable==FALSE)
 		return FALSE;
 
-#ifdef DEBUG0
-	printf("is_valid_host_escalation_for_host_notification() end\n");
-#endif
-
 	return TRUE;
         }
 
@@ -1695,9 +1488,7 @@ int is_valid_host_escalation_for_host_notification(host *hst, hostescalation *he
 int should_host_notification_be_escalated(host *hst){
 	hostescalation *temp_he;
 
-#ifdef DEBUG0
-	printf("should_host_notification_be_escalated() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"should_host_notification_be_escalated()\n");
 
 	/* search the host escalation list */
 	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
@@ -1707,9 +1498,7 @@ int should_host_notification_be_escalated(host *hst){
 			return TRUE;
 	        }
 
-#ifdef DEBUG0
-	printf("should_host_notification_be_escalated() end\n");
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,1,"Host notification will NOT be escalated.\n");
 
 	return FALSE;
         }
@@ -1718,17 +1507,10 @@ int should_host_notification_be_escalated(host *hst){
 /* given a host, create a list of contacts to be notified, removing duplicates */
 int create_notification_list_from_host(host *hst, int *escalated){
 	hostescalation *temp_he=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *temp_contactgroupsmember=NULL;
-	contactgroupmember *temp_contactgroupmember=NULL;
-	contactgroup *temp_contactgroup=NULL;
-#endif
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 
-#ifdef DEBUG0
-	printf("create_notification_list_from_host() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"create_notification_list_from_host()\n");
 
 	/* see if this notification should be escalated */
 	if(should_host_notification_be_escalated(hst)==TRUE){
@@ -1743,18 +1525,7 @@ int create_notification_list_from_host(host *hst, int *escalated){
 			if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 				continue;
 
-#ifdef REMOVED_07182006
-			/* find each contact group in this escalation entry */
-			for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-				if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
-					continue;
-				for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
-					if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
-						continue;
-					add_notification(temp_contact);
-					}
-			        }
-#endif
+			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Adding contacts from host escalation to notification list.\n");
 
 			/* find each contact in this escalation entry */
 			for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -1771,18 +1542,6 @@ int create_notification_list_from_host(host *hst, int *escalated){
 		/* set the escalation flag */
 		*escalated=FALSE;
 
-#ifdef REMOVED_07182006
-		/* get all contacts for this host */
-		for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-			if((temp_contactgroup=temp_contactgroupsmember->group_ptr)==NULL)
-				continue;
-			for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
-				if((temp_contact=temp_contactgroupmember->contact_ptr)==NULL)
-					continue;
-				add_notification(temp_contact);
-				}
-			}
-#endif
 		/* get all contacts for this host */
 		for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			if((temp_contact=temp_contactsmember->contact_ptr)==NULL)
@@ -1943,9 +1702,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 notification * find_notification(contact *cntct){
 	notification *temp_notification=NULL;
 
-#ifdef DEBUG0
-	printf("find_notification() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"find_notification() start\n");
 
 	if(cntct==NULL)
 		return NULL;
@@ -1954,10 +1711,6 @@ notification * find_notification(contact *cntct){
 		if(temp_notification->contact==cntct)
 			return temp_notification;
 	        }
-
-#ifdef DEBUG0
-	printf("find_notification() end\n");
-#endif
 
 	/* we couldn't find the contact in the notification list */
 	return NULL;
@@ -1970,12 +1723,12 @@ int add_notification(contact *cntct){
 	notification *new_notification=NULL;
 	notification *temp_notification=NULL;
 
-#ifdef DEBUG0
-	printf("add_notification() start\n");
-#endif
-#ifdef DEBUG1
-	printf("\tAdd contact '%s'\n",cntct->name);
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"add_notification() start\n");
+
+	if(cntct==NULL)
+		return ERROR;
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Adding contact '%s' to notification list.\n",cntct->name);
 
 	/* don't add anything if this contact is already on the notification list */
 	if((temp_notification=find_notification(cntct))!=NULL)
@@ -1991,10 +1744,6 @@ int add_notification(contact *cntct){
 	/* add new notification to head of list */
 	new_notification->next=notification_list;
 	notification_list=new_notification;
-
-#ifdef DEBUG0
-	printf("add_notification() end\n");
-#endif
 
 	return OK;
         }

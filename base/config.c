@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-17-2007
+ * Last Modified: 04-19-2007
  *
  * License:
  *
@@ -198,6 +198,7 @@ extern unsigned long    max_check_result_file_age;
 
 extern char             *debug_file;
 extern int              debug_level;
+extern int              debug_verbosity;
 extern unsigned long    max_debug_file_size;
 
 
@@ -368,6 +369,15 @@ int read_main_config_file(char *main_config_file){
 
 #ifdef DEBUG1
 			printf("\t\tdebug_level set to '%d'\n",debug_level);
+#endif
+			}
+
+		else if(!strcmp(variable,"debug_verbosity")){
+
+			debug_verbosity=atoi(value);
+
+#ifdef DEBUG1
+			printf("\t\tdebug_verbosity set to '%d'\n",debug_verbosity);
 #endif
 			}
 

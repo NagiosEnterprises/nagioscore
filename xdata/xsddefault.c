@@ -429,6 +429,9 @@ int xsddefault_save_status_data(void){
 	fprintf(fp,"\tcached_host_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_CACHED_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp,"\tcached_service_check_stats=%d,%d,%d\n",check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[0],check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[1],check_statistics[ACTIVE_CACHED_SERVICE_CHECK_STATS].minute_stats[2]);
 	fprintf(fp,"\texternal_command_stats=%d,%d,%d\n",check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[0],check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[1],check_statistics[EXTERNAL_COMMAND_STATS].minute_stats[2]);
+
+	fprintf(fp,"\tparallel_host_check_stats=%d,%d,%d\n",check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[0],check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[1],check_statistics[PARALLEL_HOST_CHECK_STATS].minute_stats[2]);
+	fprintf(fp,"\tserial_host_check_stats=%d,%d,%d\n",check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[0],check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[1],check_statistics[SERIAL_HOST_CHECK_STATS].minute_stats[2]);
 	fprintf(fp,"\t}\n\n");
 
 
@@ -945,6 +948,10 @@ int xsddefault_read_status_data(char *config_file,int options){
 						x=ACTIVE_CACHED_SERVICE_CHECK_STATS;
 					if(!strcmp(var,"external_command_stats"))
 						x=EXTERNAL_COMMAND_STATS;
+					if(!strcmp(var,"parallel_host_check_stats"))
+						x=PARALLEL_HOST_CHECK_STATS;
+					if(!strcmp(var,"serial_host_check_stats"))
+						x=SERIAL_HOST_CHECK_STATS;
 
 					if(x>=0){
 						if((ptr=strtok(val,","))){

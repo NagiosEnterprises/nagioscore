@@ -235,7 +235,16 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<ul>
 	<li>Hostgroup and servicegroup summaries now show important/unimportant problem breakdowns liek the TAC CGI.</li>
 	<li>Minor layout changes to host and service detail views in extinfo CGI.</li>
-	<li></li>
+	<li>New check statistics and have been added to the "Performance Info" screen.</li>
+	</ul>
+</li>
+<br>
+
+<li><b>Deubbing Info</b>:<br>
+	<ul>
+	<li>The DEBUGx compile options available in the configure script for have been removed.</li>
+	<li>Debugging information can now be written to a separate debug file, which is automatically rotated when it reaches a user-defined size.  This should make debugging problems much easier, as you don't need to recompiled Nagios.  Full support for writing debugging information to file is being added during the alpha development phase, so it may not be complete when you try it.</li>
+	<li>Variables that affect the debug log in <a href="configmain.html#debug_file">debug_file</a>, <a href="configmain.html#debug_level">debug_level</a>, <a href="configmain.html#debug_verbosity">debug_verbosity</a>, and <a href="configmain.html#max_debug_file_size">max_debug_file_size</a>.</li>
 	</ul>
 </li>
 <br>

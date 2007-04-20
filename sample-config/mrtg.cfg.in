@@ -166,3 +166,15 @@ YLegend[nagios-m]: Commands
 ShortLegend[nagios-m]: &nbsp;
 LegendI[nagios-m]: &nbsp;Commands:
 LegendO[nagios-m]: &nbsp;
+
+
+# Parallel/Service Host Checks
+Target[nagios-n]: `@bindir@/nagiostats --mrtg --data=NUMPARHSTCHECKS5M,NUMSERHSTCHECKS5M,PROGRUNTIME,NAGIOSVERPID`
+MaxBytes[nagios-n]: 7000
+Title[nagios-n]: Parallel/Serial Host Checks
+PageTop[nagios-n]: <H1>Parallel/Serial Host Checks</H1>
+Options[nagios-n]: growright,gauge,nopercent
+YLegend[nagios-n]: Checks
+ShortLegend[nagios-n]: &nbsp;
+LegendI[nagios-n]: &nbsp;Parallel Checks:
+LegendO[nagios-n]: &nbsp;Serial Checks:

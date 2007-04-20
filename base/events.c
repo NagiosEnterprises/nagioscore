@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-15-2007
+ * Last Modified: 04-19-2007
  *
  * License:
  *
@@ -114,9 +114,8 @@ void init_timing_loop(void){
 	double max_inter_check_delay=0.0;
 	int use_interval=0;
 
-#ifdef DEBUG0
-	printf("init_timing_loop() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"init_timing_loop() start\n");
 
 	/* get the time right now */
 	time(&current_time);
@@ -169,9 +168,8 @@ void init_timing_loop(void){
 		        }
 		else{
 			temp_service->should_be_scheduled=FALSE;
-#ifdef DEBUG1
-			printf("Service '%s' on host '%s' should not be scheduled.\n",temp_service->description,temp_service->host_name);
-#endif
+
+			log_debug_info(DEBUGL_EVENTS,1,"Service '%s' on host '%s' should not be scheduled.\n",temp_service->description,temp_service->host_name);
 		        }
 
 		scheduling_info.total_services++;
@@ -207,9 +205,8 @@ void init_timing_loop(void){
 		        }
 		else{
 			temp_host->should_be_scheduled=FALSE;
-#ifdef DEBUG1
-			printf("Host '%s' should not be scheduled\n",temp_host->name);
-#endif
+
+			log_debug_info(DEBUGL_EVENTS,1,"Host '%s' should not be scheduled.\n",temp_host->name);
 		        }
 
 		scheduling_info.total_hosts++;
@@ -226,6 +223,8 @@ void init_timing_loop(void){
 
 
 	/******** DETERMINE SERVICE SCHEDULING PARAMS  ********/
+
+	log_debug_info(DEBUGL_EVENTS,2,"Determining service scheduling parameters...");
 
 	/* default max service check spread (in minutes) */
 	scheduling_info.max_service_check_spread=max_service_check_spread;
@@ -270,12 +269,9 @@ void init_timing_loop(void){
 		else
 			scheduling_info.service_inter_check_delay=0.0;
 
-#ifdef DEBUG1
-		printf("\tTotal scheduled service checks:  %d\n",scheduling_info.total_scheduled_services);
-		printf("\tService check interval total:    %lu\n",scheduling_info.service_check_interval_total);
-		printf("\tAverage service check interval:  %0.2f sec\n",scheduling_info.average_service_check_interval);
-		printf("\tService inter-check delay:       %0.2f sec\n",scheduling_info.service_inter_check_delay);
-#endif
+		log_debug_info(DEBUGL_EVENTS,1,"Total scheduled service checks:  %d\n",scheduling_info.total_scheduled_services);
+		log_debug_info(DEBUGL_EVENTS,1,"Average service check interval:  %0.2f sec\n",scheduling_info.average_service_check_interval);
+		log_debug_info(DEBUGL_EVENTS,1,"Service inter-check delay:       %0.2f sec\n",scheduling_info.service_inter_check_delay);
 	        }
 
 	/* how should we determine the service interleave factor? */
@@ -295,11 +291,9 @@ void init_timing_loop(void){
 
 		scheduling_info.service_interleave_factor=(int)(ceil(scheduling_info.average_scheduled_services_per_host));
 
-#ifdef DEBUG1
-		printf("\tTotal scheduled service checks: %d\n",scheduling_info.total_scheduled_services);
-		printf("\tTotal hosts:                    %d\n",scheduling_info.total_hosts);
-		printf("\tService Interleave factor:      %d\n",scheduling_info.service_interleave_factor);
-#endif
+		log_debug_info(DEBUGL_EVENTS,1,"Total scheduled service checks: %d\n",scheduling_info.total_scheduled_services);
+		log_debug_info(DEBUGL_EVENTS,1,"Total hosts:                    %d\n",scheduling_info.total_hosts);
+		log_debug_info(DEBUGL_EVENTS,1,"Service Interleave factor:      %d\n",scheduling_info.service_interleave_factor);
 	        }
 
 	/* calculate number of service interleave blocks */
@@ -311,33 +305,36 @@ void init_timing_loop(void){
 	scheduling_info.first_service_check=(time_t)0L;
 	scheduling_info.last_service_check=(time_t)0L;
 
-#ifdef DEBUG1
-	printf("Total scheduled services: %d\n",scheduling_info.total_scheduled_services);
-	printf("Service Interleave factor: %d\n",scheduling_info.service_interleave_factor);
-	printf("Total service interleave blocks: %d\n",total_interleave_blocks);
-	printf("Service inter-check delay: %2.1f\n",scheduling_info.service_inter_check_delay);
-#endif
-
+	log_debug_info(DEBUGL_EVENTS,1,"Total scheduled services: %d\n",scheduling_info.total_scheduled_services);
+	log_debug_info(DEBUGL_EVENTS,1,"Service Interleave factor: %d\n",scheduling_info.service_interleave_factor);
+	log_debug_info(DEBUGL_EVENTS,1,"Total service interleave blocks: %d\n",total_interleave_blocks);
+	log_debug_info(DEBUGL_EVENTS,1,"Service inter-check delay: %2.1f\n",scheduling_info.service_inter_check_delay);
+	
 
 	/******** SCHEDULE SERVICE CHECKS  ********/
+
+	log_debug_info(DEBUGL_EVENTS,2,"Scheduling service checks...");
 
 	/* determine check times for service checks (with interleaving to minimize remote load) */
 	current_interleave_block=0;
 	for(temp_service=service_list;temp_service!=NULL && scheduling_info.service_interleave_factor>0;){
 
-#ifdef DEBUG1
-		printf("\tCurrent Interleave Block: %d\n",current_interleave_block);
-#endif
+		log_debug_info(DEBUGL_EVENTS,2,"Current Interleave Block: %d\n",current_interleave_block);
 
 		for(interleave_block_index=0;interleave_block_index<scheduling_info.service_interleave_factor && temp_service!=NULL;temp_service=temp_service->next){
 
+			log_debug_info(DEBUGL_EVENTS,2,"Service '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
 			/* skip this service if it shouldn't be scheduled */
-			if(temp_service->should_be_scheduled==FALSE)
+			if(temp_service->should_be_scheduled==FALSE){
+				log_debug_info(DEBUGL_EVENTS,2,"Service check should not be scheduled.\n");
 				continue;
+				}
 
 			/* skip services that are already scheduled for the future (from retention data), but reschedule ones that were supposed to happen while we weren't running... */
-			if(temp_service->next_check>current_time)
+			if(temp_service->next_check>current_time){
+				log_debug_info(DEBUGL_EVENTS,2,"Service is already scheduled to be checked in the future: %s\n",ctime(&temp_service->next_check));
 				continue;
+				}
 
 			/* interleave block index should only be increased when we find a schedulable service */
 			/* moved from for() loop 11/05/05 EG */
@@ -345,18 +342,14 @@ void init_timing_loop(void){
 
 			mult_factor=current_interleave_block+(interleave_block_index*total_interleave_blocks);
 
-#ifdef DEBUG1
-			printf("\t\tService '%s' on host '%s'\n",temp_service->description,temp_service->host_name);
-			printf("\t\t\tCIB: %d, IBI: %d, TIB: %d, SIF: %d\n",current_interleave_block,interleave_block_index,total_interleave_blocks,scheduling_info.service_interleave_factor);
-			printf("\t\t\tMult factor: %d\n",mult_factor);
-#endif
+			log_debug_info(DEBUGL_EVENTS,2,"CIB: %d, IBI: %d, TIB: %d, SIF: %d\n",current_interleave_block,interleave_block_index,total_interleave_blocks,scheduling_info.service_interleave_factor);
+			log_debug_info(DEBUGL_EVENTS,2,"Mult factor: %d\n",mult_factor);
 
 			/* set the preferred next check time for the service */
 			temp_service->next_check=(time_t)(current_time+(mult_factor*scheduling_info.service_inter_check_delay));
 
-#ifdef DEBUG1
-			printf("\t\t\tPreferred Check Time: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
-#endif
+			log_debug_info(DEBUGL_EVENTS,2,"Preferred Check Time: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
+
 
 			/* make sure the service can actually be scheduled when we want */
 			is_valid_time=check_time_against_period(temp_service->next_check,temp_service->check_period_ptr);
@@ -365,9 +358,7 @@ void init_timing_loop(void){
 				temp_service->next_check=next_valid_time;
 			        }
 
-#ifdef DEBUG1
-			printf("\t\t\tActual Check Time: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
-#endif
+			log_debug_info(DEBUGL_EVENTS,2,"Actual Check Time: %lu --> %s",(unsigned long)temp_service->next_check,ctime(&temp_service->next_check));
 
 			if(scheduling_info.first_service_check==(time_t)0 || (temp_service->next_check<scheduling_info.first_service_check))
 				scheduling_info.first_service_check=temp_service->next_check;
@@ -391,6 +382,8 @@ void init_timing_loop(void){
 
 
 	/******** DETERMINE HOST SCHEDULING PARAMS  ********/
+
+	log_debug_info(DEBUGL_EVENTS,2,"Determining host scheduling parameters...");
 
 	scheduling_info.first_host_check=(time_t)0L;
 	scheduling_info.last_host_check=(time_t)0L;
@@ -444,39 +437,39 @@ void init_timing_loop(void){
 		else
 			scheduling_info.host_inter_check_delay=0.0;
 
-#ifdef DEBUG1
-		printf("\tTotal scheduled host checks:  %d\n",scheduling_info.total_scheduled_hosts);
-		printf("\tHost check interval total:    %lu\n",scheduling_info.host_check_interval_total);
-		printf("\tAverage host check interval:  %0.2f sec\n",scheduling_info.average_host_check_interval);
-		printf("\tHost inter-check delay:       %0.2f sec\n",scheduling_info.host_inter_check_delay);
-#endif
+		log_debug_info(DEBUGL_EVENTS,2,"Total scheduled host checks:  %d\n",scheduling_info.total_scheduled_hosts);
+		log_debug_info(DEBUGL_EVENTS,2,"Host check interval total:    %lu\n",scheduling_info.host_check_interval_total);
+		log_debug_info(DEBUGL_EVENTS,2,"Average host check interval:  %0.2f sec\n",scheduling_info.average_host_check_interval);
+		log_debug_info(DEBUGL_EVENTS,2,"Host inter-check delay:       %0.2f sec\n",scheduling_info.host_inter_check_delay);
 	        }
 
 
 	/******** SCHEDULE HOST CHECKS  ********/
 
+	log_debug_info(DEBUGL_EVENTS,2,"Scheduling host checks...");
+
 	/* determine check times for host checks */
 	mult_factor=0;
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
+		log_debug_info(DEBUGL_EVENTS,2,"Host '%s'\n",temp_host->name);
+
 		/* skip hosts that shouldn't be scheduled */
-		if(temp_host->should_be_scheduled==FALSE)
+		if(temp_host->should_be_scheduled==FALSE){
+			log_debug_info(DEBUGL_EVENTS,2,"Host check should not be scheduled.\n");
 			continue;
+			}
 
 		/* skip hosts that are already scheduled for the future (from retention data), but reschedule ones that were supposed to be checked before we started */
-		if(temp_host->next_check>current_time)
+		if(temp_host->next_check>current_time){
+			log_debug_info(DEBUGL_EVENTS,2,"Host is already scheduled to be checked in the future: %s\n",ctime(&temp_host->next_check));
 			continue;
-
-#ifdef DEBUG1
-		printf("\t\tHost '%s'\n",temp_host->name);
-#endif
+			}
 
 		/* calculate preferred host check time */
 		temp_host->next_check=(time_t)(current_time+(mult_factor*scheduling_info.host_inter_check_delay));
 
-#ifdef DEBUG1
-		printf("\t\t\tPreferred Check Time: %lu --> %s",(unsigned long)temp_host->next_check,ctime(&temp_host->next_check));
-#endif
+		log_debug_info(DEBUGL_EVENTS,2,"Preferred Check Time: %lu --> %s",(unsigned long)temp_host->next_check,ctime(&temp_host->next_check));
 
 		/* make sure the host can actually be scheduled at this time */
 		is_valid_time=check_time_against_period(temp_host->next_check,temp_host->check_period_ptr);
@@ -485,9 +478,7 @@ void init_timing_loop(void){
 			temp_host->next_check=next_valid_time;
 		        }
 
-#ifdef DEBUG1
-		printf("\t\t\tActual Check Time: %lu --> %s",(unsigned long)temp_host->next_check,ctime(&temp_host->next_check));
-#endif
+		log_debug_info(DEBUGL_EVENTS,2,"Actual Check Time: %lu --> %s",(unsigned long)temp_host->next_check,ctime(&temp_host->next_check));
 
 		if(scheduling_info.first_host_check==(time_t)0 || (temp_host->next_check<scheduling_info.first_host_check))
 			scheduling_info.first_host_check=temp_host->next_check;
@@ -551,9 +542,7 @@ void init_timing_loop(void){
 	if(retain_state_information==TRUE && retention_update_interval>0)
 		schedule_new_event(EVENT_RETENTION_SAVE,TRUE,current_time+(retention_update_interval*60),TRUE,(retention_update_interval*60),NULL,TRUE,NULL,NULL);
 
-#ifdef DEBUG0
-	printf("init_timing_loop() end\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"init_timing_loop() end\n");
 
 	return;
         }
@@ -691,9 +680,7 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 	timed_event **event_list_tail=NULL;
 	timed_event *new_event=NULL;
 
-#ifdef DEBUG0
-	printf("schedule_new_event() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"schedule_new_event()\n");
 
 	if(high_priority==TRUE){
 		event_list=&event_list_high;
@@ -721,10 +708,6 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 	/* add the event to the event list */
 	add_event(new_event,event_list,event_list_tail);
 
-#ifdef DEBUG0
-	printf("schedule_new_event() end\n");
-#endif
-
 	return OK;
         }
 
@@ -734,9 +717,7 @@ void reschedule_event(timed_event *event, timed_event **event_list, timed_event 
 	time_t current_time=0L;
 	time_t (*timingfunc)(void);
 
-#ifdef DEBUG0
-	printf("reschedule_event() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"reschedule_event()\n");
 
 	/* reschedule recurring events... */
 	if(event->recurring==TRUE){
@@ -759,10 +740,6 @@ void reschedule_event(timed_event *event, timed_event **event_list, timed_event 
 	/* add the event to the event list */
 	add_event(event,event_list,event_list_tail);
 
-#ifdef DEBUG0
-	printf("reschedule_event() end\n");
-#endif
-
 	return;
         }
 
@@ -773,9 +750,7 @@ void add_event(timed_event *event, timed_event **event_list, timed_event **event
 	timed_event *first_event=NULL;
 	int count=0;
 
-#ifdef DEBUG0
-	printf("add_event() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"add_event()\n");
 
 	event->next=NULL;
 	event->prev=NULL;
@@ -825,10 +800,6 @@ void add_event(timed_event *event, timed_event **event_list, timed_event **event
 	broker_timed_event(NEBTYPE_TIMEDEVENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
 #endif
 
-#ifdef DEBUG0
-	printf("add_event() end\n");
-#endif
-
 	return;
         }
 
@@ -838,9 +809,7 @@ void add_event(timed_event *event, timed_event **event_list, timed_event **event
 void remove_event(timed_event *event, timed_event **event_list, timed_event **event_list_tail){
 	timed_event *temp_event=NULL;
 
-#ifdef DEBUG0
-	printf("remove_event() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"remove_event()\n");
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -874,10 +843,6 @@ void remove_event(timed_event *event, timed_event **event_list, timed_event **ev
 	        }
 
 
-#ifdef DEBUG0
-	printf("remove_event() end\n");
-#endif
-
 	return;
         }
 
@@ -897,9 +862,8 @@ int event_execution_loop(void){
 	struct timeval tv;
 	pid_t wait_result;
 
-#ifdef DEBUG0
-	printf("event_execution_loop() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"event_execution_loop() start\n");
 
 	time(&last_time);
 
@@ -923,9 +887,7 @@ int event_execution_loop(void){
 
 		/* if we don't have any events to handle, exit */
 		if(event_list_high==NULL && event_list_low==NULL){
-#ifdef DEBUG1
-			printf("There aren't any events that need to be handled!\n");
-#endif
+			log_debug_info(DEBUGL_EVENTS,0,"There aren't any events that need to be handled! Exiting...\n");
 			break;
 	                }
 
@@ -943,20 +905,16 @@ int event_execution_loop(void){
 		/* keep track of the last time */
 		last_time=current_time;
 
-#ifdef DEBUG3
-		printf("\n");
-		printf("*** Event Check Loop ***\n");
-		printf("\tCurrent time: %s",ctime(&current_time));
+		log_debug_info(DEBUGL_EVENTS,1,"** Event Check Loop\n");
 		if(event_list_high!=NULL)
-			printf("\tNext High Priority Event Time: %s",ctime(&event_list_high->run_time));
+			log_debug_info(DEBUGL_EVENTS,1,"Next High Priority Event Time: %s",ctime(&event_list_high->run_time));
 		else
-			printf("\tNo high priority events are scheduled...\n");
+			log_debug_info(DEBUGL_EVENTS,1,"No high priority events are scheduled...\n");
 		if(event_list_low!=NULL)
-			printf("\tNext Low Priority Event Time:  %s",ctime(&event_list_low->run_time));
+			log_debug_info(DEBUGL_EVENTS,1,"Next Low Priority Event Time:  %s",ctime(&event_list_low->run_time));
 		else
-			printf("\tNo low priority events are scheduled...\n");
-		printf("Current/Max Outstanding Service Checks: %d/%d\n",currently_running_service_checks,max_parallel_service_checks);
-#endif
+			log_debug_info(DEBUGL_EVENTS,1,"No low priority events are scheduled...\n");
+		log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,1,"Current/Max Service Checks: %d/%d\n",currently_running_service_checks,max_parallel_service_checks);
 
 		/* get rid of terminated child processes (zombies) */
 		if(use_large_installation_tweaks==TRUE){
@@ -996,6 +954,9 @@ int event_execution_loop(void){
 
 				/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
 				if(max_parallel_service_checks!=0 && (currently_running_service_checks >= max_parallel_service_checks)){
+
+					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,0,"**WARNING** Max concurrent service checks (%d) has been reached!  Delaying further service checks until previous checks are complete...\n",max_parallel_service_checks);
+
 					asprintf(&temp_buffer,"\tMax concurrent service checks (%d) has been reached.  Delaying further checks until previous checks are complete...\n",max_parallel_service_checks);
 					write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 					my_free((void **)&temp_buffer);
@@ -1004,9 +965,9 @@ int event_execution_loop(void){
 
 				/* don't run a service check if active checks are disabled */
 				if(execute_service_checks==FALSE){
-#ifdef DEBUG3
-					printf("\tWe're not executing service checks right now...\n");
-#endif
+
+					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,1,"We're not executing service checks right now, so we'll skip this event.\n");
+
 					run_event=FALSE;
 					}
 
@@ -1044,9 +1005,9 @@ int event_execution_loop(void){
 
 				/* don't run a host check if active checks are disabled */
 				if(execute_host_checks==FALSE){
-#ifdef DEBUG3
-					printf("\tWe're not executing host checks right now...\n");
-#endif
+
+					log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,1,"We're not executing host checks right now, so we'll skip this event.\n");
+
 					run_event=FALSE;
 					}
 
@@ -1087,7 +1048,9 @@ int event_execution_loop(void){
 				if(event_list_low!=NULL)
 					event_list_low->prev=NULL;
 
-				/* handle the event */
+				log_debug_info(DEBUGL_EVENTS,1,"Running event...\n");
+
+#				/* handle the event */
 				handle_timed_event(temp_event);
 
 				/* reschedule the event if necessary */
@@ -1101,6 +1064,9 @@ int event_execution_loop(void){
 
 			/* wait a while so we don't hog the CPU... */
 			else{
+
+				log_debug_info(DEBUGL_EVENTS,2,"Did not execute scheduled event.  Idling for a bit...\n");
+
 #ifdef USE_NANOSLEEP
 				delay.tv_sec=(time_t)sleep_time;
 				delay.tv_nsec=(long)((sleep_time-(double)delay.tv_sec)*1000000000);
@@ -1117,6 +1083,8 @@ int event_execution_loop(void){
 
 		/* we don't have anything to do at this moment in time... */
 		else if((event_list_high==NULL || (current_time<event_list_high->run_time)) && (event_list_low==NULL || (current_time<event_list_low->run_time))){
+
+			log_debug_info(DEBUGL_EVENTS,2,"No events to execute at the moment.  Idling for a bit...\n");
 
 			/* check for external commands if we're supposed to check as often as possible */
 			if(command_check_interval==-1)
@@ -1151,9 +1119,7 @@ int event_execution_loop(void){
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("event_execution_loop() end\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"event_execution_loop() end\n");
 
 	return OK;
 	}
@@ -1169,35 +1135,28 @@ int handle_timed_event(timed_event *event){
 	struct timeval tv;
 	double latency=0.0;
 
-#ifdef DEBUG0
-	printf("handle_timed_event() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_timed_event() start\n");
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
 #endif
 
-#ifdef DEBUG3
-	printf("*** Event Details ***\n");
-	printf("\tEvent time: %s",ctime(&event->run_time));
-	printf("\tEvent type: %d ",event->event_type);
-#endif
+	log_debug_info(DEBUGL_EVENTS,0,"** Timed Event ** Type: %d, Run Time: %s",event->event_type,ctime(&event->run_time));
 		
 	/* how should we handle the event? */
 	switch(event->event_type){
 
 	case EVENT_SERVICE_CHECK:
-#ifdef DEBUG3
-		printf("(service check)\n");
+
 		temp_service=(service *)event->event_data;
-		printf("\t\tService Description: %s\n",temp_service->description);
-		printf("\t\tAssociated Host:     %s\n",temp_service->host_name);
-#endif
 
 		/* get check latency */
 		gettimeofday(&tv,NULL);
 		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Service Check Event ==> Host: '%s', Service: '%s', Latency: %f sec\n",temp_service->host_name,temp_service->description,latency);
 
 		/* run the service check */
 		temp_service=(service *)event->event_data;
@@ -1205,15 +1164,14 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_HOST_CHECK:
-#ifdef DEBUG3
-		printf("(host check)\n");
+
 		temp_host=(host *)event->event_data;
-		printf("\t\tHost:     %s\n",temp_host->name);
-#endif
 
 		/* get check latency */
 		gettimeofday(&tv,NULL);
 		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Host Check Event ==> Host: '%s', Latency: %f sec\n",temp_host->name,latency);
 
 		/* run the host check */
 		temp_host=(host *)event->event_data;
@@ -1221,28 +1179,25 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_COMMAND_CHECK:
-#ifdef DEBUG3
-		printf("(external command check)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** External Command Check Event\n");
 
 		/* check for external commands */
 		check_for_external_commands();
 		break;
 
 	case EVENT_LOG_ROTATION:
-#ifdef DEBUG3
-		printf("(log file rotation)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Log File Rotation Event\n");
 
 		/* rotate the log file */
 		rotate_log_file(event->run_time);
 		break;
 
 	case EVENT_PROGRAM_SHUTDOWN:
-#ifdef DEBUG3
-		printf("(program shutdown)\n");
-#endif
 		
+		log_debug_info(DEBUGL_EVENTS,0,"** Program Shutdown Event\n");
+
 		/* set the shutdown flag */
 		sigshutdown=TRUE;
 
@@ -1253,9 +1208,8 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_PROGRAM_RESTART:
-#ifdef DEBUG3
-		printf("(program restart)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Program Restart Event\n");
 
 		/* set the restart flag */
 		sigrestart=TRUE;
@@ -1267,18 +1221,16 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_CHECK_REAPER:
-#ifdef DEBUG3
-		printf("(check result reaper)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Check Result Reaper\n");
 
 		/* reap host and service check results */
 		reap_check_results();
 		break;
 
 	case EVENT_ORPHAN_CHECK:
-#ifdef DEBUG3
-		printf("(orphaned host and service check)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Orphaned Host and Service Check Event\n");
 
 		/* check for orphaned hosts and services */
 		check_for_orphaned_hosts();
@@ -1286,27 +1238,24 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_RETENTION_SAVE:
-#ifdef DEBUG3
-		printf("(retention save)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Retention Data Save Event\n");
 
 		/* save state retention data */
 		save_state_information(TRUE);
 		break;
 
 	case EVENT_STATUS_SAVE:
-#ifdef DEBUG3
-		printf("(status save)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Status Data Save Event\n");
 
 		/* save all status data (program, host, and service) */
 		update_all_status_data();
 		break;
 
 	case EVENT_SCHEDULED_DOWNTIME:
-#ifdef DEBUG3
-		printf("(scheduled downtime)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Scheduled Downtime Event\n");
 
 		/* process scheduled downtime info */
 		if(event->event_data){
@@ -1317,54 +1266,48 @@ int handle_timed_event(timed_event *event){
 		break;
 
 	case EVENT_SFRESHNESS_CHECK:
-#ifdef DEBUG3
-		printf("(service result freshness check)\n");
-#endif
 		
+		log_debug_info(DEBUGL_EVENTS,0,"** Service Result Freshness Check Event\n");
+
 		/* check service result freshness */
 		check_service_result_freshness();
 		break;
 
 	case EVENT_HFRESHNESS_CHECK:
 		
-#ifdef DEBUG3
-		printf("(host result freshness check)\n");
-#endif
+		log_debug_info(DEBUGL_EVENTS,0,"** Host Result Freshness Check Event\n");
+
 		/* check host result freshness */
 		check_host_result_freshness();
 		break;
 
 	case EVENT_EXPIRE_DOWNTIME:
-#ifdef DEBUG3
-		printf("(expire downtime)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Expire Downtime Event\n");
 
 		/* check for expired scheduled downtime entries */
 		check_for_expired_downtime();
 		break;
 
 	case EVENT_RESCHEDULE_CHECKS:
-#ifdef DEBUG3
-		printf("(reschedule checks)\n");
-#endif
 
 		/* adjust scheduling of host and service checks */
+		log_debug_info(DEBUGL_EVENTS,0,"** Reschedule Checks Event\n");
+
 		adjust_check_scheduling();
 		break;
 
 	case EVENT_EXPIRE_COMMENT:
-#ifdef DEBUG3
-		printf("(expire comment)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** Expire Comment Event\n");
 
 		/* check for expired comment */
 		check_for_expired_comment((unsigned long)event->event_data);
 		break;
 
 	case EVENT_USER_FUNCTION:
-#ifdef DEBUG3
-		printf("(user function)\n");
-#endif
+
+		log_debug_info(DEBUGL_EVENTS,0,"** User Function Event\n");
 
 		/* run a user-defined function */
 		if(event->event_data!=NULL){
@@ -1378,9 +1321,7 @@ int handle_timed_event(timed_event *event){
 		break;
 	        }
 
-#ifdef DEBUG0
-	printf("handle_timed_event() end\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_timed_event() end\n");
 
 	return OK;
         }
@@ -1411,9 +1352,8 @@ void adjust_check_scheduling(void){
 	double current_exec_time_offset=0.0;
 	double new_run_time_offset=0.0;
 
-#ifdef DEBUG0
-	printf("adjust_check_scheduling() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"adjust_check_scheduling() start\n");
 
 	/* TODO:
 	   - Track host check overhead on a per-host bases
@@ -1587,9 +1527,7 @@ void adjust_check_scheduling(void){
 	/* resort event list (some events may be out of order at this point) */
 	resort_event_list(&event_list_low,&event_list_low_tail);
 
-#ifdef DEBUG0
-	printf("adjust_check_scheduling() end\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"adjust_check_scheduling() end\n");
 
 	return;
         }
@@ -1605,17 +1543,20 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	host *temp_host=NULL;
 	time_t (*timingfunc)(void);
 
-#ifdef DEBUG0
-	printf("compensate_for_system_time_change() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"compensate_for_system_time_change() start\n");
 
 	/* we moved back in time... */
-	if(last_time>current_time)
+	if(last_time>current_time){
 		time_difference=last_time-current_time;
+		log_debug_info(DEBUGL_EVENTS,0,"Detected a backwards time change of %lu seconds.\n",time_difference);
+		}
 
 	/* we moved into the future... */
-	else
+	else{
 		time_difference=current_time-last_time;
+		log_debug_info(DEBUGL_EVENTS,0,"Detected a forwards time change of %lu seconds.\n",time_difference);
+		}
 
 	/* log the time change */
 	asprintf(&temp_buffer,"Warning: A system time change of %lu seconds (%s in time) has been detected.  Compensating...\n",time_difference,(last_time>current_time)?"backwards":"forwards");
@@ -1704,11 +1645,6 @@ void compensate_for_system_time_change(unsigned long last_time,unsigned long cur
 	/* update the status data */
 	update_program_status(FALSE);
 
-
-#ifdef DEBUG0
-	printf("compensate_for_system_time_change() end\n");
-#endif
-
 	return;
         }
 
@@ -1719,6 +1655,8 @@ void resort_event_list(timed_event **event_list, timed_event **event_list_tail){
 	timed_event *temp_event_list=NULL;
 	timed_event *temp_event=NULL;
 	timed_event *next_event=NULL;
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"resort_event_list()\n");
 
 	/* move current event list to temp list */
 	temp_event_list=*event_list;
@@ -1741,6 +1679,8 @@ void resort_event_list(timed_event **event_list, timed_event **event_list_tail){
 
 /* adjusts a timestamp variable in accordance with a system time change */
 void adjust_timestamp_for_time_change(time_t last_time, time_t current_time, unsigned long time_difference, time_t *ts){
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"adjust_timestamp_for_time_change()\n");
 
 	/* we shouldn't do anything with epoch values */
 	if(*ts==(time_t)0)

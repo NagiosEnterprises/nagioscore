@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 04-17-2007
+# Last Modified: 04-19-2007
 #
 ##############################################################################
 
@@ -1123,11 +1123,30 @@ daemon_dumps_core=0
 
 # DEBUG LEVEL
 # This option determines how much (if any) debugging information will
-# be written to the debug file.
+# be written to the debug file.  OR values together to log multiple
+# types of information.
 # Values: -1 = Everything
 #          0 = Nothing
+#	   1 = Functions
+#          2 = Configuration
+#          4 = Process information
+#	   8 = Scheduled events
+#          16 = Host/service checks
+#          32 = Notifications
+#          64 = Event broker
+#          128 = Check IPC
 
 debug_level=0
+
+
+
+# DEBUG VERBOSITY
+# This option determines how verbose the debug log out will be.
+# Values: 0 = Brief output
+#         1 = More detailed
+#         2 = Very detailed
+
+debug_verbosity=1
 
 
 

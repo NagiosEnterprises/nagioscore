@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2007
+ * Last Modified:   04-19-2007
  *
  * License:
  *
@@ -253,6 +253,7 @@ extern check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 extern char            *debug_file;
 extern int             debug_level;
+extern int             debug_verbosity;
 extern unsigned long   max_debug_file_size;
 
 /* from GNU defines errno as a macro, since it's a per-thread variable */
@@ -6112,6 +6113,7 @@ int reset_variables(void){
 	external_command_buffer_slots=DEFAULT_EXTERNAL_COMMAND_BUFFER_SLOTS;
 
 	debug_level=DEFAULT_DEBUG_LEVEL;
+	debug_verbosity=DEFAULT_DEBUG_VERBOSITY;
 	max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 	date_format=DATE_FORMAT_US;

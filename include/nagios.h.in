@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-17-2007
+ * Last Modified: 04-19-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -210,6 +210,7 @@ extern "C" {
 #define DEFAULT_LOG_PASSIVE_CHECKS				1	/* log passive service checks */
 
 #define DEFAULT_DEBUG_LEVEL                                     0       /* don't log any debugging information */
+#define DEFAULT_DEBUG_VERBOSITY                                 1
 #define DEFAULT_MAX_DEBUG_FILE_SIZE                             1000000 /* max size of debug log */
 
 #define DEFAULT_AGGRESSIVE_HOST_CHECKING			0	/* don't use "aggressive" host checking */
@@ -280,13 +281,16 @@ extern "C" {
 
 #define DEBUGL_ALL                      -1
 #define DEBUGL_NONE                     0
-#define DEBUGL_FUNC                     1
+#define DEBUGL_FUNCTIONS                1
 #define DEBUGL_CONFIG			2
 #define DEBUGL_PROCESS                  4
 #define DEBUGL_EVENTS                   8
 #define DEBUGL_CHECKS                   16
 #define DEBUGL_NOTIFICATIONS            32
 #define DEBUGL_EVENTBROKER              64
+#define DEBUGL_IPC                      128
+#define DEBUGL_EXTERNALCOMMANDS         256
+#define DEBUGL_FLAPPING                 512
 
 #define DEBUGV_BASIC                    0
 #define DEBUGV_MORE			1
@@ -560,17 +564,6 @@ typedef struct dbuf_struct{
 	unsigned long chunk_size;
         }dbuf;
 
-
-#define ACTIVE_SCHEDULED_SERVICE_CHECK_STATS 0
-#define ACTIVE_ONDEMAND_SERVICE_CHECK_STATS  1
-#define PASSIVE_SERVICE_CHECK_STATS          2
-#define ACTIVE_SCHEDULED_HOST_CHECK_STATS    3
-#define ACTIVE_ONDEMAND_HOST_CHECK_STATS     4
-#define PASSIVE_HOST_CHECK_STATS             5
-#define ACTIVE_CACHED_HOST_CHECK_STATS       6
-#define ACTIVE_CACHED_SERVICE_CHECK_STATS    7
-#define EXTERNAL_COMMAND_STATS               8
-#define MAX_CHECK_STATS_TYPES                9
 
 #define CHECK_STATS_BUCKETS                  15
 

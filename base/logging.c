@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-17-2007
+ * Last Modified: 04-19-2007
  *
  * License:
  *
@@ -55,6 +55,7 @@ extern int      daemon_mode;
 
 extern char     *debug_file;
 extern int      debug_level;
+extern int      debug_verbosity;
 extern unsigned long max_debug_file_size;
 FILE            *debug_file_fp=NULL;
 
@@ -530,17 +531,22 @@ int close_debug_log(void){
 int log_debug_info(int level, int verbosity, const char *fmt, ...){
 	va_list ap;
 	char *temp_path=NULL;
+	struct timeval current_time;
 
 	if(!(debug_level==DEBUGL_ALL || (level & debug_level)))
 		return OK;
 
-	/*if(verbosity>debug_verbosity)*/
-	if(verbosity>2)
+	if(verbosity>debug_verbosity)
 		return OK;
 
 	if(debug_file_fp==NULL)
 		return ERROR;
 
+	/* write the timestamp */
+	gettimeofday(&current_time,NULL);
+	fprintf(debug_file_fp,"[%lu.%06lu:%03d.%d] ",current_time.tv_sec,current_time.tv_usec,level,verbosity);
+
+	/* write the data */
 	va_start(ap,fmt);
 	vfprintf(debug_file_fp,fmt,ap);
 	va_end(ap);

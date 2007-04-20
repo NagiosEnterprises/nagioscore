@@ -7,7 +7,7 @@
  * License: GPL
  * Copyright (c) 2003-2007 Ethan Galstad (nagios@nagios.org)
  *
- * Last Modified:   04-15-2007
+ * Last Modified:   04-19-2007
  *
  * License:
  *
@@ -155,6 +155,12 @@ int passive_host_checks_last_15min=0;
 int active_cached_host_checks_last_1min=0;
 int active_cached_host_checks_last_5min=0;
 int active_cached_host_checks_last_15min=0;
+int parallel_host_checks_last_1min=0;
+int parallel_host_checks_last_5min=0;
+int parallel_host_checks_last_15min=0;
+int serial_host_checks_last_1min=0;
+int serial_host_checks_last_5min=0;
+int serial_host_checks_last_15min=0;
 
 int active_service_checks_last_1min=0;
 int active_service_checks_last_5min=0;
@@ -346,6 +352,8 @@ int main(int argc, char **argv){
 		printf(" NUMOACTHSTCHECKSxM   number of on-demand active host checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMCACHEDHSTCHECKSxM number of cached host checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMSACTHSTCHECKSxM   number of scheduled active host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMPARHSTCHECKSxM    number of parallel host checks occuring in last 1/5/15 minutes.\n");
+		printf(" NUMSERHSTCHECKSxM    number of serial host checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMPSVHSTCHECKSxM    number of passive host checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMACTSVCCHECKSxM    number of total active service checks occuring in last 1/5/15 minutes.\n");
 		printf(" NUMOACTSVCCHECKSxM   number of on-demand active service checks occuring in last 1/5/15 minutes.\n");
@@ -578,6 +586,18 @@ int display_mrtg_values(void){
 			printf("%d\n",active_scheduled_host_checks_last_5min);
 		else if(!strcmp(temp_ptr,"NUMSACTHSTCHECKS15M"))
 			printf("%d\n",active_scheduled_host_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMPARHSTCHECKS1M"))
+			printf("%d\n",parallel_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMPARHSTCHECKS5M"))
+			printf("%d\n",parallel_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMPARHSTCHECKS15M"))
+			printf("%d\n",parallel_host_checks_last_15min);
+		else if(!strcmp(temp_ptr,"NUMSERHSTCHECKS1M"))
+			printf("%d\n",serial_host_checks_last_1min);
+		else if(!strcmp(temp_ptr,"NUMSERHSTCHECKS5M"))
+			printf("%d\n",serial_host_checks_last_5min);
+		else if(!strcmp(temp_ptr,"NUMSERHSTCHECKS15M"))
+			printf("%d\n",serial_host_checks_last_15min);
 		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS1M"))
 			printf("%d\n",passive_host_checks_last_1min);
 		else if(!strcmp(temp_ptr,"NUMPSVHSTCHECKS5M"))
@@ -740,6 +760,8 @@ int display_stats(void){
 	printf("Active Host Checks Last 1/5/15 min:     %d / %d / %d\n",active_host_checks_last_1min,active_host_checks_last_5min,active_host_checks_last_15min);
 	printf("   Scheduled:                           %d / %d / %d\n",active_scheduled_host_checks_last_1min,active_scheduled_host_checks_last_5min,active_scheduled_host_checks_last_15min);
 	printf("   On-demand:                           %d / %d / %d\n",active_ondemand_host_checks_last_1min,active_ondemand_host_checks_last_5min,active_ondemand_host_checks_last_15min);
+	printf("   Parallel:                            %d / %d / %d\n",parallel_host_checks_last_1min,parallel_host_checks_last_5min,parallel_host_checks_last_15min);
+	printf("   Serial:                              %d / %d / %d\n",serial_host_checks_last_1min,serial_host_checks_last_5min,serial_host_checks_last_15min);
 	printf("   Cached:                              %d / %d / %d\n",active_cached_host_checks_last_1min,active_cached_host_checks_last_5min,active_cached_host_checks_last_15min);
 	printf("Passive Host Checks Last 1/5/15 min:    %d / %d / %d\n",passive_host_checks_last_1min,passive_host_checks_last_5min,passive_host_checks_last_15min);
 
@@ -1179,6 +1201,22 @@ int read_status_file(void){
 						external_commands_last_5min=atoi(temp_ptr);
 					if((temp_ptr=strtok(NULL,",")))
 						external_commands_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"parallel_host_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						parallel_host_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						parallel_host_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						parallel_host_checks_last_15min=atoi(temp_ptr);
+					}
+				else if(!strcmp(var,"serial_host_check_stats")){
+					if((temp_ptr=strtok(val,",")))
+						serial_host_checks_last_1min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						serial_host_checks_last_5min=atoi(temp_ptr);
+					if((temp_ptr=strtok(NULL,",")))
+						serial_host_checks_last_15min=atoi(temp_ptr);
 					}
 				break;
 

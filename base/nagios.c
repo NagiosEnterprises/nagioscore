@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   04-17-2007
+ * Last Modified:   04-19-2007
  *
  * Description:
  *
@@ -259,6 +259,7 @@ check_stats     check_statistics[MAX_CHECK_STATS_TYPES];
 
 char            *debug_file;
 int             debug_level=DEFAULT_DEBUG_LEVEL;
+int             debug_verbosity=DEFAULT_DEBUG_VERBOSITY;
 unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 

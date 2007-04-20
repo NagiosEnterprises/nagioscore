@@ -196,6 +196,11 @@ The default name of the main configuration file is <b>nagios.cfg</b> - it is usu
 <br>
 <a href="#admin_email">Administrator email address</a><br>
 <a href="#admin_pager">Administrator pager</a><br>
+<br>
+<a href="#debug_file">Debug file</a><br>
+<a href="#debug_level">Debug level</a><br>
+<a href="#debug_verbosity">Debug verbosity</a><br>
+<a href="#max_debug_file_size">Maximum debug file size option</a><br>
 </p>
 
 
@@ -3427,6 +3432,133 @@ This value can be used in notification commands by using the <b>$ADMINEMAIL$</b>
 </table>
 </p>
 This is the pager number (or pager email gateway) for the administrator of the local machine (i.e. the one that Nagios is running on). The pager number/address can be used in notification commands by using the <b>$ADMINPAGER$</b> <a href="macros.html">macro</a>.
+</p>
+
+
+<p>
+<a name="debug_file"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Debug File</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>debug_file=&lt;file_name&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>debug_file=/usr/local/nagios/var/nagios.debug</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines where Nagios should write debugging information.  What (if any) information is written is determined by the <a href="#debug_level">debug_level</a> and <a href="#debug_verbosity">debug_verbosity</a> options.  You can have Nagios automaticaly rotate the debug file when it reaches a certain size by using the <a href="#max_debug_file_size">max_debug_file_size</a> option.
+</p>
+
+
+<p>
+<a name="debug_level"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Debug Level</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>debug_level=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>debug_level=24</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines what type of information Nagios should write to the <a href="#debug_file">debug_file</a>.  This value is a logical OR of the values below.
+</p>
+<p>
+<ul>
+<li>-1 = Log everything
+<li>0 = Log nothing (default)
+<li>1 = Function enter/exit information
+<li>2 = Config information
+<li>4 = Process information
+<li>8 = Scheduled event information
+<li>16 = Host/service check information
+<li>32 = Notification information
+<li>64 = Event broker information
+</ul>
+</p>
+
+<p>
+<a name="debug_verbosity"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Debug Verbosity</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>debug_verbosity=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>debug_verbosity=1</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines how much debugging information Nagios should write to the <a href="#debug_file">debug_file</a>.
+</p>
+<p>
+<ul>
+<li>0 = Basic information
+<li>1 = More detailed information (default)
+<li>2 = Highly detailed information
+</ul>
+</p>
+
+
+<p>
+<a name="max_debug_file_size"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Maximum Debug File Size</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>max_debug_file_size=&lt;#&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>max_debug_file_size=1000000</strong></font></td>
+</tr>
+</table>
+</p>
+
+<p>
+This option determines the maximum size (in bytes) of the <a href="#debug_file">debug file</a>.  If the file grows larger than this size, it will be renamed with a .old  extension.  If a file already exists with a .old extension it will automatically be deleted.  This helps ensure your disk space usage doesn't get out of control when debugging Nagios.
 </p>
 
 

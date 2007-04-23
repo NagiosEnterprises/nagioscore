@@ -147,6 +147,22 @@ AC_SUBST(command_grp)
 COMMAND_OPTS="-o $command_user -g $command_grp"
 AC_SUBST(COMMAND_OPTS)
 
+dnl Check for location of Apache conf.d directory
+HTTP_CONF=no
+AC_ARG_WITH(httpd_conf,--with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory,HTTPD_CONF=$withval,HTTPD_CONF=no) 
+if test HTTPD_CONF=no; then
+	if test -d /etc/httpd/conf.d; then
+		HTTPD_CONF="/etc/httpd/conf.d"
+	elif test -d /etc/apache2/conf.d; then
+		HTTPD_CONF="/etc/apache2/conf.d"
+	elif test -d /etc/apache/conf.d; then
+		HTTPD_CONF="/etc/apache/conf.d"
+	else
+		HTTPD_CONF="/etc/httpd/conf.d"
+	fi
+fi 
+AC_SUBST(HTTPD_CONF)
+
 dnl Check for location of mail program
 MAIL_PROG=no
 AC_ARG_WITH(mail,--with-mail=<path_to_mail> sets path to equivalent program to mail,MAIL_PROG=$withval,MAIL_PROG=no) 
@@ -726,6 +742,7 @@ fi
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
 AC_MSG_RESULT([                Lock file:  $lockfile])
 AC_MSG_RESULT([           Init directory:  $init_dir])
+AC_MSG_RESULT([  Apache conf.d directory:  $HTTPD_CONF])
 AC_MSG_RESULT([                  Host OS:  $host_os])
 
 echo ""

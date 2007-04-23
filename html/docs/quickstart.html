@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>Quickstart Installation Guide</title>
+<title>Quickstart Installation Guides</title>
 
 <STYLE type="text/css">
 <!--
@@ -18,7 +18,7 @@
 <p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
-<h2 class="PageTitle">Quickstart Installation Guide</h2>
+<h2 class="PageTitle">Quickstart Installation Guides</h2>
 </div>
 </p>
 
@@ -34,385 +34,40 @@
 </p>
 
 <p>
-This guide is intended to provide you with simple instructions on how to install Nagios from source (code) and have it monitoring your local machine inside of 20 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
+These quickstart guides are intended to provide you with simple instructions on how to install Nagios from source (code) and have it monitoring your local machine inside of 20 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
 </p>
 
 <p>
-<strong><u>What You'll End Up With</u></strong>
+<strong><u>Guides</u></strong>
 </p>
 
 <p>
-If you follow these instructions, here's what you'll end up with:
+Quickstart installation guides are currently available for the following Linux distributions:
 </p>
 
 <p>
 <ul>
-<li>Nagios and the plugins will be installed underneath /usr/local/nagios</li>
-<li>Nagios will be configured to monitor a few aspects of your local system (CPU load, disk usage, etc.)</li>
-<li>The Nagios web interface will be accessible at http://localhost/nagios/</li>
-</ul>
-</p>
-
-<p>
-<strong><u>Distro/OS-Specific Instructions</u></strong>
-</p>
-
-<p>
-Naming conventions, commands, directory names, etc. can vary widely across different Linux distros and UNIX variants, so the instructions provided here may have to be altered a bit for your particular situation.  
-</p>
-
-<p>
-These instructions were written based on a standard <b>Fedora Core 6</b> Linux distribution.
-</p>
-
-<p>
-I have written notes on the differences in installing Nagios on different Linux distributions and other UNIX variants.  Click one of the links below to find instructions tailored for your particular operating system or distro.
-</p>
-<p>
-<ul>
+<li><a href="quickstart-fedora.html">Fedora</a></li>
 <li><a href="quickstart-opensuse.html">openSUSE</a></li>
 <li><a href="quickstart-ubuntu.html">Ubuntu</a></li>
 </ul>
 </p>
-<p>
-If you're having trouble using these instructions, you can find OS/distribution-specific installation guides, HOWTOs, and other helpful installation documentation on the <a href="http://www.nagioscommunity.org/wiki/">NagiosCommunity.org wiki</a>.
-</p>
-
-<p>
-<strong><u>Prerequisites</u></strong>
-</p>
-
-<p>
-During portions of the installation you'll need to have <b>root</b> access to your machine.  You'll also need the following items installed before you can proceed:
-</p>
-
-<p>
-<ul>
-<li>C compiler and C libraries (gcc and glibc)</li>
-<li>Web server (Apache)</li>
-</ul>
-</p>
-
-<p>
-The Nagios CGIs (web interface) use Boutell's GD library (<a href="http://www.boutell.com/gd/">http://www.boutell.com/gd/</a>) for generating graphics.  Most modern distros include this library by default.  You can still use Nagios without the GD library, but if you find yourself missing out on the graphics you'll need to install the GD library and recompile/reinstall Nagios.
-</p>
-
-<p>
-<strong><u>1) Create Account Information</u></strong>
-</p>
-
-<p>
-Become the root user.  You may have to use <i>sudo -s</i> on Ubuntu/Debian and other distros.
-</p>
-
-<p>
-<pre>
-su -l
-</pre>
-</p>
-
-<p>
-Create a new <i>nagios</i> user account and give it a password.
-</p>
-
-<p>
-<pre>
-/usr/sbin/useradd nagios
-passwd nagios
-</pre>
-</p>
-
-<p>
-Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.  Ubuntu and other distros may require <i>www-data</i> or <i>httpd</i> to be used instead of <i>apache</i>.  Use the name of the account that your web server runs under.
-</p>
-
-<p>
-<pre>
-/usr/sbin/groupadd nagcmd
-/usr/sbin/usermod -G nagcmd nagios
-/usr/sbin/usermod -G nagcmd apache
-</pre>
-</p>
-
-<p>
-<strong><u>2) Download Nagios and the Plugins</u></strong>
-</p>
-
-<p>
-Create a directory for storing the downloads.
-</p>
-
-<p>
-<pre>
-mkdir ~/downloads
-cd ~/downloads
-</pre>
-</p>
-
-<p>
-Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).
-</p>
-
-<p>
-<pre>
-wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a2.tar.gz
-wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
-</pre>
-</p>
-
-<p>
-<strong><u>3) Compile and Install Nagios</u></strong>
-</p>
-
-<p>
-Extract the Nagios source code tarball.
-</p>
-
-<p>
-<pre>
-cd ~/downloads
-tar xzf nagios-3.0a2.tar.gz
-cd nagios-3.0a2
-</pre>
-</p>
-
-<p>
-Run the Nagios configure script, passing the name of the group you created earlier like so:
-</p>
-
-<p>
-<pre>
-./configure --with-command-group=nagcmd
-</pre>
-</p>
-
-<p>
-Compile the Nagios source code.
-</p>
-
-<p>
-<pre>
-make all
-</pre>
-</p>
-
-<p>
-Install binaries, init script, sample config files and set permissions on the external command directory.
-</p>
-
-<p>
-<pre>
-make install
-make install-init
-make install-config
-make install-commandmode
-</pre>
-</p>
-
-<p>
-Don't start Nagios yet - there's still more that needs to be done...
-</p>
-
-<p>
-<strong><u>4) Customize Configuration</u></strong>
-</p>
-
-<p>
-Edit the <i>localhost.cfg</i> config file and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
-</p>
-
-<p>
-<pre>
-vi /usr/local/nagios/etc/localhost.cfg
-</pre>
-</p>
-
-<p>
-<strong><u>5) Configure the Web Interface</u></strong>
-</p>
-
-<p>
-Install the Nagios web config file in the Apache conf.d directory.
-</p>
-
-<p>
-<pre>
-make install-webconf
-</pre>
-</p>
 
 <p>
-Create a <i>nagiosadmin</i> account for logging into the Nagios web interface.  Remember the password you assign to this account - you'll need it later.
+You can also find additional quickstart guides on the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a>.  Can't find a quickstart for your particular OS?  Write one and post it to the wiki for others!
 </p>
 
 <p>
-<pre>
-htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
-</pre>
+If you are installing Nagios on an operating system or Linux distribution that isn't listed above, read the <a href="quickstart-fedora.html">Fedora quickstart</a> for an overview of what you'll need to do.  Command names, paths, etc. vary widely across different OSes/distributions, so you'll likely need to tweak the installation docs a bit to work for your particular case.
 </p>
 
-<p>
-Restart Apache to make the new settings take effect.
-</p>
-
-<p>
-<pre>
-service httpd restart
-</pre>
-</p>
-
-
-
-<p>
-<strong><u>6) Compile and Install the Nagios Plugins</u></strong>
-</p>
-
-<p>
-Extract the Nagios plugins source code tarball.
-</p>
-
-<p>
-<pre>
-cd ~/downloads
-tar xzf nagios-plugins-1.4.7.tar.gz
-cd nagios-plugins-1.4.7
-</pre>
-</p>
-
-<p>
-Compile and install the plugins.
-</p>
-
-<p>
-<pre>
-./configure --with-nagios-user=nagios --with-nagios-group=nagios
-make
-make install
-</pre>
-</p>
-
-
-<p>
-<strong><u>7) Start Nagios</u></strong>
-</p>
-
-<p>
-Add Nagios to the list of system services and have it automatically start when the system boots.
-</p>
-
-<p>
-<pre>
-chkconfig --add nagios
-chconfig nagios on
-</pre>
-</p>
-
-<p>
-Verify the sample Nagios configuration files.
-</p>
-
-<p>
-<pre>
-/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
-</pre>
-</p>
-
-<p>
-If there are no errors, start Nagios.
-</p>
-
-<p>
-<pre>
-service nagios start
-</pre>
-</p>
-
-<p>
-<strong><u>8) Login to the Web Interface</u></strong>
-</p>
-
-<p>
-You should now be able to access the Nagios web interface at the URL below.  You'll be prompted for the username (<i>nagiosadmin</i>) and password you specified earlier.
-</p>
-
-<p>
-<pre>
-http://localhost/nagios/
-</pre>
-</p>
-
-<p>
-Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
-</p>
-
-<p>
-<img src="images/note.gif" border="0" align="bottom"> Note: If you get "Internal Server Error" error messages while attempting to view the CGIs, it's likely due to the fact that SELinux is installed and enabled on your system.  See below for  information on fixing this.
-</p>
-
-<p>
-<strong><u>9) Modify SELinux Settings</u></strong>
-</p>
-
-<p>
-If you don't get any errors when access the CGIs, you can skip this step.  Fedora ships with SELinux (Security Enhanced Linux) installed and in Enforcing mode by default.  This can result in "Internal Server Error" messages when you attempt to access the Nagios CGIs.
-</p>
-
-<p>
-See if SELinux is in Enforcing mode.
-</p>
-
-<p>
-<pre>
-getenforce
-</pre>
-</p>
-
-<p>
-Put SELinux into Permissive mode.
-</p>
-
-<p>
-<pre>
-setenforce 0
-</pre>
-</p>
-
-<p>
-The Nagios CGIs should work now.  To make this change permanent, you'll have to modify <i>/etc/selinux/config</i>. 
-</p>
-
-<p>
-Instead of disabling SELinux or setting it to permissive mode, you can use the following command to run the CGIs under SELinux enforcing/targeted mode:
-</p>
-
-<p>
-<pre>
-chcon -R -t httpd_sys_content_t /usr/local/nagios
-</pre>
-</p>
-
-<p>
-For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
-</p>
-
-<p>
-<strong><u>10) Other Modifications</u></strong>
-</p>
-
-<p>
-Make sure your machine's firewall rules are configured to allow access to the web server if you want to access the Nagios interface remotely.
-</p>
-
-<p>
-Configuring email notifications is out of the scope of this documentation.  While Nagios is currently configured to send you email notifications, your system may not yet have a mail program properly installed or configured.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your system to send email messages to external addresses.  More information on notifications can be found <a href="notifications.html">here</a>.
-</p>
 
 <p>
-<strong><u>11) You're Done</u></strong>
+<strong><u>Post-Installation Modifications</u></strong>
 </p>
 
 <p>
-Congratulations!  You sucessfully installed Nagios.  Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so check out the following docs...
+Once you get Nagios installed and running properly, you'll no doubt want to start monitoring more than just your local machine.  Check out the following docs for how to go about monitoring other things...
 </p>
 
 <p>

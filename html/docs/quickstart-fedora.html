@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>Ubuntu Quickstart</title>
+<title>Fedora Quickstart</title>
 
 <STYLE type="text/css">
 <!--
@@ -18,7 +18,7 @@
 <p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
-<h2 class="PageTitle">Ubuntu Quickstart</h2>
+<h2 class="PageTitle">Fedora Quickstart</h2>
 </div>
 </p>
 
@@ -34,11 +34,11 @@
 </p>
 
 <p>
-This guide is intended to provide you with simple instructions on how to install Nagios from source (code) on Ubuntu and have it monitoring your local machine inside of 20 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
+This guide is intended to provide you with simple instructions on how to install Nagios from source (code) on Fedora and have it monitoring your local machine inside of 20 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
 </p>
 
 <p>
-These instructions were written based on an <b>Ubuntu 6.10</b> (desktop) installation.
+These instructions were written based on a standard <b>Fedora Core 6</b> Linux distribution.
 </p>
 
 <p>
@@ -58,31 +58,22 @@ If you follow these instructions, here's what you'll end up with:
 </p>
 
 <p>
-<strong><u>Required Packages</u></strong>
+<strong><u>Prerequisites</u></strong>
 </p>
 
 <p>
-Make sure you've installed the following packages on your Ubuntu installation before continuing. 
+During portions of the installation you'll need to have <b>root</b> access to your machine.  You'll also need the following items installed before you can proceed:
 </p>
 
 <p>
 <ul>
-<li>Apache 2</li>
-<li>GCC compiler and development libraries</li>
-<li>GD development libraries</li>
+<li>C compiler and C libraries (gcc and glibc)</li>
+<li>Web server (Apache)</li>
 </ul>
 </p>
 
 <p>
-You can use <i>apt-get</i> to install these packages by running the following commands:
-</p>
-
-<p>
-<pre>
-sudo apt-get install apache2
-sudo apt-get install build-essential
-sudo apt-get install libgd2-dev
-</pre>
+The Nagios CGIs (web interface) use Boutell's GD library (<a href="http://www.boutell.com/gd/">http://www.boutell.com/gd/</a>) for generating graphics.  Most modern distros include this library by default.  You can still use Nagios without the GD library, but if you find yourself missing out on the graphics you'll need to install the GD library and recompile/reinstall Nagios.
 </p>
 
 <p>
@@ -95,7 +86,7 @@ Become the root user.
 
 <p>
 <pre>
-sudo -s
+su -l
 </pre>
 </p>
 
@@ -118,7 +109,7 @@ Create a new <i>nagcmd</i> group for allowing external commands to be submitted 
 <pre>
 /usr/sbin/groupadd nagcmd
 /usr/sbin/usermod -G nagcmd nagios
-/usr/sbin/usermod -G nagcmd www-data
+/usr/sbin/usermod -G nagcmd apache
 </pre>
 </p>
 
@@ -245,9 +236,11 @@ Restart Apache to make the new settings take effect.
 
 <p>
 <pre>
-/etc/init.d/apache2 reload
+service httpd restart
 </pre>
 </p>
+
+
 
 <p>
 <strong><u>6) Compile and Install the Nagios Plugins</u></strong>
@@ -283,12 +276,13 @@ make install
 </p>
 
 <p>
-Configure Nagios to automatically start when the system boots.
+Add Nagios to the list of system services and have it automatically start when the system boots.
 </p>
 
 <p>
 <pre>
-ln -s /etc/init.d/nagios /etc/rcS.d/S99nagios
+chkconfig --add nagios
+chkconfig nagios on
 </pre>
 </p>
 
@@ -308,7 +302,7 @@ If there are no errors, start Nagios.
 
 <p>
 <pre>
-/etc/init.d/nagios start
+service nagios start
 </pre>
 </p>
 
@@ -331,33 +325,85 @@ Click on the "Service Detail" navbar link to see details of what's being monitor
 </p>
 
 <p>
-<strong><u>9) Other Modifications</u></strong>
+<img src="images/note.gif" border="0" align="bottom"> Note: If you get "Internal Server Error" error messages while attempting to view the CGIs, it's likely due to the fact that SELinux is installed and enabled on your system.  See below for  information on fixing this.
 </p>
 
 <p>
-If you want to receive email notifications for Nagios alerts, you need to install the mailx (Postfix) package.
+<strong><u>9) Modify SELinux Settings</u></strong>
 </p>
 
 <p>
-<pre>
-sudo apt-get install mailx
-</pre>
+If you don't get any errors when access the CGIs, you can skip this step.  Fedora ships with SELinux (Security Enhanced Linux) installed and in Enforcing mode by default.  This can result in "Internal Server Error" messages when you attempt to access the Nagios CGIs.
 </p>
 
 <p>
-You'll have to edit the Nagios email notification commands found in <i>/usr/local/nagios/etc/commands.cfg</i> and change any '/bin/mail' references to '/usr/bin/mail'.  Once you do that you'll need to restart Nagios to make the configuration changes live.
+See if SELinux is in Enforcing mode.
 </p>
 
 <p>
 <pre>
-sudo /etc/init.d/nagios restart
+getenforce
 </pre>
 </p>
 
 <p>
-Configuring email notifications is outside the scope of this documentation.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your Ubuntu system to send email messages to external addresses.
+Put SELinux into Permissive mode.
 </p>
 
+<p>
+<pre>
+setenforce 0
+</pre>
+</p>
+
+<p>
+The Nagios CGIs should work now.  To make this change permanent, you'll have to modify the settings in <i>/etc/selinux/config</i> and reboot. 
+</p>
+
+<p>
+Instead of disabling SELinux or setting it to permissive mode, you can use the following command to run the CGIs under SELinux enforcing/targeted mode:
+</p>
+
+<p>
+<pre>
+chcon -R -t httpd_sys_content_t /usr/local/nagios/sbin/
+chcon -R -t httpd_sys_content_t /usr/local/nagios/share/
+</pre>
+</p>
+
+<p>
+For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
+</p>
+
+<p>
+<strong><u>10) Other Modifications</u></strong>
+</p>
+
+<p>
+Make sure your machine's firewall rules are configured to allow access to the web server if you want to access the Nagios interface remotely.
+</p>
+
+<p>
+Configuring email notifications is out of the scope of this documentation.  While Nagios is currently configured to send you email notifications, your system may not yet have a mail program properly installed or configured.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your system to send email messages to external addresses.  More information on notifications can be found <a href="notifications.html">here</a>.
+</p>
+
+<p>
+<strong><u>11) You're Done</u></strong>
+</p>
+
+<p>
+Congratulations!  You sucessfully installed Nagios.  Your journey into monitoring is just beginning.  You'll no doubt want to monitor more than just your local machine, so check out the following docs...
+</p>
+
+<p>
+<ul>
+<li><a href="monitoring-windows.html">Monitoring Windows machines</a></li>
+<li><a href="monitoring-linux.html">Monitoring Linux/Unix machines</a></li>
+<li><a href="monitoring-netware.html">Monitoring Netware servers</a></li>
+<li><a href="monitoring-routers.html">Monitoring routers/switches</a></li>
+<li><a href="monitoring-publicservices.html">Monitoring publicly available services (HTTP, FTP, SSH, etc.)</a></li>
+</ul>
+</p>
 
 <hr>
 

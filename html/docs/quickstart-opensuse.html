@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>Quickstart Notes - openSUSE</title>
+<title>openSUSE Quickstart</title>
 
 <STYLE type="text/css">
 <!--
@@ -18,7 +18,7 @@
 <p>
 <div align="center">
 <img src="images/nagios.jpg" border="0" alt="Nagios" title="Nagios">
-<h2 class="PageTitle">Quickstart Notes - openSUSE</h2>
+<h2 class="PageTitle">openSUSE Quickstart</h2>
 </div>
 </p>
 
@@ -26,7 +26,7 @@
 
 <p>
 <img src="images/upto.gif" border="0" align="absmiddle">Up To: <a href="toc.html">Contents</a><br>
-<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guide</a>
+<img src="images/seealso.gif" border="0" align="absmiddle"> See Also: <a href="quickstart.html">Quickstart Installation Guides</a>
 </p>
 
 <p>
@@ -34,29 +34,11 @@
 </p>
 
 <p>
-If you're installing Nagios on openSUSE, there are a few things that you'll need to do differently than described in the <a href="quickstart.html">quickstart installation guide</a>.  This document is intended to act as a supplement to the quickstart guide and only contains the portions of the guide that differ for openSUSE.  That means you'll have to use this document in conjunction with the quickstart.
+This guide is intended to provide you with simple instructions on how to install Nagios from source (code) on openSUSE and have it monitoring your local machine inside of 20 minutes.  No advanced installation options are discussed here - just the basics that will work for 95% of users who want to get started.
 </p>
 
 <p>
 These instructions were written based on an <b>openSUSE 10.2</b> installation.
-</p>
-
-<p>
-The installation notes for openSUSE differ from the quickstart installation guide because of the following:
-</p>
-
-<p>
-<ul>
-<li>Adding a new user account does not automatically create a corresponding group by the same name
-<li>The directory path for Apache 2 config files is different</li>
-<li>The names of Apache 2 utilities differ</li>
-<li>The Apache web server runs as the <i>wwwrun</i> user
-<li>openSUSE does not ship with SELinux</li>
-</ul>
-</p>
-
-<p>
-Commands and file names that differ from the quickstart installation guide are highlighted in red.  Only sections of the quickstart that differ for openSUSE are included below.
 </p>
 
 <p>
@@ -75,7 +57,6 @@ Make sure you've installed the following packages on your openSUSE installation 
 </p>
 
 <p>
-<a name="step1"></a>
 <strong><u>1) Create Account Information</u></strong>
 </p>
 
@@ -105,12 +86,10 @@ Create a new <i>nagios</i> group.  Add the nagios user to the group.
 </p>
 
 <p>
-<font color="red">
 <pre>
 /usr/sbin/groupadd nagios
 /usr/sbin/usermod -G nagios nagios
 </pre>
-</font>
 </p>
 
 <p>
@@ -121,12 +100,104 @@ Create a new <i>nagcmd</i> group for allowing external commands to be submitted 
 <pre>
 /usr/sbin/groupadd nagcmd
 /usr/sbin/usermod -G nagcmd nagios
-<font color="red">/usr/sbin/usermod -G nagcmd wwwrun</font>
+/usr/sbin/usermod -G nagcmd wwwrun
 </pre>
 </p>
 
 <p>
-<a name="step5"></a>
+<strong><u>2) Download Nagios and the Plugins</u></strong>
+</p>
+
+<p>
+Create a directory for storing the downloads.
+</p>
+
+<p>
+<pre>
+mkdir ~/downloads
+cd ~/downloads
+</pre>
+</p>
+
+<p>
+Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).    At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0a2 and 1.4.7, respectively.
+</p>
+
+<p>
+<pre>
+wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a2.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
+</pre>
+</p>
+
+<p>
+<strong><u>3) Compile and Install Nagios</u></strong>
+</p>
+
+<p>
+Extract the Nagios source code tarball.
+</p>
+
+<p>
+<pre>
+cd ~/downloads
+tar xzf nagios-3.0a2.tar.gz
+cd nagios-3.0a2
+</pre>
+</p>
+
+<p>
+Run the Nagios configure script, passing the name of the group you created earlier like so:
+</p>
+
+<p>
+<pre>
+./configure --with-command-group=nagcmd
+</pre>
+</p>
+
+<p>
+Compile the Nagios source code.
+</p>
+
+<p>
+<pre>
+make all
+</pre>
+</p>
+
+<p>
+Install binaries, init script, sample config files and set permissions on the external command directory.
+</p>
+
+<p>
+<pre>
+make install
+make install-init
+make install-config
+make install-commandmode
+</pre>
+</p>
+
+<p>
+Don't start Nagios yet - there's still more that needs to be done...
+</p>
+
+<p>
+<strong><u>4) Customize Configuration</u></strong>
+</p>
+
+<p>
+Edit the <i>localhost.cfg</i> config file and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
+</p>
+
+<p>
+<pre>
+vi /usr/local/nagios/etc/localhost.cfg
+</pre>
+</p>
+
+<p>
 <strong><u>5) Configure the Web Interface</u></strong>
 </p>
 
@@ -145,11 +216,9 @@ Create a <i>nagiosadmin</i> account for logging into the Nagios web interface.  
 </p>
 
 <p>
-<font color="red">
 <pre>
 htpasswd2 -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
 </pre>
-</font>
 </p>
 
 <p>
@@ -157,23 +226,95 @@ Restart Apache to make the new settings take effect.
 </p>
 
 <p>
-<font color="red">
 <pre>
 service apache2 restart
 </pre>
-</font>
 </p>
 
 <p>
-<strong><u>9) Modify SELinux Settings</u></strong>
+<strong><u>6) Compile and Install the Nagios Plugins</u></strong>
 </p>
 
 <p>
-openSUSE doesn't ship with SELinux (Security Enhanced Linux), so you don't need to modify enforcement settings as described in the quickstart guide.
+Extract the Nagios plugins source code tarball.
 </p>
 
 <p>
-<strong><u>10) Other Modifications</u></strong>
+<pre>
+cd ~/downloads
+tar xzf nagios-plugins-1.4.7.tar.gz
+cd nagios-plugins-1.4.7
+</pre>
+</p>
+
+<p>
+Compile and install the plugins.
+</p>
+
+<p>
+<pre>
+./configure --with-nagios-user=nagios --with-nagios-group=nagios
+make
+make install
+</pre>
+</p>
+
+
+<p>
+<strong><u>7) Start Nagios</u></strong>
+</p>
+
+<p>
+Add Nagios to the list of system services and have it automatically start when the system boots.
+</p>
+
+<p>
+<pre>
+chkconfig --add nagios
+chkconfig nagios on
+</pre>
+</p>
+
+<p>
+Verify the sample Nagios configuration files.
+</p>
+
+<p>
+<pre>
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+</pre>
+</p>
+
+<p>
+If there are no errors, start Nagios.
+</p>
+
+<p>
+<pre>
+service nagios start
+</pre>
+</p>
+
+<p>
+<strong><u>8) Login to the Web Interface</u></strong>
+</p>
+
+<p>
+You should now be able to access the Nagios web interface at the URL below.  You'll be prompted for the username (<i>nagiosadmin</i>) and password you specified earlier.
+</p>
+
+<p>
+<pre>
+http://localhost/nagios/
+</pre>
+</p>
+
+<p>
+Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
+</p>
+
+<p>
+<strong><u>9) Other Modifications</u></strong>
 </p>
 
 <p>
@@ -196,7 +337,7 @@ You can do this by:
 </p>
 
 <p>
-Configuring email notifications is out of the scope of this documentation.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your openSUSE system to send email messages to external addresses.
+Configuring email notifications is outside the scope of this documentation.  Refer to your system documentation, search the web, or look to the <a href="http://www.nagioscommunity.org/wiki">NagiosCommunity.org wiki</a> for specific instructions on configuring your openSUSE system to send email messages to external addresses.
 </p>
 
 

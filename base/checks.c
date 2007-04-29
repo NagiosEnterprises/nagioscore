@@ -124,13 +124,8 @@ int reap_check_results(void){
 	time_t current_time=0L;
 	time_t reaper_start_time=0L;
 
-#ifdef DEBUG0
-        printf("reap_check_results() start\n");
-#endif
-
-#ifdef DEBUG3
-	printf("Starting to reap check results...\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"reap_check_results() start\n");
+	log_debug_info(DEBUGL_CHECKS,0,"Starting to reap check results.\n");
 
 	/* get the start time */
 	time(&reaper_start_time);
@@ -193,16 +188,12 @@ int reap_check_results(void){
 
 		/* bail out if we encountered a signal */
 		if(sigshutdown==TRUE || sigrestart==TRUE)
+		  log_debug_info(DEBUGL_CHECKS,0,"Finished reaping check results.\n");
 			break;
 	        }
 
-#ifdef DEBUG3
-	printf("Finished reaping check results.\n");
-#endif
-
-#ifdef DEBUG0
-	printf("reap_check_results() end\n");
-#endif
+	log_debug_info(DEBUGL_CHECKS,0,"Finished reaping check results.\n");
+	log_debug_info(DEBUGL_FUNCTIONS,0,"reap_check_results() end\n");
 
 	return OK;
         }
@@ -220,6 +211,8 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	int time_is_valid=TRUE;
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_scheduled_service_check() start\n");
 
 	/* attempt to run the check */
 	result=run_async_service_check(svc,check_options,latency,TRUE,TRUE,&time_is_valid,&preferred_time);

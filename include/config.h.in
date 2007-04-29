@@ -199,6 +199,11 @@
 #include <glib.h>
 #endif
 
+#undef HAVE_STDARG_H
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+
 #undef HAVE_SYS_TYPES_H
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

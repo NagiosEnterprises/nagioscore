@@ -85,8 +85,7 @@ extern int      use_true_regexp_matching;
 
 extern int      sigshutdown;
 extern int      sigrestart;
-/* NOTE: If the following def is moved to nagios.c, OSX and Solaris see SIGTERM as SIGEXIT.  Why?  Not sure... */
-char            *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
+extern char     *sigs[35];
 extern int      caught_signal;
 extern int      sig_id;
 
@@ -3311,10 +3310,8 @@ void setup_sighandler(void){
 	signal(SIGQUIT,sighandler);
 	signal(SIGTERM,sighandler);
 	signal(SIGHUP,sighandler);
-#if !defined(DEBUG0) && !defined(DEBUG1) && !defined(DEBUG2) && !defined(DEBUG3) && !defined(DEBUG4) && !defined(DEBUG5)
 	if(daemon_dumps_core==FALSE || daemon_mode==FALSE)
 		signal(SIGSEGV,sighandler);
-#endif
 
 #ifdef DEBUG0
 	printf("setup_sighandler() end\n");

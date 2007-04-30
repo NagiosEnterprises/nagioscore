@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-10-2007
+ * Last Modified:   04-30-2007
  *
  * License:
  *
@@ -76,7 +76,7 @@ extern int      use_true_regexp_matching;
 
 extern int      sigshutdown;
 extern int      sigrestart;
-extern char     **sigs;
+extern char     *sigs[35];
 extern int      caught_signal;
 extern int      sig_id;
 

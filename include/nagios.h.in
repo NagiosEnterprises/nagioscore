@@ -291,6 +291,7 @@ extern "C" {
 #define DEBUGL_IPC                      128
 #define DEBUGL_EXTERNALCOMMANDS         256
 #define DEBUGL_FLAPPING                 512
+#define DEBUGL_COMMANDS                 1024
 
 #define DEBUGV_BASIC                    0
 #define DEBUGV_MORE			1

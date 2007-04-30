@@ -138,12 +138,12 @@ cd ~/downloads
 </p>
 
 <p>
-Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0a2 and 1.4.7, respectively.
+Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0a4 and 1.4.7, respectively.
 </p>
 
 <p>
 <pre>
-wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a2.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a4.tar.gz
 wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
 </pre>
 </p>
@@ -159,8 +159,8 @@ Extract the Nagios source code tarball.
 <p>
 <pre>
 cd ~/downloads
-tar xzf nagios-3.0a2.tar.gz
-cd nagios-3.0a2
+tar xzf nagios-3.0a4.tar.gz
+cd nagios-3.0a4
 </pre>
 </p>
 
@@ -206,13 +206,7 @@ Don't start Nagios yet - there's still more that needs to be done...
 </p>
 
 <p>
-Edit the <i>localhost.cfg</i> config file and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
-</p>
-
-<p>
-<pre>
-vi /usr/local/nagios/etc/localhost.cfg
-</pre>
+Edit the <i>localhost.cfg</i> config file with your favorite editor and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
 </p>
 
 <p>

@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-19-2007
+ * Last Modified:   04-29-2007
  *
  * License:
  *
@@ -3800,6 +3800,12 @@ int move_check_result_to_queue(char *checkresult_file){
 		/* close the file */
 		close(output_file_fd);
 
+		/* create an ok-to-go indicator file */
+		asprintf(&temp_buffer,"%s.ok",output_file);
+		if((output_file_fd=open(temp_buffer,O_CREAT|O_WRONLY|O_TRUNC,S_IRUSR|S_IWUSR))>0)
+			close(output_file_fd);
+		my_free((void **)&temp_buffer);
+
 		/* delete the original file */
 		if(result==0)
 			unlink(checkresult_file);
@@ -3832,6 +3838,7 @@ int process_check_result_queue(char *dirname){
 	struct dirent *dirfile=NULL;
 	register int x=0;
 	struct stat stat_buf;
+	struct stat ok_stat_buf;
 	char *temp_buffer=NULL;
 	int result=OK;
 
@@ -3870,6 +3877,11 @@ int process_check_result_queue(char *dirname){
 			        }
 #endif
 
+			/* is there an ok-to-go file? */
+			asprintf(&temp_buffer,"%s.ok",file);
+			if(stat(temp_buffer,&ok_stat_buf)==-1)
+				continue;
+
 			/* process the file */
 			result=process_check_result_file(file);
 
@@ -3891,6 +3903,7 @@ int process_check_result_queue(char *dirname){
 /* reads check result(s) from a file */
 int process_check_result_file(char *fname){
 	mmapfile *thefile=NULL;
+	char *temp_buffer=NULL;
 	char *input=NULL;
 	char *var=NULL;
 	char *val=NULL;
@@ -4047,10 +4060,14 @@ int process_check_result_file(char *fname){
 	my_free((void **)&input);
 	mmap_fclose(thefile);
 
-	/* delete the file if it's too old */
-	/* other files are deleted later (when results are processed) */
-	if(delete_file==TRUE)
+	/* delete the file (as well its ok-to-go file) if it's too old */
+	/* other (current) files are deleted later (when results are processed) */
+	if(delete_file==TRUE){
 		unlink(fname);
+		asprintf(&temp_buffer,"%s.ok",fname);
+		unlink(temp_buffer);
+		my_free((void **)&temp_buffer);
+		}
 
 	return OK;
 	}

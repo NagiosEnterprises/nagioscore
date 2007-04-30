@@ -62,18 +62,32 @@ If you follow these instructions, here's what you'll end up with:
 </p>
 
 <p>
-During portions of the installation you'll need to have <b>root</b> access to your machine.  You'll also need the following items installed before you can proceed:
+During portions of the installation you'll need to have <b>root</b> access to your machine.
+</p>
+
+<p>
+Make sure you've installed the following packages on your Ubuntu installation before continuing. 
 </p>
 
 <p>
 <ul>
-<li>C compiler and C libraries (gcc and glibc)</li>
-<li>Web server (Apache)</li>
+<li>Apache</li>
+<li>GCC compiler</li>
+<li><a href="http://www.boutell.com/gd/">GD</a> development libraries</li>
 </ul>
 </p>
 
 <p>
-The Nagios CGIs (web interface) use Boutell's GD library (<a href="http://www.boutell.com/gd/">http://www.boutell.com/gd/</a>) for generating graphics.  Most modern distros include this library by default.  You can still use Nagios without the GD library, but if you find yourself missing out on the graphics you'll need to install the GD library and recompile/reinstall Nagios.
+You can use <i>yum</i> to install these packages by running the following commands (as root):
+</p>
+
+<p>
+<pre>
+yum install httpd
+yum install gcc
+yum install glibc glibc-common
+yum install gd gd-devel
+</pre>
 </p>
 
 <p>
@@ -129,12 +143,12 @@ cd ~/downloads
 </p>
 
 <p>
-Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0a2 and 1.4.7, respectively.
+Download the source code tarballs of both Nagios and the Nagios plugins (visit <a href="http://www.nagios.org/download/">http://www.nagios.org/download/</a> for links to the latest versions).  At the time of writing, the latest versions of Nagios and the Nagios plugins were 3.0a4 and 1.4.7, respectively.
 </p>
 
 <p>
 <pre>
-wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a2.tar.gz
+wget http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0a4.tar.gz
 wget http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.7.tar.gz
 </pre>
 </p>
@@ -150,8 +164,8 @@ Extract the Nagios source code tarball.
 <p>
 <pre>
 cd ~/downloads
-tar xzf nagios-3.0a2.tar.gz
-cd nagios-3.0a2
+tar xzf nagios-3.0a4.tar.gz
+cd nagios-3.0a4
 </pre>
 </p>
 
@@ -197,13 +211,7 @@ Don't start Nagios yet - there's still more that needs to be done...
 </p>
 
 <p>
-Edit the <i>localhost.cfg</i> config file and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
-</p>
-
-<p>
-<pre>
-vi /usr/local/nagios/etc/localhost.cfg
-</pre>
+Edit the <i>localhost.cfg</i> config file with your favorite editor and change the email address associated with the <i>nagiosadmin</i> contact definition to the address you'd like to use for receiving alerts.
 </p>
 
 <p>
@@ -307,33 +315,11 @@ service nagios start
 </p>
 
 <p>
-<strong><u>8) Login to the Web Interface</u></strong>
+<strong><u>8) Modify SELinux Settings</u></strong>
 </p>
 
 <p>
-You should now be able to access the Nagios web interface at the URL below.  You'll be prompted for the username (<i>nagiosadmin</i>) and password you specified earlier.
-</p>
-
-<p>
-<pre>
-http://localhost/nagios/
-</pre>
-</p>
-
-<p>
-Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
-</p>
-
-<p>
-<img src="images/note.gif" border="0" align="bottom"> Note: If you get "Internal Server Error" error messages while attempting to view the CGIs, it's likely due to the fact that SELinux is installed and enabled on your system.  See below for  information on fixing this.
-</p>
-
-<p>
-<strong><u>9) Modify SELinux Settings</u></strong>
-</p>
-
-<p>
-If you don't get any errors when access the CGIs, you can skip this step.  Fedora ships with SELinux (Security Enhanced Linux) installed and in Enforcing mode by default.  This can result in "Internal Server Error" messages when you attempt to access the Nagios CGIs.
+Fedora ships with SELinux (Security Enhanced Linux) installed and in Enforcing mode by default.  This can result in "Internal Server Error" messages when you attempt to access the Nagios CGIs.
 </p>
 
 <p>
@@ -357,7 +343,7 @@ setenforce 0
 </p>
 
 <p>
-The Nagios CGIs should work now.  To make this change permanent, you'll have to modify the settings in <i>/etc/selinux/config</i> and reboot. 
+To make this change permanent, you'll have to modify the settings in <i>/etc/selinux/config</i> and reboot. 
 </p>
 
 <p>
@@ -373,6 +359,24 @@ chcon -R -t httpd_sys_content_t /usr/local/nagios/share/
 
 <p>
 For information on running the Nagios CGIs under Enforcing mode with a targeted policy, visit the NagiosCommunity.org wiki at <a href="http://www.nagioscommunity.org/wiki">http://www.nagioscommunity.org/wiki</a>.
+</p>
+
+<p>
+<strong><u>9) Login to the Web Interface</u></strong>
+</p>
+
+<p>
+You should now be able to access the Nagios web interface at the URL below.  You'll be prompted for the username (<i>nagiosadmin</i>) and password you specified earlier.
+</p>
+
+<p>
+<pre>
+http://localhost/nagios/
+</pre>
+</p>
+
+<p>
+Click on the "Service Detail" navbar link to see details of what's being monitored on your local machine.  It will take a few minutes for Nagios to check all the services associated with your machine, as the checks are spread out over time.
 </p>
 
 <p>

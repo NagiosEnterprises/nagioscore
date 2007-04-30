@@ -15,7 +15,9 @@ Nagios 3.x Change Log
 * Added new --with-temp-dir option to configure script
 * Removed legacy 2.x host check logic and use_old_host_check_logic option
 * Revmoed DEBUGx options from configure script
-# Added new debug/trace log functionaltiy
+* Added new debug/trace log functionaltiy (only partially complete)
+* Fixed compilation error under OSX
+
 
 
 

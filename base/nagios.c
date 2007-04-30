@@ -170,7 +170,7 @@ int             log_rotation_method=LOG_ROTATION_NONE;
 
 int             sigshutdown=FALSE;
 int             sigrestart=FALSE;
-char            *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
+extern char     **sigs;
 int             caught_signal=FALSE;
 int             sig_id=0;
 

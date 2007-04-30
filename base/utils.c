@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-29-2007
+ * Last Modified:   04-30-2007
  *
  * License:
  *
@@ -85,7 +85,8 @@ extern int      use_true_regexp_matching;
 
 extern int      sigshutdown;
 extern int      sigrestart;
-extern char     **sigs;
+/* NOTE: If the following def is moved to nagios.c, OSX and Solaris see SIGTERM as SIGEXIT.  Why?  Not sure... */
+char            *sigs[]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
 extern int      caught_signal;
 extern int      sig_id;
 

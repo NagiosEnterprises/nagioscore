@@ -17,6 +17,7 @@ Nagios 3.x Change Log
 * Revmoed DEBUGx options from configure script
 * Added new debug/trace log functionaltiy (only partially complete)
 * Fixed compilation error under OSX
+* Fix for SIGTERMs being seen as SIGEXITs under OSX and Solaris
 
 
 

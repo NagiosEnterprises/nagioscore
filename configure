@@ -5430,7 +5430,7 @@ if test "${with_mail+set}" = set; then
 else
   MAIL_PROG=no
 fi;
-if test MAIL_PROG=no; then
+if test x$MAIL_PROG = xno; then
 	# Extract the first word of "mail", so it can be a program name with args.
 set dummy mail; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -5471,7 +5471,7 @@ echo "${ECHO_T}no" >&6
 fi
 
 fi
-if test x$MAIL_PROG=x; then
+if test x$MAIL_PROG = x; then
 	MAIL_PROG="/bin/mail"
 fi
 
@@ -5485,7 +5485,7 @@ if test "${with_httpd_conf+set}" = set; then
 else
   HTTPD_CONF=no
 fi;
-if test HTTPD_CONF=no; then
+if test x$HTTPD_CONF = xno; then
 	if test -d /etc/httpd/conf.d; then
 		HTTPD_CONF="/etc/httpd/conf.d"
 	elif test -d /etc/apache2/conf.d; then
@@ -5507,8 +5507,8 @@ if test "${with_checkresult_dir+set}" = set; then
 else
   CHECKRESULTDIR=no
 fi;
-if test CHECKRESULTDIR=no; then
-	CHECKRESULTDIR="/var/spool/nagios/checkresults"
+if test x$CHECKRESULTDIR = xno; then
+	CHECKRESULTDIR="$localstatedir/spool/checkresults"
 fi
 
 
@@ -5521,7 +5521,7 @@ if test "${with_temp_dir+set}" = set; then
 else
   TMPDIR=no
 fi;
-if test TMPDIR=no; then
+if test x$TMPDIR = xno; then
 	TMPDIR="/tmp"
 fi
 
@@ -5546,8 +5546,6 @@ if test "${with_init_dir+set}" = set; then
   init_dir=$withval
 fi;
 
-
-echo "Init script directory: " $init_dir
 
 
 # Check whether --with-lockfile or --without-lockfile was given.
@@ -8265,6 +8263,8 @@ echo "$as_me:$LINENO: result:         Install \${prefix}:  $prefix" >&5
 echo "${ECHO_T}        Install \${prefix}:  $prefix" >&6
 echo "$as_me:$LINENO: result:                 Lock file:  $lockfile" >&5
 echo "${ECHO_T}                Lock file:  $lockfile" >&6
+echo "$as_me:$LINENO: result:    Check result directory:  $CHECKRESULTDIR" >&5
+echo "${ECHO_T}   Check result directory:  $CHECKRESULTDIR" >&6
 echo "$as_me:$LINENO: result:            Init directory:  $init_dir" >&5
 echo "${ECHO_T}           Init directory:  $init_dir" >&6
 echo "$as_me:$LINENO: result:   Apache conf.d directory:  $HTTPD_CONF" >&5

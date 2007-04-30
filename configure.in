@@ -209,11 +209,11 @@ AC_SUBST(COMMAND_OPTS)
 dnl Check for location of mail program
 MAIL_PROG=no
 AC_ARG_WITH(mail,--with-mail=<path_to_mail> sets path to equivalent program to mail,MAIL_PROG=$withval,MAIL_PROG=no) 
-if test MAIL_PROG=no; then
+if test x$MAIL_PROG = xno; then
 	AC_PATH_PROG(MAIL_PROG,mail) 
 fi 
 dnl Fix for systems that don't (yet) have mail/mailx installed...
-if test x$MAIL_PROG=x; then
+if test x$MAIL_PROG = x; then
 	MAIL_PROG="/bin/mail"
 fi
 AC_SUBST(MAIL_PROG)
@@ -221,7 +221,7 @@ AC_SUBST(MAIL_PROG)
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
 AC_ARG_WITH(httpd_conf,--with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory,HTTPD_CONF=$withval,HTTPD_CONF=no) 
-if test HTTPD_CONF=no; then
+if test x$HTTPD_CONF = xno; then
 	if test -d /etc/httpd/conf.d; then
 		HTTPD_CONF="/etc/httpd/conf.d"
 	elif test -d /etc/apache2/conf.d; then
@@ -237,15 +237,15 @@ AC_SUBST(HTTPD_CONF)
 dnl Location of check result path
 CHECKRESULTDIR=no
 AC_ARG_WITH(checkresult-dir,--with-checkresult-dir=<path> sets path to check results spool directory,CHECKRESULTDIR=$withval,CHECKRESULTDIR=no) 
-if test CHECKRESULTDIR=no; then
-	CHECKRESULTDIR="/var/spool/nagios/checkresults"
+if test x$CHECKRESULTDIR = xno; then
+	CHECKRESULTDIR="$localstatedir/spool/checkresults"
 fi 
 AC_SUBST(CHECKRESULTDIR)
 
 dnl Location of check result path
 TMPDIR=no
 AC_ARG_WITH(temp-dir,--with-temp-dir=<path> sets path to temp directory,TMPDIR=$withval,TMPDIR=no) 
-if test TMPDIR=no; then
+if test x$TMPDIR = xno; then
 	TMPDIR="/tmp"
 fi 
 AC_SUBST(TMPDIR)
@@ -268,8 +268,7 @@ dnl User can override init script location
 AC_ARG_WITH(init_dir,--with-init-dir=<path> sets directory to place init script into,init_dir=$withval)
 AC_SUBST(init_dir)
 
-echo "Init script directory: " $init_dir
-
+dnl User can override lock file location
 AC_ARG_WITH(lockfile,--with-lockfile=<path> sets path and file name for lock file,lockfile=$withval,lockfile=$localstatedir/nagios.lock)
 AC_SUBST(lockfile)
 
@@ -811,6 +810,7 @@ AC_MSG_RESULT([             Event Broker:  no])
 fi
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
 AC_MSG_RESULT([                Lock file:  $lockfile])
+AC_MSG_RESULT([   Check result directory:  $CHECKRESULTDIR])
 AC_MSG_RESULT([           Init directory:  $init_dir])
 AC_MSG_RESULT([  Apache conf.d directory:  $HTTPD_CONF])
 AC_MSG_RESULT([             Mail program:  $MAIL_PROG])

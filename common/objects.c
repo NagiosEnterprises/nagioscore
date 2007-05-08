@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-02-2007
+ * Last Modified: 05-08-2007
  *
  * License:
  *
@@ -3645,37 +3645,6 @@ int is_host_immediate_child_of_host(host *parent_host,host *child_host){
 
 	return FALSE;
 	}
-
-
-/* determines whether or not a specific host is an immediate child (and the primary child) of another host */
-int is_host_primary_immediate_child_of_host(host *parent_host, host *child_host){
-	hostsmember *temp_hostsmember=NULL;
-
-	if(is_host_immediate_child_of_host(parent_host,child_host)==FALSE)
-		return FALSE;
-
-	if(parent_host==NULL)
-		return TRUE;
-
-	if(child_host==NULL)
-		return FALSE;
-
-	if(child_host->parent_hosts==NULL)
-		return TRUE;
-
-	for(temp_hostsmember=child_host->parent_hosts;temp_hostsmember->next!=NULL;temp_hostsmember=temp_hostsmember->next);
-
-#ifdef NSCORE
-	if(temp_hostsmember->host_ptr==parent_host)
-		return TRUE;
-#else
-	if(!strcmp(temp_hostsmember->host_name,parent_host->name))
-		return TRUE;
-#endif
-
-	return FALSE;
-        }
-
 
 
 /* determines whether or not a specific host is an immediate parent of another host */

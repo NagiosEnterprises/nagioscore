@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-30-2007
+ * Last Modified:   05-08-2007
  *
  * License:
  *
@@ -3791,6 +3791,8 @@ int move_check_result_to_queue(char *checkresult_file){
 
 	/* file created okay */
 	if(output_file_fd>0){
+
+		log_debug_info(DEBUGL_CHECKS,2,"Moving temp check result file '%s' to queue file '%s'...\n",checkresult_file,output_file);
 
 		/* move the original file */
 		result=my_rename(checkresult_file,output_file);

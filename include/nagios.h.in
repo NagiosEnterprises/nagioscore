@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-19-2007
+ * Last Modified: 05-08-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -286,12 +286,13 @@ extern "C" {
 #define DEBUGL_PROCESS                  4
 #define DEBUGL_EVENTS                   8
 #define DEBUGL_CHECKS                   16
+#define DEBUGL_IPC                      16
+#define DEBUGL_FLAPPING                 16
+#define DEBUGL_EVENTHANDLERS            16
 #define DEBUGL_NOTIFICATIONS            32
 #define DEBUGL_EVENTBROKER              64
-#define DEBUGL_IPC                      128
-#define DEBUGL_EXTERNALCOMMANDS         256
-#define DEBUGL_FLAPPING                 512
-#define DEBUGL_COMMANDS                 1024
+#define DEBUGL_EXTERNALCOMMANDS         128
+#define DEBUGL_COMMANDS                 256
 
 #define DEBUGV_BASIC                    0
 #define DEBUGV_MORE			1

@@ -75,9 +75,10 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("obsessive_compulsive_service_check_processor() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"obsessive_compulsive_service_check_processor()\n");
+
+	if(svc==NULL)
+		return ERROR;
 
 	/* bail out if we shouldn't be obsessing */
 	if(obsess_over_services==FALSE)
@@ -102,16 +103,12 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	/* get the raw command line */
 	get_raw_command_line(ocsp_command_ptr,ocsp_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw obsessive compulsive service processor command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive service processor command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed obsessive compulsive service processor command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive service processor command line: %s\n",processed_command_line);
 
 	/* run the command */
 	my_system(processed_command_line,ocsp_timeout,&early_timeout,&exectime,NULL,0);
@@ -123,10 +120,6 @@ int obsessive_compulsive_service_check_processor(service *svc){
 		my_free((void **)&temp_buffer);
 	        }
 	
-#ifdef DEBUG0
-	printf("obsessive_compulsive_service_check_processor() end\n");
-#endif
-
 	return OK;
         }
 
@@ -141,9 +134,10 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	double exectime=0.0;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("obsessive_compulsive_host_check_processor() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"obsessive_compulsive_host_check_processor()\n");
+
+	if(hst==NULL)
+		return ERROR;
 
 	/* bail out if we shouldn't be obsessing */
 	if(obsess_over_hosts==FALSE)
@@ -164,16 +158,12 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	/* get the raw command line */
 	get_raw_command_line(ochp_command_ptr,ochp_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw obsessive compulsive host processor command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive host processor command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed obsessive compulsive host processor command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_CHECKS,2,"Processed obsessive compulsive host processor command line: %s\n",processed_command_line);
 
 	/* run the command */
 	my_system(processed_command_line,ochp_timeout,&early_timeout,&exectime,NULL,0);
@@ -184,10 +174,6 @@ int obsessive_compulsive_host_check_processor(host *hst){
 		write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 		my_free((void **)&temp_buffer);
 	        }
-
-#ifdef DEBUG0
-	printf("obsessive_compulsive_host_check_processor() end\n");
-#endif
 
 	return OK;
         }
@@ -204,9 +190,10 @@ int obsessive_compulsive_host_check_processor(host *hst){
 int handle_service_event(service *svc){
 	host *temp_host=NULL;
 
-#ifdef DEBUG0
-	printf("handle_service_event() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_service_event()\n");
+
+	if(svc==NULL)
+		return ERROR;
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -239,10 +226,6 @@ int handle_service_event(service *svc){
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
 
-#ifdef DEBUG0
-	printf("handle_service_event() end\n");
-#endif
-
 	return OK;
         }
 
@@ -261,9 +244,11 @@ int run_global_service_event_handler(service *svc){
 	struct timeval end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("run_global_service_event_handler() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_global_service_event_handler()\n");
+
+	if(svc==NULL)
+		return ERROR;
 
 	/* bail out if we shouldn't be running event handlers */
 	if(enable_event_handlers==FALSE)
@@ -272,6 +257,8 @@ int run_global_service_event_handler(service *svc){
 	/* a global service event handler command has not been defined */
 	if(global_service_event_handler==NULL)
 		return ERROR;
+
+	log_debug_info(DEBUGL_EVENTHANDLERS,1,"Running global event handler for service '%s' on host '%s'...\n",svc->description,svc->host_name);
 
 	/* get start time */
 	gettimeofday(&start_time,NULL);
@@ -286,16 +273,12 @@ int run_global_service_event_handler(service *svc){
 	/* get the raw command line */
 	get_raw_command_line(global_service_event_handler_ptr,global_service_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw global service event handler command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global service event handler command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed global service event handler command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global service event handler command line: %s\n",processed_command_line);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"GLOBAL SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],global_service_event_handler);
@@ -324,10 +307,6 @@ int run_global_service_event_handler(service *svc){
 	/* free memory */
 	my_free((void **)&command_output);
 
-#ifdef DEBUG0
-	printf("run_global_service_event_handler() end\n");
-#endif
-
 	return OK;
         }
 
@@ -346,13 +325,17 @@ int run_service_event_handler(service *svc){
 	struct timeval end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("run_service_event_handler() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_service_event_handler()\n");
+
+	if(svc==NULL)
+		return ERROR;
 
 	/* bail if there's no command */
 	if(svc->event_handler==NULL)
 		return ERROR;
+
+	log_debug_info(DEBUGL_EVENTHANDLERS,1,"Running event handler for service '%s' on host '%s'...\n",svc->description,svc->host_name);
 
 	/* get start time */
 	gettimeofday(&start_time,NULL);
@@ -367,16 +350,12 @@ int run_service_event_handler(service *svc){
 	/* get the raw command line */
 	get_raw_command_line(svc->event_handler_ptr,svc->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw service event handler command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw service event handler command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed service event handler command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed service event handler command line: %s\n",processed_command_line);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"SERVICE EVENT HANDLER: %s;%s;%s;%s;%s;%s\n",svc->host_name,svc->description,macro_x[MACRO_SERVICESTATE],macro_x[MACRO_SERVICESTATETYPE],macro_x[MACRO_SERVICEATTEMPT],svc->event_handler);
@@ -405,10 +384,6 @@ int run_service_event_handler(service *svc){
 	/* free memory */
 	my_free((void **)&command_output);
 
-#ifdef DEBUG0
-	printf("run_service_event_handler() end\n");
-#endif
-
 	return OK;
         }
 
@@ -423,9 +398,10 @@ int run_service_event_handler(service *svc){
 /* handles a change in the status of a host */
 int handle_host_event(host *hst){
 
-#ifdef DEBUG0
-	printf("handle_host_event() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_host_event()\n");
+
+	if(hst==NULL)
+		return ERROR;
 
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
@@ -454,10 +430,6 @@ int handle_host_event(host *hst){
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
 
-#ifdef DEBUG0
-	printf("handle_host_event() end\n");
-#endif
-
 	return OK;
         }
 
@@ -475,9 +447,11 @@ int run_global_host_event_handler(host *hst){
 	struct timeval end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("run_global_host_event_handler() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_global_host_event_handler()\n");
+
+	if(hst==NULL)
+		return ERROR;
 
 	/* bail out if we shouldn't be running event handlers */
 	if(enable_event_handlers==FALSE)
@@ -486,6 +460,8 @@ int run_global_host_event_handler(host *hst){
 	/* no global host event handler command is defined */
 	if(global_host_event_handler==NULL)
 		return ERROR;
+
+	log_debug_info(DEBUGL_EVENTHANDLERS,1,"Running global event handler for host '%s'..\n",hst->name);
 
 	/* get start time */
 	gettimeofday(&start_time,NULL);
@@ -500,16 +476,12 @@ int run_global_host_event_handler(host *hst){
 	/* get the raw command line */
 	get_raw_command_line(global_host_event_handler_ptr,global_host_event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw global host event handler command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw global host event handler command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed global host event handler command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global host event handler command line: %s\n",processed_command_line);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"GLOBAL HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],global_host_event_handler);
@@ -538,10 +510,6 @@ int run_global_host_event_handler(host *hst){
 	/* free memory */
 	my_free((void **)&command_output);
 
-#ifdef DEBUG0
-	printf("run_global_host_event_handler() end\n");
-#endif
-
 	return OK;
         }
 
@@ -559,13 +527,17 @@ int run_host_event_handler(host *hst){
 	struct timeval end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
-#ifdef DEBUG0
-	printf("run_host_event_handler() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_host_event_handler()\n");
+
+	if(hst==NULL)
+		return ERROR;
 
 	/* bail if there's no command */
 	if(hst->event_handler==NULL)
 		return ERROR;
+
+	log_debug_info(DEBUGL_EVENTHANDLERS,1,"Running event handler for host '%s'..\n",hst->name);
 
 	/* get start time */
 	gettimeofday(&start_time,NULL);
@@ -580,16 +552,12 @@ int run_host_event_handler(host *hst){
 	/* get the raw command line */
 	get_raw_command_line(hst->event_handler_ptr,hst->event_handler,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw host event handler command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Raw host event handler command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed host event handler command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed host event handler command line: %s\n",processed_command_line);
 
 	if(log_event_handlers==TRUE){
 		asprintf(&temp_buffer,"HOST EVENT HANDLER: %s;%s;%s;%s;%s\n",hst->name,macro_x[MACRO_HOSTSTATE],macro_x[MACRO_HOSTSTATETYPE],macro_x[MACRO_HOSTATTEMPT],hst->event_handler);
@@ -618,10 +586,6 @@ int run_host_event_handler(host *hst){
 	/* free memory */
 	my_free((void **)&command_output);
 
-#ifdef DEBUG0
-	printf("run_host_event_handler() end\n");
-#endif
-
 	return OK;
         }
 
@@ -638,9 +602,8 @@ int handle_host_state(host *hst){
 	int state_change=FALSE;
 	time_t current_time=0L;
 
-#ifdef DEBUG0
-	printf("handle_host_state() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_host_state()\n");
 
 	/* get current time */
 	time(&current_time);
@@ -746,10 +709,6 @@ int handle_host_state(host *hst){
 		if(hst->state_type==SOFT_STATE && log_host_retries==TRUE)
 			log_host_event(hst);
 	        }
-
-#ifdef DEBUG0
-	printf("handle_host_state() end\n");
-#endif
 
 	return OK;
         }

@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-19-2007
+ * Last Modified: 05-08-2007
  *
  * License:
  *
@@ -555,7 +555,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 	fflush(debug_file_fp);
 
 	/* if file has grown beyond max, rotate it */
-	if((unsigned long)ftell(debug_file_fp)>max_debug_file_size){
+	if((unsigned long)ftell(debug_file_fp)>max_debug_file_size && max_debug_file_size>0L){
 
 		/* close the file */
 		close_debug_log();
@@ -580,3 +580,4 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 
 	return OK;
 	}
+

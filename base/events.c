@@ -3,7 +3,7 @@
  * EVENTS.C - Timed event functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-19-2007
+ * Last Modified: 05-08-2007
  *
  * License:
  *
@@ -914,7 +914,7 @@ int event_execution_loop(void){
 			log_debug_info(DEBUGL_EVENTS,1,"Next Low Priority Event Time:  %s",ctime(&event_list_low->run_time));
 		else
 			log_debug_info(DEBUGL_EVENTS,1,"No low priority events are scheduled...\n");
-		log_debug_info(DEBUGL_EVENTS|DEBUGL_CHECKS,1,"Current/Max Service Checks: %d/%d\n",currently_running_service_checks,max_parallel_service_checks);
+		log_debug_info(DEBUGL_EVENTS,1,"Current/Max Service Checks: %d/%d\n",currently_running_service_checks,max_parallel_service_checks);
 
 		/* get rid of terminated child processes (zombies) */
 		if(use_large_installation_tweaks==TRUE){

@@ -116,6 +116,21 @@ The examples I give below use "standard" matching of object names.  If you wish,
 </pre>
 </p>
 
+<p>
+<b>Excluding Hosts:</b><br>If you want to create identical services on numerous hosts or hostgroups, but would like to exclude some hosts from the definition, this can be accomplished by preceding the host or hostgroup with a ! symbol.
+</p>
+
+<p>
+<pre>
+	define <i>service</i>{
+		<font color="red">host_name             <i>HOST1,HOST2,!HOST3,!HOST4,...,HOSTN</i></font>
+		<font color="red">hostgroup_name                <i>HOSTGROUP1,HOSTGROUP2,!HOSTGROUP3,!HOSTGROUP4,...,HOSTGROUPN</i></font>
+		<font color="red">service_description   <i>SOMESERVICE</i></font>
+		<i>other service directives</i> ...
+		}
+</pre>
+</p>
+
 <br><br>
 
 <a name="serviceescalation"></a>
@@ -166,7 +181,22 @@ The examples I give below use "standard" matching of object names.  If you wish,
 </pre>
 </p>
 
+<p>
+<b>Excluding Hosts:</b><br>If you want to create identical services escalations for services on numerous hosts or hostgroups, 
+but would like to exclude some hosts from the definition, this can be accomplished by preceding the host or hostgroup with a ! symbol.
+</p>
 
+<p>
+<pre>
+	define <i>serviceescalation</i>{
+		<font color="red">host_name             <i>HOST1,HOST2,!HOST3,!HOST4,...,HOSTN</i></font>
+		<font color="red">hostgroup_name                <i>HOSTGROUP1,HOSTGROUP2,!HOSTGROUP3,!HOSTGROUP4,...,HOSTGROUPN</i></font>
+		<font color="red">service_description   <i>SOMESERVICE</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+  
 <p>
 <b>All Services On Same Host:</b><br> If you want to create <a href="objectdefinitions.html#serviceescalation">service escalations</a> for all services assigned to a particular host, you can use a wildcard in the <i>service_description</i> directive.  The definition below would create a service escalation for <b>all</b> services on host <i>HOST1</i>.  All the instances of the service escalation would be identical (i.e. have the same contact groups, notification interval, etc.).
 </p>
@@ -354,6 +384,21 @@ If you feel like being particularly adventurous, you can specify a wildcard in b
 <pre>
 	define <i>hostescalation</i>{
 		<font color="red">host_name		<i>*</i></font>
+		<i>other escalation directives</i> ...
+		}
+</pre>
+</p>
+
+<p>
+<b>Excluding Hosts:</b><br>If you want to create identical host escalations on numerous hosts or hostgroups, but would like to
+ exclude some hosts from the definition, this can be accomplished by preceding the host or hostgroup with a ! symbol.
+</p>
+
+<p>
+<pre>
+	define <i>hostescalation</i>{
+		<font color="red">host_name             <i>HOST1,HOST2,!HOST3,!HOST4,...,HOSTN</i></font>
+		<font color="red">hostgroup_name                <i>HOSTGROUP1,HOSTGROUP2,!HOSTGROUP3,!HOSTGROUP4,...,HOSTGROUPN</i></font>
 		<i>other escalation directives</i> ...
 		}
 </pre>

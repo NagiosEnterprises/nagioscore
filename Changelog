@@ -3,7 +3,7 @@ Nagios 3.x Change Log
 #####################
 
 
-3.0a4 - ??/??/2007
+3.0a4 - 05/08/2007
 ------------------
 * Fix for segfault fix when low priority event queue's only item is removed
 * Added test for writeability of temp directory during configuration test
@@ -14,7 +14,7 @@ Nagios 3.x Change Log
 * Added max_check_result_file_age option to control processing of check results in older files
 * Added new --with-temp-dir option to configure script
 * Removed legacy 2.x host check logic and use_old_host_check_logic option
-* Revmoed DEBUGx options from configure script
+* Removed DEBUGx options from configure script
 * Added new debug/trace log functionaltiy (only partially complete)
 * Fixed compilation error under OSX
 * Fix for SIGTERMs being seen as SIGEXITs, non-logging of SIGTERMs/shutdowns

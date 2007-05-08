@@ -221,7 +221,7 @@ This directive is used to define a comma-delimited list of short names of the "p
 <tr>
 <td valign="top"><strong>hostgroups</strong>:</td>
 <td>
-This directive is used to identify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the host belongs to.  Multiple hostgroups should are seperated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>members</i> directive in <a href="#hostgroup">hostgroup</a> definitions.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the host belongs to.  Multiple hostgroups should be separated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>members</i> directive in <a href="#hostgroup">hostgroup</a> definitions.
 </td>
 </tr>
 <tr>
@@ -570,6 +570,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td colspan=3 class="Definition">define service{</td></tr>
 
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
+<tr><td></td><td class="Optional">hostgroup_name</td><td class="Optional"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Required">service_description</td><td class="Required"><i>service_description</i></td></tr>
 <tr><td></td><td class="Optional">display_name</td><td class="Optional"><i>display_name</i></td></tr>
 <tr><td></td><td class="Optional">servicegroups</td><td class="Optional">servicegroup_names</td></tr>
@@ -637,7 +638,13 @@ define service{
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This directive is used to specify the <i>short name</i> of the <a href="#host">host</a> that the service "runs" on or is associated with.
+This directive is used to specify the <i>short name(s)</i> of the <a href="#host">host(s)</a> that the service "runs" on or is associated with.  Multiple hosts should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>hostgroup_name</strong>:</td>
+<td>
+This directive is used to specify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the service "runs" on or is associated with.  Multiple hostgroups should be separated by commas.  The hostgroup_name may be used instead of, or in addition to, the host_name directive.
 </td>
 </tr>
 <tr>
@@ -655,7 +662,7 @@ This directive is used to define an alternate name that should be displayed in t
 <tr>
 <td valign="top"><strong>servicegroups</strong>:</td>
 <td>
-This directive is used to identify the <i>short name(s)</i> of the <a href="#servicegroup">servicegroup(s)</a> that the service belongs to.  Multiple servicegroups should are seperated by commas.  This directive may be used as an alternative to using the <i>members</i> directive in <a href="#servicegroup">servicegroup</a> definitions.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#servicegroup">servicegroup(s)</a> that the service belongs to.  Multiple servicegroups should be separated by commas.  This directive may be used as an alternative to using the <i>members</i> directive in <a href="#servicegroup">servicegroup</a> definitions.
 </td>
 </tr>
 <tr>
@@ -1053,7 +1060,7 @@ This directive is used to define a longer name or description for the contact.  
 <tr>
 <td valign="top"><strong>contactgroups</strong>:</td>
 <td>
-This directive is used to identify the <i>short name(s)</i> of the <a href="#contactgroup">contactgroup(s)</a> that the contact belongs to.  Multiple contactgroups should are seperated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>members</i> directive in <a href="#contactgroup">contactgroup</a> definitions.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#contactgroup">contactgroup(s)</a> that the contact belongs to.  Multiple contactgroups should be separated by commas.  This directive may be used as an alternative to (or in addition to) using the <i>members</i> directive in <a href="#contactgroup">contactgroup</a> definitions.
 </td>
 </tr>
 <tr>
@@ -1360,7 +1367,7 @@ This directive is used to define what is actually executed by Nagios when the co
 href="configmain.html#resource_file">resource file</a> to a semicolon and then referencing the appropriate $USER$ macro in the <i>command_line</i> directive in place of the semicolon.
 </p>
 <p>
-If you want to pass arguments to commands during runtime, you can use <a href="macros.html#arg"><b>$ARGn$</b> macros</a> in the <i>command_line</i> directive of the command definition and then seperate individual arguments from the command name (and from each other) using bang (!) characters in the object definition directive (host check command, service event handler command, etc) that references the command.  More information on how arguments in command definitions are processed during runtime can be found in the documentation on <a href="macros.html">macros</a>.
+If you want to pass arguments to commands during runtime, you can use <a href="macros.html#arg"><b>$ARGn$</b> macros</a> in the <i>command_line</i> directive of the command definition and then separate individual arguments from the command name (and from each other) using bang (!) characters in the object definition directive (host check command, service event handler command, etc) that references the command.  More information on how arguments in command definitions are processed during runtime can be found in the documentation on <a href="macros.html">macros</a>.
 </p>
 </td>
 </tr>
@@ -1392,8 +1399,10 @@ Note:  Directives in red are required, while those in black are optional.  Howev
 <tr><td colspan=3 class="Definition">define servicedependency{</td></tr>
 
 <tr><td></td><td class="Required">dependent_host_name</td><td class="Required"><i>host_name</i></td></tr>
+<tr><td></td><td class="Optional">dependent_hostgroup_name</td><td class="Optional"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Required">dependent_service_description</td><td class="Required"><i>service_description</i></td></tr>
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
+<tr><td></td><td class="Optional">hostgroup_name</td><td class="Optional"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Required">service_description</td><td class="Required"><i>service_description</i></td></tr>
 <tr><td></td><td class="Optional">inherits_parent</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">execution_failure_criteria</td><td class="Optional">[o,w,u,c,p,n]</td></tr>
@@ -1424,7 +1433,13 @@ define servicedependency{
 <tr>
 <td valign="top"><strong>dependent_host</strong>:</td>
 <td>
-This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the <i>dependent</i> service "runs" on or is associated with.  Leaving is directive blank can be used to create <a href="objecttricks.html#same_host_dependency">"same host" dependencies</a>.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#host">host(s)</a> that the <i>dependent</i> service "runs" on or is associated with.  Multiple hosts should be separated by commas.  Leaving is directive blank can be used to create <a href="objecttricks.html#same_host_dependency">"same host" dependencies</a>.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>dependent_hostgroup</strong>:</td>
+<td>
+This directive is used to specify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the <i>dependent</i> service "runs" on or is associated with.  Multiple hostgroups should be separated by commas.  The dependent_hostgroup may be used instead of, or in addition to, the dependent_host directive.
 </td>
 </tr>
 <tr>
@@ -1436,7 +1451,13 @@ This directive is used to identify the <i>description</i> of the <i>dependent</i
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the service <i>that is being depended upon</i> (also referred to as the master service) "runs" on or is associated with.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#host">host(s)</a> that the service <i>that is being depended upon</i> (also referred to as the master service) "runs" on or is associated with.  Multiple hosts should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>hostgroup_name</strong>:</td>
+<td>
+This directive is used to identify the <i>short name(s)</i> of the <a href="#host">hostgroup(s)</a> that the service <i>that is being depended upon</i> (also referred to as the master service) "runs" on or is associated with.  Multiple hostgroups should be separated by commas.  The hostgroup_name may be used instead of, or in addition to, the host_name directive.
 </td>
 </tr>
 <tr>
@@ -1454,7 +1475,7 @@ This directive indicates whether or not the dependency inherits dependencies of 
 <tr>
 <td valign="top"><strong>execution_failure_criteria</strong>:</td>
 <td>
-This directive is used to specify the criteria that determine when the dependent service should <i>not</i> be actively checked.  If the <i>master</i> service is in one of the failure states we specify, the <i>dependent</i> service will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, <b>c</b> = fail on a CRITICAL state, and <b>p</b> = fail on a pending state (e.g. the service has not yet been checked).  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and checks of the dependent service will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>o,c,u</b> in this field, the <i>dependent</i> service will not be actively checked if the <i>master</i> service is in either an OK, a CRITICAL, or an UNKNOWN state.
+This directive is used to specify the criteria that determine when the dependent service should <i>not</i> be actively checked.  If the <i>master</i> service is in one of the failure states we specify, the <i>dependent</i> service will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are separated with commas): <b>o</b> = fail on an OK state, <b>w</b> = fail on a WARNING state, <b>u</b> = fail on an UNKNOWN state, <b>c</b> = fail on a CRITICAL state, and <b>p</b> = fail on a pending state (e.g. the service has not yet been checked).  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and checks of the dependent service will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>o,c,u</b> in this field, the <i>dependent</i> service will not be actively checked if the <i>master</i> service is in either an OK, a CRITICAL, or an UNKNOWN state.
 </td>
 </tr>
 <tr>
@@ -1497,6 +1518,7 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td colspan=3 class="Definition">define serviceescalation{</td></tr>
 
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
+<tr><td></td><td class="Optional">hostgroup_name</td><td class="Optional"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Required">service_description</td><td class="Required"><i>service_description</i></td></tr>
 <tr><td></td><td class="Required">contacts</td><td class="Required"><i>contacts</i></td></tr>
 <tr><td></td><td class="Required">contact_groups</td><td class="Required"><i>contactgroup_name</i></td></tr>
@@ -1530,7 +1552,13 @@ define serviceescalation{
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> that the <a href="#service">service</a> the escalation should apply to is associated with.
+This directive is used to identify the <i>short name(s)</i> of the <a href="#host">host(s)</a> that the <a href="#service">service</a> escalation should apply to or is associated with.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>hostgroup_name</strong>:</td>
+<td>
+This directive is used to specify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the service escalation should apply to or is associated with.  Multiple hostgroups should be separated by commas.  The hostgroup_name may be used instead of, or in addition to, the host_name directive.
 </td>
 </tr>
 <tr>
@@ -1608,7 +1636,9 @@ Note:  Directives in red are required, while those in black are optional.
 <tr><td colspan=3 class="Definition">define hostdependency{</td></tr>
 
 <tr><td></td><td class="Required">dependent_host_name</td><td class="Required"><i>host_name</i></td></tr>
+<tr><td></td><td class="Optional">dependent_hostgroup_name</td><td class="Optional"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Required">host_name</td><td class="Required"><i>host_name</i></td></tr>
+<tr><td></td><td class="Optional">hostgroup_name</td><td class="Optional"><i>hostgroup_name</i></td></tr>
 <tr><td></td><td class="Optional">inherits_parent</td><td class="Optional">[0/1]</td></tr>
 <tr><td></td><td class="Optional">execution_failure_criteria</td><td class="Optional">[o,d,u,p,n]</td></tr>
 <tr><td></td><td class="Optional">notification_failure_criteria</td><td class="Optional">[o,d,u,p,n]</td></tr>
@@ -1633,15 +1663,27 @@ define hostdependency{
 <p>
 <table border="0" class="Default">
 <tr>
-<td valign="top"><strong>dependent_host</strong>:</td>
+<td valign="top"><strong>dependent_host_name</strong>:</td>
 <td>
-This directive is used to identify the <i>short name</i> of the <i>dependent</i> <a href="#host">host</a>.
+This directive is used to identify the <i>short name(s)</i> of the <i>dependent</i> <a href="#host">host(s)</a>.  Multiple hosts should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>dependent_hostgroup_name</strong>:</td>
+<td>
+This directive is used to identify the <i>short name(s)</i> of the <i>dependent</i> <a href="#host">hostgroup(s)</a>.  Multiple hostgroups should be separated by commas.  The dependent_hostgroup_name may be used instead of, or in addition to, the dependent_host_name directive.
 </td>
 </tr>
 <tr>
 <td valign="top"><strong>host_name</strong>:</td>
 <td>
-This directive is used to identify the <i>short name</i> of the <a href="#host">host</a> <i>that is being depended upon</i> (also referred to as the master host).
+This directive is used to identify the <i>short name(s)</i> of the <a href="#host">host(s)</a> <i>that is being depended upon</i> (also referred to as the master host).  Multiple hosts should be separated by commas.
+</td>
+</tr>
+<tr>
+<td valign="top"><strong>hostgroup_name</strong>:</td>
+<td>
+This directive is used to identify the <i>short name(s)</i> of the <a href="#host">hostgroup(s)</a> <i>that is being depended upon</i> (also referred to as the master host).  Multiple hostgroups should be separated by commas.  The hostgroup_name may be used instead of, or in addition to, the host_name directive.
 </td>
 </tr>
 <tr>
@@ -1653,7 +1695,7 @@ This directive indicates whether or not the dependency inherits dependencies of 
 <tr>
 <td valign="top"><strong>execution_failure_criteria</strong>:</td>
 <td>
-This directive is used to specify the criteria that determine when the dependent host should <i>not</i> be actively checked.  If the <i>master</i> host is in one of the failure states we specify, the <i>dependent</i> host will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are seperated with commas): <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, <b>u</b> = fail on an UNREACHABLE state, and <b>p</b> = fail on a pending state (e.g. the host has not yet been checked).  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and the dependent host will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>u,d</b> in this field, the <i>dependent</i> host will not be actively checked if the <i>master</i> host is in either an UNREACHABLE or DOWN state.
+This directive is used to specify the criteria that determine when the dependent host should <i>not</i> be actively checked.  If the <i>master</i> host is in one of the failure states we specify, the <i>dependent</i> host will not be actively checked.  Valid options are a combination of one or more of the following (multiple options are separated with commas): <b>o</b> = fail on an UP state, <b>d</b> = fail on a DOWN state, <b>u</b> = fail on an UNREACHABLE state, and <b>p</b> = fail on a pending state (e.g. the host has not yet been checked).  If you specify <b>n</b> (none) as an option, the execution dependency will never fail and the dependent host will always be actively checked (if other conditions allow for it to be).  Example: If you specify <b>u,d</b> in this field, the <i>dependent</i> host will not be actively checked if the <i>master</i> host is in either an UNREACHABLE or DOWN state.
 </td>
 </tr>
 <tr>
@@ -1734,7 +1776,7 @@ This directive is used to identify the <i>short name</i> of the <a href="#host">
 <tr>
 <td valign="top"><strong>hostgroup_name</strong>:</td>
 <td>
-This directive is used to identify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the escalation should apply to.  Multiple hostgroups should are seperated by commas.  If this is used, the escalation will apply to all hosts that are members of the specified hostgroup(s).
+This directive is used to identify the <i>short name(s)</i> of the <a href="#hostgroup">hostgroup(s)</a> that the escalation should apply to.  Multiple hostgroups should be separated by commas.  If this is used, the escalation will apply to all hosts that are members of the specified hostgroup(s).
 </td>
 </tr>
 <tr>

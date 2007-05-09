@@ -3,6 +3,11 @@ Nagios 3.x Change Log
 #####################
 
 
+3.0a5 - ??/??/2007
+------------------
+* Fixed problem with multiline long plugin output and Perl plugin output
+
+
 3.0a4 - 05/08/2007
 ------------------
 * Fix for segfault fix when low priority event queue's only item is removed

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-08-2007
+ * Last Modified:   05-09-2007
  *
  * License:
  *
@@ -519,13 +519,11 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			log_debug_info(DEBUGL_CHECKS,0,"Embedded Perl failed to compile %s, compile error %s - skipping plugin\n",fname,perl_plugin_output);
 
 			/* save plugin output */
-			if(perl_plugin_output!=NULL)
-				dbuf_strcat(&checkresult_dbuf,output_buffer);
-
-			/* escape newlines in output */
-			temp_buffer=escape_newlines(checkresult_dbuf.buf);
-			my_free((void **)&checkresult_dbuf.buf);
-			checkresult_dbuf.buf=temp_buffer;
+			if(perl_plugin_output!=NULL){
+				temp_buffer=escape_newlines(perl_plugin_output);
+				dbuf_strcat(&checkresult_dbuf,temp_buffer);
+				my_free((void **)&temp_buffer);
+				}
 
 			/* get the check finish time */
 			gettimeofday(&end_time,NULL);
@@ -648,14 +646,12 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				printf("embedded perl ran %s, plugin output was %d, %s\n",fname,pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
 #endif
 
-				/* get perl plugin output */
-				if(perl_plugin_output!=NULL)
-					dbuf_strcat(&checkresult_dbuf,output_buffer);
-
-				/* escape newlines in output */
-				temp_buffer=escape_newlines(checkresult_dbuf.buf);
-				my_free((void **)&checkresult_dbuf.buf);
-				checkresult_dbuf.buf=temp_buffer;
+				/* get perl plugin output - escape newlines */
+				if(perl_plugin_output!=NULL){
+					temp_buffer=escape_newlines(perl_plugin_output);
+					dbuf_strcat(&checkresult_dbuf,temp_buffer);
+					my_free((void **)&temp_buffer);
+					}
 
 				/* reset the alarm */
 				alarm(0);
@@ -708,14 +704,12 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* initialize buffer */
 			strcpy(output_buffer,"");
 
-			/* get all lines of plugin output */
-			while(fgets(output_buffer,sizeof(output_buffer)-1,fp))
-				dbuf_strcat(&checkresult_dbuf,output_buffer);
-
-			/* escape newlines in output */
-			temp_buffer=escape_newlines(checkresult_dbuf.buf);
-			my_free((void **)&checkresult_dbuf.buf);
-			checkresult_dbuf.buf=temp_buffer;
+			/* get all lines of plugin output - escape newlines */
+			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
+				temp_buffer=escape_newlines(output_buffer);
+				dbuf_strcat(&checkresult_dbuf,temp_buffer);
+				my_free((void **)&temp_buffer);
+				}
 
 			/* close the process */
 			pclose_result=pclose(fp);
@@ -953,7 +947,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	else{
 
 		/* parse check output to get: (1) short output, (2) long output, (3) perf data */
-		parse_check_output(queued_check_result->output,&temp_service->plugin_output,&temp_service->long_plugin_output,&temp_service->perf_data,FALSE,TRUE);
+		parse_check_output(queued_check_result->output,&temp_service->plugin_output,&temp_service->long_plugin_output,&temp_service->perf_data,TRUE,TRUE);
 
 		/* make sure the plugin output isn't null */
 		if(temp_service->plugin_output==NULL)
@@ -2473,7 +2467,7 @@ int execute_sync_host_check_3x(host *hst){
 	hst->check_type=HOST_CHECK_ACTIVE;
 
 	/* parse the output: short and long output, and perf data */
-	parse_check_output(temp_plugin_output,&hst->plugin_output,&hst->long_plugin_output,&hst->perf_data,TRUE,FALSE);
+	parse_check_output(temp_plugin_output,&hst->plugin_output,&hst->long_plugin_output,&hst->perf_data,TRUE,TRUE);
 
 	/* free memory */
 	my_free((void **)&temp_plugin_output);
@@ -2797,14 +2791,12 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			/* initialize buffer */
 			strcpy(output_buffer,"");
 
-			/* get all lines of plugin output */
-			while(fgets(output_buffer,sizeof(output_buffer)-1,fp))
-				dbuf_strcat(&checkresult_dbuf,output_buffer);
-
-			/* escape newlines in output */
-			temp_buffer=escape_newlines(checkresult_dbuf.buf);
-			my_free((void **)&checkresult_dbuf.buf);
-			checkresult_dbuf.buf=temp_buffer;
+			/* get all lines of plugin output - escape newlines */
+			while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
+				temp_buffer=escape_newlines(output_buffer);
+				dbuf_strcat(&checkresult_dbuf,temp_buffer);
+				my_free((void **)&temp_buffer);
+				}
 
 			/* close the process */
 			pclose_result=pclose(fp);

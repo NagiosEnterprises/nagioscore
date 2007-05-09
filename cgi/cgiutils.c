@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Nagios CGIs
  * 
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-17-2007
+ * Last Modified: 05-09-2007
  *
  * License:
  *
@@ -127,7 +127,7 @@ char            *my_strtok_buffer=NULL;
 char            *original_my_strtok_buffer=NULL;
 
 char encoded_url_string[MAX_INPUT_BUFFER];
-char encoded_html_string[MAX_INPUT_BUFFER];
+char *encoded_html_string=NULL;
 
 #ifdef HAVE_TZNAME
 #ifdef CYGWIN
@@ -1379,12 +1379,15 @@ char * html_encode(char *input){
 	int x,y;
 	char temp_expansion[7];
 
+	/* we need up to six times the space to do the conversion */
 	len=(int)strlen(input);
-	output_len=(int)sizeof(encoded_html_string);
+	output_len=len*6;
+	if((encoded_html_string=(char *)malloc(output_len+1))==NULL)
+		return "";
 
-	encoded_html_string[0]='\x0';
+	strcpy(encoded_html_string,"");
 
-	for(x=0,y=0;x<=len && y<output_len-1;x++){
+	for(x=0,y=0;x<=len;x++){
 
 		/* end of string */
 		if((char)input[x]==(char)'\x0'){
@@ -1392,23 +1395,24 @@ char * html_encode(char *input){
 			break;
 		        }
 
-		/* alpha-numeric characters don't get encoded */
-		else if(((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z')){
+		/* alpha-numeric characters and spaces don't get encoded */
+		else if(((char)input[x]==(char)' ') || ((char)input[x]>='0' && (char)input[x]<='9') || ((char)input[x]>='A' && (char)input[x]<='Z') || ((char)input[x]>=(char)'a' && (char)input[x]<=(char)'z')){
 			encoded_html_string[y]=input[x];
 			y++;
 		        }
 
-#ifdef NOT_SO_SURE_ABOUT_THIS
-		/* spaces are encoded as non-breaking spaces */
-		else if((char)input[x]==(char)' '){
+		/* newlines turn to <BR> tags */
+		else if((char)input[x]==(char)'\n'){
+			strcpy(&encoded_html_string[y],"<BR>");
+			y+=4;
+			}
+		else if((char)input[x]==(char)'\\' && (char)input[x+1]==(char)'n'){
+			strcpy(&encoded_html_string[y],"<BR>");
+			y+=4;
+			x++;
+			}
 
-			encoded_html_string[y]='\x0';
-			if((int)strlen(encoded_html_string)<(output_len-6)){
-				strcat(encoded_html_string,"&nbsp;");
-				y+=6;
-			        }
-		        }
-#endif
+		/* TODO - strip all but allowed HTML tags out... */
 
 		else if((char)input[x]==(char)'<'){
 
@@ -1428,7 +1432,7 @@ char * html_encode(char *input){
 			        }
 		        }
 
-		/* for simplicity, everything else gets represented by its numeric value */
+		/* for simplicity, all other chars represented by their numeric value */
 		else{
 			encoded_html_string[y]='\x0';
 			sprintf(temp_expansion,"&#%d;",(unsigned int)input[x]);
@@ -1439,60 +1443,11 @@ char * html_encode(char *input){
 		        }
 	        }
 
-	encoded_html_string[sizeof(encoded_html_string)-1]='\x0';
+	encoded_html_string[y++]='\x0';
 
-	return &encoded_html_string[0];
+	return encoded_html_string;
         }
 
-
-
-
-/* strips HTML from plugin output */
-char * strip_plugin_html(char *input){
-
-	/* TODO */
-
-	return input;
-	}
-
-
-
-/* changes newlines to <BR> tags for web viewing */
-char * newline2br(char *input){
-	char *output=NULL;
-	int len=0;
-	int x,y;
-
-	if(input==NULL)
-		return NULL;
-
-	len=strlen(input);
-
-	/* we need up to four times the space to do the conversion */
-	output=(char *)malloc((len*4)+1);
-
-	for(x=0,y=0;x<=len;x++){
-
-		/* end of string */
-		if((char)input[x]==(char)'\x0'){
-			output[y]='\x0';
-			break;
-		        }
-
-		/*if((char)input[x]=='\\' && (char)input[x+1]=='n'){*/
-		if((char)input[x]=='\n'){
-			strcpy(&output[y],"<BR>");
-			y+=4;
-			}
-
-		else
-			output[y++]=input[x];
-	        }
-
-	output[y]='\x0';
-
-	return output;
-        }
 
 
 

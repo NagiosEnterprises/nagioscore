@@ -111,6 +111,17 @@ passwd nagios
 </p>
 
 <p>
+On Ubuntu server edition (6.01 and possible newer versions), you will need to also add a <i>nagios</i> group (it's not created by default).  You should be able to skip this step on desktop editions of Ubuntu.
+</p>
+
+<p>
+<pre>
+/usr/sbin/groupadd nagios
+/usr/sbin/usermod -G nagios nagios
+</pre>
+</p>
+
+<p>
 Create a new <i>nagcmd</i> group for allowing external commands to be submitted through the web interface. Add both the nagios user and the apache user to the group.
 </p>
 

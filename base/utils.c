@@ -3879,7 +3879,9 @@ int process_check_result_queue(char *dirname){
 
 			/* is there an ok-to-go file? */
 			asprintf(&temp_buffer,"%s.ok",file);
-			if(stat(temp_buffer,&ok_stat_buf)==-1)
+			result=stat(temp_buffer,&ok_stat_buf);
+			my_free((void *)&temp_buffer);
+			if(result==-1)
 				continue;
 
 			/* process the file */
@@ -3907,6 +3909,7 @@ int process_check_result_file(char *fname){
 	char *input=NULL;
 	char *var=NULL;
 	char *val=NULL;
+	char *v1=NULL,*v2=NULL;
 	int delete_file=FALSE;
 	time_t current_time;
 	check_result *new_cr=NULL;
@@ -4009,20 +4012,20 @@ int process_check_result_file(char *fname){
 			else if(!strcmp(var,"latency"))
 				new_cr->latency=strtod(val,NULL);
 			else if(!strcmp(var,"start_time")){
-				if((var=my_strtok(val,"."))==NULL)
+				if((v1=strtok(val,"."))==NULL)
 					continue;
-				if((val=my_strtok(NULL,"\n"))==NULL)
+				if((v2=strtok(NULL,"\n"))==NULL)
 					continue;
-				new_cr->start_time.tv_sec=strtoul(var,NULL,0);
-				new_cr->start_time.tv_usec=strtoul(val,NULL,0);
+				new_cr->start_time.tv_sec=strtoul(v1,NULL,0);
+				new_cr->start_time.tv_usec=strtoul(v2,NULL,0);
 				}
 			else if(!strcmp(var,"finish_time")){
-				if((var=my_strtok(val,"."))==NULL)
+				if((v1=strtok(val,"."))==NULL)
 					continue;
-				if((val=my_strtok(NULL,"\n"))==NULL)
+				if((v2=strtok(NULL,"\n"))==NULL)
 					continue;
-				new_cr->finish_time.tv_sec=strtoul(var,NULL,0);
-				new_cr->finish_time.tv_usec=strtoul(val,NULL,0);
+				new_cr->finish_time.tv_sec=strtoul(v1,NULL,0);
+				new_cr->finish_time.tv_usec=strtoul(v2,NULL,0);
 				}
 			else if(!strcmp(var,"early_timeout"))
 				new_cr->early_timeout=atoi(val);

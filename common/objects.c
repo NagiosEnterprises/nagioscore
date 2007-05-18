@@ -4638,6 +4638,7 @@ int free_object_data(void){
 	this_servicedependency=servicedependency_list;
 	while(this_servicedependency!=NULL){
 		next_servicedependency=this_servicedependency->next;
+		my_free((void **)&this_servicedependency->dependency_period);
 		my_free((void **)&this_servicedependency->dependent_host_name);
 		my_free((void **)&this_servicedependency->dependent_service_description);
 		my_free((void **)&this_servicedependency->host_name);
@@ -4659,6 +4660,7 @@ int free_object_data(void){
 	this_hostdependency=hostdependency_list;
 	while(this_hostdependency!=NULL){
 		next_hostdependency=this_hostdependency->next;
+		my_free((void **)&this_hostdependency->dependency_period);
 		my_free((void **)&this_hostdependency->dependent_host_name);
 		my_free((void **)&this_hostdependency->host_name);
 		my_free((void **)&this_hostdependency);

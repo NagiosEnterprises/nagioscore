@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-19-2007
+ * Last Modified: 05-17-2007
  *
  * Description:
  *
@@ -8374,6 +8374,9 @@ int xodtemplate_recombobulate_servicegroups(void){
 				        }
 			        }
 		        }
+
+		/* free servicegroup names */
+		my_free((void **)&servicegroup_names);
 	        }
 
 
@@ -12099,7 +12102,7 @@ xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *cont
 	/* process list of contactgroups... */
 	if(contactgroups!=NULL){
 
-		/* expand contact */
+		/* expand contactgroups */
 		result=xodtemplate_expand_contactgroups(&temp_list,&reject_list,contactgroups,_config_file,_start_line);
 		if(result!=OK){
 			xodtemplate_free_memberlist(&temp_list);

@@ -3,7 +3,7 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-12-2007
+ * Last Modified:   05-17-2007
  *
  * License:
  *
@@ -253,6 +253,8 @@ int xpddefault_initialize_performance_data(char *config_file){
 			my_free((void **)&xpddefault_host_perfdata_command);
 		        }
 
+		my_free((void **)&temp_buffer);
+
 		/* save the command pointer for later */
 		xpddefault_host_perfdata_command_ptr=temp_command;
 	        }
@@ -270,6 +272,9 @@ int xpddefault_initialize_performance_data(char *config_file){
 			my_free((void **)&xpddefault_service_perfdata_command);
 		        }
 
+		/* free memory */
+		my_free((void **)&temp_buffer);
+
 		/* save the command pointer for later */
 		xpddefault_service_perfdata_command_ptr=temp_command;
 	        }
@@ -286,6 +291,9 @@ int xpddefault_initialize_performance_data(char *config_file){
 			my_free((void **)&buffer);
 			my_free((void **)&xpddefault_host_perfdata_file_processing_command);
 		        }
+
+		/* free memory */
+		my_free((void **)&temp_buffer);
 
 		/* save the command pointer for later */
 		xpddefault_host_perfdata_file_processing_command_ptr=temp_command;

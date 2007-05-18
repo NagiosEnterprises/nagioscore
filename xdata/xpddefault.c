@@ -418,6 +418,11 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	int result=OK;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_service_performance_data_command()\n");
+
+	if(svc==NULL)
+		return ERROR;
+
 	/* we don't have a command */
 	if(xpddefault_service_perfdata_command==NULL)
 		return OK;
@@ -435,16 +440,12 @@ int xpddefault_run_service_performance_data_command(service *svc){
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_service_perfdata_command_ptr,xpddefault_service_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw service performance data command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed service performance data command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data command line: %s\n",processed_command_line);
 
 	/* set environment variables */
 	set_all_macro_environment_vars(TRUE);
@@ -476,6 +477,11 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	int result=OK;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"run_host_performance_data_command()\n");
+
+	if(hst==NULL)
+		return ERROR;
+
 	/* we don't have a command */
 	if(xpddefault_host_perfdata_command==NULL)
 		return OK;
@@ -489,16 +495,12 @@ int xpddefault_run_host_performance_data_command(host *hst){
 	/* get the raw command line */
 	get_raw_command_line(xpddefault_host_perfdata_command_ptr,xpddefault_host_perfdata_command,raw_command_line,sizeof(raw_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tRaw host performance data command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance data command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed host performance data command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data command line: %s\n",processed_command_line);
 
 	/* set environment variables */
 	set_all_macro_environment_vars(TRUE);
@@ -655,6 +657,11 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	host *temp_host=NULL;
 	int result=OK;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"update_service_performance_data_file()\n");
+
+	if(svc==NULL)
+		return ERROR;
+
 	/* we don't have a file to write to*/
 	if(xpddefault_service_perfdata_fp==NULL || xpddefault_service_perfdata_file_template==NULL)
 		return OK;
@@ -672,16 +679,12 @@ int xpddefault_update_service_performance_data_file(service *svc){
 	/* get the raw line to write */
 	raw_output=(char *)strdup(xpddefault_service_perfdata_file_template);
 
-#ifdef DEBUG3
-	printf("\tRaw service performance data output: %s\n",raw_output);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data file output: %s\n",raw_output);
 
 	/* process any macros in the raw output line */
 	process_macros(raw_output,processed_output,(int)sizeof(processed_output),0);
 
-#ifdef DEBUG3
-	printf("\tProcessed service performance data output: %s\n",processed_output);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data file output: %s\n",processed_output);
 
 	/* write the processed output line containing performance data to the service perfdata file */
 	fputs(processed_output,xpddefault_service_perfdata_fp);
@@ -701,6 +704,11 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	char processed_output[MAX_INPUT_BUFFER];
 	int result=OK;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"update_host_performance_data_file()\n");
+
+	if(hst==NULL)
+		return ERROR;
+
 	/* we don't have a host perfdata file */
 	if(xpddefault_host_perfdata_fp==NULL || xpddefault_host_perfdata_file_template==NULL)
 		return OK;
@@ -714,16 +722,12 @@ int xpddefault_update_host_performance_data_file(host *hst){
 	/* get the raw output */
 	raw_output=(char *)strdup(xpddefault_host_perfdata_file_template);
 
-#ifdef DEBUG3
-	printf("\tRaw host performance output: %s\n",raw_output);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance file output: %s\n",raw_output);
 
 	/* process any macros in the raw output */
 	process_macros(raw_output,processed_output,(int)sizeof(processed_output),0);
 
-#ifdef DEBUG3
-	printf("\tProcessed host performance data output: %s\n",processed_output);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data file output: %s\n",processed_output);
 
 	/* write the processed output line containing performance data to the host perfdata file */
 	fputs(processed_output,xpddefault_host_perfdata_fp);
@@ -747,6 +751,9 @@ int xpddefault_process_host_perfdata_file(void){
 	int result=OK;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_host_perfdata_file()\n");
+
 	/* we don't have a command */
 	if(xpddefault_host_perfdata_file_processing_command==NULL)
 		return OK;
@@ -763,16 +770,12 @@ int xpddefault_process_host_perfdata_file(void){
 	get_raw_command_line(xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
-#ifdef DEBUG3
-	printf("\tRaw host performance data file processing command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Raw host performance data file processing command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed host performance data file processing command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Processed host performance data file processing command line: %s\n",processed_command_line);
 
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
@@ -801,6 +804,9 @@ int xpddefault_process_service_perfdata_file(void){
 	int result=OK;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_service_perfdata_file()\n");
+
 	/* we don't have a command */
 	if(xpddefault_service_perfdata_file_processing_command==NULL)
 		return OK;
@@ -817,16 +823,12 @@ int xpddefault_process_service_perfdata_file(void){
 	get_raw_command_line(xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,raw_command_line,sizeof(raw_command_line),macro_options);
 	strip(raw_command_line);
 
-#ifdef DEBUG3
-	printf("\tRaw service performance data file processing command line: %s\n",raw_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Raw service performance data file processing command line: %s\n",raw_command_line);
 
 	/* process any macros in the raw command line */
 	process_macros(raw_command_line,processed_command_line,(int)sizeof(processed_command_line),macro_options);
 
-#ifdef DEBUG3
-	printf("\tProcessed service performance data file processing command line: %s\n",processed_command_line);
-#endif
+	log_debug_info(DEBUGL_PERFDATA,2,"Processed service performance data file processing command line: %s\n",processed_command_line);
 
 	/* run the command */
 	my_system(processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);

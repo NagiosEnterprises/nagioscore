@@ -3,7 +3,7 @@
  * XSDDEFAULT.C - Default external status data input routines for Nagios
  *
  * Copyright (c) 2000-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-19-2007
+ * Last Modified:   05-17-2007
  *
  * License:
  *
@@ -328,12 +328,16 @@ int xsddefault_save_status_data(void){
 	int used_external_command_buffer_slots=0;
 	int high_external_command_buffer_slots=0;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"save_status_data()\n");
+
 	/* open a safe temp file for output */
 	if(xsddefault_temp_file==NULL)
 		return ERROR;
 	asprintf(&temp_file,"%sXXXXXX",xsddefault_temp_file);
 	if(temp_file==NULL)
 		return ERROR;
+
+	log_debug_info(DEBUGL_STATUSDATA,2,"Writing status data to temp file '%s'\n",temp_file);
 
 	if((fd=mkstemp(temp_file))==-1){
 

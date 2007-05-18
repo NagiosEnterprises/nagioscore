@@ -284,11 +284,14 @@ extern "C" {
 #define DEBUGL_FUNCTIONS                1
 #define DEBUGL_CONFIG			2
 #define DEBUGL_PROCESS                  4
+#define DEBUGL_STATUSDATA               4
+#define DEBUGL_RETENTIONDATA            4
 #define DEBUGL_EVENTS                   8
 #define DEBUGL_CHECKS                   16
 #define DEBUGL_IPC                      16
 #define DEBUGL_FLAPPING                 16
 #define DEBUGL_EVENTHANDLERS            16
+#define DEBUGL_PERFDATA                 16
 #define DEBUGL_NOTIFICATIONS            32
 #define DEBUGL_EVENTBROKER              64
 #define DEBUGL_EXTERNALCOMMANDS         128

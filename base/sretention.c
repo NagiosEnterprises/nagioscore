@@ -3,7 +3,7 @@
  * SRETENTION.C - State retention routines for Nagios
  *
  * Copyright (c) 1999-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   03-05-2006
+ * Last Modified:   05-17-2006
  *
  * License:
  *
@@ -84,10 +84,6 @@ int save_state_information(int autosave){
 	char *temp_buffer=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("save_state_information() start\n");
-#endif
-
 	if(retain_state_information==FALSE)
 		return OK;
 
@@ -115,10 +111,6 @@ int save_state_information(int autosave){
 		my_free((void **)&temp_buffer);
 	        }
 
-#ifdef DEBUG0
-	printf("save_state_information() end\n");
-#endif
-
 	return OK;
         }
 
@@ -128,10 +120,6 @@ int save_state_information(int autosave){
 /* reads in initial host and state information */
 int read_initial_state_information(void){
 	int result=OK;
-
-#ifdef DEBUG0
-	printf("read_initial_state_information() start\n");
-#endif
 
 	if(retain_state_information==FALSE)
 		return OK;
@@ -153,10 +141,6 @@ int read_initial_state_information(void){
 
 	if(result==ERROR)
 		return ERROR;
-
-#ifdef DEBUG0
-	printf("read_initial_state_information() end\n");
-#endif
 
 	return OK;
         }

@@ -3171,7 +3171,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 
 			for(child_host=host_list;child_host!=NULL;child_host=child_host->next){
 				if(is_host_immediate_child_of_host(hst,child_host)==TRUE && child_host->current_state!=HOST_UP){
-					log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",parent_host->name);
+					log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
 					add_object_to_objectlist(&check_hostlist,(void *)child_host);
 					}
 			        }

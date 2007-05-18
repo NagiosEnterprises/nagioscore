@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-13-2007
+ * Last Modified:   05-17-2007
  *
  * License:
  *
@@ -249,10 +249,8 @@ int xrddefault_save_state_information(void){
 	unsigned long process_host_attribute_mask=0L;
 	unsigned long process_service_attribute_mask=0L;
 
-#ifdef DEBUG0
-	printf("xrddefault_save_state_information() start\n");
-#endif
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"xrddefault_save_state_information()\n");
 
 	/* make sure we have everything */
 	if(xrddefault_retention_file==NULL || xrddefault_temp_file==NULL){
@@ -270,6 +268,8 @@ int xrddefault_save_state_information(void){
 		return ERROR;
 	if((fd=mkstemp(temp_file))==-1)
 		return ERROR;
+
+	log_debug_info(DEBUGL_RETENTIONDATA,2,"Writing retention data to temp file '%s'\n",temp_file);
 
 	fp=(FILE *)fdopen(fd,"w");
 	if(fp==NULL){
@@ -544,10 +544,6 @@ int xrddefault_save_state_information(void){
 	/* free memory */
 	my_free((void **)&temp_file);
 
-#ifdef DEBUG0
-	printf("xrddefault_save_state_information() end\n");
-#endif
-
 	return result;
         }
 
@@ -607,9 +603,8 @@ int xrddefault_read_state_information(void){
 	int remove_comment=FALSE;
 	int ack=FALSE;
 
-#ifdef DEBUG0
-	printf("xrddefault_read_state_information() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"xrddefault_read_state_information() start\n");
 
 	/* make sure we have what we need */
 	if(xrddefault_retention_file==NULL){
@@ -1593,10 +1588,6 @@ int xrddefault_read_state_information(void){
 	/* free memory and close the file */
 	my_free((void **)&input);
 	mmap_fclose(thefile);
-
-#ifdef DEBUG0
-	printf("xrddefault_read_state_information() end\n");
-#endif
 
 	return OK;
         }

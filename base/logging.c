@@ -3,7 +3,7 @@
  * LOGGING.C - Log file functions for use with Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-08-2007
+ * Last Modified: 05-20-2007
  *
  * License:
  *
@@ -71,10 +71,6 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 	register int len=0;
 	register int x=0;
 
-#ifdef DEBUG0
-	printf("write_to_logs_and_console() start\n");
-#endif
-
 	/* strip unnecessary newlines */
 	len=strlen(buffer);
 	for(x=len-1;x>=0;x--){
@@ -97,10 +93,6 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 		write_to_console(buffer);
 	        }
 
-#ifdef DEBUG0
-	printf("write_to_logs_and_console() end\n");
-#endif
-
 	return OK;
         }
 
@@ -108,17 +100,9 @@ int write_to_logs_and_console(char *buffer, unsigned long data_type, int display
 /* write something to the console */
 int write_to_console(char *buffer){
 
-#ifdef DEBUG0
-	printf("write_to_console() start\n");
-#endif
-
 	/* should we print to the console? */
 	if(daemon_mode==FALSE)
 		printf("%s\n",buffer);
-
-#ifdef DEBUG0
-	printf("write_to_console() end\n");
-#endif
 
 	return OK;
         }
@@ -127,19 +111,11 @@ int write_to_console(char *buffer){
 /* write something to the log file and syslog facility */
 int write_to_all_logs(char *buffer, unsigned long data_type){
 
-#ifdef DEBUG0
-	printf("write_to_all_logs() start\n");
-#endif
-
 	/* write to syslog */
 	write_to_syslog(buffer,data_type);
 
 	/* write to main log */
 	write_to_log(buffer,data_type,NULL);
-
-#ifdef DEBUG0
-	printf("write_to_all_logs() end\n");
-#endif
 
 	return OK;
         }
@@ -148,19 +124,11 @@ int write_to_all_logs(char *buffer, unsigned long data_type){
 /* write something to the log file and syslog facility */
 int write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time_t *timestamp){
 
-#ifdef DEBUG0
-	printf("write_to_all_logs_with_timestamp() start\n");
-#endif
-
 	/* write to syslog */
 	write_to_syslog(buffer,data_type);
 
 	/* write to main log */
 	write_to_log(buffer,data_type,timestamp);
-
-#ifdef DEBUG0
-	printf("write_to_all_logs_with_timestamp() end\n");
-#endif
 
 	return OK;
         }
@@ -170,10 +138,6 @@ int write_to_all_logs_with_timestamp(char *buffer, unsigned long data_type, time
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
 	FILE *fp=NULL;
 	time_t log_time=0L;
-
-#ifdef DEBUG0
-	printf("write_to_log() start\n");
-#endif
 
 	if(buffer==NULL)
 		return ERROR;
@@ -212,20 +176,12 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
 	broker_log_data(NEBTYPE_LOG_DATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,log_time,NULL);
 #endif
 
-#ifdef DEBUG0
-	printf("write_to_log() end\n");
-#endif
-
 	return OK;
 	}
 
 
 /* write something to the syslog facility */
 int write_to_syslog(char *buffer, unsigned long data_type){
-
-#ifdef DEBUG0
-	printf("write_to_syslog() start\n");
-#endif
 
 	if(buffer==NULL)
 		return ERROR;
@@ -245,10 +201,6 @@ int write_to_syslog(char *buffer, unsigned long data_type){
 	/* write the buffer to the syslog facility */
 	syslog(LOG_USER|LOG_INFO,"%s",buffer);
 
-#ifdef DEBUG0
-	printf("write_to_syslog() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -258,10 +210,6 @@ int log_service_event(service *svc){
 	char *temp_buffer=NULL;
 	unsigned long log_options=0L;
 	host *temp_host=NULL;
-
-#ifdef DEBUG0
-	printf("log_service_event() start\n");
-#endif
 
 	/* don't log soft errors if the user doesn't want to */
 	if(svc->state_type==SOFT_STATE && !log_service_retries)
@@ -291,10 +239,6 @@ int log_service_event(service *svc){
 	write_to_all_logs(temp_buffer,log_options);
 	my_free((void **)&temp_buffer);
 
-#ifdef DEBUG0
-	printf("log_service_event() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -303,10 +247,6 @@ int log_service_event(service *svc){
 int log_host_event(host *hst){
 	char *temp_buffer=NULL;
 	unsigned long log_options=0L;
-
-#ifdef DEBUG0
-	printf("log_host_event() start\n");
-#endif
 
 	/* grab the host macros */
 	clear_volatile_macros();
@@ -327,9 +267,6 @@ int log_host_event(host *hst){
 	write_to_all_logs(temp_buffer,log_options);
 	my_free((void **)&temp_buffer);
 
-#ifdef DEBUG0
-	printf("log_host_event() start\n");
-#endif
 	return OK;
         }
 
@@ -403,15 +340,7 @@ int rotate_log_file(time_t rotation_time){
 	struct tm *t;
 	int rename_result=0;
 
-#ifdef DEBUG0
-	printf("rotate_log_file() start\n");
-#endif
-
 	if(log_rotation_method==LOG_ROTATION_NONE){
-
-#ifdef DEBUG1
-		printf("\tWe're not supposed to be doing log rotations!\n");
-#endif
 		return OK;
 	        }
 	else if(log_rotation_method==LOG_ROTATION_HOURLY)
@@ -438,9 +367,6 @@ int rotate_log_file(time_t rotation_time){
 	rename_result=my_rename(log_file,log_archive);
 
 	if(rename_result){
-#ifdef DEBUG1
-		printf("\tError: Could not rotate main log file to '%s'\n",log_archive);
-#endif
 		my_free((void **)&log_archive);
 		return ERROR;
 	        }
@@ -465,16 +391,8 @@ int rotate_log_file(time_t rotation_time){
 	log_host_states(CURRENT_STATES,&rotation_time);
 	log_service_states(CURRENT_STATES,&rotation_time);
 
-#ifdef DEBUG3
-	printf("\tRotated main log file to '%s'\n",log_archive);
-#endif
-
 	/* free memory */
 	my_free((void **)&log_archive);
-
-#ifdef DEBUG0
-	printf("rotate_log_file() end\n");
-#endif
 
 	return OK;
         }
@@ -484,18 +402,10 @@ int rotate_log_file(time_t rotation_time){
 int write_log_file_info(time_t *timestamp){
 	char *temp_buffer=NULL;
 
-#ifdef DEBUG0
-	printf("write_log_file_info() start\n");
-#endif
-
 	/* write log version */
 	asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,timestamp);
 	my_free((void **)&temp_buffer);
-
-#ifdef DEBUG0
-	printf("write_log_file_info() end\n");
-#endif
 
 	return OK;
         }

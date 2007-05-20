@@ -715,10 +715,7 @@ int main(int argc, char **argv){
 
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode==TRUE && sigrestart==FALSE){
-#if (defined DEBUG0 || defined DEBUG1 || defined DEBUG2 || defined DEBUG3 || defined DEBUG4 || defined DEBUG5)
-				printf("$0: Cannot enter daemon mode with DEBUG option(s) enabled.  We'll run as a foreground process instead...\n");
-				daemon_mode=FALSE;
-#else
+
 				daemon_init();
 
 				asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
@@ -727,7 +724,6 @@ int main(int argc, char **argv){
 
 				/* get new PID */
 				nagios_pid=(int)getpid();
-#endif
 			        }
 
 			/* open the command file (named pipe) for reading */
@@ -796,10 +792,6 @@ int main(int argc, char **argv){
 					asprintf(&buffer,"Caught SIGHUP, restarting...\n");
 				else if(sig_id!=SIGSEGV)
 					asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id]);
-
-#ifdef DEBUG2
-				printf("%s\n",buffer);
-#endif
 
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 				my_free((void **)&buffer);

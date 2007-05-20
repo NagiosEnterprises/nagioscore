@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Service and host notification functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-17-2007
+ * Last Modified:   05-20-2007
  *
  * License:
  *
@@ -1013,10 +1013,6 @@ int host_notification(host *hst, int type, char *ack_author, char *ack_data){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("host_notification() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1064,9 +1060,7 @@ int check_host_notification_viability(host *hst, int type){
 
 	/* are notifications temporarily disabled for this host? */
 	if(hst->notifications_enabled==FALSE){
-#ifdef DEBUG4
 		log_debug_info(DEBUGL_NOTIFICATIONS,1,"Notifications are temporarily disabled for this host, so we won't send one out.\n");
-#endif
 		return ERROR;
 	        }
 
@@ -1128,9 +1122,7 @@ int check_host_notification_viability(host *hst, int type){
 
 		/* don't send notifications during scheduled downtime */
 		if(hst->scheduled_downtime_depth>0){
-#ifdef DEBUG4
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"We shouldn't notify about DOWNTIME events during scheduled downtime!\n");
-#endif
 			return ERROR;
 		        }
 
@@ -1550,10 +1542,6 @@ int create_notification_list_from_host(host *hst, int *escalated){
 			}
 	        }
 
-#ifdef DEBUG0
-	printf("create_notification_list_from_host() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1572,20 +1560,14 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 	serviceescalation *temp_se=NULL;
 	int have_escalated_interval=FALSE;
 
-#ifdef DEBUG0
-	printf("get_next_service_notification_time() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"get_next_service_notification_time()\n");
 
-#ifdef DEBUG4
-	printf("\tCalculating next valid notification time...\n");
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Calculating next valid notification time...\n");
 
 	/* default notification interval */
 	interval_to_use=svc->notification_interval;
 
-#ifdef DEBUG4
-	printf("\t\tDefault interval: %d\n",interval_to_use);
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Default interval: %d\n",interval_to_use);
 
 	/* search all the escalation entries for valid matches for this service (at its current notification number) */
 	for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
@@ -1598,9 +1580,7 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 		if(is_valid_escalation_for_service_notification(svc,temp_se)==FALSE)
 			continue;
 
-#ifdef DEBUG4
-		printf("\t\tFound a valid escalation w/ interval of %f\n",temp_se->notification_interval);
-#endif
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Found a valid escalation w/ interval of %f\n",temp_se->notification_interval);
 
 		/* if we haven't used a notification interval from an escalation yet, use this one */
 		if(have_escalated_interval==FALSE){
@@ -1611,10 +1591,8 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 		/* else use the shortest of all valid escalation intervals */
 		else if(temp_se->notification_interval<interval_to_use)
 			interval_to_use=temp_se->notification_interval;
-#ifdef DEBUG4
-		printf("\t\tNew interval: %f\n",interval_to_use);
-#endif
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"New interval: %f\n",interval_to_use);
 	        }
 
 	/* if notification interval is 0, we shouldn't send any more problem notifications (unless service is volatile) */
@@ -1623,16 +1601,10 @@ time_t get_next_service_notification_time(service *svc, time_t offset){
 	else
 		svc->no_more_notifications=FALSE;
 
-#ifdef DEBUG4
-	printf("\tInterval used for calculating next valid notification time: %f\n",interval_to_use);
-#endif
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Interval used for calculating next valid notification time: %f\n",interval_to_use);
 
 	/* calculate next notification time */
 	next_notification=offset+(interval_to_use*interval_length);
-
-#ifdef DEBUG0
-	printf("get_next_service_notification_time() end\n");
-#endif
 
 	return next_notification;
         }
@@ -1646,12 +1618,15 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 	hostescalation *temp_he=NULL;
 	int have_escalated_interval=FALSE;
 
-#ifdef DEBUG0
-	printf("get_next_host_notification_time() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"get_next_host_notification_time()\n");
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Calculating next valid notification time...\n");
 
 	/* default notification interval */
 	interval_to_use=hst->notification_interval;
+
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Default interval: %d\n",interval_to_use);
 
 	/* check all the host escalation entries for valid matches for this host (at its current notification number) */
 	for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
@@ -1664,6 +1639,8 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 		if(is_valid_host_escalation_for_host_notification(hst,temp_he)==FALSE)
 			continue;
 
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"Found a valid escalation w/ interval of %f\n",temp_he->notification_interval);
+
 		/* if we haven't used a notification interval from an escalation yet, use this one */
 		if(have_escalated_interval==FALSE){
 			have_escalated_interval=TRUE;
@@ -1673,6 +1650,8 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 		/* else use the shortest of all valid escalation intervals  */
 		else if(temp_he->notification_interval<interval_to_use)
 			interval_to_use=temp_he->notification_interval;
+
+		log_debug_info(DEBUGL_NOTIFICATIONS,2,"New interval: %f\n",interval_to_use);
 	        }
 
 	/* if interval is 0, no more notifications should be sent */
@@ -1681,12 +1660,10 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 	else
 		hst->no_more_notifications=FALSE;
 
+	log_debug_info(DEBUGL_NOTIFICATIONS,2,"Interval used for calculating next valid notification time: %f\n",interval_to_use);
+
 	/* calculate next notification time */
 	next_notification=offset+(interval_to_use*interval_length);
-
-#ifdef DEBUG0
-	printf("get_next_host_notification_time() end\n");
-#endif
 
 	return next_notification;
         }

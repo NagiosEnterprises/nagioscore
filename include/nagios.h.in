@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-08-2007
+ * Last Modified: 05-20-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -296,6 +296,9 @@ extern "C" {
 #define DEBUGL_EVENTBROKER              64
 #define DEBUGL_EXTERNALCOMMANDS         128
 #define DEBUGL_COMMANDS                 256
+#define DEBUGL_DOWNTIME                 512
+#define DEBUGL_COMMENTS                 1024
+#define DEBUGL_MACROS                   2048
 
 #define DEBUGV_BASIC                    0
 #define DEBUGV_MORE			1
@@ -746,7 +749,6 @@ char *escape_newlines(char *);
 int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
 int my_rename(char *,char *);                           /* renames a file - works across filesystems */
 int get_raw_command_line(command *,char *,char *,int,int);    	/* given a raw command line, determine the actual command to run */
-int get_raw_command_line2(command *,char *,char **,int);      	/* given a raw command line, determine the actual command to run */
 int check_time_against_period(time_t,timeperiod *);		/* check to see if a specific time is covered by a time period */
 void get_next_valid_time(time_t, time_t *,timeperiod *);	/* get the next valid time in a time period */
 void get_datetime_string(time_t *,char *,int,int);	/* get a date/time string for use in output */

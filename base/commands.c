@@ -3,7 +3,7 @@
  * COMMANDS.C - External command functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   04-18-2007
+ * Last Modified:   05-20-2007
  *
  * License:
  *
@@ -103,9 +103,7 @@ int check_for_external_commands(void){
 	char *buffer=NULL;
 	int update_status=FALSE;
 
-#ifdef DEBUG0
-	printf("check_for_external_commands() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_for_external_commands()\n");
 
 	/* bail out if we shouldn't be checking for external commands */
 	if(check_external_commands==FALSE)
@@ -165,10 +163,6 @@ int check_for_external_commands(void){
 	if(passive_check_result_list!=NULL)
 		process_passive_checks();
 
-#ifdef DEBUG0
-	printf("check_for_external_commands() end\n");
-#endif
-
 	return OK;
         }
 
@@ -180,12 +174,13 @@ int process_external_commands_from_file(char *fname, int delete_file){
 	mmapfile *thefile=NULL;
 	char *input=NULL;
 
-#ifdef DEBUG0
-	printf("process_external_commands_from_file() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_external_commands_from_file()\n");
 
 	if(fname==NULL)
 		return ERROR;
+
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS,1,"Processing commands from file '%s'.  File will %s deleted after processing.\n",fname,(delete_file==TRUE)?"be":"NOT be");
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(fname))==NULL){
@@ -216,10 +211,6 @@ int process_external_commands_from_file(char *fname, int delete_file){
 	if(delete_file==TRUE)
 		unlink(fname);
 
-#ifdef DEBUG0
-	printf("process_external_commands_from_file() end\n");
-#endif
-
 	return OK;
         }
 
@@ -234,9 +225,7 @@ int process_external_command1(char *cmd){
 	int command_type=CMD_NONE;
 	char *temp_ptr=NULL;
 
-#ifdef DEBUG0
-	printf("process_external_command1() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_external_command1()\n");
 
 	if(cmd==NULL)
 		return ERROR;
@@ -244,9 +233,7 @@ int process_external_command1(char *cmd){
 	/* strip the command of newlines and carriage returns */
 	strip(cmd);
 
-#ifdef DEBUG3
-	printf("\tRaw command entry: %s\n",cmd);
-#endif
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS,2,"Raw command entry: %s\n",cmd);
 
 	/* get the command entry time */
 	if((temp_ptr=my_strtok(cmd,"["))==NULL)
@@ -739,10 +726,6 @@ int process_external_command1(char *cmd){
 	my_free((void **)&command_id);
 	my_free((void **)&args);
 
-#ifdef DEBUG0
-	printf("process_external_command1() end\n");
-#endif
-
 	return OK;
         }
 
@@ -751,15 +734,11 @@ int process_external_command1(char *cmd){
 /* top-level processor for a single external command */
 int process_external_command2(int cmd, time_t entry_time, char *args){
 
-#ifdef DEBUG0
-	printf("process_external_command() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_external_command2()\n");
 
-#ifdef DEBUG3
-	printf("\tExternal Command Type: %d\n",cmd);
-	printf("\tCommand Entry Time: %lu\n",(unsigned long)entry_time);
-	printf("\tCommand Arguments: %s\n",args);
-#endif
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS,1,"External Command Type: %d\n",cmd);
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS,1,"Command Entry Time: %lu\n",(unsigned long)entry_time);
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS,1,"Command Arguments: %s\n",(args==NULL)?"":args);
 
 	/* how shall we execute the command? */
 	switch(cmd){
@@ -1129,10 +1108,6 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 		return ERROR;
 		break;
 	        }
-
-#ifdef DEBUG0
-	printf("process_external_command() end\n");
-#endif
 
 	return OK;
         }
@@ -1684,10 +1659,6 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 	int persistent=0;
 	int result=0;
 
-#ifdef DEBUG0
-	printf("cmd_add_comment() start\n");
-#endif
-
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
@@ -1731,9 +1702,6 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 	if(result<0)
 		return ERROR;
 
-#ifdef DEBUG0
-	printf("cmd_add_comment() end\n");
-#endif
 	return OK;
         }
 
@@ -1742,10 +1710,6 @@ int cmd_add_comment(int cmd,time_t entry_time,char *args){
 /* removes a host or service comment from the status log */
 int cmd_delete_comment(int cmd,char *args){
 	unsigned long comment_id=0L;
-
-#ifdef DEBUG0
-	printf("cmd_del_comment() start\n");
-#endif
 
 	/* get the comment id we should delete */
 	if((comment_id=strtoul(args,NULL,10))==0)
@@ -1757,9 +1721,6 @@ int cmd_delete_comment(int cmd,char *args){
 	else
 		delete_service_comment(comment_id);
 
-#ifdef DEBUG0
-	printf("cmd_del_comment() end\n");
-#endif
 	return OK;
         }
 
@@ -1772,10 +1733,6 @@ int cmd_delete_all_comments(int cmd,char *args){
 	char *host_name=NULL;
 	char *svc_description=NULL;
 
-#ifdef DEBUG0
-	printf("cmd_del_all_comments() start\n");
-#endif
-	
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
 		return ERROR;
@@ -1799,9 +1756,6 @@ int cmd_delete_all_comments(int cmd,char *args){
 	/* delete comments */
 	delete_all_comments((cmd==CMD_DEL_ALL_HOST_COMMENTS)?HOST_COMMENT:SERVICE_COMMENT,host_name,svc_description);
 
-#ifdef DEBUG0
-	printf("cmd_del_all_comments() end\n");
-#endif
 	return OK;
         }
 
@@ -1815,10 +1769,6 @@ int cmd_delay_notification(int cmd,char *args){
 	char *host_name=NULL;
 	char *svc_description=NULL;
 	time_t delay_time=0L;
-
-#ifdef DEBUG0
-	printf("cmd_delay_notification() start\n");
-#endif
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -1854,9 +1804,6 @@ int cmd_delay_notification(int cmd,char *args){
 	else
 		temp_service->next_notification=delay_time;
 	
-#ifdef DEBUG0
-	printf("cmd_delay_notification() end\n");
-#endif
 	return OK;
         }
 
@@ -1870,10 +1817,6 @@ int cmd_schedule_check(int cmd,char *args){
 	char *host_name=NULL;
 	char *svc_description=NULL;
 	time_t delay_time=0L;
-
-#ifdef DEBUG0
-	printf("cmd_schedule_check() start\n");
-#endif
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -1914,9 +1857,6 @@ int cmd_schedule_check(int cmd,char *args){
 	else
 		schedule_service_check(temp_service,delay_time,(cmd==CMD_SCHEDULE_FORCED_SVC_CHECK)?TRUE:FALSE);
 
-#ifdef DEBUG0
-	printf("cmd_schedule_check() end\n");
-#endif
 	return OK;
         }
 
@@ -1928,10 +1868,6 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 	service *temp_service=NULL;
 	char *host_name=NULL;
 	time_t delay_time=0L;
-
-#ifdef DEBUG0
-	printf("cmd_schedule_host_service_checks() start\n");
-#endif
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -1952,9 +1888,6 @@ int cmd_schedule_host_service_checks(int cmd,char *args, int force){
 			schedule_service_check(temp_service,delay_time,force);
 	        }
 
-#ifdef DEBUG0
-	printf("cmd_schedule_host_service_checks() end\n");
-#endif
 	return OK;
         }
 
@@ -1967,10 +1900,6 @@ int cmd_signal_process(int cmd, char *args){
 	char *temp_ptr=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("cmd_signal_process() start\n");
-#endif
-
 	/* get the time to schedule the event */
 	if((temp_ptr=my_strtok(args,"\n"))==NULL)
 		scheduled_time=0L;
@@ -1979,10 +1908,6 @@ int cmd_signal_process(int cmd, char *args){
 
 	/* add a scheduled program shutdown or restart to the event list */
 	result=schedule_new_event((cmd==CMD_SHUTDOWN_PROCESS)?EVENT_PROGRAM_SHUTDOWN:EVENT_PROGRAM_RESTART,TRUE,scheduled_time,FALSE,0,NULL,FALSE,NULL,NULL);
-
-#ifdef DEBUG0
-	printf("cmd_signal_process() end\n");
-#endif
 
 	return result;
         }
@@ -1997,10 +1922,6 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	int return_code=0;
 	char *output=NULL;
 	int result=0;
-
-#ifdef DEBUG0
-	printf("cmd_process_service_check_result() start\n");
-#endif
 
 	/* get the host name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
@@ -2036,10 +1957,6 @@ int cmd_process_service_check_result(int cmd,time_t check_time,char *args){
 	my_free((void **)&svc_description);
 	my_free((void **)&output);
 
-#ifdef DEBUG0
-	printf("cmd_process_service_check_result() end\n");
-#endif
-
 	return result;
         }
 
@@ -2054,10 +1971,6 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	struct timeval tv;
 	int result=OK;
 	char *temp_buffer=NULL;
-
-#ifdef DEBUG0
-	printf("process_passive_service_check() start\n");
-#endif
 
 	/* skip this service check result if we aren't accepting passive service checks */
 	if(accept_passive_service_checks==FALSE)
@@ -2150,10 +2063,6 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 		passive_check_result_list_tail->next=new_pcr;
 	passive_check_result_list_tail=new_pcr;
 
-#ifdef DEBUG0
-	printf("process_passive_service_check() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2166,10 +2075,6 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	int return_code=0;
 	char *output=NULL;
 	int result=0;
-
-#ifdef DEBUG0
-	printf("cmd_process_host_check_result() start\n");
-#endif
 
 	/* get the host name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
@@ -2196,10 +2101,6 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	my_free((void **)&host_name);
 	my_free((void **)&output);
 
-#ifdef DEBUG0
-	printf("cmd_process_host_check_result() end\n");
-#endif
-
 	return result;
         }
 
@@ -2212,10 +2113,6 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	struct timeval tv;
 	int result=OK;
 	char *temp_buffer=NULL;
-
-#ifdef DEBUG0
-	printf("process_passive_host_check() start\n");
-#endif
 
 	/* skip this host check result if we aren't accepting passive host checks */
 	if(accept_passive_service_checks==FALSE)
@@ -2302,10 +2199,6 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 		passive_check_result_list_tail->next=new_pcr;
 	passive_check_result_list_tail=new_pcr;
 
-#ifdef DEBUG0
-	printf("process_passive_host_check() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2323,10 +2216,6 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	int type=ACKNOWLEDGEMENT_NORMAL;
 	int notify=TRUE;
 	int persistent=TRUE;
-
-#ifdef DEBUG0
-	printf("cmd_acknowledge_problem() start\n");
-#endif
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -2387,9 +2276,6 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	my_free((void **)&ack_author);
 	my_free((void **)&ack_data);
 
-#ifdef DEBUG0
-	printf("cmd_acknowledge_problem() end\n");
-#endif
 	return OK;
         }
 
@@ -2401,10 +2287,6 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 	host *temp_host=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
-
-#ifdef DEBUG0
-	printf("cmd_remove_acknowledgement() start\n");
-#endif
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -2434,9 +2316,6 @@ int cmd_remove_acknowledgement(int cmd,char *args){
 	else
 		remove_service_acknowledgement(temp_service);
 
-#ifdef DEBUG0
-	printf("cmd_remove_acknowledgement() end\n");
-#endif
 	return OK;
         }
 
@@ -2464,10 +2343,6 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	char *author=NULL;
 	char *comment_data=NULL;
 	unsigned long downtime_id=0L;
-
-#ifdef DEBUG0
-	printf("cmd_schedule_downtime() start\n");
-#endif
 
 	if(cmd==CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME){
 		
@@ -2623,9 +2498,6 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 		break;
 	        }
 
-#ifdef DEBUG0
-	printf("cmd_schedule_downtime() end\n");
-#endif
 	return OK;
         }
 
@@ -2636,10 +2508,6 @@ int cmd_delete_downtime(int cmd, char *args){
 	unsigned long downtime_id=0L;
 	char *temp_ptr=NULL;
 
-#ifdef DEBUG0
-	printf("cmd_delete_downtime() start\n");
-#endif
-
 	/* get the id of the downtime to delete */
 	if((temp_ptr=my_strtok(args,"\n"))==NULL)
 		return ERROR;
@@ -2649,10 +2517,6 @@ int cmd_delete_downtime(int cmd, char *args){
 		unschedule_downtime(HOST_DOWNTIME,downtime_id);
 	else
 		unschedule_downtime(SERVICE_DOWNTIME,downtime_id);
-
-#ifdef DEBUG0
-	printf("cmd_delete_downtime() end\n");
-#endif
 
 	return OK;
         }
@@ -2672,10 +2536,6 @@ int cmd_change_object_int_var(int cmd,char *args){
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	unsigned long attr=0L;
-
-#ifdef DEBUG0
-	printf("cmd_change_object_int_var() start\n");
-#endif
 
 	/* get the host name */
 	if((host_name=my_strtok(args,";"))==NULL)
@@ -2852,10 +2712,6 @@ int cmd_change_object_int_var(int cmd,char *args){
 		break;
 	        }
 
-#ifdef DEBUG0
-	printf("cmd_change_object_int_var() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2873,10 +2729,6 @@ int cmd_change_object_char_var(int cmd,char *args){
 	char *temp_ptr=NULL;
 	char *temp_ptr2=NULL;
 	unsigned long attr=MODATTR_NONE;
-
-#ifdef DEBUG0
-	printf("cmd_change_object_char_var() start\n");
-#endif
 
 	/* get the command arguments */
 	switch(cmd){
@@ -3095,10 +2947,6 @@ int cmd_change_object_char_var(int cmd,char *args){
 		break;
 	        }
 
-#ifdef DEBUG0
-	printf("cmd_change_object_char_var() end\n");
-#endif
-
 	return OK;
         }
 
@@ -3116,12 +2964,6 @@ int cmd_change_object_custom_var(int cmd, char *args){
 	char *varname=NULL;
 	char *varvalue=NULL;
 	register int x=0;
-
-#ifdef DEBUG0
-	printf("cmd_change_object_custom_var() start\n");
-#endif
-
-	printf("change_custom_var()\n");
 
 	/* get the host or contact name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
@@ -3231,10 +3073,6 @@ int cmd_change_object_custom_var(int cmd, char *args){
 		break;
 	        }
 
-#ifdef DEBUG0
-	printf("cmd_change_object_custom_var() end\n");
-#endif
-
 	return OK;
         }
 	
@@ -3280,10 +3118,6 @@ void disable_service_checks(service *svc){
 	timed_event *temp_event=NULL;
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
 
-#ifdef DEBUG0
-	printf("disable_service_checks() start\n");
-#endif
-
 	/* checks are already disabled */
 	if(svc->checks_enabled==FALSE)
 		return;
@@ -3315,10 +3149,6 @@ void disable_service_checks(service *svc){
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -3329,10 +3159,6 @@ void enable_service_checks(service *svc){
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_service_checks() start\n");
-#endif
 
 	/* checks are already enabled */
 	if(svc->checks_enabled==TRUE)
@@ -3370,10 +3196,6 @@ void enable_service_checks(service *svc){
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -3382,10 +3204,6 @@ void enable_service_checks(service *svc){
 /* enable notifications on a program-wide basis */
 void enable_all_notifications(void){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_all_notifications() start\n");
-#endif
 
 	/* bail out if we're already set... */
 	if(enable_notifications==TRUE)
@@ -3406,10 +3224,6 @@ void enable_all_notifications(void){
 	/* update the status log */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("enable_all_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3417,10 +3231,6 @@ void enable_all_notifications(void){
 /* disable notifications on a program-wide basis */
 void disable_all_notifications(void){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_all_notifications() start\n");
-#endif
 
 	/* bail out if we're already set... */
 	if(enable_notifications==FALSE)
@@ -3441,10 +3251,6 @@ void disable_all_notifications(void){
 	/* update the status log */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("disable_all_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3452,10 +3258,6 @@ void disable_all_notifications(void){
 /* enables notifications for a service */
 void enable_service_notifications(service *svc){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_service_notifications() start\n");
-#endif
 
 	/* no change */
 	if(svc->notifications_enabled==TRUE)
@@ -3475,10 +3277,6 @@ void enable_service_notifications(service *svc){
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_service_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3486,10 +3284,6 @@ void enable_service_notifications(service *svc){
 /* disables notifications for a service */
 void disable_service_notifications(service *svc){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_service_notifications() start\n");
-#endif
 
 	/* no change */
 	if(svc->notifications_enabled==FALSE)
@@ -3509,10 +3303,6 @@ void disable_service_notifications(service *svc){
 	/* update the status log to reflect the new service state */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_service_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3520,10 +3310,6 @@ void disable_service_notifications(service *svc){
 /* enables notifications for a host */
 void enable_host_notifications(host *hst){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_host_notifications() start\n");
-#endif
 
 	/* no change */
 	if(hst->notifications_enabled==TRUE)
@@ -3543,10 +3329,6 @@ void enable_host_notifications(host *hst){
 	/* update the status log to reflect the new host state */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_host_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3554,10 +3336,6 @@ void enable_host_notifications(host *hst){
 /* disables notifications for a host */
 void disable_host_notifications(host *hst){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_host_notifications() start\n");
-#endif
 
 	/* no change */
 	if(hst->notifications_enabled==FALSE)
@@ -3577,10 +3355,6 @@ void disable_host_notifications(host *hst){
 	/* update the status log to reflect the new host state */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_host_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3589,10 +3363,6 @@ void disable_host_notifications(host *hst){
 void enable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-
-#ifdef DEBUG0
-	printf("enable_and_propagate_notifications() start\n");
-#endif
 
 	/* enable notification for top level host */
 	if(affect_top_host==TRUE && level==0)
@@ -3620,10 +3390,6 @@ void enable_and_propagate_notifications(host *hst, int level, int affect_top_hos
 	                }
 	        }
 
-#ifdef DEBUG0
-	printf("enable_and_propagate_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3632,10 +3398,6 @@ void enable_and_propagate_notifications(host *hst, int level, int affect_top_hos
 void disable_and_propagate_notifications(host *hst, int level, int affect_top_host, int affect_hosts, int affect_services){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-
-#ifdef DEBUG0
-	printf("disable_and_propagate_notifications() start\n");
-#endif
 
 	if(hst==NULL)
 		return;
@@ -3666,10 +3428,6 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 	                }
 	        }
 
-#ifdef DEBUG0
-	printf("disable_and_propagate_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3678,10 +3436,6 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 /* enables host notifications for a contact */
 void enable_contact_host_notifications(contact *cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_contact_host_notifications() start\n");
-#endif
 
 	/* no change */
 	if(cntct->host_notifications_enabled==TRUE)
@@ -3701,10 +3455,6 @@ void enable_contact_host_notifications(contact *cntct){
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_contact_host_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3713,10 +3463,6 @@ void enable_contact_host_notifications(contact *cntct){
 /* disables host notifications for a contact */
 void disable_contact_host_notifications(contact *cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_contact_host_notifications() start\n");
-#endif
 
 	/* no change */
 	if(cntct->host_notifications_enabled==FALSE)
@@ -3736,10 +3482,6 @@ void disable_contact_host_notifications(contact *cntct){
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_contact_host_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3748,10 +3490,6 @@ void disable_contact_host_notifications(contact *cntct){
 /* enables service notifications for a contact */
 void enable_contact_service_notifications(contact *cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_contact_service_notifications() start\n");
-#endif
 
 	/* no change */
 	if(cntct->service_notifications_enabled==TRUE)
@@ -3771,10 +3509,6 @@ void enable_contact_service_notifications(contact *cntct){
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_contact_service_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3783,10 +3517,6 @@ void enable_contact_service_notifications(contact *cntct){
 /* disables service notifications for a contact */
 void disable_contact_service_notifications(contact *cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_contact_service_notifications() start\n");
-#endif
 
 	/* no change */
 	if(cntct->service_notifications_enabled==TRUE)
@@ -3806,10 +3536,6 @@ void disable_contact_service_notifications(contact *cntct){
 	/* update the status log to reflect the new contact state */
 	update_contact_status(cntct,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_contact_service_notifications() end\n");
-#endif
-
 	return;
         }
 
@@ -3818,10 +3544,6 @@ void disable_contact_service_notifications(contact *cntct){
 /* schedules downtime for all hosts "beyond" a given host */
 void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration){
 	host *this_host=NULL;
-
-#ifdef DEBUG0
-	printf("schedule_and_propagate_downtime() start\n");
-#endif
 
 	/* check all child hosts... */
 	for(this_host=host_list;this_host!=NULL;this_host=this_host->next){
@@ -3836,10 +3558,6 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 	                }
 	        }
 
-#ifdef DEBUG0
-	printf("schedule_and_propagate_downtime() end\n");
-#endif
-
 	return;
         }
 
@@ -3847,10 +3565,6 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 /* acknowledges a host problem */
 void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent){
 	time_t current_time=0L;
-
-#ifdef DEBUG0
-	printf("acknowledge_host_problem() start\n");
-#endif
 
 	/* cannot acknowledge a non-existent problem */
 	if(hst->current_state==HOST_UP)
@@ -3878,10 +3592,6 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 	time(&current_time);
 	add_new_host_comment(ACKNOWLEDGEMENT_COMMENT,hst->name,current_time,ack_author,ack_data,persistent,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,NULL);
 
-#ifdef DEBUG0
-	printf("acknowledge_host_problem() end\n");
-#endif
-
 	return;
         }
 
@@ -3889,10 +3599,6 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 /* acknowledges a service problem */
 void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent){
 	time_t current_time=0L;
-
-#ifdef DEBUG0
-	printf("acknowledge_service_problem() start\n");
-#endif
 
 	/* cannot acknowledge a non-existent problem */
 	if(svc->current_state==STATE_OK)
@@ -3920,20 +3626,12 @@ void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data,
 	time(&current_time);
 	add_new_service_comment(ACKNOWLEDGEMENT_COMMENT,svc->host_name,svc->description,current_time,ack_author,ack_data,persistent,COMMENTSOURCE_INTERNAL,FALSE,(time_t)0,NULL);
 
-#ifdef DEBUG0
-	printf("acknowledge_service_problem() end\n");
-#endif
-
 	return;
         }
 
 
 /* removes a host acknowledgement */
 void remove_host_acknowledgement(host *hst){
-
-#ifdef DEBUG0
-	printf("remove_host_acknowledgement() start\n");
-#endif
 
 	/* set the acknowledgement flag */
 	hst->problem_has_been_acknowledged=FALSE;
@@ -3944,20 +3642,12 @@ void remove_host_acknowledgement(host *hst){
 	/* remove any non-persistant comments associated with the ack */
 	delete_host_acknowledgement_comments(hst);
 
-#ifdef DEBUG0
-	printf("remove_host_acknowledgement() end\n");
-#endif
-
 	return;
         }
 
 
 /* removes a service acknowledgement */
 void remove_service_acknowledgement(service *svc){
-
-#ifdef DEBUG0
-	printf("remove_service_acknowledgement() start\n");
-#endif
 
 	/* set the acknowledgement flag */
 	svc->problem_has_been_acknowledged=FALSE;
@@ -3968,10 +3658,6 @@ void remove_service_acknowledgement(service *svc){
 	/* remove any non-persistant comments associated with the ack */
 	delete_service_acknowledgement_comments(svc);
 
-#ifdef DEBUG0
-	printf("remove_service_acknowledgement() end\n");
-#endif
-
 	return;
         }
 
@@ -3979,10 +3665,6 @@ void remove_service_acknowledgement(service *svc){
 /* starts executing service checks */
 void start_executing_service_checks(void){
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_executing_service_checks() start\n");
-#endif
 
 	/* bail out if we're already executing services */
 	if(execute_service_checks==TRUE)
@@ -4002,10 +3684,6 @@ void start_executing_service_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_executing_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4015,10 +3693,6 @@ void start_executing_service_checks(void){
 /* stops executing service checks */
 void stop_executing_service_checks(void){
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_executing_service_checks() start\n");
-#endif
 
 	/* bail out if we're already not executing services */
 	if(execute_service_checks==FALSE)
@@ -4038,10 +3712,6 @@ void stop_executing_service_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_executing_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4050,10 +3720,6 @@ void stop_executing_service_checks(void){
 /* starts accepting passive service checks */
 void start_accepting_passive_service_checks(void){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_accepting_passive_service_checks() start\n");
-#endif
 
 	/* bail out if we're already accepting passive services */
 	if(accept_passive_service_checks==TRUE)
@@ -4073,10 +3739,6 @@ void start_accepting_passive_service_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_accepting_passive_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4085,10 +3747,6 @@ void start_accepting_passive_service_checks(void){
 /* stops accepting passive service checks */
 void stop_accepting_passive_service_checks(void){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_accepting_passive_service_checks() start\n");
-#endif
 
 	/* bail out if we're already not accepting passive services */
 	if(accept_passive_service_checks==FALSE)
@@ -4108,10 +3766,6 @@ void stop_accepting_passive_service_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_accepting_passive_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4120,10 +3774,6 @@ void stop_accepting_passive_service_checks(void){
 /* enables passive service checks for a particular service */
 void enable_passive_service_checks(service *svc){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_passive_service_checks() start\n");
-#endif
 
 	/* no change */
 	if(svc->accept_passive_service_checks==TRUE)
@@ -4143,10 +3793,6 @@ void enable_passive_service_checks(service *svc){
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_passive_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4155,10 +3801,6 @@ void enable_passive_service_checks(service *svc){
 /* disables passive service checks for a particular service */
 void disable_passive_service_checks(service *svc){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_passive_service_checks() start\n");
-#endif
 
 	/* no change */
 	if(svc->accept_passive_service_checks==FALSE)
@@ -4178,10 +3820,6 @@ void disable_passive_service_checks(service *svc){
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_passive_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4190,10 +3828,6 @@ void disable_passive_service_checks(service *svc){
 /* starts executing host checks */
 void start_executing_host_checks(void){
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_executing_host_checks() start\n");
-#endif
 
 	/* bail out if we're already executing hosts */
 	if(execute_host_checks==TRUE)
@@ -4213,10 +3847,6 @@ void start_executing_host_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_executing_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4226,10 +3856,6 @@ void start_executing_host_checks(void){
 /* stops executing host checks */
 void stop_executing_host_checks(void){
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_executing_host_checks() start\n");
-#endif
 
 	/* bail out if we're already not executing hosts */
 	if(execute_host_checks==FALSE)
@@ -4249,10 +3875,6 @@ void stop_executing_host_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_executing_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4261,10 +3883,6 @@ void stop_executing_host_checks(void){
 /* starts accepting passive host checks */
 void start_accepting_passive_host_checks(void){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_accepting_passive_host_checks() start\n");
-#endif
 
 	/* bail out if we're already accepting passive hosts */
 	if(accept_passive_host_checks==TRUE)
@@ -4284,10 +3902,6 @@ void start_accepting_passive_host_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_accepting_passive_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4296,10 +3910,6 @@ void start_accepting_passive_host_checks(void){
 /* stops accepting passive host checks */
 void stop_accepting_passive_host_checks(void){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_accepting_passive_host_checks() start\n");
-#endif
 
 	/* bail out if we're already not accepting passive hosts */
 	if(accept_passive_host_checks==FALSE)
@@ -4319,10 +3929,6 @@ void stop_accepting_passive_host_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_accepting_passive_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4331,10 +3937,6 @@ void stop_accepting_passive_host_checks(void){
 /* enables passive host checks for a particular host */
 void enable_passive_host_checks(host *hst){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_passive_host_checks() start\n");
-#endif
 
 	/* no change */
 	if(hst->accept_passive_host_checks==TRUE)
@@ -4354,10 +3956,6 @@ void enable_passive_host_checks(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_passive_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4367,10 +3965,6 @@ void enable_passive_host_checks(host *hst){
 void disable_passive_host_checks(host *hst){
 	unsigned long attr=MODATTR_PASSIVE_CHECKS_ENABLED;
 
-#ifdef DEBUG0
-	printf("disable_passive_host_checks() start\n");
-#endif
-	
 	/* no change */
 	if(hst->accept_passive_host_checks==FALSE)
 		return;
@@ -4389,10 +3983,6 @@ void disable_passive_host_checks(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_passive_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4400,10 +3990,6 @@ void disable_passive_host_checks(host *hst){
 /* enables event handlers on a program-wide basis */
 void start_using_event_handlers(void){
 	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_using_event_handlers() start\n");
-#endif
 
 	/* no change */
 	if(enable_event_handlers==TRUE)
@@ -4424,10 +4010,6 @@ void start_using_event_handlers(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_using_event_handlers() end\n");
-#endif
-
 	return;
         }
 
@@ -4435,10 +4017,6 @@ void start_using_event_handlers(void){
 /* disables event handlers on a program-wide basis */
 void stop_using_event_handlers(void){
 	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_using_event_handlers() start\n");
-#endif
 
 	/* no change */
 	if(enable_event_handlers==FALSE)
@@ -4459,10 +4037,6 @@ void stop_using_event_handlers(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_using_event_handlers() end\n");
-#endif
-
 	return;
         }
 
@@ -4470,10 +4044,6 @@ void stop_using_event_handlers(void){
 /* enables the event handler for a particular service */
 void enable_service_event_handler(service *svc){
 	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_service_event_handler() start\n");
-#endif
 
 	/* no change */
 	if(svc->event_handler_enabled==TRUE)
@@ -4493,10 +4063,6 @@ void enable_service_event_handler(service *svc){
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_service_event_handler() end\n");
-#endif
-
 	return;
         }
 
@@ -4505,10 +4071,6 @@ void enable_service_event_handler(service *svc){
 /* disables the event handler for a particular service */
 void disable_service_event_handler(service *svc){
 	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_service_event_handler() start\n");
-#endif
 
 	/* no change */
 	if(svc->event_handler_enabled==FALSE)
@@ -4528,10 +4090,6 @@ void disable_service_event_handler(service *svc){
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_service_event_handler() end\n");
-#endif
-
 	return;
         }
 
@@ -4539,10 +4097,6 @@ void disable_service_event_handler(service *svc){
 /* enables the event handler for a particular host */
 void enable_host_event_handler(host *hst){
 	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_host_event_handler() start\n");
-#endif
 
 	/* no change */
 	if(hst->event_handler_enabled==TRUE)
@@ -4562,10 +4116,6 @@ void enable_host_event_handler(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_host_event_handler() end\n");
-#endif
-
 	return;
         }
 
@@ -4573,10 +4123,6 @@ void enable_host_event_handler(host *hst){
 /* disables the event handler for a particular host */
 void disable_host_event_handler(host *hst){
 	unsigned long attr=MODATTR_EVENT_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_host_event_handler() start\n");
-#endif
 
 	/* no change */
 	if(hst->event_handler_enabled==FALSE)
@@ -4596,10 +4142,6 @@ void disable_host_event_handler(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_host_event_handler() end\n");
-#endif
-
 	return;
         }
 
@@ -4608,10 +4150,6 @@ void disable_host_event_handler(host *hst){
 void disable_host_checks(host *hst){
 	timed_event *temp_event=NULL;
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_host_checks() start\n");
-#endif
 
 	/* checks are already disabled */
 	if(hst->checks_enabled==FALSE)
@@ -4644,10 +4182,6 @@ void disable_host_checks(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("disable_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4657,10 +4191,6 @@ void enable_host_checks(host *hst){
 	time_t preferred_time=0L;
 	time_t next_valid_time=0L;
 	unsigned long attr=MODATTR_ACTIVE_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_host_checks() start\n");
-#endif
 
 	/* checks are already enabled */
 	if(hst->checks_enabled==TRUE)
@@ -4698,10 +4228,6 @@ void enable_host_checks(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("enable_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4710,10 +4236,6 @@ void enable_host_checks(host *hst){
 /* start obsessing over service check results */
 void start_obsessing_over_service_checks(void){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-        printf("start_obsessing_over_service_checks() start\n");
-#endif
 
 	/* no change */
 	if(obsess_over_services==TRUE)
@@ -4733,10 +4255,6 @@ void start_obsessing_over_service_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_obsessing_over_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4745,10 +4263,6 @@ void start_obsessing_over_service_checks(void){
 /* stop obsessing over service check results */
 void stop_obsessing_over_service_checks(void){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-        printf("stop_obsessing_over_service_checks() start\n");
-#endif
 
 	/* no change */
 	if(obsess_over_services==FALSE)
@@ -4768,10 +4282,6 @@ void stop_obsessing_over_service_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_obsessing_over_service_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4780,10 +4290,6 @@ void stop_obsessing_over_service_checks(void){
 /* start obsessing over host check results */
 void start_obsessing_over_host_checks(void){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-        printf("start_obsessing_over_host_checks() start\n");
-#endif
 
 	/* no change */
 	if(obsess_over_hosts==TRUE)
@@ -4803,10 +4309,6 @@ void start_obsessing_over_host_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("start_obsessing_over_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4815,10 +4317,6 @@ void start_obsessing_over_host_checks(void){
 /* stop obsessing over host check results */
 void stop_obsessing_over_host_checks(void){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-        printf("stop_obsessing_over_host_checks() start\n");
-#endif
 
 	/* no change */
 	if(obsess_over_hosts==FALSE)
@@ -4838,10 +4336,6 @@ void stop_obsessing_over_host_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("stop_obsessing_over_host_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4850,10 +4344,6 @@ void stop_obsessing_over_host_checks(void){
 /* enables service freshness checking */
 void enable_service_freshness_checks(void){
 	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_service_freshness_checks() start\n");
-#endif
 
 	/* no change */
 	if(check_service_freshness==TRUE)
@@ -4873,10 +4363,6 @@ void enable_service_freshness_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("enable_service_freshness_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4884,10 +4370,6 @@ void enable_service_freshness_checks(void){
 /* disables service freshness checking */
 void disable_service_freshness_checks(void){
 	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_service_freshness_checks() start\n");
-#endif
 
 	/* no change */
 	if(check_service_freshness==FALSE)
@@ -4907,10 +4389,6 @@ void disable_service_freshness_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("disable_service_freshness_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4918,10 +4396,6 @@ void disable_service_freshness_checks(void){
 /* enables host freshness checking */
 void enable_host_freshness_checks(void){
 	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_host_freshness_checks() start\n");
-#endif
 
 	/* no change */
 	if(check_host_freshness==TRUE)
@@ -4941,10 +4415,6 @@ void enable_host_freshness_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("enable_host_freshness_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4952,10 +4422,6 @@ void enable_host_freshness_checks(void){
 /* disables host freshness checking */
 void disable_host_freshness_checks(void){
 	unsigned long attr=MODATTR_FRESHNESS_CHECKS_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_host_freshness_checks() start\n");
-#endif
 
 	/* no change */
 	if(check_host_freshness==FALSE)
@@ -4975,10 +4441,6 @@ void disable_host_freshness_checks(void){
 	/* update the status log with the program info */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("disable_host_freshness_checks() end\n");
-#endif
-
 	return;
         }
 
@@ -4986,10 +4448,6 @@ void disable_host_freshness_checks(void){
 /* enable failure prediction on a program-wide basis */
 void enable_all_failure_prediction(void){
 	unsigned long attr=MODATTR_FAILURE_PREDICTION_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_all_failure_prediction() start\n");
-#endif
 
 	/* bail out if we're already set... */
 	if(enable_failure_prediction==TRUE)
@@ -5009,10 +4467,6 @@ void enable_all_failure_prediction(void){
 	/* update the status log */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("enable_all_failure_prediction() end\n");
-#endif
-
 	return;
         }
 
@@ -5020,10 +4474,6 @@ void enable_all_failure_prediction(void){
 /* disable failure prediction on a program-wide basis */
 void disable_all_failure_prediction(void){
 	unsigned long attr=MODATTR_FAILURE_PREDICTION_ENABLED;
-
-#ifdef DEBUG0
-	printf("disable_all_failure_prediction() start\n");
-#endif
 
 	/* bail out if we're already set... */
 	if(enable_failure_prediction==FALSE)
@@ -5043,10 +4493,6 @@ void disable_all_failure_prediction(void){
 	/* update the status log */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("enable_all_failure_prediction() end\n");
-#endif
-
 	return;
         }
 
@@ -5054,10 +4500,6 @@ void disable_all_failure_prediction(void){
 /* enable performance data on a program-wide basis */
 void enable_performance_data(void){
 	unsigned long attr=MODATTR_PERFORMANCE_DATA_ENABLED;
-
-#ifdef DEBUG0
-	printf("enable_performance_data() start\n");
-#endif
 
 	/* bail out if we're already set... */
 	if(process_performance_data==TRUE)
@@ -5077,10 +4519,6 @@ void enable_performance_data(void){
 	/* update the status log */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("enable_performance_data() end\n");
-#endif
-
 	return;
         }
 
@@ -5089,11 +4527,7 @@ void enable_performance_data(void){
 void disable_performance_data(void){
 	unsigned long attr=MODATTR_PERFORMANCE_DATA_ENABLED;
 
-#ifdef DEBUG0
-	printf("disable_performance_data() start\n");
-#endif
-
-	/* bail out if we're already set... */
+#	/* bail out if we're already set... */
 	if(process_performance_data==FALSE)
 		return;
 
@@ -5111,10 +4545,6 @@ void disable_performance_data(void){
 	/* update the status log */
 	update_program_status(FALSE);
 
-#ifdef DEBUG0
-	printf("disable_performance_data() end\n");
-#endif
-
 	return;
         }
 
@@ -5122,10 +4552,6 @@ void disable_performance_data(void){
 /* start obsessing over a particular service */
 void start_obsessing_over_service(service *svc){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_obsessing_over_service() start\n");
-#endif
 
 	/* no change */
 	if(svc->obsess_over_service==TRUE)
@@ -5145,10 +4571,6 @@ void start_obsessing_over_service(service *svc){
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("start_obsessing_over_service() end\n");
-#endif
-
 	return;
         }
 
@@ -5156,10 +4578,6 @@ void start_obsessing_over_service(service *svc){
 /* stop obsessing over a particular service */
 void stop_obsessing_over_service(service *svc){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_obsessing_over_service() start\n");
-#endif
 
 	/* no change */
 	if(svc->obsess_over_service==FALSE)
@@ -5179,10 +4597,6 @@ void stop_obsessing_over_service(service *svc){
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
 
-#ifdef DEBUG0
-	printf("stop_obsessing_over_service() end\n");
-#endif
-
 	return;
         }
 
@@ -5190,10 +4604,6 @@ void stop_obsessing_over_service(service *svc){
 /* start obsessing over a particular host */
 void start_obsessing_over_host(host *hst){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("start_obsessing_over_host() start\n");
-#endif
 
 	/* no change */
 	if(hst->obsess_over_host==TRUE)
@@ -5213,10 +4623,6 @@ void start_obsessing_over_host(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("start_obsessing_over_host() end\n");
-#endif
-
 	return;
         }
 
@@ -5224,10 +4630,6 @@ void start_obsessing_over_host(host *hst){
 /* stop obsessing over a particular host */
 void stop_obsessing_over_host(host *hst){
 	unsigned long attr=MODATTR_OBSESSIVE_HANDLER_ENABLED;
-
-#ifdef DEBUG0
-	printf("stop_obsessing_over_host() start\n");
-#endif
 
 	/* no change */
 	if(hst->obsess_over_host==FALSE)
@@ -5247,10 +4649,6 @@ void stop_obsessing_over_host(host *hst){
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
 
-#ifdef DEBUG0
-	printf("stop_obsessing_over_host() end\n");
-#endif
-
 	return;
         }
 
@@ -5258,19 +4656,11 @@ void stop_obsessing_over_host(host *hst){
 /* sets the current notification number for a specific host */
 void set_host_notification_number(host *hst, int num){
 
-#ifdef DEBUG0
-	printf("set_host_notification_number() start\n");
-#endif
-
 	/* set the notification number */
 	hst->current_notification_number=num;
 
 	/* update the status log with the host info */
 	update_host_status(hst,FALSE);
-
-#ifdef DEBUG0
-	printf("set_host_notification_number() end\n");
-#endif
 
 	return;
         }
@@ -5279,19 +4669,11 @@ void set_host_notification_number(host *hst, int num){
 /* sets the current notification number for a specific service */
 void set_service_notification_number(service *svc, int num){
 
-#ifdef DEBUG0
-	printf("set_service_notification_number() start\n");
-#endif
-
 	/* set the notification number */
 	svc->current_notification_number=num;
 
 	/* update the status log with the service info */
 	update_service_status(svc,FALSE);
-
-#ifdef DEBUG0
-	printf("set_service_notification_number() end\n");
-#endif
 
 	return;
         }
@@ -5310,13 +4692,13 @@ void process_passive_checks(void){
 	mode_t old_umask;
 	time_t current_time;
 
-#ifdef DEBUG0
-	printf("process_passive_checks() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_passive_checks()\n");
 
 	/* nothing to do */
 	if(passive_check_result_list==NULL)
 		return;
+
+	log_debug_info(DEBUGL_CHECKS,1,"Submitting passive host/service check results obtained from external commands...\n");
 
 	/* open a temp file for storing check result(s) */
 	old_umask=umask(new_umask);
@@ -5335,9 +4717,7 @@ void process_passive_checks(void){
 	fprintf(checkresult_file_fp,"file_time=%lu\n",(unsigned long)current_time);
 	fprintf(checkresult_file_fp,"\n");
 
-#ifdef DEBUG_IPC
-	printf("PASSIVE CHECK RESULT FILE: %s\n",checkresult_file);
-#endif
+	log_debug_info(DEBUGL_CHECKS|DEBUGL_IPC,1,"Passive check result(s) will be written to '%s' (fd=%d)\n",checkresult_file,checkresult_file_fd);
 
 	/* write all service checks to check result queue file for later processing */
 	for(temp_pcr=passive_check_result_list;temp_pcr!=NULL;temp_pcr=temp_pcr->next){
@@ -5385,10 +4765,6 @@ void process_passive_checks(void){
 	        }
 	passive_check_result_list=NULL;
 	passive_check_result_list_tail=NULL;
-
-#ifdef DEBUG0
-	printf("process_passive_checks() end\n");
-#endif
 
 	return;
         }

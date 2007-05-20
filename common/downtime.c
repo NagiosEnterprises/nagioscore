@@ -98,6 +98,8 @@ int cleanup_downtime_data(char *config_file){
 int schedule_downtime(int type, char *host_name, char *service_description, time_t entry_time, char *author, char *comment_data, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *new_downtime_id){
 	unsigned long downtime_id=0L;
 
+	log_debug_info(DEBUGL_FUNCTIONS,0,"schedule_downtime()\n");
+
 	/* don't add old or invalid downtimes */
 	if(start_time>=end_time || end_time<=time(NULL))
 		return ERROR;
@@ -126,6 +128,8 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 #ifdef USE_EVENT_BROKER
 	int attr=0;
 #endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"unschedule_downtime()\n");
 
 	/* find the downtime entry in the list in memory */
 	if((temp_downtime=find_downtime(type,downtime_id))==NULL)
@@ -237,7 +241,10 @@ int register_downtime(int type, unsigned long downtime_id){
 	char *type_string=NULL;
 	int hours=0;
 	int minutes=0;
+	int seconds=0;
 	unsigned long *new_downtime_id=NULL;
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"register_downtime()\n");
 
 	/* find the downtime entry in memory */
 	temp_downtime=find_downtime(type,downtime_id);
@@ -259,6 +266,7 @@ int register_downtime(int type, unsigned long downtime_id){
 	get_datetime_string(&(temp_downtime->end_time),end_time_string,MAX_DATETIME_LENGTH,SHORT_DATE_TIME);
 	hours=temp_downtime->duration/3600;
 	minutes=((temp_downtime->duration-(hours*3600))/60);
+	seconds=temp_downtime->duration-(hours*3600)-(minutes*60);
 	if(temp_downtime->type==HOST_DOWNTIME)
 		type_string="host";
 	else
@@ -267,6 +275,24 @@ int register_downtime(int type, unsigned long downtime_id){
 		asprintf(&temp_buffer,"This %s has been scheduled for fixed downtime from %s to %s.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,type_string);
 	else
 		asprintf(&temp_buffer,"This %s has been scheduled for flexible downtime starting between %s and %s and lasting for a period of %d hours and %d minutes.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,hours,minutes,type_string);
+
+
+	log_debug_info(DEBUGL_DOWNTIME,0,"Scheduled Downtime Details:\n");
+	if(temp_downtime->type==HOST_DOWNTIME){
+		log_debug_info(DEBUGL_DOWNTIME,0," Type:        Host Downtime\n");
+		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %lu\n",hst->name);
+		}
+	else{
+		log_debug_info(DEBUGL_DOWNTIME,0," Type:        Service Downtime\n");
+		log_debug_info(DEBUGL_DOWNTIME,0," Host:        %lu\n",svc->host_name);
+		log_debug_info(DEBUGL_DOWNTIME,0," Service:     %lu\n",svc->description);
+		}
+	log_debug_info(DEBUGL_DOWNTIME,0," Fixed/Flex:  %s\n",(temp_downtime->fixed==TRUE)?"Fixed":"Flexible");
+	log_debug_info(DEBUGL_DOWNTIME,0," Start:       %lu\n",temp_downtime->downtime_id);
+	log_debug_info(DEBUGL_DOWNTIME,0," End:         %lu\n",temp_downtime->downtime_id);
+	log_debug_info(DEBUGL_DOWNTIME,0," Duration:    %dh %dm %ds\n",hours,minutes,seconds);
+	log_debug_info(DEBUGL_DOWNTIME,0," Downtime ID: %lu\n",temp_downtime->downtime_id);
+	log_debug_info(DEBUGL_DOWNTIME,0," Trigger ID:  %lu\n",temp_downtime->triggered_by);
 
 
 	/* add a non-persistent comment to the host or service regarding the scheduled outage */
@@ -317,9 +343,8 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 	int attr=0;
 #endif
 
-#ifdef DEBUG0
-        printf("handle_scheduled_downtime() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_scheduled_downtime()\n");
 
 	if(temp_downtime==NULL)
 		return ERROR;
@@ -377,6 +402,8 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 		if(temp_downtime->type==HOST_DOWNTIME && hst->scheduled_downtime_depth==0){
 
+			log_debug_info(DEBUGL_DOWNTIME,0,"Host '%s' has exited from a period of scheduled downtime (id=%lu).\n",hst->name,temp_downtime->downtime_id);
+
 			/* log a notice - this one is parsed by the history CGI */
 			asprintf(&temp_buffer,"HOST DOWNTIME ALERT: %s;STOPPED; Host has exited from a period of scheduled downtime",hst->name);
 			write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
@@ -387,6 +414,8 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		        }
 
 		else if(temp_downtime->type==SERVICE_DOWNTIME && svc->scheduled_downtime_depth==0){
+
+			log_debug_info(DEBUGL_DOWNTIME,0,"Service '%s' on host '%s' has exited from a period of scheduled downtime (id=%lu).\n",svc->description,svc->host_name,temp_downtime->downtime_id);
 
 			/* log a notice - this one is parsed by the history CGI */
 			asprintf(&temp_buffer,"SERVICE DOWNTIME ALERT: %s;%s;STOPPED; Service has exited from a period of scheduled downtime",svc->host_name,svc->description);
@@ -448,6 +477,8 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 		if(temp_downtime->type==HOST_DOWNTIME && hst->scheduled_downtime_depth==0){
 
+			log_debug_info(DEBUGL_DOWNTIME,0,"Host '%s' has entered a period of scheduled downtime (id=%lu).\n",hst->name,temp_downtime->downtime_id);
+
 			/* log a notice - this one is parsed by the history CGI */
 			asprintf(&temp_buffer,"HOST DOWNTIME ALERT: %s;STARTED; Host has entered a period of scheduled downtime",hst->name);
 			write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
@@ -458,6 +489,8 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		        }
 
 		else if(temp_downtime->type==SERVICE_DOWNTIME && svc->scheduled_downtime_depth==0){
+
+			log_debug_info(DEBUGL_DOWNTIME,0,"Service '%s' on host '%s' has entered a period of scheduled downtime (id=%lu).\n",svc->description,svc->host_name,temp_downtime->downtime_id);
 
 			/* log a notice - this one is parsed by the history CGI */
 			asprintf(&temp_buffer,"SERVICE DOWNTIME ALERT: %s;%s;STARTED; Service has entered a period of scheduled downtime",svc->host_name,svc->description);
@@ -500,10 +533,6 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 		        }
 	        }
 	
-#ifdef DEBUG0
-	printf("handle_scheduled_downtime() end\n");
-#endif
-	
 	return OK;
         }
 
@@ -514,9 +543,8 @@ int check_pending_flex_host_downtime(host *hst){
 	scheduled_downtime *temp_downtime=NULL;
 	time_t current_time=0L;
 
-#ifdef DEBUG0
-	printf("check_pending_flex_host_downtime() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_pending_flex_host_downtime()\n");
 
 	if(hst==NULL)
 		return ERROR;
@@ -548,15 +576,14 @@ int check_pending_flex_host_downtime(host *hst){
 			
 			/* if the time boundaries are okay, start this scheduled downtime */
 			if(temp_downtime->start_time<=current_time && current_time<=temp_downtime->end_time){
+
+				log_debug_info(DEBUGL_DOWNTIME,0,"Flexible downtime (id=%lu) for host '%s' starting now...\n",temp_downtime->downtime_id,hst->name);
+
 				temp_downtime->start_flex_downtime=TRUE;
 				handle_scheduled_downtime(temp_downtime);
 			        }
 		        }
 	        }
-
-#ifdef DEBUG0
-	printf("check_pending_flex_host_downtime() end\n");
-#endif
 
 	return OK;
         }
@@ -567,9 +594,8 @@ int check_pending_flex_service_downtime(service *svc){
 	scheduled_downtime *temp_downtime=NULL;
 	time_t current_time=0L;
 
-#ifdef DEBUG0
-	printf("check_pending_flex_service_downtime() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_pending_flex_service_downtime()\n");
 
 	if(svc==NULL)
 		return ERROR;
@@ -601,15 +627,14 @@ int check_pending_flex_service_downtime(service *svc){
 
 			/* if the time boundaries are okay, start this scheduled downtime */
 			if(temp_downtime->start_time<=current_time && current_time<=temp_downtime->end_time){
+
+				log_debug_info(DEBUGL_DOWNTIME,0,"Flexible downtime (id=%lu) for service '%s' on host '%s' starting now...\n",temp_downtime->downtime_id,svc->description,svc->host_name);
+
 				temp_downtime->start_flex_downtime=TRUE;
 				handle_scheduled_downtime(temp_downtime);
 			        }
 		        }
 	        }
-
-#ifdef DEBUG0
-	printf("check_pending_flex_service_downtime() end\n");
-#endif
 
 	return OK;
         }
@@ -621,9 +646,8 @@ int check_for_expired_downtime(void){
 	scheduled_downtime *next_downtime=NULL;
 	time_t current_time=0L;
 
-#ifdef DEBUG0
-	printf("check_for_expired_downtime() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_for_expired_downtime()\n");
 
 	time(&current_time);
 
@@ -635,6 +659,8 @@ int check_for_expired_downtime(void){
 		/* this entry should be removed */
 		if(temp_downtime->is_in_effect==FALSE && temp_downtime->end_time<current_time){
 
+			log_debug_info(DEBUGL_DOWNTIME,0,"Expiring %s downtime (id=%lu)...\n",(temp_downtime->type==HOST_DOWNTIME)?"host":"service",temp_downtime->downtime_id);
+
 			/* delete the downtime entry */
 			if(temp_downtime->type==HOST_DOWNTIME)
 				delete_host_downtime(temp_downtime->downtime_id);
@@ -642,10 +668,6 @@ int check_for_expired_downtime(void){
 				delete_service_downtime(temp_downtime->downtime_id);
 		        }
 	        }
-
-#ifdef DEBUG0
-	printf("check_for_expired_downtime() end\n");
-#endif
 
 	return OK;
         }

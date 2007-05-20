@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-19-2007
+ * Last Modified: 05-20-2007
  *
  * License:
  *
@@ -214,10 +214,6 @@ int read_all_object_data(char *main_config_file){
 	int cache=FALSE;
 	int precache=FALSE;
 
-#ifdef DEBUG0
-	printf("read_all_config_data() start\n");
-#endif
-
 	options=READ_ALL_OBJECT_DATA;
 
 	/* cache object definitions if we're up and running */
@@ -232,10 +228,6 @@ int read_all_object_data(char *main_config_file){
 	result=read_object_config_data(main_config_file,options,cache,precache);
 	if(result!=OK)
 		return ERROR;
-
-#ifdef DEBUG0
-	printf("read_all_config_data() end\n");
-#endif
 
 	return OK;
         }
@@ -257,12 +249,6 @@ int read_main_config_file(char *main_config_file){
 	char *argptr=NULL;
 	DIR *tmpdir=NULL;
 
-#ifdef DEBUG0
-	printf("read_main_config_file() start\n");
-#endif
-#ifdef DEBUG1
-	printf("\tConfig file: %s\n",main_config_file);
-#endif
 
 	/* open the config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL){
@@ -296,10 +282,6 @@ int read_main_config_file(char *main_config_file){
 		/* skip blank lines and comments */
 		if(input[0]=='\x0' || input[0]=='#')
 			continue;
-
-#ifdef DEBUG1
-		printf("\tLine %d = '%s'\n",current_line,input);
-#endif
 
 		/* get the variable name */
 		if((temp_ptr=my_strtok(input,"="))==NULL){
@@ -335,10 +317,6 @@ int read_main_config_file(char *main_config_file){
 			my_free((void **)&macro_x[MACRO_RESOURCEFILE]);
 			macro_x[MACRO_RESOURCEFILE]=(char *)strdup(value);
 
-#ifdef DEBUG1
-			printf("\t\tprocessing resource file '%s'\n",value);
-#endif
-
 			/* process the resource file */
 			read_resource_file(value);
 		        }
@@ -357,29 +335,13 @@ int read_main_config_file(char *main_config_file){
 			/* save the macro */
 			my_free((void **)&macro_x[MACRO_LOGFILE]);
 			macro_x[MACRO_LOGFILE]=(char *)strdup(log_file);
-
-#ifdef DEBUG1
-			printf("\t\tlog_file set to '%s'\n",log_file);
-#endif
 			}
 
-		else if(!strcmp(variable,"debug_level")){
-
+		else if(!strcmp(variable,"debug_level"))
 			debug_level=atoi(value);
 
-#ifdef DEBUG1
-			printf("\t\tdebug_level set to '%d'\n",debug_level);
-#endif
-			}
-
-		else if(!strcmp(variable,"debug_verbosity")){
-
+		else if(!strcmp(variable,"debug_verbosity"))
 			debug_verbosity=atoi(value);
-
-#ifdef DEBUG1
-			printf("\t\tdebug_verbosity set to '%d'\n",debug_verbosity);
-#endif
-			}
 
 		else if(!strcmp(variable,"debug_file")){
 
@@ -391,20 +353,10 @@ int read_main_config_file(char *main_config_file){
 
 			my_free((void **)&debug_file);
 			debug_file=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tdebug_file set to '%s'\n",debug_file);
-#endif
 			}
 
-		else if(!strcmp(variable,"max_debug_file_size")){
-
+		else if(!strcmp(variable,"max_debug_file_size"))
 			max_debug_file_size=strtoul(value,NULL,0);
-
-#ifdef DEBUG1
-			printf("\t\tmax_debug_file_size set to '%lu'\n",max_debug_file_size);
-#endif
-			}
 
 		else if(!strcmp(variable,"command_file")){
 
@@ -420,10 +372,6 @@ int read_main_config_file(char *main_config_file){
 			/* save the macro */
 			my_free((void **)&macro_x[MACRO_COMMANDFILE]);
 			macro_x[MACRO_COMMANDFILE]=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tcommand_file set to '%s'\n",command_file);
-#endif
 			}
 
 		else if(!strcmp(variable,"temp_file")){
@@ -440,10 +388,6 @@ int read_main_config_file(char *main_config_file){
 			/* save the macro */
 			my_free((void **)&macro_x[MACRO_TEMPFILE]);
 			macro_x[MACRO_TEMPFILE]=(char *)strdup(temp_file);
-
-#ifdef DEBUG1
-			printf("\t\ttemp_file set to '%s'\n",temp_file);
-#endif
 			}
 
 		else if(!strcmp(variable,"temp_path")){
@@ -472,10 +416,6 @@ int read_main_config_file(char *main_config_file){
 			/* save the macro */
 			my_free((void **)&macro_x[MACRO_TEMPPATH]);
 			macro_x[MACRO_TEMPPATH]=(char *)strdup(temp_path);
-
-#ifdef DEBUG1
-			printf("\t\ttemp_path set to '%s'\n",temp_path);
-#endif
 			}
 
 		else if(!strcmp(variable,"check_result_path")){
@@ -500,19 +440,10 @@ int read_main_config_file(char *main_config_file){
 				if(temp_path[strlen(temp_path)-1]=='/')
 					temp_path[strlen(temp_path)-1]='\x0';
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tcheck_result_path set to '%s'\n",check_result_path);
-#endif
 			}
 
-		else if(!strcmp(variable,"max_check_result_file_age")){
-
+		else if(!strcmp(variable,"max_check_result_file_age"))
 			max_check_result_file_age=strtoul(value,NULL,0);
-#ifdef DEBUG1
-			printf("\t\tmax_check_result_file_age set to %lu\n",max_check_result_file_age);
-#endif
-		        }
 
 		else if(!strcmp(variable,"lock_file")){
 
@@ -524,58 +455,36 @@ int read_main_config_file(char *main_config_file){
 
 			my_free((void **)&lock_file);
 			lock_file=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tlock_file set to '%s'\n",lock_file);
-#endif
 			}
 
 		else if(!strcmp(variable,"global_host_event_handler")){
 			my_free((void **)&global_host_event_handler);
 			global_host_event_handler=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tglobal_host_event_handler set to '%s'\n",global_host_event_handler);
-#endif
 		        }
 
 		else if(!strcmp(variable,"global_service_event_handler")){
 			my_free((void **)&global_service_event_handler);
 			global_service_event_handler=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tglobal_service_event_handler set to '%s'\n",global_service_event_handler);
-#endif
 		        }
 
 		else if(!strcmp(variable,"ocsp_command")){
 			my_free((void **)&ocsp_command);
 			ocsp_command=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tocsp_command set to '%s'\n",ocsp_command);
-#endif
 		        }
 
 		else if(!strcmp(variable,"ochp_command")){
 			my_free((void **)&ochp_command);
 			ochp_command=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tochp_command set to '%s'\n",ochp_command);
-#endif
 		        }
 
 		else if(!strcmp(variable,"nagios_user")){
 			my_free((void **)&nagios_user);
 			nagios_user=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tnagios_user set to '%s'\n",nagios_user);
-#endif
 		        }
 
 		else if(!strcmp(variable,"nagios_group")){
 			my_free((void **)&nagios_group);
 			nagios_group=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tnagios_group set to '%s'\n",nagios_group);
-#endif
 		        }
 
 		else if(!strcmp(variable,"admin_email")){
@@ -583,10 +492,6 @@ int read_main_config_file(char *main_config_file){
 			/* save the macro */
 			my_free((void **)&macro_x[MACRO_ADMINEMAIL]);
 			macro_x[MACRO_ADMINEMAIL]=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tmacro_admin_email set to '%s'\n",macro_x[MACRO_ADMINEMAIL]);
-#endif
 		        }
 
 		else if(!strcmp(variable,"admin_pager")){
@@ -594,10 +499,6 @@ int read_main_config_file(char *main_config_file){
 			/* save the macro */
 			my_free((void **)&macro_x[MACRO_ADMINPAGER]);
 			macro_x[MACRO_ADMINPAGER]=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tmacro_admin_pager set to '%s'\n",macro_x[MACRO_ADMINPAGER]);
-#endif
 		        }
 
 		else if(!strcmp(variable,"use_syslog")){
@@ -609,10 +510,6 @@ int read_main_config_file(char *main_config_file){
 				}
 
 			use_syslog=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tuse_syslog set to %s\n",(use_syslog==TRUE)?"TRUE":"FALSE");
-#endif
 			}
 
 		else if(!strcmp(variable,"log_notifications")){
@@ -624,10 +521,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_notifications=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_notifications set to %s\n",(log_notifications==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_service_retries")){
@@ -639,10 +532,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_service_retries=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_service_retries set to %s\n",(log_service_retries==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_host_retries")){
@@ -654,10 +543,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_host_retries=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_host_retries set to %s\n",(log_host_retries==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_event_handlers")){
@@ -669,10 +554,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_event_handlers=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_event_handlers set to %s\n",(log_event_handlers==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_external_commands")){
@@ -684,10 +565,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_external_commands=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_external_commands set to %s\n",(log_external_commands==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_passive_checks")){
@@ -699,10 +576,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_passive_checks=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_passive_checks set to %s\n",(log_passive_checks==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_initial_states")){
@@ -714,11 +587,8 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			log_initial_states=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tlog_initial_states set to %s\n",(log_initial_states==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
+
 		else if(!strcmp(variable,"retain_state_information")){
 
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
@@ -728,10 +598,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			retain_state_information=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tretain_state_information set to %s\n",(retain_state_information==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"retention_update_interval")){
@@ -742,10 +608,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tretention_update_interval set to %d\n",retention_update_interval);
-#endif
 		        }
 
 		else if(!strcmp(variable,"use_retained_program_state")){
@@ -757,10 +619,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			use_retained_program_state=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tuse_retained_program_state set to %s\n",(use_retained_program_state==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"use_retained_scheduling_info")){
@@ -772,10 +630,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			use_retained_scheduling_info=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tuse_retained_scheduling_info set to %s\n",(use_retained_scheduling_info==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"retention_scheduling_horizon")){
@@ -787,10 +641,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tretention_scheduling_horizon set to %d\n",retention_scheduling_horizon);
-#endif
 		        }
 
 		else if(!strcmp(variable,"retained_host_attribute_mask"))
@@ -820,10 +670,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			obsess_over_services=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tobsess_over_services set to %s\n",(obsess_over_services==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"obsess_over_hosts")){
@@ -835,10 +681,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			obsess_over_hosts=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tobsess_over_hosts set to %s\n",(obsess_over_hosts==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"translate_passive_host_checks")){
@@ -850,10 +692,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			translate_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\ttranslate_passive_host_checks set to %s\n",(translate_passive_host_checks==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"service_check_timeout")){
@@ -865,10 +703,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tservice_check_timeout set to %d\n",service_check_timeout);
-#endif
 		        }
 
 		else if(!strcmp(variable,"host_check_timeout")){
@@ -880,10 +714,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\thost_check_timeout set to %d\n",host_check_timeout);
-#endif
 		        }
 
 		else if(!strcmp(variable,"event_handler_timeout")){
@@ -895,10 +725,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tevent_handler_timeout set to %d\n",event_handler_timeout);
-#endif
 		        }
 
 		else if(!strcmp(variable,"notification_timeout")){
@@ -910,10 +736,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tnotification_timeout set to %d\n",notification_timeout);
-#endif
 		        }
 
 		else if(!strcmp(variable,"ocsp_timeout")){
@@ -925,10 +747,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tocsp_timeout set to %d\n",ocsp_timeout);
-#endif
 		        }
 
 		else if(!strcmp(variable,"ochp_timeout")){
@@ -940,10 +758,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tochp_timeout set to %d\n",ochp_timeout);
-#endif
 		        }
 
 		else if(!strcmp(variable,"use_agressive_host_checking") || !strcmp(variable,"use_aggressive_host_checking")){
@@ -955,39 +769,19 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			use_aggressive_host_checking=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tuse_aggressive_host_checking set to %s\n",(use_aggressive_host_checking==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
-		else if(!strcmp(variable,"cached_host_check_horizon")){
+		else if(!strcmp(variable,"cached_host_check_horizon"))
 			cached_host_check_horizon=strtoul(value,NULL,0);
-#ifdef DEBUG1
-			printf("\t\tcached_host_check_horizon set to %lu\n",cached_host_check_horizon);
-#endif
-		        }
 
-		else if(!strcmp(variable,"enable_predictive_host_dependency_checks")){
+		else if(!strcmp(variable,"enable_predictive_host_dependency_checks"))
 			enable_predictive_host_dependency_checks=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tenable_predictive_host_dependency_checks set to %s\n",(enable_predictive_host_dependency_checks==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"cached_service_check_horizon")){
+		else if(!strcmp(variable,"cached_service_check_horizon"))
 			cached_service_check_horizon=strtoul(value,NULL,0);
-#ifdef DEBUG1
-			printf("\t\tcached_service_check_horizon set to %lu\n",cached_service_check_horizon);
-#endif
-		        }
 
-		else if(!strcmp(variable,"enable_predictive_service_dependency_checks")){
+		else if(!strcmp(variable,"enable_predictive_service_dependency_checks"))
 			enable_predictive_service_dependency_checks=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tenable_predictive_service_dependency_checks set to %s\n",(enable_predictive_service_dependency_checks==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
 		else if(!strcmp(variable,"soft_state_dependencies")){
 			if(strlen(value)!=1||value[0]<'0'||value[0]>'1'){
@@ -997,10 +791,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			soft_state_dependencies=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tsoft_state_dependencies set to %s\n",(soft_state_dependencies==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_rotation_method")){
@@ -1019,10 +809,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tlog_rotation_method set to %d\n",log_rotation_method);
-#endif
 		        }
 
 		else if(!strcmp(variable,"log_archive_path")){
@@ -1035,53 +821,25 @@ int read_main_config_file(char *main_config_file){
 
 			my_free((void **)&log_archive_path);
 			log_archive_path=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tlog_archive_path set to '%s'\n",log_archive_path);
-#endif
 			}
 
-		else if(!strcmp(variable,"enable_event_handlers")){
+		else if(!strcmp(variable,"enable_event_handlers"))
 			enable_event_handlers=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tenable_event_handlers set to %s\n",(enable_event_handlers==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"enable_notifications")){
+		else if(!strcmp(variable,"enable_notifications"))
 			enable_notifications=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tenable_notifications set to %s\n",(enable_notifications==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"execute_service_checks")){
+		else if(!strcmp(variable,"execute_service_checks"))
 			execute_service_checks=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\texecute_service_checks set to %s\n",(execute_service_checks==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"accept_passive_service_checks")){
+		else if(!strcmp(variable,"accept_passive_service_checks"))
 			accept_passive_service_checks=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\taccept_passive_service_checks set to %s\n",(accept_passive_service_checks==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"execute_host_checks")){
+		else if(!strcmp(variable,"execute_host_checks"))
 			execute_host_checks=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\texecute_host_checks set to %s\n",(execute_host_checks==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"accept_passive_host_checks")){
+		else if(!strcmp(variable,"accept_passive_host_checks"))
 			accept_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\taccept_passive_host_checks set to %s\n",(accept_passive_host_checks==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
 		else if(!strcmp(variable,"service_inter_check_delay_method")){
 			if(!strcmp(value,"n"))
@@ -1099,9 +857,6 @@ int read_main_config_file(char *main_config_file){
 					break;
 				        }
 			        }
-#ifdef DEBUG1
-			printf("\t\tservice_inter_check_delay_method set to %d\n",service_inter_check_delay_method);
-#endif
 		        }
 
 		else if(!strcmp(variable,"max_service_check_spread")){
@@ -1112,10 +867,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tmax_service_check_spread set to %d\n",max_service_check_spread);
-#endif
 		        }
 
 		else if(!strcmp(variable,"host_inter_check_delay_method")){
@@ -1135,9 +886,6 @@ int read_main_config_file(char *main_config_file){
 					break;
 				        }
 			        }
-#ifdef DEBUG1
-			printf("\t\thost_inter_check_delay_method set to %d\n",host_inter_check_delay_method);
-#endif
 		        }
 
 		else if(!strcmp(variable,"max_host_check_spread")){
@@ -1148,10 +896,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tmax_host_check_spread set to %d\n",max_host_check_spread);
-#endif
 		        }
 
 		else if(!strcmp(variable,"service_interleave_factor")){
@@ -1173,10 +917,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tmax_parallel_service_checks set to %d\n",max_parallel_service_checks);
-#endif
 		        }
 
 		else if(!strcmp(variable,"check_result_reaper_frequency") || !strcmp(variable,"service_reaper_frequency")){
@@ -1187,10 +927,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tcheck_result_reaper_interval set to %d\n",check_reaper_interval);
-#endif
 		        }
 
 		else if(!strcmp(variable,"max_check_result_reaper_time")){
@@ -1201,10 +937,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tmax_check_result_reaper_time set to %d\n",max_check_reaper_time);
-#endif
 		        }
 
 		else if(!strcmp(variable,"sleep_time")){
@@ -1215,9 +947,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-#ifdef DEBUG1
-			printf("\t\tsleep_time set to %f\n",sleep_time);
-#endif
 		        }
 
 		else if(!strcmp(variable,"interval_length")){
@@ -1228,10 +957,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tinterval_length set to %d\n",interval_length);
-#endif
 		        }
 
 		else if(!strcmp(variable,"check_external_commands")){
@@ -1243,10 +968,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			check_external_commands=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tcheck_external_commands set to %s\n",(check_external_commands==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"command_check_interval")){
@@ -1258,10 +979,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tcommand_check_interval set to %d\n",command_check_interval);
-#endif
 		        }
 
 		else if(!strcmp(variable,"check_for_orphaned_services")){
@@ -1273,10 +990,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			check_orphaned_services=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tcheck_for_orphaned_services set to %s\n",(check_orphaned_services==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"check_for_orphaned_hosts")){
@@ -1288,10 +1001,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			check_orphaned_hosts=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tcheck_for_orphaned_hosts set to %s\n",(check_orphaned_hosts==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"check_service_freshness")){
@@ -1303,10 +1012,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			check_service_freshness=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tcheck_service_freshness set to %s\n",(check_service_freshness==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"check_host_freshness")){
@@ -1318,10 +1023,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			check_host_freshness=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tcheck_host_freshness set to %s\n",(check_host_freshness==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"service_freshness_check_interval") || !strcmp(variable,"freshness_check_interval")){
@@ -1332,10 +1033,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tservice_freshness_check_interval set to %d\n",service_freshness_check_interval);
-#endif
 		        }
 
 		else if(!strcmp(variable,"host_freshness_check_interval")){
@@ -1346,10 +1043,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\thost_freshness_check_interval set to %d\n",host_freshness_check_interval);
-#endif
 		        }
 		else if(!strcmp(variable,"auto_reschedule_checks")){
 
@@ -1360,10 +1053,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			auto_reschedule_checks=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tauto_reschedule_checks set to %s\n",(auto_reschedule_checks==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"auto_rescheduling_interval")){
@@ -1374,10 +1063,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tauto_rescheduling_interval set to %d\n",auto_rescheduling_interval);
-#endif
 		        }
 
 		else if(!strcmp(variable,"auto_rescheduling_window")){
@@ -1388,10 +1073,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tauto_rescheduling_window set to %d\n",auto_rescheduling_window);
-#endif
 		        }
 
 		else if(!strcmp(variable,"aggregate_status_updates")){
@@ -1402,10 +1083,6 @@ int read_main_config_file(char *main_config_file){
 			asprintf(&temp_buffer,"Warning: aggregate_status_updates directive ignored.  All status file updates are now aggregated.");
 			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
-
-#ifdef DEBUG1
-			printf("\t\taggregate_status_updates to %s\n",(aggregate_status_updates==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"status_update_interval")){
@@ -1416,10 +1093,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\tstatus_update_interval set to %d\n",status_update_interval);
-#endif
 		        }
 
 		else if(!strcmp(variable,"time_change_threshold")){
@@ -1431,35 +1104,16 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-
-#ifdef DEBUG1
-			printf("\t\ttime_change_threshold set to %d\n",time_change_threshold);
-#endif
 		        }
 
-		else if(!strcmp(variable,"process_performance_data")){
-
+		else if(!strcmp(variable,"process_performance_data"))
 			process_performance_data=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tprocess_performance_data set to %s\n",(process_performance_data==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"enable_flap_detection")){
-
+		else if(!strcmp(variable,"enable_flap_detection"))
 			enable_flap_detection=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tenable_flap_detection set to %s\n",(enable_flap_detection==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"enable_failure_prediction")){
-
+		else if(!strcmp(variable,"enable_failure_prediction"))
 			enable_failure_prediction=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tenable_failure_prediction set to %s\n",(enable_failure_prediction==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
 		else if(!strcmp(variable,"low_service_flap_threshold")){
 
@@ -1469,9 +1123,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-#ifdef DEBUG1
-			printf("\t\tlow_service_flap_threshold set to %f\n",low_service_flap_threshold);
-#endif
 		        }
 
 		else if(!strcmp(variable,"high_service_flap_threshold")){
@@ -1482,9 +1133,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-#ifdef DEBUG1
-			printf("\t\thigh_service_flap_threshold set to %f\n",high_service_flap_threshold);
-#endif
 		        }
 
 		else if(!strcmp(variable,"low_host_flap_threshold")){
@@ -1495,9 +1143,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-#ifdef DEBUG1
-			printf("\t\tlow_host_flap_threshold set to %f\n",low_host_flap_threshold);
-#endif
 		        }
 
 		else if(!strcmp(variable,"high_host_flap_threshold")){
@@ -1508,9 +1153,6 @@ int read_main_config_file(char *main_config_file){
 				error=TRUE;
 				break;
 			        }
-#ifdef DEBUG1
-			printf("\t\thigh_host_flap_threshold set to %f\n",high_host_flap_threshold);
-#endif
 		        }
 
 		else if(!strcmp(variable,"date_format")){
@@ -1523,9 +1165,6 @@ int read_main_config_file(char *main_config_file){
 				date_format=DATE_FORMAT_STRICT_ISO8601;
 			else
 				date_format=DATE_FORMAT_US;
-#ifdef DEBUG1
-			printf("\t\tdate_format set to %d\n",date_format);
-#endif
 		        }
 
 		else if(!strcmp(variable,"p1_file")){
@@ -1538,10 +1177,6 @@ int read_main_config_file(char *main_config_file){
 
 			my_free((void **)&p1_file);
 			p1_file=(char *)strdup(value);
-
-#ifdef DEBUG1
-			printf("\t\tp1_file set to '%s'\n",p1_file);
-#endif
 			}
 
 		else if(!strcmp(variable,"event_broker_options")){
@@ -1550,24 +1185,14 @@ int read_main_config_file(char *main_config_file){
 				event_broker_options=BROKER_EVERYTHING;
 			else
 				event_broker_options=strtoul(value,NULL,0);
-#ifdef DEBUG1
-			printf("\t\tevent_broker_options set to %d\n",event_broker_options);
-#endif
 		        }
 
-		else if(!strcmp(variable,"illegal_object_name_chars")){
+		else if(!strcmp(variable,"illegal_object_name_chars"))
 			illegal_object_chars=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tillegal_object_name_chars set to '%s'\n",illegal_object_chars);
-#endif
-		        }
 
-		else if(!strcmp(variable,"illegal_macro_output_chars")){
+		else if(!strcmp(variable,"illegal_macro_output_chars"))
 			illegal_output_chars=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tillegal_macro_output_chars set to '%s'\n",illegal_output_chars);
-#endif
-		        }
+
 
 		else if(!strcmp(variable,"broker_module")){
 			modptr=strtok(value," \n");
@@ -1577,21 +1202,11 @@ int read_main_config_file(char *main_config_file){
 #endif
 		        }
 
-		else if(!strcmp(variable,"use_regexp_matching")){
-
+		else if(!strcmp(variable,"use_regexp_matching"))
 			use_regexp_matches=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tuse_regexp_matches to %s\n",(use_regexp_matches==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
-		else if(!strcmp(variable,"use_true_regexp_matching")){
-
+		else if(!strcmp(variable,"use_true_regexp_matching"))
 			use_true_regexp_matching=(atoi(value)>0)?TRUE:FALSE;
-#ifdef DEBUG1
-			printf("\t\tuse_true_regexp_matching to %s\n",(use_true_regexp_matching==TRUE)?"TRUE":"FALSE");
-#endif
-		        }
 
 		else if(!strcmp(variable,"daemon_dumps_core")){
 
@@ -1602,10 +1217,6 @@ int read_main_config_file(char *main_config_file){
 				}
 
 			daemon_dumps_core=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tdaemon_dumps_core set to %s\n",(daemon_dumps_core==TRUE)?"TRUE":"FALSE");
-#endif
 			}
 
 		else if(!strcmp(variable,"use_large_installation_tweaks")){
@@ -1617,10 +1228,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			use_large_installation_tweaks=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tuse_large_installation_tweaks set to %s\n",(use_large_installation_tweaks==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"enable_embedded_perl")){
@@ -1632,10 +1239,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			enable_embedded_perl=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tenable_embedded_perl set to %s\n",(enable_embedded_perl==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"use_embedded_perl_implicitly")){
@@ -1647,10 +1250,6 @@ int read_main_config_file(char *main_config_file){
 			        }
 
 			use_embedded_perl_implicitly=(atoi(value)>0)?TRUE:FALSE;
-
-#ifdef DEBUG1
-			printf("\t\tuse_embedded_perl_implicitly set to %s\n",(use_embedded_perl_implicitly==TRUE)?"TRUE":"FALSE");
-#endif
 		        }
 
 		else if(!strcmp(variable,"external_command_buffer_slots"))
@@ -1667,9 +1266,6 @@ int read_main_config_file(char *main_config_file){
 
 			my_free((void **)&auth_file);
 			auth_file=(char *)strdup(value);
-#ifdef DEBUG1
-			printf("\t\tauth_file set to '%s'\n",auth_file);
-#endif
 		        }
 
 		/* warn about old variables */
@@ -1743,10 +1339,6 @@ int read_main_config_file(char *main_config_file){
 		return ERROR;
 		}
 
-#ifdef DEBUG0
-	printf("read_main_config_file() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -1763,14 +1355,6 @@ int read_resource_file(char *resource_file){
 	int current_line=1;
 	int error=FALSE;
 	int user_index=0;
-
-#ifdef DEBUG0
-	printf("read_resource_file() start\n");
-#endif
-
-#ifdef DEBUG1
-	printf("processing resource file '%s'\n",resource_file);
-#endif
 
 	if((thefile=mmap_fopen(resource_file))==NULL){
 		asprintf(&temp_buffer,"Error: Cannot open resource file '%s' for reading!",resource_file);
@@ -1836,9 +1420,6 @@ int read_resource_file(char *resource_file){
 				if(user_index>=0 && user_index<MAX_USER_MACROS){
 					my_free((void **)&macro_user[user_index]);
 					macro_user[user_index]=(char *)strdup(value);
-#ifdef DEBUG1
-					printf("\t\t$USER%d$ set to '%s'\n",user_index+1,macro_user[user_index]);
-#endif
 				        }
 			        }
 		        }
@@ -1854,10 +1435,6 @@ int read_resource_file(char *resource_file){
 
 	if(error==TRUE)
 		return ERROR;
-
-#ifdef DEBUG0
-	printf("read_resource_file() end\n");
-#endif
 
 	return OK;
         }
@@ -1885,9 +1462,6 @@ int pre_flight_check(void){
 	double runtime[4];
 	int temp_path_fd=-1;
 
-#ifdef DEBUG0
-	printf("pre_flight_check() start\n");
-#endif
 
 	if(test_scheduling==TRUE)
 		gettimeofday(&tv[0],NULL);
@@ -1956,9 +1530,6 @@ int pre_flight_check(void){
 		my_free((void **)&buf);
 	        }
 
-#ifdef DEBUG1
-	printf("\tCompleted global event handler command checks\n");
-#endif
 
 	/**************************************************/
 	/* check obsessive processor commands...          */
@@ -2006,9 +1577,6 @@ int pre_flight_check(void){
 		my_free((void **)&buf);
 	        }
 
-#ifdef DEBUG1
-	printf("\tCompleted obsessive compulsive processor command checks\n");
-#endif
 
 	/**************************************************/
 	/* check various settings...                      */
@@ -2094,10 +1662,6 @@ int pre_flight_check(void){
 		printf("\n\n");
 	        }
 
-#ifdef DEBUG0
-	printf("pre_flight_check() end\n");
-#endif
-
 	return (errors>0)?ERROR:OK;
 	}
 
@@ -2133,10 +1697,6 @@ int pre_flight_object_check(int *w, int *e){
 	int total_objects=0;
 	int warnings=0;
 	int errors=0;
-
-#ifdef DEBUG0
-	printf("pre_flight_object_check() start\n");
-#endif
 
 
 	/* bail out if we aren't supposed to verify object relationships */
@@ -2228,32 +1788,6 @@ int pre_flight_object_check(int *w, int *e){
 		/* reset the found flag */
 		found=FALSE;
 
-#ifdef REMOVED_07182006
-		/* check for valid contactgroups */
-		for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-
-			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service '%s' for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_service->description,temp_service->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-				errors++;
-			        }
-
-			/* save the group pointer for later */
-			temp_contactgroupsmember->group_ptr=temp_contactgroup;
-			}
-
-		/* check to see if there is at least one contact group */
-		if(temp_service->contact_groups==NULL){
-			asprintf(&temp_buffer,"Warning: Service '%s' on host '%s'  has no default contact group(s) defined!",temp_service->description,temp_service->host_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
-			warnings++;
-		        }
-#endif
-
 		/* check for valid contacts */
 		for(temp_contactsmember=temp_service->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
@@ -2338,11 +1872,6 @@ int pre_flight_object_check(int *w, int *e){
 
 	if(verify_config==TRUE)
 		printf("\tChecked %d services.\n",total_objects);
-
-
-#ifdef DEBUG1
-	printf("\tCompleted service verification checks\n");
-#endif
 
 
 
@@ -2441,32 +1970,6 @@ int pre_flight_object_check(int *w, int *e){
 			temp_host->check_period_ptr=temp_timeperiod;
 		        }
 
-#ifdef REMOVED_07182006
-		/* check all contact groups */
-		for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-
-			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_host->name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-				errors++;
-			        }
-
-			/* save the group pointer for later */
-			temp_contactgroupsmember->group_ptr=temp_contactgroup;
-			}
-
-		/* check to see if there is at least one contact group */
-		if(temp_host->contact_groups==NULL){
-			asprintf(&temp_buffer,"Warning: Host '%s' has no default contact group(s) defined!",temp_host->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
-			warnings++;
-		        }
-#endif
-
 		/* check all contacts */
 		for(temp_contactsmember=temp_host->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 
@@ -2540,24 +2043,12 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d hosts.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted host verification checks\n");
-#endif
-
 
 	/*****************************************/
 	/* check each host group...              */
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking host groups...\n");
-#ifdef REMOVED_12112006
-	if(hostgroup_list==NULL){
-		asprintf(&temp_buffer,"Error: There are no host groups defined!");
-		write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
-		errors++;
-	        }
-#endif
 	for(temp_hostgroup=hostgroup_list,total_objects=0;temp_hostgroup!=NULL;temp_hostgroup=temp_hostgroup->next,total_objects++){
 
 		/* check all group members */
@@ -2590,10 +2081,6 @@ int pre_flight_object_check(int *w, int *e){
 
 	if(verify_config==TRUE)
 		printf("\tChecked %d host groups.\n",total_objects);
-
-#ifdef DEBUG1
-	printf("\tCompleted hostgroup verification checks\n");
-#endif
 
 
 	/*****************************************/
@@ -2634,9 +2121,6 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d service groups.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted servicegroup verification checks\n");
-#endif
 
 
 	/*****************************************/
@@ -2752,27 +2236,6 @@ int pre_flight_object_check(int *w, int *e){
 			temp_contact->host_notification_period_ptr=temp_timeperiod;
 		        }
 
-#ifdef REMOVED_07182006
-		found=FALSE;
-
-		/* make sure the contact belongs to at least one contact group */
-		for(temp_contactgroup=contactgroup_list;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next){
-			temp_contactgroupmember=find_contactgroupmember(temp_contact->name,temp_contactgroup);
-			if(temp_contactgroupmember!=NULL){
-				found=TRUE;
-				break;
-			        }
-		        }
-
-		/* we couldn't find the contact in any contact groups */
-		if(found==FALSE){
-			asprintf(&temp_buffer,"Warning: Contact '%s' is not a member of any contact groups!",temp_contact->name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
-			warnings++;
-		        }
-#endif
-	
 		/* check for sane host recovery options */
 		if(temp_contact->notify_on_host_recovery==TRUE && temp_contact->notify_on_host_down==FALSE && temp_contact->notify_on_host_unreachable==FALSE){
 			asprintf(&temp_buffer,"Warning: Host recovery notification option for contact '%s' doesn't make any sense - specify down and/or unreachable options as well",temp_contact->name);
@@ -2801,10 +2264,6 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d contacts.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted contact verification checks\n");
-#endif
-
  
 
 	/*****************************************/
@@ -2821,64 +2280,6 @@ int pre_flight_object_check(int *w, int *e){
 	for(temp_contactgroup=contactgroup_list,total_objects=0;temp_contactgroup!=NULL;temp_contactgroup=temp_contactgroup->next,total_objects++){
 
 		found=FALSE;
-
-#ifdef REMOVED_07182006
-		/* make sure each contactgroup is used in at least one host or service definition or escalation */
-		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
-			for(temp_contactgroupsmember=temp_host->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-				if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
-					found=TRUE;
-					break;
-			                }
-		                 }
-			if(found==TRUE)
-				break;
-		        }
-		if(found==FALSE){
-			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
-				for(temp_contactgroupsmember=temp_service->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
-						found=TRUE;
-						break;
-				                }
-			                 }
-				if(found==TRUE)
-					break;
-			        }
-		        }
-		if(found==FALSE){
-			for(temp_se=serviceescalation_list;temp_se!=NULL;temp_se=temp_se->next){
-				for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
-						found=TRUE;
-						break;
-				                }
-			                 }
-				if(found==TRUE)
-					break;
-			        }
-		        }
-		if(found==FALSE){
-			for(temp_he=hostescalation_list;temp_he!=NULL;temp_he=temp_he->next){
-				for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-					if(!strcmp(temp_contactgroup->group_name,temp_contactgroupsmember->group_name)){
-						found=TRUE;
-						break;
-				                }
-			                 }
-				if(found==TRUE)
-					break;
-			        }
-		        }
-
-		/* we couldn't find a hostgroup or service */
-		if(found==FALSE){
-			asprintf(&temp_buffer,"Warning: Contact group '%s' is not used in any host/service definitions or host/service escalations!",temp_contactgroup->group_name);
-			write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_WARNING,TRUE);
-			my_free((void **)&temp_buffer);
-			warnings++;
-			}
-#endif
 
 		/* check all the group members */
 		for(temp_contactgroupmember=temp_contactgroup->members;temp_contactgroupmember!=NULL;temp_contactgroupmember=temp_contactgroupmember->next){
@@ -2906,10 +2307,6 @@ int pre_flight_object_check(int *w, int *e){
 
 	if(verify_config==TRUE)
 		printf("\tChecked %d contact groups.\n",total_objects);
-
-#ifdef DEBUG1
-	printf("\tCompleted contact group verification checks\n");
-#endif
 
 
 
@@ -2947,24 +2344,6 @@ int pre_flight_object_check(int *w, int *e){
 			temp_se->escalation_period_ptr=temp_timeperiod;
 		        }
 
-#ifdef REMOVED_07182006
-		/* find the contact groups */
-		for(temp_contactgroupsmember=temp_se->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-			
-			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in service escalation for service '%s' on host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_se->description,temp_se->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-				errors++;
-			        }
-
-			/* save the group pointer for later */
-			temp_contactgroupsmember->group_ptr=temp_contactgroup;
-		        }
-#endif
-
 		/* find the contacts */
 		for(temp_contactsmember=temp_se->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			
@@ -2984,10 +2363,6 @@ int pre_flight_object_check(int *w, int *e){
 
 	if(verify_config==TRUE)
 		printf("\tChecked %d service escalations.\n",total_objects);
-
-#ifdef DEBUG1
-	printf("\tCompleted service escalation checks\n");
-#endif
 
 
 
@@ -3049,10 +2424,6 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d service dependencies.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted service dependency checks\n");
-#endif
-
 
 
 	/*****************************************/
@@ -3089,24 +2460,6 @@ int pre_flight_object_check(int *w, int *e){
 			temp_he->escalation_period_ptr=temp_timeperiod;
 		        }
 
-#ifdef REMOVED_07182006
-		/* find the contact groups */
-		for(temp_contactgroupsmember=temp_he->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-			
-			/* find the contact group */
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-			if(temp_contactgroup==NULL){
-				asprintf(&temp_buffer,"Error: Contact group '%s' specified in host escalation for host '%s' is not defined anywhere!",temp_contactgroupsmember->group_name,temp_he->host_name);
-				write_to_logs_and_console(temp_buffer,NSLOG_VERIFICATION_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-				errors++;
-			        }
-
-			/* save the group pointer for later */
-			temp_contactgroupsmember->group_ptr=temp_contactgroup;
-		        }
-#endif
-
 		/* find the contacts */
 		for(temp_contactsmember=temp_he->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
 			
@@ -3127,9 +2480,6 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d host escalations.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted host escalation checks\n");
-#endif
 
 
 	/*****************************************/
@@ -3190,9 +2540,6 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d host dependencies.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted host dependency checks\n");
-#endif
 
 
 	/*****************************************/
@@ -3215,9 +2562,6 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d commands.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted command checks\n");
-#endif
 
 
 	/*****************************************/
@@ -3240,19 +2584,12 @@ int pre_flight_object_check(int *w, int *e){
 	if(verify_config==TRUE)
 		printf("\tChecked %d time periods.\n",total_objects);
 
-#ifdef DEBUG1
-	printf("\tCompleted command checks\n");
-#endif
 
 
        /* update warning and error count */
 	*w+=warnings;
 	*e+=errors;
  
-#ifdef DEBUG0
-	printf("pre_flight_object_check() end\n");
-#endif
-
 	return (errors>0)?ERROR:OK;
 	}
 
@@ -3270,10 +2607,6 @@ int pre_flight_circular_check(int *w, int *e){
 	int result=OK;
 	int warnings=0;
 	int errors=0;
-
-#ifdef DEBUG0
-	printf("pre_flight_circular_check() start\n");
-#endif
 
 
 	/* bail out if we aren't supposed to verify circular paths */
@@ -3306,10 +2639,6 @@ int pre_flight_circular_check(int *w, int *e){
 	        }
 	if(result==ERROR)
 		errors++;
-
-#ifdef DEBUG1
-	printf("\tCompleted circular path checks\n");
-#endif
 
 
 
@@ -3383,18 +2712,11 @@ int pre_flight_circular_check(int *w, int *e){
 		        }
 	        }
 
-#ifdef DEBUG1
-	printf("\tCompleted circular host and service dependency checks\n");
-#endif
 
         /* update warning and error count */
 	*w+=warnings;
 	*e+=errors;
  
-#ifdef DEBUG0
-	printf("pre_flight_check() end\n");
-#endif
-
 	return (errors>0)?ERROR:OK;
 	}
 

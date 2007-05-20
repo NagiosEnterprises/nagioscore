@@ -2,8 +2,8 @@
  *
  * NEBMODS.C - Event Broker Module Functions
  *
- * Copyright (c) 2002-2006 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   12-12-2006
+ * Copyright (c) 2002-2007 Ethan Galstad (nagios@nagios.org)
+ * Last Modified:   05-20-2007
  *
  * License:
  *
@@ -111,9 +111,7 @@ int neb_add_module(char *filename,char *args,int should_be_loaded){
 	new_module->next=neb_module_list;
 	neb_module_list=new_module;
 
-#ifdef DEBUG
-	printf("Added module: name='%s', args='%s', should_be_loaded='%d'\n",filename,args,should_be_loaded);
-#endif
+	log_debug_info(DEBUGL_EVENTBROKER,0,"Added module: name='%s', args='%s', should_be_loaded='%d'\n",filename,args,should_be_loaded);
 
 	return OK;
         }
@@ -267,11 +265,9 @@ int neb_load_module(nebmodule *mod){
 	mod->deinit_func=dlsym(mod->module_handle,"nebmodule_deinit");
 #endif
 
-#ifdef DEBUG
-	printf("Module '%s' loaded with return code of '%d'\n",mod->filename,result);
+	log_debug_info(DEBUGL_EVENTBROKER,0,"Module '%s' loaded with return code of '%d'\n",mod->filename,result);
 	if(mod->deinit_func!=NULL)
-		printf("\tnebmodule_deinit() found\n");
-#endif
+		log_debug_info(DEBUGL_EVENTBROKER,0,"nebmodule_deinit() found\n");
 
 	return OK;
         }
@@ -309,9 +305,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 	if(mod==NULL)
 		return ERROR;
 
-#ifdef DEBUG
-	printf("Attempting to unload module '%s': flags=%d, reason=%d\n",mod->filename,flags,reason);
-#endif
+	log_debug_info(DEBUGL_EVENTBROKER,0,"Attempting to unload module '%s': flags=%d, reason=%d\n",mod->filename,flags,reason);
 
 	/* call the de-initialization function if available (and the module was initialized) */
 	if(mod->deinit_func && reason!=NEBMODULE_ERROR_BAD_INIT){
@@ -339,9 +333,7 @@ int neb_unload_module(nebmodule *mod, int flags, int reason){
 	/* mark the module as being unloaded */
 	mod->is_currently_loaded=FALSE;
 
-#ifdef DEBUG
-	printf("Module '%s' unloaded successfully.\n",mod->filename);
-#endif
+	log_debug_info(DEBUGL_EVENTBROKER,0,"Module '%s' unloaded successfully.\n",mod->filename);
 
 	asprintf(&temp_buffer,"Event broker module '%s' deinitialized successfully.\n",mod->filename);
 	write_to_all_logs(temp_buffer,NSLOG_INFO_MESSAGE);
@@ -541,22 +533,15 @@ int neb_make_callbacks(int callback_type, void *data){
 	if(callback_type<0 || callback_type>=NEBCALLBACK_NUMITEMS)
 		return ERROR;
 
-#ifdef DEBUG
-	for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=temp_callback->next)
-		total_callbacks++;
-	printf("CALLBACKS[%d]=%d\n",callback_type,total_callbacks);
-	total_callbacks=0;
-#endif
+	log_debug_info(DEBUGL_EVENTBROKER,1,"Making callbacks (type %d)...\n",callback_type);
 
 	/* make the callbacks... */
 	for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=temp_callback->next){
 		callbackfunc=temp_callback->callback_func;
 		cbresult=callbackfunc(callback_type,data);
 
-#ifdef DEBUG
 		total_callbacks++;
-		printf("  -> CALLBACK[%d]=%d\n",total_callbacks,cbresult);
-#endif
+		log_debug_info(DEBUGL_EVENTBROKER,2,"Callback #%d (type %d) return code = %d\n",total_callbacks,callback_type,cbresult);
 
 		/* module wants to cancel callbacks to other modules (and potentially cancel the default Nagios handling of an event) */
 		if(cbresult==NEBERROR_CALLBACKCANCEL)

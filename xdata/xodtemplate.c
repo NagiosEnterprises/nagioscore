@@ -3,7 +3,7 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 2001-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-17-2007
+ * Last Modified: 05-20-2007
  *
  * Description:
  *
@@ -123,9 +123,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	mmapfile *thefile=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("xodtemplate_read_config_data() start\n");
-#endif
 
 	/* get variables from main config file */
 	xodtemplate_grab_config_info(main_config_file);
@@ -152,12 +149,8 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	/* allocate memory for 256 config files (increased dynamically) */
 	xodtemplate_current_config_file=0;
 	xodtemplate_config_files=(char **)malloc(256*sizeof(char **));
-	if(xodtemplate_config_files==NULL){
-#ifdef DEBUG1
-		printf("Error: Cannot allocate memory for config file names!\n");
-#endif
+	if(xodtemplate_config_files==NULL)
 		return ERROR;
-	        }
 
 #ifdef NSCORE
 	if(test_scheduling==TRUE)
@@ -172,9 +165,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 
 		/* open the main config file for reading (we need to find all the config files to read) */
 		if((thefile=mmap_fopen(main_config_file))==NULL){
-#ifdef DEBUG1
-			printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
-#endif
 			my_free((void **)&xodtemplate_config_files);
 			return ERROR;
 	                }
@@ -409,10 +399,6 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	        }
 #endif
 
-#ifdef DEBUG0
-	printf("xodtemplate_read_config_data() end\n");
-#endif
-
 	return result;
 	}
 
@@ -425,10 +411,6 @@ int xodtemplate_grab_config_info(char *main_config_file){
 	char *val=NULL;
 	mmapfile *thefile=NULL;
 	
-#ifdef DEBUG0
-	printf("xodtemplate_grab_config_info() start\n");
-#endif
-
 	/* open the main config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL)
 		return ERROR;
@@ -485,9 +467,6 @@ int xodtemplate_grab_config_info(char *main_config_file){
 		strip(macro_x[MACRO_OBJECTCACHEFILE]);
 #endif
 
-#ifdef DEBUG0
-	printf("xodtemplate_grab_config_info() end\n");
-#endif
 	return OK;
         }
 
@@ -506,10 +485,6 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 	ssize_t readlink_count;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_process_config_dir() start\n");
 #endif
 
 	/* open the directory for reading */
@@ -663,10 +638,6 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 	closedir(dirp);
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_config_dir() end\n");
-#endif
-
 	return result;
         }
 
@@ -685,10 +656,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 	char *temp_buffer=NULL;
 #endif
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_config_file() start\n");
-#endif
-
 
 	/* save config file name */
 	xodtemplate_config_files[xodtemplate_current_config_file++]=(char *)strdup(filename);
@@ -696,12 +663,8 @@ int xodtemplate_process_config_file(char *filename, int options){
 	/* reallocate memory for config files */
 	if(!(xodtemplate_current_config_file%256)){
 		xodtemplate_config_files=(char **)realloc(xodtemplate_config_files,(xodtemplate_current_config_file+256)*sizeof(char **));
-		if(xodtemplate_config_files==NULL){
-#ifdef DEBUG1
-			printf("Error: Cannot re-allocate memory for config file names!\n");
-#endif
+		if(xodtemplate_config_files==NULL)
 			return ERROR;
-		        }
 	        }
 
 	/* open the config file for reading */
@@ -911,10 +874,6 @@ int xodtemplate_process_config_file(char *filename, int options){
 		result=ERROR;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_config_file() end\n");
-#endif
-
 	return result;
         }
 
@@ -945,9 +904,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	xodtemplate_serviceextinfo *new_serviceextinfo=NULL;
 	register int x=0;
 
-#ifdef DEBUG0
-	printf("xodtemplate_begin_object_definition() start\n");
-#endif
 
 	if(!strcmp(input,"service"))
 		xodtemplate_current_object_type=XODTEMPLATE_SERVICE;
@@ -1053,12 +1009,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_timeperiod=(xodtemplate_timeperiod *)malloc(sizeof(xodtemplate_timeperiod));
-		if(new_timeperiod==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for timeperiod definition\n");
-#endif
+		if(new_timeperiod==NULL)
 			return ERROR;
-		        }
 
 		new_timeperiod->template=NULL;
 		new_timeperiod->name=NULL;
@@ -1086,12 +1038,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_command=(xodtemplate_command *)malloc(sizeof(xodtemplate_command));
-		if(new_command==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for command definition\n");
-#endif
+		if(new_command==NULL)
 			return ERROR;
-		        }
 		
 		new_command->template=NULL;
 		new_command->name=NULL;
@@ -1117,12 +1065,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_contactgroup=(xodtemplate_contactgroup *)malloc(sizeof(xodtemplate_contactgroup));
-		if(new_contactgroup==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for contactgroup definition\n");
-#endif
+		if(new_contactgroup==NULL)
 			return ERROR;
-		        }
 		
 		new_contactgroup->template=NULL;
 		new_contactgroup->name=NULL;
@@ -1152,12 +1096,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_hostgroup=(xodtemplate_hostgroup *)malloc(sizeof(xodtemplate_hostgroup));
-		if(new_hostgroup==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for hostgroup definition\n");
-#endif
+		if(new_hostgroup==NULL)
 			return ERROR;
-		        }
 		
 		new_hostgroup->template=NULL;
 		new_hostgroup->name=NULL;
@@ -1192,12 +1132,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_servicegroup=(xodtemplate_servicegroup *)malloc(sizeof(xodtemplate_servicegroup));
-		if(new_servicegroup==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for servicegroup definition\n");
-#endif
+		if(new_servicegroup==NULL)
 			return ERROR;
-		        }
 		
 		new_servicegroup->template=NULL;
 		new_servicegroup->name=NULL;
@@ -1233,12 +1169,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_servicedependency=(xodtemplate_servicedependency *)malloc(sizeof(xodtemplate_servicedependency));
-		if(new_servicedependency==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for servicedependency definition\n");
-#endif
+		if(new_servicedependency==NULL)
 			return ERROR;
-		        }
 		
 		new_servicedependency->template=NULL;
 		new_servicedependency->name=NULL;
@@ -1293,12 +1225,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_serviceescalation=(xodtemplate_serviceescalation *)malloc(sizeof(xodtemplate_serviceescalation));
-		if(new_serviceescalation==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for serviceescalation definition\n");
-#endif
+		if(new_serviceescalation==NULL)
 			return ERROR;
-		        }
 		
 		new_serviceescalation->template=NULL;
 		new_serviceescalation->name=NULL;
@@ -1346,12 +1274,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_contact=(xodtemplate_contact *)malloc(sizeof(xodtemplate_contact));
-		if(new_contact==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for contact definition\n");
-#endif
+		if(new_contact==NULL)
 			return ERROR;
-		        }
 		
 		new_contact->template=NULL;
 		new_contact->name=NULL;
@@ -1418,12 +1342,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_host=(xodtemplate_host *)malloc(sizeof(xodtemplate_host));
-		if(new_host==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for host definition\n");
-#endif
+		if(new_host==NULL)
 			return ERROR;
-		        }
 		
 		new_host->template=NULL;
 		new_host->name=NULL;
@@ -1543,12 +1463,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_service=(xodtemplate_service *)malloc(sizeof(xodtemplate_service));
-		if(new_service==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for service definition\n");
-#endif
+		if(new_service==NULL)
 			return ERROR;
-		        }
 		
 		new_service->template=NULL;
 		new_service->name=NULL;
@@ -1665,12 +1581,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_hostdependency=(xodtemplate_hostdependency *)malloc(sizeof(xodtemplate_hostdependency));
-		if(new_hostdependency==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for hostdependency definition\n");
-#endif
+		if(new_hostdependency==NULL)
 			return ERROR;
-		        }
 		
 		new_hostdependency->template=NULL;
 		new_hostdependency->name=NULL;
@@ -1715,12 +1627,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_hostescalation=(xodtemplate_hostescalation *)malloc(sizeof(xodtemplate_hostescalation));
-		if(new_hostescalation==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for hostescalation definition\n");
-#endif
+		if(new_hostescalation==NULL)
 			return ERROR;
-		        }
 		
 		new_hostescalation->template=NULL;
 		new_hostescalation->name=NULL;
@@ -1763,12 +1671,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_hostextinfo=(xodtemplate_hostextinfo *)malloc(sizeof(xodtemplate_hostextinfo));
-		if(new_hostextinfo==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for extended host info\n");
-#endif
+		if(new_hostextinfo==NULL)
 			return ERROR;
-		        }
 
 		new_hostextinfo->template=NULL;
 		new_hostextinfo->name=NULL;
@@ -1816,12 +1720,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 
 		/* allocate memory */
 		new_serviceextinfo=(xodtemplate_serviceextinfo *)malloc(sizeof(xodtemplate_serviceextinfo));
-		if(new_serviceextinfo==NULL){
-#ifdef DEBUG1
-			printf("Error: Could not allocate memory for extended service info\n");
-#endif
+		if(new_serviceextinfo==NULL)
 			return ERROR;
-		        }
 
 		new_serviceextinfo->template=NULL;
 		new_serviceextinfo->name=NULL;
@@ -1861,10 +1761,6 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		break;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_begin_object_definition() end\n");
-#endif
-
 	return result;
         }
 
@@ -1896,10 +1792,6 @@ int xodtemplate_add_object_property(char *input, int options){
 	register int y=0;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_add_object_property() start\n");
 #endif
 
 
@@ -2879,9 +2771,6 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			/* add the custom variable */
 			if(xodtemplate_add_custom_variable_to_contact(temp_contact,customvarname,customvarvalue)==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not add custom variable '%s' for contact.\n",customvarname);
-#endif
 				my_free((void **)&customvarname);
 				my_free((void **)&customvarvalue);
 				return ERROR;
@@ -3315,9 +3204,6 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			/* add the custom variable */
 			if(xodtemplate_add_custom_variable_to_host(temp_host,customvarname,customvarvalue)==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not add custom variable '%s' for host.\n",customvarname);
-#endif
 				my_free((void **)&customvarname);
 				my_free((void **)&customvarvalue);
 				return ERROR;
@@ -3710,9 +3596,6 @@ int xodtemplate_add_object_property(char *input, int options){
 
 			/* add the custom variable */
 			if(xodtemplate_add_custom_variable_to_service(temp_service,customvarname,customvarvalue)==NULL){
-#ifdef DEBUG1
-				printf("Error: Could not add custom variable '%s' for service.\n",customvarname);
-#endif
 				my_free((void **)&customvarname);
 				my_free((void **)&customvarvalue);
 				return ERROR;
@@ -4237,10 +4120,6 @@ int xodtemplate_add_object_property(char *input, int options){
 	my_free((void **)&variable);
 	my_free((void **)&value);
 
-#ifdef DEBUG0
-	printf("xodtemplate_add_object_property() end\n");
-#endif
-
 	return result;
         }
 
@@ -4250,16 +4129,9 @@ int xodtemplate_add_object_property(char *input, int options){
 int xodtemplate_end_object_definition(int options){
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("xodtemplate_end_object_definition() start\n");
-#endif
 
 	xodtemplate_current_object=NULL;
 	xodtemplate_current_object_type=XODTEMPLATE_NONE;
-
-#ifdef DEBUG0
-	printf("xodtemplate_end_object_definition() end\n");
-#endif
 
 	return result;
         }
@@ -4352,10 +4224,6 @@ int xodtemplate_duplicate_services(void){
 	char *temp_buffer=NULL;
 #endif
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_services() start\n");
-#endif
-
 
 	/****** DUPLICATE SERVICE DEFINITIONS WITH ONE OR MORE HOSTGROUP AND/OR HOST NAMES ******/
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -4411,10 +4279,6 @@ int xodtemplate_duplicate_services(void){
 		xodtemplate_free_memberlist(&temp_memberlist);
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_services() end\n");
-#endif
-
 	return OK;
         }
 
@@ -4442,9 +4306,6 @@ int xodtemplate_duplicate_objects(void){
 	char *temp_buffer=NULL;
 #endif
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_objects() start\n");
-#endif
 
 
 	/*************************************/
@@ -5198,10 +5059,6 @@ int xodtemplate_duplicate_objects(void){
 		xodtemplate_free_memberlist(&master_hostlist);
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_objects() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5213,18 +5070,11 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_service() start\n");
-#endif
 
 	/* allocate memory for a new service definition */
 	new_service=(xodtemplate_service *)malloc(sizeof(xodtemplate_service));
-	if(new_service==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of service.\n");
-#endif
+	if(new_service==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_service->template=NULL;
@@ -5332,9 +5182,6 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 		my_free((void **)&new_service->icon_image);
 		my_free((void **)&new_service->icon_image_alt);
 		my_free((void **)&new_service);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
 		return ERROR;
 	        }
 
@@ -5407,10 +5254,6 @@ int xodtemplate_duplicate_service(xodtemplate_service *temp_service, char *host_
 	new_service->next=xodtemplate_service_list;
 	xodtemplate_service_list=new_service;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_service() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5422,18 +5265,11 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	xodtemplate_hostescalation *new_hostescalation=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostescalation() start\n");
-#endif
 
 	/* allocate memory for a new host escalation definition */
 	new_hostescalation=(xodtemplate_hostescalation *)malloc(sizeof(xodtemplate_hostescalation));
-	if(new_hostescalation==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
+	if(new_hostescalation==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_hostescalation->template=NULL;
@@ -5478,9 +5314,6 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 		my_free((void **)&new_hostescalation->template);
 		my_free((void **)&new_hostescalation->name);
 		my_free((void **)&new_hostescalation);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of host escalation.\n");
-#endif
 		return ERROR;
 	        }
 
@@ -5500,10 +5333,6 @@ int xodtemplate_duplicate_hostescalation(xodtemplate_hostescalation *temp_hostes
 	new_hostescalation->next=xodtemplate_hostescalation_list;
 	xodtemplate_hostescalation_list=new_hostescalation;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostescalation() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5514,18 +5343,10 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	xodtemplate_serviceescalation *new_serviceescalation=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_serviceescalation() start\n");
-#endif
-
 	/* allocate memory for a new service escalation definition */
 	new_serviceescalation=(xodtemplate_serviceescalation *)malloc(sizeof(xodtemplate_serviceescalation));
-	if(new_serviceescalation==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
+	if(new_serviceescalation==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_serviceescalation->template=NULL;
@@ -5577,9 +5398,6 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 		my_free((void **)&new_serviceescalation->template);
 		my_free((void **)&new_serviceescalation->name);
 		my_free((void **)&new_serviceescalation);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of service escalation.\n");
-#endif
 		return ERROR;
 	        }
 
@@ -5600,10 +5418,6 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 	new_serviceescalation->next=xodtemplate_serviceescalation_list;
 	xodtemplate_serviceescalation_list=new_serviceescalation;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_serviceescalation() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5614,18 +5428,10 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	xodtemplate_hostdependency *new_hostdependency=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostdependency() start\n");
-#endif
-
 	/* allocate memory for a new host dependency definition */
 	new_hostdependency=(xodtemplate_hostdependency *)malloc(sizeof(xodtemplate_hostdependency));
-	if(new_hostdependency==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
-#endif
+	if(new_hostdependency==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_hostdependency->template=NULL;
@@ -5666,9 +5472,6 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 		my_free((void **)&new_hostdependency->template);
 		my_free((void **)&new_hostdependency->name);
 		my_free((void **)&new_hostdependency);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of host dependency.\n");
-#endif
 		return ERROR;
 	        } 
 
@@ -5690,10 +5493,6 @@ int xodtemplate_duplicate_hostdependency(xodtemplate_hostdependency *temp_hostde
 	new_hostdependency->next=xodtemplate_hostdependency_list;
 	xodtemplate_hostdependency_list=new_hostdependency;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostdependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5704,18 +5503,10 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	xodtemplate_servicedependency *new_servicedependency=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_servicedependency() start\n");
-#endif
-
 	/* allocate memory for a new service dependency definition */
 	new_servicedependency=(xodtemplate_servicedependency *)malloc(sizeof(xodtemplate_servicedependency));
-	if(new_servicedependency==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
+	if(new_servicedependency==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_servicedependency->template=NULL;
@@ -5787,9 +5578,6 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 		my_free((void **)&new_servicedependency->template);
 		my_free((void **)&new_servicedependency->name);
 		my_free((void **)&new_servicedependency);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of service dependency.\n");
-#endif
 		return ERROR;
 	        } 
 
@@ -5813,10 +5601,6 @@ int xodtemplate_duplicate_servicedependency(xodtemplate_servicedependency *temp_
 	new_servicedependency->next=xodtemplate_servicedependency_list;
 	xodtemplate_servicedependency_list=new_servicedependency;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_servicedependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5827,17 +5611,9 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	xodtemplate_hostextinfo *new_hostextinfo=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostextinfo() start\n");
-#endif
-
 	new_hostextinfo=(xodtemplate_hostextinfo *)malloc(sizeof(xodtemplate_hostextinfo));
-	if(new_hostextinfo==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of extended host info.\n");
-#endif
+	if(new_hostextinfo==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_hostextinfo->template=NULL;
@@ -5901,9 +5677,6 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 		my_free((void **)&new_hostextinfo->vrml_image);
 		my_free((void **)&new_hostextinfo->statusmap_image);
 		my_free((void **)&new_hostextinfo);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of extended host info.\n");
-#endif
 		return ERROR;
 	        }
 
@@ -5920,10 +5693,6 @@ int xodtemplate_duplicate_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo,
 	new_hostextinfo->next=xodtemplate_hostextinfo_list;
 	xodtemplate_hostextinfo_list=new_hostextinfo;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_hostextinfo() end\n");
-#endif
-
 	return OK;
         }
 
@@ -5934,17 +5703,9 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 	xodtemplate_serviceextinfo *new_serviceextinfo=NULL;
 	int error=FALSE;
 
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_serviceextinfo() start\n");
-#endif
-
 	new_serviceextinfo=(xodtemplate_serviceextinfo *)malloc(sizeof(xodtemplate_serviceextinfo));
-	if(new_serviceextinfo==NULL){
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of extended service info.\n");
-#endif
+	if(new_serviceextinfo==NULL)
 		return ERROR;
-	        }
 
 	/* standard items */
 	new_serviceextinfo->template=NULL;
@@ -6003,19 +5764,12 @@ int xodtemplate_duplicate_serviceextinfo(xodtemplate_serviceextinfo *this_servic
 		my_free((void **)&new_serviceextinfo->icon_image);
 		my_free((void **)&new_serviceextinfo->icon_image_alt);
 		my_free((void **)&new_serviceextinfo);
-#ifdef DEBUG1
-		printf("Error: Could not allocate memory for duplicate definition of extended service info.\n");
-#endif
 		return ERROR;
 	        }
 
 	/* add new object to head of list */
 	new_serviceextinfo->next=xodtemplate_serviceextinfo_list;
 	xodtemplate_serviceextinfo_list=new_serviceextinfo;
-
-#ifdef DEBUG0
-	printf("xodtemplate_duplicate_serviceextinfo() end\n");
-#endif
 
 	return OK;
         }
@@ -6036,9 +5790,6 @@ int xodtemplate_inherit_object_properties(void){
 	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 
-#ifdef DEBUG0
-	printf("xodtemplate_inherit_object_properties() start\n");
-#endif
 
 	/* services inherit some properties from their associated host... */
 	for(temp_service=xodtemplate_service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -6136,10 +5887,6 @@ int xodtemplate_inherit_object_properties(void){
 			}
 		}
 
-#ifdef DEBUG0
-	printf("xodtemplate_inherit_object_properties() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -6168,10 +5915,6 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_objects() start\n");
-#endif
 
 	/* resolve all timeperiod objects */
 	for(temp_timeperiod=xodtemplate_timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
@@ -6257,10 +6000,6 @@ int xodtemplate_resolve_objects(void){
 			return ERROR;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_objects() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6275,10 +6014,6 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	int x;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_timeperiod() start\n");
 #endif
 
 	/* return if this timeperiod has already been resolved */
@@ -6327,10 +6062,6 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_timeperiod() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6345,10 +6076,6 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 	xodtemplate_command *template_command=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_command() start\n");
 #endif
 
 	/* return if this command has already been resolved */
@@ -6392,10 +6119,6 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command){
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_command() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6410,10 +6133,6 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 	xodtemplate_contactgroup *template_contactgroup=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_contactgroup() start\n");
 #endif
 
 	/* return if this contactgroup has already been resolved */
@@ -6461,10 +6180,6 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_contactgroup() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6479,10 +6194,6 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	xodtemplate_hostgroup *template_hostgroup=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostgroup() start\n");
 #endif
 
 	/* return if this hostgroup has already been resolved */
@@ -6545,10 +6256,6 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostgroup() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6563,10 +6270,6 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 	xodtemplate_servicegroup *template_servicegroup=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_servicegroup() start\n");
 #endif
 
 	/* return if this servicegroup has already been resolved */
@@ -6629,10 +6332,6 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_servicegroup() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6645,10 +6344,6 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 	xodtemplate_servicedependency *template_servicedependency=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_servicedependency() start\n");
 #endif
 
 	/* return if this servicedependency has already been resolved */
@@ -6722,10 +6417,6 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_servicedependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6738,10 +6429,6 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	xodtemplate_serviceescalation *template_serviceescalation=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_serviceescalation() start\n");
 #endif
 
 	/* return if this serviceescalation has already been resolved */
@@ -6812,10 +6499,6 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_serviceescalation() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6832,10 +6515,6 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	int x;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_contact() start\n");
 #endif
 
 	/* return if this contact has already been resolved */
@@ -6963,10 +6642,6 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact){
 	
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_contact() end\n");
-#endif
-
 	return OK;
         }
 
@@ -6982,10 +6657,6 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_host() start\n");
 #endif
 
 	/* return if this host has already been resolved */
@@ -7223,10 +6894,6 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_host() end\n");
-#endif
-
 	return OK;
         }
 
@@ -7242,10 +6909,6 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_service() start\n");
 #endif
 
 	/* return if this service has already been resolved */
@@ -7473,10 +7136,6 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service){
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_service() end\n");
-#endif
-
 	return OK;
         }
 
@@ -7489,10 +7148,6 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 	xodtemplate_hostdependency *template_hostdependency=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostdependency() start\n");
 #endif
 
 	/* return if this hostdependency has already been resolved */
@@ -7561,10 +7216,6 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostdependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -7577,10 +7228,6 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	xodtemplate_hostescalation *template_hostescalation=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostescalation() start\n");
 #endif
 
 	/* return if this hostescalation has already been resolved */
@@ -7648,10 +7295,6 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostdependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -7665,10 +7308,6 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 	xodtemplate_hostextinfo *template_hostextinfo=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostextinfo() start\n");
 #endif
 
 	/* return if this object has already been resolved */
@@ -7764,10 +7403,6 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo){
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_hostextinfo() end\n");
-#endif
-
 	return OK;
         }
 
@@ -7781,10 +7416,6 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	xodtemplate_serviceextinfo *template_serviceextinfo=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_serviceextinfo() start\n");
 #endif
 
 	/* return if this object has already been resolved */
@@ -7864,10 +7495,6 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 
 	my_free((void **)&template_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_resolve_serviceextinfo() end\n");
-#endif
-
 	return OK;
         }
 
@@ -7893,10 +7520,6 @@ int xodtemplate_recombobulate_contactgroups(void){
 	char *new_members=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_contactgroups() start\n");
 #endif
 
 	/* This should happen before we expand contactgroup members, to avoid duplicate contact memberships 01/07/2006 EG */
@@ -7983,10 +7606,6 @@ int xodtemplate_recombobulate_contactgroups(void){
 		xodtemplate_free_memberlist(&temp_memberlist);
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_contactgroups() end\n");
-#endif
-
 	return OK;
         }
 
@@ -8003,10 +7622,6 @@ int xodtemplate_recombobulate_object_contacts(void){
 	char *new_contacts=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_object_contacts() start\n");
 #endif
 
 	/* expand contacts in host definitions */
@@ -8172,10 +7787,6 @@ int xodtemplate_recombobulate_object_contacts(void){
 		my_free((void **)&temp_serviceescalation->contact_groups);
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_object_contacts() end\n");
-#endif
-
 	return OK;
         }
 
@@ -8192,10 +7803,6 @@ int xodtemplate_recombobulate_hostgroups(void){
 	char *new_members=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_hostgroups() start\n");
 #endif
 
 	/* This should happen before we expand hostgroup members, to avoid duplicate host memberships 01/07/2006 EG */
@@ -8290,10 +7897,6 @@ int xodtemplate_recombobulate_hostgroups(void){
 		xodtemplate_free_memberlist(&temp_memberlist);
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_hostgroups() end\n");
-#endif
-
 	return OK;
         }
 
@@ -8314,10 +7917,6 @@ int xodtemplate_recombobulate_servicegroups(void){
 	char *new_members=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_servicegroups() start\n");
 #endif
 
 	/* This should happen before we expand servicegroup members, to avoid duplicate service memberships 01/07/2006 EG */
@@ -8522,10 +8121,6 @@ int xodtemplate_recombobulate_servicegroups(void){
 
 		xodtemplate_free_memberlist(&temp_memberlist);
 	        }
-
-#ifdef DEBUG0
-	printf("xodtemplate_recombobulate_servicegroups() end\n");
-#endif
 
 	return OK;
         }
@@ -8952,10 +8547,6 @@ int xodtemplate_register_objects(void){
 	xodtemplate_hostdependency *temp_hostdependency=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_objects() start\n");
-#endif
-
 	/* register timeperiods */
 	for(temp_timeperiod=xodtemplate_timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
 		if((result=xodtemplate_register_timeperiod(temp_timeperiod))==ERROR)
@@ -9028,10 +8619,6 @@ int xodtemplate_register_objects(void){
 			return ERROR;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_objects() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9056,10 +8643,6 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 	char *temp_buffer=NULL;
 #endif
 	
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_timeperiod() start\n");
-#endif
 
 	/* bail out if we shouldn't register this object */
 	if(this_timeperiod->register_object==FALSE)
@@ -9173,10 +8756,6 @@ int xodtemplate_register_timeperiod(xodtemplate_timeperiod *this_timeperiod){
 		
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_timeperiod() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9187,10 +8766,6 @@ int xodtemplate_register_command(xodtemplate_command *this_command){
 	command *new_command=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_command() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9209,10 +8784,6 @@ int xodtemplate_register_command(xodtemplate_command *this_command){
 		return ERROR;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_command() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9225,10 +8796,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 	char *contact_name=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_contactgroup() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9270,10 +8837,6 @@ int xodtemplate_register_contactgroup(xodtemplate_contactgroup *this_contactgrou
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_contactgroup() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9286,10 +8849,6 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 	char *host_name=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostgroup() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9331,10 +8890,6 @@ int xodtemplate_register_hostgroup(xodtemplate_hostgroup *this_hostgroup){
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostgroup() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9348,10 +8903,6 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 	char *svc_description=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_servicegroup() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9404,10 +8955,6 @@ int xodtemplate_register_servicegroup(xodtemplate_servicegroup *this_servicegrou
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_servicegroup() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9418,10 +8965,6 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 	servicedependency *new_servicedependency=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_servicedependency() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9468,10 +9011,6 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_servicedependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9480,18 +9019,10 @@ int xodtemplate_register_servicedependency(xodtemplate_servicedependency *this_s
 /* registers a serviceescalation definition */
 int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_serviceescalation){
 	serviceescalation *new_serviceescalation=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *new_contactgroupsmember=NULL;
-	char *contact_group=NULL;
-#endif
 	contactsmember *new_contactsmember=NULL;
 	char *contact_name=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_serviceescalation() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9563,10 +9094,6 @@ int xodtemplate_register_serviceescalation(xodtemplate_serviceescalation *this_s
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_serviceescalation() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9580,10 +9107,6 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_contact() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9647,10 +9170,6 @@ int xodtemplate_register_contact(xodtemplate_contact *this_contact){
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_contact() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9661,19 +9180,11 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 	host *new_host=NULL;
 	char *parent_host=NULL;
 	hostsmember *new_hostsmember=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *new_contactgroupsmember=NULL;
-	char *contact_group=NULL;
-#endif
 	contactsmember *new_contactsmember=NULL;
 	char *contact_name=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_host() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9767,10 +9278,6 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_host() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9779,19 +9286,11 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 /* registers a service definition */
 int xodtemplate_register_service(xodtemplate_service *this_service){
 	service *new_service=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *new_contactgroupsmember=NULL;
-	char *contactgroup_name=NULL;
-#endif
 	contactsmember *new_contactsmember=NULL;
 	char *contact_name=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_service() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9810,29 +9309,6 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 #endif
 		return ERROR;
 	        }
-
-#ifdef REMOVED_07182006
-	/* add all the contact groups to the service */
-	if(this_service->contact_groups!=NULL){
-
-		for(contactgroup_name=strtok(this_service->contact_groups,",");contactgroup_name!=NULL;contactgroup_name=strtok(NULL,",")){
-
-			/* add this contactgroup to the service definition */
-			strip(contactgroup_name);
-			new_contactgroupsmember=add_contactgroup_to_service(new_service,contactgroup_name);
-
-			/* stop adding contact groups if we ran into an error */
-			if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-				asprintf(&temp_buffer,"Error: Could not add contact group '%s' to service (config file '%s', starting on line %d)\n",contactgroup_name,xodtemplate_config_file_name(this_service->_config_file),this_service->_start_line);
-				write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-				my_free((void **)&temp_buffer);
-#endif
-				return ERROR;
-		                }
-		        }
-	        }
-#endif
 
 	/* add all the contacts to the service */
 	if(this_service->contacts!=NULL){
@@ -9867,10 +9343,6 @@ int xodtemplate_register_service(xodtemplate_service *this_service){
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_service() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9881,10 +9353,6 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 	hostdependency *new_hostdependency=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostdependency() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9923,10 +9391,6 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
                         }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostdependency() end\n");
-#endif
-
 	return OK;
         }
 
@@ -9935,18 +9399,10 @@ int xodtemplate_register_hostdependency(xodtemplate_hostdependency *this_hostdep
 /* registers a hostescalation definition */
 int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostescalation){
 	hostescalation *new_hostescalation=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *new_contactgroupsmember=NULL;
-	char *contact_group=NULL;
-#endif
 	contactsmember *new_contactsmember=NULL;
 	char *contact_name=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostescalation() start\n");
 #endif
 
 	/* bail out if we shouldn't register this object */
@@ -9973,29 +9429,6 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 		return ERROR;
 	        }
 
-#ifdef REMOVED_07182006
-	/* add the contact groups */
-	if(this_hostescalation->contact_groups==NULL){
-#ifdef NSCORE
-		asprintf(&temp_buffer,"Error: Host escalation has no contact groups (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
-		write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-		my_free((void **)&temp_buffer);
-#endif
-		return ERROR;
-	        }
-	for(contact_group=strtok(this_hostescalation->contact_groups,", ");contact_group!=NULL;contact_group=strtok(NULL,", ")){
-		new_contactgroupsmember=add_contactgroup_to_hostescalation(new_hostescalation,contact_group);
-		if(new_contactgroupsmember==NULL){
-#ifdef NSCORE
-			asprintf(&temp_buffer,"Error: Could not add contactgroup '%s' to host escalation (config file '%s', starting on line %d)\n",contact_group,xodtemplate_config_file_name(this_hostescalation->_config_file),this_hostescalation->_start_line);
-			write_to_logs_and_console(temp_buffer,NSLOG_CONFIG_ERROR,TRUE);
-			my_free((void **)&temp_buffer);
-#endif
-			return ERROR;
-		        }
-	        }
-#endif
-
 	/* add the contacts */
 	if(this_hostescalation->contacts==NULL){
 #ifdef NSCORE
@@ -10017,10 +9450,6 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_register_hostescalation() end\n");
-#endif
-
 	return OK;
         }
 
@@ -10035,10 +9464,6 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
 
 /* sorts all objects by name */
 int xodtemplate_sort_objects(void){
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_objects() start\n");
-#endif
 
 	/* sort timeperiods */
 	if(xodtemplate_sort_timeperiods()==ERROR)
@@ -10096,10 +9521,6 @@ int xodtemplate_sort_objects(void){
 	if(xodtemplate_sort_serviceextinfo()==ERROR)
 		return ERROR;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_objects() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10136,10 +9557,6 @@ int xodtemplate_sort_timeperiods(){
 	xodtemplate_timeperiod *last_timeperiod=NULL;
 	xodtemplate_timeperiod *temp_timeperiod_orig=NULL;
 	xodtemplate_timeperiod *next_timeperiod_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_timeperiods() start\n");
-#endif
 
 	/* sort all existing timeperiods */
 	for(temp_timeperiod_orig=xodtemplate_timeperiod_list;temp_timeperiod_orig!=NULL;temp_timeperiod_orig=next_timeperiod_orig){
@@ -10178,10 +9595,6 @@ int xodtemplate_sort_timeperiods(){
 	/* list is now sorted */
 	xodtemplate_timeperiod_list=new_timeperiod_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_timeperiods() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10193,10 +9606,6 @@ int xodtemplate_sort_commands(){
 	xodtemplate_command *last_command=NULL;
 	xodtemplate_command *temp_command_orig=NULL;
 	xodtemplate_command *next_command_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_commands() start\n");
-#endif
 
 	/* sort all existing commands */
 	for(temp_command_orig=xodtemplate_command_list;temp_command_orig!=NULL;temp_command_orig=next_command_orig){
@@ -10235,10 +9644,6 @@ int xodtemplate_sort_commands(){
 	/* list is now sorted */
 	xodtemplate_command_list=new_command_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_commands() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10250,10 +9655,6 @@ int xodtemplate_sort_contactgroups(){
 	xodtemplate_contactgroup *last_contactgroup=NULL;
 	xodtemplate_contactgroup *temp_contactgroup_orig=NULL;
 	xodtemplate_contactgroup *next_contactgroup_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_contactgroups() start\n");
-#endif
 
 	/* sort all existing contactgroups */
 	for(temp_contactgroup_orig=xodtemplate_contactgroup_list;temp_contactgroup_orig!=NULL;temp_contactgroup_orig=next_contactgroup_orig){
@@ -10292,10 +9693,6 @@ int xodtemplate_sort_contactgroups(){
 	/* list is now sorted */
 	xodtemplate_contactgroup_list=new_contactgroup_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_contactgroups() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10307,10 +9704,6 @@ int xodtemplate_sort_hostgroups(){
 	xodtemplate_hostgroup *last_hostgroup=NULL;
 	xodtemplate_hostgroup *temp_hostgroup_orig=NULL;
 	xodtemplate_hostgroup *next_hostgroup_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostgroups() start\n");
-#endif
 
 	/* sort all existing hostgroups */
 	for(temp_hostgroup_orig=xodtemplate_hostgroup_list;temp_hostgroup_orig!=NULL;temp_hostgroup_orig=next_hostgroup_orig){
@@ -10349,10 +9742,6 @@ int xodtemplate_sort_hostgroups(){
 	/* list is now sorted */
 	xodtemplate_hostgroup_list=new_hostgroup_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostgroups() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10364,10 +9753,6 @@ int xodtemplate_sort_servicegroups(){
 	xodtemplate_servicegroup *last_servicegroup=NULL;
 	xodtemplate_servicegroup *temp_servicegroup_orig=NULL;
 	xodtemplate_servicegroup *next_servicegroup_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_servicegroups() start\n");
-#endif
 
 	/* sort all existing servicegroups */
 	for(temp_servicegroup_orig=xodtemplate_servicegroup_list;temp_servicegroup_orig!=NULL;temp_servicegroup_orig=next_servicegroup_orig){
@@ -10406,10 +9791,6 @@ int xodtemplate_sort_servicegroups(){
 	/* list is now sorted */
 	xodtemplate_servicegroup_list=new_servicegroup_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_servicegroups() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10421,10 +9802,6 @@ int xodtemplate_sort_contacts(){
 	xodtemplate_contact *last_contact=NULL;
 	xodtemplate_contact *temp_contact_orig=NULL;
 	xodtemplate_contact *next_contact_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_contacts() start\n");
-#endif
 
 	/* sort all existing contacts */
 	for(temp_contact_orig=xodtemplate_contact_list;temp_contact_orig!=NULL;temp_contact_orig=next_contact_orig){
@@ -10463,10 +9840,6 @@ int xodtemplate_sort_contacts(){
 	/* list is now sorted */
 	xodtemplate_contact_list=new_contact_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_contacts() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10478,10 +9851,6 @@ int xodtemplate_sort_hosts(){
 	xodtemplate_host *last_host=NULL;
 	xodtemplate_host *temp_host_orig=NULL;
 	xodtemplate_host *next_host_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hosts() start\n");
-#endif
 
 	/* sort all existing hosts */
 	for(temp_host_orig=xodtemplate_host_list;temp_host_orig!=NULL;temp_host_orig=next_host_orig){
@@ -10520,10 +9889,6 @@ int xodtemplate_sort_hosts(){
 	/* list is now sorted */
 	xodtemplate_host_list=new_host_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hosts() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10535,10 +9900,6 @@ int xodtemplate_sort_services(){
 	xodtemplate_service *last_service=NULL;
 	xodtemplate_service *temp_service_orig=NULL;
 	xodtemplate_service *next_service_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_services() start\n");
-#endif
 
 	/* sort all existing services */
 	for(temp_service_orig=xodtemplate_service_list;temp_service_orig!=NULL;temp_service_orig=next_service_orig){
@@ -10577,10 +9938,6 @@ int xodtemplate_sort_services(){
 	/* list is now sorted */
 	xodtemplate_service_list=new_service_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_services() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10593,11 +9950,7 @@ int xodtemplate_sort_servicedependencies(){
 	xodtemplate_servicedependency *temp_servicedependency_orig=NULL;
 	xodtemplate_servicedependency *next_servicedependency_orig=NULL;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_servicedependencies() start\n");
-#endif
-
-	/* sort all existing servicedependencies */
+#	/* sort all existing servicedependencies */
 	for(temp_servicedependency_orig=xodtemplate_servicedependency_list;temp_servicedependency_orig!=NULL;temp_servicedependency_orig=next_servicedependency_orig){
 
 		next_servicedependency_orig=temp_servicedependency_orig->next;
@@ -10634,10 +9987,6 @@ int xodtemplate_sort_servicedependencies(){
 	/* list is now sorted */
 	xodtemplate_servicedependency_list=new_servicedependency_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_servicedependencies() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10649,10 +9998,6 @@ int xodtemplate_sort_serviceescalations(){
 	xodtemplate_serviceescalation *last_serviceescalation=NULL;
 	xodtemplate_serviceescalation *temp_serviceescalation_orig=NULL;
 	xodtemplate_serviceescalation *next_serviceescalation_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_serviceescalations() start\n");
-#endif
 
 	/* sort all existing serviceescalations */
 	for(temp_serviceescalation_orig=xodtemplate_serviceescalation_list;temp_serviceescalation_orig!=NULL;temp_serviceescalation_orig=next_serviceescalation_orig){
@@ -10691,10 +10036,6 @@ int xodtemplate_sort_serviceescalations(){
 	/* list is now sorted */
 	xodtemplate_serviceescalation_list=new_serviceescalation_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_serviceescalations() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10706,10 +10047,6 @@ int xodtemplate_sort_hostescalations(){
 	xodtemplate_hostescalation *last_hostescalation=NULL;
 	xodtemplate_hostescalation *temp_hostescalation_orig=NULL;
 	xodtemplate_hostescalation *next_hostescalation_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostescalations() start\n");
-#endif
 
 	/* sort all existing hostescalations */
 	for(temp_hostescalation_orig=xodtemplate_hostescalation_list;temp_hostescalation_orig!=NULL;temp_hostescalation_orig=next_hostescalation_orig){
@@ -10748,10 +10085,6 @@ int xodtemplate_sort_hostescalations(){
 	/* list is now sorted */
 	xodtemplate_hostescalation_list=new_hostescalation_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostescalations() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10763,10 +10096,6 @@ int xodtemplate_sort_hostdependencies(){
 	xodtemplate_hostdependency *last_hostdependency=NULL;
 	xodtemplate_hostdependency *temp_hostdependency_orig=NULL;
 	xodtemplate_hostdependency *next_hostdependency_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostdependencies() start\n");
-#endif
 
 	/* sort all existing hostdependencys */
 	for(temp_hostdependency_orig=xodtemplate_hostdependency_list;temp_hostdependency_orig!=NULL;temp_hostdependency_orig=next_hostdependency_orig){
@@ -10805,10 +10134,6 @@ int xodtemplate_sort_hostdependencies(){
 	/* list is now sorted */
 	xodtemplate_hostdependency_list=new_hostdependency_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostdependencies() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10820,10 +10145,6 @@ int xodtemplate_sort_hostextinfo(){
 	xodtemplate_hostextinfo *last_hostextinfo=NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo_orig=NULL;
 	xodtemplate_hostextinfo *next_hostextinfo_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostextinfo() start\n");
-#endif
 
 	/* sort all existing existing host info */
 	for(temp_hostextinfo_orig=xodtemplate_hostextinfo_list;temp_hostextinfo_orig!=NULL;temp_hostextinfo_orig=next_hostextinfo_orig){
@@ -10862,10 +10183,6 @@ int xodtemplate_sort_hostextinfo(){
 	/* list is now sorted */
 	xodtemplate_hostextinfo_list=new_hostextinfo_list;
 
-#ifdef DEBUG0
-	printf("xodtemplate_sort_hostextinfo() end\n");
-#endif
-
 	return OK;
 	}
 
@@ -10877,10 +10194,6 @@ int xodtemplate_sort_serviceextinfo(){
 	xodtemplate_serviceextinfo *last_serviceextinfo=NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo_orig=NULL;
 	xodtemplate_serviceextinfo *next_serviceextinfo_orig=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_serviceextinfo() start\n");
-#endif
 
 	/* sort all existing extended service info */
 	for(temp_serviceextinfo_orig=xodtemplate_serviceextinfo_list;temp_serviceextinfo_orig!=NULL;temp_serviceextinfo_orig=next_serviceextinfo_orig){
@@ -10918,10 +10231,6 @@ int xodtemplate_sort_serviceextinfo(){
 
 	/* list is now sorted */
 	xodtemplate_serviceextinfo_list=new_serviceextinfo_list;
-
-#ifdef DEBUG0
-	printf("xodtemplate_sort_serviceextinfo() end\n");
-#endif
 
 	return OK;
 	}
@@ -11085,9 +10394,6 @@ int xodtemplate_cache_objects(char *cache_file){
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
 	time_t current_time=0L;
 
-#ifdef DEBUG0
-	printf("xodtemplate_cache_objects() start\n");
-#endif
 
 	time(&current_time);
 
@@ -11287,10 +10593,6 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tcheck_command\t%s\n",temp_host->check_command);
 		if(temp_host->event_handler)
 			fprintf(fp,"\tevent_handler\t%s\n",temp_host->event_handler);
-#ifdef REMOVED_07182006
-		if(temp_host->contact_groups)
-			fprintf(fp,"\tcontact_groups\t%s\n",temp_host->contact_groups);
-#endif
 		if(temp_host->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_host->contacts);
 		if(temp_host->notification_period)
@@ -11399,10 +10701,6 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\tcheck_command\t%s\n",temp_service->check_command);
 		if(temp_service->event_handler)
 			fprintf(fp,"\tevent_handler\t%s\n",temp_service->event_handler);
-#ifdef REMOVED_07182006
-		if(temp_service->contact_groups)
-			fprintf(fp,"\tcontact_groups\t%s\n",temp_service->contact_groups);
-#endif
 		if(temp_service->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_service->contacts);
 		if(temp_service->notification_period)
@@ -11575,10 +10873,6 @@ int xodtemplate_cache_objects(char *cache_file){
 				fprintf(fp,"n");
 			fprintf(fp,"\n");
 		        }
-#ifdef REMOVED_07182006
-		if(temp_serviceescalation->contact_groups)
-			fprintf(fp,"\tcontact_groups\t%s\n",temp_serviceescalation->contact_groups);
-#endif
 		if(temp_serviceescalation->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_serviceescalation->contacts);
 		fprintf(fp,"\t}\n\n");
@@ -11654,20 +10948,12 @@ int xodtemplate_cache_objects(char *cache_file){
 				fprintf(fp,"n");
 			fprintf(fp,"\n");
 		        }
-#ifdef REMOVED_07182006
-		if(temp_hostescalation->contact_groups)
-			fprintf(fp,"\tcontact_groups\t%s\n",temp_hostescalation->contact_groups);
-#endif
 		if(temp_hostescalation->contacts)
 			fprintf(fp,"\tcontacts\t%s\n",temp_hostescalation->contacts);
 		fprintf(fp,"\t}\n\n");
 	        }
 
 	fclose(fp);
-
-#ifdef DEBUG0
-	printf("xodtemplate_cache_objects() end\n");
-#endif
 
 	return OK;
         }
@@ -11712,9 +10998,6 @@ int xodtemplate_free_memory(void){
 	xodtemplate_customvariablesmember *next_customvariablesmember=NULL;
 	register int x=0;
 
-#ifdef DEBUG0
-	printf("xodtemplate_free_memory() start\n");
-#endif
 
 	/* free memory allocated to timeperiod list */
 	for(this_timeperiod=xodtemplate_timeperiod_list;this_timeperiod!=NULL;this_timeperiod=next_timeperiod){
@@ -12004,10 +11287,6 @@ int xodtemplate_free_memory(void){
 	service_hashtable=NULL;
 #endif
 
-#ifdef DEBUG0
-	printf("xodtemplate_free_memory() end\n");
-#endif
-
 	return OK;
         }
 
@@ -12019,10 +11298,6 @@ int xodtemplate_free_memberlist(xodtemplate_memberlist **temp_list){
 	xodtemplate_memberlist *this_memberlist=NULL;
 	xodtemplate_memberlist *next_memberlist=NULL;
 
-#ifdef DEBUG0
-	printf("xodtemplate_free_memberlist() start\n");
-#endif
-
 	/* free memory allocated to member name list */
 	for(this_memberlist=*temp_list;this_memberlist!=NULL;this_memberlist=next_memberlist){
 		next_memberlist=this_memberlist->next;
@@ -12033,10 +11308,6 @@ int xodtemplate_free_memberlist(xodtemplate_memberlist **temp_list){
 
 	*temp_list=NULL;
 
-#ifdef DEBUG0
-	printf("xodtemplate_free_memberlist() end\n");
-#endif
-
 	return OK;
         }
 
@@ -12044,10 +11315,6 @@ int xodtemplate_free_memberlist(xodtemplate_memberlist **temp_list){
 /* remove an entry from the member list */
 void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *item,xodtemplate_memberlist **list){
 	xodtemplate_memberlist *temp_item=NULL;
-
-#ifdef DEBUG0
-	printf("xodtemplate_remove_memberlist_item() start\n");
-#endif
 
 	if(item==NULL || list==NULL)
 		return;
@@ -12072,10 +11339,6 @@ void xodtemplate_remove_memberlist_item(xodtemplate_memberlist *item,xodtemplate
 	my_free((void **)&item->name2);
 	my_free((void **)&item);
 
-#ifdef DEBUG0
-	printf("xodtemplate_remove_memberlist_item() end\n");
-#endif
-
 	return;
         }
 
@@ -12095,10 +11358,6 @@ xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *cont
 	xodtemplate_memberlist *reject_ptr=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_contactgroups_and_contacts() start\n");
-#endif
-
 	/* process list of contactgroups... */
 	if(contactgroups!=NULL){
 
@@ -12109,21 +11368,6 @@ xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *cont
 			xodtemplate_free_memberlist(&reject_list);
 			return NULL;
 		        }
-
-#ifdef REMOVED_02062007
-		/* 02/06/07 EG Don't remove rejects yet, they may appear in the expanded contact list later */
-		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
-		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
-			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
-				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
-					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
-					break;
-			                }
-		                }
-	                }
-		xodtemplate_free_memberlist(&reject_list);
-		reject_list=NULL;
-#endif
 	        }
 
 	/* process contact names */
@@ -12151,10 +11395,6 @@ xodtemplate_memberlist *xodtemplate_expand_contactgroups_and_contacts(char *cont
 		reject_list=NULL;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_contactgroups_and_contacts() end\n");
-#endif
-
 	return temp_list;
         }
 
@@ -12171,10 +11411,6 @@ int xodtemplate_expand_contactgroups(xodtemplate_memberlist **list, xodtemplate_
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_expand_contactgroups() start\n");
 #endif
 
 	if(list==NULL || contactgroups==NULL)
@@ -12284,10 +11520,6 @@ int xodtemplate_expand_contactgroups(xodtemplate_memberlist **list, xodtemplate_
 	/* free memory */
 	my_free((void **)&contactgroup_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_contactgroups() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -12307,10 +11539,6 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_expand_contacts() start\n");
 #endif
 
 	if(list==NULL || contacts==NULL)
@@ -12421,10 +11649,6 @@ int xodtemplate_expand_contacts(xodtemplate_memberlist **list, xodtemplate_membe
 	/* free memory */
 	my_free((void **)&contact_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_contacts() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -12481,10 +11705,6 @@ xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups
 	xodtemplate_memberlist *reject_ptr=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_hostgroups_and_hosts() start\n");
-#endif
-
 	/* process list of hostgroups... */
 	if(hostgroups!=NULL){
 
@@ -12495,21 +11715,6 @@ xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups
 			xodtemplate_free_memberlist(&reject_list);
 			return NULL;
 		        }
-
-#ifdef REMOVED_02062007
-		/* 02/06/07 EG Don't remove rejects yet, they may appear in the expanded contact list later */
-		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
-		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
-			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
-				if(!strcmp(reject_ptr->name1,list_ptr->name1)){
-					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
-					break;
-			                }
-		                }
-	                }
-		xodtemplate_free_memberlist(&reject_list);
-		reject_list=NULL;
-#endif
 	        }
 
 	/* process host names */
@@ -12537,10 +11742,6 @@ xodtemplate_memberlist *xodtemplate_expand_hostgroups_and_hosts(char *hostgroups
 		reject_list=NULL;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_hostgroups_and_hosts() end\n");
-#endif
-
 	return temp_list;
         }
 
@@ -12557,10 +11758,6 @@ int xodtemplate_expand_hostgroups(xodtemplate_memberlist **list, xodtemplate_mem
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_expand_hostgroups() start\n");
 #endif
 
 	if(list==NULL || hostgroups==NULL)
@@ -12670,10 +11867,6 @@ int xodtemplate_expand_hostgroups(xodtemplate_memberlist **list, xodtemplate_mem
 	/* free memory */
 	my_free((void **)&hostgroup_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_hostgroups() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -12693,10 +11886,6 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_expand_hosts() start\n");
 #endif
 
 	if(list==NULL || hosts==NULL)
@@ -12807,10 +11996,6 @@ int xodtemplate_expand_hosts(xodtemplate_memberlist **list, xodtemplate_memberli
 	/* free memory */
 	my_free((void **)&host_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_hosts() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -12866,10 +12051,6 @@ xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *serv
 	xodtemplate_memberlist *reject_ptr=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_servicegroups_and_services() start\n");
-#endif
-
 	/* process list of servicegroups... */
 	if(servicegroups!=NULL){
 
@@ -12880,21 +12061,6 @@ xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *serv
 			xodtemplate_free_memberlist(&reject_list);
 			return NULL;
 		        }
-
-#ifdef REMOVED_02062007
-		/* 02/06/07 EG Don't remove rejects yet, they may appear in the expanded contact list later */
-		/* remove rejects (if any) from the list (no duplicate entries exist in either list) */
-		for(reject_ptr=reject_list;reject_ptr!=NULL;reject_ptr=reject_ptr->next){
-			for(list_ptr=temp_list;list_ptr!=NULL;list_ptr=list_ptr->next){
-				if(!strcmp(reject_ptr->host_name,list_ptr->host_name) && !strcmp(reject_ptr->service_description,list_ptr->service_description)){
-					xodtemplate_remove_memberlist_item(list_ptr,&temp_list);
-					break;
-			                }
-		                }
-	                }
-		xodtemplate_free_memberlist(&reject_list);
-		reject_list=NULL;
-#endif
 	        }
 
 	/* process service names */
@@ -12922,10 +12088,6 @@ xodtemplate_memberlist *xodtemplate_expand_servicegroups_and_services(char *serv
 		reject_list=NULL;
 	        }
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_servicegroups_and_services() end\n");
-#endif
-
 	return temp_list;
         }
 
@@ -12941,10 +12103,6 @@ int xodtemplate_expand_servicegroups(xodtemplate_memberlist **list, xodtemplate_
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_expand_servicegroups() start\n");
 #endif
 
 	if(list==NULL)
@@ -13057,10 +12215,6 @@ int xodtemplate_expand_servicegroups(xodtemplate_memberlist **list, xodtemplate_
 	/* free memory */
 	my_free((void **)&servicegroup_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_servicegroups() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -13081,10 +12235,6 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 	int use_regexp_service=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_expand_services() start\n");
 #endif
 
 	if(list==NULL)
@@ -13237,10 +12387,6 @@ int xodtemplate_expand_services(xodtemplate_memberlist **list, xodtemplate_membe
 		regfree(&preg2);
 	my_free((void **)&service_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_expand_services() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -13314,10 +12460,6 @@ char * xodtemplate_process_hostgroup_names(char *hostgroups, int _config_file, i
 	char *buf=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_hostgroup_names() start\n");
-#endif
-
 	/* process list of hostgroups... */
 	if(hostgroups!=NULL){
 
@@ -13358,10 +12500,6 @@ char * xodtemplate_process_hostgroup_names(char *hostgroups, int _config_file, i
 
 	xodtemplate_free_memberlist(&temp_list);
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_hostgroup_names() end\n");
-#endif
-
 	return buf;
         }
 
@@ -13378,10 +12516,6 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_get_hostgroup_names() start\n");
 #endif
 
 	if(list==NULL || hostgroups==NULL)
@@ -13491,10 +12625,6 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 	/* free memory */
 	my_free((void **)&hostgroup_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_get_hostgroup_names() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -13512,10 +12642,6 @@ char * xodtemplate_process_contactgroup_names(char *contactgroups, int _config_f
 	xodtemplate_memberlist *this_list=NULL;
 	char *buf=NULL;
 	int result=OK;
-
-#ifdef DEBUG0
-	printf("xodtemplate_process_contactgroup_names() start\n");
-#endif
 
 	/* process list of contactgroups... */
 	if(contactgroups!=NULL){
@@ -13557,10 +12683,6 @@ char * xodtemplate_process_contactgroup_names(char *contactgroups, int _config_f
 
 	xodtemplate_free_memberlist(&temp_list);
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_contactgroup_names() end\n");
-#endif
-
 	return buf;
         }
 
@@ -13577,10 +12699,6 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_get_contactgroup_names() start\n");
 #endif
 
 	if(list==NULL || contactgroups==NULL)
@@ -13690,10 +12808,6 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 	/* free memory */
 	my_free((void **)&contactgroup_names);
 
-#ifdef DEBUG0
-	printf("xodtemplate_get_contactgroup_names() end\n");
-#endif
-
 	if(found_match==FALSE)
 		return ERROR;
 
@@ -13711,10 +12825,6 @@ char * xodtemplate_process_servicegroup_names(char *servicegroups, int _config_f
 	xodtemplate_memberlist *this_list=NULL;
 	char *buf=NULL;
 	int result=OK;
-
-#ifdef DEBUG0
-	printf("xodtemplate_process_servicegroup_names() start\n");
-#endif
 
 	/* process list of servicegroups... */
 	if(servicegroups!=NULL){
@@ -13756,10 +12866,6 @@ char * xodtemplate_process_servicegroup_names(char *servicegroups, int _config_f
 
 	xodtemplate_free_memberlist(&temp_list);
 
-#ifdef DEBUG0
-	printf("xodtemplate_process_servicegroup_names() end\n");
-#endif
-
 	return buf;
         }
 
@@ -13776,10 +12882,6 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 	int use_regexp=FALSE;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("xodtemplate_get_servicegroup_names() start\n");
 #endif
 
 	if(list==NULL || servicegroups==NULL)
@@ -13888,10 +12990,6 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 
 	/* free memory */
 	my_free((void **)&servicegroup_names);
-
-#ifdef DEBUG0
-	printf("xodtemplate_get_servicegroup_names() end\n");
-#endif
 
 	if(found_match==FALSE)
 		return ERROR;

@@ -642,9 +642,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				FREETMPS;
 				LEAVE;
 
-#ifdef DEBUG1
-				printf("embedded perl ran %s, plugin output was %d, %s\n",fname,pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
-#endif
+				log_debug_info(DEBUGL_CHECKS,1,"embedded perl ran %s, plugin output was %d, %s\n",fname,pclose_result,(perl_plugin_output==NULL)?"NULL":perl_plugin_output);
 
 				/* get perl plugin output - escape newlines */
 				if(perl_plugin_output!=NULL){

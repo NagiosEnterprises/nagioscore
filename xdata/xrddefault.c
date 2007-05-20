@@ -3,7 +3,7 @@
  * XRDDEFAULT.C - Default external state retention routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-17-2007
+ * Last Modified:   05-20-2007
  *
  * License:
  *
@@ -101,11 +101,12 @@ int xrddefault_grab_config_info(char *main_config_file){
 
 	/* open the main config file for reading */
 	if((thefile=mmap_fopen(main_config_file))==NULL){
-#ifdef DEBUG1
-		printf("Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
-#endif
+
+		log_debug_info(DEBUGL_RETENTIONDATA,2,"Error: Cannot open main configuration file '%s' for reading!\n",main_config_file);
+
 		my_free((void **)&xrddefault_retention_file);
 		my_free((void **)&xrddefault_temp_file);
+
 		return ERROR;
 	        }
 

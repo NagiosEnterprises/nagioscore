@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-08-2007
+ * Last Modified: 05-20-2007
  *
  * License:
  *
@@ -83,20 +83,12 @@ int __nagios_object_structure_version=CURRENT_OBJECT_STRUCTURE_VERSION;
 int read_object_config_data(char *main_config_file, int options, int cache, int precache){
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("read_object_config_data() start\n");
-#endif
-
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XODTEMPLATE
 	/* read in data from all text host config files (template-based) */
 	result=xodtemplate_read_config_data(main_config_file,options,cache,precache);
 	if(result!=OK)
 		return ERROR;
-#endif
-
-#ifdef DEBUG0
-	printf("read_object_config_data() end\n");
 #endif
 
 	return result;
@@ -656,10 +648,6 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	char *temp_buffer=NULL;
 #endif
 
-#ifdef DEBUG0
-	printf("add_timeperiod() start\n");
-#endif
-
 	/* make sure we have the data we need */
 	if((name==NULL || !strcmp(name,"")) || (alias==NULL || !strcmp(alias,""))){
 #ifdef NSCORE
@@ -728,14 +716,6 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	timeperiod_list=new_timeperiod;
 #endif
 
-#ifdef DEBUG1
-	printf("\tName:         %s\n",new_timeperiod->name);
-	printf("\tAlias:        %s\n",new_timeperiod->alias);
-#endif
-#ifdef DEBUG0
-	printf("add_timeperiod() end\n");
-#endif
-
 	return new_timeperiod;
         }
 
@@ -746,10 +726,6 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 	timerange *new_timerange=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_timerange_to_timeperiod() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -792,10 +768,6 @@ timerange *add_timerange_to_timeperiod(timeperiod *period, int day, unsigned lon
 	new_timerange->next=period->days[day];
 	period->days[day]=new_timerange;
 
-#ifdef DEBUG0
-	printf("add_timerange_to_timeperiod() end\n");
-#endif
-
 	return new_timerange;
         }
 
@@ -808,10 +780,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 #ifdef NSCORE
 	char *temp_buffer=NULL;
 	int x=0;
-#endif
-
-#ifdef DEBUG0
-	printf("add_host() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1112,23 +1080,6 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	host_list=new_host;
 #endif
 
-#ifdef DEBUG1
-	printf("\tHost Name:                %s\n",new_host->name);
-	printf("\tHost Alias:               %s\n",new_host->alias);
-        printf("\tHost Address:             %s\n",new_host->address);
-	printf("\tHost Check Command:       %s\n",new_host->host_check_command);
-	printf("\tMax. Check Attempts:      %d\n",new_host->max_attempts);
-	printf("\tHost Event Handler:       %s\n",(new_host->event_handler==NULL)?"N/A":new_host->event_handler);
-	printf("\tNotify On Down:           %s\n",(new_host->notify_on_down==1)?"yes":"no");
-	printf("\tNotify On Unreachable:    %s\n",(new_host->notify_on_unreachable==1)?"yes":"no");
-	printf("\tNotify On Recovery:       %s\n",(new_host->notify_on_recovery==1)?"yes":"no");
-	printf("\tNotification Interval:    %f\n",new_host->notification_interval);
-	printf("\tNotification Time Period: %s\n",(new_host->notification_period==NULL)?"N/A":new_host->notification_period);
-#endif
-#ifdef DEBUG0
-	printf("add_host() end\n");
-#endif
-
 	return new_host;
 	}
 
@@ -1139,10 +1090,6 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_parent_host_to_host() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1190,10 +1137,6 @@ hostsmember *add_parent_host_to_host(host *hst,char *host_name){
 	new_hostsmember->next=hst->parent_hosts;
 	hst->parent_hosts=new_hostsmember;
 
-#ifdef DEBUG0
-	printf("add_parent_host_to_host() end\n");
-#endif
-
 	return new_hostsmember;
         }
 
@@ -1205,10 +1148,6 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_host() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1246,10 +1185,6 @@ contactgroupsmember *add_contactgroup_to_host(host *hst, char *group_name){
 	new_contactgroupsmember->next=hst->contact_groups;
 	hst->contact_groups=new_contactgroupsmember;;
 
-#ifdef DEBUG0
-	printf("add_contactgroup_to_host() end\n");
-#endif
-
 	return new_contactgroupsmember;
         }
 
@@ -1277,10 +1212,6 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostgroup() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1365,15 +1296,6 @@ hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, 
 	hostgroup_list=new_hostgroup;
 #endif
 		
-#ifdef DEBUG1
-	printf("\tGroup name:     %s\n",new_hostgroup->group_name);
-	printf("\tAlias:          %s\n",new_hostgroup->alias);
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostgroup() end\n");
-#endif
-
 	return new_hostgroup;
 	}
 
@@ -1386,10 +1308,6 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_host_to_hostgroup() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1446,10 +1364,6 @@ hostgroupmember *add_host_to_hostgroup(hostgroup *temp_hostgroup, char *host_nam
 		last_member->next=new_member;
 	        }
 
-#ifdef DEBUG0
-	printf("add_host_to_hostgroup() end\n");
-#endif
-
 	return new_member;
         }
 
@@ -1460,10 +1374,6 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_servicegroup() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1548,15 +1458,6 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 	servicegroup_list=new_servicegroup;
 #endif
 		
-#ifdef DEBUG1
-	printf("\tGroup name:     %s\n",new_servicegroup->group_name);
-	printf("\tAlias:          %s\n",new_servicegroup->alias);
-#endif
-
-#ifdef DEBUG0
-	printf("add_servicegroup() end\n");
-#endif
-
 	return new_servicegroup;
 	}
 
@@ -1569,10 +1470,6 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_service_to_servicegroup() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1644,10 +1541,6 @@ servicegroupmember *add_service_to_servicegroup(servicegroup *temp_servicegroup,
 		last_member->next=new_member;
 	        }
 
-#ifdef DEBUG0
-	printf("add_service_to_servicegroup() end\n");
-#endif
-
 	return new_member;
         }
 
@@ -1659,10 +1552,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contact() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1795,18 +1684,6 @@ contact *add_contact(char *name,char *alias, char *email, char *pager, char **ad
 	contact_list=new_contact;
 #endif
 		
-#ifdef DEBUG1
-	printf("\tContact Name:                  %s\n",new_contact->name);
-	printf("\tContact Alias:                 %s\n",new_contact->alias);
-	printf("\tContact Email Address:         %s\n",(new_contact->email==NULL)?"":new_contact->email);
-	printf("\tContact Pager Address/Number:  %s\n",(new_contact->pager==NULL)?"":new_contact->pager);
-	printf("\tSvc Notification Time Period:  %s\n",new_contact->service_notification_period);
-	printf("\tHost Notification Time Period: %s\n",new_contact->host_notification_period);
-#endif
-#ifdef DEBUG0
-	printf("add_contact() end\n");
-#endif
-
 	return new_contact;
 	}
 
@@ -1818,10 +1695,6 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_host_notification_command_to_contact() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1859,10 +1732,6 @@ commandsmember *add_host_notification_command_to_contact(contact *cntct,char *co
 	new_commandsmember->next=cntct->host_notification_commands;
 	cntct->host_notification_commands=new_commandsmember;
 
-#ifdef DEBUG0
-	printf("add_host_notification_command_to_contact() end\n");
-#endif
-
 	return new_commandsmember;
         }
 
@@ -1874,10 +1743,6 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_service_notification_command_to_contact() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -1915,10 +1780,6 @@ commandsmember *add_service_notification_command_to_contact(contact *cntct,char 
 	new_commandsmember->next=cntct->service_notification_commands;
 	cntct->service_notification_commands=new_commandsmember;
 
-#ifdef DEBUG0
-	printf("add_service_notification_command_to_contact() end\n");
-#endif
-
 	return new_commandsmember;
         }
 
@@ -1938,10 +1799,6 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -2011,15 +1868,6 @@ contactgroup *add_contactgroup(char *name,char *alias){
 	contactgroup_list=new_contactgroup;
 #endif		
 
-#ifdef DEBUG1
-	printf("\tGroup name:   %s\n",new_contactgroup->group_name);
-	printf("\tAlias:        %s\n",new_contactgroup->alias);
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup() end\n");
-#endif
-
 	return new_contactgroup;
 	}
 
@@ -2031,10 +1879,6 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contact_to_contactgroup() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -2072,10 +1916,6 @@ contactgroupmember *add_contact_to_contactgroup(contactgroup *grp,char *contact_
 	new_contactgroupmember->next=grp->members;
 	grp->members=new_contactgroupmember;
 
-#ifdef DEBUG0
-	printf("add_contact_to_contactgroup() end\n");
-#endif
-
 	return new_contactgroupmember;
         }
 
@@ -2088,10 +1928,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 #ifdef NSCORE
 	char *temp_buffer=NULL;
 	int x=0;
-#endif
-
-#ifdef DEBUG0
-	printf("add_service() start\n");
 #endif
 
 	/* make sure we have everything we need */
@@ -2337,25 +2173,6 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	service_list=new_service;
 #endif
 
-#ifdef DEBUG1
-	printf("\tHost:                     %s\n",new_service->host_name);
-	printf("\tDescription:              %s\n",new_service->description);
-	printf("\tCommand:                  %s\n",new_service->service_check_command);
-	printf("\tCheck Interval:           %f\n",new_service->check_interval);
-	printf("\tRetry Interval:           %f\n",new_service->retry_interval);
-	printf("\tMax attempts:             %d\n",new_service->max_attempts);
-	printf("\tNotification Interval:    %f\n",new_service->notification_interval);
-	printf("\tNotification Time Period: %s\n",new_service->notification_period);
-	printf("\tNotify On Warning:        %s\n",(new_service->notify_on_warning==1)?"yes":"no");
-	printf("\tNotify On Critical:       %s\n",(new_service->notify_on_critical==1)?"yes":"no");
-	printf("\tNotify On Recovery:       %s\n",(new_service->notify_on_recovery==1)?"yes":"no");
-	printf("\tEvent Handler:            %s\n",(new_service->event_handler==NULL)?"N/A":new_service->event_handler);
-#endif
-
-#ifdef DEBUG0
-	printf("add_service() end\n");
-#endif
-
 	return new_service;
 	}
 
@@ -2367,10 +2184,6 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_service() start\n");
 #endif
 
 	/* bail out if we weren't given the data we need */
@@ -2407,10 +2220,6 @@ contactgroupsmember *add_contactgroup_to_service(service *svc,char *group_name){
 	new_contactgroupsmember->next=svc->contact_groups;
 	svc->contact_groups=new_contactgroupsmember;
 
-#ifdef DEBUG0
-	printf("add_contactgroup_to_service() end\n");
-#endif
-
 	return new_contactgroupsmember;
 	}
 
@@ -2438,10 +2247,6 @@ command *add_command(char *name,char *value){
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_command() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -2510,14 +2315,6 @@ command *add_command(char *name,char *value){
 	command_list=new_command;
 #endif		
 
-#ifdef DEBUG1
-	printf("\tName:         %s\n",new_command->name);
-	printf("\tCommand Line: %s\n",new_command->command_line);
-#endif
-#ifdef DEBUG0
-	printf("add_command() end\n");
-#endif
-
 	return new_command;
         }
 
@@ -2529,10 +2326,6 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_serviceescalation() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -2611,18 +2404,6 @@ serviceescalation *add_serviceescalation(char *host_name,char *description, int 
 	serviceescalation_list=new_serviceescalation;
 #endif		
 
-#ifdef DEBUG1
-	printf("\tHost name:             %s\n",new_serviceescalation->host_name);
-	printf("\tSvc description:       %s\n",new_serviceescalation->description);
-	printf("\tFirst notification:    %d\n",new_serviceescalation->first_notification);
-	printf("\tLast notification:     %d\n",new_serviceescalation->last_notification);
-	printf("\tNotification Interval: %d\n",new_serviceescalation->notification_interval);
-#endif
-
-#ifdef DEBUG0
-	printf("add_serviceescalation() end\n");
-#endif
-
 	return new_serviceescalation;
 	}
 
@@ -2634,10 +2415,6 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_serviceescalation() start\n");
 #endif
 
 	/* bail out if we weren't given the data we need */
@@ -2675,10 +2452,6 @@ contactgroupsmember *add_contactgroup_to_serviceescalation(serviceescalation *se
 	new_contactgroupsmember->next=se->contact_groups;
 	se->contact_groups=new_contactgroupsmember;
 
-#ifdef DEBUG0
-	printf("add_contactgroup_to_serviceescalation() end\n");
-#endif
-
 	return new_contactgroupsmember;
 	}
 
@@ -2698,10 +2471,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_service_dependency() start\n");
 #endif
 
 	/* make sure we have what we need */
@@ -2798,10 +2567,6 @@ servicedependency *add_service_dependency(char *dependent_host_name, char *depen
 	servicedependency_list=new_servicedependency;
 #endif		
 
-#ifdef DEBUG0
-	printf("add_service_dependency() end\n");
-#endif
-
 	return new_servicedependency;
         }
 
@@ -2812,10 +2577,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_host_dependency() start\n");
 #endif
 
 	/* make sure we have what we need */
@@ -2895,10 +2656,6 @@ hostdependency *add_host_dependency(char *dependent_host_name, char *host_name, 
 	hostdependency_list=new_hostdependency;
 #endif		
 
-#ifdef DEBUG0
-	printf("add_host_dependency() end\n");
-#endif
-
 	return new_hostdependency;
         }
 
@@ -2910,10 +2667,6 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostescalation() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -2987,17 +2740,6 @@ hostescalation *add_hostescalation(char *host_name,int first_notification,int la
 	hostescalation_list=new_hostescalation;
 #endif		
 
-#ifdef DEBUG1
-	printf("\tHost name:             %s\n",new_hostescalation->host_name);
-	printf("\tFirst notification:    %d\n",new_hostescalation->first_notification);
-	printf("\tLast notification:     %d\n",new_hostescalation->last_notification);
-	printf("\tNotification Interval: %d\n",new_hostescalation->notification_interval);
-#endif
-
-#ifdef DEBUG0
-	printf("add_hostescalation() end\n");
-#endif
-
 	return new_hostescalation;
 	}
 
@@ -3009,10 +2751,6 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contactgroup_to_hostescalation() start\n");
 #endif
 
 	/* bail out if we weren't given the data we need */
@@ -3050,10 +2788,6 @@ contactgroupsmember *add_contactgroup_to_hostescalation(hostescalation *he,char 
 	new_contactgroupsmember->next=he->contact_groups;
 	he->contact_groups=new_contactgroupsmember;
 
-#ifdef DEBUG0
-	printf("add_contactgroup_to_hostescalation() end\n");
-#endif
-
 	return new_contactgroupsmember;
 	}
 
@@ -3072,10 +2806,6 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 	contactsmember *new_contactsmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_contact_to_object() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -3125,10 +2855,6 @@ contactsmember *add_contact_to_object(contactsmember **object_ptr, char *contact
 	new_contactsmember->next=*object_ptr;
 	*object_ptr=new_contactsmember;
 
-#ifdef DEBUG0
-	printf("add_contact_to_object() end\n");
-#endif
-
 	return new_contactsmember;
         }
 
@@ -3139,10 +2865,6 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	customvariablesmember *new_customvariablesmember=NULL;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("add_custom_variable_to_object() start\n");
 #endif
 
 	/* make sure we have the data we need */
@@ -3204,10 +2926,6 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 	new_customvariablesmember->next=*object_ptr;
 	*object_ptr=new_customvariablesmember;
 
-#ifdef DEBUG0
-	printf("add_custom_variable_to_object() end\n");
-#endif
-
 	return new_customvariablesmember;
         }
 
@@ -3222,10 +2940,6 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
 timeperiod * find_timeperiod(char *name){
 	timeperiod *temp_timeperiod=NULL;
 
-#ifdef DEBUG0
-	printf("find_timeperiod() start\n");
-#endif
-
 	if(name==NULL || timeperiod_hashlist==NULL)
 		return NULL;
 
@@ -3233,10 +2947,6 @@ timeperiod * find_timeperiod(char *name){
 
 	if(temp_timeperiod && (compare_hashdata(temp_timeperiod->name,NULL,name,NULL)==0))
 		return temp_timeperiod;
-
-#ifdef DEBUG0
-	printf("find_timeperiod() end\n");
-#endif
 
 	/* we couldn't find a matching timeperiod */
 	return NULL;
@@ -3247,10 +2957,6 @@ timeperiod * find_timeperiod(char *name){
 host * find_host(char *name){
 	host *temp_host=NULL;
 
-#ifdef DEBUG0
-	printf("find_host() start\n");
-#endif
-
 	if(name==NULL || host_hashlist==NULL)
 		return NULL;
 
@@ -3258,10 +2964,6 @@ host * find_host(char *name){
 
 	if(temp_host && (compare_hashdata(temp_host->name,NULL,name,NULL)==0))
 		return temp_host;
-
-#ifdef DEBUG0
-	printf("find_host() end\n");
-#endif
 
 	/* Couldn't find matching host */
 	return NULL;
@@ -3272,10 +2974,6 @@ host * find_host(char *name){
 hostgroup * find_hostgroup(char *name){
 	hostgroup *temp_hostgroup=NULL;
 
-#ifdef DEBUG0
-	printf("find_hostgroup() start\n");
-#endif
-
 	if(name==NULL || hostgroup_hashlist==NULL)
 		return NULL;
 
@@ -3283,10 +2981,6 @@ hostgroup * find_hostgroup(char *name){
 
 	if(temp_hostgroup && (compare_hashdata(temp_hostgroup->group_name,NULL,name,NULL)==0))
 		return temp_hostgroup;
-
-#ifdef DEBUG0
-	printf("find_hostgroup() end\n");
-#endif
 
 	/* we couldn't find a matching hostgroup */
 	return NULL;
@@ -3297,10 +2991,6 @@ hostgroup * find_hostgroup(char *name){
 servicegroup * find_servicegroup(char *name){
 	servicegroup *temp_servicegroup=NULL;
 
-#ifdef DEBUG0
-	printf("find_servicegroup() start\n");
-#endif
-
 	if(name==NULL || servicegroup_hashlist==NULL)
 		return NULL;
 
@@ -3309,10 +2999,6 @@ servicegroup * find_servicegroup(char *name){
 	if(temp_servicegroup && (compare_hashdata(temp_servicegroup->group_name,NULL,name,NULL)==0))
 		return temp_servicegroup;
 
-
-#ifdef DEBUG0
-	printf("find_servicegroup() end\n");
-#endif
 
 	/* we couldn't find a matching servicegroup */
 	return NULL;
@@ -3323,10 +3009,6 @@ servicegroup * find_servicegroup(char *name){
 contact * find_contact(char *name){
 	contact *temp_contact=NULL;
 
-#ifdef DEBUG0
-	printf("find_contact() start\n");
-#endif
-
 	if(name==NULL || contact_hashlist==NULL)
 		return NULL;
 
@@ -3334,10 +3016,6 @@ contact * find_contact(char *name){
 
 	if(temp_contact && (compare_hashdata(temp_contact->name,NULL,name,NULL)==0))
 		return temp_contact;
-
-#ifdef DEBUG0
-	printf("find_contact() end\n");
-#endif
 
 	/* we couldn't find a matching contact */
 	return NULL;
@@ -3348,10 +3026,6 @@ contact * find_contact(char *name){
 contactgroup * find_contactgroup(char *name){
 	contactgroup *temp_contactgroup=NULL;
 
-#ifdef DEBUG0
-	printf("find_contactgroup() start\n");
-#endif
-
 	if(name==NULL || contactgroup_hashlist==NULL)
 		return NULL;
 
@@ -3359,10 +3033,6 @@ contactgroup * find_contactgroup(char *name){
 
 	if(temp_contactgroup && (compare_hashdata(temp_contactgroup->group_name,NULL,name,NULL)==0))
 		return temp_contactgroup;
-
-#ifdef DEBUG0
-	printf("find_contactgroup() end\n");
-#endif
 
 	/* we couldn't find a matching contactgroup */
 	return NULL;
@@ -3372,10 +3042,6 @@ contactgroup * find_contactgroup(char *name){
 /* find the corresponding member of a contact group */
 contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp){
 	contactgroupmember *temp_member=NULL;
-
-#ifdef DEBUG0
-	printf("find_contactgroupmember() start\n");
-#endif
 
 	if(name==NULL || grp==NULL)
 		return NULL;
@@ -3390,10 +3056,6 @@ contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp){
 		temp_member=temp_member->next;
 	        }
 
-#ifdef DEBUG0
-	printf("find_contactgroupmember() end\n");
-#endif
-
 	/* we couldn't find a matching member */
 	return NULL;
         }
@@ -3403,10 +3065,6 @@ contactgroupmember * find_contactgroupmember(char *name,contactgroup *grp){
 command * find_command(char *name){
 	command *temp_command=NULL;
 
-#ifdef DEBUG0
-	printf("find_command() start\n");
-#endif
-
 	if(name==NULL || command_hashlist==NULL)
 		return NULL;
 
@@ -3414,10 +3072,6 @@ command * find_command(char *name){
 
 	if(temp_command && (compare_hashdata(temp_command->name,NULL,name,NULL)==0))
 		return temp_command;
-
-#ifdef DEBUG0
-	printf("find_command() end\n");
-#endif
 
 	/* we couldn't find a matching command */
 	return NULL;
@@ -3428,10 +3082,6 @@ command * find_command(char *name){
 service * find_service(char *host_name,char *svc_desc){
 	service *temp_service=NULL;
 
-#ifdef DEBUG0
-	printf("find_service() start\n");
-#endif
-
 	if(host_name==NULL || svc_desc==NULL || service_hashlist==NULL)
 		return NULL;
 
@@ -3439,10 +3089,6 @@ service * find_service(char *host_name,char *svc_desc){
 
 	if(temp_service && (compare_hashdata(temp_service->host_name,temp_service->description,host_name,svc_desc)==0))
 		return temp_service;
-
-#ifdef DEBUG0
-	printf("find_service() end\n");
-#endif
 
 	/* we couldn't find a matching service */
 	return NULL;
@@ -3855,34 +3501,12 @@ int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
 
 /*  tests whether a contact is a contact for a particular host */
 int is_contact_for_host(host *hst, contact *cntct){
-#ifdef REMOVED_07182006
-	contactgroupsmember *temp_contactgroupsmember=NULL;
-	contactgroup *temp_contactgroup=NULL;
-#endif
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 	
 	if(hst==NULL || cntct==NULL){
 		return FALSE;
 	        }
-
-#ifdef REMOVED_07182006
-	/* search all contact groups of this host */
-	for(temp_contactgroupsmember=hst->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-		/* find the contact group */
-#ifdef NSCORE
-		temp_contactgroup=temp_contactgroupsmember->group_ptr;
-#else
-		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-		if(temp_contactgroup==NULL)
-			continue;
-
-		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
-			return TRUE;
-	        }
-#endif
 
 	/* search all contacts of this host */
 	for(temp_contactsmember=hst->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -3903,10 +3527,6 @@ int is_contact_for_host(host *hst, contact *cntct){
 
 /* tests whether or not a contact is an escalated contact for a particular host */
 int is_escalated_contact_for_host(host *hst, contact *cntct){
-#ifdef REMOVED_07182006
-	contactgroupsmember *temp_contactgroupsmember=NULL;
-	contactgroup *temp_contactgroup=NULL;
-#endif
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 	hostescalation *temp_hostescalation=NULL;
@@ -3914,25 +3534,6 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 
 	/* search all host escalations */
 	for(temp_hostescalation=get_first_hostescalation_by_host(hst->name);temp_hostescalation!=NULL;temp_hostescalation=get_next_hostescalation_by_host(hst->name,temp_hostescalation)){
-
-#ifdef REMOVED_07182006
-		/* search all the contact groups in this escalation... */
-		for(temp_contactgroupsmember=temp_hostescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			/* find the contact group */
-#ifdef NSCORE
-			temp_contactgroup=temp_contactgroupsmember->group_ptr;
-#else
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-			if(temp_contactgroup==NULL)
-				continue;
-
-			/* see if the contact is a member of this contact group */
-			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
-				return TRUE;
-		        }
-#endif
 
 		/* search all contacts of this host escalation */
 		for(temp_contactsmember=temp_hostescalation->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -3954,34 +3555,11 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 
 /*  tests whether a contact is a contact for a particular service */
 int is_contact_for_service(service *svc, contact *cntct){
-#ifdef REMOVED_07182006
-	contactgroupsmember *temp_contactgroupsmember=NULL;
-	contactgroup *temp_contactgroup=NULL;
-#endif
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 
 	if(svc==NULL || cntct==NULL)
 		return FALSE;
-
-#ifdef REMOVED_07182006
-	/* search all contact groups of this service */
-	for(temp_contactgroupsmember=svc->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-		/* find the contact group */
-#ifdef NSCORE
-		temp_contactgroup=temp_contactgroupsmember->group_ptr;
-#else
-		temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-		if(temp_contactgroup==NULL)
-			continue;
-
-		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
-			return TRUE;
-
-	        }
-#endif
 
 	/* search all contacts of this service */
 	for(temp_contactsmember=svc->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -4003,34 +3581,11 @@ int is_contact_for_service(service *svc, contact *cntct){
 /* tests whether or not a contact is an escalated contact for a particular service */
 int is_escalated_contact_for_service(service *svc, contact *cntct){
 	serviceescalation *temp_serviceescalation=NULL;
-#ifdef REMOVED_07182006
-	contactgroupsmember *temp_contactgroupsmember=NULL;
-	contactgroup *temp_contactgroup=NULL;
-#endif
 	contactsmember *temp_contactsmember=NULL;
 	contact *temp_contact=NULL;
 
 	/* search all the service escalations */
 	for(temp_serviceescalation=get_first_serviceescalation_by_service(svc->host_name,svc->description);temp_serviceescalation!=NULL;temp_serviceescalation=get_next_serviceescalation_by_service(svc->host_name,svc->description,temp_serviceescalation)){
-
-#ifdef REMOVED_07182006
-		/* search all the contact groups in this escalation... */
-		for(temp_contactgroupsmember=temp_serviceescalation->contact_groups;temp_contactgroupsmember!=NULL;temp_contactgroupsmember=temp_contactgroupsmember->next){
-
-			/* find the contact group */
-#ifdef NSCORE
-			temp_contactgroup=temp_contactgroupsmember->group_ptr;
-#else
-			temp_contactgroup=find_contactgroup(temp_contactgroupsmember->group_name);
-#endif
-			if(temp_contactgroup==NULL)
-				continue;
-
-			/* see if the contact is a member of this contact group */
-			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct)==TRUE)
-				return TRUE;
-		        }
-#endif
 
 		/* search all contacts of this service escalation */
 		for(temp_contactsmember=temp_serviceescalation->contacts;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
@@ -4244,11 +3799,8 @@ int free_object_data(void){
 	register int day=0;
 	register int i=0;
 
-#ifdef DEBUG0
-	printf("free_object_data() start\n");
-#endif
 
-	/* free memory for the timeperiod list */
+	/**** free memory for the timeperiod list ****/
 	this_timeperiod=timeperiod_list;
 	while(this_timeperiod!=NULL){
 
@@ -4273,11 +3825,8 @@ int free_object_data(void){
 	timeperiod_hashlist=NULL;
 	timeperiod_list=NULL;
 
-#ifdef DEBUG1
-	printf("\ttimeperiod_list freed\n");
-#endif
 
-	/* free memory for the host list */
+	/**** free memory for the host list ****/
 	this_host=host_list;
 	while(this_host!=NULL){
 
@@ -4352,11 +3901,8 @@ int free_object_data(void){
 	host_hashlist=NULL;
 	host_list=NULL;
 
-#ifdef DEBUG1
-	printf("\thost_list freed\n");
-#endif
 
-	/* free memory for the host group list */
+	/**** free memory for the host group list ****/
 	this_hostgroup=hostgroup_list;
 	while(this_hostgroup!=NULL){
 
@@ -4384,11 +3930,8 @@ int free_object_data(void){
 	hostgroup_hashlist=NULL;
 	hostgroup_list=NULL;
 
-#ifdef DEBUG1
-	printf("\thostgroup_list freed\n");
-#endif
 
-	/* free memory for the service group list */
+	/**** free memory for the service group list ****/
 	this_servicegroup=servicegroup_list;
 	while(this_servicegroup!=NULL){
 
@@ -4417,11 +3960,8 @@ int free_object_data(void){
 	servicegroup_hashlist=NULL;
 	servicegroup_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tservicegroup_list freed\n");
-#endif
 
-	/* free memory for the contact list */
+	/**** free memory for the contact list ****/
 	this_contact=contact_list;
 	while(this_contact!=NULL){
 	  
@@ -4473,11 +4013,8 @@ int free_object_data(void){
 	contact_hashlist=NULL;
 	contact_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tcontact_list freed\n");
-#endif
 
-	/* free memory for the contact group list */
+	/**** free memory for the contact group list ****/
 	this_contactgroup=contactgroup_list;
 	while(this_contactgroup!=NULL){
 
@@ -4502,11 +4039,8 @@ int free_object_data(void){
 	contactgroup_hashlist=NULL;
 	contactgroup_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tcontactgroup_list freed\n");
-#endif
 
-	/* free memory for the service list */
+	/**** free memory for the service list ****/
 	this_service=service_list;
 	while(this_service!=NULL){
 
@@ -4572,11 +4106,8 @@ int free_object_data(void){
 	service_hashlist=NULL;
 	service_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tservice_list freed\n");
-#endif
 
-	/* free memory for the command list */
+	/**** free memory for the command list ****/
 	this_command=command_list;
 	while(this_command!=NULL){
 		next_command=this_command->next;
@@ -4591,11 +4122,8 @@ int free_object_data(void){
 	command_hashlist=NULL;
 	command_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tcommand_list freed\n");
-#endif
 
-	/* free memory for the service escalation list */
+	/**** free memory for the service escalation list ****/
 	this_serviceescalation=serviceescalation_list;
 	while(this_serviceescalation!=NULL){
 
@@ -4630,11 +4158,8 @@ int free_object_data(void){
 	serviceescalation_hashlist=NULL;
 	serviceescalation_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tserviceescalation_list freed\n");
-#endif
 
-	/* free memory for the service dependency list */
+	/**** free memory for the service dependency list ****/
 	this_servicedependency=servicedependency_list;
 	while(this_servicedependency!=NULL){
 		next_servicedependency=this_servicedependency->next;
@@ -4652,11 +4177,8 @@ int free_object_data(void){
 	servicedependency_hashlist=NULL;
 	servicedependency_list=NULL;
 
-#ifdef DEBUG1
-	printf("\tservicedependency_list freed\n");
-#endif
 
-	/* free memory for the host dependency list */
+	/**** free memory for the host dependency list ****/
 	this_hostdependency=hostdependency_list;
 	while(this_hostdependency!=NULL){
 		next_hostdependency=this_hostdependency->next;
@@ -4672,11 +4194,8 @@ int free_object_data(void){
 	hostdependency_hashlist=NULL;
 	hostdependency_list=NULL;
 
-#ifdef DEBUG1
-	printf("\thostdependency_list freed\n");
-#endif
 
-	/* free memory for the host escalation list */
+	/**** free memory for the host escalation list ****/
 	this_hostescalation=hostescalation_list;
 	while(this_hostescalation!=NULL){
 
@@ -4709,14 +4228,6 @@ int free_object_data(void){
 	my_free((void **)&hostescalation_hashlist);
 	hostescalation_hashlist=NULL;
 	hostescalation_list=NULL;
-
-#ifdef DEBUG1
-	printf("\thostescalation_list freed\n");
-#endif
-
-#ifdef DEBUG0
-	printf("free_object_data() end\n");
-#endif
 
 	return OK;
         }

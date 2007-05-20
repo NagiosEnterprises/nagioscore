@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-09-2007
+ * Last Modified:   05-20-2007
  *
  * License:
  *
@@ -280,9 +280,8 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 	int clean_macro=FALSE;
 	int found_macro_x=FALSE;
 
-#ifdef DEBUG0
-	printf("process_macros() start\n");
-#endif
+
+	log_debug_info(DEBUGL_FUNCTIONS,0,"process_macros()\n");
 
 	if(output_buffer==NULL || buffer_length<=0)
 		return ERROR;
@@ -294,18 +293,13 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 
 	in_macro=FALSE;
 
-/*#define TEST_MACROS 1*/
-#ifdef TEST_MACROS
-	printf("**** BEGIN MACRO PROCESSING ***********\n");
-	printf("Processing: '%s'\n",input_buffer);
-	printf("Buffer length: %d\n",buffer_length);
-#endif
+	log_debug_info(DEBUGL_MACROS,1,"**** BEGIN MACRO PROCESSING ***********\n");
+	log_debug_info(DEBUGL_MACROS,1,"Processing: '%s'\n",input_buffer);
+	log_debug_info(DEBUGL_MACROS,2,"Buffer length: %d\n",buffer_length);
 
 	for(temp_buffer=my_strtok(input_buffer,"$");temp_buffer!=NULL;temp_buffer=my_strtok(NULL,"$")){
 
-#ifdef TEST_MACROS
-		printf("  Processing part: '%s'\n",temp_buffer);
-#endif
+		log_debug_info(DEBUGL_MACROS,2,"  Processing part: '%s'\n",temp_buffer);
 
 		selected_macro=NULL;
 		found_macro_x=FALSE;
@@ -316,9 +310,8 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
 				output_buffer[buffer_length-1]='\x0';
 			        }
-#ifdef TEST_MACROS
-			printf("    Not currently in macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
-#endif
+			log_debug_info(DEBUGL_MACROS,2,"  Not currently in macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
+
 			in_macro=TRUE;
 			}
 		else{
@@ -442,17 +435,17 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 				
 				/* an escaped $ is done by specifying two $$ next to each other */
 				else if(!strcmp(temp_buffer,"")){
-#ifdef TEST_MACROS
-					printf("    Escaped $.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
-#endif
+
+					log_debug_info(DEBUGL_MACROS,2,"  Escaped $.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
+
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 				        }
 
 				/* a non-macro, just some user-defined string between two $s */
 				else{
-#ifdef TEST_MACROS
-					printf("    Non-macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
-#endif
+
+					log_debug_info(DEBUGL_MACROS,2,"  Non-macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
+
 					strncat(output_buffer,"$",buffer_length-strlen(output_buffer)-1);
 					output_buffer[buffer_length-1]='\x0';
 					strncat(output_buffer,temp_buffer,buffer_length-strlen(output_buffer)-1);
@@ -478,9 +471,8 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 					/* free memory if necessary */
 					if(options & URL_ENCODE_MACRO_CHARS)
 						my_free((void **)&selected_macro);
-#ifdef TEST_MACROS
-					printf("    Just finished macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
-#endif
+
+					log_debug_info(DEBUGL_MACROS,2,"  Just finished macro.  Running output (%d): '%s'\n",strlen(output_buffer),output_buffer);
 				        }
 
 				output_buffer[buffer_length-1]='\x0';
@@ -490,14 +482,8 @@ int process_macros(char *input_buffer, char *output_buffer, int buffer_length, i
 			}
 		}
 
-#ifdef TEST_MACROS
-	printf("Done.  Final output: '%s'\n",output_buffer);
-	printf("**** END MACRO PROCESSING *************\n");
-#endif
-
-#ifdef DEBUG0
-	printf("process_macros() end\n");
-#endif
+	log_debug_info(DEBUGL_MACROS,1,"  Done.  Final output: '%s'\n",output_buffer);
+	log_debug_info(DEBUGL_MACROS,1,"**** END MACRO PROCESSING *************\n");
 
 	return OK;
 	}
@@ -519,10 +505,6 @@ int grab_service_macros(service *svc){
 	char *buf1=NULL;
 	char *buf2=NULL;
 	
-#ifdef DEBUG0
-	printf("grab_service_macros() start\n");
-#endif
-
 	/* get the service description */
 	my_free((void **)&macro_x[MACRO_SERVICEDESC]);
 	macro_x[MACRO_SERVICEDESC]=(char *)strdup(svc->description);
@@ -725,10 +707,6 @@ int grab_service_macros(service *svc){
 		macro_x[MACRO_SERVICENOTES]=(char *)strdup(temp_buffer);
 	        }
 
-#ifdef DEBUG0
-	printf("grab_service_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -748,10 +726,6 @@ int grab_host_macros(host *hst){
 	char temp_buffer[MAX_INPUT_BUFFER]="";
 	char *buf1=NULL;
 	char *buf2=NULL;
-
-#ifdef DEBUG0
-	printf("grab_host_macros() start\n");
-#endif
 
 	/* get the host name */
 	my_free((void **)&macro_x[MACRO_HOSTNAME]);
@@ -957,10 +931,6 @@ int grab_host_macros(host *hst){
 		macro_x[MACRO_HOSTNOTES]=(char *)strdup(temp_buffer);
 	        }
 
-#ifdef DEBUG0
-	printf("grab_host_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -982,10 +952,6 @@ int grab_on_demand_macro(char *str){
 	char *ptr=NULL;
 	char *host_name=NULL;
 	int return_val=ERROR;
-
-#ifdef DEBUG0
-	printf("grab_on_demand_macro() start\n");
-#endif
 
 	/* clear the on-demand macro */
 	my_free((void **)&macro_ondemand);
@@ -1147,10 +1113,6 @@ int grab_on_demand_macro(char *str){
 
 	my_free((void **)&macro);
 
-#ifdef DEBUG0
-	printf("grab_on_demand_macro() end\n");
-#endif
-
 	return return_val;
         }
 
@@ -1170,10 +1132,6 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
-
-#ifdef DEBUG0
-	printf("grab_on_demand_host_macro() start\n");
-#endif
 
 	if(hst==NULL || macro==NULL)
 		return ERROR;
@@ -1412,10 +1370,6 @@ int grab_on_demand_host_macro(host *hst, char *macro){
 	else
 		return ERROR;
 
-#ifdef DEBUG0
-	printf("grab_on_demand_host_macro() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1435,10 +1389,6 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	int hours=0;
 	int minutes=0;
 	int seconds=0;
-
-#ifdef DEBUG0
-	printf("grab_on_demand_service_macro() start\n");
-#endif
 
 	if(svc==NULL || macro==NULL)
 		return ERROR;
@@ -1673,10 +1623,6 @@ int grab_on_demand_service_macro(service *svc, char *macro){
 	else
 		return ERROR;
 
-#ifdef DEBUG0
-	printf("grab_on_demand_service_macro() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1686,10 +1632,6 @@ int grab_contact_macros(contact *cntct){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *customvarname=NULL;
 	int x=0;
-
-#ifdef DEBUG0
-	printf("grab_contact_macros() start\n");
-#endif
 
 	/* get the name */
 	my_free((void **)&macro_x[MACRO_CONTACTNAME]);
@@ -1732,10 +1674,6 @@ int grab_contact_macros(contact *cntct){
 	strip(macro_x[MACRO_CONTACTPAGER]);
 	*/
 
-#ifdef DEBUG0
-	printf("grab_contact_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1763,10 +1701,6 @@ int grab_summary_macros(contact *temp_contact){
 	int services_critical_unhandled=0;
 	int service_problems=0;
 	int service_problems_unhandled=0;
-
-#ifdef DEBUG0
-	printf("grab_summary_macros() start\n");
-#endif
 
 	/* this func seems to take up quite a bit of CPU, so skip it if we have a large install... */
 	if(use_large_installation_tweaks==TRUE)
@@ -1937,10 +1871,6 @@ int grab_summary_macros(contact *temp_contact){
 	my_free((void **)&macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED]);
 	asprintf(&macro_x[MACRO_TOTALSERVICEPROBLEMSUNHANDLED],"%d",service_problems_unhandled);
 
-#ifdef DEBUG0
-	printf("grab_summary_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -1949,10 +1879,6 @@ int grab_summary_macros(contact *temp_contact){
 /* updates date/time macros */
 int grab_datetime_macros(void){
 	time_t t=0L;
-
-#ifdef DEBUG0
-	printf("grab_datetime_macros() start\n");
-#endif
 
 	/* get the current time */
 	time(&t);
@@ -1997,10 +1923,6 @@ int grab_datetime_macros(void){
 	strip(macro_x[MACRO_TIMET]);
 	*/
 
-#ifdef DEBUG0
-	printf("grab_datetime_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2010,18 +1932,9 @@ int grab_datetime_macros(void){
 int clear_argv_macros(void){
 	register int x=0;
 
-
-#ifdef DEBUG0
-	printf("clear_argv_macros() start\n");
-#endif
-
 	/* command argument macros */
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++)
 		my_free((void **)&macro_argv[x]);
-
-#ifdef DEBUG0
-	printf("clear_argv_macros() end\n");
-#endif
 
 	return OK;
         }
@@ -2033,10 +1946,6 @@ int clear_volatile_macros(void){
 	customvariablesmember *this_customvariablesmember=NULL;
 	customvariablesmember *next_customvariablesmember=NULL;
 	register int x=0;
-
-#ifdef DEBUG0
-	printf("clear_volatile_macros() start\n");
-#endif
 
 	for(x=0;x<MACRO_X_COUNT;x++){
 		switch(x){
@@ -2098,10 +2007,6 @@ int clear_volatile_macros(void){
 	        }
 	macro_custom_contact_vars=NULL;
 
-#ifdef DEBUG0
-	printf("clear_volatile_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2110,10 +2015,6 @@ int clear_volatile_macros(void){
 int clear_nonvolatile_macros(void){
 	register int x=0;
 
-#ifdef DEBUG0
-	printf("clear_nonvolatile_macros() start\n");
-#endif
-	
 	for(x=0;x<MACRO_X_COUNT;x++){
 		switch(x){
 		case MACRO_ADMINEMAIL:
@@ -2137,10 +2038,6 @@ int clear_nonvolatile_macros(void){
 		        }
 	        }
 
-#ifdef DEBUG0
-	printf("clear_nonvolatile_macros() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2148,10 +2045,6 @@ int clear_nonvolatile_macros(void){
 /* initializes the names of macros */
 int init_macrox_names(void){
 	register int x=0;
-
-#ifdef DEBUG0
-	printf("init_macrox_names() start\n");
-#endif
 
 	/* initialize macro names */
 	for(x=0;x<MACRO_X_COUNT;x++)
@@ -2275,10 +2168,6 @@ int init_macrox_names(void){
 	add_macrox_name(MACRO_SERVICEACKAUTHORNAME,"SERVICEACKAUTHORNAME");
 	add_macrox_name(MACRO_SERVICEACKAUTHORALIAS,"SERVICEACKAUTHORALIAS");
 
-#ifdef DEBUG0
-	printf("init_macrox_names() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2297,17 +2186,9 @@ int add_macrox_name(int i, char *name){
 int free_macrox_names(void){
 	register int x=0;
 
-#ifdef DEBUG0
-	printf("free_macrox_names() start\n");
-#endif
-
 	/* free each macro name */
 	for(x=0;x<MACRO_X_COUNT;x++)
 		my_free((void **)&macro_x_names[x]);
-
-#ifdef DEBUG0
-	printf("free_macrox_names() end\n");
-#endif
 
 	return OK;
         }
@@ -2316,17 +2197,9 @@ int free_macrox_names(void){
 /* sets or unsets all macro environment variables */
 int set_all_macro_environment_vars(int set){
 
-#ifdef DEBUG0
-	printf("set_all_macro_environment_vars() start\n");
-#endif
-
 	set_macrox_environment_vars(set);
 	set_argv_macro_environment_vars(set);
 	set_custom_macro_environment_vars(set);
-
-#ifdef DEBUG0
-	printf("set_all_macro_environment_vars() start\n");
-#endif
 
 	return OK;
         }
@@ -2335,10 +2208,6 @@ int set_all_macro_environment_vars(int set){
 /* sets or unsets macrox environment variables */
 int set_macrox_environment_vars(int set){
 	register int x=0;
-
-#ifdef DEBUG0
-	printf("set_macrox_environment_vars() start\n");
-#endif
 
 	/* set each of the macrox environment variables */
 	for(x=0;x<MACRO_X_COUNT;x++){
@@ -2352,10 +2221,6 @@ int set_macrox_environment_vars(int set){
 			set_macro_environment_var(macro_x_names[x],macro_x[x],set);
 		}
 
-#ifdef DEBUG0
-	printf("set_macrox_environment_vars() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2365,20 +2230,12 @@ int set_argv_macro_environment_vars(int set){
 	char *macro_name=NULL;
 	register int x=0;
 
-#ifdef DEBUG0
-	printf("set_argv_macro_environment_vars() start\n");
-#endif
-
 	/* set each of the argv macro environment variables */
 	for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
 		asprintf(&macro_name,"ARG%d",x+1);
 		set_macro_environment_var(macro_name,macro_argv[x],set);
 		my_free((void **)&macro_name);
 	        }
-
-#ifdef DEBUG0
-	printf("set_argv_macro_environment_vars() end\n");
-#endif
 
 	return OK;
         }
@@ -2387,10 +2244,6 @@ int set_argv_macro_environment_vars(int set){
 /* sets or unsets custom host/service/contact macro environment variables */
 int set_custom_macro_environment_vars(int set){
 	customvariablesmember *temp_customvariablesmember=NULL;
-
-#ifdef DEBUG0
-	printf("set_custom_macro_environment_vars() start\n");
-#endif
 
 	/* set each of the custom host environment variables */
 	for(temp_customvariablesmember=macro_custom_host_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next){
@@ -2405,10 +2258,6 @@ int set_custom_macro_environment_vars(int set){
 	for(temp_customvariablesmember=macro_custom_contact_vars;temp_customvariablesmember!=NULL;temp_customvariablesmember=temp_customvariablesmember->next)
 		set_macro_environment_var(temp_customvariablesmember->variable_name,clean_macro_chars(temp_customvariablesmember->variable_value,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS),set);
 
-#ifdef DEBUG0
-	printf("set_custom_macro_environment_vars() end\n");
-#endif
-
 	return OK;
         }
 
@@ -2418,10 +2267,6 @@ int set_macro_environment_var(char *name, char *value, int set){
 	char *env_macro_name=NULL;
 #ifndef HAVE_SETENV
 	char *env_macro_string=NULL;
-#endif
-
-#ifdef DEBUG0
-	printf("set_macro_environment_var() start\n");
 #endif
 
 	/* we won't mess with null variable names */
@@ -2460,10 +2305,6 @@ int set_macro_environment_var(char *name, char *value, int set){
 
 	/* free allocated memory */
 	my_free((void **)&env_macro_name);
-
-#ifdef DEBUG0
-	printf("set_macro_environment_var() end\n");
-#endif
 
 	return OK;
         }
@@ -2504,9 +2345,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 #endif
 
 
-#ifdef DEBUG0
-	printf("my_system() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"my_system()\n");
 
 	/* initialize return variables */
 	if(output!=NULL)
@@ -2517,6 +2356,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 	/* if no command was passed, return with no error */
 	if(cmd==NULL)
 	        return STATE_OK;
+
+	log_debug_info(DEBUGL_COMMANDS,1,"Running command '%s'...\n",cmd);
 
 #ifdef EMBEDDEDPERL
 
@@ -2562,9 +2403,9 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			(void) POPs ;
 
 			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
-#ifdef DEBUG1
-			printf("embedded perl failed to compile %s, compile error %s\n",fname,temp_buffer);
-#endif
+
+			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl failed to compile %s, compile error %s\n",fname,temp_buffer);
+
 			write_to_logs_and_console(temp_buffer,NSLOG_RUNTIME_WARNING,TRUE);
 			my_free((void **)&temp_buffer);
 
@@ -2572,9 +2413,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			}
 		else{
 			plugin_hndlr_cr=newSVsv(POPs);
-#ifdef DEBUG1
-			printf("embedded perl successfully compiled %s and returned plugin handler (Perl subroutine code ref)\n",fname);
-#endif
+
+			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl successfully compiled %s and returned plugin handler (Perl subroutine code ref)\n",fname);
 
 			PUTBACK ;
 			FREETMPS ;
@@ -2669,9 +2509,7 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			FREETMPS;
 			LEAVE;                                    
 
-#ifdef DEBUG0
-			printf("embedded perl ran command %s with output %d, %s\n",fname,status,buffer);
-#endif
+			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl ran command %s with output %d, %s\n",fname,status,buffer);
 
 			/* write the output back to the parent process */
 			write(fd[1],buffer,strlen(buffer)+1);
@@ -2825,6 +2663,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 			kill((pid_t)(-pid),SIGKILL);
 		        }
 
+		log_debug_info(DEBUGL_COMMANDS,1,"Execution time=%.3f sec\n, early timeout=%d, result=%d",exectime,early_timeout,result);
+
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
 		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,(output==NULL)?NULL:*output,NULL);
@@ -2833,10 +2673,6 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 		/* close the pipe for reading */
 		close(fd[0]);
 	        }
-
-#ifdef DEBUG1
-	printf("my_system() end\n");
-#endif
 
 	return result;
         }
@@ -2852,12 +2688,7 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 	register int arg_index=0;
 	register int escaped=FALSE;
 
-#ifdef DEBUG0
-	printf("get_raw_command_line() start\n");
-#endif
-#ifdef DEBUG1
-	printf("\tInput: %s\n",cmd_ptr);
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"get_raw_command_line()\n");
 
 	/* clear the argv macros */
 	clear_argv_macros();
@@ -2867,12 +2698,10 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 		full_command[0]='\x0';
 
 	/* make sure we've got all the requirements */
-	if(cmd_ptr==NULL || full_command==NULL){
-#ifdef DEBUG1
-		printf("\tWe don't have enough data to get the expanded command line!\n");
-#endif
+	if(cmd_ptr==NULL || full_command==NULL)
 		return ERROR;
-	        }
+
+	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Input: %s\n",cmd_ptr->command_line);
 
 	/* get the full command line */
 	if(cmd_ptr->command_line!=NULL){
@@ -2927,94 +2756,10 @@ int get_raw_command_line(command *cmd_ptr, char *cmd, char *full_command, int bu
 			}
 		}
 
-#ifdef DEBUG1
-	printf("\tOutput: %s\n",full_command);
-#endif
-#ifdef DEBUG0
-	printf("get_raw_command_line() end\n");
-#endif
+	log_debug_info(DEBUGL_COMMANDS|DEBUGL_CHECKS|DEBUGL_MACROS,2,"Output: %s\n",full_command);
 
 	return OK;
         }
-
-
-
-/* given a "raw" command, return the "expanded" or "whole" command line */
-int get_raw_command_line2(command *cmd_ptr, char *cmd_args, char **full_command, int macro_options){
-	char temp_arg[MAX_COMMAND_BUFFER]="";
-	char arg_buffer[MAX_COMMAND_BUFFER]="";
-	register int x=0;
-	register int y=0;
-	register int arg_index=0;
-
-#ifdef DEBUG0
-	printf("get_raw_command_line() start\n");
-#endif
-#ifdef DEBUG1
-	printf("\tInput: %s\n",cmd_ptr);
-#endif
-
-	/* clear the argv macros */
-	clear_argv_macros();
-
-	/* initialize the full command */
-	if(full_command)
-		*full_command=NULL;
-
-	/* make sure we've got all the requirements */
-	if(cmd_ptr==NULL || full_command==NULL){
-#ifdef DEBUG1
-		printf("\tWe don't have enough data to get the expanded command line!\n");
-#endif
-		return ERROR;
-	        }
-
-	/* get the full command line */
-	if(cmd_ptr->command_line!=NULL)
-		*full_command=(char *)strdup(cmd_ptr->command_line);
-
-	/* get the command arguments */
-	if(cmd_args!=NULL){
-
-		/* skip the command name (we're about to get the arguments)... */
-		/* use the previous value from above */
-		arg_index=0;
-
-		/* get each command argument */
-		for(x=0;x<MAX_COMMAND_ARGUMENTS;x++){
-
-			/* we reached the end of the arguments... */
-			if(cmd_args[arg_index]=='\x0')
-				break;
-
-			/* get the next argument */
-			/* can't use strtok(), as that's used in process_macros... */
-			for(arg_index++,y=0;y<sizeof(temp_arg)-1;arg_index++){
-				if(cmd_args[arg_index]=='!' || cmd_args[arg_index]=='\x0')
-					break;
-				temp_arg[y]=cmd_args[arg_index];
-				y++;
-				}
-			temp_arg[y]='\x0';
-
-			/* ADDED 01/29/04 EG */
-			/* process any macros we find in the argument */
-			process_macros(temp_arg,arg_buffer,sizeof(arg_buffer),macro_options);
-
-			macro_argv[x]=(char *)strdup(arg_buffer);
-			}
-		}
-
-#ifdef DEBUG1
-	printf("\tOutput: %s\n",full_command);
-#endif
-#ifdef DEBUG0
-	printf("get_raw_command_line() end\n");
-#endif
-
-	return OK;
-        }
-
 
 
 
@@ -3030,9 +2775,7 @@ int check_time_against_period(time_t check_time, timeperiod *tperiod){
 	unsigned long midnight_today;
 	struct tm *t;
 
-#ifdef DEBUG0
-	printf("check_time_against_period() start\n");
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"check_time_against_period()\n");
 	
 	/* if no period was specified, assume the time is good */
 	if(tperiod==NULL)
@@ -3053,10 +2796,6 @@ int check_time_against_period(time_t check_time, timeperiod *tperiod){
 			return OK;
 	        }
 
-#ifdef DEBUG0
-	printf("check_time_against_period() end\n");
-#endif
-
 	return ERROR;
         }
 
@@ -3074,13 +2813,7 @@ void get_next_valid_time(time_t preferred_time,time_t *valid_time, timeperiod *t
 	int has_looped=FALSE;
 	int days_into_the_future;
 
-#ifdef DEBUG0
-	printf("get_next_valid_time() start\n");
-#endif
-
-#ifdef DEBUG1
-	printf("\tPreferred Time: %lu --> %s",(unsigned long)preferred_time,ctime(&preferred_time));
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"get_next_valid_time()\n");
 
 	/* if the preferred time is valid today, go with it */
 	if(check_time_against_period(preferred_time,tperiod)==OK)
@@ -3140,14 +2873,6 @@ void get_next_valid_time(time_t preferred_time,time_t *valid_time, timeperiod *t
 		else
 			*valid_time=earliest_next_valid_time;
 	        }
-
-#ifdef DEBUG1
-	printf("\tNext Valid Time: %lu --> %s",(unsigned long)*valid_time,ctime(valid_time));
-#endif
-
-#ifdef DEBUG0
-	printf("get_next_valid_time() end\n");
-#endif
 
 	return;
         }
@@ -3233,10 +2958,6 @@ time_t get_next_log_rotation_time(void){
 	int is_dst_now=FALSE;
 	time_t run_time;
 
-#ifdef DEBUG0
-	printf("get_next_log_rotation_time() start\n");
-#endif
-	
 	time(&current_time);
 	t=localtime(&current_time);
 	t->tm_min=0;
@@ -3272,14 +2993,6 @@ time_t get_next_log_rotation_time(void){
 	else if(is_dst_now==FALSE && t->tm_isdst>0)
 		run_time-=3600;
 
-#ifdef DEBUG1
-	printf("\tNext Log Rotation Time: %s",ctime(&run_time));
-#endif
-
-#ifdef DEBUG0
-	printf("get_next_log_rotation_time() end\n");
-#endif
-
 	return run_time;
         }
 
@@ -3292,10 +3005,6 @@ time_t get_next_log_rotation_time(void){
 
 /* trap signals so we can exit gracefully */
 void setup_sighandler(void){
-
-#ifdef DEBUG0
-	printf("setup_sighandler() start\n");
-#endif
 
 	/* reset the shutdown flag */
 	sigshutdown=FALSE;
@@ -3313,10 +3022,6 @@ void setup_sighandler(void){
 	if(daemon_dumps_core==FALSE || daemon_mode==FALSE)
 		signal(SIGSEGV,sighandler);
 
-#ifdef DEBUG0
-	printf("setup_sighandler() end\n");
-#endif
-
 	return;
         }
 
@@ -3324,20 +3029,12 @@ void setup_sighandler(void){
 /* reset signal handling... */
 void reset_sighandler(void){
 
-#ifdef DEBUG0
-	printf("reset_sighandler() start\n");
-#endif
-
 	/* set signal handling to default actions */
 	signal(SIGQUIT,SIG_DFL);
 	signal(SIGTERM,SIG_DFL);
 	signal(SIGHUP,SIG_DFL);
 	signal(SIGSEGV,SIG_DFL);
 	signal(SIGPIPE,SIG_DFL);
-
-#ifdef DEBUG0
-	printf("reset_sighandler() end\n");
-#endif
 
 	return;
         }
@@ -3367,9 +3064,6 @@ void sighandler(int sig){
 	/* all other signals are logged at a later point in main() to prevent problems with NPTL */
 	if(sig==SIGSEGV){
 		asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig]);
-#ifdef DEBUG2
-		printf("%s\n",buffer);
-#endif
 		write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 		my_free((void **)&buffer);
 		}
@@ -3664,13 +3358,8 @@ int drop_privileges(char *user, char *group){
 	struct passwd *pw=NULL;
 	int result=OK;
 
-#ifdef DEBUG0
-	printf("drop_privileges() start\n");
-#endif
-
-#ifdef DEBUG1
-	printf("Original UID/GID: %d/%d\n",(int)getuid(),(int)getgid());
-#endif
+	log_debug_info(DEBUGL_FUNCTIONS,0,"drop_privileges() start\n");
+	log_debug_info(DEBUGL_PROCESS,0,"Original UID/GID: %d/%d\n",(int)getuid(),(int)getgid());
 
 	/* only drop privileges if we're running as root, so we don't interfere with being debugged while running as some random user */
 	if(getuid()!=0)
@@ -3755,13 +3444,7 @@ int drop_privileges(char *user, char *group){
 		        }
 	        }
 
-#ifdef DEBUG1
-	printf("New UID/GID: %d/%d\n",(int)getuid(),(int)getgid());
-#endif
-
-#ifdef DEBUG0
-	printf("drop_privileges() end\n");
-#endif
+	log_debug_info(DEBUGL_PROCESS,0,"New UID/GID: %d/%d\n",(int)getuid(),(int)getgid());
 
 	return result;
         }
@@ -4382,10 +4065,6 @@ int open_command_file(void){
 	struct stat st;
  	int result=0;
 
-#ifdef DEBUG0
-	printf("open_command_file() start\n");
-#endif
-
 	/* if we're not checking external commands, don't do anything */
 	if(check_external_commands==FALSE)
 		return OK;
@@ -4450,20 +4129,12 @@ int open_command_file(void){
 	/* set a flag to remember we already created the file */
 	command_file_created=TRUE;
 
-#ifdef DEBUG0
-	printf("open_command_file() end\n");
-#endif
-
 	return OK;
         }
 
 
 /* closes the external command file FIFO and deletes it */
 int close_command_file(void){
-
-#ifdef DEBUG0
-	printf("close_command_file() start\n");
-#endif
 
 	/* if we're not checking external commands, don't do anything */
 	if(check_external_commands==FALSE)
@@ -4487,10 +4158,6 @@ int close_command_file(void){
 	if(unlink(command_file)!=0)
 		return ERROR;
 	*/
-
-#ifdef DEBUG0
-	printf("close_command_file() end\n");
-#endif
 
 	return OK;
         }
@@ -4910,10 +4577,6 @@ int my_rename(char *source, char *dest){
 
 	/* an error occurred because the source and dest files are on different filesystems */
 	if(rename_result==-1 && errno==EXDEV){
-
-#ifdef DEBUG2
-		printf("\tMoving file across file systems.\n");
-#endif
 
 		/* open destination file for writing */
 		if((dest_fd=open(dest,O_WRONLY|O_TRUNC|O_CREAT|O_APPEND,0644))>0){
@@ -5378,10 +5041,6 @@ int init_command_file_worker_thread(void){
 	/* main thread should unblock all signals */
 	pthread_sigmask(SIG_UNBLOCK,&newmask,NULL);
 
-#ifdef DEBUG1
-	printf("COMMAND FILE THREAD: %lu\n",(unsigned long)worker_threads[COMMAND_WORKER_THREAD]);
-#endif
-
 	if(result)
 		return ERROR;
 
@@ -5844,10 +5503,6 @@ char *get_program_modification_date(void){
 /* do some cleanup before we exit */
 void cleanup(void){
 
-#ifdef DEBUG0
-	printf("cleanup() start\n");
-#endif
-
 #ifdef USE_EVENT_BROKER
 	/* unload modules */
 	if(test_scheduling==FALSE && verify_config==FALSE){
@@ -5861,10 +5516,6 @@ void cleanup(void){
 	/* free all allocated memory - including macros */
 	free_memory();
 
-#ifdef DEBUG0
-	printf("cleanup() end\n");
-#endif
-
 	return;
 	}
 
@@ -5874,10 +5525,6 @@ void free_memory(void){
 	timed_event *this_event=NULL;
 	timed_event *next_event=NULL;
 	register int x=0;
-
-#ifdef DEBUG0
-	printf("free_memory() start\n");
-#endif
 
 	/* free all allocated memory for the object definitions */
 	free_object_data();
@@ -5957,10 +5604,6 @@ void free_memory(void){
 	my_free((void **)&p1_file);
 	my_free((void **)&log_archive_path);
 
-#ifdef DEBUG0
-	printf("free_memory() end\n");
-#endif
-
 	return;
 	}
 
@@ -5969,10 +5612,6 @@ void free_memory(void){
 void free_notification_list(void){
 	notification *temp_notification=NULL;
 	notification *next_notification=NULL;
-
-#ifdef DEBUG0
-	printf("free_notification_list() start\n");
-#endif
 
 	temp_notification=notification_list;
 	while(temp_notification!=NULL){
@@ -5984,10 +5623,6 @@ void free_notification_list(void){
 	/* reset notification list pointer */
 	notification_list=NULL;
 
-#ifdef DEBUG0
-	printf("free_notification_list() end\n");
-#endif
-
 	return;
         }
 
@@ -5995,10 +5630,6 @@ void free_notification_list(void){
 /* reset all system-wide variables, so when we've receive a SIGHUP we can restart cleanly */
 int reset_variables(void){
 	register int x=0;
-
-#ifdef DEBUG0
-	printf("reset_variables() start\n");
-#endif
 
 	log_file=(char *)strdup(DEFAULT_LOG_FILE);
 	temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
@@ -6166,10 +5797,6 @@ int reset_variables(void){
 
 	/* reset umask */
 	umask(S_IWGRP|S_IWOTH);
-
-#ifdef DEBUG0
-	printf("reset_variables() end\n");
-#endif
 
 	return OK;
         }

@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-09-2007
+ * Last Modified:   05-20-2007
  *
  * License:
  *
@@ -679,9 +679,6 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 					/* move check result to queue directory */
 					move_check_result_to_queue(check_result_info.output_file);
 					}
-
-				/* free memory */
-				my_free((void **)&checkresult_file);
 
 				/* free memory */
 				dbuf_free(&checkresult_dbuf);

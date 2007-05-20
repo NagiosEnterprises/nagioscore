@@ -6,6 +6,9 @@ Nagios 3.x Change Log
 3.0a5 - ??/??/2007
 ------------------
 * Fixed problem with multiline long plugin output and Perl plugin output
+* Fixed compilation problem with embedded Perl
+* More debug/trace log functionality
+
 
 
 3.0a4 - 05/08/2007

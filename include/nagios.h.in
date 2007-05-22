@@ -2,7 +2,7 @@
  *
  * Nagios Main Header File
  * Written By: Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2007
+ * Last Modified: 05-22-2007
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -223,6 +223,7 @@ extern "C" {
 #define DEFAULT_CHECK_HOST_FRESHNESS            		0       /* don't check host result freshness */
 #define DEFAULT_AUTO_RESCHEDULE_CHECKS          		0       /* don't auto-reschedule host and service checks */
 #define DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS                   0       /* should we translate DOWN/UNREACHABLE passive host checks? */
+#define DEFAULT_PASSIVE_HOST_CHECKS_SOFT                        0       /* passive host checks are treated as HARD by default */
 
 #define DEFAULT_LOW_SERVICE_FLAP_THRESHOLD			20.0	/* low threshold for detection of service flapping */
 #define DEFAULT_HIGH_SERVICE_FLAP_THRESHOLD			30.0	/* high threshold for detection of service flapping */
@@ -913,7 +914,7 @@ int handle_host_state(host *);               			/* top level host state handler 
 
 /***** NEW HOST CHECK FUNCTIONS FOR 3.X *****/
 int check_host_check_viability_3x(host *,int,int *,time_t *);
-int adjust_host_check_attempt_3x(host *);
+int adjust_host_check_attempt_3x(host *,int);
 int determine_host_reachability(host *);
 int process_host_check_result_3x(host *,int,char *,int,int,int,unsigned long);
 

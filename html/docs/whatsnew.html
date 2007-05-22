@@ -209,6 +209,7 @@ The change log for Nagios can be found online at <a href="http://www.nagios.org/
 	<li>Added a new <a href="configmain.html#enable_predictive_host_dependency_checks">enable_predictive_host_dependency_checks</a> option to control whether or not Nagios will initiate predictive check of hosts that are being depended upon (in dependency definitions).  Predictive checks help ensure that the dependency logic is as accurate as possible. (<a href="dependencychecks.html">Read more</a>)</li>
 	<li>A new cached host check feature has been implemented that can significantly improve performance for many people Instead of executing a plugin to check the status of a host, Nagios can often use a cached host check result instead.  More information on this can be found <a href="cachedchecks.html">here</a>.</li>
 	<li>Passive host checks that have a DOWN or UNREACHABLE result can now be automatically translated to their proper state from the point of view of the Nagios instance that receives them.  This is very useful in failover and distributed monitoring setups.  More information on passive host check state translation can be found <a href="passivestatetranslation.html">here</a>.</li>
+	<li>Passive host checks normally put a host into a HARD state.  This can now be changed by enabling the <a href="configmain.html#passive_host_checks_are_soft">passive_host_checks_are_soft</a> option.</li>
 	</ul>
 </li>
 <br>

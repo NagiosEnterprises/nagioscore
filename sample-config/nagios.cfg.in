@@ -6,7 +6,7 @@
 # file.  I've provided some comments here, but things may not be so
 # clear without further explanation.
 #
-# Last Modified: 05-08-2007
+# Last Modified: 05-22-2007
 #
 ##############################################################################
 
@@ -884,7 +884,7 @@ obsess_over_hosts=0
 
 
 
-# TRANSLATE PASSIVE HOST CHECKS OPTIONS
+# TRANSLATE PASSIVE HOST CHECKS OPTION
 # This determines whether or not Nagios will translate
 # DOWN/UNREACHABLE passive host check results into their proper
 # state for this instance of Nagios.  This option is useful
@@ -899,6 +899,17 @@ obsess_over_hosts=0
 # Values: 1 = perform translation, 0 = do not translate (default)
 
 translate_passive_host_checks=0
+
+
+
+# PASSIVE HOST CHECKS ARE SOFT OPTION
+# This determines whether or not Nagios will treat passive host
+# checks as being HARD or SOFT.  By default, a passive host check
+# result will put a host into a HARD state type.  This can be changed
+# by enabling this option.
+# Values: 0 = passive checks are HARD, 1 = passive checks are SOFT
+
+passive_host_checks_are_soft=0
 
 
 

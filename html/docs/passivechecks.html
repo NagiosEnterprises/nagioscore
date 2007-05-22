@@ -206,6 +206,10 @@ Unlike with active host checks, Nagios does not (by default) attempt to determin
 You can tell Nagios to translate DOWN/UNREACHABLE passive check result states to their "proper" state by using the <a href="configmain.html#translate_passive_host_checks">translate_passive_host_checks</a> variable.  More information on how this works can be found <a href="passivestatetranslation.html">here</a>.
 </p>
 
+<p>
+<img src="images/note.gif" border="0" align="bottom"> Note: Passive host checks are normally treated as <a href="statetypes.html">HARD states</a>, unless the <a href="configmain.html#passive_host_checks_are_soft">passive_host_checks_are_soft</a> option is enabled.
+</p>
+
 
 <p>
 <strong><u>Submitting Passive Check Results From Remote Hosts</u></strong>

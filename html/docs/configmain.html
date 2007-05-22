@@ -133,6 +133,7 @@ The default name of the main configuration file is <b>nagios.cfg</b> - it is usu
 <br>
 <a href="#use_aggressive_host_checking">Aggressive host checking option</a><br>
 <a href="#translate_passive_host_checks">Translate passive host checks option</a><br>
+<a href="#passive_host_checks_are_soft">Passive host checks are SOFT option</a><br>
 <a href="#enable_predictive_host_dependency_checks">Predictive host dependency checks option</a><br>
 <a href="#enable_predictive_service_dependency_checks">Predictive service dependency checks option</a><br>
 <a href="#cached_host_check_horizon">Cached host check horizon</a><br>
@@ -2020,6 +2021,39 @@ This option determines whether or not Nagios will DOWN/UNREACHABLE passive host 
 <ul>
 <li>0 = Disable check translation (default)
 <li>1 = Enable check translation
+</ul>
+</p>
+
+
+
+
+<p>
+<a name="passive_host_checks_are_soft"></a>
+<table border="0" width="100%" class="Default">
+<tr>
+<td bgcolor="#cbcbcb"><strong>Passive Host Checks Are SOFT Option</strong></td>
+</tr>
+</table>
+</p>
+
+<p>
+<table border="0" class="Default">
+<tr>
+<td>Format:</td>
+<td><strong>passive_host_checks_are_soft=&lt;0/1&gt;</strong></td>
+</tr>
+<tr>
+<td>Example:</td>
+<td><font color="red"><strong>passive_host_checks_are_soft=1</strong></font></td>
+</tr>
+</table>
+</p>
+This option determines whether or not Nagios will treat <a href="passivechecks.html">passive host checks</a> as HARD states or SOFT states.  By default, a passive host check result will put a host into a <a href="statetypes.html">HARD state type</a>.  You can change this behavior by enabling this option.
+</p>
+<p>
+<ul>
+<li>0 = Passive host checks are HARD (default)
+<li>1 = Passive host checks are SOFT
 </ul>
 </p>
 

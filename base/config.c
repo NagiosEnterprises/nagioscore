@@ -3,7 +3,7 @@
  * CONFIG.C - Configuration input and verification routines for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2007
+ * Last Modified: 05-22-2007
  *
  * License:
  *
@@ -151,6 +151,7 @@ extern int      obsess_over_hosts;
 extern int      enable_failure_prediction;
 
 extern int      translate_passive_host_checks;
+extern int      passive_host_checks_are_soft;
 
 extern int      aggregate_status_updates;
 extern int      status_update_interval;
@@ -693,6 +694,9 @@ int read_main_config_file(char *main_config_file){
 
 			translate_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
 		        }
+
+		else if(!strcmp(variable,"passive_host_checks_are_soft"))
+			passive_host_checks_are_soft=(atoi(value)>0)?TRUE:FALSE;
 
 		else if(!strcmp(variable,"service_check_timeout")){
 

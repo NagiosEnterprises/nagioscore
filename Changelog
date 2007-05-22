@@ -8,6 +8,7 @@ Nagios 3.x Change Log
 * Fixed problem with multiline long plugin output and Perl plugin output
 * Fixed compilation problem with embedded Perl
 * More debug/trace log functionality
+* Added new 'passive_host_checks_are_soft' config option
 
 
 

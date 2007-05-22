@@ -3,7 +3,7 @@
  * UTILS.C - Miscellaneous utility functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2007
+ * Last Modified:   05-22-2007
  *
  * License:
  *
@@ -190,6 +190,7 @@ extern int      enable_failure_prediction;
 extern int      process_performance_data;
 
 extern int      translate_passive_host_checks;
+extern int      passive_host_checks_are_soft;
 
 extern int      aggregate_status_updates;
 extern int      status_update_interval;
@@ -5755,6 +5756,7 @@ int reset_variables(void){
 	process_performance_data=DEFAULT_PROCESS_PERFORMANCE_DATA;
 
 	translate_passive_host_checks=DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
+	passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
 	use_large_installation_tweaks=DEFAULT_USE_LARGE_INSTALLATION_TWEAKS;
 

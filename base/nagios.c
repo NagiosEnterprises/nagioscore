@@ -8,7 +8,7 @@
  * Copyright (c) 1999-2007 Ethan Galstad (http://www.nagios.org)
  *
  * First Written:   01-28-1999 (start of development)
- * Last Modified:   05-08-2007
+ * Last Modified:   05-22-2007
  *
  * Description:
  *
@@ -203,6 +203,7 @@ int             obsess_over_hosts=FALSE;
 int             enable_failure_prediction=TRUE;
 
 int             translate_passive_host_checks=DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
+int             passive_host_checks_are_soft=DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 
 int             aggregate_status_updates=TRUE;
 int             status_update_interval=DEFAULT_STATUS_UPDATE_INTERVAL;

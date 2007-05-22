@@ -3,7 +3,7 @@
  * CHECKS.C - Service and host check functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified:   05-20-2007
+ * Last Modified:   05-22-2007
  *
  * License:
  *
@@ -80,6 +80,7 @@ extern int      obsess_over_services;
 extern int      obsess_over_hosts;
 
 extern int      translate_passive_host_checks;
+extern int      passive_host_checks_are_soft;
 
 extern int      check_service_freshness;
 extern int      check_host_freshness;
@@ -1361,7 +1362,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* reschedule the next service check ONLY for active, scheduled checks */
 	if(reschedule_check==TRUE){
 
-		log_debug_info(DEBUGL_CHECKS,1,"Rescheduling next check of service at %s\n",ctime(&next_service_check));
+		log_debug_info(DEBUGL_CHECKS,1,"Rescheduling next check of service at %s",ctime(&next_service_check));
 
 		/* default is to reschedule service check unless a test below fails... */
 		temp_service->should_be_scheduled=TRUE;
@@ -1472,7 +1473,7 @@ void schedule_service_check(service *svc, time_t check_time, int forced){
 	if(svc==NULL)
 		return;
 
-	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of service '%s' on host '%s' @ %s\n",(forced==TRUE)?"forced":"non-forced",svc->description,svc->host_name,ctime(&check_time));
+	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of service '%s' on host '%s' @ %s",(forced==TRUE)?"forced":"non-forced",svc->description,svc->host_name,ctime(&check_time));
 
 	/* don't schedule a check if active checks of this service are disabled */
 	if(svc->checks_enabled==FALSE && forced==FALSE){
@@ -1904,7 +1905,7 @@ void schedule_host_check(host *hst, time_t check_time, int forced){
 	if(hst==NULL)
 		return;
 
-	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of host '%s' @ %s\n",(forced==TRUE)?"forced":"non-forced",hst->name,ctime(&check_time));
+	log_debug_info(DEBUGL_CHECKS,0,"Scheduling a %s, active check of host '%s' @ %s",(forced==TRUE)?"forced":"non-forced",hst->name,ctime(&check_time));
 
 	/* don't schedule a check if active checks of this host are disabled */
 	if(hst->checks_enabled==FALSE && forced==FALSE){
@@ -2302,7 +2303,7 @@ int run_sync_host_check_3x(host *hst, int *check_result, int check_options, int 
 	hst->latency=0.0;
 
 	/* adjust host check attempt */
-	adjust_host_check_attempt_3x(hst);
+	adjust_host_check_attempt_3x(hst,TRUE);
 
 	/* save old host state */
 	hst->last_state=hst->current_state;
@@ -2638,7 +2639,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		hst->check_options-=CHECK_OPTION_FORCE_EXECUTION;
 
 	/* adjust host check attempt */
-	adjust_host_check_attempt_3x(hst);
+	adjust_host_check_attempt_3x(hst,TRUE);
 
 	/* increment number of host checks that are currently running... */
 	currently_running_host_checks++;
@@ -3122,10 +3123,15 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	/* default next check time */
 	next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 
-	/******* HOST IS DOWN/UNREACHABLE INITIALLY *******/
+	/* we have to adjust current attempt # for passive checks, as it isn't done elsewhere */
+	if(hst->check_type==HOST_CHECK_PASSIVE && passive_host_checks_are_soft==TRUE)
+		adjust_host_check_attempt_3x(hst,FALSE);
+
+
+	/******* HOST WAS DOWN/UNREACHABLE INITIALLY *******/
 	if(hst->current_state!=HOST_UP){
 
-		log_debug_info(DEBUGL_CHECKS,1,"Host was DOWN/REACHABLE.\n");
+		log_debug_info(DEBUGL_CHECKS,1,"Host was DOWN/UNREACHABLE.\n");
 
 		/***** HOST IS NOW UP *****/
 		/* the host just recovered! */
@@ -3135,8 +3141,8 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 			hst->current_state=HOST_UP;
 
 			/* set the state type */
-			/* set state type to HARD for passive checks and active checks that were previously in a HARD STATE*/
-			if(hst->check_type==HOST_CHECK_PASSIVE || hst->state_type==HARD_STATE)
+			/* set state type to HARD for passive checks and active checks that were previously in a HARD STATE */
+			if(hst->state_type==HARD_STATE || (hst->check_type==HOST_CHECK_PASSIVE && passive_host_checks_are_soft==FALSE))
 				hst->state_type=HARD_STATE;
 			else
 				hst->state_type=SOFT_STATE;
@@ -3176,10 +3182,20 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 		/* we're still in a problem state... */
 		else{
 
-			log_debug_info(DEBUGL_CHECKS,1,"Host is still DOWN/REACHABLE.\n");
+			log_debug_info(DEBUGL_CHECKS,1,"Host is still DOWN/UNREACHABLE.\n");
 
-			/* active checks are the norm... */
-			if(hst->check_type==HOST_CHECK_ACTIVE){
+			/* passive checks are treated as HARD states by default... */
+			if(hst->check_type==HOST_CHECK_PASSIVE && passive_host_checks_are_soft==FALSE){
+
+				/* set the state type */
+				hst->state_type=HARD_STATE;
+
+				/* reset the current attempt */
+				hst->current_attempt=1;
+				}
+
+			/* active checks and passive checks (treated as SOFT states) */
+			else{
 
 				/* set the state type */
 				/* we've maxed out on the retries */
@@ -3191,53 +3207,33 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				/* the host is in a soft state and the check will be retried */
 				else
 					hst->state_type=SOFT_STATE;
+			        }
 
-				/* reschedule the next check if the host state changed */
-				if(hst->last_state!=hst->current_state || hst->last_hard_state!=hst->current_state){
-
-					reschedule_check=TRUE;
-
-					/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
-					if(hst->state_type==SOFT_STATE)
-						next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
-
-					/* host has maxed out on retries (or was previously in a hard problem state), so reschedule the next check at the normal interval */
-					else
-						next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
-					}
-
-				/* make a determination of the host's state */
-				hst->current_state=new_state;
+			/* make a determination of the host's state */
+			/* translate host state between DOWN/UNREACHABLE (only for passive checks if enabled) */
+			hst->current_state=new_state;
+			if(hst->check_type==HOST_CHECK_ACTIVE || translate_passive_host_checks==TRUE)
 				hst->current_state=determine_host_reachability(hst);
-			        }
+			
+			/* reschedule the next check if the host state changed */
+			if(hst->last_state!=hst->current_state || hst->last_hard_state!=hst->current_state){
 
-			/* passive checks have some exceptions... */
-			else{
+				reschedule_check=TRUE;
 
-				/* set the state type */
-				hst->state_type=HARD_STATE;
+				/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
+				if(hst->state_type==SOFT_STATE)
+					next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
 
-				/* set the state */
-				hst->current_state=new_state;
-
-				/* translate host state between DOWN/UNREACHABLE for passive checks (if enabled) */
-				/* make a determination of the host's state */
-				if(translate_passive_host_checks==TRUE)
-					hst->current_state=determine_host_reachability(hst);
-
-				/* reset the current attempt */
-				hst->current_attempt=1;
-
-				/* schedule another check at the normal interval */
-				if(reschedule_check==TRUE)
+				/* host has maxed out on retries (or was previously in a hard problem state), so reschedule the next check at the normal interval */
+				else
 					next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
-			        }
+				}
 
 		        }
 
 	        }
 
-	/******* HOST IS UP INITIALLY *******/
+	/******* HOST WAS UP INITIALLY *******/
 	else{
 
 		log_debug_info(DEBUGL_CHECKS,1,"Host was UP.\n");
@@ -3277,7 +3273,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 				next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
 
 				/* we need to run SYNCHRONOUS checks of all parent hosts to accurately determine the state of this host */
-				/* this is extremely inefficient (reminiscent of Nagios 2.x logic), but there's no other way around it */
+				/* this is extremely inefficient (reminiscent of Nagios 2.x logic), but there's no other good way around it */
 				/* check all parent hosts to see if we're DOWN or UNREACHABLE */
 				/* only do this for ACTIVE checks, as PASSIVE checks contain a pre-determined state */
 				if(hst->check_type==HOST_CHECK_ACTIVE){
@@ -3345,42 +3341,39 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 			/***** MAX ATTEMPTS > 1 *****/
 			else{
 
-				/* active checks are the normal case... */
-				if(hst->check_type==HOST_CHECK_ACTIVE){
+				/* active and (in some cases) passive check results are treated as SOFT states */
+				if(hst->check_type==HOST_CHECK_ACTIVE || passive_host_checks_are_soft==TRUE){
 
 					/* set the state type */
 					hst->state_type=SOFT_STATE;
+					}
 
-					/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
-					reschedule_check=TRUE;
-					next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
-
-					/* make a preliminary determination of the host's state */
-					hst->current_state=new_state;
-					hst->current_state=determine_host_reachability(hst);
-				        }
-
-				/* passive checks have a few differences... */
+				/* by default, passive check results are treated as HARD states */
 				else{
 
 					/* set the state type */
 					hst->state_type=HARD_STATE;
 
-					/* set the state */
-					hst->current_state=new_state;
-
-					/* translate host state between DOWN/UNREACHABLE for passive checks (if enabled) */
-					/* make a determination of the host's state */
-					if(translate_passive_host_checks==TRUE)
-						hst->current_state=determine_host_reachability(hst);
-
 					/* reset the current attempt */
 					hst->current_attempt=1;
+					}
 
-					/* schedule a re-check of the host at the normal interval */
-					reschedule_check=TRUE;
+				/* make a (in some cases) preliminary determination of the host's state */
+				/* translate host state between DOWN/UNREACHABLE (for passive checks only if enabled) */
+				hst->current_state=new_state;
+				if(hst->check_type==HOST_CHECK_ACTIVE || translate_passive_host_checks==TRUE)
+					hst->current_state=determine_host_reachability(hst);
+
+				/* reschedule a check of the host */
+				reschedule_check=TRUE;
+
+				/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
+				if(hst->check_type==HOST_CHECK_ACTIVE || passive_host_checks_are_soft==TRUE)
+					next_check=(unsigned long)(current_time+(hst->retry_interval*interval_length));
+
+				/* schedule a re-check of the host at the normal interval */
+				else
 					next_check=(unsigned long)(current_time+(hst->check_interval*interval_length));
-				        }
 
 				/* propagate checks to immediate parents if they are UP */
 				/* we do this because a parent host (or grandparent) may have gone down and blocked our route */
@@ -3449,10 +3442,10 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 	/* check to see if the associated host is flapping */
 	check_for_host_flapping(hst,TRUE,TRUE);
 
-	/* reschedule the next check of the host ONLY for scheduled, active checks */
+	/* reschedule the next check of the host (usually ONLY for scheduled, active checks, unless overridden above) */
 	if(reschedule_check==TRUE){
 
-		log_debug_info(DEBUGL_CHECKS,1,"Rescheduling next check of host at %s\n",ctime(&next_check));
+		log_debug_info(DEBUGL_CHECKS,1,"Rescheduling next check of host at %s",ctime(&next_check));
 
 		/* default is to reschedule host check unless a test below fails... */
 		hst->should_be_scheduled=TRUE;
@@ -3572,7 +3565,7 @@ int check_host_check_viability_3x(host *hst, int check_options, int *time_is_val
 
 
 /* adjusts current host check attempt before a new check is performed */
-int adjust_host_check_attempt_3x(host *hst){
+int adjust_host_check_attempt_3x(host *hst, int is_active){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"adjust_host_check_attempt_3x()\n");
 
@@ -3585,8 +3578,8 @@ int adjust_host_check_attempt_3x(host *hst){
 	if(hst->state_type==HARD_STATE)
 		hst->current_attempt=1;
 
-	/* if host is in a soft UP state, reset current attempt number */
-	else if(hst->state_type==SOFT_STATE && hst->current_state==HOST_UP)
+	/* if host is in a soft UP state, reset current attempt number (active checks only) */
+	else if(is_active==TRUE && hst->state_type==SOFT_STATE && hst->current_state==HOST_UP)
 		hst->current_attempt=1;
 
 	/* increment current attempt number */

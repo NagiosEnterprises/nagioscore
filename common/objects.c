@@ -3,7 +3,7 @@
  * OBJECTS.C - Object addition and search functions for Nagios
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 05-20-2007
+ * Last Modified: 05-24-2007
  *
  * License:
  *
@@ -642,7 +642,7 @@ int add_serviceescalation_to_hashlist(serviceescalation *new_serviceescalation){
 /* add a new timeperiod to the list in memory */
 timeperiod *add_timeperiod(char *name,char *alias){
 	timeperiod *new_timeperiod=NULL;
-	int day=0;
+	int x=0;
 	int result=OK;
 #ifdef NSCORE
 	char *temp_buffer=NULL;
@@ -675,8 +675,10 @@ timeperiod *add_timeperiod(char *name,char *alias){
 	/* initialize values */
 	new_timeperiod->name=NULL;
 	new_timeperiod->alias=NULL;
-	for(day=0;day<7;day++)
-		new_timeperiod->days[day]=NULL;
+	for(x=0;x<DATERANGE_TYPES;x++)
+		new_timeperiod->exceptions[x]=NULL;
+	for(x=0;x<7;x++)
+		new_timeperiod->days[x]=NULL;
 	new_timeperiod->next=NULL;
 	new_timeperiod->nexthash=NULL;
 
@@ -3756,6 +3758,8 @@ int check_for_circular_hostdependency_path(hostdependency *root_dep, hostdepende
 int free_object_data(void){
 	timeperiod *this_timeperiod=NULL;
 	timeperiod *next_timeperiod=NULL;
+	daterange *this_daterange=NULL;
+	daterange *next_daterange=NULL;
 	timerange *this_timerange=NULL;
 	timerange *next_timerange=NULL;
 	host *this_host=NULL;
@@ -3796,7 +3800,7 @@ int free_object_data(void){
 	hostdependency *next_hostdependency=NULL;
 	hostescalation *this_hostescalation=NULL;
 	hostescalation *next_hostescalation=NULL;
-	register int day=0;
+	register int x=0;
 	register int i=0;
 
 
@@ -3804,10 +3808,23 @@ int free_object_data(void){
 	this_timeperiod=timeperiod_list;
 	while(this_timeperiod!=NULL){
 
-		/* free the time ranges contained in this timeperiod */
-		for(day=0;day<7;day++){
+		/* free the exception time ranges contained in this timeperiod */
+		for(x=0;x<DATERANGE_TYPES;x++){
 
-			for(this_timerange=this_timeperiod->days[day];this_timerange!=NULL;this_timerange=next_timerange){
+			for(this_daterange=this_timeperiod->exceptions[x];this_daterange!=NULL;this_daterange=next_daterange){
+				next_daterange=this_daterange->next;
+				for(this_timerange=this_daterange->times;this_timerange!=NULL;this_timerange=next_timerange){
+					next_timerange=this_timerange->next;
+					my_free((void **)&this_timerange);
+					}
+				my_free((void **)&this_daterange);
+			        }
+		        }
+
+		/* free the day time ranges contained in this timeperiod */
+		for(x=0;x<7;x++){
+
+			for(this_timerange=this_timeperiod->days[x];this_timerange!=NULL;this_timerange=next_timerange){
 				next_timerange=this_timerange->next;
 				my_free((void **)&this_timerange);
 			        }

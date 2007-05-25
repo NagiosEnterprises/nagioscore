@@ -3,7 +3,7 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2007 Ethan Galstad (nagios@nagios.org)
- * Last Modified: 04-02-2007
+ * Last Modified: 05-25-2007
  *
  * License:
  *
@@ -37,7 +37,7 @@
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        301     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        302     /* increment when changes are made to data structures... */
 	                                                /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -47,6 +47,16 @@
 #define MAX_STATE_HISTORY_ENTRIES		21	/* max number of old states to keep track of for flap detection */
 #define MAX_CONTACT_ADDRESSES                   6       /* max number of custom addresses a contact can have */
 
+
+/***************** DATE RANGE TYPES *******************/
+
+#define DATERANGE_CALENDAR_DATE  0  /* 2008-12-25 */
+#define DATERANGE_MONTH_DATE     1  /* july 4 (specific month) */
+#define DATERANGE_MONTH_DAY      2  /* day 21 (generic month) */
+#define DATERANGE_MONTH_WEEK_DAY 3  /* 3rd thursday (specific month) */
+#define DATERANGE_WEEK_DAY       4  /* 3rd thursday (generic month) */
+#define DATERANGE_SKIP_DAY       5  /* every n days */
+#define DATERANGE_TYPES          6 
 
 
 /***************** CHAINED HASH LIMITS ****************/
@@ -79,6 +89,7 @@ typedef struct objectlist_struct{
 	struct objectlist_struct *next;
         }objectlist;
 
+
 /* TIMERANGE structure */
 typedef struct timerange_struct{
 	unsigned long range_start;
@@ -87,11 +98,31 @@ typedef struct timerange_struct{
         }timerange;
 
 
+/* DATERANGE structure */
+typedef struct daterange_struct{
+	int type;
+	int syear;          /* start year */
+	int smon;           /* start month */
+	int smday;          /* start day of month (may 3rd, last day in feb) */
+	int swday;          /* start day of week (thursday) */
+	int swday_offset;   /* start weekday offset (3rd thursday, last monday in jan) */
+	int eyear;
+	int emon;
+	int emday;
+	int ewday;
+	int ewday_offset;
+	int skip_interval;
+	timerange *times;
+	struct daterange_struct *next;
+	}daterange;
+
+
 /* TIMEPERIOD structure */
 typedef struct timeperiod_struct{
 	char    *name;
 	char    *alias;
 	timerange *days[7];
+	daterange *exceptions[DATERANGE_TYPES];
 	struct 	timeperiod_struct *next;
 	struct 	timeperiod_struct *nexthash;
 	}timeperiod;
